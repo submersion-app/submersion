@@ -7,7 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 const int kErrSecMissingEntitlement = -34018;
 
 bool _usesDataProtection(AppleOptions? mOptions) =>
-    (mOptions as MacOsOptions?)?.usesDataProtectionKeychain ?? true;
+    mOptions is MacOsOptions ? mOptions.usesDataProtectionKeychain : true;
 
 /// An in-memory keychain that ignores `mOptions` -- both keychains behave
 /// identically, modelling a normally-entitled build where no fallback runs.

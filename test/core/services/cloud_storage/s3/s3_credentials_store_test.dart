@@ -6,52 +6,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_credentials_store.dart';
 
-class _MemorySecureStorage extends Fake implements FlutterSecureStorage {
-  final Map<String, String> values = {};
+import '../../../../support/fake_keychain_storage.dart';
 
-  @override
-  Future<String?> read({
-    required String key,
-    AppleOptions? iOptions,
-    AndroidOptions? aOptions,
-    LinuxOptions? lOptions,
-    WebOptions? webOptions,
-    AppleOptions? mOptions,
-    WindowsOptions? wOptions,
-  }) async => values[key];
-
-  @override
-  Future<void> write({
-    required String key,
-    required String? value,
-    AppleOptions? iOptions,
-    AndroidOptions? aOptions,
-    LinuxOptions? lOptions,
-    WebOptions? webOptions,
-    AppleOptions? mOptions,
-    WindowsOptions? wOptions,
-  }) async {
-    if (value == null) {
-      values.remove(key);
-    } else {
-      values[key] = value;
-    }
-  }
-
-  @override
-  Future<void> delete({
-    required String key,
-    AppleOptions? iOptions,
-    AndroidOptions? aOptions,
-    LinuxOptions? lOptions,
-    WebOptions? webOptions,
-    AppleOptions? mOptions,
-    WindowsOptions? wOptions,
-  }) async {
-    values.remove(key);
-  }
-}
-
+/// Throws a generic (non-[PlatformException]) error, proving the fallback only
+/// intercepts keychain platform errors and lets everything else propagate.
 class _ThrowingSecureStorage extends Fake implements FlutterSecureStorage {
   @override
   Future<String?> read({
@@ -65,112 +23,12 @@ class _ThrowingSecureStorage extends Fake implements FlutterSecureStorage {
   }) async => throw Exception('keychain locked');
 }
 
-/// Simulates an ad-hoc-signed, no-sandbox macOS build: the data-protection
-/// keychain returns `errSecMissingEntitlement` (-34018) because the binary
-/// carries no keychain access group, while the legacy file-based keychain
-/// works. Lets the tests prove [S3CredentialsStore] retries on the legacy
-/// keychain.
-class _NoEntitlementSecureStorage extends Fake implements FlutterSecureStorage {
-  /// Backing store standing in for the legacy (file-based) keychain.
-  final Map<String, String> legacy = {};
-
-  /// Set once the data-protection keychain has been attempted, proving the
-  /// store prefers the secure keychain before falling back.
-  bool dataProtectionAttempted = false;
-
-  static const int _errSecMissingEntitlement = -34018;
-
-  bool _usesDataProtection(AppleOptions? mOptions) =>
-      (mOptions as MacOsOptions?)?.usesDataProtectionKeychain ?? true;
-
-  PlatformException _missingEntitlement() => PlatformException(
-    code: 'Unexpected security result code',
-    message: "A required entitlement isn't present.",
-    details: _errSecMissingEntitlement,
-  );
-
-  @override
-  Future<String?> read({
-    required String key,
-    AppleOptions? iOptions,
-    AndroidOptions? aOptions,
-    LinuxOptions? lOptions,
-    WebOptions? webOptions,
-    AppleOptions? mOptions,
-    WindowsOptions? wOptions,
-  }) async {
-    if (_usesDataProtection(mOptions)) {
-      dataProtectionAttempted = true;
-      throw _missingEntitlement();
-    }
-    return legacy[key];
-  }
-
-  @override
-  Future<void> write({
-    required String key,
-    required String? value,
-    AppleOptions? iOptions,
-    AndroidOptions? aOptions,
-    LinuxOptions? lOptions,
-    WebOptions? webOptions,
-    AppleOptions? mOptions,
-    WindowsOptions? wOptions,
-  }) async {
-    if (_usesDataProtection(mOptions)) {
-      dataProtectionAttempted = true;
-      throw _missingEntitlement();
-    }
-    if (value == null) {
-      legacy.remove(key);
-    } else {
-      legacy[key] = value;
-    }
-  }
-
-  @override
-  Future<void> delete({
-    required String key,
-    AppleOptions? iOptions,
-    AndroidOptions? aOptions,
-    LinuxOptions? lOptions,
-    WebOptions? webOptions,
-    AppleOptions? mOptions,
-    WindowsOptions? wOptions,
-  }) async {
-    if (_usesDataProtection(mOptions)) {
-      dataProtectionAttempted = true;
-      throw _missingEntitlement();
-    }
-    legacy.remove(key);
-  }
-}
-
-/// Throws a keychain [PlatformException] whose status is NOT the
-/// missing-entitlement code, proving the fallback rethrows it untouched.
-class _OtherSecurityErrorStorage extends Fake implements FlutterSecureStorage {
-  @override
-  Future<String?> read({
-    required String key,
-    AppleOptions? iOptions,
-    AndroidOptions? aOptions,
-    LinuxOptions? lOptions,
-    WebOptions? webOptions,
-    AppleOptions? mOptions,
-    WindowsOptions? wOptions,
-  }) async => throw PlatformException(
-    code: 'Unexpected security result code',
-    message: 'interaction not allowed',
-    details: -25308, // errSecInteractionNotAllowed
-  );
-}
-
 void main() {
-  late _MemorySecureStorage storage;
+  late InMemoryKeychain storage;
   late S3CredentialsStore store;
 
   setUp(() {
-    storage = _MemorySecureStorage();
+    storage = InMemoryKeychain();
     store = S3CredentialsStore(storage: storage);
   });
 
@@ -225,7 +83,7 @@ void main() {
   group('keychain entitlement fallback', () {
     test('load falls back to the legacy keychain when the data-protection '
         'keychain reports errSecMissingEntitlement', () async {
-      final storage = _NoEntitlementSecureStorage();
+      final storage = NoEntitlementKeychain();
       storage.legacy[S3CredentialsStore.storageKey] = jsonEncode(
         config().toJson(),
       );
@@ -245,7 +103,7 @@ void main() {
     test(
       'save falls back to the legacy keychain on errSecMissingEntitlement',
       () async {
-        final storage = _NoEntitlementSecureStorage();
+        final storage = NoEntitlementKeychain();
         final fallbackStore = S3CredentialsStore(storage: storage);
 
         await fallbackStore.save(config());
@@ -261,7 +119,7 @@ void main() {
       'a non-entitlement PlatformException is not swallowed by the fallback',
       () async {
         final failingStore = S3CredentialsStore(
-          storage: _OtherSecurityErrorStorage(),
+          storage: FailingKeychain(-25308),
         );
 
         expect(failingStore.load(), throwsA(isA<PlatformException>()));
