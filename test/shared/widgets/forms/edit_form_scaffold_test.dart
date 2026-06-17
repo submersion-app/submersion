@@ -124,42 +124,43 @@ void main() {
   });
 
   testWidgets(
-      'full-page save button uses AppBar foreground color, not primary',
-      (tester) async {
-    // Simulates themes like Tropical where AppBar bg == primary color,
-    // which would make a default TextButton invisible.
-    const appBarForeground = Color(0xFFFFFFFF);
-    const primary = Color(0xFF00B4A0);
+    'full-page save button uses AppBar foreground color, not primary',
+    (tester) async {
+      // Simulates themes like Tropical where AppBar bg == primary color,
+      // which would make a default TextButton invisible.
+      const appBarForeground = Color(0xFFFFFFFF);
+      const primary = Color(0xFF00B4A0);
 
-    await tester.pumpWidget(
-      MaterialApp(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        theme: ThemeData(
-          colorScheme: const ColorScheme.light(primary: primary),
-          appBarTheme: const AppBarTheme(
-            backgroundColor: primary,
-            foregroundColor: appBarForeground,
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          theme: ThemeData(
+            colorScheme: const ColorScheme.light(primary: primary),
+            appBarTheme: const AppBarTheme(
+              backgroundColor: primary,
+              foregroundColor: appBarForeground,
+            ),
+          ),
+          home: EditFormScaffold(
+            title: 'Edit',
+            embedded: false,
+            isSaving: false,
+            hasUnsavedChanges: false,
+            onSave: () {},
+            child: const SizedBox(),
           ),
         ),
-        home: EditFormScaffold(
-          title: 'Edit',
-          embedded: false,
-          isSaving: false,
-          hasUnsavedChanges: false,
-          onSave: () {},
-          child: const SizedBox(),
-        ),
-      ),
-    );
+      );
 
-    final textWidget = tester.widget<Text>(find.text('Save'));
-    // The text style should resolve to the AppBar foreground, not primary.
-    final renderParagraph =
-        tester.renderObject<RenderParagraph>(find.text('Save'));
-    final paintedColor = renderParagraph.text.style?.color;
-    expect(paintedColor, appBarForeground);
-  });
+      // The text style should resolve to the AppBar foreground, not primary.
+      final renderParagraph = tester.renderObject<RenderParagraph>(
+        find.text('Save'),
+      );
+      final paintedColor = renderParagraph.text.style?.color;
+      expect(paintedColor, appBarForeground);
+    },
+  );
 
   testWidgets('does not impose a fixed content width', (tester) async {
     // Width handling moved to ResponsiveFormColumns; the scaffold passes the
