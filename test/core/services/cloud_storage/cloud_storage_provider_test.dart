@@ -21,5 +21,21 @@ void main() {
       );
       expect(exception.displayMessage, contains('CERTIFICATE_VERIFY_FAILED'));
     });
+
+    test('does not throw when the cause has a throwing toString', () {
+      // displayMessage feeds a UI surface, so it must never throw even if a
+      // pathological cause's toString does.
+      final exception = CloudStorageException('Upload failed', _Hostile());
+
+      expect(() => exception.displayMessage, returnsNormally);
+      expect(exception.displayMessage, contains('Upload failed'));
+      expect(() => exception.toString(), returnsNormally);
+    });
   });
+}
+
+/// A cause whose toString throws, to exercise the non-throwing fallback.
+class _Hostile {
+  @override
+  String toString() => throw StateError('boom');
 }
