@@ -3,6 +3,45 @@
 All notable changes to Submersion are documented in this file.
 
 
+## 1.5.2 (2026-06-17)
+
+### Features
+
+- expose prior-experience fields in Diver Profile hub
+- gate iCloud tile by capability and localize failures
+- add iCloud availability strings for all locales
+- add native getICloudAvailability on iOS
+- add native getICloudAvailability on macOS
+- expose iCloudAvailabilityProvider
+- add ICloudAvailability status to ICloudNativeService
+
+### Bug Fixes
+
+- assert sentinel copyWith param types in debug
+- let Diver.copyWith clear nullable fields
+- address PR review and raise iCloud patch coverage
+- retry on legacy keychain for ad-hoc no-sandbox build
+- drop macOS-only SecTask from iOS handler (fixes iOS build)
+
+### Refactoring
+
+- remove orphaned DiverEditPage and /divers route tree
+
+### Documentation
+
+- plans
+- add wiki documentation redesign implementation plan
+- clarify ICloudAvailability unsupported/unknown semantics
+
+### Tests
+
+- address review feedback
+
+### Chores
+
+- bump version to 1.5.2+99
+
+
 ## 1.5.1 (2026-06-15)
 
 ### Bug Fixes
