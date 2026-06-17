@@ -25,9 +25,12 @@ Future<void> main() async {
   // weather, geocoding) routes through a SecurityContext seeded from the OS
   // certificate store, with an embedded CA fallback. No-op on platforms whose
   // default trust already works. Must run before the first network request.
+  // (Windows-only and inside main(), so not reachable from the test host.)
+  // coverage:ignore-start
   if (Platform.isWindows) {
     HttpOverrides.global = TrustedHttpOverrides();
   }
+  // coverage:ignore-end
 
   // Apply the global Flutter image-cache byte / object caps for cached
   // network media. Must run after `ensureInitialized()` (which constructs

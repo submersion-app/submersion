@@ -28,13 +28,20 @@ bool _resolved = false;
 SecurityContext? appSecurityContext() {
   if (_resolved) return _cached;
   _resolved = true;
-  _cached = Platform.isWindows
-      ? buildWindowsSecurityContext(
-          readNativeRoots: readWindowsRootCertificates,
-          fallbackBundlePem: embeddedCaBundlePem,
-        )
-      : null;
+  if (!Platform.isWindows) {
+    _cached = null;
+    return _cached;
+  }
+  // Windows-only: the native store read + context build cannot run on the
+  // non-Windows CI host, so it is excluded from coverage. The pure builder
+  // it delegates to (buildWindowsSecurityContext) is covered directly.
+  // coverage:ignore-start
+  _cached = buildWindowsSecurityContext(
+    readNativeRoots: readWindowsRootCertificates,
+    fallbackBundlePem: embeddedCaBundlePem,
+  );
   return _cached;
+  // coverage:ignore-end
 }
 
 /// Builds a Windows trust context from [readNativeRoots] DER certificates,

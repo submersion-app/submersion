@@ -28,6 +28,10 @@ import 'package:ffi/ffi.dart';
 List<Uint8List> readWindowsRootCertificates() {
   if (!Platform.isWindows) return const [];
 
+  // The crypt32 FFI path only loads and runs on Windows, so it cannot be
+  // exercised by the non-Windows CI host; excluded from coverage. Verified
+  // on Windows hardware instead.
+  // coverage:ignore-start
   final crypt32 = DynamicLibrary.open('crypt32.dll');
   final certOpenSystemStore = crypt32
       .lookupFunction<_CertOpenSystemStoreNative, _CertOpenSystemStoreDart>(
@@ -68,6 +72,7 @@ List<Uint8List> readWindowsRootCertificates() {
     malloc.free(storeNamePtr);
   }
   return certificates;
+  // coverage:ignore-end
 }
 
 /// Mirror of the Win32 `CERT_CONTEXT` struct; only the encoded-bytes fields

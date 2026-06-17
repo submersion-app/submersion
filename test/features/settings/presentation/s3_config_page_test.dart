@@ -393,6 +393,21 @@ void main() {
     expect(find.textContaining('CERTIFICATE_VERIFY_FAILED'), findsOneWidget);
   });
 
+  testWidgets('save failure surfaces a CloudStorageException cause', (
+    tester,
+  ) async {
+    store.failSaveWith = const CloudStorageException(
+      'Save failed',
+      'HandshakeException: CERTIFICATE_VERIFY_FAILED',
+    );
+    await pumpPage(tester);
+    await fillValidForm(tester);
+    await tester.ensureVisible(find.byKey(const Key('s3-save')));
+    await tester.tap(find.byKey(const Key('s3-save')));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('CERTIFICATE_VERIFY_FAILED'), findsOneWidget);
+  });
+
   testWidgets('save failure surfaces an error and selects nothing', (
     tester,
   ) async {
