@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/dive_field.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -124,9 +125,50 @@ void main() {
   });
 
   group('DiveFieldFormatter - gas fields', () {
-    test('sacRate formats with volume symbol and per-minute', () {
-      final result = DiveField.sacRate.formatValue(12.3, units);
-      expect(result, '12.3 ${units.volumeSymbol}/min');
+    test('sacRate volume mode (litersPerMin) formats as L/min', () {
+      const litersUnits = UnitFormatter(
+        AppSettings(
+          sacUnit: SacUnit.litersPerMin,
+          volumeUnit: VolumeUnit.liters,
+        ),
+      );
+      final result = DiveField.sacRate.formatValue(12.3, litersUnits);
+      expect(result, '12.3 L/min');
+    });
+
+    test('sacRate volume mode converts L/min to cuft/min in imperial', () {
+      const cuftUnits = UnitFormatter(
+        AppSettings(
+          sacUnit: SacUnit.litersPerMin,
+          volumeUnit: VolumeUnit.cubicFeet,
+        ),
+      );
+      // 12.3 L/min * 0.0353147 = 0.434 cuft/min
+      final result = DiveField.sacRate.formatValue(12.3, cuftUnits);
+      expect(result, '0.4 cuft/min');
+    });
+
+    test('sacRate pressure mode (pressurePerMin) formats as bar/min', () {
+      const barUnits = UnitFormatter(
+        AppSettings(
+          sacUnit: SacUnit.pressurePerMin,
+          pressureUnit: PressureUnit.bar,
+        ),
+      );
+      final result = DiveField.sacRate.formatValue(12.3, barUnits);
+      expect(result, '12.3 bar/min');
+    });
+
+    test('sacRate pressure mode converts bar/min to psi/min in imperial', () {
+      const psiUnits = UnitFormatter(
+        AppSettings(
+          sacUnit: SacUnit.pressurePerMin,
+          pressureUnit: PressureUnit.psi,
+        ),
+      );
+      // 12.3 bar/min * 14.5038 = 178.4 psi/min
+      final result = DiveField.sacRate.formatValue(12.3, psiUnits);
+      expect(result, '178.4 psi/min');
     });
 
     test('sacRate returns "--" for non-double', () {

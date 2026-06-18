@@ -1,4 +1,5 @@
 import 'package:submersion/core/constants/dive_field.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 
@@ -6,7 +7,17 @@ import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 /// entities for each [DiveField].
 extension DiveFieldExtractor on DiveField {
   /// Extract the raw value for this field from a full [Dive] entity.
-  dynamic extractFromDive(Dive dive) {
+  ///
+  /// [sacUnit] selects which base value [DiveField.sacRate] yields: volume-based
+  /// L/min ([Dive.sac]) or pressure-based bar/min ([Dive.sacPressure]). It must
+  /// match the [UnitFormatter] later used to format the value so the unit suffix
+  /// is correct. Defaults to [SacUnit.pressurePerMin] to match the AppSettings
+  /// default, so an omitted argument stays consistent with default settings.
+  /// Other fields ignore it.
+  dynamic extractFromDive(
+    Dive dive, {
+    SacUnit sacUnit = SacUnit.pressurePerMin,
+  }) {
     switch (this) {
       case DiveField.diveNumber:
         return dive.diveNumber;
@@ -65,7 +76,7 @@ extension DiveFieldExtractor on DiveField {
       case DiveField.endPressure:
         return dive.tanks.isNotEmpty ? dive.tanks.first.endPressure : null;
       case DiveField.sacRate:
-        return _computeSacRate(dive);
+        return _computeSacRate(dive, sacUnit);
       case DiveField.gasConsumed:
         return _computeGasConsumed(dive);
       case DiveField.totalWeight:
@@ -168,11 +179,15 @@ extension DiveFieldExtractor on DiveField {
   }
 }
 
-/// Compute the SAC rate (Surface Air Consumption) in L/min from a [Dive].
+/// Compute the SAC rate (Surface Air Consumption) for a [Dive].
 ///
-/// Delegates to [Dive.sac], which sums gas consumed across all tanks with
-/// valid data and divides by runtime and average pressure.
-double? _computeSacRate(Dive dive) => dive.sac;
+/// Returns the base value matching [sacUnit]:
+/// - [SacUnit.litersPerMin]: volume-based L/min from [Dive.sac] (sums gas across
+///   all tanks with volume data).
+/// - [SacUnit.pressurePerMin]: pressure-based bar/min from [Dive.sacPressure]
+///   (back gas tank pressure drop; no tank volume required).
+double? _computeSacRate(Dive dive, SacUnit sacUnit) =>
+    sacUnit == SacUnit.litersPerMin ? dive.sac : dive.sacPressure;
 
 /// Compute the total gas consumed in liters across all tanks of a [Dive].
 double? _computeGasConsumed(Dive dive) {

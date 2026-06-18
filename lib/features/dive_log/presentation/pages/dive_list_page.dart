@@ -857,7 +857,10 @@ class DiveListTile extends ConsumerWidget {
                           runSpacing: 4,
                           children: extraFields.map((field) {
                             final value = fullDive != null
-                                ? field.extractFromDive(fullDive!)
+                                ? field.extractFromDive(
+                                    fullDive!,
+                                    sacUnit: units.sacUnit,
+                                  )
                                 : (field.extractFromSummary(summary!) ??
                                       _fallbackValue(field));
                             final formatted = field.formatValue(value, units);
@@ -1004,7 +1007,7 @@ class DiveListTile extends ConsumerWidget {
   ) {
     // Use full Dive when available (has all fields), otherwise try summary
     dynamic value = fullDive != null
-        ? field.extractFromDive(fullDive!)
+        ? field.extractFromDive(fullDive!, sacUnit: units.sacUnit)
         : summary != null
         ? field.extractFromSummary(summary)
         : null;
