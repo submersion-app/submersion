@@ -131,9 +131,23 @@ class BackupService {
   /// the backup is also uploaded to cloud storage.
   Future<BackupRecord> performBackup({bool isAutomatic = false}) async {
     _log.info('Starting backup (automatic: $isAutomatic)');
+    // Arm any security-scoped access needed to reach a custom Apple location,
+    // and release it once the write (and prune) are done.
+    final lease = await BackupService.resolveBackupsDirectoryLeased(
+      _preferences,
+    );
+    try {
+      return await _performBackupInto(lease.path, isAutomatic: isAutomatic);
+    } finally {
+      await lease.release();
+    }
+  }
 
+  Future<BackupRecord> _performBackupInto(
+    String localDir, {
+    required bool isAutomatic,
+  }) async {
     final filename = _generateFilename();
-    final localDir = await getBackupsDirectory();
     final localPath = p.join(localDir, filename);
 
     // Copy the database file

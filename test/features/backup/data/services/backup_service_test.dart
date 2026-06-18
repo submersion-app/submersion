@@ -7,6 +7,7 @@ import 'package:sqlite3/sqlite3.dart' as sqlite3;
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/backup_bookmark_service.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/sync/library_epoch_store.dart';
 import 'package:submersion/core/services/sync/post_restore_sync_store.dart';
@@ -904,6 +905,9 @@ void main() {
       });
 
       test('pre-restore backup uses configured backup location', () async {
+        // Desktop bare-path semantics (on Apple a bookmark would be required).
+        BackupBookmarkService.debugSupportedOverride = false;
+        addTearDown(() => BackupBookmarkService.debugSupportedOverride = null);
         final tempDir = await Directory.systemTemp.createTemp('backup_test_');
         final customDir = await Directory.systemTemp.createTemp('custom_');
         final backupFile = File('${tempDir.path}/test.db');
@@ -935,6 +939,10 @@ void main() {
 
     group('performBackup with custom location', () {
       test('uses custom backup location from settings', () async {
+        // On Apple a custom location is reached via a security-scoped bookmark;
+        // this bare-path test models the desktop case where paths persist.
+        BackupBookmarkService.debugSupportedOverride = false;
+        addTearDown(() => BackupBookmarkService.debugSupportedOverride = null);
         final tempDir = await Directory.systemTemp.createTemp('backup_test_');
 
         await preferences.setBackupLocation(tempDir.path);
