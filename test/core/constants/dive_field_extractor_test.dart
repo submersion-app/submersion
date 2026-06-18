@@ -365,14 +365,15 @@ void main() {
   });
 
   group('DiveFieldExtractor - SAC rate and gas consumed', () {
-    test('sacRate computes correctly with valid tank data', () {
+    test('sacRate defaults to pressurePerMin to match AppSettings default', () {
+      // No sacUnit passed -> uses the default. The default matches the
+      // AppSettings default (pressurePerMin), so an omitted argument stays
+      // consistent with default settings instead of silently producing an
+      // L/min value that a default UnitFormatter would mislabel as bar/min.
       final result = DiveField.sacRate.extractFromDive(testDive);
       expect(result, isA<double>());
-      // Calculation: gasLiters = 12.0 * (200.0 - 50.0) = 1800
-      // minutes = 52 * 60 / 60 = 52.0
-      // avgPressureAtm = (18.2 / 10.0) + 1.0 = 2.82
-      // sacRate = 1800 / 52.0 / 2.82 = ~12.28
-      expect((result as double), closeTo(12.28, 0.1));
+      // Pressure-based: 150 bar / 52 / 2.82 ≈ 1.02 bar/min
+      expect((result as double), closeTo(1.02, 0.05));
     });
 
     test('gasConsumed computes correctly with valid tank data', () {
@@ -405,7 +406,12 @@ void main() {
         avgDepth: 18.0,
         tanks: [noVolumeTank],
       );
-      expect(DiveField.sacRate.extractFromDive(dive), isNull);
+      // Volume mode requires tank volume; pressure mode would still produce a
+      // value here, so this null check is specific to litersPerMin.
+      expect(
+        DiveField.sacRate.extractFromDive(dive, sacUnit: SacUnit.litersPerMin),
+        isNull,
+      );
     });
 
     test('sacRate returns null when no avgDepth', () {
@@ -459,7 +465,10 @@ void main() {
         avgDepth: 18.2,
         tanks: [tank1, tank2],
       );
-      final result = DiveField.sacRate.extractFromDive(dive);
+      final result = DiveField.sacRate.extractFromDive(
+        dive,
+        sacUnit: SacUnit.litersPerMin,
+      );
       expect(result, isA<double>());
       // Tank 1: 12.0 * (200 - 100) = 1200L
       // Tank 2: 7.0  * (200 - 150) = 350L

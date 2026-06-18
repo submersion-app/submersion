@@ -11,8 +11,13 @@ extension DiveFieldExtractor on DiveField {
   /// [sacUnit] selects which base value [DiveField.sacRate] yields: volume-based
   /// L/min ([Dive.sac]) or pressure-based bar/min ([Dive.sacPressure]). It must
   /// match the [UnitFormatter] later used to format the value so the unit suffix
-  /// is correct. Other fields ignore it.
-  dynamic extractFromDive(Dive dive, {SacUnit sacUnit = SacUnit.litersPerMin}) {
+  /// is correct. Defaults to [SacUnit.pressurePerMin] to match the AppSettings
+  /// default, so an omitted argument stays consistent with default settings.
+  /// Other fields ignore it.
+  dynamic extractFromDive(
+    Dive dive, {
+    SacUnit sacUnit = SacUnit.pressurePerMin,
+  }) {
     switch (this) {
       case DiveField.diveNumber:
         return dive.diveNumber;
