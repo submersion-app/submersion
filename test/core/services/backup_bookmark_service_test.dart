@@ -106,4 +106,12 @@ void main() {
     expect(await BackupBookmarkService.verifyWriteAccess('/x'), isFalse);
     expect(calls, isEmpty);
   });
+
+  test('degrades to null/false when no native handler is registered', () async {
+    // No mock() handler in this test -> the channel has no handler, so
+    // invokeMethod throws MissingPluginException, which must be swallowed.
+    expect(await BackupBookmarkService.createBookmark('/x'), isNull);
+    expect(await BackupBookmarkService.resolveBookmark(Uint8List(1)), isNull);
+    expect(await BackupBookmarkService.verifyWriteAccess('/x'), isFalse);
+  });
 }

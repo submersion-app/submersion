@@ -81,6 +81,22 @@ class BackupSettingsNotifier extends StateNotifier<BackupSettings> {
     state = _prefs.getSettings();
   }
 
+  /// Sets a custom backup location together with its security-scoped bookmark
+  /// (Apple platforms). The bookmark is what lets the location survive an app
+  /// restart; a null bookmark is fine on desktop, where bare paths persist.
+  ///
+  /// Like [setBackupLocation], choosing a custom location turns cloud backup
+  /// off -- the conflicting cloud key is cleared before the location is set.
+  Future<void> setBackupLocationWithBookmark(
+    String path,
+    List<int>? bookmark,
+  ) async {
+    await _prefs.setCloudBackupEnabled(false);
+    await _prefs.setBackupLocation(path);
+    await _prefs.setBackupLocationBookmark(bookmark);
+    state = _prefs.getSettings();
+  }
+
   /// Sign-out hook: cloud sync is being disabled, so cloud backup loses its
   /// destination. Resets the location to default only when cloud backup was
   /// actually on -- an unrelated custom location is none of sync's business.

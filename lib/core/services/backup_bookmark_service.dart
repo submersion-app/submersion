@@ -67,6 +67,8 @@ class BackupBookmarkService {
         path: path,
         bookmark: result['bookmarkData'] as Uint8List?,
       );
+    } on MissingPluginException {
+      return null;
     } on PlatformException catch (e) {
       debugPrint('Backup folder pick failed: ${e.message}');
       rethrow;
@@ -82,6 +84,8 @@ class BackupBookmarkService {
       return await _channel.invokeMethod<Uint8List>('createBookmark', {
         'path': path,
       });
+    } on MissingPluginException {
+      return null;
     } on PlatformException catch (e) {
       debugPrint('Backup bookmark create failed: ${e.message}');
       return null;
@@ -108,6 +112,8 @@ class BackupBookmarkService {
         path: path,
         isStale: result['isStale'] as bool? ?? false,
       );
+    } on MissingPluginException {
+      return null;
     } on PlatformException catch (e) {
       debugPrint('Backup bookmark resolve failed: ${e.message}');
       return null;
@@ -119,6 +125,8 @@ class BackupBookmarkService {
     if (!isSupported) return;
     try {
       await _channel.invokeMethod<void>('releaseBookmark', {'ref': ref});
+    } on MissingPluginException {
+      // No native handler available; nothing to release.
     } on PlatformException catch (e) {
       debugPrint('Backup bookmark release failed: ${e.message}');
     }
@@ -129,6 +137,8 @@ class BackupBookmarkService {
     if (!isSupported) return;
     try {
       await _channel.invokeMethod<void>('releaseAllBookmarks');
+    } on MissingPluginException {
+      // No native handler available; nothing to release.
     } on PlatformException catch (e) {
       debugPrint('Backup bookmark releaseAll failed: ${e.message}');
     }
@@ -143,6 +153,8 @@ class BackupBookmarkService {
         'path': path,
       });
       return ok ?? false;
+    } on MissingPluginException {
+      return false;
     } on PlatformException catch (e) {
       debugPrint('Backup bookmark verifyWriteAccess failed: ${e.message}');
       return false;

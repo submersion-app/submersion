@@ -6,6 +6,7 @@ import 'package:share_plus/share_plus.dart';
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/backup_bookmark_service.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
@@ -488,13 +489,31 @@ class BackupSettingsPage extends ConsumerWidget {
           ),
           trailing: TextButton(
             onPressed: () async {
-              final path = await FilePicker.getDirectoryPath(
-                dialogTitle: context.l10n.backup_location_title,
-              );
-              if (path != null) {
-                ref
+              final BackupFolderPick? picked;
+              if (Platform.isIOS) {
+                // iOS: capture a security-scoped bookmark directly -- a bare
+                // file_picker path would lose its scope on the next launch.
+                picked = await BackupBookmarkService.pickFolder();
+              } else {
+                final path = await FilePicker.getDirectoryPath(
+                  dialogTitle: context.l10n.backup_location_title,
+                );
+                picked = path == null
+                    ? null
+                    : BackupFolderPick(
+                        path: path,
+                        bookmark: BackupBookmarkService.isSupported
+                            ? await BackupBookmarkService.createBookmark(path)
+                            : null,
+                      );
+              }
+              if (picked != null) {
+                await ref
                     .read(backupSettingsProvider.notifier)
-                    .setBackupLocation(path);
+                    .setBackupLocationWithBookmark(
+                      picked.path,
+                      picked.bookmark,
+                    );
               }
             },
             child: Text(context.l10n.backup_location_change),
