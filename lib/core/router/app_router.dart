@@ -19,9 +19,6 @@ import 'package:submersion/features/onboarding/presentation/pages/welcome_page.d
 import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_edit_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_merge_page.dart';
-import 'package:submersion/features/divers/presentation/pages/diver_list_page.dart';
-import 'package:submersion/features/divers/presentation/pages/diver_detail_page.dart';
-import 'package:submersion/features/divers/presentation/pages/diver_edit_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_list_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_detail_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_edit_page.dart';
@@ -90,6 +87,7 @@ import 'package:submersion/features/settings/presentation/pages/emergency_contac
 import 'package:submersion/features/settings/presentation/pages/medical_info_edit_page.dart';
 import 'package:submersion/features/settings/presentation/pages/insurance_edit_page.dart';
 import 'package:submersion/features/settings/presentation/pages/notes_edit_page.dart';
+import 'package:submersion/features/settings/presentation/pages/prior_experience_edit_page.dart';
 import 'package:submersion/features/settings/presentation/pages/debug_log_viewer_page.dart';
 import 'package:submersion/features/media/presentation/pages/media_sources_page.dart';
 import 'package:submersion/features/media/presentation/pages/network_sources_page.dart';
@@ -121,8 +119,13 @@ import 'package:submersion/features/import_wizard/data/adapters/universal_adapte
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/main_scaffold.dart';
 
+/// Root navigator key, so app-wide modals (e.g. the replaced-library adopt
+/// dialog surfaced from the app root) can be shown above the shell.
+final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
+
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
+    navigatorKey: rootNavigatorKey,
     initialLocation: '/dashboard',
     redirect: (context, state) async {
       // Skip redirect logic during database migration to prevent deadlock
@@ -459,37 +462,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     name: 'editBuddy',
                     builder: (context, state) =>
                         BuddyEditPage(buddyId: state.pathParameters['buddyId']),
-                  ),
-                ],
-              ),
-            ],
-          ),
-
-          // Divers
-          GoRoute(
-            path: '/divers',
-            name: 'divers',
-            pageBuilder: (context, state) => NoTransitionPage(
-              key: state.pageKey,
-              child: const DiverListPage(),
-            ),
-            routes: [
-              GoRoute(
-                path: 'new',
-                name: 'newDiver',
-                builder: (context, state) => const DiverEditPage(),
-              ),
-              GoRoute(
-                path: ':diverId',
-                name: 'diverDetail',
-                builder: (context, state) =>
-                    DiverDetailPage(diverId: state.pathParameters['diverId']!),
-                routes: [
-                  GoRoute(
-                    path: 'edit',
-                    name: 'editDiver',
-                    builder: (context, state) =>
-                        DiverEditPage(diverId: state.pathParameters['diverId']),
                   ),
                 ],
               ),
@@ -927,6 +899,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     path: 'notes',
                     name: 'editNotes',
                     builder: (context, state) => const NotesEditPage(),
+                  ),
+                  GoRoute(
+                    path: 'prior',
+                    name: 'editPriorExperience',
+                    builder: (context, state) =>
+                        const PriorExperienceEditPage(),
                   ),
                 ],
               ),

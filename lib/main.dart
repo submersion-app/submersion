@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/network/trusted_http_overrides.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -18,6 +19,18 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Windows cannot expose its system trust store to Dart's bundled BoringSSL,
+  // so every default-context HttpClient (S3 sync, map tiles, NetworkImage,
+  // weather, geocoding) routes through a SecurityContext seeded from the OS
+  // certificate store, with an embedded CA fallback. No-op on platforms whose
+  // default trust already works. Must run before the first network request.
+  // (Windows-only and inside main(), so not reachable from the test host.)
+  // coverage:ignore-start
+  if (Platform.isWindows) {
+    HttpOverrides.global = TrustedHttpOverrides();
+  }
+  // coverage:ignore-end
 
   // Apply the global Flutter image-cache byte / object caps for cached
   // network media. Must run after `ensureInitialized()` (which constructs

@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -7,15 +5,46 @@ import 'package:intl/intl.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart'
     show CloudProviderType;
+import 'package:submersion/core/services/cloud_storage/icloud_native_service.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
-import 'package:submersion/core/services/sync/library_epoch.dart';
 import 'package:submersion/core/services/sync/library_moved.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/divers/data/repositories/diver_merge_repository.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/adopt_replaced_library_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/conflict_resolution_dialog.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+
+/// Localized connection-failure message for a cloud provider. For iCloud the
+/// wording reflects the real [iCloudAvailability] state; other providers (and a
+/// genuinely-available iCloud that still failed) get the generic message.
+///
+/// Pure (no `BuildContext`/`ref`) so it is unit-testable on any host.
+@visibleForTesting
+String connectionErrorMessage(
+  AppLocalizations l10n,
+  CloudProviderType provider,
+  ICloudAvailability? iCloudAvailability,
+  String providerName,
+  String error,
+) {
+  if (provider == CloudProviderType.icloud) {
+    switch (iCloudAvailability) {
+      case ICloudAvailability.unsupported:
+        return l10n.settings_cloudSync_error_icloudUnsupported;
+      case ICloudAvailability.signedOut:
+        return l10n.settings_cloudSync_error_icloudSignedOut;
+      case ICloudAvailability.unknown:
+      case null:
+        return l10n.settings_cloudSync_error_icloudUnknown;
+      case ICloudAvailability.available:
+        break; // genuine failure despite availability — use the generic message
+    }
+  }
+  return l10n.settings_cloudSync_provider_connectionFailed(providerName, error);
+}
 
 class CloudSyncPage extends ConsumerWidget {
   const CloudSyncPage({super.key});
@@ -401,6 +430,16 @@ class CloudSyncPage extends ConsumerWidget {
     WidgetRef ref,
     CloudProviderType? selectedProvider,
   ) {
+    final l10n = context.l10n;
+    final isApple = ref.watch(isApplePlatformProvider);
+    final iCloudAvailability = ref
+        .watch(iCloudAvailabilityProvider)
+        .valueOrNull;
+    final iCloudUnsupported =
+        iCloudAvailability == ICloudAvailability.unsupported;
+    final iCloudDisabledSubtitle = isApple
+        ? l10n.settings_cloudSync_provider_icloud_unsupportedSubtitle
+        : l10n.settings_cloudSync_provider_notAvailable;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -421,7 +460,8 @@ class CloudSyncPage extends ConsumerWidget {
           subtitle: 'Sync via Apple iCloud',
           icon: Icons.cloud,
           isSelected: selectedProvider == CloudProviderType.icloud,
-          isAvailable: Platform.isIOS || Platform.isMacOS,
+          isAvailable: isApple && !iCloudUnsupported,
+          disabledSubtitle: iCloudDisabledSubtitle,
         ),
         // Google Drive is hidden until its integration is fully
         // implemented; the CloudProviderType and provider plumbing remain
@@ -440,14 +480,19 @@ class CloudSyncPage extends ConsumerWidget {
     required IconData icon,
     required bool isSelected,
     required bool isAvailable,
+    String? disabledSubtitle,
   }) {
+    final l10n = context.l10n;
     return Semantics(
       selected: isSelected,
       child: ListTile(
         leading: Icon(icon),
         title: Text(title),
         subtitle: Text(
-          isAvailable ? subtitle : 'Not available on this platform',
+          isAvailable
+              ? subtitle
+              : (disabledSubtitle ??
+                    l10n.settings_cloudSync_provider_notAvailable),
         ),
         trailing: isSelected
             ? const Icon(
@@ -589,13 +634,40 @@ class CloudSyncPage extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '${cloudProvider.providerName} connection failed: $e',
+              _connectionErrorMessage(
+                context,
+                ref,
+                provider,
+                cloudProvider.providerName,
+                e,
+              ),
             ),
             backgroundColor: Colors.red,
           ),
         );
       }
     }
+  }
+
+  /// Localized connection-failure message. For iCloud, the wording reflects
+  /// the real availability state instead of leaking the raw exception.
+  String _connectionErrorMessage(
+    BuildContext context,
+    WidgetRef ref,
+    CloudProviderType provider,
+    String providerName,
+    Object error,
+  ) {
+    final iCloudAvailability = provider == CloudProviderType.icloud
+        ? ref.read(iCloudAvailabilityProvider).valueOrNull
+        : null;
+    return connectionErrorMessage(
+      context.l10n,
+      provider,
+      iCloudAvailability,
+      providerName,
+      error.toString(),
+    );
   }
 
   /// Display name for a provider type, for dialogs and banners.
@@ -1000,7 +1072,7 @@ class CloudSyncPage extends ConsumerWidget {
     final replaceInfo = await notifier.libraryReplaceInfo();
     if (replaceInfo != null) {
       if (!context.mounted) return;
-      await _showAdoptDialog(context, ref, replaceInfo);
+      await showAdoptReplacedLibraryDialog(context, ref, replaceInfo);
       return;
     }
     final info = await notifier.firstSyncMergeInfo();
@@ -1035,47 +1107,6 @@ class CloudSyncPage extends ConsumerWidget {
     if (confirmed == true) {
       await notifier.performSync();
     }
-  }
-
-  /// Confirm and run adoption of a replaced cloud library. The safety backup
-  /// runs here (not in SyncNotifier) because backup providers import sync
-  /// providers; the page is the layer that may import both.
-  Future<void> _showAdoptDialog(
-    BuildContext context,
-    WidgetRef ref,
-    LibraryEpochMarker marker,
-  ) async {
-    final l10n = context.l10n;
-    final date = marker.replacedAt > 0
-        ? DateFormat.yMMMd().add_jm().format(
-            DateTime.fromMillisecondsSinceEpoch(marker.replacedAt),
-          )
-        : '?';
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.settings_cloudSync_adopt_dialogTitle),
-        content: Text(
-          l10n.settings_cloudSync_adopt_dialogContent(marker.displayName, date),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(l10n.settings_cloudSync_adopt_notNow),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(l10n.settings_cloudSync_adopt_confirm),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true) return;
-    // Safety backup of this device's current data BEFORE it is overwritten.
-    // Marked automatic: it is system-initiated, like the pre-migration
-    // safety backups, so the history list labels it accordingly.
-    await ref.read(backupServiceProvider).performBackup(isAutomatic: true);
-    await ref.read(syncStateProvider.notifier).adoptReplacedLibrary();
   }
 
   Future<void> _confirmResetSyncState(

@@ -48,6 +48,32 @@ void main() {
     );
   });
 
+  group('setBackupLocationWithBookmark', () {
+    test('persists both the path and the security-scoped bookmark', () async {
+      await notifier.setBackupLocationWithBookmark('/icloud/dir', [1, 2, 3]);
+
+      expect(notifier.state.backupLocation, '/icloud/dir');
+      expect(prefs.getSettings().backupLocation, '/icloud/dir');
+      expect(prefs.getBackupLocationBookmark(), [1, 2, 3]);
+    });
+
+    test('turns cloud backup off (mutually exclusive destinations)', () async {
+      await notifier.setCloudBackupEnabled(true);
+
+      await notifier.setBackupLocationWithBookmark('/icloud/dir', [9]);
+
+      expect(notifier.state.cloudBackupEnabled, isFalse);
+      expect(notifier.state.backupLocation, '/icloud/dir');
+    });
+
+    test('accepts a null bookmark (desktop bare-path case)', () async {
+      await notifier.setBackupLocationWithBookmark('/desktop/dir', null);
+
+      expect(prefs.getSettings().backupLocation, '/desktop/dir');
+      expect(prefs.getBackupLocationBookmark(), isNull);
+    });
+  });
+
   group('disableCloudBackup (cloud sync sign-out hook)', () {
     test('turns cloud backup off and resets the location', () async {
       await notifier.setCloudBackupEnabled(true);

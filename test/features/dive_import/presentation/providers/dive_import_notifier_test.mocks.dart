@@ -87,6 +87,14 @@ class MockDiveRepository extends _i1.Mock implements _i3.DiveRepository {
           as _i5.Stream<void>);
 
   @override
+  _i5.Stream<void> watchDiveDetailChanges() =>
+      (super.noSuchMethod(
+            Invocation.method(#watchDiveDetailChanges, []),
+            returnValue: _i5.Stream<void>.empty(),
+          )
+          as _i5.Stream<void>);
+
+  @override
   _i5.Future<List<_i2.Dive>> getAllDives({String? diverId}) =>
       (super.noSuchMethod(
             Invocation.method(#getAllDives, [], {#diverId: diverId}),

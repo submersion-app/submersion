@@ -1894,19 +1894,19 @@ class _DataSectionContent extends ConsumerWidget {
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/settings/backup'),
                 ),
-                // Cloud sync is gated to Apple platforms (iCloud) for now.
-                if (Platform.isIOS || Platform.isMacOS) ...[
-                  const Divider(height: 1),
-                  ListTile(
-                    leading: const Icon(Icons.cloud_sync),
-                    title: Text(context.l10n.settings_cloudSync_appBar_title),
-                    subtitle: Text(
-                      context.l10n.settings_cloudSync_entry_subtitle,
-                    ),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => context.push('/settings/cloud-sync'),
+                // Cloud sync is available on every platform (iCloud on
+                // Apple devices, S3-compatible storage elsewhere); the
+                // Cloud Sync page gates which providers each platform sees.
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.cloud_sync),
+                  title: Text(context.l10n.settings_cloudSync_appBar_title),
+                  subtitle: Text(
+                    context.l10n.settings_cloudSync_entry_subtitle,
                   ),
-                ],
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/settings/cloud-sync'),
+                ),
               ],
             ),
           ),

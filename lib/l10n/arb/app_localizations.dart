@@ -116,6 +116,54 @@ abstract class AppLocalizations {
     Locale('zh'),
   ];
 
+  /// No description provided for @settings_cloudSync_error_icloudSignedOut.
+  ///
+  /// In en, this message translates to:
+  /// **'iCloud is not available. Please sign in to iCloud in your device settings.'**
+  String get settings_cloudSync_error_icloudSignedOut;
+
+  /// No description provided for @settings_cloudSync_error_icloudUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t reach iCloud. Please try again.'**
+  String get settings_cloudSync_error_icloudUnknown;
+
+  /// No description provided for @settings_cloudSync_error_icloudUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'iCloud sync isn\'t available in this build of Submersion. Use S3 sync, or the App Store version.'**
+  String get settings_cloudSync_error_icloudUnsupported;
+
+  /// No description provided for @settings_cloudSync_provider_icloud_unsupportedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Not available in this build — use S3 or the App Store version'**
+  String get settings_cloudSync_provider_icloud_unsupportedSubtitle;
+
+  /// No description provided for @settings_cloudSync_replace_globalBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync is paused — the library was replaced from a backup on \"{deviceName}\".'**
+  String settings_cloudSync_replace_globalBanner(String deviceName);
+
+  /// No description provided for @settings_cloudSync_postRestore_syncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing your restored library with the cloud…'**
+  String get settings_cloudSync_postRestore_syncing;
+
+  /// No description provided for @settings_cloudSync_postRestore_synced.
+  ///
+  /// In en, this message translates to:
+  /// **'Restored library synced.'**
+  String get settings_cloudSync_postRestore_synced;
+
+  /// No description provided for @settings_cloudSync_replace_reviewAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get settings_cloudSync_replace_reviewAction;
+
   /// Title of the keyboard shortcuts help dialog
   ///
   /// In en, this message translates to:
@@ -28797,6 +28845,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Undo'**
   String get settings_cloudSync_duplicateDivers_undo;
+
+  /// No description provided for @divers_edit_priorExperienceSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Prior Experience'**
+  String get divers_edit_priorExperienceSection;
+
+  /// No description provided for @divers_edit_priorExperienceHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives and time from before you started logging in Submersion.'**
+  String get divers_edit_priorExperienceHelp;
+
+  /// No description provided for @divers_edit_priorDivesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Prior dives'**
+  String get divers_edit_priorDivesLabel;
+
+  /// No description provided for @divers_edit_priorHoursLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Prior hours'**
+  String get divers_edit_priorHoursLabel;
+
+  /// No description provided for @divers_edit_priorMinutesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Minutes'**
+  String get divers_edit_priorMinutesLabel;
+
+  /// No description provided for @divers_edit_divingSinceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Diving since'**
+  String get divers_edit_divingSinceLabel;
+
+  /// No description provided for @divers_edit_divingSinceNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get divers_edit_divingSinceNotSet;
+
+  /// No description provided for @divers_edit_clearDivingSinceTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear diving since'**
+  String get divers_edit_clearDivingSinceTooltip;
+
+  /// No description provided for @divers_edit_priorInvalidNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid number'**
+  String get divers_edit_priorInvalidNumber;
+
+  /// No description provided for @statistics_priorBreakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'{logged} logged + {prior} prior'**
+  String statistics_priorBreakdown(String logged, String prior);
+
+  /// No description provided for @statistics_divingSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Diving since {year}'**
+  String statistics_divingSince(int year);
 }
 
 class _AppLocalizationsDelegate

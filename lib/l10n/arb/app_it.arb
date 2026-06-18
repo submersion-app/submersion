@@ -1,6 +1,14 @@
 {
-  "@@last_modified": "2026-04-17",
+  "settings_cloudSync_error_icloudSignedOut": "iCloud non è disponibile. Accedi a iCloud nelle impostazioni del dispositivo.",
+  "settings_cloudSync_error_icloudUnknown": "Impossibile raggiungere iCloud. Riprova.",
+  "settings_cloudSync_error_icloudUnsupported": "La sincronizzazione iCloud non è disponibile in questa build di Submersion. Usa la sincronizzazione S3 o la versione dell'App Store.",
+  "settings_cloudSync_provider_icloud_unsupportedSubtitle": "Non disponibile in questa build: usa S3 o la versione dell'App Store",
+  "@@last_modified": "2026-06-15",
   "@@locale": "it",
+  "settings_cloudSync_replace_globalBanner": "Sincronizzazione in pausa: la libreria è stata sostituita da un backup su \"{deviceName}\".",
+  "settings_cloudSync_postRestore_syncing": "Sincronizzazione della libreria ripristinata con il cloud…",
+  "settings_cloudSync_postRestore_synced": "Libreria ripristinata sincronizzata.",
+  "settings_cloudSync_replace_reviewAction": "Rivedi",
   "@trips_itinerary_dayLabel": {
     "placeholders": {
       "dayNumber": {
@@ -4842,5 +4850,30 @@
   "settings_cloudSync_duplicateDivers_confirmAction": "Unisci",
   "settings_cloudSync_duplicateDivers_successSnack": "Unito in {name}",
   "settings_cloudSync_duplicateDivers_failureSnack": "Unione non riuscita: {error}",
-  "settings_cloudSync_duplicateDivers_undo": "Annulla"
+  "settings_cloudSync_duplicateDivers_undo": "Annulla",
+  "divers_edit_priorExperienceSection": "Esperienza Precedente",
+  "divers_edit_priorExperienceHelp": "Immersioni e tempo prima di iniziare a registrare in Submersion.",
+  "divers_edit_priorDivesLabel": "Immersioni precedenti",
+  "divers_edit_priorHoursLabel": "Ore precedenti",
+  "divers_edit_priorMinutesLabel": "Minuti",
+  "divers_edit_divingSinceLabel": "Immersioni dal",
+  "divers_edit_divingSinceNotSet": "Non impostato",
+  "divers_edit_clearDivingSinceTooltip": "Cancella immersioni dal",
+  "divers_edit_priorInvalidNumber": "Inserisci un numero valido",
+  "statistics_priorBreakdown": "{logged} registrate + {prior} precedenti",
+  "statistics_divingSince": "Immersioni dal {year}",
+  "settings_appearance_gasTimeline": "Cronologia del gas",
+  "settings_appearance_gasTimeline_subtitle": "Visualizza la striscia di consumo del gas sotto il profilo di immersione per impostazione predefinita",
+  "diveDetailSection_surfaceGps_name": "GPS di superficie",
+  "diveDetailSection_surfaceGps_description": "Punti GPS di entrata/uscita e deriva in superficie",
+  "diveLog_detail_section_surfaceGps": "GPS di superficie",
+  "diveLog_detail_surfaceGps_entry": "Entrata",
+  "diveLog_detail_surfaceGps_exit": "Uscita",
+  "diveLog_detail_label_drift": "Deriva",
+  "diveLog_detail_surfaceGps_entryOnly": "Punto di entrata registrato",
+  "diveLog_detail_surfaceGps_exitOnly": "Punto di uscita registrato",
+  "diveLog_detail_surfaceGps_site": "Sito",
+  "diveLog_detail_locationsMap_title": "Posizioni dell'immersione",
+  "diveLog_detail_coordinatesCopied": "Coordinate copiate negli appunti",
+  "diveLog_detail_openInMaps": "Apri in Mappe"
 }

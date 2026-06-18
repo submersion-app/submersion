@@ -10,11 +10,13 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/backup_bookmark_service.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/library_epoch.dart';
 import 'package:submersion/core/services/sync/library_epoch_store.dart';
+import 'package:submersion/core/services/sync/post_restore_sync_store.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_type.dart';
@@ -51,6 +53,41 @@ class DefaultBackupDatabaseAdapter implements BackupDatabaseAdapter {
   AppDatabase get database => _dbAdapter.database;
 }
 
+/// A backups directory ready to write into, plus [release] to call when the
+/// caller is done -- which stops any security-scoped access that was armed to
+/// reach a custom Apple location. For the default/sandbox location the release
+/// is a no-op.
+class BackupDirLease {
+  final String path;
+  final Future<void> Function() _release;
+  const BackupDirLease(this.path, this._release);
+
+  Future<void> release() => _release();
+}
+
+/// Narrow seam over [BackupBookmarkService] so the leased resolver can be
+/// tested without a native channel.
+abstract class BackupBookmarkPort {
+  Future<BackupBookmarkLease?> resolve(Uint8List data);
+  Future<void> release(String ref);
+  Future<Uint8List?> createBookmark(String path);
+}
+
+class _DefaultBackupBookmarkPort implements BackupBookmarkPort {
+  const _DefaultBackupBookmarkPort();
+
+  @override
+  Future<BackupBookmarkLease?> resolve(Uint8List data) =>
+      BackupBookmarkService.resolveBookmark(data);
+
+  @override
+  Future<void> release(String ref) => BackupBookmarkService.release(ref);
+
+  @override
+  Future<Uint8List?> createBookmark(String path) =>
+      BackupBookmarkService.createBookmark(path);
+}
+
 /// Core backup service handling backup creation, restore, pruning, and cloud upload.
 ///
 /// Dependencies are constructor-injected for testability.
@@ -64,6 +101,10 @@ class BackupService {
   /// Library epoch persistence for restore Replace mode. Nullable so existing
   /// constructions keep working; Replace mode is a no-op without it.
   final LibraryEpochStore? _epochStore;
+
+  /// Set on a Merge restore so the next launch forces one reconciling sync.
+  /// Nullable so existing constructions keep working.
+  final PostRestoreSyncStore? _postRestoreSyncStore;
   final _log = LoggerService.forClass(BackupService);
   final _uuid = const Uuid();
 
@@ -76,11 +117,13 @@ class BackupService {
     CloudStorageProvider? cloudProvider,
     SyncRepository? syncRepository,
     LibraryEpochStore? epochStore,
+    PostRestoreSyncStore? postRestoreSyncStore,
   }) : _dbAdapter = dbAdapter,
        _preferences = preferences,
        _cloudProvider = cloudProvider,
        _syncRepository = syncRepository ?? SyncRepository(),
-       _epochStore = epochStore;
+       _epochStore = epochStore,
+       _postRestoreSyncStore = postRestoreSyncStore;
 
   // ===========================================================================
   // Backup
@@ -93,9 +136,23 @@ class BackupService {
   /// the backup is also uploaded to cloud storage.
   Future<BackupRecord> performBackup({bool isAutomatic = false}) async {
     _log.info('Starting backup (automatic: $isAutomatic)');
+    // Arm any security-scoped access needed to reach a custom Apple location,
+    // and release it once the write (and prune) are done.
+    final lease = await BackupService.resolveBackupsDirectoryLeased(
+      _preferences,
+    );
+    try {
+      return await _performBackupInto(lease.path, isAutomatic: isAutomatic);
+    } finally {
+      await lease.release();
+    }
+  }
 
+  Future<BackupRecord> _performBackupInto(
+    String localDir, {
+    required bool isAutomatic,
+  }) async {
     final filename = _generateFilename();
-    final localDir = await getBackupsDirectory();
     final localPath = p.join(localDir, filename);
 
     // Copy the database file
@@ -311,6 +368,10 @@ class BackupService {
     await _replaceDatabaseAndRebaselineSync(sourcePath);
     if (mode == RestoreMode.replace) {
       await _mintPendingReplace();
+    } else {
+      // Merge: the restore dialog's choice is the consent. Arm a one-shot
+      // intent so the next launch forces a gate-bypassing reconciling sync.
+      await _postRestoreSyncStore?.setPending();
     }
 
     _log.info('Restore completed from: ${record.filename}');
@@ -343,6 +404,10 @@ class BackupService {
     await _replaceDatabaseAndRebaselineSync(filePath);
     if (mode == RestoreMode.replace) {
       await _mintPendingReplace();
+    } else {
+      // Merge: the restore dialog's choice is the consent. Arm a one-shot
+      // intent so the next launch forces a gate-bypassing reconciling sync.
+      await _postRestoreSyncStore?.setPending();
     }
 
     _log.info('Restore from file completed: ${p.basename(filePath)}');
@@ -607,12 +672,80 @@ class BackupService {
       }
       return customDir.path;
     }
+    return resolveDefaultBackupsDirectory();
+  }
+
+  /// The default backups directory inside the app's sandbox documents dir.
+  ///
+  /// Always writable (it lives inside the app container), so it doubles as the
+  /// safe fallback when a user-chosen custom location is unreachable -- see
+  /// PreMigrationBackupService. Unlike [resolveBackupsDirectory] this ignores
+  /// any configured custom location by design.
+  static Future<String> resolveDefaultBackupsDirectory() async {
     final appDir = await getApplicationDocumentsDirectory();
     final backupDir = Directory(p.join(appDir.path, _localBackupFolder));
     if (!await backupDir.exists()) {
       await backupDir.create(recursive: true);
     }
     return backupDir.path;
+  }
+
+  /// Resolves the backups directory and arms any security-scoped access needed
+  /// to write into it, returning a [BackupDirLease]. Callers MUST call
+  /// [BackupDirLease.release] when finished writing.
+  ///
+  /// On Apple platforms a custom location is only reachable through its
+  /// security-scoped bookmark. If the bookmark is missing or cannot be
+  /// resolved (e.g. an iCloud folder whose access was revoked), the location is
+  /// reset to the sandbox default rather than left broken -- this is what
+  /// self-heals an already-stored dead path. On other platforms, and for the
+  /// default location, the path is returned directly with a no-op release.
+  static Future<BackupDirLease> resolveBackupsDirectoryLeased(
+    BackupPreferences preferences, {
+    BackupBookmarkPort? bookmarks,
+  }) async {
+    final custom = preferences.getSettings().backupLocation;
+    if (custom == null) {
+      return BackupDirLease(await resolveDefaultBackupsDirectory(), _noRelease);
+    }
+    if (!BackupBookmarkService.isSupported) {
+      // Desktop/Android: bare custom paths persist and work without scoping.
+      return BackupDirLease(await _ensureDir(custom), _noRelease);
+    }
+    final port = bookmarks ?? const _DefaultBackupBookmarkPort();
+    final bytes = preferences.getBackupLocationBookmark();
+    if (bytes != null) {
+      final lease = await port.resolve(bytes);
+      if (lease != null) {
+        if (lease.isStale) {
+          // Resolved but stale (the folder moved, or an OS upgrade aged the
+          // bookmark). Re-mint it from the now-armed path so it stops resolving
+          // stale -- best-effort: if re-minting fails we keep the resolved
+          // location rather than discard a working choice. A genuinely broken
+          // bookmark resolves to null below and is reset to the default.
+          final fresh = await port.createBookmark(lease.path);
+          if (fresh != null) {
+            await preferences.setBackupLocationBookmark(fresh);
+          }
+        }
+        return BackupDirLease(
+          await _ensureDir(lease.path),
+          () => port.release(lease.ref),
+        );
+      }
+    }
+    // No bookmark, or it could not be resolved: the custom location is unusable
+    // on this platform. Reset to the sandbox default so backups keep working.
+    await preferences.setBackupLocation(null); // clears location + bookmark
+    return BackupDirLease(await resolveDefaultBackupsDirectory(), _noRelease);
+  }
+
+  static Future<void> _noRelease() async {}
+
+  static Future<String> _ensureDir(String dir) async {
+    final directory = Directory(dir);
+    if (!await directory.exists()) await directory.create(recursive: true);
+    return dir;
   }
 
   /// Get the active backups directory (custom or default), creating it if needed.
@@ -620,16 +753,11 @@ class BackupService {
       BackupService.resolveBackupsDirectory(_preferences);
 
   /// Get the local backups directory, creating it if needed.
-  Future<String> getLocalBackupsDirectory() async {
-    // Direct-path version bypassing custom-location check; preserved for
-    // existing callers that want the default location specifically.
-    final appDir = await getApplicationDocumentsDirectory();
-    final backupDir = Directory(p.join(appDir.path, _localBackupFolder));
-    if (!await backupDir.exists()) {
-      await backupDir.create(recursive: true);
-    }
-    return backupDir.path;
-  }
+  ///
+  /// Direct-path version bypassing the custom-location check; preserved for
+  /// existing callers that want the default location specifically.
+  Future<String> getLocalBackupsDirectory() =>
+      BackupService.resolveDefaultBackupsDirectory();
 
   // ===========================================================================
   // Private Helpers

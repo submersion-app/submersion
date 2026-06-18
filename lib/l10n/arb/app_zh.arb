@@ -1,6 +1,14 @@
 {
+  "settings_cloudSync_error_icloudSignedOut": "iCloud 不可用。请在设备设置中登录 iCloud。",
+  "settings_cloudSync_error_icloudUnknown": "无法连接 iCloud。请重试。",
+  "settings_cloudSync_error_icloudUnsupported": "此 Submersion 版本不支持 iCloud 同步。请使用 S3 同步或 App Store 版本。",
+  "settings_cloudSync_provider_icloud_unsupportedSubtitle": "此版本不可用 — 请使用 S3 或 App Store 版本",
   "@@locale": "zh",
-  "@@last_modified": "2026-04-17",
+  "settings_cloudSync_replace_globalBanner": "同步已暂停 — 资料库已从 \"{deviceName}\" 上的备份替换。",
+  "settings_cloudSync_postRestore_syncing": "正在将恢复的资料库与云同步…",
+  "settings_cloudSync_postRestore_synced": "已同步恢复的资料库。",
+  "settings_cloudSync_replace_reviewAction": "查看",
+  "@@last_modified": "2026-06-15",
   "@diveComputer_download_serialConnectFailedWithDetails": {
     "placeholders": {
       "details": {
@@ -4842,5 +4850,30 @@
   "settings_cloudSync_duplicateDivers_confirmAction": "合并",
   "settings_cloudSync_duplicateDivers_successSnack": "已合并到 {name}",
   "settings_cloudSync_duplicateDivers_failureSnack": "合并失败：{error}",
-  "settings_cloudSync_duplicateDivers_undo": "撤销"
+  "settings_cloudSync_duplicateDivers_undo": "撤销",
+  "divers_edit_priorExperienceSection": "既往经验",
+  "divers_edit_priorExperienceHelp": "在开始使用 Submersion 记录之前的潜水次数和时间。",
+  "divers_edit_priorDivesLabel": "既往潜水次数",
+  "divers_edit_priorHoursLabel": "既往小时数",
+  "divers_edit_priorMinutesLabel": "分钟",
+  "divers_edit_divingSinceLabel": "潜水始于",
+  "divers_edit_divingSinceNotSet": "未设置",
+  "divers_edit_clearDivingSinceTooltip": "清除潜水始于",
+  "divers_edit_priorInvalidNumber": "请输入有效数字",
+  "statistics_priorBreakdown": "{logged} 已记录 + {prior} 既往",
+  "statistics_divingSince": "自 {year} 年起潜水",
+  "settings_appearance_gasTimeline": "气体时间线",
+  "settings_appearance_gasTimeline_subtitle": "默认在潜水剖面下方显示气体消耗条",
+  "diveDetailSection_surfaceGps_name": "水面 GPS",
+  "diveDetailSection_surfaceGps_description": "GPS 入水/出水点及水面漂移",
+  "diveLog_detail_section_surfaceGps": "水面 GPS",
+  "diveLog_detail_surfaceGps_entry": "入水",
+  "diveLog_detail_surfaceGps_exit": "出水",
+  "diveLog_detail_label_drift": "漂移",
+  "diveLog_detail_surfaceGps_entryOnly": "已记录入水点",
+  "diveLog_detail_surfaceGps_exitOnly": "已记录出水点",
+  "diveLog_detail_surfaceGps_site": "潜点",
+  "diveLog_detail_locationsMap_title": "潜水位置",
+  "diveLog_detail_coordinatesCopied": "坐标已复制到剪贴板",
+  "diveLog_detail_openInMaps": "在地图中打开"
 }

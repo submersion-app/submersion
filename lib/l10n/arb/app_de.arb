@@ -1,6 +1,14 @@
 {
-  "@@last_modified": "2026-04-17",
+  "settings_cloudSync_error_icloudSignedOut": "iCloud ist nicht verfügbar. Bitte melde dich in den Geräteeinstellungen bei iCloud an.",
+  "settings_cloudSync_error_icloudUnknown": "iCloud konnte nicht erreicht werden. Bitte versuche es erneut.",
+  "settings_cloudSync_error_icloudUnsupported": "iCloud-Synchronisierung ist in diesem Build von Submersion nicht verfügbar. Verwende die S3-Synchronisierung oder die App-Store-Version.",
+  "settings_cloudSync_provider_icloud_unsupportedSubtitle": "In diesem Build nicht verfügbar – verwende S3 oder die App-Store-Version",
+  "@@last_modified": "2026-06-15",
   "@@locale": "de",
+  "settings_cloudSync_replace_globalBanner": "Synchronisierung pausiert — die Bibliothek wurde aus einem Backup auf \"{deviceName}\" ersetzt.",
+  "settings_cloudSync_postRestore_syncing": "Wiederhergestellte Bibliothek wird mit der Cloud synchronisiert…",
+  "settings_cloudSync_postRestore_synced": "Wiederhergestellte Bibliothek synchronisiert.",
+  "settings_cloudSync_replace_reviewAction": "Überprüfen",
   "@trips_itinerary_dayLabel": {
     "placeholders": {
       "dayNumber": {
@@ -4842,5 +4850,30 @@
   "settings_cloudSync_duplicateDivers_confirmAction": "Zusammenführen",
   "settings_cloudSync_duplicateDivers_successSnack": "Zusammengeführt in {name}",
   "settings_cloudSync_duplicateDivers_failureSnack": "Zusammenführung fehlgeschlagen: {error}",
-  "settings_cloudSync_duplicateDivers_undo": "Rückgängig"
+  "settings_cloudSync_duplicateDivers_undo": "Rückgängig",
+  "divers_edit_priorExperienceSection": "Frühere Erfahrung",
+  "divers_edit_priorExperienceHelp": "Tauchgänge und Zeit aus der Zeit vor deiner Nutzung von Submersion.",
+  "divers_edit_priorDivesLabel": "Frühere Tauchgänge",
+  "divers_edit_priorHoursLabel": "Frühere Stunden",
+  "divers_edit_priorMinutesLabel": "Minuten",
+  "divers_edit_divingSinceLabel": "Taucht seit",
+  "divers_edit_divingSinceNotSet": "Nicht festgelegt",
+  "divers_edit_clearDivingSinceTooltip": "Taucht seit löschen",
+  "divers_edit_priorInvalidNumber": "Gib eine gültige Zahl ein",
+  "statistics_priorBreakdown": "{logged} erfasst + {prior} früher",
+  "statistics_divingSince": "Taucht seit {year}",
+  "settings_appearance_gasTimeline": "Gas-Zeitleiste",
+  "settings_appearance_gasTimeline_subtitle": "Gasverbrauchsleiste standardmäßig unter dem Tauchprofil anzeigen",
+  "diveDetailSection_surfaceGps_name": "Oberflächen-GPS",
+  "diveDetailSection_surfaceGps_description": "GPS-Ein-/Ausstiegspunkte und Oberflächendrift",
+  "diveLog_detail_section_surfaceGps": "Oberflächen-GPS",
+  "diveLog_detail_surfaceGps_entry": "Einstieg",
+  "diveLog_detail_surfaceGps_exit": "Ausstieg",
+  "diveLog_detail_label_drift": "Drift",
+  "diveLog_detail_surfaceGps_entryOnly": "Einstiegspunkt erfasst",
+  "diveLog_detail_surfaceGps_exitOnly": "Ausstiegspunkt erfasst",
+  "diveLog_detail_surfaceGps_site": "Tauchplatz",
+  "diveLog_detail_locationsMap_title": "Tauchorte",
+  "diveLog_detail_coordinatesCopied": "Koordinaten in die Zwischenablage kopiert",
+  "diveLog_detail_openInMaps": "In Karten öffnen"
 }

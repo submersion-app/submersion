@@ -9,6 +9,7 @@ class AppDelegate: FlutterAppDelegate {
   private var icloudHandler: ICloudContainerHandler?
   private var metadataHandler: MetadataWriteHandler?
   private var localMediaHandler: LocalMediaHandler?
+  private var backupBookmarkHandler: BackupBookmarkHandler?
   private var updateChannel: FlutterMethodChannel?
 
   /// Mac App Store and TestFlight builds contain a receipt file;
@@ -37,6 +38,7 @@ class AppDelegate: FlutterAppDelegate {
       icloudHandler = ICloudContainerHandler(messenger: messenger)
       metadataHandler = MetadataWriteHandler(messenger: messenger)
       localMediaHandler = LocalMediaHandler(messenger: messenger)
+      backupBookmarkHandler = BackupBookmarkHandler(messenger: messenger)
       updateChannel = FlutterMethodChannel(
         name: "app.submersion/updates",
         binaryMessenger: messenger
@@ -57,6 +59,7 @@ class AppDelegate: FlutterAppDelegate {
 
   override func applicationWillTerminate(_ notification: Notification) {
     bookmarkHandler?.cleanup()
+    backupBookmarkHandler?.releaseAll()
   }
 
   override func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {

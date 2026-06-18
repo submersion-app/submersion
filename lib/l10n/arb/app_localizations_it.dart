@@ -9,6 +9,38 @@ class AppLocalizationsIt extends AppLocalizations {
   AppLocalizationsIt([String locale = 'it']) : super(locale);
 
   @override
+  String get settings_cloudSync_error_icloudSignedOut =>
+      'iCloud non è disponibile. Accedi a iCloud nelle impostazioni del dispositivo.';
+
+  @override
+  String get settings_cloudSync_error_icloudUnknown =>
+      'Impossibile raggiungere iCloud. Riprova.';
+
+  @override
+  String get settings_cloudSync_error_icloudUnsupported =>
+      'La sincronizzazione iCloud non è disponibile in questa build di Submersion. Usa la sincronizzazione S3 o la versione dell\'App Store.';
+
+  @override
+  String get settings_cloudSync_provider_icloud_unsupportedSubtitle =>
+      'Non disponibile in questa build: usa S3 o la versione dell\'App Store';
+
+  @override
+  String settings_cloudSync_replace_globalBanner(String deviceName) {
+    return 'Sincronizzazione in pausa: la libreria è stata sostituita da un backup su \"$deviceName\".';
+  }
+
+  @override
+  String get settings_cloudSync_postRestore_syncing =>
+      'Sincronizzazione della libreria ripristinata con il cloud…';
+
+  @override
+  String get settings_cloudSync_postRestore_synced =>
+      'Libreria ripristinata sincronizzata.';
+
+  @override
+  String get settings_cloudSync_replace_reviewAction => 'Rivedi';
+
+  @override
   String get accessibility_dialog_keyboardShortcutsTitle =>
       'Scorciatoie da tastiera';
 
@@ -10022,11 +10054,11 @@ class AppLocalizationsIt extends AppLocalizations {
       'Mostra i marcatori per i cambi gas';
 
   @override
-  String get settings_appearance_gasTimeline => 'Gas timeline';
+  String get settings_appearance_gasTimeline => 'Cronologia del gas';
 
   @override
   String get settings_appearance_gasTimeline_subtitle =>
-      'Show the gas-usage strip below the dive profile by default';
+      'Visualizza la striscia di consumo del gas sotto il profilo di immersione per impostazione predefinita';
 
   @override
   String get settings_appearance_header_diveDetails => 'Dettagli immersione';
@@ -10106,42 +10138,43 @@ class AppLocalizationsIt extends AppLocalizations {
       'Grafico ciclo marea e tempi';
 
   @override
-  String get diveDetailSection_surfaceGps_name => 'Surface GPS';
+  String get diveDetailSection_surfaceGps_name => 'GPS di superficie';
 
   @override
   String get diveDetailSection_surfaceGps_description =>
-      'GPS entry/exit points and surface drift';
+      'Punti GPS di entrata/uscita e deriva in superficie';
 
   @override
-  String get diveLog_detail_section_surfaceGps => 'Surface GPS';
+  String get diveLog_detail_section_surfaceGps => 'GPS di superficie';
 
   @override
-  String get diveLog_detail_surfaceGps_entry => 'Entry';
+  String get diveLog_detail_surfaceGps_entry => 'Entrata';
 
   @override
-  String get diveLog_detail_surfaceGps_exit => 'Exit';
+  String get diveLog_detail_surfaceGps_exit => 'Uscita';
 
   @override
-  String get diveLog_detail_label_drift => 'Drift';
+  String get diveLog_detail_label_drift => 'Deriva';
 
   @override
-  String get diveLog_detail_surfaceGps_entryOnly => 'Entry point recorded';
+  String get diveLog_detail_surfaceGps_entryOnly =>
+      'Punto di entrata registrato';
 
   @override
-  String get diveLog_detail_surfaceGps_exitOnly => 'Exit point recorded';
+  String get diveLog_detail_surfaceGps_exitOnly => 'Punto di uscita registrato';
 
   @override
-  String get diveLog_detail_surfaceGps_site => 'Site';
+  String get diveLog_detail_surfaceGps_site => 'Sito';
 
   @override
-  String get diveLog_detail_locationsMap_title => 'Dive Locations';
+  String get diveLog_detail_locationsMap_title => 'Posizioni dell\'immersione';
 
   @override
   String get diveLog_detail_coordinatesCopied =>
-      'Coordinates copied to clipboard';
+      'Coordinate copiate negli appunti';
 
   @override
-  String get diveLog_detail_openInMaps => 'Open in Maps';
+  String get diveLog_detail_openInMaps => 'Apri in Mappe';
 
   @override
   String get diveDetailSection_weights_name => 'Zavorra';
@@ -17141,4 +17174,42 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_cloudSync_duplicateDivers_undo => 'Annulla';
+
+  @override
+  String get divers_edit_priorExperienceSection => 'Esperienza Precedente';
+
+  @override
+  String get divers_edit_priorExperienceHelp =>
+      'Immersioni e tempo prima di iniziare a registrare in Submersion.';
+
+  @override
+  String get divers_edit_priorDivesLabel => 'Immersioni precedenti';
+
+  @override
+  String get divers_edit_priorHoursLabel => 'Ore precedenti';
+
+  @override
+  String get divers_edit_priorMinutesLabel => 'Minuti';
+
+  @override
+  String get divers_edit_divingSinceLabel => 'Immersioni dal';
+
+  @override
+  String get divers_edit_divingSinceNotSet => 'Non impostato';
+
+  @override
+  String get divers_edit_clearDivingSinceTooltip => 'Cancella immersioni dal';
+
+  @override
+  String get divers_edit_priorInvalidNumber => 'Inserisci un numero valido';
+
+  @override
+  String statistics_priorBreakdown(String logged, String prior) {
+    return '$logged registrate + $prior precedenti';
+  }
+
+  @override
+  String statistics_divingSince(int year) {
+    return 'Immersioni dal $year';
+  }
 }

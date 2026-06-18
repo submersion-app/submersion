@@ -77,6 +77,9 @@ class ICloudContainerHandler: NSObject {
             }
             refreshFolder(path: path, result: result)
 
+        case "getICloudAvailability":
+            getICloudAvailability(result: result)
+
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -107,6 +110,20 @@ class ICloudContainerHandler: NSObject {
             DispatchQueue.main.async {
                 result(FlutterError(code: "TIMEOUT", message: "iCloud container lookup timed out", details: nil))
             }
+        }
+    }
+
+    /// Reports iCloud availability without resolving the container URL (which
+    /// can block). On iOS the app is always provisioned with its iCloud
+    /// entitlement — there is no Developer ID / no-sandbox distribution as on
+    /// macOS — so availability reduces to whether an iCloud account is signed
+    /// in. (`SecTask` entitlement inspection is macOS-only and unavailable on
+    /// iOS, so there is no "unsupported" state here.)
+    private func getICloudAvailability(result: @escaping FlutterResult) {
+        DispatchQueue.global(qos: .userInitiated).async {
+            let status = FileManager.default.ubiquityIdentityToken == nil
+                ? "signedOut" : "available"
+            DispatchQueue.main.async { result(status) }
         }
     }
 

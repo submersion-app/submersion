@@ -1,6 +1,14 @@
 {
-  "@@last_modified": "2026-04-17",
+  "settings_cloudSync_error_icloudSignedOut": "iCloud is niet beschikbaar. Log in bij iCloud in de instellingen van je apparaat.",
+  "settings_cloudSync_error_icloudUnknown": "Kan iCloud niet bereiken. Probeer het opnieuw.",
+  "settings_cloudSync_error_icloudUnsupported": "iCloud-synchronisatie is niet beschikbaar in deze build van Submersion. Gebruik S3-synchronisatie of de App Store-versie.",
+  "settings_cloudSync_provider_icloud_unsupportedSubtitle": "Niet beschikbaar in deze build — gebruik S3 of de App Store-versie",
+  "@@last_modified": "2026-06-15",
   "@@locale": "nl",
+  "settings_cloudSync_replace_globalBanner": "Synchronisatie onderbroken — de bibliotheek is vervangen vanaf een back-up op \"{deviceName}\".",
+  "settings_cloudSync_postRestore_syncing": "Je herstelde bibliotheek wordt met de cloud gesynchroniseerd…",
+  "settings_cloudSync_postRestore_synced": "Herstelde bibliotheek gesynchroniseerd.",
+  "settings_cloudSync_replace_reviewAction": "Controleren",
   "@trips_itinerary_dayLabel": {
     "placeholders": {
       "dayNumber": {
@@ -4842,5 +4850,30 @@
   "settings_cloudSync_duplicateDivers_confirmAction": "Samenvoegen",
   "settings_cloudSync_duplicateDivers_successSnack": "Samengevoegd in {name}",
   "settings_cloudSync_duplicateDivers_failureSnack": "Samenvoegen mislukt: {error}",
-  "settings_cloudSync_duplicateDivers_undo": "Ongedaan maken"
+  "settings_cloudSync_duplicateDivers_undo": "Ongedaan maken",
+  "divers_edit_priorExperienceSection": "Eerdere Ervaring",
+  "divers_edit_priorExperienceHelp": "Duiken en tijd van voordat je begon te loggen in Submersion.",
+  "divers_edit_priorDivesLabel": "Eerdere duiken",
+  "divers_edit_priorHoursLabel": "Eerdere uren",
+  "divers_edit_priorMinutesLabel": "Minuten",
+  "divers_edit_divingSinceLabel": "Duikt sinds",
+  "divers_edit_divingSinceNotSet": "Niet ingesteld",
+  "divers_edit_clearDivingSinceTooltip": "Duikt sinds wissen",
+  "divers_edit_priorInvalidNumber": "Voer een geldig getal in",
+  "statistics_priorBreakdown": "{logged} gelogd + {prior} eerder",
+  "statistics_divingSince": "Duikt sinds {year}",
+  "settings_appearance_gasTimeline": "Gastijdlijn",
+  "settings_appearance_gasTimeline_subtitle": "Gasverbruiksstrook standaard onder het duikprofiel weergeven",
+  "diveDetailSection_surfaceGps_name": "Oppervlakte-GPS",
+  "diveDetailSection_surfaceGps_description": "GPS in-/uitstappunten en oppervlaktedrift",
+  "diveLog_detail_section_surfaceGps": "Oppervlakte-GPS",
+  "diveLog_detail_surfaceGps_entry": "Te water",
+  "diveLog_detail_surfaceGps_exit": "Uit het water",
+  "diveLog_detail_label_drift": "Drift",
+  "diveLog_detail_surfaceGps_entryOnly": "Instappunt geregistreerd",
+  "diveLog_detail_surfaceGps_exitOnly": "Uitstappunt geregistreerd",
+  "diveLog_detail_surfaceGps_site": "Duikstek",
+  "diveLog_detail_locationsMap_title": "Duiklocaties",
+  "diveLog_detail_coordinatesCopied": "Coördinaten gekopieerd naar klembord",
+  "diveLog_detail_openInMaps": "Openen in Kaarten"
 }

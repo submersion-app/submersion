@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/library_epoch_store.dart';
+import 'package:submersion/core/services/sync/post_restore_sync_store.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
@@ -29,6 +30,9 @@ final backupServiceProvider = Provider<BackupService>((ref) {
     preferences: ref.watch(backupPreferencesProvider),
     cloudProvider: ref.watch(cloudStorageProviderProvider),
     epochStore: LibraryEpochStore(ref.watch(sharedPreferencesProvider)),
+    postRestoreSyncStore: PostRestoreSyncStore(
+      ref.watch(sharedPreferencesProvider),
+    ),
   );
 });
 
@@ -74,6 +78,22 @@ class BackupSettingsNotifier extends StateNotifier<BackupSettings> {
   Future<void> setBackupLocation(String? path) async {
     if (path != null) await _prefs.setCloudBackupEnabled(false);
     await _prefs.setBackupLocation(path);
+    state = _prefs.getSettings();
+  }
+
+  /// Sets a custom backup location together with its security-scoped bookmark
+  /// (Apple platforms). The bookmark is what lets the location survive an app
+  /// restart; a null bookmark is fine on desktop, where bare paths persist.
+  ///
+  /// Like [setBackupLocation], choosing a custom location turns cloud backup
+  /// off -- the conflicting cloud key is cleared before the location is set.
+  Future<void> setBackupLocationWithBookmark(
+    String path,
+    List<int>? bookmark,
+  ) async {
+    await _prefs.setCloudBackupEnabled(false);
+    await _prefs.setBackupLocation(path);
+    await _prefs.setBackupLocationBookmark(bookmark);
     state = _prefs.getSettings();
   }
 

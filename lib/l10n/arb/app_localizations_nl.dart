@@ -9,6 +9,38 @@ class AppLocalizationsNl extends AppLocalizations {
   AppLocalizationsNl([String locale = 'nl']) : super(locale);
 
   @override
+  String get settings_cloudSync_error_icloudSignedOut =>
+      'iCloud is niet beschikbaar. Log in bij iCloud in de instellingen van je apparaat.';
+
+  @override
+  String get settings_cloudSync_error_icloudUnknown =>
+      'Kan iCloud niet bereiken. Probeer het opnieuw.';
+
+  @override
+  String get settings_cloudSync_error_icloudUnsupported =>
+      'iCloud-synchronisatie is niet beschikbaar in deze build van Submersion. Gebruik S3-synchronisatie of de App Store-versie.';
+
+  @override
+  String get settings_cloudSync_provider_icloud_unsupportedSubtitle =>
+      'Niet beschikbaar in deze build — gebruik S3 of de App Store-versie';
+
+  @override
+  String settings_cloudSync_replace_globalBanner(String deviceName) {
+    return 'Synchronisatie onderbroken — de bibliotheek is vervangen vanaf een back-up op \"$deviceName\".';
+  }
+
+  @override
+  String get settings_cloudSync_postRestore_syncing =>
+      'Je herstelde bibliotheek wordt met de cloud gesynchroniseerd…';
+
+  @override
+  String get settings_cloudSync_postRestore_synced =>
+      'Herstelde bibliotheek gesynchroniseerd.';
+
+  @override
+  String get settings_cloudSync_replace_reviewAction => 'Controleren';
+
+  @override
   String get accessibility_dialog_keyboardShortcutsTitle => 'Sneltoetsen';
 
   @override
@@ -9945,11 +9977,11 @@ class AppLocalizationsNl extends AppLocalizations {
       'Toon markeringen voor gaswisselingen';
 
   @override
-  String get settings_appearance_gasTimeline => 'Gas timeline';
+  String get settings_appearance_gasTimeline => 'Gastijdlijn';
 
   @override
   String get settings_appearance_gasTimeline_subtitle =>
-      'Show the gas-usage strip below the dive profile by default';
+      'Gasverbruiksstrook standaard onder het duikprofiel weergeven';
 
   @override
   String get settings_appearance_header_diveDetails => 'Duikdetails';
@@ -10030,42 +10062,42 @@ class AppLocalizationsNl extends AppLocalizations {
       'Getijdecyclusgrafiek en timing';
 
   @override
-  String get diveDetailSection_surfaceGps_name => 'Surface GPS';
+  String get diveDetailSection_surfaceGps_name => 'Oppervlakte-GPS';
 
   @override
   String get diveDetailSection_surfaceGps_description =>
-      'GPS entry/exit points and surface drift';
+      'GPS in-/uitstappunten en oppervlaktedrift';
 
   @override
-  String get diveLog_detail_section_surfaceGps => 'Surface GPS';
+  String get diveLog_detail_section_surfaceGps => 'Oppervlakte-GPS';
 
   @override
-  String get diveLog_detail_surfaceGps_entry => 'Entry';
+  String get diveLog_detail_surfaceGps_entry => 'Te water';
 
   @override
-  String get diveLog_detail_surfaceGps_exit => 'Exit';
+  String get diveLog_detail_surfaceGps_exit => 'Uit het water';
 
   @override
   String get diveLog_detail_label_drift => 'Drift';
 
   @override
-  String get diveLog_detail_surfaceGps_entryOnly => 'Entry point recorded';
+  String get diveLog_detail_surfaceGps_entryOnly => 'Instappunt geregistreerd';
 
   @override
-  String get diveLog_detail_surfaceGps_exitOnly => 'Exit point recorded';
+  String get diveLog_detail_surfaceGps_exitOnly => 'Uitstappunt geregistreerd';
 
   @override
-  String get diveLog_detail_surfaceGps_site => 'Site';
+  String get diveLog_detail_surfaceGps_site => 'Duikstek';
 
   @override
-  String get diveLog_detail_locationsMap_title => 'Dive Locations';
+  String get diveLog_detail_locationsMap_title => 'Duiklocaties';
 
   @override
   String get diveLog_detail_coordinatesCopied =>
-      'Coordinates copied to clipboard';
+      'Coördinaten gekopieerd naar klembord';
 
   @override
-  String get diveLog_detail_openInMaps => 'Open in Maps';
+  String get diveLog_detail_openInMaps => 'Openen in Kaarten';
 
   @override
   String get diveDetailSection_weights_name => 'Gewichten';
@@ -17005,4 +17037,42 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_cloudSync_duplicateDivers_undo => 'Ongedaan maken';
+
+  @override
+  String get divers_edit_priorExperienceSection => 'Eerdere Ervaring';
+
+  @override
+  String get divers_edit_priorExperienceHelp =>
+      'Duiken en tijd van voordat je begon te loggen in Submersion.';
+
+  @override
+  String get divers_edit_priorDivesLabel => 'Eerdere duiken';
+
+  @override
+  String get divers_edit_priorHoursLabel => 'Eerdere uren';
+
+  @override
+  String get divers_edit_priorMinutesLabel => 'Minuten';
+
+  @override
+  String get divers_edit_divingSinceLabel => 'Duikt sinds';
+
+  @override
+  String get divers_edit_divingSinceNotSet => 'Niet ingesteld';
+
+  @override
+  String get divers_edit_clearDivingSinceTooltip => 'Duikt sinds wissen';
+
+  @override
+  String get divers_edit_priorInvalidNumber => 'Voer een geldig getal in';
+
+  @override
+  String statistics_priorBreakdown(String logged, String prior) {
+    return '$logged gelogd + $prior eerder';
+  }
+
+  @override
+  String statistics_divingSince(int year) {
+    return 'Duikt sinds $year';
+  }
 }

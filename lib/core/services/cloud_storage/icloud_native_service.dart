@@ -1,8 +1,22 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'package:submersion/core/services/logger_service.dart';
+
+/// Runtime iCloud availability for the current build/device.
+///
+/// - `available`: an iCloud account is signed in and this build can reach its
+///   ubiquity container.
+/// - `signedOut`: the build is entitled, but no iCloud account is signed in.
+/// - `unsupported`: iCloud can never work here, for either of two reasons — the
+///   running build lacks the ubiquity-container entitlement (e.g. a Developer ID
+///   / no-sandbox distribution build), or the platform is not iOS/macOS at all.
+///   The user's iCloud account is irrelevant in this state.
+/// - `unknown`: the status could not be determined (a channel error on an Apple
+///   platform); the UI treats it optimistically.
+enum ICloudAvailability { available, signedOut, unsupported, unknown }
 
 /// Platform channel helpers for iCloud container access and file download.
 class ICloudNativeService {
@@ -28,6 +42,49 @@ class ICloudNativeService {
         stackTrace: stackTrace,
       );
       return null;
+    }
+  }
+
+  /// Pure mapping from the native status string to [ICloudAvailability].
+  /// Extracted so it can be unit-tested independently of `dart:io` Platform.
+  static ICloudAvailability availabilityFromStatus(String? status) {
+    return switch (status) {
+      'available' => ICloudAvailability.available,
+      'signedOut' => ICloudAvailability.signedOut,
+      'unsupported' => ICloudAvailability.unsupported,
+      _ => ICloudAvailability.unknown,
+    };
+  }
+
+  /// Reports iCloud availability for the current build/device.
+  ///
+  /// Non-blocking on the native side (it does not resolve the container URL),
+  /// so it cannot hang. Returns [ICloudAvailability.unsupported] on
+  /// non-iOS/macOS platforms; otherwise delegates to [queryNativeAvailability].
+  static Future<ICloudAvailability> getAvailability() async {
+    if (!Platform.isIOS && !Platform.isMacOS) {
+      return ICloudAvailability.unsupported;
+    }
+    return queryNativeAvailability();
+  }
+
+  /// Invokes the native availability channel and maps the result. Unlike
+  /// [getAvailability] it has no platform guard, so it is unit-testable on any
+  /// host via a mocked method channel. Returns [ICloudAvailability.unknown] on a
+  /// channel error (e.g. [MissingPluginException]).
+  @visibleForTesting
+  static Future<ICloudAvailability> queryNativeAvailability() async {
+    try {
+      final status = await _channel.invokeMethod<String>(
+        'getICloudAvailability',
+      );
+      return availabilityFromStatus(status);
+    } catch (e, stackTrace) {
+      _log.warning(
+        'Failed to get iCloud availability: $e',
+        stackTrace: stackTrace,
+      );
+      return ICloudAvailability.unknown;
     }
   }
 

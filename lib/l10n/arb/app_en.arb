@@ -1,6 +1,15 @@
 {
+  "settings_cloudSync_error_icloudSignedOut": "iCloud is not available. Please sign in to iCloud in your device settings.",
+  "settings_cloudSync_error_icloudUnknown": "Couldn't reach iCloud. Please try again.",
+  "settings_cloudSync_error_icloudUnsupported": "iCloud sync isn't available in this build of Submersion. Use S3 sync, or the App Store version.",
+  "settings_cloudSync_provider_icloud_unsupportedSubtitle": "Not available in this build — use S3 or the App Store version",
   "@@locale": "en",
-  "@@last_modified": "2026-02-10",
+  "settings_cloudSync_replace_globalBanner": "Sync is paused — the library was replaced from a backup on \"{deviceName}\".",
+  "@settings_cloudSync_replace_globalBanner": {"placeholders": {"deviceName": {"type": "String"}}},
+  "settings_cloudSync_postRestore_syncing": "Syncing your restored library with the cloud…",
+  "settings_cloudSync_postRestore_synced": "Restored library synced.",
+  "settings_cloudSync_replace_reviewAction": "Review",
+  "@@last_modified": "2026-06-15",
   "accessibility_dialog_keyboardShortcutsTitle": "Keyboard Shortcuts",
   "accessibility_keyLabel_backspace": "Backspace",
   "accessibility_keyLabel_delete": "Delete",
@@ -10605,5 +10614,18 @@
   "settings_cloudSync_duplicateDivers_undo": "Undo",
   "@settings_cloudSync_duplicateDivers_undo": {
     "description": "Snackbar action that reverses a just-performed diver merge."
-  }
+  },
+  "divers_edit_priorExperienceSection": "Prior Experience",
+  "divers_edit_priorExperienceHelp": "Dives and time from before you started logging in Submersion.",
+  "divers_edit_priorDivesLabel": "Prior dives",
+  "divers_edit_priorHoursLabel": "Prior hours",
+  "divers_edit_priorMinutesLabel": "Minutes",
+  "divers_edit_divingSinceLabel": "Diving since",
+  "divers_edit_divingSinceNotSet": "Not set",
+  "divers_edit_clearDivingSinceTooltip": "Clear diving since",
+  "divers_edit_priorInvalidNumber": "Enter a valid number",
+  "statistics_priorBreakdown": "{logged} logged + {prior} prior",
+  "@statistics_priorBreakdown": {"placeholders": {"logged": {"type": "String"}, "prior": {"type": "String"}}},
+  "statistics_divingSince": "Diving since {year}",
+  "@statistics_divingSince": {"placeholders": {"year": {"type": "int"}}}
 }

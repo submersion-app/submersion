@@ -9,6 +9,38 @@ class AppLocalizationsAr extends AppLocalizations {
   AppLocalizationsAr([String locale = 'ar']) : super(locale);
 
   @override
+  String get settings_cloudSync_error_icloudSignedOut =>
+      'iCloud غير متوفر. يُرجى تسجيل الدخول إلى iCloud من إعدادات جهازك.';
+
+  @override
+  String get settings_cloudSync_error_icloudUnknown =>
+      'تعذّر الوصول إلى iCloud. حاول مرة أخرى.';
+
+  @override
+  String get settings_cloudSync_error_icloudUnsupported =>
+      'مزامنة iCloud غير متوفرة في هذا الإصدار من Submersion. استخدم مزامنة S3 أو نسخة App Store.';
+
+  @override
+  String get settings_cloudSync_provider_icloud_unsupportedSubtitle =>
+      'غير متوفر في هذا الإصدار — استخدم S3 أو نسخة App Store';
+
+  @override
+  String settings_cloudSync_replace_globalBanner(String deviceName) {
+    return 'المزامنة متوقفة مؤقتًا — تم استبدال المكتبة من نسخة احتياطية على \"$deviceName\".';
+  }
+
+  @override
+  String get settings_cloudSync_postRestore_syncing =>
+      'تتم مزامنة مكتبتك المستعادة مع السحابة…';
+
+  @override
+  String get settings_cloudSync_postRestore_synced =>
+      'تمت مزامنة المكتبة المستعادة.';
+
+  @override
+  String get settings_cloudSync_replace_reviewAction => 'مراجعة';
+
+  @override
   String get accessibility_dialog_keyboardShortcutsTitle =>
       'اختصارات لوحة المفاتيح';
 
@@ -9826,11 +9858,11 @@ class AppLocalizationsAr extends AppLocalizations {
       'عرض علامات لتبديل الغازات';
 
   @override
-  String get settings_appearance_gasTimeline => 'Gas timeline';
+  String get settings_appearance_gasTimeline => 'الجدول الزمني للغاز';
 
   @override
   String get settings_appearance_gasTimeline_subtitle =>
-      'Show the gas-usage strip below the dive profile by default';
+      'عرض شريط استهلاك الغاز أسفل ملف الغوصة بشكل افتراضي';
 
   @override
   String get settings_appearance_header_diveDetails => 'تفاصيل الغوصة';
@@ -9911,42 +9943,42 @@ class AppLocalizationsAr extends AppLocalizations {
       'رسم بياني لدورة المد والجزر والتوقيت';
 
   @override
-  String get diveDetailSection_surfaceGps_name => 'Surface GPS';
+  String get diveDetailSection_surfaceGps_name => 'GPS السطح';
 
   @override
   String get diveDetailSection_surfaceGps_description =>
-      'GPS entry/exit points and surface drift';
+      'نقاط الدخول/الخروج عبر GPS وانجراف السطح';
 
   @override
-  String get diveLog_detail_section_surfaceGps => 'Surface GPS';
+  String get diveLog_detail_section_surfaceGps => 'GPS السطح';
 
   @override
-  String get diveLog_detail_surfaceGps_entry => 'Entry';
+  String get diveLog_detail_surfaceGps_entry => 'الدخول';
 
   @override
-  String get diveLog_detail_surfaceGps_exit => 'Exit';
+  String get diveLog_detail_surfaceGps_exit => 'الخروج';
 
   @override
-  String get diveLog_detail_label_drift => 'Drift';
+  String get diveLog_detail_label_drift => 'انجراف';
 
   @override
-  String get diveLog_detail_surfaceGps_entryOnly => 'Entry point recorded';
+  String get diveLog_detail_surfaceGps_entryOnly => 'تم تسجيل نقطة الدخول';
 
   @override
-  String get diveLog_detail_surfaceGps_exitOnly => 'Exit point recorded';
+  String get diveLog_detail_surfaceGps_exitOnly => 'تم تسجيل نقطة الخروج';
 
   @override
-  String get diveLog_detail_surfaceGps_site => 'Site';
+  String get diveLog_detail_surfaceGps_site => 'الموقع';
 
   @override
-  String get diveLog_detail_locationsMap_title => 'Dive Locations';
+  String get diveLog_detail_locationsMap_title => 'مواقع الغوص';
 
   @override
   String get diveLog_detail_coordinatesCopied =>
-      'Coordinates copied to clipboard';
+      'تم نسخ الإحداثيات إلى الحافظة';
 
   @override
-  String get diveLog_detail_openInMaps => 'Open in Maps';
+  String get diveLog_detail_openInMaps => 'فتح في الخرائط';
 
   @override
   String get diveDetailSection_weights_name => 'الأوزان';
@@ -16816,4 +16848,42 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_cloudSync_duplicateDivers_undo => 'تراجع';
+
+  @override
+  String get divers_edit_priorExperienceSection => 'خبرة سابقة';
+
+  @override
+  String get divers_edit_priorExperienceHelp =>
+      'الغطسات والوقت من قبل أن تبدأ التسجيل في Submersion.';
+
+  @override
+  String get divers_edit_priorDivesLabel => 'غطسات سابقة';
+
+  @override
+  String get divers_edit_priorHoursLabel => 'ساعات سابقة';
+
+  @override
+  String get divers_edit_priorMinutesLabel => 'دقائق';
+
+  @override
+  String get divers_edit_divingSinceLabel => 'يغوص منذ';
+
+  @override
+  String get divers_edit_divingSinceNotSet => 'غير محدد';
+
+  @override
+  String get divers_edit_clearDivingSinceTooltip => 'مسح يغوص منذ';
+
+  @override
+  String get divers_edit_priorInvalidNumber => 'أدخل رقمًا صالحًا';
+
+  @override
+  String statistics_priorBreakdown(String logged, String prior) {
+    return '$logged مسجلة + $prior سابقة';
+  }
+
+  @override
+  String statistics_divingSince(int year) {
+    return 'يغوص منذ $year';
+  }
 }

@@ -195,6 +195,14 @@ class DiverProfileHubPage extends ConsumerWidget {
             const Divider(height: 1),
             _buildSectionTile(
               context,
+              icon: Icons.history,
+              title: context.l10n.divers_edit_priorExperienceSection,
+              subtitle: _priorExperienceSubtitle(context, diver),
+              route: '/settings/diver-profile/prior',
+            ),
+            const Divider(height: 1),
+            _buildSectionTile(
+              context,
               icon: Icons.notes,
               title: context.l10n.settings_profileHub_notes,
               subtitle: _notesSubtitle(context, diver),
@@ -306,6 +314,16 @@ class DiverProfileHubPage extends ConsumerWidget {
       return context.l10n.settings_profileHub_notes_notSet;
     }
     return diver.notes.split('\n').first;
+  }
+
+  String _priorExperienceSubtitle(BuildContext context, Diver diver) {
+    if (diver.priorDiveCount != null) {
+      return '${diver.priorDiveCount} ${context.l10n.divers_edit_priorDivesLabel}';
+    }
+    if (diver.divingSince != null) {
+      return context.l10n.statistics_divingSince(diver.divingSince!.year);
+    }
+    return context.l10n.divers_edit_divingSinceNotSet;
   }
 
   Future<void> _showDeleteConfirmation(

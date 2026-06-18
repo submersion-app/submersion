@@ -44,6 +44,12 @@ class Divers extends Table {
   /// (nullable: rows written before HLC rollout fall back to updatedAt).
   TextColumn get hlc => text().nullable()();
 
+  // Prior dive experience (issue #331): per-diver lifetime offsets for dives
+  // logged before the diver started using Submersion. Null = none.
+  IntColumn get priorDiveCount => integer().nullable()();
+  IntColumn get priorDiveTimeSeconds => integer().nullable()();
+  IntColumn get divingSince => integer().nullable()(); // year, e.g. 1990
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -488,6 +494,7 @@ class Species extends Table {
   TextColumn get description => text().nullable()();
   TextColumn get photoPath => text().nullable()();
   BoolColumn get isBuiltIn => boolean().withDefault(const Constant(false))();
+  TextColumn get hlc => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -561,6 +568,7 @@ class Media extends Table {
   // coverage:ignore-end
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
+  TextColumn get hlc => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -1361,9 +1369,50 @@ class DeletionLog extends Table {
   TextColumn get entityType => text()(); // Which table the record was in
   TextColumn get recordId => text()(); // Primary key of deleted record
   IntColumn get deletedAt => integer()(); // Unix timestamp of deletion
+  // Monotonic HLC stamped at deletion time (local filter metadata only, not on
+  // the wire). Lets an incremental changeset carry only tombstones newer than
+  // the published watermark instead of re-sending the whole log every sync.
+  // Nullable as a safety net: the v86 migration backfills pre-existing rows to a
+  // minimal sentinel, so null only arises for a delete logged before the sync
+  // clock was configured; such a tombstone is always included in a base.
+  TextColumn get hlc => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
+}
+
+/// Per-peer download cursor: how far this device has consumed each peer's
+/// changeset log. Scoped per provider so a backend switch starts fresh
+/// (mirrors the v81 per-provider cursor lesson).
+@DataClassName('SyncPeerCursor')
+class SyncPeerCursors extends Table {
+  TextColumn get peerDeviceId => text()();
+  TextColumn get provider => text()();
+  IntColumn get baseSeqApplied => integer().nullable()();
+  IntColumn get lastSeqApplied => integer().withDefault(const Constant(0))();
+  IntColumn get updatedAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {peerDeviceId, provider};
+}
+
+/// This device's own published position in its changeset log, per provider.
+/// Splits the old conflated lastSyncTimestamp: this is the upload side
+/// (per-peer cursors are the download side).
+@DataClassName('LocalPublishState')
+class LocalPublishStates extends Table {
+  TextColumn get provider => text()();
+  IntColumn get baseSeq => integer().nullable()();
+  IntColumn get basePartCount => integer().nullable()();
+  IntColumn get baseBytes => integer().nullable()();
+  IntColumn get headSeq => integer().withDefault(const Constant(0))();
+  TextColumn get publishedHlcHigh => text().nullable()();
+  IntColumn get changesetBytesSinceBase =>
+      integer().withDefault(const Constant(0))();
+  IntColumn get updatedAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {provider};
 }
 
 /// Cached map regions for offline use
@@ -1486,6 +1535,7 @@ class FieldPresets extends Table {
   TextColumn get configJson => text()();
   BoolColumn get isBuiltIn => boolean().withDefault(const Constant(false))();
   IntColumn get createdAt => integer()();
+  TextColumn get hlc => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -1539,6 +1589,8 @@ class FieldPresets extends Table {
     SyncMetadata,
     SyncRecords,
     DeletionLog,
+    SyncPeerCursors,
+    LocalPublishStates,
     // Maps & Visualization
     CachedRegions,
     // Notifications
@@ -1567,7 +1619,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 84;
+  static const int currentSchemaVersion = 88;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1655,6 +1707,10 @@ class AppDatabase extends _$AppDatabase {
     82,
     83,
     84,
+    85,
+    86,
+    87,
+    88,
   ];
 
   /// Tables that carry a per-row Hybrid Logical Clock for cross-device conflict
@@ -1687,6 +1743,9 @@ class AppDatabase extends _$AppDatabase {
     'csv_presets',
     'view_configs',
     'sync_metadata',
+    'media',
+    'species',
+    'field_presets',
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
@@ -3977,16 +4036,107 @@ class AppDatabase extends _$AppDatabase {
         }
         if (from < 83) await reportProgress();
         if (from < 84) {
+          // Incremental changeset-log sync: per-peer download cursors and this
+          // device's own per-provider publish position.
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS sync_peer_cursors (
+              peer_device_id TEXT NOT NULL,
+              provider TEXT NOT NULL,
+              base_seq_applied INTEGER,
+              last_seq_applied INTEGER NOT NULL DEFAULT 0,
+              updated_at INTEGER NOT NULL,
+              PRIMARY KEY (peer_device_id, provider)
+            )
+          ''');
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS local_publish_states (
+              provider TEXT NOT NULL PRIMARY KEY,
+              base_seq INTEGER,
+              base_part_count INTEGER,
+              base_bytes INTEGER,
+              head_seq INTEGER NOT NULL DEFAULT 0,
+              published_hlc_high TEXT,
+              changeset_bytes_since_base INTEGER NOT NULL DEFAULT 0,
+              updated_at INTEGER NOT NULL
+            )
+          ''');
+        }
+        if (from < 84) await reportProgress();
+        if (from < 85) {
+          // media, species, field_presets become first-class HLC entities so
+          // they delta by their own hlc instead of being exported in full.
+          // Table/column identifiers cannot be SQL-parameterized; these names
+          // are a fixed compile-time const list (no user input), so the string
+          // interpolation below is injection-safe.
+          for (final table in const ['media', 'species', 'field_presets']) {
+            final cols = await customSelect(
+              "PRAGMA table_info('$table')",
+            ).get();
+            final existing = cols.map((c) => c.read<String>('name')).toSet();
+            if (cols.isNotEmpty && !existing.contains('hlc')) {
+              await customStatement('ALTER TABLE $table ADD COLUMN hlc TEXT');
+            }
+          }
+        }
+        if (from < 85) await reportProgress();
+        if (from < 86) {
+          // Deletions become HLC-versioned like rows: logDeletion now stamps a
+          // monotonic hlc so an incremental changeset can carry only NEW
+          // tombstones instead of re-publishing the whole deletion log every
+          // sync. Backfill pre-existing tombstones with a minimal sentinel so
+          // they read as already-published (excluded from incrementals) while
+          // still riding every full base -- no re-publish, no resurrection.
+          final cols = await customSelect(
+            "PRAGMA table_info('deletion_log')",
+          ).get();
+          if (cols.isNotEmpty) {
+            final existing = cols.map((c) => c.read<String>('name')).toSet();
+            if (!existing.contains('hlc')) {
+              await customStatement(
+                'ALTER TABLE deletion_log ADD COLUMN hlc TEXT',
+              );
+            }
+            await customStatement(
+              "UPDATE deletion_log SET hlc = '000000000000000:000000:legacy' "
+              'WHERE hlc IS NULL',
+            );
+          }
+        }
+        if (from < 86) await reportProgress();
+        if (from < 87) {
+          // Prior dive experience (issue #331): three nullable columns on
+          // `divers`. PRAGMA-guarded so a healthy database no-ops; existing
+          // rows read as NULL = "no prior experience".
+          final cols = await customSelect("PRAGMA table_info('divers')").get();
+          if (cols.isNotEmpty) {
+            final existing = cols.map((c) => c.read<String>('name')).toSet();
+            if (!existing.contains('prior_dive_count')) {
+              await customStatement(
+                'ALTER TABLE divers ADD COLUMN prior_dive_count INTEGER',
+              );
+            }
+            if (!existing.contains('prior_dive_time_seconds')) {
+              await customStatement(
+                'ALTER TABLE divers ADD COLUMN prior_dive_time_seconds INTEGER',
+              );
+            }
+            if (!existing.contains('diving_since')) {
+              await customStatement(
+                'ALTER TABLE divers ADD COLUMN diving_since INTEGER',
+              );
+            }
+          }
+        }
+        if (from < 87) await reportProgress();
+        if (from < 88) {
           // Add 'Cavern' as a built-in dive type. Cavern diving (light-zone
           // only, cavern cert) is a distinct discipline from Cave (beyond
           // light zone, full cave cert). Guarded by a sqlite_master check so
           // minimal-schema test databases without dive_types are not affected;
           // INSERT OR IGNORE preserves any user-created 'cavern' row.
           //
-          // Renumbered from the originally-proposed v77 because main already
-          // claimed v77 for the HLC backfill (see the v77 block above) and
-          // v78-v83 for the recovery migrations that healed the v77 schema-
-          // version collisions.
+          // Renumbered from v84 to v88 because upstream claimed v84-v87 for
+          // sync-infrastructure migrations (see blocks above).
           final tables = await customSelect(
             "SELECT name FROM sqlite_master WHERE type='table' AND name='dive_types'",
           ).get();
@@ -3998,7 +4148,7 @@ class AppDatabase extends _$AppDatabase {
             ''');
           }
         }
-        if (from < 84) await reportProgress();
+        if (from < 88) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys

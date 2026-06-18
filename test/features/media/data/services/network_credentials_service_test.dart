@@ -21,6 +21,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/media/data/repositories/network_credentials_repository.dart';
 import 'package:submersion/features/media/data/services/network_credentials_service.dart';
 
+import '../../../../support/fake_keychain_storage.dart';
 import 'network_credentials_service_test.mocks.dart';
 
 @GenerateMocks([FlutterSecureStorage, NetworkCredentialsRepository])
@@ -291,6 +292,39 @@ void main() {
       );
       expect(headers, isNull);
       verify(storage.delete(key: 'media_network_cred_example.com')).called(1);
+    },
+  );
+
+  test(
+    'save+headersFor fall back to the legacy keychain on errSecMissingEntitlement',
+    () async {
+      final inner = NoEntitlementKeychain();
+      final fallbackService = NetworkCredentialsService(
+        repository: repo,
+        storage: inner,
+      );
+      when(
+        repo.upsert(
+          hostname: anyNamed('hostname'),
+          authType: anyNamed('authType'),
+          displayName: anyNamed('displayName'),
+        ),
+      ).thenAnswer((_) async => 'host-id-1');
+      when(
+        repo.findByHostname('example.com'),
+      ).thenAnswer((_) async => host(authType: 'bearer'));
+
+      await fallbackService.save(
+        hostname: 'example.com',
+        authType: 'bearer',
+        token: 't',
+      );
+      final headers = await fallbackService.headersFor(
+        Uri.parse('https://example.com/x'),
+      );
+
+      expect(inner.dataProtectionAttempted, isTrue);
+      expect(headers?['Authorization'], 'Bearer t');
     },
   );
 }

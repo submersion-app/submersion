@@ -1,6 +1,14 @@
 {
-  "@@last_modified": "2026-04-17",
+  "settings_cloudSync_error_icloudSignedOut": "iCloud אינו זמין. היכנס ל-iCloud דרך הגדרות המכשיר.",
+  "settings_cloudSync_error_icloudUnknown": "לא ניתן היה להגיע ל-iCloud. נסה שוב.",
+  "settings_cloudSync_error_icloudUnsupported": "סנכרון iCloud אינו זמין בגרסה זו של Submersion. השתמש בסנכרון S3 או בגרסת App Store.",
+  "settings_cloudSync_provider_icloud_unsupportedSubtitle": "לא זמין בגרסה זו — השתמש ב-S3 או בגרסת App Store",
+  "@@last_modified": "2026-06-15",
   "@@locale": "he",
+  "settings_cloudSync_replace_globalBanner": "הסנכרון מושהה — הספרייה הוחלפה מגיבוי במכשיר \"{deviceName}\".",
+  "settings_cloudSync_postRestore_syncing": "מסנכרן את הספרייה המשוחזרת שלך עם הענן…",
+  "settings_cloudSync_postRestore_synced": "הספרייה המשוחזרת סונכרנה.",
+  "settings_cloudSync_replace_reviewAction": "סקירה",
   "@trips_itinerary_dayLabel": {
     "placeholders": {
       "dayNumber": {
@@ -4842,5 +4850,30 @@
   "settings_cloudSync_duplicateDivers_confirmAction": "מזג",
   "settings_cloudSync_duplicateDivers_successSnack": "מוזג אל {name}",
   "settings_cloudSync_duplicateDivers_failureSnack": "המיזוג נכשל: {error}",
-  "settings_cloudSync_duplicateDivers_undo": "בטל"
+  "settings_cloudSync_duplicateDivers_undo": "בטל",
+  "divers_edit_priorExperienceSection": "ניסיון קודם",
+  "divers_edit_priorExperienceHelp": "צלילות וזמן מהתקופה שלפני שהתחלת לתעד ב-Submersion.",
+  "divers_edit_priorDivesLabel": "צלילות קודמות",
+  "divers_edit_priorHoursLabel": "שעות קודמות",
+  "divers_edit_priorMinutesLabel": "דקות",
+  "divers_edit_divingSinceLabel": "צולל מאז",
+  "divers_edit_divingSinceNotSet": "לא הוגדר",
+  "divers_edit_clearDivingSinceTooltip": "נקה צולל מאז",
+  "divers_edit_priorInvalidNumber": "הזן מספר תקין",
+  "statistics_priorBreakdown": "{logged} מתועדות + {prior} קודמות",
+  "statistics_divingSince": "צולל מאז {year}",
+  "settings_appearance_gasTimeline": "ציר זמן של הגז",
+  "settings_appearance_gasTimeline_subtitle": "הצג את רצועת צריכת הגז מתחת לפרופיל הצלילה כברירת מחדל",
+  "diveDetailSection_surfaceGps_name": "GPS פני המים",
+  "diveDetailSection_surfaceGps_description": "נקודות כניסה/יציאה ב-GPS וסחף פני המים",
+  "diveLog_detail_section_surfaceGps": "GPS פני המים",
+  "diveLog_detail_surfaceGps_entry": "כניסה",
+  "diveLog_detail_surfaceGps_exit": "יציאה",
+  "diveLog_detail_label_drift": "סחף",
+  "diveLog_detail_surfaceGps_entryOnly": "נקודת הכניסה נרשמה",
+  "diveLog_detail_surfaceGps_exitOnly": "נקודת היציאה נרשמה",
+  "diveLog_detail_surfaceGps_site": "אתר",
+  "diveLog_detail_locationsMap_title": "מיקומי צלילה",
+  "diveLog_detail_coordinatesCopied": "הקואורדינטות הועתקו ללוח",
+  "diveLog_detail_openInMaps": "פתח במפות"
 }

@@ -1,6 +1,14 @@
 {
-  "@@last_modified": "2026-04-17",
+  "settings_cloudSync_error_icloudSignedOut": "iCloud غير متوفر. يُرجى تسجيل الدخول إلى iCloud من إعدادات جهازك.",
+  "settings_cloudSync_error_icloudUnknown": "تعذّر الوصول إلى iCloud. حاول مرة أخرى.",
+  "settings_cloudSync_error_icloudUnsupported": "مزامنة iCloud غير متوفرة في هذا الإصدار من Submersion. استخدم مزامنة S3 أو نسخة App Store.",
+  "settings_cloudSync_provider_icloud_unsupportedSubtitle": "غير متوفر في هذا الإصدار — استخدم S3 أو نسخة App Store",
+  "@@last_modified": "2026-06-15",
   "@@locale": "ar",
+  "settings_cloudSync_replace_globalBanner": "المزامنة متوقفة مؤقتًا — تم استبدال المكتبة من نسخة احتياطية على \"{deviceName}\".",
+  "settings_cloudSync_postRestore_syncing": "تتم مزامنة مكتبتك المستعادة مع السحابة…",
+  "settings_cloudSync_postRestore_synced": "تمت مزامنة المكتبة المستعادة.",
+  "settings_cloudSync_replace_reviewAction": "مراجعة",
   "@trips_itinerary_dayLabel": {
     "placeholders": {
       "dayNumber": {
@@ -4842,5 +4850,30 @@
   "settings_cloudSync_duplicateDivers_confirmAction": "دمج",
   "settings_cloudSync_duplicateDivers_successSnack": "تم الدمج في {name}",
   "settings_cloudSync_duplicateDivers_failureSnack": "فشل الدمج: {error}",
-  "settings_cloudSync_duplicateDivers_undo": "تراجع"
+  "settings_cloudSync_duplicateDivers_undo": "تراجع",
+  "divers_edit_priorExperienceSection": "خبرة سابقة",
+  "divers_edit_priorExperienceHelp": "الغطسات والوقت من قبل أن تبدأ التسجيل في Submersion.",
+  "divers_edit_priorDivesLabel": "غطسات سابقة",
+  "divers_edit_priorHoursLabel": "ساعات سابقة",
+  "divers_edit_priorMinutesLabel": "دقائق",
+  "divers_edit_divingSinceLabel": "يغوص منذ",
+  "divers_edit_divingSinceNotSet": "غير محدد",
+  "divers_edit_clearDivingSinceTooltip": "مسح يغوص منذ",
+  "divers_edit_priorInvalidNumber": "أدخل رقمًا صالحًا",
+  "statistics_priorBreakdown": "{logged} مسجلة + {prior} سابقة",
+  "statistics_divingSince": "يغوص منذ {year}",
+  "settings_appearance_gasTimeline": "الجدول الزمني للغاز",
+  "settings_appearance_gasTimeline_subtitle": "عرض شريط استهلاك الغاز أسفل ملف الغوصة بشكل افتراضي",
+  "diveDetailSection_surfaceGps_name": "GPS السطح",
+  "diveDetailSection_surfaceGps_description": "نقاط الدخول/الخروج عبر GPS وانجراف السطح",
+  "diveLog_detail_section_surfaceGps": "GPS السطح",
+  "diveLog_detail_surfaceGps_entry": "الدخول",
+  "diveLog_detail_surfaceGps_exit": "الخروج",
+  "diveLog_detail_label_drift": "انجراف",
+  "diveLog_detail_surfaceGps_entryOnly": "تم تسجيل نقطة الدخول",
+  "diveLog_detail_surfaceGps_exitOnly": "تم تسجيل نقطة الخروج",
+  "diveLog_detail_surfaceGps_site": "الموقع",
+  "diveLog_detail_locationsMap_title": "مواقع الغوص",
+  "diveLog_detail_coordinatesCopied": "تم نسخ الإحداثيات إلى الحافظة",
+  "diveLog_detail_openInMaps": "فتح في الخرائط"
 }

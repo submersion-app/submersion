@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,6 +12,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 
+import '../../../helpers/changeset_test_helpers.dart';
 import '../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../helpers/mock_providers.dart';
 import '../../../helpers/test_database.dart';
@@ -97,12 +97,7 @@ void main() {
           data: data,
           deletions: const {},
         );
-        cloud.seedFile(
-          'submersion_sync_stale-peer.json',
-          Uint8List.fromList(
-            utf8.encode(SyncDataSerializer().serializePayload(payload)),
-          ),
-        );
+        await seedPeerBaseFromPayload(cloud, 'stale-peer', payload);
 
         final service = SyncService(
           syncRepository: repository,
@@ -126,16 +121,12 @@ void main() {
 
   group('SyncNotifier.resetSyncState cloud cleanup', () {
     test(
-      'retires the old per-device file when adopting a new identity',
+      'retires the old changeset log when adopting a new identity',
       () async {
         final cloud = FakeCloudStorageProvider();
         final oldId = await repository.getDeviceId();
-        final oldFile = 'submersion_sync_$oldId.json';
-        cloud.seedFile(oldFile, Uint8List.fromList([1, 2, 3]));
-        cloud.seedFile(
-          'submersion_sync_peer-device.json',
-          Uint8List.fromList([9]),
-        );
+        await seedPeerManifest(cloud, oldId);
+        await seedPeerManifest(cloud, 'peer-device');
 
         final prefs = await SharedPreferences.getInstance();
         final container = ProviderContainer(
@@ -150,17 +141,17 @@ void main() {
 
         expect(await repository.getDeviceId(), isNot(oldId));
         expect(
-          await cloud.fileExists(oldFile),
+          await hasPublishedLog(cloud, oldId),
           isFalse,
           reason:
-              'after the identity changes, the old file is no longer excluded '
+              'after the identity changes, the old log is no longer excluded '
               'as "our own" -- left in place this device would merge its own '
-              'abandoned snapshot as a peer forever',
+              'abandoned base as a peer forever',
         );
         expect(
-          await cloud.fileExists('submersion_sync_peer-device.json'),
+          await hasPublishedLog(cloud, 'peer-device'),
           isTrue,
-          reason: 'only the retired identity\'s own file may be deleted',
+          reason: 'only the retired identity\'s own log may be deleted',
         );
       },
     );
@@ -168,10 +159,7 @@ void main() {
     test('reset succeeds even when the cloud delete fails', () async {
       final cloud = FakeCloudStorageProvider()..failDeletes = true;
       final oldId = await repository.getDeviceId();
-      cloud.seedFile(
-        'submersion_sync_$oldId.json',
-        Uint8List.fromList([1, 2, 3]),
-      );
+      await seedPeerManifest(cloud, oldId);
 
       final prefs = await SharedPreferences.getInstance();
       final container = ProviderContainer(

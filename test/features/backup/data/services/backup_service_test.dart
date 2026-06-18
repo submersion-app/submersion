@@ -7,12 +7,16 @@ import 'package:sqlite3/sqlite3.dart' as sqlite3;
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/backup_bookmark_service.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
+import 'package:submersion/core/services/sync/library_epoch_store.dart';
+import 'package:submersion/core/services/sync/post_restore_sync_store.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
 import 'package:submersion/features/backup/domain/entities/backup_type.dart';
+import 'package:submersion/features/backup/domain/entities/restore_mode.dart';
 
 // =============================================================================
 // Test Doubles
@@ -217,6 +221,64 @@ void main() {
       preferences = BackupPreferences(prefs);
       fakeCloud = FakeCloudStorageProvider();
       fakeDb = FakeBackupDatabaseAdapter();
+    });
+
+    group('post-restore sync intent', () {
+      test('Merge restore sets the post-restore sync intent', () async {
+        final intentStore = PostRestoreSyncStore(
+          await SharedPreferences.getInstance(),
+        );
+        final service = BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+          syncRepository: _SpySyncRepository(),
+          postRestoreSyncStore: intentStore,
+        );
+        final src = File(
+          '${Directory.systemTemp.path}/restore_merge_'
+          '${DateTime.now().microsecondsSinceEpoch}.db',
+        );
+        await src.writeAsString('db');
+        addTearDown(() async {
+          if (await src.exists()) await src.delete();
+        });
+
+        await service.restoreFromFile(src.path); // mode defaults to merge
+
+        expect(
+          intentStore.pending,
+          isTrue,
+          reason: 'a Merge restore must arm the post-restore sync intent',
+        );
+      });
+
+      test('Replace restore does NOT set the merge intent', () async {
+        final prefs = await SharedPreferences.getInstance();
+        final intentStore = PostRestoreSyncStore(prefs);
+        final service = BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+          syncRepository: _SpySyncRepository(),
+          epochStore: LibraryEpochStore(prefs),
+          postRestoreSyncStore: intentStore,
+        );
+        final src = File(
+          '${Directory.systemTemp.path}/restore_replace_'
+          '${DateTime.now().microsecondsSinceEpoch}.db',
+        );
+        await src.writeAsString('db');
+        addTearDown(() async {
+          if (await src.exists()) await src.delete();
+        });
+
+        await service.restoreFromFile(src.path, mode: RestoreMode.replace);
+
+        expect(
+          intentStore.pending,
+          isFalse,
+          reason: 'Replace uses pendingReplace, not the merge intent',
+        );
+      });
     });
 
     group('restore re-baselines sync', () {
@@ -843,6 +905,9 @@ void main() {
       });
 
       test('pre-restore backup uses configured backup location', () async {
+        // Desktop bare-path semantics (on Apple a bookmark would be required).
+        BackupBookmarkService.debugSupportedOverride = false;
+        addTearDown(() => BackupBookmarkService.debugSupportedOverride = null);
         final tempDir = await Directory.systemTemp.createTemp('backup_test_');
         final customDir = await Directory.systemTemp.createTemp('custom_');
         final backupFile = File('${tempDir.path}/test.db');
@@ -874,6 +939,10 @@ void main() {
 
     group('performBackup with custom location', () {
       test('uses custom backup location from settings', () async {
+        // On Apple a custom location is reached via a security-scoped bookmark;
+        // this bare-path test models the desktop case where paths persist.
+        BackupBookmarkService.debugSupportedOverride = false;
+        addTearDown(() => BackupBookmarkService.debugSupportedOverride = null);
         final tempDir = await Directory.systemTemp.createTemp('backup_test_');
 
         await preferences.setBackupLocation(tempDir.path);
@@ -903,6 +972,39 @@ void main() {
         // Default location uses the _localBackupFolder path
         expect(fakeDb.lastBackupPath, contains('Submersion'));
         expect(fakeDb.lastBackupPath, contains('Backups'));
+      });
+    });
+
+    group('resolveBackupsDirectory', () {
+      test('creates and returns the custom location; else default', () async {
+        final base = await Directory.systemTemp.createTemp('rbd_');
+        addTearDown(() => base.delete(recursive: true));
+        final sub = '${base.path}/backups_sub'; // does not exist yet
+
+        await preferences.setBackupLocation(sub);
+        expect(await BackupService.resolveBackupsDirectory(preferences), sub);
+        expect(await Directory(sub).exists(), isTrue); // created
+
+        await preferences.setBackupLocation(null);
+        final def = await BackupService.resolveBackupsDirectory(preferences);
+        expect(def, contains('Submersion'));
+        expect(def, contains('Backups'));
+      });
+    });
+
+    group('resolveDefaultBackupsDirectory', () {
+      test('returns the sandbox Submersion/Backups path even when a custom '
+          'location is configured', () async {
+        // The default resolver is the safe fallback the pre-migration backup
+        // uses when the custom location is unreachable, so it must ignore
+        // backupLocation entirely and always target the app sandbox.
+        await preferences.setBackupLocation('/some/custom/icloud/path');
+
+        final path = await BackupService.resolveDefaultBackupsDirectory();
+
+        expect(path, contains('Submersion'));
+        expect(path, contains('Backups'));
+        expect(path, isNot(contains('icloud')));
       });
     });
 

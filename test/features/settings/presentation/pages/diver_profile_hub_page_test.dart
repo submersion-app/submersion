@@ -52,6 +52,8 @@ void main() {
     DiverInsurance insurance = const DiverInsurance(),
     String notes = '',
     EmergencyContact emergency = const EmergencyContact(),
+    int? priorDiveCount,
+    DateTime? divingSince,
   }) {
     return Diver(
       id: id,
@@ -64,6 +66,8 @@ void main() {
       notes: notes,
       createdAt: now,
       updatedAt: now,
+      priorDiveCount: priorDiveCount,
+      divingSince: divingSince,
     );
   }
 
@@ -356,6 +360,32 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.textContaining('Expired'), findsOneWidget);
     });
+
+    testWidgets('renders prior-experience tile with dive-count subtitle', (
+      tester,
+    ) async {
+      final overrides = await getBaseOverrides();
+      final diver = makeDiver(priorDiveCount: 150);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            currentDiverProvider.overrideWith((_) async => diver),
+            diverListNotifierProvider.overrideWith(
+              (_) => _MockDiverListNotifier([diver]),
+            ),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: DiverProfileHubPage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byIcon(Icons.history), findsOneWidget);
+      expect(find.textContaining('150'), findsOneWidget);
+    });
   });
 
   group('DiverProfileHubPage navigation', () {
@@ -398,6 +428,51 @@ void main() {
       await tester.tap(find.byIcon(Icons.person));
       await tester.pumpAndSettle();
       expect(find.text('PERSONAL_PAGE'), findsOneWidget);
+    });
+
+    testWidgets('tapping Prior Experience tile navigates to route', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final overrides = await getBaseOverrides();
+      final diver = makeDiver();
+      final router = GoRouter(
+        initialLocation: '/hub',
+        routes: [
+          GoRoute(
+            path: '/hub',
+            builder: (context, state) => const DiverProfileHubPage(),
+          ),
+          GoRoute(
+            path: '/settings/diver-profile/prior',
+            builder: (context, state) =>
+                const Scaffold(body: Text('PRIOR_PAGE')),
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            currentDiverProvider.overrideWith((_) async => diver),
+            diverListNotifierProvider.overrideWith(
+              (_) => _MockDiverListNotifier([diver]),
+            ),
+          ],
+          child: MaterialApp.router(
+            routerConfig: router,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.history));
+      await tester.pumpAndSettle();
+      expect(find.text('PRIOR_PAGE'), findsOneWidget);
     });
 
     testWidgets('tapping Switch Diver opens bottom sheet', (tester) async {

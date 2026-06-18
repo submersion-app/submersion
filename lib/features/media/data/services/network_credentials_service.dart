@@ -20,6 +20,7 @@ import 'dart:convert';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/secure_storage/fallback_secure_storage.dart';
 import 'package:submersion/features/media/data/repositories/network_credentials_repository.dart';
 
 class NetworkCredentialsService {
@@ -27,10 +28,10 @@ class NetworkCredentialsService {
     required NetworkCredentialsRepository repository,
     required FlutterSecureStorage storage,
   }) : _repo = repository,
-       _storage = storage;
+       _storage = FallbackSecureStorage(storage);
 
   final NetworkCredentialsRepository _repo;
-  final FlutterSecureStorage _storage;
+  final FallbackSecureStorage _storage;
 
   /// Per-process cache of resolved (hostname -> headers) so repeated
   /// `headersFor` calls during a single bulk-import or scan don't hit

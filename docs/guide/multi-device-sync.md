@@ -5,9 +5,9 @@ phone, tablet, and computer &mdash; so a dive you download on one shows up on al
 of them.
 
 Sync is **"bring your own storage."** Your dive data lives in a cloud account
-*you* control, and Submersion reads and writes a single app-managed sync file
-there. There is no Submersion server in the middle and no Submersion account to
-create: you own the storage, and you own the data.
+*you* control, and Submersion reads and writes a small set of app-managed sync
+files there. There is no Submersion server in the middle and no Submersion
+account to create: you own the storage, and you own the data.
 
 <div class="tip">
 <strong>Tip:</strong> Set up the device that already has your dives <em>first</em>.
@@ -21,6 +21,9 @@ automatically:
 
 - Every device reads the latest shared library from your storage and writes its
   own changes back to it.
+- Syncs are **incremental**. The first sync uploads your library once; after
+  that, each sync transfers only what actually changed &mdash; so even a large
+  dive log stays fast to sync and does not need the app left open.
 - New dives, edits, and deletions made on one device propagate to the others on
   the next sync.
 - The **first** device to connect seeds the library. When another device

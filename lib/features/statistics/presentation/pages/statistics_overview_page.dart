@@ -6,8 +6,10 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
+import 'package:submersion/features/statistics/domain/career_totals.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -42,7 +44,26 @@ class _OverviewBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (stats.totalDives == 0) {
+    final diverAsync = ref.watch(currentDiverProvider);
+    // With no logged dives, whether to show the empty state depends on prior
+    // experience -- so wait for the diver to resolve rather than briefly
+    // flashing the empty state (currentDiverProvider is a FutureProvider).
+    if (stats.totalDives == 0 && diverAsync.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    final diver = diverAsync.valueOrNull;
+    final career = CareerTotals.from(
+      loggedDives: stats.totalDives,
+      loggedTimeSeconds: stats.totalTimeSeconds,
+      firstLoggedDive: stats.firstDiveDate,
+      priorDives: diver?.priorDiveCount,
+      priorTimeSeconds: diver?.priorDiveTimeSeconds,
+      divingSince: diver?.divingSince,
+    );
+    // Show the career view when the diver has prior experience even if nothing
+    // is logged in-app yet -- otherwise the feature's target user (a long
+    // pre-app career, no logged dives) would only ever see the empty state.
+    if (stats.totalDives == 0 && !career.hasPriorExperience) {
       return const _EmptyState();
     }
 
@@ -55,7 +76,20 @@ class _OverviewBody extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _AggregateGrid(stats: stats, fmt: fmt),
+          _AggregateGrid(stats: stats, fmt: fmt, career: career),
+          if (career.divingSinceResolved != null) ...[
+            const SizedBox(height: 8),
+            Center(
+              child: Text(
+                context.l10n.statistics_divingSince(
+                  career.divingSinceResolved!.year,
+                ),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: 16),
           recordsAsync.when(
             loading: () => const SizedBox.shrink(),
@@ -112,7 +146,12 @@ class _EmptyState extends StatelessWidget {
 class _AggregateGrid extends StatelessWidget {
   final DiveStatistics stats;
   final UnitFormatter fmt;
-  const _AggregateGrid({required this.stats, required this.fmt});
+  final CareerTotals career;
+  const _AggregateGrid({
+    required this.stats,
+    required this.fmt,
+    required this.career,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -122,13 +161,25 @@ class _AggregateGrid extends StatelessWidget {
       _StatCard(
         icon: Icons.waves,
         label: 'Total Dives',
-        value: '${stats.totalDives}',
+        value: '${career.combinedDives}',
+        subtitle: career.hasPriorDives
+            ? context.l10n.statistics_priorBreakdown(
+                '${career.loggedDives}',
+                '${career.priorDives}',
+              )
+            : null,
         color: Colors.blue,
       ),
       _StatCard(
         icon: Icons.timer,
         label: 'Total Time',
-        value: stats.totalTimeFormatted,
+        value: career.combinedTimeFormatted,
+        subtitle: career.hasPriorTime
+            ? context.l10n.statistics_priorBreakdown(
+                career.loggedTimeFormatted,
+                career.priorTimeFormatted,
+              )
+            : null,
         color: Colors.teal,
       ),
       _StatCard(
@@ -188,11 +239,13 @@ class _StatCard extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
+  final String? subtitle;
   final Color color;
   const _StatCard({
     required this.icon,
     required this.label,
     required this.value,
+    this.subtitle,
     required this.color,
   });
 
@@ -224,6 +277,18 @@ class _StatCard extends StatelessWidget {
                 ),
               ),
             ),
+            if (subtitle != null) ...[
+              const SizedBox(height: 2),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  subtitle!,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: 2),
             Text(
               label,

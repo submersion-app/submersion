@@ -35,9 +35,33 @@ class CloudStorageException implements Exception {
 
   const CloudStorageException(this.message, [this.cause, this.stackTrace]);
 
+  /// User-facing message that appends the underlying [cause] when present.
+  ///
+  /// The top-level [message] is intentionally generic (e.g. "Could not reach
+  /// S3 endpoint ..."); the [cause] carries the actionable transport detail
+  /// (TLS handshake / certificate / socket errors). Unlike [toString] this
+  /// omits the class-name prefix, so it is safe to show directly in a
+  /// snackbar.
+  String get displayMessage => '$message${_causeSuffix(cause)}';
+
   @override
-  String toString() =>
-      'CloudStorageException: $message${cause != null ? ' ($cause)' : ''}';
+  String toString() => 'CloudStorageException: $message${_causeSuffix(cause)}';
+
+  /// `' (<cause>)'` for a non-null [cause], else `''`.
+  ///
+  /// Prefers the cause's own (informative) `toString` -- which carries the
+  /// actionable detail like `CERTIFICATE_VERIFY_FAILED` -- but falls back to
+  /// [Error.safeToString] if that throws, so an error-display path can never
+  /// itself throw. (A bare [Error.safeToString] is not used because it
+  /// renders exceptions as "Instance of '...'", discarding the detail.)
+  static String _causeSuffix(Object? cause) {
+    if (cause == null) return '';
+    try {
+      return ' ($cause)';
+    } catch (_) {
+      return ' (${Error.safeToString(cause)})';
+    }
+  }
 }
 
 /// Abstract interface for cloud storage providers (iCloud, Google Drive, etc.)

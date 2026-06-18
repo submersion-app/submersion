@@ -1,7 +1,7 @@
 name: submersion
 description: An open-source dive logging application for scuba divers.
 publish_to: 'none'
-version: 1.4.9+96
+version: 1.5.4+102
 
 environment:
   sdk: ^3.10.0
@@ -49,6 +49,8 @@ dependencies:
 
   # Networking
   http: ^1.2.2
+  # FFI for reading the Windows certificate store (TLS trust on Windows).
+  ffi: ^2.1.0
 
   # Cloud Storage
   google_sign_in: ^7.2.0

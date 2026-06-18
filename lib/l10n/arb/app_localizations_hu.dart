@@ -9,6 +9,38 @@ class AppLocalizationsHu extends AppLocalizations {
   AppLocalizationsHu([String locale = 'hu']) : super(locale);
 
   @override
+  String get settings_cloudSync_error_icloudSignedOut =>
+      'Az iCloud nem érhető el. Jelentkezz be az iCloudba a készülék beállításaiban.';
+
+  @override
+  String get settings_cloudSync_error_icloudUnknown =>
+      'Nem sikerült elérni az iCloudot. Próbáld újra.';
+
+  @override
+  String get settings_cloudSync_error_icloudUnsupported =>
+      'Az iCloud-szinkronizálás nem érhető el a Submersion ezen buildjében. Használd az S3-szinkronizálást vagy az App Store-verziót.';
+
+  @override
+  String get settings_cloudSync_provider_icloud_unsupportedSubtitle =>
+      'Ebben a buildben nem érhető el – használj S3-at vagy az App Store-verziót';
+
+  @override
+  String settings_cloudSync_replace_globalBanner(String deviceName) {
+    return 'A szinkronizálás szünetel — a könyvtárat egy biztonsági másolatból cserélték itt: \"$deviceName\".';
+  }
+
+  @override
+  String get settings_cloudSync_postRestore_syncing =>
+      'A visszaállított könyvtár szinkronizálása a felhővel…';
+
+  @override
+  String get settings_cloudSync_postRestore_synced =>
+      'A visszaállított könyvtár szinkronizálva.';
+
+  @override
+  String get settings_cloudSync_replace_reviewAction => 'Áttekintés';
+
+  @override
   String get accessibility_dialog_keyboardShortcutsTitle =>
       'Billentyuparancsok';
 
@@ -9989,11 +10021,11 @@ class AppLocalizationsHu extends AppLocalizations {
       'Gazvaltas jelolok megjelenites';
 
   @override
-  String get settings_appearance_gasTimeline => 'Gas timeline';
+  String get settings_appearance_gasTimeline => 'Gáz idővonal';
 
   @override
   String get settings_appearance_gasTimeline_subtitle =>
-      'Show the gas-usage strip below the dive profile by default';
+      'Gázfogyasztási sáv megjelenítése a merülési profil alatt alapértelmezetten';
 
   @override
   String get settings_appearance_header_diveDetails => 'Merülés részletek';
@@ -10074,42 +10106,42 @@ class AppLocalizationsHu extends AppLocalizations {
       'Árapály-ciklus grafikon és időzítés';
 
   @override
-  String get diveDetailSection_surfaceGps_name => 'Surface GPS';
+  String get diveDetailSection_surfaceGps_name => 'Felszíni GPS';
 
   @override
   String get diveDetailSection_surfaceGps_description =>
-      'GPS entry/exit points and surface drift';
+      'GPS be-/kiszállási pontok és felszíni sodródás';
 
   @override
-  String get diveLog_detail_section_surfaceGps => 'Surface GPS';
+  String get diveLog_detail_section_surfaceGps => 'Felszíni GPS';
 
   @override
-  String get diveLog_detail_surfaceGps_entry => 'Entry';
+  String get diveLog_detail_surfaceGps_entry => 'Beszállás';
 
   @override
-  String get diveLog_detail_surfaceGps_exit => 'Exit';
+  String get diveLog_detail_surfaceGps_exit => 'Kiszállás';
 
   @override
-  String get diveLog_detail_label_drift => 'Drift';
+  String get diveLog_detail_label_drift => 'Sodródás';
 
   @override
-  String get diveLog_detail_surfaceGps_entryOnly => 'Entry point recorded';
+  String get diveLog_detail_surfaceGps_entryOnly => 'Beszállási pont rögzítve';
 
   @override
-  String get diveLog_detail_surfaceGps_exitOnly => 'Exit point recorded';
+  String get diveLog_detail_surfaceGps_exitOnly => 'Kiszállási pont rögzítve';
 
   @override
-  String get diveLog_detail_surfaceGps_site => 'Site';
+  String get diveLog_detail_surfaceGps_site => 'Merülőhely';
 
   @override
-  String get diveLog_detail_locationsMap_title => 'Dive Locations';
+  String get diveLog_detail_locationsMap_title => 'Merülési helyszínek';
 
   @override
   String get diveLog_detail_coordinatesCopied =>
-      'Coordinates copied to clipboard';
+      'Koordináták a vágólapra másolva';
 
   @override
-  String get diveLog_detail_openInMaps => 'Open in Maps';
+  String get diveLog_detail_openInMaps => 'Megnyitás a Térképekben';
 
   @override
   String get diveDetailSection_weights_name => 'Súlyok';
@@ -17093,4 +17125,42 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_cloudSync_duplicateDivers_undo => 'Visszavonás';
+
+  @override
+  String get divers_edit_priorExperienceSection => 'Korábbi Tapasztalat';
+
+  @override
+  String get divers_edit_priorExperienceHelp =>
+      'Merülések és idő azelőttről, hogy elkezdted naplózni a Submersionben.';
+
+  @override
+  String get divers_edit_priorDivesLabel => 'Korábbi merülések';
+
+  @override
+  String get divers_edit_priorHoursLabel => 'Korábbi órák';
+
+  @override
+  String get divers_edit_priorMinutesLabel => 'Perc';
+
+  @override
+  String get divers_edit_divingSinceLabel => 'Merül azóta';
+
+  @override
+  String get divers_edit_divingSinceNotSet => 'Nincs beállítva';
+
+  @override
+  String get divers_edit_clearDivingSinceTooltip => 'Merül azóta törlése';
+
+  @override
+  String get divers_edit_priorInvalidNumber => 'Adjon meg egy érvényes számot';
+
+  @override
+  String statistics_priorBreakdown(String logged, String prior) {
+    return '$logged naplózva + $prior korábbi';
+  }
+
+  @override
+  String statistics_divingSince(int year) {
+    return '$year óta merül';
+  }
 }

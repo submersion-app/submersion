@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -442,10 +443,24 @@ void main() {
       originalPicker = FilePickerPlatform.instance;
       mockPicker = MockFilePickerPlatform();
       FilePickerPlatform.instance = mockPicker;
+      // On Apple hosts the picker flow mints a security-scoped bookmark via
+      // this channel; mock it so the call resolves under controlled async.
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel('app.submersion/backup_bookmark'),
+            (call) async => call.method == 'createBookmark'
+                ? Uint8List.fromList([1, 2, 3])
+                : null,
+          );
     });
 
     tearDown(() {
       FilePickerPlatform.instance = originalPicker;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel('app.submersion/backup_bookmark'),
+            null,
+          );
     });
 
     Future<void> pumpApp(

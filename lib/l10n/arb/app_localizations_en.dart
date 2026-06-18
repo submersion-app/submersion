@@ -9,6 +9,38 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get settings_cloudSync_error_icloudSignedOut =>
+      'iCloud is not available. Please sign in to iCloud in your device settings.';
+
+  @override
+  String get settings_cloudSync_error_icloudUnknown =>
+      'Couldn\'t reach iCloud. Please try again.';
+
+  @override
+  String get settings_cloudSync_error_icloudUnsupported =>
+      'iCloud sync isn\'t available in this build of Submersion. Use S3 sync, or the App Store version.';
+
+  @override
+  String get settings_cloudSync_provider_icloud_unsupportedSubtitle =>
+      'Not available in this build — use S3 or the App Store version';
+
+  @override
+  String settings_cloudSync_replace_globalBanner(String deviceName) {
+    return 'Sync is paused — the library was replaced from a backup on \"$deviceName\".';
+  }
+
+  @override
+  String get settings_cloudSync_postRestore_syncing =>
+      'Syncing your restored library with the cloud…';
+
+  @override
+  String get settings_cloudSync_postRestore_synced =>
+      'Restored library synced.';
+
+  @override
+  String get settings_cloudSync_replace_reviewAction => 'Review';
+
+  @override
   String get accessibility_dialog_keyboardShortcutsTitle =>
       'Keyboard Shortcuts';
 
@@ -16852,4 +16884,42 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_cloudSync_duplicateDivers_undo => 'Undo';
+
+  @override
+  String get divers_edit_priorExperienceSection => 'Prior Experience';
+
+  @override
+  String get divers_edit_priorExperienceHelp =>
+      'Dives and time from before you started logging in Submersion.';
+
+  @override
+  String get divers_edit_priorDivesLabel => 'Prior dives';
+
+  @override
+  String get divers_edit_priorHoursLabel => 'Prior hours';
+
+  @override
+  String get divers_edit_priorMinutesLabel => 'Minutes';
+
+  @override
+  String get divers_edit_divingSinceLabel => 'Diving since';
+
+  @override
+  String get divers_edit_divingSinceNotSet => 'Not set';
+
+  @override
+  String get divers_edit_clearDivingSinceTooltip => 'Clear diving since';
+
+  @override
+  String get divers_edit_priorInvalidNumber => 'Enter a valid number';
+
+  @override
+  String statistics_priorBreakdown(String logged, String prior) {
+    return '$logged logged + $prior prior';
+  }
+
+  @override
+  String statistics_divingSince(int year) {
+    return 'Diving since $year';
+  }
 }

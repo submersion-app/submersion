@@ -448,6 +448,171 @@ void main() {
     });
   });
 
+  group('fallback to default location', () {
+    test('falls back to the default backups dir when the preferred location '
+        'cannot be created', () async {
+      // Reproduces the iOS report: the stored custom backup_location is an
+      // iCloud-Drive path whose security scope is gone, so resolving/creating
+      // it throws EPERM. With a fallback provider the pre-migration backup
+      // must still succeed by writing into the app sandbox instead of
+      // bricking startup.
+      final tmp = await Directory.systemTemp.createTemp('pmbs_fallback_');
+      addTearDown(() => tmp.delete(recursive: true));
+      final live = File(p.join(tmp.path, 'submersion.db'));
+      await live.writeAsBytes(List<int>.generate(512, (i) => i % 256));
+      final fallbackDir = Directory(p.join(tmp.path, 'default_backups'));
+      SharedPreferences.setMockInitialValues({});
+      final prefs = BackupPreferences(await SharedPreferences.getInstance());
+
+      final service = PreMigrationBackupService(
+        livePathProvider: () async => live.path,
+        backupsDirProvider: () async => throw const FileSystemException(
+          'Creation failed',
+          '/private/var/mobile/Library/Mobile Documents/com~apple~CloudDocs',
+          OSError('Operation not permitted', 1),
+        ),
+        fallbackBackupsDirProvider: () async => fallbackDir.path,
+        preferences: prefs,
+        clock: () => DateTime.utc(2026, 4, 12, 8, 12, 1),
+        idGenerator: () => 'fallback-id',
+      );
+
+      await service.backupIfMigrationPending(
+        stored: 63,
+        target: 64,
+        appVersion: '1.6.0.1241',
+      );
+
+      const expectedName = '20260412-081201000-v63-v64.db';
+      final backupFile = File(p.join(fallbackDir.path, expectedName));
+      expect(
+        await backupFile.exists(),
+        isTrue,
+        reason: 'backup should land in the fallback directory',
+      );
+      expect(await backupFile.readAsBytes(), await live.readAsBytes());
+      final history = prefs.getHistory();
+      expect(history, hasLength(1));
+      expect(history.single.localPath, backupFile.path);
+    });
+
+    test(
+      'rethrows when both preferred and fallback locations are unusable',
+      () async {
+        final tmp = await Directory.systemTemp.createTemp('pmbs_fb_fail_');
+        addTearDown(() => tmp.delete(recursive: true));
+        final live = File(p.join(tmp.path, 'submersion.db'));
+        await live.writeAsBytes([1, 2, 3]);
+        // Fallback path is a regular file, so creating it as a dir fails too.
+        final conflicting = File(p.join(tmp.path, 'not-a-dir'));
+        await conflicting.writeAsBytes([0]);
+        SharedPreferences.setMockInitialValues({});
+        final prefs = BackupPreferences(await SharedPreferences.getInstance());
+
+        final service = PreMigrationBackupService(
+          livePathProvider: () async => live.path,
+          backupsDirProvider: () async =>
+              throw const FileSystemException('primary unavailable'),
+          fallbackBackupsDirProvider: () async => conflicting.path,
+          preferences: prefs,
+          clock: () => DateTime.utc(2026, 4, 12),
+          idGenerator: () => 'id',
+        );
+
+        await expectLater(
+          service.backupIfMigrationPending(
+            stored: 63,
+            target: 64,
+            appVersion: '1.6.0.1241',
+          ),
+          throwsA(isA<BackupFailedException>()),
+        );
+      },
+    );
+
+    test(
+      'without a fallback provider, a preferred-location failure still throws',
+      () async {
+        // Preserves the original (no-fallback) contract used by callers that
+        // want strict behavior.
+        final tmp = await Directory.systemTemp.createTemp('pmbs_no_fb_');
+        addTearDown(() => tmp.delete(recursive: true));
+        final live = File(p.join(tmp.path, 'submersion.db'));
+        await live.writeAsBytes([1, 2, 3]);
+        SharedPreferences.setMockInitialValues({});
+        final prefs = BackupPreferences(await SharedPreferences.getInstance());
+
+        final service = PreMigrationBackupService(
+          livePathProvider: () async => live.path,
+          backupsDirProvider: () async =>
+              throw const FileSystemException('primary unavailable'),
+          preferences: prefs,
+          clock: () => DateTime.utc(2026, 4, 12),
+          idGenerator: () => 'id',
+        );
+
+        await expectLater(
+          service.backupIfMigrationPending(
+            stored: 63,
+            target: 64,
+            appVersion: '1.6.0.1241',
+          ),
+          throwsA(isA<BackupFailedException>()),
+        );
+      },
+    );
+
+    test(
+      'falls back when the preferred dir exists but the copy into it fails',
+      () async {
+        // The variant the reporter could also hit: an iCloud dir that EXISTS
+        // but whose write scope is gone. create() is a no-op (it exists) and
+        // the copy into it throws -- the fallback must still rescue startup.
+        final tmp = await Directory.systemTemp.createTemp('pmbs_copyfail_');
+        addTearDown(() => tmp.delete(recursive: true));
+        final live = File(p.join(tmp.path, 'submersion.db'));
+        await live.writeAsBytes(List<int>.generate(256, (i) => i % 256));
+        final preferred = Directory(p.join(tmp.path, 'preferred'));
+        await preferred.create();
+        await Process.run('chmod', ['000', preferred.path]);
+        addTearDown(() => Process.run('chmod', ['755', preferred.path]));
+        final fallback = Directory(p.join(tmp.path, 'fallback'));
+        SharedPreferences.setMockInitialValues({});
+        final prefs = BackupPreferences(await SharedPreferences.getInstance());
+
+        final service = PreMigrationBackupService(
+          livePathProvider: () async => live.path,
+          backupsDirProvider: () async => preferred.path,
+          fallbackBackupsDirProvider: () async => fallback.path,
+          preferences: prefs,
+          clock: () => DateTime.utc(2026, 4, 12, 8, 12, 1),
+          idGenerator: () => 'copyfail-id',
+        );
+
+        await service.backupIfMigrationPending(
+          stored: 63,
+          target: 64,
+          appVersion: '1.6.0.1241',
+        );
+
+        final landed = File(
+          p.join(fallback.path, '20260412-081201000-v63-v64.db'),
+        );
+        expect(
+          await landed.exists(),
+          isTrue,
+          reason: 'backup should land in the fallback when the copy fails',
+        );
+        final history = prefs.getHistory();
+        expect(history, hasLength(1));
+        expect(history.single.localPath, landed.path);
+      },
+      skip: Platform.isWindows
+          ? 'chmod-based permission denial is not portable to Windows'
+          : null,
+    );
+  });
+
   group('construction', () {
     test('default idGenerator produces a UUID-shaped id', () async {
       final f = await _makeFixture();

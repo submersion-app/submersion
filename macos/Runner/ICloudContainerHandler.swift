@@ -1,5 +1,6 @@
 import Cocoa
 import FlutterMacOS
+import Security
 
 /// Thread-safe atomic flag for one-shot operations.
 private class AtomicFlag {
@@ -77,6 +78,9 @@ class ICloudContainerHandler: NSObject {
             }
             refreshFolder(path: path, result: result)
 
+        case "getICloudAvailability":
+            getICloudAvailability(result: result)
+
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -108,6 +112,35 @@ class ICloudContainerHandler: NSObject {
                 result(FlutterError(code: "TIMEOUT", message: "iCloud container lookup timed out", details: nil))
             }
         }
+    }
+
+    /// Reports iCloud availability without resolving the container URL (which
+    /// can block). Distinguishes a build lacking the iCloud entitlement
+    /// ("unsupported") from a signed-out iCloud account ("signedOut").
+    private func getICloudAvailability(result: @escaping FlutterResult) {
+        DispatchQueue.global(qos: .userInitiated).async {
+            let status: String
+            if !self.hasUbiquityEntitlement() {
+                status = "unsupported"
+            } else if FileManager.default.ubiquityIdentityToken == nil {
+                status = "signedOut"
+            } else {
+                status = "available"
+            }
+            DispatchQueue.main.async { result(status) }
+        }
+    }
+
+    /// Whether this process carries the iCloud ubiquity-container entitlement.
+    /// Developer ID / no-sandbox builds do not, so iCloud can never work there.
+    private func hasUbiquityEntitlement() -> Bool {
+        guard let task = SecTaskCreateFromSelf(nil) else { return false }
+        let key = "com.apple.developer.ubiquity-container-identifiers" as CFString
+        let value = SecTaskCopyValueForEntitlement(task, key, nil)
+        if let identifiers = value as? [String] {
+            return !identifiers.isEmpty
+        }
+        return value != nil
     }
 
     private func downloadIfNeeded(path: String, result: @escaping FlutterResult) {

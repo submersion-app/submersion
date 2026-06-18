@@ -48,6 +48,9 @@ class SyncRepository {
     'settings': (table: 'settings', pk: 'key'),
     'csvPresets': (table: 'csv_presets', pk: 'id'),
     'viewConfigs': (table: 'view_configs', pk: 'id'),
+    'media': (table: 'media', pk: 'id'),
+    'species': (table: 'species', pk: 'id'),
+    'fieldPresets': (table: 'field_presets', pk: 'id'),
   };
 
   // ============================================================================
@@ -446,6 +449,10 @@ class SyncRepository {
     return row?.read<String?>('m');
   }
 
+  /// Public accessor for [_maxRowHlc] -- the highest hlc across conflict-capable
+  /// tables. Used by stale-restore detection.
+  Future<String?> maxRowHlc() => _maxRowHlc();
+
   /// Pick the greater of [a]/[b] by (physicalTime, counter) and rebuild it with
   /// [nodeId] so the clock always issues under THIS device's identity.
   Hlc? _seedHlc(String nodeId, Hlc? a, Hlc? b) {
@@ -685,6 +692,16 @@ class SyncRepository {
       final id = _uuid.v4();
       final now = deletedAt ?? DateTime.now().millisecondsSinceEpoch;
 
+      // Stamp a monotonic HLC so the changeset writer can publish only NEW
+      // tombstones (filtered by hlc > publishedHlcHigh) instead of re-sending
+      // the whole deletion log every sync. Deliberately NOT gated on
+      // _hlcTargets: write-once child deletions (diveTanks, diveProfileEvents,
+      // ...) have no row hlc but their tombstones still need one. Configure the
+      // clock first -- deletes routinely fire outside a sync. A null hlc (clock
+      // unconfigurable) still rides every full base, so no tombstone is lost.
+      await ensureSyncClockConfigured();
+      final hlc = SyncClock.instance.issue();
+
       await _db
           .into(_db.deletionLog)
           .insert(
@@ -693,6 +710,7 @@ class SyncRepository {
               entityType: Value(entityType),
               recordId: Value(recordId),
               deletedAt: Value(now),
+              hlc: Value(hlc),
             ),
           );
 
@@ -854,6 +872,14 @@ class SyncRepository {
       if (clearDeletionLog) {
         await clearAllDeletions();
       }
+
+      // Changeset transport position is not data history: a reset must
+      // cold-start the transport so the next sync re-pulls every peer from
+      // scratch and republishes a fresh base. Leaving a provider-keyed publish
+      // row behind would make the next publish append a changeset against a
+      // base whose own manifest no longer exists.
+      await _db.delete(_db.syncPeerCursors).go();
+      await _db.delete(_db.localPublishStates).go();
 
       final now = DateTime.now().millisecondsSinceEpoch;
       await (_db.update(

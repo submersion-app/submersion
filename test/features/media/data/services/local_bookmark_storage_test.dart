@@ -6,6 +6,7 @@ import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:submersion/features/media/data/services/local_bookmark_storage.dart';
 
+import '../../../../support/fake_keychain_storage.dart';
 import 'local_bookmark_storage_test.mocks.dart';
 
 @GenerateMocks([FlutterSecureStorage])
@@ -52,4 +53,18 @@ void main() {
     await subject.delete('ref-1');
     verify(mockStorage.delete(key: 'bookmark:ref-1')).called(1);
   });
+
+  test(
+    'write/read fall back to the legacy keychain on errSecMissingEntitlement',
+    () async {
+      final inner = NoEntitlementKeychain();
+      final fallbackSubject = LocalBookmarkStorage(storage: inner);
+
+      await fallbackSubject.write('ref-1', Uint8List.fromList([1, 2, 3]));
+      final blob = await fallbackSubject.read('ref-1');
+
+      expect(inner.dataProtectionAttempted, isTrue);
+      expect(blob, [1, 2, 3]);
+    },
+  );
 }
