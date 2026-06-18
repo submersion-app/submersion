@@ -692,11 +692,38 @@ class SyncService {
     var recordsFailed = 0;
     final pendingByEntity = await _pendingRecordMap();
 
+    // A payload can present a record as LIVE and ALSO carry a tombstone for the
+    // same key -- the on-the-wire signature of a composite-natural-key junction
+    // (equipment_set_items, dive_equipment) rebuilt by its repository via
+    // delete-all-then-reinsert. A row cannot be both present and deleted in one
+    // source snapshot, so the live table is authoritative and the tombstone is
+    // a stale artifact. Collect these self-contradicted keys: the deletion is
+    // skipped below and the live row wins (clearing any local tombstone in the
+    // merge heals a peer that already dropped the row on the buggy build).
+    final contradictedByEntity = <String, Set<String>>{};
+    final liveByType = remotePayload.data.toJson();
+    for (final delEntry in remotePayload.deletions.entries) {
+      final deletedIds = {for (final d in delEntry.value) d.id};
+      if (deletedIds.isEmpty) continue;
+      final live = liveByType[delEntry.key];
+      if (live is! List) continue;
+      final contradicted = <String>{};
+      for (final rec in live) {
+        if (rec is! Map<String, dynamic>) continue;
+        final id = _recordIdForEntity(delEntry.key, rec);
+        if (id != null && deletedIds.contains(id)) contradicted.add(id);
+      }
+      if (contradicted.isNotEmpty) {
+        contradictedByEntity[delEntry.key] = contradicted;
+      }
+    }
+
     final deletionResult = await _applyRemoteDeletions(
       remotePayload.deletions,
       lastSyncMs,
       remotePayload.exportedAt,
       pendingByEntity,
+      contradictedByEntity,
     );
     recordsApplied += deletionResult.recordsApplied;
     conflictsFound += deletionResult.conflictsFound;
@@ -868,6 +895,7 @@ class SyncService {
         pendingRecordIds: pendingByEntity[entry.type] ?? const <String>{},
         allTombstones: tombstonesByEntity,
         revivedParents: revivedParents,
+        contradicted: contradictedByEntity[entry.type] ?? const <String>{},
       );
       recordsApplied += result.recordsApplied;
       conflictsFound += result.conflictsFound;
@@ -893,6 +921,7 @@ class SyncService {
     int? lastSyncMs,
     int remoteExportedAt,
     Map<String, Set<String>> pendingByEntity,
+    Map<String, Set<String>> contradictedByEntity,
   ) async {
     var applied = 0;
     var conflicts = 0;
@@ -906,15 +935,23 @@ class SyncService {
           if (pendingByEntity[entityType]?.contains(recordId) == true) {
             continue;
           }
+          if (contradictedByEntity[entityType]?.contains(recordId) == true) {
+            // The same payload re-inserts this row as live; the tombstone is a
+            // stale delete-all+reinsert artifact. Skip it so the live row
+            // survives (the merge upserts it and clears any local tombstone).
+            continue;
+          }
           final local = await _serializer.fetchRecord(entityType, recordId);
-          // _extractUpdatedAtMillis falls back to createdAt, so a row that was
-          // created locally after our last sync is protected from a stale
-          // remote tombstone even on append-only child tables that have a
-          // createdAt. The handful of child tables with neither updatedAt nor
-          // createdAt (dive_profiles, dive_tanks, dive_equipment,
-          // tank_pressure_profiles, sightings) have no age signal; they are
-          // regenerated wholesale with fresh ids on re-import, so a stale
-          // tombstone won't match a current row.
+          // _extractUpdatedAtMillis falls back to createdAt, so a row created
+          // locally after our last sync is protected from a stale remote
+          // tombstone even on append-only child tables that have a createdAt.
+          // Clockless child tables with neither updatedAt nor createdAt
+          // (dive_profiles, dive_tanks, tank_pressure_profiles, sightings) have
+          // no age signal: the uuid-keyed ones regenerate with fresh ids on
+          // re-import, so a stale tombstone won't match a current row. The
+          // composite-natural-key junctions (dive_equipment, equipment_set_items)
+          // WOULD match a re-inserted row, but the contradicted-key skip above
+          // already drops a tombstone whose key the same payload re-inserts.
           final localUpdatedAt = _extractUpdatedAtMillis(local);
           final deletionTimestamp = deletion.deletedAt > 0
               ? deletion.deletedAt
@@ -1055,6 +1092,7 @@ class SyncService {
     required Set<String> pendingRecordIds,
     required Map<String, Map<String, int>> allTombstones,
     required Map<String, Set<String>> revivedParents,
+    required Set<String> contradicted,
   }) async {
     if (records.isEmpty) {
       return const _MergeResult(recordsApplied: 0, conflictsFound: 0);
@@ -1114,19 +1152,31 @@ class SyncService {
         // seen our delete re-introduces the record on every sync.
         final deletedAt = selfTombstones[recordId];
         if (deletedAt != null) {
-          final remoteUpdatedAt = hasUpdatedAt
-              ? _extractUpdatedAtMillis(record)
-              : null;
-          if (remoteUpdatedAt == null || remoteUpdatedAt <= deletedAt) {
-            // No newer remote edit -- the deletion wins; stay deleted.
-            continue;
+          if (contradicted.contains(recordId)) {
+            // This same payload presents the record as live AND tombstones it
+            // (a delete-all+reinsert artifact). The live row is the source's
+            // current truth, so drop the stale tombstone -- including a local
+            // one a prior buggy sync left behind -- and apply the record. This
+            // is what self-heals a peer that already dropped the membership.
+            await _syncRepository.removeDeletion(
+              entityType: entityType,
+              recordId: recordId,
+            );
+          } else {
+            final remoteUpdatedAt = hasUpdatedAt
+                ? _extractUpdatedAtMillis(record)
+                : null;
+            if (remoteUpdatedAt == null || remoteUpdatedAt <= deletedAt) {
+              // No newer remote edit -- the deletion wins; stay deleted.
+              continue;
+            }
+            // Remote edit is newer than the deletion: revive the record and
+            // drop the now-obsolete tombstone so it stops re-deleting it.
+            await _syncRepository.removeDeletion(
+              entityType: entityType,
+              recordId: recordId,
+            );
           }
-          // Remote edit is newer than the deletion: revive the record and drop
-          // the now-obsolete tombstone so it stops re-deleting it.
-          await _syncRepository.removeDeletion(
-            entityType: entityType,
-            recordId: recordId,
-          );
         }
 
         if (!hasUpdatedAt) {
