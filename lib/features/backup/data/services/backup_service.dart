@@ -622,6 +622,16 @@ class BackupService {
       }
       return customDir.path;
     }
+    return resolveDefaultBackupsDirectory();
+  }
+
+  /// The default backups directory inside the app's sandbox documents dir.
+  ///
+  /// Always writable (it lives inside the app container), so it doubles as the
+  /// safe fallback when a user-chosen custom location is unreachable -- see
+  /// PreMigrationBackupService. Unlike [resolveBackupsDirectory] this ignores
+  /// any configured custom location by design.
+  static Future<String> resolveDefaultBackupsDirectory() async {
     final appDir = await getApplicationDocumentsDirectory();
     final backupDir = Directory(p.join(appDir.path, _localBackupFolder));
     if (!await backupDir.exists()) {
@@ -635,16 +645,11 @@ class BackupService {
       BackupService.resolveBackupsDirectory(_preferences);
 
   /// Get the local backups directory, creating it if needed.
-  Future<String> getLocalBackupsDirectory() async {
-    // Direct-path version bypassing custom-location check; preserved for
-    // existing callers that want the default location specifically.
-    final appDir = await getApplicationDocumentsDirectory();
-    final backupDir = Directory(p.join(appDir.path, _localBackupFolder));
-    if (!await backupDir.exists()) {
-      await backupDir.create(recursive: true);
-    }
-    return backupDir.path;
-  }
+  ///
+  /// Direct-path version bypassing the custom-location check; preserved for
+  /// existing callers that want the default location specifically.
+  Future<String> getLocalBackupsDirectory() =>
+      BackupService.resolveDefaultBackupsDirectory();
 
   // ===========================================================================
   // Private Helpers

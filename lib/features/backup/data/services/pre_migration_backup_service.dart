@@ -20,6 +20,7 @@ class PreMigrationBackupService {
   static const int _retainN = 3;
   final AsyncPathResolver _livePathProvider;
   final AsyncPathResolver _backupsDirProvider;
+  final AsyncPathResolver? _fallbackBackupsDirProvider;
   final BackupPreferences _preferences;
   final DateTime Function() _clock;
   final String Function() _idGenerator;
@@ -28,11 +29,13 @@ class PreMigrationBackupService {
   PreMigrationBackupService({
     required AsyncPathResolver livePathProvider,
     required AsyncPathResolver backupsDirProvider,
+    AsyncPathResolver? fallbackBackupsDirProvider,
     required BackupPreferences preferences,
     DateTime Function()? clock,
     String Function()? idGenerator,
   }) : _livePathProvider = livePathProvider,
        _backupsDirProvider = backupsDirProvider,
+       _fallbackBackupsDirProvider = fallbackBackupsDirProvider,
        _preferences = preferences,
        _clock = clock ?? DateTime.now,
        _idGenerator = idGenerator ?? (() => const Uuid().v4());
@@ -45,33 +48,37 @@ class PreMigrationBackupService {
     if (stored >= target) return;
 
     late final String livePath;
-    late final String backupsDir;
     try {
       livePath = await _livePathProvider();
       if (!await File(livePath).exists()) return;
-
-      backupsDir = await _backupsDirProvider();
-      await Directory(backupsDir).create(recursive: true);
-    } on BackupFailedException {
-      rethrow;
     } catch (e, stack) {
       throw BackupFailedException.fromError(e, stack);
     }
 
-    await _sweepTempFiles(backupsDir);
-
     final now = _clock().toUtc();
-    final ts = _formatTimestamp(now);
-    final filename = '$ts-v$stored-v$target.db';
-    final tempPath = p.join(backupsDir, '.$filename.tmp');
-    final finalPath = p.join(backupsDir, filename);
+    final filename = '${_formatTimestamp(now)}-v$stored-v$target.db';
 
+    late final String finalPath;
     try {
-      await File(livePath).copy(tempPath);
-      await File(tempPath).rename(finalPath);
-    } catch (e, stack) {
-      await _safeDelete(tempPath);
-      throw BackupFailedException.fromError(e, stack);
+      finalPath = await _backupInto(_backupsDirProvider, livePath, filename);
+    } catch (preferredError, preferredStack) {
+      final fallbackProvider = _fallbackBackupsDirProvider;
+      if (fallbackProvider == null) {
+        if (preferredError is BackupFailedException) rethrow;
+        throw BackupFailedException.fromError(preferredError, preferredStack);
+      }
+      _log.warning(
+        'Preferred backups location is unusable; falling back to the default '
+        'app location for the pre-migration backup.',
+        error: preferredError,
+        stackTrace: preferredStack,
+      );
+      try {
+        finalPath = await _backupInto(fallbackProvider, livePath, filename);
+      } catch (e, stack) {
+        if (e is BackupFailedException) rethrow;
+        throw BackupFailedException.fromError(e, stack);
+      }
     }
 
     late final int sizeBytes;
@@ -115,6 +122,34 @@ class PreMigrationBackupService {
         stackTrace: stack,
       );
     }
+  }
+
+  /// Resolves + creates [provider]'s directory, sweeps stale temp files, and
+  /// atomically copies the live DB into it. Returns the final path.
+  ///
+  /// Wrapping the WHOLE attempt -- not just directory creation -- means an
+  /// existing but unwritable preferred location (e.g. an iOS iCloud folder
+  /// whose write scope was lost, where create() is a no-op but the copy is
+  /// denied) still degrades to the caller's fallback instead of bricking
+  /// startup. Throws if any step fails; the caller decides whether to retry.
+  Future<String> _backupInto(
+    AsyncPathResolver provider,
+    String livePath,
+    String filename,
+  ) async {
+    final dir = await provider();
+    await Directory(dir).create(recursive: true);
+    await _sweepTempFiles(dir);
+    final tempPath = p.join(dir, '.$filename.tmp');
+    final finalPath = p.join(dir, filename);
+    try {
+      await File(livePath).copy(tempPath);
+      await File(tempPath).rename(finalPath);
+    } catch (e) {
+      await _safeDelete(tempPath);
+      rethrow;
+    }
+    return finalPath;
   }
 
   String _formatTimestamp(DateTime utc) {

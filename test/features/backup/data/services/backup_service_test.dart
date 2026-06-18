@@ -967,6 +967,22 @@ void main() {
       });
     });
 
+    group('resolveDefaultBackupsDirectory', () {
+      test('returns the sandbox Submersion/Backups path even when a custom '
+          'location is configured', () async {
+        // The default resolver is the safe fallback the pre-migration backup
+        // uses when the custom location is unreachable, so it must ignore
+        // backupLocation entirely and always target the app sandbox.
+        await preferences.setBackupLocation('/some/custom/icloud/path');
+
+        final path = await BackupService.resolveDefaultBackupsDirectory();
+
+        expect(path, contains('Submersion'));
+        expect(path, contains('Backups'));
+        expect(path, isNot(contains('icloud')));
+      });
+    });
+
     group('getValidatedBackupHistory', () {
       test(
         'removes records where local file is gone and no cloud backup',

@@ -337,6 +337,11 @@ class _StartupWrapperState extends State<StartupWrapper>
       service = PreMigrationBackupService(
         livePathProvider: () async => dbPath,
         backupsDirProvider: () => BackupService.resolveBackupsDirectory(prefs),
+        // If the user's custom backup location is unreachable (e.g. an iOS
+        // iCloud path whose security scope was lost), degrade to the app
+        // sandbox so a pre-migration safety copy can never brick startup.
+        fallbackBackupsDirProvider:
+            BackupService.resolveDefaultBackupsDirectory,
         preferences: prefs,
       );
     }
