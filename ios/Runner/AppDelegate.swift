@@ -8,6 +8,7 @@ import workmanager_apple
   private var icloudHandler: ICloudContainerHandler?
   private var metadataHandler: MetadataWriteHandler?
   private var localMediaHandler: LocalMediaHandler?
+  private var backupBookmarkHandler: BackupBookmarkHandler?
 
   override func application(
     _ application: UIApplication,
@@ -34,6 +35,9 @@ import workmanager_apple
     if let localMediaRegistrar = self.registrar(forPlugin: "LocalMediaHandler") {
       localMediaHandler = LocalMediaHandler(messenger: localMediaRegistrar.messenger())
     }
+    if let backupRegistrar = self.registrar(forPlugin: "BackupBookmarkHandler") {
+      backupBookmarkHandler = BackupBookmarkHandler(messenger: backupRegistrar.messenger())
+    }
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
@@ -41,6 +45,7 @@ import workmanager_apple
   override func applicationWillTerminate(_ application: UIApplication) {
     // Clean up security-scoped resource access
     bookmarkHandler?.cleanup()
+    backupBookmarkHandler?.releaseAll()
   }
 
   /// iOS caches launch screen snapshots in Library/SplashBoard.

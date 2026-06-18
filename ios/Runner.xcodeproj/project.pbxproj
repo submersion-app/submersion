@@ -21,6 +21,7 @@
 		B6F7A1C22F0A1234001C2D3E /* ICloudContainerHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6F7A1C12F0A1234001C2D3E /* ICloudContainerHandler.swift */; };
 		C7F8A2D42F0B2345001D3E4F /* MetadataWriteHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7F8A2D32F0B2345001D3E4F /* MetadataWriteHandler.swift */; };
 		D8E9F0A22F0C3456001E4F50 /* LocalMediaHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8E9F0A12F0C3456001E4F50 /* LocalMediaHandler.swift */; };
+		BB05C0DEBB05C0DE00000002 /* BackupBookmarkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB05C0DEBB05C0DE00000001 /* BackupBookmarkHandler.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -74,6 +75,7 @@
 		C7F8A2D32F0B2345001D3E4F /* MetadataWriteHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MetadataWriteHandler.swift; sourceTree = "<group>"; };
 		D48C3D26F3310C3983763F37 /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D8E9F0A12F0C3456001E4F50 /* LocalMediaHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocalMediaHandler.swift; sourceTree = "<group>"; };
+		BB05C0DEBB05C0DE00000001 /* BackupBookmarkHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BackupBookmarkHandler.swift; sourceTree = "<group>"; };
 		DBBF9F6530874A986D338166 /* Pods-RunnerTests.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.profile.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.profile.xcconfig"; sourceTree = "<group>"; };
 		F22E11F21EB668A4099D29B8 /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -154,6 +156,7 @@
 				B6F7A1C12F0A1234001C2D3E /* ICloudContainerHandler.swift */,
 				C7F8A2D32F0B2345001D3E4F /* MetadataWriteHandler.swift */,
 				D8E9F0A12F0C3456001E4F50 /* LocalMediaHandler.swift */,
+				BB05C0DEBB05C0DE00000001 /* BackupBookmarkHandler.swift */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
 			);
 			path = Runner;
@@ -417,6 +420,7 @@
 				B6F7A1C22F0A1234001C2D3E /* ICloudContainerHandler.swift in Sources */,
 				C7F8A2D42F0B2345001D3E4F /* MetadataWriteHandler.swift in Sources */,
 				D8E9F0A22F0C3456001E4F50 /* LocalMediaHandler.swift in Sources */,
+				BB05C0DEBB05C0DE00000002 /* BackupBookmarkHandler.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
