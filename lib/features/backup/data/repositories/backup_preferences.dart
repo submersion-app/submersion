@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -17,6 +18,7 @@ class BackupPreferences {
   static const String _lastBackupTimeKey = 'backup_last_time';
   static const String _cloudBackupEnabledKey = 'backup_cloud_enabled';
   static const String _backupLocationKey = 'backup_location';
+  static const String _backupLocationBookmarkKey = 'backup_location_bookmark';
   static const String _historyKey = 'backup_history';
 
   final SharedPreferences _prefs;
@@ -64,9 +66,30 @@ class BackupPreferences {
   Future<void> setBackupLocation(String? path) async {
     if (path == null) {
       await _prefs.remove(_backupLocationKey);
+      // The bookmark only has meaning paired with a location, so clearing the
+      // location (reset to default) must drop the bookmark too -- otherwise a
+      // dangling security-scoped bookmark would linger.
+      await _prefs.remove(_backupLocationBookmarkKey);
     } else {
       await _prefs.setString(_backupLocationKey, path);
     }
+  }
+
+  /// Persists the security-scoped bookmark bytes for the custom backup
+  /// location (Apple platforms), stored as base64. Null removes it.
+  Future<void> setBackupLocationBookmark(List<int>? bytes) async {
+    if (bytes == null) {
+      await _prefs.remove(_backupLocationBookmarkKey);
+    } else {
+      await _prefs.setString(_backupLocationBookmarkKey, base64Encode(bytes));
+    }
+  }
+
+  /// Reads the stored backup-location bookmark bytes, or null if none is set.
+  Uint8List? getBackupLocationBookmark() {
+    final encoded = _prefs.getString(_backupLocationBookmarkKey);
+    if (encoded == null) return null;
+    return base64Decode(encoded);
   }
 
   // ===========================================================================
