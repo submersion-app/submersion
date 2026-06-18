@@ -3,6 +3,46 @@
 All notable changes to Submersion are documented in this file.
 
 
+## 1.5.4 (2026-06-18)
+
+### Features
+
+- release scoped backup dir after each write
+- arm security-scoped bookmark around backup writes; reset stale to default
+- pick custom folder via security-scoped bookmark on Apple platforms
+- dedicated BackupBookmarkHandler
+- dedicated BackupBookmarkHandler (multi-slot, folder picker)
+- persist backup-folder security-scoped bookmark
+- BackupBookmarkService channel wrapper (Dart side)
+
+### Bug Fixes
+
+- re-mint a stale backup bookmark instead of using it as-is
+- keep junction membership when a payload reinserts a deleted key
+- guard tile error logging against a throwing toString
+- never let an unusable backup location brick startup
+- log tile load failures instead of swallowing them
+- always merge a complete public-CA bundle on Windows
+- route keychain ops to the working store on the macOS no-sandbox build
+- default extractFromDive sacUnit to pressurePerMin
+- honor SAC unit preference in dives table column
+- address review - union machine roots, comment accuracy
+- address review - ROOT-only anchors, non-throwing cause
+- trust the Windows certificate store for TLS
+
+### Tests
+
+- cover mixed contradicted/genuine-delete set edit
+- raise patch coverage to ~96% (error/unsupported + resolveBackupsDirectory)
+- cover the tile error handler
+- cover dive list tile SAC extra-field rendering
+- bring patch coverage to 100%
+
+### Chores
+
+- bump version to 1.5.4+102
+
+
 ## 1.5.3 (2026-06-17)
 
 ### Chores
