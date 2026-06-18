@@ -375,6 +375,39 @@ void main() {
     expect(store.stored, isNull);
   });
 
+  testWidgets('test connection failure surfaces the underlying cause', (
+    tester,
+  ) async {
+    // A transport failure wraps the actionable detail (here a TLS handshake
+    // error) in the exception's cause; the snackbar must show it, not just
+    // the generic top-level message.
+    apiClient.failListWith = const CloudStorageException(
+      'Could not reach S3 endpoint host.example.com',
+      'HandshakeException: CERTIFICATE_VERIFY_FAILED',
+    );
+    await pumpPage(tester);
+    await fillValidForm(tester);
+    await tester.ensureVisible(find.byKey(const Key('s3-test')));
+    await tester.tap(find.byKey(const Key('s3-test')));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('CERTIFICATE_VERIFY_FAILED'), findsOneWidget);
+  });
+
+  testWidgets('save failure surfaces a CloudStorageException cause', (
+    tester,
+  ) async {
+    store.failSaveWith = const CloudStorageException(
+      'Save failed',
+      'HandshakeException: CERTIFICATE_VERIFY_FAILED',
+    );
+    await pumpPage(tester);
+    await fillValidForm(tester);
+    await tester.ensureVisible(find.byKey(const Key('s3-save')));
+    await tester.tap(find.byKey(const Key('s3-save')));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('CERTIFICATE_VERIFY_FAILED'), findsOneWidget);
+  });
+
   testWidgets('save failure surfaces an error and selects nothing', (
     tester,
   ) async {

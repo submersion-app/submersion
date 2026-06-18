@@ -49,6 +49,8 @@ dependencies:
 
   # Networking
   http: ^1.2.2
+  # FFI for reading the Windows certificate store (TLS trust on Windows).
+  ffi: ^2.1.0
 
   # Cloud Storage
   google_sign_in: ^7.2.0

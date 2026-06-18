@@ -137,6 +137,11 @@ class _S3ConfigPageState extends ConsumerState<S3ConfigPage> {
       SnackBar(
         content: Text(message),
         backgroundColor: isError ? Colors.red : Colors.green,
+        // Errors now carry the underlying cause (e.g. a TLS handshake
+        // detail), which can span several lines; give the reader time.
+        duration: isError
+            ? const Duration(seconds: 10)
+            : const Duration(seconds: 4),
       ),
     );
   }
@@ -167,7 +172,7 @@ class _S3ConfigPageState extends ConsumerState<S3ConfigPage> {
         _showSnack(l10n.settings_s3Config_test_success);
       }
     } on CloudStorageException catch (e) {
-      _showSnack(e.message, isError: true);
+      _showSnack(e.displayMessage, isError: true);
     } catch (e) {
       _showSnack(
         '${l10n.settings_s3Config_error_secureStorage}: $e',
@@ -198,7 +203,7 @@ class _S3ConfigPageState extends ConsumerState<S3ConfigPage> {
       // Root-safe in widget tests; pops the pushed route in the app.
       await Navigator.maybePop(context);
     } on CloudStorageException catch (e) {
-      _showSnack(e.message, isError: true);
+      _showSnack(e.displayMessage, isError: true);
     } catch (e) {
       _showSnack('$storageMessage: $e', isError: true);
     } finally {
