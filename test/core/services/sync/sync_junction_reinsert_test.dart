@@ -267,5 +267,75 @@ void main() {
             're-inserts: the corrupted device self-heals',
       );
     });
+
+    test(
+      'a set edit keeps survivors and removes one in the same payload',
+      () async {
+        final serializer = SyncDataSerializer();
+        final db = DatabaseService.instance.database;
+
+        await serializer.upsertRecord(
+          'equipment',
+          equipmentRow('g-a', 'A', 'mask'),
+        );
+        await serializer.upsertRecord(
+          'equipment',
+          equipmentRow('g-b', 'B', 'fins'),
+        );
+        await serializer.upsertRecord(
+          'equipment',
+          equipmentRow('g-c', 'C', 'bcd'),
+        );
+        await serializer.upsertRecord('equipmentSets', {
+          'id': 'set-4',
+          'name': 'Mixed',
+          'description': '',
+          'createdAt': 1000,
+          'updatedAt': 1000,
+        });
+        // C is currently a member locally and is being removed by the edit.
+        await serializer.upsertRecord('equipmentSetItems', {
+          'setId': 'set-4',
+          'equipmentId': 'g-c',
+        });
+
+        // updateSet on the peer keeps A and B (live + reinsert tombstone) and
+        // drops C (tombstone only, no live row) -- one payload that is
+        // contradicted for some keys and a genuine delete for another.
+        final payload = payloadOf(
+          const SyncData(
+            equipmentSetItems: [
+              {'setId': 'set-4', 'equipmentId': 'g-a'},
+              {'setId': 'set-4', 'equipmentId': 'g-b'},
+            ],
+          ),
+          {
+            'equipmentSetItems': [
+              const SyncDeletion(id: 'set-4|g-a', deletedAt: 5000),
+              const SyncDeletion(id: 'set-4|g-b', deletedAt: 5000),
+              const SyncDeletion(id: 'set-4|g-c', deletedAt: 5000),
+            ],
+          },
+        );
+        await seedPeerBaseFromPayload(cloud, 'peer-dev', payload);
+
+        final result = await buildService().performSync();
+        expect(result.status, isNot(SyncResultStatus.error));
+
+        final ids =
+            (await (db.select(
+                  db.equipmentSetItems,
+                )..where((t) => t.setId.equals('set-4'))).get())
+                .map((i) => i.equipmentId)
+                .toSet();
+        expect(
+          ids,
+          {'g-a', 'g-b'},
+          reason:
+              'survivors (live + same-payload tombstone) are kept; the genuinely '
+              'removed item (tombstone with no live row) is deleted',
+        );
+      },
+    );
   });
 }
