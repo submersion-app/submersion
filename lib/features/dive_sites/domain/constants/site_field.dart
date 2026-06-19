@@ -22,6 +22,9 @@ enum SiteField implements EntityField {
   location,
   country,
   region,
+  city,
+  island,
+  bodyOfWater,
   diveCount,
 
   // Depth
@@ -61,6 +64,12 @@ enum SiteField implements EntityField {
         return 'Country';
       case SiteField.region:
         return 'Region';
+      case SiteField.city:
+        return 'City';
+      case SiteField.island:
+        return 'Island';
+      case SiteField.bodyOfWater:
+        return 'Body of Water';
       case SiteField.diveCount:
         return 'Dive Count';
       case SiteField.maxDepth:
@@ -107,6 +116,12 @@ enum SiteField implements EntityField {
         return 'Country';
       case SiteField.region:
         return 'Region';
+      case SiteField.city:
+        return 'City';
+      case SiteField.island:
+        return 'Island';
+      case SiteField.bodyOfWater:
+        return 'Water Body';
       case SiteField.diveCount:
         return 'Dives';
       case SiteField.maxDepth:
@@ -153,6 +168,12 @@ enum SiteField implements EntityField {
         return Icons.flag;
       case SiteField.region:
         return Icons.map;
+      case SiteField.city:
+        return Icons.location_city;
+      case SiteField.island:
+        return Icons.landscape;
+      case SiteField.bodyOfWater:
+        return Icons.waves;
       case SiteField.diveCount:
         return Icons.water;
       case SiteField.maxDepth:
@@ -199,6 +220,12 @@ enum SiteField implements EntityField {
         return 100;
       case SiteField.region:
         return 100;
+      case SiteField.city:
+        return 110;
+      case SiteField.island:
+        return 110;
+      case SiteField.bodyOfWater:
+        return 130;
       case SiteField.diveCount:
         return 80;
       case SiteField.maxDepth:
@@ -245,6 +272,12 @@ enum SiteField implements EntityField {
         return 60;
       case SiteField.region:
         return 60;
+      case SiteField.city:
+        return 60;
+      case SiteField.island:
+        return 60;
+      case SiteField.bodyOfWater:
+        return 70;
       case SiteField.diveCount:
         return 50;
       case SiteField.maxDepth:
@@ -286,6 +319,9 @@ enum SiteField implements EntityField {
       case SiteField.siteName:
       case SiteField.country:
       case SiteField.region:
+      case SiteField.city:
+      case SiteField.island:
+      case SiteField.bodyOfWater:
       case SiteField.diveCount:
       case SiteField.maxDepth:
       case SiteField.minDepth:
@@ -315,6 +351,9 @@ enum SiteField implements EntityField {
       case SiteField.location:
       case SiteField.country:
       case SiteField.region:
+      case SiteField.city:
+      case SiteField.island:
+      case SiteField.bodyOfWater:
       case SiteField.diveCount:
         return SiteFieldCategory.core.name;
       case SiteField.maxDepth:
@@ -354,6 +393,9 @@ enum SiteField implements EntityField {
       case SiteField.location:
       case SiteField.country:
       case SiteField.region:
+      case SiteField.city:
+      case SiteField.island:
+      case SiteField.bodyOfWater:
       case SiteField.waterType:
       case SiteField.typicalVisibility:
       case SiteField.typicalCurrent:
@@ -400,6 +442,12 @@ class SiteFieldAdapter extends EntityFieldAdapter<SiteWithCount, SiteField> {
         return site.country;
       case SiteField.region:
         return site.region;
+      case SiteField.city:
+        return site.city;
+      case SiteField.island:
+        return site.island;
+      case SiteField.bodyOfWater:
+        return site.bodyOfWater;
       case SiteField.diveCount:
         return entity.diveCount;
       case SiteField.maxDepth:
@@ -443,6 +491,9 @@ class SiteFieldAdapter extends EntityFieldAdapter<SiteWithCount, SiteField> {
       case SiteField.location:
       case SiteField.country:
       case SiteField.region:
+      case SiteField.city:
+      case SiteField.island:
+      case SiteField.bodyOfWater:
       case SiteField.waterType:
       case SiteField.typicalVisibility:
       case SiteField.typicalCurrent:
