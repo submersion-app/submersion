@@ -3,11 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
 void main() {
-  test('v88 adds O2 cell columns to dive_profiles, preserving rows', () async {
+  test('v89 adds O2 cell columns to dive_profiles, preserving rows', () async {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
-        rawDb.execute('PRAGMA user_version = 87');
-        // Minimal pre-v88 dive_profiles shape (no O2 cell columns).
+        rawDb.execute('PRAGMA user_version = 88');
+        // Minimal pre-v89 dive_profiles shape (no O2 cell columns).
         rawDb.execute('''
           CREATE TABLE dive_profiles (
             id TEXT NOT NULL PRIMARY KEY,
@@ -57,22 +57,22 @@ void main() {
     expect(row.data['o2_sensor1'], isNull);
   });
 
-  test('schema version is 88 and the migration list includes it', () {
+  test('schema version is 89 and the migration list includes it', () {
     // Guards an accidental schema bump without a matching migration block:
-    // the v88 onUpgrade step is keyed off both of these.
-    expect(AppDatabase.currentSchemaVersion, 88);
-    expect(AppDatabase.migrationVersions, contains(88));
+    // the v89 onUpgrade step is keyed off both of these.
+    expect(AppDatabase.currentSchemaVersion, 89);
+    expect(AppDatabase.migrationVersions, contains(89));
   });
 
   test(
-    'v88 migration is idempotent when some O2 cell columns already exist',
+    'v89 migration is idempotent when some O2 cell columns already exist',
     () async {
-      // Exercises the PRAGMA guard branch: a database where part of the v88
+      // Exercises the PRAGMA guard branch: a database where part of the v89
       // change is already present (e.g. an interrupted upgrade) must add only
       // the missing columns rather than failing on a duplicate ALTER.
       final nativeDb = NativeDatabase.memory(
         setup: (rawDb) {
-          rawDb.execute('PRAGMA user_version = 87');
+          rawDb.execute('PRAGMA user_version = 88');
           rawDb.execute('''
             CREATE TABLE dive_profiles (
               id TEXT NOT NULL PRIMARY KEY,
