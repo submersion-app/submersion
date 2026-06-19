@@ -90,8 +90,7 @@ List<String> suggestedIslands(List<DiveSite> sites, String country) {
   for (final site in sites) {
     final island = site.island?.trim() ?? '';
     if (island.isEmpty) continue;
-    if (want.isNotEmpty &&
-        (site.country?.trim().toLowerCase() ?? '') != want) {
+    if (want.isNotEmpty && (site.country?.trim().toLowerCase() ?? '') != want) {
       continue;
     }
     if (seen.add(island.toLowerCase())) islands.add(island);
@@ -109,8 +108,7 @@ List<String> suggestedBodiesOfWater(List<DiveSite> sites, String country) {
   for (final site in sites) {
     final body = site.bodyOfWater?.trim() ?? '';
     if (body.isEmpty) continue;
-    if (want.isNotEmpty &&
-        (site.country?.trim().toLowerCase() ?? '') != want) {
+    if (want.isNotEmpty && (site.country?.trim().toLowerCase() ?? '') != want) {
       continue;
     }
     if (seen.add(body.toLowerCase())) bodies.add(body);

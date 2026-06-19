@@ -102,7 +102,9 @@ void main() {
       expect((await repository.searchSites('Santorini')).map((s) => s.id), [
         'q-2',
       ]);
-      expect((await repository.searchSites('Aegean')).map((s) => s.id), ['q-3']);
+      expect((await repository.searchSites('Aegean')).map((s) => s.id), [
+        'q-3',
+      ]);
     });
 
     group('createSite', () {

@@ -137,12 +137,7 @@ void main() {
         country: 'Philippines',
         bodyOfWater: 'Visayan Sea',
       ),
-      _site(
-        id: '2',
-        name: 'B',
-        country: 'Australia',
-        bodyOfWater: 'Coral Sea',
-      ),
+      _site(id: '2', name: 'B', country: 'Australia', bodyOfWater: 'Coral Sea'),
     ];
 
     test('filters by country', () {
@@ -150,7 +145,10 @@ void main() {
     });
 
     test('all distinct when country empty', () {
-      expect(suggestedBodiesOfWater(bowSites, ''), ['Coral Sea', 'Visayan Sea']);
+      expect(suggestedBodiesOfWater(bowSites, ''), [
+        'Coral Sea',
+        'Visayan Sea',
+      ]);
     });
   });
 }

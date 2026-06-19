@@ -82,7 +82,7 @@ class DiveSite extends Equatable {
     this.isShared = false,
   });
 
-  /// Compact one-line location: "<locality> · <region>, <country>".
+  /// Compact one-line location formatted as `locality · region, country`.
   /// Locality prefers [city], falling back to [island]. [bodyOfWater] is
   /// intentionally excluded to keep list tiles and map popups tight.
   String get locationString {
