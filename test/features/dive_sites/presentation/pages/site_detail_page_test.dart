@@ -698,4 +698,41 @@ void main() {
       expect(find.text('EDIT_PAGE'), findsOneWidget);
     });
   });
+
+  group('SiteDetailPage location fields', () {
+    testWidgets('shows city, island, and body of water when set', (
+      tester,
+    ) async {
+      _setMobileTestSurfaceSize(tester);
+      const site = DiveSite(
+        id: 'loc-1',
+        name: 'Site',
+        city: 'Cebu City',
+        island: 'Malapascua',
+        bodyOfWater: 'Visayan Sea',
+      );
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            siteProvider(site.id).overrideWith((ref) async => site),
+            siteDiveCountProvider(site.id).overrideWith((ref) async => 0),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: SiteDetailPage(siteId: 'loc-1', embedded: true),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Cebu City'), findsWidgets);
+      expect(find.text('Malapascua'), findsWidgets);
+      expect(find.text('Visayan Sea'), findsOneWidget);
+    });
+  });
 }
