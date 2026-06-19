@@ -41,6 +41,9 @@ class DiveSite extends Equatable {
   final SiteDifficulty? difficulty; // Site difficulty level
   final String? country;
   final String? region;
+  final String? city;
+  final String? island;
+  final String? bodyOfWater;
   final List<String> photoIds;
   final double? rating; // 1-5 stars
   final String notes;
@@ -64,6 +67,9 @@ class DiveSite extends Equatable {
     this.difficulty,
     this.country,
     this.region,
+    this.city,
+    this.island,
+    this.bodyOfWater,
     this.photoIds = const [],
     this.rating,
     this.notes = '',
@@ -107,6 +113,9 @@ class DiveSite extends Equatable {
     SiteDifficulty? difficulty,
     String? country,
     String? region,
+    String? city,
+    String? island,
+    String? bodyOfWater,
     List<String>? photoIds,
     double? rating,
     String? notes,
@@ -129,6 +138,9 @@ class DiveSite extends Equatable {
       difficulty: difficulty ?? this.difficulty,
       country: country ?? this.country,
       region: region ?? this.region,
+      city: city ?? this.city,
+      island: island ?? this.island,
+      bodyOfWater: bodyOfWater ?? this.bodyOfWater,
       photoIds: photoIds ?? this.photoIds,
       rating: rating ?? this.rating,
       notes: notes ?? this.notes,
@@ -154,6 +166,9 @@ class DiveSite extends Equatable {
     difficulty,
     country,
     region,
+    city,
+    island,
+    bodyOfWater,
     photoIds,
     rating,
     notes,

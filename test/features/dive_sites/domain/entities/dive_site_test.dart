@@ -209,4 +209,20 @@ void main() {
       expect(a == b, isFalse);
     });
   });
+
+  group('DiveSite location fields', () {
+    test('copyWith updates city, island, and bodyOfWater', () {
+      const site = DiveSite(id: 's1', name: 'Site');
+      final updated = site.copyWith(
+        city: 'Cebu City',
+        island: 'Malapascua',
+        bodyOfWater: 'Visayan Sea',
+      );
+      expect(updated.city, 'Cebu City');
+      expect(updated.island, 'Malapascua');
+      expect(updated.bodyOfWater, 'Visayan Sea');
+      // Equatable: the new values change identity.
+      expect(updated, isNot(equals(site)));
+    });
+  });
 }
