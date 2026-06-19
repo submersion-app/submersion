@@ -169,25 +169,26 @@ class S3ApiClient {
   /// addressing. The path comes back already SigV4-encoded so the signed
   /// bytes and the wire bytes cannot diverge.
   ({String scheme, String host, int? port, String path}) _target(String key) {
+    // effectivePathStyle, not the raw flag: a dotted bucket over HTTPS is
+    // forced path-style to dodge the wildcard-cert TLS failure (issue #335).
+    final pathStyle = _config.effectivePathStyle;
     final String scheme;
     final String host;
     int? port;
     if (_config.isAws) {
       scheme = 'https';
-      host = _config.pathStyle
+      host = pathStyle
           ? 's3.$_region.amazonaws.com'
           : '${_config.bucket}.s3.$_region.amazonaws.com';
     } else {
       final endpointUri = Uri.parse(_config.endpoint);
       final endpointHost = _effectiveCustomHost(endpointUri.host);
       scheme = endpointUri.scheme;
-      host = _config.pathStyle
-          ? endpointHost
-          : '${_config.bucket}.$endpointHost';
+      host = pathStyle ? endpointHost : '${_config.bucket}.$endpointHost';
       if (endpointUri.hasPort) port = endpointUri.port;
     }
     final encodedKey = SigV4Signer.uriEncode(key, encodeSlash: false);
-    final path = _config.pathStyle
+    final path = pathStyle
         ? '/${_config.bucket}${encodedKey.isEmpty ? '/' : '/$encodedKey'}'
         : '/$encodedKey';
     return (scheme: scheme, host: host, port: port, path: path);

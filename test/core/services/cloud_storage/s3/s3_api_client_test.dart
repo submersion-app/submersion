@@ -99,6 +99,28 @@ void main() {
       },
     );
 
+    test(
+      'dotted AWS bucket routes path-style to dodge the wildcard cert (#335)',
+      () async {
+        late http.Request seen;
+        final mock = MockClient((request) async {
+          seen = request;
+          return http.Response.bytes([9], 200);
+        });
+        // pathStyle defaults to false for AWS; the dot must force it anyway,
+        // otherwise the host would be my.dive.bucket.s3...amazonaws.com and
+        // fail the *.s3.<region>.amazonaws.com TLS handshake.
+        final config = awsConfig().copyWith(bucket: 'my.dive.bucket');
+        await clientWith(config, mock).getObject('k.json');
+
+        expect(seen.url.host, 's3.eu-west-1.amazonaws.com');
+        expect(
+          seen.url.toString(),
+          'https://s3.eu-west-1.amazonaws.com/my.dive.bucket/k.json',
+        );
+      },
+    );
+
     test('keys needing encoding sign and ship the same bytes', () async {
       late http.Request seen;
       final mock = MockClient((request) async {

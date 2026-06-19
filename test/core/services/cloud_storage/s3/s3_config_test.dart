@@ -112,6 +112,56 @@ void main() {
     });
   });
 
+  group('S3Config.effectivePathStyle (dotted-bucket TLS guard, #335)', () {
+    S3Config aws({required String bucket, bool? pathStyle}) => S3Config(
+      endpoint: '',
+      region: 'ap-southeast-2',
+      bucket: bucket,
+      accessKeyId: 'a',
+      secretAccessKey: 's',
+      pathStyle: pathStyle,
+    );
+
+    test('plain AWS bucket without a dot mirrors the stored flag', () {
+      final config = aws(bucket: 'dive-sync');
+      expect(config.pathStyle, isFalse);
+      expect(config.effectivePathStyle, isFalse);
+    });
+
+    test('dotted AWS bucket forces path-style despite a false flag', () {
+      final config = aws(bucket: 'my.dive.bucket');
+      expect(config.pathStyle, isFalse);
+      expect(config.effectivePathStyle, isTrue);
+    });
+
+    test('dotted bucket on an HTTPS custom endpoint forces path-style', () {
+      final config = S3Config(
+        endpoint: 'https://minio.example.com',
+        bucket: 'my.bucket',
+        accessKeyId: 'a',
+        secretAccessKey: 's',
+        pathStyle: false,
+      );
+      expect(config.effectivePathStyle, isTrue);
+    });
+
+    test('dotted bucket on a plain-HTTP endpoint defers to the flag', () {
+      // No TLS handshake to break, so the stored choice is honored as-is.
+      final config = S3Config(
+        endpoint: 'http://nas.local:9000',
+        bucket: 'my.bucket',
+        accessKeyId: 'a',
+        secretAccessKey: 's',
+        pathStyle: false,
+      );
+      expect(config.effectivePathStyle, isFalse);
+    });
+
+    test('explicit path-style stays true regardless of the bucket', () {
+      expect(aws(bucket: 'plain', pathStyle: true).effectivePathStyle, isTrue);
+    });
+  });
+
   group('S3Config.validate', () {
     test('valid config returns null', () {
       expect(minio().validate(), isNull);
