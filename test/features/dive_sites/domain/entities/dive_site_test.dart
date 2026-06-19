@@ -225,4 +225,49 @@ void main() {
       expect(updated, isNot(equals(site)));
     });
   });
+
+  group('locationString with locality', () {
+    test('city is preferred and prepended to region, country', () {
+      const site = DiveSite(
+        id: 's',
+        name: 'S',
+        country: 'Philippines',
+        region: 'Cebu',
+        city: 'Cebu City',
+        island: 'Mactan',
+      );
+      expect(site.locationString, 'Cebu City · Cebu, Philippines');
+    });
+
+    test('island is used when city is empty', () {
+      const site = DiveSite(
+        id: 's',
+        name: 'S',
+        country: 'Philippines',
+        region: 'Cebu',
+        island: 'Malapascua',
+      );
+      expect(site.locationString, 'Malapascua · Cebu, Philippines');
+    });
+
+    test('locality only, no region or country', () {
+      const site = DiveSite(id: 's', name: 'S', island: 'Malapascua');
+      expect(site.locationString, 'Malapascua');
+    });
+
+    test('no locality keeps region, country unchanged', () {
+      const site = DiveSite(
+        id: 's',
+        name: 'S',
+        country: 'Philippines',
+        region: 'Cebu',
+      );
+      expect(site.locationString, 'Cebu, Philippines');
+    });
+
+    test('empty everything yields empty string', () {
+      const site = DiveSite(id: 's', name: 'S');
+      expect(site.locationString, '');
+    });
+  });
 }

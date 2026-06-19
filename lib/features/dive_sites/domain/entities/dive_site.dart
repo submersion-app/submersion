@@ -82,12 +82,24 @@ class DiveSite extends Equatable {
     this.isShared = false,
   });
 
-  /// Full location string (region, country)
+  /// Compact one-line location: "<locality> · <region>, <country>".
+  /// Locality prefers [city], falling back to [island]. [bodyOfWater] is
+  /// intentionally excluded to keep list tiles and map popups tight.
   String get locationString {
-    final parts = <String>[];
-    if (region != null && region!.isNotEmpty) parts.add(region!);
-    if (country != null && country!.isNotEmpty) parts.add(country!);
-    return parts.join(', ');
+    final base = <String>[];
+    if (region != null && region!.isNotEmpty) base.add(region!);
+    if (country != null && country!.isNotEmpty) base.add(country!);
+    final baseStr = base.join(', ');
+
+    final locality = (city != null && city!.isNotEmpty)
+        ? city!
+        : (island != null && island!.isNotEmpty ? island! : '');
+
+    if (locality.isNotEmpty && baseStr.isNotEmpty) {
+      return '$locality · $baseStr';
+    }
+    if (locality.isNotEmpty) return locality;
+    return baseStr;
   }
 
   bool get hasCoordinates => location != null;
