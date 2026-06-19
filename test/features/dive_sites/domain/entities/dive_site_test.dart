@@ -209,4 +209,98 @@ void main() {
       expect(a == b, isFalse);
     });
   });
+
+  group('DiveSite location fields', () {
+    test('copyWith updates city, island, and bodyOfWater', () {
+      const site = DiveSite(id: 's1', name: 'Site');
+      final updated = site.copyWith(
+        city: 'Cebu City',
+        island: 'Malapascua',
+        bodyOfWater: 'Visayan Sea',
+      );
+      expect(updated.city, 'Cebu City');
+      expect(updated.island, 'Malapascua');
+      expect(updated.bodyOfWater, 'Visayan Sea');
+      // Equatable: the new values change identity.
+      expect(updated, isNot(equals(site)));
+    });
+  });
+
+  group('locationString with locality', () {
+    test('city is preferred and prepended to region, country', () {
+      const site = DiveSite(
+        id: 's',
+        name: 'S',
+        country: 'Philippines',
+        region: 'Cebu',
+        city: 'Cebu City',
+        island: 'Mactan',
+      );
+      expect(site.locationString, 'Cebu City · Cebu, Philippines');
+    });
+
+    test('island is used when city is empty', () {
+      const site = DiveSite(
+        id: 's',
+        name: 'S',
+        country: 'Philippines',
+        region: 'Cebu',
+        island: 'Malapascua',
+      );
+      expect(site.locationString, 'Malapascua · Cebu, Philippines');
+    });
+
+    test('locality only, no region or country', () {
+      const site = DiveSite(id: 's', name: 'S', island: 'Malapascua');
+      expect(site.locationString, 'Malapascua');
+    });
+
+    test('no locality keeps region, country unchanged', () {
+      const site = DiveSite(
+        id: 's',
+        name: 'S',
+        country: 'Philippines',
+        region: 'Cebu',
+      );
+      expect(site.locationString, 'Cebu, Philippines');
+    });
+
+    test('empty everything yields empty string', () {
+      const site = DiveSite(id: 's', name: 'S');
+      expect(site.locationString, '');
+    });
+
+    test('whitespace-only locality is ignored, not rendered', () {
+      const site = DiveSite(
+        id: 's',
+        name: 'S',
+        country: 'Philippines',
+        region: 'Cebu',
+        city: '   ',
+      );
+      // Whitespace-only city must not produce "   · Cebu, Philippines".
+      expect(site.locationString, 'Cebu, Philippines');
+    });
+
+    test('whitespace-only city falls back to island', () {
+      const site = DiveSite(
+        id: 's',
+        name: 'S',
+        city: '  ',
+        island: 'Malapascua',
+      );
+      expect(site.locationString, 'Malapascua');
+    });
+
+    test('surrounding whitespace is trimmed in rendered output', () {
+      const site = DiveSite(
+        id: 's',
+        name: 'S',
+        country: ' Philippines ',
+        region: ' Cebu ',
+        city: ' Cebu City ',
+      );
+      expect(site.locationString, 'Cebu City · Cebu, Philippines');
+    });
+  });
 }

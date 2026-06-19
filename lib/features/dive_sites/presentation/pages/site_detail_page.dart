@@ -770,6 +770,33 @@ class _SiteDetailContent extends ConsumerWidget {
             ),
             _buildDetailRow(
               context,
+              Icons.location_city,
+              context.l10n.diveSites_detail_location_city,
+              site.city?.isNotEmpty == true
+                  ? site.city!
+                  : context.l10n.diveSites_detail_location_notSet,
+              isEmpty: site.city?.isNotEmpty != true,
+            ),
+            _buildDetailRow(
+              context,
+              Icons.landscape,
+              context.l10n.diveSites_detail_location_island,
+              site.island?.isNotEmpty == true
+                  ? site.island!
+                  : context.l10n.diveSites_detail_location_notSet,
+              isEmpty: site.island?.isNotEmpty != true,
+            ),
+            _buildDetailRow(
+              context,
+              Icons.waves,
+              context.l10n.diveSites_detail_location_bodyOfWater,
+              site.bodyOfWater?.isNotEmpty == true
+                  ? site.bodyOfWater!
+                  : context.l10n.diveSites_detail_location_notSet,
+              isEmpty: site.bodyOfWater?.isNotEmpty != true,
+            ),
+            _buildDetailRow(
+              context,
               Icons.gps_fixed,
               context.l10n.diveSites_detail_location_gpsCoordinates,
               site.hasCoordinates

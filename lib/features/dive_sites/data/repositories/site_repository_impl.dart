@@ -79,6 +79,9 @@ class SiteRepository {
               difficulty: Value(site.difficulty?.name),
               country: Value(site.country),
               region: Value(site.region),
+              city: Value(site.city),
+              island: Value(site.island),
+              bodyOfWater: Value(site.bodyOfWater),
               rating: Value(site.rating),
               notes: Value(site.notes),
               hazards: Value(site.hazards),
@@ -130,6 +133,9 @@ class SiteRepository {
           difficulty: Value(site.difficulty?.name),
           country: Value(site.country),
           region: Value(site.region),
+          city: Value(site.city),
+          island: Value(site.island),
+          bodyOfWater: Value(site.bodyOfWater),
           rating: Value(site.rating),
           notes: Value(site.notes),
           hazards: Value(site.hazards),
@@ -161,7 +167,7 @@ class SiteRepository {
   /// Apply a partial [DiveSitesCompanion] update to a site row.
   ///
   /// Used by the UDDF importer to persist columns that do not flow through
-  /// the [domain.DiveSite] entity (e.g. MacDive waterType / bodyOfWater).
+  /// the [domain.DiveSite] entity (e.g. MacDive waterType).
   /// Only columns set on [patch] are written; others are left untouched.
   /// Marks the row pending for sync.
   Future<void> applyImportedMetadata(
@@ -502,6 +508,9 @@ class SiteRepository {
                   difficulty: Value(site.difficulty?.name),
                   country: Value(site.country),
                   region: Value(site.region),
+                  city: Value(site.city),
+                  island: Value(site.island),
+                  bodyOfWater: Value(site.bodyOfWater),
                   rating: Value(site.rating),
                   notes: Value(site.notes),
                   hazards: Value(site.hazards),
@@ -607,7 +616,10 @@ class SiteRepository {
             (t) =>
                 t.name.contains(query) |
                 t.country.contains(query) |
-                t.region.contains(query),
+                t.region.contains(query) |
+                t.city.contains(query) |
+                t.island.contains(query) |
+                t.bodyOfWater.contains(query),
           )
           ..orderBy([(t) => OrderingTerm.asc(t.name)]);
 
@@ -693,6 +705,9 @@ class SiteRepository {
       difficulty: domain.SiteDifficulty.fromString(row.difficulty),
       country: row.country,
       region: row.region,
+      city: row.city,
+      island: row.island,
+      bodyOfWater: row.bodyOfWater,
       rating: row.rating,
       notes: row.notes,
       hazards: row.hazards,
@@ -716,6 +731,9 @@ class SiteRepository {
         difficulty: Value(site.difficulty?.name),
         country: Value(site.country),
         region: Value(site.region),
+        city: Value(site.city),
+        island: Value(site.island),
+        bodyOfWater: Value(site.bodyOfWater),
         rating: Value(site.rating),
         notes: Value(site.notes),
         hazards: Value(site.hazards),

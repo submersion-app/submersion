@@ -5476,6 +5476,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_detail_location_country => 'מדינה';
 
   @override
+  String get diveSites_detail_location_city => 'עיר';
+
+  @override
+  String get diveSites_detail_location_island => 'אי';
+
+  @override
+  String get diveSites_detail_location_bodyOfWater => 'מקווה מים';
+
+  @override
   String get diveSites_detail_location_gpsCoordinates => 'קואורדינטות GPS';
 
   @override
@@ -5665,6 +5674,15 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveSites_edit_field_country_label => 'מדינה';
+
+  @override
+  String get diveSites_edit_field_city_label => 'עיר';
+
+  @override
+  String get diveSites_edit_field_island_label => 'אי';
+
+  @override
+  String get diveSites_edit_field_bodyOfWater_label => 'מקווה מים';
 
   @override
   String get diveSites_edit_field_description_hint => 'תיאור קצר של האתר';

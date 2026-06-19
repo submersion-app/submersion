@@ -754,5 +754,128 @@ void main() {
             '_initializeFromMerge was not setting _isShared before the fix.',
       );
     });
+
+    testWidgets('initializes city/island/bodyOfWater from a merge candidate', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(900, 3200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      // Primary has no locality; secondary carries the values that must not be
+      // silently dropped during a merge.
+      final repo = SiteRepository();
+      final primarySite = await repo.createSite(
+        const DiveSite(id: 'merge-primary', name: 'Primary'),
+      );
+      await repo.createSite(
+        const DiveSite(
+          id: 'merge-secondary',
+          name: 'Secondary',
+          city: 'Cebu City',
+          island: 'Malapascua',
+          bodyOfWater: 'Visayan Sea',
+        ),
+      );
+
+      await tester.pumpWidget(
+        _buildMergeHarness(
+          prefs: prefs,
+          divers: const [],
+          mergeSiteIds: [primarySite.id, 'merge-secondary'],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // The merge picks the first meaningful value, so the locality fields are
+      // populated from the secondary site rather than left empty.
+      expect(
+        find.widgetWithText(TextFormField, 'Cebu City'),
+        findsOneWidget,
+        reason: 'city must be initialized from the merge candidate',
+      );
+      expect(find.widgetWithText(TextFormField, 'Malapascua'), findsOneWidget);
+      expect(find.widgetWithText(TextFormField, 'Visayan Sea'), findsOneWidget);
+    });
+  });
+
+  group('location fields', () {
+    testWidgets('renders City, Island, and Body of Water fields', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(900, 3200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        _buildHarness(prefs: prefs, divers: const [], shareByDefault: false),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('City'), findsWidgets);
+      expect(find.text('Island'), findsWidgets);
+      expect(find.text('Body of Water'), findsWidgets);
+    });
+
+    testWidgets('persists entered City, Island, Body of Water on save', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(900, 3200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      String? savedId;
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            allDiversProvider.overrideWith((_) async => const <Diver>[]),
+            shareByDefaultProvider.overrideWith((_) async => false),
+            // Null diver id keeps the nullable diverId column FK-free so the
+            // save commits in the test database (no seeded Divers row needed).
+            validatedCurrentDiverIdProvider.overrideWith((_) async => null),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: SiteEditPage(
+                embedded: true,
+                onSaved: (id) => savedId = id,
+                onCancel: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Site Name *'),
+        'Locality Site',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'City'),
+        'Cebu City',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Island'),
+        'Malapascua',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Body of Water'),
+        'Visayan Sea',
+      );
+      await tester.tap(find.text('Save'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump(const Duration(milliseconds: 500));
+
+      expect(savedId, isNotNull);
+      final saved = await SiteRepository().getSiteById(savedId!);
+      expect(saved!.city, 'Cebu City');
+      expect(saved.island, 'Malapascua');
+      expect(saved.bodyOfWater, 'Visayan Sea');
+    });
   });
 }

@@ -5529,6 +5529,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveSites_detail_location_country => 'Country';
 
   @override
+  String get diveSites_detail_location_city => 'City';
+
+  @override
+  String get diveSites_detail_location_island => 'Island';
+
+  @override
+  String get diveSites_detail_location_bodyOfWater => 'Body of Water';
+
+  @override
   String get diveSites_detail_location_gpsCoordinates => 'GPS Coordinates';
 
   @override
@@ -5719,6 +5728,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveSites_edit_field_country_label => 'Country';
+
+  @override
+  String get diveSites_edit_field_city_label => 'City';
+
+  @override
+  String get diveSites_edit_field_island_label => 'Island';
+
+  @override
+  String get diveSites_edit_field_bodyOfWater_label => 'Body of Water';
 
   @override
   String get diveSites_edit_field_description_hint =>

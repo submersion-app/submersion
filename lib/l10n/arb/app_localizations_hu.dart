@@ -5611,6 +5611,15 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveSites_detail_location_country => 'Orszag';
 
   @override
+  String get diveSites_detail_location_city => 'Város';
+
+  @override
+  String get diveSites_detail_location_island => 'Sziget';
+
+  @override
+  String get diveSites_detail_location_bodyOfWater => 'Víztest';
+
+  @override
   String get diveSites_detail_location_gpsCoordinates => 'GPS koordinatak';
 
   @override
@@ -5805,6 +5814,15 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveSites_edit_field_country_label => 'Orszag';
+
+  @override
+  String get diveSites_edit_field_city_label => 'Város';
+
+  @override
+  String get diveSites_edit_field_island_label => 'Sziget';
+
+  @override
+  String get diveSites_edit_field_bodyOfWater_label => 'Víztest';
 
   @override
   String get diveSites_edit_field_description_hint =>

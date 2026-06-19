@@ -9575,6 +9575,24 @@ abstract class AppLocalizations {
   /// **'Country'**
   String get diveSites_detail_location_country;
 
+  /// No description provided for @diveSites_detail_location_city.
+  ///
+  /// In en, this message translates to:
+  /// **'City'**
+  String get diveSites_detail_location_city;
+
+  /// No description provided for @diveSites_detail_location_island.
+  ///
+  /// In en, this message translates to:
+  /// **'Island'**
+  String get diveSites_detail_location_island;
+
+  /// No description provided for @diveSites_detail_location_bodyOfWater.
+  ///
+  /// In en, this message translates to:
+  /// **'Body of Water'**
+  String get diveSites_detail_location_bodyOfWater;
+
   /// No description provided for @diveSites_detail_location_gpsCoordinates.
   ///
   /// In en, this message translates to:
@@ -9922,6 +9940,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Country'**
   String get diveSites_edit_field_country_label;
+
+  /// No description provided for @diveSites_edit_field_city_label.
+  ///
+  /// In en, this message translates to:
+  /// **'City'**
+  String get diveSites_edit_field_city_label;
+
+  /// No description provided for @diveSites_edit_field_island_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Island'**
+  String get diveSites_edit_field_island_label;
+
+  /// No description provided for @diveSites_edit_field_bodyOfWater_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Body of Water'**
+  String get diveSites_edit_field_bodyOfWater_label;
 
   /// No description provided for @diveSites_edit_field_description_hint.
   ///

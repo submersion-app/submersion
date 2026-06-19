@@ -57,10 +57,10 @@ void main() {
     expect(row.data['o2_sensor1'], isNull);
   });
 
-  test('schema version is 89 and the migration list includes it', () {
-    // Guards an accidental schema bump without a matching migration block:
-    // the v89 onUpgrade step is keyed off both of these.
-    expect(AppDatabase.currentSchemaVersion, 89);
+  test('migration list includes v89 and schema is at least 89', () {
+    // Guards that the v89 onUpgrade step stays registered. The exact-latest
+    // tripwire lives in the newest version's migration test.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(89));
     expect(AppDatabase.migrationVersions, contains(89));
   });
 

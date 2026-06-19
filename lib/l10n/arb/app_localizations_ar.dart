@@ -5503,6 +5503,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_detail_location_country => 'الدولة';
 
   @override
+  String get diveSites_detail_location_city => 'مدينة';
+
+  @override
+  String get diveSites_detail_location_island => 'جزيرة';
+
+  @override
+  String get diveSites_detail_location_bodyOfWater => 'مسطح مائي';
+
+  @override
   String get diveSites_detail_location_gpsCoordinates => 'إحداثيات GPS';
 
   @override
@@ -5692,6 +5701,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveSites_edit_field_country_label => 'الدولة';
+
+  @override
+  String get diveSites_edit_field_city_label => 'مدينة';
+
+  @override
+  String get diveSites_edit_field_island_label => 'جزيرة';
+
+  @override
+  String get diveSites_edit_field_bodyOfWater_label => 'مسطح مائي';
 
   @override
   String get diveSites_edit_field_description_hint => 'وصف موجز للموقع';

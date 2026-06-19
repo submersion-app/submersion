@@ -5371,6 +5371,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_detail_location_country => '国家';
 
   @override
+  String get diveSites_detail_location_city => '城市';
+
+  @override
+  String get diveSites_detail_location_island => '岛屿';
+
+  @override
+  String get diveSites_detail_location_bodyOfWater => '水域';
+
+  @override
   String get diveSites_detail_location_gpsCoordinates => 'GPS 坐标';
 
   @override
@@ -5553,6 +5562,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveSites_edit_field_country_label => '国家';
+
+  @override
+  String get diveSites_edit_field_city_label => '城市';
+
+  @override
+  String get diveSites_edit_field_island_label => '岛屿';
+
+  @override
+  String get diveSites_edit_field_bodyOfWater_label => '水域';
 
   @override
   String get diveSites_edit_field_description_hint => '潜水点的简要描述';

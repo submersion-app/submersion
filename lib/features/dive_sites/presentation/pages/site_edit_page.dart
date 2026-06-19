@@ -61,6 +61,9 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
   final _descriptionController = TextEditingController();
   final _countryController = TextEditingController();
   final _regionController = TextEditingController();
+  final _cityController = TextEditingController();
+  final _islandController = TextEditingController();
+  final _bodyOfWaterController = TextEditingController();
   final _minDepthController = TextEditingController();
   final _maxDepthController = TextEditingController();
   final _latitudeController = TextEditingController();
@@ -97,6 +100,9 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     _descriptionController.addListener(_onFieldChanged);
     _countryController.addListener(_onFieldChanged);
     _regionController.addListener(_onFieldChanged);
+    _cityController.addListener(_onFieldChanged);
+    _islandController.addListener(_onFieldChanged);
+    _bodyOfWaterController.addListener(_onFieldChanged);
     _minDepthController.addListener(_onFieldChanged);
     _maxDepthController.addListener(_onFieldChanged);
     _latitudeController.addListener(_onFieldChanged);
@@ -130,6 +136,9 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     _descriptionController.dispose();
     _countryController.dispose();
     _regionController.dispose();
+    _cityController.dispose();
+    _islandController.dispose();
+    _bodyOfWaterController.dispose();
     _minDepthController.dispose();
     _maxDepthController.dispose();
     _latitudeController.dispose();
@@ -153,6 +162,9 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     _descriptionController.text = site.description;
     _countryController.text = site.country ?? '';
     _regionController.text = site.region ?? '';
+    _cityController.text = site.city ?? '';
+    _islandController.text = site.island ?? '';
+    _bodyOfWaterController.text = site.bodyOfWater ?? '';
     _minDepthController.text = site.minDepth != null
         ? units.convertDepth(site.minDepth!).toStringAsFixed(1)
         : '';
@@ -213,6 +225,27 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
       controller: _regionController,
       sites: data.sites,
       getValue: (site) => site.region ?? '',
+      isMeaningful: (value) => value.trim().isNotEmpty,
+    );
+    _initializeMergeTextField(
+      key: 'city',
+      controller: _cityController,
+      sites: data.sites,
+      getValue: (site) => site.city ?? '',
+      isMeaningful: (value) => value.trim().isNotEmpty,
+    );
+    _initializeMergeTextField(
+      key: 'island',
+      controller: _islandController,
+      sites: data.sites,
+      getValue: (site) => site.island ?? '',
+      isMeaningful: (value) => value.trim().isNotEmpty,
+    );
+    _initializeMergeTextField(
+      key: 'bodyOfWater',
+      controller: _bodyOfWaterController,
+      sites: data.sites,
+      getValue: (site) => site.bodyOfWater ?? '',
       isMeaningful: (value) => value.trim().isNotEmpty,
     );
     _initializeMergeTextField(
@@ -710,6 +743,87 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                   ],
                 ),
               ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
+                child: Column(
+                  children: [
+                    ValueListenableBuilder<TextEditingValue>(
+                      valueListenable: _countryController,
+                      builder: (context, country, _) {
+                        return ValueListenableBuilder<TextEditingValue>(
+                          valueListenable: _regionController,
+                          builder: (context, region, _) {
+                            return SuggestionField(
+                              controller: _cityController,
+                              suggestions: suggestedCities(
+                                allSites,
+                                country.text,
+                                region.text,
+                              ),
+                              enableFuzzy: true,
+                              textCapitalization: TextCapitalization.words,
+                              decoration: _withMergeTextDecoration(
+                                key: 'city',
+                                decoration: InputDecoration(
+                                  labelText: context
+                                      .l10n
+                                      .diveSites_edit_field_city_label,
+                                  prefixIcon: const Icon(Icons.location_city),
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    ValueListenableBuilder<TextEditingValue>(
+                      valueListenable: _countryController,
+                      builder: (context, country, _) {
+                        return SuggestionField(
+                          controller: _islandController,
+                          suggestions: suggestedIslands(allSites, country.text),
+                          enableFuzzy: true,
+                          textCapitalization: TextCapitalization.words,
+                          decoration: _withMergeTextDecoration(
+                            key: 'island',
+                            decoration: InputDecoration(
+                              labelText: context
+                                  .l10n
+                                  .diveSites_edit_field_island_label,
+                              prefixIcon: const Icon(Icons.landscape),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    ValueListenableBuilder<TextEditingValue>(
+                      valueListenable: _countryController,
+                      builder: (context, country, _) {
+                        return SuggestionField(
+                          controller: _bodyOfWaterController,
+                          suggestions: suggestedBodiesOfWater(
+                            allSites,
+                            country.text,
+                          ),
+                          enableFuzzy: true,
+                          textCapitalization: TextCapitalization.words,
+                          decoration: _withMergeTextDecoration(
+                            key: 'bodyOfWater',
+                            decoration: InputDecoration(
+                              labelText: context
+                                  .l10n
+                                  .diveSites_edit_field_bodyOfWater_label,
+                              prefixIcon: const Icon(Icons.waves),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
           FormSection(
@@ -1006,6 +1120,9 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
       'description' => _descriptionController,
       'country' => _countryController,
       'region' => _regionController,
+      'city' => _cityController,
+      'island' => _islandController,
+      'bodyOfWater' => _bodyOfWaterController,
       'minDepth' => _minDepthController,
       'maxDepth' => _maxDepthController,
       'notes' => _notesController,
@@ -1921,6 +2038,15 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
       String? region = _regionController.text.trim().isEmpty
           ? null
           : _regionController.text.trim();
+      final String? city = _cityController.text.trim().isEmpty
+          ? null
+          : _cityController.text.trim();
+      final String? island = _islandController.text.trim().isEmpty
+          ? null
+          : _islandController.text.trim();
+      final String? bodyOfWater = _bodyOfWaterController.text.trim().isEmpty
+          ? null
+          : _bodyOfWaterController.text.trim();
 
       if (location != null && (country == null || region == null)) {
         try {
@@ -1950,6 +2076,9 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
         description: _descriptionController.text.trim(),
         country: country,
         region: region,
+        city: city,
+        island: island,
+        bodyOfWater: bodyOfWater,
         minDepth: minDepthMeters,
         maxDepth: maxDepthMeters,
         difficulty: _difficulty,

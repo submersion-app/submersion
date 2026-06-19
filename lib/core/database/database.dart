@@ -350,6 +350,9 @@ class DiveSites extends Table {
   // MacDive site metadata
   TextColumn get waterType => text().nullable()();
   TextColumn get bodyOfWater => text().nullable()();
+  // Location hierarchy
+  TextColumn get city => text().nullable()();
+  TextColumn get island => text().nullable()();
   TextColumn get country => text().nullable()();
   TextColumn get region => text().nullable()();
   RealColumn get rating => real().nullable()();
@@ -1629,7 +1632,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 89;
+  static const int currentSchemaVersion = 90;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1722,6 +1725,7 @@ class AppDatabase extends _$AppDatabase {
     87,
     88,
     89,
+    90,
   ];
 
   /// Tables that carry a per-row Hybrid Logical Clock for cross-device conflict
@@ -4182,6 +4186,29 @@ class AppDatabase extends _$AppDatabase {
           }
         }
         if (from < 89) await reportProgress();
+        if (from < 90) {
+          // City and Island localities for dive sites (issue #344). Lets
+          // divers tell apart sites that share a country and region (e.g.
+          // multiple islands off Cebu). PRAGMA-guarded so a healthy database
+          // no-ops; existing rows read as NULL. body_of_water already exists.
+          final cols = await customSelect(
+            "PRAGMA table_info('dive_sites')",
+          ).get();
+          if (cols.isNotEmpty) {
+            final existing = cols.map((c) => c.read<String>('name')).toSet();
+            if (!existing.contains('city')) {
+              await customStatement(
+                'ALTER TABLE dive_sites ADD COLUMN city TEXT',
+              );
+            }
+            if (!existing.contains('island')) {
+              await customStatement(
+                'ALTER TABLE dive_sites ADD COLUMN island TEXT',
+              );
+            }
+          }
+        }
+        if (from < 90) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
