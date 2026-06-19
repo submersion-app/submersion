@@ -45,6 +45,18 @@ jobs:
           ctest --test-dir build/test --output-on-failure
 
   # ==========================================================================
+  # Darwin Swift Unit Tests (PacketReadBuffer, BleCharacteristicSelector)
+  # ==========================================================================
+  darwin-swift-tests:
+    name: Darwin Swift Tests
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Run Darwin native Swift tests
+        run: bash packages/libdivecomputer_plugin/darwin/run_native_tests.sh
+
+  # ==========================================================================
   # macOS Build
   # ==========================================================================
   build-macos:

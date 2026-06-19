@@ -664,17 +664,19 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
             )
         }
 
-        guard let selection = BleCharacteristicSelector.select(services: services),
-            let writeChar = characteristic(
-                uuid: selection.writeUUID, inService: selection.serviceUUID),
-            let notifyChar = characteristic(
-                uuid: selection.notifyUUID, inService: selection.serviceUUID)
-        else {
+        guard let selection = BleCharacteristicSelector.select(services: services) else {
             NativeLogger.w("BleIoStream", category: "BLE",
                 "No suitable write/notify characteristic pair found")
             signalDiscoveryReady()
             return
         }
+
+        // `services` is built from `discoveredServices` in the same order, so
+        // the selection's indices address the exact live characteristics --
+        // unambiguous even if the peripheral exposes duplicate service UUIDs.
+        let entry = discoveredServices[selection.serviceIndex]
+        let writeChar = entry.characteristics[selection.writeIndex]
+        let notifyChar = entry.characteristics[selection.notifyIndex]
 
         writeCharacteristic = writeChar
         notifyCharacteristic = notifyChar
@@ -695,18 +697,6 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
         }
         waitingForNotifyEnable = true
         peripheral.setNotifyValue(true, for: notifyChar)
-    }
-
-    /// Resolve a selected UUID back to the live CBCharacteristic within the
-    /// winning service.
-    private func characteristic(uuid: CBUUID, inService serviceUUID: CBUUID)
-        -> CBCharacteristic? {
-        for entry in discoveredServices where entry.service.uuid == serviceUUID {
-            if let match = entry.characteristics.first(where: { $0.uuid == uuid }) {
-                return match
-            }
-        }
-        return nil
     }
 }
 

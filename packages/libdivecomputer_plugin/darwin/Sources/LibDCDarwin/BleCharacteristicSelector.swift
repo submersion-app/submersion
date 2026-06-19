@@ -30,11 +30,16 @@ enum BleCharacteristicSelector {
         let characteristics: [Characteristic]
     }
 
-    /// The chosen write/notify pair within the winning service.
+    /// The chosen write/notify pair, identified by position in the input.
+    ///
+    /// Indices (rather than UUIDs) are returned so the caller resolves the
+    /// exact live characteristics: BLE peripherals may legally expose multiple
+    /// service instances with the same UUID, or repeated characteristic UUIDs,
+    /// which UUID-only matching cannot disambiguate.
     struct Selection: Equatable {
-        let serviceUUID: CBUUID
-        let writeUUID: CBUUID
-        let notifyUUID: CBUUID
+        let serviceIndex: Int
+        let writeIndex: Int
+        let notifyIndex: Int
         let score: Int
     }
 
@@ -91,18 +96,18 @@ enum BleCharacteristicSelector {
     /// order, matching CoreBluetooth handle ordering.
     static func select(services: [Service]) -> Selection? {
         var best: Selection?
-        for service in services {
-            var bestWrite: (uuid: CBUUID, score: Int)?
-            var bestNotify: (uuid: CBUUID, score: Int)?
+        for (serviceIndex, service) in services.enumerated() {
+            var bestWrite: (index: Int, score: Int)?
+            var bestNotify: (index: Int, score: Int)?
 
-            for characteristic in service.characteristics {
+            for (index, characteristic) in service.characteristics.enumerated() {
                 if let score = writeScore(characteristic),
                     bestWrite == nil || score > bestWrite!.score {
-                    bestWrite = (characteristic.uuid, score)
+                    bestWrite = (index, score)
                 }
                 if let score = notifyScore(characteristic),
                     bestNotify == nil || score > bestNotify!.score {
-                    bestNotify = (characteristic.uuid, score)
+                    bestNotify = (index, score)
                 }
             }
 
@@ -113,9 +118,9 @@ enum BleCharacteristicSelector {
 
             if let existing = best, existing.score >= serviceScore { continue }
             best = Selection(
-                serviceUUID: service.uuid,
-                writeUUID: write.uuid,
-                notifyUUID: notify.uuid,
+                serviceIndex: serviceIndex,
+                writeIndex: write.index,
+                notifyIndex: notify.index,
                 score: serviceScore
             )
         }
