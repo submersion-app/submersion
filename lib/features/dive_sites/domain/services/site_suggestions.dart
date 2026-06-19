@@ -52,3 +52,69 @@ List<String> suggestedRegions(List<DiveSite> sites, String country) {
   regions.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
   return regions;
 }
+
+/// Distinct, alpha-sorted cities. When [country] and/or [region] are non-empty,
+/// only cities used with that country (and region) are returned.
+List<String> suggestedCities(
+  List<DiveSite> sites,
+  String country,
+  String region,
+) {
+  final wantCountry = country.trim().toLowerCase();
+  final wantRegion = region.trim().toLowerCase();
+  final seen = <String>{};
+  final cities = <String>[];
+  for (final site in sites) {
+    final city = site.city?.trim() ?? '';
+    if (city.isEmpty) continue;
+    if (wantCountry.isNotEmpty &&
+        (site.country?.trim().toLowerCase() ?? '') != wantCountry) {
+      continue;
+    }
+    if (wantRegion.isNotEmpty &&
+        (site.region?.trim().toLowerCase() ?? '') != wantRegion) {
+      continue;
+    }
+    if (seen.add(city.toLowerCase())) cities.add(city);
+  }
+  cities.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+  return cities;
+}
+
+/// Distinct, alpha-sorted islands. When [country] is non-empty, only islands
+/// used with that country are returned.
+List<String> suggestedIslands(List<DiveSite> sites, String country) {
+  final want = country.trim().toLowerCase();
+  final seen = <String>{};
+  final islands = <String>[];
+  for (final site in sites) {
+    final island = site.island?.trim() ?? '';
+    if (island.isEmpty) continue;
+    if (want.isNotEmpty &&
+        (site.country?.trim().toLowerCase() ?? '') != want) {
+      continue;
+    }
+    if (seen.add(island.toLowerCase())) islands.add(island);
+  }
+  islands.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+  return islands;
+}
+
+/// Distinct, alpha-sorted bodies of water. When [country] is non-empty, only
+/// bodies of water used with that country are returned.
+List<String> suggestedBodiesOfWater(List<DiveSite> sites, String country) {
+  final want = country.trim().toLowerCase();
+  final seen = <String>{};
+  final bodies = <String>[];
+  for (final site in sites) {
+    final body = site.bodyOfWater?.trim() ?? '';
+    if (body.isEmpty) continue;
+    if (want.isNotEmpty &&
+        (site.country?.trim().toLowerCase() ?? '') != want) {
+      continue;
+    }
+    if (seen.add(body.toLowerCase())) bodies.add(body);
+  }
+  bodies.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+  return bodies;
+}
