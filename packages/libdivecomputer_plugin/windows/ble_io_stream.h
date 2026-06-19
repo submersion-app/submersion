@@ -87,6 +87,8 @@ class BleIoStream {
   static const winrt::guid kPreferredServiceUuid;
   static const winrt::guid kPreferredWriteUuid;
   static const winrt::guid kPreferredNotifyUuid;
+  static const winrt::guid kHalcyonSymbiosTxUuid;
+  static const winrt::guid kHalcyonSymbiosRxUuid;
 
   winrt::Windows::Devices::Bluetooth::BluetoothLEDevice device_{nullptr};
   winrt::Windows::Devices::Bluetooth::GenericAttributeProfile::

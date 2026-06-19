@@ -15,3 +15,9 @@ swiftc -o "$BUILD_DIR/packet_read_buffer_tests" \
     Tests/PacketReadBufferTests/main.swift
 
 "$BUILD_DIR/packet_read_buffer_tests"
+
+swiftc -o "$BUILD_DIR/ble_characteristic_selector_tests" \
+    Sources/LibDCDarwin/BleCharacteristicSelector.swift \
+    Tests/BleCharacteristicSelectorTests/main.swift
+
+"$BUILD_DIR/ble_characteristic_selector_tests"

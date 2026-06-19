@@ -27,10 +27,16 @@ private val PREFERRED_SERVICE_UUIDS = setOf(
     UUID.fromString("cb3c4555-d670-4670-bc20-b61dbc851e9a")
 )
 private val PREFERRED_WRITE_UUIDS = setOf(
-    UUID.fromString("6606ab42-89d5-4a00-a8ce-4eb5e1414ee0")
+    UUID.fromString("6606ab42-89d5-4a00-a8ce-4eb5e1414ee0"),
+    // Halcyon Symbios Tx: the app sends commands here. Its Rx counterpart
+    // (00000101) also advertises write and ties on raw score, so without this
+    // bias the scorer writes to Rx and the device never answers (issue #288).
+    UUID.fromString("00000201-8c3b-4f2c-a59e-8c08224f3253")
 )
 private val PREFERRED_NOTIFY_UUIDS = setOf(
-    UUID.fromString("a60b8e5c-b267-44d7-9764-837caf96489e")
+    UUID.fromString("a60b8e5c-b267-44d7-9764-837caf96489e"),
+    // Halcyon Symbios Rx: the device sends replies here via indications.
+    UUID.fromString("00000101-8c3b-4f2c-a59e-8c08224f3253")
 )
 
 // Bridges Android BLE GATT communication to libdivecomputer's synchronous

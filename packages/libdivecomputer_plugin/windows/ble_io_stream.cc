@@ -20,6 +20,15 @@ const winrt::guid BleIoStream::kPreferredWriteUuid{
 const winrt::guid BleIoStream::kPreferredNotifyUuid{
     0xA60B8E5C, 0xB267, 0x44D7,
     {0x97, 0x64, 0x83, 0x7C, 0xAF, 0x96, 0x48, 0x9E}};
+// Halcyon Symbios Tx (commands) and Rx (replies via indications). Rx also
+// advertises write and ties with Tx on raw score, so without this bias the
+// scorer may write to Rx and the device never answers (issue #288).
+const winrt::guid BleIoStream::kHalcyonSymbiosTxUuid{
+    0x00000201, 0x8C3B, 0x4F2C,
+    {0xA5, 0x9E, 0x8C, 0x08, 0x22, 0x4F, 0x32, 0x53}};
+const winrt::guid BleIoStream::kHalcyonSymbiosRxUuid{
+    0x00000101, 0x8C3B, 0x4F2C,
+    {0xA5, 0x9E, 0x8C, 0x08, 0x22, 0x4F, 0x32, 0x53}};
 
 static constexpr uint32_t kBleIoctlType = 'b';
 static constexpr uint32_t kBleIoctlGetName = 0;
@@ -91,7 +100,10 @@ bool BleIoStream::DiscoverCharacteristics() {
                     GattCharacteristicProperties::None) {
                     ws += 2;
                 }
-                if (ch.Uuid() == kPreferredWriteUuid) ws += 1000;
+                if (ch.Uuid() == kPreferredWriteUuid ||
+                    ch.Uuid() == kHalcyonSymbiosTxUuid) {
+                    ws += 1000;
+                }
                 if (ws > best_write_score) {
                     best_write = ch;
                     best_write_score = ws;
@@ -112,7 +124,10 @@ bool BleIoStream::DiscoverCharacteristics() {
                     GattCharacteristicProperties::None) {
                     ns += 2;
                 }
-                if (ch.Uuid() == kPreferredNotifyUuid) ns += 1000;
+                if (ch.Uuid() == kPreferredNotifyUuid ||
+                    ch.Uuid() == kHalcyonSymbiosRxUuid) {
+                    ns += 1000;
+                }
                 if (ns > best_notify_score) {
                     best_notify = ch;
                     best_notify_score = ns;

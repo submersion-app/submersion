@@ -11,6 +11,13 @@ static const char* PREFERRED_WRITE_UUID =
     "6606ab42-89d5-4a00-a8ce-4eb5e1414ee0";
 static const char* PREFERRED_NOTIFY_UUID =
     "a60b8e5c-b267-44d7-9764-837caf96489e";
+// Halcyon Symbios Tx (commands) and Rx (replies via indications). Rx also
+// advertises write and ties with Tx on raw score, so without this bias the
+// scorer may write to Rx and the device never answers (issue #288).
+static const char* HALCYON_SYMBIOS_TX_UUID =
+    "00000201-8c3b-4f2c-a59e-8c08224f3253";
+static const char* HALCYON_SYMBIOS_RX_UUID =
+    "00000101-8c3b-4f2c-a59e-8c08224f3253";
 
 static const guint32 BLE_IOCTL_TYPE = 'b';
 static const guint32 BLE_IOCTL_GET_NAME = 0;
@@ -229,7 +236,8 @@ gboolean ble_io_stream_connect(BleIoStream* stream,
             int ws = 0;
             if (can_write_no_rsp) ws += 4;
             if (can_write) ws += 2;
-            if (g_ascii_strcasecmp(uuid, PREFERRED_WRITE_UUID) == 0) {
+            if (g_ascii_strcasecmp(uuid, PREFERRED_WRITE_UUID) == 0 ||
+                g_ascii_strcasecmp(uuid, HALCYON_SYMBIOS_TX_UUID) == 0) {
                 ws += 1000;
             }
             if (ws > best_write_score) {
@@ -247,7 +255,8 @@ gboolean ble_io_stream_connect(BleIoStream* stream,
             int ns = 0;
             if (can_notify) ns += 4;
             if (can_indicate) ns += 2;
-            if (g_ascii_strcasecmp(uuid, PREFERRED_NOTIFY_UUID) == 0) {
+            if (g_ascii_strcasecmp(uuid, PREFERRED_NOTIFY_UUID) == 0 ||
+                g_ascii_strcasecmp(uuid, HALCYON_SYMBIOS_RX_UUID) == 0) {
                 ns += 1000;
             }
             if (ns > best_notify_score) {
