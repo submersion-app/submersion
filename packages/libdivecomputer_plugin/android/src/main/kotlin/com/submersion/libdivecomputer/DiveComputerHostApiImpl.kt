@@ -459,7 +459,13 @@ class DiveComputerHostApiImpl(
                 decoType = if (s[10].toLong() == UINT32_SENTINEL) null else s[10].toLong(),
                 decoTime = if (s[11].toLong() == UINT32_SENTINEL) null else s[11].toLong(),
                 decoDepth = if (s[12].isNaN()) null else s[12],
-                tts = if (s[13].toLong() == UINT32_SENTINEL || s[13].toLong() == 0L) null else s[13].toLong()
+                tts = if (s[13].toLong() == UINT32_SENTINEL || s[13].toLong() == 0L) null else s[13].toLong(),
+                o2Sensor1 = if (s[14].isNaN()) null else s[14],
+                o2Sensor2 = if (s[15].isNaN()) null else s[15],
+                o2Sensor3 = if (s[16].isNaN()) null else s[16],
+                o2Sensor4 = if (s[17].isNaN()) null else s[17],
+                o2Sensor5 = if (s[18].isNaN()) null else s[18],
+                o2Sensor6 = if (s[19].isNaN()) null else s[19]
             )
         }
 

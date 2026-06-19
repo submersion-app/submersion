@@ -163,6 +163,15 @@ struct ProfileSample {
   var decoTime: Int64? = nil
   var decoDepth: Double? = nil
   var tts: Int64? = nil
+  /// Individual CCR O2 cell ppO2 readings in bar (sensor 1..6), null when that
+  /// cell has no reading. libdivecomputer reports these per-sensor via
+  /// DC_SAMPLE_PPO2; [ppo2] holds the aggregate/computed value.
+  var o2Sensor1: Double? = nil
+  var o2Sensor2: Double? = nil
+  var o2Sensor3: Double? = nil
+  var o2Sensor4: Double? = nil
+  var o2Sensor5: Double? = nil
+  var o2Sensor6: Double? = nil
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
@@ -181,6 +190,12 @@ struct ProfileSample {
     let decoTime: Int64? = nilOrValue(pigeonVar_list[11])
     let decoDepth: Double? = nilOrValue(pigeonVar_list[12])
     let tts: Int64? = nilOrValue(pigeonVar_list[13])
+    let o2Sensor1: Double? = nilOrValue(pigeonVar_list[14])
+    let o2Sensor2: Double? = nilOrValue(pigeonVar_list[15])
+    let o2Sensor3: Double? = nilOrValue(pigeonVar_list[16])
+    let o2Sensor4: Double? = nilOrValue(pigeonVar_list[17])
+    let o2Sensor5: Double? = nilOrValue(pigeonVar_list[18])
+    let o2Sensor6: Double? = nilOrValue(pigeonVar_list[19])
 
     return ProfileSample(
       timeSeconds: timeSeconds,
@@ -196,7 +211,13 @@ struct ProfileSample {
       decoType: decoType,
       decoTime: decoTime,
       decoDepth: decoDepth,
-      tts: tts
+      tts: tts,
+      o2Sensor1: o2Sensor1,
+      o2Sensor2: o2Sensor2,
+      o2Sensor3: o2Sensor3,
+      o2Sensor4: o2Sensor4,
+      o2Sensor5: o2Sensor5,
+      o2Sensor6: o2Sensor6
     )
   }
   func toList() -> [Any?] {
@@ -215,6 +236,12 @@ struct ProfileSample {
       decoTime,
       decoDepth,
       tts,
+      o2Sensor1,
+      o2Sensor2,
+      o2Sensor3,
+      o2Sensor4,
+      o2Sensor5,
+      o2Sensor6,
     ]
   }
 }

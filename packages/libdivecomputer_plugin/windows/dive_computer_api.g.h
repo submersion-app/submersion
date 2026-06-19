@@ -181,7 +181,13 @@ class ProfileSample {
     const int64_t* deco_type,
     const int64_t* deco_time,
     const double* deco_depth,
-    const int64_t* tts);
+    const int64_t* tts,
+    const double* o2_sensor1,
+    const double* o2_sensor2,
+    const double* o2_sensor3,
+    const double* o2_sensor4,
+    const double* o2_sensor5,
+    const double* o2_sensor6);
 
   int64_t time_seconds() const;
   void set_time_seconds(int64_t value_arg);
@@ -237,6 +243,33 @@ class ProfileSample {
   void set_tts(const int64_t* value_arg);
   void set_tts(int64_t value_arg);
 
+  // Individual CCR O2 cell ppO2 readings in bar (sensor 1..6), null when that
+  // cell has no reading. libdivecomputer reports these per-sensor via
+  // DC_SAMPLE_PPO2; [ppo2] holds the aggregate/computed value.
+  const double* o2_sensor1() const;
+  void set_o2_sensor1(const double* value_arg);
+  void set_o2_sensor1(double value_arg);
+
+  const double* o2_sensor2() const;
+  void set_o2_sensor2(const double* value_arg);
+  void set_o2_sensor2(double value_arg);
+
+  const double* o2_sensor3() const;
+  void set_o2_sensor3(const double* value_arg);
+  void set_o2_sensor3(double value_arg);
+
+  const double* o2_sensor4() const;
+  void set_o2_sensor4(const double* value_arg);
+  void set_o2_sensor4(double value_arg);
+
+  const double* o2_sensor5() const;
+  void set_o2_sensor5(const double* value_arg);
+  void set_o2_sensor5(double value_arg);
+
+  const double* o2_sensor6() const;
+  void set_o2_sensor6(const double* value_arg);
+  void set_o2_sensor6(double value_arg);
+
 
  private:
   static ProfileSample FromEncodableList(const flutter::EncodableList& list);
@@ -258,6 +291,12 @@ class ProfileSample {
   std::optional<int64_t> deco_time_;
   std::optional<double> deco_depth_;
   std::optional<int64_t> tts_;
+  std::optional<double> o2_sensor1_;
+  std::optional<double> o2_sensor2_;
+  std::optional<double> o2_sensor3_;
+  std::optional<double> o2_sensor4_;
+  std::optional<double> o2_sensor5_;
+  std::optional<double> o2_sensor6_;
 
 };
 
