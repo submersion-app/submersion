@@ -3,6 +3,67 @@
 All notable changes to Submersion are documented in this file.
 
 
+## 1.5.4 (2026-06-20)
+
+### Features
+
+- show City/Island/Body of Water on the site detail view (#344)
+- add City/Island/Body of Water to the site edit form (#344)
+- add city/island/body-of-water table columns (#344)
+- add city/island/body-of-water suggestion helpers (#344)
+- map city/island/bodyOfWater in repository read, write, search (#344)
+- include city/island in DiveSite.locationString (#344)
+- add city, island, bodyOfWater to DiveSite entity (#344)
+- add city and island columns to dive_sites (schema v90) (#344)
+
+### Bug Fixes
+
+- trim values in locationString for whitespace consistency (#344)
+- carry city/island/bodyOfWater through site merge (#344)
+- write Symbios commands to Tx on Windows and Linux too (#288)
+- write Halcyon Symbios commands to Tx, not Rx (#288)
+- force path-style addressing for dotted bucket names
+- import and use ccr o2 sensor data correctly
+- map 'cavern' text to cavern dive type in all import parsers
+
+### Refactoring
+
+- resolve selected characteristics by index, not UUID (#356 review)
+
+### Documentation
+
+- clarify selector tie-break is input-order, not handle-order (#356 review)
+- implementation plan for dive site City/Island/Body of Water (#344)
+- design spec for dive site City/Island/Body of Water fields (#344)
+- release notes
+- add agent skills section to CLAUDE.md
+- initial shared context for agent sessions
+
+### Tests
+
+- verify edit form persists City/Island/Body of Water (#344)
+- add v90 migration guard, relax v89 version tripwire (#344)
+- verify dive site location fields round-trip through serialization (#344)
+
+### CI/CD
+
+- make test shard modulus 0-based to match matrix.shard
+- split codegen into its own job to shorten the serial prefix
+- guard against empty test shard running the whole suite
+- make generated-code packaging robust to wc formatting
+- shard tests by file, not by case
+- parallelize pipeline to cut wall-clock ~49m -> ~15-18m
+
+### Chores
+
+- bump version to 1.5.4+103
+
+### Other
+
+- dart format and fix doc-comment HTML lint (#344)
+- i18n(sites): add city/island/body-of-water labels in all locales (#344)
+
+
 ## 1.5.4 (2026-06-18)
 
 ### Features
