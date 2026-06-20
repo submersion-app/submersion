@@ -392,9 +392,14 @@ class DiveComputerHostApiImpl(
             NativeLogger.w(TAG, "SER", "Probe failed on ${driver.device.deviceName} rc=$result")
         }
 
-        // Flush buffered dives on success, discard otherwise.
+        // Flush buffered dives on success OR cancellation (a cancel still posts
+        // onDownloadComplete so the Dart side can import dives downloaded before
+        // the cancel); discard only on real failure. Safe because a wrong port
+        // fails to handshake and emits no dives, and the buffer is cleared per
+        // attempt, so it only ever holds the actively-downloading port's dives.
         val divesToFlush: List<ParsedDive> = synchronized(diveBufferLock) {
-            val list = if (lastResult == 0) ArrayList(bufferedDives) else emptyList()
+            val succeeded = lastResult == 0 || lastResult == LIBDC_STATUS_CANCELLED
+            val list = if (succeeded) ArrayList(bufferedDives) else emptyList()
             bufferedDives.clear()
             isBufferingDives = false
             list

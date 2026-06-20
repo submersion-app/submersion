@@ -458,9 +458,14 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
             NativeLogger.w("DiveComputerHost", category: "SER", "Probe failed on \(port) rc=\(result.rc)")
         }
 
-        // Flush buffered dives on success, discard otherwise.
+        // Flush buffered dives on success OR cancellation (a cancel still sends
+        // onDownloadComplete so the Dart side can import dives downloaded before
+        // the cancel); discard only on real failure. Safe because a wrong port
+        // fails to handshake and emits no dives, and the buffer is cleared per
+        // attempt, so it only ever holds the actively-downloading port's dives.
+        let succeeded = lastResult.rc == 0 || lastResult.rc == Int32(LIBDC_STATUS_CANCELLED)
         diveBufferLock.lock()
-        let divesToFlush = lastResult.rc == 0 ? bufferedDives : []
+        let divesToFlush = succeeded ? bufferedDives : []
         bufferedDives.removeAll()
         isBufferingDives = false
         diveBufferLock.unlock()

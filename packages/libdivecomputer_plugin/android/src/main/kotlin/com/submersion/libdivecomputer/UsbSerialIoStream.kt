@@ -89,6 +89,21 @@ class UsbSerialIoStream(
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(ctx: Context, intent: Intent) {
                 if (intent.action != ACTION_USB_PERMISSION) return
+                val broadcastDevice: UsbDevice? =
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        intent.getParcelableExtra(UsbManager.EXTRA_DEVICE, UsbDevice::class.java)
+                    } else {
+                        @Suppress("DEPRECATION")
+                        intent.getParcelableExtra(UsbManager.EXTRA_DEVICE)
+                    }
+                // Ignore a response for a different device (defends against an
+                // unrelated/overlapping USB permission broadcast). A null device
+                // extra is treated as ours to avoid deadlocking the request.
+                if (broadcastDevice != null &&
+                    broadcastDevice.deviceName != device.deviceName
+                ) {
+                    return
+                }
                 granted = intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)
                 semaphore.release()
             }
