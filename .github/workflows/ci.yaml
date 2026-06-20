@@ -68,11 +68,10 @@ jobs:
       # would otherwise collapse paths to their least-common-ancestor dir).
       - name: Package generated code
         run: |
-          count=$(find lib test -type f \( -name '*.g.dart' -o -name '*.freezed.dart' \) | wc -l)
-          echo "Packaging $count generated files"
-          [ "$count" -gt 0 ] || { echo "::error::no generated files to package"; exit 1; }
-          find lib test -type f \( -name '*.g.dart' -o -name '*.freezed.dart' \) -print0 \
-            | tar --null -T - -czf generated-code.tar.gz
+          mapfile -d '' files < <(find lib test -type f \( -name '*.g.dart' -o -name '*.freezed.dart' \) -print0)
+          echo "Packaging ${#files[@]} generated files"
+          if [ "${#files[@]}" -eq 0 ]; then echo "::error::no generated files to package"; exit 1; fi
+          printf '%s\0' "${files[@]}" | tar --null -T - -czf generated-code.tar.gz
 
       - name: Upload generated code
         uses: actions/upload-artifact@v7
