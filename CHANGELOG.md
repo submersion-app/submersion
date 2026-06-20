@@ -7,6 +7,41 @@ All notable changes to Submersion are documented in this file.
 
 ### Features
 
+- adopt base via streaming temp-file apply (#358)
+- streaming base reader + checksum-verifying part file sink
+- USB-serial dive computer support on Android (#334)
+
+### Bug Fixes
+
+- correct Halcyon Symbios Tx/Rx direction (#288)
+- harden base import on truncated/partless manifests (review)
+- serial-over-USB downloads on macOS/iOS (#334)
+
+### Documentation
+
+- implementation plan for streaming base import (#358)
+- spec streaming base import to fix iCloud sync OOM (#358)
+
+### Tests
+
+- deterministic base temp-file cleanup check
+- convergence covers streaming base adoption end to end (#358)
+- parity between streaming and in-memory base apply (#358)
+
+### Chores
+
+- bump version to 1.5.4+105
+
+### Other
+
+- try all USB ports + non-blank serial error message (#364)
+- flush dives on cancel + validate USB permission device (#364)
+
+
+## 1.5.4 (2026-06-20)
+
+### Features
+
 - show City/Island/Body of Water on the site detail view (#344)
 - add City/Island/Body of Water to the site edit form (#344)
 - add city/island/body-of-water table columns (#344)
