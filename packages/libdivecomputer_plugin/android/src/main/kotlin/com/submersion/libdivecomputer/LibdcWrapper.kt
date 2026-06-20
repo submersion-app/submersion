@@ -32,7 +32,7 @@ object LibdcWrapper {
         product: String,
         model: Int,
         transport: Int,
-        ioHandler: BleIoHandler,
+        ioHandler: IoHandler,
         devName: String?,
         fingerprint: ByteArray?,
         downloadCallback: DownloadCallback,
@@ -85,15 +85,37 @@ class DescriptorInfo {
     @JvmField var transports: Int = 0
 }
 
-// Interface for BLE I/O operations called from native code.
-interface BleIoHandler {
+// Base I/O operations called from native code. The JNI bridge resolves these
+// by name on whichever concrete handler is passed to nativeDownloadRun.
+interface IoHandler {
     fun read(size: Int, timeoutMs: Int): ByteArray?
     fun write(data: ByteArray, timeoutMs: Int): Int
     fun purge(direction: Int)
     fun close()
+}
+
+// BLE I/O: adds PIN and access-code negotiation for encrypted peripherals.
+interface BleIoHandler : IoHandler {
     fun onPinCodeRequired(address: String): String
     fun getAccessCode(address: String): ByteArray?
     fun setAccessCode(address: String, code: ByteArray)
+}
+
+// Serial I/O: adds serial line-control (baud/data/parity/stop/flow + DTR/RTS).
+// The line-control methods return 0 on success and non-zero on failure; the
+// JNI bridge maps that to LIBDC_STATUS_SUCCESS / LIBDC_STATUS_IO. The bridge
+// wires these callbacks only when the handler implements them, so BLE handlers
+// are unaffected.
+interface SerialIoHandler : IoHandler {
+    fun configure(
+        baudRate: Int,
+        dataBits: Int,
+        parity: Int,
+        stopBits: Int,
+        flowControl: Int
+    ): Int
+    fun setDtr(value: Int): Int
+    fun setRts(value: Int): Int
 }
 
 // Interface for download event callbacks from native code.

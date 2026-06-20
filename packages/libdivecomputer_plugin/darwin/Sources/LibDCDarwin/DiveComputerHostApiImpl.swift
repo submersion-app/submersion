@@ -14,6 +14,17 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
     private var serialScanner: SerialScanner?
     private var activeSerialStream: SerialIoStream?
 
+    // Dive buffering for the multi-port serial probe. When more than one serial
+    // port is a candidate (manual model selection with no exact path), each port
+    // is tried with a full download; dives from a wrong port must not be sent to
+    // Flutter. While `isBufferingDives` is set, on_dive accumulates into
+    // `bufferedDives` instead of dispatching; the probe flushes on success and
+    // discards on failure. Guarded by `diveBufferLock` because on_dive fires on
+    // libdivecomputer's download thread.
+    private var isBufferingDives = false
+    private var bufferedDives: [ParsedDive] = []
+    private let diveBufferLock = NSLock()
+
     init(messenger: FlutterBinaryMessenger) {
         self.messenger = messenger
         self.flutterApi = DiveComputerFlutterApi(binaryMessenger: messenger)
@@ -155,6 +166,14 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
         stream.submitPinCode(pinCode)
     }
 
+    /// Result of a single libdc_download_run attempt.
+    private struct RunResult {
+        let rc: Int32
+        let serial: UInt32
+        let firmware: UInt32
+        let errorMessage: String
+    }
+
     private func performDownload(device: DiscoveredDevice, fingerprint: String?) {
         // Create download session.
         guard let session = libdc_download_session_new() else {
@@ -185,19 +204,41 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
             nil
         )
 
-        // Get I/O callbacks based on transport type.
-        var ioCallbacks: libdc_io_callbacks_t
+        let downloadCallbacks = makeDownloadCallbacks()
+        let fingerprintBytes = decodeFingerprint(fingerprint)
+
+        // Dispatch by transport. Exhaustive (no `default:`) on purpose: the
+        // original "Invalid device address" bug was a `.usb` device silently
+        // falling into the BLE path via a default case. Keeping this exhaustive
+        // forces any future transport to be handled explicitly.
         switch device.transport {
-        case .serial:
-            guard let callbacks = connectSerial(device: device, session: session) else { return }
-            ioCallbacks = callbacks
-        default:
-            guard let callbacks = connectBle(device: device, session: session) else { return }
-            ioCallbacks = callbacks
+        case .ble:
+            performBleDownload(
+                device: device, session: session,
+                downloadCallbacks: downloadCallbacks, fingerprint: fingerprintBytes)
+        case .serial, .usb:
+            // Serial-over-USB (e.g. Mares Puck Pro on an FTDI cable). The Dart
+            // layer folds libdivecomputer's serial transport into `.usb`, so both
+            // route here and download over LIBDC_TRANSPORT_SERIAL.
+            performSerialDownload(
+                device: device, session: session,
+                downloadCallbacks: downloadCallbacks, fingerprint: fingerprintBytes)
+        case .infrared:
+            reportError(
+                code: "unsupported_transport",
+                message: "Infrared transport is not supported on this platform")
         }
 
-        // Build download callbacks.
-        // We pass self as userdata via Unmanaged to receive dive/progress events.
+        // Cleanup (single owner of the session, so no path double-frees).
+        libdc_download_session_free(session)
+        self.downloadSession = nil
+        self.activeBleStream = nil
+        self.activeSerialStream = nil
+    }
+
+    /// Builds the progress/dive callbacks. `on_dive` buffers instead of
+    /// dispatching while a multi-port serial probe is in progress.
+    private func makeDownloadCallbacks() -> libdc_download_callbacks_t {
         let selfPtr = Unmanaged.passUnretained(self).toOpaque()
 
         var downloadCallbacks = libdc_download_callbacks_t()
@@ -218,51 +259,59 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
             let parsedDive = hostApi.convertParsedDive(dive.pointee)
             NativeLogger.d("DiveComputerHost", category: "LDC",
                 "Dive parsed: depth=\(parsedDive.maxDepthMeters)m, duration=\(parsedDive.durationSeconds)s, samples=\(parsedDive.samples.count)")
-            DispatchQueue.main.async {
-                hostApi.flutterApi.onDiveDownloaded(dive: parsedDive) { _ in }
+            hostApi.diveBufferLock.lock()
+            let buffering = hostApi.isBufferingDives
+            if buffering {
+                hostApi.bufferedDives.append(parsedDive)
+            }
+            hostApi.diveBufferLock.unlock()
+            if !buffering {
+                DispatchQueue.main.async {
+                    hostApi.flutterApi.onDiveDownloaded(dive: parsedDive) { _ in }
+                }
             }
         }
         downloadCallbacks.userdata = selfPtr
+        return downloadCallbacks
+    }
 
-        // Map transport type.
-        let transportValue: UInt32
-        switch device.transport {
-        case .ble:
-            transportValue = UInt32(LIBDC_TRANSPORT_BLE)
-        case .usb:
-            transportValue = UInt32(LIBDC_TRANSPORT_USB)
-        case .serial:
-            transportValue = UInt32(LIBDC_TRANSPORT_SERIAL)
-        case .infrared:
-            transportValue = UInt32(LIBDC_TRANSPORT_IRDA)
+    /// Decodes a hex fingerprint string to bytes for incremental download.
+    private func decodeFingerprint(_ hex: String?) -> [UInt8]? {
+        guard let hex = hex, !hex.isEmpty else { return nil }
+        return stride(from: 0, to: hex.count, by: 2).compactMap { i in
+            let start = hex.index(hex.startIndex, offsetBy: i)
+            let end = hex.index(start, offsetBy: 2, limitedBy: hex.endIndex) ?? hex.endIndex
+            return UInt8(hex[start..<end], radix: 16)
         }
+    }
 
-        // Decode fingerprint from hex string if provided.
-        var fingerprintBytes: [UInt8]? = nil
-        if let hex = fingerprint, !hex.isEmpty {
-            fingerprintBytes = stride(from: 0, to: hex.count, by: 2).compactMap { i in
-                let start = hex.index(hex.startIndex, offsetBy: i)
-                let end = hex.index(start, offsetBy: 2, limitedBy: hex.endIndex) ?? hex.endIndex
-                return UInt8(hex[start..<end], radix: 16)
-            }
-        }
-
-        // Run the download (blocks until complete).
+    /// Runs a single blocking download attempt over the given I/O callbacks.
+    /// Callbacks are passed by value and copied to locals so libdc_download_run
+    /// can take mutable pointers to them.
+    private func runOnce(
+        session: OpaquePointer,
+        device: DiscoveredDevice,
+        transportValue: UInt32,
+        ioCallbacks: libdc_io_callbacks_t,
+        fingerprint: [UInt8]?,
+        downloadCallbacks: libdc_download_callbacks_t
+    ) -> RunResult {
+        var io = ioCallbacks
+        var dl = downloadCallbacks
         var serial: UInt32 = 0
         var firmware: UInt32 = 0
         var errorBuf = [CChar](repeating: 0, count: 256)
         let result: Int32
-        if let fp = fingerprintBytes, !fp.isEmpty {
+        if let fp = fingerprint, !fp.isEmpty {
             result = fp.withUnsafeBufferPointer { buf in
                 libdc_download_run(
                     session,
                     device.vendor, device.product, UInt32(device.model),
                     transportValue,
-                    &ioCallbacks,
+                    &io,
                     buf.baseAddress, UInt32(buf.count),
-                    &downloadCallbacks,
-                    &serial,
-                    &firmware,
+                    &dl,
+                    &serial, &firmware,
                     &errorBuf, errorBuf.count
                 )
             }
@@ -271,64 +320,183 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
                 session,
                 device.vendor, device.product, UInt32(device.model),
                 transportValue,
-                &ioCallbacks,
+                &io,
                 nil, 0,
-                &downloadCallbacks,
-                &serial,
-                &firmware,
+                &dl,
+                &serial, &firmware,
                 &errorBuf, errorBuf.count
             )
         }
+        return RunResult(
+            rc: result, serial: serial, firmware: firmware,
+            errorMessage: String(cString: errorBuf))
+    }
 
-        // Format device info as strings for Dart.
-        let serialStr: String? = serial > 0 ? String(serial) : nil
-        let firmwareStr: String? = firmware > 0 ? String(firmware) : nil
-        NativeLogger.i("DiveComputerHost", category: "LDC", "Device info: serial=\(serial), firmware=\(firmware)")
+    /// Reports the final outcome of a download attempt to Flutter
+    /// (success/cancelled -> onDownloadComplete, otherwise download_error).
+    private func reportDownloadResult(_ result: RunResult) {
+        let serialStr: String? = result.serial > 0 ? String(result.serial) : nil
+        let firmwareStr: String? = result.firmware > 0 ? String(result.firmware) : nil
+        NativeLogger.i("DiveComputerHost", category: "LDC",
+            "Device info: serial=\(result.serial), firmware=\(result.firmware)")
+        NativeLogger.d("DiveComputerHost", category: "LDC",
+            "libdc_download_run returned result=\(result.rc)")
 
-        // Report completion or error.
-        NativeLogger.d("DiveComputerHost", category: "LDC", "libdc_download_run returned result=\(result)")
-        if result == 0 {
+        if result.rc == 0 {
             NativeLogger.i("DiveComputerHost", category: "LDC", "Download succeeded, sending onDownloadComplete")
             DispatchQueue.main.async { [weak self] in
                 self?.flutterApi.onDownloadComplete(
-                    totalDives: 0,
-                    serialNumber: serialStr,
-                    firmwareVersion: firmwareStr
-                ) { _ in }
+                    totalDives: 0, serialNumber: serialStr, firmwareVersion: firmwareStr) { _ in }
             }
-        } else if result == Int32(LIBDC_STATUS_CANCELLED) {
+        } else if result.rc == Int32(LIBDC_STATUS_CANCELLED) {
             NativeLogger.i("DiveComputerHost", category: "LDC", "Download cancelled, sending onDownloadComplete")
             // Still send completion so the Dart side can import any dives
             // that were downloaded before cancellation.
             DispatchQueue.main.async { [weak self] in
                 self?.flutterApi.onDownloadComplete(
-                    totalDives: 0,
-                    serialNumber: serialStr,
-                    firmwareVersion: firmwareStr
-                ) { _ in }
+                    totalDives: 0, serialNumber: serialStr, firmwareVersion: firmwareStr) { _ in }
             }
         } else {
-            let errorMsg = String(cString: errorBuf)
-            NativeLogger.e("DiveComputerHost", category: "LDC", "Download error (result=\(result)): \(errorMsg)")
-            reportError(code: "download_error", message: errorMsg)
+            NativeLogger.e("DiveComputerHost", category: "LDC",
+                "Download error (result=\(result.rc)): \(result.errorMessage)")
+            reportError(code: "download_error", message: result.errorMessage)
+        }
+    }
+
+    /// BLE download: resolve/connect the peripheral, then run once.
+    private func performBleDownload(
+        device: DiscoveredDevice, session: OpaquePointer,
+        downloadCallbacks: libdc_download_callbacks_t, fingerprint: [UInt8]?
+    ) {
+        guard let ioCallbacks = connectBle(device: device) else { return }
+        let result = runOnce(
+            session: session, device: device,
+            transportValue: UInt32(LIBDC_TRANSPORT_BLE),
+            ioCallbacks: ioCallbacks, fingerprint: fingerprint,
+            downloadCallbacks: downloadCallbacks)
+        reportDownloadResult(result)
+    }
+
+    /// Serial-over-USB download with auto-probe, mirroring the Linux/Windows
+    /// backends. A single candidate (an explicit /dev path, or the sole USB
+    /// serial port) is opened and run directly. Multiple candidates (manual
+    /// model selection with several adapters attached) are each tried with a
+    /// full download, buffering dives so a wrong port cannot leak phantom dives.
+    private func performSerialDownload(
+        device: DiscoveredDevice, session: OpaquePointer,
+        downloadCallbacks: libdc_download_callbacks_t, fingerprint: [UInt8]?
+    ) {
+        let transportValue = UInt32(LIBDC_TRANSPORT_SERIAL)
+        let available = SerialPortEnumerator.enumerateUsbSerialPaths()
+        let candidates = SerialPortEnumerator.candidatePorts(
+            address: device.address, available: available)
+
+        if candidates.isEmpty {
+            reportError(
+                code: "no_serial_ports",
+                message: "No USB serial ports found. Is the dive computer connected and powered on?")
+            return
         }
 
-        // Cleanup.
-        libdc_download_session_free(session)
-        self.downloadSession = nil
-        self.activeBleStream = nil
-        self.activeSerialStream = nil
+        // Single candidate: open directly and report the real outcome (an open
+        // failure is a clear connect error; a comms failure is download_error).
+        if candidates.count == 1 {
+            let port = candidates[0]
+            let stream = SerialIoStream()
+            guard stream.open(path: port) else {
+                reportError(code: "connect_failed", message: "Failed to open serial port: \(port)")
+                return
+            }
+            NativeLogger.i("DiveComputerHost", category: "SER", "Opened serial port: \(port)")
+            self.activeSerialStream = stream
+            let result = runOnce(
+                session: session, device: device, transportValue: transportValue,
+                ioCallbacks: stream.makeCallbacks(), fingerprint: fingerprint,
+                downloadCallbacks: downloadCallbacks)
+            stream.close()
+            self.activeSerialStream = nil
+            reportDownloadResult(result)
+            return
+        }
+
+        // Multi-candidate probe: buffer dives until a port succeeds.
+        diveBufferLock.lock()
+        isBufferingDives = true
+        bufferedDives.removeAll()
+        diveBufferLock.unlock()
+
+        var probeLog = ""
+        var anyOpened = false
+        var lastResult = RunResult(
+            rc: Int32(LIBDC_STATUS_IO), serial: 0, firmware: 0, errorMessage: "")
+
+        for port in candidates {
+            diveBufferLock.lock()
+            bufferedDives.removeAll()
+            diveBufferLock.unlock()
+
+            let stream = SerialIoStream()
+            guard stream.open(path: port) else {
+                probeLog += "  \(port): failed to open\n"
+                continue
+            }
+            anyOpened = true
+            NativeLogger.i("DiveComputerHost", category: "SER", "Probing serial port: \(port)")
+            self.activeSerialStream = stream
+            let result = runOnce(
+                session: session, device: device, transportValue: transportValue,
+                ioCallbacks: stream.makeCallbacks(), fingerprint: fingerprint,
+                downloadCallbacks: downloadCallbacks)
+            lastResult = result
+            stream.close()
+            self.activeSerialStream = nil
+
+            if result.rc == 0 || result.rc == Int32(LIBDC_STATUS_CANCELLED) {
+                break
+            }
+            probeLog += "  \(port): download failed (rc=\(result.rc))\n"
+            NativeLogger.w("DiveComputerHost", category: "SER", "Probe failed on \(port) rc=\(result.rc)")
+        }
+
+        // Flush buffered dives on success OR cancellation (a cancel still sends
+        // onDownloadComplete so the Dart side can import dives downloaded before
+        // the cancel); discard only on real failure. Safe because a wrong port
+        // fails to handshake and emits no dives, and the buffer is cleared per
+        // attempt, so it only ever holds the actively-downloading port's dives.
+        let succeeded = lastResult.rc == 0 || lastResult.rc == Int32(LIBDC_STATUS_CANCELLED)
+        diveBufferLock.lock()
+        let divesToFlush = succeeded ? bufferedDives : []
+        bufferedDives.removeAll()
+        isBufferingDives = false
+        diveBufferLock.unlock()
+        for dive in divesToFlush {
+            DispatchQueue.main.async { [weak self] in
+                self?.flutterApi.onDiveDownloaded(dive: dive) { _ in }
+            }
+        }
+
+        if !anyOpened {
+            reportError(
+                code: "connect_failed",
+                message: "No dive computer found. Ports tried:\n\(probeLog)")
+            return
+        }
+        if lastResult.rc != 0 && lastResult.rc != Int32(LIBDC_STATUS_CANCELLED) {
+            reportError(
+                code: "connect_failed",
+                message: "No dive computer found. Ports tried:\n\(probeLog)")
+            return
+        }
+        reportDownloadResult(lastResult)
     }
 
     // MARK: - Transport Connection
 
     private func connectBle(
-        device: DiscoveredDevice, session: OpaquePointer
+        device: DiscoveredDevice
     ) -> libdc_io_callbacks_t? {
         guard let uuid = UUID(uuidString: device.address) else {
             reportError(code: "invalid_address", message: "Invalid device address")
-            libdc_download_session_free(session)
-            self.downloadSession = nil
             return nil
         }
 
@@ -387,35 +555,10 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
 
         guard let bleStream = connectedStream else {
             reportError(code: "connect_failed", message: "Failed to connect to device")
-            libdc_download_session_free(session)
-            self.downloadSession = nil
             self.activeBleStream = nil
             return nil
         }
         return bleStream.makeCallbacks()
-    }
-
-    private func connectSerial(
-        device: DiscoveredDevice, session: OpaquePointer
-    ) -> libdc_io_callbacks_t? {
-        // macOS does not have auto-probe logic (unlike Linux/Windows) because
-        // serial devices are always discovered via SerialScanner first, which
-        // provides the exact /dev/cu.* path. Manual model selection on macOS
-        // also goes through the scanner, so the address is always a valid
-        // device path by the time we reach here.
-        let serialStream = SerialIoStream()
-        guard serialStream.open(path: device.address) else {
-            reportError(
-                code: "connect_failed",
-                message: "Failed to open serial port: \(device.address)"
-            )
-            libdc_download_session_free(session)
-            self.downloadSession = nil
-            return nil
-        }
-        NativeLogger.i("DiveComputerHost", category: "SER", "Opened serial port: \(device.address)")
-        self.activeSerialStream = serialStream
-        return serialStream.makeCallbacks()
     }
 
     // MARK: - Dive Conversion

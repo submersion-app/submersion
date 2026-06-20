@@ -338,6 +338,69 @@ static int jni_io_write(void *userdata, const void *data, size_t size, size_t *a
     return LIBDC_STATUS_SUCCESS;
 }
 
+// Serial line-control callbacks. These bridge to the Kotlin SerialIoHandler
+// (configure/setDtr/setRts) and are only wired in nativeDownloadRun when the
+// handler implements them, so BLE handlers are unaffected. The Kotlin methods
+// return 0 on success and non-zero on failure.
+static int jni_io_configure(void *userdata, unsigned int baudrate,
+                            unsigned int databits, unsigned int parity,
+                            unsigned int stopbits, unsigned int flowcontrol) {
+    auto *ctx = static_cast<JniIoContext *>(userdata);
+    JNIEnv *env;
+    bool attached = false;
+    if (ctx->jvm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6) != JNI_OK) {
+        ctx->jvm->AttachCurrentThread(&env, nullptr);
+        attached = true;
+    }
+
+    jclass cls = env->GetObjectClass(ctx->ioHandler);
+    jmethodID method = env->GetMethodID(cls, "configure", "(IIIII)I");
+    int status = LIBDC_STATUS_UNSUPPORTED;
+    if (method != nullptr) {
+        jint r = env->CallIntMethod(ctx->ioHandler, method,
+            static_cast<jint>(baudrate), static_cast<jint>(databits),
+            static_cast<jint>(parity), static_cast<jint>(stopbits),
+            static_cast<jint>(flowcontrol));
+        status = (r == 0) ? LIBDC_STATUS_SUCCESS : LIBDC_STATUS_IO;
+    } else {
+        env->ExceptionClear();
+    }
+
+    if (attached) ctx->jvm->DetachCurrentThread();
+    return status;
+}
+
+static int jni_io_set_modem_line(JniIoContext *ctx, const char *methodName,
+                                 unsigned int value) {
+    JNIEnv *env;
+    bool attached = false;
+    if (ctx->jvm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6) != JNI_OK) {
+        ctx->jvm->AttachCurrentThread(&env, nullptr);
+        attached = true;
+    }
+
+    jclass cls = env->GetObjectClass(ctx->ioHandler);
+    jmethodID method = env->GetMethodID(cls, methodName, "(I)I");
+    int status = LIBDC_STATUS_UNSUPPORTED;
+    if (method != nullptr) {
+        jint r = env->CallIntMethod(ctx->ioHandler, method, static_cast<jint>(value));
+        status = (r == 0) ? LIBDC_STATUS_SUCCESS : LIBDC_STATUS_IO;
+    } else {
+        env->ExceptionClear();
+    }
+
+    if (attached) ctx->jvm->DetachCurrentThread();
+    return status;
+}
+
+static int jni_io_set_dtr(void *userdata, unsigned int value) {
+    return jni_io_set_modem_line(static_cast<JniIoContext *>(userdata), "setDtr", value);
+}
+
+static int jni_io_set_rts(void *userdata, unsigned int value) {
+    return jni_io_set_modem_line(static_cast<JniIoContext *>(userdata), "setRts", value);
+}
+
 // BLE ioctl constants matching libdivecomputer's encoding.
 // DC_IOCTL('b', 0) = (0x62 << 8) | 0 = 0x6200
 #define BLE_IOCTL_GET_NAME 0x6200
@@ -558,6 +621,26 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeDownloadRun(
     io_callbacks.close = jni_io_close;
     io_callbacks.purge = jni_io_purge;
     io_callbacks.userdata = &ioCtx;
+
+    // Wire serial line-control callbacks only if the handler implements them
+    // (SerialIoHandler does, BleIoHandler does not). A missing method makes
+    // GetMethodID raise NoSuchMethodError, which we clear silently; leaving the
+    // callback NULL makes the C bridge treat it as a no-op.
+    {
+        jclass handlerCls = env->GetObjectClass(ioHandler);
+        if (env->GetMethodID(handlerCls, "configure", "(IIIII)I") != nullptr) {
+            io_callbacks.configure = jni_io_configure;
+        }
+        env->ExceptionClear();
+        if (env->GetMethodID(handlerCls, "setDtr", "(I)I") != nullptr) {
+            io_callbacks.set_dtr = jni_io_set_dtr;
+        }
+        env->ExceptionClear();
+        if (env->GetMethodID(handlerCls, "setRts", "(I)I") != nullptr) {
+            io_callbacks.set_rts = jni_io_set_rts;
+        }
+        env->ExceptionClear();
+    }
 
     // Set up download callbacks.
     JniDownloadContext dlCtx;

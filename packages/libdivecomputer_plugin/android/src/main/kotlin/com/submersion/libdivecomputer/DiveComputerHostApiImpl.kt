@@ -4,8 +4,11 @@ import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.content.Context
+import android.hardware.usb.UsbManager
 import android.os.Handler
 import android.os.Looper
+import com.hoho.android.usbserial.driver.UsbSerialDriver
+import com.hoho.android.usbserial.driver.UsbSerialProber
 import io.flutter.plugin.common.BinaryMessenger
 import java.util.concurrent.Executors
 
@@ -37,6 +40,15 @@ class DiveComputerHostApiImpl(
     private var bleScanner: BleScanner? = null
     private var downloadSessionPtr: Long = 0
     private var activeBleStream: BleIoStream? = null
+    private var activeSerialStream: UsbSerialIoStream? = null
+
+    // Dive buffering for the multi-port USB-serial probe (see macOS parity).
+    // While buffering, onDive accumulates instead of dispatching so dives from a
+    // wrong port are not leaked to Flutter; flushed on success, discarded on
+    // failure. Guarded because onDive fires on libdivecomputer's download thread.
+    private val diveBufferLock = Any()
+    private var isBufferingDives = false
+    private val bufferedDives = mutableListOf<ParsedDive>()
 
     // MARK: - Device Descriptors
 
@@ -155,6 +167,65 @@ class DiveComputerHostApiImpl(
         }
         downloadSessionPtr = sessionPtr
 
+        // Dispatch by transport. Exhaustive (no `else`) on purpose so a future
+        // transport must be handled explicitly rather than silently mis-routed.
+        // Each branch owns its own session cleanup.
+        when (device.transport) {
+            TransportType.BLE ->
+                performBleDownload(device, sessionPtr, fingerprint, isRetry)
+            TransportType.SERIAL, TransportType.USB ->
+                // Serial-over-USB (e.g. Mares Puck Pro). The Dart layer folds
+                // libdivecomputer's serial transport into `.usb`, so both route
+                // here and download over LIBDC_TRANSPORT_SERIAL.
+                performUsbSerialDownload(device, sessionPtr, fingerprint)
+            TransportType.INFRARED -> {
+                reportError("unsupported_transport", "Infrared transport is not supported on Android")
+                LibdcWrapper.nativeDownloadSessionFree(sessionPtr)
+                downloadSessionPtr = 0
+            }
+        }
+    }
+
+    // Progress/dive callbacks shared by the BLE and serial paths. onDive buffers
+    // instead of dispatching while a multi-port serial probe is in progress.
+    private fun makeDownloadCallback(): DownloadCallback = object : DownloadCallback {
+        override fun onProgress(current: Int, maximum: Int) {
+            val progress = DownloadProgress(
+                current = current.toLong(),
+                total = maximum.toLong(),
+                status = "downloading"
+            )
+            mainHandler.post { flutterApi.onDownloadProgress(progress) { } }
+        }
+
+        override fun onDive(divePtr: Long) {
+            val parsedDive = convertParsedDive(divePtr)
+            val buffering = synchronized(diveBufferLock) {
+                if (isBufferingDives) {
+                    bufferedDives.add(parsedDive)
+                    true
+                } else {
+                    false
+                }
+            }
+            if (!buffering) {
+                mainHandler.post { flutterApi.onDiveDownloaded(parsedDive) { } }
+            }
+        }
+    }
+
+    // Decode hex fingerprint to ByteArray for libdivecomputer (incremental download).
+    private fun decodeFingerprint(fingerprint: String?): ByteArray? =
+        fingerprint?.takeIf { it.isNotEmpty() }?.let { hex ->
+            hex.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
+        }
+
+    private fun performBleDownload(
+        device: DiscoveredDevice,
+        sessionPtr: Long,
+        fingerprint: String?,
+        isRetry: Boolean
+    ) {
         // Connect BLE.
         val bluetoothManager =
             context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
@@ -195,35 +266,8 @@ class DiveComputerHostApiImpl(
             return
         }
 
-        // Map transport type.
-        val transportValue = when (device.transport) {
-            TransportType.BLE -> LIBDC_TRANSPORT_BLE
-            TransportType.USB -> LIBDC_TRANSPORT_USB
-            TransportType.SERIAL -> LIBDC_TRANSPORT_SERIAL
-            TransportType.INFRARED -> LIBDC_TRANSPORT_IRDA
-        }
-
-        // Set up download callbacks.
-        val downloadCallback = object : DownloadCallback {
-            override fun onProgress(current: Int, maximum: Int) {
-                val progress = DownloadProgress(
-                    current = current.toLong(),
-                    total = maximum.toLong(),
-                    status = "downloading"
-                )
-                mainHandler.post { flutterApi.onDownloadProgress(progress) { } }
-            }
-
-            override fun onDive(divePtr: Long) {
-                val parsedDive = convertParsedDive(divePtr)
-                mainHandler.post { flutterApi.onDiveDownloaded(parsedDive) { } }
-            }
-        }
-
-        // Decode hex fingerprint to ByteArray for libdivecomputer.
-        val fingerprintBytes: ByteArray? = fingerprint?.takeIf { it.isNotEmpty() }?.let { hex ->
-            hex.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
-        }
+        val downloadCallback = makeDownloadCallback()
+        val fingerprintBytes = decodeFingerprint(fingerprint)
 
         // Run the download.
         val errorBuf = ByteArray(256)
@@ -232,7 +276,7 @@ class DiveComputerHostApiImpl(
             LibdcWrapper.nativeDownloadRun(
                 sessionPtr,
                 device.vendor, device.product,
-                device.model.toInt(), transportValue,
+                device.model.toInt(), LIBDC_TRANSPORT_BLE,
                 bleStream, device.name,
                 fingerprintBytes,
                 downloadCallback, errorBuf
@@ -272,6 +316,119 @@ class DiveComputerHostApiImpl(
         LibdcWrapper.nativeDownloadSessionFree(sessionPtr)
         downloadSessionPtr = 0
         activeBleStream = null
+    }
+
+    // Serial-over-USB download with auto-probe, mirroring the macOS/Linux/Windows
+    // backends. Connected USB-to-serial adapters are enumerated via the vendored
+    // usb-serial-for-android prober; each is tried with a full download. With
+    // more than one candidate, dives are buffered so a wrong adapter cannot leak
+    // phantom dives (flushed on success, discarded on failure).
+    private fun performUsbSerialDownload(
+        device: DiscoveredDevice,
+        sessionPtr: Long,
+        fingerprint: String?
+    ) {
+        val usbManager = context.getSystemService(Context.USB_SERVICE) as? UsbManager
+        val drivers: List<UsbSerialDriver> = usbManager?.let {
+            UsbSerialProber.getDefaultProber().findAllDrivers(it)
+        } ?: emptyList()
+
+        if (drivers.isEmpty()) {
+            reportError(
+                "no_serial_ports",
+                "No USB serial ports found. Is the dive computer connected and powered on?"
+            )
+            LibdcWrapper.nativeDownloadSessionFree(sessionPtr)
+            downloadSessionPtr = 0
+            return
+        }
+
+        val downloadCallback = makeDownloadCallback()
+        val fingerprintBytes = decodeFingerprint(fingerprint)
+        val buffering = drivers.size > 1
+        synchronized(diveBufferLock) {
+            isBufferingDives = buffering
+            bufferedDives.clear()
+        }
+
+        val probeLog = StringBuilder()
+        var anyOpened = false
+        var lastResult = -1
+        var lastErrorMsg = ""
+
+        for (driver in drivers) {
+            synchronized(diveBufferLock) { bufferedDives.clear() }
+
+            val stream = UsbSerialIoStream(context, driver)
+            if (!stream.open()) {
+                probeLog.append("  ${driver.device.deviceName}: failed to open\n")
+                continue
+            }
+            anyOpened = true
+            activeSerialStream = stream
+            NativeLogger.d(TAG, "SER", "nativeDownloadRun (serial): ${driver.device.deviceName}")
+
+            val errorBuf = ByteArray(256)
+            var thrownMsg: String? = null
+            val result = try {
+                LibdcWrapper.nativeDownloadRun(
+                    sessionPtr,
+                    device.vendor, device.product,
+                    device.model.toInt(), LIBDC_TRANSPORT_SERIAL,
+                    stream, device.name,
+                    fingerprintBytes,
+                    downloadCallback, errorBuf
+                )
+            } catch (e: Throwable) {
+                NativeLogger.e(TAG, "LDC", "nativeDownloadRun threw: ${e.message}")
+                thrownMsg = e.message
+                -999
+            }
+            stream.close()
+            activeSerialStream = null
+            lastResult = result
+            // Prefer libdivecomputer's error text; fall back to the thrown
+            // exception message (errorBuf is empty when the JNI call throws) or a
+            // generic code, so download_error is never blank.
+            lastErrorMsg = String(errorBuf).takeWhile { it.code != 0 }.ifEmpty {
+                thrownMsg ?: "Download failed (rc=$result)"
+            }
+
+            if (result == 0 || result == LIBDC_STATUS_CANCELLED) break
+            probeLog.append("  ${driver.device.deviceName}: download failed (rc=$result)\n")
+            NativeLogger.w(TAG, "SER", "Probe failed on ${driver.device.deviceName} rc=$result")
+        }
+
+        // Flush buffered dives on success OR cancellation (a cancel still posts
+        // onDownloadComplete so the Dart side can import dives downloaded before
+        // the cancel); discard only on real failure. Safe because a wrong port
+        // fails to handshake and emits no dives, and the buffer is cleared per
+        // attempt, so it only ever holds the actively-downloading port's dives.
+        val divesToFlush: List<ParsedDive> = synchronized(diveBufferLock) {
+            val succeeded = lastResult == 0 || lastResult == LIBDC_STATUS_CANCELLED
+            val list = if (succeeded) ArrayList(bufferedDives) else emptyList()
+            bufferedDives.clear()
+            isBufferingDives = false
+            list
+        }
+        for (dive in divesToFlush) {
+            mainHandler.post { flutterApi.onDiveDownloaded(dive) { } }
+        }
+
+        when {
+            !anyOpened ->
+                reportError("connect_failed", "No dive computer found. Ports tried:\n$probeLog")
+            lastResult == 0 || lastResult == LIBDC_STATUS_CANCELLED ->
+                mainHandler.post { flutterApi.onDownloadComplete(0, null, null) { } }
+            drivers.size > 1 ->
+                reportError("connect_failed", "No dive computer found. Ports tried:\n$probeLog")
+            else ->
+                reportError("download_error", lastErrorMsg)
+        }
+
+        LibdcWrapper.nativeDownloadSessionFree(sessionPtr)
+        downloadSessionPtr = 0
+        activeSerialStream = null
     }
 
     // MARK: - Dive Conversion

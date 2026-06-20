@@ -63,4 +63,8 @@ android {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:1.8.22"
+    // Compile-time annotations used by the vendored usb-serial-for-android
+    // sources (android/third_party/usb-serial-for-android). Annotations-only
+    // artifact; no runtime footprint of consequence.
+    implementation "androidx.annotation:annotation:1.9.1"
 }
