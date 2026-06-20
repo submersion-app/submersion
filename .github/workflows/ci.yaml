@@ -20,8 +20,12 @@ env:
   DART_DEFINES: '--dart-define=flutter.flutter_map.unblockOSM=Our tile servers are not.'
 
 jobs:
-  analyze:
-    name: Analyze & Format
+  # Producer job: runs build_runner ONCE and publishes the generated sources as
+  # an artifact. Everything else (analyze, test, builds) gates on this ~3 min
+  # job instead of the full analyze job, so flutter analyze + format run in
+  # PARALLEL with the test shards and builds rather than as a serial prefix.
+  codegen:
+    name: Code Generation
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -59,6 +63,73 @@ jobs:
 
       - name: Run code generation
         run: dart run build_runner build --delete-conflicting-outputs
+
+      # Share the generated sources (Drift/json_serializable/riverpod/freezed
+      # outputs) so downstream jobs can skip the ~3 min build_runner bootstrap.
+      # Mocks (*.mocks.dart) are committed, so only the gitignored *.g.dart /
+      # *.freezed.dart files need to travel. We tar from the workspace root so
+      # the lib/ and test/ path prefixes are preserved exactly (upload-artifact
+      # would otherwise collapse paths to their least-common-ancestor dir).
+      - name: Package generated code
+        run: |
+          mapfile -d '' files < <(find lib test -type f \( -name '*.g.dart' -o -name '*.freezed.dart' \) -print0)
+          echo "Packaging ${#files[@]} generated files"
+          if [ "${#files[@]}" -eq 0 ]; then echo "::error::no generated files to package"; exit 1; fi
+          printf '%s\0' "${files[@]}" | tar --null -T - -czf generated-code.tar.gz
+
+      - name: Upload generated code
+        uses: actions/upload-artifact@v7
+        with:
+          name: generated-code
+          path: generated-code.tar.gz
+          if-no-files-found: error
+          retention-days: 1
+
+  analyze:
+    name: Analyze & Format
+    needs: codegen
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: true
+
+      - name: Read Flutter version
+        id: flutter-ver
+        run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
+
+      - uses: subosito/flutter-action@v2
+        id: setup-flutter
+        with:
+          flutter-version: ${{ steps.flutter-ver.outputs.version }}
+          channel: 'stable'
+
+      - name: Cache Flutter SDK
+        uses: actions/cache@v5
+        with:
+          path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
+          key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
+
+      - name: Cache pub dependencies
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.pub-cache
+            ${{ github.workspace }}/.dart_tool
+          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Download generated code
+        uses: actions/download-artifact@v7
+        with:
+          name: generated-code
+
+      - name: Unpack generated code
+        run: tar -xzf generated-code.tar.gz
 
       - name: Analyze code
         run: flutter analyze --fatal-infos
@@ -67,9 +138,17 @@ jobs:
         run: dart format --set-exit-if-changed .
 
   test:
-    name: Test
-    needs: analyze
+    name: Test (shard ${{ matrix.shard }})
+    needs: codegen
     runs-on: ubuntu-latest
+    strategy:
+      # Don't cancel the other shards when one fails - we want the full picture.
+      fail-fast: false
+      matrix:
+        # 0-based shard indices; keep TOTAL_SHARDS below in sync with the count.
+        shard: [0, 1, 2, 3]
+    env:
+      TOTAL_SHARDS: 4
     steps:
       - uses: actions/checkout@v6
         with:
@@ -104,11 +183,41 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Run code generation
-        run: dart run build_runner build --delete-conflicting-outputs
+      - name: Download generated code
+        uses: actions/download-artifact@v7
+        with:
+          name: generated-code
+
+      - name: Unpack generated code
+        run: tar -xzf generated-code.tar.gz
 
       - name: Run tests
-        run: flutter test --coverage --exclude-tags performance
+        # flutter test's built-in --total-shards shards by test CASE, so every
+        # shard still LOADS ~all test files and pays the dominant per-file cost
+        # (isolate + Flutter binding + Drift setup, and ~3.6x amplified by
+        # --coverage, which dumps the VM hit-map per suite). That barely divides
+        # wall-clock. We instead shard by FILE so each job loads a disjoint
+        # subset, which divides the per-file cost. Codecov merges the partial
+        # coverage reports via the per-shard flag below.
+        run: |
+          total=$(find test -name '*_test.dart' | wc -l)
+          # (NR-1) so the modulus is 0-based like matrix.shard: shard i owns
+          # file indices i, i+N, i+2N, ... (shard 0 -> first file). Plain NR
+          # (1-based) would map shard 0 to every Nth file and leave it empty
+          # for suites smaller than N.
+          mapfile -t files < <(find test -name '*_test.dart' | sort \
+            | awk "(NR-1) % ${TOTAL_SHARDS} == ${{ matrix.shard }}")
+          echo "Shard ${{ matrix.shard }}/${TOTAL_SHARDS}: ${#files[@]} of ${total} test files"
+          # Guard: with no paths, `flutter test` runs the ENTIRE suite. An empty
+          # shard (more shards than files) would silently re-run everything and
+          # defeat sharding, so skip it and emit an empty lcov so the Codecov
+          # step still has a file to upload.
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "No test files assigned to this shard; skipping."
+            mkdir -p coverage && : > coverage/lcov.info
+            exit 0
+          fi
+          flutter test --coverage --exclude-tags performance "${files[@]}"
 
       - name: Upload coverage
         uses: codecov/codecov-action@v7
@@ -116,11 +225,13 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage/lcov.info
+          # Per-shard flag so Codecov merges the partial reports for this commit.
+          flags: shard-${{ matrix.shard }}
           fail_ci_if_error: false  # Enable after configuring repo on codecov.io
 
   integration-test:
     name: Integration Test (macOS)
-    needs: analyze
+    needs: codegen
     runs-on: macos-14
     if: github.event_name == 'pull_request'
     steps:
@@ -168,8 +279,13 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Run code generation
-        run: dart run build_runner build --delete-conflicting-outputs
+      - name: Download generated code
+        uses: actions/download-artifact@v7
+        with:
+          name: generated-code
+
+      - name: Unpack generated code
+        run: tar -xzf generated-code.tar.gz
 
       - name: Run integration tests
         run: |
@@ -179,7 +295,7 @@ jobs:
 
   build-ios:
     name: Build iOS
-    needs: test
+    needs: codegen
     runs-on: macos-14
     steps:
       - uses: actions/checkout@v6
@@ -230,8 +346,13 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Run code generation
-        run: dart run build_runner build --delete-conflicting-outputs
+      - name: Download generated code
+        uses: actions/download-artifact@v7
+        with:
+          name: generated-code
+
+      - name: Unpack generated code
+        run: tar -xzf generated-code.tar.gz
 
       - name: Update CocoaPods repo
         run: pod repo update
@@ -254,7 +375,7 @@ jobs:
 
   build-macos:
     name: Build macOS
-    needs: test
+    needs: codegen
     runs-on: macos-14
     steps:
       - uses: actions/checkout@v6
@@ -314,8 +435,13 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Run code generation
-        run: dart run build_runner build --delete-conflicting-outputs
+      - name: Download generated code
+        uses: actions/download-artifact@v7
+        with:
+          name: generated-code
+
+      - name: Unpack generated code
+        run: tar -xzf generated-code.tar.gz
 
       - name: Update CocoaPods repo
         run: pod repo update
@@ -354,7 +480,7 @@ jobs:
 
   build-android:
     name: Build Android
-    needs: test
+    needs: codegen
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -406,8 +532,13 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Run code generation
-        run: dart run build_runner build --delete-conflicting-outputs
+      - name: Download generated code
+        uses: actions/download-artifact@v7
+        with:
+          name: generated-code
+
+      - name: Unpack generated code
+        run: tar -xzf generated-code.tar.gz
 
       - name: Build Android APK
         run: flutter build apk --release "${{ env.DART_DEFINES }}" -v
@@ -422,7 +553,7 @@ jobs:
 
   build-linux:
     name: Build Linux
-    needs: test
+    needs: codegen
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -471,8 +602,13 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Run code generation
-        run: dart run build_runner build --delete-conflicting-outputs
+      - name: Download generated code
+        uses: actions/download-artifact@v7
+        with:
+          name: generated-code
+
+      - name: Unpack generated code
+        run: tar -xzf generated-code.tar.gz
 
       - name: Build Linux
         run: flutter build linux --release "${{ env.DART_DEFINES }}" -v
@@ -487,7 +623,7 @@ jobs:
 
   build-windows:
     name: Build Windows
-    needs: test
+    needs: codegen
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v6
@@ -537,8 +673,13 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Run code generation
-        run: dart run build_runner build --delete-conflicting-outputs
+      - name: Download generated code
+        uses: actions/download-artifact@v7
+        with:
+          name: generated-code
+
+      - name: Unpack generated code
+        run: tar -xzf generated-code.tar.gz
 
       - name: Build Windows
         run: flutter build windows --release "${{ env.DART_DEFINES }}" -v
@@ -550,3 +691,38 @@ jobs:
           name: windows-build
           path: build\windows\x64\runner\Release
           retention-days: 7
+
+  # Single aggregation gate. Because the build jobs now run in parallel with the
+  # test shards (needs: codegen, not needs: test), a green build no longer
+  # implies tests passed. This job is the one to mark "required" in branch
+  # protection - it fails if ANY needed job failed or was cancelled. Skipped
+  # jobs (e.g. integration-test on push) are treated as acceptable.
+  # NOTE: codegen MUST be listed here - if it fails, every downstream job is
+  # SKIPPED, and skipped is treated as acceptable below, so without codegen in
+  # the needs list a codegen failure would report a false green.
+  ci-success:
+    name: CI Success
+    if: always()
+    needs:
+      - codegen
+      - analyze
+      - test
+      - integration-test
+      - build-ios
+      - build-macos
+      - build-android
+      - build-linux
+      - build-windows
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify all required jobs succeeded
+        run: |
+          results="${{ join(needs.*.result, ' ') }}"
+          echo "Upstream job results: $results"
+          for r in $results; do
+            if [ "$r" != "success" ] && [ "$r" != "skipped" ]; then
+              echo "::error::A required job did not succeed (result=$r)"
+              exit 1
+            fi
+          done
+          echo "All required jobs passed."
