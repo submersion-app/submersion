@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
+import 'package:submersion/core/services/sync/changeset_log/base_part_file_sink.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_codec.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_reader.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_writer.dart';
@@ -64,6 +67,52 @@ void main() {
     folderId: folder,
     apply: spyApply,
     applyBaseFile: spyApplyBaseFile(applied),
+  );
+
+  test(
+    'streams the base to a temp file that exists during apply and is deleted '
+    'after',
+    () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+      );
+      await publishAsPeer();
+
+      // Isolated temp dir so the assertion is deterministic and does not race
+      // other tests sharing Directory.systemTemp.
+      final tmpDir = await Directory.systemTemp.createTemp('reader_cleanup');
+      final isolatedReader = ChangesetReader(
+        ChangesetCodec(SyncDataSerializer()),
+        PeerCursorStore(DatabaseService.instance.database),
+        baseSink: BasePartFileSink(tempDirProvider: () async => tmpDir),
+      );
+
+      String? seenPath;
+      var existedDuringApply = false;
+      await isolatedReader.pull(
+        provider: provider,
+        selfDeviceId: 'reader-cleanup',
+        folderId: folder,
+        apply: (p) async {},
+        applyBaseFile: (path, manifest) async {
+          seenPath = path;
+          existedDuringApply = await File(path).exists();
+        },
+      );
+
+      expect(seenPath, isNotNull);
+      expect(
+        existedDuringApply,
+        isTrue,
+        reason: 'temp file must exist during applyBaseFile',
+      );
+      expect(
+        tmpDir.listSync(),
+        isEmpty,
+        reason: 'reader must delete the streamed base temp file after apply',
+      );
+      await tmpDir.delete(recursive: true);
+    },
   );
 
   test(

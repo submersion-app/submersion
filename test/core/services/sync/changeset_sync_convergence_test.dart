@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -10,14 +8,6 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import '../../../helpers/test_database.dart';
 import '../../../helpers/mock_providers.dart';
 import '../../../support/fake_cloud_storage_provider.dart';
-
-/// Base-adoption temp files are named `ssv1_<peer>_<seq>.<uuid>.base` and must
-/// be deleted by the reader after each apply. No `*.base` file should survive a
-/// completed sync.
-Iterable<File> _leakedBaseTempFiles() => Directory.systemTemp
-    .listSync()
-    .whereType<File>()
-    .where((f) => f.path.endsWith('.base'));
 
 /// End-to-end proof that the changeset-log transport converges two devices
 /// through the real merge. One in-memory database stands in for each device in
@@ -57,11 +47,6 @@ void main() {
       row,
       isNotNull,
       reason: "device B must receive device A's dive via changeset sync",
-    );
-    expect(
-      _leakedBaseTempFiles(),
-      isEmpty,
-      reason: 'the reader must delete the streamed base temp file after apply',
     );
     await tearDownTestDatabase();
   });
@@ -112,11 +97,6 @@ void main() {
         .customSelect("SELECT name FROM dive_sites WHERE id = 'site-m'")
         .getSingleOrNull();
     expect(site, isNotNull, reason: 'the dive site must converge');
-    expect(
-      _leakedBaseTempFiles(),
-      isEmpty,
-      reason: 'no base temp file should survive the sync',
-    );
     await tearDownTestDatabase();
   });
 }
