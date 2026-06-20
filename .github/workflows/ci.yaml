@@ -143,10 +143,18 @@ jobs:
         run: tar -xzf generated-code.tar.gz
 
       - name: Run tests
-        run: >-
-          flutter test --coverage --exclude-tags performance
-          --total-shards ${{ env.TOTAL_SHARDS }}
-          --shard-index ${{ matrix.shard }}
+        # flutter test's built-in --total-shards shards by test CASE, so every
+        # shard still LOADS ~all test files and pays the dominant per-file cost
+        # (isolate + Flutter binding + Drift setup, and ~3.6x amplified by
+        # --coverage, which dumps the VM hit-map per suite). That barely divides
+        # wall-clock. We instead shard by FILE so each job loads a disjoint
+        # subset, which divides the per-file cost. Codecov merges the partial
+        # coverage reports via the per-shard flag below.
+        run: |
+          mapfile -t files < <(find test -name '*_test.dart' | sort \
+            | awk "NR % ${TOTAL_SHARDS} == ${{ matrix.shard }}")
+          echo "Shard ${{ matrix.shard }}/${TOTAL_SHARDS}: ${#files[@]} of $(find test -name '*_test.dart' | wc -l) test files"
+          flutter test --coverage --exclude-tags performance "${files[@]}"
 
       - name: Upload coverage
         uses: codecov/codecov-action@v7
