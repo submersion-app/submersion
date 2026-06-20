@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
@@ -9,11 +10,23 @@ import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_chunker.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_codec.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
+import 'package:submersion/core/services/sync/changeset_log/changeset_reader.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_writer.dart';
 import 'package:submersion/core/services/sync/changeset_log/publish_state_store.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_manifest.dart';
 
 import 'test_database.dart';
+
+/// A base-file apply callback for [ChangesetReader.pull] tests: decodes the
+/// streamed temp file and records the payload in [applied], mirroring the spy
+/// used for changesets so existing assertions about applied payloads still
+/// hold. Production routes base files through SyncService._applyRemoteBaseFile.
+ApplyBaseFile spyApplyBaseFile(List<SyncPayload> applied) {
+  return (path, manifest) async {
+    final bytes = await File(path).readAsBytes();
+    applied.add(ChangesetCodec(SyncDataSerializer()).decodeChangeset(bytes));
+  };
+}
 
 /// Test harness for the per-device changeset-log transport (ssv1.* files).
 ///

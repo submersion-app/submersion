@@ -8,6 +8,7 @@ import 'package:submersion/core/services/sync/changeset_log/peer_cursor_store.da
 import 'package:submersion/core/services/sync/changeset_log/publish_state_store.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 
+import '../../../../helpers/changeset_test_helpers.dart';
 import '../../../../helpers/test_database.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../support/fake_cloud_storage_provider.dart';
@@ -59,6 +60,7 @@ void main() {
     selfDeviceId: 'reader-x',
     folderId: folder,
     apply: spyApply,
+    applyBaseFile: spyApplyBaseFile(applied),
     currentEpochId: currentEpochId,
   );
 

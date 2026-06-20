@@ -1,8 +1,6 @@
-import 'dart:typed_data';
-
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
-import 'package:submersion/core/services/sync/changeset_log/base_chunker.dart';
+import 'package:submersion/core/services/sync/changeset_log/base_part_file_sink.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_codec.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
 import 'package:submersion/core/services/sync/changeset_log/peer_cursor_store.dart';
@@ -12,6 +10,12 @@ import 'package:submersion/core/services/sync/changeset_log/sync_manifest.dart';
 /// SyncService._applyRemotePayload (HLC LWW + tombstones + FK repair), injected
 /// so the merge stays the single source of truth.
 typedef ApplyPayload = Future<void> Function(SyncPayload payload);
+
+/// Applies a base that has been streamed to a local temp [filePath]. The real
+/// implementation streams the file through the merge in bounded memory; see
+/// SyncService._applyRemoteBaseFile.
+typedef ApplyBaseFile =
+    Future<void> Function(String filePath, SyncManifest manifest);
 
 class ChangesetReadResult {
   const ChangesetReadResult({
@@ -27,16 +31,19 @@ class ChangesetReadResult {
 /// and advances the cursor. Stops at the first missing file (transient gap)
 /// and retries next sync; application is idempotent so re-reads are safe.
 class ChangesetReader {
-  ChangesetReader(this._codec, this._peerCursors);
+  ChangesetReader(this._codec, this._peerCursors, {BasePartFileSink? baseSink})
+    : _baseSink = baseSink ?? BasePartFileSink();
 
   final ChangesetCodec _codec;
   final PeerCursorStore _peerCursors;
+  final BasePartFileSink _baseSink;
 
   Future<ChangesetReadResult> pull({
     required CloudStorageProvider provider,
     required String selfDeviceId,
     required String folderId,
     required ApplyPayload apply,
+    required ApplyBaseFile applyBaseFile,
     String? currentEpochId,
   }) async {
     final providerId = provider.providerId;
@@ -81,11 +88,20 @@ class ChangesetReader {
         // Cold-start, or lapped by the peer's compaction: adopt the base.
         final baseSeq = manifest.baseSeq;
         if (baseSeq != null && lastApplied < baseSeq) {
-          final base = await _fetchBase(provider, peerId, manifest, byName);
-          if (base == null || !_codec.serializer.validateChecksum(base)) {
+          final path = await _fetchBaseToFile(
+            provider,
+            peerId,
+            manifest,
+            byName,
+          );
+          if (path == null) {
             continue; // missing or corrupt base -> transient, retry next sync
           }
-          await apply(base);
+          try {
+            await applyBaseFile(path, manifest);
+          } finally {
+            await _baseSink.deleteQuietly(path);
+          }
           payloadsApplied++;
           appliedThrough = baseSeq;
           baseSeqApplied = baseSeq;
@@ -129,37 +145,29 @@ class ChangesetReader {
     );
   }
 
-  Future<SyncPayload?> _fetchBase(
+  /// Streams the peer's base parts into a single temp file, verifying each
+  /// part and the whole-file checksum as bytes land (never holding the base in
+  /// memory). Returns the temp file path, or null if a part is missing or any
+  /// checksum fails (transient -> retry next sync). The byte-level checksums
+  /// are independent of -- and stronger than -- the decoded payload's data
+  /// checksum, which ignores headers and deletions.
+  Future<String?> _fetchBaseToFile(
     CloudStorageProvider provider,
     String peerId,
     SyncManifest manifest,
     Map<String, CloudFileInfo> byName,
-  ) async {
-    final count = manifest.basePartCount ?? 0;
+  ) {
     final baseSeq = manifest.baseSeq!;
-    final partChecksums = manifest.basePartChecksums;
-    final parts = <Uint8List>[];
-    for (var i = 0; i < count; i++) {
-      final pf = byName[ChangesetLogLayout.basePartName(peerId, baseSeq, i)];
-      if (pf == null) return null; // missing part -> transient, retry next sync
-      final bytes = await provider.downloadFile(pf.id);
-      // Verify each part against the manifest's checksum (when present): a
-      // byte-level integrity guard independent of -- and stronger than -- the
-      // decoded payload's data checksum, which ignores headers and deletions.
-      if (i < partChecksums.length &&
-          BaseChunker.checksum(bytes) != partChecksums[i]) {
-        return null; // corrupt part -> treat as missing, retry next sync
-      }
-      parts.add(bytes);
-    }
-    final full = BaseChunker.reassemble(parts);
-    final whole = manifest.baseChecksum;
-    if (whole != null && BaseChunker.checksum(full) != whole) {
-      // The writer checksums the exact bytes it slices into parts, so a
-      // mismatch here is real transport corruption (not a serialization
-      // divergence): drop the base and retry on the next sync.
-      return null;
-    }
-    return _codec.decodeChangeset(full);
+    return _baseSink.assemble(
+      name: 'ssv1_${peerId}_$baseSeq',
+      partCount: manifest.basePartCount ?? 0,
+      wholeChecksum: manifest.baseChecksum,
+      partChecksums: manifest.basePartChecksums,
+      downloadPart: (i) async {
+        final pf = byName[ChangesetLogLayout.basePartName(peerId, baseSeq, i)];
+        if (pf == null) return null;
+        return provider.downloadFile(pf.id);
+      },
+    );
   }
 }

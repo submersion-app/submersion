@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
@@ -8,6 +9,7 @@ import 'package:submersion/core/database/database.dart' show SyncRecord;
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/changeset_log/base_json_stream_reader.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_codec.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_reader.dart';
@@ -207,6 +209,31 @@ class SyncService {
     _progressCallback = callback;
   }
 
+  /// Test seam: apply an in-memory payload through the standard merge. Exposed
+  /// so the streaming-vs-in-memory parity test can compare apply paths.
+  @visibleForTesting
+  Future<({int recordsApplied, int conflictsFound, int recordsFailed})>
+  debugApplyPayload(SyncPayload payload, {DateTime? lastSync}) async {
+    final r = await _applyRemotePayload(payload, lastSync);
+    return (
+      recordsApplied: r.recordsApplied,
+      conflictsFound: r.conflictsFound,
+      recordsFailed: r.recordsFailed,
+    );
+  }
+
+  /// Test seam: apply a base from a local file through the streaming merge.
+  @visibleForTesting
+  Future<({int recordsApplied, int conflictsFound, int recordsFailed})>
+  debugApplyBaseFile(String filePath, {DateTime? lastSync}) async {
+    final r = await _applyRemoteBaseFile(filePath, lastSync);
+    return (
+      recordsApplied: r.recordsApplied,
+      conflictsFound: r.conflictsFound,
+      recordsFailed: r.recordsFailed,
+    );
+  }
+
   void _reportProgress(SyncPhase phase, double progress, [String? message]) {
     _progressCallback?.call(
       SyncProgress(phase: phase, progress: progress, message: message),
@@ -378,6 +405,12 @@ class SyncService {
         currentEpochId: currentEpochId,
         apply: (payload) async {
           final r = await _applyRemotePayload(payload, lastSyncTime);
+          recordsSynced += r.recordsApplied;
+          conflictsFound += r.conflictsFound;
+          recordsFailed += r.recordsFailed;
+        },
+        applyBaseFile: (path, manifest) async {
+          final r = await _applyRemoteBaseFile(path, lastSyncTime);
           recordsSynced += r.recordsApplied;
           conflictsFound += r.conflictsFound;
           recordsFailed += r.recordsFailed;
@@ -916,6 +949,167 @@ class SyncService {
     );
   }
 
+  /// Apply a base that was streamed to a local temp [filePath], in bounded
+  /// memory. Three forward passes over the file:
+  ///   1. header `exportedAt` + the full `deletions` map (both small),
+  ///   2. parent-row id->updatedAt and contradiction keys (skips giant tables),
+  ///   3. batched apply of every row through the existing [_mergeEntity].
+  /// Reuses the same merge primitives as [_applyRemotePayloadInner], so the
+  /// result is identical to applying the equivalent in-memory payload, but peak
+  /// memory stays at one ~8 MB part download + one batch of rows regardless of
+  /// library size (issue #358).
+  Future<_MergeResult> _applyRemoteBaseFile(
+    String filePath,
+    DateTime? localLastSync,
+  ) async {
+    final file = File(filePath);
+    final lastSyncMs = localLastSync?.millisecondsSinceEpoch;
+
+    // ---- Pass 1: exportedAt + deletions ----
+    var baseExportedAt = 0;
+    final deletions = <String, List<SyncDeletion>>{};
+    await BaseJsonStreamReader().parse(
+      file.openRead(),
+      onScalar: (key, raw) async {
+        if (key == 'exportedAt') {
+          baseExportedAt = (jsonDecode(utf8.decode(raw)) as num?)?.toInt() ?? 0;
+        }
+      },
+      wantRows: (section, _) => section == 'deletions',
+      onRow: (section, table, rowBytes) async {
+        final decoded = jsonDecode(utf8.decode(rowBytes));
+        if (decoded is Map<String, dynamic>) {
+          (deletions[table] ??= []).add(SyncDeletion.fromJson(decoded));
+        } else if (decoded is Map) {
+          (deletions[table] ??= []).add(
+            SyncDeletion.fromJson(decoded.cast<String, dynamic>()),
+          );
+        } else if (decoded is String) {
+          (deletions[table] ??= []).add(
+            SyncDeletion(id: decoded, deletedAt: 0),
+          );
+        }
+      },
+    );
+
+    final pendingByEntity = await _pendingRecordMap();
+
+    // ---- Pass 2: parent updatedAt + contradiction keys ----
+    final parentTypes = <String>{
+      for (final refs in parentRefs.values)
+        for (final ref in refs) ref.parent,
+    };
+    final deletionIds = <String, Set<String>>{
+      for (final e in deletions.entries) e.key: {for (final d in e.value) d.id},
+    };
+    final parentUpdatedAt = <String, Map<String, int>>{};
+    final contradictedByEntity = <String, Set<String>>{};
+    await BaseJsonStreamReader().parse(
+      file.openRead(),
+      wantRows: (section, table) =>
+          section == 'data' &&
+          entityHasUpdatedAt.containsKey(table) &&
+          (parentTypes.contains(table) || deletionIds.containsKey(table)),
+      onRow: (section, table, rowBytes) async {
+        final rec = jsonDecode(utf8.decode(rowBytes)) as Map<String, dynamic>;
+        final id = _recordIdForEntity(table, rec);
+        if (id == null) return;
+        if (parentTypes.contains(table) && entityHasUpdatedAt[table] == true) {
+          final u = _extractUpdatedAtMillis(rec);
+          if (u != null) (parentUpdatedAt[table] ??= {})[id] = u;
+        }
+        if (deletionIds[table]?.contains(id) == true) {
+          (contradictedByEntity[table] ??= {}).add(id);
+        }
+      },
+    );
+
+    // ---- Apply, all inside one deferred-FK transaction ----
+    return _serializer.applyInDeferredFkTransaction(() async {
+      var recordsApplied = 0;
+      var conflictsFound = 0;
+      var recordsFailed = 0;
+
+      final delResult = await _applyRemoteDeletions(
+        deletions,
+        lastSyncMs,
+        baseExportedAt,
+        pendingByEntity,
+        contradictedByEntity,
+      );
+      recordsApplied += delResult.recordsApplied;
+      conflictsFound += delResult.conflictsFound;
+      recordsFailed += delResult.recordsFailed;
+
+      // Load tombstones AFTER deletions so a tombstone arriving in this base
+      // also guards the merge below (mirrors _applyRemotePayloadInner).
+      final tombstonesByEntity = await _deletionMap();
+
+      // Revived parents: a parent row whose remote updatedAt is newer than our
+      // local tombstone. Combines pass-2 file data with post-deletion
+      // tombstones, so it is complete before any row is merged (a child may
+      // precede its parent in file order).
+      final revivedParents = <String, Set<String>>{};
+      for (final parentType in parentTypes) {
+        final tombs = tombstonesByEntity[parentType];
+        final ups = parentUpdatedAt[parentType];
+        if (tombs == null || tombs.isEmpty || ups == null) continue;
+        ups.forEach((id, updatedAt) {
+          final deletedAt = tombs[id];
+          if (deletedAt != null && updatedAt > deletedAt) {
+            (revivedParents[parentType] ??= {}).add(id);
+          }
+        });
+      }
+
+      // ---- Pass 3: batched apply ----
+      const batchSize = 500;
+      String? currentTable;
+      var batch = <Map<String, dynamic>>[];
+
+      Future<void> flush() async {
+        final table = currentTable;
+        if (table == null || batch.isEmpty) return;
+        final r = await _mergeEntity(
+          entityType: table,
+          records: batch,
+          hasUpdatedAt: entityHasUpdatedAt[table] ?? false,
+          lastSyncMs: lastSyncMs,
+          pendingRecordIds: pendingByEntity[table] ?? const <String>{},
+          allTombstones: tombstonesByEntity,
+          revivedParents: revivedParents,
+          contradicted: contradictedByEntity[table] ?? const <String>{},
+        );
+        recordsApplied += r.recordsApplied;
+        conflictsFound += r.conflictsFound;
+        recordsFailed += r.recordsFailed;
+        batch = <Map<String, dynamic>>[];
+      }
+
+      await BaseJsonStreamReader().parse(
+        file.openRead(),
+        wantRows: (section, table) =>
+            section == 'data' && entityHasUpdatedAt.containsKey(table),
+        onRow: (section, table, rowBytes) async {
+          if (table != currentTable) {
+            await flush();
+            currentTable = table;
+          }
+          batch.add(jsonDecode(utf8.decode(rowBytes)) as Map<String, dynamic>);
+          if (batch.length >= batchSize) await flush();
+        },
+      );
+      await flush();
+
+      await _serializer.repairDanglingForeignKeys();
+      return _MergeResult(
+        recordsApplied: recordsApplied,
+        conflictsFound: conflictsFound,
+        recordsFailed: recordsFailed,
+      );
+    });
+  }
+
   Future<_MergeResult> _applyRemoteDeletions(
     Map<String, List<SyncDeletion>> deletions,
     int? lastSyncMs,
@@ -1003,6 +1197,55 @@ class SyncService {
       recordsFailed: failed,
     );
   }
+
+  /// Per-entity "has an updatedAt column" flag, mirroring the `mergeOrder`
+  /// records in [_applyRemotePayloadInner]. The streaming base apply
+  /// ([_applyRemoteBaseFile]) uses it for (a) conflict-detection behavior in
+  /// [_mergeEntity] and (b) the set of entity tables it applies (the keys are
+  /// the known entities). Kept consistent with `mergeOrder` by the
+  /// streaming-vs-in-memory parity test, which exercises every entity here.
+  @visibleForTesting
+  static const Map<String, bool> entityHasUpdatedAt = {
+    'divers': true,
+    'diverSettings': true,
+    'buddies': true,
+    'diveCenters': true,
+    'trips': true,
+    'liveaboardDetails': true,
+    'itineraryDays': true,
+    'equipment': true,
+    'equipmentSets': true,
+    'equipmentSetItems': false,
+    'diveTypes': true,
+    'tankPresets': true,
+    'diveComputers': true,
+    'species': false,
+    'tags': true,
+    'courses': true,
+    'dives': true,
+    'diveSites': true,
+    'diveTanks': false,
+    'diveWeights': false,
+    'diveEquipment': false,
+    'diveTags': false,
+    'diveBuddies': false,
+    'diveProfiles': false,
+    'diveProfileEvents': false,
+    'gasSwitches': false,
+    'diveCustomFields': false,
+    'diveDataSources': false,
+    'siteSpecies': false,
+    'csvPresets': true,
+    'viewConfigs': true,
+    'fieldPresets': false,
+    'tankPressureProfiles': false,
+    'tideRecords': false,
+    'sightings': false,
+    'certifications': true,
+    'serviceRecords': true,
+    'settings': true,
+    'media': false,
+  };
 
   /// Every synced child -> parent FK whose parent can be deleted (and thus
   /// tombstoned in the deletion log). Used by [_mergeEntity] to keep a peer's
