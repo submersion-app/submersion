@@ -536,5 +536,125 @@ void main() {
       expect(source.entryLatitude, 12.34567);
       expect(source.exitLongitude, 98.76489);
     });
+
+    test(
+      'importProfile sets waterTemp from minTemperature parameter',
+      () async {
+        final computerId = await insertComputer();
+
+        final diveId = await repository.importProfile(
+          computerId: computerId,
+          profileStartTime: DateTime(2026, 5, 19, 10, 47),
+          points: [
+            const ProfilePointData(timestamp: 0, depth: 0.0),
+            const ProfilePointData(timestamp: 60, depth: 15.0),
+          ],
+          durationSeconds: 61 * 60,
+          maxDepth: 17.7,
+          minTemperature: 29.0,
+        );
+
+        final row = await (db.select(
+          db.dives,
+        )..where((t) => t.id.equals(diveId))).getSingle();
+        expect(row.waterTemp, equals(29.0));
+      },
+    );
+
+    test('importProfile maps ascent events as ascentRateWarning', () async {
+      final computerId = await insertComputer();
+
+      final diveId = await repository.importProfile(
+        computerId: computerId,
+        profileStartTime: DateTime(2026, 5, 19, 10, 47),
+        points: [
+          const ProfilePointData(timestamp: 0, depth: 0.0),
+          const ProfilePointData(timestamp: 60, depth: 15.0),
+        ],
+        durationSeconds: 61 * 60,
+        maxDepth: 17.7,
+        events: [const EventData(timestamp: 3320, type: 'ascent', value: 3)],
+      );
+
+      final events = await (db.select(
+        db.diveProfileEvents,
+      )..where((t) => t.diveId.equals(diveId))).get();
+      expect(events, hasLength(1));
+      expect(events.first.eventType, equals('ascentRateWarning'));
+      expect(events.first.severity, equals('warning'));
+    });
+
+    test(
+      'importProfile maps deco event with BEGIN flag as decoStopStart',
+      () async {
+        final computerId = await insertComputer();
+
+        final diveId = await repository.importProfile(
+          computerId: computerId,
+          profileStartTime: DateTime(2026, 5, 19, 10, 47),
+          points: [
+            const ProfilePointData(timestamp: 0, depth: 0.0),
+            const ProfilePointData(timestamp: 60, depth: 15.0),
+          ],
+          durationSeconds: 61 * 60,
+          maxDepth: 17.7,
+          events: [const EventData(timestamp: 2460, type: 'deco', flags: 1)],
+        );
+
+        final events = await (db.select(
+          db.diveProfileEvents,
+        )..where((t) => t.diveId.equals(diveId))).get();
+        expect(events, hasLength(1));
+        expect(events.first.eventType, equals('decoStopStart'));
+      },
+    );
+
+    test(
+      'importProfile maps deco event with END flag as decoStopEnd',
+      () async {
+        final computerId = await insertComputer();
+
+        final diveId = await repository.importProfile(
+          computerId: computerId,
+          profileStartTime: DateTime(2026, 5, 19, 10, 47),
+          points: [
+            const ProfilePointData(timestamp: 0, depth: 0.0),
+            const ProfilePointData(timestamp: 60, depth: 15.0),
+          ],
+          durationSeconds: 61 * 60,
+          maxDepth: 17.7,
+          events: [const EventData(timestamp: 3600, type: 'deco', flags: 2)],
+        );
+
+        final events = await (db.select(
+          db.diveProfileEvents,
+        )..where((t) => t.diveId.equals(diveId))).get();
+        expect(events, hasLength(1));
+        expect(events.first.eventType, equals('decoStopEnd'));
+      },
+    );
+
+    test('importProfile maps ceiling event as decoViolation', () async {
+      final computerId = await insertComputer();
+
+      final diveId = await repository.importProfile(
+        computerId: computerId,
+        profileStartTime: DateTime(2026, 5, 19, 10, 47),
+        points: [
+          const ProfilePointData(timestamp: 0, depth: 0.0),
+          const ProfilePointData(timestamp: 60, depth: 15.0),
+        ],
+        durationSeconds: 61 * 60,
+        maxDepth: 17.7,
+        events: [const EventData(timestamp: 2000, type: 'ceiling', value: 0)],
+      );
+
+      final events = await (db.select(
+        db.diveProfileEvents,
+      )..where((t) => t.diveId.equals(diveId))).get();
+      expect(events, hasLength(1));
+      expect(events.first.eventType, equals('decoViolation'));
+      expect(events.first.severity, equals('alert'));
+    });
   });
 }

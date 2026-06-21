@@ -343,6 +343,8 @@ class MockDiveComputerRepository extends _i1.Mock
     double? entryLongitude,
     double? exitLatitude,
     double? exitLongitude,
+    double? minTemperature,
+    double? maxTemperature,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#importProfile, [], {
@@ -372,6 +374,8 @@ class MockDiveComputerRepository extends _i1.Mock
               #entryLongitude: entryLongitude,
               #exitLatitude: exitLatitude,
               #exitLongitude: exitLongitude,
+              #minTemperature: minTemperature,
+              #maxTemperature: maxTemperature,
             }),
             returnValue: _i7.Future<String>.value(
               _i10.dummyValue<String>(
@@ -403,6 +407,8 @@ class MockDiveComputerRepository extends _i1.Mock
                   #entryLongitude: entryLongitude,
                   #exitLatitude: exitLatitude,
                   #exitLongitude: exitLongitude,
+                  #minTemperature: minTemperature,
+                  #maxTemperature: maxTemperature,
                 }),
               ),
             ),

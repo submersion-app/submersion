@@ -828,6 +828,8 @@ class DiveComputerRepository {
     double? entryLongitude,
     double? exitLatitude,
     double? exitLongitude,
+    double? minTemperature,
+    double? maxTemperature,
   }) async {
     try {
       _log.info('Importing profile from computer $computerId');
@@ -894,6 +896,7 @@ class DiveComputerRepository {
                 entryLongitude: Value(entryLongitude),
                 exitLatitude: Value(exitLatitude),
                 exitLongitude: Value(exitLongitude),
+                waterTemp: Value(minTemperature),
               ),
             );
 
@@ -1149,7 +1152,10 @@ class DiveComputerRepository {
       if (events != null && events.isNotEmpty) {
         await _db.batch((batch) {
           for (final event in events) {
-            final eventType = _mapEventTypeString(event.type);
+            final eventType = _mapEventTypeString(
+              event.type,
+              flags: event.flags,
+            );
             if (eventType == null) continue;
 
             // Find depth at event time from profile points
@@ -1451,7 +1457,7 @@ class DiveComputerRepository {
   ///
   /// Only maps to values that exist in [ProfileEventType]. Returns null for
   /// unknown event types that should be skipped.
-  String? _mapEventTypeString(String type) {
+  String? _mapEventTypeString(String type, {int? flags}) {
     switch (type) {
       case 'safetystop':
       case 'safetystop_voluntary':
@@ -1459,6 +1465,8 @@ class DiveComputerRepository {
         return 'safetyStopStart';
       case 'deco':
       case 'deepstop':
+        // flags: 1=BEGIN, 2=END
+        if (flags == 2) return 'decoStopEnd';
         return 'decoStopStart';
       case 'violation':
         return 'decoViolation';
