@@ -56,9 +56,9 @@ InteractionOptions mapInteractionOptions({
 }
 
 /// Wraps a [FlutterMap] to (1) choose [InteractionOptions] from the active
-/// pointer kind and (2) drives trackpad zoom-to-cursor. The map built by
-/// [builder] must fill this widget's box so that
-/// pointer `localPosition` is in the map viewport coordinate space.
+/// pointer kind and (2) drive trackpad zoom-to-cursor. The map built by
+/// [builder] must fill this widget's box so that pointer `localPosition`
+/// is in the map viewport coordinate space.
 class MapInteractionDetector extends StatefulWidget {
   const MapInteractionDetector({
     super.key,
@@ -145,6 +145,8 @@ class _MapInteractionDetectorState extends State<MapInteractionDetector> {
       allowRotation: widget.allowRotation,
     );
     return Listener(
+      // Opaque hit-testing ensures trackpad pan/zoom and hover events reach
+      // this detector even over transparent regions of the map.
       behavior: HitTestBehavior.opaque,
       onPointerDown: (e) => _setTouch(e.kind == PointerDeviceKind.touch),
       onPointerHover: (e) => _setTouch(e.kind == PointerDeviceKind.touch),
@@ -179,7 +181,7 @@ class MapResetNorthButton extends StatelessWidget {
           onPressed: () => MapController.of(context).rotate(0),
           child: Transform.rotate(
             angle: camera.rotation * math.pi / 180,
-            child: Semantics(label: label, child: const Icon(Icons.navigation)),
+            child: const Icon(Icons.navigation),
           ),
         ),
       ),
