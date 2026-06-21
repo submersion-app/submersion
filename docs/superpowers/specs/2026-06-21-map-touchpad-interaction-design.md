@@ -2,8 +2,17 @@
 
 - **Issue:** [#238 — \[Bug\] Map zoom issues with touchpad](https://github.com/submersion-app/submersion/issues/238)
 - **Date:** 2026-06-21
-- **Status:** Implemented (PR #370; plan: `docs/superpowers/plans/2026-06-21-map-touchpad-interaction.md`); device verification pending
+- **Status:** Implemented + revised after on-device testing (PR #370). See "Revision" below.
 - **Map library:** `flutter_map ^8.2.2`
+
+## Revision (after macOS device testing)
+
+On-device testing on a macOS trackpad found two problems with the first implementation, now fixed:
+
+1. **Trackpad pinch zoom anchored to a bogus point and "jumped."** `PointerPanZoom*` events report an unreliable absolute `localPosition` on macOS (the same class of engine bug as flutter/flutter#136029); the gesture's scale/pan *deltas* are fine, but its focal *position* is not. Fix: `MapInteractionDetector` now anchors trackpad zoom on the **last hover/move pointer position** (a reliable signal), never the pan/zoom event's position, with the viewport center as a fallback.
+2. **Rotation didn't work and the deadband was infeasible.** flutter_map's gesture-race is winner-take-all, so a `rotationThreshold` "deadband" makes rotation effectively unwinnable (pinch/move always win first); rotation was also disabled on non-touch entirely. Per issue #238's alternative ("disable it completely"), **rotation is now disabled on all maps** — the rotate gesture, Ctrl+drag rotation, the gesture-race, and the reset-to-north button (and its l10n string) were all removed.
+
+The sections below describe the original design; items 2's rotation-deadband/reset-button parts are superseded by this revision.
 
 ## Problem
 
