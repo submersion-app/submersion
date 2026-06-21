@@ -2,7 +2,7 @@
 
 - **Issue:** [#238 — \[Bug\] Map zoom issues with touchpad](https://github.com/submersion-app/submersion/issues/238)
 - **Date:** 2026-06-21
-- **Status:** Approved design, pending implementation plan
+- **Status:** Implemented (PR #370; plan: `docs/superpowers/plans/2026-06-21-map-touchpad-interaction.md`); device verification pending
 - **Map library:** `flutter_map ^8.2.2`
 
 ## Problem
