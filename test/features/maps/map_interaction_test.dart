@@ -79,4 +79,20 @@ void main() {
       }
     });
   });
+
+  group('shouldShowResetNorth', () {
+    test('hidden at or near north', () {
+      expect(shouldShowResetNorth(0), isFalse);
+      expect(shouldShowResetNorth(0.3), isFalse);
+      expect(shouldShowResetNorth(359.8), isFalse);
+      expect(shouldShowResetNorth(360), isFalse);
+    });
+
+    test('shown when meaningfully rotated', () {
+      expect(shouldShowResetNorth(15), isTrue);
+      expect(shouldShowResetNorth(90), isTrue);
+      expect(shouldShowResetNorth(200), isTrue);
+      expect(shouldShowResetNorth(-15), isTrue);
+    });
+  });
 }

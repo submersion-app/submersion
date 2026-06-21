@@ -1,4 +1,14 @@
+import 'dart:math' as math;
+
 import 'package:flutter_map/flutter_map.dart';
+
+/// Whether the reset-to-north control should be visible for [rotationDeg]
+/// (degrees). Hidden within [toleranceDeg] of north (0/360).
+bool shouldShowResetNorth(double rotationDeg, {double toleranceDeg = 0.5}) {
+  final normalized = rotationDeg % 360; // Dart % yields [0, 360)
+  final fromNorth = math.min(normalized, 360 - normalized);
+  return fromNorth > toleranceDeg;
+}
 
 /// Builds flutter_map [InteractionOptions] from the active pointer kind.
 ///
