@@ -10,6 +10,17 @@
 // instead of the real model ("G2 HUD", model 0x42). The same alias-vs-product
 // gap affects "Galileo 3" (product "G3"), "A1" ("Aladin A1") and "A2"
 // ("Aladin A2"). Model codes below come from descriptor.c.
+//
+// Regression for issue #357: a Halcyon Symbios Handset (an all-digit BLE
+// serial) was always identified as a HUD. Both Symbios descriptor rows
+// ("Symbios HUD" model 1, "Symbios Handset" model 7) share dc_filter_halcyon,
+// which matched the serial against the UNION {1, 7}, so both rows passed for
+// any Symbios serial and the first (HUD) always won. dc_match_halcyon
+// disambiguates by the serial's [4:6] digits (01 = HUD, 07 = Handset), so each
+// row must filter on its own model. The serials below are synthetic: only the
+// model-code digits [4:6] are significant, so the surrounding manufacture-date
+// and unit-number digits are zeroed (the bug was first reported against real
+// Symbios devices in issue #288).
 
 #include <assert.h>
 #include <stdio.h>
@@ -79,12 +90,31 @@ static void test_non_uwatec_device_unaffected(void) {
     printf("PASS: test_non_uwatec_device_unaffected\n");
 }
 
+// Issue #357: a Handset serial (model-code digits [4:6] = "07") must resolve to
+// the "Symbios Handset" descriptor (model 7), not the "Symbios HUD" row
+// (model 1) that previously always won because both rows matched the union
+// {1, 7}.
+static void test_symbios_handset_resolves_to_handset(void) {
+    expect_ble_match("0000070000", "Symbios Handset", 7);
+    printf("PASS: test_symbios_handset_resolves_to_handset\n");
+}
+
+// Issue #357 regression guard: a HUD serial (model-code digits [4:6] = "01")
+// must keep resolving to the "Symbios HUD" descriptor and must not be captured
+// by the Handset row once each row filters on its own model.
+static void test_symbios_hud_resolves_to_hud(void) {
+    expect_ble_match("0000010000", "Symbios HUD", 1);
+    printf("PASS: test_symbios_hud_resolves_to_hud\n");
+}
+
 int main(void) {
     test_hud_resolves_to_g2_hud();
     test_other_short_aliases_resolve();
     test_alias_match_is_case_insensitive();
     test_exact_product_names_unchanged();
     test_non_uwatec_device_unaffected();
+    test_symbios_handset_resolves_to_handset();
+    test_symbios_hud_resolves_to_hud();
     printf("\nAll descriptor match integration tests passed.\n");
     return 0;
 }
