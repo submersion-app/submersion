@@ -188,12 +188,18 @@ G_DECLARE_FINAL_TYPE(LibdivecomputerPluginProfileSample, libdivecomputer_plugin_
  * deco_time: field in this object.
  * deco_depth: field in this object.
  * tts: field in this object.
+ * o2_sensor1: field in this object.
+ * o2_sensor2: field in this object.
+ * o2_sensor3: field in this object.
+ * o2_sensor4: field in this object.
+ * o2_sensor5: field in this object.
+ * o2_sensor6: field in this object.
  *
  * Creates a new #ProfileSample object.
  *
  * Returns: a new #LibdivecomputerPluginProfileSample
  */
-LibdivecomputerPluginProfileSample* libdivecomputer_plugin_profile_sample_new(int64_t time_seconds, double depth_meters, double* temperature_celsius, double* pressure_bar, int64_t* tank_index, int64_t* heart_rate, double* setpoint, double* ppo2, double* cns, int64_t* rbt, int64_t* deco_type, int64_t* deco_time, double* deco_depth, int64_t* tts);
+LibdivecomputerPluginProfileSample* libdivecomputer_plugin_profile_sample_new(int64_t time_seconds, double depth_meters, double* temperature_celsius, double* pressure_bar, int64_t* tank_index, int64_t* heart_rate, double* setpoint, double* ppo2, double* cns, int64_t* rbt, int64_t* deco_type, int64_t* deco_time, double* deco_depth, int64_t* tts, double* o2_sensor1, double* o2_sensor2, double* o2_sensor3, double* o2_sensor4, double* o2_sensor5, double* o2_sensor6);
 
 /**
  * libdivecomputer_plugin_profile_sample_get_time_seconds
@@ -334,6 +340,68 @@ double* libdivecomputer_plugin_profile_sample_get_deco_depth(LibdivecomputerPlug
  * Returns: the field value.
  */
 int64_t* libdivecomputer_plugin_profile_sample_get_tts(LibdivecomputerPluginProfileSample* object);
+
+/**
+ * libdivecomputer_plugin_profile_sample_get_o2_sensor1
+ * @object: a #LibdivecomputerPluginProfileSample.
+ *
+ * Individual CCR O2 cell ppO2 readings in bar (sensor 1..6), null when that
+ * cell has no reading. libdivecomputer reports these per-sensor via
+ * DC_SAMPLE_PPO2; [ppo2] holds the aggregate/computed value.
+ *
+ * Returns: the field value.
+ */
+double* libdivecomputer_plugin_profile_sample_get_o2_sensor1(LibdivecomputerPluginProfileSample* object);
+
+/**
+ * libdivecomputer_plugin_profile_sample_get_o2_sensor2
+ * @object: a #LibdivecomputerPluginProfileSample.
+ *
+ * Gets the value of the o2Sensor2 field of @object.
+ *
+ * Returns: the field value.
+ */
+double* libdivecomputer_plugin_profile_sample_get_o2_sensor2(LibdivecomputerPluginProfileSample* object);
+
+/**
+ * libdivecomputer_plugin_profile_sample_get_o2_sensor3
+ * @object: a #LibdivecomputerPluginProfileSample.
+ *
+ * Gets the value of the o2Sensor3 field of @object.
+ *
+ * Returns: the field value.
+ */
+double* libdivecomputer_plugin_profile_sample_get_o2_sensor3(LibdivecomputerPluginProfileSample* object);
+
+/**
+ * libdivecomputer_plugin_profile_sample_get_o2_sensor4
+ * @object: a #LibdivecomputerPluginProfileSample.
+ *
+ * Gets the value of the o2Sensor4 field of @object.
+ *
+ * Returns: the field value.
+ */
+double* libdivecomputer_plugin_profile_sample_get_o2_sensor4(LibdivecomputerPluginProfileSample* object);
+
+/**
+ * libdivecomputer_plugin_profile_sample_get_o2_sensor5
+ * @object: a #LibdivecomputerPluginProfileSample.
+ *
+ * Gets the value of the o2Sensor5 field of @object.
+ *
+ * Returns: the field value.
+ */
+double* libdivecomputer_plugin_profile_sample_get_o2_sensor5(LibdivecomputerPluginProfileSample* object);
+
+/**
+ * libdivecomputer_plugin_profile_sample_get_o2_sensor6
+ * @object: a #LibdivecomputerPluginProfileSample.
+ *
+ * Gets the value of the o2Sensor6 field of @object.
+ *
+ * Returns: the field value.
+ */
+double* libdivecomputer_plugin_profile_sample_get_o2_sensor6(LibdivecomputerPluginProfileSample* object);
 
 /**
  * LibdivecomputerPluginGasMix:

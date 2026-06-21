@@ -114,11 +114,21 @@ LibdivecomputerPluginParsedDive* convert_parsed_dive(
                     ? NULL
                     : &tts_val;
 
+            // Per-cell O2 ppO2: NaN -> NULL. cell_vals must outlive the
+            // constructor call (it copies each value).
+            double cell_vals[6];
+            double* o2_sensor[6];
+            for (int c = 0; c < 6; c++) {
+                cell_vals[c] = s->o2_sensor[c];
+                o2_sensor[c] = isnan(cell_vals[c]) ? NULL : &cell_vals[c];
+            }
+
             LibdivecomputerPluginProfileSample* sample =
                 libdivecomputer_plugin_profile_sample_new(
                     time_seconds, s->depth, temp_c, pressure, tank_index,
                     heart_rate, setpoint, ppo2, cns, rbt, deco_type,
-                    deco_time, deco_depth, tts);
+                    deco_time, deco_depth, tts, o2_sensor[0], o2_sensor[1],
+                    o2_sensor[2], o2_sensor[3], o2_sensor[4], o2_sensor[5]);
 
             fl_value_append_take(
                 samples,

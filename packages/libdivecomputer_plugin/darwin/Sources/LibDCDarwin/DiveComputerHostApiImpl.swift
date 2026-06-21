@@ -596,7 +596,14 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
                     decoType: s.deco_type == UInt32.max ? nil : Int64(s.deco_type),
                     decoTime: s.deco_time == UInt32.max ? nil : Int64(s.deco_time),
                     decoDepth: s.deco_depth.isNaN ? nil : s.deco_depth,
-                    tts: s.deco_tts == UInt32.max || s.deco_tts == 0 ? nil : Int64(s.deco_tts)
+                    tts: s.deco_tts == UInt32.max || s.deco_tts == 0 ? nil : Int64(s.deco_tts),
+                    // C `double o2_sensor[6]` imports as a 6-tuple.
+                    o2Sensor1: s.o2_sensor.0.isNaN ? nil : s.o2_sensor.0,
+                    o2Sensor2: s.o2_sensor.1.isNaN ? nil : s.o2_sensor.1,
+                    o2Sensor3: s.o2_sensor.2.isNaN ? nil : s.o2_sensor.2,
+                    o2Sensor4: s.o2_sensor.3.isNaN ? nil : s.o2_sensor.3,
+                    o2Sensor5: s.o2_sensor.4.isNaN ? nil : s.o2_sensor.4,
+                    o2Sensor6: s.o2_sensor.5.isNaN ? nil : s.o2_sensor.5
                 ))
             }
         }

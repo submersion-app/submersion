@@ -231,6 +231,15 @@ class ProfileSample {
   /// Time to surface in seconds
   final int? tts;
 
+  /// Individual CCR O2 cell ppO2 readings in bar (sensor 1..6), null when that
+  /// cell has no reading. [ppo2] holds the aggregate/computed value.
+  final double? o2Sensor1;
+  final double? o2Sensor2;
+  final double? o2Sensor3;
+  final double? o2Sensor4;
+  final double? o2Sensor5;
+  final double? o2Sensor6;
+
   const ProfileSample({
     required this.timeSeconds,
     required this.depth,
@@ -249,6 +258,12 @@ class ProfileSample {
     this.decoTime,
     this.decoDepth,
     this.tts,
+    this.o2Sensor1,
+    this.o2Sensor2,
+    this.o2Sensor3,
+    this.o2Sensor4,
+    this.o2Sensor5,
+    this.o2Sensor6,
   });
 }
 

@@ -418,6 +418,12 @@ class ReparseService {
             rbt: Value(s.rbt),
             decoType: Value(s.decoType),
             tts: Value(s.tts),
+            o2Sensor1: Value(s.o2Sensor1),
+            o2Sensor2: Value(s.o2Sensor2),
+            o2Sensor3: Value(s.o2Sensor3),
+            o2Sensor4: Value(s.o2Sensor4),
+            o2Sensor5: Value(s.o2Sensor5),
+            o2Sensor6: Value(s.o2Sensor6),
           ),
         );
       }
