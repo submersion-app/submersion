@@ -478,9 +478,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   // Cursor position at the start of a trackpad pan/zoom gesture.
   Offset _trackpadAnchor = Offset.zero;
 
-  // True between a double-tap-down and the gesture's end; lets a held-finger
-  // drag pan instead of scrub. Toggled in a later task; false here.
-  // ignore: prefer_final_fields — mutated in Task 7 (double-tap-hold pan).
+  // True between a double-tap-down and the finger lifting; lets a held-finger
+  // drag pan instead of scrub.
   bool _doubleTapHold = false;
 
   // Index of the last sample reported via hover, to de-dupe onPointSelected.
@@ -1211,8 +1210,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             },
             onDoubleTapDown: (details) {
               _lastTapDownLocal = details.localPosition;
+              _doubleTapHold = true;
             },
             onDoubleTap: () {
+              _doubleTapHold = false;
               setState(() {
                 if (_viewport.isZoomed) {
                   _viewport = ProfileChartViewport.reset;
@@ -1268,10 +1269,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               onPointerUp: (event) {
                 if (_activePointerCount > 0) _activePointerCount--;
                 _lastPointerLocal = null;
+                _doubleTapHold = false;
               },
               onPointerCancel: (event) {
                 if (_activePointerCount > 0) _activePointerCount--;
                 _lastPointerLocal = null;
+                _doubleTapHold = false;
               },
               onPointerPanZoomStart: (event) {
                 _activePointerKind = PointerDeviceKind.trackpad;

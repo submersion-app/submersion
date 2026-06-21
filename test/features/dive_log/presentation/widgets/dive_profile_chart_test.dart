@@ -2126,4 +2126,45 @@ void main() {
       expect(selected, inInclusiveRange(0, 19));
     });
   });
+
+  group('double-tap-hold pan', () {
+    testWidgets('double-tap then hold-drag pans a zoomed-in chart', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_buildChart(profile: _makeProfile(points: 20)));
+      await tester.pumpAndSettle();
+      final chart = find.byType(LineChart).first;
+      final center = tester.getCenter(chart);
+
+      // Zoom in so there is room to pan.
+      await tester.sendEventToBinding(
+        PointerScrollEvent(
+          position: center,
+          scrollDelta: const Offset(0, -100),
+        ),
+      );
+      await tester.sendEventToBinding(
+        PointerScrollEvent(
+          position: center,
+          scrollDelta: const Offset(0, -100),
+        ),
+      );
+      await tester.pump();
+      final zoomed = tester.widget<LineChart>(chart).data;
+
+      // First tap (quick) then a second touch that is held and dragged.
+      await tester.tapAt(center, kind: PointerDeviceKind.touch);
+      await tester.pump(const Duration(milliseconds: 50));
+      final hold = await tester.startGesture(
+        center,
+        kind: PointerDeviceKind.touch,
+      );
+      await hold.moveBy(const Offset(-60, 0));
+      await hold.up();
+      await tester.pumpAndSettle();
+
+      final panned = tester.widget<LineChart>(chart).data;
+      expect(panned.minX, greaterThan(zoomed.minX));
+    });
+  });
 }
