@@ -162,6 +162,12 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
             }
         }
 
+        // CoreBluetooth exposes no connection-interval/priority API (unlike
+        // Android's requestConnectionPriority or Windows' preferred connection
+        // parameters): iOS negotiates the interval from the peripheral's
+        // preferred values. High-rate dumps (e.g. the OSTC nano logbook, #280)
+        // therefore rely on the device pacing itself; the hw_ostc3 read fix
+        // handles correctly-delivered data and a retry covers transient loss.
         NativeLogger.d("BleIoStream", category: "BLE", "Connected; discovering services")
         peripheral.discoverServices(nil)
         let discoverResult = discoverSemaphore.wait(timeout: .now() + .seconds(10))

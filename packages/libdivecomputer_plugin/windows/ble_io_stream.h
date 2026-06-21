@@ -91,6 +91,13 @@ class BleIoStream {
   static const winrt::guid kHalcyonSymbiosRxUuid;
 
   winrt::Windows::Devices::Bluetooth::BluetoothLEDevice device_{nullptr};
+  // Held for the connection's lifetime to keep a throughput-optimized
+  // (low-interval) connection request active; released in Close(). A faster
+  // connection interval lets a dive computer's serial->BLE bridge drain its
+  // buffer during bulk logbook dumps without dropping notifications (#280).
+  winrt::Windows::Devices::Bluetooth::
+      BluetoothLEPreferredConnectionParametersRequest
+          preferred_connection_request_{nullptr};
   winrt::Windows::Devices::Bluetooth::GenericAttributeProfile::
       GattCharacteristic write_characteristic_{nullptr};
   winrt::Windows::Devices::Bluetooth::GenericAttributeProfile::
