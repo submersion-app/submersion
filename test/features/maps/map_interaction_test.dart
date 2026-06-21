@@ -1,6 +1,10 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_interaction.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 void main() {
   group('mapInteractionOptions', () {
@@ -77,6 +81,46 @@ void main() {
           expect(InteractiveFlag.hasDrag(o.flags), isTrue);
         }
       }
+    });
+  });
+
+  group('MapResetNorthButton', () {
+    Widget harness(MapController controller) => MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Scaffold(
+        body: SizedBox(
+          width: 400,
+          height: 400,
+          child: FlutterMap(
+            mapController: controller,
+            options: const MapOptions(
+              initialCenter: LatLng(0, 0),
+              initialZoom: 3,
+            ),
+            children: const [MapResetNorthButton()],
+          ),
+        ),
+      ),
+    );
+
+    testWidgets('hidden at north, shown when rotated, resets on tap', (
+      tester,
+    ) async {
+      final controller = MapController();
+      await tester.pumpWidget(harness(controller));
+      await tester.pump();
+
+      expect(find.byType(FloatingActionButton), findsNothing);
+
+      controller.rotate(45);
+      await tester.pump();
+      expect(find.byType(FloatingActionButton), findsOneWidget);
+
+      await tester.tap(find.byType(FloatingActionButton));
+      await tester.pump();
+      expect(controller.camera.rotation.abs() < 0.01, isTrue);
+      expect(find.byType(FloatingActionButton), findsNothing);
     });
   });
 
