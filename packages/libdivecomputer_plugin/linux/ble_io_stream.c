@@ -174,6 +174,12 @@ gboolean ble_io_stream_connect(BleIoStream* stream,
         return FALSE;
     }
 
+    // Note: BlueZ exposes no simple per-connection priority/interval API on
+    // org.bluez.Device1 (unlike Android's requestConnectionPriority or
+    // Windows' preferred connection parameters), so high-rate dumps (e.g. the
+    // OSTC nano logbook, #280) rely on the device pacing itself plus the
+    // hw_ostc3 read fix; transient notification loss is covered by a retry.
+
     // Get the device name.
     stream->device_name = get_string_property(
         stream->connection, device_path, "org.bluez.Device1", "Name");

@@ -87,6 +87,17 @@ class BleIoStream(
         ) {
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 connected = true
+                // Request a high-priority (low-interval) connection so the dive
+                // computer's serial->BLE bridge can drain its buffer fast enough
+                // during bulk logbook/profile dumps. Some devices (e.g. the
+                // Heinrichs Weikamp OSTC nano, #280) stream the whole logbook
+                // back-to-back with no flow control and overflow -> drop
+                // notifications when the connection interval is too slow.
+                // Best-effort: the peripheral or controller may ignore it.
+                val priorityRequested =
+                    gatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH)
+                NativeLogger.d(TAG, "BLE",
+                    "requestConnectionPriority(HIGH) -> $priorityRequested")
                 // Request a larger MTU before discovering services.
                 // Android defaults to 23 bytes (20 payload); CoreBluetooth
                 // negotiates automatically but Android requires an explicit call.
