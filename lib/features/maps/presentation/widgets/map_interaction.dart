@@ -120,6 +120,18 @@ class _MapInteractionDetectorState extends State<MapInteractionDetector> {
     );
   }
 
+  // TEMP diagnostic (#238): logs which gesture path fires and with what values
+  // so we can pinpoint the macOS trackpad jump. Removed once root-caused.
+  void _onPointerSignal(PointerSignalEvent e) {
+    if (kDebugMode && e is PointerScrollEvent) {
+      debugPrint(
+        '[MAP238] scrollSignal localPos=${e.localPosition} '
+        'delta=${e.scrollDelta} camCenter=${widget.mapController.camera.center} '
+        'camZoom=${widget.mapController.camera.zoom}',
+      );
+    }
+  }
+
   void _onPanZoomStart(PointerPanZoomStartEvent e) {
     _setTouch(false);
     final cam = widget.mapController.camera;
@@ -130,6 +142,13 @@ class _MapInteractionDetectorState extends State<MapInteractionDetector> {
     _gestureAnchor =
         _lastPointerPosition ?? cam.nonRotatedSize.center(Offset.zero);
     _lastPan = Offset.zero;
+    if (kDebugMode) {
+      debugPrint(
+        '[MAP238] panZoomStart e.localPos=${e.localPosition} '
+        'lastPointer=$_lastPointerPosition anchor=$_gestureAnchor '
+        'camCenter=${cam.center} camZoom=${cam.zoom} size=${cam.nonRotatedSize}',
+      );
+    }
   }
 
   void _onPanZoomUpdate(PointerPanZoomUpdateEvent e) {
@@ -148,6 +167,13 @@ class _MapInteractionDetectorState extends State<MapInteractionDetector> {
         targetZoom,
       );
     }
+    if (kDebugMode) {
+      debugPrint(
+        '[MAP238] panZoomUpdate scale=${e.scale} localPan=${e.localPan} '
+        'panDelta=$panDelta targetZoom=$targetZoom newCenter=$center '
+        'camCenterBefore=${cam.center}',
+      );
+    }
     widget.mapController.move(center, targetZoom);
   }
 
@@ -161,6 +187,7 @@ class _MapInteractionDetectorState extends State<MapInteractionDetector> {
       onPointerDown: _onPointerDown,
       onPointerHover: _onPointerHover,
       onPointerMove: _onPointerMove,
+      onPointerSignal: _onPointerSignal,
       onPointerPanZoomStart: _onPanZoomStart,
       onPointerPanZoomUpdate: _onPanZoomUpdate,
       child: widget.builder(context, options),
