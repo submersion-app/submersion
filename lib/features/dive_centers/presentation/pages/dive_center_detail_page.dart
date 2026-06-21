@@ -16,6 +16,7 @@ import 'package:submersion/features/dive_centers/domain/entities/dive_center.dar
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_interaction.dart';
 
 class DiveCenterDetailPage extends ConsumerStatefulWidget {
   final String centerId;
@@ -575,173 +576,216 @@ class _NotesSection extends StatelessWidget {
   }
 }
 
-class _MapSection extends ConsumerWidget {
+class _MapSection extends ConsumerStatefulWidget {
   final DiveCenter center;
 
   const _MapSection({required this.center});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_MapSection> createState() => _MapSectionState();
+}
+
+class _MapSectionState extends ConsumerState<_MapSection> {
+  final MapController _mapController = MapController();
+
+  @override
+  Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final centerLocation = LatLng(center.latitude!, center.longitude!);
+    final centerLocation = LatLng(
+      widget.center.latitude!,
+      widget.center.longitude!,
+    );
 
     return Card(
       margin: const EdgeInsets.all(16),
       clipBehavior: Clip.antiAlias,
       child: SizedBox(
         height: 200,
-        child: Stack(
-          children: [
-            FlutterMap(
-              key: ValueKey('${center.latitude}_${center.longitude}'),
-              options: MapOptions(
-                initialCenter: centerLocation,
-                initialZoom: 14.0,
-                minZoom: 2.0,
-                maxZoom: 18.0,
-                interactionOptions: const InteractionOptions(
-                  flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+        child: MapInteractionDetector(
+          allowRotation: false,
+          mapController: _mapController,
+          builder: (context, interactionOptions) => Stack(
+            children: [
+              FlutterMap(
+                key: ValueKey(
+                  '${widget.center.latitude}_${widget.center.longitude}',
                 ),
-              ),
-              children: [
-                TileLayer(
-                  urlTemplate: ref.watch(mapTileUrlProvider),
-                  userAgentPackageName: 'app.submersion',
-                  maxZoom: ref.watch(mapTileMaxZoomProvider),
-                  tileProvider: TileCacheService.instance.isInitialized
-                      ? TileCacheService.instance.getTileProvider()
-                      : null,
+                mapController: _mapController,
+                options: MapOptions(
+                  initialCenter: centerLocation,
+                  initialZoom: 14.0,
+                  minZoom: 2.0,
+                  maxZoom: 18.0,
+                  interactionOptions: interactionOptions,
                 ),
-                MarkerLayer(
-                  markers: [
-                    Marker(
-                      point: centerLocation,
-                      width: 50,
-                      height: 50,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: colorScheme.primary,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: colorScheme.onPrimary,
-                            width: 2,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.3),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
+                children: [
+                  TileLayer(
+                    urlTemplate: ref.watch(mapTileUrlProvider),
+                    userAgentPackageName: 'app.submersion',
+                    maxZoom: ref.watch(mapTileMaxZoomProvider),
+                    tileProvider: TileCacheService.instance.isInitialized
+                        ? TileCacheService.instance.getTileProvider()
+                        : null,
+                  ),
+                  MarkerLayer(
+                    markers: [
+                      Marker(
+                        point: centerLocation,
+                        width: 50,
+                        height: 50,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: colorScheme.primary,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: colorScheme.onPrimary,
+                              width: 2,
                             ),
-                          ],
-                        ),
-                        child: Center(
-                          child: Icon(
-                            Icons.store,
-                            size: 24,
-                            color: colorScheme.onPrimary,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Icon(
+                              Icons.store,
+                              size: 24,
+                              color: colorScheme.onPrimary,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const MapAttribution(),
-              ],
-            ),
-            Positioned(
-              right: 8,
-              top: 8,
-              child: Material(
-                color: colorScheme.surface.withValues(alpha: 0.9),
-                borderRadius: BorderRadius.circular(4),
-                child: Semantics(
-                  button: true,
-                  label:
-                      context.l10n.diveCenters_accessibility_viewFullscreenMap,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(4),
-                    onTap: () => _showFullscreenMap(context, ref),
-                    child: Padding(
-                      padding: const EdgeInsets.all(6),
-                      child: Icon(
-                        Icons.fullscreen,
-                        size: 20,
-                        color: colorScheme.primary,
+                    ],
+                  ),
+                  const MapAttribution(),
+                ],
+              ),
+              Positioned(
+                right: 8,
+                top: 8,
+                child: Material(
+                  color: colorScheme.surface.withValues(alpha: 0.9),
+                  borderRadius: BorderRadius.circular(4),
+                  child: Semantics(
+                    button: true,
+                    label: context
+                        .l10n
+                        .diveCenters_accessibility_viewFullscreenMap,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(4),
+                      onTap: () => _showFullscreenMap(context),
+                      child: Padding(
+                        padding: const EdgeInsets.all(6),
+                        child: Icon(
+                          Icons.fullscreen,
+                          size: 20,
+                          color: colorScheme.primary,
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  void _showFullscreenMap(BuildContext context, WidgetRef ref) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final centerLocation = LatLng(center.latitude!, center.longitude!);
-
+  void _showFullscreenMap(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => Scaffold(
-          appBar: AppBar(title: Text(center.name)),
-          body: FlutterMap(
-            options: MapOptions(
-              initialCenter: centerLocation,
-              initialZoom: 14.0,
-              minZoom: 2.0,
-              maxZoom: 18.0,
-              interactionOptions: const InteractionOptions(
-                flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
-              ),
+        builder: (context) =>
+            _FullscreenDiveCenterMapPage(center: widget.center),
+      ),
+    );
+  }
+}
+
+class _FullscreenDiveCenterMapPage extends ConsumerStatefulWidget {
+  final DiveCenter center;
+
+  const _FullscreenDiveCenterMapPage({required this.center});
+
+  @override
+  ConsumerState<_FullscreenDiveCenterMapPage> createState() =>
+      _FullscreenDiveCenterMapPageState();
+}
+
+class _FullscreenDiveCenterMapPageState
+    extends ConsumerState<_FullscreenDiveCenterMapPage> {
+  final MapController _mapController = MapController();
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final centerLocation = LatLng(
+      widget.center.latitude!,
+      widget.center.longitude!,
+    );
+
+    return Scaffold(
+      appBar: AppBar(title: Text(widget.center.name)),
+      body: MapInteractionDetector(
+        allowRotation: false,
+        mapController: _mapController,
+        builder: (context, interactionOptions) => FlutterMap(
+          mapController: _mapController,
+          options: MapOptions(
+            initialCenter: centerLocation,
+            initialZoom: 14.0,
+            minZoom: 2.0,
+            maxZoom: 18.0,
+            interactionOptions: interactionOptions,
+          ),
+          children: [
+            TileLayer(
+              urlTemplate: ref.watch(mapTileUrlProvider),
+              userAgentPackageName: 'app.submersion',
+              maxZoom: ref.watch(mapTileMaxZoomProvider),
+              tileProvider: TileCacheService.instance.isInitialized
+                  ? TileCacheService.instance.getTileProvider()
+                  : null,
             ),
-            children: [
-              TileLayer(
-                urlTemplate: ref.watch(mapTileUrlProvider),
-                userAgentPackageName: 'app.submersion',
-                maxZoom: ref.watch(mapTileMaxZoomProvider),
-                tileProvider: TileCacheService.instance.isInitialized
-                    ? TileCacheService.instance.getTileProvider()
-                    : null,
-              ),
-              MarkerLayer(
-                markers: [
-                  Marker(
-                    point: centerLocation,
-                    width: 50,
-                    height: 50,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: colorScheme.primary,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: colorScheme.onPrimary,
-                          width: 2,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
+            MarkerLayer(
+              markers: [
+                Marker(
+                  point: centerLocation,
+                  width: 50,
+                  height: 50,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: colorScheme.primary,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: colorScheme.onPrimary,
+                        width: 2,
                       ),
-                      child: Center(
-                        child: Icon(
-                          Icons.store,
-                          size: 24,
-                          color: colorScheme.onPrimary,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
                         ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Icon(
+                        Icons.store,
+                        size: 24,
+                        color: colorScheme.onPrimary,
                       ),
                     ),
                   ),
-                ],
-              ),
-              const MapAttribution(),
-            ],
-          ),
+                ),
+              ],
+            ),
+            const MapAttribution(),
+          ],
         ),
       ),
     );
