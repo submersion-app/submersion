@@ -143,7 +143,13 @@ class StorageConfigNotifier extends StateNotifier<StorageConfigState> {
     Future<ExternalVolumeOption?> Function(List<ExternalVolumeOption>)? chooser,
   }) async {
     _locationService.externalVolumeChooser = chooser;
-    return _locationService.pickCustomFolder();
+    try {
+      return await _locationService.pickCustomFolder();
+    } finally {
+      // Don't let the service retain a UI closure (which captures the page)
+      // beyond this call.
+      _locationService.externalVolumeChooser = null;
+    }
   }
 
   /// Check for existing database at a folder

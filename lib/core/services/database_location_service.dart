@@ -156,8 +156,19 @@ class DatabaseLocationService {
       final dirs = await getExternalStorageDirectories();
       if (dirs == null || dirs.isEmpty) return null;
       final options = classifyExternalDirs(dirs.map((d) => d.path).toList());
-      final chosen =
-          await _chooseExternalVolume?.call(options) ?? options.first;
+      final chooser = _chooseExternalVolume;
+      final ExternalVolumeOption chosen;
+      if (chooser != null) {
+        final picked = await chooser(options);
+        // A null result means the user dismissed the chooser -> cancel the
+        // whole pick rather than silently relocating to the first volume.
+        if (picked == null) return null;
+        chosen = picked;
+      } else {
+        // No chooser injected (e.g. background/headless flows): default to the
+        // primary internal volume.
+        chosen = options.first;
+      }
       final dbDir = p.join(chosen.path, 'Submersion');
       await Directory(dbDir).create(recursive: true);
       return FolderPickResultWithBookmark(path: dbDir);

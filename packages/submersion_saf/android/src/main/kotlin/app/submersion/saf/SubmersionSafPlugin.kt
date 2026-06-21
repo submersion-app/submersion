@@ -48,21 +48,38 @@ class SubmersionSafPlugin :
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
+        attach(binding)
+    }
+
+    override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
+        attach(binding)
+    }
+
+    override fun onDetachedFromActivityForConfigChanges() {
+        // Transient detach (e.g. rotation): keep any in-flight pick alive so it
+        // can complete once the activity reattaches.
+        detach()
+    }
+
+    override fun onDetachedFromActivity() {
+        // Real teardown: complete any in-flight pick as cancelled so the Dart
+        // Future resolves and a later pick isn't blocked with "BUSY".
+        pendingPick?.success(null)
+        pendingPick = null
+        detach()
+    }
+
+    private fun attach(binding: ActivityPluginBinding) {
         activity = binding.activity
         activityBinding = binding
         binding.addActivityResultListener(this)
     }
 
-    override fun onDetachedFromActivity() {
+    private fun detach() {
         activityBinding?.removeActivityResultListener(this)
         activity = null
         activityBinding = null
     }
-
-    override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) =
-        onAttachedToActivity(binding)
-
-    override fun onDetachedFromActivityForConfigChanges() = onDetachedFromActivity()
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
