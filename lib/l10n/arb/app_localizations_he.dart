@@ -15893,6 +15893,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get maps_regionSelector_selectRegionButton => 'בחר אזור';
 
   @override
+  String get maps_resetNorth_tooltip => 'אפס את המפה לצפון';
+
+  @override
   String get tankPresets_addPreset => 'הוסף תבנית מיכל';
 
   @override

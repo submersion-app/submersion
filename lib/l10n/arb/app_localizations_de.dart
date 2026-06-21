@@ -16286,6 +16286,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get maps_regionSelector_selectRegionButton => 'Region auswählen';
 
   @override
+  String get maps_resetNorth_tooltip => 'Karte nach Norden ausrichten';
+
+  @override
   String get tankPresets_addPreset => 'Flaschenvorlage hinzufügen';
 
   @override

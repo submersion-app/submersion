@@ -2883,6 +2883,7 @@
   "maps_regionSelector_dragToSelect": "Sleep op de kaart om een regio te selecteren",
   "maps_regionSelector_selectRegion": "Selecteer regio op kaart",
   "maps_regionSelector_selectRegionButton": "Selecteer regio",
+  "maps_resetNorth_tooltip": "Kaart op het noorden zetten",
   "marineLife_siteSection_editExpectedTooltip": "Verwachte soorten bewerken",
   "marineLife_siteSection_errorLoadingExpected": "Fout bij laden van verwachte soorten",
   "marineLife_siteSection_errorLoadingSightings": "Fout bij laden van waarnemingen",

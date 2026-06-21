@@ -2849,6 +2849,7 @@
   "maps_regionSelector_dragToSelect": "גרור על המפה לבחירת אזור",
   "maps_regionSelector_selectRegion": "בחר אזור על המפה",
   "maps_regionSelector_selectRegionButton": "בחר אזור",
+  "maps_resetNorth_tooltip": "אפס את המפה לצפון",
   "marineLife_siteSection_editExpectedTooltip": "ערוך מינים צפויים",
   "marineLife_siteSection_errorLoadingExpected": "שגיאה בטעינת מינים צפויים",
   "marineLife_siteSection_errorLoadingSightings": "שגיאה בטעינת תצפיות",

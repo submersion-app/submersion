@@ -16320,6 +16320,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get maps_regionSelector_selectRegionButton => 'Seleziona regione';
 
   @override
+  String get maps_resetNorth_tooltip => 'Reimposta la mappa a nord';
+
+  @override
   String get tankPresets_addPreset => 'Aggiungi preset bombola';
 
   @override

@@ -15524,6 +15524,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get maps_regionSelector_selectRegionButton => '选择地区';
 
   @override
+  String get maps_resetNorth_tooltip => '将地图重置为正北';
+
+  @override
   String get tankPresets_addPreset => '添加气瓶预设';
 
   @override

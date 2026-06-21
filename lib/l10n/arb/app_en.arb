@@ -9990,6 +9990,10 @@
   "maps_regionSelector_dragToSelect": "Drag on the map to select a region",
   "maps_regionSelector_selectRegion": "Select region on map",
   "maps_regionSelector_selectRegionButton": "Select Region",
+  "maps_resetNorth_tooltip": "Reset map to north",
+  "@maps_resetNorth_tooltip": {
+    "description": "Tooltip and accessibility label for the button that resets map rotation to north-up"
+  },
   "tankPresets_addPreset": "Add tank preset",
   "tankPresets_builtInPresets": "Built-in Presets",
   "tankPresets_currentDefault": "Current default",

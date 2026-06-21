@@ -16274,6 +16274,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get maps_regionSelector_selectRegionButton => 'Regio kivalasztasa';
 
   @override
+  String get maps_resetNorth_tooltip => 'Térkép visszaállítása északra';
+
+  @override
   String get tankPresets_addPreset => 'Palacksablon hozzaadasa';
 
   @override

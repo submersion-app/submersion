@@ -2883,6 +2883,7 @@
   "maps_regionSelector_dragToSelect": "اسحب على الخريطة لتحديد منطقة",
   "maps_regionSelector_selectRegion": "حدد منطقة على الخريطة",
   "maps_regionSelector_selectRegionButton": "تحديد المنطقة",
+  "maps_resetNorth_tooltip": "إعادة الخريطة إلى الشمال",
   "marineLife_siteSection_editExpectedTooltip": "تعديل الأنواع المتوقعة",
   "marineLife_siteSection_errorLoadingExpected": "خطأ في تحميل الأنواع المتوقعة",
   "marineLife_siteSection_errorLoadingSightings": "خطأ في تحميل المشاهدات",
