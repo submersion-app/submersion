@@ -60,26 +60,26 @@ Widget pageHarness(List<Override> overrides, String path, Widget page) {
   final router = GoRouter(
     initialLocation: path,
     routes: [
-      GoRoute(path: path, builder: (_, __) => page),
+      GoRoute(path: path, builder: (_, _) => page),
       GoRoute(
         path: '/dives',
-        builder: (_, __) => const Scaffold(body: Text('DIVES')),
+        builder: (_, _) => const Scaffold(body: Text('DIVES')),
       ),
       GoRoute(
         path: '/dives/new',
-        builder: (_, __) => const Scaffold(body: Text('NEW_DIVE')),
+        builder: (_, _) => const Scaffold(body: Text('NEW_DIVE')),
       ),
       GoRoute(
         path: '/dives/:id',
-        builder: (_, __) => const Scaffold(body: Text('DIVE_DETAIL')),
+        builder: (_, _) => const Scaffold(body: Text('DIVE_DETAIL')),
       ),
       GoRoute(
         path: '/sites',
-        builder: (_, __) => const Scaffold(body: Text('SITES')),
+        builder: (_, _) => const Scaffold(body: Text('SITES')),
       ),
       GoRoute(
         path: '/dive-centers',
-        builder: (_, __) => const Scaffold(body: Text('CENTERS')),
+        builder: (_, _) => const Scaffold(body: Text('CENTERS')),
       ),
     ],
   );

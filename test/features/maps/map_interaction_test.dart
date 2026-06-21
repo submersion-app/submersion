@@ -377,7 +377,7 @@ void main() {
     // end of the test body because the Flutter test framework checks all debug
     // vars are unset before running addTearDown callbacks.
 
-    Widget _detectorWidget(void Function(InteractionOptions) capture) =>
+    Widget detectorWidget(void Function(InteractionOptions) capture) =>
         MaterialApp(
           home: Scaffold(
             body: MapInteractionDetector(
@@ -394,7 +394,7 @@ void main() {
     testWidgets('iOS defaults to touch (pinchZoom enabled)', (tester) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
       late InteractionOptions latest;
-      await tester.pumpWidget(_detectorWidget((o) => latest = o));
+      await tester.pumpWidget(detectorWidget((o) => latest = o));
       await tester.pump();
       final result = InteractiveFlag.hasPinchZoom(latest.flags);
       debugDefaultTargetPlatformOverride = null;
@@ -406,7 +406,7 @@ void main() {
     ) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
       late InteractionOptions latest;
-      await tester.pumpWidget(_detectorWidget((o) => latest = o));
+      await tester.pumpWidget(detectorWidget((o) => latest = o));
       await tester.pump();
       final result = InteractiveFlag.hasPinchZoom(latest.flags);
       debugDefaultTargetPlatformOverride = null;
@@ -418,7 +418,7 @@ void main() {
     ) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
       late InteractionOptions latest;
-      await tester.pumpWidget(_detectorWidget((o) => latest = o));
+      await tester.pumpWidget(detectorWidget((o) => latest = o));
       await tester.pump();
       final result = InteractiveFlag.hasPinchZoom(latest.flags);
       debugDefaultTargetPlatformOverride = null;
@@ -430,7 +430,7 @@ void main() {
     ) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.windows;
       late InteractionOptions latest;
-      await tester.pumpWidget(_detectorWidget((o) => latest = o));
+      await tester.pumpWidget(detectorWidget((o) => latest = o));
       await tester.pump();
       final result = InteractiveFlag.hasPinchZoom(latest.flags);
       debugDefaultTargetPlatformOverride = null;
@@ -442,7 +442,7 @@ void main() {
     ) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.linux;
       late InteractionOptions latest;
-      await tester.pumpWidget(_detectorWidget((o) => latest = o));
+      await tester.pumpWidget(detectorWidget((o) => latest = o));
       await tester.pump();
       final result = InteractiveFlag.hasPinchZoom(latest.flags);
       debugDefaultTargetPlatformOverride = null;
@@ -454,7 +454,7 @@ void main() {
     ) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.fuchsia;
       late InteractionOptions latest;
-      await tester.pumpWidget(_detectorWidget((o) => latest = o));
+      await tester.pumpWidget(detectorWidget((o) => latest = o));
       await tester.pump();
       final result = InteractiveFlag.hasPinchZoom(latest.flags);
       debugDefaultTargetPlatformOverride = null;

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/providers/provider.dart';
@@ -539,7 +538,7 @@ void main() {
   // ---------------------------------------------------------------------------
 
   group('DiveCenterMapContent', () {
-    DiveCenter _makeCenter(String id, double lat, double lng) {
+    DiveCenter makeCenter(String id, double lat, double lng) {
       final now = DateTime(2026, 1, 1);
       return DiveCenter(
         id: id,
@@ -558,8 +557,8 @@ void main() {
       suppressMapErrors(tester);
 
       final centers = [
-        _makeCenter('c1', 21.0000, -157.5000),
-        _makeCenter('c2', 21.0001, -157.5001),
+        makeCenter('c1', 21.0000, -157.5000),
+        makeCenter('c2', 21.0001, -157.5001),
       ];
 
       final base = await getBaseOverrides();
@@ -663,7 +662,7 @@ void main() {
       setViewport(tester);
       suppressMapErrors(tester);
 
-      final centers = [_makeCenter('c1', 21.0000, -157.5000)];
+      final centers = [makeCenter('c1', 21.0000, -157.5000)];
 
       final base = await getBaseOverrides();
       final overrides = [

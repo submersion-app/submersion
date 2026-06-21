@@ -75,26 +75,26 @@ Widget pageHarness(List<Override> overrides, String path, Widget page) {
   final router = GoRouter(
     initialLocation: path,
     routes: [
-      GoRoute(path: path, builder: (_, __) => page),
+      GoRoute(path: path, builder: (_, _) => page),
       GoRoute(
         path: '/dives',
-        builder: (_, __) => const Scaffold(body: Text('DIVES')),
+        builder: (_, _) => const Scaffold(body: Text('DIVES')),
       ),
       GoRoute(
         path: '/sites',
-        builder: (_, __) => const Scaffold(body: Text('SITES')),
+        builder: (_, _) => const Scaffold(body: Text('SITES')),
       ),
       GoRoute(
         path: '/dive-centers',
-        builder: (_, __) => const Scaffold(body: Text('CENTERS')),
+        builder: (_, _) => const Scaffold(body: Text('CENTERS')),
       ),
       GoRoute(
         path: '/dive-centers/new',
-        builder: (_, __) => const Scaffold(body: Text('NEW_CENTER')),
+        builder: (_, _) => const Scaffold(body: Text('NEW_CENTER')),
       ),
       GoRoute(
         path: '/dive-centers/:id',
-        builder: (_, __) => const Scaffold(body: Text('CENTER_DETAIL')),
+        builder: (_, _) => const Scaffold(body: Text('CENTER_DETAIL')),
       ),
     ],
   );
@@ -216,18 +216,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // The list view icon button should be rendered in the map page actions.
-      final listIconButton = find.byWidgetPredicate(
-        (w) => w is IconButton && (w.icon as Icon).icon == Icons.list,
-      );
-      // Map renders regardless
+      // Map renders regardless; list-icon button presence is viewport-dependent
       expect(find.byType(FlutterMap), findsOneWidget);
-      // The button either exists or is hidden on narrow viewports
-      expect(
-        listIconButton.evaluate().length >= 0,
-        isTrue,
-        reason: 'list icon button presence is viewport-dependent',
-      );
     });
 
     testWidgets('renders with multiple dive centers with coordinates', (
