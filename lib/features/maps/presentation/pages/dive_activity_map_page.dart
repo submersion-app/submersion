@@ -20,6 +20,7 @@ import 'package:submersion/features/maps/presentation/widgets/heat_map_controls.
 import 'package:submersion/features/maps/presentation/widgets/heat_map_layer.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_interaction.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/providers/map_list_selection_provider.dart';
 import 'package:submersion/shared/widgets/map_list_layout/map_info_card.dart';
@@ -251,141 +252,147 @@ class _DiveActivityMapPageState extends ConsumerState<DiveActivityMapPage>
       diveCountByLocation[point] = siteWithCount.diveCount;
     }
 
-    return Stack(
-      children: [
-        FlutterMap(
-          mapController: _mapController,
-          options: MapOptions(
-            initialCenter: center,
-            initialZoom: zoom,
-            minZoom: 2.0,
-            maxZoom: 18.0,
-            onTap: (_, _) {
-              ref.read(mapListSelectionProvider('dives').notifier).deselect();
-            },
-            cameraConstraint: CameraConstraint.contain(
-              bounds: LatLngBounds(
-                const LatLng(-90, -180),
-                const LatLng(90, 180),
+    return MapInteractionDetector(
+      allowRotation: true,
+      mapController: _mapController,
+      builder: (context, interactionOptions) => Stack(
+        children: [
+          FlutterMap(
+            mapController: _mapController,
+            options: MapOptions(
+              initialCenter: center,
+              initialZoom: zoom,
+              minZoom: 2.0,
+              maxZoom: 18.0,
+              onTap: (_, _) {
+                ref.read(mapListSelectionProvider('dives').notifier).deselect();
+              },
+              cameraConstraint: CameraConstraint.contain(
+                bounds: LatLngBounds(
+                  const LatLng(-90, -180),
+                  const LatLng(90, 180),
+                ),
               ),
+              interactionOptions: interactionOptions,
             ),
-          ),
-          children: [
-            TileLayer(
-              urlTemplate: ref.watch(mapTileUrlProvider),
-              userAgentPackageName: 'app.submersion',
-              maxZoom: ref.watch(mapTileMaxZoomProvider),
-              tileProvider: TileCacheService.instance.isInitialized
-                  ? TileCacheService.instance.getTileProvider()
-                  : null,
-            ),
-            // Markers layer - shows sites with dives
-            MarkerClusterLayerWidget(
-              options: MarkerClusterLayerOptions(
-                maxClusterRadius: 80,
-                size: const Size(50, 50),
-                markers: sitesWithDives.map((siteWithCount) {
-                  final site = siteWithCount.site;
-                  final diveCount = siteWithCount.diveCount;
-                  final isSelected = selectedSiteId == site.id;
-                  return Marker(
-                    point: LatLng(
-                      site.location!.latitude,
-                      site.location!.longitude,
-                    ),
-                    width: isSelected ? 50 : 40,
-                    height: isSelected ? 50 : 40,
-                    child: Semantics(
-                      button: true,
-                      label: 'Dive site: ${site.name}',
-                      child: GestureDetector(
-                        onTap: () => _onMarkerTapped(site),
-                        child: _buildMarker(
-                          context,
-                          site,
-                          diveCount,
-                          isSelected,
+            children: [
+              TileLayer(
+                urlTemplate: ref.watch(mapTileUrlProvider),
+                userAgentPackageName: 'app.submersion',
+                maxZoom: ref.watch(mapTileMaxZoomProvider),
+                tileProvider: TileCacheService.instance.isInitialized
+                    ? TileCacheService.instance.getTileProvider()
+                    : null,
+              ),
+              // Markers layer - shows sites with dives
+              MarkerClusterLayerWidget(
+                options: MarkerClusterLayerOptions(
+                  maxClusterRadius: 80,
+                  size: const Size(50, 50),
+                  markers: sitesWithDives.map((siteWithCount) {
+                    final site = siteWithCount.site;
+                    final diveCount = siteWithCount.diveCount;
+                    final isSelected = selectedSiteId == site.id;
+                    return Marker(
+                      point: LatLng(
+                        site.location!.latitude,
+                        site.location!.longitude,
+                      ),
+                      width: isSelected ? 50 : 40,
+                      height: isSelected ? 50 : 40,
+                      child: Semantics(
+                        button: true,
+                        label: 'Dive site: ${site.name}',
+                        child: GestureDetector(
+                          onTap: () => _onMarkerTapped(site),
+                          child: _buildMarker(
+                            context,
+                            site,
+                            diveCount,
+                            isSelected,
+                          ),
                         ),
                       ),
-                    ),
-                  );
-                }).toList(),
-                builder: (context, markers) {
-                  // Sum up dive counts for all markers in this cluster
-                  final totalDives = markers.fold<int>(
-                    0,
-                    (sum, marker) =>
-                        sum + (diveCountByLocation[marker.point] ?? 0),
-                  );
-                  return _buildClusterMarker(context, totalDives);
-                },
-                zoomToBoundsOnClick: false,
-                onClusterTap: (node) {
-                  // Animate to cluster bounds with generous padding
-                  _animateToCluster(node.bounds);
-                },
-              ),
-            ),
-            // Heat map layer - rendered on top of markers when visible
-            if (settings.isVisible)
-              heatMapAsync.when(
-                data: (points) => HeatMapLayer(
-                  points: points,
-                  radius: settings.radius,
-                  opacity: settings.opacity,
-                ),
-                loading: () => const SizedBox.shrink(),
-                error: (_, _) => const SizedBox.shrink(),
-              ),
-            const MapAttribution(),
-          ],
-        ),
-
-        // Loading indicator
-        if (heatMapAsync.isLoading)
-          const Positioned(
-            top: 16,
-            left: 0,
-            right: 0,
-            child: Center(child: CircularProgressIndicator()),
-          ),
-
-        // Empty state
-        if (sitesWithDives.isEmpty)
-          Center(
-            child: Card(
-              margin: const EdgeInsets.all(32),
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.scuba_diving,
-                      size: 64,
-                      color: colorScheme.onSurfaceVariant.withValues(
-                        alpha: 0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'No dive activity to display',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Log dives with location data to see your activity on the map',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
+                    );
+                  }).toList(),
+                  builder: (context, markers) {
+                    // Sum up dive counts for all markers in this cluster
+                    final totalDives = markers.fold<int>(
+                      0,
+                      (sum, marker) =>
+                          sum + (diveCountByLocation[marker.point] ?? 0),
+                    );
+                    return _buildClusterMarker(context, totalDives);
+                  },
+                  zoomToBoundsOnClick: false,
+                  onClusterTap: (node) {
+                    // Animate to cluster bounds with generous padding
+                    _animateToCluster(node.bounds);
+                  },
                 ),
               ),
-            ),
+              // Heat map layer - rendered on top of markers when visible
+              if (settings.isVisible)
+                heatMapAsync.when(
+                  data: (points) => HeatMapLayer(
+                    points: points,
+                    radius: settings.radius,
+                    opacity: settings.opacity,
+                  ),
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, _) => const SizedBox.shrink(),
+                ),
+              const MapAttribution(),
+              const MapResetNorthButton(),
+            ],
           ),
-      ],
+
+          // Loading indicator
+          if (heatMapAsync.isLoading)
+            const Positioned(
+              top: 16,
+              left: 0,
+              right: 0,
+              child: Center(child: CircularProgressIndicator()),
+            ),
+
+          // Empty state
+          if (sitesWithDives.isEmpty)
+            Center(
+              child: Card(
+                margin: const EdgeInsets.all(32),
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.scuba_diving,
+                        size: 64,
+                        color: colorScheme.onSurfaceVariant.withValues(
+                          alpha: 0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'No dive activity to display',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Log dives with location data to see your activity on the map',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
