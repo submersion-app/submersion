@@ -211,4 +211,18 @@ void main() {
       expect(history.first.id, 'r3');
     });
   });
+
+  group('BackupPreferences location label', () {
+    test(
+      'backup location label round-trips and clears with the location',
+      () async {
+        await backupPreferences.setBackupLocation('content://tree/1');
+        await backupPreferences.setBackupLocationLabel('Backups');
+        expect(backupPreferences.backupLocationLabel, 'Backups');
+
+        await backupPreferences.setBackupLocation(null);
+        expect(backupPreferences.backupLocationLabel, isNull);
+      },
+    );
+  });
 }

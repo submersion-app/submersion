@@ -97,6 +97,18 @@ class BackupSettingsNotifier extends StateNotifier<BackupSettings> {
     state = _prefs.getSettings();
   }
 
+  /// Android SAF: persist a `content://` tree URI as the location plus its human
+  /// label for display. Turns cloud backup off, like any custom location.
+  Future<void> setSafBackupLocation(String uri, String label) async {
+    await _prefs.setCloudBackupEnabled(false);
+    await _prefs.setBackupLocation(uri);
+    await _prefs.setBackupLocationLabel(label);
+    state = _prefs.getSettings();
+  }
+
+  /// Display label for a custom location (e.g. the SAF folder name), or null.
+  String? get locationLabel => _prefs.backupLocationLabel;
+
   /// Sign-out hook: cloud sync is being disabled, so cloud backup loses its
   /// destination. Resets the location to default only when cloud backup was
   /// actually on -- an unrelated custom location is none of sync's business.
