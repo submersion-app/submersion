@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_interaction.dart';
 
 /// Marker colors for the GPS entry/exit fixes, matching the values the dive
 /// detail header map has always used.
@@ -20,7 +21,7 @@ const Color kGpsExitColor = Color(0xFFFF9F0A);
 ///
 /// This widget only draws a map. Clipboard, navigation, and row logic live in
 /// the callers.
-class DiveLocationsMap extends ConsumerWidget {
+class DiveLocationsMap extends ConsumerStatefulWidget {
   const DiveLocationsMap({
     super.key,
     this.entry,
@@ -53,22 +54,32 @@ class DiveLocationsMap extends ConsumerWidget {
   final double? initialZoom;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DiveLocationsMap> createState() => _DiveLocationsMapState();
+}
+
+class _DiveLocationsMapState extends ConsumerState<DiveLocationsMap> {
+  late final MapController _fallbackController = MapController();
+
+  @override
+  Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
     final points = <LatLng>[
-      if (entry != null) LatLng(entry!.latitude, entry!.longitude),
-      if (exit != null) LatLng(exit!.latitude, exit!.longitude),
-      if (site != null) LatLng(site!.latitude, site!.longitude),
+      if (widget.entry != null)
+        LatLng(widget.entry!.latitude, widget.entry!.longitude),
+      if (widget.exit != null)
+        LatLng(widget.exit!.latitude, widget.exit!.longitude),
+      if (widget.site != null)
+        LatLng(widget.site!.latitude, widget.site!.longitude),
     ];
     if (points.isEmpty) return const SizedBox.shrink();
 
     LatLng center;
     double zoom;
     CameraFit? fit;
-    if (initialCenter != null) {
-      center = initialCenter!;
-      zoom = initialZoom ?? 12.0;
+    if (widget.initialCenter != null) {
+      center = widget.initialCenter!;
+      zoom = widget.initialZoom ?? 12.0;
     } else if (points.length >= 2) {
       center = points.first;
       zoom = 13.0;
@@ -91,9 +102,9 @@ class DiveLocationsMap extends ConsumerWidget {
     // MarkerLayer's Stack ("Duplicate keys found"). Keying the child instead
     // keeps each copy isolated in its own Positioned while staying findable.
     final markers = <Marker>[
-      if (entry != null)
+      if (widget.entry != null)
         Marker(
-          point: LatLng(entry!.latitude, entry!.longitude),
+          point: LatLng(widget.entry!.latitude, widget.entry!.longitude),
           width: 28,
           height: 28,
           child: KeyedSubtree(
@@ -101,9 +112,9 @@ class DiveLocationsMap extends ConsumerWidget {
             child: _mapPin(colorScheme, Icons.south, kGpsEntryColor),
           ),
         ),
-      if (exit != null)
+      if (widget.exit != null)
         Marker(
-          point: LatLng(exit!.latitude, exit!.longitude),
+          point: LatLng(widget.exit!.latitude, widget.exit!.longitude),
           width: 28,
           height: 28,
           child: KeyedSubtree(
@@ -111,9 +122,9 @@ class DiveLocationsMap extends ConsumerWidget {
             child: _mapPin(colorScheme, Icons.north, kGpsExitColor),
           ),
         ),
-      if (site != null)
+      if (widget.site != null)
         Marker(
-          point: LatLng(site!.latitude, site!.longitude),
+          point: LatLng(widget.site!.latitude, widget.site!.longitude),
           width: 32,
           height: 32,
           // Diver glyph, matching the dive-site marker on the Sites map
@@ -129,39 +140,67 @@ class DiveLocationsMap extends ConsumerWidget {
         ),
     ];
 
-    return FlutterMap(
-      mapController: controller,
-      options: MapOptions(
-        initialCenter: center,
-        initialZoom: zoom,
-        initialCameraFit: fit,
-        interactionOptions: InteractionOptions(
-          flags: interactive ? InteractiveFlag.all : InteractiveFlag.none,
-        ),
-      ),
-      children: [
-        TileLayer(
-          urlTemplate: ref.watch(mapTileUrlProvider),
-          userAgentPackageName: 'app.submersion',
-          maxZoom: ref.watch(mapTileMaxZoomProvider),
-          tileProvider: TileCacheService.instance.isInitialized
-              ? TileCacheService.instance.getTileProvider()
-              : null,
-        ),
-        if (entry != null && exit != null)
-          PolylineLayer(
+    final tileLayer = TileLayer(
+      urlTemplate: ref.watch(mapTileUrlProvider),
+      userAgentPackageName: 'app.submersion',
+      maxZoom: ref.watch(mapTileMaxZoomProvider),
+      tileProvider: TileCacheService.instance.isInitialized
+          ? TileCacheService.instance.getTileProvider()
+          : null,
+    );
+
+    final polylineLayer = widget.entry != null && widget.exit != null
+        ? PolylineLayer(
             polylines: [
               Polyline(
                 points: [
-                  LatLng(entry!.latitude, entry!.longitude),
-                  LatLng(exit!.latitude, exit!.longitude),
+                  LatLng(widget.entry!.latitude, widget.entry!.longitude),
+                  LatLng(widget.exit!.latitude, widget.exit!.longitude),
                 ],
                 strokeWidth: 3.0,
                 color: colorScheme.onSurface.withValues(alpha: 0.7),
                 pattern: const StrokePattern.dotted(),
               ),
             ],
+          )
+        : null;
+
+    if (widget.interactive) {
+      final effectiveController = widget.controller ?? _fallbackController;
+      return MapInteractionDetector(
+        allowRotation: false,
+        mapController: effectiveController,
+        builder: (context, interactionOptions) => FlutterMap(
+          mapController: effectiveController,
+          options: MapOptions(
+            initialCenter: center,
+            initialZoom: zoom,
+            initialCameraFit: fit,
+            interactionOptions: interactionOptions,
           ),
+          children: [
+            tileLayer,
+            ?polylineLayer,
+            MarkerLayer(markers: markers),
+            const MapAttribution(),
+          ],
+        ),
+      );
+    }
+
+    return FlutterMap(
+      mapController: widget.controller,
+      options: MapOptions(
+        initialCenter: center,
+        initialZoom: zoom,
+        initialCameraFit: fit,
+        interactionOptions: const InteractionOptions(
+          flags: InteractiveFlag.none,
+        ),
+      ),
+      children: [
+        tileLayer,
+        ?polylineLayer,
         MarkerLayer(markers: markers),
         const MapAttribution(),
       ],

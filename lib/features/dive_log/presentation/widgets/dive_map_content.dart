@@ -17,6 +17,7 @@ import 'package:submersion/features/maps/presentation/providers/heat_map_provide
 import 'package:submersion/features/maps/presentation/widgets/heat_map_controls.dart';
 import 'package:submersion/features/maps/presentation/widgets/heat_map_layer.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_interaction.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/map_list_layout/map_info_card.dart';
@@ -286,95 +287,101 @@ class _DiveMapContentState extends ConsumerState<DiveMapContent>
 
     return Stack(
       children: [
-        FlutterMap(
+        MapInteractionDetector(
+          allowRotation: true,
           mapController: _mapController,
-          options: MapOptions(
-            initialCenter: center,
-            initialZoom: zoom,
-            minZoom: 2.0,
-            maxZoom: 18.0,
-            onMapReady: () {
-              _mapReady = true;
-            },
-            onTap: (_, _) {
-              widget.onItemSelected(null);
-            },
-            cameraConstraint: CameraConstraint.contain(
-              bounds: LatLngBounds(
-                const LatLng(-90, -180),
-                const LatLng(90, 180),
+          builder: (context, interactionOptions) => FlutterMap(
+            mapController: _mapController,
+            options: MapOptions(
+              initialCenter: center,
+              initialZoom: zoom,
+              minZoom: 2.0,
+              maxZoom: 18.0,
+              onMapReady: () {
+                _mapReady = true;
+              },
+              onTap: (_, _) {
+                widget.onItemSelected(null);
+              },
+              cameraConstraint: CameraConstraint.contain(
+                bounds: LatLngBounds(
+                  const LatLng(-90, -180),
+                  const LatLng(90, 180),
+                ),
               ),
+              interactionOptions: interactionOptions,
             ),
-          ),
-          children: [
-            TileLayer(
-              urlTemplate: ref.watch(mapTileUrlProvider),
-              userAgentPackageName: 'app.submersion',
-              maxZoom: ref.watch(mapTileMaxZoomProvider),
-              tileProvider: TileCacheService.instance.isInitialized
-                  ? TileCacheService.instance.getTileProvider()
-                  : null,
-            ),
-            // Markers layer - shows sites with dives
-            MarkerClusterLayerWidget(
-              options: MarkerClusterLayerOptions(
-                maxClusterRadius: 80,
-                size: const Size(50, 50),
-                markers: sitesWithDives.map((siteWithCount) {
-                  final site = siteWithCount.site;
-                  final diveCount = siteWithCount.diveCount;
-                  final isSelected = selectedSiteId == site.id;
-                  return Marker(
-                    point: LatLng(
-                      site.location!.latitude,
-                      site.location!.longitude,
-                    ),
-                    width: isSelected ? 50 : 40,
-                    height: isSelected ? 50 : 40,
-                    child: Semantics(
-                      button: true,
-                      label: 'Select dive site ${site.name}',
-                      child: GestureDetector(
-                        onTap: () => _onMarkerTapped(site),
-                        child: _buildMarker(
-                          context,
-                          site,
-                          diveCount,
-                          isSelected,
+            children: [
+              TileLayer(
+                urlTemplate: ref.watch(mapTileUrlProvider),
+                userAgentPackageName: 'app.submersion',
+                maxZoom: ref.watch(mapTileMaxZoomProvider),
+                tileProvider: TileCacheService.instance.isInitialized
+                    ? TileCacheService.instance.getTileProvider()
+                    : null,
+              ),
+              // Markers layer - shows sites with dives
+              MarkerClusterLayerWidget(
+                options: MarkerClusterLayerOptions(
+                  maxClusterRadius: 80,
+                  size: const Size(50, 50),
+                  markers: sitesWithDives.map((siteWithCount) {
+                    final site = siteWithCount.site;
+                    final diveCount = siteWithCount.diveCount;
+                    final isSelected = selectedSiteId == site.id;
+                    return Marker(
+                      point: LatLng(
+                        site.location!.latitude,
+                        site.location!.longitude,
+                      ),
+                      width: isSelected ? 50 : 40,
+                      height: isSelected ? 50 : 40,
+                      child: Semantics(
+                        button: true,
+                        label: 'Select dive site ${site.name}',
+                        child: GestureDetector(
+                          onTap: () => _onMarkerTapped(site),
+                          child: _buildMarker(
+                            context,
+                            site,
+                            diveCount,
+                            isSelected,
+                          ),
                         ),
                       ),
-                    ),
-                  );
-                }).toList(),
-                builder: (context, markers) {
-                  // Sum up dive counts for all markers in this cluster
-                  final totalDives = markers.fold<int>(
-                    0,
-                    (sum, marker) =>
-                        sum + (diveCountByLocation[marker.point] ?? 0),
-                  );
-                  return _buildClusterMarker(context, totalDives);
-                },
-                zoomToBoundsOnClick: false,
-                onClusterTap: (node) {
-                  // Animate to cluster bounds with generous padding
-                  _animateToCluster(node.bounds);
-                },
-              ),
-            ),
-            // Heat map layer - rendered on top of markers when visible
-            if (settings.isVisible)
-              heatMapAsync.when(
-                data: (points) => HeatMapLayer(
-                  points: points,
-                  radius: settings.radius,
-                  opacity: settings.opacity,
+                    );
+                  }).toList(),
+                  builder: (context, markers) {
+                    // Sum up dive counts for all markers in this cluster
+                    final totalDives = markers.fold<int>(
+                      0,
+                      (sum, marker) =>
+                          sum + (diveCountByLocation[marker.point] ?? 0),
+                    );
+                    return _buildClusterMarker(context, totalDives);
+                  },
+                  zoomToBoundsOnClick: false,
+                  onClusterTap: (node) {
+                    // Animate to cluster bounds with generous padding
+                    _animateToCluster(node.bounds);
+                  },
                 ),
-                loading: () => const SizedBox.shrink(),
-                error: (_, _) => const SizedBox.shrink(),
               ),
-            const MapAttribution(),
-          ],
+              // Heat map layer - rendered on top of markers when visible
+              if (settings.isVisible)
+                heatMapAsync.when(
+                  data: (points) => HeatMapLayer(
+                    points: points,
+                    radius: settings.radius,
+                    opacity: settings.opacity,
+                  ),
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, _) => const SizedBox.shrink(),
+                ),
+              const MapAttribution(),
+              const MapResetNorthButton(),
+            ],
+          ),
         ),
 
         // Loading indicator
