@@ -59,3 +59,23 @@ class ProfileChartViewport {
     );
   }
 }
+
+/// Maps a gesture's [localPos] (in the full widget [box]) to a fraction
+/// (0..1, clamped) of the inner plot rect, given the reserved axis gutters.
+/// fl_chart reserves [left]/[right]/[top]/[bottom] for axis names + tick
+/// labels (+ the gas strip), so the data window only fills the inner rect.
+({double fx, double fy}) chartFocalFraction(
+  Offset localPos,
+  Size box, {
+  required double left,
+  required double right,
+  required double top,
+  required double bottom,
+}) {
+  final plotW = (box.width - left - right).clamp(1.0, double.infinity);
+  final plotH = (box.height - top - bottom).clamp(1.0, double.infinity);
+  return (
+    fx: ((localPos.dx - left) / plotW).clamp(0.0, 1.0),
+    fy: ((localPos.dy - top) / plotH).clamp(0.0, 1.0),
+  );
+}

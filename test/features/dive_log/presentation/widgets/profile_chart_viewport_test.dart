@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_chart_viewport.dart';
 
@@ -85,6 +86,74 @@ void main() {
       expect(back.zoom, closeTo(1.0, 1e-9));
       expect(back.offsetX, closeTo(0.0, 1e-9));
       expect(back.offsetY, closeTo(0.0, 1e-9));
+    });
+  });
+
+  group('chartFocalFraction', () {
+    const box = Size(200, 100);
+    const insets = (left: 40.0, right: 10.0, top: 0.0, bottom: 24.0);
+    // plotW = 200-40-10 = 150 ; plotH = 100-0-24 = 76
+
+    test('left/top gutter maps to 0', () {
+      final f = chartFocalFraction(
+        const Offset(40, 0),
+        box,
+        left: insets.left,
+        right: insets.right,
+        top: insets.top,
+        bottom: insets.bottom,
+      );
+      expect(f.fx, closeTo(0.0, 1e-9));
+      expect(f.fy, closeTo(0.0, 1e-9));
+    });
+
+    test('right/bottom plot edge maps to 1', () {
+      final f = chartFocalFraction(
+        const Offset(190, 76),
+        box,
+        left: insets.left,
+        right: insets.right,
+        top: insets.top,
+        bottom: insets.bottom,
+      );
+      expect(f.fx, closeTo(1.0, 1e-9));
+      expect(f.fy, closeTo(1.0, 1e-9));
+    });
+
+    test('mid plot maps to the expected fraction', () {
+      final f = chartFocalFraction(
+        const Offset(115, 38),
+        box,
+        left: insets.left,
+        right: insets.right,
+        top: insets.top,
+        bottom: insets.bottom,
+      );
+      expect(f.fx, closeTo(0.5, 1e-9)); // (115-40)/150
+      expect(f.fy, closeTo(0.5, 1e-9)); // (38-0)/76
+    });
+
+    test('positions outside the plot clamp to [0,1]', () {
+      final lo = chartFocalFraction(
+        const Offset(0, -50),
+        box,
+        left: insets.left,
+        right: insets.right,
+        top: insets.top,
+        bottom: insets.bottom,
+      );
+      expect(lo.fx, 0.0);
+      expect(lo.fy, 0.0);
+      final hi = chartFocalFraction(
+        const Offset(500, 500),
+        box,
+        left: insets.left,
+        right: insets.right,
+        top: insets.top,
+        bottom: insets.bottom,
+      );
+      expect(hi.fx, 1.0);
+      expect(hi.fy, 1.0);
     });
   });
 }
