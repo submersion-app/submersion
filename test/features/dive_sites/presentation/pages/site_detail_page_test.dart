@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -8,7 +9,9 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_interaction.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/tides/presentation/providers/tide_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -733,6 +736,105 @@ void main() {
       expect(find.text('Cebu City'), findsWidgets);
       expect(find.text('Malapascua'), findsWidgets);
       expect(find.text('Visayan Sea'), findsOneWidget);
+    });
+  });
+
+  group('SiteDetailPage map section', () {
+    const siteWithCoords = DiveSite(
+      id: 'site-map',
+      name: 'Blue Hole Reef',
+      location: GeoPoint(24.3472, -76.9831),
+    );
+
+    // Override hasTideDataProvider so TideSection (rendered for coord-bearing
+    // sites) short-circuits immediately rather than hitting the network.
+    Override tideStubOverride() => hasTideDataProvider(
+      siteWithCoords.location!,
+    ).overrideWith((ref) async => false);
+
+    testWidgets(
+      'renders FlutterMap and MapInteractionDetector when site has coordinates',
+      (tester) async {
+        tester.view.devicePixelRatio = 1.0;
+        tester.view.physicalSize = const Size(800, 600);
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
+
+        final overrides = await getBaseOverrides();
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              ...overrides,
+              siteProvider(
+                siteWithCoords.id,
+              ).overrideWith((ref) async => siteWithCoords),
+              siteDiveCountProvider(
+                siteWithCoords.id,
+              ).overrideWith((ref) async => 0),
+              tideStubOverride(),
+            ],
+            child: MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: SiteDetailPage(siteId: siteWithCoords.id, embedded: true),
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        expect(find.byType(FlutterMap), findsOneWidget);
+        expect(find.byType(MapInteractionDetector), findsOneWidget);
+        expect(find.byType(MapResetNorthButton), findsNothing);
+      },
+    );
+
+    testWidgets('tapping fullscreen button opens fullscreen map page', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(800, 600);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final overrides = await getBaseOverrides();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            siteProvider(
+              siteWithCoords.id,
+            ).overrideWith((ref) async => siteWithCoords),
+            siteDiveCountProvider(
+              siteWithCoords.id,
+            ).overrideWith((ref) async => 0),
+            tideStubOverride(),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: SiteDetailPage(siteId: siteWithCoords.id, embedded: true),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Tap the fullscreen icon button overlay on the map.
+      await tester.tap(find.byIcon(Icons.fullscreen));
+      await tester.pumpAndSettle();
+
+      // The fullscreen page renders the site name in the app bar
+      // and a FlutterMap with a MapInteractionDetector.
+      expect(find.text(siteWithCoords.name), findsWidgets);
+      expect(find.byType(FlutterMap), findsOneWidget);
+      expect(find.byType(MapInteractionDetector), findsOneWidget);
     });
   });
 }
