@@ -14,6 +14,7 @@ import 'package:submersion/features/settings/presentation/widgets/existing_datab
 import 'package:submersion/features/settings/presentation/widgets/migration_confirmation_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/migration_progress_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/reset_database_dialog.dart';
+import 'package:submersion/features/settings/presentation/widgets/storage_volume_chooser_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 class StorageSettingsPage extends ConsumerStatefulWidget {
@@ -491,35 +492,19 @@ class _StorageSettingsPageState extends ConsumerState<StorageSettingsPage> {
   /// Android-only: lets the user pick which app-specific external volume
   /// (internal storage or SD card) holds the database. The chooser is only
   /// invoked from the Android pick branch; other platforms never call it.
+  // Thin showDialog glue; the dialog content lives in the widget-tested
+  // StorageVolumeChooserDialog.
+  // coverage:ignore-start
   Future<ExternalVolumeOption?> _chooseStorageVolume(
     List<ExternalVolumeOption> options,
   ) async {
     if (!mounted) return null;
     return showDialog<ExternalVolumeOption>(
       context: context,
-      builder: (context) => SimpleDialog(
-        title: Text(context.l10n.db_location_choose_volume),
-        children: [
-          for (final option in options)
-            SimpleDialogOption(
-              onPressed: () => Navigator.pop(context, option),
-              child: Text(
-                option.isInternal
-                    ? context.l10n.db_location_internal
-                    : context.l10n.db_location_sd_card,
-              ),
-            ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
-            child: Text(
-              context.l10n.db_location_external_note,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ),
-        ],
-      ),
+      builder: (_) => StorageVolumeChooserDialog(options: options),
     );
   }
+  // coverage:ignore-end
 
   Future<void> _selectAndMigrateToCustomFolder() async {
     // Pick a folder

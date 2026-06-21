@@ -499,7 +499,10 @@ class BackupSettingsPage extends ConsumerWidget {
               } else if (Platform.isAndroid) {
                 // Android: pick a SAF tree (content:// URI). A file_picker path
                 // is unwritable under scoped storage, so persist the URI + its
-                // display name and skip the bookmark flow entirely.
+                // display name and skip the bookmark flow entirely. Native +
+                // platform-gated, so the branch body is excluded from coverage;
+                // setSafBackupLocation itself is unit-tested separately.
+                // coverage:ignore-start
                 final folder = await SubmersionSaf.pickFolder();
                 if (folder != null) {
                   await ref
@@ -507,6 +510,7 @@ class BackupSettingsPage extends ConsumerWidget {
                       .setSafBackupLocation(folder.uri, folder.displayName);
                 }
                 return;
+                // coverage:ignore-end
               } else {
                 final path = await FilePicker.getDirectoryPath(
                   dialogTitle: context.l10n.backup_location_title,

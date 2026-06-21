@@ -15,6 +15,11 @@ abstract class BackupDatabaseAdapter {
 }
 
 /// Default adapter that delegates to [DatabaseService.instance].
+///
+/// Pure production glue around the private-constructor singleton (which cannot
+/// be faked), so tests exercise the [BackupDatabaseAdapter] interface via fakes
+/// and this delegation is excluded from coverage.
+// coverage:ignore-start
 class DefaultBackupDatabaseAdapter implements BackupDatabaseAdapter {
   final DatabaseService _dbAdapter;
 
@@ -33,3 +38,5 @@ class DefaultBackupDatabaseAdapter implements BackupDatabaseAdapter {
   @override
   AppDatabase get database => _dbAdapter.database;
 }
+
+// coverage:ignore-end
