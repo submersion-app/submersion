@@ -150,7 +150,6 @@ void main() {
 
       expect(find.byType(FlutterMap), findsOneWidget);
       expect(find.byType(MapInteractionDetector), findsOneWidget);
-      expect(find.byType(MapResetNorthButton), findsOneWidget);
     });
 
     testWidgets('renders with site data that has dive counts', (tester) async {
@@ -176,7 +175,6 @@ void main() {
 
       expect(find.byType(FlutterMap), findsOneWidget);
       expect(find.byType(MapInteractionDetector), findsOneWidget);
-      expect(find.byType(MapResetNorthButton), findsOneWidget);
     });
 
     testWidgets('renders error state when provider fails', (tester) async {
@@ -299,7 +297,6 @@ void main() {
 
       expect(find.byType(FlutterMap), findsOneWidget);
       expect(find.byType(MapInteractionDetector), findsOneWidget);
-      expect(find.byType(MapResetNorthButton), findsOneWidget);
     });
 
     testWidgets('renders empty-dive state when sites have zero dives', (

@@ -2849,7 +2849,6 @@
   "maps_regionSelector_dragToSelect": "Huzza a terkepen egy regio kivalasztasahoz",
   "maps_regionSelector_selectRegion": "Regio kivalasztasa a terkepen",
   "maps_regionSelector_selectRegionButton": "Regio kivalasztasa",
-  "maps_resetNorth_tooltip": "Térkép visszaállítása északra",
   "marineLife_siteSection_editExpectedTooltip": "Vart fajok szerkesztese",
   "marineLife_siteSection_errorLoadingExpected": "Hiba a vart fajok betoltesekor",
   "marineLife_siteSection_errorLoadingSightings": "Hiba az eszlelesek betoltesekor",

@@ -2849,7 +2849,6 @@
   "maps_regionSelector_dragToSelect": "Faites glisser sur la carte pour selectionner une region",
   "maps_regionSelector_selectRegion": "Selectionner une region sur la carte",
   "maps_regionSelector_selectRegionButton": "Selectionner la region",
-  "maps_resetNorth_tooltip": "Réinitialiser la carte vers le nord",
   "marineLife_siteSection_editExpectedTooltip": "Modifier les especes attendues",
   "marineLife_siteSection_errorLoadingExpected": "Erreur lors du chargement des especes attendues",
   "marineLife_siteSection_errorLoadingSightings": "Erreur lors du chargement des observations",

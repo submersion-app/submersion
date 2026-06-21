@@ -16045,9 +16045,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get maps_regionSelector_selectRegionButton => 'Select Region';
 
   @override
-  String get maps_resetNorth_tooltip => 'Reset map to north';
-
-  @override
   String get tankPresets_addPreset => 'Add tank preset';
 
   @override

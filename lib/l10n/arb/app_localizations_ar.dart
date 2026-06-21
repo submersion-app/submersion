@@ -16010,9 +16010,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get maps_regionSelector_selectRegionButton => 'تحديد المنطقة';
 
   @override
-  String get maps_resetNorth_tooltip => 'إعادة الخريطة إلى الشمال';
-
-  @override
   String get tankPresets_addPreset => 'إضافة إعداد أسطوانة';
 
   @override

@@ -66,7 +66,6 @@ class _TripVoyageMapState extends ConsumerState<TripVoyageMap> {
                 SizedBox(
                   height: 250,
                   child: MapInteractionDetector(
-                    allowRotation: true,
                     mapController: _mapController,
                     builder: (context, interactionOptions) => FlutterMap(
                       mapController: _mapController,
@@ -98,7 +97,6 @@ class _TripVoyageMapState extends ConsumerState<TripVoyageMap> {
                         ),
                         MarkerLayer(markers: markers),
                         const MapAttribution(),
-                        const MapResetNorthButton(),
                       ],
                     ),
                   ),

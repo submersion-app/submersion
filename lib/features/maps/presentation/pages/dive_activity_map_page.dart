@@ -253,7 +253,6 @@ class _DiveActivityMapPageState extends ConsumerState<DiveActivityMapPage>
     }
 
     return MapInteractionDetector(
-      allowRotation: true,
       mapController: _mapController,
       builder: (context, interactionOptions) => Stack(
         children: [
@@ -343,7 +342,6 @@ class _DiveActivityMapPageState extends ConsumerState<DiveActivityMapPage>
                   error: (_, _) => const SizedBox.shrink(),
                 ),
               const MapAttribution(),
-              const MapResetNorthButton(),
             ],
           ),
 

@@ -195,7 +195,6 @@ class _DiveCenterMapContentState extends ConsumerState<DiveCenterMapContent>
     }
 
     return MapInteractionDetector(
-      allowRotation: true,
       mapController: _mapController,
       builder: (context, interactionOptions) => Stack(
         children: [
@@ -265,7 +264,6 @@ class _DiveCenterMapContentState extends ConsumerState<DiveCenterMapContent>
                 ),
               ),
               const MapAttribution(),
-              const MapResetNorthButton(),
             ],
           ),
 

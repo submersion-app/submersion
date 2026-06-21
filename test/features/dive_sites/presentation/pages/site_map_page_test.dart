@@ -140,7 +140,6 @@ void main() {
 
       expect(find.byType(FlutterMap), findsOneWidget);
       expect(find.byType(MapInteractionDetector), findsOneWidget);
-      expect(find.byType(MapResetNorthButton), findsOneWidget);
     });
 
     testWidgets('renders with site data and markers', (tester) async {
@@ -162,7 +161,6 @@ void main() {
 
       expect(find.byType(FlutterMap), findsOneWidget);
       expect(find.byType(MapInteractionDetector), findsOneWidget);
-      expect(find.byType(MapResetNorthButton), findsOneWidget);
     });
 
     testWidgets('renders error state when provider fails', (tester) async {
@@ -280,7 +278,6 @@ void main() {
 
       expect(find.byType(FlutterMap), findsOneWidget);
       expect(find.byType(MapInteractionDetector), findsOneWidget);
-      expect(find.byType(MapResetNorthButton), findsOneWidget);
     });
 
     testWidgets('info card shows dive count and rating when site selected', (

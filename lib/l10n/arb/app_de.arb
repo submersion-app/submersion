@@ -2883,7 +2883,6 @@
   "maps_regionSelector_dragToSelect": "Auf der Karte ziehen, um eine Region auszuwählen",
   "maps_regionSelector_selectRegion": "Region auf Karte auswählen",
   "maps_regionSelector_selectRegionButton": "Region auswählen",
-  "maps_resetNorth_tooltip": "Karte nach Norden ausrichten",
   "marineLife_siteSection_editExpectedTooltip": "Erwartete Arten bearbeiten",
   "marineLife_siteSection_errorLoadingExpected": "Fehler beim Laden der erwarteten Arten",
   "marineLife_siteSection_errorLoadingSightings": "Fehler beim Laden der Sichtungen",

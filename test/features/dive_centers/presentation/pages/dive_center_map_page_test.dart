@@ -158,7 +158,6 @@ void main() {
 
       expect(find.byType(FlutterMap), findsOneWidget);
       expect(find.byType(MapInteractionDetector), findsOneWidget);
-      expect(find.byType(MapResetNorthButton), findsOneWidget);
     });
 
     testWidgets(
@@ -188,7 +187,6 @@ void main() {
 
         expect(find.byType(FlutterMap), findsOneWidget);
         expect(find.byType(MapInteractionDetector), findsOneWidget);
-        expect(find.byType(MapResetNorthButton), findsOneWidget);
       },
     );
 
@@ -253,7 +251,6 @@ void main() {
 
       expect(find.byType(FlutterMap), findsOneWidget);
       expect(find.byType(MapInteractionDetector), findsOneWidget);
-      expect(find.byType(MapResetNorthButton), findsOneWidget);
     });
 
     testWidgets('empty state renders when centers have no coordinates', (

@@ -156,7 +156,6 @@ class _LocationPickerMapState extends ConsumerState<LocationPickerMap> {
       body: Semantics(
         label: context.l10n.diveSites_locationPicker_semantics_map,
         child: MapInteractionDetector(
-          allowRotation: false,
           mapController: _mapController,
           builder: (context, interactionOptions) => Stack(
             children: [

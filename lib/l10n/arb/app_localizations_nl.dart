@@ -16187,9 +16187,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get maps_regionSelector_selectRegionButton => 'Selecteer regio';
 
   @override
-  String get maps_resetNorth_tooltip => 'Kaart op het noorden zetten';
-
-  @override
   String get tankPresets_addPreset => 'Flesinstelling toevoegen';
 
   @override

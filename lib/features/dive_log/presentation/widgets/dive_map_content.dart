@@ -288,7 +288,6 @@ class _DiveMapContentState extends ConsumerState<DiveMapContent>
     return Stack(
       children: [
         MapInteractionDetector(
-          allowRotation: true,
           mapController: _mapController,
           builder: (context, interactionOptions) => FlutterMap(
             mapController: _mapController,
@@ -379,7 +378,6 @@ class _DiveMapContentState extends ConsumerState<DiveMapContent>
                   error: (_, _) => const SizedBox.shrink(),
                 ),
               const MapAttribution(),
-              const MapResetNorthButton(),
             ],
           ),
         ),

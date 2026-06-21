@@ -602,7 +602,6 @@ class _MapSectionState extends ConsumerState<_MapSection> {
       child: SizedBox(
         height: 200,
         child: MapInteractionDetector(
-          allowRotation: false,
           mapController: _mapController,
           builder: (context, interactionOptions) => Stack(
             children: [
@@ -731,7 +730,6 @@ class _FullscreenDiveCenterMapPageState
     return Scaffold(
       appBar: AppBar(title: Text(widget.center.name)),
       body: MapInteractionDetector(
-        allowRotation: false,
         mapController: _mapController,
         builder: (context, interactionOptions) => FlutterMap(
           mapController: _mapController,

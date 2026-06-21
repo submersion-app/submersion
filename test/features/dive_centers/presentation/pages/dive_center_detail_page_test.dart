@@ -180,7 +180,6 @@ void main() {
 
         expect(find.byType(FlutterMap), findsOneWidget);
         expect(find.byType(MapInteractionDetector), findsOneWidget);
-        expect(find.byType(MapResetNorthButton), findsNothing);
       },
     );
 

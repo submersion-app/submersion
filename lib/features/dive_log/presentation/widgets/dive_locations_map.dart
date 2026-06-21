@@ -168,7 +168,6 @@ class _DiveLocationsMapState extends ConsumerState<DiveLocationsMap> {
     if (widget.interactive) {
       final effectiveController = widget.controller ?? _fallbackController;
       return MapInteractionDetector(
-        allowRotation: false,
         mapController: effectiveController,
         builder: (context, interactionOptions) => FlutterMap(
           mapController: effectiveController,

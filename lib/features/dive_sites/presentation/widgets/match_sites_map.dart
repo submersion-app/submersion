@@ -54,7 +54,6 @@ class _MatchSitesMapState extends ConsumerState<MatchSitesMap> {
         : null;
 
     return MapInteractionDetector(
-      allowRotation: false,
       mapController: _controller,
       builder: (context, interactionOptions) => FlutterMap(
         mapController: _controller,

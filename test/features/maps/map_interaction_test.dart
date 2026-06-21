@@ -1,127 +1,43 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_interaction.dart';
-import 'package:submersion/l10n/arb/app_localizations.dart';
 
 void main() {
   group('mapInteractionOptions', () {
     test('touch enables pinch zoom, pinch move and fling', () {
-      final o = mapInteractionOptions(isTouch: true, allowRotation: false);
+      final o = mapInteractionOptions(isTouch: true);
       expect(InteractiveFlag.hasPinchZoom(o.flags), isTrue);
       expect(InteractiveFlag.hasPinchMove(o.flags), isTrue);
       expect(InteractiveFlag.hasFlingAnimation(o.flags), isTrue);
     });
 
     test('non-touch disables pinch zoom, pinch move and fling', () {
-      final o = mapInteractionOptions(isTouch: false, allowRotation: true);
+      final o = mapInteractionOptions(isTouch: false);
       expect(InteractiveFlag.hasPinchZoom(o.flags), isFalse);
       expect(InteractiveFlag.hasPinchMove(o.flags), isFalse);
       expect(InteractiveFlag.hasFlingAnimation(o.flags), isFalse);
     });
 
-    test('rotate gesture only for touch with rotation allowed', () {
-      expect(
-        InteractiveFlag.hasRotate(
-          mapInteractionOptions(isTouch: true, allowRotation: true).flags,
-        ),
-        isTrue,
-      );
-      expect(
-        InteractiveFlag.hasRotate(
-          mapInteractionOptions(isTouch: true, allowRotation: false).flags,
-        ),
-        isFalse,
-      );
-      expect(
-        InteractiveFlag.hasRotate(
-          mapInteractionOptions(isTouch: false, allowRotation: true).flags,
-        ),
-        isFalse,
-      );
-    });
-
-    test('gesture race enabled only when rotating by touch', () {
-      expect(
-        mapInteractionOptions(
-          isTouch: true,
-          allowRotation: true,
-        ).enableMultiFingerGestureRace,
-        isTrue,
-      );
-      expect(
-        mapInteractionOptions(
-          isTouch: false,
-          allowRotation: true,
-        ).enableMultiFingerGestureRace,
-        isFalse,
-      );
-    });
-
-    test('rotation threshold widened to 30 degrees', () {
-      expect(
-        mapInteractionOptions(
-          isTouch: true,
-          allowRotation: true,
-        ).rotationThreshold,
-        30.0,
-      );
+    test('rotation is never enabled (gesture or cursor/keyboard)', () {
+      for (final isTouch in [true, false]) {
+        final o = mapInteractionOptions(isTouch: isTouch);
+        expect(InteractiveFlag.hasRotate(o.flags), isFalse);
+        // CursorKeyboardRotationOptions.disabled() sets isKeyTrigger to a
+        // function that always returns false (Ctrl+drag rotation off).
+        expect(o.cursorKeyboardRotationOptions.isKeyTrigger, isNotNull);
+      }
     });
 
     test('scroll-wheel zoom and drag always enabled', () {
       for (final isTouch in [true, false]) {
-        for (final allowRotation in [true, false]) {
-          final o = mapInteractionOptions(
-            isTouch: isTouch,
-            allowRotation: allowRotation,
-          );
-          expect(InteractiveFlag.hasScrollWheelZoom(o.flags), isTrue);
-          expect(InteractiveFlag.hasDrag(o.flags), isTrue);
-        }
+        final o = mapInteractionOptions(isTouch: isTouch);
+        expect(InteractiveFlag.hasScrollWheelZoom(o.flags), isTrue);
+        expect(InteractiveFlag.hasDrag(o.flags), isTrue);
       }
-    });
-  });
-
-  group('MapResetNorthButton', () {
-    Widget harness(MapController controller) => MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: Scaffold(
-        body: SizedBox(
-          width: 400,
-          height: 400,
-          child: FlutterMap(
-            mapController: controller,
-            options: const MapOptions(
-              initialCenter: LatLng(0, 0),
-              initialZoom: 3,
-            ),
-            children: const [MapResetNorthButton()],
-          ),
-        ),
-      ),
-    );
-
-    testWidgets('hidden at north, shown when rotated, resets on tap', (
-      tester,
-    ) async {
-      final controller = MapController();
-      await tester.pumpWidget(harness(controller));
-      await tester.pump();
-
-      expect(find.byType(FloatingActionButton), findsNothing);
-
-      controller.rotate(45);
-      await tester.pump();
-      expect(find.byType(FloatingActionButton), findsOneWidget);
-
-      await tester.tap(find.byType(FloatingActionButton));
-      await tester.pump();
-      expect(controller.camera.rotation.abs() < 0.01, isTrue);
-      expect(find.byType(FloatingActionButton), findsNothing);
     });
   });
 
@@ -133,7 +49,6 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: MapInteractionDetector(
-              allowRotation: true,
               mapController: controller,
               builder: (context, options) {
                 latest = options;
@@ -172,102 +87,83 @@ void main() {
   });
 
   group('MapInteractionDetector trackpad zoom', () {
-    testWidgets('pinch zooms in and keeps the anchor point fixed', (
-      tester,
-    ) async {
-      final controller = MapController();
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: SizedBox(
-              width: 400,
-              height: 400,
-              child: MapInteractionDetector(
-                allowRotation: false,
-                mapController: controller,
-                builder: (context, options) => FlutterMap(
-                  mapController: controller,
-                  options: MapOptions(
-                    initialCenter: const LatLng(0, 0),
-                    initialZoom: 3,
-                    interactionOptions: options,
-                  ),
-                  children: const [],
-                ),
+    Widget harness(MapController controller) => MaterialApp(
+      home: Scaffold(
+        body: SizedBox(
+          width: 400,
+          height: 400,
+          child: MapInteractionDetector(
+            mapController: controller,
+            builder: (context, options) => FlutterMap(
+              mapController: controller,
+              options: MapOptions(
+                initialCenter: const LatLng(0, 0),
+                initialZoom: 3,
+                interactionOptions: options,
               ),
+              children: const [],
             ),
           ),
         ),
-      );
-      await tester.pump();
+      ),
+    );
 
-      // Force the detector into its non-touch (desktop) state so flutter_map's
-      // native pinch is disabled and only our trackpad handler can move the map.
-      final mouse = TestPointer(2, PointerDeviceKind.mouse);
-      await tester.sendEventToBinding(
-        mouse.addPointer(location: const Offset(5, 5)),
-      );
-      await tester.sendEventToBinding(mouse.hover(const Offset(5, 5)));
-      await tester.pump();
+    testWidgets(
+      'pinch anchors zoom at the last hover position, not the gesture position',
+      (tester) async {
+        final controller = MapController();
+        await tester.pumpWidget(harness(controller));
+        await tester.pump();
 
-      const anchor = Offset(300, 120); // off-center
-      final latLngUnderAnchorBefore = controller.camera.offsetToCrs(anchor);
-      final zoomBefore = controller.camera.zoom;
+        // Hover at an off-center point so the detector records it as the
+        // reliable cursor position (this also flips the detector to non-touch
+        // so flutter_map's native pinch is disabled).
+        const hoverPoint = Offset(300, 120);
+        final mouse = TestPointer(2, PointerDeviceKind.mouse);
+        await tester.sendEventToBinding(mouse.addPointer(location: hoverPoint));
+        await tester.sendEventToBinding(mouse.hover(hoverPoint));
+        await tester.pump();
 
-      final pointer = TestPointer(1, PointerDeviceKind.trackpad);
-      await tester.sendEventToBinding(pointer.panZoomStart(anchor));
-      await tester.sendEventToBinding(
-        pointer.panZoomUpdate(anchor, scale: 2.0),
-      );
-      await tester.pump();
-      await tester.sendEventToBinding(pointer.panZoomEnd());
-      await tester.pump();
+        final latLngUnderHoverBefore = controller.camera.offsetToCrs(
+          hoverPoint,
+        );
+        final zoomBefore = controller.camera.zoom;
 
-      expect(controller.camera.zoom, greaterThan(zoomBefore));
-      final latLngUnderAnchorAfter = controller.camera.offsetToCrs(anchor);
-      expect(
-        (latLngUnderAnchorAfter.latitude - latLngUnderAnchorBefore.latitude)
-            .abs(),
-        lessThan(0.5),
-      );
-      expect(
-        (latLngUnderAnchorAfter.longitude - latLngUnderAnchorBefore.longitude)
-            .abs(),
-        lessThan(0.5),
-      );
-    });
+        // Trackpad pinch whose event position is BOGUS (deliberately different
+        // from the cursor), mimicking macOS where PointerPanZoom localPosition
+        // is unreliable (flutter/flutter#136029). The zoom must still anchor at
+        // the hover point, NOT the bogus gesture position.
+        const bogus = Offset(40, 380);
+        final pad = TestPointer(1, PointerDeviceKind.trackpad);
+        await tester.sendEventToBinding(pad.panZoomStart(bogus));
+        await tester.sendEventToBinding(pad.panZoomUpdate(bogus, scale: 2.0));
+        await tester.pump();
+        await tester.sendEventToBinding(pad.panZoomEnd());
+        await tester.pump();
+
+        expect(controller.camera.zoom, greaterThan(zoomBefore));
+        final latLngUnderHoverAfter = controller.camera.offsetToCrs(hoverPoint);
+        expect(
+          (latLngUnderHoverAfter.latitude - latLngUnderHoverBefore.latitude)
+              .abs(),
+          lessThan(0.5),
+        );
+        expect(
+          (latLngUnderHoverAfter.longitude - latLngUnderHoverBefore.longitude)
+              .abs(),
+          lessThan(0.5),
+        );
+      },
+    );
 
     testWidgets('vertical pan moves the camera center along latitude', (
       tester,
     ) async {
       final controller = MapController();
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: SizedBox(
-              width: 400,
-              height: 400,
-              child: MapInteractionDetector(
-                allowRotation: false,
-                mapController: controller,
-                builder: (context, options) => FlutterMap(
-                  mapController: controller,
-                  options: MapOptions(
-                    initialCenter: const LatLng(0, 0),
-                    initialZoom: 3,
-                    interactionOptions: options,
-                  ),
-                  children: const [],
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
+      await tester.pumpWidget(harness(controller));
       await tester.pump();
 
-      // Force the detector into its non-touch (desktop) state so flutter_map's
-      // native pinch is disabled and only our trackpad handler can move the map.
+      // Force the detector into its non-touch (desktop) state.
       final mouse = TestPointer(2, PointerDeviceKind.mouse);
       await tester.sendEventToBinding(
         mouse.addPointer(location: const Offset(5, 5)),
@@ -289,99 +185,58 @@ void main() {
       await tester.sendEventToBinding(pointer.panZoomEnd());
       await tester.pump();
 
-      // Latitude should have shifted by a non-trivial amount.
       expect(
         (controller.camera.center.latitude - latBefore).abs(),
         greaterThan(0.0001),
       );
-      // Zoom should be essentially unchanged (scale was 1.0).
       expect((controller.camera.zoom - zoomBefore).abs(), lessThan(0.01));
+    });
+
+    testWidgets('pan on a rotated camera still moves the center', (
+      tester,
+    ) async {
+      final controller = MapController();
+      await tester.pumpWidget(harness(controller));
+      await tester.pump();
+
+      final mouse = TestPointer(2, PointerDeviceKind.mouse);
+      await tester.sendEventToBinding(
+        mouse.addPointer(location: const Offset(5, 5)),
+      );
+      await tester.sendEventToBinding(mouse.hover(const Offset(5, 5)));
+      await tester.pump();
+
+      // Programmatic rotation still works (only gesture rotation is disabled);
+      // this exercises _rotateOffset with non-zero radians.
+      controller.rotate(45);
+      await tester.pump();
+
+      final latBefore = controller.camera.center.latitude;
+      const panOrigin = Offset(200, 200);
+      final pointer = TestPointer(1, PointerDeviceKind.trackpad);
+      await tester.sendEventToBinding(pointer.panZoomStart(panOrigin));
+      await tester.sendEventToBinding(
+        pointer.panZoomUpdate(panOrigin, scale: 1.0, pan: const Offset(0, 80)),
+      );
+      await tester.pump();
+      await tester.sendEventToBinding(pointer.panZoomEnd());
+      await tester.pump();
+
+      expect(
+        (controller.camera.center.latitude - latBefore).abs(),
+        greaterThan(0.0001),
+      );
     });
   });
 
-  group('MapInteractionDetector trackpad pan with map rotation', () {
-    testWidgets(
-      'pan on rotated map calls _rotateOffset with non-zero radians',
-      (tester) async {
-        final controller = MapController();
-        await tester.pumpWidget(
-          MaterialApp(
-            home: Scaffold(
-              body: SizedBox(
-                width: 400,
-                height: 400,
-                child: MapInteractionDetector(
-                  allowRotation: true,
-                  mapController: controller,
-                  builder: (context, options) => FlutterMap(
-                    mapController: controller,
-                    options: MapOptions(
-                      initialCenter: const LatLng(0, 0),
-                      initialZoom: 3,
-                      interactionOptions: options,
-                    ),
-                    children: const [],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-        await tester.pump();
-
-        // Force non-touch (desktop) mode so our trackpad handler runs.
-        final mouse = TestPointer(2, PointerDeviceKind.mouse);
-        await tester.sendEventToBinding(
-          mouse.addPointer(location: const Offset(5, 5)),
-        );
-        await tester.sendEventToBinding(mouse.hover(const Offset(5, 5)));
-        await tester.pump();
-
-        // Rotate the map to a non-zero bearing so _rotateOffset receives
-        // non-zero radians when computing the panned offset.
-        controller.rotate(45);
-        await tester.pump();
-
-        final latBefore = controller.camera.center.latitude;
-
-        // Trackpad pan while map is rotated -> exercises the cos/sin path.
-        const panOrigin = Offset(200, 200);
-        final pointer = TestPointer(1, PointerDeviceKind.trackpad);
-        await tester.sendEventToBinding(pointer.panZoomStart(panOrigin));
-        await tester.sendEventToBinding(
-          pointer.panZoomUpdate(
-            panOrigin,
-            scale: 1.0,
-            pan: const Offset(0, 80),
-          ),
-        );
-        await tester.pump();
-        await tester.sendEventToBinding(pointer.panZoomEnd());
-        await tester.pump();
-
-        // Camera should have moved.
-        expect(
-          (controller.camera.center.latitude - latBefore).abs(),
-          greaterThan(0.0001),
-        );
-      },
-    );
-  });
-
   group('MapInteractionDetector _defaultIsTouch platform branches', () {
-    // The _defaultIsTouch() method is called in initState.
-    // Touch platforms (iOS, Android) default to isTouch=true -> pinchZoom enabled.
-    // Desktop platforms (macOS, windows, linux, fuchsia) default to isTouch=false.
-    //
     // debugDefaultTargetPlatformOverride must be cleared synchronously at the
-    // end of the test body because the Flutter test framework checks all debug
-    // vars are unset before running addTearDown callbacks.
-
+    // end of the test body (the test framework checks debug vars are unset
+    // before running addTearDown callbacks).
     Widget detectorWidget(void Function(InteractionOptions) capture) =>
         MaterialApp(
           home: Scaffold(
             body: MapInteractionDetector(
-              allowRotation: false,
               mapController: MapController(),
               builder: (context, options) {
                 capture(options);
@@ -391,74 +246,30 @@ void main() {
           ),
         );
 
-    testWidgets('iOS defaults to touch (pinchZoom enabled)', (tester) async {
-      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    Future<bool> pinchZoomFor(WidgetTester tester, TargetPlatform p) async {
+      debugDefaultTargetPlatformOverride = p;
       late InteractionOptions latest;
       await tester.pumpWidget(detectorWidget((o) => latest = o));
       await tester.pump();
       final result = InteractiveFlag.hasPinchZoom(latest.flags);
       debugDefaultTargetPlatformOverride = null;
-      expect(result, isTrue);
-    });
+      return result;
+    }
 
-    testWidgets('android defaults to touch (pinchZoom enabled)', (
+    testWidgets('iOS / android default to touch (pinchZoom enabled)', (
       tester,
     ) async {
-      debugDefaultTargetPlatformOverride = TargetPlatform.android;
-      late InteractionOptions latest;
-      await tester.pumpWidget(detectorWidget((o) => latest = o));
-      await tester.pump();
-      final result = InteractiveFlag.hasPinchZoom(latest.flags);
-      debugDefaultTargetPlatformOverride = null;
-      expect(result, isTrue);
+      expect(await pinchZoomFor(tester, TargetPlatform.iOS), isTrue);
+      expect(await pinchZoomFor(tester, TargetPlatform.android), isTrue);
     });
 
-    testWidgets('macOS defaults to non-touch (pinchZoom disabled)', (
+    testWidgets('desktop platforms default to non-touch (pinchZoom disabled)', (
       tester,
     ) async {
-      debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
-      late InteractionOptions latest;
-      await tester.pumpWidget(detectorWidget((o) => latest = o));
-      await tester.pump();
-      final result = InteractiveFlag.hasPinchZoom(latest.flags);
-      debugDefaultTargetPlatformOverride = null;
-      expect(result, isFalse);
-    });
-
-    testWidgets('windows defaults to non-touch (pinchZoom disabled)', (
-      tester,
-    ) async {
-      debugDefaultTargetPlatformOverride = TargetPlatform.windows;
-      late InteractionOptions latest;
-      await tester.pumpWidget(detectorWidget((o) => latest = o));
-      await tester.pump();
-      final result = InteractiveFlag.hasPinchZoom(latest.flags);
-      debugDefaultTargetPlatformOverride = null;
-      expect(result, isFalse);
-    });
-
-    testWidgets('linux defaults to non-touch (pinchZoom disabled)', (
-      tester,
-    ) async {
-      debugDefaultTargetPlatformOverride = TargetPlatform.linux;
-      late InteractionOptions latest;
-      await tester.pumpWidget(detectorWidget((o) => latest = o));
-      await tester.pump();
-      final result = InteractiveFlag.hasPinchZoom(latest.flags);
-      debugDefaultTargetPlatformOverride = null;
-      expect(result, isFalse);
-    });
-
-    testWidgets('fuchsia defaults to non-touch (pinchZoom disabled)', (
-      tester,
-    ) async {
-      debugDefaultTargetPlatformOverride = TargetPlatform.fuchsia;
-      late InteractionOptions latest;
-      await tester.pumpWidget(detectorWidget((o) => latest = o));
-      await tester.pump();
-      final result = InteractiveFlag.hasPinchZoom(latest.flags);
-      debugDefaultTargetPlatformOverride = null;
-      expect(result, isFalse);
+      expect(await pinchZoomFor(tester, TargetPlatform.macOS), isFalse);
+      expect(await pinchZoomFor(tester, TargetPlatform.windows), isFalse);
+      expect(await pinchZoomFor(tester, TargetPlatform.linux), isFalse);
+      expect(await pinchZoomFor(tester, TargetPlatform.fuchsia), isFalse);
     });
   });
 
@@ -472,7 +283,6 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: MapInteractionDetector(
-              allowRotation: true,
               mapController: controller,
               builder: (context, options) {
                 latest = options;
@@ -483,7 +293,6 @@ void main() {
         ),
       );
 
-      // First touch pointer down -> isTouch=true, pinchZoom enabled
       final touch1 = TestPointer(1, PointerDeviceKind.touch);
       await tester.sendEventToBinding(
         touch1.addPointer(location: const Offset(200, 200)),
@@ -492,8 +301,8 @@ void main() {
       await tester.pump();
       expect(InteractiveFlag.hasPinchZoom(latest.flags), isTrue);
 
-      // Second touch pointer down (same kind) -> _setTouch(true) when already true,
-      // guard `if (_isTouch != value)` prevents setState -> state unchanged
+      // Second touch (same kind) -> _setTouch(true) when already true; the
+      // guard prevents a redundant setState. State stays touch.
       final touch2 = TestPointer(2, PointerDeviceKind.touch);
       await tester.sendEventToBinding(
         touch2.addPointer(location: const Offset(210, 210)),
@@ -505,22 +314,6 @@ void main() {
       await tester.sendEventToBinding(touch1.up());
       await tester.sendEventToBinding(touch2.up());
       await tester.pump();
-    });
-  });
-
-  group('shouldShowResetNorth', () {
-    test('hidden at or near north', () {
-      expect(shouldShowResetNorth(0), isFalse);
-      expect(shouldShowResetNorth(0.3), isFalse);
-      expect(shouldShowResetNorth(359.8), isFalse);
-      expect(shouldShowResetNorth(360), isFalse);
-    });
-
-    test('shown when meaningfully rotated', () {
-      expect(shouldShowResetNorth(15), isTrue);
-      expect(shouldShowResetNorth(90), isTrue);
-      expect(shouldShowResetNorth(200), isTrue);
-      expect(shouldShowResetNorth(-15), isTrue);
     });
   });
 }

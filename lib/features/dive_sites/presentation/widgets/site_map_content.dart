@@ -242,7 +242,6 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
     }
 
     return MapInteractionDetector(
-      allowRotation: true,
       mapController: _mapController,
       builder: (context, interactionOptions) => Stack(
         children: [
@@ -328,7 +327,6 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
                   error: (_, _) => const SizedBox.shrink(),
                 ),
               const MapAttribution(),
-              const MapResetNorthButton(),
             ],
           ),
 

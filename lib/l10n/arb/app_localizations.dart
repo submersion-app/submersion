@@ -27444,12 +27444,6 @@ abstract class AppLocalizations {
   /// **'Select Region'**
   String get maps_regionSelector_selectRegionButton;
 
-  /// Tooltip and accessibility label for the button that resets map rotation to north-up
-  ///
-  /// In en, this message translates to:
-  /// **'Reset map to north'**
-  String get maps_resetNorth_tooltip;
-
   /// No description provided for @tankPresets_addPreset.
   ///
   /// In en, this message translates to:

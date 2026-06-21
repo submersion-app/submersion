@@ -218,7 +218,6 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
     final settings = ref.watch(heatMapSettingsProvider);
 
     return MapInteractionDetector(
-      allowRotation: true,
       mapController: _mapController,
       builder: (context, interactionOptions) => Stack(
         children: [
@@ -309,7 +308,6 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
                   },
                 ),
               const MapAttribution(),
-              const MapResetNorthButton(),
             ],
           ),
 

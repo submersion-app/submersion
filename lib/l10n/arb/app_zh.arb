@@ -3025,7 +3025,6 @@
   "maps_regionSelector_dragToSelect": "在地图上拖动以选择区域",
   "maps_regionSelector_selectRegion": "在地图上选择区域",
   "maps_regionSelector_selectRegionButton": "选择地区",
-  "maps_resetNorth_tooltip": "将地图重置为正北",
   "marineLife_siteSection_editExpectedTooltip": "编辑预期物种",
   "marineLife_siteSection_errorLoadingExpected": "加载预期物种出错",
   "marineLife_siteSection_errorLoadingSightings": "加载目击记录出错",

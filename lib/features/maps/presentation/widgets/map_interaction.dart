@@ -2,30 +2,19 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:submersion/l10n/l10n_extension.dart';
-
-/// Whether the reset-to-north control should be visible for [rotationDeg]
-/// (degrees). Hidden within [toleranceDeg] of north (0/360).
-bool shouldShowResetNorth(double rotationDeg, {double toleranceDeg = 0.5}) {
-  final normalized = rotationDeg % 360; // Dart % yields [0, 360)
-  final fromNorth = math.min(normalized, 360 - normalized);
-  return fromNorth > toleranceDeg;
-}
 
 /// Builds flutter_map [InteractionOptions] from the active pointer kind.
 ///
-/// Touch keeps flutter_map's native pinch (focal-point zoom). Trackpad/mouse
-/// drop the multi-finger and fling paths because [MapInteractionDetector]
-/// drives trackpad zoom-to-cursor itself; mouse-wheel zoom and click-drag pan
-/// stay with flutter_map.
-InteractionOptions mapInteractionOptions({
-  required bool isTouch,
-  required bool allowRotation,
-}) {
-  final gestureRotate = allowRotation && isTouch;
-
+/// Rotation is disabled on all maps (issue #238: accidental rotation was the
+/// complaint, and flutter_map cannot provide a usable rotation deadband).
+///
+/// Touch keeps flutter_map's native pinch (focal-point zoom, which is correct
+/// on real touch input). Trackpad/mouse drop the multi-finger and fling paths
+/// because [MapInteractionDetector] drives trackpad zoom-to-cursor itself;
+/// mouse-wheel zoom and click-drag pan stay with flutter_map.
+InteractionOptions mapInteractionOptions({required bool isTouch}) {
   final int flags;
   if (isTouch) {
     flags =
@@ -35,8 +24,7 @@ InteractionOptions mapInteractionOptions({
         InteractiveFlag.pinchZoom |
         InteractiveFlag.doubleTapZoom |
         InteractiveFlag.doubleTapDragZoom |
-        InteractiveFlag.scrollWheelZoom |
-        (gestureRotate ? InteractiveFlag.rotate : 0);
+        InteractiveFlag.scrollWheelZoom;
   } else {
     flags =
         InteractiveFlag.drag |
@@ -47,27 +35,25 @@ InteractionOptions mapInteractionOptions({
 
   return InteractionOptions(
     flags: flags,
-    enableMultiFingerGestureRace: gestureRotate,
-    rotationThreshold: 30.0,
-    cursorKeyboardRotationOptions: allowRotation
-        ? const CursorKeyboardRotationOptions()
-        : CursorKeyboardRotationOptions.disabled(),
+    // Rotation is disabled: no rotate gesture flag above, and Ctrl+drag cursor
+    // rotation is turned off too. keyboardOptions defaults already disable QE
+    // rotation.
+    cursorKeyboardRotationOptions: CursorKeyboardRotationOptions.disabled(),
   );
 }
 
 /// Wraps a [FlutterMap] to (1) choose [InteractionOptions] from the active
-/// pointer kind and (2) drive trackpad zoom-to-cursor. The map built by
-/// [builder] must fill this widget's box so that pointer `localPosition`
-/// is in the map viewport coordinate space.
+/// pointer kind and (2) drive trackpad zoom-to-cursor.
+///
+/// The map built by [builder] must fill this widget's box so that pointer
+/// `localPosition` is in the map viewport coordinate space.
 class MapInteractionDetector extends StatefulWidget {
   const MapInteractionDetector({
     super.key,
-    required this.allowRotation,
     required this.mapController,
     required this.builder,
   });
 
-  final bool allowRotation;
   final MapController mapController;
   final Widget Function(BuildContext context, InteractionOptions options)
   builder;
@@ -78,6 +64,14 @@ class MapInteractionDetector extends StatefulWidget {
 
 class _MapInteractionDetectorState extends State<MapInteractionDetector> {
   late bool _isTouch = _defaultIsTouch();
+
+  /// Last known pointer position from reliable hover/move/down events, in the
+  /// map viewport's local coordinate space. Used as the trackpad zoom anchor
+  /// because `PointerPanZoom*` events report an unreliable `localPosition` on
+  /// some platforms (e.g. macOS trackpad pinch; see flutter/flutter#136029) —
+  /// the gesture's scale/pan deltas are fine, but its absolute focal position
+  /// is not, which made pinch zoom fly to a wrong point.
+  Offset? _lastPointerPosition;
 
   double _gestureStartZoom = 0;
   Offset _gestureAnchor = Offset.zero;
@@ -102,6 +96,20 @@ class _MapInteractionDetectorState extends State<MapInteractionDetector> {
     }
   }
 
+  void _onPointerDown(PointerDownEvent e) {
+    _lastPointerPosition = e.localPosition;
+    _setTouch(e.kind == PointerDeviceKind.touch);
+  }
+
+  void _onPointerHover(PointerHoverEvent e) {
+    _lastPointerPosition = e.localPosition;
+    _setTouch(e.kind == PointerDeviceKind.touch);
+  }
+
+  void _onPointerMove(PointerMoveEvent e) {
+    _lastPointerPosition = e.localPosition;
+  }
+
   static Offset _rotateOffset(Offset offset, double radians) {
     if (radians == 0) return offset;
     final cos = math.cos(radians);
@@ -114,8 +122,13 @@ class _MapInteractionDetectorState extends State<MapInteractionDetector> {
 
   void _onPanZoomStart(PointerPanZoomStartEvent e) {
     _setTouch(false);
-    _gestureStartZoom = widget.mapController.camera.zoom;
-    _gestureAnchor = e.localPosition;
+    final cam = widget.mapController.camera;
+    _gestureStartZoom = cam.zoom;
+    // Anchor on the last reliable pointer position (the cursor), NOT
+    // e.localPosition, which is unreliable for pan/zoom events. Fall back to
+    // the viewport center so a missing hover never produces a bogus jump.
+    _gestureAnchor =
+        _lastPointerPosition ?? cam.nonRotatedSize.center(Offset.zero);
     _lastPan = Offset.zero;
   }
 
@@ -140,51 +153,17 @@ class _MapInteractionDetectorState extends State<MapInteractionDetector> {
 
   @override
   Widget build(BuildContext context) {
-    final options = mapInteractionOptions(
-      isTouch: _isTouch,
-      allowRotation: widget.allowRotation,
-    );
+    final options = mapInteractionOptions(isTouch: _isTouch);
     return Listener(
       // Opaque hit-testing ensures trackpad pan/zoom and hover events reach
       // this detector even over transparent regions of the map.
       behavior: HitTestBehavior.opaque,
-      onPointerDown: (e) => _setTouch(e.kind == PointerDeviceKind.touch),
-      onPointerHover: (e) => _setTouch(e.kind == PointerDeviceKind.touch),
+      onPointerDown: _onPointerDown,
+      onPointerHover: _onPointerHover,
+      onPointerMove: _onPointerMove,
       onPointerPanZoomStart: _onPanZoomStart,
       onPointerPanZoomUpdate: _onPanZoomUpdate,
       child: widget.builder(context, options),
-    );
-  }
-}
-
-/// A self-hiding control that resets map rotation to north-up.
-///
-/// Placed inside [FlutterMap.children]. Reads live rotation via
-/// [MapCamera.of] and resets via [MapController.of].
-class MapResetNorthButton extends StatelessWidget {
-  const MapResetNorthButton({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final camera = MapCamera.of(context);
-    if (!shouldShowResetNorth(camera.rotation)) {
-      return const SizedBox.shrink();
-    }
-    final label = context.l10n.maps_resetNorth_tooltip;
-    return Align(
-      alignment: Alignment.topRight,
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: FloatingActionButton.small(
-          heroTag: null,
-          tooltip: label,
-          onPressed: () => MapController.of(context).rotate(0),
-          child: Transform.rotate(
-            angle: camera.rotation * math.pi / 180,
-            child: const Icon(Icons.navigation),
-          ),
-        ),
-      ),
     );
   }
 }
