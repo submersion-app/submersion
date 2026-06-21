@@ -9,49 +9,25 @@ import 'package:sqlite3/sqlite3.dart' as sqlite3;
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
-import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/backup_bookmark_service.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
-import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/library_epoch.dart';
 import 'package:submersion/core/services/sync/library_epoch_store.dart';
 import 'package:submersion/core/services/sync/post_restore_sync_store.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
+import 'package:submersion/features/backup/data/services/backup_database_adapter.dart';
+import 'package:submersion/features/backup/data/services/backup_saf_port.dart';
+import 'package:submersion/features/backup/data/services/backup_target.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_type.dart';
 import 'package:submersion/features/backup/domain/entities/restore_mode.dart';
 
-/// Thin interface for the database operations BackupService needs.
-///
-/// Allows injecting a fake in tests without depending on the
-/// [DatabaseService] singleton directly.
-abstract class BackupDatabaseAdapter {
-  Future<void> backup(String destinationPath);
-  Future<void> restore(String backupPath);
-  Future<String> get databasePath;
-  AppDatabase get database;
-}
-
-/// Default adapter that delegates to [DatabaseService.instance].
-class DefaultBackupDatabaseAdapter implements BackupDatabaseAdapter {
-  final DatabaseService _dbAdapter;
-
-  const DefaultBackupDatabaseAdapter(this._dbAdapter);
-
-  @override
-  Future<void> backup(String destinationPath) =>
-      _dbAdapter.backup(destinationPath);
-
-  @override
-  Future<void> restore(String backupPath) => _dbAdapter.restore(backupPath);
-
-  @override
-  Future<String> get databasePath => _dbAdapter.databasePath;
-
-  @override
-  AppDatabase get database => _dbAdapter.database;
-}
+// BackupDatabaseAdapter + DefaultBackupDatabaseAdapter live in
+// backup_database_adapter.dart; re-exported so existing importers
+// (background_service, providers, tests) keep resolving these types from
+// backup_service.dart after the extraction that broke the backup_target cycle.
+export 'package:submersion/features/backup/data/services/backup_database_adapter.dart';
 
 /// A backups directory ready to write into, plus [release] to call when the
 /// caller is done -- which stops any security-scoped access that was armed to
@@ -105,6 +81,10 @@ class BackupService {
   /// Set on a Merge restore so the next launch forces one reconciling sync.
   /// Nullable so existing constructions keep working.
   final PostRestoreSyncStore? _postRestoreSyncStore;
+
+  /// SAF write/read/delete seam for Android custom (`content://`) backup
+  /// locations. Defaults to the real platform channel; injectable for tests.
+  final BackupSafPort _safPort;
   final _log = LoggerService.forClass(BackupService);
   final _uuid = const Uuid();
 
@@ -118,12 +98,14 @@ class BackupService {
     SyncRepository? syncRepository,
     LibraryEpochStore? epochStore,
     PostRestoreSyncStore? postRestoreSyncStore,
+    BackupSafPort? safPort,
   }) : _dbAdapter = dbAdapter,
        _preferences = preferences,
        _cloudProvider = cloudProvider,
        _syncRepository = syncRepository ?? SyncRepository(),
        _epochStore = epochStore,
-       _postRestoreSyncStore = postRestoreSyncStore;
+       _postRestoreSyncStore = postRestoreSyncStore,
+       _safPort = safPort ?? const MethodChannelBackupSafPort();
 
   // ===========================================================================
   // Backup
@@ -136,43 +118,47 @@ class BackupService {
   /// the backup is also uploaded to cloud storage.
   Future<BackupRecord> performBackup({bool isAutomatic = false}) async {
     _log.info('Starting backup (automatic: $isAutomatic)');
-    // Arm any security-scoped access needed to reach a custom Apple location,
-    // and release it once the write (and prune) are done.
-    final lease = await BackupService.resolveBackupsDirectoryLeased(
+    // Resolve where the backup goes (filesystem dir or Android SAF tree) and
+    // arm any security-scoped access; release it once the write+prune are done.
+    final lease = await BackupService.resolveBackupTargetLeased(
       _preferences,
+      saf: _safPort,
     );
     try {
-      return await _performBackupInto(lease.path, isAutomatic: isAutomatic);
+      return await _performBackupInto(lease.target, isAutomatic: isAutomatic);
     } finally {
       await lease.release();
     }
   }
 
   Future<BackupRecord> _performBackupInto(
-    String localDir, {
+    BackupTarget target, {
     required bool isAutomatic,
   }) async {
     final filename = _generateFilename();
-    final localPath = p.join(localDir, filename);
 
-    // Copy the database file
-    await _dbAdapter.backup(localPath);
+    // Write the backup; ref is a filesystem path or a content:// document URI.
+    final ref = await target.write(_dbAdapter, filename);
 
-    // Get file size
-    final backupFile = File(localPath);
-    final sizeBytes = await backupFile.length();
+    // SAF refs are content URIs (no File length). The backup is a byte copy of
+    // the live DB, so its size equals the source's. Filesystem refs keep the
+    // existing File(ref).length() behavior.
+    final sizeBytes = isSafRef(ref)
+        ? await File(await _dbAdapter.databasePath).length()
+        : await File(ref).length();
 
     // Get dive and site counts
     final counts = await _getDiveSiteCounts();
 
-    // Attempt cloud upload
+    // Attempt cloud upload (cloud + a custom location are mutually exclusive,
+    // so ref is always a filesystem path here).
     String? cloudFileId;
     var location = BackupLocation.local;
 
     final settings = _preferences.getSettings();
     if (settings.cloudBackupEnabled && _cloudProvider != null) {
       try {
-        cloudFileId = await _uploadToCloud(localPath, filename);
+        cloudFileId = await _uploadToCloud(ref, filename);
         location = BackupLocation.both;
         _log.info('Backup uploaded to cloud: $cloudFileId');
       } catch (e, stack) {
@@ -194,7 +180,7 @@ class BackupService {
       diveCount: counts.diveCount,
       siteCount: counts.siteCount,
       cloudFileId: cloudFileId,
-      localPath: localPath,
+      localPath: ref,
       isAutomatic: isAutomatic,
     );
 
@@ -338,10 +324,21 @@ class BackupService {
     // in their configured backup location and in the history list.
     await performBackup();
 
-    // Determine backup source path
+    // Determine backup source path. A SAF (content://) ref is streamed to a
+    // temp file first; SQLite open + validation need a real filesystem path.
     String sourcePath;
-    if (record.localPath != null && await File(record.localPath!).exists()) {
-      sourcePath = record.localPath!;
+    final localRef = record.localPath;
+    if (localRef != null && isSafRef(localRef)) {
+      if (!await _safPort.exists(localRef)) {
+        throw const BackupException(
+          'Backup file not found locally or in cloud',
+        );
+      }
+      final tempDir = await getTemporaryDirectory();
+      sourcePath = p.join(tempDir.path, record.filename);
+      await _safPort.readBackup(documentUri: localRef, destPath: sourcePath);
+    } else if (localRef != null && await File(localRef).exists()) {
+      sourcePath = localRef;
     } else if (record.cloudFileId != null && _cloudProvider != null) {
       // Download from cloud to a temp location
       _log.info('Downloading backup from cloud');
@@ -536,8 +533,11 @@ class BackupService {
 
     for (final record in history) {
       if (record.localPath != null && record.cloudFileId == null) {
-        final file = File(record.localPath!);
-        if (!await file.exists()) {
+        final ref = record.localPath!;
+        final stillThere = isSafRef(ref)
+            ? await _safPort.exists(ref)
+            : await File(ref).exists();
+        if (!stillThere) {
           _log.info('Pruning stale backup record: ${record.filename}');
           pruned = true;
           continue;
@@ -558,12 +558,18 @@ class BackupService {
   Future<void> deleteBackup(BackupRecord record) async {
     _log.info('Deleting backup: ${record.filename}');
 
-    // Delete local file
+    // Delete local file (filesystem path or SAF document URI)
     if (record.localPath != null) {
-      final file = File(record.localPath!);
-      if (await file.exists()) {
-        await file.delete();
-        _log.info('Deleted local file: ${record.localPath}');
+      final ref = record.localPath!;
+      if (isSafRef(ref)) {
+        await _safPort.delete(ref);
+        _log.info('Deleted SAF backup: $ref');
+      } else {
+        final file = File(ref);
+        if (await file.exists()) {
+          await file.delete();
+          _log.info('Deleted local file: $ref');
+        }
       }
     }
 
@@ -738,6 +744,37 @@ class BackupService {
     // on this platform. Reset to the sandbox default so backups keep working.
     await preferences.setBackupLocation(null); // clears location + bookmark
     return BackupDirLease(await resolveDefaultBackupsDirectory(), _noRelease);
+  }
+
+  /// Resolves where the next backup goes as a [BackupTarget]. A `content://`
+  /// custom location (Android SAF) yields a [SafBackupTarget] after confirming
+  /// the persisted tree grant still resolves; a dead grant self-heals to the
+  /// sandbox default. Everything else delegates to
+  /// [resolveBackupsDirectoryLeased], leaving iOS/macOS/Windows/Linux untouched.
+  static Future<BackupTargetLease> resolveBackupTargetLeased(
+    BackupPreferences preferences, {
+    BackupBookmarkPort? bookmarks,
+    BackupSafPort? saf,
+  }) async {
+    final custom = preferences.getSettings().backupLocation;
+    if (custom != null && isSafRef(custom)) {
+      final port = saf ?? const MethodChannelBackupSafPort();
+      final label = await port.resolveTree(custom);
+      if (label == null) {
+        // Grant revoked or folder deleted: reset to default so backups keep
+        // working (mirrors the Apple dead-bookmark self-heal). The settings
+        // subtitle reverts to the default, signaling a re-pick is needed.
+        await preferences.setBackupLocation(null);
+        final dir = await resolveDefaultBackupsDirectory();
+        return BackupTargetLease(FilesystemBackupTarget(dir), _noRelease);
+      }
+      return BackupTargetLease(SafBackupTarget(custom, port), _noRelease);
+    }
+    final lease = await resolveBackupsDirectoryLeased(
+      preferences,
+      bookmarks: bookmarks,
+    );
+    return BackupTargetLease(FilesystemBackupTarget(lease.path), lease.release);
   }
 
   static Future<void> _noRelease() async {}

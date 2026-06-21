@@ -4883,5 +4883,9 @@
   "diveLog_detail_surfaceGps_site": "Sito",
   "diveLog_detail_locationsMap_title": "Posizioni dell'immersione",
   "diveLog_detail_coordinatesCopied": "Coordinate copiate negli appunti",
-  "diveLog_detail_openInMaps": "Apri in Mappe"
+  "diveLog_detail_openInMaps": "Apri in Mappe",
+  "db_location_choose_volume": "Scegli posizione di archiviazione",
+  "db_location_internal": "Memoria interna",
+  "db_location_sd_card": "Scheda SD",
+  "db_location_external_note": "I file qui vengono rimossi se disinstalli l'app."
 }

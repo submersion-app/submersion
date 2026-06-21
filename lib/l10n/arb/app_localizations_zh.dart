@@ -16399,4 +16399,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String statistics_divingSince(int year) {
     return '自 $year 年起潜水';
   }
+
+  @override
+  String get db_location_choose_volume => '选择存储位置';
+
+  @override
+  String get db_location_internal => '内部存储';
+
+  @override
+  String get db_location_sd_card => 'SD卡';
+
+  @override
+  String get db_location_external_note => '卸载应用后，此处的文件将被删除。';
 }

@@ -4883,5 +4883,9 @@
   "diveLog_detail_surfaceGps_site": "Ponto de mergulho",
   "diveLog_detail_locationsMap_title": "Locais de mergulho",
   "diveLog_detail_coordinatesCopied": "Coordenadas copiadas para a área de transferência",
-  "diveLog_detail_openInMaps": "Abrir no Mapas"
+  "diveLog_detail_openInMaps": "Abrir no Mapas",
+  "db_location_choose_volume": "Escolher local de armazenamento",
+  "db_location_internal": "Armazenamento interno",
+  "db_location_sd_card": "Cartão SD",
+  "db_location_external_note": "Os arquivos aqui são removidos se você desinstalar o aplicativo."
 }

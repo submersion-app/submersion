@@ -19,6 +19,7 @@ class BackupPreferences {
   static const String _cloudBackupEnabledKey = 'backup_cloud_enabled';
   static const String _backupLocationKey = 'backup_location';
   static const String _backupLocationBookmarkKey = 'backup_location_bookmark';
+  static const String _backupLocationLabelKey = 'backup_location_label';
   static const String _historyKey = 'backup_history';
 
   final SharedPreferences _prefs;
@@ -70,6 +71,8 @@ class BackupPreferences {
       // location (reset to default) must drop the bookmark too -- otherwise a
       // dangling security-scoped bookmark would linger.
       await _prefs.remove(_backupLocationBookmarkKey);
+      // The label is likewise meaningless without a location.
+      await _prefs.remove(_backupLocationLabelKey);
     } else {
       await _prefs.setString(_backupLocationKey, path);
     }
@@ -91,6 +94,18 @@ class BackupPreferences {
     if (encoded == null) return null;
     return base64Decode(encoded);
   }
+
+  /// Human label for the custom backup location (e.g. the SAF folder's display
+  /// name on Android), shown in settings instead of a raw `content://` URI.
+  Future<void> setBackupLocationLabel(String? label) async {
+    if (label == null) {
+      await _prefs.remove(_backupLocationLabelKey);
+    } else {
+      await _prefs.setString(_backupLocationLabelKey, label);
+    }
+  }
+
+  String? get backupLocationLabel => _prefs.getString(_backupLocationLabelKey);
 
   // ===========================================================================
   // History

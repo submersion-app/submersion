@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:submersion_saf/submersion_saf.dart';
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -482,6 +483,7 @@ class BackupSettingsPage extends ConsumerWidget {
           title: Text(context.l10n.backup_location_title),
           subtitle: Text(
             cloudDestination ??
+                ref.read(backupSettingsProvider.notifier).locationLabel ??
                 settings.backupLocation ??
                 context.l10n.backup_location_default,
             maxLines: 1,
@@ -494,6 +496,21 @@ class BackupSettingsPage extends ConsumerWidget {
                 // iOS: capture a security-scoped bookmark directly -- a bare
                 // file_picker path would lose its scope on the next launch.
                 picked = await BackupBookmarkService.pickFolder();
+              } else if (Platform.isAndroid) {
+                // Android: pick a SAF tree (content:// URI). A file_picker path
+                // is unwritable under scoped storage, so persist the URI + its
+                // display name and skip the bookmark flow entirely. Native +
+                // platform-gated, so the branch body is excluded from coverage;
+                // setSafBackupLocation itself is unit-tested separately.
+                // coverage:ignore-start
+                final folder = await SubmersionSaf.pickFolder();
+                if (folder != null) {
+                  await ref
+                      .read(backupSettingsProvider.notifier)
+                      .setSafBackupLocation(folder.uri, folder.displayName);
+                }
+                return;
+                // coverage:ignore-end
               } else {
                 final path = await FilePicker.getDirectoryPath(
                   dialogTitle: context.l10n.backup_location_title,

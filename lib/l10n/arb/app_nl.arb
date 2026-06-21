@@ -4883,5 +4883,9 @@
   "diveLog_detail_surfaceGps_site": "Duikstek",
   "diveLog_detail_locationsMap_title": "Duiklocaties",
   "diveLog_detail_coordinatesCopied": "Coördinaten gekopieerd naar klembord",
-  "diveLog_detail_openInMaps": "Openen in Kaarten"
+  "diveLog_detail_openInMaps": "Openen in Kaarten",
+  "db_location_choose_volume": "Opslaglocatie kiezen",
+  "db_location_internal": "Interne opslag",
+  "db_location_sd_card": "SD-kaart",
+  "db_location_external_note": "Bestanden hier worden verwijderd als je de app verwijdert."
 }

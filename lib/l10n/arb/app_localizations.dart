@@ -28959,6 +28959,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Diving since {year}'**
   String statistics_divingSince(int year);
+
+  /// No description provided for @db_location_choose_volume.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose storage location'**
+  String get db_location_choose_volume;
+
+  /// No description provided for @db_location_internal.
+  ///
+  /// In en, this message translates to:
+  /// **'Internal storage'**
+  String get db_location_internal;
+
+  /// No description provided for @db_location_sd_card.
+  ///
+  /// In en, this message translates to:
+  /// **'SD card'**
+  String get db_location_sd_card;
+
+  /// No description provided for @db_location_external_note.
+  ///
+  /// In en, this message translates to:
+  /// **'Files here are removed if you uninstall the app.'**
+  String get db_location_external_note;
 }
 
 class _AppLocalizationsDelegate

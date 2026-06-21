@@ -17099,4 +17099,17 @@ class AppLocalizationsNl extends AppLocalizations {
   String statistics_divingSince(int year) {
     return 'Duikt sinds $year';
   }
+
+  @override
+  String get db_location_choose_volume => 'Opslaglocatie kiezen';
+
+  @override
+  String get db_location_internal => 'Interne opslag';
+
+  @override
+  String get db_location_sd_card => 'SD-kaart';
+
+  @override
+  String get db_location_external_note =>
+      'Bestanden hier worden verwijderd als je de app verwijdert.';
 }

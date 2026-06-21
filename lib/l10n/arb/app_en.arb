@@ -10635,5 +10635,9 @@
   "statistics_priorBreakdown": "{logged} logged + {prior} prior",
   "@statistics_priorBreakdown": {"placeholders": {"logged": {"type": "String"}, "prior": {"type": "String"}}},
   "statistics_divingSince": "Diving since {year}",
-  "@statistics_divingSince": {"placeholders": {"year": {"type": "int"}}}
+  "@statistics_divingSince": {"placeholders": {"year": {"type": "int"}}},
+  "db_location_choose_volume": "Choose storage location",
+  "db_location_internal": "Internal storage",
+  "db_location_sd_card": "SD card",
+  "db_location_external_note": "Files here are removed if you uninstall the app."
 }

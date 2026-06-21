@@ -16910,4 +16910,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String statistics_divingSince(int year) {
     return 'يغوص منذ $year';
   }
+
+  @override
+  String get db_location_choose_volume => 'اختيار موقع التخزين';
+
+  @override
+  String get db_location_internal => 'التخزين الداخلي';
+
+  @override
+  String get db_location_sd_card => 'بطاقة SD';
+
+  @override
+  String get db_location_external_note =>
+      'تُحذف الملفات هنا عند إلغاء تثبيت التطبيق.';
 }

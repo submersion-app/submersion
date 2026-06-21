@@ -4883,5 +4883,9 @@
   "diveLog_detail_surfaceGps_site": "Tauchplatz",
   "diveLog_detail_locationsMap_title": "Tauchorte",
   "diveLog_detail_coordinatesCopied": "Koordinaten in die Zwischenablage kopiert",
-  "diveLog_detail_openInMaps": "In Karten öffnen"
+  "diveLog_detail_openInMaps": "In Karten öffnen",
+  "db_location_choose_volume": "Speicherort wählen",
+  "db_location_internal": "Interner Speicher",
+  "db_location_sd_card": "SD-Karte",
+  "db_location_external_note": "Dateien hier werden entfernt, wenn Sie die App deinstallieren."
 }

@@ -17300,4 +17300,17 @@ class AppLocalizationsFr extends AppLocalizations {
   String statistics_divingSince(int year) {
     return 'Plonge depuis $year';
   }
+
+  @override
+  String get db_location_choose_volume => 'Choisir l\'emplacement de stockage';
+
+  @override
+  String get db_location_internal => 'Stockage interne';
+
+  @override
+  String get db_location_sd_card => 'Carte SD';
+
+  @override
+  String get db_location_external_note =>
+      'Les fichiers ici sont supprimés si vous désinstallez l\'application.';
 }

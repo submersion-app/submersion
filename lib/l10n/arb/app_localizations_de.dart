@@ -17201,4 +17201,17 @@ class AppLocalizationsDe extends AppLocalizations {
   String statistics_divingSince(int year) {
     return 'Taucht seit $year';
   }
+
+  @override
+  String get db_location_choose_volume => 'Speicherort wählen';
+
+  @override
+  String get db_location_internal => 'Interner Speicher';
+
+  @override
+  String get db_location_sd_card => 'SD-Karte';
+
+  @override
+  String get db_location_external_note =>
+      'Dateien hier werden entfernt, wenn Sie die App deinstallieren.';
 }

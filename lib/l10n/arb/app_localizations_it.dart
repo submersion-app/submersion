@@ -17236,4 +17236,17 @@ class AppLocalizationsIt extends AppLocalizations {
   String statistics_divingSince(int year) {
     return 'Immersioni dal $year';
   }
+
+  @override
+  String get db_location_choose_volume => 'Scegli posizione di archiviazione';
+
+  @override
+  String get db_location_internal => 'Memoria interna';
+
+  @override
+  String get db_location_sd_card => 'Scheda SD';
+
+  @override
+  String get db_location_external_note =>
+      'I file qui vengono rimossi se disinstalli l\'app.';
 }

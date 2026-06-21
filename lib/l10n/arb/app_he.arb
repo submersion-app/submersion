@@ -4883,5 +4883,9 @@
   "diveLog_detail_surfaceGps_site": "אתר",
   "diveLog_detail_locationsMap_title": "מיקומי צלילה",
   "diveLog_detail_coordinatesCopied": "הקואורדינטות הועתקו ללוח",
-  "diveLog_detail_openInMaps": "פתח במפות"
+  "diveLog_detail_openInMaps": "פתח במפות",
+  "db_location_choose_volume": "בחירת מיקום אחסון",
+  "db_location_internal": "אחסון פנימי",
+  "db_location_sd_card": "כרטיס SD",
+  "db_location_external_note": "הקבצים כאן נמחקים אם מסירים את האפליקציה."
 }

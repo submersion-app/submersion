@@ -4883,5 +4883,9 @@
   "diveLog_detail_surfaceGps_site": "Punto de buceo",
   "diveLog_detail_locationsMap_title": "Ubicaciones de buceo",
   "diveLog_detail_coordinatesCopied": "Coordenadas copiadas al portapapeles",
-  "diveLog_detail_openInMaps": "Abrir en Mapas"
+  "diveLog_detail_openInMaps": "Abrir en Mapas",
+  "db_location_choose_volume": "Elegir ubicación de almacenamiento",
+  "db_location_internal": "Almacenamiento interno",
+  "db_location_sd_card": "Tarjeta SD",
+  "db_location_external_note": "Los archivos aquí se eliminan si desinstalas la aplicación."
 }

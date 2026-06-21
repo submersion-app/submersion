@@ -17187,4 +17187,17 @@ class AppLocalizationsHu extends AppLocalizations {
   String statistics_divingSince(int year) {
     return '$year óta merül';
   }
+
+  @override
+  String get db_location_choose_volume => 'Tárhely kiválasztása';
+
+  @override
+  String get db_location_internal => 'Belső tárhely';
+
+  @override
+  String get db_location_sd_card => 'SD-kártya';
+
+  @override
+  String get db_location_external_note =>
+      'Az itt tárolt fájlok törlődnek, ha eltávolítja az alkalmazást.';
 }

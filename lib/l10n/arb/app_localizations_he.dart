@@ -16789,4 +16789,17 @@ class AppLocalizationsHe extends AppLocalizations {
   String statistics_divingSince(int year) {
     return 'צולל מאז $year';
   }
+
+  @override
+  String get db_location_choose_volume => 'בחירת מיקום אחסון';
+
+  @override
+  String get db_location_internal => 'אחסון פנימי';
+
+  @override
+  String get db_location_sd_card => 'כרטיס SD';
+
+  @override
+  String get db_location_external_note =>
+      'הקבצים כאן נמחקים אם מסירים את האפליקציה.';
 }

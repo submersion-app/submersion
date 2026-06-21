@@ -4883,5 +4883,9 @@
   "diveLog_detail_surfaceGps_site": "潜点",
   "diveLog_detail_locationsMap_title": "潜水位置",
   "diveLog_detail_coordinatesCopied": "坐标已复制到剪贴板",
-  "diveLog_detail_openInMaps": "在地图中打开"
+  "diveLog_detail_openInMaps": "在地图中打开",
+  "db_location_choose_volume": "选择存储位置",
+  "db_location_internal": "内部存储",
+  "db_location_sd_card": "SD卡",
+  "db_location_external_note": "卸载应用后，此处的文件将被删除。"
 }

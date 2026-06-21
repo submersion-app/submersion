@@ -4883,5 +4883,9 @@
   "diveLog_detail_surfaceGps_site": "Merülőhely",
   "diveLog_detail_locationsMap_title": "Merülési helyszínek",
   "diveLog_detail_coordinatesCopied": "Koordináták a vágólapra másolva",
-  "diveLog_detail_openInMaps": "Megnyitás a Térképekben"
+  "diveLog_detail_openInMaps": "Megnyitás a Térképekben",
+  "db_location_choose_volume": "Tárhely kiválasztása",
+  "db_location_internal": "Belső tárhely",
+  "db_location_sd_card": "SD-kártya",
+  "db_location_external_note": "Az itt tárolt fájlok törlődnek, ha eltávolítja az alkalmazást."
 }
