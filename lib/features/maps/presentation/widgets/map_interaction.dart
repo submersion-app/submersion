@@ -56,8 +56,8 @@ InteractionOptions mapInteractionOptions({
 }
 
 /// Wraps a [FlutterMap] to (1) choose [InteractionOptions] from the active
-/// pointer kind and (2) drive trackpad zoom-to-cursor (added in the trackpad
-/// handler). The map built by [builder] must fill this widget's box so that
+/// pointer kind and (2) drives trackpad zoom-to-cursor. The map built by
+/// [builder] must fill this widget's box so that
 /// pointer `localPosition` is in the map viewport coordinate space.
 class MapInteractionDetector extends StatefulWidget {
   const MapInteractionDetector({

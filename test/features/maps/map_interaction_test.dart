@@ -201,6 +201,15 @@ void main() {
       );
       await tester.pump();
 
+      // Force the detector into its non-touch (desktop) state so flutter_map's
+      // native pinch is disabled and only our trackpad handler can move the map.
+      final mouse = TestPointer(2, PointerDeviceKind.mouse);
+      await tester.sendEventToBinding(
+        mouse.addPointer(location: const Offset(5, 5)),
+      );
+      await tester.sendEventToBinding(mouse.hover(const Offset(5, 5)));
+      await tester.pump();
+
       const anchor = Offset(300, 120); // off-center
       final latLngUnderAnchorBefore = controller.camera.offsetToCrs(anchor);
       final zoomBefore = controller.camera.zoom;
@@ -226,6 +235,67 @@ void main() {
             .abs(),
         lessThan(0.5),
       );
+    });
+
+    testWidgets('vertical pan moves the camera center along latitude', (
+      tester,
+    ) async {
+      final controller = MapController();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 400,
+              height: 400,
+              child: MapInteractionDetector(
+                allowRotation: false,
+                mapController: controller,
+                builder: (context, options) => FlutterMap(
+                  mapController: controller,
+                  options: MapOptions(
+                    initialCenter: const LatLng(0, 0),
+                    initialZoom: 3,
+                    interactionOptions: options,
+                  ),
+                  children: const [],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      // Force the detector into its non-touch (desktop) state so flutter_map's
+      // native pinch is disabled and only our trackpad handler can move the map.
+      final mouse = TestPointer(2, PointerDeviceKind.mouse);
+      await tester.sendEventToBinding(
+        mouse.addPointer(location: const Offset(5, 5)),
+      );
+      await tester.sendEventToBinding(mouse.hover(const Offset(5, 5)));
+      await tester.pump();
+
+      const panOrigin = Offset(200, 200);
+      final latBefore = controller.camera.center.latitude;
+      final zoomBefore = controller.camera.zoom;
+
+      // Pure vertical pan (scale: 1.0 -> no zoom change).
+      final pointer = TestPointer(1, PointerDeviceKind.trackpad);
+      await tester.sendEventToBinding(pointer.panZoomStart(panOrigin));
+      await tester.sendEventToBinding(
+        pointer.panZoomUpdate(panOrigin, scale: 1.0, pan: const Offset(0, 60)),
+      );
+      await tester.pump();
+      await tester.sendEventToBinding(pointer.panZoomEnd());
+      await tester.pump();
+
+      // Latitude should have shifted by a non-trivial amount.
+      expect(
+        (controller.camera.center.latitude - latBefore).abs(),
+        greaterThan(0.0001),
+      );
+      // Zoom should be essentially unchanged (scale was 1.0).
+      expect((controller.camera.zoom - zoomBefore).abs(), lessThan(0.01));
     });
   });
 
