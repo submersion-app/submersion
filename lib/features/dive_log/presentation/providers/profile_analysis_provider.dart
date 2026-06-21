@@ -240,6 +240,7 @@ ProfileAnalysisService _resolveAnalysisService(
   MetricDataSource ceilingSource = MetricDataSource.calculated,
   MetricDataSource ttsSource = MetricDataSource.calculated,
   MetricDataSource cnsSource = MetricDataSource.calculated,
+  RebreatherPpO2? rebreatherPpO2,
 }) {
   final hasComputerNdl = profile.any((p) => p.ndl != null);
   final hasComputerCeiling = profile.any((p) => p.ceiling != null);
@@ -256,78 +257,14 @@ ProfileAnalysisService _resolveAnalysisService(
 
   // ---- ppO2 / O2 cell overlay (CCR/SCR) ----
   // For rebreather dives the displayed ppO2 must come from sensor data or the
-  // setpoint, never the OC depth x FO2 fallback. Resolve per sample with the
-  // priority: computer ppO2 (dc_supplied) -> cell average -> setpoint. Cells
-  // are exposed individually for the tooltip. Averaging here is display-time
-  // only (the no-calculation rule applies to import, not display).
-  const cellAccessors = <double? Function(DiveProfilePoint)>[
-    _o2Sensor1,
-    _o2Sensor2,
-    _o2Sensor3,
-    _o2Sensor4,
-    _o2Sensor5,
-    _o2Sensor6,
-  ];
-  double? cellAverage(DiveProfilePoint p) {
-    var sum = 0.0;
-    var count = 0;
-    for (final accessor in cellAccessors) {
-      final value = accessor(p);
-      if (value != null) {
-        sum += value;
-        count++;
-      }
-    }
-    return count == 0 ? null : sum / count;
-  }
-
-  final hasComputerPpO2 = profile.any((p) => p.ppO2 != null);
-  final hasCells = profile.any((p) => cellAverage(p) != null);
-  final hasSetpoint = profile.any((p) => p.setpoint != null);
-  final hasSensorData = hasComputerPpO2 || hasCells;
-  final hasRebreatherPpO2 = hasSensorData || hasSetpoint;
-
-  List<double>? resolvedPpO2;
-  List<List<double?>>? o2SensorCurves;
-  var ppO2FromSensorAverage = false;
-  if (hasRebreatherPpO2) {
-    // Pick ONE source for the whole dive — sensor data when present, otherwise
-    // the setpoint — and never mix them. Mixing makes the curve jump between
-    // the measured value and the setpoint on samples where the cells are
-    // momentarily absent. Within the chosen source, hold the last known value
-    // across gaps (and back-fill leading gaps with the first reading) so the
-    // curve stays continuous instead of dropping out.
-    final raw = List<double?>.generate(profile.length, (i) {
-      final p = profile[i];
-      return hasSensorData ? (p.ppO2 ?? cellAverage(p)) : p.setpoint;
-    });
-    final firstKnown = raw.firstWhere((v) => v != null, orElse: () => null);
-    double? carry = firstKnown;
-    resolvedPpO2 = List<double>.generate(profile.length, (i) {
-      final value = raw[i];
-      if (value != null) carry = value;
-      return carry ?? 0.0;
-    });
-    // Tooltip labels the value as an average only when cells are the source
-    // (no computer-supplied ppO2 was available).
-    ppO2FromSensorAverage = hasSensorData && !hasComputerPpO2;
-    // Expose each cell as its own per-sample curve, indexed by physical cell
-    // position so the tooltip labels them correctly (curve index i == Sensor
-    // i+1). Build curves up to the highest-numbered cell that has any reading;
-    // any lower cell with no readings stays an all-null curve, which the chart
-    // skips per-sample. This keeps labels right even when cells are absent or
-    // non-contiguous (e.g. a failed/unreported cell).
-    var highestCell = -1;
-    for (var i = 0; i < cellAccessors.length; i++) {
-      if (profile.any((p) => cellAccessors[i](p) != null)) highestCell = i;
-    }
-    if (highestCell >= 0) {
-      o2SensorCurves = [
-        for (var i = 0; i <= highestCell; i++)
-          profile.map(cellAccessors[i]).toList(),
-      ];
-    }
-  }
+  // setpoint, never the OC depth x FO2 fallback. The same resolved curve is fed
+  // into the analysis (see [resolveRebreatherPpO2]) so the CNS/OTU numbers match
+  // the displayed ppO2. Callers that already resolved it pass it in to avoid a
+  // second pass over the profile; otherwise resolve it here.
+  final resolved = rebreatherPpO2 ?? resolveRebreatherPpO2(profile);
+  final resolvedPpO2 = resolved?.curve;
+  final o2SensorCurves = resolved?.sensorCurves;
+  final ppO2FromSensorAverage = resolved?.fromSensorAverage ?? false;
 
   // Report actual source used (fallback to calculated if no data)
   final sourceInfo = (
@@ -399,6 +336,102 @@ double? _o2Sensor4(DiveProfilePoint p) => p.o2Sensor4;
 double? _o2Sensor5(DiveProfilePoint p) => p.o2Sensor5;
 double? _o2Sensor6(DiveProfilePoint p) => p.o2Sensor6;
 
+const _cellAccessors = <double? Function(DiveProfilePoint)>[
+  _o2Sensor1,
+  _o2Sensor2,
+  _o2Sensor3,
+  _o2Sensor4,
+  _o2Sensor5,
+  _o2Sensor6,
+];
+
+double? _cellAverage(DiveProfilePoint p) {
+  var sum = 0.0;
+  var count = 0;
+  for (final accessor in _cellAccessors) {
+    final value = accessor(p);
+    if (value != null) {
+      sum += value;
+      count++;
+    }
+  }
+  return count == 0 ? null : sum / count;
+}
+
+/// Resolved per-sample ppO2 for a rebreather dive.
+typedef RebreatherPpO2 = ({
+  /// ppO2 (bar) at each sample, continuous (last-known carried across gaps).
+  List<double> curve,
+
+  /// True when [curve] comes from averaging O2 cells (no computer-supplied
+  /// ppO2 was available). Used to label the chart tooltip.
+  bool fromSensorAverage,
+
+  /// Each O2 cell exposed as its own per-sample curve for the tooltip, or null
+  /// when the dive has no cell data.
+  List<List<double?>>? sensorCurves,
+});
+
+/// Resolves the per-sample ppO2 curve for a rebreather dive from sensor/setpoint
+/// data, returning null for profiles with no cells/ppO2/setpoint (e.g. OC).
+///
+/// This is the single source of truth for rebreather ppO2: it is used both to
+/// display the ppO2 curve and to drive the CNS/OTU calculation, so the two never
+/// disagree. ppO2 priority is computer ppO2 (dc_supplied) -> cell average ->
+/// setpoint, never the OC depth x FO2 fallback (the CCR ppO2 source rule).
+RebreatherPpO2? resolveRebreatherPpO2(List<DiveProfilePoint> profile) {
+  final hasComputerPpO2 = profile.any((p) => p.ppO2 != null);
+  final hasCells = profile.any((p) => _cellAverage(p) != null);
+  final hasSetpoint = profile.any((p) => p.setpoint != null);
+  final hasSensorData = hasComputerPpO2 || hasCells;
+  final hasRebreatherPpO2 = hasSensorData || hasSetpoint;
+  if (!hasRebreatherPpO2) return null;
+
+  // Pick ONE source for the whole dive — sensor data when present, otherwise
+  // the setpoint — and never mix them. Mixing makes the curve jump between the
+  // measured value and the setpoint on samples where the cells are momentarily
+  // absent. Within the chosen source, hold the last known value across gaps
+  // (and back-fill leading gaps with the first reading) so the curve stays
+  // continuous instead of dropping out.
+  final raw = List<double?>.generate(profile.length, (i) {
+    final p = profile[i];
+    return hasSensorData ? (p.ppO2 ?? _cellAverage(p)) : p.setpoint;
+  });
+  final firstKnown = raw.firstWhere((v) => v != null, orElse: () => null);
+  double? carry = firstKnown;
+  final curve = List<double>.generate(profile.length, (i) {
+    final value = raw[i];
+    if (value != null) carry = value;
+    return carry ?? 0.0;
+  });
+
+  // Expose each cell as its own per-sample curve, indexed by physical cell
+  // position so the tooltip labels them correctly (curve index i == Sensor
+  // i+1). Build curves up to the highest-numbered cell that has any reading;
+  // any lower cell with no readings stays an all-null curve, which the chart
+  // skips per-sample. This keeps labels right even when cells are absent or
+  // non-contiguous (e.g. a failed/unreported cell).
+  List<List<double?>>? sensorCurves;
+  var highestCell = -1;
+  for (var i = 0; i < _cellAccessors.length; i++) {
+    if (profile.any((p) => _cellAccessors[i](p) != null)) highestCell = i;
+  }
+  if (highestCell >= 0) {
+    sensorCurves = [
+      for (var i = 0; i <= highestCell; i++)
+        profile.map(_cellAccessors[i]).toList(),
+    ];
+  }
+
+  return (
+    curve: curve,
+    // Tooltip labels the value as an average only when cells are the source
+    // (no computer-supplied ppO2 was available).
+    fromSensorAverage: hasSensorData && !hasComputerPpO2,
+    sensorCurves: sensorCurves,
+  );
+}
+
 /// Provider for the ProfileAnalysisService configured with user settings
 final profileAnalysisServiceProvider = Provider<ProfileAnalysisService>((ref) {
   // Get decompression settings
@@ -451,6 +484,7 @@ class _ProfileAnalysisInput {
   final List<TissueCompartment>? startCompartments;
   final double startOtu;
   final List<ProfileGasSegment>? gasSegments;
+  final List<double>? rebreatherPpO2Curve;
 
   const _ProfileAnalysisInput({
     required this.gfLow,
@@ -477,6 +511,7 @@ class _ProfileAnalysisInput {
     this.startCompartments,
     this.startOtu = 0.0,
     this.gasSegments,
+    this.rebreatherPpO2Curve,
   });
 }
 
@@ -510,6 +545,7 @@ ProfileAnalysis _runProfileAnalysis(_ProfileAnalysisInput input) {
     startCompartments: input.startCompartments,
     startOtu: input.startOtu,
     gasSegments: input.gasSegments,
+    rebreatherPpO2Curve: input.rebreatherPpO2Curve,
   );
 }
 
@@ -635,6 +671,11 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
             await repository.getGasSwitchesForDive(diveId),
           )
         : null;
+    // Resolve rebreather loop ppO2 once and reuse it for both the analysis
+    // (CNS/OTU) and the display overlay so the two always agree.
+    final rebreatherPpO2 = dive.diveMode == DiveMode.oc
+        ? null
+        : resolveRebreatherPpO2(dive.profile);
     // Run Buhlmann analysis on a background isolate to keep UI responsive
     _log.debug(
       'Analyzing profile for dive $diveId with ${depths.length} points, '
@@ -668,6 +709,7 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
         startCompartments: startCompartments,
         startOtu: startOtu,
         gasSegments: gasSegments,
+        rebreatherPpO2Curve: rebreatherPpO2?.curve,
       ),
     );
 
@@ -679,6 +721,7 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
       ceilingSource: ceilingSource,
       ttsSource: ttsSource,
       cnsSource: cnsSource,
+      rebreatherPpO2: rebreatherPpO2,
     );
 
     // Publish actual source info for legend badge display
@@ -1017,6 +1060,12 @@ final diveProfileAnalysisProvider = Provider.family<ProfileAnalysis?, Dive>((
     // Get cumulative OTU from earlier same-day dives (0.0 while loading)
     final startOtu = ref.watch(residualOtuProvider(dive.id)).valueOrNull ?? 0.0;
 
+    // Resolve rebreather loop ppO2 once and reuse it for both the analysis
+    // (CNS/OTU) and the display overlay so the two always agree.
+    final rebreatherPpO2 = dive.diveMode == DiveMode.oc
+        ? null
+        : resolveRebreatherPpO2(dive.profile);
+
     final analysis = service.analyze(
       diveId: dive.id,
       depths: depths,
@@ -1034,6 +1083,7 @@ final diveProfileAnalysisProvider = Provider.family<ProfileAnalysis?, Dive>((
       scrInjectionRate: dive.scrInjectionRate,
       scrSupplyO2Percent: dive.diluentGas?.o2,
       scrVo2: dive.assumedVo2 ?? 1.3,
+      rebreatherPpO2Curve: rebreatherPpO2?.curve,
     );
 
     // Overlay computer-reported deco data where available
@@ -1044,6 +1094,7 @@ final diveProfileAnalysisProvider = Provider.family<ProfileAnalysis?, Dive>((
       ceilingSource: MetricDataSource.computer,
       ttsSource: MetricDataSource.computer,
       cnsSource: MetricDataSource.computer,
+      rebreatherPpO2: rebreatherPpO2,
     );
     return overlaid;
   } catch (e, stackTrace) {
