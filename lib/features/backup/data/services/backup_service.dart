@@ -350,10 +350,19 @@ class BackupService {
     // in their configured backup location and in the history list.
     await performBackup();
 
-    // Determine backup source path
+    // Determine backup source path. A SAF (content://) ref is streamed to a
+    // temp file first; SQLite open + validation need a real filesystem path.
     String sourcePath;
-    if (record.localPath != null && await File(record.localPath!).exists()) {
-      sourcePath = record.localPath!;
+    final localRef = record.localPath;
+    if (localRef != null && isSafRef(localRef)) {
+      if (!await _safPort.exists(localRef)) {
+        throw const BackupException('Backup file not found locally or in cloud');
+      }
+      final tempDir = await getTemporaryDirectory();
+      sourcePath = p.join(tempDir.path, record.filename);
+      await _safPort.readBackup(documentUri: localRef, destPath: sourcePath);
+    } else if (localRef != null && await File(localRef).exists()) {
+      sourcePath = localRef;
     } else if (record.cloudFileId != null && _cloudProvider != null) {
       // Download from cloud to a temp location
       _log.info('Downloading backup from cloud');
@@ -548,8 +557,11 @@ class BackupService {
 
     for (final record in history) {
       if (record.localPath != null && record.cloudFileId == null) {
-        final file = File(record.localPath!);
-        if (!await file.exists()) {
+        final ref = record.localPath!;
+        final stillThere = isSafRef(ref)
+            ? await _safPort.exists(ref)
+            : await File(ref).exists();
+        if (!stillThere) {
           _log.info('Pruning stale backup record: ${record.filename}');
           pruned = true;
           continue;
@@ -570,12 +582,18 @@ class BackupService {
   Future<void> deleteBackup(BackupRecord record) async {
     _log.info('Deleting backup: ${record.filename}');
 
-    // Delete local file
+    // Delete local file (filesystem path or SAF document URI)
     if (record.localPath != null) {
-      final file = File(record.localPath!);
-      if (await file.exists()) {
-        await file.delete();
-        _log.info('Deleted local file: ${record.localPath}');
+      final ref = record.localPath!;
+      if (isSafRef(ref)) {
+        await _safPort.delete(ref);
+        _log.info('Deleted SAF backup: $ref');
+      } else {
+        final file = File(ref);
+        if (await file.exists()) {
+          await file.delete();
+          _log.info('Deleted local file: $ref');
+        }
       }
     }
 
