@@ -1016,6 +1016,12 @@ class DiveComputerRepository {
               rbt: Value(point.rbt),
               decoType: Value(point.decoType),
               tts: Value(point.tts),
+              o2Sensor1: Value(point.o2Sensor1),
+              o2Sensor2: Value(point.o2Sensor2),
+              o2Sensor3: Value(point.o2Sensor3),
+              o2Sensor4: Value(point.o2Sensor4),
+              o2Sensor5: Value(point.o2Sensor5),
+              o2Sensor6: Value(point.o2Sensor6),
             ),
           );
         }
@@ -1584,6 +1590,14 @@ class ProfilePointData {
   /// Time to surface in seconds
   final int? tts;
 
+  /// Individual CCR O2 cell ppO2 readings in bar (sensor 1..6)
+  final double? o2Sensor1;
+  final double? o2Sensor2;
+  final double? o2Sensor3;
+  final double? o2Sensor4;
+  final double? o2Sensor5;
+  final double? o2Sensor6;
+
   const ProfilePointData({
     required this.timestamp,
     required this.depth,
@@ -1602,6 +1616,12 @@ class ProfilePointData {
     this.decoTime,
     this.decoDepth,
     this.tts,
+    this.o2Sensor1,
+    this.o2Sensor2,
+    this.o2Sensor3,
+    this.o2Sensor4,
+    this.o2Sensor5,
+    this.o2Sensor6,
   });
 }
 

@@ -159,6 +159,82 @@ void main() {
       );
     });
 
+    test('CCR: measured loop ppO2 drives CNS', () {
+      // Deep CCR dive on a 50% diluent. The measured loop ppO2 (~1.2 bar from
+      // the O2 cells) must drive CNS, never the OC depth x FO2 of the diluent
+      // (which would inflate ppO2 to ~2.5 bar at 40m).
+      final depths = <double>[];
+      final timestamps = <int>[];
+      for (int t = 0; t <= 40 * 60; t += 60) {
+        timestamps.add(t);
+        depths.add(40.0);
+      }
+      final measuredPpO2 = List<double>.filled(depths.length, 1.2);
+
+      final withCells = service.analyze(
+        diveId: 'ccr-with-cells',
+        depths: depths,
+        timestamps: timestamps,
+        o2Fraction: 0.5,
+        diveMode: DiveMode.ccr,
+        rebreatherPpO2Curve: measuredPpO2,
+      );
+
+      // ppO2 comes from the measured curve, not depth x FO2 (which is 2.5).
+      expect(withCells.ppO2Curve.last, closeTo(1.2, 1e-9));
+      // 40 min at ppO2 1.2 bar -> ~210-min NOAA limit -> ~19% CNS.
+      expect(withCells.o2Exposure.cnsEnd, closeTo(40 / 210 * 100, 1.0));
+      expect(
+        withCells.cnsCurve!.last,
+        closeTo(withCells.o2Exposure.cnsEnd, 1e-6),
+      );
+    });
+
+    test('CCR: no loop ppO2 data never falls back to OC depth x FO2', () {
+      // No cells, no measured ppO2, no setpoint. The CCR ppO2 must not be
+      // computed as depth x diluent-FO2 (that would read 2.5 bar at 40m and
+      // fabricate a large CNS); it stays unknown (zero) instead.
+      final depths = <double>[];
+      final timestamps = <int>[];
+      for (int t = 0; t <= 40 * 60; t += 60) {
+        timestamps.add(t);
+        depths.add(40.0);
+      }
+
+      final result = service.analyze(
+        diveId: 'ccr-no-ppo2',
+        depths: depths,
+        timestamps: timestamps,
+        o2Fraction: 0.5,
+        diveMode: DiveMode.ccr,
+      );
+
+      expect(result.ppO2Curve.every((v) => v == 0.0), isTrue);
+      expect(result.o2Exposure.cnsEnd, 0.0);
+    });
+
+    test('CCR: only-low setpoint is used as a constant ppO2', () {
+      final depths = <double>[];
+      final timestamps = <int>[];
+      for (int t = 0; t <= 40 * 60; t += 60) {
+        timestamps.add(t);
+        depths.add(40.0);
+      }
+
+      final result = service.analyze(
+        diveId: 'ccr-low-sp-only',
+        depths: depths,
+        timestamps: timestamps,
+        o2Fraction: 0.5,
+        diveMode: DiveMode.ccr,
+        setpointLow: 0.7,
+      );
+
+      // Constant 0.7 bar everywhere (no depth-phased switch without a high sp),
+      // never the OC 2.5 bar.
+      expect(result.ppO2Curve.every((v) => v == 0.7), isTrue);
+    });
+
     test('single gas segment matches single-gas analysis', () {
       final depths = <double>[];
       final timestamps = <int>[];

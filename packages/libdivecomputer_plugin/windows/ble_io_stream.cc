@@ -51,6 +51,21 @@ bool BleIoStream::ConnectAndDiscover(uint64_t bluetooth_address) {
         if (!device_) return false;
 
         device_name_ = winrt::to_string(device_.Name());
+
+        // Request a throughput-optimized (low-interval) connection so a dive
+        // computer's serial->BLE bridge can drain its buffer during bulk
+        // logbook/profile dumps without overflowing and dropping
+        // notifications (issue #280, OSTC nano). Best-effort: hold the request
+        // for the connection's lifetime; ignore failures on Windows < 2004 or
+        // unsupported controllers.
+        try {
+            preferred_connection_request_ =
+                device_.RequestPreferredConnectionParameters(
+                    BluetoothLEPreferredConnectionParameters::
+                        ThroughputOptimized());
+        } catch (...) {
+        }
+
         return DiscoverCharacteristics();
     } catch (...) {
         return false;
@@ -224,6 +239,9 @@ void BleIoStream::Close() {
         notify_characteristic_ = nullptr;
     }
     write_characteristic_ = nullptr;
+    // Release the throughput-optimized connection request (reverts to the
+    // controller's default interval) before tearing down the device.
+    preferred_connection_request_ = nullptr;
     if (device_) {
         device_.Close();
         device_ = nullptr;

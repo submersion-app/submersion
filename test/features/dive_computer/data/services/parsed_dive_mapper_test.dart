@@ -177,6 +177,33 @@ void main() {
       expect(downloaded.profile[2].heartRate, 85);
     });
 
+    test('maps per-cell O2 sensor ppO2 (absent cells stay null)', () {
+      final parsed = makeParsedDive(
+        fingerprint: 'cells1',
+        samples: [
+          pigeon.ProfileSample(
+            timeSeconds: 0,
+            depthMeters: 0.0,
+            ppo2: 0.7,
+            o2Sensor1: 0.68,
+            o2Sensor2: 0.70,
+            o2Sensor3: 0.72,
+          ),
+        ],
+      );
+
+      final downloaded = parsedDiveToDownloaded(parsed);
+      final p = downloaded.profile.single;
+
+      expect(p.ppo2, 0.7);
+      expect(p.o2Sensor1, 0.68);
+      expect(p.o2Sensor2, 0.70);
+      expect(p.o2Sensor3, 0.72);
+      expect(p.o2Sensor4, isNull);
+      expect(p.o2Sensor5, isNull);
+      expect(p.o2Sensor6, isNull);
+    });
+
     // --- Tanks and gas mixes ---
 
     test('maps tanks with gas mixes correctly', () {

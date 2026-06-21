@@ -181,6 +181,9 @@ static void sample_callback(dc_sample_type_t type,
         state->current_sample.heartbeat = UINT32_MAX;
         state->current_sample.setpoint = NAN;
         state->current_sample.ppo2 = NAN;
+        for (int cell = 0; cell < 6; cell++) {
+            state->current_sample.o2_sensor[cell] = NAN;
+        }
         state->current_sample.cns = NAN;
         state->current_sample.rbt = UINT32_MAX;
         state->current_sample.deco_type = UINT32_MAX;
@@ -205,7 +208,17 @@ static void sample_callback(dc_sample_type_t type,
         state->current_sample.setpoint = value->setpoint;
         break;
     case DC_SAMPLE_PPO2:
-        state->current_sample.ppo2 = value->ppo2.value;
+        // libdivecomputer fires this once per O2 cell (sensor = 0,1,2,...) and
+        // optionally once with DC_SENSOR_NONE for the aggregate/computed value.
+        // Keep the aggregate in `ppo2`; store each cell separately. Don't derive
+        // ppo2 from a cell -- the Dart layer averages the cells when no
+        // aggregate is present.
+        if (value->ppo2.sensor == DC_SENSOR_NONE) {
+            state->current_sample.ppo2 = value->ppo2.value;
+        } else if (value->ppo2.sensor < 6) {
+            state->current_sample.o2_sensor[value->ppo2.sensor] =
+                value->ppo2.value;
+        }
         break;
     case DC_SAMPLE_CNS:
         state->current_sample.cns = value->cns * 100.0;  // fraction to percentage

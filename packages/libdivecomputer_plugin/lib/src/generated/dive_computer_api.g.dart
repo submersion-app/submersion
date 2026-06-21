@@ -117,6 +117,12 @@ class ProfileSample {
     this.decoTime,
     this.decoDepth,
     this.tts,
+    this.o2Sensor1,
+    this.o2Sensor2,
+    this.o2Sensor3,
+    this.o2Sensor4,
+    this.o2Sensor5,
+    this.o2Sensor6,
   });
 
   int timeSeconds;
@@ -147,6 +153,21 @@ class ProfileSample {
 
   int? tts;
 
+  /// Individual CCR O2 cell ppO2 readings in bar (sensor 1..6), null when that
+  /// cell has no reading. libdivecomputer reports these per-sensor via
+  /// DC_SAMPLE_PPO2; [ppo2] holds the aggregate/computed value.
+  double? o2Sensor1;
+
+  double? o2Sensor2;
+
+  double? o2Sensor3;
+
+  double? o2Sensor4;
+
+  double? o2Sensor5;
+
+  double? o2Sensor6;
+
   Object encode() {
     return <Object?>[
       timeSeconds,
@@ -163,6 +184,12 @@ class ProfileSample {
       decoTime,
       decoDepth,
       tts,
+      o2Sensor1,
+      o2Sensor2,
+      o2Sensor3,
+      o2Sensor4,
+      o2Sensor5,
+      o2Sensor6,
     ];
   }
 
@@ -183,6 +210,12 @@ class ProfileSample {
       decoTime: result[11] as int?,
       decoDepth: result[12] as double?,
       tts: result[13] as int?,
+      o2Sensor1: result[14] as double?,
+      o2Sensor2: result[15] as double?,
+      o2Sensor3: result[16] as double?,
+      o2Sensor4: result[17] as double?,
+      o2Sensor5: result[18] as double?,
+      o2Sensor6: result[19] as double?,
     );
   }
 }

@@ -41,6 +41,12 @@ class DiveParser {
           decoTime: sample.decoTime,
           decoDepth: sample.decoDepth,
           tts: sample.tts,
+          o2Sensor1: sample.o2Sensor1,
+          o2Sensor2: sample.o2Sensor2,
+          o2Sensor3: sample.o2Sensor3,
+          o2Sensor4: sample.o2Sensor4,
+          o2Sensor5: sample.o2Sensor5,
+          o2Sensor6: sample.o2Sensor6,
         ),
       );
     }
