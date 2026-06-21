@@ -1301,15 +1301,22 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     top: insets.top,
                     bottom: insets.bottom,
                   );
-                  // scale and localPan are cumulative from the gesture start.
+                  // scale and pan are cumulative from the gesture start.
                   var vp = _gestureStartViewport.zoomedAt(
                     focal.fx,
                     focal.fy,
                     event.scale,
                   );
+                  // Use the GLOBAL pan delta (event.pan), NOT event.localPan:
+                  // on macOS the trackpad PointerPanZoom localPan is contaminated
+                  // by the widget's global->local translation (the translation is
+                  // wrongly applied to the pan vector), making it a huge constant
+                  // (~ -(widget global origin)) that pins the view to a corner.
+                  // The chart has no rotation/scale, so the global pan delta IS
+                  // the correct local delta.
                   vp = vp.pannedBy(
-                    -event.localPan.dx / plotW / vp.zoom,
-                    -event.localPan.dy / plotH / vp.zoom,
+                    -event.pan.dx / plotW / vp.zoom,
+                    -event.pan.dy / plotH / vp.zoom,
                   );
                   _viewport = vp;
                 });
