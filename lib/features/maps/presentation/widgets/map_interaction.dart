@@ -79,6 +79,10 @@ class MapInteractionDetector extends StatefulWidget {
 class _MapInteractionDetectorState extends State<MapInteractionDetector> {
   late bool _isTouch = _defaultIsTouch();
 
+  double _gestureStartZoom = 0;
+  Offset _gestureAnchor = Offset.zero;
+  Offset _lastPan = Offset.zero;
+
   bool _defaultIsTouch() {
     switch (defaultTargetPlatform) {
       case TargetPlatform.iOS:
@@ -98,6 +102,42 @@ class _MapInteractionDetectorState extends State<MapInteractionDetector> {
     }
   }
 
+  static Offset _rotateOffset(Offset offset, double radians) {
+    if (radians == 0) return offset;
+    final cos = math.cos(radians);
+    final sin = math.sin(radians);
+    return Offset(
+      cos * offset.dx + sin * offset.dy,
+      cos * offset.dy - sin * offset.dx,
+    );
+  }
+
+  void _onPanZoomStart(PointerPanZoomStartEvent e) {
+    _setTouch(false);
+    _gestureStartZoom = widget.mapController.camera.zoom;
+    _gestureAnchor = e.localPosition;
+    _lastPan = Offset.zero;
+  }
+
+  void _onPanZoomUpdate(PointerPanZoomUpdateEvent e) {
+    final cam = widget.mapController.camera;
+    final targetZoom = cam.clampZoom(
+      _gestureStartZoom + math.log(e.scale) / math.ln2,
+    );
+    var center = cam.focusedZoomCenter(_gestureAnchor, targetZoom);
+
+    final panDelta = e.localPan - _lastPan;
+    _lastPan = e.localPan;
+    if (panDelta != Offset.zero) {
+      final projected = cam.projectAtZoom(center, targetZoom);
+      center = cam.unprojectAtZoom(
+        projected - _rotateOffset(panDelta, cam.rotationRad),
+        targetZoom,
+      );
+    }
+    widget.mapController.move(center, targetZoom);
+  }
+
   @override
   Widget build(BuildContext context) {
     final options = mapInteractionOptions(
@@ -108,7 +148,8 @@ class _MapInteractionDetectorState extends State<MapInteractionDetector> {
       behavior: HitTestBehavior.opaque,
       onPointerDown: (e) => _setTouch(e.kind == PointerDeviceKind.touch),
       onPointerHover: (e) => _setTouch(e.kind == PointerDeviceKind.touch),
-      onPointerPanZoomStart: (e) => _setTouch(false),
+      onPointerPanZoomStart: _onPanZoomStart,
+      onPointerPanZoomUpdate: _onPanZoomUpdate,
       child: widget.builder(context, options),
     );
   }

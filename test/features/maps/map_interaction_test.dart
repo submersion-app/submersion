@@ -171,6 +171,64 @@ void main() {
     });
   });
 
+  group('MapInteractionDetector trackpad zoom', () {
+    testWidgets('pinch zooms in and keeps the anchor point fixed', (
+      tester,
+    ) async {
+      final controller = MapController();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 400,
+              height: 400,
+              child: MapInteractionDetector(
+                allowRotation: false,
+                mapController: controller,
+                builder: (context, options) => FlutterMap(
+                  mapController: controller,
+                  options: MapOptions(
+                    initialCenter: const LatLng(0, 0),
+                    initialZoom: 3,
+                    interactionOptions: options,
+                  ),
+                  children: const [],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      const anchor = Offset(300, 120); // off-center
+      final latLngUnderAnchorBefore = controller.camera.offsetToCrs(anchor);
+      final zoomBefore = controller.camera.zoom;
+
+      final pointer = TestPointer(1, PointerDeviceKind.trackpad);
+      await tester.sendEventToBinding(pointer.panZoomStart(anchor));
+      await tester.sendEventToBinding(
+        pointer.panZoomUpdate(anchor, scale: 2.0),
+      );
+      await tester.pump();
+      await tester.sendEventToBinding(pointer.panZoomEnd());
+      await tester.pump();
+
+      expect(controller.camera.zoom, greaterThan(zoomBefore));
+      final latLngUnderAnchorAfter = controller.camera.offsetToCrs(anchor);
+      expect(
+        (latLngUnderAnchorAfter.latitude - latLngUnderAnchorBefore.latitude)
+            .abs(),
+        lessThan(0.5),
+      );
+      expect(
+        (latLngUnderAnchorAfter.longitude - latLngUnderAnchorBefore.longitude)
+            .abs(),
+        lessThan(0.5),
+      );
+    });
+  });
+
   group('shouldShowResetNorth', () {
     test('hidden at or near north', () {
       expect(shouldShowResetNorth(0), isFalse);
