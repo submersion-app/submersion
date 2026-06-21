@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_chart_viewport.dart';
@@ -154,6 +155,58 @@ void main() {
       );
       expect(hi.fx, 1.0);
       expect(hi.fy, 1.0);
+    });
+  });
+
+  group('chartDragIntent', () {
+    test('two or more pointers always zoom+pan', () {
+      for (final k in [PointerDeviceKind.touch, PointerDeviceKind.mouse]) {
+        expect(
+          chartDragIntent(kind: k, pointerCount: 2, doubleTapHold: false),
+          ChartDragIntent.zoomPan,
+        );
+      }
+    });
+
+    test('single mouse/trackpad pointer pans', () {
+      expect(
+        chartDragIntent(
+          kind: PointerDeviceKind.mouse,
+          pointerCount: 1,
+          doubleTapHold: false,
+        ),
+        ChartDragIntent.pan,
+      );
+      expect(
+        chartDragIntent(
+          kind: PointerDeviceKind.trackpad,
+          pointerCount: 1,
+          doubleTapHold: false,
+        ),
+        ChartDragIntent.pan,
+      );
+    });
+
+    test('single touch pointer scrubs', () {
+      expect(
+        chartDragIntent(
+          kind: PointerDeviceKind.touch,
+          pointerCount: 1,
+          doubleTapHold: false,
+        ),
+        ChartDragIntent.scrub,
+      );
+    });
+
+    test('single touch pointer pans during double-tap-hold', () {
+      expect(
+        chartDragIntent(
+          kind: PointerDeviceKind.touch,
+          pointerCount: 1,
+          doubleTapHold: true,
+        ),
+        ChartDragIntent.pan,
+      );
     });
   });
 }

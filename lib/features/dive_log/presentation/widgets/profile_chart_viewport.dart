@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 
 /// Immutable description of the dive profile chart's visible window, expressed
@@ -78,4 +79,23 @@ class ProfileChartViewport {
     fx: ((localPos.dx - left) / plotW).clamp(0.0, 1.0),
     fy: ((localPos.dy - top) / plotH).clamp(0.0, 1.0),
   );
+}
+
+/// What a drag/scale event should do on the profile chart.
+enum ChartDragIntent { pan, scrub, zoomPan, none }
+
+/// Decides the meaning of an in-progress gesture from the active pointer kind,
+/// the pointer count, and whether a double-tap-hold is active. Keying off the
+/// pointer kind (not the platform) is what lets one-finger touch keep scrubbing
+/// while a mouse drag pans.
+ChartDragIntent chartDragIntent({
+  required PointerDeviceKind kind,
+  required int pointerCount,
+  required bool doubleTapHold,
+}) {
+  if (pointerCount >= 2) return ChartDragIntent.zoomPan;
+  if (doubleTapHold) return ChartDragIntent.pan;
+  return kind == PointerDeviceKind.touch
+      ? ChartDragIntent.scrub
+      : ChartDragIntent.pan;
 }
