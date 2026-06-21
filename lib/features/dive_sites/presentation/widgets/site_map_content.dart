@@ -16,6 +16,7 @@ import 'package:submersion/features/maps/presentation/widgets/heat_map_controls.
 import 'package:submersion/features/maps/presentation/widgets/heat_map_layer.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_interaction.dart';
 import 'package:submersion/shared/widgets/map_list_layout/map_info_card.dart';
 
 /// Map content widget for displaying dive sites on a map.
@@ -240,128 +241,134 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
       zoom = 4.0;
     }
 
-    return Stack(
-      children: [
-        FlutterMap(
-          mapController: _mapController,
-          options: MapOptions(
-            initialCenter: center,
-            initialZoom: zoom,
-            minZoom: 2.0,
-            maxZoom: 18.0,
-            onMapReady: () {
-              _mapReady = true;
-            },
-            onTap: (_, _) {
-              widget.onItemSelected(null);
-            },
-            cameraConstraint: CameraConstraint.contain(
-              bounds: LatLngBounds(
-                const LatLng(-90, -180),
-                const LatLng(90, 180),
+    return MapInteractionDetector(
+      allowRotation: true,
+      mapController: _mapController,
+      builder: (context, interactionOptions) => Stack(
+        children: [
+          FlutterMap(
+            mapController: _mapController,
+            options: MapOptions(
+              initialCenter: center,
+              initialZoom: zoom,
+              minZoom: 2.0,
+              maxZoom: 18.0,
+              onMapReady: () {
+                _mapReady = true;
+              },
+              onTap: (_, _) {
+                widget.onItemSelected(null);
+              },
+              cameraConstraint: CameraConstraint.contain(
+                bounds: LatLngBounds(
+                  const LatLng(-90, -180),
+                  const LatLng(90, 180),
+                ),
               ),
+              interactionOptions: interactionOptions,
             ),
-          ),
-          children: [
-            TileLayer(
-              urlTemplate: ref.watch(mapTileUrlProvider),
-              userAgentPackageName: 'app.submersion',
-              maxZoom: ref.watch(mapTileMaxZoomProvider),
-              tileProvider: TileCacheService.instance.isInitialized
-                  ? TileCacheService.instance.getTileProvider()
-                  : null,
-            ),
-            MarkerClusterLayerWidget(
-              options: MarkerClusterLayerOptions(
-                maxClusterRadius: 80,
-                size: const Size(50, 50),
-                markers: sitesWithLocation.map((siteWithCount) {
-                  final site = siteWithCount.site;
-                  final diveCount = siteWithCount.diveCount;
-                  final isSelected = widget.selectedId == site.id;
-                  return Marker(
-                    point: LatLng(
-                      site.location!.latitude,
-                      site.location!.longitude,
-                    ),
-                    width: isSelected ? 50 : 40,
-                    height: isSelected ? 50 : 40,
-                    child: Semantics(
-                      button: true,
-                      label: context.l10n
-                          .diveSites_map_semantics_diveSiteMarker(site.name),
-                      child: GestureDetector(
-                        onTap: () => _onMarkerTapped(site),
-                        child: _buildMarker(
-                          context,
-                          site,
-                          diveCount,
-                          isSelected,
+            children: [
+              TileLayer(
+                urlTemplate: ref.watch(mapTileUrlProvider),
+                userAgentPackageName: 'app.submersion',
+                maxZoom: ref.watch(mapTileMaxZoomProvider),
+                tileProvider: TileCacheService.instance.isInitialized
+                    ? TileCacheService.instance.getTileProvider()
+                    : null,
+              ),
+              MarkerClusterLayerWidget(
+                options: MarkerClusterLayerOptions(
+                  maxClusterRadius: 80,
+                  size: const Size(50, 50),
+                  markers: sitesWithLocation.map((siteWithCount) {
+                    final site = siteWithCount.site;
+                    final diveCount = siteWithCount.diveCount;
+                    final isSelected = widget.selectedId == site.id;
+                    return Marker(
+                      point: LatLng(
+                        site.location!.latitude,
+                        site.location!.longitude,
+                      ),
+                      width: isSelected ? 50 : 40,
+                      height: isSelected ? 50 : 40,
+                      child: Semantics(
+                        button: true,
+                        label: context.l10n
+                            .diveSites_map_semantics_diveSiteMarker(site.name),
+                        child: GestureDetector(
+                          onTap: () => _onMarkerTapped(site),
+                          child: _buildMarker(
+                            context,
+                            site,
+                            diveCount,
+                            isSelected,
+                          ),
                         ),
                       ),
-                    ),
-                  );
-                }).toList(),
-                builder: (context, markers) {
-                  return _buildClusterMarker(context, markers.length);
-                },
-                zoomToBoundsOnClick: false,
-                onClusterTap: (node) {
-                  _animateToCluster(node.bounds);
-                },
-              ),
-            ),
-            // Heat map layer - rendered on top of markers when visible
-            if (heatMapSettings.isVisible)
-              heatMapAsync.when(
-                data: (points) => HeatMapLayer(
-                  points: points,
-                  radius: heatMapSettings.radius,
-                  opacity: heatMapSettings.opacity,
-                ),
-                loading: () => const SizedBox.shrink(),
-                error: (_, _) => const SizedBox.shrink(),
-              ),
-            const MapAttribution(),
-          ],
-        ),
-
-        // Empty state overlay
-        if (sitesWithLocation.isEmpty)
-          Center(
-            child: Card(
-              margin: const EdgeInsets.all(32),
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.location_off,
-                      size: 64,
-                      color: colorScheme.onSurfaceVariant.withValues(
-                        alpha: 0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      context.l10n.diveSites_map_empty_title,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      context.l10n.diveSites_map_empty_description,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
+                    );
+                  }).toList(),
+                  builder: (context, markers) {
+                    return _buildClusterMarker(context, markers.length);
+                  },
+                  zoomToBoundsOnClick: false,
+                  onClusterTap: (node) {
+                    _animateToCluster(node.bounds);
+                  },
                 ),
               ),
-            ),
+              // Heat map layer - rendered on top of markers when visible
+              if (heatMapSettings.isVisible)
+                heatMapAsync.when(
+                  data: (points) => HeatMapLayer(
+                    points: points,
+                    radius: heatMapSettings.radius,
+                    opacity: heatMapSettings.opacity,
+                  ),
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, _) => const SizedBox.shrink(),
+                ),
+              const MapAttribution(),
+              const MapResetNorthButton(),
+            ],
           ),
-      ],
+
+          // Empty state overlay
+          if (sitesWithLocation.isEmpty)
+            Center(
+              child: Card(
+                margin: const EdgeInsets.all(32),
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.location_off,
+                        size: 64,
+                        color: colorScheme.onSurfaceVariant.withValues(
+                          alpha: 0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        context.l10n.diveSites_map_empty_title,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        context.l10n.diveSites_map_empty_description,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
