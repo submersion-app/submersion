@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -121,6 +122,52 @@ void main() {
       await tester.pump();
       expect(controller.camera.rotation.abs() < 0.01, isTrue);
       expect(find.byType(FloatingActionButton), findsNothing);
+    });
+  });
+
+  group('MapInteractionDetector pointer kind', () {
+    testWidgets('flags reflect touch vs mouse pointer', (tester) async {
+      late InteractionOptions latest;
+      final controller = MapController();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: MapInteractionDetector(
+              allowRotation: true,
+              mapController: controller,
+              builder: (context, options) {
+                latest = options;
+                return const SizedBox(width: 400, height: 400);
+              },
+            ),
+          ),
+        ),
+      );
+
+      // Touch down -> pinch zoom enabled.
+      final touchPointer = TestPointer(1, PointerDeviceKind.touch);
+      await tester.sendEventToBinding(
+        touchPointer.addPointer(location: const Offset(200, 200)),
+      );
+      await tester.sendEventToBinding(
+        touchPointer.down(const Offset(200, 200)),
+      );
+      await tester.pump();
+      expect(InteractiveFlag.hasPinchZoom(latest.flags), isTrue);
+      await tester.sendEventToBinding(touchPointer.up());
+      await tester.pump();
+
+      // Mouse hover -> pinch zoom disabled (trackpad/mouse path).
+      final mousePointer = TestPointer(2, PointerDeviceKind.mouse);
+      await tester.sendEventToBinding(
+        mousePointer.addPointer(location: const Offset(200, 200)),
+      );
+      await tester.sendEventToBinding(
+        mousePointer.hover(const Offset(210, 210)),
+      );
+      await tester.pump();
+      expect(InteractiveFlag.hasPinchZoom(latest.flags), isFalse);
+      await tester.sendEventToBinding(mousePointer.removePointer());
     });
   });
 

@@ -1,5 +1,7 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -51,6 +53,65 @@ InteractionOptions mapInteractionOptions({
         ? const CursorKeyboardRotationOptions()
         : CursorKeyboardRotationOptions.disabled(),
   );
+}
+
+/// Wraps a [FlutterMap] to (1) choose [InteractionOptions] from the active
+/// pointer kind and (2) drive trackpad zoom-to-cursor (added in the trackpad
+/// handler). The map built by [builder] must fill this widget's box so that
+/// pointer `localPosition` is in the map viewport coordinate space.
+class MapInteractionDetector extends StatefulWidget {
+  const MapInteractionDetector({
+    super.key,
+    required this.allowRotation,
+    required this.mapController,
+    required this.builder,
+  });
+
+  final bool allowRotation;
+  final MapController mapController;
+  final Widget Function(BuildContext context, InteractionOptions options)
+  builder;
+
+  @override
+  State<MapInteractionDetector> createState() => _MapInteractionDetectorState();
+}
+
+class _MapInteractionDetectorState extends State<MapInteractionDetector> {
+  late bool _isTouch = _defaultIsTouch();
+
+  bool _defaultIsTouch() {
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.iOS:
+      case TargetPlatform.android:
+        return true;
+      case TargetPlatform.macOS:
+      case TargetPlatform.windows:
+      case TargetPlatform.linux:
+      case TargetPlatform.fuchsia:
+        return false;
+    }
+  }
+
+  void _setTouch(bool value) {
+    if (_isTouch != value) {
+      setState(() => _isTouch = value);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final options = mapInteractionOptions(
+      isTouch: _isTouch,
+      allowRotation: widget.allowRotation,
+    );
+    return Listener(
+      behavior: HitTestBehavior.opaque,
+      onPointerDown: (e) => _setTouch(e.kind == PointerDeviceKind.touch),
+      onPointerHover: (e) => _setTouch(e.kind == PointerDeviceKind.touch),
+      onPointerPanZoomStart: (e) => _setTouch(false),
+      child: widget.builder(context, options),
+    );
+  }
 }
 
 /// A self-hiding control that resets map rotation to north-up.
