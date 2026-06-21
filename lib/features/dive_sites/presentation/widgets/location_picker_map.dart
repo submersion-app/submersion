@@ -8,6 +8,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_interaction.dart';
 
 /// Result from the location picker
 class PickedLocation {
@@ -154,200 +155,122 @@ class _LocationPickerMapState extends ConsumerState<LocationPickerMap> {
       ),
       body: Semantics(
         label: context.l10n.diveSites_locationPicker_semantics_map,
-        child: Stack(
-          children: [
-            FlutterMap(
-              mapController: _mapController,
-              options: MapOptions(
-                initialCenter: initialCenter,
-                initialZoom: initialZoom,
-                minZoom: 2.0,
-                maxZoom: ref.watch(mapTileMaxZoomProvider),
-                onTap: _onMapTap,
-                interactionOptions: const InteractionOptions(
-                  flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
-                ),
-              ),
-              children: [
-                TileLayer(
-                  urlTemplate: ref.watch(mapTileUrlProvider),
-                  userAgentPackageName: 'app.submersion',
+        child: MapInteractionDetector(
+          allowRotation: false,
+          mapController: _mapController,
+          builder: (context, interactionOptions) => Stack(
+            children: [
+              FlutterMap(
+                mapController: _mapController,
+                options: MapOptions(
+                  initialCenter: initialCenter,
+                  initialZoom: initialZoom,
+                  minZoom: 2.0,
                   maxZoom: ref.watch(mapTileMaxZoomProvider),
-                  tileProvider: TileCacheService.instance.isInitialized
-                      ? TileCacheService.instance.getTileProvider()
-                      : null,
+                  onTap: _onMapTap,
+                  interactionOptions: interactionOptions,
                 ),
-                if (_selectedLocation != null)
-                  MarkerLayer(
-                    markers: [
-                      Marker(
-                        point: _selectedLocation!,
-                        width: 50,
-                        height: 50,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: colorScheme.primary,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: colorScheme.onPrimary,
-                              width: 3,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.3),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Center(
-                            child: Icon(
-                              Icons.location_on,
-                              size: 28,
-                              color: colorScheme.onPrimary,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                children: [
+                  TileLayer(
+                    urlTemplate: ref.watch(mapTileUrlProvider),
+                    userAgentPackageName: 'app.submersion',
+                    maxZoom: ref.watch(mapTileMaxZoomProvider),
+                    tileProvider: TileCacheService.instance.isInitialized
+                        ? TileCacheService.instance.getTileProvider()
+                        : null,
                   ),
-                const MapAttribution(),
-              ],
-            ),
-
-            // Instructions overlay
-            Positioned(
-              top: 16,
-              left: 16,
-              right: 16,
-              child: Semantics(
-                liveRegion: true,
-                label: _selectedLocation == null
-                    ? context
-                          .l10n
-                          .diveSites_locationPicker_instruction_tapToSelect
-                    : _isGeocoding
-                    ? context.l10n.diveSites_locationPicker_semantics_lookingUp
-                    : _locationPreview ??
-                          context
-                              .l10n
-                              .diveSites_locationPicker_instruction_locationSelected,
-                child: Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Row(
-                      children: [
-                        ExcludeSemantics(
-                          child: Icon(
-                            Icons.touch_app,
-                            color: colorScheme.primary,
+                  if (_selectedLocation != null)
+                    MarkerLayer(
+                      markers: [
+                        Marker(
+                          point: _selectedLocation!,
+                          width: 50,
+                          height: 50,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: colorScheme.primary,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: colorScheme.onPrimary,
+                                width: 3,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Center(
+                              child: Icon(
+                                Icons.location_on,
+                                size: 28,
+                                color: colorScheme.onPrimary,
+                              ),
+                            ),
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            _selectedLocation == null
-                                ? context
-                                      .l10n
-                                      .diveSites_locationPicker_instruction_tapToSelect
-                                : _isGeocoding
-                                ? context
-                                      .l10n
-                                      .diveSites_locationPicker_instruction_lookingUp
-                                : _locationPreview ??
-                                      context
-                                          .l10n
-                                          .diveSites_locationPicker_instruction_locationSelected,
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                        ),
-                        if (_isGeocoding)
-                          const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
                       ],
                     ),
-                  ),
-                ),
+                  const MapAttribution(),
+                ],
               ),
-            ),
 
-            // Coordinates display
-            if (_selectedLocation != null)
+              // Instructions overlay
               Positioned(
-                bottom: 100,
+                top: 16,
                 left: 16,
                 right: 16,
                 child: Semantics(
-                  label: context.l10n
-                      .diveSites_locationPicker_semantics_coordinates(
-                        _selectedLocation!.latitude.toStringAsFixed(6),
-                        _selectedLocation!.longitude.toStringAsFixed(6),
-                      ),
+                  liveRegion: true,
+                  label: _selectedLocation == null
+                      ? context
+                            .l10n
+                            .diveSites_locationPicker_instruction_tapToSelect
+                      : _isGeocoding
+                      ? context
+                            .l10n
+                            .diveSites_locationPicker_semantics_lookingUp
+                      : _locationPreview ??
+                            context
+                                .l10n
+                                .diveSites_locationPicker_instruction_locationSelected,
                   child: Card(
                     child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
+                      padding: const EdgeInsets.all(12),
+                      child: Row(
                         children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      context
-                                          .l10n
-                                          .diveSites_locationPicker_label_latitude,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodySmall
-                                          ?.copyWith(
-                                            color: colorScheme.onSurfaceVariant,
-                                          ),
-                                    ),
-                                    Text(
-                                      _selectedLocation!.latitude
-                                          .toStringAsFixed(6),
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium
-                                          ?.copyWith(fontFamily: 'monospace'),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      context
-                                          .l10n
-                                          .diveSites_locationPicker_label_longitude,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodySmall
-                                          ?.copyWith(
-                                            color: colorScheme.onSurfaceVariant,
-                                          ),
-                                    ),
-                                    Text(
-                                      _selectedLocation!.longitude
-                                          .toStringAsFixed(6),
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium
-                                          ?.copyWith(fontFamily: 'monospace'),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
+                          ExcludeSemantics(
+                            child: Icon(
+                              Icons.touch_app,
+                              color: colorScheme.primary,
+                            ),
                           ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              _selectedLocation == null
+                                  ? context
+                                        .l10n
+                                        .diveSites_locationPicker_instruction_tapToSelect
+                                  : _isGeocoding
+                                  ? context
+                                        .l10n
+                                        .diveSites_locationPicker_instruction_lookingUp
+                                  : _locationPreview ??
+                                        context
+                                            .l10n
+                                            .diveSites_locationPicker_instruction_locationSelected,
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                          ),
+                          if (_isGeocoding)
+                            const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
                         ],
                       ),
                     ),
@@ -355,17 +278,103 @@ class _LocationPickerMapState extends ConsumerState<LocationPickerMap> {
                 ),
               ),
 
-            // FAB for current location
-            Positioned(
-              bottom: 24,
-              right: 16,
-              child: FloatingActionButton(
-                onPressed: _useCurrentLocation,
-                tooltip: context.l10n.diveSites_locationPicker_fab_tooltip,
-                child: const Icon(Icons.my_location),
+              // Coordinates display
+              if (_selectedLocation != null)
+                Positioned(
+                  bottom: 100,
+                  left: 16,
+                  right: 16,
+                  child: Semantics(
+                    label: context.l10n
+                        .diveSites_locationPicker_semantics_coordinates(
+                          _selectedLocation!.latitude.toStringAsFixed(6),
+                          _selectedLocation!.longitude.toStringAsFixed(6),
+                        ),
+                    child: Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        context
+                                            .l10n
+                                            .diveSites_locationPicker_label_latitude,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                              color:
+                                                  colorScheme.onSurfaceVariant,
+                                            ),
+                                      ),
+                                      Text(
+                                        _selectedLocation!.latitude
+                                            .toStringAsFixed(6),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium
+                                            ?.copyWith(fontFamily: 'monospace'),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        context
+                                            .l10n
+                                            .diveSites_locationPicker_label_longitude,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                              color:
+                                                  colorScheme.onSurfaceVariant,
+                                            ),
+                                      ),
+                                      Text(
+                                        _selectedLocation!.longitude
+                                            .toStringAsFixed(6),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium
+                                            ?.copyWith(fontFamily: 'monospace'),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+              // FAB for current location
+              Positioned(
+                bottom: 24,
+                right: 16,
+                child: FloatingActionButton(
+                  onPressed: _useCurrentLocation,
+                  tooltip: context.l10n.diveSites_locationPicker_fab_tooltip,
+                  child: const Icon(Icons.my_location),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
