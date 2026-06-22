@@ -54,6 +54,18 @@ class DiveComputerHostApiImpl(
 
     override fun getDeviceDescriptors(callback: (Result<List<DeviceDescriptor>>) -> Unit) {
         executor.execute {
+            // If the native library failed to load, return an empty list rather
+            // than crashing on the native call below (issue #318). The download
+            // path surfaces the user-facing error.
+            if (LibdcWrapper.loadError != null) {
+                NativeLogger.e(
+                    TAG, "LDC",
+                    "getDeviceDescriptors: native library unavailable: " +
+                        "${LibdcWrapper.loadError?.javaClass?.simpleName}"
+                )
+                callback(Result.success(emptyList()))
+                return@execute
+            }
             val descriptors = mutableListOf<DeviceDescriptor>()
             val iterPtr = LibdcWrapper.nativeDescriptorIteratorNew()
             if (iterPtr == 0L) {
@@ -123,6 +135,11 @@ class DiveComputerHostApiImpl(
     }
 
     private fun startBleDiscovery() {
+        // BleScanner identifies devices via LibdcWrapper.nativeDescriptorMatch on
+        // the (async) scan-result thread. Bail with a clear error if the native
+        // library never loaded, rather than crashing there (issue #318).
+        if (!nativeLibraryReady()) return
+
         val scanner = BleScanner(context)
         scanner.onDeviceDiscovered = { device ->
             mainHandler.post { flutterApi.onDeviceDiscovered(device) { } }
@@ -144,7 +161,21 @@ class DiveComputerHostApiImpl(
         callback(Result.success(Unit))
 
         executor.execute {
-            performDownload(device, fingerprint)
+            // Backstop: convert any native-level failure into a reported error
+            // instead of an uncaught Throwable that kills the executor thread
+            // and the app (issue #318).
+            try {
+                performDownload(device, fingerprint)
+            } catch (t: Throwable) {
+                NativeLogger.e(
+                    TAG, "LDC",
+                    "download crashed: ${t.javaClass.simpleName}: ${t.message}"
+                )
+                reportError(
+                    "download_error",
+                    "Download failed unexpectedly (${t.javaClass.simpleName})."
+                )
+            }
         }
     }
 
@@ -159,6 +190,10 @@ class DiveComputerHostApiImpl(
     }
 
     private fun performDownload(device: DiscoveredDevice, fingerprint: String? = null, isRetry: Boolean = false) {
+        // Fail clearly if the native library never loaded, rather than crashing
+        // on the first native call below (issue #318).
+        if (!nativeLibraryReady()) return
+
         // Create download session.
         val sessionPtr = LibdcWrapper.nativeDownloadSessionNew()
         if (sessionPtr == 0L) {
@@ -593,7 +628,12 @@ class DiveComputerHostApiImpl(
     // MARK: - Version
 
     override fun getLibdivecomputerVersion(): String {
-        return LibdcWrapper.nativeGetVersion()
+        if (LibdcWrapper.loadError != null) return "unavailable"
+        return try {
+            LibdcWrapper.nativeGetVersion()
+        } catch (t: Throwable) {
+            "unavailable"
+        }
     }
 
     // MARK: - Helpers
@@ -602,6 +642,27 @@ class DiveComputerHostApiImpl(
         mainHandler.post {
             flutterApi.onError(DiveComputerError(code = code, message = message)) { }
         }
+    }
+
+    // Reports a clear, actionable error (instead of crashing) when the native
+    // libdivecomputer JNI library failed to load. The usual cause is an
+    // UnsatisfiedLinkError from a 4 KB-aligned liblibdc_jni.so on a 16 KB-page
+    // Android 15+ device (issue #318); without this guard the failure surfaced
+    // as a silent process death the moment a download started. Returns true
+    // when the native library is usable.
+    private fun nativeLibraryReady(): Boolean {
+        val err = LibdcWrapper.loadError ?: return true
+        NativeLogger.e(
+            TAG, "LDC",
+            "Native library unavailable: ${err.javaClass.simpleName}: ${err.message}"
+        )
+        reportError(
+            "native_library_unavailable",
+            "Dive computer support could not be loaded on this device " +
+                "(${err.javaClass.simpleName}). Please update Submersion to the " +
+                "latest version."
+        )
+        return false
     }
 
     private fun mapEventType(type: Int): String = when (type) {

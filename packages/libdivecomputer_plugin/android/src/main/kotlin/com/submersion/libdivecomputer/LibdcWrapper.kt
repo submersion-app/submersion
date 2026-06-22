@@ -3,9 +3,16 @@ package com.submersion.libdivecomputer
 // Kotlin wrapper around libdivecomputer JNI functions.
 // Each method delegates to a native C++ function via JNI.
 object LibdcWrapper {
-    init {
-        System.loadLibrary("libdc_jni")
-    }
+    // Null if the native library loaded successfully; otherwise the load
+    // failure. Captured here instead of thrown from the static initializer so
+    // callers can check [loadError] and report a clear error, rather than
+    // letting an UnsatisfiedLinkError surface as an uncaught ExceptionIn-
+    // InitializerError on a background thread and kill the process. This is the
+    // failure mode behind issue #318: a 4 KB-aligned liblibdc_jni.so fails to
+    // load on Android 15+ devices that use 16 KB memory pages (e.g. Xiaomi 15T
+    // Pro), crashing the app silently the instant a download starts.
+    val loadError: Throwable? =
+        runCatching { System.loadLibrary("libdc_jni") }.exceptionOrNull()
 
     // Version
     external fun nativeGetVersion(): String

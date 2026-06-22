@@ -543,6 +543,12 @@ jobs:
       - name: Build Android APK
         run: flutter build apk --release "${{ env.DART_DEFINES }}" -v
 
+      # Guards against issue #318: a 4 KB-aligned native lib (liblibdc_jni.so)
+      # silently shipped and crashed the app on Android 15+ 16 KB-page devices.
+      # Fails the build if any 64-bit native library is not 16 KB-aligned.
+      - name: Verify 16 KB native library alignment
+        run: python3 scripts/check_16kb_alignment.py build/app/outputs/flutter-apk/app-release.apk
+
       - name: Upload Android artifact
         uses: actions/upload-artifact@v7
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
