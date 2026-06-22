@@ -28,6 +28,10 @@ delta — you cannot have both).
 - **Pointer-kind aware:** only `PointerDeviceKind.trackpad` gestures are
   re-interpreted. Touchscreen pinch / two-finger pan keep flowing through
   flutter_map and the chart's existing handlers untouched (iPad users unaffected).
+- **Embedded-map scroll conflict (added):** when a map sits inside a scrollable
+  page, a two-finger trackpad scroll over the map zooms the map and the page does
+  NOT scroll ("map captures the gesture when hovered"); scrolling elsewhere
+  scrolls the page. Trackpad pinch over the map also zooms the map.
 
 ## Non-goals
 
@@ -90,44 +94,59 @@ from #372 (the chart has no rotation/scale, so global == correct local).
 
 File: `lib/features/maps/presentation/widgets/trackpad_zoom_map.dart`.
 
-**Revised during implementation (verified by probes):** a passive `Listener`
-alone does NOT work. flutter_map's `pinchMove` handler pins the camera to the
-gesture-start position on every frame of a trackpad two-finger gesture (scale
-stays 1.0, so it recomputes the start camera and calls `moveRaw`), reverting any
-`move()` we apply. Disabling `pinchMove` frees our zoom — but `pinchMove` also
-powers touch pinch-zoom focal anchoring, so it must only be dropped for the
-duration of a trackpad gesture, never for touch.
+**Revised during implementation (verified by probes).** Two problems had to be
+solved together:
 
-So `TrackpadZoomMap` is a **`StatefulWidget`** with a **builder** API:
+1. *Clobber:* a passive `Listener` does not work. flutter_map's scale recognizer
+   reacts to trackpad pan-zoom and (via `pinchMove`) pins the camera to the
+   gesture-start position every frame, reverting any `move()` we apply.
+2. *Page-scroll capture* (added requirement): over an embedded map inside a
+   scrollable page, a trackpad two-finger scroll both zooms the map and scrolls
+   the page. The agreed behavior is "the map captures the gesture when hovered."
+
+Both reduce to one fix: **win the gesture arena** for trackpad pan-zoom. The
+arena has one winner, so winning rejects *both* flutter_map's scale recognizer
+(no clobber) *and* the enclosing scrollable (no page scroll). But a single winner
+also means flutter_map can no longer drive trackpad pinch — so our winner must
+itself handle pinch as well as scroll.
+
+So `TrackpadZoomMap` is a `StatelessWidget` wrapping `child` in a
+`RawGestureDetector` with a custom `_TrackpadZoomGestureRecognizer`:
 
 ```dart
 TrackpadZoomMap({
   required MapController controller,
-  required Widget Function(BuildContext, int flags) builder,
-  int baseFlags = InteractiveFlag.all,
+  required Widget child,
   double minZoom = 1.0,
   double maxZoom = 22.0,
 })
 ```
 
-- It holds `_trackpadActive`. `onPointerPanZoomStart` (kind == trackpad) sets it
-  true; `onPointerPanZoomEnd` sets it false. Effective flags handed to `builder`
-  are `baseFlags & ~InteractiveFlag.pinchMove` while active, else `baseFlags`.
-- `onPointerPanZoomUpdate` (kind == trackpad) reads `controller.camera`, computes
-  `newZoom = (camera.zoom + trackpadScrollZoomDelta(event.panDelta.dy)).clamp(...)`,
-  and `controller.move(camera.focusedZoomCenter(event.localPosition, newZoom), newZoom)`.
-- Uses **global `panDelta`** (per-event) for the scroll amount and
-  **`localPosition`** for the cursor — per the #372 macOS `localPan`
-  contamination lesson.
-- `MapCamera.focusedZoomCenter(cursorPos, zoom)` returns the new center that keeps
-  the point under the cursor fixed (flutter_map built-in). It accounts for map
-  rotation.
-- Callers thread the supplied `flags` into `MapOptions.interactionOptions`, and
-  pass their at-rest flags as `baseFlags` (default `InteractiveFlag.all`).
+`_TrackpadZoomGestureRecognizer extends OneSequenceGestureRecognizer`
+(`supportedDevices: {trackpad}`):
 
-This preserves touch (tablet/iPad) pinch-zoom exactly; `pinchMove` is only ever
-dropped while a trackpad gesture is in progress. Aligns with the agreed UX:
-two-finger trackpad scroll zooms (no two-finger trackpad pan), pan via click-drag.
+- `addAllowedPointer` (ordinary pointers) is a **no-op**, so a trackpad
+  click-drag still pans via flutter_map. Only `addAllowedPointerPanZoom` is
+  claimed: it `startTrackingPointer` + `resolve(accepted)` **eagerly**, winning
+  the arena before flutter_map or the scrollable can.
+- On each `PointerPanZoomUpdateEvent` it reports an additive zoom-level delta =
+  `trackpadScrollZoomDelta(event.panDelta.dy)` (scroll) `+ log2(scale / lastScale)`
+  (pinch). The wrapper applies it: `newZoom = (camera.zoom + delta).clamp(...)`,
+  then `controller.move(camera.focusedZoomCenter(event.localPosition, newZoom), newZoom)`.
+- Uses **global `panDelta`** for the scroll amount and **`localPosition`** for
+  the cursor — per the #372 macOS `localPan` contamination lesson.
+- `MapCamera.focusedZoomCenter(cursorPos, zoom)` keeps the point under the cursor
+  fixed (flutter_map built-in; accounts for map rotation).
+
+Touch (regular pointers, not pan-zoom) and mouse wheel (pointer signal, claimed
+by flutter_map's own resolver) are untouched: touch pinch/one-finger pan and
+wheel-zoom keep working. No interaction-flag changes are needed, so call sites
+keep their existing `MapOptions` and just wrap with `TrackpadZoomMap(controller:
+..., child: FlutterMap(...))`.
+
+Not unit-testable: that the arena win actually suppresses the parent scroll —
+`flutter_test`'s `Scrollable` does not scroll on synthetic `panZoom` events
+(verified). Covered by on-device verification (Task 6).
 
 #### Roll-out to 15 files / 17 maps
 
