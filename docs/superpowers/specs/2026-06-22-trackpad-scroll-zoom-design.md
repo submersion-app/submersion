@@ -51,9 +51,9 @@ Dependency-free function shared by both consumers:
 
 ```dart
 /// Converts a trackpad two-finger vertical scroll delta (logical px) into an
-/// additive zoom-level delta. Negative dy (scroll up/away) -> positive (zoom in),
-/// matching the mouse-wheel convention. Sensitivity is tuned so a normal scroll
-/// flick changes zoom by roughly one level.
+/// additive zoom-level delta. Scroll up -> negative (zoom out), scroll down ->
+/// positive (zoom in). Sensitivity is tuned so a normal scroll flick changes
+/// zoom by roughly one level.
 double trackpadScrollZoomDelta(double scrollDy, {double sensitivity = 0.01});
 ```
 
@@ -151,7 +151,8 @@ Not unit-testable: that the arena win actually suppresses the parent scroll —
 #### Roll-out to 15 files / 17 maps
 
 Each call site wraps its `FlutterMap` in
-`TrackpadZoomMap(controller: ..., baseFlags: ..., builder: (context, flags) => FlutterMap(... interactionOptions: InteractionOptions(flags: flags, ...) ...))`.
+`TrackpadZoomMap(controller: ..., child: FlutterMap(...))` — no `MapOptions`/flag
+changes needed (the recognizer wins the arena instead of toggling flags).
 Maps that are currently stateless and do not own a `MapController` get a minimal
 `StatefulWidget` / `ConsumerStatefulWidget` conversion to create and hold one
 (create as a field, no `dispose` needed for `MapController` — matches existing
@@ -182,23 +183,27 @@ The 15 files (two contain 2 maps each — `site_detail_page` and
 The risk (flutter_map double-handling the trackpad gesture) **materialized**:
 flutter_map's `ScaleGestureRecognizer` does engage on trackpad `PointerPanZoom`
 and its `pinchMove` handler pins the camera to gesture-start every frame,
-reverting our zoom. Verified with probes. Resolved by the pointer-kind-aware
-`pinchMove` flag swap in `TrackpadZoomMap` (section 3). The earlier #370 note
+reverting our zoom. Verified with probes. Resolved by `TrackpadZoomMap`'s
+arena-winning `TrackpadZoomGestureRecognizer` (section 3), which rejects
+flutter_map's scale recognizer outright. The earlier #370 note
 ("no double-handling, trackpad sends no PointerDownEvent") did not hold for
 flutter_map 8.2.2; `ScaleGestureRecognizer.addAllowedPointerPanZoom` accepts the
-gesture without a pointer-down. On-device macOS confirmation is still part of
-Task 6 (smooth progressive zoom; brief possible stutter on the first frame of a
-gesture before the flag-swap rebuild lands).
+gesture without a pointer-down. Resolved by `TrackpadZoomGestureRecognizer`
+eagerly winning the gesture arena (rejecting flutter_map's scale recognizer and
+any enclosing scrollable) — not by a flag swap. On-device macOS confirmation is
+still part of Task 6 (smooth progressive zoom).
 
 ## Testing
 
 - **Unit** (`test/core/ui/trackpad_zoom_test.dart`): `trackpadScrollZoomDelta`
-  sign (negative dy → positive delta), zero at dy 0, sensitivity scaling,
-  symmetry (equal-and-opposite dy → equal-and-opposite delta).
+  sign (scroll down / positive dy → positive delta = zoom in), zero at dy 0,
+  sensitivity scaling, symmetry (equal-and-opposite dy → equal-and-opposite
+  delta).
 - **Widget** (`test/features/maps/.../trackpad_zoom_map_test.dart`): synthesize
   `PointerPanZoomStart/Update/End` with `kind: trackpad` and assert the
-  `MapController` zoom changes in the right direction and stays clamped; assert a
-  `kind: touch` pan-zoom is ignored (zoom unchanged).
+  `MapController` zoom changes in the right direction (scroll down zooms in,
+  progressively), pinch zooms, and a trackpad click-drag is not claimed by the
+  recognizer.
 - **Chart**: extend viewport tests for the scroll→factor mapping
   (`pow(2, trackpadScrollZoomDelta(dy))`). Note per #372 that full two-finger
   trackpad gestures aren't simulatable in `flutter_test`; the end-to-end chart

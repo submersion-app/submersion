@@ -4,7 +4,7 @@
 
 **Goal:** Make two-finger up/down scroll on a trackpad zoom in/out (cursor-anchored) on all 17 maps and on the dive profile chart.
 
-**Architecture:** One pure helper converts a trackpad vertical scroll delta into a zoom-level delta. A passive `Listener`-based wrapper (`TrackpadZoomMap`) drives `MapController` zoom for maps. The dive profile chart's existing `onPointerPanZoomUpdate` is modified to fold vertical scroll into its zoom factor instead of panning.
+**Architecture:** One pure helper converts a trackpad vertical scroll delta into a zoom-level delta. A shared `TrackpadZoomGestureRecognizer` eagerly wins the gesture arena for trackpad pan-zoom (rejecting flutter_map's scale recognizer and any enclosing scrollable); `TrackpadZoomMap` uses it to drive `MapController` zoom for maps, and the dive profile chart uses the same recognizer to drive its viewport zoom. Both zoom from scroll (`panDelta`) and pinch (`scale`), cursor-anchored.
 
 **Tech Stack:** Flutter, flutter_map 8.2.2 (`MapController`, `MapCamera.focusedZoomCenter`), fl_chart, Riverpod.
 
@@ -15,7 +15,7 @@
 - No emojis in code/comments.
 - Immutability; no mutation of shared objects.
 - Only `PointerDeviceKind.trackpad` gestures are re-interpreted; touch and mouse paths are untouched.
-- Direction matches the existing mouse-wheel convention: negative `dy` (scroll up/away) zooms in.
+- Direction: two-finger scroll up zooms out, scroll down zooms in (the mouse-wheel paths are left unchanged at up = zoom in).
 - Zoom is cursor-anchored.
 - Run specific test files (not broad directories) to avoid Bash timeouts.
 
@@ -43,12 +43,12 @@ void main() {
       expect(trackpadScrollZoomDelta(0), 0);
     });
 
-    test('scroll up (negative dy) zooms in (positive delta)', () {
-      expect(trackpadScrollZoomDelta(-100), greaterThan(0));
+    test('scroll up (negative dy) zooms out (negative delta)', () {
+      expect(trackpadScrollZoomDelta(-100), lessThan(0));
     });
 
-    test('scroll down (positive dy) zooms out (negative delta)', () {
-      expect(trackpadScrollZoomDelta(100), lessThan(0));
+    test('scroll down (positive dy) zooms in (positive delta)', () {
+      expect(trackpadScrollZoomDelta(100), greaterThan(0));
     });
 
     test('is symmetric for equal-and-opposite scrolls', () {
@@ -83,12 +83,12 @@ Expected: FAIL — `trackpad_zoom.dart` / `trackpadScrollZoomDelta` not found.
 /// Converts a trackpad two-finger vertical scroll delta (logical pixels) into an
 /// additive zoom-level delta.
 ///
-/// Negative [scrollDy] (scroll up / away from the user) returns a positive delta
-/// (zoom in), matching the mouse-wheel convention so wheel and trackpad agree on
-/// the same machine. Map consumers add the result to `camera.zoom`; the dive
-/// profile chart applies `pow(2, delta)` as a multiplicative factor.
+/// Scroll up (negative [scrollDy]) returns a negative delta (zoom out); scroll
+/// down (positive) returns a positive delta (zoom in). Map consumers add the
+/// result to `camera.zoom`; the dive profile chart applies `pow(2, delta)` as a
+/// multiplicative factor.
 double trackpadScrollZoomDelta(double scrollDy, {double sensitivity = 0.01}) {
-  return -scrollDy * sensitivity;
+  return scrollDy * sensitivity;
 }
 ```
 

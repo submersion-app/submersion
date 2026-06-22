@@ -66,7 +66,9 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    // Avoid pumpAndSettle: the FlutterMap tile layer animates indefinitely.
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     expect(find.byType(TripVoyageMap), findsOneWidget);
     expect(find.byType(FlutterMap), findsWidgets);
@@ -107,7 +109,9 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    // Avoid pumpAndSettle: the FlutterMap tile layer animates indefinitely.
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     expect(find.byType(FlutterMap), findsWidgets);
   });
