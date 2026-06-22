@@ -2017,53 +2017,61 @@ void main() {
     });
 
     testWidgets(
-      'trackpad two-finger scroll pan shifts the visible window rightward',
+      'trackpad two-finger scroll up zooms in, anchored toward the cursor',
       (tester) async {
         await tester.pumpWidget(_buildChart(profile: _makeProfile(points: 20)));
         await tester.pumpAndSettle();
 
         final chart = find.byType(LineChart).first;
-        final center = tester.getCenter(chart);
+        final topLeft = tester.getTopLeft(chart);
+        final size = tester.getSize(chart);
+        final anchor = topLeft + Offset(size.width * 0.7, size.height * 0.5);
 
-        // Zoom in twice at center so there is room to pan. Each scroll uses
-        // factor 1.1; after two scrolls zoom ~= 1.21 and offsetX ~= 0.087
-        // (the window sits just inside the left edge with space to pan right).
-        await tester.sendEventToBinding(
-          PointerScrollEvent(
-            position: center,
-            scrollDelta: const Offset(0, -100),
-          ),
-        );
-        await tester.sendEventToBinding(
-          PointerScrollEvent(
-            position: center,
-            scrollDelta: const Offset(0, -100),
-          ),
-        );
-        await tester.pump();
-
-        final zoomedMinX = primaryChartData(tester).minX;
-        // Confirm we are actually zoomed in (offsetX > 0 means minX > 0).
-        expect(zoomedMinX, greaterThan(0.0));
-
-        // Drive a trackpad two-finger scroll to the left (negative dx).
-        // The handler applies: offsetX += -localPan.dx / plotW / zoom.
-        // With localPan.dx = -60: delta = +60 / plotW / zoom > 0, so
-        // offsetX increases and minX increases (window shifts rightward).
-        final anchor = center;
+        final before = primaryChartData(tester);
         final pointer = TestPointer(1, PointerDeviceKind.trackpad);
         await tester.sendEventToBinding(pointer.panZoomStart(anchor));
+        // Scroll up (negative dy) zooms in. Horizontal component is ignored.
         await tester.sendEventToBinding(
-          pointer.panZoomUpdate(anchor, pan: const Offset(-60, 0)),
+          pointer.panZoomUpdate(anchor, pan: const Offset(0, -120)),
         );
         await tester.sendEventToBinding(pointer.panZoomEnd());
         await tester.pump();
 
-        final pannedMinX = primaryChartData(tester).minX;
-        // The visible window shifted rightward: minX must have increased.
-        expect(pannedMinX, greaterThan(zoomedMinX));
+        final after = primaryChartData(tester);
+        expect(
+          after.maxX - after.minX,
+          lessThan(before.maxX - before.minX),
+          reason: 'two-finger scroll up zooms in (visible window shrinks)',
+        );
+        expect(
+          after.minX,
+          greaterThan(0.0),
+          reason: 'zoom is anchored toward the cursor, not the left edge',
+        );
       },
     );
+
+    testWidgets('trackpad horizontal two-finger scroll does not zoom', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_buildChart(profile: _makeProfile(points: 20)));
+      await tester.pumpAndSettle();
+
+      final chart = find.byType(LineChart).first;
+      final center = tester.getCenter(chart);
+
+      final before = primaryChartData(tester);
+      final pointer = TestPointer(1, PointerDeviceKind.trackpad);
+      await tester.sendEventToBinding(pointer.panZoomStart(center));
+      await tester.sendEventToBinding(
+        pointer.panZoomUpdate(center, pan: const Offset(120, 0)),
+      );
+      await tester.sendEventToBinding(pointer.panZoomEnd());
+      await tester.pump();
+
+      final after = primaryChartData(tester);
+      expect(after.maxX - after.minX, before.maxX - before.minX);
+    });
   });
 
   group('desktop pan and hover', () {

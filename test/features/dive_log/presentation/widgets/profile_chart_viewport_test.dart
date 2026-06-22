@@ -1,6 +1,9 @@
+import 'dart:math' as math;
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/ui/trackpad_zoom.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_chart_viewport.dart';
 
 // Data fraction (0..1 of total range) currently under a focal point that sits
@@ -207,6 +210,23 @@ void main() {
         ),
         ChartDragIntent.pan,
       );
+    });
+  });
+
+  group('trackpad scroll maps to a cursor-anchored zoom factor', () {
+    // The chart applies pow(2, trackpadScrollZoomDelta(dy)) as the zoom factor.
+    test('scroll up produces a >1 factor (zoom in)', () {
+      final factor = math.pow(2, trackpadScrollZoomDelta(-100)).toDouble();
+      expect(factor, greaterThan(1.0));
+      final vp = const ProfileChartViewport().zoomedAt(0.5, 0.5, factor);
+      expect(vp.zoom, greaterThan(1.0));
+    });
+
+    test('scroll down produces a <1 factor and is a no-op at the min rail', () {
+      final factor = math.pow(2, trackpadScrollZoomDelta(100)).toDouble();
+      expect(factor, lessThan(1.0));
+      final vp = const ProfileChartViewport().zoomedAt(0.5, 0.5, factor);
+      expect(vp.zoom, ProfileChartViewport.minZoom);
     });
   });
 }
