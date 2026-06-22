@@ -33,7 +33,7 @@ jobs:
     name: C Wrapper Tests
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
 
@@ -51,7 +51,7 @@ jobs:
     name: Darwin Swift Tests
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Run Darwin native Swift tests
         run: bash packages/libdivecomputer_plugin/darwin/run_native_tests.sh
@@ -63,7 +63,7 @@ jobs:
     name: Build macOS
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
 
@@ -94,7 +94,7 @@ jobs:
     name: Build iOS
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
 
@@ -119,7 +119,7 @@ jobs:
     name: Build Windows
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
 
@@ -145,7 +145,7 @@ jobs:
     name: Build Linux
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
 
