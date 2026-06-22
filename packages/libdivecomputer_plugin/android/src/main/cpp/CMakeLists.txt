@@ -148,3 +148,11 @@ target_include_directories(libdc_jni PRIVATE
 )
 target_compile_definitions(libdc_jni PRIVATE HAVE_CONFIG_H)
 target_link_libraries(libdc_jni PRIVATE divecomputer log)
+
+# 16 KB page-size compatibility (Android 15+; required by Google Play for
+# targetSdk >= 35). NDK r27 still links native LOAD segments at 4 KB
+# (-z max-page-size=4096), so liblibdc_jni.so fails Android's 16 KB ELF
+# alignment check and will not load on 16 KB-page devices. Force 16 KB
+# alignment explicitly. Redundant (and harmless) under NDK r28+, which
+# defaults to 16 KB.
+target_link_options(libdc_jni PRIVATE "-Wl,-z,max-page-size=16384")
