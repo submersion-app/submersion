@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
+import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 
 /// Marker colors for the GPS entry/exit fixes, matching the values the dive
 /// detail header map has always used.
@@ -20,7 +21,7 @@ const Color kGpsExitColor = Color(0xFFFF9F0A);
 ///
 /// This widget only draws a map. Clipboard, navigation, and row logic live in
 /// the callers.
-class DiveLocationsMap extends ConsumerWidget {
+class DiveLocationsMap extends ConsumerStatefulWidget {
   const DiveLocationsMap({
     super.key,
     this.entry,
@@ -53,13 +54,33 @@ class DiveLocationsMap extends ConsumerWidget {
   final double? initialZoom;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DiveLocationsMap> createState() => _DiveLocationsMapState();
+}
+
+class _DiveLocationsMapState extends ConsumerState<DiveLocationsMap> {
+  // Stable fallback used only when the caller does not supply a controller.
+  // Derive the effective controller each build so a parent that rebuilds with a
+  // different `controller` is always honored.
+  final MapController _fallbackController = MapController();
+
+  MapController get _effectiveController =>
+      widget.controller ?? _fallbackController;
+
+  @override
+  Widget build(BuildContext context) {
+    final entry = widget.entry;
+    final exit = widget.exit;
+    final site = widget.site;
+    final interactive = widget.interactive;
+    final initialCenter = widget.initialCenter;
+    final initialZoom = widget.initialZoom;
+
     final colorScheme = Theme.of(context).colorScheme;
 
     final points = <LatLng>[
-      if (entry != null) LatLng(entry!.latitude, entry!.longitude),
-      if (exit != null) LatLng(exit!.latitude, exit!.longitude),
-      if (site != null) LatLng(site!.latitude, site!.longitude),
+      if (entry != null) LatLng(entry.latitude, entry.longitude),
+      if (exit != null) LatLng(exit.latitude, exit.longitude),
+      if (site != null) LatLng(site.latitude, site.longitude),
     ];
     if (points.isEmpty) return const SizedBox.shrink();
 
@@ -67,7 +88,7 @@ class DiveLocationsMap extends ConsumerWidget {
     double zoom;
     CameraFit? fit;
     if (initialCenter != null) {
-      center = initialCenter!;
+      center = initialCenter;
       zoom = initialZoom ?? 12.0;
     } else if (points.length >= 2) {
       center = points.first;
@@ -93,7 +114,7 @@ class DiveLocationsMap extends ConsumerWidget {
     final markers = <Marker>[
       if (entry != null)
         Marker(
-          point: LatLng(entry!.latitude, entry!.longitude),
+          point: LatLng(entry.latitude, entry.longitude),
           width: 28,
           height: 28,
           child: KeyedSubtree(
@@ -103,7 +124,7 @@ class DiveLocationsMap extends ConsumerWidget {
         ),
       if (exit != null)
         Marker(
-          point: LatLng(exit!.latitude, exit!.longitude),
+          point: LatLng(exit.latitude, exit.longitude),
           width: 28,
           height: 28,
           child: KeyedSubtree(
@@ -113,7 +134,7 @@ class DiveLocationsMap extends ConsumerWidget {
         ),
       if (site != null)
         Marker(
-          point: LatLng(site!.latitude, site!.longitude),
+          point: LatLng(site.latitude, site.longitude),
           width: 32,
           height: 32,
           // Diver glyph, matching the dive-site marker on the Sites map
@@ -129,42 +150,45 @@ class DiveLocationsMap extends ConsumerWidget {
         ),
     ];
 
-    return FlutterMap(
-      mapController: controller,
-      options: MapOptions(
-        initialCenter: center,
-        initialZoom: zoom,
-        initialCameraFit: fit,
-        interactionOptions: InteractionOptions(
-          flags: interactive ? InteractiveFlag.all : InteractiveFlag.none,
-        ),
-      ),
-      children: [
-        TileLayer(
-          urlTemplate: ref.watch(mapTileUrlProvider),
-          userAgentPackageName: 'app.submersion',
-          maxZoom: ref.watch(mapTileMaxZoomProvider),
-          tileProvider: TileCacheService.instance.isInitialized
-              ? TileCacheService.instance.getTileProvider()
-              : null,
-        ),
-        if (entry != null && exit != null)
-          PolylineLayer(
-            polylines: [
-              Polyline(
-                points: [
-                  LatLng(entry!.latitude, entry!.longitude),
-                  LatLng(exit!.latitude, exit!.longitude),
-                ],
-                strokeWidth: 3.0,
-                color: colorScheme.onSurface.withValues(alpha: 0.7),
-                pattern: const StrokePattern.dotted(),
-              ),
-            ],
+    return TrackpadZoomMap(
+      controller: _effectiveController,
+      child: FlutterMap(
+        mapController: _effectiveController,
+        options: MapOptions(
+          initialCenter: center,
+          initialZoom: zoom,
+          initialCameraFit: fit,
+          interactionOptions: InteractionOptions(
+            flags: interactive ? InteractiveFlag.all : InteractiveFlag.none,
           ),
-        MarkerLayer(markers: markers),
-        const MapAttribution(),
-      ],
+        ),
+        children: [
+          TileLayer(
+            urlTemplate: ref.watch(mapTileUrlProvider),
+            userAgentPackageName: 'app.submersion',
+            maxZoom: ref.watch(mapTileMaxZoomProvider),
+            tileProvider: TileCacheService.instance.isInitialized
+                ? TileCacheService.instance.getTileProvider()
+                : null,
+          ),
+          if (entry != null && exit != null)
+            PolylineLayer(
+              polylines: [
+                Polyline(
+                  points: [
+                    LatLng(entry.latitude, entry.longitude),
+                    LatLng(exit.latitude, exit.longitude),
+                  ],
+                  strokeWidth: 3.0,
+                  color: colorScheme.onSurface.withValues(alpha: 0.7),
+                  pattern: const StrokePattern.dotted(),
+                ),
+              ],
+            ),
+          MarkerLayer(markers: markers),
+          const MapAttribution(),
+        ],
+      ),
     );
   }
 }

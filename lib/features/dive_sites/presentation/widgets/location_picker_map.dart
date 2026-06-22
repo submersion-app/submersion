@@ -8,6 +8,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
+import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 
 /// Result from the location picker
 class PickedLocation {
@@ -156,63 +157,66 @@ class _LocationPickerMapState extends ConsumerState<LocationPickerMap> {
         label: context.l10n.diveSites_locationPicker_semantics_map,
         child: Stack(
           children: [
-            FlutterMap(
-              mapController: _mapController,
-              options: MapOptions(
-                initialCenter: initialCenter,
-                initialZoom: initialZoom,
-                minZoom: 2.0,
-                maxZoom: ref.watch(mapTileMaxZoomProvider),
-                onTap: _onMapTap,
-                interactionOptions: const InteractionOptions(
-                  flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
-                ),
-              ),
-              children: [
-                TileLayer(
-                  urlTemplate: ref.watch(mapTileUrlProvider),
-                  userAgentPackageName: 'app.submersion',
+            TrackpadZoomMap(
+              controller: _mapController,
+              child: FlutterMap(
+                mapController: _mapController,
+                options: MapOptions(
+                  initialCenter: initialCenter,
+                  initialZoom: initialZoom,
+                  minZoom: 2.0,
                   maxZoom: ref.watch(mapTileMaxZoomProvider),
-                  tileProvider: TileCacheService.instance.isInitialized
-                      ? TileCacheService.instance.getTileProvider()
-                      : null,
+                  onTap: _onMapTap,
+                  interactionOptions: const InteractionOptions(
+                    flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+                  ),
                 ),
-                if (_selectedLocation != null)
-                  MarkerLayer(
-                    markers: [
-                      Marker(
-                        point: _selectedLocation!,
-                        width: 50,
-                        height: 50,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: colorScheme.primary,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: colorScheme.onPrimary,
-                              width: 3,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.3),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
+                children: [
+                  TileLayer(
+                    urlTemplate: ref.watch(mapTileUrlProvider),
+                    userAgentPackageName: 'app.submersion',
+                    maxZoom: ref.watch(mapTileMaxZoomProvider),
+                    tileProvider: TileCacheService.instance.isInitialized
+                        ? TileCacheService.instance.getTileProvider()
+                        : null,
+                  ),
+                  if (_selectedLocation != null)
+                    MarkerLayer(
+                      markers: [
+                        Marker(
+                          point: _selectedLocation!,
+                          width: 50,
+                          height: 50,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: colorScheme.primary,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: colorScheme.onPrimary,
+                                width: 3,
                               ),
-                            ],
-                          ),
-                          child: Center(
-                            child: Icon(
-                              Icons.location_on,
-                              size: 28,
-                              color: colorScheme.onPrimary,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Center(
+                              child: Icon(
+                                Icons.location_on,
+                                size: 28,
+                                color: colorScheme.onPrimary,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                const MapAttribution(),
-              ],
+                      ],
+                    ),
+                  const MapAttribution(),
+                ],
+              ),
             ),
 
             // Instructions overlay

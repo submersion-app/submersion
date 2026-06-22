@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -661,6 +662,81 @@ void main() {
       await tester.pumpAndSettle();
       expect(selectedId, 's1');
     });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Mini-map background (SiteListTile renders a FlutterMap when the site has a
+  // location and the showMapBackgroundOnSiteCards setting is enabled).
+  // ---------------------------------------------------------------------------
+  group('site card mini-map', () {
+    testWidgets('SiteListTile renders a FlutterMap for a located site when map '
+        'background is enabled', (tester) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+            showMapBackgroundOnSiteCardsProvider.overrideWithValue(true),
+          ],
+          child: const SiteListTile(
+            name: 'Blue Hole',
+            location: 'Belize',
+            latitude: 17.3155,
+            longitude: -87.5346,
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.byType(SiteListTile), findsOneWidget);
+      expect(find.byType(FlutterMap), findsWidgets);
+    });
+
+    testWidgets(
+      'SiteListContent detailed view renders a mini-map for a located site',
+      (tester) async {
+        _setMobileTestSurfaceSize(tester);
+        SharedPreferences.setMockInitialValues({});
+        final p = await SharedPreferences.getInstance();
+
+        final sites = [
+          SiteWithDiveCount(
+            site: const DiveSite(
+              id: 's1',
+              name: 'Located Reef',
+              location: GeoPoint(17.3155, -87.5346),
+            ),
+            diveCount: 0,
+          ),
+        ];
+
+        await tester.pumpWidget(
+          testApp(
+            overrides: [
+              sharedPreferencesProvider.overrideWithValue(p),
+              settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+              showMapBackgroundOnSiteCardsProvider.overrideWithValue(true),
+              currentDiverIdProvider.overrideWith(
+                (ref) => MockCurrentDiverIdNotifier(),
+              ),
+              sortedSitesWithCountsProvider.overrideWithValue(
+                AsyncValue.data(sites),
+              ),
+              siteListNotifierProvider.overrideWith(
+                (ref) => _MockSiteListNotifier(),
+              ),
+              siteListViewModeProvider.overrideWith(
+                (ref) => ListViewMode.detailed,
+              ),
+              highlightedSiteIdProvider.overrideWith((ref) => null),
+            ],
+            child: const SiteListContent(showAppBar: false),
+          ),
+        );
+        await tester.pump();
+
+        expect(find.byType(FlutterMap), findsWidgets);
+      },
+    );
   });
 }
 

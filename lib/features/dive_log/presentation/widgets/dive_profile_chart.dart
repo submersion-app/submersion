@@ -25,6 +25,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dar
 import 'package:submersion/features/dive_log/presentation/widgets/gas_timeline_strip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_chart_viewport.dart';
+import 'package:submersion/core/ui/trackpad_zoom_recognizer.dart';
 
 /// Structured row emitted via [DiveProfileChart.onTooltipData] so callers
 /// can render the tooltip externally (e.g., below the chart).
@@ -476,7 +477,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       : PointerDeviceKind.mouse;
 
   // Cursor position at the start of a trackpad pan/zoom gesture.
-  Offset _trackpadAnchor = Offset.zero;
 
   // True between a double-tap-down and the finger lifting; lets a held-finger
   // drag pan instead of scrub.
@@ -1162,131 +1162,60 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   }) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        // Trackpad two-finger scroll/pinch zoom, cursor-anchored. Driven by an
+        // arena-winning recognizer so it does not also scroll an enclosing page
+        // (the chart lives inside a SingleChildScrollView) and is not fought by
+        // fl_chart's own recognizers.
+        void zoomAt(Offset localPosition, double zoomDelta) {
+          if (zoomDelta == 0) return;
+          setState(() {
+            _activePointerKind = PointerDeviceKind.trackpad;
+            final box = constraints.biggest;
+            final insets = _plotInsets(constraints.maxWidth, units);
+            final focal = chartFocalFraction(
+              localPosition,
+              box,
+              left: insets.left,
+              right: insets.right,
+              top: insets.top,
+              bottom: insets.bottom,
+            );
+            _viewport = _viewport.zoomedAt(
+              focal.fx,
+              focal.fy,
+              math.pow(2, zoomDelta).toDouble(),
+            );
+          });
+        }
+
         return Semantics(
           label: context.l10n.diveLog_profile_semantics_chart,
-          child: GestureDetector(
-            onScaleStart: (details) {
-              _gestureStartViewport = _viewport;
-              _startFocalPoint = details.localFocalPoint;
+          child: RawGestureDetector(
+            gestures: {
+              TrackpadZoomGestureRecognizer:
+                  GestureRecognizerFactoryWithHandlers<
+                    TrackpadZoomGestureRecognizer
+                  >(
+                    () => TrackpadZoomGestureRecognizer(debugOwner: this),
+                    (recognizer) => recognizer.onZoom = zoomAt,
+                  ),
             },
-            onScaleUpdate: (details) {
-              // Single-pointer drags are handled by Listener.onPointerMove
-              // (mouse pan) and fl_chart's own recognizer (touch scrub); they
-              // never reach onScaleUpdate, which only ever fires for a pinch.
-              if (details.pointerCount < 2) return;
-
-              // Trackpad pinch is handled by the Listener's onPointerPanZoomUpdate
-              // (reliable cursor anchor); touch focal points are correct, so touch
-              // pinch is handled here.
-              if (_activePointerKind != PointerDeviceKind.touch) return;
-
-              setState(() {
-                final box = constraints.biggest;
-                final insets = _plotInsets(constraints.maxWidth, units);
-                final plotW = (box.width - insets.left - insets.right).clamp(
-                  1.0,
-                  double.infinity,
-                );
-                final plotH = (box.height - insets.top - insets.bottom).clamp(
-                  1.0,
-                  double.infinity,
-                );
-                final focal = chartFocalFraction(
-                  _startFocalPoint,
-                  box,
-                  left: insets.left,
-                  right: insets.right,
-                  top: insets.top,
-                  bottom: insets.bottom,
-                );
-                // scale is cumulative from gesture start -> apply to snapshot.
-                var vp = _gestureStartViewport.zoomedAt(
-                  focal.fx,
-                  focal.fy,
-                  details.scale,
-                );
-                final panPx = details.localFocalPoint - _startFocalPoint;
-                vp = vp.pannedBy(
-                  -panPx.dx / plotW / vp.zoom,
-                  -panPx.dy / plotH / vp.zoom,
-                );
-                _viewport = vp;
-              });
-            },
-            onDoubleTapDown: (details) {
-              _lastTapDownLocal = details.localPosition;
-              _doubleTapHold = true;
-            },
-            onDoubleTap: () {
-              _doubleTapHold = false;
-              setState(() {
-                if (_viewport.isZoomed) {
-                  _viewport = ProfileChartViewport.reset;
-                } else {
-                  final box = constraints.biggest;
-                  final insets = _plotInsets(constraints.maxWidth, units);
-                  final focal = chartFocalFraction(
-                    _lastTapDownLocal,
-                    box,
-                    left: insets.left,
-                    right: insets.right,
-                    top: insets.top,
-                    bottom: insets.bottom,
-                  );
-                  _viewport = _viewport.zoomedAt(focal.fx, focal.fy, 2.0);
-                }
-              });
-            },
-            child: Listener(
-              onPointerDown: (event) {
-                _activePointerCount++;
-                _activePointerKind = event.kind;
-                _lastPointerLocal = event.localPosition;
-              },
-              onPointerMove: (event) {
-                final prev = _lastPointerLocal;
-                _lastPointerLocal = event.localPosition;
-                if (prev == null) return;
-                final intent = chartDragIntent(
-                  kind: _activePointerKind,
-                  pointerCount: _activePointerCount,
-                  doubleTapHold: _doubleTapHold,
-                );
-                if (intent != ChartDragIntent.pan) return;
-                setState(() {
-                  final box = constraints.biggest;
-                  final insets = _plotInsets(constraints.maxWidth, units);
-                  final plotW = (box.width - insets.left - insets.right).clamp(
-                    1.0,
-                    double.infinity,
-                  );
-                  final plotH = (box.height - insets.top - insets.bottom).clamp(
-                    1.0,
-                    double.infinity,
-                  );
-                  final d = event.localPosition - prev;
-                  _viewport = _viewport.pannedBy(
-                    -d.dx / plotW / _viewport.zoom,
-                    -d.dy / plotH / _viewport.zoom,
-                  );
-                });
-              },
-              onPointerUp: (event) {
-                if (_activePointerCount > 0) _activePointerCount--;
-                _lastPointerLocal = null;
-                _doubleTapHold = false;
-              },
-              onPointerCancel: (event) {
-                if (_activePointerCount > 0) _activePointerCount--;
-                _lastPointerLocal = null;
-                _doubleTapHold = false;
-              },
-              onPointerPanZoomStart: (event) {
-                _activePointerKind = PointerDeviceKind.trackpad;
+            child: GestureDetector(
+              onScaleStart: (details) {
                 _gestureStartViewport = _viewport;
-                _trackpadAnchor = event.localPosition;
+                _startFocalPoint = details.localFocalPoint;
               },
-              onPointerPanZoomUpdate: (event) {
+              onScaleUpdate: (details) {
+                // Single-pointer drags are handled by Listener.onPointerMove
+                // (mouse pan) and fl_chart's own recognizer (touch scrub); they
+                // never reach onScaleUpdate, which only ever fires for a pinch.
+                if (details.pointerCount < 2) return;
+
+                // Trackpad pinch/scroll is handled by the
+                // TrackpadZoomGestureRecognizer (reliable cursor anchor); touch
+                // focal points are correct, so touch pinch is handled here.
+                if (_activePointerKind != PointerDeviceKind.touch) return;
+
                 setState(() {
                   final box = constraints.biggest;
                   final insets = _plotInsets(constraints.maxWidth, units);
@@ -1299,77 +1228,143 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     double.infinity,
                   );
                   final focal = chartFocalFraction(
-                    _trackpadAnchor,
+                    _startFocalPoint,
                     box,
                     left: insets.left,
                     right: insets.right,
                     top: insets.top,
                     bottom: insets.bottom,
                   );
-                  // scale and pan are cumulative from the gesture start.
+                  // scale is cumulative from gesture start -> apply to snapshot.
                   var vp = _gestureStartViewport.zoomedAt(
                     focal.fx,
                     focal.fy,
-                    event.scale,
+                    details.scale,
                   );
-                  // Use the GLOBAL pan delta (event.pan), NOT event.localPan:
-                  // on macOS the trackpad PointerPanZoom localPan is contaminated
-                  // by the widget's global->local translation (the translation is
-                  // wrongly applied to the pan vector), making it a huge constant
-                  // (~ -(widget global origin)) that pins the view to a corner.
-                  // The chart has no rotation/scale, so the global pan delta IS
-                  // the correct local delta.
+                  final panPx = details.localFocalPoint - _startFocalPoint;
                   vp = vp.pannedBy(
-                    -event.pan.dx / plotW / vp.zoom,
-                    -event.pan.dy / plotH / vp.zoom,
+                    -panPx.dx / plotW / vp.zoom,
+                    -panPx.dy / plotH / vp.zoom,
                   );
                   _viewport = vp;
                 });
               },
-              onPointerSignal: (event) {
-                if (event is PointerScrollEvent) {
-                  setState(() {
+              onDoubleTapDown: (details) {
+                _lastTapDownLocal = details.localPosition;
+                _doubleTapHold = true;
+              },
+              onDoubleTap: () {
+                _doubleTapHold = false;
+                setState(() {
+                  if (_viewport.isZoomed) {
+                    _viewport = ProfileChartViewport.reset;
+                  } else {
                     final box = constraints.biggest;
                     final insets = _plotInsets(constraints.maxWidth, units);
                     final focal = chartFocalFraction(
-                      event.localPosition,
+                      _lastTapDownLocal,
                       box,
                       left: insets.left,
                       right: insets.right,
                       top: insets.top,
                       bottom: insets.bottom,
                     );
-                    final factor = event.scrollDelta.dy < 0 ? 1.1 : 1 / 1.1;
-                    _viewport = _viewport.zoomedAt(focal.fx, focal.fy, factor);
+                    _viewport = _viewport.zoomedAt(focal.fx, focal.fy, 2.0);
+                  }
+                });
+              },
+              child: Listener(
+                onPointerDown: (event) {
+                  _activePointerCount++;
+                  _activePointerKind = event.kind;
+                  _lastPointerLocal = event.localPosition;
+                },
+                onPointerMove: (event) {
+                  final prev = _lastPointerLocal;
+                  _lastPointerLocal = event.localPosition;
+                  if (prev == null) return;
+                  final intent = chartDragIntent(
+                    kind: _activePointerKind,
+                    pointerCount: _activePointerCount,
+                    doubleTapHold: _doubleTapHold,
+                  );
+                  if (intent != ChartDragIntent.pan) return;
+                  setState(() {
+                    final box = constraints.biggest;
+                    final insets = _plotInsets(constraints.maxWidth, units);
+                    final plotW = (box.width - insets.left - insets.right)
+                        .clamp(1.0, double.infinity);
+                    final plotH = (box.height - insets.top - insets.bottom)
+                        .clamp(1.0, double.infinity);
+                    final d = event.localPosition - prev;
+                    _viewport = _viewport.pannedBy(
+                      -d.dx / plotW / _viewport.zoom,
+                      -d.dy / plotH / _viewport.zoom,
+                    );
                   });
-                }
-              },
-              onPointerHover: (event) {
-                _activePointerKind = PointerDeviceKind.mouse;
-                final idx = _hoverIndex(
-                  event.localPosition,
-                  constraints.biggest,
-                  _plotInsets(constraints.maxWidth, units),
-                );
-                if (idx != _lastHoverIndex) {
-                  _lastHoverIndex = idx;
-                  widget.onPointSelected?.call(idx);
-                }
-              },
-              child: MouseRegion(
-                onExit: (_) {
-                  if (_lastHoverIndex != null) {
-                    _lastHoverIndex = null;
-                    widget.onPointSelected?.call(null);
+                },
+                onPointerUp: (event) {
+                  if (_activePointerCount > 0) _activePointerCount--;
+                  _lastPointerLocal = null;
+                  _doubleTapHold = false;
+                },
+                onPointerCancel: (event) {
+                  if (_activePointerCount > 0) _activePointerCount--;
+                  _lastPointerLocal = null;
+                  _doubleTapHold = false;
+                },
+                // Trackpad two-finger scroll/pinch is handled by the
+                // TrackpadZoomGestureRecognizer above (it wins the gesture arena so
+                // it cannot also scroll the enclosing page).
+                onPointerSignal: (event) {
+                  if (event is PointerScrollEvent) {
+                    setState(() {
+                      final box = constraints.biggest;
+                      final insets = _plotInsets(constraints.maxWidth, units);
+                      final focal = chartFocalFraction(
+                        event.localPosition,
+                        box,
+                        left: insets.left,
+                        right: insets.right,
+                        top: insets.top,
+                        bottom: insets.bottom,
+                      );
+                      final factor = event.scrollDelta.dy < 0 ? 1.1 : 1 / 1.1;
+                      _viewport = _viewport.zoomedAt(
+                        focal.fx,
+                        focal.fy,
+                        factor,
+                      );
+                    });
                   }
                 },
-                child: _buildChart(
-                  context,
-                  units,
-                  availableWidth: constraints.maxWidth,
-                  hasTemperatureData: hasTemperatureData,
-                  hasPressureData: hasPressureData,
-                  hasHeartRateData: hasHeartRateData,
+                onPointerHover: (event) {
+                  _activePointerKind = PointerDeviceKind.mouse;
+                  final idx = _hoverIndex(
+                    event.localPosition,
+                    constraints.biggest,
+                    _plotInsets(constraints.maxWidth, units),
+                  );
+                  if (idx != _lastHoverIndex) {
+                    _lastHoverIndex = idx;
+                    widget.onPointSelected?.call(idx);
+                  }
+                },
+                child: MouseRegion(
+                  onExit: (_) {
+                    if (_lastHoverIndex != null) {
+                      _lastHoverIndex = null;
+                      widget.onPointSelected?.call(null);
+                    }
+                  },
+                  child: _buildChart(
+                    context,
+                    units,
+                    availableWidth: constraints.maxWidth,
+                    hasTemperatureData: hasTemperatureData,
+                    hasPressureData: hasPressureData,
+                    hasHeartRateData: hasHeartRateData,
+                  ),
                 ),
               ),
             ),

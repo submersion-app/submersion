@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_overview_tab.dart';
@@ -81,5 +83,54 @@ void main() {
       expect(find.text('45min'), findsOneWidget);
       expect(find.text('30min'), findsOneWidget);
     });
+
+    testWidgets(
+      'renders header background map when trip sites have locations',
+      (tester) async {
+        final overrides = await getBaseOverrides();
+
+        const locatedSite = DiveSite(
+          id: 'trip-site-1',
+          name: 'Trip Site',
+          location: GeoPoint(12.34, 56.78),
+        );
+
+        final router = GoRouter(
+          routes: [
+            GoRoute(
+              path: '/',
+              builder: (context, state) =>
+                  Scaffold(body: TripOverviewTab(tripWithStats: tripWithStats)),
+            ),
+            GoRoute(
+              path: '/dives/:id',
+              builder: (context, state) => const Scaffold(),
+            ),
+          ],
+        );
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              ...overrides,
+              divesForTripProvider(trip.id).overrideWith((ref) async => dives),
+              tripSitesWithLocationsProvider(
+                trip.id,
+              ).overrideWith((ref) async => [locatedSite]),
+            ].cast(),
+            child: MaterialApp.router(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              routerConfig: router,
+            ),
+          ),
+        );
+        // Avoid pumpAndSettle: the FlutterMap tile layer animates indefinitely.
+        await tester.pump();
+        await tester.pump(const Duration(seconds: 1));
+
+        expect(find.byType(FlutterMap), findsWidgets);
+      },
+    );
   });
 }

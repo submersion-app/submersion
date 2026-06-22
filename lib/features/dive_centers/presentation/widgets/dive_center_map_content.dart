@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_centers/domain/entities/dive_center.dar
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
+import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/shared/widgets/map_list_layout/map_info_card.dart';
 
@@ -195,68 +196,75 @@ class _DiveCenterMapContentState extends ConsumerState<DiveCenterMapContent>
 
     return Stack(
       children: [
-        FlutterMap(
-          mapController: _mapController,
-          options: MapOptions(
-            initialCenter: center,
-            initialZoom: zoom,
-            minZoom: 2.0,
-            maxZoom: 18.0,
-            onMapReady: () {
-              _mapReady = true;
-            },
-            onTap: (_, _) {
-              widget.onItemSelected(null);
-            },
-            cameraConstraint: CameraConstraint.contain(
-              bounds: LatLngBounds(
-                const LatLng(-90, -180),
-                const LatLng(90, 180),
+        TrackpadZoomMap(
+          controller: _mapController,
+          child: FlutterMap(
+            mapController: _mapController,
+            options: MapOptions(
+              initialCenter: center,
+              initialZoom: zoom,
+              minZoom: 2.0,
+              maxZoom: 18.0,
+              onMapReady: () {
+                _mapReady = true;
+              },
+              onTap: (_, _) {
+                widget.onItemSelected(null);
+              },
+              cameraConstraint: CameraConstraint.contain(
+                bounds: LatLngBounds(
+                  const LatLng(-90, -180),
+                  const LatLng(90, 180),
+                ),
               ),
             ),
+            children: [
+              TileLayer(
+                urlTemplate: ref.watch(mapTileUrlProvider),
+                userAgentPackageName: 'app.submersion',
+                maxZoom: ref.watch(mapTileMaxZoomProvider),
+                tileProvider: TileCacheService.instance.isInitialized
+                    ? TileCacheService.instance.getTileProvider()
+                    : null,
+              ),
+              MarkerClusterLayerWidget(
+                options: MarkerClusterLayerOptions(
+                  maxClusterRadius: 80,
+                  size: const Size(50, 50),
+                  markers: centersWithLocation.map((diveCenter) {
+                    final isSelected = widget.selectedId == diveCenter.id;
+                    return Marker(
+                      point: LatLng(
+                        diveCenter.latitude!,
+                        diveCenter.longitude!,
+                      ),
+                      width: isSelected ? 50 : 40,
+                      height: isSelected ? 50 : 40,
+                      child: Semantics(
+                        button: true,
+                        label: context.l10n
+                            .diveCenters_accessibility_markerLabel(
+                              diveCenter.name,
+                            ),
+                        child: GestureDetector(
+                          onTap: () => _onMarkerTapped(diveCenter),
+                          child: _buildMarker(context, diveCenter, isSelected),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                  builder: (context, markers) {
+                    return _buildClusterMarker(context, markers.length);
+                  },
+                  zoomToBoundsOnClick: false,
+                  onClusterTap: (node) {
+                    _animateToCluster(node.bounds);
+                  },
+                ),
+              ),
+              const MapAttribution(),
+            ],
           ),
-          children: [
-            TileLayer(
-              urlTemplate: ref.watch(mapTileUrlProvider),
-              userAgentPackageName: 'app.submersion',
-              maxZoom: ref.watch(mapTileMaxZoomProvider),
-              tileProvider: TileCacheService.instance.isInitialized
-                  ? TileCacheService.instance.getTileProvider()
-                  : null,
-            ),
-            MarkerClusterLayerWidget(
-              options: MarkerClusterLayerOptions(
-                maxClusterRadius: 80,
-                size: const Size(50, 50),
-                markers: centersWithLocation.map((diveCenter) {
-                  final isSelected = widget.selectedId == diveCenter.id;
-                  return Marker(
-                    point: LatLng(diveCenter.latitude!, diveCenter.longitude!),
-                    width: isSelected ? 50 : 40,
-                    height: isSelected ? 50 : 40,
-                    child: Semantics(
-                      button: true,
-                      label: context.l10n.diveCenters_accessibility_markerLabel(
-                        diveCenter.name,
-                      ),
-                      child: GestureDetector(
-                        onTap: () => _onMarkerTapped(diveCenter),
-                        child: _buildMarker(context, diveCenter, isSelected),
-                      ),
-                    ),
-                  );
-                }).toList(),
-                builder: (context, markers) {
-                  return _buildClusterMarker(context, markers.length);
-                },
-                zoomToBoundsOnClick: false,
-                onClusterTap: (node) {
-                  _animateToCluster(node.bounds);
-                },
-              ),
-            ),
-            const MapAttribution(),
-          ],
         ),
 
         // Empty state overlay

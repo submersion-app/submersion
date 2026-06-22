@@ -8,6 +8,7 @@ import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/domain/map_utils.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
+import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/trips/domain/entities/liveaboard_details.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
@@ -20,13 +21,21 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// - Dive site markers (blue, from trip sites)
 /// - Disembark port marker (red, from liveaboard details)
 /// - Polyline connecting all points in chronological order
-class TripVoyageMap extends ConsumerWidget {
+class TripVoyageMap extends ConsumerStatefulWidget {
   final String tripId;
 
   const TripVoyageMap({super.key, required this.tripId});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TripVoyageMap> createState() => _TripVoyageMapState();
+}
+
+class _TripVoyageMapState extends ConsumerState<TripVoyageMap> {
+  final MapController _mapController = MapController();
+
+  @override
+  Widget build(BuildContext context) {
+    final tripId = widget.tripId;
     final detailsAsync = ref.watch(liveaboardDetailsProvider(tripId));
     final sitesAsync = ref.watch(tripSitesWithLocationsProvider(tripId));
 
@@ -57,35 +66,39 @@ class TripVoyageMap extends ConsumerWidget {
                 ),
                 SizedBox(
                   height: 250,
-                  child: FlutterMap(
-                    options: MapOptions(
-                      initialCenter: center,
-                      initialZoom: zoom,
+                  child: TrackpadZoomMap(
+                    controller: _mapController,
+                    child: FlutterMap(
+                      mapController: _mapController,
+                      options: MapOptions(
+                        initialCenter: center,
+                        initialZoom: zoom,
+                      ),
+                      children: [
+                        TileLayer(
+                          urlTemplate: ref.watch(mapTileUrlProvider),
+                          userAgentPackageName: 'app.submersion',
+                          maxZoom: ref.watch(mapTileMaxZoomProvider),
+                          tileProvider: TileCacheService.instance.isInitialized
+                              ? TileCacheService.instance.getTileProvider()
+                              : null,
+                        ),
+                        PolylineLayer(
+                          polylines: [
+                            Polyline(
+                              points: allPoints,
+                              strokeWidth: 3.0,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.primary.withValues(alpha: 0.7),
+                              pattern: const StrokePattern.dotted(),
+                            ),
+                          ],
+                        ),
+                        MarkerLayer(markers: markers),
+                        const MapAttribution(),
+                      ],
                     ),
-                    children: [
-                      TileLayer(
-                        urlTemplate: ref.watch(mapTileUrlProvider),
-                        userAgentPackageName: 'app.submersion',
-                        maxZoom: ref.watch(mapTileMaxZoomProvider),
-                        tileProvider: TileCacheService.instance.isInitialized
-                            ? TileCacheService.instance.getTileProvider()
-                            : null,
-                      ),
-                      PolylineLayer(
-                        polylines: [
-                          Polyline(
-                            points: allPoints,
-                            strokeWidth: 3.0,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.primary.withValues(alpha: 0.7),
-                            pattern: const StrokePattern.dotted(),
-                          ),
-                        ],
-                      ),
-                      MarkerLayer(markers: markers),
-                      const MapAttribution(),
-                    ],
                   ),
                 ),
               ],

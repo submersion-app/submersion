@@ -17,6 +17,7 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_provi
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
+import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/marine_life/presentation/widgets/site_marine_life_section.dart';
 import 'package:submersion/features/tides/presentation/widgets/tide_section.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -115,7 +116,7 @@ class _SiteDetailPageState extends ConsumerState<SiteDetailPage> {
   }
 }
 
-class _SiteDetailContent extends ConsumerWidget {
+class _SiteDetailContent extends ConsumerStatefulWidget {
   final DiveSite site;
   final String siteId;
   final bool embedded;
@@ -129,7 +130,18 @@ class _SiteDetailContent extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_SiteDetailContent> createState() => _SiteDetailContentState();
+}
+
+class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
+  final MapController _previewController = MapController();
+  final MapController _fullController = MapController();
+
+  @override
+  Widget build(BuildContext context) {
+    final site = widget.site;
+    final siteId = widget.siteId;
+    final embedded = widget.embedded;
     final body = SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -284,7 +296,7 @@ class _SiteDetailContent extends ConsumerWidget {
             onPressed: () {
               final state = GoRouterState.of(context);
               final currentPath = state.uri.path;
-              context.go('$currentPath?selected=$siteId&mode=edit');
+              context.go('$currentPath?selected=${widget.siteId}&mode=edit');
             },
           ),
           PopupMenuButton<String>(
@@ -351,13 +363,15 @@ class _SiteDetailContent extends ConsumerWidget {
       );
 
       if (confirmed == true) {
-        await ref.read(siteListNotifierProvider.notifier).deleteSite(siteId);
+        await ref
+            .read(siteListNotifierProvider.notifier)
+            .deleteSite(widget.siteId);
         ref.invalidate(sitesWithCountsProvider);
         ref.invalidate(sitesProvider);
 
         if (context.mounted) {
-          if (embedded) {
-            onDeleted?.call();
+          if (widget.embedded) {
+            widget.onDeleted?.call();
           } else {
             context.go('/sites');
           }
@@ -384,10 +398,114 @@ class _SiteDetailContent extends ConsumerWidget {
         height: 200,
         child: Stack(
           children: [
-            FlutterMap(
-              key: ValueKey(
-                '${site.location!.latitude}_${site.location!.longitude}',
+            TrackpadZoomMap(
+              controller: _previewController,
+              child: FlutterMap(
+                mapController: _previewController,
+                key: ValueKey(
+                  '${site.location!.latitude}_${site.location!.longitude}',
+                ),
+                options: MapOptions(
+                  initialCenter: siteLocation,
+                  initialZoom: 14.0,
+                  minZoom: 2.0,
+                  maxZoom: 18.0,
+                  interactionOptions: const InteractionOptions(
+                    flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+                  ),
+                ),
+                children: [
+                  TileLayer(
+                    urlTemplate: ref.watch(mapTileUrlProvider),
+                    userAgentPackageName: 'app.submersion',
+                    maxZoom: ref.watch(mapTileMaxZoomProvider),
+                    tileProvider: TileCacheService.instance.isInitialized
+                        ? TileCacheService.instance.getTileProvider()
+                        : null,
+                  ),
+                  MarkerLayer(
+                    markers: [
+                      Marker(
+                        point: siteLocation,
+                        width: 50,
+                        height: 50,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: colorScheme.primary,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: colorScheme.onPrimary,
+                              width: 2,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Icon(
+                              Icons.scuba_diving,
+                              size: 24,
+                              color: colorScheme.onPrimary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const MapAttribution(),
+                ],
               ),
+            ),
+            Positioned(
+              right: 8,
+              top: 8,
+              child: Material(
+                color: colorScheme.surface.withValues(alpha: 0.9),
+                borderRadius: BorderRadius.circular(4),
+                child: Semantics(
+                  button: true,
+                  label:
+                      context.l10n.diveSites_detail_semantics_viewFullscreenMap,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(4),
+                    onTap: () => _showFullscreenMap(context, ref, site),
+                    child: Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: Icon(
+                        Icons.fullscreen,
+                        size: 20,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showFullscreenMap(BuildContext context, WidgetRef ref, DiveSite site) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final siteLocation = LatLng(
+      site.location!.latitude,
+      site.location!.longitude,
+    );
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => Scaffold(
+          appBar: AppBar(title: Text(site.name)),
+          body: TrackpadZoomMap(
+            controller: _fullController,
+            child: FlutterMap(
+              mapController: _fullController,
               options: MapOptions(
                 initialCenter: siteLocation,
                 initialZoom: 14.0,
@@ -442,102 +560,6 @@ class _SiteDetailContent extends ConsumerWidget {
                 const MapAttribution(),
               ],
             ),
-            Positioned(
-              right: 8,
-              top: 8,
-              child: Material(
-                color: colorScheme.surface.withValues(alpha: 0.9),
-                borderRadius: BorderRadius.circular(4),
-                child: Semantics(
-                  button: true,
-                  label:
-                      context.l10n.diveSites_detail_semantics_viewFullscreenMap,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(4),
-                    onTap: () => _showFullscreenMap(context, ref, site),
-                    child: Padding(
-                      padding: const EdgeInsets.all(6),
-                      child: Icon(
-                        Icons.fullscreen,
-                        size: 20,
-                        color: colorScheme.primary,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showFullscreenMap(BuildContext context, WidgetRef ref, DiveSite site) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final siteLocation = LatLng(
-      site.location!.latitude,
-      site.location!.longitude,
-    );
-
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => Scaffold(
-          appBar: AppBar(title: Text(site.name)),
-          body: FlutterMap(
-            options: MapOptions(
-              initialCenter: siteLocation,
-              initialZoom: 14.0,
-              minZoom: 2.0,
-              maxZoom: 18.0,
-              interactionOptions: const InteractionOptions(
-                flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
-              ),
-            ),
-            children: [
-              TileLayer(
-                urlTemplate: ref.watch(mapTileUrlProvider),
-                userAgentPackageName: 'app.submersion',
-                maxZoom: ref.watch(mapTileMaxZoomProvider),
-                tileProvider: TileCacheService.instance.isInitialized
-                    ? TileCacheService.instance.getTileProvider()
-                    : null,
-              ),
-              MarkerLayer(
-                markers: [
-                  Marker(
-                    point: siteLocation,
-                    width: 50,
-                    height: 50,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: colorScheme.primary,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: colorScheme.onPrimary,
-                          width: 2,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Center(
-                        child: Icon(
-                          Icons.scuba_diving,
-                          size: 24,
-                          color: colorScheme.onPrimary,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const MapAttribution(),
-            ],
           ),
         ),
       ),
