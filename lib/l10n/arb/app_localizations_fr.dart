@@ -4379,11 +4379,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String forms_statCell_useProfileValue(String value) {
-    return 'Utiliser $value du profil de plongée';
-  }
-
-  @override
   String get siteMatchReview_title => 'Associer les sites';
 
   @override

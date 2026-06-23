@@ -267,8 +267,8 @@ void main() {
     expect(find.textContaining('Belize'), findsWidgets);
     expect(find.text('11 points'), findsOneWidget);
     expect(find.text('Edit Profile'), findsOneWidget);
-    // Profile-derived suggestion glyphs on the hero cells.
-    expect(find.byIcon(Icons.sync_outlined), findsWidgets);
+    // Profile-derived one-tap calculate buttons on the metric rows.
+    expect(find.byIcon(Icons.calculate_outlined), findsWidgets);
 
     // Gas & Gear: CCR panel, two tank cards, equipment and weights blocks.
     expect(find.byType(CcrSettingsPanel), findsOneWidget);

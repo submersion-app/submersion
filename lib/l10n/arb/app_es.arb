@@ -1435,7 +1435,6 @@
   "forms_discard_title": "¿Descartar los cambios?",
   "forms_save": "Guardar",
   "forms_section_issues": "{count, plural, one{1 problema} other{{count} problemas}}",
-  "forms_statCell_useProfileValue": "Usar {value} del perfil de inmersión",
   "siteMatchReview_title": "Asociar puntos",
   "siteMatchReview_diveNumber": "Inmersion #{number}",
   "siteMatchReview_empty": "Nada que asociar.",

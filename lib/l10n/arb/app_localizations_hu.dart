@@ -4341,11 +4341,6 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String forms_statCell_useProfileValue(String value) {
-    return '$value átvétele a merülési profilból';
-  }
-
-  @override
   String get siteMatchReview_title => 'Helyek hozzárendelése';
 
   @override

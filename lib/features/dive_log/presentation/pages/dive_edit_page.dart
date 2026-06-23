@@ -809,6 +809,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     return ProfileSuggestion(
       value: units.convertDepth(meters).toStringAsFixed(1),
       onUse: onUse,
+      tooltip: context.l10n.diveLog_edit_tooltip_calculateFromProfile,
     );
   }
 
@@ -820,6 +821,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     return ProfileSuggestion(
       value: duration.inMinutes.toString(),
       onUse: onUse,
+      tooltip: context.l10n.diveLog_edit_tooltip_calculateFromProfile,
     );
   }
 

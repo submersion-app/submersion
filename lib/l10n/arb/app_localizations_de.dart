@@ -4354,11 +4354,6 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String forms_statCell_useProfileValue(String value) {
-    return '$value aus Tauchprofil übernehmen';
-  }
-
-  @override
   String get siteMatchReview_title => 'Tauchplätze zuordnen';
 
   @override

@@ -4359,11 +4359,6 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String forms_statCell_useProfileValue(String value) {
-    return 'Usa $value dal profilo immersione';
-  }
-
-  @override
   String get siteMatchReview_title => 'Associa siti';
 
   @override

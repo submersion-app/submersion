@@ -1401,7 +1401,6 @@
   "forms_discard_title": "לבטל את השינויים?",
   "forms_save": "שמירה",
   "forms_section_issues": "{count, plural, one{בעיה אחת} other{{count} בעיות}}",
-  "forms_statCell_useProfileValue": "שימוש ב-{value} מפרופיל הצלילה",
   "siteMatchReview_title": "התאמת אתרים",
   "siteMatchReview_diveNumber": "צלילה #{number}",
   "siteMatchReview_empty": "אין מה להתאים.",

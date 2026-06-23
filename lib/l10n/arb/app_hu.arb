@@ -1401,7 +1401,6 @@
   "forms_discard_title": "Elveti a módosításokat?",
   "forms_save": "Mentés",
   "forms_section_issues": "{count, plural, one{1 probléma} other{{count} probléma}}",
-  "forms_statCell_useProfileValue": "{value} átvétele a merülési profilból",
   "siteMatchReview_title": "Helyek hozzárendelése",
   "siteMatchReview_diveNumber": "#{number}. merules",
   "siteMatchReview_empty": "Nincs mit hozzárendelni.",

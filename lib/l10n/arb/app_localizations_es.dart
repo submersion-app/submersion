@@ -4354,11 +4354,6 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String forms_statCell_useProfileValue(String value) {
-    return 'Usar $value del perfil de inmersión';
-  }
-
-  @override
   String get siteMatchReview_title => 'Asociar puntos';
 
   @override

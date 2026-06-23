@@ -7360,12 +7360,6 @@ abstract class AppLocalizations {
   /// **'{count, plural, one{1 issue} other{{count} issues}}'**
   String forms_section_issues(int count);
 
-  /// Menu action offering to replace a stat with the value computed from the dive profile
-  ///
-  /// In en, this message translates to:
-  /// **'Use {value} from profile'**
-  String forms_statCell_useProfileValue(String value);
-
   /// No description provided for @siteMatchReview_title.
   ///
   /// In en, this message translates to:

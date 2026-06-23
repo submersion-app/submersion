@@ -3,6 +3,22 @@ import 'package:flutter/services.dart';
 
 import 'package:submersion/shared/widgets/forms/form_style.dart';
 
+/// A value derived from the dive profile, offered as a one-tap fill on a
+/// [FormRow.text] row. When [value] differs from the row's current text, the
+/// resting row shows a calculate icon (tooltip [tooltip]) that calls [onUse].
+class ProfileSuggestion {
+  const ProfileSuggestion({
+    required this.value,
+    required this.onUse,
+    required this.tooltip,
+  });
+
+  /// Already formatted in the diver's units (e.g. "18.5").
+  final String value;
+  final VoidCallback onUse;
+  final String tooltip;
+}
+
 enum _RowKind { text, picker, display, toggle, rating, custom }
 
 /// Label-left / value-right row used inside [FormSection] groups.
@@ -27,6 +43,7 @@ class FormRow extends StatefulWidget {
     this.validator,
     this.onChanged,
     this.decoration,
+    this.profileSuggestion,
   }) : _kind = _RowKind.text,
        value = null,
        onTap = null,
@@ -45,6 +62,7 @@ class FormRow extends StatefulWidget {
     this.placeholder,
     this.onClear,
   }) : _kind = _RowKind.picker,
+       profileSuggestion = null,
        decoration = null,
        controller = null,
        suffixText = null,
@@ -62,6 +80,7 @@ class FormRow extends StatefulWidget {
 
   const FormRow.display({super.key, required this.label, required this.value})
     : _kind = _RowKind.display,
+      profileSuggestion = null,
       decoration = null,
       controller = null,
       inputFormatters = null,
@@ -86,6 +105,7 @@ class FormRow extends StatefulWidget {
     required bool value,
     required ValueChanged<bool> onChanged,
   }) : _kind = _RowKind.toggle,
+       profileSuggestion = null,
        decoration = null,
        inputFormatters = null,
        onClear = null,
@@ -111,6 +131,7 @@ class FormRow extends StatefulWidget {
     required int value,
     required ValueChanged<int> onChanged,
   }) : _kind = _RowKind.rating,
+       profileSuggestion = null,
        decoration = null,
        inputFormatters = null,
        onClear = null,
@@ -132,6 +153,7 @@ class FormRow extends StatefulWidget {
 
   const FormRow.custom({super.key, required this.label, required this.child})
     : _kind = _RowKind.custom,
+      profileSuggestion = null,
       decoration = null,
       controller = null,
       inputFormatters = null,
@@ -170,6 +192,7 @@ class FormRow extends StatefulWidget {
   final int? intValue;
   final ValueChanged<int>? onIntChanged;
   final Widget? child;
+  final ProfileSuggestion? profileSuggestion;
 
   @override
   State<FormRow> createState() => _FormRowState();
@@ -271,16 +294,42 @@ class _FormRowState extends State<FormRow> {
                 : (widget.suffixText == null
                       ? text
                       : '$text ${widget.suffixText}');
+            final valueText = Text(
+              shown,
+              style: _valueTextStyle(context, muted: empty),
+              maxLines: widget.maxLines > 1 ? 2 : 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.right,
+            );
+            final suggestion = widget.profileSuggestion;
+            final showCalc = suggestion != null && suggestion.value != text;
             return _shell(
               context,
               onTap: () => setState(() => _editing = true),
-              trailing: Text(
-                shown,
-                style: _valueTextStyle(context, muted: empty),
-                maxLines: widget.maxLines > 1 ? 2 : 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.right,
-              ),
+              trailing: showCalc
+                  ? Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Flexible(child: valueText),
+                        const SizedBox(width: 6),
+                        Tooltip(
+                          message: suggestion.tooltip,
+                          child: InkWell(
+                            onTap: suggestion.onUse,
+                            borderRadius: BorderRadius.circular(10),
+                            child: Padding(
+                              padding: const EdgeInsets.all(2),
+                              child: Icon(
+                                Icons.calculate_outlined,
+                                size: 18,
+                                color: theme.colorScheme.primary,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  : valueText,
             );
           },
         );

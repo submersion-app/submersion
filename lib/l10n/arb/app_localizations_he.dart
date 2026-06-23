@@ -4235,11 +4235,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String forms_statCell_useProfileValue(String value) {
-    return 'שימוש ב-$value מפרופיל הצלילה';
-  }
-
-  @override
   String get siteMatchReview_title => 'התאמת אתרים';
 
   @override

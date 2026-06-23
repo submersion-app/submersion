@@ -1435,7 +1435,6 @@
   "forms_discard_title": "Wijzigingen verwerpen?",
   "forms_save": "Opslaan",
   "forms_section_issues": "{count, plural, one{1 probleem} other{{count} problemen}}",
-  "forms_statCell_useProfileValue": "{value} uit duikprofiel overnemen",
   "siteMatchReview_title": "Stekken koppelen",
   "siteMatchReview_diveNumber": "Duik #{number}",
   "siteMatchReview_empty": "Niets om te koppelen.",
