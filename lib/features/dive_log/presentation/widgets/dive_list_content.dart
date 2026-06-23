@@ -873,17 +873,17 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             tooltip: context.l10n.diveLog_selection_tooltip_selectAll,
             onPressed: () => _selectAll(dives),
           ),
-        IconButton(
-          icon: const Icon(Icons.date_range),
-          tooltip: context.l10n.diveLog_selection_tooltip_selectDateRange,
-          onPressed: () => _selectByDateRange(dives),
-        ),
         if (_selectedIds.isNotEmpty)
           IconButton(
             icon: const Icon(Icons.deselect),
             tooltip: context.l10n.diveLog_selection_tooltip_deselectAll,
             onPressed: _deselectAll,
           ),
+        IconButton(
+          icon: const Icon(Icons.date_range),
+          tooltip: context.l10n.diveLog_selection_tooltip_selectDateRange,
+          onPressed: () => _selectByDateRange(dives),
+        ),
         if (_selectedIds.isNotEmpty)
           IconButton(
             icon: const Icon(Icons.upload),
@@ -941,6 +941,12 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               icon: const Icon(Icons.select_all, size: 20),
               tooltip: context.l10n.diveLog_selection_tooltip_selectAll,
               onPressed: () => _selectAll(dives),
+            ),
+          if (_selectedIds.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.deselect, size: 20),
+              tooltip: context.l10n.diveLog_selection_tooltip_deselectAll,
+              onPressed: _deselectAll,
             ),
           IconButton(
             icon: const Icon(Icons.date_range, size: 20),

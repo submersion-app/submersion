@@ -1112,4 +1112,99 @@ void main() {
       expect(tile('d2').isSelected, isTrue);
     });
   });
+
+  // -------------------------------------------------------------------------
+  // Selection toolbar: Deselect All button presence and ordering
+  //
+  // Both selection toolbars (the phone full AppBar from _buildSelectionAppBar
+  // and the master-detail compact bar from _buildSelectionBar) must offer a
+  // Deselect All action, positioned immediately after Select All so the two
+  // read as a pair.
+  // -------------------------------------------------------------------------
+
+  group('selection toolbar deselect-all', () {
+    List<Dive> fourDives() => [
+      _makeDive(
+        id: 'd1',
+        diveNumber: 1,
+        site: const DiveSite(id: 's1', name: 'Aaa'),
+      ),
+      _makeDive(
+        id: 'd2',
+        diveNumber: 2,
+        site: const DiveSite(id: 's2', name: 'Bbb'),
+      ),
+      _makeDive(
+        id: 'd3',
+        diveNumber: 3,
+        site: const DiveSite(id: 's3', name: 'Ccc'),
+      ),
+      _makeDive(
+        id: 'd4',
+        diveNumber: 4,
+        site: const DiveSite(id: 's4', name: 'Ddd'),
+      ),
+    ];
+
+    Finder tileFinder(String id) =>
+        find.byWidgetPredicate((w) => w is DiveListTile && w.diveId == id);
+
+    /// Enter selection mode (one dive selected, three unselected) and assert
+    /// that the Deselect All button is present and laid out between Select All
+    /// and the date-range button. [showAppBar] picks the phone AppBar (true)
+    /// vs the master-detail compact bar (false).
+    Future<void> expectDeselectBetweenSelectAllAndDateRange(
+      WidgetTester tester, {
+      required bool showAppBar,
+    }) async {
+      final overrides = await _buildPhoneOverrides(
+        dives: fourDives(),
+        viewMode: ListViewMode.detailed,
+        highlightedDiveId: null,
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: DiveListContent(showAppBar: showAppBar),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Long-press d1 to enter selection mode with d1 as the only selection.
+      // With 1 of 4 selected, both Select All and Deselect All are visible.
+      await tester.longPress(tileFinder('d1'));
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.select_all), findsOneWidget);
+      expect(find.byIcon(Icons.deselect), findsOneWidget);
+      expect(find.byIcon(Icons.date_range), findsOneWidget);
+
+      final selectAllX = tester.getCenter(find.byIcon(Icons.select_all)).dx;
+      final deselectX = tester.getCenter(find.byIcon(Icons.deselect)).dx;
+      final dateRangeX = tester.getCenter(find.byIcon(Icons.date_range)).dx;
+
+      // Deselect All sits immediately after Select All, before date-range.
+      expect(selectAllX, lessThan(deselectX));
+      expect(deselectX, lessThan(dateRangeX));
+    }
+
+    testWidgets(
+      'master-detail compact bar shows Deselect All next to Select All',
+      (tester) async {
+        await expectDeselectBetweenSelectAllAndDateRange(
+          tester,
+          showAppBar: false,
+        );
+      },
+    );
+
+    testWidgets('phone AppBar shows Deselect All next to Select All', (
+      tester,
+    ) async {
+      await expectDeselectBetweenSelectAllAndDateRange(
+        tester,
+        showAppBar: true,
+      );
+    });
+  });
 }
