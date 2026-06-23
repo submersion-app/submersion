@@ -121,4 +121,54 @@ void main() {
       expect(rows.map((r) => r.equipmentId).toSet(), {'e9'});
     });
   });
+
+  group('bulk tanks', () {
+    const al80 = domain.DiveTank(
+      id: '',
+      name: 'AL80',
+      volume: 11.1,
+      gasMix: domain.GasMix(o2: 21, he: 0),
+    );
+
+    test(
+      'bulkAddTank appends; onlyIfEmpty skips dives that already have a tank',
+      () async {
+        await seed('empty');
+        await seed('hasTank');
+        await repository.bulkAddTank(['hasTank'], al80);
+
+        await repository.bulkAddTank(['empty', 'hasTank'], al80, onlyIfEmpty: true);
+
+        final emptyTanks = await (db.select(
+          db.diveTanks,
+        )..where((t) => t.diveId.equals('empty'))).get();
+        final hasTankTanks = await (db.select(
+          db.diveTanks,
+        )..where((t) => t.diveId.equals('hasTank'))).get();
+        expect(emptyTanks.length, 1);
+        expect(emptyTanks.single.tankName, 'AL80');
+        expect(emptyTanks.single.tankOrder, 0);
+        expect(hasTankTanks.length, 1); // skipped — still just the original
+      },
+    );
+
+    test('bulkReplaceTanks overwrites the whole list', () async {
+      await seed('d1');
+      await repository.bulkAddTank(['d1'], al80);
+      await repository.bulkReplaceTanks(['d1'], const [
+        domain.DiveTank(
+          id: '',
+          name: 'D12',
+          volume: 24,
+          gasMix: domain.GasMix(o2: 32),
+        ),
+      ]);
+      final rows = await (db.select(
+        db.diveTanks,
+      )..where((t) => t.diveId.equals('d1'))).get();
+      expect(rows.length, 1);
+      expect(rows.single.tankName, 'D12');
+      expect(rows.single.o2Percent, 32);
+    });
+  });
 }

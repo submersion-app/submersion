@@ -3816,6 +3816,92 @@ class DiveRepository {
     await _bumpDives(diveIds, now);
   }
 
+  DiveTanksCompanion _tankCompanion(
+    String id,
+    String diveId,
+    domain.DiveTank t,
+    int order,
+  ) => DiveTanksCompanion(
+    id: Value(id),
+    diveId: Value(diveId),
+    volume: Value(t.volume),
+    workingPressure: Value(t.workingPressure),
+    startPressure: Value(t.startPressure),
+    endPressure: Value(t.endPressure),
+    o2Percent: Value(t.gasMix.o2),
+    hePercent: Value(t.gasMix.he),
+    tankOrder: Value(order),
+    tankRole: Value(t.role.name),
+    tankMaterial: Value(t.material?.name),
+    tankName: Value(t.name),
+    presetName: Value(t.presetName),
+  );
+
+  /// Append one tank to each dive (fresh id, order = current tank count).
+  /// When [onlyIfEmpty], skips dives that already have any tank. No notify/txn.
+  Future<void> bulkAddTank(
+    List<String> diveIds,
+    domain.DiveTank tank, {
+    bool onlyIfEmpty = false,
+  }) async {
+    if (diveIds.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final changed = <String>[];
+    for (final diveId in diveIds) {
+      final existing = await (_db.select(
+        _db.diveTanks,
+      )..where((t) => t.diveId.equals(diveId))).get();
+      if (onlyIfEmpty && existing.isNotEmpty) continue;
+      final tankId = _uuid.v4();
+      await _db
+          .into(_db.diveTanks)
+          .insert(_tankCompanion(tankId, diveId, tank, existing.length));
+      await _syncRepository.markRecordPending(
+        entityType: 'diveTanks',
+        recordId: tankId,
+        localUpdatedAt: now,
+      );
+      changed.add(diveId);
+    }
+    if (changed.isNotEmpty) await _bumpDives(changed, now);
+  }
+
+  /// Replace each dive's tank list with [tanks] (fresh ids, sequential order).
+  /// No notify/txn. Cascades to delete tank_pressure_profiles/gas_switches.
+  Future<void> bulkReplaceTanks(
+    List<String> diveIds,
+    List<domain.DiveTank> tanks,
+  ) async {
+    if (diveIds.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (final diveId in diveIds) {
+      final existing = await (_db.select(
+        _db.diveTanks,
+      )..where((t) => t.diveId.equals(diveId))).get();
+      await (_db.delete(
+        _db.diveTanks,
+      )..where((t) => t.diveId.equals(diveId))).go();
+      for (final row in existing) {
+        await _syncRepository.logDeletion(
+          entityType: 'diveTanks',
+          recordId: row.id,
+        );
+      }
+      for (var i = 0; i < tanks.length; i++) {
+        final tankId = _uuid.v4();
+        await _db
+            .into(_db.diveTanks)
+            .insert(_tankCompanion(tankId, diveId, tanks[i], i));
+        await _syncRepository.markRecordPending(
+          entityType: 'diveTanks',
+          recordId: tankId,
+          localUpdatedAt: now,
+        );
+      }
+    }
+    await _bumpDives(diveIds, now);
+  }
+
   /// Bulk update trip for multiple dives
   Future<void> bulkUpdateTrip(List<String> diveIds, String? tripId) async {
     if (diveIds.isEmpty) return;
