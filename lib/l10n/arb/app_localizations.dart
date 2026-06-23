@@ -116,6 +116,108 @@ abstract class AppLocalizations {
     Locale('zh'),
   ];
 
+  /// No description provided for @diveLog_bulkEdit_appBarTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit {count} dives'**
+  String diveLog_bulkEdit_appBarTitle(int count);
+
+  /// No description provided for @diveLog_bulkEdit_groupLogistics.
+  ///
+  /// In en, this message translates to:
+  /// **'Logistics'**
+  String get diveLog_bulkEdit_groupLogistics;
+
+  /// No description provided for @diveLog_bulkEdit_groupWeather.
+  ///
+  /// In en, this message translates to:
+  /// **'Weather'**
+  String get diveLog_bulkEdit_groupWeather;
+
+  /// No description provided for @diveLog_bulkEdit_groupCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags, Gear & Life'**
+  String get diveLog_bulkEdit_groupCollections;
+
+  /// No description provided for @diveLog_bulkEdit_fieldFavorite.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite'**
+  String get diveLog_bulkEdit_fieldFavorite;
+
+  /// No description provided for @diveLog_bulkEdit_collectionWeights.
+  ///
+  /// In en, this message translates to:
+  /// **'Weights'**
+  String get diveLog_bulkEdit_collectionWeights;
+
+  /// No description provided for @diveLog_bulkEdit_collectionTanks.
+  ///
+  /// In en, this message translates to:
+  /// **'Tanks'**
+  String get diveLog_bulkEdit_collectionTanks;
+
+  /// No description provided for @diveLog_bulkEdit_notesSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Set'**
+  String get diveLog_bulkEdit_notesSet;
+
+  /// No description provided for @diveLog_bulkEdit_notesAppend.
+  ///
+  /// In en, this message translates to:
+  /// **'Append'**
+  String get diveLog_bulkEdit_notesAppend;
+
+  /// No description provided for @diveLog_bulkEdit_modeAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get diveLog_bulkEdit_modeAdd;
+
+  /// No description provided for @diveLog_bulkEdit_modeRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get diveLog_bulkEdit_modeRemove;
+
+  /// No description provided for @diveLog_bulkEdit_modeReplace.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get diveLog_bulkEdit_modeReplace;
+
+  /// No description provided for @diveLog_bulkEdit_tankOnlyIfEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Only dives that don\'t already have a tank'**
+  String get diveLog_bulkEdit_tankOnlyIfEmpty;
+
+  /// No description provided for @diveLog_bulkEdit_confirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply changes?'**
+  String get diveLog_bulkEdit_confirmTitle;
+
+  /// No description provided for @diveLog_bulkEdit_confirmApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get diveLog_bulkEdit_confirmApply;
+
+  /// No description provided for @diveLog_bulkEdit_nothingSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on at least one field to apply changes.'**
+  String get diveLog_bulkEdit_nothingSelected;
+
+  /// No description provided for @diveLog_bulkEdit_applied.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated {count} dives'**
+  String diveLog_bulkEdit_applied(int count);
+
   /// No description provided for @settings_cloudSync_error_icloudSignedOut.
   ///
   /// In en, this message translates to:

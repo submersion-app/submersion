@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/domain/entities/bulk_edit_request.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/bulk_collection_mode_selector.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 void main() {
   testWidgets('selecting Replace reports the mode', (tester) async {
     BulkCollectionMode? mode;
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: StatefulBuilder(
             builder: (context, setState) => BulkCollectionModeSelector(
@@ -31,6 +34,8 @@ void main() {
     BulkCollectionMode? mode = BulkCollectionMode.add;
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: StatefulBuilder(
             builder: (context, setState) => BulkCollectionModeSelector(

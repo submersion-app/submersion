@@ -9,6 +9,63 @@ class AppLocalizationsNl extends AppLocalizations {
   AppLocalizationsNl([String locale = 'nl']) : super(locale);
 
   @override
+  String diveLog_bulkEdit_appBarTitle(int count) {
+    return '$count duiken bewerken';
+  }
+
+  @override
+  String get diveLog_bulkEdit_groupLogistics => 'Logistiek';
+
+  @override
+  String get diveLog_bulkEdit_groupWeather => 'Weer';
+
+  @override
+  String get diveLog_bulkEdit_groupCollections => 'Tags, uitrusting & leven';
+
+  @override
+  String get diveLog_bulkEdit_fieldFavorite => 'Favoriet';
+
+  @override
+  String get diveLog_bulkEdit_collectionWeights => 'Loodgewichten';
+
+  @override
+  String get diveLog_bulkEdit_collectionTanks => 'Flessen';
+
+  @override
+  String get diveLog_bulkEdit_notesSet => 'Instellen';
+
+  @override
+  String get diveLog_bulkEdit_notesAppend => 'Toevoegen aan einde';
+
+  @override
+  String get diveLog_bulkEdit_modeAdd => 'Toevoegen';
+
+  @override
+  String get diveLog_bulkEdit_modeRemove => 'Verwijderen';
+
+  @override
+  String get diveLog_bulkEdit_modeReplace => 'Vervangen';
+
+  @override
+  String get diveLog_bulkEdit_tankOnlyIfEmpty =>
+      'Alleen duiken zonder bestaande fles';
+
+  @override
+  String get diveLog_bulkEdit_confirmTitle => 'Wijzigingen toepassen?';
+
+  @override
+  String get diveLog_bulkEdit_confirmApply => 'Toepassen';
+
+  @override
+  String get diveLog_bulkEdit_nothingSelected =>
+      'Schakel minstens één veld in om wijzigingen toe te passen.';
+
+  @override
+  String diveLog_bulkEdit_applied(int count) {
+    return '$count duiken bijgewerkt';
+  }
+
+  @override
   String get settings_cloudSync_error_icloudSignedOut =>
       'iCloud is niet beschikbaar. Log in bij iCloud in de instellingen van je apparaat.';
 

@@ -9,6 +9,63 @@ class AppLocalizationsPt extends AppLocalizations {
   AppLocalizationsPt([String locale = 'pt']) : super(locale);
 
   @override
+  String diveLog_bulkEdit_appBarTitle(int count) {
+    return 'Editar $count mergulhos';
+  }
+
+  @override
+  String get diveLog_bulkEdit_groupLogistics => 'Logística';
+
+  @override
+  String get diveLog_bulkEdit_groupWeather => 'Clima';
+
+  @override
+  String get diveLog_bulkEdit_groupCollections => 'Tags, equipamento e vida';
+
+  @override
+  String get diveLog_bulkEdit_fieldFavorite => 'Favorito';
+
+  @override
+  String get diveLog_bulkEdit_collectionWeights => 'Lastros';
+
+  @override
+  String get diveLog_bulkEdit_collectionTanks => 'Cilindros';
+
+  @override
+  String get diveLog_bulkEdit_notesSet => 'Definir';
+
+  @override
+  String get diveLog_bulkEdit_notesAppend => 'Acrescentar';
+
+  @override
+  String get diveLog_bulkEdit_modeAdd => 'Adicionar';
+
+  @override
+  String get diveLog_bulkEdit_modeRemove => 'Remover';
+
+  @override
+  String get diveLog_bulkEdit_modeReplace => 'Substituir';
+
+  @override
+  String get diveLog_bulkEdit_tankOnlyIfEmpty =>
+      'Apenas mergulhos sem cilindro existente';
+
+  @override
+  String get diveLog_bulkEdit_confirmTitle => 'Aplicar alterações?';
+
+  @override
+  String get diveLog_bulkEdit_confirmApply => 'Aplicar';
+
+  @override
+  String get diveLog_bulkEdit_nothingSelected =>
+      'Ative pelo menos um campo para aplicar alterações.';
+
+  @override
+  String diveLog_bulkEdit_applied(int count) {
+    return '$count mergulhos atualizados';
+  }
+
+  @override
   String get settings_cloudSync_error_icloudSignedOut =>
       'O iCloud não está disponível. Inicie sessão no iCloud nas definições do seu dispositivo.';
 

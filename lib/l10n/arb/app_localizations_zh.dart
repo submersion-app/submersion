@@ -9,6 +9,61 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
+  String diveLog_bulkEdit_appBarTitle(int count) {
+    return '编辑 $count 次潜水';
+  }
+
+  @override
+  String get diveLog_bulkEdit_groupLogistics => '后勤';
+
+  @override
+  String get diveLog_bulkEdit_groupWeather => '天气';
+
+  @override
+  String get diveLog_bulkEdit_groupCollections => '标签、装备和生物';
+
+  @override
+  String get diveLog_bulkEdit_fieldFavorite => '收藏';
+
+  @override
+  String get diveLog_bulkEdit_collectionWeights => '配重';
+
+  @override
+  String get diveLog_bulkEdit_collectionTanks => '气瓶';
+
+  @override
+  String get diveLog_bulkEdit_notesSet => '设置';
+
+  @override
+  String get diveLog_bulkEdit_notesAppend => '追加';
+
+  @override
+  String get diveLog_bulkEdit_modeAdd => '添加';
+
+  @override
+  String get diveLog_bulkEdit_modeRemove => '移除';
+
+  @override
+  String get diveLog_bulkEdit_modeReplace => '替换';
+
+  @override
+  String get diveLog_bulkEdit_tankOnlyIfEmpty => '仅没有气瓶的潜水';
+
+  @override
+  String get diveLog_bulkEdit_confirmTitle => '应用更改？';
+
+  @override
+  String get diveLog_bulkEdit_confirmApply => '应用';
+
+  @override
+  String get diveLog_bulkEdit_nothingSelected => '至少启用一个字段以应用更改。';
+
+  @override
+  String diveLog_bulkEdit_applied(int count) {
+    return '已更新 $count 次潜水';
+  }
+
+  @override
   String get settings_cloudSync_error_icloudSignedOut =>
       'iCloud 不可用。请在设备设置中登录 iCloud。';
 

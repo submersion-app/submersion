@@ -9,6 +9,63 @@ class AppLocalizationsDe extends AppLocalizations {
   AppLocalizationsDe([String locale = 'de']) : super(locale);
 
   @override
+  String diveLog_bulkEdit_appBarTitle(int count) {
+    return '$count Tauchgänge bearbeiten';
+  }
+
+  @override
+  String get diveLog_bulkEdit_groupLogistics => 'Logistik';
+
+  @override
+  String get diveLog_bulkEdit_groupWeather => 'Wetter';
+
+  @override
+  String get diveLog_bulkEdit_groupCollections => 'Tags, Ausrüstung & Leben';
+
+  @override
+  String get diveLog_bulkEdit_fieldFavorite => 'Favorit';
+
+  @override
+  String get diveLog_bulkEdit_collectionWeights => 'Gewichte';
+
+  @override
+  String get diveLog_bulkEdit_collectionTanks => 'Flaschen';
+
+  @override
+  String get diveLog_bulkEdit_notesSet => 'Setzen';
+
+  @override
+  String get diveLog_bulkEdit_notesAppend => 'Anhängen';
+
+  @override
+  String get diveLog_bulkEdit_modeAdd => 'Hinzufügen';
+
+  @override
+  String get diveLog_bulkEdit_modeRemove => 'Entfernen';
+
+  @override
+  String get diveLog_bulkEdit_modeReplace => 'Ersetzen';
+
+  @override
+  String get diveLog_bulkEdit_tankOnlyIfEmpty =>
+      'Nur Tauchgänge ohne vorhandene Flasche';
+
+  @override
+  String get diveLog_bulkEdit_confirmTitle => 'Änderungen anwenden?';
+
+  @override
+  String get diveLog_bulkEdit_confirmApply => 'Anwenden';
+
+  @override
+  String get diveLog_bulkEdit_nothingSelected =>
+      'Aktiviere mindestens ein Feld, um Änderungen anzuwenden.';
+
+  @override
+  String diveLog_bulkEdit_applied(int count) {
+    return '$count Tauchgänge aktualisiert';
+  }
+
+  @override
   String get settings_cloudSync_error_icloudSignedOut =>
       'iCloud ist nicht verfügbar. Bitte melde dich in den Geräteeinstellungen bei iCloud an.';
 

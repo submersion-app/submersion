@@ -702,7 +702,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   Widget _buildBulkScaffold(UnitFormatter units) {
     return EditFormScaffold(
-      title: 'Edit ${widget.bulkDiveIds!.length} dives', // localized in Phase 6
+      title: context.l10n.diveLog_bulkEdit_appBarTitle(
+        widget.bulkDiveIds!.length,
+      ),
       embedded: widget.embedded,
       isSaving: _isSaving,
       hasUnsavedChanges: _hasUnsavedChanges,
@@ -764,7 +766,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       child: ResponsiveFormColumns(
         children: [
           FormSection(
-            label: 'Logistics', // localized in Phase 6
+            label: context.l10n.diveLog_bulkEdit_groupLogistics,
             expanded: true,
             onToggle: null,
             children: [
@@ -810,7 +812,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               _gatedRow(
                 BulkField.isFavorite,
                 FormRow.toggle(
-                  label: 'Favorite', // localized in Phase 6
+                  label: context.l10n.diveLog_bulkEdit_fieldFavorite,
                   value: _bulkFavorite,
                   onChanged: (v) => setState(() => _bulkFavorite = v),
                 ),
@@ -831,9 +833,15 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     SegmentedButton<bool>(
-                      segments: const [
-                        ButtonSegment(value: false, label: Text('Set')),
-                        ButtonSegment(value: true, label: Text('Append')),
+                      segments: [
+                        ButtonSegment(
+                          value: false,
+                          label: Text(l10n.diveLog_bulkEdit_notesSet),
+                        ),
+                        ButtonSegment(
+                          value: true,
+                          label: Text(l10n.diveLog_bulkEdit_notesAppend),
+                        ),
                       ],
                       selected: {_bulkNotesAppend},
                       onSelectionChanged: (s) =>
@@ -961,9 +969,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           CheckboxListTile(
             value: _bulkTankOnlyIfEmpty,
             onChanged: (v) => setState(() => _bulkTankOnlyIfEmpty = v ?? false),
-            title: const Text(
-              "Only dives that don't already have a tank",
-            ), // localized in Phase 6
+            title: Text(context.l10n.diveLog_bulkEdit_tankOnlyIfEmpty),
             controlAffinity: ListTileControlAffinity.leading,
             dense: true,
           ),
@@ -980,7 +986,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     ];
     const ownedModes = [BulkCollectionMode.add, BulkCollectionMode.replace];
     return FormSection(
-      label: 'Tags, Gear & Life', // localized in Phase 6
+      label: context.l10n.diveLog_bulkEdit_groupCollections,
       expanded: true,
       onToggle: null,
       children: [
@@ -1010,13 +1016,13 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         ),
         _collectionEntry(
           type: BulkCollectionType.weights,
-          label: 'Weights', // localized in Phase 6
+          label: context.l10n.diveLog_bulkEdit_collectionWeights,
           allowed: ownedModes,
           editor: _weightChild(units),
         ),
         _collectionEntry(
           type: BulkCollectionType.tanks,
-          label: 'Tanks', // localized in Phase 6
+          label: context.l10n.diveLog_bulkEdit_collectionTanks,
           allowed: ownedModes,
           editor: _bulkTanksEditor(units),
         ),
@@ -1201,7 +1207,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   Widget _buildBulkWeatherSection(UnitFormatter units) {
     return FormSection(
-      label: 'Weather', // localized in Phase 6
+      label: context.l10n.diveLog_bulkEdit_groupWeather,
       expanded: true,
       onToggle: null,
       children: [
@@ -1291,9 +1297,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         (notesAppend == null || notesAppend.isEmpty) &&
         ops.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Turn on at least one field to apply changes.'),
-        ),
+        SnackBar(content: Text(l10n.diveLog_bulkEdit_nothingSelected)),
       );
       return;
     }
@@ -1301,8 +1305,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Apply changes?'),
-        content: Text('Apply changes to ${ids.length} dives?'),
+        title: Text(l10n.diveLog_bulkEdit_confirmTitle),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -1310,7 +1313,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Apply'),
+            child: Text(l10n.diveLog_bulkEdit_confirmApply),
           ),
         ],
       ),
@@ -1337,7 +1340,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       }
       messenger.showSnackBar(
         SnackBar(
-          content: Text('Updated ${ids.length} dives'),
+          content: Text(l10n.diveLog_bulkEdit_applied(ids.length)),
           duration: const Duration(seconds: 5),
           action: SnackBarAction(
             label: l10n.diveLog_bulkDelete_undo,

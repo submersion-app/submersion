@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/bulk_edit_request.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A small segmented control for a bulk collection edit. Selecting a chip sets
 /// the mode; tapping the selected chip again turns the edit off ([mode] null).
@@ -25,7 +26,7 @@ class BulkCollectionModeSelector extends StatelessWidget {
       children: [
         for (final m in allowed)
           ChoiceChip(
-            label: Text(_label(m)),
+            label: Text(_label(context, m)),
             selected: mode == m,
             onSelected: (selected) => onChanged(selected ? m : null),
           ),
@@ -33,9 +34,9 @@ class BulkCollectionModeSelector extends StatelessWidget {
     );
   }
 
-  String _label(BulkCollectionMode m) => switch (m) {
-    BulkCollectionMode.add => 'Add', // localized in Phase 6
-    BulkCollectionMode.remove => 'Remove',
-    BulkCollectionMode.replace => 'Replace',
+  String _label(BuildContext context, BulkCollectionMode m) => switch (m) {
+    BulkCollectionMode.add => context.l10n.diveLog_bulkEdit_modeAdd,
+    BulkCollectionMode.remove => context.l10n.diveLog_bulkEdit_modeRemove,
+    BulkCollectionMode.replace => context.l10n.diveLog_bulkEdit_modeReplace,
   };
 }
