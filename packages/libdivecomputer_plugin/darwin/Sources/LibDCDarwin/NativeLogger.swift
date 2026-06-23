@@ -15,23 +15,29 @@ class NativeLogger {
     private static let queue = DispatchQueue(label: "app.submersion.native-logger",
                                              qos: .utility)
 
-    static func d(_ tag: String, category: String, _ message: String) {
+    // The message is an @autoclosure so its construction is deferred to the
+    // logger queue. Hot-path callers (the per-notification BLE log builds a hex
+    // dump) would otherwise format the string on the CoreBluetooth delegate
+    // queue before the call even returns, which is exactly the work we are
+    // trying to keep off that queue (issue #394).
+    static func d(_ tag: String, category: String, _ message: @autoclosure @escaping () -> String) {
         log(tag: tag, category: category, level: "DEBUG", message: message)
     }
 
-    static func i(_ tag: String, category: String, _ message: String) {
+    static func i(_ tag: String, category: String, _ message: @autoclosure @escaping () -> String) {
         log(tag: tag, category: category, level: "INFO", message: message)
     }
 
-    static func w(_ tag: String, category: String, _ message: String) {
+    static func w(_ tag: String, category: String, _ message: @autoclosure @escaping () -> String) {
         log(tag: tag, category: category, level: "WARN", message: message)
     }
 
-    static func e(_ tag: String, category: String, _ message: String) {
+    static func e(_ tag: String, category: String, _ message: @autoclosure @escaping () -> String) {
         log(tag: tag, category: category, level: "ERROR", message: message)
     }
 
-    private static func log(tag: String, category: String, level: String, message: String) {
+    private static func log(tag: String, category: String, level: String,
+                            message: @escaping () -> String) {
         queue.async {
             let prefix: String
             switch level {
@@ -39,10 +45,13 @@ class NativeLogger {
             case "ERROR": prefix = "ERROR: "
             default: prefix = ""
             }
-            print("[\(tag)] \(prefix)\(message)")
+            // Evaluate the message once, here on the logger queue, and reuse it
+            // for both the console print and the Flutter log event.
+            let text = message()
+            print("[\(tag)] \(prefix)\(text)")
             guard let api = flutterApi else { return }
             DispatchQueue.main.async {
-                api.onLogEvent(category: category, level: level, message: message) { _ in
+                api.onLogEvent(category: category, level: level, message: text) { _ in
                     // Ignore callback result - don't let logging failures crash the app
                 }
             }

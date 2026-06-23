@@ -100,15 +100,15 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
     func connectAndDiscover() -> Bool {
         NativeLogger.d(
             "BleIoStream", category: "BLE",
-            "connectAndDiscover start for \(peripheral.identifier.uuidString)"
-                + " (peripheralState=\(peripheral.state.rawValue)"
-                + " centralState=\(centralManager.state.rawValue))"
+            "connectAndDiscover start for \(self.peripheral.identifier.uuidString)"
+                + " (peripheralState=\(self.peripheral.state.rawValue)"
+                + " centralState=\(self.centralManager.state.rawValue))"
         )
 
         guard centralManager.state == .poweredOn else {
             NativeLogger.w(
                 "BleIoStream", category: "BLE",
-                "Central not powered on (state=\(centralManager.state.rawValue))"
+                "Central not powered on (state=\(self.centralManager.state.rawValue))"
             )
             return false
         }
@@ -187,8 +187,8 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
         NativeLogger.d("BleIoStream", category: "BLE",
             "Post-notify settle delay complete (\(Int(Self.notifySettleDelaySeconds * 1000)) ms)")
         NativeLogger.d("BleIoStream", category: "BLE",
-            "Discovery ready (write=\(writeCharacteristic?.uuid.uuidString ?? "nil")"
-                + " notify=\(notifyCharacteristic?.uuid.uuidString ?? "nil"))")
+            "Discovery ready (write=\(self.writeCharacteristic?.uuid.uuidString ?? "nil")"
+                + " notify=\(self.notifyCharacteristic?.uuid.uuidString ?? "nil"))")
         return true
     }
 
@@ -409,9 +409,13 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
         let properties = characteristic.properties
         guard properties.contains(.write) && properties.contains(.writeWithoutResponse) else { return }
         writeWithoutResponsePreferred.toggle()
+        // Snapshot before logging: the message is built later on the logger
+        // queue, and reading this mutable flag there would race with the I/O
+        // queue that toggles it.
+        let preferWithoutResponse = writeWithoutResponsePreferred
         NativeLogger.d("BleIoStream", category: "BLE",
             "Read timed out before response; flipping preferred write mode to"
-                + " \(writeWithoutResponsePreferred ? "withoutResponse" : "withResponse")"
+                + " \(preferWithoutResponse ? "withoutResponse" : "withResponse")"
         )
     }
 
@@ -699,9 +703,10 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
                 + " notify=\(notifyChar.uuid.uuidString)"
                 + " (\(Self.propertySummary(notifyChar.properties)))"
                 + " (score=\(selection.score))")
+        let preferWithoutResponse = writeWithoutResponsePreferred
         NativeLogger.d("BleIoStream", category: "BLE",
             "Initial write mode preference:"
-                + " \(writeWithoutResponsePreferred ? "withoutResponse" : "withResponse")")
+                + " \(preferWithoutResponse ? "withoutResponse" : "withResponse")")
         if notifyChar.isNotifying {
             isReady = true
             signalDiscoveryReady()
