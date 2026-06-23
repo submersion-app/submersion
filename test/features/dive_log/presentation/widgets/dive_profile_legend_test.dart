@@ -144,6 +144,25 @@ void main() {
       expect(find.text('SAC Rate'), findsOneWidget);
     });
 
+    testWidgets('Overlays section shows both ascent-rate toggles', (
+      tester,
+    ) async {
+      await openDialog(tester);
+      // The band-coloring toggle ("Ascent Rate") and the separate magnitude
+      // line toggle ("Ascent Rate Line") are distinct controls.
+      expect(find.text('Ascent Rate'), findsOneWidget);
+      expect(find.text('Ascent Rate Line'), findsOneWidget);
+    });
+
+    testWidgets('tapping Ascent Rate Line toggles without crashing', (
+      tester,
+    ) async {
+      await openDialog(tester);
+      await tester.tap(find.text('Ascent Rate Line'));
+      await tester.pumpAndSettle();
+      expect(find.text('Ascent Rate Line'), findsOneWidget);
+    });
+
     testWidgets('tapping collapsed section expands it', (tester) async {
       await openDialog(tester);
       // Markers starts collapsed -- tap to expand

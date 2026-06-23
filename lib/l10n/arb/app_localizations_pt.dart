@@ -4142,6 +4142,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_legend_label_ascentRate => 'Taxa de Subida';
 
   @override
+  String get diveLog_legend_label_ascentRateLine => 'Linha da Taxa de Subida';
+
+  @override
   String get diveLog_legend_label_ceiling => 'Teto';
 
   @override

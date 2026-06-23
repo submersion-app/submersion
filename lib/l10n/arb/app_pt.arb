@@ -1378,6 +1378,7 @@
   "diveLog_fullscreenProfile_close": "Fechar tela cheia",
   "diveLog_fullscreenProfile_title": "Perfil do Mergulho #{number}",
   "diveLog_legend_label_ascentRate": "Taxa de Subida",
+  "diveLog_legend_label_ascentRateLine": "Linha da Taxa de Subida",
   "diveLog_legend_label_ceiling": "Teto",
   "diveLog_legend_label_cns": "CNS%",
   "diveLog_legend_label_depth": "Profundidade",

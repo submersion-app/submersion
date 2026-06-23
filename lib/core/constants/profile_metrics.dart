@@ -34,6 +34,13 @@ enum ProfileRightAxisMetric {
     unitSuffix: null, // Uses unit formatter (bar/min or L/min)
     category: ProfileMetricCategory.primary,
   ),
+  ascentRate(
+    displayName: 'Ascent Rate',
+    shortName: 'Rate',
+    color: Colors.lime,
+    unitSuffix: null, // Uses unit formatter (depth/min)
+    category: ProfileMetricCategory.primary,
+  ),
   ndl(
     displayName: 'NDL',
     shortName: 'NDL',

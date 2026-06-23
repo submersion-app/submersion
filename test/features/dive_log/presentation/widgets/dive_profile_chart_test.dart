@@ -4,14 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
+import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/deco/ascent_rate_calculator.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/theme/app_colors.dart';
 
 import 'package:submersion/features/dive_log/data/services/gas_usage_segments_service.dart';
 import 'package:submersion/features/dive_log/data/services/profile_markers_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_timeline_strip.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -2219,5 +2222,187 @@ void main() {
       final panned = tester.widget<LineChart>(chart).data;
       expect(panned.minX, greaterThan(zoomed.minX));
     });
+  });
+
+  group('ascent rate visualization (#242)', () {
+    // Categories chosen to exercise green/orange/red depth segments.
+    List<AscentRatePoint> ratesSpanningBands(List<DiveProfilePoint> profile) {
+      return List.generate(profile.length, (i) {
+        final category = i < 4
+            ? AscentRateCategory.safe
+            : i < 8
+            ? AscentRateCategory.warning
+            : AscentRateCategory.danger;
+        final rate = i < 4
+            ? 3.0
+            : i < 8
+            ? 10.0
+            : 13.0;
+        return AscentRatePoint(
+          timestamp: profile[i].timestamp,
+          depth: profile[i].depth,
+          rateMetersPerMin: rate,
+          category: category,
+        );
+      });
+    }
+
+    // Builds the chart against an explicit container so legend toggles and the
+    // right-axis metric can be driven directly (the session-only ascent-rate
+    // line has no settings hook).
+    Widget buildWithLegend({
+      required List<DiveProfilePoint> profile,
+      required List<AscentRatePoint> ascentRates,
+      void Function(ProfileLegend notifier)? configure,
+    }) {
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+        ],
+      );
+      addTearDown(container.dispose);
+      if (configure != null) {
+        configure(container.read(profileLegendProvider.notifier));
+      }
+      return UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SizedBox(
+              width: 400,
+              height: 300,
+              child: DiveProfileChart(
+                profile: profile,
+                ascentRates: ascentRates,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    test('ascentRateAxisRange is symmetric and respects the floor', () {
+      final gentle = [
+        const AscentRatePoint(
+          timestamp: 0,
+          depth: 0,
+          rateMetersPerMin: 3,
+          category: AscentRateCategory.safe,
+        ),
+      ];
+      final r1 = DiveProfileChart.ascentRateAxisRange(gentle)!;
+      expect(r1.min, -15.0);
+      expect(r1.max, 15.0);
+
+      final steep = [
+        const AscentRatePoint(
+          timestamp: 0,
+          depth: 0,
+          rateMetersPerMin: -20,
+          category: AscentRateCategory.danger,
+        ),
+      ];
+      final r2 = DiveProfileChart.ascentRateAxisRange(steep)!;
+      expect(r2.min, -20.0);
+      expect(r2.max, 20.0);
+    });
+
+    test('ascentRateAxisRange returns null when there is no data', () {
+      expect(DiveProfileChart.ascentRateAxisRange(const []), isNull);
+      expect(DiveProfileChart.ascentRateAxisRange(null), isNull);
+    });
+
+    testWidgets('colors the depth line by velocity band when enabled', (
+      tester,
+    ) async {
+      final profile = _makeProfile(points: 12);
+      await tester.pumpWidget(
+        _buildChart(profile: profile, ascentRates: ratesSpanningBands(profile)),
+      );
+      await tester.pumpAndSettle();
+
+      final colors = primaryChartData(
+        tester,
+      ).lineBarsData.map((b) => b.color).toSet();
+      expect(colors, contains(Colors.green));
+      expect(colors, contains(Colors.orange));
+      expect(colors, contains(Colors.red));
+    });
+
+    testWidgets('depth line is one solid segment when coloring is disabled', (
+      tester,
+    ) async {
+      final profile = _makeProfile(points: 12);
+      await tester.pumpWidget(
+        buildWithLegend(
+          profile: profile,
+          ascentRates: ratesSpanningBands(profile),
+          configure: (n) => n.toggleAscentRateColors(), // default on -> off
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final bars = primaryChartData(tester).lineBarsData;
+      expect(bars.where((b) => b.color == AppColors.chartDepth).length, 1);
+      expect(
+        bars.any(
+          (b) =>
+              b.color == Colors.green ||
+              b.color == Colors.orange ||
+              b.color == Colors.red,
+        ),
+        isFalse,
+      );
+    });
+
+    bool hasRateLine(WidgetTester t) => primaryChartData(
+      t,
+    ).lineBarsData.any((b) => b.color == Colors.lime && b.dashArray != null);
+
+    testWidgets('does not render the ascent-rate line by default', (
+      tester,
+    ) async {
+      final profile = _makeProfile(points: 12);
+      await tester.pumpWidget(
+        buildWithLegend(
+          profile: profile,
+          ascentRates: ratesSpanningBands(profile),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(hasRateLine(tester), isFalse);
+    });
+
+    testWidgets('renders the ascent-rate line when toggled on', (tester) async {
+      final profile = _makeProfile(points: 12);
+      await tester.pumpWidget(
+        buildWithLegend(
+          profile: profile,
+          ascentRates: ratesSpanningBands(profile),
+          configure: (n) => n.toggleAscentRateLine(),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(hasRateLine(tester), isTrue);
+    });
+
+    testWidgets(
+      'labels the right axis when the ascentRate metric is selected',
+      (tester) async {
+        final profile = _makeProfile(points: 12);
+        await tester.pumpWidget(
+          buildWithLegend(
+            profile: profile,
+            ascentRates: ratesSpanningBands(profile),
+            configure: (n) =>
+                n.setRightAxisMetric(ProfileRightAxisMetric.ascentRate),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.textContaining('Rate ('), findsOneWidget);
+      },
+    );
   });
 }

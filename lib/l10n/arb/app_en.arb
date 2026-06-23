@@ -2059,6 +2059,7 @@
   "diveLog_fullscreenProfile_close": "Close fullscreen",
   "diveLog_fullscreenProfile_title": "Dive #{number} Profile",
   "diveLog_legend_label_ascentRate": "Ascent Rate",
+  "diveLog_legend_label_ascentRateLine": "Ascent Rate Line",
   "diveLog_legend_label_ceiling": "Ceiling",
   "diveLog_legend_label_cns": "CNS%",
   "diveLog_legend_label_depth": "Depth",

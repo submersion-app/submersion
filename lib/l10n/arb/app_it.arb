@@ -1344,6 +1344,7 @@
   "diveLog_fullscreenProfile_close": "Chiudi schermo intero",
   "diveLog_fullscreenProfile_title": "Profilo immersione #{number}",
   "diveLog_legend_label_ascentRate": "Velocita di risalita",
+  "diveLog_legend_label_ascentRateLine": "Linea velocita di risalita",
   "diveLog_legend_label_ceiling": "Ceiling",
   "diveLog_legend_label_cns": "CNS%",
   "diveLog_legend_label_depth": "Profondita",
