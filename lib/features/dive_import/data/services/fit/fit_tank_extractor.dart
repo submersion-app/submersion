@@ -71,11 +71,10 @@ class FitTankExtractor {
     final tanks = <FitTank>[];
     for (final m in summaries) {
       final sensor = FitMessageAccess.rawNum(m, FitConstants.tsSensor)?.toInt();
-      if (sensor == null) continue;
-      final order = orderBySensor.putIfAbsent(
-        sensor,
-        () => orderBySensor.length,
-      );
+      // One tank per sensor; ignore repeated summaries for a sensor already seen.
+      if (sensor == null || orderBySensor.containsKey(sensor)) continue;
+      final order = orderBySensor.length;
+      orderBySensor[sensor] = order;
       tanks.add(
         FitTank(
           sensorId: sensor,

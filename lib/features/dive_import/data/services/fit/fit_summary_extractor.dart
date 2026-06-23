@@ -43,6 +43,7 @@ class FitSummaryExtractor {
     DiveSettingsMessage? settings,
   }) {
     Duration? secs(num? v) => v == null ? null : Duration(seconds: v.round());
+    final model = settings?.model;
     return FitSummary(
       diveNumber: summary?.diveNumber,
       bottomTime: secs(summary?.bottomTime),
@@ -53,7 +54,9 @@ class FitSummaryExtractor {
       entryLat: session?.startPositionLat,
       entryLong: session?.startPositionLong,
       waterType: settings?.waterType?.name,
-      decoModel: settings?.model == null ? null : 'zhl_16c',
+      decoModel: model == null
+          ? null
+          : (model == TissueModelType.zhl16c ? 'zhl_16c' : model.name),
       gfLow: settings?.gfLow,
       gfHigh: settings?.gfHigh,
     );

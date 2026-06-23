@@ -55,4 +55,14 @@ void main() {
 
     expect(result, DateTime.utc(2025, 9, 8, 9, 19, 49));
   });
+
+  test('returns the Unix epoch when no start is provided', () {
+    final result = FitTimeResolver.wallClockStart(
+      utcStartMs: null,
+      localStartMs: null,
+      utcTimestampMs: null,
+      localTimestampMs: null,
+    );
+    expect(result, DateTime.utc(1970, 1, 1));
+  });
 }

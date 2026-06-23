@@ -20,7 +20,8 @@ class FitTimeResolver {
     required int? utcTimestampMs,
     required int? localTimestampMs,
   }) {
-    final startMs = _toUnixMs(utcStartMs ?? localStartMs ?? 0);
+    final rawStart = utcStartMs ?? localStartMs;
+    final startMs = rawStart == null ? 0 : _toUnixMs(rawStart);
     var offsetMs = 0;
     if (utcTimestampMs != null && localTimestampMs != null) {
       offsetMs = _toUnixMs(localTimestampMs) - _toUnixMs(utcTimestampMs);

@@ -75,4 +75,13 @@ void main() {
     final p = data.pressures.firstWhere((s) => s.sensorId == 200);
     expect(p.pressureBar, closeTo(180.0, 1e-6));
   });
+
+  test('collapses repeated tank_summary for the same sensor into one tank', () {
+    final data = FitTankExtractor.extract([
+      tankSummary(sensor: 100, startRaw: 20000, endRaw: 9000, volRaw: 100000),
+      tankSummary(sensor: 100, startRaw: 20000, endRaw: 9000, volRaw: 100000),
+    ]);
+    expect(data.tanks, hasLength(1));
+    expect(data.orderForSensor(100), 0);
+  });
 }

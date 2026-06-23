@@ -196,6 +196,80 @@ Uint8List buildRichDiveFitFile() {
   return builder.build().toBytes();
 }
 
+/// A synthetic unnamed FIT message (e.g. tank_update/tank_summary) built the way
+/// fit_tool reconstructs messages it has no profile for.
+DataMessage _genericTank(int globalId, Map<int, int> values) {
+  final def = DefinitionMessage(
+    globalId: globalId,
+    fieldDefinitions: [
+      for (final id in values.keys)
+        FieldDefinition(
+          id: id,
+          size: id == 1 || id == 2 ? 2 : 4, // pressure fields are uint16
+          type: id == 1 || id == 2 ? BaseType.UINT16 : BaseType.UINT32,
+        ),
+    ],
+  );
+  final m = GenericMessage(definitionMessage: def);
+  values.forEach((id, v) => m.getField(id)!.setValue(0, v, null));
+  return m;
+}
+
+/// A dive FIT file with air-integration: a tank_summary (323) and a tank_update
+/// (319) per record, all on one transmitter, plus one gas mix.
+Uint8List buildAiDiveFitFile() {
+  final builder = FitFileBuilder(autoDefine: true, minStringSize: 50);
+  final start = DateTime.utc(2025, 9, 8, 9, 19, 49);
+  const sensor = 2772884913;
+
+  builder.add(
+    FileIdMessage()
+      ..type = FileType.activity
+      ..manufacturer = 1
+      ..product = 4223
+      ..serialNumber = 1
+      ..timeCreated = start.millisecondsSinceEpoch,
+  );
+
+  // tank_summary: start 22125 -> 221.25 bar, end 8811 -> 88.11 bar, vol 199350.
+  builder.add(_genericTank(323, {0: sensor, 1: 22125, 2: 8811, 3: 199350}));
+
+  const depths = [2.0, 20.0, 5.0];
+  const pressuresRaw = [22000, 15000, 9000];
+  for (var i = 0; i < depths.length; i++) {
+    final t = start.add(Duration(seconds: i * 60));
+    builder.add(
+      RecordMessage()
+        ..timestamp = t.millisecondsSinceEpoch
+        ..depth = depths[i]
+        ..temperature = 26,
+    );
+    // tank_update at the same instant; field 253 is raw FIT-epoch seconds.
+    final fitSec = t.millisecondsSinceEpoch ~/ 1000 - 631065600;
+    builder.add(_genericTank(319, {253: fitSec, 0: sensor, 1: pressuresRaw[i]}));
+  }
+
+  builder.add(
+    DiveGasMessage()
+      ..messageIndex = 0
+      ..oxygenContent = 28
+      ..heliumContent = 0
+      ..status = DiveGasStatus.enabled,
+  );
+  builder.add(
+    SessionMessage()
+      ..sport = Sport.diving
+      ..timestamp = start
+          .add(const Duration(seconds: 180))
+          .millisecondsSinceEpoch
+      ..startTime = start.millisecondsSinceEpoch
+      ..totalElapsedTime = 180.0
+      ..totalTimerTime = 180.0,
+  );
+
+  return builder.build().toBytes();
+}
+
 void main() {
   late FitParserService service;
 
@@ -484,6 +558,27 @@ void main() {
         expect(dive.profile.any((s) => s.ttsSeconds == 480), isTrue);
       },
     );
+
+    test('air-integration: tank pressure from msgs 319/323 merges to samples', () async {
+      final dive = await service.parseFitFile(buildAiDiveFitFile());
+
+      expect(dive, isNotNull);
+      expect(dive!.tanks, hasLength(1));
+      final tank = dive.tanks.single;
+      expect(tank.o2Percent, 28);
+      expect(tank.startPressureBar, closeTo(221.25, 1e-6));
+      expect(tank.endPressureBar, closeTo(88.11, 1e-6));
+      expect(tank.volumeUsedLiters, closeTo(1993.5, 1e-6));
+
+      // The pressure series is merged onto the contemporaneous depth samples.
+      final withPressure = dive.profile
+          .where((s) => s.tankPressures != null)
+          .toList();
+      expect(withPressure, isNotEmpty);
+      final firstReading = withPressure.first.tankPressures!.single;
+      expect(firstReading.tankIndex, 0);
+      expect(firstReading.pressureBar, closeTo(220.0, 1e-6));
+    });
   });
 
   group('parseFitFiles', () {
