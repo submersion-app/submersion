@@ -4040,6 +4040,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_legend_label_ascentRate => 'معدل الصعود';
 
   @override
+  String get diveLog_legend_label_ascentRateLine => 'خط معدل الصعود';
+
+  @override
   String get diveLog_legend_label_ceiling => 'السقف';
 
   @override

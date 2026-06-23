@@ -1344,6 +1344,7 @@
   "diveLog_fullscreenProfile_close": "Teljes kepernyo bezarasa",
   "diveLog_fullscreenProfile_title": "Merules #{number} profil",
   "diveLog_legend_label_ascentRate": "Felszallasi sebesseg",
+  "diveLog_legend_label_ascentRateLine": "Felszallasi sebesseg vonal",
   "diveLog_legend_label_ceiling": "Plafon",
   "diveLog_legend_label_cns": "CNS%",
   "diveLog_legend_label_depth": "Melyseg",

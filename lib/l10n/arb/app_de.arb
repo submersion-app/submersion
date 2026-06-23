@@ -1378,6 +1378,7 @@
   "diveLog_fullscreenProfile_close": "Vollbild schließen",
   "diveLog_fullscreenProfile_title": "Tauchgang #{number} Profil",
   "diveLog_legend_label_ascentRate": "Aufstiegsgeschwindigkeit",
+  "diveLog_legend_label_ascentRateLine": "Aufstiegsgeschwindigkeit (Linie)",
   "diveLog_legend_label_ceiling": "Ceiling",
   "diveLog_legend_label_cns": "CNS%",
   "diveLog_legend_label_depth": "Tiefe",

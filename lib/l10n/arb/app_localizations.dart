@@ -6970,6 +6970,12 @@ abstract class AppLocalizations {
   /// **'Ascent Rate'**
   String get diveLog_legend_label_ascentRate;
 
+  /// No description provided for @diveLog_legend_label_ascentRateLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Ascent Rate Line'**
+  String get diveLog_legend_label_ascentRateLine;
+
   /// No description provided for @diveLog_legend_label_ceiling.
   ///
   /// In en, this message translates to:

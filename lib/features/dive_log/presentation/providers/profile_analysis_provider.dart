@@ -89,9 +89,15 @@ List<double>? combineMultiTankPressures({
     for (final entry in tankPressures.entries) {
       final tankId = entry.key;
       final pressurePoints = entry.value;
-      final tankVolume = tankVolumes[tankId];
+      if (pressurePoints.isEmpty) continue;
 
-      if (tankVolume == null || pressurePoints.isEmpty) continue;
+      // The pressure series is already scoped to this dive. A tank id that no
+      // longer matches a current tank -- e.g. a re-import or reparse re-keyed
+      // the dive's tanks with fresh UUIDs (issue #276) -- must not discard the
+      // data; fall back to a unit volume so the orphaned series still
+      // contributes (a lone re-keyed tank then yields its raw pressure series)
+      // instead of the SAC curve silently disappearing ("un-keyed").
+      final tankVolume = tankVolumes[tankId] ?? 1.0;
 
       // Find pressure at this timestamp (interpolate if needed)
       double? pressure;

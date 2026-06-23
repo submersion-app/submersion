@@ -1344,6 +1344,7 @@
   "diveLog_fullscreenProfile_close": "Fermer le plein ecran",
   "diveLog_fullscreenProfile_title": "Profil de la plongee n{number}",
   "diveLog_legend_label_ascentRate": "Vitesse de remontee",
+  "diveLog_legend_label_ascentRateLine": "Courbe de vitesse de remontee",
   "diveLog_legend_label_ceiling": "Plafond",
   "diveLog_legend_label_cns": "CNS%",
   "diveLog_legend_label_depth": "Profondeur",

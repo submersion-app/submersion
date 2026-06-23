@@ -207,6 +207,56 @@ void main() {
     });
   });
 
+  group('Import dives (enriched FIT fields)', () {
+    setUp(() {
+      when(
+        mockDiveRepo.createDive(any),
+      ).thenAnswer((inv) async => inv.positionalArguments[0] as Dive);
+      when(mockDiveRepo.saveComputerReading(any)).thenAnswer((_) async {});
+    });
+
+    test('maps recorded ceiling and entry GPS onto the Dive', () async {
+      final data = UddfImportResult(
+        dives: [
+          {
+            'dateTime': DateTime.utc(2025, 10, 13, 11, 24, 0),
+            'maxDepth': 29.5,
+            'avgDepth': 16.0,
+            'duration': const Duration(seconds: 3263),
+            'runtime': const Duration(seconds: 3600),
+            'latitude': 35.815,
+            'longitude': 14.451,
+            'profile': <Map<String, dynamic>>[
+              {'timestamp': 0, 'depth': 1.6, 'ceiling': 0.0},
+              {
+                'timestamp': 60,
+                'depth': 29.5,
+                'ceiling': 6.0,
+                'tts': 480,
+                'ndl': 0,
+              },
+            ],
+          },
+        ],
+      );
+
+      await importer.import(
+        data: data,
+        selections: const UddfImportSelections(dives: {0}),
+        repositories: repos,
+        diverId: diverId,
+      );
+
+      final captured = verify(mockDiveRepo.createDive(captureAny)).captured;
+      final dive = captured.single as Dive;
+      expect(dive.entryLocation, isNotNull);
+      expect(dive.entryLocation!.latitude, closeTo(35.815, 1e-9));
+      expect(dive.entryLocation!.longitude, closeTo(14.451, 1e-9));
+      expect(dive.profile.any((p) => p.ceiling == 6.0), isTrue);
+      expect(dive.profile.any((p) => p.tts == 480), isTrue);
+    });
+  });
+
   group('Import equipment', () {
     test('imports equipment with type parsing', () async {
       when(mockEquipmentRepo.createEquipment(any)).thenAnswer(

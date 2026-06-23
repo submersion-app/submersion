@@ -1505,6 +1505,7 @@
   "diveLog_fullscreenProfile_close": "关闭全屏",
   "diveLog_fullscreenProfile_title": "潜水 #{number} 轮廓",
   "diveLog_legend_label_ascentRate": "上升速率",
+  "diveLog_legend_label_ascentRateLine": "上升速率曲线",
   "diveLog_legend_label_ceiling": "上升限制",
   "diveLog_legend_label_cns": "中枢神经系统%",
   "diveLog_legend_label_depth": "深度",

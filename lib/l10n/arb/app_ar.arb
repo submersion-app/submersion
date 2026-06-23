@@ -1378,6 +1378,7 @@
   "diveLog_fullscreenProfile_close": "إغلاق ملء الشاشة",
   "diveLog_fullscreenProfile_title": "ملف الغوصة #{number}",
   "diveLog_legend_label_ascentRate": "معدل الصعود",
+  "diveLog_legend_label_ascentRateLine": "خط معدل الصعود",
   "diveLog_legend_label_ceiling": "السقف",
   "diveLog_legend_label_cns": "CNS%",
   "diveLog_legend_label_depth": "العمق",

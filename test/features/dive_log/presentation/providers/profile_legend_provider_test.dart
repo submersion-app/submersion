@@ -172,6 +172,85 @@ void main() {
     });
   });
 
+  group('showAscentRateLine', () {
+    test('defaults to false (session-only, no setting)', () {
+      const state = ProfileLegendState();
+      expect(state.showAscentRateLine, isFalse);
+    });
+
+    test('copyWith sets showAscentRateLine to true', () {
+      const state = ProfileLegendState();
+      final updated = state.copyWith(showAscentRateLine: true);
+      expect(updated.showAscentRateLine, isTrue);
+    });
+
+    test('copyWith without showAscentRateLine preserves current value', () {
+      const state = ProfileLegendState(showAscentRateLine: true);
+      final updated = state.copyWith(showSac: true);
+      expect(updated.showAscentRateLine, isTrue);
+    });
+
+    test('equality distinguishes showAscentRateLine true vs false', () {
+      const on = ProfileLegendState(showAscentRateLine: true);
+      const off = ProfileLegendState(showAscentRateLine: false);
+      expect(on, isNot(equals(off)));
+    });
+
+    test('hashCode includes showAscentRateLine', () {
+      // Empty maps keep the hash deterministic: the state's hashCode spreads
+      // Map.entries, whose MapEntry values hash by identity.
+      const on = ProfileLegendState(
+        showAscentRateLine: true,
+        sectionExpanded: {},
+        showTankPressure: {},
+      );
+      const off = ProfileLegendState(
+        showAscentRateLine: false,
+        sectionExpanded: {},
+        showTankPressure: {},
+      );
+      expect(on.hashCode, isNot(off.hashCode));
+    });
+
+    test('activeSecondaryCount includes showAscentRateLine', () {
+      const state = ProfileLegendState(
+        showAscentRateLine: true,
+        showCeiling: false,
+        showAscentRateColors: false,
+        showMaxDepthMarker: false,
+        showPressureMarkers: false,
+        showGasSwitchMarkers: false,
+      );
+      expect(state.activeSecondaryCount, 1);
+    });
+  });
+
+  group('ProfileLegend.toggleAscentRateLine', () {
+    ProviderContainer makeContainer() => ProviderContainer(
+      overrides: [
+        settingsProvider.overrideWith((ref) => _StubSettingsNotifier()),
+      ],
+    );
+
+    test('toggles showAscentRateLine from false to true', () {
+      final container = makeContainer();
+      addTearDown(container.dispose);
+      final notifier = container.read(profileLegendProvider.notifier);
+      expect(container.read(profileLegendProvider).showAscentRateLine, isFalse);
+      notifier.toggleAscentRateLine();
+      expect(container.read(profileLegendProvider).showAscentRateLine, isTrue);
+    });
+
+    test('toggles showAscentRateLine from true back to false', () {
+      final container = makeContainer();
+      addTearDown(container.dispose);
+      final notifier = container.read(profileLegendProvider.notifier);
+      notifier.toggleAscentRateLine();
+      notifier.toggleAscentRateLine();
+      expect(container.read(profileLegendProvider).showAscentRateLine, isFalse);
+    });
+  });
+
   group('ProfileLegend.build gas timeline hydration', () {
     test('showGas starts true when defaultShowGasTimeline is true', () {
       final container = ProviderContainer(

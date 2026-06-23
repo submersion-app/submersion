@@ -702,6 +702,12 @@ class DiveRepository {
               waterType: Value(dive.waterType?.name),
               altitude: Value(dive.altitude),
               surfacePressure: Value(dive.surfacePressure),
+              // Entry/exit GPS (previously dropped on create, so file-imported
+              // dives never became eligible for site matching).
+              entryLatitude: Value(dive.entryLocation?.latitude),
+              entryLongitude: Value(dive.entryLocation?.longitude),
+              exitLatitude: Value(dive.exitLocation?.latitude),
+              exitLongitude: Value(dive.exitLocation?.longitude),
               // Weather conditions
               windSpeed: Value(dive.windSpeed),
               windDirection: Value(dive.windDirection?.name),

@@ -1344,6 +1344,7 @@
   "diveLog_fullscreenProfile_close": "סגירת מסך מלא",
   "diveLog_fullscreenProfile_title": "פרופיל צלילה #{number}",
   "diveLog_legend_label_ascentRate": "קצב עלייה",
+  "diveLog_legend_label_ascentRateLine": "קו קצב עלייה",
   "diveLog_legend_label_ceiling": "תקרה",
   "diveLog_legend_label_cns": "CNS%",
   "diveLog_legend_label_depth": "עומק",

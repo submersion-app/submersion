@@ -78,6 +78,12 @@ class AscentRateViolation {
 
 /// Calculator for ascent rates and violations.
 class AscentRateCalculator {
+  /// Default warning threshold in m/min (safe -> warning band boundary).
+  static const double defaultWarningThreshold = 9.0;
+
+  /// Default critical threshold in m/min (warning -> danger band boundary).
+  static const double defaultCriticalThreshold = 12.0;
+
   /// Warning threshold in m/min (default 9)
   final double warningThreshold;
 
@@ -95,8 +101,8 @@ class AscentRateCalculator {
   final int smoothingWindowSeconds;
 
   const AscentRateCalculator({
-    this.warningThreshold = 9.0,
-    this.criticalThreshold = 12.0,
+    this.warningThreshold = defaultWarningThreshold,
+    this.criticalThreshold = defaultCriticalThreshold,
     this.smoothingWindow = 3,
     this.smoothingWindowSeconds = 15,
   });

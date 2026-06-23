@@ -6,6 +6,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 
 import '../../../../helpers/test_database.dart';
 import '../../../../helpers/mock_providers.dart';
@@ -111,4 +112,53 @@ void main() {
       );
     },
   );
+
+  test('diveStatisticsProvider auto-refreshes after a direct dives-table write '
+      '(dashboard HeroHeader / issue #217 sync scenario)', () async {
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+    );
+
+    final container = ProviderContainer(
+      overrides: [
+        // Null current diver => statistics count every dive (no filter).
+        currentDiverIdProvider.overrideWith(
+          (ref) => MockCurrentDiverIdNotifier(),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    // The dashboard HeroHeader keeps diveStatisticsProvider alive by watching
+    // it, mirroring an on-screen home tab.
+    final sub = container.listen(diveStatisticsProvider, (_, _) {});
+    addTearDown(sub.close);
+
+    final initial = await container.read(diveStatisticsProvider.future);
+    expect(initial.totalDives, 1);
+
+    // A dive-computer import or an iCloud sync writes a new dive straight to
+    // the dives table (no manual invalidation), exactly like the home tab's
+    // data source.
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'd2', diveNumber: 2),
+    );
+
+    // Poll until the dives-table tick -> invalidate -> rebuild settles.
+    int total = initial.totalDives;
+    for (var i = 0; i < 50; i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      total = (await container.read(diveStatisticsProvider.future)).totalDives;
+      if (total == 2) break;
+    }
+
+    expect(
+      total,
+      2,
+      reason:
+          'diveStatisticsProvider feeds the dashboard HeroHeader; it must '
+          'refresh after a dives-table write (import/sync) so the home tab '
+          'stats reflect new dives without an app restart (issue #217).',
+    );
+  });
 }

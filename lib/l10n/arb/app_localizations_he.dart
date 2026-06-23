@@ -4023,6 +4023,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_legend_label_ascentRate => 'קצב עלייה';
 
   @override
+  String get diveLog_legend_label_ascentRateLine => 'קו קצב עלייה';
+
+  @override
   String get diveLog_legend_label_ceiling => 'תקרה';
 
   @override

@@ -27,6 +27,11 @@ class ProfileLegendState {
   final bool showHeartRate;
   final bool showSac;
   final bool showAscentRateColors;
+
+  /// Separate ascent-rate magnitude line (m/min). Session-only, no persisted
+  /// setting (mirrors [showMod]); distinct from [showAscentRateColors], which
+  /// tints the depth line by velocity band.
+  final bool showAscentRateLine;
   final bool showEvents;
   final bool showMaxDepthMarker;
   final bool showPressureMarkers;
@@ -70,6 +75,7 @@ class ProfileLegendState {
     this.showHeartRate = false,
     this.showSac = false,
     this.showAscentRateColors = true,
+    this.showAscentRateLine = false,
     this.showEvents = true,
     this.showMaxDepthMarker = true,
     this.showPressureMarkers = true,
@@ -110,6 +116,7 @@ class ProfileLegendState {
     if (showHeartRate) count++;
     if (showSac) count++;
     if (showAscentRateColors) count++;
+    if (showAscentRateLine) count++;
     if (showMaxDepthMarker) count++;
     if (showPressureMarkers) count++;
     if (showGasSwitchMarkers) count++;
@@ -142,6 +149,7 @@ class ProfileLegendState {
     bool? showHeartRate,
     bool? showSac,
     bool? showAscentRateColors,
+    bool? showAscentRateLine,
     bool? showEvents,
     bool? showMaxDepthMarker,
     bool? showPressureMarkers,
@@ -177,6 +185,7 @@ class ProfileLegendState {
       showHeartRate: showHeartRate ?? this.showHeartRate,
       showSac: showSac ?? this.showSac,
       showAscentRateColors: showAscentRateColors ?? this.showAscentRateColors,
+      showAscentRateLine: showAscentRateLine ?? this.showAscentRateLine,
       showEvents: showEvents ?? this.showEvents,
       showMaxDepthMarker: showMaxDepthMarker ?? this.showMaxDepthMarker,
       showPressureMarkers: showPressureMarkers ?? this.showPressureMarkers,
@@ -216,6 +225,7 @@ class ProfileLegendState {
           showHeartRate == other.showHeartRate &&
           showSac == other.showSac &&
           showAscentRateColors == other.showAscentRateColors &&
+          showAscentRateLine == other.showAscentRateLine &&
           showEvents == other.showEvents &&
           showMaxDepthMarker == other.showMaxDepthMarker &&
           showPressureMarkers == other.showPressureMarkers &&
@@ -250,6 +260,7 @@ class ProfileLegendState {
     showHeartRate,
     showSac,
     showAscentRateColors,
+    showAscentRateLine,
     showEvents,
     showMaxDepthMarker,
     showPressureMarkers,
@@ -368,6 +379,10 @@ class ProfileLegend extends _$ProfileLegend {
 
   void toggleAscentRateColors() {
     state = state.copyWith(showAscentRateColors: !state.showAscentRateColors);
+  }
+
+  void toggleAscentRateLine() {
+    state = state.copyWith(showAscentRateLine: !state.showAscentRateLine);
   }
 
   void toggleEvents() {
