@@ -59,4 +59,29 @@ void main() {
     expect(snap.priorDiveRows.length, 2);
     expect(snap.priorTagIds, isNotNull);
   });
+
+  test('undo restores prior scalar values and tag membership', () async {
+    await seed('d1');
+    await diveRepo.bulkUpdateFields(['d1'], const DivesCompanion(rating: Value(2)));
+    await diveRepo.bulkReplaceTags(['d1'], ['orig']);
+
+    final snap = await service.apply(
+      BulkEditRequest(
+        diveIds: const ['d1'],
+        scalars: const DivesCompanion(rating: Value(9)),
+        ops: const [TagsOp(mode: BulkCollectionMode.replace, tagIds: ['new'])],
+      ),
+    );
+
+    await service.undo(snap);
+
+    final r = await (db.select(
+      db.dives,
+    )..where((t) => t.id.equals('d1'))).getSingle();
+    expect(r.rating, 2); // restored
+    final tags = await (db.select(
+      db.diveTags,
+    )..where((t) => t.diveId.equals('d1'))).get();
+    expect(tags.single.tagId, 'orig'); // restored
+  });
 }
