@@ -1378,6 +1378,7 @@
   "diveLog_fullscreenProfile_close": "Volledig scherm sluiten",
   "diveLog_fullscreenProfile_title": "Duik #{number} profiel",
   "diveLog_legend_label_ascentRate": "Opstijgsnelheid",
+  "diveLog_legend_label_ascentRateLine": "Opstijgsnelheid (lijn)",
   "diveLog_legend_label_ceiling": "Plafond",
   "diveLog_legend_label_cns": "CNS%",
   "diveLog_legend_label_depth": "Diepte",

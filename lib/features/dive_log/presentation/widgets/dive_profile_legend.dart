@@ -288,6 +288,7 @@ class _MoreOptionsButton extends ConsumerWidget {
     if (config.hasHeartRateData && legendState.showHeartRate) count++;
     if (config.hasSacCurve && legendState.showSac) count++;
     if (config.hasAscentRates && legendState.showAscentRateColors) count++;
+    if (config.hasAscentRates && legendState.showAscentRateLine) count++;
     if (config.hasMaxDepthMarker && legendState.showMaxDepthMarker) count++;
     if (config.hasPressureMarkers && legendState.showPressureMarkers) count++;
     if (config.hasGasSwitches && legendState.showGasSwitchMarkers) count++;
@@ -466,6 +467,14 @@ class _ChartOptionsDialog extends StatelessWidget {
           color: Colors.lime.shade700,
           isEnabled: legendState.showAscentRateColors,
           onTap: legendNotifier.toggleAscentRateColors,
+        ),
+      if (config.hasAscentRates)
+        _buildToggleItem(
+          context,
+          label: context.l10n.diveLog_legend_label_ascentRateLine,
+          color: Colors.lime,
+          isEnabled: legendState.showAscentRateLine,
+          onTap: legendNotifier.toggleAscentRateLine,
         ),
       if (config.hasGasData)
         _buildGasToggleItem(

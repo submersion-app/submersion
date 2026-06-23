@@ -1378,6 +1378,7 @@
   "diveLog_fullscreenProfile_close": "Cerrar pantalla completa",
   "diveLog_fullscreenProfile_title": "Perfil de inmersión #{number}",
   "diveLog_legend_label_ascentRate": "Velocidad de ascenso",
+  "diveLog_legend_label_ascentRateLine": "Linea de velocidad de ascenso",
   "diveLog_legend_label_ceiling": "Techo",
   "diveLog_legend_label_cns": "CNS%",
   "diveLog_legend_label_depth": "Profundidad",

@@ -3935,6 +3935,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_legend_label_ascentRate => '上升速率';
 
   @override
+  String get diveLog_legend_label_ascentRateLine => '上升速率曲线';
+
+  @override
   String get diveLog_legend_label_ceiling => '上升限制';
 
   @override

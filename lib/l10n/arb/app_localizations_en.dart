@@ -4065,6 +4065,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_legend_label_ascentRate => 'Ascent Rate';
 
   @override
+  String get diveLog_legend_label_ascentRateLine => 'Ascent Rate Line';
+
+  @override
   String get diveLog_legend_label_ceiling => 'Ceiling';
 
   @override

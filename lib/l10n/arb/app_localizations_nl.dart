@@ -4109,6 +4109,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_legend_label_ascentRate => 'Opstijgsnelheid';
 
   @override
+  String get diveLog_legend_label_ascentRateLine => 'Opstijgsnelheid (lijn)';
+
+  @override
   String get diveLog_legend_label_ceiling => 'Plafond';
 
   @override

@@ -4125,6 +4125,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_legend_label_ascentRate => 'Felszallasi sebesseg';
 
   @override
+  String get diveLog_legend_label_ascentRateLine =>
+      'Felszallasi sebesseg vonal';
+
+  @override
   String get diveLog_legend_label_ceiling => 'Plafon';
 
   @override

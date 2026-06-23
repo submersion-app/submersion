@@ -4163,6 +4163,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_legend_label_ascentRate => 'Vitesse de remontee';
 
   @override
+  String get diveLog_legend_label_ascentRateLine =>
+      'Courbe de vitesse de remontee';
+
+  @override
   String get diveLog_legend_label_ceiling => 'Plafond';
 
   @override

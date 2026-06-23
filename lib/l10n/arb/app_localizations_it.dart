@@ -4144,6 +4144,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_legend_label_ascentRate => 'Velocita di risalita';
 
   @override
+  String get diveLog_legend_label_ascentRateLine =>
+      'Linea velocita di risalita';
+
+  @override
   String get diveLog_legend_label_ceiling => 'Ceiling';
 
   @override
