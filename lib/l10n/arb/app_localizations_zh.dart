@@ -4722,6 +4722,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_selection_tooltip_selectAll => '全选';
 
   @override
+  String get diveLog_selection_tooltip_selectDateRange => '按日期范围选择';
+
+  @override
   String get diveLog_sighting_add => '添加';
 
   @override

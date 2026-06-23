@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -31,6 +32,22 @@ import 'package:submersion/features/dive_log/presentation/widgets/add_dive_botto
 import 'package:submersion/features/dive_log/presentation/widgets/dive_numbering_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_table_view.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+
+/// Inclusive id span between the [anchor] and [target] indices in [dives].
+/// Order-independent: a backward shift-click selects the same range.
+List<String> rangeIds(List<DiveSummary> dives, int anchor, int target) {
+  final lo = anchor < target ? anchor : target;
+  final hi = anchor < target ? target : anchor;
+  return [for (var i = lo; i <= hi; i++) dives[i].id];
+}
+
+/// True if [d]'s date falls within [r], inclusive of the end calendar day.
+bool inDateRange(DiveSummary d, DateTimeRange r) {
+  final day = DateTime(d.dateTime.year, d.dateTime.month, d.dateTime.day);
+  final start = DateTime(r.start.year, r.start.month, r.start.day);
+  final end = DateTime(r.end.year, r.end.month, r.end.day);
+  return !day.isBefore(start) && !day.isAfter(end);
+}
 
 /// Content widget for the dive list, used in master-detail layout.
 ///
@@ -90,6 +107,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   String? _lastScrolledToId;
   bool _selectionFromList =
       false; // Track if selection originated from list tap
+  String? _anchorId; // anchor dive for shift-click range selection
 
   @override
   void initState() {
@@ -187,6 +205,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     setState(() {
       _isSelectionMode = true;
       _selectedIds.clear();
+      _anchorId = initialId;
       if (initialId != null) {
         _selectedIds.add(initialId);
       }
@@ -210,6 +229,45 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       } else {
         _selectedIds.add(id);
       }
+      _anchorId = id;
+    });
+  }
+
+  bool _isShiftPressed() {
+    final keys = HardwareKeyboard.instance.logicalKeysPressed;
+    return keys.contains(LogicalKeyboardKey.shiftLeft) ||
+        keys.contains(LogicalKeyboardKey.shiftRight);
+  }
+
+  /// Select the contiguous span from the anchor dive to [targetId].
+  void _selectRangeTo(String targetId, List<DiveSummary> dives) {
+    final targetIndex = dives.indexWhere((d) => d.id == targetId);
+    if (targetIndex < 0) return;
+    final anchorIndex = _anchorId == null
+        ? targetIndex
+        : dives.indexWhere((d) => d.id == _anchorId);
+    final from = anchorIndex < 0 ? targetIndex : anchorIndex;
+    setState(() {
+      _selectedIds.addAll(rangeIds(dives, from, targetIndex));
+      // Keep the anchor fixed across shift-clicks (only plain taps move it),
+      // so consecutive shift-clicks extend from the original anchor rather
+      // than walking it forward.
+      _anchorId ??= targetId;
+    });
+  }
+
+  /// Pick a date range and select every dive whose date falls inside it.
+  Future<void> _selectByDateRange(List<DiveSummary> dives) async {
+    final range = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(1970),
+      lastDate: DateTime(2100),
+    );
+    if (range == null) return;
+    setState(() {
+      _selectedIds.addAll(
+        dives.where((d) => inDateRange(d, range)).map((d) => d.id),
+      );
     });
   }
 
@@ -1157,6 +1215,11 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             tooltip: context.l10n.diveLog_selection_tooltip_selectAll,
             onPressed: () => _selectAll(dives),
           ),
+        IconButton(
+          icon: const Icon(Icons.date_range),
+          tooltip: context.l10n.diveLog_selection_tooltip_selectDateRange,
+          onPressed: () => _selectByDateRange(dives),
+        ),
         if (_selectedIds.isNotEmpty)
           IconButton(
             icon: const Icon(Icons.deselect),
@@ -1221,6 +1284,11 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               tooltip: context.l10n.diveLog_selection_tooltip_selectAll,
               onPressed: () => _selectAll(dives),
             ),
+          IconButton(
+            icon: const Icon(Icons.date_range, size: 20),
+            tooltip: context.l10n.diveLog_selection_tooltip_selectDateRange,
+            onPressed: () => _selectByDateRange(dives),
+          ),
           if (_selectedIds.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.upload, size: 20),
@@ -1413,7 +1481,13 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                     gradientEndColor: gradientColors.end,
                     siteLatitude: dive.siteLatitude,
                     siteLongitude: dive.siteLongitude,
-                    onTap: () => _handleItemTap(dive),
+                    onTap: () {
+                      if (_isSelectionMode && _isShiftPressed()) {
+                        _selectRangeTo(dive.id, dives);
+                      } else {
+                        _handleItemTap(dive);
+                      }
+                    },
                     onLongPress: _isSelectionMode
                         ? null
                         : () => _enterSelectionMode(dive.id),
@@ -1457,7 +1531,13 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                       'stat2',
                       DiveField.bottomTime,
                     ),
-                    onTap: () => _handleItemTap(dive),
+                    onTap: () {
+                      if (_isSelectionMode && _isShiftPressed()) {
+                        _selectRangeTo(dive.id, dives);
+                      } else {
+                        _handleItemTap(dive);
+                      }
+                    },
                     onLongPress: _isSelectionMode
                         ? null
                         : () => _enterSelectionMode(dive.id),
@@ -1487,7 +1567,13 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                     gradientEndColor: gradientColors.end,
                     siteLatitude: dive.siteLatitude,
                     siteLongitude: dive.siteLongitude,
-                    onTap: () => _handleItemTap(dive),
+                    onTap: () {
+                      if (_isSelectionMode && _isShiftPressed()) {
+                        _selectRangeTo(dive.id, dives);
+                      } else {
+                        _handleItemTap(dive);
+                      }
+                    },
                     onLongPress: _isSelectionMode
                         ? null
                         : () => _enterSelectionMode(dive.id),

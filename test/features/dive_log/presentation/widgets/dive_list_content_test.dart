@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -1008,5 +1009,107 @@ void main() {
         expect(two.isSelected, isTrue);
       },
     );
+  });
+
+  group('phone-mode selection', () {
+    List<Dive> fourDives() => [
+      _makeDive(
+        id: 'd1',
+        diveNumber: 1,
+        site: const DiveSite(id: 's1', name: 'Aaa'),
+      ),
+      _makeDive(
+        id: 'd2',
+        diveNumber: 2,
+        site: const DiveSite(id: 's2', name: 'Bbb'),
+      ),
+      _makeDive(
+        id: 'd3',
+        diveNumber: 3,
+        site: const DiveSite(id: 's3', name: 'Ccc'),
+      ),
+      _makeDive(
+        id: 'd4',
+        diveNumber: 4,
+        site: const DiveSite(id: 's4', name: 'Ddd'),
+      ),
+    ];
+
+    testWidgets(
+      'long-press enters selection; shift-tap selects a range; tap toggles',
+      (tester) async {
+        final overrides = await _buildPhoneOverrides(
+          dives: fourDives(),
+          viewMode: ListViewMode.detailed,
+          highlightedDiveId: null,
+        );
+        await tester.pumpWidget(
+          testApp(
+            overrides: overrides,
+            child: const DiveListContent(showAppBar: false),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        DiveListTile tile(String id) => tester
+            .widgetList<DiveListTile>(find.byType(DiveListTile))
+            .firstWhere((t) => t.diveId == id);
+        Finder tileFinder(String id) =>
+            find.byWidgetPredicate((w) => w is DiveListTile && w.diveId == id);
+
+        // Long-press d1 -> enter selection mode with d1 as the anchor.
+        await tester.longPress(tileFinder('d1'));
+        await tester.pumpAndSettle();
+        expect(tile('d1').isSelectionMode, isTrue);
+        expect(tile('d1').isSelected, isTrue);
+
+        // Shift-tap d3 -> the d1..d3 span becomes selected.
+        await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
+        await tester.tap(tileFinder('d3'));
+        await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
+        await tester.pumpAndSettle();
+        expect(tile('d1').isSelected, isTrue);
+        expect(tile('d2').isSelected, isTrue);
+        expect(tile('d3').isSelected, isTrue);
+        expect(tile('d4').isSelected, isFalse);
+
+        // Plain tap d2 -> toggles it back off.
+        await tester.tap(tileFinder('d2'));
+        await tester.pumpAndSettle();
+        expect(tile('d2').isSelected, isFalse);
+      },
+    );
+
+    testWidgets('compact view: long-press enters selection and tap toggles', (
+      tester,
+    ) async {
+      final overrides = await _buildPhoneOverrides(
+        dives: fourDives(),
+        viewMode: ListViewMode.compact,
+        highlightedDiveId: null,
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const DiveListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      CompactDiveListTile tile(String id) => tester
+          .widgetList<CompactDiveListTile>(find.byType(CompactDiveListTile))
+          .firstWhere((t) => t.diveId == id);
+      Finder tileFinder(String id) => find.byWidgetPredicate(
+        (w) => w is CompactDiveListTile && w.diveId == id,
+      );
+
+      await tester.longPress(tileFinder('d1'));
+      await tester.pumpAndSettle();
+      expect(tile('d1').isSelectionMode, isTrue);
+
+      await tester.tap(tileFinder('d2'));
+      await tester.pumpAndSettle();
+      expect(tile('d2').isSelected, isTrue);
+    });
   });
 }

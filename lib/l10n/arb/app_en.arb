@@ -2352,6 +2352,7 @@
   "diveLog_selection_tooltip_exit": "Exit selection",
   "diveLog_selection_tooltip_export": "Export Selected",
   "diveLog_selection_tooltip_selectAll": "Select All",
+  "diveLog_selection_tooltip_selectDateRange": "Select by date range",
   "diveLog_sighting_add": "Add",
   "diveLog_sighting_cancel": "Cancel",
   "diveLog_sighting_notesHint": "e.g., size, behavior, location...",

@@ -4943,6 +4943,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_selection_tooltip_selectAll => 'Osszes kivalasztasa';
 
   @override
+  String get diveLog_selection_tooltip_selectDateRange =>
+      'Kijelölés dátumtartomány szerint';
+
+  @override
   String get diveLog_sighting_add => 'Hozzaadas';
 
   @override
