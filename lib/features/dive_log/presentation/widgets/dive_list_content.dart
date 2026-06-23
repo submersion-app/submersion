@@ -41,6 +41,14 @@ List<String> rangeIds(List<DiveSummary> dives, int anchor, int target) {
   return [for (var i = lo; i <= hi; i++) dives[i].id];
 }
 
+/// True if [d]'s date falls within [r], inclusive of the end calendar day.
+bool inDateRange(DiveSummary d, DateTimeRange r) {
+  final day = DateTime(d.dateTime.year, d.dateTime.month, d.dateTime.day);
+  final start = DateTime(r.start.year, r.start.month, r.start.day);
+  final end = DateTime(r.end.year, r.end.month, r.end.day);
+  return !day.isBefore(start) && !day.isAfter(end);
+}
+
 /// Content widget for the dive list, used in master-detail layout.
 ///
 /// This widget contains the core list functionality extracted from DiveListPage.
@@ -242,6 +250,21 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     setState(() {
       _selectedIds.addAll(rangeIds(dives, from, targetIndex));
       _anchorId = targetId;
+    });
+  }
+
+  /// Pick a date range and select every dive whose date falls inside it.
+  Future<void> _selectByDateRange(List<DiveSummary> dives) async {
+    final range = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(1970),
+      lastDate: DateTime(2100),
+    );
+    if (range == null) return;
+    setState(() {
+      _selectedIds.addAll(
+        dives.where((d) => inDateRange(d, range)).map((d) => d.id),
+      );
     });
   }
 
@@ -1189,6 +1212,11 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             tooltip: context.l10n.diveLog_selection_tooltip_selectAll,
             onPressed: () => _selectAll(dives),
           ),
+        IconButton(
+          icon: const Icon(Icons.date_range),
+          tooltip: context.l10n.diveLog_selection_tooltip_selectDateRange,
+          onPressed: () => _selectByDateRange(dives),
+        ),
         if (_selectedIds.isNotEmpty)
           IconButton(
             icon: const Icon(Icons.deselect),
@@ -1252,6 +1280,11 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               icon: const Icon(Icons.select_all, size: 20),
               tooltip: context.l10n.diveLog_selection_tooltip_selectAll,
               onPressed: () => _selectAll(dives),
+            ),
+            IconButton(
+              icon: const Icon(Icons.date_range, size: 20),
+              tooltip: context.l10n.diveLog_selection_tooltip_selectDateRange,
+              onPressed: () => _selectByDateRange(dives),
             ),
           if (_selectedIds.isNotEmpty)
             IconButton(
