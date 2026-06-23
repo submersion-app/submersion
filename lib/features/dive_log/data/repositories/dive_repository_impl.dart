@@ -3902,6 +3902,78 @@ class DiveRepository {
     await _bumpDives(diveIds, now);
   }
 
+  DiveWeightsCompanion _weightCompanion(
+    String id,
+    String diveId,
+    domain.DiveWeight w,
+    int now,
+  ) => DiveWeightsCompanion(
+    id: Value(id),
+    diveId: Value(diveId),
+    weightType: Value(w.weightType.name),
+    amountKg: Value(w.amountKg),
+    notes: Value(w.notes),
+    createdAt: Value(now),
+  );
+
+  /// Append each weight to every dive (fresh id per dive). No notify/txn.
+  Future<void> bulkAddWeights(
+    List<String> diveIds,
+    List<domain.DiveWeight> weights,
+  ) async {
+    if (diveIds.isEmpty || weights.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (final diveId in diveIds) {
+      for (final w in weights) {
+        final id = _uuid.v4();
+        await _db
+            .into(_db.diveWeights)
+            .insert(_weightCompanion(id, diveId, w, now));
+        await _syncRepository.markRecordPending(
+          entityType: 'diveWeights',
+          recordId: id,
+          localUpdatedAt: now,
+        );
+      }
+    }
+    await _bumpDives(diveIds, now);
+  }
+
+  /// Replace each dive's weight list with [weights]. No notify/txn.
+  Future<void> bulkReplaceWeights(
+    List<String> diveIds,
+    List<domain.DiveWeight> weights,
+  ) async {
+    if (diveIds.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (final diveId in diveIds) {
+      final existing = await (_db.select(
+        _db.diveWeights,
+      )..where((t) => t.diveId.equals(diveId))).get();
+      await (_db.delete(
+        _db.diveWeights,
+      )..where((t) => t.diveId.equals(diveId))).go();
+      for (final row in existing) {
+        await _syncRepository.logDeletion(
+          entityType: 'diveWeights',
+          recordId: row.id,
+        );
+      }
+      for (final w in weights) {
+        final id = _uuid.v4();
+        await _db
+            .into(_db.diveWeights)
+            .insert(_weightCompanion(id, diveId, w, now));
+        await _syncRepository.markRecordPending(
+          entityType: 'diveWeights',
+          recordId: id,
+          localUpdatedAt: now,
+        );
+      }
+    }
+    await _bumpDives(diveIds, now);
+  }
+
   /// Bulk update trip for multiple dives
   Future<void> bulkUpdateTrip(List<String> diveIds, String? tripId) async {
     if (diveIds.isEmpty) return;

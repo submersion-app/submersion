@@ -2,7 +2,10 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/core/constants/enums.dart' show WeightType;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    as domain;
+import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart'
     as domain;
 
 import '../../../../helpers/test_database.dart';
@@ -169,6 +172,39 @@ void main() {
       expect(rows.length, 1);
       expect(rows.single.tankName, 'D12');
       expect(rows.single.o2Percent, 32);
+    });
+  });
+
+  group('bulk weights', () {
+    const belt = domain.DiveWeight(
+      id: '',
+      diveId: '',
+      weightType: WeightType.belt,
+      amountKg: 4,
+    );
+
+    test('add appends; replace overwrites', () async {
+      await seed('d1');
+      await repository.bulkAddWeights(['d1'], [belt]);
+      var rows = await (db.select(
+        db.diveWeights,
+      )..where((t) => t.diveId.equals('d1'))).get();
+      expect(rows.length, 1);
+      expect(rows.single.amountKg, 4);
+
+      await repository.bulkReplaceWeights(['d1'], const [
+        domain.DiveWeight(
+          id: '',
+          diveId: '',
+          weightType: WeightType.integrated,
+          amountKg: 6,
+        ),
+      ]);
+      rows = await (db.select(
+        db.diveWeights,
+      )..where((t) => t.diveId.equals('d1'))).get();
+      expect(rows.length, 1);
+      expect(rows.single.amountKg, 6);
     });
   });
 }
