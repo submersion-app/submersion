@@ -1009,6 +1009,7 @@ class UddfEntityImporter {
                   cns: asDoubleOrNull(p['cns']),
                   ndl: p['ndl'] as int?,
                   tts: p['tts'] as int?,
+                  ceiling: asDoubleOrNull(p['ceiling']),
                   rbt: p['rbt'] as int?,
                   decoType: p['decoType'] as int?,
                   setpoint: asDoubleOrNull(p['setpoint']),
@@ -1182,6 +1183,13 @@ class UddfEntityImporter {
         exitMethod: _parseEnum(diveData['exitMethod'], EntryMethod.values),
         waterType: _parseEnum(diveData['waterType'], WaterType.values),
         altitude: asDoubleOrNull(diveData['altitude']),
+        // Entry/exit GPS, so file-imported dives become eligible for the
+        // existing site matcher.
+        entryLocation: _geoPoint(diveData['latitude'], diveData['longitude']),
+        exitLocation: _geoPoint(
+          diveData['exitLatitude'],
+          diveData['exitLongitude'],
+        ),
         // Dive mode and rebreather fields
         diveMode: diveMode,
         isPlanned: isPlanned,
@@ -1538,6 +1546,13 @@ class UddfEntityImporter {
   }
 
   // -- Dive helper methods --
+
+  GeoPoint? _geoPoint(dynamic lat, dynamic lng) {
+    final latVal = asDoubleOrNull(lat);
+    final lngVal = asDoubleOrNull(lng);
+    if (latVal == null || lngVal == null) return null;
+    return GeoPoint(latVal, lngVal);
+  }
 
   List<DiveTank> _buildTanks(Map<String, dynamic> diveData) {
     final tanksData = diveData['tanks'] as List<Map<String, dynamic>>?;
