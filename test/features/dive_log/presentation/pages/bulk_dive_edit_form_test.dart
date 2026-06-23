@@ -206,5 +206,57 @@ void main() {
       expect(find.text('Apply'), findsNothing);
       expect(find.byType(SnackBar), findsOneWidget);
     });
+
+    testWidgets('numeric scalar fields convert and apply', (tester) async {
+      final d1 = await repository.createDive(
+        createTestDiveWithBottomTime().copyWith(id: 'num-1'),
+      );
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: buildOverrides(overrides).cast(),
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: DiveEditPage(bulkDiveIds: [d1.id], embedded: true),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Enable + fill several numeric fields (exercises the conversion paths).
+      for (final field in const [
+        ('Humidity', '60'),
+        ('Swell Height', '1.5'),
+        ('Altitude', '300'),
+        ('Wind Speed', '10'),
+        ('Setpoint low', '0.7'),
+      ]) {
+        final gate = find.ancestor(
+          of: find.text(field.$1),
+          matching: find.byType(BulkFieldGate),
+        );
+        await tester.ensureVisible(find.text(field.$1));
+        await tester.tap(
+          find.descendant(of: gate, matching: find.byType(Checkbox)),
+        );
+        await tester.pumpAndSettle();
+        await tester.enterText(
+          find.descendant(of: gate, matching: find.byType(TextField)),
+          field.$2,
+        );
+        await tester.pumpAndSettle();
+      }
+
+      await tester.ensureVisible(find.text('Save'));
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply'));
+      await tester.pumpAndSettle();
+
+      expect((await repository.getDiveById(d1.id))!.humidity, 60);
+    });
   });
 }
