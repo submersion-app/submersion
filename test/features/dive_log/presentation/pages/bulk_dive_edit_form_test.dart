@@ -73,5 +73,54 @@ void main() {
       await tester.pumpAndSettle();
       expect(tester.widget<Checkbox>(firstCheckbox).value, isTrue);
     });
+
+    testWidgets('enabling Favorite and saving applies to all dives', (
+      tester,
+    ) async {
+      final d1 = await repository.createDive(
+        createTestDiveWithBottomTime().copyWith(id: 'bulk-1'),
+      );
+      final d2 = await repository.createDive(
+        createTestDiveWithBottomTime().copyWith(id: 'bulk-2'),
+      );
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: buildOverrides(overrides).cast(),
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: DiveEditPage(bulkDiveIds: [d1.id, d2.id], embedded: true),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Enable the Favorite gate, then flip its toggle on.
+      final favoriteGate = find.ancestor(
+        of: find.text('Favorite'),
+        matching: find.byType(BulkFieldGate),
+      );
+      await tester.tap(
+        find.descendant(of: favoriteGate, matching: find.byType(Checkbox)),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(of: favoriteGate, matching: find.byType(Switch)),
+      );
+      await tester.pumpAndSettle();
+
+      // Save, then confirm in the dialog.
+      await tester.ensureVisible(find.text('Save'));
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply'));
+      await tester.pumpAndSettle();
+
+      expect((await repository.getDiveById(d1.id))!.isFavorite, isTrue);
+      expect((await repository.getDiveById(d2.id))!.isFavorite, isTrue);
+    });
   });
 }
