@@ -257,4 +257,44 @@ void main() {
       await service.undo(snap); // must not throw
     },
   );
+
+  test('owned-collection ops reject the remove mode', () async {
+    await seed('d1');
+    await expectLater(
+      service.apply(
+        BulkEditRequest(
+          diveIds: const ['d1'],
+          ops: [
+            TanksOp(mode: BulkCollectionMode.remove, tanks: [tank('x')]),
+          ],
+        ),
+      ),
+      throwsUnsupportedError,
+    );
+    await expectLater(
+      service.apply(
+        BulkEditRequest(
+          diveIds: const ['d1'],
+          ops: [
+            WeightsOp(mode: BulkCollectionMode.remove, weights: [weight(1)]),
+          ],
+        ),
+      ),
+      throwsUnsupportedError,
+    );
+    await expectLater(
+      service.apply(
+        BulkEditRequest(
+          diveIds: const ['d1'],
+          ops: [
+            SightingsOp(
+              mode: BulkCollectionMode.remove,
+              sightings: [sighting('x')],
+            ),
+          ],
+        ),
+      ),
+      throwsUnsupportedError,
+    );
+  });
 }

@@ -225,25 +225,42 @@ class BulkDiveEditService {
           case BulkCollectionMode.replace:
             await _buddyRepo.bulkReplaceBuddies(ids, buddies);
         }
+      // Owned collections support only add/replace; reject remove explicitly
+      // so a misconstructed op fails fast instead of silently doing an add.
       case TanksOp(:final mode, :final tanks, :final onlyIfEmpty):
-        if (mode == BulkCollectionMode.replace) {
-          await _diveRepo.bulkReplaceTanks(ids, tanks);
-        } else {
-          for (final tank in tanks) {
-            await _diveRepo.bulkAddTank(ids, tank, onlyIfEmpty: onlyIfEmpty);
-          }
+        switch (mode) {
+          case BulkCollectionMode.replace:
+            await _diveRepo.bulkReplaceTanks(ids, tanks);
+          case BulkCollectionMode.add:
+            for (final tank in tanks) {
+              await _diveRepo.bulkAddTank(ids, tank, onlyIfEmpty: onlyIfEmpty);
+            }
+          case BulkCollectionMode.remove:
+            throw UnsupportedError(
+              'Tanks support only add/replace, not remove',
+            );
         }
       case WeightsOp(:final mode, :final weights):
-        if (mode == BulkCollectionMode.replace) {
-          await _diveRepo.bulkReplaceWeights(ids, weights);
-        } else {
-          await _diveRepo.bulkAddWeights(ids, weights);
+        switch (mode) {
+          case BulkCollectionMode.replace:
+            await _diveRepo.bulkReplaceWeights(ids, weights);
+          case BulkCollectionMode.add:
+            await _diveRepo.bulkAddWeights(ids, weights);
+          case BulkCollectionMode.remove:
+            throw UnsupportedError(
+              'Weights support only add/replace, not remove',
+            );
         }
       case SightingsOp(:final mode, :final sightings):
-        if (mode == BulkCollectionMode.replace) {
-          await _speciesRepo.bulkReplaceSightings(ids, sightings);
-        } else {
-          await _speciesRepo.bulkAddSightings(ids, sightings);
+        switch (mode) {
+          case BulkCollectionMode.replace:
+            await _speciesRepo.bulkReplaceSightings(ids, sightings);
+          case BulkCollectionMode.add:
+            await _speciesRepo.bulkAddSightings(ids, sightings);
+          case BulkCollectionMode.remove:
+            throw UnsupportedError(
+              'Sightings support only add/replace, not remove',
+            );
         }
     }
   }

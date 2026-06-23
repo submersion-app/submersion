@@ -249,7 +249,10 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     final from = anchorIndex < 0 ? targetIndex : anchorIndex;
     setState(() {
       _selectedIds.addAll(rangeIds(dives, from, targetIndex));
-      _anchorId = targetId;
+      // Keep the anchor fixed across shift-clicks (only plain taps move it),
+      // so consecutive shift-clicks extend from the original anchor rather
+      // than walking it forward.
+      _anchorId ??= targetId;
     });
   }
 
