@@ -1576,6 +1576,7 @@
   "diveLog_selection_tooltip_exit": "Quitter la selection",
   "diveLog_selection_tooltip_export": "Exporter la selection",
   "diveLog_selection_tooltip_selectAll": "Tout selectionner",
+  "diveLog_selection_tooltip_selectDateRange": "Sélectionner par plage de dates",
   "diveLog_sighting_add": "Ajouter",
   "diveLog_sighting_cancel": "Annuler",
   "diveLog_sighting_notesHint": "ex. taille, comportement, emplacement...",

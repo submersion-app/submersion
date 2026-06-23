@@ -4844,6 +4844,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_selection_tooltip_selectAll => 'تحديد الكل';
 
   @override
+  String get diveLog_selection_tooltip_selectDateRange =>
+      'التحديد حسب نطاق التاريخ';
+
+  @override
   String get diveLog_sighting_add => 'إضافة';
 
   @override

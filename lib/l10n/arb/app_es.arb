@@ -1610,6 +1610,7 @@
   "diveLog_selection_tooltip_exit": "Salir de la seleccion",
   "diveLog_selection_tooltip_export": "Exportar seleccionados",
   "diveLog_selection_tooltip_selectAll": "Seleccionar todo",
+  "diveLog_selection_tooltip_selectDateRange": "Seleccionar por rango de fechas",
   "diveLog_sighting_add": "Agregar",
   "diveLog_sighting_cancel": "Cancelar",
   "diveLog_sighting_notesHint": "p. ej., tamano, comportamiento, ubicacion...",

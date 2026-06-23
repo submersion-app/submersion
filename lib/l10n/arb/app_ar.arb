@@ -1610,6 +1610,7 @@
   "diveLog_selection_tooltip_exit": "الخروج من التحديد",
   "diveLog_selection_tooltip_export": "تصدير المحدد",
   "diveLog_selection_tooltip_selectAll": "تحديد الكل",
+  "diveLog_selection_tooltip_selectDateRange": "التحديد حسب نطاق التاريخ",
   "diveLog_sighting_add": "إضافة",
   "diveLog_sighting_cancel": "إلغاء",
   "diveLog_sighting_notesHint": "مثال: الحجم، السلوك، الموقع...",

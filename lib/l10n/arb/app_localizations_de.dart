@@ -4954,6 +4954,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_selection_tooltip_selectAll => 'Alle auswählen';
 
   @override
+  String get diveLog_selection_tooltip_selectDateRange =>
+      'Nach Datumsbereich auswählen';
+
+  @override
   String get diveLog_sighting_add => 'Hinzufügen';
 
   @override

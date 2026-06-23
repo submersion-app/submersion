@@ -1739,6 +1739,7 @@
   "diveLog_selection_tooltip_exit": "退出选择",
   "diveLog_selection_tooltip_export": "导出所选",
   "diveLog_selection_tooltip_selectAll": "全选",
+  "diveLog_selection_tooltip_selectDateRange": "按日期范围选择",
   "diveLog_sighting_add": "添加",
   "diveLog_sighting_cancel": "取消",
   "diveLog_sighting_notesHint": "例如，大小、行为、位置...",

@@ -8410,6 +8410,12 @@ abstract class AppLocalizations {
   /// **'Select All'**
   String get diveLog_selection_tooltip_selectAll;
 
+  /// No description provided for @diveLog_selection_tooltip_selectDateRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Select by date range'**
+  String get diveLog_selection_tooltip_selectDateRange;
+
   /// No description provided for @diveLog_sighting_add.
   ///
   /// In en, this message translates to:

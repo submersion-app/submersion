@@ -4823,6 +4823,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_selection_tooltip_selectAll => 'בחר הכל';
 
   @override
+  String get diveLog_selection_tooltip_selectDateRange =>
+      'בחירה לפי טווח תאריכים';
+
+  @override
   String get diveLog_sighting_add => 'הוסף';
 
   @override

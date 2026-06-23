@@ -1576,6 +1576,7 @@
   "diveLog_selection_tooltip_exit": "Kivalasztas bezarasa",
   "diveLog_selection_tooltip_export": "Kivalasztottak exportalasa",
   "diveLog_selection_tooltip_selectAll": "Osszes kivalasztasa",
+  "diveLog_selection_tooltip_selectDateRange": "Kijelölés dátumtartomány szerint",
   "diveLog_sighting_add": "Hozzaadas",
   "diveLog_sighting_cancel": "Megse",
   "diveLog_sighting_notesHint": "pl. meret, viselkedes, helyszin...",
