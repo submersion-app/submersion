@@ -116,6 +116,48 @@ abstract class AppLocalizations {
     Locale('zh'),
   ];
 
+  /// No description provided for @diveLog_bulkEdit_groupRebreather.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive Mode & Rebreather'**
+  String get diveLog_bulkEdit_groupRebreather;
+
+  /// No description provided for @diveLog_bulkEdit_fieldSetpointLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Setpoint low'**
+  String get diveLog_bulkEdit_fieldSetpointLow;
+
+  /// No description provided for @diveLog_bulkEdit_fieldSetpointHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'Setpoint high'**
+  String get diveLog_bulkEdit_fieldSetpointHigh;
+
+  /// No description provided for @diveLog_bulkEdit_fieldSetpointDeco.
+  ///
+  /// In en, this message translates to:
+  /// **'Setpoint deco'**
+  String get diveLog_bulkEdit_fieldSetpointDeco;
+
+  /// No description provided for @diveLog_bulkEdit_fieldScrubberType.
+  ///
+  /// In en, this message translates to:
+  /// **'Scrubber type'**
+  String get diveLog_bulkEdit_fieldScrubberType;
+
+  /// No description provided for @diveLog_bulkEdit_fieldScrubberDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Scrubber duration'**
+  String get diveLog_bulkEdit_fieldScrubberDuration;
+
+  /// No description provided for @diveLog_bulkEdit_contradiction.
+  ///
+  /// In en, this message translates to:
+  /// **'OC mode can\'t carry rebreather settings. Turn off those fields or change the mode.'**
+  String get diveLog_bulkEdit_contradiction;
+
   /// No description provided for @diveLog_bulkEdit_appBarTitle.
   ///
   /// In en, this message translates to:

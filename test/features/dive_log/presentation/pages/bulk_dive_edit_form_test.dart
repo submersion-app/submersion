@@ -56,8 +56,8 @@ void main() {
     testWidgets('renders gated Logistics + Notes fields', (tester) async {
       await pumpBulk(tester);
 
-      // 5 Logistics + 9 Conditions + 6 Weather + 1 Notes gates.
-      expect(find.byType(BulkFieldGate), findsNWidgets(21));
+      // 5 Logistics + 9 Conditions + 6 Weather + 6 Rebreather + 1 Notes gates.
+      expect(find.byType(BulkFieldGate), findsNWidgets(27));
       expect(find.text('Favorite'), findsOneWidget);
       // 6 collections (tags, equipment, buddies, weights, tanks, sightings)
       // each render a mode selector.
@@ -170,6 +170,40 @@ void main() {
       await tester.pumpAndSettle();
 
       // The apply path (collection op) ran and reported success.
+      expect(find.byType(SnackBar), findsOneWidget);
+    });
+
+    testWidgets('OC mode with a rebreather field enabled is blocked', (
+      tester,
+    ) async {
+      await pumpBulk(tester);
+
+      // Enable the Dive Mode gate (mode stays OC) and a Setpoint gate.
+      final modeGate = find.ancestor(
+        of: find.text('Dive Mode'),
+        matching: find.byType(BulkFieldGate),
+      );
+      await tester.ensureVisible(find.text('Dive Mode'));
+      await tester.tap(
+        find.descendant(of: modeGate, matching: find.byType(Checkbox)),
+      );
+      await tester.pumpAndSettle();
+      final setpointGate = find.ancestor(
+        of: find.text('Setpoint low'),
+        matching: find.byType(BulkFieldGate),
+      );
+      await tester.ensureVisible(find.text('Setpoint low'));
+      await tester.tap(
+        find.descendant(of: setpointGate, matching: find.byType(Checkbox)),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Save'));
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      // Blocked: no confirm dialog, a contradiction hint instead.
+      expect(find.text('Apply'), findsNothing);
       expect(find.byType(SnackBar), findsOneWidget);
     });
   });

@@ -1,4 +1,11 @@
 {
+  "diveLog_bulkEdit_groupRebreather": "Mode de plongée et recycleur",
+  "diveLog_bulkEdit_fieldSetpointLow": "Consigne basse",
+  "diveLog_bulkEdit_fieldSetpointHigh": "Consigne haute",
+  "diveLog_bulkEdit_fieldSetpointDeco": "Consigne déco",
+  "diveLog_bulkEdit_fieldScrubberType": "Type de cartouche",
+  "diveLog_bulkEdit_fieldScrubberDuration": "Durée de la cartouche",
+  "diveLog_bulkEdit_contradiction": "Le mode circuit ouvert n'accepte pas les réglages de recycleur. Désactivez ces champs ou changez de mode.",
   "diveLog_bulkEdit_appBarTitle": "Modifier {count} plongées",
   "diveLog_bulkEdit_groupLogistics": "Logistique",
   "diveLog_bulkEdit_groupWeather": "Météo",

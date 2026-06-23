@@ -9,6 +9,29 @@ class AppLocalizationsAr extends AppLocalizations {
   AppLocalizationsAr([String locale = 'ar']) : super(locale);
 
   @override
+  String get diveLog_bulkEdit_groupRebreather => 'وضع الغوص وجهاز التنفس';
+
+  @override
+  String get diveLog_bulkEdit_fieldSetpointLow => 'النقطة المحددة المنخفضة';
+
+  @override
+  String get diveLog_bulkEdit_fieldSetpointHigh => 'النقطة المحددة العالية';
+
+  @override
+  String get diveLog_bulkEdit_fieldSetpointDeco =>
+      'النقطة المحددة لإزالة الضغط';
+
+  @override
+  String get diveLog_bulkEdit_fieldScrubberType => 'نوع الفلتر';
+
+  @override
+  String get diveLog_bulkEdit_fieldScrubberDuration => 'مدة الفلتر';
+
+  @override
+  String get diveLog_bulkEdit_contradiction =>
+      'وضع الدائرة المفتوحة لا يدعم إعدادات جهاز التنفس. عطّل تلك الحقول أو غيّر الوضع.';
+
+  @override
   String diveLog_bulkEdit_appBarTitle(int count) {
     return 'تعديل $count غطسات';
   }

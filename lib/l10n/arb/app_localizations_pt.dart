@@ -9,6 +9,29 @@ class AppLocalizationsPt extends AppLocalizations {
   AppLocalizationsPt([String locale = 'pt']) : super(locale);
 
   @override
+  String get diveLog_bulkEdit_groupRebreather =>
+      'Modo de mergulho e rebreather';
+
+  @override
+  String get diveLog_bulkEdit_fieldSetpointLow => 'Setpoint baixo';
+
+  @override
+  String get diveLog_bulkEdit_fieldSetpointHigh => 'Setpoint alto';
+
+  @override
+  String get diveLog_bulkEdit_fieldSetpointDeco => 'Setpoint deco';
+
+  @override
+  String get diveLog_bulkEdit_fieldScrubberType => 'Tipo de cal sodada';
+
+  @override
+  String get diveLog_bulkEdit_fieldScrubberDuration => 'Duração da cal';
+
+  @override
+  String get diveLog_bulkEdit_contradiction =>
+      'O modo OC não suporta ajustes de rebreather. Desative esses campos ou mude o modo.';
+
+  @override
   String diveLog_bulkEdit_appBarTitle(int count) {
     return 'Editar $count mergulhos';
   }

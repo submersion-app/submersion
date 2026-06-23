@@ -1,4 +1,11 @@
 {
+  "diveLog_bulkEdit_groupRebreather": "وضع الغوص وجهاز التنفس",
+  "diveLog_bulkEdit_fieldSetpointLow": "النقطة المحددة المنخفضة",
+  "diveLog_bulkEdit_fieldSetpointHigh": "النقطة المحددة العالية",
+  "diveLog_bulkEdit_fieldSetpointDeco": "النقطة المحددة لإزالة الضغط",
+  "diveLog_bulkEdit_fieldScrubberType": "نوع الفلتر",
+  "diveLog_bulkEdit_fieldScrubberDuration": "مدة الفلتر",
+  "diveLog_bulkEdit_contradiction": "وضع الدائرة المفتوحة لا يدعم إعدادات جهاز التنفس. عطّل تلك الحقول أو غيّر الوضع.",
   "diveLog_bulkEdit_appBarTitle": "تعديل {count} غطسات",
   "diveLog_bulkEdit_groupLogistics": "اللوجستيات",
   "diveLog_bulkEdit_groupWeather": "الطقس",

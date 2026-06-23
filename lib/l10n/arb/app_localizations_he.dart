@@ -9,6 +9,28 @@ class AppLocalizationsHe extends AppLocalizations {
   AppLocalizationsHe([String locale = 'he']) : super(locale);
 
   @override
+  String get diveLog_bulkEdit_groupRebreather => 'מצב צלילה וריבריא\'תר';
+
+  @override
+  String get diveLog_bulkEdit_fieldSetpointLow => 'ערך יעד נמוך';
+
+  @override
+  String get diveLog_bulkEdit_fieldSetpointHigh => 'ערך יעד גבוה';
+
+  @override
+  String get diveLog_bulkEdit_fieldSetpointDeco => 'ערך יעד דקומפרסיה';
+
+  @override
+  String get diveLog_bulkEdit_fieldScrubberType => 'סוג מסנן';
+
+  @override
+  String get diveLog_bulkEdit_fieldScrubberDuration => 'משך המסנן';
+
+  @override
+  String get diveLog_bulkEdit_contradiction =>
+      'מצב מעגל פתוח אינו תומך בהגדרות ריבריא\'תר. כבה שדות אלה או שנה את המצב.';
+
+  @override
   String diveLog_bulkEdit_appBarTitle(int count) {
     return 'עריכת $count צלילות';
   }

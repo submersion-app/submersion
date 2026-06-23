@@ -821,6 +821,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           ),
           _buildBulkConditionsSection(units),
           _buildBulkWeatherSection(units),
+          _buildBulkRebreatherSection(units),
           _buildBulkCollectionsSection(units),
           FormSection(
             label: l10n.diveLog_edit_section_notes,
@@ -901,6 +902,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       weatherDescription: _weatherDescriptionController.text.isNotEmpty
           ? _weatherDescriptionController.text
           : null,
+      diveMode: _diveMode.code,
+      setpointLow: _setpointLow,
+      setpointHigh: _setpointHigh,
+      setpointDeco: _setpointDeco,
+      scrubberType: _scrubberType,
+      scrubberDuration: _scrubberDurationMinutes,
       notes: _notesController.text,
     );
   }
@@ -1277,9 +1284,96 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     );
   }
 
+  Widget _bulkNumberField(ValueChanged<String> onChanged) {
+    return TextFormField(
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      decoration: const InputDecoration(isDense: true),
+      onChanged: onChanged,
+    );
+  }
+
+  Widget _buildBulkRebreatherSection(UnitFormatter units) {
+    return FormSection(
+      label: context.l10n.diveLog_bulkEdit_groupRebreather,
+      expanded: true,
+      onToggle: null,
+      children: [
+        _gatedRow(
+          BulkField.diveMode,
+          FormRow.custom(
+            label: context.l10n.diveLog_diveMode_title,
+            child: _enumDropdown<DiveMode>(
+              value: _diveMode,
+              options: DiveMode.values,
+              label: (v) => v.displayName,
+              onChanged: (v) => setState(() => _diveMode = v ?? DiveMode.oc),
+            ),
+          ),
+        ),
+        _gatedRow(
+          BulkField.setpointLow,
+          FormRow.custom(
+            label: context.l10n.diveLog_bulkEdit_fieldSetpointLow,
+            child: _bulkNumberField((v) => _setpointLow = double.tryParse(v)),
+          ),
+        ),
+        _gatedRow(
+          BulkField.setpointHigh,
+          FormRow.custom(
+            label: context.l10n.diveLog_bulkEdit_fieldSetpointHigh,
+            child: _bulkNumberField((v) => _setpointHigh = double.tryParse(v)),
+          ),
+        ),
+        _gatedRow(
+          BulkField.setpointDeco,
+          FormRow.custom(
+            label: context.l10n.diveLog_bulkEdit_fieldSetpointDeco,
+            child: _bulkNumberField((v) => _setpointDeco = double.tryParse(v)),
+          ),
+        ),
+        _gatedRow(
+          BulkField.scrubberType,
+          FormRow.custom(
+            label: context.l10n.diveLog_bulkEdit_fieldScrubberType,
+            child: TextFormField(
+              decoration: const InputDecoration(isDense: true),
+              onChanged: (v) => _scrubberType = v.isEmpty ? null : v,
+            ),
+          ),
+        ),
+        _gatedRow(
+          BulkField.scrubberDuration,
+          FormRow.custom(
+            label: context.l10n.diveLog_bulkEdit_fieldScrubberDuration,
+            child: _bulkNumberField(
+              (v) => _scrubberDurationMinutes = int.tryParse(v),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Future<void> _saveBulk(UnitFormatter units) async {
     final l10n = context.l10n;
     final ids = widget.bulkDiveIds!;
+
+    // Contradiction guard: mode = OC cannot carry rebreather settings.
+    const rebreatherFields = {
+      BulkField.setpointLow,
+      BulkField.setpointHigh,
+      BulkField.setpointDeco,
+      BulkField.scrubberType,
+      BulkField.scrubberDuration,
+    };
+    if (_bulkEnabled.contains(BulkField.diveMode) &&
+        _diveMode == DiveMode.oc &&
+        _bulkEnabled.any(rebreatherFields.contains)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.diveLog_bulkEdit_contradiction)),
+      );
+      return;
+    }
 
     final scalarFields = Set<BulkField>.from(_bulkEnabled);
     String? notesAppend;

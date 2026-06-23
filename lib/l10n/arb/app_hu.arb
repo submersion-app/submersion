@@ -1,4 +1,11 @@
 {
+  "diveLog_bulkEdit_groupRebreather": "Merülési mód és rebreather",
+  "diveLog_bulkEdit_fieldSetpointLow": "Alacsony alapérték",
+  "diveLog_bulkEdit_fieldSetpointHigh": "Magas alapérték",
+  "diveLog_bulkEdit_fieldSetpointDeco": "Dekó alapérték",
+  "diveLog_bulkEdit_fieldScrubberType": "Abszorber típusa",
+  "diveLog_bulkEdit_fieldScrubberDuration": "Abszorber időtartama",
+  "diveLog_bulkEdit_contradiction": "Az OC mód nem tartalmazhat rebreather beállításokat. Kapcsold ki ezeket a mezőket, vagy változtasd meg a módot.",
   "diveLog_bulkEdit_appBarTitle": "{count} merülés szerkesztése",
   "diveLog_bulkEdit_groupLogistics": "Logisztika",
   "diveLog_bulkEdit_groupWeather": "Időjárás",

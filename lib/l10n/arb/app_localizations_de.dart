@@ -9,6 +9,28 @@ class AppLocalizationsDe extends AppLocalizations {
   AppLocalizationsDe([String locale = 'de']) : super(locale);
 
   @override
+  String get diveLog_bulkEdit_groupRebreather => 'Tauchmodus & Kreislaufgerät';
+
+  @override
+  String get diveLog_bulkEdit_fieldSetpointLow => 'Sollwert niedrig';
+
+  @override
+  String get diveLog_bulkEdit_fieldSetpointHigh => 'Sollwert hoch';
+
+  @override
+  String get diveLog_bulkEdit_fieldSetpointDeco => 'Sollwert Deko';
+
+  @override
+  String get diveLog_bulkEdit_fieldScrubberType => 'Absorbertyp';
+
+  @override
+  String get diveLog_bulkEdit_fieldScrubberDuration => 'Absorberdauer';
+
+  @override
+  String get diveLog_bulkEdit_contradiction =>
+      'OC-Modus kann keine Kreislaufgerät-Einstellungen haben. Deaktiviere die Felder oder ändere den Modus.';
+
+  @override
   String diveLog_bulkEdit_appBarTitle(int count) {
     return '$count Tauchgänge bearbeiten';
   }

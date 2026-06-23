@@ -1,4 +1,11 @@
 {
+  "diveLog_bulkEdit_groupRebreather": "Modo de buceo y rebreather",
+  "diveLog_bulkEdit_fieldSetpointLow": "Setpoint bajo",
+  "diveLog_bulkEdit_fieldSetpointHigh": "Setpoint alto",
+  "diveLog_bulkEdit_fieldSetpointDeco": "Setpoint deco",
+  "diveLog_bulkEdit_fieldScrubberType": "Tipo de filtro",
+  "diveLog_bulkEdit_fieldScrubberDuration": "Duración del filtro",
+  "diveLog_bulkEdit_contradiction": "El modo OC no admite ajustes de rebreather. Desactiva esos campos o cambia el modo.",
   "diveLog_bulkEdit_appBarTitle": "Editar {count} inmersiones",
   "diveLog_bulkEdit_groupLogistics": "Logística",
   "diveLog_bulkEdit_groupWeather": "Clima",

@@ -9,6 +9,28 @@ class AppLocalizationsFr extends AppLocalizations {
   AppLocalizationsFr([String locale = 'fr']) : super(locale);
 
   @override
+  String get diveLog_bulkEdit_groupRebreather => 'Mode de plongée et recycleur';
+
+  @override
+  String get diveLog_bulkEdit_fieldSetpointLow => 'Consigne basse';
+
+  @override
+  String get diveLog_bulkEdit_fieldSetpointHigh => 'Consigne haute';
+
+  @override
+  String get diveLog_bulkEdit_fieldSetpointDeco => 'Consigne déco';
+
+  @override
+  String get diveLog_bulkEdit_fieldScrubberType => 'Type de cartouche';
+
+  @override
+  String get diveLog_bulkEdit_fieldScrubberDuration => 'Durée de la cartouche';
+
+  @override
+  String get diveLog_bulkEdit_contradiction =>
+      'Le mode circuit ouvert n\'accepte pas les réglages de recycleur. Désactivez ces champs ou changez de mode.';
+
+  @override
   String diveLog_bulkEdit_appBarTitle(int count) {
     return 'Modifier $count plongées';
   }

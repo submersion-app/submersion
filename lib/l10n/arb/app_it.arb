@@ -1,4 +1,11 @@
 {
+  "diveLog_bulkEdit_groupRebreather": "Modalità e rebreather",
+  "diveLog_bulkEdit_fieldSetpointLow": "Setpoint basso",
+  "diveLog_bulkEdit_fieldSetpointHigh": "Setpoint alto",
+  "diveLog_bulkEdit_fieldSetpointDeco": "Setpoint deco",
+  "diveLog_bulkEdit_fieldScrubberType": "Tipo di calce",
+  "diveLog_bulkEdit_fieldScrubberDuration": "Durata calce",
+  "diveLog_bulkEdit_contradiction": "La modalità OC non può avere impostazioni rebreather. Disattiva quei campi o cambia modalità.",
   "diveLog_bulkEdit_appBarTitle": "Modifica {count} immersioni",
   "diveLog_bulkEdit_groupLogistics": "Logistica",
   "diveLog_bulkEdit_groupWeather": "Meteo",

@@ -1,4 +1,11 @@
 {
+  "diveLog_bulkEdit_groupRebreather": "Tauchmodus & Kreislaufgerät",
+  "diveLog_bulkEdit_fieldSetpointLow": "Sollwert niedrig",
+  "diveLog_bulkEdit_fieldSetpointHigh": "Sollwert hoch",
+  "diveLog_bulkEdit_fieldSetpointDeco": "Sollwert Deko",
+  "diveLog_bulkEdit_fieldScrubberType": "Absorbertyp",
+  "diveLog_bulkEdit_fieldScrubberDuration": "Absorberdauer",
+  "diveLog_bulkEdit_contradiction": "OC-Modus kann keine Kreislaufgerät-Einstellungen haben. Deaktiviere die Felder oder ändere den Modus.",
   "diveLog_bulkEdit_appBarTitle": "{count} Tauchgänge bearbeiten",
   "diveLog_bulkEdit_groupLogistics": "Logistik",
   "diveLog_bulkEdit_groupWeather": "Wetter",

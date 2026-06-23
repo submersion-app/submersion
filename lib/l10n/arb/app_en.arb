@@ -1,4 +1,11 @@
 {
+  "diveLog_bulkEdit_groupRebreather": "Dive Mode & Rebreather",
+  "diveLog_bulkEdit_fieldSetpointLow": "Setpoint low",
+  "diveLog_bulkEdit_fieldSetpointHigh": "Setpoint high",
+  "diveLog_bulkEdit_fieldSetpointDeco": "Setpoint deco",
+  "diveLog_bulkEdit_fieldScrubberType": "Scrubber type",
+  "diveLog_bulkEdit_fieldScrubberDuration": "Scrubber duration",
+  "diveLog_bulkEdit_contradiction": "OC mode can't carry rebreather settings. Turn off those fields or change the mode.",
   "diveLog_bulkEdit_appBarTitle": "Edit {count} dives",
   "@diveLog_bulkEdit_appBarTitle": {"placeholders": {"count": {"type": "int"}}},
   "diveLog_bulkEdit_groupLogistics": "Logistics",

@@ -1,4 +1,11 @@
 {
+  "diveLog_bulkEdit_groupRebreather": "潜水模式与循环呼吸器",
+  "diveLog_bulkEdit_fieldSetpointLow": "低设定点",
+  "diveLog_bulkEdit_fieldSetpointHigh": "高设定点",
+  "diveLog_bulkEdit_fieldSetpointDeco": "减压设定点",
+  "diveLog_bulkEdit_fieldScrubberType": "吸收剂类型",
+  "diveLog_bulkEdit_fieldScrubberDuration": "吸收剂时长",
+  "diveLog_bulkEdit_contradiction": "开路模式不能包含循环呼吸器设置。请关闭这些字段或更改模式。",
   "diveLog_bulkEdit_appBarTitle": "编辑 {count} 次潜水",
   "diveLog_bulkEdit_groupLogistics": "后勤",
   "diveLog_bulkEdit_groupWeather": "天气",

@@ -9,6 +9,28 @@ class AppLocalizationsNl extends AppLocalizations {
   AppLocalizationsNl([String locale = 'nl']) : super(locale);
 
   @override
+  String get diveLog_bulkEdit_groupRebreather => 'Duikmodus & rebreather';
+
+  @override
+  String get diveLog_bulkEdit_fieldSetpointLow => 'Setpoint laag';
+
+  @override
+  String get diveLog_bulkEdit_fieldSetpointHigh => 'Setpoint hoog';
+
+  @override
+  String get diveLog_bulkEdit_fieldSetpointDeco => 'Setpoint deco';
+
+  @override
+  String get diveLog_bulkEdit_fieldScrubberType => 'Scrubbertype';
+
+  @override
+  String get diveLog_bulkEdit_fieldScrubberDuration => 'Scrubberduur';
+
+  @override
+  String get diveLog_bulkEdit_contradiction =>
+      'OC-modus kan geen rebreather-instellingen hebben. Schakel die velden uit of wijzig de modus.';
+
+  @override
   String diveLog_bulkEdit_appBarTitle(int count) {
     return '$count duiken bewerken';
   }

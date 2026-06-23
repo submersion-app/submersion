@@ -1,4 +1,11 @@
 {
+  "diveLog_bulkEdit_groupRebreather": "Duikmodus & rebreather",
+  "diveLog_bulkEdit_fieldSetpointLow": "Setpoint laag",
+  "diveLog_bulkEdit_fieldSetpointHigh": "Setpoint hoog",
+  "diveLog_bulkEdit_fieldSetpointDeco": "Setpoint deco",
+  "diveLog_bulkEdit_fieldScrubberType": "Scrubbertype",
+  "diveLog_bulkEdit_fieldScrubberDuration": "Scrubberduur",
+  "diveLog_bulkEdit_contradiction": "OC-modus kan geen rebreather-instellingen hebben. Schakel die velden uit of wijzig de modus.",
   "diveLog_bulkEdit_appBarTitle": "{count} duiken bewerken",
   "diveLog_bulkEdit_groupLogistics": "Logistiek",
   "diveLog_bulkEdit_groupWeather": "Weer",

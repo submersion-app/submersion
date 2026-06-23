@@ -9,6 +9,28 @@ class AppLocalizationsHu extends AppLocalizations {
   AppLocalizationsHu([String locale = 'hu']) : super(locale);
 
   @override
+  String get diveLog_bulkEdit_groupRebreather => 'Merülési mód és rebreather';
+
+  @override
+  String get diveLog_bulkEdit_fieldSetpointLow => 'Alacsony alapérték';
+
+  @override
+  String get diveLog_bulkEdit_fieldSetpointHigh => 'Magas alapérték';
+
+  @override
+  String get diveLog_bulkEdit_fieldSetpointDeco => 'Dekó alapérték';
+
+  @override
+  String get diveLog_bulkEdit_fieldScrubberType => 'Abszorber típusa';
+
+  @override
+  String get diveLog_bulkEdit_fieldScrubberDuration => 'Abszorber időtartama';
+
+  @override
+  String get diveLog_bulkEdit_contradiction =>
+      'Az OC mód nem tartalmazhat rebreather beállításokat. Kapcsold ki ezeket a mezőket, vagy változtasd meg a módot.';
+
+  @override
   String diveLog_bulkEdit_appBarTitle(int count) {
     return '$count merülés szerkesztése';
   }

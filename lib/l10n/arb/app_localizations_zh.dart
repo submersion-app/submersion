@@ -9,6 +9,27 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
+  String get diveLog_bulkEdit_groupRebreather => '潜水模式与循环呼吸器';
+
+  @override
+  String get diveLog_bulkEdit_fieldSetpointLow => '低设定点';
+
+  @override
+  String get diveLog_bulkEdit_fieldSetpointHigh => '高设定点';
+
+  @override
+  String get diveLog_bulkEdit_fieldSetpointDeco => '减压设定点';
+
+  @override
+  String get diveLog_bulkEdit_fieldScrubberType => '吸收剂类型';
+
+  @override
+  String get diveLog_bulkEdit_fieldScrubberDuration => '吸收剂时长';
+
+  @override
+  String get diveLog_bulkEdit_contradiction => '开路模式不能包含循环呼吸器设置。请关闭这些字段或更改模式。';
+
+  @override
   String diveLog_bulkEdit_appBarTitle(int count) {
     return '编辑 $count 次潜水';
   }

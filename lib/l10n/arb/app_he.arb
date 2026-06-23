@@ -1,4 +1,11 @@
 {
+  "diveLog_bulkEdit_groupRebreather": "מצב צלילה וריבריא'תר",
+  "diveLog_bulkEdit_fieldSetpointLow": "ערך יעד נמוך",
+  "diveLog_bulkEdit_fieldSetpointHigh": "ערך יעד גבוה",
+  "diveLog_bulkEdit_fieldSetpointDeco": "ערך יעד דקומפרסיה",
+  "diveLog_bulkEdit_fieldScrubberType": "סוג מסנן",
+  "diveLog_bulkEdit_fieldScrubberDuration": "משך המסנן",
+  "diveLog_bulkEdit_contradiction": "מצב מעגל פתוח אינו תומך בהגדרות ריבריא'תר. כבה שדות אלה או שנה את המצב.",
   "diveLog_bulkEdit_appBarTitle": "עריכת {count} צלילות",
   "diveLog_bulkEdit_groupLogistics": "לוגיסטיקה",
   "diveLog_bulkEdit_groupWeather": "מזג אוויר",
