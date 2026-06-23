@@ -67,7 +67,12 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/add_section_row.dart';
 import 'package:submersion/shared/widgets/forms/edit_form_scaffold.dart';
 import 'package:submersion/shared/widgets/forms/form_row.dart';
+import 'package:submersion/shared/widgets/forms/form_section.dart';
 import 'package:submersion/shared/widgets/forms/responsive_form_columns.dart';
+import 'package:submersion/features/dive_log/domain/entities/bulk_edit_request.dart';
+import 'package:submersion/features/dive_log/presentation/pages/bulk_edit_field_set.dart';
+import 'package:submersion/features/dive_log/presentation/providers/bulk_dive_edit_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/bulk_field_gate.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/tank_presets/domain/services/default_tank_preset_resolver.dart';
@@ -707,9 +712,235 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     );
   }
 
-  Widget _buildBulkForm(UnitFormatter units) => const SizedBox.shrink();
+  // Bulk-mode state.
+  final Set<BulkField> _bulkEnabled = {};
+  bool _bulkFavorite = false;
+  bool _bulkNotesAppend = false; // false = Set (overwrite), true = Append
 
-  Future<void> _saveBulk(UnitFormatter units) async {}
+  Widget _gatedRow(BulkField field, Widget child) {
+    return BulkFieldGate(
+      enabled: _bulkEnabled.contains(field),
+      onChanged: (v) => setState(() {
+        if (v) {
+          _bulkEnabled.add(field);
+        } else {
+          _bulkEnabled.remove(field);
+        }
+      }),
+      child: child,
+    );
+  }
+
+  Widget _bulkDiveTypeDropdown() {
+    final diveTypesAsync = ref.watch(diveTypeListNotifierProvider);
+    return diveTypesAsync.when(
+      loading: () => const LinearProgressIndicator(),
+      error: (e, st) => const SizedBox.shrink(),
+      data: (diveTypes) {
+        if (diveTypes.isEmpty) return const SizedBox.shrink();
+        final exists = diveTypes.any((t) => t.id == _selectedDiveTypeId);
+        final value = exists ? _selectedDiveTypeId : 'recreational';
+        return DropdownButtonFormField<String>(
+          key: ValueKey('bulk_dive_type_${diveTypes.length}_$value'),
+          initialValue: value,
+          items: diveTypes
+              .map((t) => DropdownMenuItem(value: t.id, child: Text(t.name)))
+              .toList(),
+          onChanged: (v) {
+            if (v != null) setState(() => _selectedDiveTypeId = v);
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildBulkForm(UnitFormatter units) {
+    final l10n = context.l10n;
+    return Form(
+      key: _formKey,
+      child: ResponsiveFormColumns(
+        children: [
+          FormSection(
+            label: 'Logistics', // localized in Phase 6
+            expanded: true,
+            onToggle: null,
+            children: [
+              _gatedRow(
+                BulkField.diveCenter,
+                FormRow.picker(
+                  label: l10n.diveLog_edit_row_diveCenter,
+                  value: _selectedDiveCenter?.name,
+                  placeholder: l10n.diveLog_edit_row_notSet,
+                  onTap: _showDiveCenterPicker,
+                  onClear: _selectedDiveCenter == null
+                      ? null
+                      : () => setState(() => _selectedDiveCenter = null),
+                ),
+              ),
+              _gatedRow(
+                BulkField.trip,
+                FormRow.picker(
+                  label: l10n.diveLog_edit_row_trip,
+                  value: _selectedTrip?.name,
+                  placeholder: l10n.diveLog_edit_row_notSet,
+                  onTap: _showTripPicker,
+                  onClear: _selectedTrip == null
+                      ? null
+                      : () => setState(() => _selectedTrip = null),
+                ),
+              ),
+              _gatedRow(
+                BulkField.diveType,
+                FormRow.custom(
+                  label: l10n.diveLog_edit_label_diveType,
+                  child: _bulkDiveTypeDropdown(),
+                ),
+              ),
+              _gatedRow(
+                BulkField.rating,
+                FormRow.rating(
+                  label: l10n.diveLog_edit_section_rating,
+                  value: _rating,
+                  onChanged: (v) => setState(() => _rating = v),
+                ),
+              ),
+              _gatedRow(
+                BulkField.isFavorite,
+                FormRow.toggle(
+                  label: 'Favorite', // localized in Phase 6
+                  value: _bulkFavorite,
+                  onChanged: (v) => setState(() => _bulkFavorite = v),
+                ),
+              ),
+            ],
+          ),
+          FormSection(
+            label: l10n.diveLog_edit_section_notes,
+            expanded: true,
+            onToggle: null,
+            children: [
+              _gatedRow(
+                BulkField.notes,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SegmentedButton<bool>(
+                      segments: const [
+                        ButtonSegment(value: false, label: Text('Set')),
+                        ButtonSegment(value: true, label: Text('Append')),
+                      ],
+                      selected: {_bulkNotesAppend},
+                      onSelectionChanged: (s) =>
+                          setState(() => _bulkNotesAppend = s.first),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(controller: _notesController, maxLines: 4),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  BulkScalarInputs _collectScalarInputs(UnitFormatter units) {
+    // High-value Logistics + notes fields. Extended per group in later tasks.
+    return BulkScalarInputs(
+      diveCenterId: _selectedDiveCenter?.id,
+      tripId: _selectedTrip?.id,
+      courseId: _selectedCourse?.id,
+      diveTypeId: _selectedDiveTypeId,
+      rating: _rating > 0 ? _rating : null,
+      isFavorite: _bulkFavorite,
+      notes: _notesController.text,
+    );
+  }
+
+  Future<void> _saveBulk(UnitFormatter units) async {
+    final l10n = context.l10n;
+    final ids = widget.bulkDiveIds!;
+
+    final scalarFields = Set<BulkField>.from(_bulkEnabled);
+    String? notesAppend;
+    if (_bulkEnabled.contains(BulkField.notes) && _bulkNotesAppend) {
+      scalarFields.remove(BulkField.notes);
+      notesAppend = _notesController.text;
+    }
+    final scalars = buildScalarCompanion(
+      scalarFields,
+      _collectScalarInputs(units),
+    );
+    final hasScalar = scalars.toColumns(false).isNotEmpty;
+    if (!hasScalar && (notesAppend == null || notesAppend.isEmpty)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Turn on at least one field to apply changes.'),
+        ),
+      );
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Apply changes?'),
+        content: Text('Apply changes to ${ids.length} dives?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.common_action_cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Apply'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _isSaving = true);
+    try {
+      final service = ref.read(bulkDiveEditServiceProvider);
+      final snapshot = await service.apply(
+        BulkEditRequest(
+          diveIds: ids,
+          scalars: scalars,
+          notesAppend: notesAppend,
+        ),
+      );
+      if (!mounted) return;
+      final messenger = ScaffoldMessenger.of(context);
+      if (widget.embedded) {
+        widget.onSaved?.call(ids.first);
+      } else {
+        context.go('/dives');
+      }
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Updated ${ids.length} dives'),
+          duration: const Duration(seconds: 5),
+          action: SnackBarAction(
+            label: l10n.diveLog_bulkDelete_undo,
+            onPressed: () => service.undo(snapshot),
+          ),
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.diveLog_edit_snackbar_errorSaving(e.toString())),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
 
   Widget _customFieldsChild() {
     final currentDiverId = ref.watch(currentDiverIdProvider);
