@@ -2146,8 +2146,6 @@
   "@forms_save": {"description": "Save action on shared edit form scaffold"},
   "forms_section_issues": "{count, plural, one{1 issue} other{{count} issues}}",
   "@forms_section_issues": {"description": "Badge on a collapsed form section that contains validation errors", "placeholders": {"count": {"type": "int"}}},
-  "forms_statCell_useProfileValue": "Use {value} from profile",
-  "@forms_statCell_useProfileValue": {"description": "Menu action offering to replace a stat with the value computed from the dive profile", "placeholders": {"value": {"type": "String"}}},
   "siteMatchReview_title": "Match Sites",
   "siteMatchReview_diveNumber": "Dive #{number}",
   "@siteMatchReview_diveNumber": {

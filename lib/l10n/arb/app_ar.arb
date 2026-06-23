@@ -1434,7 +1434,6 @@
   "forms_discard_title": "تجاهل التغييرات؟",
   "forms_save": "حفظ",
   "forms_section_issues": "{count, plural, one{مشكلة واحدة} other{{count} مشاكل}}",
-  "forms_statCell_useProfileValue": "استخدام {value} من ملف الغوصة",
   "siteMatchReview_title": "مطابقة المواقع",
   "siteMatchReview_diveNumber": "الغوصة #{number}",
   "siteMatchReview_empty": "لا شيء للمطابقة.",

@@ -4249,11 +4249,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String forms_statCell_useProfileValue(String value) {
-    return 'استخدام $value من ملف الغوصة';
-  }
-
-  @override
   String get siteMatchReview_title => 'مطابقة المواقع';
 
   @override

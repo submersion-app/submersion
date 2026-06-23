@@ -1563,7 +1563,6 @@
   "forms_discard_title": "放弃更改？",
   "forms_save": "保存",
   "forms_section_issues": "{count, plural, one{1 个问题} other{{count} 个问题}}",
-  "forms_statCell_useProfileValue": "使用潜水轮廓中的 {value}",
   "siteMatchReview_title": "匹配潜水点",
   "siteMatchReview_diveNumber": "潜水 #{number}",
   "siteMatchReview_empty": "没有可匹配的内容。",

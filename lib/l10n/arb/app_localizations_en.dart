@@ -4274,11 +4274,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String forms_statCell_useProfileValue(String value) {
-    return 'Use $value from profile';
-  }
-
-  @override
   String get siteMatchReview_title => 'Match Sites';
 
   @override

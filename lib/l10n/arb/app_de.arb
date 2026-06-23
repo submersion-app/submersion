@@ -1434,7 +1434,6 @@
   "forms_discard_title": "Änderungen verwerfen?",
   "forms_save": "Speichern",
   "forms_section_issues": "{count, plural, one{1 Problem} other{{count} Probleme}}",
-  "forms_statCell_useProfileValue": "{value} aus Tauchprofil übernehmen",
   "siteMatchReview_title": "Tauchplätze zuordnen",
   "siteMatchReview_diveNumber": "Tauchgang #{number}",
   "siteMatchReview_empty": "Nichts zuzuordnen.",

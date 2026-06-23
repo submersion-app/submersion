@@ -4353,11 +4353,6 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String forms_statCell_useProfileValue(String value) {
-    return 'Usar $value do perfil de mergulho';
-  }
-
-  @override
   String get siteMatchReview_title => 'Associar pontos';
 
   @override

@@ -1434,7 +1434,6 @@
   "forms_discard_title": "Descartar as alterações?",
   "forms_save": "Salvar",
   "forms_section_issues": "{count, plural, one{1 problema} other{{count} problemas}}",
-  "forms_statCell_useProfileValue": "Usar {value} do perfil de mergulho",
   "siteMatchReview_title": "Associar pontos",
   "siteMatchReview_diveNumber": "Mergulho #{number}",
   "siteMatchReview_empty": "Nada para associar.",
