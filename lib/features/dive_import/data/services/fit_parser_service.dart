@@ -5,6 +5,7 @@ import 'package:fit_tool/fit_tool.dart';
 // ignore: implementation_imports
 import 'package:fit_tool/src/utils/logger.dart' as fit_log;
 import 'package:logger/logger.dart' show Level, Logger;
+import 'package:submersion/features/dive_import/data/services/fit/fit_constants.dart';
 import 'package:submersion/features/dive_import/data/services/fit/fit_device_mapper.dart';
 import 'package:submersion/features/dive_import/data/services/fit/fit_gas_extractor.dart';
 import 'package:submersion/features/dive_import/data/services/fit/fit_profile_extractor.dart';
@@ -63,6 +64,13 @@ class FitParserService {
     final diveSummary = _bestDiveSummary(messages);
 
     final tankData = FitTankExtractor.extract(messages);
+    // Drop air-integration summaries with no real pressure (a configured-but-
+    // unused transmitter reports all-zero start/end).
+    final realTanks = tankData.tanks
+        .where(
+          (t) => (t.startPressureBar ?? 0) > 0 || (t.endPressureBar ?? 0) > 0,
+        )
+        .toList();
     final gases = FitGasExtractor.extract(messages);
     final summary = FitSummaryExtractor.extract(
       summary: diveSummary,
@@ -71,11 +79,15 @@ class FitParserService {
     );
 
     // Wall-clock start (local time stored as UTC, per the app convention).
+    // fit_tool returns most timestamps as Unix ms but activity.localTimestamp
+    // as raw FIT-epoch seconds, so normalize both before diffing them.
+    final actUtc = activity?.timestamp;
+    final actLocal = activity?.localTimestamp;
     final startTime = FitTimeResolver.wallClockStart(
-      utcStartMs: sessionStartMs,
+      utcStartMs: _toUnixMs(sessionStartMs),
       localStartMs: null,
-      utcTimestampMs: activity?.timestamp,
-      localTimestampMs: activity?.localTimestamp,
+      utcTimestampMs: actUtc == null ? null : _toUnixMs(actUtc),
+      localTimestampMs: actLocal == null ? null : _toUnixMs(actLocal),
     );
 
     final totalElapsed = session.totalElapsedTime;
@@ -89,7 +101,12 @@ class FitParserService {
     final endTime = startTime.add(elapsed);
 
     // Profile (relative offsets use the raw UTC start; tank pressures merged in).
-    final profile = _buildProfile(samples, sessionStartMs, tankData);
+    final profile = _buildProfile(
+      samples,
+      sessionStartMs,
+      tankData.pressures,
+      realTanks,
+    );
 
     // Summary stats derived from the samples.
     final depths = samples.map((s) => s.depth).toList();
@@ -124,7 +141,7 @@ class FitParserService {
       }
     }
 
-    final tanks = _buildImportedTanks(tankData, gases);
+    final tanks = _buildImportedTanks(realTanks, gases);
 
     final serial = fileId?.serialNumber ?? 0;
     final sourceId = 'garmin-$serial-$sessionStartMs';
@@ -206,13 +223,17 @@ class FitParserService {
   List<ImportedProfileSample> _buildProfile(
     List<FitSample> samples,
     int startMs,
-    FitTankData tankData,
+    List<FitTankPressureSample> pressures,
+    List<FitTank> tanks,
   ) {
+    final orderBySensor = <int, int>{
+      for (var i = 0; i < tanks.length; i++) tanks[i].sensorId: i,
+    };
     // Bucket tank pressures by their whole-second offset from dive start, so
     // they can be attached to the contemporaneous depth sample.
     final pressuresByRelSec = <int, List<ImportedTankPressureSample>>{};
-    for (final p in tankData.pressures) {
-      final order = tankData.orderForSensor(p.sensorId);
+    for (final p in pressures) {
+      final order = orderBySensor[p.sensorId];
       if (order == null) continue;
       final relSec = ((p.timestampMs - startMs) / 1000).round();
       (pressuresByRelSec[relSec] ??= []).add(
@@ -239,34 +260,38 @@ class FitParserService {
     }).toList();
   }
 
-  /// Builds tanks from air-integration summaries when present (associating a gas
-  /// mix by order); otherwise synthesizes one tank per gas mix so the gas is
-  /// still recorded even without a transmitter.
+  /// Builds the tank list, pairing air-integration pressure (when present) with
+  /// gas mixes by order, and ensuring every enabled gas is represented even
+  /// without a transmitter (or when there are more gases than transmitters).
   List<ImportedTank> _buildImportedTanks(
-    FitTankData tankData,
+    List<FitTank> realTanks,
     List<FitGas> gases,
   ) {
-    if (tankData.tanks.isNotEmpty) {
-      return tankData.tanks.map((t) {
-        final gas = t.order < gases.length ? gases[t.order] : null;
-        return ImportedTank(
-          order: t.order,
-          startPressureBar: t.startPressureBar,
-          endPressureBar: t.endPressureBar,
-          volumeUsedLiters: t.volumeUsedLiters,
-          o2Percent: gas?.o2Percent,
-          hePercent: gas?.hePercent,
-        );
-      }).toList();
-    }
-    return gases
-        .map(
-          (g) => ImportedTank(
-            order: g.index,
-            o2Percent: g.o2Percent,
-            hePercent: g.hePercent,
-          ),
-        )
-        .toList();
+    final count = realTanks.length > gases.length
+        ? realTanks.length
+        : gases.length;
+    return [
+      for (var i = 0; i < count; i++)
+        ImportedTank(
+          order: i,
+          startPressureBar: i < realTanks.length
+              ? realTanks[i].startPressureBar
+              : null,
+          endPressureBar: i < realTanks.length
+              ? realTanks[i].endPressureBar
+              : null,
+          volumeUsedLiters: i < realTanks.length
+              ? realTanks[i].volumeUsedLiters
+              : null,
+          o2Percent: i < gases.length ? gases[i].o2Percent : null,
+          hePercent: i < gases.length ? gases[i].hePercent : null,
+        ),
+    ];
   }
+
+  /// fit_tool returns most timestamps as Unix ms, but some (notably
+  /// activity.localTimestamp) come back as raw FIT-epoch seconds. Normalize
+  /// either form to Unix ms (FIT-epoch seconds are always below the uint32 max).
+  int _toUnixMs(int ts) =>
+      ts > 4294967295 ? ts : (ts + FitConstants.fitEpochToUnixSeconds) * 1000;
 }

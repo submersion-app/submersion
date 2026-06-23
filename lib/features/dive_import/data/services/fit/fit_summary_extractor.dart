@@ -12,7 +12,6 @@ class FitSummary {
     this.entryLat,
     this.entryLong,
     this.waterType,
-    this.waterDensity,
     this.decoModel,
     this.gfLow,
     this.gfHigh,
@@ -27,7 +26,6 @@ class FitSummary {
   final double? entryLat; // degrees
   final double? entryLong; // degrees
   final String? waterType; // 'salt' | 'fresh' | ...
-  final double? waterDensity; // kg/m^3
   final String? decoModel; // e.g. 'zhl_16c'
   final int? gfLow;
   final int? gfHigh;
@@ -55,7 +53,6 @@ class FitSummaryExtractor {
       entryLat: session?.startPositionLat,
       entryLong: session?.startPositionLong,
       waterType: settings?.waterType?.name,
-      waterDensity: settings?.waterDensity?.toDouble(),
       decoModel: settings?.model == null ? null : 'zhl_16c',
       gfLow: settings?.gfLow,
       gfHigh: settings?.gfHigh,
