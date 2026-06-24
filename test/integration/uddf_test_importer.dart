@@ -675,7 +675,7 @@ class UddfTestImporter {
         rating: diveData['rating'] as int?,
         notes: notes,
         visibility: diveData['visibility'] as Visibility?,
-        diveTypeId: diveTypeId,
+        diveTypeIds: [diveTypeId],
         profile: profile,
         tanks: tanks,
         site: linkedSite,

@@ -39,7 +39,8 @@ class Dive extends Equatable {
   final double? waterTemp; // celsius
   final double? airTemp; // celsius
   final Visibility? visibility;
-  final String diveTypeId; // References dive_types table
+  final List<String>
+  diveTypeIds; // References dive_types table (>= 1; first = representative)
   final DiveTypeEntity? diveType; // Loaded dive type entity (for display)
   final String? buddy;
   final String? diveMaster;
@@ -152,7 +153,7 @@ class Dive extends Equatable {
     this.waterTemp,
     this.airTemp,
     this.visibility,
-    this.diveTypeId = 'recreational',
+    this.diveTypeIds = const ['recreational'],
     this.diveType,
     this.buddy,
     this.diveMaster,
@@ -217,15 +218,21 @@ class Dive extends Equatable {
   /// Effective start time of the dive (entryTime if set, otherwise dateTime)
   DateTime get effectiveEntryTime => entryTime ?? dateTime;
 
-  /// Display name for the dive type (uses entity name if loaded, otherwise capitalizes ID)
-  String get diveTypeName {
-    if (diveType != null) {
-      return diveType!.name;
-    }
-    // Fallback: capitalize the ID (e.g., 'recreational' -> 'Recreational')
-    if (diveTypeId.isEmpty) return 'Recreational';
-    return diveTypeId[0].toUpperCase() +
-        diveTypeId.substring(1).replaceAll('_', ' ');
+  /// Display name for the representative (first) dive type.
+  String get diveTypeName => diveType?.name ?? diveTypeDisplayName(diveTypeId);
+
+  /// Representative (first) dive type slug. Always present (>= 1 invariant).
+  String get diveTypeId =>
+      diveTypeIds.isEmpty ? 'recreational' : diveTypeIds.first;
+
+  /// Display names for all of this dive's types.
+  List<String> get diveTypeNames =>
+      diveTypeIds.map(diveTypeDisplayName).toList();
+
+  /// Capitalize a slug for display, e.g. 'deep_wreck' -> 'Deep wreck'.
+  static String diveTypeDisplayName(String id) {
+    if (id.isEmpty) return 'Recreational';
+    return id[0].toUpperCase() + id.substring(1).replaceAll('_', ' ');
   }
 
   /// Best available runtime for this dive.
@@ -488,7 +495,7 @@ class Dive extends Equatable {
     double? waterTemp,
     double? airTemp,
     Visibility? visibility,
-    String? diveTypeId,
+    List<String>? diveTypeIds,
     DiveTypeEntity? diveType,
     String? buddy,
     String? diveMaster,
@@ -575,7 +582,7 @@ class Dive extends Equatable {
       waterTemp: waterTemp ?? this.waterTemp,
       airTemp: airTemp ?? this.airTemp,
       visibility: visibility ?? this.visibility,
-      diveTypeId: diveTypeId ?? this.diveTypeId,
+      diveTypeIds: diveTypeIds ?? this.diveTypeIds,
       diveType: diveType ?? this.diveType,
       buddy: buddy ?? this.buddy,
       diveMaster: diveMaster ?? this.diveMaster,
@@ -665,7 +672,7 @@ class Dive extends Equatable {
     waterTemp,
     airTemp,
     visibility,
-    diveTypeId,
+    diveTypeIds,
     diveType,
     buddy,
     diveMaster,

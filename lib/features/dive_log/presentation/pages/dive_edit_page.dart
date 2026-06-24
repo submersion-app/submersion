@@ -4000,7 +4000,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         visibility: _selectedVisibility != Visibility.unknown
             ? _selectedVisibility
             : null,
-        diveTypeId: _selectedDiveTypeId,
+        diveTypeIds: [_selectedDiveTypeId],
         notes: _notesController.text,
         rating: _rating > 0 ? _rating : null,
         site: _selectedSite,

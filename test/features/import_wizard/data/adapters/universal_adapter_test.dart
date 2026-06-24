@@ -1531,7 +1531,7 @@ void main() {
         maxDepth: 30.0,
         runtime: const Duration(minutes: 45),
         notes: '',
-        diveTypeId: '',
+        diveTypeIds: [''],
         tanks: const [],
         profile: const [],
         equipment: const [],

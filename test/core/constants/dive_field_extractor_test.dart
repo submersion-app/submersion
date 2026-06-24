@@ -644,7 +644,7 @@ void main() {
       waterTemp: 24.0,
       rating: 4,
       isFavorite: true,
-      diveTypeId: 'technical',
+      diveTypeIds: ['technical'],
       tags: [testTag1, testTag2],
       siteName: 'Blue Hole',
       siteCountry: 'Belize',
@@ -762,7 +762,7 @@ void main() {
       final summaryEmpty = DiveSummary(
         id: 'sum-3',
         dateTime: now,
-        diveTypeId: '',
+        diveTypeIds: [''],
         sortTimestamp: now.millisecondsSinceEpoch,
       );
       expect(
@@ -775,7 +775,7 @@ void main() {
       final summaryUnderscore = DiveSummary(
         id: 'sum-4',
         dateTime: now,
-        diveTypeId: 'deep_wreck',
+        diveTypeIds: ['deep_wreck'],
         sortTimestamp: now.millisecondsSinceEpoch,
       );
       expect(

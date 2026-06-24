@@ -1385,7 +1385,7 @@ class DiveRepository {
             waterTemp: row.readNullable<double>('water_temp'),
             rating: row.readNullable<int>('rating'),
             isFavorite: row.read<int>('is_favorite') == 1,
-            diveTypeId: row.read<String>('dive_type'),
+            diveTypeIds: [row.read<String>('dive_type')],
             tags: tagsByDive[id] ?? [],
             siteName: row.readNullable<String>('site_name'),
             siteCountry: row.readNullable<String>('site_country'),
@@ -2218,7 +2218,7 @@ class DiveRepository {
               orElse: () => Visibility.unknown,
             )
           : null,
-      diveTypeId: row.diveType,
+      diveTypeIds: [row.diveType],
       buddy: row.buddy,
       diveMaster: row.diveMaster,
       notes: row.notes,
@@ -2566,7 +2566,7 @@ class DiveRepository {
               orElse: () => Visibility.unknown,
             )
           : null,
-      diveTypeId: row.diveType,
+      diveTypeIds: [row.diveType],
       buddy: row.buddy,
       diveMaster: row.diveMaster,
       notes: row.notes,
