@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 /// SAC calculation result for a single cylinder/tank.
@@ -29,8 +30,9 @@ class CylinderSac extends Equatable {
   final double? sacRate;
 
   /// SAC rate in L/min at surface (computed if tankVolume available)
-  double? get sacVolume =>
-      sacRate != null && tankVolume != null ? sacRate! * tankVolume! : null;
+  double? get sacVolume => sacRate != null && tankVolume != null
+      ? sacRate! * tankVolume! / standardAtmBar
+      : null;
 
   /// Start pressure in bar
   final double? startPressure;

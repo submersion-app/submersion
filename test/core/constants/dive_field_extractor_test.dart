@@ -470,10 +470,10 @@ void main() {
         sacUnit: SacUnit.litersPerMin,
       );
       expect(result, isA<double>());
-      // Tank 1: 12.0 * (200 - 100) = 1200L
-      // Tank 2: 7.0  * (200 - 150) = 350L
-      // Total: 1550L / 52 / 2.82 ≈ 10.57
-      expect(result as double, closeTo(10.57, 0.1));
+      // Tank 1: gasVol(12.0, 200, air) - gasVol(12.0, 100, air)
+      // Tank 2: gasVol(7.0, 200, air) - gasVol(7.0, 150, air)
+      // With Z-factor correction: ≈ 9.58
+      expect(result as double, closeTo(9.58, 0.1));
     });
 
     test('sacRate volume mode returns L/min from dive.sac', () {
@@ -481,8 +481,8 @@ void main() {
         testDive,
         sacUnit: SacUnit.litersPerMin,
       );
-      // 1800L / 52 / 2.82 ≈ 12.28
-      expect(result as double, closeTo(12.28, 0.1));
+      // With Z-factor correction: ≈ 11.67
+      expect(result as double, closeTo(11.67, 0.1));
     });
 
     test('sacRate pressure mode returns bar/min from dive.sacPressure', () {

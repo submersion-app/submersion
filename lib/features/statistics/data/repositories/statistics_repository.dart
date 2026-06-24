@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/features/statistics/domain/entities/species_statistics.dart';
 
 /// Data point for line chart trends
@@ -72,44 +73,108 @@ class StatisticsRepository {
       final params = diverId != null ? [cutoff, diverId] : [cutoff];
 
       final results = await _db.customSelect('''
-        WITH dive_sac AS (
-          SELECT
-            d.id,
-            d.dive_date_time,
-            SUM(
-              CASE
-                WHEN t.start_pressure > t.end_pressure AND t.volume > 0
-                  THEN (t.start_pressure - t.end_pressure) * t.volume
-                ELSE 0
-              END
-            ) / (COALESCE(d.runtime, d.bottom_time) / 60.0) / ((d.avg_depth / 10.0) + 1) AS sac
-          FROM dives d
-          LEFT JOIN dive_tanks t ON t.dive_id = d.id
-          WHERE d.dive_date_time >= ? $diverFilter
-            AND COALESCE(d.runtime, d.bottom_time) > 0
-            AND d.avg_depth > 0
-          GROUP BY d.id, d.dive_date_time, d.runtime, d.bottom_time, d.avg_depth
-        )
         SELECT
-          strftime('%Y', dive_date_time / 1000, 'unixepoch') AS year,
-          strftime('%m', dive_date_time / 1000, 'unixepoch') AS month,
-          AVG(sac) AS avg_sac
-        FROM dive_sac
-        WHERE sac > 0
-        GROUP BY year, month
-        HAVING avg_sac IS NOT NULL
-        ORDER BY year, month
+          d.id AS dive_id,
+          d.dive_date_time,
+          d.avg_depth,
+          COALESCE(d.runtime, d.bottom_time) AS duration_sec,
+          t.start_pressure,
+          t.end_pressure,
+          t.volume,
+          t.o2_percent,
+          t.he_percent
+        FROM dives d
+        JOIN dive_tanks t ON t.dive_id = d.id
+        WHERE d.dive_date_time >= ? $diverFilter
+          AND COALESCE(d.runtime, d.bottom_time) > 0
+          AND d.avg_depth > 0
+          AND t.start_pressure > t.end_pressure
+          AND t.volume > 0
+        ORDER BY d.dive_date_time
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
-      return results.map((row) {
-        final year = int.parse(row.read<String>('year'));
-        final month = int.parse(row.read<String>('month'));
-        return TrendDataPoint(
-          date: DateTime(year, month),
-          value: row.read<double>('avg_sac'),
-          label: '${_monthAbbr(month)} $year',
+      // Group by dive, compute SAC per dive, then average by month
+      final Map<
+        String,
+        ({double gas, DateTime dateTime, int durationSec, double avgDepth})
+      >
+      diveSacs = {};
+
+      for (final row in results) {
+        final diveId = row.read<String>('dive_id');
+        final startP = row.read<double>('start_pressure');
+        final endP = row.read<double>('end_pressure');
+        final vol = row.read<double>('volume');
+        final o2 = row.read<double>('o2_percent');
+        final he = row.read<double>('he_percent');
+        final dateTimeMs = row.read<int>('dive_date_time');
+
+        final gasUsed =
+            gasVolume(
+              tankSizeLiters: vol,
+              pressureBar: startP,
+              o2Percent: o2,
+              hePercent: he,
+            ) -
+            gasVolume(
+              tankSizeLiters: vol,
+              pressureBar: endP,
+              o2Percent: o2,
+              hePercent: he,
+            );
+        if (gasUsed <= 0) continue;
+
+        final existing = diveSacs[diveId];
+        if (existing == null) {
+          diveSacs[diveId] = (
+            gas: gasUsed,
+            dateTime: DateTime.fromMillisecondsSinceEpoch(
+              dateTimeMs,
+              isUtc: true,
+            ),
+            durationSec: row.read<int>('duration_sec'),
+            avgDepth: row.read<double>('avg_depth'),
+          );
+        } else {
+          diveSacs[diveId] = (
+            gas: existing.gas + gasUsed,
+            dateTime: existing.dateTime,
+            durationSec: existing.durationSec,
+            avgDepth: existing.avgDepth,
+          );
+        }
+      }
+
+      // Compute SAC per dive and group by month
+      final Map<String, List<double>> monthSacs = {};
+      for (final entry in diveSacs.entries) {
+        final d = entry.value;
+        final sac =
+            d.gas / (d.durationSec / 60.0) / ((d.avgDepth / 10.0) + 1.0);
+        if (sac <= 0) continue;
+
+        final dt = d.dateTime;
+        final key = '${dt.year}-${dt.month.toString().padLeft(2, '0')}';
+        monthSacs.putIfAbsent(key, () => []).add(sac);
+      }
+
+      // Average per month
+      final trend = <TrendDataPoint>[];
+      for (final entry in monthSacs.entries) {
+        final parts = entry.key.split('-');
+        final year = int.parse(parts[0]);
+        final month = int.parse(parts[1]);
+        final avg = entry.value.reduce((a, b) => a + b) / entry.value.length;
+        trend.add(
+          TrendDataPoint(
+            date: DateTime(year, month),
+            value: avg,
+            label: '${_monthAbbr(month)} $year',
+          ),
         );
-      }).toList();
+      }
+      trend.sort((a, b) => a.date.compareTo(b.date));
+      return trend;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get SAC volume trend',
@@ -238,50 +303,108 @@ class StatisticsRepository {
       final params = diverId != null ? [diverId] : <dynamic>[];
 
       final results = await _db.customSelect('''
-        WITH dive_sac AS (
-          SELECT
-            d.id,
-            d.dive_number,
-            d.dive_date_time,
-            ds.name AS site_name,
-            SUM(
-              CASE
-                WHEN t.start_pressure > t.end_pressure AND t.volume > 0
-                  THEN (t.start_pressure - t.end_pressure) * t.volume
-                ELSE 0
-              END
-            ) / (COALESCE(d.runtime, d.bottom_time) / 60.0) / ((d.avg_depth / 10.0) + 1) AS sac
-          FROM dives d
-          LEFT JOIN dive_tanks t ON t.dive_id = d.id
-          LEFT JOIN dive_sites ds ON ds.id = d.site_id
-          WHERE COALESCE(d.runtime, d.bottom_time) > 0
-            AND d.avg_depth > 0
-            $diverFilter
-          GROUP BY d.id, d.dive_number, d.dive_date_time, ds.name, d.runtime, d.bottom_time, d.avg_depth
-        )
-        SELECT id, dive_number, site_name, dive_date_time, sac
-        FROM dive_sac
-        WHERE sac > 0
-        ORDER BY sac ASC
+        SELECT
+          d.id AS dive_id,
+          d.dive_number,
+          d.dive_date_time,
+          d.avg_depth,
+          COALESCE(d.runtime, d.bottom_time) AS duration_sec,
+          ds.name AS site_name,
+          t.start_pressure,
+          t.end_pressure,
+          t.volume,
+          t.o2_percent,
+          t.he_percent
+        FROM dives d
+        JOIN dive_tanks t ON t.dive_id = d.id
+        LEFT JOIN dive_sites ds ON ds.id = d.site_id
+        WHERE COALESCE(d.runtime, d.bottom_time) > 0
+          AND d.avg_depth > 0
+          AND t.start_pressure > t.end_pressure
+          AND t.volume > 0
+          $diverFilter
+        ORDER BY d.dive_date_time
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
-      if (results.isEmpty) return (best: null, worst: null);
+      // Accumulate gas per dive, then compute SAC
+      final Map<
+        String,
+        ({
+          double gas,
+          int durationSec,
+          double avgDepth,
+          int dateTimeMs,
+          int? diveNum,
+          String? siteName,
+        })
+      >
+      dives = {};
 
-      RankingItem mapRow(dynamic row) {
-        final dateMs = row.read<int>('dive_date_time');
-        final date = DateTime.fromMillisecondsSinceEpoch(dateMs, isUtc: true);
-        final diveNum = row.read<int?>('dive_number');
-        final siteName = row.read<String?>('site_name');
-        return RankingItem(
-          id: row.read<String>('id'),
-          name: siteName ?? 'Dive #${diveNum ?? "?"}',
-          count: 0,
-          value: row.read<double>('sac'),
-          date: date,
-        );
+      for (final row in results) {
+        final diveId = row.read<String>('dive_id');
+        final o2 = row.read<double>('o2_percent');
+        final he = row.read<double>('he_percent');
+        final vol = row.read<double>('volume');
+        final used =
+            gasVolume(
+              tankSizeLiters: vol,
+              pressureBar: row.read<double>('start_pressure'),
+              o2Percent: o2,
+              hePercent: he,
+            ) -
+            gasVolume(
+              tankSizeLiters: vol,
+              pressureBar: row.read<double>('end_pressure'),
+              o2Percent: o2,
+              hePercent: he,
+            );
+        if (used <= 0) continue;
+
+        final existing = dives[diveId];
+        if (existing == null) {
+          dives[diveId] = (
+            gas: used,
+            durationSec: row.read<int>('duration_sec'),
+            avgDepth: row.read<double>('avg_depth'),
+            dateTimeMs: row.read<int>('dive_date_time'),
+            diveNum: row.read<int?>('dive_number'),
+            siteName: row.read<String?>('site_name'),
+          );
+        } else {
+          dives[diveId] = (
+            gas: existing.gas + used,
+            durationSec: existing.durationSec,
+            avgDepth: existing.avgDepth,
+            dateTimeMs: existing.dateTimeMs,
+            diveNum: existing.diveNum,
+            siteName: existing.siteName,
+          );
+        }
       }
 
-      return (best: mapRow(results.first), worst: mapRow(results.last));
+      // Compute SAC and find best/worst
+      RankingItem? best;
+      RankingItem? worst;
+
+      for (final entry in dives.entries) {
+        final d = entry.value;
+        final sac =
+            d.gas / (d.durationSec / 60.0) / ((d.avgDepth / 10.0) + 1.0);
+        if (sac <= 0) continue;
+
+        final item = RankingItem(
+          id: entry.key,
+          name: d.siteName ?? 'Dive #${d.diveNum ?? "?"}',
+          count: 0,
+          value: sac,
+          date: DateTime.fromMillisecondsSinceEpoch(d.dateTimeMs, isUtc: true),
+        );
+
+        if (best == null || sac < best.value!) best = item;
+        if (worst == null || sac > worst.value!) worst = item;
+      }
+
+      return (best: best, worst: worst);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get SAC volume records',
@@ -369,34 +492,60 @@ class StatisticsRepository {
       final results = await _db.customSelect('''
         SELECT
           t.tank_role,
-          AVG(
-            CASE
-              WHEN COALESCE(d.runtime, d.bottom_time) > 0 AND d.avg_depth > 0 AND t.start_pressure > t.end_pressure THEN
-                ((t.start_pressure - t.end_pressure) * t.volume) / (COALESCE(d.runtime, d.bottom_time) / 60.0) / ((d.avg_depth / 10.0) + 1)
-              ELSE NULL
-            END
-          ) AS avg_sac
+          t.start_pressure,
+          t.end_pressure,
+          t.volume,
+          t.o2_percent,
+          t.he_percent,
+          d.avg_depth,
+          COALESCE(d.runtime, d.bottom_time) AS duration_sec
         FROM dives d
         INNER JOIN dive_tanks t ON t.dive_id = d.id
         WHERE t.start_pressure IS NOT NULL
           AND t.end_pressure IS NOT NULL
+          AND t.start_pressure > t.end_pressure
           AND COALESCE(d.runtime, d.bottom_time) > 0
           AND d.avg_depth > 0
           AND t.volume > 0
           $diverFilter
-        GROUP BY t.tank_role
-        HAVING avg_sac IS NOT NULL
-        ORDER BY avg_sac ASC
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
-      final Map<String, double> sacByRole = {};
+      final Map<String, List<double>> sacsByRole = {};
+
       for (final row in results) {
         final role = row.read<String>('tank_role');
-        final sac = row.read<double>('avg_sac');
-        sacByRole[role] = sac;
+        final o2 = row.read<double>('o2_percent');
+        final he = row.read<double>('he_percent');
+        final vol = row.read<double>('volume');
+        final used =
+            gasVolume(
+              tankSizeLiters: vol,
+              pressureBar: row.read<double>('start_pressure'),
+              o2Percent: o2,
+              hePercent: he,
+            ) -
+            gasVolume(
+              tankSizeLiters: vol,
+              pressureBar: row.read<double>('end_pressure'),
+              o2Percent: o2,
+              hePercent: he,
+            );
+        if (used <= 0) continue;
+
+        final durationMin = row.read<int>('duration_sec') / 60.0;
+        final ambientAtm = (row.read<double>('avg_depth') / 10.0) + 1.0;
+        final sac = used / durationMin / ambientAtm;
+        if (sac > 0) {
+          sacsByRole.putIfAbsent(role, () => []).add(sac);
+        }
       }
 
-      return sacByRole;
+      final Map<String, double> avgByRole = {};
+      for (final entry in sacsByRole.entries) {
+        avgByRole[entry.key] =
+            entry.value.reduce((a, b) => a + b) / entry.value.length;
+      }
+      return avgByRole;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get SAC in volume by tank role',

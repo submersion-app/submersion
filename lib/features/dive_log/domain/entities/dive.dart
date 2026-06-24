@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
+import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
@@ -278,6 +279,7 @@ class Dive extends Equatable {
 
   /// Air consumption rate in L/min at surface (Surface Air Consumption)
   /// Calculates total gas consumed across all tanks with valid data.
+  /// Uses gas compressibility (Z-factor) and bar→atm conversion for accuracy.
   double? get sac {
     if (tanks.isEmpty || effectiveRuntime == null || avgDepth == null) {
       return null;
@@ -302,9 +304,22 @@ class Dive extends Equatable {
       final pressureUsed = tank.startPressure! - tank.endPressure!;
       if (pressureUsed <= 0) continue;
 
-      // Gas in liters at surface = tank_volume × pressure_used
-      // Example: 12L tank, 100 bar used = 1200 liters at surface
-      final gasLiters = tank.volume! * pressureUsed;
+      // Gas volume using real-gas compressibility correction
+      final startVolume = gasVolume(
+        tankSizeLiters: tank.volume!,
+        pressureBar: tank.startPressure!,
+        o2Percent: tank.gasMix.o2,
+        hePercent: tank.gasMix.he,
+      );
+      final endVolume = gasVolume(
+        tankSizeLiters: tank.volume!,
+        pressureBar: tank.endPressure!,
+        o2Percent: tank.gasMix.o2,
+        hePercent: tank.gasMix.he,
+      );
+      final gasLiters = startVolume - endVolume;
+      if (gasLiters <= 0) continue;
+
       totalGasLiters += gasLiters;
       tanksWithData++;
     }
