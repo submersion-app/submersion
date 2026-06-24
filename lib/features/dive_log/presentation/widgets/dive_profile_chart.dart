@@ -290,7 +290,7 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.tankVolume,
     this.sacNormalizationFactor = 1.0,
     this.showCeiling = true,
-    this.showAscentRateColors = true,
+    this.showAscentRateColors = false,
     this.showEvents = true,
     this.showSac = false,
     this.markers,
@@ -341,7 +341,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
   // Decompression visualization toggles
   bool _showCeiling = true;
-  bool _showAscentRateColors = true;
+  bool _showAscentRateColors = false;
   bool _showAscentRateLine = false;
   bool _showEvents = true;
 

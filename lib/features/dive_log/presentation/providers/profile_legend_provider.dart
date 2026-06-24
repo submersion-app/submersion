@@ -28,9 +28,9 @@ class ProfileLegendState {
   final bool showSac;
   final bool showAscentRateColors;
 
-  /// Separate ascent-rate magnitude line (m/min). Session-only, no persisted
-  /// setting (mirrors [showMod]); distinct from [showAscentRateColors], which
-  /// tints the depth line by velocity band.
+  /// Separate ascent-rate magnitude line (m/min). Its session state seeds from
+  /// the persisted [AppSettings.defaultShowAscentRateLine] default; distinct
+  /// from [showAscentRateColors], which tints the depth line by velocity band.
   final bool showAscentRateLine;
   final bool showEvents;
   final bool showMaxDepthMarker;
@@ -74,7 +74,7 @@ class ProfileLegendState {
     this.showCeiling = true,
     this.showHeartRate = false,
     this.showSac = false,
-    this.showAscentRateColors = true,
+    this.showAscentRateColors = false,
     this.showAscentRateLine = false,
     this.showEvents = true,
     this.showMaxDepthMarker = true,
@@ -309,6 +309,7 @@ class ProfileLegend extends _$ProfileLegend {
       showHeartRate: settings.defaultShowHeartRate,
       showSac: settings.defaultShowSac,
       showAscentRateColors: settings.showAscentRateColors,
+      showAscentRateLine: settings.defaultShowAscentRateLine,
       showEvents: settings.defaultShowEvents,
       showMaxDepthMarker: settings.showMaxDepthMarker,
       showPressureMarkers: settings.showPressureThresholdMarkers,

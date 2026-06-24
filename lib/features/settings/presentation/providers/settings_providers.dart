@@ -251,6 +251,11 @@ class AppSettings {
   /// Default visibility for the gas-usage timeline strip on the dive profile
   final bool defaultShowGasTimeline;
 
+  /// Default visibility for the separate ascent-rate magnitude line on the
+  /// dive profile (distinct from [showAscentRateColors], which tints the depth
+  /// line by velocity band).
+  final bool defaultShowAscentRateLine;
+
   // Notification settings
   final bool notificationsEnabled;
   final List<int> serviceReminderDays;
@@ -302,7 +307,7 @@ class AppSettings {
     this.ascentRateWarning = 9.0,
     this.ascentRateCritical = 12.0,
     this.showCeilingOnProfile = true,
-    this.showAscentRateColors = true,
+    this.showAscentRateColors = false,
     this.showNdlOnProfile = true,
     this.lastStopDepth = 3.0,
     this.decoStopIncrement = 3.0,
@@ -351,6 +356,7 @@ class AppSettings {
     this.defaultShowOtu = false,
     this.defaultShowGasSwitchMarkers = true,
     this.defaultShowGasTimeline = false,
+    this.defaultShowAscentRateLine = false,
     // Notification defaults
     this.notificationsEnabled = true,
     this.serviceReminderDays = const [7, 14, 30],
@@ -476,6 +482,7 @@ class AppSettings {
     bool? defaultShowOtu,
     bool? defaultShowGasSwitchMarkers,
     bool? defaultShowGasTimeline,
+    bool? defaultShowAscentRateLine,
     bool? notificationsEnabled,
     List<int>? serviceReminderDays,
     TimeOfDay? reminderTime,
@@ -582,6 +589,8 @@ class AppSettings {
           defaultShowGasSwitchMarkers ?? this.defaultShowGasSwitchMarkers,
       defaultShowGasTimeline:
           defaultShowGasTimeline ?? this.defaultShowGasTimeline,
+      defaultShowAscentRateLine:
+          defaultShowAscentRateLine ?? this.defaultShowAscentRateLine,
       notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
       serviceReminderDays: serviceReminderDays ?? this.serviceReminderDays,
       reminderTime: reminderTime ?? this.reminderTime,
@@ -1118,6 +1127,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setDefaultShowGasTimeline(bool value) async {
     state = state.copyWith(defaultShowGasTimeline: value);
+    await _saveSettings();
+  }
+
+  Future<void> setDefaultShowAscentRateLine(bool value) async {
+    state = state.copyWith(defaultShowAscentRateLine: value);
     await _saveSettings();
   }
 

@@ -2156,7 +2156,7 @@ class SyncDataSerializer {
       'ascentRateWarning': 9.0,
       'ascentRateCritical': 12.0,
       'showCeilingOnProfile': true,
-      'showAscentRateColors': true,
+      'showAscentRateColors': false,
       'showNdlOnProfile': true,
       'lastStopDepth': 3.0,
       'decoStopIncrement': 3.0,
