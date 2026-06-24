@@ -1297,6 +1297,138 @@ class SyncDataSerializer {
     return null;
   }
 
+  /// Batched [fetchRecord] for the `hasUpdatedAt` (LWW) entities the merge
+  /// compares against: local rows keyed by record id, fetched with one
+  /// `WHERE id IN (...)` select. Mirrors [fetchRecord] per entity --
+  /// `settings` keys on its `key` column and `certifications` carries a BLOB.
+  /// Any other entity (the clockless composite-key junctions, which the merge
+  /// never fetches) falls back to a per-id loop so the method stays total.
+  Future<Map<String, Map<String, dynamic>>> fetchRecords(
+    String entityType,
+    Iterable<String> ids,
+  ) async {
+    final idList = ids.toList();
+    if (idList.isEmpty) return {};
+    switch (entityType) {
+      case 'divers':
+        final rows = await (_db.select(
+          _db.divers,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'diverSettings':
+        final rows = await (_db.select(
+          _db.diverSettings,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'dives':
+        final rows = await (_db.select(
+          _db.dives,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'diveSites':
+        final rows = await (_db.select(
+          _db.diveSites,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'equipment':
+        final rows = await (_db.select(
+          _db.equipment,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'equipmentSets':
+        final rows = await (_db.select(
+          _db.equipmentSets,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'buddies':
+        final rows = await (_db.select(
+          _db.buddies,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'diveCenters':
+        final rows = await (_db.select(
+          _db.diveCenters,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'trips':
+        final rows = await (_db.select(
+          _db.trips,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'liveaboardDetails':
+        final rows = await (_db.select(
+          _db.liveaboardDetailRecords,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'itineraryDays':
+        final rows = await (_db.select(
+          _db.tripItineraryDays,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'diveTypes':
+        final rows = await (_db.select(
+          _db.diveTypes,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'tankPresets':
+        final rows = await (_db.select(
+          _db.tankPresets,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'diveComputers':
+        final rows = await (_db.select(
+          _db.diveComputers,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'tags':
+        final rows = await (_db.select(
+          _db.tags,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'courses':
+        final rows = await (_db.select(
+          _db.courses,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'serviceRecords':
+        final rows = await (_db.select(
+          _db.serviceRecords,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'csvPresets':
+        final rows = await (_db.select(
+          _db.csvPresets,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'viewConfigs':
+        final rows = await (_db.select(
+          _db.viewConfigs,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'certifications':
+        final rows = await (_db.select(
+          _db.certifications,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {
+          for (final r in rows) r.id: r.toJson(serializer: _syncBlobSerializer),
+        };
+      case 'settings':
+        final rows = await (_db.select(
+          _db.settings,
+        )..where((t) => t.key.isIn(idList))).get();
+        return {for (final r in rows) r.key: r.toJson()};
+      default:
+        // Clockless / composite-key entities are never fetched by the merge;
+        // fall back to per-id reads so the method is total and correct.
+        final out = <String, Map<String, dynamic>>{};
+        for (final id in idList) {
+          final row = await fetchRecord(entityType, id);
+          if (row != null) out[id] = row;
+        }
+        return out;
+    }
+  }
+
   Future<void> upsertRecord(
     String entityType,
     Map<String, dynamic> data,
