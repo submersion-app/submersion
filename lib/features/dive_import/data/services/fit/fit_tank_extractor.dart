@@ -10,6 +10,7 @@ class FitTank {
     this.startPressureBar,
     this.endPressureBar,
     this.volumeUsedLiters,
+    this.cylinderVolumeLiters,
   });
 
   final int sensorId;
@@ -17,6 +18,11 @@ class FitTank {
   final double? startPressureBar;
   final double? endPressureBar;
   final double? volumeUsedLiters;
+
+  /// Configured cylinder volume in liters, DERIVED from gas consumption (Garmin
+  /// does not transmit size). Null when not reliably derivable, in which case
+  /// the tank still imports with pressure/gas but no volume.
+  final double? cylinderVolumeLiters;
 }
 
 /// A single tank-pressure reading, from a FIT `tank_update` message.
@@ -75,24 +81,32 @@ class FitTankExtractor {
       if (sensor == null || orderBySensor.containsKey(sensor)) continue;
       final order = orderBySensor.length;
       orderBySensor[sensor] = order;
+      final startBar = _scaled(
+        m,
+        FitConstants.tsStartPressure,
+        FitConstants.pressureScaleBar,
+      );
+      final endBar = _scaled(
+        m,
+        FitConstants.tsEndPressure,
+        FitConstants.pressureScaleBar,
+      );
+      final usedLiters = _scaled(
+        m,
+        FitConstants.tsVolumeUsed,
+        FitConstants.volumeScaleLiters,
+      );
       tanks.add(
         FitTank(
           sensorId: sensor,
           order: order,
-          startPressureBar: _scaled(
-            m,
-            FitConstants.tsStartPressure,
-            FitConstants.pressureScaleBar,
-          ),
-          endPressureBar: _scaled(
-            m,
-            FitConstants.tsEndPressure,
-            FitConstants.pressureScaleBar,
-          ),
-          volumeUsedLiters: _scaled(
-            m,
-            FitConstants.tsVolumeUsed,
-            FitConstants.volumeScaleLiters,
+          startPressureBar: startBar,
+          endPressureBar: endBar,
+          volumeUsedLiters: usedLiters,
+          cylinderVolumeLiters: _deriveCylinderVolumeLiters(
+            startBar,
+            endBar,
+            usedLiters,
           ),
         ),
       );
@@ -126,5 +140,25 @@ class FitTankExtractor {
   static double? _scaled(DataMessage m, int fieldId, double scale) {
     final raw = FitMessageAccess.rawNum(m, fieldId);
     return raw == null ? null : raw.toDouble() / scale;
+  }
+
+  /// Derives the configured cylinder volume (liters) by reversing Garmin's
+  /// gas-consumption computation: `size = volumeUsed / (startBar - endBar)`.
+  /// Returns null (no volume) when inputs are missing or the result is
+  /// unreliable: see [FitConstants.minDeriveDropBar] /
+  /// [FitConstants.maxPlausibleVolumeLiters]. Rounded to 0.1 L because the value
+  /// is reconstructed, not measured.
+  static double? _deriveCylinderVolumeLiters(
+    double? startBar,
+    double? endBar,
+    double? usedLiters,
+  ) {
+    if (usedLiters == null || usedLiters <= 0) return null;
+    if (startBar == null || endBar == null) return null;
+    final drop = startBar - endBar;
+    if (drop < FitConstants.minDeriveDropBar) return null;
+    final size = usedLiters / drop;
+    if (size <= 0 || size > FitConstants.maxPlausibleVolumeLiters) return null;
+    return double.parse(size.toStringAsFixed(1));
   }
 }

@@ -84,4 +84,37 @@ void main() {
     expect(data.tanks, hasLength(1));
     expect(data.orderForSensor(100), 0);
   });
+
+  test('derives cylinder volume from volume_used and pressure drop', () {
+    // Bouchot 72: 1993.5 L used over (221.25 - 88.11)=133.14 bar -> 14.97 -> 15.0 L.
+    final data = FitTankExtractor.extract([
+      tankSummary(sensor: 1, startRaw: 22125, endRaw: 8811, volRaw: 199350),
+    ]);
+    expect(data.tanks.single.cylinderVolumeLiters, closeTo(15.0, 1e-9));
+  });
+
+  test('cylinder volume is null when volume_used is zero (overheard tx)', () {
+    // Real pressures but zero gas used -> cannot derive; pressures still present.
+    final data = FitTankExtractor.extract([
+      tankSummary(sensor: 1, startRaw: 21200, endRaw: 7400, volRaw: 0),
+    ]);
+    expect(data.tanks.single.cylinderVolumeLiters, isNull);
+    expect(data.tanks.single.startPressureBar, closeTo(212.0, 1e-6));
+  });
+
+  test('cylinder volume is null when the pressure drop is below the floor', () {
+    // 200.00 - 197.00 = 3 bar drop (< 5 bar floor) -> unreliable -> null.
+    final data = FitTankExtractor.extract([
+      tankSummary(sensor: 1, startRaw: 20000, endRaw: 19700, volRaw: 4500),
+    ]);
+    expect(data.tanks.single.cylinderVolumeLiters, isNull);
+  });
+
+  test('cylinder volume is null when the result is implausibly large', () {
+    // 500 L used over a 6 bar drop -> 83.3 L (> 60 L clamp) -> null.
+    final data = FitTankExtractor.extract([
+      tankSummary(sensor: 1, startRaw: 20000, endRaw: 19400, volRaw: 50000),
+    ]);
+    expect(data.tanks.single.cylinderVolumeLiters, isNull);
+  });
 }

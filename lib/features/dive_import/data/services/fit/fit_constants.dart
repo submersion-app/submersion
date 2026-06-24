@@ -27,6 +27,15 @@ class FitConstants {
   static const double volumeScaleLiters = 100.0; // raw / 100 = liters
   static const double semicircleToDegrees = 180.0 / 2147483648.0;
 
+  /// Cylinder-volume derivation (`size = volume_used / pressure_drop`). Garmin
+  /// does not transmit cylinder size; it stores volume_used computed from the
+  /// user's configured size, so the size is recovered by reversing that. Below
+  /// this pressure drop the quotient is noise; reject it.
+  static const double minDeriveDropBar = 5.0;
+
+  /// Reject an implausibly large derived cylinder volume (liters) as garbage.
+  static const double maxPlausibleVolumeLiters = 60.0;
+
   /// Seconds between the Unix epoch (1970-01-01) and the FIT epoch
   /// (1989-12-31). A GenericMessage timestamp field is raw FIT-epoch seconds;
   /// add this and multiply by 1000 to get Unix milliseconds.
