@@ -52,3 +52,14 @@ The clockless path appends to `toUpsert` too (a blind win), so all writes for th
 - `_applyRemoteDeletions` (the deletions pass) batching.
 - `repairDanglingForeignKeys` (post-merge FK-repair) — separate.
 - S3 (already shipped: base-apply parse offload), S4 (DB off the UI isolate).
+
+## Implementation status (2026-06-24)
+
+Built and parity-proven. `SyncDataSerializer` gained:
+- `upsertRecords` — one Drift `batch()` mirroring `upsertRecord`'s 39 cases, preserving the `settings` device-local-key filter and every per-record transform (`_withTimestampDefaults`, `_applyDiverSettingDefaults`, the blob serializer, the `diveProfileEvents` source default).
+- `fetchRecords` — batched `WHERE id IN (...)` for the 21 `hasUpdatedAt` entities (`settings` keyed on `key`, `certifications` carrying its BLOB); the clockless composite-key junctions, never fetched, fall back to a per-id loop so the method stays total.
+
+`_mergeEntity` is now read-decide-write: batch-fetch locals, decide in memory against the pre-fetched map, flush one batched write. A batch-write failure moves the whole set from `applied` to `failed` (Drift batch is all-or-nothing), mirroring the per-row catch.
+
+- The byte-for-byte `sync_base_streaming_parity_test` now runs **through the batched merge** and stays green (identical DB + counts), as does the whole sync suite (335) and a targeted serializer batch test covering the `settings` key-vs-id path (which the parity seed does not exercise). Drift `batch()` nests correctly inside the deferred-FK transaction (the >500-row boundary test confirms it).
+- The win is partly structural (N prepared statements -> 1 batched statement + 1 `IN` select), so no live before/after was captured.
