@@ -2319,7 +2319,11 @@ void main() {
     ) async {
       final profile = _makeProfile(points: 12);
       await tester.pumpWidget(
-        _buildChart(profile: profile, ascentRates: ratesSpanningBands(profile)),
+        buildWithLegend(
+          profile: profile,
+          ascentRates: ratesSpanningBands(profile),
+          configure: (n) => n.toggleAscentRateColors(), // default off -> on
+        ),
       );
       await tester.pumpAndSettle();
 
@@ -2351,7 +2355,11 @@ void main() {
       });
 
       await tester.pumpWidget(
-        _buildChart(profile: profile, ascentRates: rates),
+        buildWithLegend(
+          profile: profile,
+          ascentRates: rates,
+          configure: (n) => n.toggleAscentRateColors(), // default off -> on
+        ),
       );
       await tester.pumpAndSettle();
 
@@ -2370,7 +2378,7 @@ void main() {
         buildWithLegend(
           profile: profile,
           ascentRates: ratesSpanningBands(profile),
-          configure: (n) => n.toggleAscentRateColors(), // default on -> off
+          // Coloring now defaults off, so no toggle needed to disable it.
         ),
       );
       await tester.pumpAndSettle();

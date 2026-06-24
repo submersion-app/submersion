@@ -292,6 +292,39 @@ void main() {
           .setShowDataSourceBadges(false);
       expect(container.read(settingsProvider).showDataSourceBadges, isFalse);
     });
+
+    test('setDefaultShowAscentRateLine persists the new default', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      // Promoted from session-only to a persisted default in v91; starts off.
+      expect(
+        container.read(settingsProvider).defaultShowAscentRateLine,
+        isFalse,
+      );
+      await container
+          .read(settingsProvider.notifier)
+          .setDefaultShowAscentRateLine(true);
+      expect(
+        container.read(settingsProvider).defaultShowAscentRateLine,
+        isTrue,
+      );
+    });
+
+    test(
+      'setShowAscentRateColors toggles the velocity-coloring default',
+      () async {
+        container.read(settingsProvider.notifier);
+        await waitForInit();
+
+        // Coloring now defaults off as of this change.
+        expect(container.read(settingsProvider).showAscentRateColors, isFalse);
+        await container
+            .read(settingsProvider.notifier)
+            .setShowAscentRateColors(true);
+        expect(container.read(settingsProvider).showAscentRateColors, isTrue);
+      },
+    );
   });
 }
 

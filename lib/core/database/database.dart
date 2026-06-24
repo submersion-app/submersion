@@ -802,7 +802,7 @@ class DiverSettings extends Table {
   BoolColumn get showCeilingOnProfile =>
       boolean().withDefault(const Constant(true))();
   BoolColumn get showAscentRateColors =>
-      boolean().withDefault(const Constant(true))();
+      boolean().withDefault(const Constant(false))();
   BoolColumn get showNdlOnProfile =>
       boolean().withDefault(const Constant(true))();
   RealColumn get lastStopDepth => real().withDefault(const Constant(3.0))();
@@ -897,6 +897,14 @@ class DiverSettings extends Table {
       boolean().withDefault(const Constant(true))();
   BoolColumn get defaultShowGasTimeline =>
       boolean().withDefault(const Constant(false))();
+  // Drift column declarations are codegen inputs shadowed by the generated
+  // table at runtime, so this line is never executed (every sibling column
+  // getter is likewise uncovered). The default is verified via the migration
+  // and settings tests, not by exercising this declaration.
+  // coverage:ignore-start
+  BoolColumn get defaultShowAscentRateLine =>
+      boolean().withDefault(const Constant(false))();
+  // coverage:ignore-end
   // Notification settings (v26)
   BoolColumn get notificationsEnabled =>
       boolean().withDefault(const Constant(true))();
@@ -1632,7 +1640,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 90;
+  static const int currentSchemaVersion = 91;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1726,6 +1734,7 @@ class AppDatabase extends _$AppDatabase {
     88,
     89,
     90,
+    91,
   ];
 
   /// Tables that carry a per-row Hybrid Logical Clock for cross-device conflict
@@ -4209,6 +4218,27 @@ class AppDatabase extends _$AppDatabase {
           }
         }
         if (from < 90) await reportProgress();
+        if (from < 91) {
+          // Persisted default for the "Ascent Rate Line" profile overlay
+          // (issue: ascent-rate toggles default-off). Previously the line was a
+          // session-only toggle with no setting; it now joins the Default
+          // Visible Metrics list. PRAGMA-guarded so a healthy database no-ops
+          // and an interrupted upgrade does not fail on a duplicate ALTER.
+          final cols = await customSelect(
+            "PRAGMA table_info('diver_settings')",
+          ).get();
+          if (cols.isNotEmpty) {
+            final existing = cols.map((c) => c.read<String>('name')).toSet();
+            if (!existing.contains('default_show_ascent_rate_line')) {
+              await customStatement(
+                'ALTER TABLE diver_settings '
+                'ADD COLUMN default_show_ascent_rate_line '
+                'INTEGER NOT NULL DEFAULT 0',
+              );
+            }
+          }
+        }
+        if (from < 91) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys

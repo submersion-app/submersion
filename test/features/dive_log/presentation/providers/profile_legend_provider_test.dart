@@ -173,10 +173,13 @@ void main() {
   });
 
   group('showAscentRateLine', () {
-    test('defaults to false (session-only, no setting)', () {
-      const state = ProfileLegendState();
-      expect(state.showAscentRateLine, isFalse);
-    });
+    test(
+      'defaults to false (seeds from defaultShowAscentRateLine setting)',
+      () {
+        const state = ProfileLegendState();
+        expect(state.showAscentRateLine, isFalse);
+      },
+    );
 
     test('copyWith sets showAscentRateLine to true', () {
       const state = ProfileLegendState();
@@ -278,6 +281,51 @@ void main() {
       );
       addTearDown(container.dispose);
       expect(container.read(profileLegendProvider).showGas, isFalse);
+    });
+  });
+
+  group('ProfileLegend.build ascent rate hydration', () {
+    test('both ascent-rate toggles start off with default settings', () {
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith((ref) => _StubSettingsNotifier()),
+        ],
+      );
+      addTearDown(container.dispose);
+      final state = container.read(profileLegendProvider);
+      expect(state.showAscentRateColors, isFalse);
+      expect(state.showAscentRateLine, isFalse);
+    });
+
+    test('showAscentRateColors starts true when the setting is on', () {
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith(
+            (ref) => _StubSettingsNotifier(
+              const AppSettings(showAscentRateColors: true),
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      expect(
+        container.read(profileLegendProvider).showAscentRateColors,
+        isTrue,
+      );
+    });
+
+    test('showAscentRateLine seeds from defaultShowAscentRateLine', () {
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith(
+            (ref) => _StubSettingsNotifier(
+              const AppSettings(defaultShowAscentRateLine: true),
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      expect(container.read(profileLegendProvider).showAscentRateLine, isTrue);
     });
   });
 }

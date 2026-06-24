@@ -308,9 +308,9 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      // Default state: showCeiling=true, showAscentRateColors=true
-      // Badge should show 2
-      expect(find.text('2'), findsOneWidget);
+      // Default state: showCeiling=true, showAscentRateColors=false (both ascent
+      // rate toggles now default off). Only Ceiling counts -> badge shows 1.
+      expect(find.text('1'), findsOneWidget);
     });
 
     testWidgets('badge includes gas strip when hasGasData is true', (
