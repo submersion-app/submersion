@@ -1,26 +1,5 @@
 import 'dart:ui' show Color;
 
-/// Types of dives
-enum DiveType {
-  recreational('Recreational'),
-  technical('Technical'),
-  freedive('Freedive'),
-  training('Training'),
-  wreck('Wreck'),
-  cave('Cave'),
-  ice('Ice'),
-  night('Night'),
-  drift('Drift'),
-  deep('Deep'),
-  altitude('Altitude'),
-  shore('Shore'),
-  boat('Boat'),
-  liveaboard('Liveaboard');
-
-  final String displayName;
-  const DiveType(this.displayName);
-}
-
 /// Types of diving equipment
 enum EquipmentType {
   regulator('Regulator'),
