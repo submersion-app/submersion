@@ -1360,6 +1360,19 @@ class SyncService {
     final selfTombstones = allTombstones[entityType] ?? const <String, int>{};
     final entityParentRefs = parentRefs[entityType] ?? const <ParentRef>[];
 
+    // Read-decide-write: batch-fetch every local row the LWW compare needs in
+    // one query (the clockless path needs no read). Each decision below reads
+    // only this pre-fetched map plus the pre-fetched tombstone/pending maps --
+    // never a row written earlier in this loop -- so deferring all writes to a
+    // single batch at the end cannot change any decision.
+    final localById = hasUpdatedAt
+        ? await _serializer.fetchRecords(entityType, [
+            for (final record in records)
+              ?_recordIdForEntity(entityType, record),
+          ])
+        : const <String, Map<String, dynamic>>{};
+    final toUpsert = <Map<String, dynamic>>[];
+
     for (final record in records) {
       String? recordId;
       int? localUpdatedAt;
@@ -1435,12 +1448,12 @@ class SyncService {
         }
 
         if (!hasUpdatedAt) {
-          await _serializer.upsertRecord(entityType, recordToApply);
+          toUpsert.add(recordToApply);
           applied += 1;
           continue;
         }
 
-        final local = await _serializer.fetchRecord(entityType, recordId);
+        final local = localById[recordId];
         localUpdatedAt = _extractUpdatedAtMillis(local);
         final remoteUpdatedAt = _extractUpdatedAtMillis(record);
 
@@ -1459,7 +1472,7 @@ class SyncService {
         // remote HLC wins; an exact tie or a local-newer HLC keeps local.
         if (localHlc != null && remoteHlc != null) {
           if (remoteHlc.compareTo(localHlc) > 0) {
-            await _serializer.upsertRecord(entityType, recordToApply);
+            toUpsert.add(recordToApply);
             applied += 1;
           }
           continue;
@@ -1486,7 +1499,7 @@ class SyncService {
         if (remoteUpdatedAt == null ||
             localUpdatedAt == null ||
             remoteUpdatedAt >= localUpdatedAt) {
-          await _serializer.upsertRecord(entityType, recordToApply);
+          toUpsert.add(recordToApply);
           applied += 1;
         }
       } catch (e, stackTrace) {
@@ -1499,6 +1512,24 @@ class SyncService {
         // sides edited the same record). Masking apply errors as conflicts is
         // what hid the cross-device no-op; count it so performSync surfaces it.
         failed += 1;
+      }
+    }
+
+    // Read-decide-write flush: one batched write for the whole merge-batch.
+    // Drift's batch is all-or-nothing, so a failure fails every row it would
+    // have applied -- move those from applied to failed, mirroring the per-row
+    // catch above.
+    if (toUpsert.isNotEmpty) {
+      try {
+        await _serializer.upsertRecords(entityType, toUpsert);
+      } catch (e, stackTrace) {
+        _log.error(
+          'Failed to batch-upsert $entityType (${toUpsert.length} rows)',
+          error: e,
+          stackTrace: stackTrace,
+        );
+        failed += toUpsert.length;
+        applied -= toUpsert.length;
       }
     }
 
