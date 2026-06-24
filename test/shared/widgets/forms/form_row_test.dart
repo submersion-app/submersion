@@ -63,6 +63,64 @@ void main() {
     });
   });
 
+  group('FormRow.text calculate affordance', () {
+    testWidgets('shows calculate icon when suggestion differs; tap fires onUse '
+        'without entering edit mode', (tester) async {
+      final controller = TextEditingController(text: '0.0');
+      addTearDown(controller.dispose);
+      var used = 0;
+      await tester.pumpWidget(
+        _wrap(
+          FormRow.text(
+            label: 'Avg depth',
+            controller: controller,
+            suffixText: 'm',
+            profileSuggestion: ProfileSuggestion(
+              value: '18.5',
+              tooltip: 'Calculate from dive profile',
+              onUse: () => used++,
+            ),
+          ),
+        ),
+      );
+      expect(find.byIcon(Icons.calculate_outlined), findsOneWidget);
+      await tester.tap(find.byIcon(Icons.calculate_outlined));
+      await tester.pump();
+      expect(used, 1);
+      expect(find.byType(TextFormField), findsNothing);
+    });
+
+    testWidgets('hides calculate icon when value already matches suggestion', (
+      tester,
+    ) async {
+      final controller = TextEditingController(text: '18.5');
+      addTearDown(controller.dispose);
+      await tester.pumpWidget(
+        _wrap(
+          FormRow.text(
+            label: 'Avg depth',
+            controller: controller,
+            profileSuggestion: ProfileSuggestion(
+              value: '18.5',
+              tooltip: 'Calculate from dive profile',
+              onUse: () {},
+            ),
+          ),
+        ),
+      );
+      expect(find.byIcon(Icons.calculate_outlined), findsNothing);
+    });
+
+    testWidgets('no calculate icon without a suggestion', (tester) async {
+      final controller = TextEditingController(text: '0.0');
+      addTearDown(controller.dispose);
+      await tester.pumpWidget(
+        _wrap(FormRow.text(label: 'Avg depth', controller: controller)),
+      );
+      expect(find.byIcon(Icons.calculate_outlined), findsNothing);
+    });
+  });
+
   group('FormRow.picker', () {
     testWidgets('shows value, chevron, and fires onTap', (tester) async {
       var taps = 0;

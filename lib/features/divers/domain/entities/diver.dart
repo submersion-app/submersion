@@ -147,50 +147,89 @@ class Diver extends Equatable {
   bool get hasMedicalClearance =>
       medicalClearanceExpiryDate != null && !isMedicalClearanceExpired;
 
+  /// Sentinel marking a `copyWith` parameter as "not provided". Lets callers
+  /// distinguish omitting a nullable field (keep the current value) from
+  /// passing `null` (clear it) — plain `value ?? this.value` cannot express a
+  /// clear. Nullable fields take `Object?` params defaulting to [_unset];
+  /// [_resolve] routes them to keep / clear / set accordingly.
+  static const Object _unset = Object();
+
+  /// Resolves a sentinel-defaulted `copyWith` parameter: [current] when the
+  /// field was omitted ([value] is [_unset]), otherwise the new [value].
+  /// Because `Object?` params give up compile-time type checking, this asserts
+  /// the runtime type in debug builds (the `as T` cast still guards release).
+  static T _resolve<T>(Object? value, T current, String field) {
+    if (identical(value, _unset)) return current;
+    assert(
+      value is T,
+      'Diver.copyWith($field) expected $T or omission, got ${value.runtimeType}',
+    );
+    return value as T;
+  }
+
   Diver copyWith({
     String? id,
     String? name,
-    String? email,
-    String? phone,
-    String? photoPath,
+    Object? email = _unset,
+    Object? phone = _unset,
+    Object? photoPath = _unset,
     EmergencyContact? emergencyContact,
     EmergencyContact? emergencyContact2,
     String? medicalNotes,
-    String? bloodType,
-    String? allergies,
-    String? medications,
-    DateTime? medicalClearanceExpiryDate,
+    Object? bloodType = _unset,
+    Object? allergies = _unset,
+    Object? medications = _unset,
+    Object? medicalClearanceExpiryDate = _unset,
     DiverInsurance? insurance,
     String? notes,
     bool? isDefault,
     DateTime? createdAt,
     DateTime? updatedAt,
-    int? priorDiveCount,
-    int? priorDiveTimeSeconds,
-    DateTime? divingSince,
+    Object? priorDiveCount = _unset,
+    Object? priorDiveTimeSeconds = _unset,
+    Object? divingSince = _unset,
   }) {
     return Diver(
       id: id ?? this.id,
       name: name ?? this.name,
-      email: email ?? this.email,
-      phone: phone ?? this.phone,
-      photoPath: photoPath ?? this.photoPath,
+      email: _resolve<String?>(email, this.email, 'email'),
+      phone: _resolve<String?>(phone, this.phone, 'phone'),
+      photoPath: _resolve<String?>(photoPath, this.photoPath, 'photoPath'),
       emergencyContact: emergencyContact ?? this.emergencyContact,
       emergencyContact2: emergencyContact2 ?? this.emergencyContact2,
       medicalNotes: medicalNotes ?? this.medicalNotes,
-      bloodType: bloodType ?? this.bloodType,
-      allergies: allergies ?? this.allergies,
-      medications: medications ?? this.medications,
-      medicalClearanceExpiryDate:
-          medicalClearanceExpiryDate ?? this.medicalClearanceExpiryDate,
+      bloodType: _resolve<String?>(bloodType, this.bloodType, 'bloodType'),
+      allergies: _resolve<String?>(allergies, this.allergies, 'allergies'),
+      medications: _resolve<String?>(
+        medications,
+        this.medications,
+        'medications',
+      ),
+      medicalClearanceExpiryDate: _resolve<DateTime?>(
+        medicalClearanceExpiryDate,
+        this.medicalClearanceExpiryDate,
+        'medicalClearanceExpiryDate',
+      ),
       insurance: insurance ?? this.insurance,
       notes: notes ?? this.notes,
       isDefault: isDefault ?? this.isDefault,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
-      priorDiveCount: priorDiveCount ?? this.priorDiveCount,
-      priorDiveTimeSeconds: priorDiveTimeSeconds ?? this.priorDiveTimeSeconds,
-      divingSince: divingSince ?? this.divingSince,
+      priorDiveCount: _resolve<int?>(
+        priorDiveCount,
+        this.priorDiveCount,
+        'priorDiveCount',
+      ),
+      priorDiveTimeSeconds: _resolve<int?>(
+        priorDiveTimeSeconds,
+        this.priorDiveTimeSeconds,
+        'priorDiveTimeSeconds',
+      ),
+      divingSince: _resolve<DateTime?>(
+        divingSince,
+        this.divingSince,
+        'divingSince',
+      ),
     );
   }
 

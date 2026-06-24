@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 /// Helper to create a dive with common SAC-test defaults.
@@ -300,7 +301,7 @@ void main() {
       expect(dive.sacPressure, isNull);
     });
 
-    test('averages pressure across multiple tanks', () {
+    test('sacPressure on multi-tank dive uses back gas tank only', () {
       final dive = _sacDive(
         runtime: const Duration(minutes: 60),
         avgDepth: 10.0, // ambientPressure = 2.0 atm
@@ -310,20 +311,44 @@ void main() {
             name: 'Back gas',
             startPressure: 200,
             endPressure: 100,
+            role: TankRole.backGas,
           ),
           DiveTank(
             id: 't2',
             name: 'Stage',
             startPressure: 200,
             endPressure: 150,
+            role: TankRole.stage,
           ),
         ],
       );
-      // Tank 1: 100 bar used
-      // Tank 2: 50 bar used
-      // Total: 150, count: 2, avg: 75 bar
-      // sacPressure = (150/2) / 60 / 2.0 = 75 / 60 / 2.0 = 0.625
-      expect(dive.sacPressure!, closeTo(0.625, 0.01));
+      // Back gas only: 100 bar used / 60 min / 2.0 atm = 0.833 bar/min
+      expect(dive.sacPressure!, closeTo(0.833, 0.01));
+    });
+
+    test('sacPressure falls back to first tank when no back gas role', () {
+      final dive = _sacDive(
+        runtime: const Duration(minutes: 60),
+        avgDepth: 10.0, // ambientPressure = 2.0 atm
+        tanks: const [
+          DiveTank(
+            id: 't1',
+            name: 'Stage 1',
+            startPressure: 200,
+            endPressure: 100,
+            role: TankRole.stage,
+          ),
+          DiveTank(
+            id: 't2',
+            name: 'Stage 2',
+            startPressure: 200,
+            endPressure: 150,
+            role: TankRole.stage,
+          ),
+        ],
+      );
+      // No back gas role — falls back to tanks.first: 100 bar / 60 min / 2.0 atm = 0.833
+      expect(dive.sacPressure!, closeTo(0.833, 0.01));
     });
 
     test('does not require tank volume (unlike sac)', () {

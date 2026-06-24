@@ -107,6 +107,39 @@ static int strcasecmp_nospace(const char *a, const char *b) {
     return 0;
 }
 
+// Some Scubapro/Uwatec dive computers advertise a short BLE name that differs
+// from the libdivecomputer product string. dc_filter_uwatec matches each such
+// alias against EVERY Uwatec/Scubapro descriptor, so the family-level fallback
+// in libdc_descriptor_match reports the first one ("Aladin Sport Matrix",
+// model 0x17) for all of them. strcasecmp_nospace can't bridge the gap because
+// the alias is not just a spacing variant of the product (e.g. "HUD" vs
+// "G2 HUD", "Galileo 3" vs "G3"). Map the known aliases to their specific
+// model code so the exact-model preference in the matcher picks the right
+// descriptor. The alias strings are exactly the BLE names from
+// dc_filter_uwatec's match list; the model codes are from descriptor.c.
+// Regression for issue #285 (G2 HUD advertised as "HUD"). Returns 0 (not a
+// valid model in the table) when the name is not a known alias.
+static unsigned int uwatec_ble_alias_model(const char *name) {
+    static const struct {
+        const char *alias;
+        unsigned int model;
+    } aliases[] = {
+        {"HUD", 0x42},       // G2 HUD
+        {"Galileo 3", 0x34}, // G3
+        {"A1", 0x25},        // Aladin A1
+        {"A2", 0x28},        // Aladin A2
+    };
+    if (name == NULL) {
+        return 0;
+    }
+    for (size_t i = 0; i < sizeof(aliases) / sizeof(aliases[0]); i++) {
+        if (strcasecmp_nospace(name, aliases[i].alias) == 0) {
+            return aliases[i].model;
+        }
+    }
+    return 0;
+}
+
 int libdc_descriptor_match(const char *name, unsigned int transport,
                            libdc_descriptor_info_t *info) {
     if (name == NULL || info == NULL) {
@@ -146,6 +179,18 @@ int libdc_descriptor_match(const char *name, unsigned int transport,
                 name_model = ((unsigned int)c0 << 8) | (unsigned int)c1;
                 has_name_model = 1;
             }
+        }
+    }
+
+    // Scubapro/Uwatec short BLE aliases (e.g. "HUD" for "G2 HUD") that differ
+    // from the libdivecomputer product name. Resolving them to a specific model
+    // lets the exact-model preference in the loop below pick the right
+    // descriptor instead of the first family-level fallback. See issue #285.
+    if (!has_name_model && (transport & LIBDC_TRANSPORT_BLE)) {
+        unsigned int alias_model = uwatec_ble_alias_model(name);
+        if (alias_model != 0) {
+            name_model = alias_model;
+            has_name_model = 1;
         }
     }
 

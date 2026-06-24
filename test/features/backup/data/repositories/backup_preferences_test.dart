@@ -102,6 +102,34 @@ void main() {
     });
   });
 
+  group('BackupPreferences backup-location bookmark', () {
+    test('getBackupLocationBookmark returns null by default', () {
+      expect(backupPreferences.getBackupLocationBookmark(), isNull);
+    });
+
+    test(
+      'setBackupLocationBookmark persists and round-trips the bytes',
+      () async {
+        await backupPreferences.setBackupLocationBookmark([1, 2, 3, 250]);
+        expect(backupPreferences.getBackupLocationBookmark(), [1, 2, 3, 250]);
+      },
+    );
+
+    test('setBackupLocationBookmark(null) clears the bookmark', () async {
+      await backupPreferences.setBackupLocationBookmark([1, 2, 3]);
+      await backupPreferences.setBackupLocationBookmark(null);
+      expect(backupPreferences.getBackupLocationBookmark(), isNull);
+    });
+
+    test('setBackupLocation(null) also clears the bookmark', () async {
+      await backupPreferences.setBackupLocation('/custom/icloud/dir');
+      await backupPreferences.setBackupLocationBookmark([9, 8, 7]);
+      await backupPreferences.setBackupLocation(null);
+      expect(backupPreferences.getSettings().backupLocation, isNull);
+      expect(backupPreferences.getBackupLocationBookmark(), isNull);
+    });
+  });
+
   group('BackupPreferences history', () {
     BackupRecord createRecord(String id, {int diveCount = 10}) {
       return BackupRecord(
@@ -181,6 +209,28 @@ void main() {
       final history = backupPreferences.getHistory();
       expect(history, hasLength(1));
       expect(history.first.id, 'r3');
+    });
+  });
+
+  group('BackupPreferences location label', () {
+    test(
+      'backup location label round-trips and clears with the location',
+      () async {
+        await backupPreferences.setBackupLocation('content://tree/1');
+        await backupPreferences.setBackupLocationLabel('Backups');
+        expect(backupPreferences.backupLocationLabel, 'Backups');
+
+        await backupPreferences.setBackupLocation(null);
+        expect(backupPreferences.backupLocationLabel, isNull);
+      },
+    );
+
+    test('setBackupLocationLabel(null) clears the label directly', () async {
+      await backupPreferences.setBackupLocationLabel('Backups');
+      expect(backupPreferences.backupLocationLabel, 'Backups');
+
+      await backupPreferences.setBackupLocationLabel(null);
+      expect(backupPreferences.backupLocationLabel, isNull);
     });
   });
 }

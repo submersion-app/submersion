@@ -10,8 +10,10 @@ import 'package:submersion/core/services/sync/changeset_log/changeset_reader.dar
 import 'package:submersion/core/services/sync/changeset_log/changeset_writer.dart';
 import 'package:submersion/core/services/sync/changeset_log/peer_cursor_store.dart';
 import 'package:submersion/core/services/sync/changeset_log/publish_state_store.dart';
+import 'package:submersion/core/services/sync/changeset_log/sync_manifest.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 
+import '../../../../helpers/changeset_test_helpers.dart';
 import '../../../../helpers/test_database.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../support/fake_cloud_storage_provider.dart';
@@ -77,6 +79,7 @@ void main() {
         selfDeviceId: 'reader-x',
         folderId: folder,
         apply: (p) async => applied.add(p),
+        applyBaseFile: spyApplyBaseFile(applied),
       );
 
       final ids = applied
@@ -150,6 +153,7 @@ void main() {
       selfDeviceId: 'reader-x',
       folderId: folder,
       apply: (p) async => applied.add(p),
+      applyBaseFile: spyApplyBaseFile(applied),
     );
 
     expect(
@@ -162,6 +166,54 @@ void main() {
       cursor,
       isNull,
       reason: 'the cursor must not advance past an unverified base',
+    );
+  });
+
+  test('a manifest naming a base with no part count is not applied', () async {
+    await setUpTestDatabase();
+    addTearDown(() => tearDownTestDatabase());
+    final db = DatabaseService.instance.database;
+    final codec = ChangesetCodec(SyncDataSerializer());
+    final reader = ChangesetReader(codec, PeerCursorStore(db));
+    final provider = FakeCloudStorageProvider();
+    final folder = await provider.getOrCreateSyncFolder();
+
+    // A manifest that claims a base (baseSeq + headSeq set) but carries no
+    // basePartCount and uploads no base part files -- malformed / a publish in
+    // flight. The reader must treat it as a transient gap, not an empty base.
+    const peerId = 'peer-no-parts';
+    final manifest = SyncManifest(
+      deviceId: peerId,
+      provider: provider.providerId,
+      baseSeq: 1,
+      headSeq: 1,
+      updatedAt: 0,
+    );
+    await provider.uploadFile(
+      manifest.toBytes(),
+      ChangesetLogLayout.manifestName(peerId),
+      folderId: folder,
+    );
+
+    final applied = <SyncPayload>[];
+    await reader.pull(
+      provider: provider,
+      selfDeviceId: 'reader-x',
+      folderId: folder,
+      apply: (p) async => applied.add(p),
+      applyBaseFile: spyApplyBaseFile(applied),
+    );
+
+    expect(
+      applied,
+      isEmpty,
+      reason: 'a base with no parts must not be applied',
+    );
+    final cursor = await PeerCursorStore(db).get(peerId, provider.providerId);
+    expect(
+      cursor,
+      isNull,
+      reason: 'the cursor must not advance past a base that was never applied',
     );
   });
 }

@@ -11,6 +11,16 @@ static const char* PREFERRED_WRITE_UUID =
     "6606ab42-89d5-4a00-a8ce-4eb5e1414ee0";
 static const char* PREFERRED_NOTIFY_UUID =
     "a60b8e5c-b267-44d7-9764-837caf96489e";
+// Halcyon Symbios device-centric Tx/Rx endpoints. The app WRITES commands to
+// the device's Rx (00000101) and READS replies (indications) from its Tx
+// (00000201) -- matching Subsurface's qt-ble.cpp. Both chars advertise
+// read+write+indicate and tie on raw score, so these biases pick the pair.
+// PR #356 biased them backwards (wrote to Tx) and the device never answered
+// (issue #288).
+static const char* HALCYON_SYMBIOS_TX_UUID =
+    "00000201-8c3b-4f2c-a59e-8c08224f3253";
+static const char* HALCYON_SYMBIOS_RX_UUID =
+    "00000101-8c3b-4f2c-a59e-8c08224f3253";
 
 static const guint32 BLE_IOCTL_TYPE = 'b';
 static const guint32 BLE_IOCTL_GET_NAME = 0;
@@ -164,6 +174,12 @@ gboolean ble_io_stream_connect(BleIoStream* stream,
         return FALSE;
     }
 
+    // Note: BlueZ exposes no simple per-connection priority/interval API on
+    // org.bluez.Device1 (unlike Android's requestConnectionPriority or
+    // Windows' preferred connection parameters), so high-rate dumps (e.g. the
+    // OSTC nano logbook, #280) rely on the device pacing itself plus the
+    // hw_ostc3 read fix; transient notification loss is covered by a retry.
+
     // Get the device name.
     stream->device_name = get_string_property(
         stream->connection, device_path, "org.bluez.Device1", "Name");
@@ -229,7 +245,8 @@ gboolean ble_io_stream_connect(BleIoStream* stream,
             int ws = 0;
             if (can_write_no_rsp) ws += 4;
             if (can_write) ws += 2;
-            if (g_ascii_strcasecmp(uuid, PREFERRED_WRITE_UUID) == 0) {
+            if (g_ascii_strcasecmp(uuid, PREFERRED_WRITE_UUID) == 0 ||
+                g_ascii_strcasecmp(uuid, HALCYON_SYMBIOS_RX_UUID) == 0) {
                 ws += 1000;
             }
             if (ws > best_write_score) {
@@ -247,7 +264,8 @@ gboolean ble_io_stream_connect(BleIoStream* stream,
             int ns = 0;
             if (can_notify) ns += 4;
             if (can_indicate) ns += 2;
-            if (g_ascii_strcasecmp(uuid, PREFERRED_NOTIFY_UUID) == 0) {
+            if (g_ascii_strcasecmp(uuid, PREFERRED_NOTIFY_UUID) == 0 ||
+                g_ascii_strcasecmp(uuid, HALCYON_SYMBIOS_TX_UUID) == 0) {
                 ns += 1000;
             }
             if (ns > best_notify_score) {

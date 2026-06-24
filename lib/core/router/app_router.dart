@@ -19,9 +19,6 @@ import 'package:submersion/features/onboarding/presentation/pages/welcome_page.d
 import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_edit_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_merge_page.dart';
-import 'package:submersion/features/divers/presentation/pages/diver_list_page.dart';
-import 'package:submersion/features/divers/presentation/pages/diver_detail_page.dart';
-import 'package:submersion/features/divers/presentation/pages/diver_edit_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_list_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_detail_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_edit_page.dart';
@@ -36,6 +33,7 @@ import 'package:submersion/features/dive_centers/presentation/pages/dive_center_
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_map_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
+import 'package:submersion/features/dive_log/presentation/pages/bulk_dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_search_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/profile_editor_page.dart';
@@ -90,6 +88,7 @@ import 'package:submersion/features/settings/presentation/pages/emergency_contac
 import 'package:submersion/features/settings/presentation/pages/medical_info_edit_page.dart';
 import 'package:submersion/features/settings/presentation/pages/insurance_edit_page.dart';
 import 'package:submersion/features/settings/presentation/pages/notes_edit_page.dart';
+import 'package:submersion/features/settings/presentation/pages/prior_experience_edit_page.dart';
 import 'package:submersion/features/settings/presentation/pages/debug_log_viewer_page.dart';
 import 'package:submersion/features/media/presentation/pages/media_sources_page.dart';
 import 'package:submersion/features/media/presentation/pages/network_sources_page.dart';
@@ -272,6 +271,23 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) {
                   final ids = (state.extra as List<dynamic>?)?.cast<String>();
                   return SiteMatchReviewPage(diveIds: ids);
+                },
+              ),
+              GoRoute(
+                path: 'bulk-edit',
+                name: 'bulkEditDives',
+                redirect: (context, state) {
+                  final ids = (state.extra as List<dynamic>?)?.cast<String>();
+                  // No ids (deep link / manual nav) means there is nothing to
+                  // bulk edit; send the user back to the dive list rather than
+                  // landing on what looks like the new-dive form.
+                  return (ids == null || ids.isEmpty) ? '/dives' : null;
+                },
+                builder: (context, state) {
+                  final ids =
+                      (state.extra as List<dynamic>?)?.cast<String>() ??
+                      const <String>[];
+                  return BulkDiveEditPage(diveIds: ids);
                 },
               ),
               GoRoute(
@@ -464,37 +480,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     name: 'editBuddy',
                     builder: (context, state) =>
                         BuddyEditPage(buddyId: state.pathParameters['buddyId']),
-                  ),
-                ],
-              ),
-            ],
-          ),
-
-          // Divers
-          GoRoute(
-            path: '/divers',
-            name: 'divers',
-            pageBuilder: (context, state) => NoTransitionPage(
-              key: state.pageKey,
-              child: const DiverListPage(),
-            ),
-            routes: [
-              GoRoute(
-                path: 'new',
-                name: 'newDiver',
-                builder: (context, state) => const DiverEditPage(),
-              ),
-              GoRoute(
-                path: ':diverId',
-                name: 'diverDetail',
-                builder: (context, state) =>
-                    DiverDetailPage(diverId: state.pathParameters['diverId']!),
-                routes: [
-                  GoRoute(
-                    path: 'edit',
-                    name: 'editDiver',
-                    builder: (context, state) =>
-                        DiverEditPage(diverId: state.pathParameters['diverId']),
                   ),
                 ],
               ),
@@ -932,6 +917,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     path: 'notes',
                     name: 'editNotes',
                     builder: (context, state) => const NotesEditPage(),
+                  ),
+                  GoRoute(
+                    path: 'prior',
+                    name: 'editPriorExperience',
+                    builder: (context, state) =>
+                        const PriorExperienceEditPage(),
                   ),
                 ],
               ),

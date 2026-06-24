@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -522,6 +523,68 @@ void main() {
     });
   });
 
+  group('SiteDetailPage map section', () {
+    const locatedSite = DiveSite(
+      id: 'located-site',
+      name: 'Located Site',
+      location: GeoPoint(12.34, 56.78),
+    );
+
+    testWidgets('renders inline preview map when site has coordinates', (
+      tester,
+    ) async {
+      _setMobileTestSurfaceSize(tester);
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            siteProvider(locatedSite.id).overrideWith((_) async => locatedSite),
+            siteDiveCountProvider(locatedSite.id).overrideWith((_) async => 0),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: SiteDetailPage(siteId: locatedSite.id),
+          ),
+        ),
+      );
+      // Avoid pumpAndSettle: the FlutterMap tile layer animates indefinitely.
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.byType(FlutterMap), findsWidgets);
+    });
+
+    testWidgets('opens fullscreen map when fullscreen button tapped', (
+      tester,
+    ) async {
+      _setMobileTestSurfaceSize(tester);
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            siteProvider(locatedSite.id).overrideWith((_) async => locatedSite),
+            siteDiveCountProvider(locatedSite.id).overrideWith((_) async => 0),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: SiteDetailPage(siteId: locatedSite.id),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.byType(FlutterMap), findsWidgets);
+      await tester.tap(find.byIcon(Icons.fullscreen));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      // The fullscreen route also renders a FlutterMap.
+      expect(find.byType(FlutterMap), findsWidgets);
+    });
+  });
+
   group('SiteDetailPage embedded layout', () {
     testWidgets('renders embedded header for site with location string', (
       tester,
@@ -696,6 +759,43 @@ void main() {
       await tester.tap(editButton);
       await tester.pumpAndSettle();
       expect(find.text('EDIT_PAGE'), findsOneWidget);
+    });
+  });
+
+  group('SiteDetailPage location fields', () {
+    testWidgets('shows city, island, and body of water when set', (
+      tester,
+    ) async {
+      _setMobileTestSurfaceSize(tester);
+      const site = DiveSite(
+        id: 'loc-1',
+        name: 'Site',
+        city: 'Cebu City',
+        island: 'Malapascua',
+        bodyOfWater: 'Visayan Sea',
+      );
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            siteProvider(site.id).overrideWith((ref) async => site),
+            siteDiveCountProvider(site.id).overrideWith((ref) async => 0),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: SiteDetailPage(siteId: 'loc-1', embedded: true),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Cebu City'), findsWidgets);
+      expect(find.text('Malapascua'), findsWidgets);
+      expect(find.text('Visayan Sea'), findsOneWidget);
     });
   });
 }

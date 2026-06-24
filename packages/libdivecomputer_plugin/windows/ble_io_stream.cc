@@ -20,6 +20,18 @@ const winrt::guid BleIoStream::kPreferredWriteUuid{
 const winrt::guid BleIoStream::kPreferredNotifyUuid{
     0xA60B8E5C, 0xB267, 0x44D7,
     {0x97, 0x64, 0x83, 0x7C, 0xAF, 0x96, 0x48, 0x9E}};
+// Halcyon Symbios device-centric Tx/Rx endpoints. The app WRITES commands to
+// the device's Rx (00000101) and READS replies (indications) from its Tx
+// (00000201) -- matching Subsurface's qt-ble.cpp. Both chars advertise
+// read+write+indicate and tie on raw score, so these biases pick the pair.
+// PR #356 biased them backwards (wrote to Tx) and the device never answered
+// (issue #288).
+const winrt::guid BleIoStream::kHalcyonSymbiosTxUuid{
+    0x00000201, 0x8C3B, 0x4F2C,
+    {0xA5, 0x9E, 0x8C, 0x08, 0x22, 0x4F, 0x32, 0x53}};
+const winrt::guid BleIoStream::kHalcyonSymbiosRxUuid{
+    0x00000101, 0x8C3B, 0x4F2C,
+    {0xA5, 0x9E, 0x8C, 0x08, 0x22, 0x4F, 0x32, 0x53}};
 
 static constexpr uint32_t kBleIoctlType = 'b';
 static constexpr uint32_t kBleIoctlGetName = 0;
@@ -39,6 +51,21 @@ bool BleIoStream::ConnectAndDiscover(uint64_t bluetooth_address) {
         if (!device_) return false;
 
         device_name_ = winrt::to_string(device_.Name());
+
+        // Request a throughput-optimized (low-interval) connection so a dive
+        // computer's serial->BLE bridge can drain its buffer during bulk
+        // logbook/profile dumps without overflowing and dropping
+        // notifications (issue #280, OSTC nano). Best-effort: hold the request
+        // for the connection's lifetime; ignore failures on Windows < 2004 or
+        // unsupported controllers.
+        try {
+            preferred_connection_request_ =
+                device_.RequestPreferredConnectionParameters(
+                    BluetoothLEPreferredConnectionParameters::
+                        ThroughputOptimized());
+        } catch (...) {
+        }
+
         return DiscoverCharacteristics();
     } catch (...) {
         return false;
@@ -91,7 +118,10 @@ bool BleIoStream::DiscoverCharacteristics() {
                     GattCharacteristicProperties::None) {
                     ws += 2;
                 }
-                if (ch.Uuid() == kPreferredWriteUuid) ws += 1000;
+                if (ch.Uuid() == kPreferredWriteUuid ||
+                    ch.Uuid() == kHalcyonSymbiosRxUuid) {
+                    ws += 1000;
+                }
                 if (ws > best_write_score) {
                     best_write = ch;
                     best_write_score = ws;
@@ -112,7 +142,10 @@ bool BleIoStream::DiscoverCharacteristics() {
                     GattCharacteristicProperties::None) {
                     ns += 2;
                 }
-                if (ch.Uuid() == kPreferredNotifyUuid) ns += 1000;
+                if (ch.Uuid() == kPreferredNotifyUuid ||
+                    ch.Uuid() == kHalcyonSymbiosTxUuid) {
+                    ns += 1000;
+                }
                 if (ns > best_notify_score) {
                     best_notify = ch;
                     best_notify_score = ns;
@@ -206,6 +239,9 @@ void BleIoStream::Close() {
         notify_characteristic_ = nullptr;
     }
     write_characteristic_ = nullptr;
+    // Release the throughput-optimized connection request (reverts to the
+    // controller's default interval) before tearing down the device.
+    preferred_connection_request_ = nullptr;
     if (device_) {
         device_.Close();
         device_ = nullptr;

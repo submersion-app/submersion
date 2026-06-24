@@ -67,7 +67,13 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/add_section_row.dart';
 import 'package:submersion/shared/widgets/forms/edit_form_scaffold.dart';
 import 'package:submersion/shared/widgets/forms/form_row.dart';
+import 'package:submersion/shared/widgets/forms/form_section.dart';
 import 'package:submersion/shared/widgets/forms/responsive_form_columns.dart';
+import 'package:submersion/features/dive_log/domain/entities/bulk_edit_request.dart';
+import 'package:submersion/features/dive_log/presentation/pages/bulk_edit_field_set.dart';
+import 'package:submersion/features/dive_log/presentation/providers/bulk_dive_edit_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/bulk_collection_mode_selector.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/bulk_field_gate.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/tank_presets/domain/services/default_tank_preset_resolver.dart';
@@ -79,6 +85,10 @@ const _createNewTripSentinel = '__create_new_trip__';
 
 class DiveEditPage extends ConsumerStatefulWidget {
   final String? diveId;
+
+  /// When set, the page renders in bulk-edit mode for these dive ids (mutually
+  /// exclusive with [diveId]). Mirrors `SiteEditPage.mergeSiteIds`.
+  final List<String>? bulkDiveIds;
 
   /// When true, renders without Scaffold wrapper for use in master-detail layout.
   final bool embedded;
@@ -92,12 +102,17 @@ class DiveEditPage extends ConsumerStatefulWidget {
   const DiveEditPage({
     super.key,
     this.diveId,
+    this.bulkDiveIds,
     this.embedded = false,
     this.onSaved,
     this.onCancel,
-  });
+  }) : assert(
+         diveId == null || bulkDiveIds == null,
+         'diveId and bulkDiveIds are mutually exclusive',
+       );
 
   bool get isEditing => diveId != null;
+  bool get isBulk => bulkDiveIds != null && bulkDiveIds!.isNotEmpty;
 
   @override
   ConsumerState<DiveEditPage> createState() => _DiveEditPageState();
@@ -274,7 +289,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       ),
     ];
 
-    if (widget.isEditing) {
+    if (widget.isBulk) {
+      // Bulk mode: start from empty form state; no draft load, no GPS/number,
+      // and no starting tank (bulk tanks are Add/Replace, not a default list).
+      _tanks = [];
+      _suppressDirty = false;
+    } else if (widget.isEditing) {
       _loadExistingDive();
     } else {
       // For new dives, capture GPS in the background to suggest nearby sites
@@ -625,6 +645,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       );
     }
 
+    if (widget.isBulk) {
+      return _buildBulkScaffold(units);
+    }
+
     final formBody = Form(
       key: _formKey,
       onChanged: _markDirty,
@@ -671,6 +695,777 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       headerIcon: widget.isEditing ? Icons.edit : Icons.add_circle_outline,
       child: formBody,
     );
+  }
+
+  // === Bulk edit mode ===
+  // Filled in across Phases 2-5. Shell + stubs here so bulk mode compiles.
+
+  Widget _buildBulkScaffold(UnitFormatter units) {
+    return EditFormScaffold(
+      title: context.l10n.diveLog_bulkEdit_appBarTitle(
+        widget.bulkDiveIds!.length,
+      ),
+      embedded: widget.embedded,
+      isSaving: _isSaving,
+      hasUnsavedChanges: _hasUnsavedChanges,
+      onSave: () => _saveBulk(units),
+      onCancel: widget.onCancel,
+      headerIcon: Icons.edit_note,
+      child: _buildBulkForm(units),
+    );
+  }
+
+  // Bulk-mode state.
+  final Set<BulkField> _bulkEnabled = {};
+  bool _bulkFavorite = false;
+  bool _bulkNotesAppend = false; // false = Set (overwrite), true = Append
+  final Map<BulkCollectionType, BulkCollectionMode> _collectionModes = {};
+  bool _bulkTankOnlyIfEmpty = false;
+
+  Widget _gatedRow(BulkField field, Widget child) {
+    return BulkFieldGate(
+      enabled: _bulkEnabled.contains(field),
+      onChanged: (v) => setState(() {
+        if (v) {
+          _bulkEnabled.add(field);
+        } else {
+          _bulkEnabled.remove(field);
+        }
+        _markDirty();
+      }),
+      child: child,
+    );
+  }
+
+  Widget _bulkDiveTypeDropdown() {
+    final diveTypesAsync = ref.watch(diveTypeListNotifierProvider);
+    return diveTypesAsync.when(
+      loading: () => const LinearProgressIndicator(),
+      error: (e, st) =>
+          Text(context.l10n.diveLog_edit_errorLoadingDiveTypes(e.toString())),
+      data: (diveTypes) {
+        if (diveTypes.isEmpty) return const SizedBox.shrink();
+        final exists = diveTypes.any((t) => t.id == _selectedDiveTypeId);
+        final value = exists ? _selectedDiveTypeId : 'recreational';
+        return DropdownButtonFormField<String>(
+          key: ValueKey('bulk_dive_type_${diveTypes.length}_$value'),
+          initialValue: value,
+          items: diveTypes
+              .map((t) => DropdownMenuItem(value: t.id, child: Text(t.name)))
+              .toList(),
+          onChanged: (v) {
+            if (v != null) setState(() => _selectedDiveTypeId = v);
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildBulkForm(UnitFormatter units) {
+    final l10n = context.l10n;
+    return Form(
+      key: _formKey,
+      onChanged: _markDirty,
+      child: ResponsiveFormColumns(
+        children: [
+          FormSection(
+            label: context.l10n.diveLog_bulkEdit_groupLogistics,
+            expanded: true,
+            onToggle: null,
+            children: [
+              _gatedRow(
+                BulkField.diveCenter,
+                FormRow.picker(
+                  label: l10n.diveLog_edit_row_diveCenter,
+                  value: _selectedDiveCenter?.name,
+                  placeholder: l10n.diveLog_edit_row_notSet,
+                  onTap: _showDiveCenterPicker,
+                  onClear: _selectedDiveCenter == null
+                      ? null
+                      : () => setState(() => _selectedDiveCenter = null),
+                ),
+              ),
+              _gatedRow(
+                BulkField.trip,
+                FormRow.picker(
+                  label: l10n.diveLog_edit_row_trip,
+                  value: _selectedTrip?.name,
+                  placeholder: l10n.diveLog_edit_row_notSet,
+                  onTap: _showTripPicker,
+                  onClear: _selectedTrip == null
+                      ? null
+                      : () => setState(() => _selectedTrip = null),
+                ),
+              ),
+              _gatedRow(
+                BulkField.diveType,
+                FormRow.custom(
+                  label: l10n.diveLog_edit_label_diveType,
+                  child: _bulkDiveTypeDropdown(),
+                ),
+              ),
+              _gatedRow(
+                BulkField.rating,
+                FormRow.rating(
+                  label: l10n.diveLog_edit_section_rating,
+                  value: _rating,
+                  onChanged: (v) => setState(() => _rating = v),
+                ),
+              ),
+              _gatedRow(
+                BulkField.isFavorite,
+                FormRow.toggle(
+                  label: context.l10n.diveLog_bulkEdit_fieldFavorite,
+                  value: _bulkFavorite,
+                  onChanged: (v) => setState(() => _bulkFavorite = v),
+                ),
+              ),
+            ],
+          ),
+          _buildBulkConditionsSection(units),
+          _buildBulkWeatherSection(units),
+          _buildBulkRebreatherSection(units),
+          _buildBulkCollectionsSection(units),
+          FormSection(
+            label: l10n.diveLog_edit_section_notes,
+            expanded: true,
+            onToggle: null,
+            children: [
+              _gatedRow(
+                BulkField.notes,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SegmentedButton<bool>(
+                      segments: [
+                        ButtonSegment(
+                          value: false,
+                          label: Text(l10n.diveLog_bulkEdit_notesSet),
+                        ),
+                        ButtonSegment(
+                          value: true,
+                          label: Text(l10n.diveLog_bulkEdit_notesAppend),
+                        ),
+                      ],
+                      selected: {_bulkNotesAppend},
+                      onSelectionChanged: (s) =>
+                          setState(() => _bulkNotesAppend = s.first),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(controller: _notesController, maxLines: 4),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  BulkScalarInputs _collectScalarInputs(UnitFormatter units) {
+    // High-value Logistics + notes fields. Extended per group in later tasks.
+    return BulkScalarInputs(
+      diveCenterId: _selectedDiveCenter?.id,
+      tripId: _selectedTrip?.id,
+      courseId: _selectedCourse?.id,
+      diveTypeId: _selectedDiveTypeId,
+      rating: _rating > 0 ? _rating : null,
+      isFavorite: _bulkFavorite,
+      waterType: _waterType?.name,
+      visibility: _selectedVisibility != Visibility.unknown
+          ? _selectedVisibility.name
+          : null,
+      currentDirection: _currentDirection?.name,
+      currentStrength: _currentStrength?.name,
+      swellHeight: _swellHeightController.text.isNotEmpty
+          ? units.depthToMeters(
+              double.tryParse(_swellHeightController.text) ?? 0,
+            )
+          : null,
+      entryMethod: _entryMethod?.name,
+      exitMethod: _exitMethod?.name,
+      altitude: _altitudeController.text.isNotEmpty
+          ? units.altitudeToMeters(
+              double.tryParse(_altitudeController.text) ?? 0,
+            )
+          : null,
+      surfacePressure: _surfacePressureController.text.isNotEmpty
+          ? (double.tryParse(_surfacePressureController.text) ?? 0) / 1000
+          : null,
+      windSpeed: _windSpeedController.text.isNotEmpty
+          ? units.windSpeedToMs(double.tryParse(_windSpeedController.text) ?? 0)
+          : null,
+      windDirection: _windDirection?.name,
+      cloudCover: _cloudCover?.name,
+      precipitation: _precipitation?.name,
+      humidity: _humidityController.text.isNotEmpty
+          ? (double.tryParse(_humidityController.text) ?? 0)
+          : null,
+      weatherDescription: _weatherDescriptionController.text.isNotEmpty
+          ? _weatherDescriptionController.text
+          : null,
+      diveMode: _diveMode.code,
+      setpointLow: _setpointLow,
+      setpointHigh: _setpointHigh,
+      setpointDeco: _setpointDeco,
+      scrubberType: _scrubberType,
+      scrubberDuration: _scrubberDurationMinutes,
+      notes: _notesController.text,
+    );
+  }
+
+  Widget _collectionEntry({
+    required BulkCollectionType type,
+    required String label,
+    required List<BulkCollectionMode> allowed,
+    required Widget editor,
+  }) {
+    final mode = _collectionModes[type];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(14, 8, 14, 0),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  label,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+              ),
+              BulkCollectionModeSelector(
+                mode: mode,
+                allowed: allowed,
+                onChanged: (m) => setState(() {
+                  if (m == null) {
+                    _collectionModes.remove(type);
+                  } else {
+                    _collectionModes[type] = m;
+                  }
+                }),
+              ),
+            ],
+          ),
+        ),
+        if (mode != null) editor,
+      ],
+    );
+  }
+
+  Widget _bulkTanksEditor(UnitFormatter units) {
+    return Column(
+      children: [
+        for (var i = 0; i < _tanks.length; i++)
+          TankCard(
+            key: ValueKey(_tanks[i].id),
+            tank: _tanks[i],
+            tankNumber: i + 1,
+            units: units,
+            onChanged: (t) => setState(() {
+              _markDirty();
+              _tanks[i] = t;
+            }),
+            onRemove: () => _removeTank(i),
+          ),
+        TextButton.icon(
+          onPressed: _addTank,
+          icon: const Icon(Icons.add),
+          label: Text(context.l10n.diveLog_edit_addTank),
+        ),
+        if (_collectionModes[BulkCollectionType.tanks] ==
+            BulkCollectionMode.add)
+          CheckboxListTile(
+            value: _bulkTankOnlyIfEmpty,
+            onChanged: (v) => setState(() => _bulkTankOnlyIfEmpty = v ?? false),
+            title: Text(context.l10n.diveLog_bulkEdit_tankOnlyIfEmpty),
+            controlAffinity: ListTileControlAffinity.leading,
+            dense: true,
+          ),
+      ],
+    );
+  }
+
+  Widget _buildBulkCollectionsSection(UnitFormatter units) {
+    final l10n = context.l10n;
+    const refModes = [
+      BulkCollectionMode.add,
+      BulkCollectionMode.remove,
+      BulkCollectionMode.replace,
+    ];
+    const ownedModes = [BulkCollectionMode.add, BulkCollectionMode.replace];
+    return FormSection(
+      label: context.l10n.diveLog_bulkEdit_groupCollections,
+      expanded: true,
+      onToggle: null,
+      children: [
+        _collectionEntry(
+          type: BulkCollectionType.tags,
+          label: l10n.diveLog_edit_section_tags,
+          allowed: refModes,
+          editor: TagInputWidget(
+            selectedTags: _selectedTags,
+            onTagsChanged: (tags) => setState(() => _selectedTags = tags),
+          ),
+        ),
+        _collectionEntry(
+          type: BulkCollectionType.equipment,
+          label: l10n.diveLog_edit_section_equipment,
+          allowed: refModes,
+          editor: _equipmentChild(),
+        ),
+        _collectionEntry(
+          type: BulkCollectionType.buddies,
+          label: l10n.diveLog_edit_group_buddies,
+          allowed: refModes,
+          editor: BuddyPicker(
+            selectedBuddies: _selectedBuddies,
+            onChanged: (b) => setState(() => _selectedBuddies = b),
+          ),
+        ),
+        _collectionEntry(
+          type: BulkCollectionType.weights,
+          label: context.l10n.diveLog_bulkEdit_collectionWeights,
+          allowed: ownedModes,
+          editor: _weightChild(units),
+        ),
+        _collectionEntry(
+          type: BulkCollectionType.tanks,
+          label: context.l10n.diveLog_bulkEdit_collectionTanks,
+          allowed: ownedModes,
+          editor: _bulkTanksEditor(units),
+        ),
+        _collectionEntry(
+          type: BulkCollectionType.sightings,
+          label: context.l10n.diveLog_edit_section_marineLife,
+          allowed: ownedModes,
+          editor: _sightingsChild(),
+        ),
+      ],
+    );
+  }
+
+  List<BulkCollectionOp> _collectCollectionOps() {
+    final ops = <BulkCollectionOp>[];
+    final tagsMode = _collectionModes[BulkCollectionType.tags];
+    if (tagsMode != null) {
+      ops.add(
+        TagsOp(mode: tagsMode, tagIds: _selectedTags.map((t) => t.id).toList()),
+      );
+    }
+    final equipMode = _collectionModes[BulkCollectionType.equipment];
+    if (equipMode != null) {
+      ops.add(
+        EquipmentOp(
+          mode: equipMode,
+          equipmentIds: _selectedEquipment.map((e) => e.id).toList(),
+        ),
+      );
+    }
+    final buddiesMode = _collectionModes[BulkCollectionType.buddies];
+    if (buddiesMode != null) {
+      ops.add(BuddiesOp(mode: buddiesMode, buddies: _selectedBuddies));
+    }
+    final tanksMode = _collectionModes[BulkCollectionType.tanks];
+    if (tanksMode != null) {
+      ops.add(
+        TanksOp(
+          mode: tanksMode,
+          tanks: _tanks,
+          onlyIfEmpty: _bulkTankOnlyIfEmpty,
+        ),
+      );
+    }
+    final weightsMode = _collectionModes[BulkCollectionType.weights];
+    if (weightsMode != null) {
+      ops.add(WeightsOp(mode: weightsMode, weights: _weights));
+    }
+    final sightingsMode = _collectionModes[BulkCollectionType.sightings];
+    if (sightingsMode != null) {
+      ops.add(SightingsOp(mode: sightingsMode, sightings: _sightings));
+    }
+    return ops;
+  }
+
+  Widget _enumDropdown<T extends Object>({
+    required T? value,
+    required List<T> options,
+    required String Function(T) label,
+    required ValueChanged<T?> onChanged,
+  }) {
+    return DropdownButtonFormField<T?>(
+      initialValue: value,
+      items: <DropdownMenuItem<T?>>[
+        DropdownMenuItem<T?>(
+          value: null,
+          child: Text(context.l10n.diveLog_edit_notSpecified),
+        ),
+        for (final o in options)
+          DropdownMenuItem<T?>(value: o, child: Text(label(o))),
+      ],
+      onChanged: onChanged,
+    );
+  }
+
+  Widget _buildBulkConditionsSection(UnitFormatter units) {
+    return FormSection(
+      label: context.l10n.diveLog_edit_section_conditions,
+      expanded: true,
+      onToggle: null,
+      children: [
+        _gatedRow(
+          BulkField.waterType,
+          FormRow.custom(
+            label: context.l10n.diveLog_edit_label_waterType,
+            child: _enumDropdown<WaterType>(
+              value: _waterType,
+              options: WaterType.values,
+              label: (v) => v.displayName,
+              onChanged: (v) => setState(() => _waterType = v),
+            ),
+          ),
+        ),
+        _gatedRow(
+          BulkField.visibility,
+          FormRow.custom(
+            label: context.l10n.diveLog_edit_label_visibility,
+            child: _enumDropdown<Visibility>(
+              value: _selectedVisibility,
+              options: Visibility.values,
+              label: (v) => v.displayName,
+              onChanged: (v) =>
+                  setState(() => _selectedVisibility = v ?? Visibility.unknown),
+            ),
+          ),
+        ),
+        _gatedRow(
+          BulkField.currentDirection,
+          FormRow.custom(
+            label: context.l10n.diveLog_edit_label_currentDirection,
+            child: _enumDropdown<CurrentDirection>(
+              value: _currentDirection,
+              options: CurrentDirection.values,
+              label: (v) => v.displayName,
+              onChanged: (v) => setState(() => _currentDirection = v),
+            ),
+          ),
+        ),
+        _gatedRow(
+          BulkField.currentStrength,
+          FormRow.custom(
+            label: context.l10n.diveLog_edit_label_currentStrength,
+            child: _enumDropdown<CurrentStrength>(
+              value: _currentStrength,
+              options: CurrentStrength.values,
+              label: (v) => v.displayName,
+              onChanged: (v) => setState(() => _currentStrength = v),
+            ),
+          ),
+        ),
+        _gatedRow(
+          BulkField.swellHeight,
+          FormRow.text(
+            label: context.l10n.diveLog_edit_label_swellHeight,
+            controller: _swellHeightController,
+            keyboardType: TextInputType.number,
+            alwaysEditing: true,
+          ),
+        ),
+        _gatedRow(
+          BulkField.entryMethod,
+          FormRow.custom(
+            label: context.l10n.diveLog_edit_label_entryMethod,
+            child: _enumDropdown<EntryMethod>(
+              value: _entryMethod,
+              options: EntryMethod.values,
+              label: (v) => v.displayName,
+              onChanged: (v) => setState(() => _entryMethod = v),
+            ),
+          ),
+        ),
+        _gatedRow(
+          BulkField.exitMethod,
+          FormRow.custom(
+            label: context.l10n.diveLog_edit_label_exitMethod,
+            child: _enumDropdown<EntryMethod>(
+              value: _exitMethod,
+              options: EntryMethod.values,
+              label: (v) => v.displayName,
+              onChanged: (v) => setState(() => _exitMethod = v),
+            ),
+          ),
+        ),
+        _gatedRow(
+          BulkField.altitude,
+          FormRow.text(
+            label: context.l10n.diveLog_edit_label_altitude,
+            controller: _altitudeController,
+            keyboardType: TextInputType.number,
+            alwaysEditing: true,
+          ),
+        ),
+        _gatedRow(
+          BulkField.surfacePressure,
+          FormRow.text(
+            label: context.l10n.diveLog_edit_label_surfacePressure,
+            controller: _surfacePressureController,
+            keyboardType: TextInputType.number,
+            alwaysEditing: true,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBulkWeatherSection(UnitFormatter units) {
+    return FormSection(
+      label: context.l10n.diveLog_bulkEdit_groupWeather,
+      expanded: true,
+      onToggle: null,
+      children: [
+        _gatedRow(
+          BulkField.windSpeed,
+          FormRow.text(
+            label: context.l10n.diveLog_edit_label_windSpeed,
+            controller: _windSpeedController,
+            keyboardType: TextInputType.number,
+            alwaysEditing: true,
+          ),
+        ),
+        _gatedRow(
+          BulkField.windDirection,
+          FormRow.custom(
+            label: context.l10n.diveLog_edit_label_windDirection,
+            child: _enumDropdown<CurrentDirection>(
+              value: _windDirection,
+              options: CurrentDirection.values,
+              label: (v) => v.displayName,
+              onChanged: (v) => setState(() => _windDirection = v),
+            ),
+          ),
+        ),
+        _gatedRow(
+          BulkField.cloudCover,
+          FormRow.custom(
+            label: context.l10n.diveLog_edit_label_cloudCover,
+            child: _enumDropdown<CloudCover>(
+              value: _cloudCover,
+              options: CloudCover.values,
+              label: (v) => v.displayName,
+              onChanged: (v) => setState(() => _cloudCover = v),
+            ),
+          ),
+        ),
+        _gatedRow(
+          BulkField.precipitation,
+          FormRow.custom(
+            label: context.l10n.diveLog_edit_label_precipitation,
+            child: _enumDropdown<Precipitation>(
+              value: _precipitation,
+              options: Precipitation.values,
+              label: (v) => v.displayName,
+              onChanged: (v) => setState(() => _precipitation = v),
+            ),
+          ),
+        ),
+        _gatedRow(
+          BulkField.humidity,
+          FormRow.text(
+            label: context.l10n.diveLog_edit_label_humidity,
+            controller: _humidityController,
+            keyboardType: TextInputType.number,
+            alwaysEditing: true,
+          ),
+        ),
+        _gatedRow(
+          BulkField.weatherDescription,
+          FormRow.text(
+            label: context.l10n.diveLog_edit_label_weatherDescription,
+            controller: _weatherDescriptionController,
+            alwaysEditing: true,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _bulkNumberField(ValueChanged<String> onChanged) {
+    return TextFormField(
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      decoration: const InputDecoration(isDense: true),
+      onChanged: onChanged,
+    );
+  }
+
+  Widget _buildBulkRebreatherSection(UnitFormatter units) {
+    return FormSection(
+      label: context.l10n.diveLog_bulkEdit_groupRebreather,
+      expanded: true,
+      onToggle: null,
+      children: [
+        _gatedRow(
+          BulkField.diveMode,
+          FormRow.custom(
+            label: context.l10n.diveLog_diveMode_title,
+            child: _enumDropdown<DiveMode>(
+              value: _diveMode,
+              options: DiveMode.values,
+              label: (v) => v.displayName,
+              onChanged: (v) => setState(() => _diveMode = v ?? DiveMode.oc),
+            ),
+          ),
+        ),
+        _gatedRow(
+          BulkField.setpointLow,
+          FormRow.custom(
+            label: context.l10n.diveLog_bulkEdit_fieldSetpointLow,
+            child: _bulkNumberField((v) => _setpointLow = double.tryParse(v)),
+          ),
+        ),
+        _gatedRow(
+          BulkField.setpointHigh,
+          FormRow.custom(
+            label: context.l10n.diveLog_bulkEdit_fieldSetpointHigh,
+            child: _bulkNumberField((v) => _setpointHigh = double.tryParse(v)),
+          ),
+        ),
+        _gatedRow(
+          BulkField.setpointDeco,
+          FormRow.custom(
+            label: context.l10n.diveLog_bulkEdit_fieldSetpointDeco,
+            child: _bulkNumberField((v) => _setpointDeco = double.tryParse(v)),
+          ),
+        ),
+        _gatedRow(
+          BulkField.scrubberType,
+          FormRow.custom(
+            label: context.l10n.diveLog_bulkEdit_fieldScrubberType,
+            child: TextFormField(
+              decoration: const InputDecoration(isDense: true),
+              onChanged: (v) => _scrubberType = v.isEmpty ? null : v,
+            ),
+          ),
+        ),
+        _gatedRow(
+          BulkField.scrubberDuration,
+          FormRow.custom(
+            label: context.l10n.diveLog_bulkEdit_fieldScrubberDuration,
+            child: _bulkNumberField(
+              (v) => _scrubberDurationMinutes = int.tryParse(v),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _saveBulk(UnitFormatter units) async {
+    final l10n = context.l10n;
+    final ids = widget.bulkDiveIds!;
+
+    // Contradiction guard: mode = OC cannot carry rebreather settings.
+    const rebreatherFields = {
+      BulkField.setpointLow,
+      BulkField.setpointHigh,
+      BulkField.setpointDeco,
+      BulkField.scrubberType,
+      BulkField.scrubberDuration,
+    };
+    if (_bulkEnabled.contains(BulkField.diveMode) &&
+        _diveMode == DiveMode.oc &&
+        _bulkEnabled.any(rebreatherFields.contains)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.diveLog_bulkEdit_contradiction)),
+      );
+      return;
+    }
+
+    final scalarFields = Set<BulkField>.from(_bulkEnabled);
+    String? notesAppend;
+    if (_bulkEnabled.contains(BulkField.notes) && _bulkNotesAppend) {
+      scalarFields.remove(BulkField.notes);
+      notesAppend = _notesController.text;
+    }
+    final scalars = buildScalarCompanion(
+      scalarFields,
+      _collectScalarInputs(units),
+    );
+    final ops = _collectCollectionOps();
+    final hasScalar = scalars.toColumns(false).isNotEmpty;
+    if (!hasScalar &&
+        (notesAppend == null || notesAppend.isEmpty) &&
+        ops.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.diveLog_bulkEdit_nothingSelected)),
+      );
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.diveLog_bulkEdit_confirmTitle),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.common_action_cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l10n.diveLog_bulkEdit_confirmApply),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _isSaving = true);
+    try {
+      final service = ref.read(bulkDiveEditServiceProvider);
+      final snapshot = await service.apply(
+        BulkEditRequest(
+          diveIds: ids,
+          scalars: scalars,
+          notesAppend: notesAppend,
+          ops: ops,
+        ),
+      );
+      if (!mounted) return;
+      final messenger = ScaffoldMessenger.of(context);
+      if (widget.embedded) {
+        widget.onSaved?.call(ids.first);
+      } else {
+        context.go('/dives');
+      }
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(l10n.diveLog_bulkEdit_applied(ids.length)),
+          duration: const Duration(seconds: 5),
+          // A SnackBar with an action defaults to persist: true, which makes the
+          // auto-dismiss timer a no-op so the banner never hides on its own.
+          // Force the 5s auto-dismiss and add a close icon so the banner can be
+          // dismissed without tapping Undo (which would revert the edit). #406.
+          persist: false,
+          showCloseIcon: true,
+          action: SnackBarAction(
+            label: l10n.diveLog_bulkDelete_undo,
+            onPressed: () => service.undo(snapshot),
+          ),
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.diveLog_edit_snackbar_errorSaving(e.toString())),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
   }
 
   Widget _customFieldsChild() {
@@ -809,6 +1604,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     return ProfileSuggestion(
       value: units.convertDepth(meters).toStringAsFixed(1),
       onUse: onUse,
+      tooltip: context.l10n.diveLog_edit_tooltip_calculateFromProfile,
     );
   }
 
@@ -820,6 +1616,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     return ProfileSuggestion(
       value: duration.inMinutes.toString(),
       onUse: onUse,
+      tooltip: context.l10n.diveLog_edit_tooltip_calculateFromProfile,
     );
   }
 

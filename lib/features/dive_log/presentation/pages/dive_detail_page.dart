@@ -1257,6 +1257,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         ndlCurve: analysis?.ndlCurve,
                         sacCurve: analysis?.smoothedSacCurve,
                         ppO2Curve: analysis?.ppO2Curve,
+                        o2SensorCurves: analysis?.o2SensorCurves,
+                        ppO2FromSensorAverage:
+                            analysis?.ppO2FromSensorAverage ?? false,
                         ppN2Curve: analysis?.ppN2Curve,
                         ppHeCurve: analysis?.ppHeCurve,
                         modCurve: analysis?.modCurve,
@@ -4902,6 +4905,9 @@ class _FullscreenProfilePageState
                       ndlCurve: widget.analysis?.ndlCurve,
                       sacCurve: widget.analysis?.smoothedSacCurve,
                       ppO2Curve: widget.analysis?.ppO2Curve,
+                      o2SensorCurves: widget.analysis?.o2SensorCurves,
+                      ppO2FromSensorAverage:
+                          widget.analysis?.ppO2FromSensorAverage ?? false,
                       ppN2Curve: widget.analysis?.ppN2Curve,
                       ppHeCurve: widget.analysis?.ppHeCurve,
                       modCurve: widget.analysis?.modCurve,

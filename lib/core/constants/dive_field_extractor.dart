@@ -1,4 +1,5 @@
 import 'package:submersion/core/constants/dive_field.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 
@@ -6,7 +7,17 @@ import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 /// entities for each [DiveField].
 extension DiveFieldExtractor on DiveField {
   /// Extract the raw value for this field from a full [Dive] entity.
-  dynamic extractFromDive(Dive dive) {
+  ///
+  /// [sacUnit] selects which base value [DiveField.sacRate] yields: volume-based
+  /// L/min ([Dive.sac]) or pressure-based bar/min ([Dive.sacPressure]). It must
+  /// match the [UnitFormatter] later used to format the value so the unit suffix
+  /// is correct. Defaults to [SacUnit.pressurePerMin] to match the AppSettings
+  /// default, so an omitted argument stays consistent with default settings.
+  /// Other fields ignore it.
+  dynamic extractFromDive(
+    Dive dive, {
+    SacUnit sacUnit = SacUnit.pressurePerMin,
+  }) {
     switch (this) {
       case DiveField.diveNumber:
         return dive.diveNumber;
@@ -65,7 +76,7 @@ extension DiveFieldExtractor on DiveField {
       case DiveField.endPressure:
         return dive.tanks.isNotEmpty ? dive.tanks.first.endPressure : null;
       case DiveField.sacRate:
-        return _computeSacRate(dive);
+        return _computeSacRate(dive, sacUnit);
       case DiveField.gasConsumed:
         return _computeGasConsumed(dive);
       case DiveField.totalWeight:
@@ -168,48 +179,29 @@ extension DiveFieldExtractor on DiveField {
   }
 }
 
-/// Compute the SAC rate (Surface Air Consumption) in L/min from a [Dive].
+/// Compute the SAC rate (Surface Air Consumption) for a [Dive].
 ///
-/// Uses the first tank's gas consumption and effective runtime with average
-/// depth to calculate surface-equivalent consumption.
-double? _computeSacRate(Dive dive) {
-  if (dive.tanks.isEmpty) return null;
-  final runtime = dive.effectiveRuntime;
-  final avgDepth = dive.avgDepth;
-  if (runtime == null || avgDepth == null) return null;
+/// Returns the base value matching [sacUnit]:
+/// - [SacUnit.litersPerMin]: volume-based L/min from [Dive.sac] (sums gas across
+///   all tanks with volume data).
+/// - [SacUnit.pressurePerMin]: pressure-based bar/min from [Dive.sacPressure]
+///   (back gas tank pressure drop; no tank volume required).
+double? _computeSacRate(Dive dive, SacUnit sacUnit) =>
+    sacUnit == SacUnit.litersPerMin ? dive.sac : dive.sacPressure;
 
-  final minutes = runtime.inSeconds / 60.0;
-  if (minutes <= 0) return null;
-
-  final tank = dive.tanks.first;
-  if (tank.startPressure == null ||
-      tank.endPressure == null ||
-      tank.volume == null) {
-    return null;
-  }
-
-  final pressureUsed = tank.startPressure! - tank.endPressure!;
-  if (pressureUsed <= 0) return null;
-
-  final gasLiters = tank.volume! * pressureUsed;
-  final avgPressureAtm = (avgDepth / 10.0) + 1.0;
-
-  return gasLiters / minutes / avgPressureAtm;
-}
-
-/// Compute the total gas consumed in liters from the first tank of a [Dive].
+/// Compute the total gas consumed in liters across all tanks of a [Dive].
 double? _computeGasConsumed(Dive dive) {
   if (dive.tanks.isEmpty) return null;
-
-  final tank = dive.tanks.first;
-  if (tank.startPressure == null ||
-      tank.endPressure == null ||
-      tank.volume == null) {
-    return null;
+  double total = 0;
+  for (final tank in dive.tanks) {
+    if (tank.startPressure == null ||
+        tank.endPressure == null ||
+        tank.volume == null) {
+      continue;
+    }
+    final used = tank.startPressure! - tank.endPressure!;
+    if (used <= 0) continue;
+    total += tank.volume! * used;
   }
-
-  final pressureUsed = tank.startPressure! - tank.endPressure!;
-  if (pressureUsed <= 0) return null;
-
-  return tank.volume! * pressureUsed;
+  return total > 0 ? total : null;
 }

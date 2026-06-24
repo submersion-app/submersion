@@ -142,7 +142,8 @@ typedef struct {
     // New fields for full sample capture
     unsigned int heartbeat;    // bpm (UINT32_MAX if unavailable)
     double setpoint;           // bar (NAN if unavailable)
-    double ppo2;               // bar (NAN if unavailable, first sensor)
+    double ppo2;               // bar (NAN if unavailable; aggregate/computed)
+    double o2_sensor[6];       // per-cell ppO2 in bar (NAN if that cell absent)
     double cns;                // percentage 0-100 (NAN if unavailable)
     unsigned int rbt;          // remaining bottom time in seconds (UINT32_MAX if unavailable)
     // Decompression status at this sample

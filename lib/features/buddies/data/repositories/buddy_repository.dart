@@ -454,6 +454,134 @@ class BuddyRepository {
     SyncEventBus.notifyLocalChange();
   }
 
+  Future<void> _bumpDive(String diveId, int now) async {
+    await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+      DivesCompanion(updatedAt: Value(now)),
+    );
+    await _syncRepository.markRecordPending(
+      entityType: 'dives',
+      recordId: diveId,
+      localUpdatedAt: now,
+    );
+  }
+
+  /// Add each buddy (with role) to every dive. Upserts role if already linked.
+  /// No notify/transaction — BulkDiveEditService owns those.
+  Future<void> bulkAddBuddies(
+    List<String> diveIds,
+    List<domain.BuddyWithRole> buddies,
+  ) async {
+    if (diveIds.isEmpty || buddies.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (final diveId in diveIds) {
+      for (final bwr in buddies) {
+        final existing =
+            await (_db.select(_db.diveBuddies)..where(
+                  (t) =>
+                      t.diveId.equals(diveId) & t.buddyId.equals(bwr.buddy.id),
+                ))
+                .getSingleOrNull();
+        if (existing != null) {
+          await (_db.update(_db.diveBuddies)..where(
+                (t) => t.diveId.equals(diveId) & t.buddyId.equals(bwr.buddy.id),
+              ))
+              .write(DiveBuddiesCompanion(role: Value(bwr.role.name)));
+          await _syncRepository.markRecordPending(
+            entityType: 'diveBuddies',
+            recordId: existing.id,
+            localUpdatedAt: now,
+          );
+        } else {
+          final id = _uuid.v4();
+          await _db
+              .into(_db.diveBuddies)
+              .insert(
+                DiveBuddiesCompanion(
+                  id: Value(id),
+                  diveId: Value(diveId),
+                  buddyId: Value(bwr.buddy.id),
+                  role: Value(bwr.role.name),
+                  createdAt: Value(now),
+                ),
+              );
+          await _syncRepository.markRecordPending(
+            entityType: 'diveBuddies',
+            recordId: id,
+            localUpdatedAt: now,
+          );
+        }
+      }
+      await _bumpDive(diveId, now);
+    }
+  }
+
+  /// Remove each buddy id from every dive. No notify/transaction.
+  Future<void> bulkRemoveBuddies(
+    List<String> diveIds,
+    List<String> buddyIds,
+  ) async {
+    if (diveIds.isEmpty || buddyIds.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final existing = await (_db.select(
+      _db.diveBuddies,
+    )..where((t) => t.diveId.isIn(diveIds) & t.buddyId.isIn(buddyIds))).get();
+    await (_db.delete(
+      _db.diveBuddies,
+    )..where((t) => t.diveId.isIn(diveIds) & t.buddyId.isIn(buddyIds))).go();
+    for (final row in existing) {
+      await _syncRepository.logDeletion(
+        entityType: 'diveBuddies',
+        recordId: row.id,
+      );
+    }
+    for (final diveId in diveIds) {
+      await _bumpDive(diveId, now);
+    }
+  }
+
+  /// Replace each dive's buddy set with exactly [buddies]. No notify/transaction.
+  Future<void> bulkReplaceBuddies(
+    List<String> diveIds,
+    List<domain.BuddyWithRole> buddies,
+  ) async {
+    if (diveIds.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (final diveId in diveIds) {
+      final existing = await (_db.select(
+        _db.diveBuddies,
+      )..where((t) => t.diveId.equals(diveId))).get();
+      await (_db.delete(
+        _db.diveBuddies,
+      )..where((t) => t.diveId.equals(diveId))).go();
+      for (final row in existing) {
+        await _syncRepository.logDeletion(
+          entityType: 'diveBuddies',
+          recordId: row.id,
+        );
+      }
+      for (final bwr in buddies) {
+        final id = _uuid.v4();
+        await _db
+            .into(_db.diveBuddies)
+            .insert(
+              DiveBuddiesCompanion(
+                id: Value(id),
+                diveId: Value(diveId),
+                buddyId: Value(bwr.buddy.id),
+                role: Value(bwr.role.name),
+                createdAt: Value(now),
+              ),
+            );
+        await _syncRepository.markRecordPending(
+          entityType: 'diveBuddies',
+          recordId: id,
+          localUpdatedAt: now,
+        );
+      }
+      await _bumpDive(diveId, now);
+    }
+  }
+
   /// Get all buddies with their dive counts in a single efficient query
   Future<List<BuddyWithDiveCount>> getAllBuddiesWithDiveCount({
     String? diverId,

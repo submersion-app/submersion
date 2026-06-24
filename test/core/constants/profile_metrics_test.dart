@@ -52,4 +52,21 @@ void main() {
       expect(info.ndlActual, MetricDataSource.calculated);
     });
   });
+
+  group('ProfileRightAxisMetric.ascentRate', () {
+    test('has expected display metadata', () {
+      const metric = ProfileRightAxisMetric.ascentRate;
+      expect(metric.displayName, 'Ascent Rate');
+      expect(metric.shortName, 'Rate');
+      expect(metric.category, ProfileMetricCategory.primary);
+    });
+
+    test('is excluded from the auto fallback chain', () {
+      // Ascent rate must never auto-claim the right axis; it is opt-in only.
+      expect(
+        ProfileRightAxisMetric.fallbackPriority,
+        isNot(contains(ProfileRightAxisMetric.ascentRate)),
+      );
+    });
+  });
 }

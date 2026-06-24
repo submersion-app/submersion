@@ -9,6 +9,85 @@ class AppLocalizationsNl extends AppLocalizations {
   AppLocalizationsNl([String locale = 'nl']) : super(locale);
 
   @override
+  String get diveLog_bulkEdit_groupRebreather => 'Duikmodus & rebreather';
+
+  @override
+  String get diveLog_bulkEdit_fieldSetpointLow => 'Setpoint laag';
+
+  @override
+  String get diveLog_bulkEdit_fieldSetpointHigh => 'Setpoint hoog';
+
+  @override
+  String get diveLog_bulkEdit_fieldSetpointDeco => 'Setpoint deco';
+
+  @override
+  String get diveLog_bulkEdit_fieldScrubberType => 'Scrubbertype';
+
+  @override
+  String get diveLog_bulkEdit_fieldScrubberDuration => 'Scrubberduur';
+
+  @override
+  String get diveLog_bulkEdit_contradiction =>
+      'OC-modus kan geen rebreather-instellingen hebben. Schakel die velden uit of wijzig de modus.';
+
+  @override
+  String diveLog_bulkEdit_appBarTitle(int count) {
+    return '$count duiken bewerken';
+  }
+
+  @override
+  String get diveLog_bulkEdit_groupLogistics => 'Logistiek';
+
+  @override
+  String get diveLog_bulkEdit_groupWeather => 'Weer';
+
+  @override
+  String get diveLog_bulkEdit_groupCollections => 'Tags, uitrusting & leven';
+
+  @override
+  String get diveLog_bulkEdit_fieldFavorite => 'Favoriet';
+
+  @override
+  String get diveLog_bulkEdit_collectionWeights => 'Loodgewichten';
+
+  @override
+  String get diveLog_bulkEdit_collectionTanks => 'Flessen';
+
+  @override
+  String get diveLog_bulkEdit_notesSet => 'Instellen';
+
+  @override
+  String get diveLog_bulkEdit_notesAppend => 'Toevoegen aan einde';
+
+  @override
+  String get diveLog_bulkEdit_modeAdd => 'Toevoegen';
+
+  @override
+  String get diveLog_bulkEdit_modeRemove => 'Verwijderen';
+
+  @override
+  String get diveLog_bulkEdit_modeReplace => 'Vervangen';
+
+  @override
+  String get diveLog_bulkEdit_tankOnlyIfEmpty =>
+      'Alleen duiken zonder bestaande fles';
+
+  @override
+  String get diveLog_bulkEdit_confirmTitle => 'Wijzigingen toepassen?';
+
+  @override
+  String get diveLog_bulkEdit_confirmApply => 'Toepassen';
+
+  @override
+  String get diveLog_bulkEdit_nothingSelected =>
+      'Schakel minstens één veld in om wijzigingen toe te passen.';
+
+  @override
+  String diveLog_bulkEdit_applied(int count) {
+    return '$count duiken bijgewerkt';
+  }
+
+  @override
   String get settings_cloudSync_error_icloudSignedOut =>
       'iCloud is niet beschikbaar. Log in bij iCloud in de instellingen van je apparaat.';
 
@@ -4109,6 +4188,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_legend_label_ascentRate => 'Opstijgsnelheid';
 
   @override
+  String get diveLog_legend_label_ascentRateLine => 'Opstijgsnelheid (lijn)';
+
+  @override
   String get diveLog_legend_label_ceiling => 'Plafond';
 
   @override
@@ -4317,11 +4399,6 @@ class AppLocalizationsNl extends AppLocalizations {
       one: '1 probleem',
     );
     return '$_temp0';
-  }
-
-  @override
-  String forms_statCell_useProfileValue(String value) {
-    return '$value uit duikprofiel overnemen';
   }
 
   @override
@@ -4920,6 +4997,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_selection_tooltip_selectAll => 'Alles selecteren';
 
   @override
+  String get diveLog_selection_tooltip_selectDateRange =>
+      'Selecteren op datumbereik';
+
+  @override
   String get diveLog_sighting_add => 'Toevoegen';
 
   @override
@@ -5136,6 +5217,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_tissue_title => 'Weefselbelasting';
 
   @override
+  String get diveLog_tooltip_avgCalculated => '(gem., berekend)';
+
+  @override
   String get diveLog_tooltip_ceiling => 'Plafond';
 
   @override
@@ -5185,6 +5269,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_tooltip_sac => 'SAC';
+
+  @override
+  String get diveLog_tooltip_sensor => 'Sensor';
 
   @override
   String get diveLog_tooltip_srfGf => 'SrfGF';
@@ -5574,6 +5661,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveSites_detail_location_country => 'Land';
 
   @override
+  String get diveSites_detail_location_city => 'Stad';
+
+  @override
+  String get diveSites_detail_location_island => 'Eiland';
+
+  @override
+  String get diveSites_detail_location_bodyOfWater => 'Wateroppervlak';
+
+  @override
   String get diveSites_detail_location_gpsCoordinates => 'GPS-coordinaten';
 
   @override
@@ -5764,6 +5860,15 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveSites_edit_field_country_label => 'Land';
+
+  @override
+  String get diveSites_edit_field_city_label => 'Stad';
+
+  @override
+  String get diveSites_edit_field_island_label => 'Eiland';
+
+  @override
+  String get diveSites_edit_field_bodyOfWater_label => 'Wateroppervlak';
 
   @override
   String get diveSites_edit_field_description_hint =>
@@ -17075,4 +17180,17 @@ class AppLocalizationsNl extends AppLocalizations {
   String statistics_divingSince(int year) {
     return 'Duikt sinds $year';
   }
+
+  @override
+  String get db_location_choose_volume => 'Opslaglocatie kiezen';
+
+  @override
+  String get db_location_internal => 'Interne opslag';
+
+  @override
+  String get db_location_sd_card => 'SD-kaart';
+
+  @override
+  String get db_location_external_note =>
+      'Bestanden hier worden verwijderd als je de app verwijdert.';
 }

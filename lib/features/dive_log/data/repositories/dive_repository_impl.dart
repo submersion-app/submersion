@@ -342,6 +342,14 @@ class DiveRepository {
                 temperature: p.temperature,
                 heartRate: p.heartRate,
                 heartRateSource: p.heartRateSource,
+                setpoint: p.setpoint,
+                ppO2: p.ppO2,
+                o2Sensor1: p.o2Sensor1,
+                o2Sensor2: p.o2Sensor2,
+                o2Sensor3: p.o2Sensor3,
+                o2Sensor4: p.o2Sensor4,
+                o2Sensor5: p.o2Sensor5,
+                o2Sensor6: p.o2Sensor6,
                 cns: p.cns,
                 ndl: p.ndl,
                 ceiling: p.ceiling,
@@ -398,6 +406,12 @@ class DiveRepository {
                 heartRateSource: Value(point.heartRateSource),
                 setpoint: Value(point.setpoint),
                 ppO2: Value(point.ppO2),
+                o2Sensor1: Value(point.o2Sensor1),
+                o2Sensor2: Value(point.o2Sensor2),
+                o2Sensor3: Value(point.o2Sensor3),
+                o2Sensor4: Value(point.o2Sensor4),
+                o2Sensor5: Value(point.o2Sensor5),
+                o2Sensor6: Value(point.o2Sensor6),
                 cns: Value(point.cns),
                 ndl: Value(point.ndl),
                 ceiling: Value(point.ceiling),
@@ -489,6 +503,14 @@ class DiveRepository {
                 temperature: row.temperature,
                 heartRate: row.heartRate,
                 heartRateSource: row.heartRateSource,
+                setpoint: row.setpoint,
+                ppO2: row.ppO2,
+                o2Sensor1: row.o2Sensor1,
+                o2Sensor2: row.o2Sensor2,
+                o2Sensor3: row.o2Sensor3,
+                o2Sensor4: row.o2Sensor4,
+                o2Sensor5: row.o2Sensor5,
+                o2Sensor6: row.o2Sensor6,
                 cns: row.cns,
                 ndl: row.ndl,
                 ceiling: row.ceiling,
@@ -680,6 +702,12 @@ class DiveRepository {
               waterType: Value(dive.waterType?.name),
               altitude: Value(dive.altitude),
               surfacePressure: Value(dive.surfacePressure),
+              // Entry/exit GPS (previously dropped on create, so file-imported
+              // dives never became eligible for site matching).
+              entryLatitude: Value(dive.entryLocation?.latitude),
+              entryLongitude: Value(dive.entryLocation?.longitude),
+              exitLatitude: Value(dive.exitLocation?.latitude),
+              exitLongitude: Value(dive.exitLocation?.longitude),
               // Weather conditions
               windSpeed: Value(dive.windSpeed),
               windDirection: Value(dive.windDirection?.name),
@@ -819,6 +847,12 @@ class DiveRepository {
               heartRateSource: Value(point.heartRateSource),
               setpoint: Value(point.setpoint),
               ppO2: Value(point.ppO2),
+              o2Sensor1: Value(point.o2Sensor1),
+              o2Sensor2: Value(point.o2Sensor2),
+              o2Sensor3: Value(point.o2Sensor3),
+              o2Sensor4: Value(point.o2Sensor4),
+              o2Sensor5: Value(point.o2Sensor5),
+              o2Sensor6: Value(point.o2Sensor6),
               cns: Value(point.cns),
               ndl: Value(point.ndl),
               ceiling: Value(point.ceiling),
@@ -2669,6 +2703,14 @@ class DiveRepository {
               temperature: p.temperature,
               heartRate: p.heartRate,
               heartRateSource: p.heartRateSource,
+              setpoint: p.setpoint,
+              ppO2: p.ppO2,
+              o2Sensor1: p.o2Sensor1,
+              o2Sensor2: p.o2Sensor2,
+              o2Sensor3: p.o2Sensor3,
+              o2Sensor4: p.o2Sensor4,
+              o2Sensor5: p.o2Sensor5,
+              o2Sensor6: p.o2Sensor6,
               cns: p.cns,
               ndl: p.ndl,
               ceiling: p.ceiling,
@@ -3585,6 +3627,384 @@ class DiveRepository {
   // ============================================================================
   // Bulk Operations
   // ============================================================================
+
+  /// Bulk-set the columns present in [partial] on every dive in [diveIds].
+  /// Absent columns are left untouched (Drift writes only present columns).
+  /// Forces `updatedAt = now` and marks each dive pending. Does NOT open a
+  /// transaction or notify sync — BulkDiveEditService owns those.
+  Future<void> bulkUpdateFields(
+    List<String> diveIds,
+    DivesCompanion partial,
+  ) async {
+    // No-op when there's nothing to write; an all-absent companion must not
+    // produce a sync-visible "touch" (updatedAt bump + pending mark).
+    if (diveIds.isEmpty || partial.toColumns(false).isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await (_db.update(_db.dives)..where((t) => t.id.isIn(diveIds))).write(
+      partial.copyWith(updatedAt: Value(now)),
+    );
+    for (final diveId in diveIds) {
+      await _syncRepository.markRecordPending(
+        entityType: 'dives',
+        recordId: diveId,
+        localUpdatedAt: now,
+      );
+    }
+  }
+
+  /// Append [textToAppend] to the notes of every dive in [diveIds].
+  /// Empty existing notes receive just the text. No transaction/notify.
+  Future<void> bulkAppendNotes(
+    List<String> diveIds,
+    String textToAppend,
+  ) async {
+    if (diveIds.isEmpty || textToAppend.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final placeholders = List.filled(diveIds.length, '?').join(', ');
+    await _db.customUpdate(
+      "UPDATE dives SET notes = COALESCE(notes, '') || ?, updated_at = ? "
+      'WHERE id IN ($placeholders)',
+      variables: [
+        Variable.withString(textToAppend),
+        Variable.withInt(now),
+        ...diveIds.map(Variable.withString),
+      ],
+      updates: {_db.dives},
+    );
+    for (final diveId in diveIds) {
+      await _syncRepository.markRecordPending(
+        entityType: 'dives',
+        recordId: diveId,
+        localUpdatedAt: now,
+      );
+    }
+  }
+
+  /// Replace each dive's tag membership with exactly [tagIds]. No notify/txn.
+  Future<void> bulkReplaceTags(
+    List<String> diveIds,
+    List<String> tagIds,
+  ) async {
+    if (diveIds.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final existing = await (_db.select(
+      _db.diveTags,
+    )..where((t) => t.diveId.isIn(diveIds))).get();
+    await (_db.delete(_db.diveTags)..where((t) => t.diveId.isIn(diveIds))).go();
+    for (final row in existing) {
+      await _syncRepository.logDeletion(
+        entityType: 'diveTags',
+        recordId: row.id,
+      );
+    }
+    for (final diveId in diveIds) {
+      for (final tagId in tagIds) {
+        final id = _uuid.v4();
+        await _db
+            .into(_db.diveTags)
+            .insert(
+              DiveTagsCompanion(
+                id: Value(id),
+                diveId: Value(diveId),
+                tagId: Value(tagId),
+                createdAt: Value(now),
+              ),
+            );
+        await _syncRepository.markRecordPending(
+          entityType: 'diveTags',
+          recordId: id,
+          localUpdatedAt: now,
+        );
+      }
+    }
+    await (_db.update(_db.dives)..where((t) => t.id.isIn(diveIds))).write(
+      DivesCompanion(updatedAt: Value(now)),
+    );
+    for (final diveId in diveIds) {
+      await _syncRepository.markRecordPending(
+        entityType: 'dives',
+        recordId: diveId,
+        localUpdatedAt: now,
+      );
+    }
+  }
+
+  /// Bump updatedAt + mark pending for a set of dives (shared by bulk ops).
+  Future<void> _bumpDives(List<String> diveIds, int now) async {
+    await (_db.update(_db.dives)..where((t) => t.id.isIn(diveIds))).write(
+      DivesCompanion(updatedAt: Value(now)),
+    );
+    for (final diveId in diveIds) {
+      await _syncRepository.markRecordPending(
+        entityType: 'dives',
+        recordId: diveId,
+        localUpdatedAt: now,
+      );
+    }
+  }
+
+  /// Add each equipment id to each dive (junction upsert). No notify/txn.
+  Future<void> bulkAddEquipment(
+    List<String> diveIds,
+    List<String> equipmentIds,
+  ) async {
+    if (diveIds.isEmpty || equipmentIds.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (final diveId in diveIds) {
+      for (final equipmentId in equipmentIds) {
+        await _db
+            .into(_db.diveEquipment)
+            .insertOnConflictUpdate(
+              DiveEquipmentCompanion(
+                diveId: Value(diveId),
+                equipmentId: Value(equipmentId),
+              ),
+            );
+        await _syncRepository.markRecordPending(
+          entityType: 'diveEquipment',
+          recordId: '$diveId|$equipmentId',
+          localUpdatedAt: now,
+        );
+      }
+    }
+    await _bumpDives(diveIds, now);
+  }
+
+  /// Remove each equipment id from each dive. No notify/txn.
+  Future<void> bulkRemoveEquipment(
+    List<String> diveIds,
+    List<String> equipmentIds,
+  ) async {
+    if (diveIds.isEmpty || equipmentIds.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final existing =
+        await (_db.select(_db.diveEquipment)..where(
+              (t) => t.diveId.isIn(diveIds) & t.equipmentId.isIn(equipmentIds),
+            ))
+            .get();
+    await (_db.delete(_db.diveEquipment)..where(
+          (t) => t.diveId.isIn(diveIds) & t.equipmentId.isIn(equipmentIds),
+        ))
+        .go();
+    for (final row in existing) {
+      await _syncRepository.logDeletion(
+        entityType: 'diveEquipment',
+        recordId: '${row.diveId}|${row.equipmentId}',
+      );
+    }
+    await _bumpDives(diveIds, now);
+  }
+
+  /// Replace each dive's equipment with exactly [equipmentIds]. No notify/txn.
+  Future<void> bulkReplaceEquipment(
+    List<String> diveIds,
+    List<String> equipmentIds,
+  ) async {
+    if (diveIds.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final existing = await (_db.select(
+      _db.diveEquipment,
+    )..where((t) => t.diveId.isIn(diveIds))).get();
+    await (_db.delete(
+      _db.diveEquipment,
+    )..where((t) => t.diveId.isIn(diveIds))).go();
+    for (final row in existing) {
+      await _syncRepository.logDeletion(
+        entityType: 'diveEquipment',
+        recordId: '${row.diveId}|${row.equipmentId}',
+      );
+    }
+    for (final diveId in diveIds) {
+      for (final equipmentId in equipmentIds) {
+        await _db
+            .into(_db.diveEquipment)
+            .insertOnConflictUpdate(
+              DiveEquipmentCompanion(
+                diveId: Value(diveId),
+                equipmentId: Value(equipmentId),
+              ),
+            );
+        await _syncRepository.markRecordPending(
+          entityType: 'diveEquipment',
+          recordId: '$diveId|$equipmentId',
+          localUpdatedAt: now,
+        );
+      }
+    }
+    await _bumpDives(diveIds, now);
+  }
+
+  DiveTanksCompanion _tankCompanion(
+    String id,
+    String diveId,
+    domain.DiveTank t,
+    int order,
+  ) => DiveTanksCompanion(
+    id: Value(id),
+    diveId: Value(diveId),
+    volume: Value(t.volume),
+    workingPressure: Value(t.workingPressure),
+    startPressure: Value(t.startPressure),
+    endPressure: Value(t.endPressure),
+    o2Percent: Value(t.gasMix.o2),
+    hePercent: Value(t.gasMix.he),
+    tankOrder: Value(order),
+    tankRole: Value(t.role.name),
+    tankMaterial: Value(t.material?.name),
+    tankName: Value(t.name),
+    presetName: Value(t.presetName),
+  );
+
+  /// Append [tanks] to each dive (fresh ids, appended after existing tanks).
+  /// When [onlyIfEmpty], a dive that already has any tank is skipped entirely.
+  /// No notify/txn.
+  Future<void> bulkAddTanks(
+    List<String> diveIds,
+    List<domain.DiveTank> tanks, {
+    bool onlyIfEmpty = false,
+  }) async {
+    if (diveIds.isEmpty || tanks.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final changed = <String>[];
+    for (final diveId in diveIds) {
+      final existing = await (_db.select(
+        _db.diveTanks,
+      )..where((t) => t.diveId.equals(diveId))).get();
+      // Evaluate emptiness once per dive (before any insert), so a multi-tank
+      // add with onlyIfEmpty adds the whole list rather than just the first.
+      if (onlyIfEmpty && existing.isNotEmpty) continue;
+      var order = existing.length;
+      for (final tank in tanks) {
+        final tankId = _uuid.v4();
+        await _db
+            .into(_db.diveTanks)
+            .insert(_tankCompanion(tankId, diveId, tank, order));
+        order++;
+        await _syncRepository.markRecordPending(
+          entityType: 'diveTanks',
+          recordId: tankId,
+          localUpdatedAt: now,
+        );
+      }
+      changed.add(diveId);
+    }
+    if (changed.isNotEmpty) await _bumpDives(changed, now);
+  }
+
+  /// Append a single tank to each dive. Convenience wrapper over [bulkAddTanks].
+  Future<void> bulkAddTank(
+    List<String> diveIds,
+    domain.DiveTank tank, {
+    bool onlyIfEmpty = false,
+  }) => bulkAddTanks(diveIds, [tank], onlyIfEmpty: onlyIfEmpty);
+
+  /// Replace each dive's tank list with [tanks] (fresh ids, sequential order).
+  /// No notify/txn. Cascades to delete tank_pressure_profiles/gas_switches.
+  Future<void> bulkReplaceTanks(
+    List<String> diveIds,
+    List<domain.DiveTank> tanks,
+  ) async {
+    if (diveIds.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (final diveId in diveIds) {
+      final existing = await (_db.select(
+        _db.diveTanks,
+      )..where((t) => t.diveId.equals(diveId))).get();
+      await (_db.delete(
+        _db.diveTanks,
+      )..where((t) => t.diveId.equals(diveId))).go();
+      for (final row in existing) {
+        await _syncRepository.logDeletion(
+          entityType: 'diveTanks',
+          recordId: row.id,
+        );
+      }
+      for (var i = 0; i < tanks.length; i++) {
+        final tankId = _uuid.v4();
+        await _db
+            .into(_db.diveTanks)
+            .insert(_tankCompanion(tankId, diveId, tanks[i], i));
+        await _syncRepository.markRecordPending(
+          entityType: 'diveTanks',
+          recordId: tankId,
+          localUpdatedAt: now,
+        );
+      }
+    }
+    await _bumpDives(diveIds, now);
+  }
+
+  DiveWeightsCompanion _weightCompanion(
+    String id,
+    String diveId,
+    domain.DiveWeight w,
+    int now,
+  ) => DiveWeightsCompanion(
+    id: Value(id),
+    diveId: Value(diveId),
+    weightType: Value(w.weightType.name),
+    amountKg: Value(w.amountKg),
+    notes: Value(w.notes),
+    createdAt: Value(now),
+  );
+
+  /// Append each weight to every dive (fresh id per dive). No notify/txn.
+  Future<void> bulkAddWeights(
+    List<String> diveIds,
+    List<domain.DiveWeight> weights,
+  ) async {
+    if (diveIds.isEmpty || weights.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (final diveId in diveIds) {
+      for (final w in weights) {
+        final id = _uuid.v4();
+        await _db
+            .into(_db.diveWeights)
+            .insert(_weightCompanion(id, diveId, w, now));
+        await _syncRepository.markRecordPending(
+          entityType: 'diveWeights',
+          recordId: id,
+          localUpdatedAt: now,
+        );
+      }
+    }
+    await _bumpDives(diveIds, now);
+  }
+
+  /// Replace each dive's weight list with [weights]. No notify/txn.
+  Future<void> bulkReplaceWeights(
+    List<String> diveIds,
+    List<domain.DiveWeight> weights,
+  ) async {
+    if (diveIds.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (final diveId in diveIds) {
+      final existing = await (_db.select(
+        _db.diveWeights,
+      )..where((t) => t.diveId.equals(diveId))).get();
+      await (_db.delete(
+        _db.diveWeights,
+      )..where((t) => t.diveId.equals(diveId))).go();
+      for (final row in existing) {
+        await _syncRepository.logDeletion(
+          entityType: 'diveWeights',
+          recordId: row.id,
+        );
+      }
+      for (final w in weights) {
+        final id = _uuid.v4();
+        await _db
+            .into(_db.diveWeights)
+            .insert(_weightCompanion(id, diveId, w, now));
+        await _syncRepository.markRecordPending(
+          entityType: 'diveWeights',
+          recordId: id,
+          localUpdatedAt: now,
+        );
+      }
+    }
+    await _bumpDives(diveIds, now);
+  }
 
   /// Bulk update trip for multiple dives
   Future<void> bulkUpdateTrip(List<String> diveIds, String? tripId) async {

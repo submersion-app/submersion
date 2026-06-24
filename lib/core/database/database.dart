@@ -309,6 +309,16 @@ class DiveProfiles extends Table {
       real().nullable()(); // Current setpoint at sample (bar)
   RealColumn get ppO2 => real().nullable()(); // Measured/calculated ppO2 (bar)
 
+  // Individual CCR O2 cell readings (bar). Subsurface exports up to 6
+  // (sensor1..sensor6); rebreathers run 3 (e.g. JJ-CCR) to 5 (e.g. rEvo).
+  // Stored raw exactly as the source reports them; null when absent.
+  RealColumn get o2Sensor1 => real().nullable()();
+  RealColumn get o2Sensor2 => real().nullable()();
+  RealColumn get o2Sensor3 => real().nullable()();
+  RealColumn get o2Sensor4 => real().nullable()();
+  RealColumn get o2Sensor5 => real().nullable()();
+  RealColumn get o2Sensor6 => real().nullable()();
+
   // Per-sample decompression data (v1.5)
   RealColumn get cns => real().nullable()(); // CNS percentage 0-100
   IntColumn get tts => integer().nullable()(); // Time to surface in seconds
@@ -340,6 +350,9 @@ class DiveSites extends Table {
   // MacDive site metadata
   TextColumn get waterType => text().nullable()();
   TextColumn get bodyOfWater => text().nullable()();
+  // Location hierarchy
+  TextColumn get city => text().nullable()();
+  TextColumn get island => text().nullable()();
   TextColumn get country => text().nullable()();
   TextColumn get region => text().nullable()();
   RealColumn get rating => real().nullable()();
@@ -789,7 +802,7 @@ class DiverSettings extends Table {
   BoolColumn get showCeilingOnProfile =>
       boolean().withDefault(const Constant(true))();
   BoolColumn get showAscentRateColors =>
-      boolean().withDefault(const Constant(true))();
+      boolean().withDefault(const Constant(false))();
   BoolColumn get showNdlOnProfile =>
       boolean().withDefault(const Constant(true))();
   RealColumn get lastStopDepth => real().withDefault(const Constant(3.0))();
@@ -884,6 +897,14 @@ class DiverSettings extends Table {
       boolean().withDefault(const Constant(true))();
   BoolColumn get defaultShowGasTimeline =>
       boolean().withDefault(const Constant(false))();
+  // Drift column declarations are codegen inputs shadowed by the generated
+  // table at runtime, so this line is never executed (every sibling column
+  // getter is likewise uncovered). The default is verified via the migration
+  // and settings tests, not by exercising this declaration.
+  // coverage:ignore-start
+  BoolColumn get defaultShowAscentRateLine =>
+      boolean().withDefault(const Constant(false))();
+  // coverage:ignore-end
   // Notification settings (v26)
   BoolColumn get notificationsEnabled =>
       boolean().withDefault(const Constant(true))();
@@ -1619,7 +1640,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 87;
+  static const int currentSchemaVersion = 91;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1710,6 +1731,10 @@ class AppDatabase extends _$AppDatabase {
     85,
     86,
     87,
+    88,
+    89,
+    90,
+    91,
   ];
 
   /// Tables that carry a per-row Hybrid Logical Clock for cross-device conflict
@@ -1779,6 +1804,7 @@ class AppDatabase extends _$AppDatabase {
           ('shore', 'Shore', 11),
           ('boat', 'Boat', 12),
           ('liveaboard', 'Liveaboard', 13),
+          ('cavern', 'Cavern', 14),
         ];
 
         for (final type in builtInTypes) {
@@ -4126,6 +4152,93 @@ class AppDatabase extends _$AppDatabase {
           }
         }
         if (from < 87) await reportProgress();
+        if (from < 88) {
+          // Add 'Cavern' as a built-in dive type. Cavern diving (light-zone
+          // only, cavern cert) is a distinct discipline from Cave (beyond
+          // light zone, full cave cert). Guarded by a sqlite_master check so
+          // minimal-schema test databases without dive_types are not affected;
+          // INSERT OR IGNORE preserves any user-created 'cavern' row.
+          //
+          // Renumbered from v84 to v88 because upstream claimed v84-v87 for
+          // sync-infrastructure migrations (see blocks above).
+          final tables = await customSelect(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='dive_types'",
+          ).get();
+          if (tables.isNotEmpty) {
+            final now = DateTime.now().millisecondsSinceEpoch;
+            await customStatement('''
+              INSERT OR IGNORE INTO dive_types (id, name, is_built_in, sort_order, created_at, updated_at)
+              VALUES ('cavern', 'Cavern', 1, 14, $now, $now)
+            ''');
+          }
+        }
+        if (from < 88) await reportProgress();
+        if (from < 89) {
+          // Individual CCR O2 cell readings (sensor1..sensor6 from Subsurface
+          // CCR imports): six nullable columns on `dive_profiles`. PRAGMA-guarded
+          // so a healthy database no-ops; existing rows read as NULL.
+          //
+          // Renumbered from v88 to v89 because upstream claimed v88 for the
+          // Cavern dive-type migration (see block above).
+          final cols = await customSelect(
+            "PRAGMA table_info('dive_profiles')",
+          ).get();
+          if (cols.isNotEmpty) {
+            final existing = cols.map((c) => c.read<String>('name')).toSet();
+            for (var n = 1; n <= 6; n++) {
+              if (!existing.contains('o2_sensor$n')) {
+                await customStatement(
+                  'ALTER TABLE dive_profiles ADD COLUMN o2_sensor$n REAL',
+                );
+              }
+            }
+          }
+        }
+        if (from < 89) await reportProgress();
+        if (from < 90) {
+          // City and Island localities for dive sites (issue #344). Lets
+          // divers tell apart sites that share a country and region (e.g.
+          // multiple islands off Cebu). PRAGMA-guarded so a healthy database
+          // no-ops; existing rows read as NULL. body_of_water already exists.
+          final cols = await customSelect(
+            "PRAGMA table_info('dive_sites')",
+          ).get();
+          if (cols.isNotEmpty) {
+            final existing = cols.map((c) => c.read<String>('name')).toSet();
+            if (!existing.contains('city')) {
+              await customStatement(
+                'ALTER TABLE dive_sites ADD COLUMN city TEXT',
+              );
+            }
+            if (!existing.contains('island')) {
+              await customStatement(
+                'ALTER TABLE dive_sites ADD COLUMN island TEXT',
+              );
+            }
+          }
+        }
+        if (from < 90) await reportProgress();
+        if (from < 91) {
+          // Persisted default for the "Ascent Rate Line" profile overlay
+          // (issue: ascent-rate toggles default-off). Previously the line was a
+          // session-only toggle with no setting; it now joins the Default
+          // Visible Metrics list. PRAGMA-guarded so a healthy database no-ops
+          // and an interrupted upgrade does not fail on a duplicate ALTER.
+          final cols = await customSelect(
+            "PRAGMA table_info('diver_settings')",
+          ).get();
+          if (cols.isNotEmpty) {
+            final existing = cols.map((c) => c.read<String>('name')).toSet();
+            if (!existing.contains('default_show_ascent_rate_line')) {
+              await customStatement(
+                'ALTER TABLE diver_settings '
+                'ADD COLUMN default_show_ascent_rate_line '
+                'INTEGER NOT NULL DEFAULT 0',
+              );
+            }
+          }
+        }
+        if (from < 91) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys

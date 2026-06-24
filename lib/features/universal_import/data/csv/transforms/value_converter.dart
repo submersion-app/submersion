@@ -162,7 +162,8 @@ class ValueConverter {
   /// - deep → 'deep'
   /// - wreck → 'wreck'
   /// - drift → 'drift'
-  /// - cave / cavern → 'cave'
+  /// - cavern → 'cavern'
+  /// - cave → 'cave'
   /// - technical / tec → 'technical'
   /// - freedive / free dive / apnea → 'freedive'
   /// - ice → 'ice'
@@ -185,7 +186,8 @@ class ValueConverter {
     if (s.contains('deep')) return 'deep';
     if (s.contains('wreck')) return 'wreck';
     if (s.contains('drift')) return 'drift';
-    if (s.contains('cavern') || s.contains('cave')) return 'cave';
+    if (s.contains('cavern')) return 'cavern';
+    if (s.contains('cave')) return 'cave';
     if (s.contains('technical') || s.contains('tec')) return 'technical';
     if (s.contains('freedive') ||
         s.contains('free dive') ||
@@ -374,7 +376,8 @@ class ValueTransformService {
     if (lower.contains('deep')) return 'deep';
     if (lower.contains('wreck')) return 'wreck';
     if (lower.contains('drift')) return 'drift';
-    if (lower.contains('cave') || lower.contains('cavern')) return 'cave';
+    if (lower.contains('cavern')) return 'cavern';
+    if (lower.contains('cave')) return 'cave';
     if (lower.contains('tech')) return 'technical';
     if (lower.contains('free')) return 'freedive';
     if (lower.contains('ice')) return 'ice';

@@ -41,6 +41,9 @@ class DiveSite extends Equatable {
   final SiteDifficulty? difficulty; // Site difficulty level
   final String? country;
   final String? region;
+  final String? city;
+  final String? island;
+  final String? bodyOfWater;
   final List<String> photoIds;
   final double? rating; // 1-5 stars
   final String notes;
@@ -64,6 +67,9 @@ class DiveSite extends Equatable {
     this.difficulty,
     this.country,
     this.region,
+    this.city,
+    this.island,
+    this.bodyOfWater,
     this.photoIds = const [],
     this.rating,
     this.notes = '',
@@ -76,12 +82,29 @@ class DiveSite extends Equatable {
     this.isShared = false,
   });
 
-  /// Full location string (region, country)
+  /// Compact one-line location formatted as `locality · region, country`.
+  /// Locality prefers [city], falling back to [island]. [bodyOfWater] is
+  /// intentionally excluded to keep list tiles and map popups tight.
   String get locationString {
-    final parts = <String>[];
-    if (region != null && region!.isNotEmpty) parts.add(region!);
-    if (country != null && country!.isNotEmpty) parts.add(country!);
-    return parts.join(', ');
+    // Trim before testing meaningfulness and before rendering so whitespace-
+    // only values (e.g. from imported/synced data) are ignored and the output
+    // is normalized — consistent with the save/merge paths' trim().isNotEmpty.
+    final regionTrimmed = region?.trim() ?? '';
+    final countryTrimmed = country?.trim() ?? '';
+    final base = <String>[];
+    if (regionTrimmed.isNotEmpty) base.add(regionTrimmed);
+    if (countryTrimmed.isNotEmpty) base.add(countryTrimmed);
+    final baseStr = base.join(', ');
+
+    final cityTrimmed = city?.trim() ?? '';
+    final islandTrimmed = island?.trim() ?? '';
+    final locality = cityTrimmed.isNotEmpty ? cityTrimmed : islandTrimmed;
+
+    if (locality.isNotEmpty && baseStr.isNotEmpty) {
+      return '$locality · $baseStr';
+    }
+    if (locality.isNotEmpty) return locality;
+    return baseStr;
   }
 
   bool get hasCoordinates => location != null;
@@ -107,6 +130,9 @@ class DiveSite extends Equatable {
     SiteDifficulty? difficulty,
     String? country,
     String? region,
+    String? city,
+    String? island,
+    String? bodyOfWater,
     List<String>? photoIds,
     double? rating,
     String? notes,
@@ -129,6 +155,9 @@ class DiveSite extends Equatable {
       difficulty: difficulty ?? this.difficulty,
       country: country ?? this.country,
       region: region ?? this.region,
+      city: city ?? this.city,
+      island: island ?? this.island,
+      bodyOfWater: bodyOfWater ?? this.bodyOfWater,
       photoIds: photoIds ?? this.photoIds,
       rating: rating ?? this.rating,
       notes: notes ?? this.notes,
@@ -154,6 +183,9 @@ class DiveSite extends Equatable {
     difficulty,
     country,
     region,
+    city,
+    island,
+    bodyOfWater,
     photoIds,
     rating,
     notes,

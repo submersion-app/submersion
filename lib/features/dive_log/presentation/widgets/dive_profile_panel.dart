@@ -371,6 +371,9 @@ class _DiveProfilePanelContentState
                   ndlCurve: analysis?.ndlCurve,
                   sacCurve: analysis?.smoothedSacCurve,
                   ppO2Curve: analysis?.ppO2Curve,
+                  o2SensorCurves: analysis?.o2SensorCurves,
+                  ppO2FromSensorAverage:
+                      analysis?.ppO2FromSensorAverage ?? false,
                   ppN2Curve: analysis?.ppN2Curve,
                   ppHeCurve: analysis?.ppHeCurve,
                   modCurve: analysis?.modCurve,

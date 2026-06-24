@@ -290,6 +290,21 @@ static int jni_io_read(void *userdata, void *data, size_t size, size_t *actual) 
         env->CallObjectMethod(ctx->ioHandler, method,
             static_cast<jint>(size), static_cast<jint>(ctx->timeout_ms)));
 
+    // A pending Java exception (e.g. an IOException from a serial read on an
+    // unplugged device or after a revoked USB permission) is a real I/O
+    // failure: report LIBDC_STATUS_IO so the driver fails fast instead of
+    // retrying a dead port. Clearing it is also mandatory -- a left-pending
+    // exception would corrupt the next JNI call. (BLE reads don't throw in
+    // normal operation, so this path is serial-specific in practice while the
+    // partial-read SUCCESS semantics below stay intact for BLE.)
+    if (env->ExceptionCheck()) {
+        env->ExceptionDescribe();
+        env->ExceptionClear();
+        *actual = 0;
+        if (attached) ctx->jvm->DetachCurrentThread();
+        return LIBDC_STATUS_IO;
+    }
+
     if (!result) {
         *actual = 0;
         if (attached) ctx->jvm->DetachCurrentThread();
@@ -336,6 +351,69 @@ static int jni_io_write(void *userdata, const void *data, size_t size, size_t *a
     *actual = size;
     if (attached) ctx->jvm->DetachCurrentThread();
     return LIBDC_STATUS_SUCCESS;
+}
+
+// Serial line-control callbacks. These bridge to the Kotlin SerialIoHandler
+// (configure/setDtr/setRts) and are only wired in nativeDownloadRun when the
+// handler implements them, so BLE handlers are unaffected. The Kotlin methods
+// return 0 on success and non-zero on failure.
+static int jni_io_configure(void *userdata, unsigned int baudrate,
+                            unsigned int databits, unsigned int parity,
+                            unsigned int stopbits, unsigned int flowcontrol) {
+    auto *ctx = static_cast<JniIoContext *>(userdata);
+    JNIEnv *env;
+    bool attached = false;
+    if (ctx->jvm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6) != JNI_OK) {
+        ctx->jvm->AttachCurrentThread(&env, nullptr);
+        attached = true;
+    }
+
+    jclass cls = env->GetObjectClass(ctx->ioHandler);
+    jmethodID method = env->GetMethodID(cls, "configure", "(IIIII)I");
+    int status = LIBDC_STATUS_UNSUPPORTED;
+    if (method != nullptr) {
+        jint r = env->CallIntMethod(ctx->ioHandler, method,
+            static_cast<jint>(baudrate), static_cast<jint>(databits),
+            static_cast<jint>(parity), static_cast<jint>(stopbits),
+            static_cast<jint>(flowcontrol));
+        status = (r == 0) ? LIBDC_STATUS_SUCCESS : LIBDC_STATUS_IO;
+    } else {
+        env->ExceptionClear();
+    }
+
+    if (attached) ctx->jvm->DetachCurrentThread();
+    return status;
+}
+
+static int jni_io_set_modem_line(JniIoContext *ctx, const char *methodName,
+                                 unsigned int value) {
+    JNIEnv *env;
+    bool attached = false;
+    if (ctx->jvm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6) != JNI_OK) {
+        ctx->jvm->AttachCurrentThread(&env, nullptr);
+        attached = true;
+    }
+
+    jclass cls = env->GetObjectClass(ctx->ioHandler);
+    jmethodID method = env->GetMethodID(cls, methodName, "(I)I");
+    int status = LIBDC_STATUS_UNSUPPORTED;
+    if (method != nullptr) {
+        jint r = env->CallIntMethod(ctx->ioHandler, method, static_cast<jint>(value));
+        status = (r == 0) ? LIBDC_STATUS_SUCCESS : LIBDC_STATUS_IO;
+    } else {
+        env->ExceptionClear();
+    }
+
+    if (attached) ctx->jvm->DetachCurrentThread();
+    return status;
+}
+
+static int jni_io_set_dtr(void *userdata, unsigned int value) {
+    return jni_io_set_modem_line(static_cast<JniIoContext *>(userdata), "setDtr", value);
+}
+
+static int jni_io_set_rts(void *userdata, unsigned int value) {
+    return jni_io_set_modem_line(static_cast<JniIoContext *>(userdata), "setRts", value);
 }
 
 // BLE ioctl constants matching libdivecomputer's encoding.
@@ -558,6 +636,26 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeDownloadRun(
     io_callbacks.close = jni_io_close;
     io_callbacks.purge = jni_io_purge;
     io_callbacks.userdata = &ioCtx;
+
+    // Wire serial line-control callbacks only if the handler implements them
+    // (SerialIoHandler does, BleIoHandler does not). A missing method makes
+    // GetMethodID raise NoSuchMethodError, which we clear silently; leaving the
+    // callback NULL makes the C bridge treat it as a no-op.
+    {
+        jclass handlerCls = env->GetObjectClass(ioHandler);
+        if (env->GetMethodID(handlerCls, "configure", "(IIIII)I") != nullptr) {
+            io_callbacks.configure = jni_io_configure;
+        }
+        env->ExceptionClear();
+        if (env->GetMethodID(handlerCls, "setDtr", "(I)I") != nullptr) {
+            io_callbacks.set_dtr = jni_io_set_dtr;
+        }
+        env->ExceptionClear();
+        if (env->GetMethodID(handlerCls, "setRts", "(I)I") != nullptr) {
+            io_callbacks.set_rts = jni_io_set_rts;
+        }
+        env->ExceptionClear();
+    }
 
     // Set up download callbacks.
     JniDownloadContext dlCtx;
@@ -791,8 +889,9 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeGetDiveSample(
     if (index < 0 || static_cast<unsigned int>(index) >= dive->sample_count) return nullptr;
 
     const libdc_sample_t *s = &dive->samples[index];
-    // All 14 fields. Integer sentinels (UINT32_MAX) are cast to double.
-    jdouble values[14] = {
+    // All 20 fields (14 base + 6 O2 cells). Integer sentinels (UINT32_MAX) are
+    // cast to double; NAN doubles pass through and become null on the Kotlin side.
+    jdouble values[20] = {
         static_cast<jdouble>(s->time_ms),
         s->depth,
         s->temperature,
@@ -806,10 +905,16 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeGetDiveSample(
         static_cast<jdouble>(s->deco_type),
         static_cast<jdouble>(s->deco_time),
         s->deco_depth,
-        static_cast<jdouble>(s->deco_tts)
+        static_cast<jdouble>(s->deco_tts),
+        s->o2_sensor[0],
+        s->o2_sensor[1],
+        s->o2_sensor[2],
+        s->o2_sensor[3],
+        s->o2_sensor[4],
+        s->o2_sensor[5]
     };
-    jdoubleArray result = env->NewDoubleArray(14);
-    env->SetDoubleArrayRegion(result, 0, 14, values);
+    jdoubleArray result = env->NewDoubleArray(20);
+    env->SetDoubleArrayRegion(result, 0, 20, values);
     return result;
 }
 

@@ -79,6 +79,23 @@ class S3Config {
   bool get isInsecureEndpoint =>
       !isAws && Uri.tryParse(endpoint)?.scheme == 'http';
 
+  /// Whether requests travel over TLS. AWS S3 proper is always HTTPS; a
+  /// custom endpoint follows its own scheme.
+  bool get _usesTls => isAws || Uri.tryParse(endpoint)?.scheme == 'https';
+
+  /// Path-style addressing actually used on the wire, which may diverge from
+  /// the stored [pathStyle] flag.
+  ///
+  /// A bucket whose name contains a dot cannot be reached virtual-hosted-style
+  /// over HTTPS: the wildcard certificate (`*.s3.<region>.amazonaws.com`, or
+  /// the custom endpoint's equivalent) matches only a single DNS label, so
+  /// `my.bucket.s3...` fails the TLS handshake. AWS recommends path-style for
+  /// such buckets. Forcing it here repairs already-saved configs without a
+  /// migration, and only when TLS is in play (plain HTTP has no cert to break,
+  /// so the stored choice is honored). See issue #335.
+  bool get effectivePathStyle =>
+      pathStyle || (bucket.contains('.') && _usesTls);
+
   /// First validation problem, or null when the config is usable.
   /// UI-facing field errors live in the form; this is the entity-level guard.
   String? validate() {

@@ -325,6 +325,7 @@ class _StartupWrapperState extends State<StartupWrapper>
 
     final PreMigrationBackupService service;
     final String appVersion;
+    BackupDirLease? lease;
     if (widget.preMigrationBackupFactory != null) {
       service = widget.preMigrationBackupFactory!(
         livePath: dbPath,
@@ -334,18 +335,29 @@ class _StartupWrapperState extends State<StartupWrapper>
     } else {
       final info = await PackageInfo.fromPlatform();
       appVersion = '${info.version}.${info.buildNumber}';
+      // Arm any security-scoped bookmark for the custom location (and
+      // self-heal a stale one to the sandbox default) before the safety copy.
+      // Layer 1's fallback below still applies if writing to the armed path
+      // fails, so a pre-migration backup can never brick startup.
+      lease = await BackupService.resolveBackupsDirectoryLeased(prefs);
       service = PreMigrationBackupService(
         livePathProvider: () async => dbPath,
-        backupsDirProvider: () => BackupService.resolveBackupsDirectory(prefs),
+        backupsDirProvider: () async => lease!.path,
+        fallbackBackupsDirProvider:
+            BackupService.resolveDefaultBackupsDirectory,
         preferences: prefs,
       );
     }
 
-    await service.backupIfMigrationPending(
-      stored: stored,
-      target: AppDatabase.currentSchemaVersion,
-      appVersion: appVersion,
-    );
+    try {
+      await service.backupIfMigrationPending(
+        stored: stored,
+        target: AppDatabase.currentSchemaVersion,
+        appVersion: appVersion,
+      );
+    } finally {
+      await lease?.release();
+    }
   }
 
   /// Re-runs backup → services → ready without the 1-second splash delay used

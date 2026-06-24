@@ -626,15 +626,83 @@ void main() {
       expect(profile[5]['decoType'], isNull);
     });
 
-    test('maps sample po2 to ppO2', () async {
+    test(
+      'maps sample po2 to setpoint (not ppO2) and carries it forward',
+      () async {
+        // Subsurface exports the CCR setpoint as `po2`, delta-encoded (written
+        // only when it changes). It is NOT the measured ppO2.
+        final result = await parser.parse(
+          xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='3:00 min'>
+  <divecomputer model='Test CCR' dctype='CCR'>
+  <depth max='20.0 m' mean='15.0 m' />
+  <sample time='0:10 min' depth='5.0 m' po2='0.7' />
+  <sample time='1:00 min' depth='20.0 m' />
+  <sample time='2:00 min' depth='20.0 m' po2='1.3' />
+  <sample time='3:00 min' depth='15.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+        );
+
+        final dive = result.entitiesOf(ImportEntityType.dives).first;
+        final profile = dive['profile'] as List<Map<String, dynamic>>;
+
+        // po2 feeds setpoint, carried forward across samples that omit it.
+        expect(profile[0]['setpoint'], 0.7);
+        expect(profile[1]['setpoint'], 0.7);
+        expect(profile[2]['setpoint'], 1.3);
+        expect(profile[3]['setpoint'], 1.3);
+        // po2 must NOT be stored as measured ppO2.
+        expect(profile.every((p) => !p.containsKey('ppO2')), isTrue);
+      },
+    );
+
+    test(
+      'maps dc_supplied_ppo2 to ppO2, carried forward (delta-encoded)',
+      () async {
+        final result = await parser.parse(
+          xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='3:00 min'>
+  <divecomputer model='Test CCR' dctype='CCR'>
+  <depth max='20.0 m' mean='15.0 m' />
+  <sample time='1:00 min' depth='20.0 m' dc_supplied_ppo2='1.26' />
+  <sample time='2:00 min' depth='20.0 m' />
+  <sample time='3:00 min' depth='20.0 m' dc_supplied_ppo2='1.30' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+        );
+
+        final dive = result.entitiesOf(ImportEntityType.dives).first;
+        final profile = dive['profile'] as List<Map<String, dynamic>>;
+
+        expect(profile[0]['ppO2'], 1.26);
+        // dc_supplied_ppo2 is delta-encoded: an absent value means unchanged.
+        expect(profile[1]['ppO2'], 1.26);
+        expect(profile[2]['ppO2'], 1.30);
+      },
+    );
+
+    test('imports O2 cells and carries each forward (delta-encoded)', () async {
       final result = await parser.parse(
         xmlBytes('''
 <divelog program='subsurface' version='3'>
 <dives>
-<dive number='1' date='2025-01-15' time='10:00:00' duration='2:00 min'>
-  <divecomputer model='Test CCR'>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='3:00 min'>
+  <divecomputer model='Test CCR' dctype='CCR' no_o2sensors='3'>
   <depth max='20.0 m' mean='15.0 m' />
-  <sample time='1:00 min' depth='20.0 m' po2='1.21' />
+  <sample time='1:00 min' depth='20.0 m' sensor1='0.641 bar' sensor2='0.659 bar' sensor3='0.664 bar' />
+  <sample time='2:00 min' depth='20.0 m' sensor1='0.700 bar' />
+  <sample time='3:00 min' depth='20.0 m' />
   </divecomputer>
 </dive>
 </dives>
@@ -645,7 +713,21 @@ void main() {
       final dive = result.entitiesOf(ImportEntityType.dives).first;
       final profile = dive['profile'] as List<Map<String, dynamic>>;
 
-      expect(profile.single['ppO2'], 1.21);
+      expect(profile[0]['o2Sensor1'], 0.641);
+      expect(profile[0]['o2Sensor2'], 0.659);
+      expect(profile[0]['o2Sensor3'], 0.664);
+      // Each cell is delta-encoded: only sensor1 changed at 2:00, the others
+      // carry forward; at 3:00 nothing is written so all three carry forward.
+      expect(profile[1]['o2Sensor1'], 0.700);
+      expect(profile[1]['o2Sensor2'], 0.659);
+      expect(profile[1]['o2Sensor3'], 0.664);
+      expect(profile[2]['o2Sensor1'], 0.700);
+      expect(profile[2]['o2Sensor2'], 0.659);
+      expect(profile[2]['o2Sensor3'], 0.664);
+      // Cell 4 never appears -> stays absent (not synthesized).
+      expect(profile[0].containsKey('o2Sensor4'), isFalse);
+      // Cells are never averaged into ppO2 on import.
+      expect(profile.every((p) => !p.containsKey('ppO2')), isTrue);
     });
   });
 
@@ -1896,6 +1978,52 @@ $diveXml
               'value 1.4 is NOT below 0.18, so it falls into the ppO2High default',
         );
         expect(events[0]['value'], 1.4);
+      },
+    );
+  });
+
+  group('CCR fixtures (real Subsurface exports)', () {
+    Future<List<Map<String, dynamic>>> profileOf(String path) async {
+      final bytes = Uint8List.fromList(await File(path).readAsBytes());
+      final result = await parser.parse(bytes);
+      final dive = result.entitiesOf(ImportEntityType.dives).first;
+      return dive['profile'] as List<Map<String, dynamic>>;
+    }
+
+    test(
+      '002 (cells only, no calculated po2): cells imported, ppO2 stays null',
+      () async {
+        final profile = await profileOf(
+          'test/dives/002_ccr_only_low_sp_no_calculated_po2.ssrf.xml',
+        );
+
+        // Only one po2 (0.7) appears; it is the setpoint, carried forward.
+        expect(profile.first['setpoint'], 0.7);
+        expect(profile.last['setpoint'], 0.7);
+        // No dc_supplied_ppo2 anywhere -> measured ppO2 never set.
+        expect(profile.any((p) => p.containsKey('ppO2')), isFalse);
+        // Individual cells are imported raw.
+        expect(profile.any((p) => p.containsKey('o2Sensor1')), isTrue);
+      },
+    );
+
+    test(
+      '003 (setpoint switch + calculated po2): setpoint, ppO2 and cells',
+      () async {
+        final profile = await profileOf(
+          'test/dives/003_ccr_with_setpoint_switch_and_calculated_po2.ssrf.xml',
+        );
+
+        // Setpoint switch low -> high -> low, carried forward between changes.
+        final setpoints = profile
+            .map((p) => p['setpoint'] as double?)
+            .whereType<double>()
+            .toSet();
+        expect(setpoints, containsAll(<double>[0.7, 1.3]));
+        // Calculated ppO2 (dc_supplied_ppo2) is imported as measured ppO2.
+        expect(profile.any((p) => p.containsKey('ppO2')), isTrue);
+        // Individual cells are imported raw.
+        expect(profile.any((p) => p.containsKey('o2Sensor1')), isTrue);
       },
     );
   });

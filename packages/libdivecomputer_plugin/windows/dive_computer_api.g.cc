@@ -229,7 +229,13 @@ ProfileSample::ProfileSample(
   const int64_t* deco_type,
   const int64_t* deco_time,
   const double* deco_depth,
-  const int64_t* tts)
+  const int64_t* tts,
+  const double* o2_sensor1,
+  const double* o2_sensor2,
+  const double* o2_sensor3,
+  const double* o2_sensor4,
+  const double* o2_sensor5,
+  const double* o2_sensor6)
  : time_seconds_(time_seconds),
     depth_meters_(depth_meters),
     temperature_celsius_(temperature_celsius ? std::optional<double>(*temperature_celsius) : std::nullopt),
@@ -243,7 +249,13 @@ ProfileSample::ProfileSample(
     deco_type_(deco_type ? std::optional<int64_t>(*deco_type) : std::nullopt),
     deco_time_(deco_time ? std::optional<int64_t>(*deco_time) : std::nullopt),
     deco_depth_(deco_depth ? std::optional<double>(*deco_depth) : std::nullopt),
-    tts_(tts ? std::optional<int64_t>(*tts) : std::nullopt) {}
+    tts_(tts ? std::optional<int64_t>(*tts) : std::nullopt),
+    o2_sensor1_(o2_sensor1 ? std::optional<double>(*o2_sensor1) : std::nullopt),
+    o2_sensor2_(o2_sensor2 ? std::optional<double>(*o2_sensor2) : std::nullopt),
+    o2_sensor3_(o2_sensor3 ? std::optional<double>(*o2_sensor3) : std::nullopt),
+    o2_sensor4_(o2_sensor4 ? std::optional<double>(*o2_sensor4) : std::nullopt),
+    o2_sensor5_(o2_sensor5 ? std::optional<double>(*o2_sensor5) : std::nullopt),
+    o2_sensor6_(o2_sensor6 ? std::optional<double>(*o2_sensor6) : std::nullopt) {}
 
 int64_t ProfileSample::time_seconds() const {
   return time_seconds_;
@@ -419,9 +431,87 @@ void ProfileSample::set_tts(int64_t value_arg) {
 }
 
 
+const double* ProfileSample::o2_sensor1() const {
+  return o2_sensor1_ ? &(*o2_sensor1_) : nullptr;
+}
+
+void ProfileSample::set_o2_sensor1(const double* value_arg) {
+  o2_sensor1_ = value_arg ? std::optional<double>(*value_arg) : std::nullopt;
+}
+
+void ProfileSample::set_o2_sensor1(double value_arg) {
+  o2_sensor1_ = value_arg;
+}
+
+
+const double* ProfileSample::o2_sensor2() const {
+  return o2_sensor2_ ? &(*o2_sensor2_) : nullptr;
+}
+
+void ProfileSample::set_o2_sensor2(const double* value_arg) {
+  o2_sensor2_ = value_arg ? std::optional<double>(*value_arg) : std::nullopt;
+}
+
+void ProfileSample::set_o2_sensor2(double value_arg) {
+  o2_sensor2_ = value_arg;
+}
+
+
+const double* ProfileSample::o2_sensor3() const {
+  return o2_sensor3_ ? &(*o2_sensor3_) : nullptr;
+}
+
+void ProfileSample::set_o2_sensor3(const double* value_arg) {
+  o2_sensor3_ = value_arg ? std::optional<double>(*value_arg) : std::nullopt;
+}
+
+void ProfileSample::set_o2_sensor3(double value_arg) {
+  o2_sensor3_ = value_arg;
+}
+
+
+const double* ProfileSample::o2_sensor4() const {
+  return o2_sensor4_ ? &(*o2_sensor4_) : nullptr;
+}
+
+void ProfileSample::set_o2_sensor4(const double* value_arg) {
+  o2_sensor4_ = value_arg ? std::optional<double>(*value_arg) : std::nullopt;
+}
+
+void ProfileSample::set_o2_sensor4(double value_arg) {
+  o2_sensor4_ = value_arg;
+}
+
+
+const double* ProfileSample::o2_sensor5() const {
+  return o2_sensor5_ ? &(*o2_sensor5_) : nullptr;
+}
+
+void ProfileSample::set_o2_sensor5(const double* value_arg) {
+  o2_sensor5_ = value_arg ? std::optional<double>(*value_arg) : std::nullopt;
+}
+
+void ProfileSample::set_o2_sensor5(double value_arg) {
+  o2_sensor5_ = value_arg;
+}
+
+
+const double* ProfileSample::o2_sensor6() const {
+  return o2_sensor6_ ? &(*o2_sensor6_) : nullptr;
+}
+
+void ProfileSample::set_o2_sensor6(const double* value_arg) {
+  o2_sensor6_ = value_arg ? std::optional<double>(*value_arg) : std::nullopt;
+}
+
+void ProfileSample::set_o2_sensor6(double value_arg) {
+  o2_sensor6_ = value_arg;
+}
+
+
 EncodableList ProfileSample::ToEncodableList() const {
   EncodableList list;
-  list.reserve(14);
+  list.reserve(20);
   list.push_back(EncodableValue(time_seconds_));
   list.push_back(EncodableValue(depth_meters_));
   list.push_back(temperature_celsius_ ? EncodableValue(*temperature_celsius_) : EncodableValue());
@@ -436,6 +526,12 @@ EncodableList ProfileSample::ToEncodableList() const {
   list.push_back(deco_time_ ? EncodableValue(*deco_time_) : EncodableValue());
   list.push_back(deco_depth_ ? EncodableValue(*deco_depth_) : EncodableValue());
   list.push_back(tts_ ? EncodableValue(*tts_) : EncodableValue());
+  list.push_back(o2_sensor1_ ? EncodableValue(*o2_sensor1_) : EncodableValue());
+  list.push_back(o2_sensor2_ ? EncodableValue(*o2_sensor2_) : EncodableValue());
+  list.push_back(o2_sensor3_ ? EncodableValue(*o2_sensor3_) : EncodableValue());
+  list.push_back(o2_sensor4_ ? EncodableValue(*o2_sensor4_) : EncodableValue());
+  list.push_back(o2_sensor5_ ? EncodableValue(*o2_sensor5_) : EncodableValue());
+  list.push_back(o2_sensor6_ ? EncodableValue(*o2_sensor6_) : EncodableValue());
   return list;
 }
 
@@ -490,6 +586,30 @@ ProfileSample ProfileSample::FromEncodableList(const EncodableList& list) {
   auto& encodable_tts = list[13];
   if (!encodable_tts.IsNull()) {
     decoded.set_tts(std::get<int64_t>(encodable_tts));
+  }
+  auto& encodable_o2_sensor1 = list[14];
+  if (!encodable_o2_sensor1.IsNull()) {
+    decoded.set_o2_sensor1(std::get<double>(encodable_o2_sensor1));
+  }
+  auto& encodable_o2_sensor2 = list[15];
+  if (!encodable_o2_sensor2.IsNull()) {
+    decoded.set_o2_sensor2(std::get<double>(encodable_o2_sensor2));
+  }
+  auto& encodable_o2_sensor3 = list[16];
+  if (!encodable_o2_sensor3.IsNull()) {
+    decoded.set_o2_sensor3(std::get<double>(encodable_o2_sensor3));
+  }
+  auto& encodable_o2_sensor4 = list[17];
+  if (!encodable_o2_sensor4.IsNull()) {
+    decoded.set_o2_sensor4(std::get<double>(encodable_o2_sensor4));
+  }
+  auto& encodable_o2_sensor5 = list[18];
+  if (!encodable_o2_sensor5.IsNull()) {
+    decoded.set_o2_sensor5(std::get<double>(encodable_o2_sensor5));
+  }
+  auto& encodable_o2_sensor6 = list[19];
+  if (!encodable_o2_sensor6.IsNull()) {
+    decoded.set_o2_sensor6(std::get<double>(encodable_o2_sensor6));
   }
   return decoded;
 }

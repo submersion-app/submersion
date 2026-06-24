@@ -36,8 +36,23 @@ class DashboardAlerts {
   }
 }
 
-/// Recent dives provider (last 5)
+/// Recent dives shown on the home tab (newest 3).
+///
+/// Self-invalidates on any `dives`-table write -- a dive computer import or an
+/// iCloud sync applying remote changes directly to the DB -- so the home tab
+/// reflects new dives without an app restart (issue #217). [divesProvider]
+/// already self-invalidates on the same tick, so today this is belt-and-braces;
+/// keeping the subscription here means the home tab stays correct even if this
+/// provider is ever changed to read recent dives independently of
+/// [divesProvider], and makes its reactivity contract explicit at the call
+/// site instead of relying on transitive propagation two providers away.
 final recentDivesProvider = FutureProvider<List<Dive>>((ref) async {
+  final repository = ref.watch(diveRepositoryProvider);
+  final sub = repository.watchDivesChanges().listen(
+    (_) => ref.invalidateSelf(),
+  );
+  ref.onDispose(sub.cancel);
+
   final allDives = await ref.watch(divesProvider.future);
   // Dives are already sorted by date descending in the repository
   final recent = allDives.take(3).toList();
@@ -51,7 +66,6 @@ final recentDivesProvider = FutureProvider<List<Dive>>((ref) async {
         .where((id) => !cache.containsKey(id))
         .toList();
     if (uncached.isNotEmpty) {
-      final repository = ref.read(diveRepositoryProvider);
       final profiles = await repository.getBatchProfileSummaries(uncached);
       ref.read(batchProfileCacheProvider.notifier).state = {
         ...cache,

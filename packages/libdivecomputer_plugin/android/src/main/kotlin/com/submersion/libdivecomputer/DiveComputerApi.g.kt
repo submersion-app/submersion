@@ -137,7 +137,18 @@ data class ProfileSample (
   val decoType: Long? = null,
   val decoTime: Long? = null,
   val decoDepth: Double? = null,
-  val tts: Long? = null
+  val tts: Long? = null,
+  /**
+   * Individual CCR O2 cell ppO2 readings in bar (sensor 1..6), null when that
+   * cell has no reading. libdivecomputer reports these per-sensor via
+   * DC_SAMPLE_PPO2; [ppo2] holds the aggregate/computed value.
+   */
+  val o2Sensor1: Double? = null,
+  val o2Sensor2: Double? = null,
+  val o2Sensor3: Double? = null,
+  val o2Sensor4: Double? = null,
+  val o2Sensor5: Double? = null,
+  val o2Sensor6: Double? = null
 )
  {
   companion object {
@@ -156,7 +167,13 @@ data class ProfileSample (
       val decoTime = pigeonVar_list[11] as Long?
       val decoDepth = pigeonVar_list[12] as Double?
       val tts = pigeonVar_list[13] as Long?
-      return ProfileSample(timeSeconds, depthMeters, temperatureCelsius, pressureBar, tankIndex, heartRate, setpoint, ppo2, cns, rbt, decoType, decoTime, decoDepth, tts)
+      val o2Sensor1 = pigeonVar_list[14] as Double?
+      val o2Sensor2 = pigeonVar_list[15] as Double?
+      val o2Sensor3 = pigeonVar_list[16] as Double?
+      val o2Sensor4 = pigeonVar_list[17] as Double?
+      val o2Sensor5 = pigeonVar_list[18] as Double?
+      val o2Sensor6 = pigeonVar_list[19] as Double?
+      return ProfileSample(timeSeconds, depthMeters, temperatureCelsius, pressureBar, tankIndex, heartRate, setpoint, ppo2, cns, rbt, decoType, decoTime, decoDepth, tts, o2Sensor1, o2Sensor2, o2Sensor3, o2Sensor4, o2Sensor5, o2Sensor6)
     }
   }
   fun toList(): List<Any?> {
@@ -175,6 +192,12 @@ data class ProfileSample (
       decoTime,
       decoDepth,
       tts,
+      o2Sensor1,
+      o2Sensor2,
+      o2Sensor3,
+      o2Sensor4,
+      o2Sensor5,
+      o2Sensor6,
     )
   }
 }

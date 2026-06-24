@@ -3,9 +3,11 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:submersion_saf/submersion_saf.dart';
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/backup_bookmark_service.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
@@ -481,6 +483,7 @@ class BackupSettingsPage extends ConsumerWidget {
           title: Text(context.l10n.backup_location_title),
           subtitle: Text(
             cloudDestination ??
+                ref.read(backupSettingsProvider.notifier).locationLabel ??
                 settings.backupLocation ??
                 context.l10n.backup_location_default,
             maxLines: 1,
@@ -488,13 +491,46 @@ class BackupSettingsPage extends ConsumerWidget {
           ),
           trailing: TextButton(
             onPressed: () async {
-              final path = await FilePicker.getDirectoryPath(
-                dialogTitle: context.l10n.backup_location_title,
-              );
-              if (path != null) {
-                ref
+              final BackupFolderPick? picked;
+              if (Platform.isIOS) {
+                // iOS: capture a security-scoped bookmark directly -- a bare
+                // file_picker path would lose its scope on the next launch.
+                picked = await BackupBookmarkService.pickFolder();
+              } else if (Platform.isAndroid) {
+                // Android: pick a SAF tree (content:// URI). A file_picker path
+                // is unwritable under scoped storage, so persist the URI + its
+                // display name and skip the bookmark flow entirely. Native +
+                // platform-gated, so the branch body is excluded from coverage;
+                // setSafBackupLocation itself is unit-tested separately.
+                // coverage:ignore-start
+                final folder = await SubmersionSaf.pickFolder();
+                if (folder != null) {
+                  await ref
+                      .read(backupSettingsProvider.notifier)
+                      .setSafBackupLocation(folder.uri, folder.displayName);
+                }
+                return;
+                // coverage:ignore-end
+              } else {
+                final path = await FilePicker.getDirectoryPath(
+                  dialogTitle: context.l10n.backup_location_title,
+                );
+                picked = path == null
+                    ? null
+                    : BackupFolderPick(
+                        path: path,
+                        bookmark: BackupBookmarkService.isSupported
+                            ? await BackupBookmarkService.createBookmark(path)
+                            : null,
+                      );
+              }
+              if (picked != null) {
+                await ref
                     .read(backupSettingsProvider.notifier)
-                    .setBackupLocation(path);
+                    .setBackupLocationWithBookmark(
+                      picked.path,
+                      picked.bookmark,
+                    );
               }
             },
             child: Text(context.l10n.backup_location_change),

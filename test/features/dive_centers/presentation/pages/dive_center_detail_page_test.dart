@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -126,6 +127,93 @@ void main() {
 
       await tester.pumpAndSettle();
       expect(find.text('DIVE_CENTER_LIST_PAGE'), findsNothing);
+    });
+  });
+
+  group('DiveCenterDetailPage map section', () {
+    final locatedCenter = DiveCenter(
+      id: 'center-loc',
+      name: 'Reef Divers',
+      notes: '',
+      latitude: 12.34,
+      longitude: 56.78,
+      createdAt: DateTime(2026, 1, 1),
+      updatedAt: DateTime(2026, 1, 1),
+    );
+
+    testWidgets('renders map when center has coordinates', (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(600, 900);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final overrides = await getBaseOverrides();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            diveCenterByIdProvider(
+              locatedCenter.id,
+            ).overrideWith((ref) async => locatedCenter),
+            diveCenterDiveCountProvider(
+              locatedCenter.id,
+            ).overrideWith((ref) async => 0),
+          ].cast(),
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: DiveCenterDetailPage(centerId: locatedCenter.id),
+          ),
+        ),
+      );
+
+      // Avoid pumpAndSettle: the FlutterMap tile layer animates indefinitely.
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.byType(FlutterMap), findsWidgets);
+    });
+
+    testWidgets('fullscreen button opens the full-screen map', (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(600, 900);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final overrides = await getBaseOverrides();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            diveCenterByIdProvider(
+              locatedCenter.id,
+            ).overrideWith((ref) async => locatedCenter),
+            diveCenterDiveCountProvider(
+              locatedCenter.id,
+            ).overrideWith((ref) async => 0),
+          ].cast(),
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: DiveCenterDetailPage(centerId: locatedCenter.id),
+          ),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      await tester.tap(find.byIcon(Icons.fullscreen));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      // The full-screen route adds its own FlutterMap (now two in the tree).
+      expect(find.byType(FlutterMap), findsWidgets);
     });
   });
 }

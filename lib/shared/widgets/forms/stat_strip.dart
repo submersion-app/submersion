@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/form_style.dart';
 
 /// Hero numbers row: big values with units and uppercase micro-labels,
@@ -48,8 +47,6 @@ class StatCell extends StatefulWidget {
     this.unit,
     this.controller,
     this.displayValue,
-    this.profileValue,
-    this.onUseProfileValue,
     this.keyboardType = const TextInputType.numberWithOptions(decimal: true),
     this.dense = false,
   }) : assert(
@@ -67,10 +64,6 @@ class StatCell extends StatefulWidget {
   /// fit rather than truncating.
   final bool dense;
 
-  /// Value computed from the dive profile; when it differs from the current
-  /// text, a sync glyph offers to apply it via [onUseProfileValue].
-  final String? profileValue;
-  final ValueChanged<String>? onUseProfileValue;
   final TextInputType keyboardType;
 
   @override
@@ -107,11 +100,6 @@ class _StatCellState extends State<StatCell> {
       extentOffset: widget.controller!.text.length,
     );
   }
-
-  bool get _showProfileGlyph =>
-      widget.profileValue != null &&
-      widget.onUseProfileValue != null &&
-      widget.profileValue != widget.controller?.text;
 
   @override
   Widget build(BuildContext context) {
@@ -170,7 +158,6 @@ class _StatCellState extends State<StatCell> {
                     ' ${widget.unit}',
                     style: FormStyle.heroUnitStyle(context),
                   ),
-                if (_showProfileGlyph) _buildProfileGlyph(context),
               ],
             ),
             const SizedBox(height: 2),
@@ -183,29 +170,6 @@ class _StatCellState extends State<StatCell> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildProfileGlyph(BuildContext context) {
-    return PopupMenuButton<String>(
-      tooltip: context.l10n.forms_statCell_useProfileValue(
-        widget.profileValue!,
-      ),
-      padding: EdgeInsets.zero,
-      icon: Icon(
-        Icons.sync_outlined,
-        size: 14,
-        color: Theme.of(context).colorScheme.primary,
-      ),
-      onSelected: widget.onUseProfileValue,
-      itemBuilder: (context) => [
-        PopupMenuItem(
-          value: widget.profileValue!,
-          child: Text(
-            context.l10n.forms_statCell_useProfileValue(widget.profileValue!),
-          ),
-        ),
-      ],
     );
   }
 

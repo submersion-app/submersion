@@ -9,6 +9,82 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
+  String get diveLog_bulkEdit_groupRebreather => '潜水模式与循环呼吸器';
+
+  @override
+  String get diveLog_bulkEdit_fieldSetpointLow => '低设定点';
+
+  @override
+  String get diveLog_bulkEdit_fieldSetpointHigh => '高设定点';
+
+  @override
+  String get diveLog_bulkEdit_fieldSetpointDeco => '减压设定点';
+
+  @override
+  String get diveLog_bulkEdit_fieldScrubberType => '吸收剂类型';
+
+  @override
+  String get diveLog_bulkEdit_fieldScrubberDuration => '吸收剂时长';
+
+  @override
+  String get diveLog_bulkEdit_contradiction => '开路模式不能包含循环呼吸器设置。请关闭这些字段或更改模式。';
+
+  @override
+  String diveLog_bulkEdit_appBarTitle(int count) {
+    return '编辑 $count 次潜水';
+  }
+
+  @override
+  String get diveLog_bulkEdit_groupLogistics => '后勤';
+
+  @override
+  String get diveLog_bulkEdit_groupWeather => '天气';
+
+  @override
+  String get diveLog_bulkEdit_groupCollections => '标签、装备和生物';
+
+  @override
+  String get diveLog_bulkEdit_fieldFavorite => '收藏';
+
+  @override
+  String get diveLog_bulkEdit_collectionWeights => '配重';
+
+  @override
+  String get diveLog_bulkEdit_collectionTanks => '气瓶';
+
+  @override
+  String get diveLog_bulkEdit_notesSet => '设置';
+
+  @override
+  String get diveLog_bulkEdit_notesAppend => '追加';
+
+  @override
+  String get diveLog_bulkEdit_modeAdd => '添加';
+
+  @override
+  String get diveLog_bulkEdit_modeRemove => '移除';
+
+  @override
+  String get diveLog_bulkEdit_modeReplace => '替换';
+
+  @override
+  String get diveLog_bulkEdit_tankOnlyIfEmpty => '仅没有气瓶的潜水';
+
+  @override
+  String get diveLog_bulkEdit_confirmTitle => '应用更改？';
+
+  @override
+  String get diveLog_bulkEdit_confirmApply => '应用';
+
+  @override
+  String get diveLog_bulkEdit_nothingSelected => '至少启用一个字段以应用更改。';
+
+  @override
+  String diveLog_bulkEdit_applied(int count) {
+    return '已更新 $count 次潜水';
+  }
+
+  @override
   String get settings_cloudSync_error_icloudSignedOut =>
       'iCloud 不可用。请在设备设置中登录 iCloud。';
 
@@ -3935,6 +4011,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_legend_label_ascentRate => '上升速率';
 
   @override
+  String get diveLog_legend_label_ascentRateLine => '上升速率曲线';
+
+  @override
   String get diveLog_legend_label_ceiling => '上升限制';
 
   @override
@@ -4136,11 +4215,6 @@ class AppLocalizationsZh extends AppLocalizations {
       one: '1 个问题',
     );
     return '$_temp0';
-  }
-
-  @override
-  String forms_statCell_useProfileValue(String value) {
-    return '使用潜水轮廓中的 $value';
   }
 
   @override
@@ -4724,6 +4798,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_selection_tooltip_selectAll => '全选';
 
   @override
+  String get diveLog_selection_tooltip_selectDateRange => '按日期范围选择';
+
+  @override
   String get diveLog_sighting_add => '添加';
 
   @override
@@ -4938,6 +5015,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_tissue_title => '组织饱和度';
 
   @override
+  String get diveLog_tooltip_avgCalculated => '（平均值，计算）';
+
+  @override
   String get diveLog_tooltip_ceiling => '上升限制';
 
   @override
@@ -4987,6 +5067,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_tooltip_sac => 'SAC';
+
+  @override
+  String get diveLog_tooltip_sensor => '传感器';
 
   @override
   String get diveLog_tooltip_srfGf => '水面GF';
@@ -5365,6 +5448,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_detail_location_country => '国家';
 
   @override
+  String get diveSites_detail_location_city => '城市';
+
+  @override
+  String get diveSites_detail_location_island => '岛屿';
+
+  @override
+  String get diveSites_detail_location_bodyOfWater => '水域';
+
+  @override
   String get diveSites_detail_location_gpsCoordinates => 'GPS 坐标';
 
   @override
@@ -5547,6 +5639,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveSites_edit_field_country_label => '国家';
+
+  @override
+  String get diveSites_edit_field_city_label => '城市';
+
+  @override
+  String get diveSites_edit_field_island_label => '岛屿';
+
+  @override
+  String get diveSites_edit_field_bodyOfWater_label => '水域';
 
   @override
   String get diveSites_edit_field_description_hint => '潜水点的简要描述';
@@ -16375,4 +16476,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String statistics_divingSince(int year) {
     return '自 $year 年起潜水';
   }
+
+  @override
+  String get db_location_choose_volume => '选择存储位置';
+
+  @override
+  String get db_location_internal => '内部存储';
+
+  @override
+  String get db_location_sd_card => 'SD卡';
+
+  @override
+  String get db_location_external_note => '卸载应用后，此处的文件将被删除。';
 }

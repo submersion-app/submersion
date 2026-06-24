@@ -459,6 +459,9 @@ class SubsurfaceXmlParser implements ImportParser {
     int? lastTts;
     int? lastRbt;
     double? lastCns;
+    double? lastSetpoint;
+    double? lastPpo2;
+    final lastSensor = List<double?>.filled(6, null);
     bool inDeco = false;
 
     for (final sample in divecomputer.findElements('sample')) {
@@ -482,18 +485,41 @@ class SubsurfaceXmlParser implements ImportParser {
       final cns = _parseDouble(sample.getAttribute('cns')) ?? lastCns;
       if (cns != null) point['cns'] = cns;
       lastCns = cns;
-      final ppo2 = _parseDouble(sample.getAttribute('po2'));
-      if (ppo2 != null) point['ppO2'] = ppo2;
-      // Direct sample `setpoint` attribute is treated as bar — Subsurface
-      // emits it in bar for its own exports. `_parseDouble` already strips
-      // unit suffixes, so a value like `setpoint='1.2 bar'` parses as 1.2.
-      // This path does NOT run the mbar/bar heuristic that `SP change`
-      // events go through; if a third-party exporter emits direct setpoint
-      // in mbar (rare), the normalization should be added here explicitly
-      // rather than silently applied. Deliberately left asymmetric to
-      // keep the direct-attribute path predictable.
-      final setpoint = _parseDouble(sample.getAttribute('setpoint'));
+      // CCR setpoint: Subsurface writes the controller setpoint as the `po2`
+      // attribute (from `sample.setpoint`), delta-encoded so it only appears
+      // when it changes — carry the last value forward like ndl/tts/cns.
+      // Values are bar (unit suffix stripped by `_parseDouble`). This path does
+      // NOT run the mbar/bar heuristic that `SP change` events go through,
+      // keeping the direct-attribute path predictable.
+      final po2Setpoint = _parseDouble(sample.getAttribute('po2'));
+      if (po2Setpoint != null) lastSetpoint = po2Setpoint;
+      // An explicit `setpoint` attribute (some third-party exporters) applies to
+      // this sample only and is intentionally not forward-filled here; setpoint
+      // segments for display are derived at read time from `SP change` events.
+      final explicitSetpoint = _parseDouble(sample.getAttribute('setpoint'));
+      final setpoint = explicitSetpoint ?? lastSetpoint;
       if (setpoint != null) point['setpoint'] = setpoint;
+
+      // Measured ppO2 is the dive computer's calculated value, exported as
+      // `dc_supplied_ppo2` (NOT `po2`, which is the setpoint above). Like the
+      // O2 cells below it is delta-encoded (written only when it changes), so
+      // carry the last value forward. Never averaged or otherwise synthesized.
+      final ppo2 =
+          _parseDouble(sample.getAttribute('dc_supplied_ppo2')) ?? lastPpo2;
+      if (ppo2 != null) point['ppO2'] = ppo2;
+      lastPpo2 = ppo2;
+
+      // Individual O2 cell readings (`sensor1`..`sensor6`). Subsurface
+      // delta-encodes each cell (writes it only when that cell's value
+      // changes), so an absent attribute means "unchanged" — carry the last
+      // value forward per cell, exactly like temperature/pressure/setpoint.
+      for (var cell = 1; cell <= 6; cell++) {
+        final reading =
+            _parseDouble(sample.getAttribute('sensor$cell')) ??
+            lastSensor[cell - 1];
+        if (reading != null) point['o2Sensor$cell'] = reading;
+        lastSensor[cell - 1] = reading;
+      }
       final inDecoAttr = _parseInt(sample.getAttribute('in_deco'));
       if (inDecoAttr != null) inDeco = inDecoAttr == 1;
       if (inDeco) point['decoType'] = 2;

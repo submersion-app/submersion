@@ -279,6 +279,92 @@ class SpeciesRepository {
     SyncEventBus.notifyLocalChange();
   }
 
+  Future<void> _bumpDive(String diveId, int now) async {
+    await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+      DivesCompanion(updatedAt: Value(now)),
+    );
+    await _syncRepository.markRecordPending(
+      entityType: 'dives',
+      recordId: diveId,
+      localUpdatedAt: now,
+    );
+  }
+
+  /// Add each sighting template to every dive (fresh id + diveId per dive).
+  /// No notify/transaction — BulkDiveEditService owns those.
+  Future<void> bulkAddSightings(
+    List<String> diveIds,
+    List<domain.Sighting> sightings,
+  ) async {
+    if (diveIds.isEmpty || sightings.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (final diveId in diveIds) {
+      for (final sighting in sightings) {
+        final id = _uuid.v4();
+        await _db
+            .into(_db.sightings)
+            .insert(
+              SightingsCompanion(
+                id: Value(id),
+                diveId: Value(diveId),
+                speciesId: Value(sighting.speciesId),
+                count: Value(sighting.count),
+                notes: Value(sighting.notes),
+              ),
+            );
+        await _syncRepository.markRecordPending(
+          entityType: 'sightings',
+          recordId: id,
+          localUpdatedAt: now,
+        );
+      }
+      await _bumpDive(diveId, now);
+    }
+  }
+
+  /// Replace each dive's sightings with [sightings]. No notify/transaction.
+  Future<void> bulkReplaceSightings(
+    List<String> diveIds,
+    List<domain.Sighting> sightings,
+  ) async {
+    if (diveIds.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (final diveId in diveIds) {
+      final existing = await (_db.select(
+        _db.sightings,
+      )..where((t) => t.diveId.equals(diveId))).get();
+      await (_db.delete(
+        _db.sightings,
+      )..where((t) => t.diveId.equals(diveId))).go();
+      for (final row in existing) {
+        await _syncRepository.logDeletion(
+          entityType: 'sightings',
+          recordId: row.id,
+        );
+      }
+      for (final sighting in sightings) {
+        final id = _uuid.v4();
+        await _db
+            .into(_db.sightings)
+            .insert(
+              SightingsCompanion(
+                id: Value(id),
+                diveId: Value(diveId),
+                speciesId: Value(sighting.speciesId),
+                count: Value(sighting.count),
+                notes: Value(sighting.notes),
+              ),
+            );
+        await _syncRepository.markRecordPending(
+          entityType: 'sightings',
+          recordId: id,
+          localUpdatedAt: now,
+        );
+      }
+      await _bumpDive(diveId, now);
+    }
+  }
+
   /// Seed built-in species from the bundled JSON asset.
   ///
   /// Uses INSERT OR IGNORE keyed on stable sp_ IDs for idempotent seeding.

@@ -31,6 +31,15 @@ class DatabaseLocationService {
 
   DatabaseLocationService(this._prefs);
 
+  /// UI hook to let the user choose among external volumes (Android). Set by the
+  /// storage settings page; when null the first (internal) volume is used.
+  Future<ExternalVolumeOption?> Function(List<ExternalVolumeOption>)?
+  _chooseExternalVolume;
+
+  set externalVolumeChooser(
+    Future<ExternalVolumeOption?> Function(List<ExternalVolumeOption>)? chooser,
+  ) => _chooseExternalVolume = chooser;
+
   /// Get the current storage configuration
   Future<StorageConfig> getStorageConfig() async {
     final modeString = _prefs.getString(_modeKey);
@@ -105,7 +114,9 @@ class DatabaseLocationService {
   /// - macOS: Full support with security-scoped bookmarks
   /// - iOS: Full support with security-scoped bookmarks for iCloud Drive
   /// - Windows/Linux: Full support with standard file system access
-  /// - Android: Uses Storage Access Framework (SAF)
+  /// - Android: app-specific external storage (internal or SD card). The live
+  ///   DB needs a real lockable path; arbitrary SAF folders cannot back a
+  ///   SQLite file, so the choice is curated to writable app-specific volumes.
   bool get isCustomFolderSupported => true;
 
   /// Check if we're running on a desktop platform
@@ -137,7 +148,24 @@ class DatabaseLocationService {
       }
     }
 
-    // On other platforms, use file_picker
+    // Android: the live DB needs a real lockable path (SQLite locking + WAL),
+    // so SAF content URIs cannot back it. Offer the app-specific external
+    // volumes (internal storage + SD card) from path_provider -- real writable
+    // paths that need no permissions.
+    // The native volume query + platform gate are untestable in the host VM;
+    // the selection/cancel logic lives in the unit-tested [resolveAndroidDbDir].
+    // coverage:ignore-start
+    if (Platform.isAndroid) {
+      final dirs = await getExternalStorageDirectories();
+      if (dirs == null || dirs.isEmpty) return null;
+      final options = classifyExternalDirs(dirs.map((d) => d.path).toList());
+      final dbDir = await resolveAndroidDbDir(options, _chooseExternalVolume);
+      if (dbDir == null) return null;
+      return FolderPickResultWithBookmark(path: dbDir);
+    }
+    // coverage:ignore-end
+
+    // On other platforms (desktop), use file_picker
     try {
       final result = await FilePicker.getDirectoryPath(
         dialogTitle: 'Choose Database Storage Location',
@@ -309,4 +337,55 @@ class FolderPickResultWithBookmark {
   final Uint8List? bookmarkData;
 
   const FolderPickResultWithBookmark({required this.path, this.bookmarkData});
+}
+
+/// A selectable external volume for the database location (Android).
+class ExternalVolumeOption {
+  const ExternalVolumeOption({required this.path, required this.isInternal});
+
+  final String path;
+
+  /// True for the primary emulated/internal volume; false for removable (SD).
+  final bool isInternal;
+}
+
+/// Classifies app-specific external dirs without native code: the primary
+/// emulated volume is internal; any other volume is removable (SD card). The UI
+/// maps [ExternalVolumeOption.isInternal] to a localized label.
+List<ExternalVolumeOption> classifyExternalDirs(List<String> dirPaths) {
+  final out = <ExternalVolumeOption>[];
+  for (var i = 0; i < dirPaths.length; i++) {
+    final path = dirPaths[i];
+    final isInternal = i == 0 || path.contains('/storage/emulated/');
+    out.add(ExternalVolumeOption(path: path, isInternal: isInternal));
+  }
+  return out;
+}
+
+/// Resolves and creates the database directory among [options] using [chooser]
+/// (or the primary internal volume when no chooser is provided). Returns null
+/// if the user dismissed the chooser.
+///
+/// Extracted from the Android branch of
+/// [DatabaseLocationService.pickCustomFolder] so the selection + cancel logic
+/// is unit-testable without a platform channel.
+Future<String?> resolveAndroidDbDir(
+  List<ExternalVolumeOption> options,
+  Future<ExternalVolumeOption?> Function(List<ExternalVolumeOption>)? chooser,
+) async {
+  final ExternalVolumeOption chosen;
+  if (chooser != null) {
+    final picked = await chooser(options);
+    // A null result means the user dismissed the chooser -> cancel rather than
+    // silently relocating to the first volume.
+    if (picked == null) return null;
+    chosen = picked;
+  } else {
+    // No chooser injected (e.g. background/headless flows): default to the
+    // primary internal volume.
+    chosen = options.first;
+  }
+  final dbDir = p.join(chosen.path, 'Submersion');
+  await Directory(dbDir).create(recursive: true);
+  return dbDir;
 }

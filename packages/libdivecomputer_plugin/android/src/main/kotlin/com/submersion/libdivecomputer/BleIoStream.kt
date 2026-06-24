@@ -27,10 +27,21 @@ private val PREFERRED_SERVICE_UUIDS = setOf(
     UUID.fromString("cb3c4555-d670-4670-bc20-b61dbc851e9a")
 )
 private val PREFERRED_WRITE_UUIDS = setOf(
-    UUID.fromString("6606ab42-89d5-4a00-a8ce-4eb5e1414ee0")
+    UUID.fromString("6606ab42-89d5-4a00-a8ce-4eb5e1414ee0"),
+    // Halcyon Symbios: the app writes commands to the device's Rx endpoint
+    // (00000101). Both Symbios characteristics advertise read+write+indicate and
+    // tie on raw score, so a preferred UUID is required to tell them apart. The
+    // Tx/Rx names are device-centric: Subsurface's qt-ble.cpp writes commands to
+    // 00000101 ("Rx") and reads replies from 00000201 ("Tx"). PR #356 mapped
+    // these backwards and the device never answered (issue #288).
+    UUID.fromString("00000101-8c3b-4f2c-a59e-8c08224f3253")
 )
 private val PREFERRED_NOTIFY_UUIDS = setOf(
-    UUID.fromString("a60b8e5c-b267-44d7-9764-837caf96489e")
+    UUID.fromString("a60b8e5c-b267-44d7-9764-837caf96489e"),
+    // Halcyon Symbios: the device transmits replies on its Tx endpoint
+    // (00000201) via indications; the app writes commands on 00000101 (see
+    // PREFERRED_WRITE_UUIDS and issue #288).
+    UUID.fromString("00000201-8c3b-4f2c-a59e-8c08224f3253")
 )
 
 // Bridges Android BLE GATT communication to libdivecomputer's synchronous
@@ -76,6 +87,17 @@ class BleIoStream(
         ) {
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 connected = true
+                // Request a high-priority (low-interval) connection so the dive
+                // computer's serial->BLE bridge can drain its buffer fast enough
+                // during bulk logbook/profile dumps. Some devices (e.g. the
+                // Heinrichs Weikamp OSTC nano, #280) stream the whole logbook
+                // back-to-back with no flow control and overflow -> drop
+                // notifications when the connection interval is too slow.
+                // Best-effort: the peripheral or controller may ignore it.
+                val priorityRequested =
+                    gatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH)
+                NativeLogger.d(TAG, "BLE",
+                    "requestConnectionPriority(HIGH) -> $priorityRequested")
                 // Request a larger MTU before discovering services.
                 // Android defaults to 23 bytes (20 payload); CoreBluetooth
                 // negotiates automatically but Android requires an explicit call.

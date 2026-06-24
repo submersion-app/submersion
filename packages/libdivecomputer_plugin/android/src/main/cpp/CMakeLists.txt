@@ -148,3 +148,14 @@ target_include_directories(libdc_jni PRIVATE
 )
 target_compile_definitions(libdc_jni PRIVATE HAVE_CONFIG_H)
 target_link_libraries(libdc_jni PRIVATE divecomputer log)
+
+# 16 KB page-size compatibility (Android 15+; required by Google Play for
+# targetSdk >= 35). NDK r27 and earlier link native LOAD segments at 4 KB
+# (-z max-page-size=4096), so liblibdc_jni.so fails Android's 16 KB ELF
+# alignment check and will not load on 16 KB-page devices -- it crashes the
+# app the instant a download starts (issue #318). DO NOT REMOVE: this plugin's
+# Gradle (AGP 8.1.0, no explicit ndkVersion) resolves a pre-r28 NDK, which is
+# exactly how v1.5.5.107 shipped a 4 KB-aligned lib. The flag forces 16 KB
+# regardless of NDK version, and scripts/check_16kb_alignment.py fails CI if a
+# misaligned native lib ever ships again.
+target_link_options(libdc_jni PRIVATE "-Wl,-z,max-page-size=16384")

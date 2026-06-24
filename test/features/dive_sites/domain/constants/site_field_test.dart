@@ -861,4 +861,33 @@ void main() {
       );
     });
   });
+
+  group('SiteField location fields', () {
+    final adapter = SiteFieldAdapter.instance;
+    const site = DiveSite(
+      id: 's',
+      name: 'S',
+      city: 'Cebu City',
+      island: 'Malapascua',
+      bodyOfWater: 'Visayan Sea',
+    );
+    const entity = (site: site, diveCount: 0);
+
+    test('extracts city, island, bodyOfWater', () {
+      expect(adapter.extractValue(SiteField.city, entity), 'Cebu City');
+      expect(adapter.extractValue(SiteField.island, entity), 'Malapascua');
+      expect(
+        adapter.extractValue(SiteField.bodyOfWater, entity),
+        'Visayan Sea',
+      );
+    });
+
+    test('formats string passthrough and null', () {
+      expect(
+        adapter.formatValue(SiteField.city, 'Cebu City', units),
+        'Cebu City',
+      );
+      expect(adapter.formatValue(SiteField.island, null, units), '--');
+    });
+  });
 }

@@ -2,12 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
+import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -320,6 +325,142 @@ void main() {
         );
         await _pumpDetailPage(tester, dive);
         expect(find.byType(DiveDetailPage), findsOneWidget);
+      },
+    );
+  });
+
+  group('DiveDetailPage CCR O2 sensor wiring', () {
+    Dive diveWithProfile() {
+      return createTestDiveWithBottomTime().copyWith(
+        profile: List.generate(
+          6,
+          (i) => DiveProfilePoint(
+            timestamp: i * 60,
+            depth: (i < 3 ? i * 8.0 : (5 - i) * 8.0),
+          ),
+        ),
+      );
+    }
+
+    testWidgets(
+      'forwards o2SensorCurves and ppO2FromSensorAverage from analysis to chart',
+      (tester) async {
+        final dive = diveWithProfile();
+        final sensors = <List<double?>>[
+          List.generate(6, (i) => 0.95),
+          List.generate(6, (i) => 0.97),
+        ];
+        final analysis = ProfileAnalysis.empty().copyWith(
+          ppO2Curve: List.generate(6, (i) => 0.96),
+          o2SensorCurves: sensors,
+          ppO2FromSensorAverage: true,
+        );
+
+        final overrides = await getBaseOverrides();
+        final originalOnError = FlutterError.onError;
+        FlutterError.onError = (d) {
+          if (d.toString().contains('overflowed')) return;
+          originalOnError?.call(d);
+        };
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              ...overrides,
+              diveProvider(dive.id).overrideWith((ref) async => dive),
+              diveDataSourcesProvider(
+                dive.id,
+              ).overrideWith((ref) async => <DiveDataSource>[]),
+              profileAnalysisProvider(
+                dive.id,
+              ).overrideWith((ref) async => analysis),
+              gasSwitchesProvider(
+                dive.id,
+              ).overrideWith((ref) async => <GasSwitchWithTank>[]),
+              tankPressuresProvider(dive.id).overrideWith(
+                (ref) async => <String, List<TankPressurePoint>>{},
+              ),
+              profilesBySourceProvider(dive.id).overrideWith(
+                (ref) async => <String?, List<DiveProfilePoint>>{},
+              ),
+            ],
+            child: MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: DiveDetailPage(diveId: dive.id, embedded: true),
+            ),
+          ),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(seconds: 1));
+        FlutterError.onError = originalOnError;
+
+        final charts = tester.widgetList<DiveProfileChart>(
+          find.byType(DiveProfileChart),
+        );
+        expect(charts, isNotEmpty);
+        final chart = charts.firstWhere((c) => c.o2SensorCurves != null);
+        expect(chart.o2SensorCurves, sensors);
+        expect(chart.ppO2FromSensorAverage, isTrue);
+      },
+    );
+
+    testWidgets(
+      'ppO2FromSensorAverage defaults to false when analysis omits it',
+      (tester) async {
+        final dive = diveWithProfile();
+        // Analysis with a ppO2 curve but no sensor data (computer-supplied ppO2).
+        final analysis = ProfileAnalysis.empty().copyWith(
+          ppO2Curve: List.generate(6, (i) => 1.2),
+        );
+
+        final overrides = await getBaseOverrides();
+        final originalOnError = FlutterError.onError;
+        FlutterError.onError = (d) {
+          if (d.toString().contains('overflowed')) return;
+          originalOnError?.call(d);
+        };
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              ...overrides,
+              diveProvider(dive.id).overrideWith((ref) async => dive),
+              diveDataSourcesProvider(
+                dive.id,
+              ).overrideWith((ref) async => <DiveDataSource>[]),
+              profileAnalysisProvider(
+                dive.id,
+              ).overrideWith((ref) async => analysis),
+              gasSwitchesProvider(
+                dive.id,
+              ).overrideWith((ref) async => <GasSwitchWithTank>[]),
+              tankPressuresProvider(dive.id).overrideWith(
+                (ref) async => <String, List<TankPressurePoint>>{},
+              ),
+              profilesBySourceProvider(dive.id).overrideWith(
+                (ref) async => <String?, List<DiveProfilePoint>>{},
+              ),
+            ],
+            child: MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: DiveDetailPage(diveId: dive.id, embedded: true),
+            ),
+          ),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(seconds: 1));
+        FlutterError.onError = originalOnError;
+
+        final charts = tester.widgetList<DiveProfileChart>(
+          find.byType(DiveProfileChart),
+        );
+        expect(charts, isNotEmpty);
+        for (final chart in charts) {
+          expect(chart.o2SensorCurves, isNull);
+          expect(chart.ppO2FromSensorAverage, isFalse);
+        }
       },
     );
   });

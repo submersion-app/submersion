@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
+import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 
 /// Map for the Match-Sites review: shows the focused dive's GPS point plus its
 /// candidate sites. Tapping a candidate marker selects it.
@@ -52,56 +53,63 @@ class _MatchSitesMapState extends ConsumerState<MatchSitesMap> {
           )
         : null;
 
-    return FlutterMap(
-      mapController: _controller,
-      options: MapOptions(
-        initialCenter: pts.first,
-        initialZoom: 13,
-        initialCameraFit: fit,
-        interactionOptions: const InteractionOptions(
-          flags: InteractiveFlag.all,
+    return TrackpadZoomMap(
+      controller: _controller,
+      child: FlutterMap(
+        mapController: _controller,
+        options: MapOptions(
+          initialCenter: pts.first,
+          initialZoom: 13,
+          initialCameraFit: fit,
+          interactionOptions: const InteractionOptions(
+            flags: InteractiveFlag.all,
+          ),
         ),
-      ),
-      children: [
-        TileLayer(
-          urlTemplate: ref.watch(mapTileUrlProvider),
-          userAgentPackageName: 'app.submersion',
-          maxZoom: ref.watch(mapTileMaxZoomProvider),
-          tileProvider: TileCacheService.instance.isInitialized
-              ? TileCacheService.instance.getTileProvider()
-              : null,
-        ),
-        MarkerLayer(
-          markers: [
-            Marker(
-              point: LatLng(
-                widget.divePoint.latitude,
-                widget.divePoint.longitude,
-              ),
-              width: 38,
-              height: 38,
-              child: _pin(scheme.primary, Icons.my_location, scheme.onPrimary),
-            ),
-            for (final c in widget.candidates)
+        children: [
+          TileLayer(
+            urlTemplate: ref.watch(mapTileUrlProvider),
+            userAgentPackageName: 'app.submersion',
+            maxZoom: ref.watch(mapTileMaxZoomProvider),
+            tileProvider: TileCacheService.instance.isInitialized
+                ? TileCacheService.instance.getTileProvider()
+                : null,
+          ),
+          MarkerLayer(
+            markers: [
               Marker(
-                point: LatLng(c.location.latitude, c.location.longitude),
-                width: c.id == widget.selectedCandidateId ? 46 : 38,
-                height: c.id == widget.selectedCandidateId ? 46 : 38,
-                child: GestureDetector(
-                  onTap: () => widget.onSelectCandidate(c.id),
-                  child: _pin(
-                    c.id == widget.selectedCandidateId
-                        ? scheme.secondary
-                        : (c.isExisting ? Colors.teal : Colors.indigo),
-                    Icons.place,
-                    Colors.white,
-                  ),
+                point: LatLng(
+                  widget.divePoint.latitude,
+                  widget.divePoint.longitude,
+                ),
+                width: 38,
+                height: 38,
+                child: _pin(
+                  scheme.primary,
+                  Icons.my_location,
+                  scheme.onPrimary,
                 ),
               ),
-          ],
-        ),
-        const MapAttribution(),
-      ],
+              for (final c in widget.candidates)
+                Marker(
+                  point: LatLng(c.location.latitude, c.location.longitude),
+                  width: c.id == widget.selectedCandidateId ? 46 : 38,
+                  height: c.id == widget.selectedCandidateId ? 46 : 38,
+                  child: GestureDetector(
+                    onTap: () => widget.onSelectCandidate(c.id),
+                    child: _pin(
+                      c.id == widget.selectedCandidateId
+                          ? scheme.secondary
+                          : (c.isExisting ? Colors.teal : Colors.indigo),
+                      Icons.place,
+                      Colors.white,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const MapAttribution(),
+        ],
+      ),
     );
   }
 

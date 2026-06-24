@@ -3,6 +3,499 @@
 All notable changes to Submersion are documented in this file.
 
 
+## 1.5.6 (2026-06-24)
+
+### Features
+
+- default ascent-rate toggles off, unify naming
+- adopt replaced library via bounded streaming (fixes #358)
+- streaming replace-adopt apply with parity test (#358)
+- bounded recordIdsFor id enumeration for streaming adopt (#358)
+- bulk dive-mode + rebreather cascade (mode/setpoints/scrubber) with OC contradiction guard
+- bulk form Weather group (wind/cloud/precipitation/humidity/description)
+- bulk form Conditions group (water/visibility/current/swell/entry-exit/altitude/pressure)
+- bulk form collections (tags/equipment/buddies/weights/tanks/sightings) with Add/Remove/Replace
+- add BulkCollectionModeSelector
+- bulk form Logistics + Notes groups with save/confirm/undo flow
+- add BulkField set + scalar DivesCompanion builder
+- add BulkFieldGate field wrapper
+- open bulk-edit route from multi-select toolbar; remove superseded bulk sheet
+- add BulkDiveEditPage + /dives/bulk-edit route
+- add DiveEditPage bulk mode (constructor, isBulk, build branch skeleton)
+- add Select-by-date-range to multi-select toolbars
+- shift-click range selection with a selection anchor
+- add bulkDiveEditServiceProvider
+- add BulkDiveEditService.undo (per-dive restore)
+- add BulkDiveEditService.apply with snapshot capture
+- add BulkEditSnapshot data holder
+- add BulkEditRequest and collection-op model
+- add bulk sightings add and replace
+- add bulk buddy add/remove/replace for dives
+- add bulk weights add and replace
+- add bulk tank add (onlyIfEmpty) and replace
+- add bulk equipment add/remove/replace
+- add DiveRepository.bulkReplaceTags
+- add DiveRepository.bulkAppendNotes
+- add DiveRepository.bulkUpdateFields generic bulk scalar update
+- flatten The Dive group to rows + restore calculate buttons (#388)
+- one-tap calculate affordance on FormRow.text (#388)
+- graph ascent rate (#242)
+- emit UDDF-shaped payload with tanks/deco/gps/sourceUuid
+- orchestrate extractors into enriched ImportedDive
+- extend ImportedDive with tanks/deco/summary fields
+- extract dive summary/session/settings fields
+- extract profile samples with recorded deco fields
+- extract tanks and pressure series from msgs 319/323
+- extract gas mixes from dive_gas messages
+- map Garmin product codes to model names
+- resolve local wall-clock from FIT local_timestamp
+- add FIT constants and GenericMessage field access
+- enable trackpad scroll/pinch zoom on all 17 map sites
+- two-finger trackpad scroll/pinch zooms the dive profile chart
+- add kind-aware TrackpadZoomMap two-finger-scroll zoom wrapper
+- add trackpadScrollZoomDelta helper
+
+### Bug Fixes
+
+- address PR review on recordIdsFor (#358)
+- defer log construction off the delegate queue; cover retry paths
+- retry OSTC nano BLE downloads, unblock the notification queue (#394)
+- add Deselect All to master-detail selection bar; pair with Select All on phone
+- address PR review (bulk dive-type error msg, localized null option, empty-ids route guard, dirty tracking)
+- address review - bulkAddTanks evaluates onlyIfEmpty once per dive; bulkUpdateFields no-ops on empty companion
+- address review - fix shift-click anchor walk; fail-fast on unsupported owned-collection modes
+- restore numeric input filters on metric rows + harden calc-icon tests (Copilot review #392)
+- address Copilot review on ascent-rate graphing
+- refresh home tab dive providers on direct DB writes (#217)
+- correct real-file timezone base and multi-gas/AI tank handling
+- map recorded ceiling and entry/exit GPS onto imported dives
+- persist entry/exit GPS in createDive
+- keep SAC curve when tank pressure is keyed to a stale tank (#276)
+- address review - catch struct.error in guard, chain platform onError (#318)
+- stop save from overriding cleared Country/Region
+- address review - fail-closed guard + guard BLE discovery (#318)
+- prevent and diagnose 16 KB-page native load crash (#318)
+- flip trackpad scroll zoom direction (up = out, down = in)
+- 16 KB page-align liblibdc_jni.so for Android 15+
+
+### Refactoring
+
+- extract in-memory adopt as debug reference seam (#358)
+- drop unused StatCell profile glyph (#388)
+- move timestamp normalization into FitTimeResolver
+- TrackpadZoomMap via arena-winning recognizer
+
+### Documentation
+
+- implementation plan for streaming replace-adopt (#358)
+- bulk dive editing form implementation plan (#150)
+- bulk dive editing spec + engine plan (#150)
+- plans
+- clarify home-tab reactivity comments (Copilot review, #217)
+- add Garmin FIT import design spec and implementation plan
+- trackpad scroll-to-zoom spec and implementation plan
+- release notes
+
+### Tests
+
+- cover ascent-rate changes; harden sync fallback
+- cover all collection ops, tank cards, notes-append (bulk methods 90%)
+- cover numeric scalar conversion paths in bulk save
+- cover nothing-selected guard + collection-mode save path
+- cover all buildScalarCompanion branches (100%)
+- cover bulk save flow end-to-end (gate, toggle, confirm, DB apply)
+- const MaterialApp in bulk form test (analyzer)
+- comprehensive bulk-edit coverage (service ops, provider, selection widget tests)
+- raise patch coverage + fix test formatting
+- cover air-integration path + address Copilot review
+- cover provider seam + use-my-location; settle after save
+- raise patch coverage for the #318 error-handler changes
+- cover trackpad zoom rollout + address PR review
+
+### CI/CD
+
+- bump actions/download-artifact from 7 to 8
+- bump actions/checkout from 6 to 7
+
+### Chores
+
+- bump version to 1.5.6+108
+- bump submodule to OSTC3 BLE retry (4ac9867)
+- remove orphaned forms_statCell_useProfileValue (#388)
+
+### Other
+
+- i18n(dive-log): localize all bulk-edit form strings (17 keys across 11 locales)
+- i18n(dive-log): localize bulk-form Conditions/Weather field labels via existing keys
+- apply canonical dart format to bulk-edit files
+- i18n(dive-log): add select-by-date-range tooltip in all 11 locales
+- reword unit-volume fallback comment; clearer non-null local in test
+- docs+test: address second Copilot review
+
+
+## 1.5.5 (2026-06-22)
+
+### Chores
+
+- bump version to 1.5.5+107
+
+
+## 1.5.4 (2026-06-21)
+
+### Features
+
+- double-tap-hold to pan on profile chart (touch)
+- desktop hover select and click-drag pan on profile chart
+- trackpad pinch zoom-to-cursor and two-finger pan on profile chart
+- anchor dive profile zoom to cursor/pinch via ProfileChartViewport
+- add chartDragIntent pointer-kind drag routing
+- add chartFocalFraction plot-rect focal mapping
+- add ProfileChartViewport for cursor-anchored profile zoom
+- localized internal/SD-card chooser dialog (#300)
+- Android internal/SD-card chooser via external dirs (#300)
+- Android SAF folder picker + label display (#300)
+- ref-aware restore/delete/history for SAF backups (#300)
+- route performBackup through BackupTarget with SAF self-heal (#300)
+- add BackupTarget abstraction (filesystem + SAF) (#300)
+- add BackupSafPort seam over the SAF facade (#300)
+- scaffold submersion_saf plugin for SAF backups (#300)
+
+### Bug Fixes
+
+- surface Android serial I/O errors as IO, not timeout (#334)
+- fail fast on serial EOF/error, harden read tests (#334)
+- identify Halcyon Symbios Handset instead of HUD (#357)
+- accumulate USB-serial reads to the full packet (#334)
+- read gas-strip flag via ref.read in gesture paths (PR review)
+- trackpad pinch/pan jumped to the lower-right corner on macOS
+- gate profile-chart drag-pan to a live single-pointer count
+- route trackpad pinch solely through the cursor-anchored handler
+- OSTC nano (hw_ostc3) downloads over BLE (#280)
+- import all o2 sensors, not only the first one
+- drop OC depth x FO2 fallback for CCR/SCR CNS
+- compute CCR/SCR CNS from measured loop ppO2
+- identify Scubapro G2 HUD instead of Aladin Sport Matrix (#285)
+
+### Refactoring
+
+- extract testable chooser dialog + resolveAndroidDbDir; coverage:ignore native glue (#300)
+- extract BackupDatabaseAdapter to break the backup_target import cycle (#300)
+
+### Documentation
+
+- add dive profile chart zoom & navigation spec and plan
+
+### Tests
+
+- cover SAF port/target/restore + db-location chooser; patch coverage 32% -> 97% (#300)
+- cover trackpad two-finger-scroll pan on profile chart
+
+### Chores
+
+- bump version to 1.5.4+106
+- add Copilot code-review instructions for Dart 3 semantics
+
+### Other
+
+- cancel DB-location pick on dismiss, clear chooser, cancel SAF pick on detach (#300)
+- dart format SAF backup sources (#300)
+
+
+## 1.5.4 (2026-06-20)
+
+### Features
+
+- adopt base via streaming temp-file apply (#358)
+- streaming base reader + checksum-verifying part file sink
+- USB-serial dive computer support on Android (#334)
+
+### Bug Fixes
+
+- correct Halcyon Symbios Tx/Rx direction (#288)
+- harden base import on truncated/partless manifests (review)
+- serial-over-USB downloads on macOS/iOS (#334)
+
+### Documentation
+
+- implementation plan for streaming base import (#358)
+- spec streaming base import to fix iCloud sync OOM (#358)
+
+### Tests
+
+- deterministic base temp-file cleanup check
+- convergence covers streaming base adoption end to end (#358)
+- parity between streaming and in-memory base apply (#358)
+
+### Chores
+
+- bump version to 1.5.4+105
+
+### Other
+
+- try all USB ports + non-blank serial error message (#364)
+- flush dives on cancel + validate USB permission device (#364)
+
+
+## 1.5.4 (2026-06-20)
+
+### Features
+
+- show City/Island/Body of Water on the site detail view (#344)
+- add City/Island/Body of Water to the site edit form (#344)
+- add city/island/body-of-water table columns (#344)
+- add city/island/body-of-water suggestion helpers (#344)
+- map city/island/bodyOfWater in repository read, write, search (#344)
+- include city/island in DiveSite.locationString (#344)
+- add city, island, bodyOfWater to DiveSite entity (#344)
+- add city and island columns to dive_sites (schema v90) (#344)
+
+### Bug Fixes
+
+- trim values in locationString for whitespace consistency (#344)
+- carry city/island/bodyOfWater through site merge (#344)
+- write Symbios commands to Tx on Windows and Linux too (#288)
+- write Halcyon Symbios commands to Tx, not Rx (#288)
+- force path-style addressing for dotted bucket names
+- import and use ccr o2 sensor data correctly
+- map 'cavern' text to cavern dive type in all import parsers
+
+### Refactoring
+
+- resolve selected characteristics by index, not UUID (#356 review)
+
+### Documentation
+
+- clarify selector tie-break is input-order, not handle-order (#356 review)
+- implementation plan for dive site City/Island/Body of Water (#344)
+- design spec for dive site City/Island/Body of Water fields (#344)
+- release notes
+- add agent skills section to CLAUDE.md
+- initial shared context for agent sessions
+
+### Tests
+
+- verify edit form persists City/Island/Body of Water (#344)
+- add v90 migration guard, relax v89 version tripwire (#344)
+- verify dive site location fields round-trip through serialization (#344)
+
+### CI/CD
+
+- make test shard modulus 0-based to match matrix.shard
+- split codegen into its own job to shorten the serial prefix
+- guard against empty test shard running the whole suite
+- make generated-code packaging robust to wc formatting
+- shard tests by file, not by case
+- parallelize pipeline to cut wall-clock ~49m -> ~15-18m
+
+### Chores
+
+- bump version to 1.5.4+104
+- bump version to 1.5.4+103
+
+### Other
+
+- dart format and fix doc-comment HTML lint (#344)
+- i18n(sites): add city/island/body-of-water labels in all locales (#344)
+
+
+## 1.5.4 (2026-06-20)
+
+### Features
+
+- show City/Island/Body of Water on the site detail view (#344)
+- add City/Island/Body of Water to the site edit form (#344)
+- add city/island/body-of-water table columns (#344)
+- add city/island/body-of-water suggestion helpers (#344)
+- map city/island/bodyOfWater in repository read, write, search (#344)
+- include city/island in DiveSite.locationString (#344)
+- add city, island, bodyOfWater to DiveSite entity (#344)
+- add city and island columns to dive_sites (schema v90) (#344)
+
+### Bug Fixes
+
+- trim values in locationString for whitespace consistency (#344)
+- carry city/island/bodyOfWater through site merge (#344)
+- write Symbios commands to Tx on Windows and Linux too (#288)
+- write Halcyon Symbios commands to Tx, not Rx (#288)
+- force path-style addressing for dotted bucket names
+- import and use ccr o2 sensor data correctly
+- map 'cavern' text to cavern dive type in all import parsers
+
+### Refactoring
+
+- resolve selected characteristics by index, not UUID (#356 review)
+
+### Documentation
+
+- clarify selector tie-break is input-order, not handle-order (#356 review)
+- implementation plan for dive site City/Island/Body of Water (#344)
+- design spec for dive site City/Island/Body of Water fields (#344)
+- release notes
+- add agent skills section to CLAUDE.md
+- initial shared context for agent sessions
+
+### Tests
+
+- verify edit form persists City/Island/Body of Water (#344)
+- add v90 migration guard, relax v89 version tripwire (#344)
+- verify dive site location fields round-trip through serialization (#344)
+
+### CI/CD
+
+- make test shard modulus 0-based to match matrix.shard
+- split codegen into its own job to shorten the serial prefix
+- guard against empty test shard running the whole suite
+- make generated-code packaging robust to wc formatting
+- shard tests by file, not by case
+- parallelize pipeline to cut wall-clock ~49m -> ~15-18m
+
+### Chores
+
+- bump version to 1.5.4+103
+
+### Other
+
+- dart format and fix doc-comment HTML lint (#344)
+- i18n(sites): add city/island/body-of-water labels in all locales (#344)
+
+
+## 1.5.4 (2026-06-18)
+
+### Features
+
+- release scoped backup dir after each write
+- arm security-scoped bookmark around backup writes; reset stale to default
+- pick custom folder via security-scoped bookmark on Apple platforms
+- dedicated BackupBookmarkHandler
+- dedicated BackupBookmarkHandler (multi-slot, folder picker)
+- persist backup-folder security-scoped bookmark
+- BackupBookmarkService channel wrapper (Dart side)
+
+### Bug Fixes
+
+- re-mint a stale backup bookmark instead of using it as-is
+- keep junction membership when a payload reinserts a deleted key
+- guard tile error logging against a throwing toString
+- never let an unusable backup location brick startup
+- log tile load failures instead of swallowing them
+- always merge a complete public-CA bundle on Windows
+- route keychain ops to the working store on the macOS no-sandbox build
+- default extractFromDive sacUnit to pressurePerMin
+- honor SAC unit preference in dives table column
+- address review - union machine roots, comment accuracy
+- address review - ROOT-only anchors, non-throwing cause
+- trust the Windows certificate store for TLS
+
+### Tests
+
+- cover mixed contradicted/genuine-delete set edit
+- raise patch coverage to ~96% (error/unsupported + resolveBackupsDirectory)
+- cover the tile error handler
+- cover dive list tile SAC extra-field rendering
+- bring patch coverage to 100%
+
+### Chores
+
+- bump version to 1.5.4+102
+
+
+## 1.5.3 (2026-06-17)
+
+### Chores
+
+- bump version to 1.5.3+101
+
+
+## 1.5.2 (2026-06-17)
+
+### Features
+
+- expose prior-experience fields in Diver Profile hub
+- gate iCloud tile by capability and localize failures
+- add iCloud availability strings for all locales
+- add native getICloudAvailability on iOS
+- add native getICloudAvailability on macOS
+- expose iCloudAvailabilityProvider
+- add ICloudAvailability status to ICloudNativeService
+
+### Bug Fixes
+
+- drop keychain-access-groups from no-sandbox DMG entitlements
+- assert sentinel copyWith param types in debug
+- let Diver.copyWith clear nullable fields
+- address PR review and raise iCloud patch coverage
+- retry on legacy keychain for ad-hoc no-sandbox build
+- drop macOS-only SecTask from iOS handler (fixes iOS build)
+- pressure SAC records query uses backGas-only, matching sacPressure contract
+- statistics SQL aggregates tanks per dive
+- dive table SAC column sums all tanks, not just first
+- sacPressure uses back gas tank only on multi-tank dives
+
+### Refactoring
+
+- remove orphaned DiverEditPage and /divers route tree
+
+### Documentation
+
+- plans
+- add wiki documentation redesign implementation plan
+- clarify ICloudAvailability unsupported/unknown semantics
+
+### Tests
+
+- address review feedback
+
+### Chores
+
+- bump version to 1.5.2+100
+- bump version to 1.5.2+99
+
+### Other
+
+- Fix analyze and format issues
+- Add missing test
+- Modify foreground of Save button on dive detail page
+
+
+## 1.5.2 (2026-06-17)
+
+### Features
+
+- expose prior-experience fields in Diver Profile hub
+- gate iCloud tile by capability and localize failures
+- add iCloud availability strings for all locales
+- add native getICloudAvailability on iOS
+- add native getICloudAvailability on macOS
+- expose iCloudAvailabilityProvider
+- add ICloudAvailability status to ICloudNativeService
+
+### Bug Fixes
+
+- assert sentinel copyWith param types in debug
+- let Diver.copyWith clear nullable fields
+- address PR review and raise iCloud patch coverage
+- retry on legacy keychain for ad-hoc no-sandbox build
+- drop macOS-only SecTask from iOS handler (fixes iOS build)
+
+### Refactoring
+
+- remove orphaned DiverEditPage and /divers route tree
+
+### Documentation
+
+- plans
+- add wiki documentation redesign implementation plan
+- clarify ICloudAvailability unsupported/unknown semantics
+
+### Tests
+
+- address review feedback
+
+### Chores
+
+- bump version to 1.5.2+99
+
+
 ## 1.5.1 (2026-06-15)
 
 ### Bug Fixes

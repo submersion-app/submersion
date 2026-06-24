@@ -5,4 +5,11 @@
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- USB Host for serial-over-USB dive computers (e.g. Mares Puck Pro on an
+         FTDI cable). Per-device access is granted at runtime via
+         UsbManager.requestPermission; no install-time permission is needed.
+         required=false so the app still installs on devices without USB host. -->
+    <uses-feature
+        android:name="android.hardware.usb.host"
+        android:required="false" />
 </manifest>

@@ -9,6 +9,84 @@ class AppLocalizationsHe extends AppLocalizations {
   AppLocalizationsHe([String locale = 'he']) : super(locale);
 
   @override
+  String get diveLog_bulkEdit_groupRebreather => 'מצב צלילה וריבריא\'תר';
+
+  @override
+  String get diveLog_bulkEdit_fieldSetpointLow => 'ערך יעד נמוך';
+
+  @override
+  String get diveLog_bulkEdit_fieldSetpointHigh => 'ערך יעד גבוה';
+
+  @override
+  String get diveLog_bulkEdit_fieldSetpointDeco => 'ערך יעד דקומפרסיה';
+
+  @override
+  String get diveLog_bulkEdit_fieldScrubberType => 'סוג מסנן';
+
+  @override
+  String get diveLog_bulkEdit_fieldScrubberDuration => 'משך המסנן';
+
+  @override
+  String get diveLog_bulkEdit_contradiction =>
+      'מצב מעגל פתוח אינו תומך בהגדרות ריבריא\'תר. כבה שדות אלה או שנה את המצב.';
+
+  @override
+  String diveLog_bulkEdit_appBarTitle(int count) {
+    return 'עריכת $count צלילות';
+  }
+
+  @override
+  String get diveLog_bulkEdit_groupLogistics => 'לוגיסטיקה';
+
+  @override
+  String get diveLog_bulkEdit_groupWeather => 'מזג אוויר';
+
+  @override
+  String get diveLog_bulkEdit_groupCollections => 'תגיות, ציוד וחיים';
+
+  @override
+  String get diveLog_bulkEdit_fieldFavorite => 'מועדף';
+
+  @override
+  String get diveLog_bulkEdit_collectionWeights => 'משקולות';
+
+  @override
+  String get diveLog_bulkEdit_collectionTanks => 'מכלים';
+
+  @override
+  String get diveLog_bulkEdit_notesSet => 'הגדר';
+
+  @override
+  String get diveLog_bulkEdit_notesAppend => 'הוסף בסוף';
+
+  @override
+  String get diveLog_bulkEdit_modeAdd => 'הוסף';
+
+  @override
+  String get diveLog_bulkEdit_modeRemove => 'הסר';
+
+  @override
+  String get diveLog_bulkEdit_modeReplace => 'החלף';
+
+  @override
+  String get diveLog_bulkEdit_tankOnlyIfEmpty => 'רק צלילות ללא מכל קיים';
+
+  @override
+  String get diveLog_bulkEdit_confirmTitle => 'להחיל שינויים?';
+
+  @override
+  String get diveLog_bulkEdit_confirmApply => 'החל';
+
+  @override
+  String get diveLog_bulkEdit_nothingSelected =>
+      'הפעל לפחות שדה אחד כדי להחיל שינויים.';
+
+  @override
+  String diveLog_bulkEdit_applied(int count) {
+    return '$count צלילות עודכנו';
+  }
+
+  @override
   String get settings_cloudSync_error_icloudSignedOut =>
       'iCloud אינו זמין. היכנס ל-iCloud דרך הגדרות המכשיר.';
 
@@ -4023,6 +4101,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_legend_label_ascentRate => 'קצב עלייה';
 
   @override
+  String get diveLog_legend_label_ascentRateLine => 'קו קצב עלייה';
+
+  @override
   String get diveLog_legend_label_ceiling => 'תקרה';
 
   @override
@@ -4229,11 +4310,6 @@ class AppLocalizationsHe extends AppLocalizations {
       one: 'בעיה אחת',
     );
     return '$_temp0';
-  }
-
-  @override
-  String forms_statCell_useProfileValue(String value) {
-    return 'שימוש ב-$value מפרופיל הצלילה';
   }
 
   @override
@@ -4823,6 +4899,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_selection_tooltip_selectAll => 'בחר הכל';
 
   @override
+  String get diveLog_selection_tooltip_selectDateRange =>
+      'בחירה לפי טווח תאריכים';
+
+  @override
   String get diveLog_sighting_add => 'הוסף';
 
   @override
@@ -5037,6 +5117,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_tissue_title => 'עומס רקמות';
 
   @override
+  String get diveLog_tooltip_avgCalculated => '(ממוצע, מחושב)';
+
+  @override
   String get diveLog_tooltip_ceiling => 'תקרה';
 
   @override
@@ -5086,6 +5169,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_tooltip_sac => 'SAC';
+
+  @override
+  String get diveLog_tooltip_sensor => 'חיישן';
 
   @override
   String get diveLog_tooltip_srfGf => 'SrfGF';
@@ -5470,6 +5556,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_detail_location_country => 'מדינה';
 
   @override
+  String get diveSites_detail_location_city => 'עיר';
+
+  @override
+  String get diveSites_detail_location_island => 'אי';
+
+  @override
+  String get diveSites_detail_location_bodyOfWater => 'מקווה מים';
+
+  @override
   String get diveSites_detail_location_gpsCoordinates => 'קואורדינטות GPS';
 
   @override
@@ -5659,6 +5754,15 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveSites_edit_field_country_label => 'מדינה';
+
+  @override
+  String get diveSites_edit_field_city_label => 'עיר';
+
+  @override
+  String get diveSites_edit_field_island_label => 'אי';
+
+  @override
+  String get diveSites_edit_field_bodyOfWater_label => 'מקווה מים';
 
   @override
   String get diveSites_edit_field_description_hint => 'תיאור קצר של האתר';
@@ -16765,4 +16869,17 @@ class AppLocalizationsHe extends AppLocalizations {
   String statistics_divingSince(int year) {
     return 'צולל מאז $year';
   }
+
+  @override
+  String get db_location_choose_volume => 'בחירת מיקום אחסון';
+
+  @override
+  String get db_location_internal => 'אחסון פנימי';
+
+  @override
+  String get db_location_sd_card => 'כרטיס SD';
+
+  @override
+  String get db_location_external_note =>
+      'הקבצים כאן נמחקים אם מסירים את האפליקציה.';
 }

@@ -74,19 +74,30 @@ class EditFormScaffold extends StatelessWidget {
 
   Widget _saveButton(BuildContext context, {required bool filled}) {
     if (isSaving) {
-      return const Padding(
-        padding: EdgeInsets.all(12),
+      return Padding(
+        padding: const EdgeInsets.all(12),
         child: SizedBox(
           width: 22,
           height: 22,
-          child: CircularProgressIndicator(strokeWidth: 2),
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: filled ? null : AppBarTheme.of(context).foregroundColor,
+          ),
         ),
       );
     }
     final label = Text(context.l10n.forms_save);
-    return filled
-        ? FilledButton(onPressed: onSave, child: label)
-        : TextButton(onPressed: onSave, child: label);
+    if (filled) {
+      return FilledButton(onPressed: onSave, child: label);
+    }
+    final foreground = AppBarTheme.of(context).foregroundColor;
+    return TextButton(
+      style: foreground != null
+          ? TextButton.styleFrom(foregroundColor: foreground)
+          : null,
+      onPressed: onSave,
+      child: label,
+    );
   }
 
   @override

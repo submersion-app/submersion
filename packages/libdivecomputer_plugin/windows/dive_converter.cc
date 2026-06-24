@@ -92,6 +92,14 @@ ParsedDive ConvertParsedDive(const libdc_parsed_dive_t& dive) {
                 std::isnan(s.deco_depth) ? std::nullopt
                                          : std::optional<double>(s.deco_depth);
 
+            // Per-cell O2 ppO2: NaN -> nullopt.
+            std::optional<double> o2_sensor[6];
+            for (int c = 0; c < 6; c++) {
+                o2_sensor[c] = std::isnan(s.o2_sensor[c])
+                                   ? std::nullopt
+                                   : std::optional<double>(s.o2_sensor[c]);
+            }
+
             // Nullable ints: UINT32_MAX -> nullptr.
             std::optional<int64_t> tank_index =
                 (s.tank == UINT32_MAX)
@@ -137,7 +145,13 @@ ParsedDive ConvertParsedDive(const libdc_parsed_dive_t& dive) {
                     deco_type ? &*deco_type : nullptr,
                     deco_time ? &*deco_time : nullptr,
                     deco_depth ? &*deco_depth : nullptr,
-                    tts ? &*tts : nullptr)));
+                    tts ? &*tts : nullptr,
+                    o2_sensor[0] ? &*o2_sensor[0] : nullptr,
+                    o2_sensor[1] ? &*o2_sensor[1] : nullptr,
+                    o2_sensor[2] ? &*o2_sensor[2] : nullptr,
+                    o2_sensor[3] ? &*o2_sensor[3] : nullptr,
+                    o2_sensor[4] ? &*o2_sensor[4] : nullptr,
+                    o2_sensor[5] ? &*o2_sensor[5] : nullptr)));
         }
     }
 

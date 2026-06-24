@@ -50,4 +50,53 @@ void main() {
     );
     await tearDownTestDatabase();
   });
+
+  test('cold-start adopts a multi-entity base via the streaming path', () async {
+    final cloud = FakeCloudStorageProvider();
+
+    // --- Device A: a small library across several tables, then publish ---
+    await setUpTestDatabase();
+    var svc = SyncService(
+      syncRepository: SyncRepository(),
+      serializer: SyncDataSerializer(),
+      cloudProvider: cloud,
+    );
+    final serializerA = SyncDataSerializer();
+    for (var i = 1; i <= 3; i++) {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'm$i', diveNumber: i),
+      );
+    }
+    await serializerA.upsertRecord('diveSites', {
+      'id': 'site-m',
+      'name': 'Manta Point',
+      'description': '',
+      'notes': '',
+      'isShared': false,
+      'createdAt': 1000,
+      'updatedAt': 1000,
+    });
+    expect((await svc.performSync()).status, SyncResultStatus.success);
+    await tearDownTestDatabase();
+
+    // --- Device B: fresh DB, adopts A's base through _applyRemoteBaseFile ---
+    await setUpTestDatabase();
+    svc = SyncService(
+      syncRepository: SyncRepository(),
+      serializer: SyncDataSerializer(),
+      cloudProvider: cloud,
+    );
+    expect((await svc.performSync()).status, SyncResultStatus.success);
+
+    final db = DatabaseService.instance.database;
+    final diveCount = await db
+        .customSelect("SELECT COUNT(*) AS c FROM dives")
+        .getSingle();
+    expect(diveCount.data['c'], 3, reason: 'all three dives must converge');
+    final site = await db
+        .customSelect("SELECT name FROM dive_sites WHERE id = 'site-m'")
+        .getSingleOrNull();
+    expect(site, isNotNull, reason: 'the dive site must converge');
+    await tearDownTestDatabase();
+  });
 }

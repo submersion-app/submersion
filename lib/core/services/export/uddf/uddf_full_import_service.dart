@@ -2036,7 +2036,9 @@ class UddfFullImportService {
       return 'wreck';
     } else if (lower.contains('drift')) {
       return 'drift';
-    } else if (lower.contains('cave') || lower.contains('cavern')) {
+    } else if (lower.contains('cavern')) {
+      return 'cavern';
+    } else if (lower.contains('cave')) {
       return 'cave';
     } else if (lower.contains('tech')) {
       return 'technical';

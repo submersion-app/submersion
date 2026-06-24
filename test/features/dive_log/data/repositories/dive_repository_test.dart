@@ -64,6 +64,21 @@ void main() {
 
   group('DiveRepository', () {
     group('createDive', () {
+      test('persists entryLocation to latitude/longitude columns', () async {
+        final dive = createTestDive(
+          diveNumber: 1,
+          maxDepth: 18.5,
+        ).copyWith(entryLocation: const GeoPoint(35.815, 14.451));
+
+        final created = await repository.createDive(dive);
+        final loaded = await repository.getDiveById(created.id);
+
+        expect(loaded, isNotNull);
+        expect(loaded!.entryLocation, isNotNull);
+        expect(loaded.entryLocation!.latitude, closeTo(35.815, 1e-6));
+        expect(loaded.entryLocation!.longitude, closeTo(14.451, 1e-6));
+      });
+
       test(
         'should create a new dive with generated ID when ID is empty',
         () async {

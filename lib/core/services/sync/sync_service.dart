@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
@@ -8,6 +9,8 @@ import 'package:submersion/core/database/database.dart' show SyncRecord;
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/changeset_log/base_json_stream_reader.dart';
+import 'package:submersion/core/services/sync/changeset_log/base_part_file_sink.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_codec.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_reader.dart';
@@ -175,6 +178,10 @@ class SyncService {
 
   // Changeset-log transport (Phases 1-6), lazily bound to the active database.
   late final ChangesetCodec _changesetCodec = ChangesetCodec(_serializer);
+
+  /// Assembles a peer's base parts into a temp file (per-part + whole-file
+  /// checksum verified) for the bounded-memory replace-adopt (#358).
+  final BasePartFileSink _baseSink = BasePartFileSink();
   late final ChangesetWriter _changesetWriter = ChangesetWriter(
     _serializer,
     _changesetCodec,
@@ -205,6 +212,31 @@ class SyncService {
   /// Set a callback to receive progress updates during sync
   void setProgressCallback(SyncProgressCallback? callback) {
     _progressCallback = callback;
+  }
+
+  /// Test seam: apply an in-memory payload through the standard merge. Exposed
+  /// so the streaming-vs-in-memory parity test can compare apply paths.
+  @visibleForTesting
+  Future<({int recordsApplied, int conflictsFound, int recordsFailed})>
+  debugApplyPayload(SyncPayload payload, {DateTime? lastSync}) async {
+    final r = await _applyRemotePayload(payload, lastSync);
+    return (
+      recordsApplied: r.recordsApplied,
+      conflictsFound: r.conflictsFound,
+      recordsFailed: r.recordsFailed,
+    );
+  }
+
+  /// Test seam: apply a base from a local file through the streaming merge.
+  @visibleForTesting
+  Future<({int recordsApplied, int conflictsFound, int recordsFailed})>
+  debugApplyBaseFile(String filePath, {DateTime? lastSync}) async {
+    final r = await _applyRemoteBaseFile(filePath, lastSync);
+    return (
+      recordsApplied: r.recordsApplied,
+      conflictsFound: r.conflictsFound,
+      recordsFailed: r.recordsFailed,
+    );
   }
 
   void _reportProgress(SyncPhase phase, double progress, [String? message]) {
@@ -378,6 +410,12 @@ class SyncService {
         currentEpochId: currentEpochId,
         apply: (payload) async {
           final r = await _applyRemotePayload(payload, lastSyncTime);
+          recordsSynced += r.recordsApplied;
+          conflictsFound += r.conflictsFound;
+          recordsFailed += r.recordsFailed;
+        },
+        applyBaseFile: (path, manifest) async {
+          final r = await _applyRemoteBaseFile(path, lastSyncTime);
           recordsSynced += r.recordsApplied;
           conflictsFound += r.conflictsFound;
           recordsFailed += r.recordsFailed;
@@ -692,11 +730,38 @@ class SyncService {
     var recordsFailed = 0;
     final pendingByEntity = await _pendingRecordMap();
 
+    // A payload can present a record as LIVE and ALSO carry a tombstone for the
+    // same key -- the on-the-wire signature of a composite-natural-key junction
+    // (equipment_set_items, dive_equipment) rebuilt by its repository via
+    // delete-all-then-reinsert. A row cannot be both present and deleted in one
+    // source snapshot, so the live table is authoritative and the tombstone is
+    // a stale artifact. Collect these self-contradicted keys: the deletion is
+    // skipped below and the live row wins (clearing any local tombstone in the
+    // merge heals a peer that already dropped the row on the buggy build).
+    final contradictedByEntity = <String, Set<String>>{};
+    final liveByType = remotePayload.data.toJson();
+    for (final delEntry in remotePayload.deletions.entries) {
+      final deletedIds = {for (final d in delEntry.value) d.id};
+      if (deletedIds.isEmpty) continue;
+      final live = liveByType[delEntry.key];
+      if (live is! List) continue;
+      final contradicted = <String>{};
+      for (final rec in live) {
+        if (rec is! Map<String, dynamic>) continue;
+        final id = _recordIdForEntity(delEntry.key, rec);
+        if (id != null && deletedIds.contains(id)) contradicted.add(id);
+      }
+      if (contradicted.isNotEmpty) {
+        contradictedByEntity[delEntry.key] = contradicted;
+      }
+    }
+
     final deletionResult = await _applyRemoteDeletions(
       remotePayload.deletions,
       lastSyncMs,
       remotePayload.exportedAt,
       pendingByEntity,
+      contradictedByEntity,
     );
     recordsApplied += deletionResult.recordsApplied;
     conflictsFound += deletionResult.conflictsFound;
@@ -868,6 +933,7 @@ class SyncService {
         pendingRecordIds: pendingByEntity[entry.type] ?? const <String>{},
         allTombstones: tombstonesByEntity,
         revivedParents: revivedParents,
+        contradicted: contradictedByEntity[entry.type] ?? const <String>{},
       );
       recordsApplied += result.recordsApplied;
       conflictsFound += result.conflictsFound;
@@ -888,11 +954,173 @@ class SyncService {
     );
   }
 
+  /// Apply a base that was streamed to a local temp [filePath], in bounded
+  /// memory. Three forward passes over the file:
+  ///   1. header `exportedAt` + the full `deletions` map (both small),
+  ///   2. parent-row id->updatedAt and contradiction keys (skips giant tables),
+  ///   3. batched apply of every row through the existing [_mergeEntity].
+  /// Reuses the same merge primitives as [_applyRemotePayloadInner], so the
+  /// result is identical to applying the equivalent in-memory payload, but peak
+  /// memory stays at one ~8 MB part download + one batch of rows regardless of
+  /// library size (issue #358).
+  Future<_MergeResult> _applyRemoteBaseFile(
+    String filePath,
+    DateTime? localLastSync,
+  ) async {
+    final file = File(filePath);
+    final lastSyncMs = localLastSync?.millisecondsSinceEpoch;
+
+    // ---- Pass 1: exportedAt + deletions ----
+    var baseExportedAt = 0;
+    final deletions = <String, List<SyncDeletion>>{};
+    await BaseJsonStreamReader().parse(
+      file.openRead(),
+      onScalar: (key, raw) async {
+        if (key == 'exportedAt') {
+          baseExportedAt = (jsonDecode(utf8.decode(raw)) as num?)?.toInt() ?? 0;
+        }
+      },
+      wantRows: (section, _) => section == 'deletions',
+      onRow: (section, table, rowBytes) async {
+        final decoded = jsonDecode(utf8.decode(rowBytes));
+        if (decoded is Map<String, dynamic>) {
+          (deletions[table] ??= []).add(SyncDeletion.fromJson(decoded));
+        } else if (decoded is Map) {
+          (deletions[table] ??= []).add(
+            SyncDeletion.fromJson(decoded.cast<String, dynamic>()),
+          );
+        } else if (decoded is String) {
+          (deletions[table] ??= []).add(
+            SyncDeletion(id: decoded, deletedAt: 0),
+          );
+        }
+      },
+    );
+
+    final pendingByEntity = await _pendingRecordMap();
+
+    // ---- Pass 2: parent updatedAt + contradiction keys ----
+    final parentTypes = <String>{
+      for (final refs in parentRefs.values)
+        for (final ref in refs) ref.parent,
+    };
+    final deletionIds = <String, Set<String>>{
+      for (final e in deletions.entries) e.key: {for (final d in e.value) d.id},
+    };
+    final parentUpdatedAt = <String, Map<String, int>>{};
+    final contradictedByEntity = <String, Set<String>>{};
+    await BaseJsonStreamReader().parse(
+      file.openRead(),
+      wantRows: (section, table) =>
+          section == 'data' &&
+          entityHasUpdatedAt.containsKey(table) &&
+          (parentTypes.contains(table) || deletionIds.containsKey(table)),
+      onRow: (section, table, rowBytes) async {
+        final rec = jsonDecode(utf8.decode(rowBytes)) as Map<String, dynamic>;
+        final id = _recordIdForEntity(table, rec);
+        if (id == null) return;
+        if (parentTypes.contains(table) && entityHasUpdatedAt[table] == true) {
+          final u = _extractUpdatedAtMillis(rec);
+          if (u != null) (parentUpdatedAt[table] ??= {})[id] = u;
+        }
+        if (deletionIds[table]?.contains(id) == true) {
+          (contradictedByEntity[table] ??= {}).add(id);
+        }
+      },
+    );
+
+    // ---- Apply, all inside one deferred-FK transaction ----
+    return _serializer.applyInDeferredFkTransaction(() async {
+      var recordsApplied = 0;
+      var conflictsFound = 0;
+      var recordsFailed = 0;
+
+      final delResult = await _applyRemoteDeletions(
+        deletions,
+        lastSyncMs,
+        baseExportedAt,
+        pendingByEntity,
+        contradictedByEntity,
+      );
+      recordsApplied += delResult.recordsApplied;
+      conflictsFound += delResult.conflictsFound;
+      recordsFailed += delResult.recordsFailed;
+
+      // Load tombstones AFTER deletions so a tombstone arriving in this base
+      // also guards the merge below (mirrors _applyRemotePayloadInner).
+      final tombstonesByEntity = await _deletionMap();
+
+      // Revived parents: a parent row whose remote updatedAt is newer than our
+      // local tombstone. Combines pass-2 file data with post-deletion
+      // tombstones, so it is complete before any row is merged (a child may
+      // precede its parent in file order).
+      final revivedParents = <String, Set<String>>{};
+      for (final parentType in parentTypes) {
+        final tombs = tombstonesByEntity[parentType];
+        final ups = parentUpdatedAt[parentType];
+        if (tombs == null || tombs.isEmpty || ups == null) continue;
+        ups.forEach((id, updatedAt) {
+          final deletedAt = tombs[id];
+          if (deletedAt != null && updatedAt > deletedAt) {
+            (revivedParents[parentType] ??= {}).add(id);
+          }
+        });
+      }
+
+      // ---- Pass 3: batched apply ----
+      const batchSize = 500;
+      String? currentTable;
+      var batch = <Map<String, dynamic>>[];
+
+      Future<void> flush() async {
+        final table = currentTable;
+        if (table == null || batch.isEmpty) return;
+        final r = await _mergeEntity(
+          entityType: table,
+          records: batch,
+          hasUpdatedAt: entityHasUpdatedAt[table] ?? false,
+          lastSyncMs: lastSyncMs,
+          pendingRecordIds: pendingByEntity[table] ?? const <String>{},
+          allTombstones: tombstonesByEntity,
+          revivedParents: revivedParents,
+          contradicted: contradictedByEntity[table] ?? const <String>{},
+        );
+        recordsApplied += r.recordsApplied;
+        conflictsFound += r.conflictsFound;
+        recordsFailed += r.recordsFailed;
+        batch = <Map<String, dynamic>>[];
+      }
+
+      await BaseJsonStreamReader().parse(
+        file.openRead(),
+        wantRows: (section, table) =>
+            section == 'data' && entityHasUpdatedAt.containsKey(table),
+        onRow: (section, table, rowBytes) async {
+          if (table != currentTable) {
+            await flush();
+            currentTable = table;
+          }
+          batch.add(jsonDecode(utf8.decode(rowBytes)) as Map<String, dynamic>);
+          if (batch.length >= batchSize) await flush();
+        },
+      );
+      await flush();
+
+      await _serializer.repairDanglingForeignKeys();
+      return _MergeResult(
+        recordsApplied: recordsApplied,
+        conflictsFound: conflictsFound,
+        recordsFailed: recordsFailed,
+      );
+    });
+  }
+
   Future<_MergeResult> _applyRemoteDeletions(
     Map<String, List<SyncDeletion>> deletions,
     int? lastSyncMs,
     int remoteExportedAt,
     Map<String, Set<String>> pendingByEntity,
+    Map<String, Set<String>> contradictedByEntity,
   ) async {
     var applied = 0;
     var conflicts = 0;
@@ -906,15 +1134,23 @@ class SyncService {
           if (pendingByEntity[entityType]?.contains(recordId) == true) {
             continue;
           }
+          if (contradictedByEntity[entityType]?.contains(recordId) == true) {
+            // The same payload re-inserts this row as live; the tombstone is a
+            // stale delete-all+reinsert artifact. Skip it so the live row
+            // survives (the merge upserts it and clears any local tombstone).
+            continue;
+          }
           final local = await _serializer.fetchRecord(entityType, recordId);
-          // _extractUpdatedAtMillis falls back to createdAt, so a row that was
-          // created locally after our last sync is protected from a stale
-          // remote tombstone even on append-only child tables that have a
-          // createdAt. The handful of child tables with neither updatedAt nor
-          // createdAt (dive_profiles, dive_tanks, dive_equipment,
-          // tank_pressure_profiles, sightings) have no age signal; they are
-          // regenerated wholesale with fresh ids on re-import, so a stale
-          // tombstone won't match a current row.
+          // _extractUpdatedAtMillis falls back to createdAt, so a row created
+          // locally after our last sync is protected from a stale remote
+          // tombstone even on append-only child tables that have a createdAt.
+          // Clockless child tables with neither updatedAt nor createdAt
+          // (dive_profiles, dive_tanks, tank_pressure_profiles, sightings) have
+          // no age signal: the uuid-keyed ones regenerate with fresh ids on
+          // re-import, so a stale tombstone won't match a current row. The
+          // composite-natural-key junctions (dive_equipment, equipment_set_items)
+          // WOULD match a re-inserted row, but the contradicted-key skip above
+          // already drops a tombstone whose key the same payload re-inserts.
           final localUpdatedAt = _extractUpdatedAtMillis(local);
           final deletionTimestamp = deletion.deletedAt > 0
               ? deletion.deletedAt
@@ -966,6 +1202,62 @@ class SyncService {
       recordsFailed: failed,
     );
   }
+
+  /// Per-entity "has an updatedAt column" flag, mirroring the `mergeOrder`
+  /// records in [_applyRemotePayloadInner]. The streaming base apply
+  /// ([_applyRemoteBaseFile]) uses it for (a) conflict-detection behavior in
+  /// [_mergeEntity] and (b) the set of entity tables it applies (a table absent
+  /// from these keys is silently skipped on base import).
+  ///
+  /// MUST list every [SyncData] entity: a structural test
+  /// (`entityHasUpdatedAt covers exactly the SyncData entities`) asserts the
+  /// keys match [SyncData], so adding an entity without a flag here fails that
+  /// test. Each flag VALUE must match the `hasUpdatedAt` of the corresponding
+  /// `mergeOrder` record above; the parity test verifies apply behavior for a
+  /// representative subset (parent, clockless-child, junction, BLOB, and
+  /// updatedAt tables plus a tombstone), not for every entity.
+  @visibleForTesting
+  static const Map<String, bool> entityHasUpdatedAt = {
+    'divers': true,
+    'diverSettings': true,
+    'buddies': true,
+    'diveCenters': true,
+    'trips': true,
+    'liveaboardDetails': true,
+    'itineraryDays': true,
+    'equipment': true,
+    'equipmentSets': true,
+    'equipmentSetItems': false,
+    'diveTypes': true,
+    'tankPresets': true,
+    'diveComputers': true,
+    'species': false,
+    'tags': true,
+    'courses': true,
+    'dives': true,
+    'diveSites': true,
+    'diveTanks': false,
+    'diveWeights': false,
+    'diveEquipment': false,
+    'diveTags': false,
+    'diveBuddies': false,
+    'diveProfiles': false,
+    'diveProfileEvents': false,
+    'gasSwitches': false,
+    'diveCustomFields': false,
+    'diveDataSources': false,
+    'siteSpecies': false,
+    'csvPresets': true,
+    'viewConfigs': true,
+    'fieldPresets': false,
+    'tankPressureProfiles': false,
+    'tideRecords': false,
+    'sightings': false,
+    'certifications': true,
+    'serviceRecords': true,
+    'settings': true,
+    'media': false,
+  };
 
   /// Every synced child -> parent FK whose parent can be deleted (and thus
   /// tombstoned in the deletion log). Used by [_mergeEntity] to keep a peer's
@@ -1055,6 +1347,7 @@ class SyncService {
     required Set<String> pendingRecordIds,
     required Map<String, Map<String, int>> allTombstones,
     required Map<String, Set<String>> revivedParents,
+    required Set<String> contradicted,
   }) async {
     if (records.isEmpty) {
       return const _MergeResult(recordsApplied: 0, conflictsFound: 0);
@@ -1114,19 +1407,31 @@ class SyncService {
         // seen our delete re-introduces the record on every sync.
         final deletedAt = selfTombstones[recordId];
         if (deletedAt != null) {
-          final remoteUpdatedAt = hasUpdatedAt
-              ? _extractUpdatedAtMillis(record)
-              : null;
-          if (remoteUpdatedAt == null || remoteUpdatedAt <= deletedAt) {
-            // No newer remote edit -- the deletion wins; stay deleted.
-            continue;
+          if (contradicted.contains(recordId)) {
+            // This same payload presents the record as live AND tombstones it
+            // (a delete-all+reinsert artifact). The live row is the source's
+            // current truth, so drop the stale tombstone -- including a local
+            // one a prior buggy sync left behind -- and apply the record. This
+            // is what self-heals a peer that already dropped the membership.
+            await _syncRepository.removeDeletion(
+              entityType: entityType,
+              recordId: recordId,
+            );
+          } else {
+            final remoteUpdatedAt = hasUpdatedAt
+                ? _extractUpdatedAtMillis(record)
+                : null;
+            if (remoteUpdatedAt == null || remoteUpdatedAt <= deletedAt) {
+              // No newer remote edit -- the deletion wins; stay deleted.
+              continue;
+            }
+            // Remote edit is newer than the deletion: revive the record and
+            // drop the now-obsolete tombstone so it stops re-deleting it.
+            await _syncRepository.removeDeletion(
+              entityType: entityType,
+              recordId: recordId,
+            );
           }
-          // Remote edit is newer than the deletion: revive the record and drop
-          // the now-obsolete tombstone so it stops re-deleting it.
-          await _syncRepository.removeDeletion(
-            entityType: entityType,
-            recordId: recordId,
-          );
         }
 
         if (!hasUpdatedAt) {
@@ -1547,12 +1852,15 @@ class SyncService {
       }
 
       final folderId = await provider.getOrCreateSyncFolder();
-      final payloads = await _collectEpochPayloads(
+      // Stream each epoch device's base to a temp file (bounded memory); the
+      // streaming apply (#358) replaces the old in-memory collect + union,
+      // which OOM-crashed iOS adopting a large library.
+      final sources = await _collectEpochBaseSources(
         provider,
         folderId,
         marker.epochId,
       );
-      if (payloads.isEmpty) {
+      if (sources.baseFilePaths.isEmpty) {
         // No current-format library for this epoch. If the marker is stale
         // (old-format backend or an orphaned replace), re-establish from the
         // local library rather than bricking; the notifier's follow-up sync
@@ -1572,56 +1880,20 @@ class SyncService {
               'The replaced library is still uploading. Try again shortly.',
         );
       }
-      payloads.sort((a, b) => a.exportedAt.compareTo(b.exportedAt));
 
-      final deviceId = await _syncRepository.getDeviceId();
-      final localSnapshot = await _serializer.exportData(
-        deviceId: deviceId,
-        lastSyncTimestamp: null,
-        deletions: const [],
-        uploadNonce: null,
-      );
-
-      await _serializer.applyInDeferredFkTransaction(() async {
-        // Union the restored records; for ids present in several files the
-        // latest export wins (payloads are sorted ascending).
-        final cloudIds = <String, Set<String>>{};
-        final restored = <String, Map<String, Map<String, dynamic>>>{};
-        for (final payload in payloads) {
-          for (final entry in payload.data.toJson().entries) {
-            final entityType = entry.key;
-            final records = (entry.value as List).cast<Map<String, dynamic>>();
-            for (final record in records) {
-              final id = _recordIdForEntity(entityType, record);
-              if (id == null) continue;
-              (cloudIds[entityType] ??= <String>{}).add(id);
-              (restored[entityType] ??= {})[id] = record;
-            }
-          }
+      try {
+        await _serializer.applyInDeferredFkTransaction(
+          () => _adoptApplyStreaming(
+            baseFilePaths: sources.baseFilePaths,
+            baseExportedAt: sources.baseExportedAt,
+            changesets: sources.changesets,
+          ),
+        );
+      } finally {
+        for (final path in sources.baseFilePaths) {
+          await _baseSink.deleteQuietly(path);
         }
-
-        // Delete local rows the restored library does not contain.
-        for (final entry in localSnapshot.data.toJson().entries) {
-          final entityType = entry.key;
-          final records = (entry.value as List).cast<Map<String, dynamic>>();
-          for (final record in records) {
-            final id = _recordIdForEntity(entityType, record);
-            if (id == null) continue;
-            if (!(cloudIds[entityType]?.contains(id) ?? false)) {
-              await _serializer.deleteRecord(entityType, id);
-            }
-          }
-        }
-
-        // Upsert every restored record.
-        for (final entry in restored.entries) {
-          for (final record in entry.value.values) {
-            await _serializer.upsertRecord(entry.key, record);
-          }
-        }
-
-        await _serializer.repairDanglingForeignKeys();
-      });
+      }
 
       // Re-baseline under the adopted epoch. Our tombstones are obsolete --
       // the restored library is authoritative.
@@ -1647,11 +1919,194 @@ class SyncService {
     }
   }
 
-  /// Collect every payload (base + changesets) from all changeset logs stamped
-  /// with [epochId]. Used by adoption to rebuild the authoritative library
-  /// after a Replace restore. Skips a log whose base parts are not all present
-  /// (a publish still in flight).
-  Future<List<SyncPayload>> _collectEpochPayloads(
+  /// In-memory union/delete/upsert adopt apply (parity reference for the
+  /// streaming path [_adoptApplyStreaming]). Runs inside the caller's
+  /// deferred-FK transaction. Unions every payload's `data` (latest export
+  /// wins; [payloads] must be sorted ascending by exportedAt), deletes local
+  /// rows absent from the union, then upserts the union and repairs FKs.
+  Future<void> _applyAdoptInMemory(
+    List<SyncPayload> payloads,
+    SyncPayload localSnapshot,
+  ) async {
+    // Union the restored records; for ids present in several files the latest
+    // export wins (payloads are sorted ascending).
+    final cloudIds = <String, Set<String>>{};
+    final restored = <String, Map<String, Map<String, dynamic>>>{};
+    for (final payload in payloads) {
+      for (final entry in payload.data.toJson().entries) {
+        final entityType = entry.key;
+        final records = (entry.value as List).cast<Map<String, dynamic>>();
+        for (final record in records) {
+          final id = _recordIdForEntity(entityType, record);
+          if (id == null) continue;
+          (cloudIds[entityType] ??= <String>{}).add(id);
+          (restored[entityType] ??= {})[id] = record;
+        }
+      }
+    }
+
+    // Delete local rows the restored library does not contain.
+    for (final entry in localSnapshot.data.toJson().entries) {
+      final entityType = entry.key;
+      final records = (entry.value as List).cast<Map<String, dynamic>>();
+      for (final record in records) {
+        final id = _recordIdForEntity(entityType, record);
+        if (id == null) continue;
+        if (!(cloudIds[entityType]?.contains(id) ?? false)) {
+          await _serializer.deleteRecord(entityType, id);
+        }
+      }
+    }
+
+    // Upsert every restored record.
+    for (final entry in restored.entries) {
+      for (final record in entry.value.values) {
+        await _serializer.upsertRecord(entry.key, record);
+      }
+    }
+
+    await _serializer.repairDanglingForeignKeys();
+  }
+
+  /// Test seam: in-memory adopt of [payloads] (the parity reference). Captures
+  /// the local snapshot, sorts payloads ascending, and applies in one
+  /// deferred-FK transaction. No re-baseline, so a parity comparison sees only
+  /// the data effects. See sync_adopt_streaming_parity_test.dart.
+  @visibleForTesting
+  Future<void> debugAdoptInMemory(List<SyncPayload> payloads) async {
+    final local = await _serializer.exportData(
+      deviceId: 'adopt',
+      deletions: const [],
+    );
+    final sorted = [...payloads]
+      ..sort((a, b) => a.exportedAt.compareTo(b.exportedAt));
+    await _serializer.applyInDeferredFkTransaction(
+      () => _applyAdoptInMemory(sorted, local),
+    );
+  }
+
+  /// Streaming replace-adopt apply (production path). Runs inside the caller's
+  /// deferred-FK transaction. Upserts every restored row in exportedAt order
+  /// (each base temp file streamed in 500-row batches, plus in-memory
+  /// changesets), collecting cloud ids as it goes, then deletes local rows
+  /// absent from that set, then repairs FKs. Bounded memory: one batch + the
+  /// cloud id sets (ids only, never full rows), independent of library size.
+  ///
+  /// Equivalent to [_applyAdoptInMemory]: `upsertRecord` is an unconditional
+  /// overwrite, so applying in ascending exportedAt order is latest-export-wins
+  /// (the in-memory `restored` map); and delete-not-in-cloud is order
+  /// independent, so upsert-then-delete here matches delete-then-upsert there
+  /// (final state is the cloud union either way). A null record id is skipped
+  /// entirely, exactly as the in-memory path does. Enforced by
+  /// sync_adopt_streaming_parity_test.dart.
+  Future<void> _adoptApplyStreaming({
+    required List<String> baseFilePaths,
+    required List<int> baseExportedAt,
+    required List<SyncPayload> changesets,
+  }) async {
+    final cloudIds = <String, Set<String>>{};
+
+    Future<void> upsertRow(String table, Map<String, dynamic> record) async {
+      final id = _recordIdForEntity(table, record);
+      if (id == null) return; // matches in-memory: null-id rows are skipped
+      (cloudIds[table] ??= <String>{}).add(id);
+      await _serializer.upsertRecord(table, record);
+    }
+
+    // Apply units: each base file and each changeset, ascending by exportedAt
+    // (latest export wins under the unconditional upsert).
+    final units = <({int at, String? file, SyncPayload? changeset})>[
+      for (var i = 0; i < baseFilePaths.length; i++)
+        (at: baseExportedAt[i], file: baseFilePaths[i], changeset: null),
+      for (final c in changesets) (at: c.exportedAt, file: null, changeset: c),
+    ]..sort((a, b) => a.at.compareTo(b.at));
+
+    for (final unit in units) {
+      final changeset = unit.changeset;
+      if (changeset != null) {
+        for (final entry in changeset.data.toJson().entries) {
+          if (!entityHasUpdatedAt.containsKey(entry.key)) continue;
+          for (final record
+              in (entry.value as List).cast<Map<String, dynamic>>()) {
+            await upsertRow(entry.key, record);
+          }
+        }
+        continue;
+      }
+
+      // Base file: stream `data` rows, batching 500 per table.
+      const batchSize = 500;
+      String? currentTable;
+      var batch = <Map<String, dynamic>>[];
+      Future<void> flush() async {
+        final table = currentTable;
+        if (table == null || batch.isEmpty) return;
+        for (final record in batch) {
+          await upsertRow(table, record);
+        }
+        batch = <Map<String, dynamic>>[];
+      }
+
+      await BaseJsonStreamReader().parse(
+        File(unit.file!).openRead(),
+        wantRows: (section, table) =>
+            section == 'data' && entityHasUpdatedAt.containsKey(table),
+        onRow: (section, table, rowBytes) async {
+          if (table != currentTable) {
+            await flush();
+            currentTable = table;
+          }
+          batch.add(jsonDecode(utf8.decode(rowBytes)) as Map<String, dynamic>);
+          if (batch.length >= batchSize) await flush();
+        },
+      );
+      await flush();
+    }
+
+    // Delete local rows the restored library does not contain.
+    for (final entity in entityHasUpdatedAt.keys) {
+      final cloud = cloudIds[entity] ?? const <String>{};
+      for (final localId in await _serializer.recordIdsFor(entity)) {
+        if (!cloud.contains(localId)) {
+          await _serializer.deleteRecord(entity, localId);
+        }
+      }
+    }
+
+    await _serializer.repairDanglingForeignKeys();
+  }
+
+  /// Test seam: streaming adopt of base temp files + in-memory changesets.
+  @visibleForTesting
+  Future<void> debugAdoptStreaming(
+    List<String> baseFilePaths,
+    List<int> baseExportedAt,
+    List<SyncPayload> changesets,
+  ) => _serializer.applyInDeferredFkTransaction(
+    () => _adoptApplyStreaming(
+      baseFilePaths: baseFilePaths,
+      baseExportedAt: baseExportedAt,
+      changesets: changesets,
+    ),
+  );
+
+  /// Stream every epoch-stamped changeset log into adopt sources: each device's
+  /// base assembled to a temp file (bounded memory, via [BasePartFileSink],
+  /// which verifies per-part and whole-file checksums as bytes land), its base
+  /// export time, and its post-base changesets decoded in memory (small
+  /// deltas). Skips a device whose base parts are not all present or whose base
+  /// fails its checksum (a publish still in flight -> retry next adopt).
+  /// Replaces the old in-memory collect that decoded every device's whole base
+  /// into RAM and OOM-crashed iOS adopting a large library (#358). The caller
+  /// owns the returned temp files and must delete them.
+  Future<
+    ({
+      List<String> baseFilePaths,
+      List<int> baseExportedAt,
+      List<SyncPayload> changesets,
+    })
+  >
+  _collectEpochBaseSources(
     CloudStorageProvider provider,
     String folderId,
     String epochId,
@@ -1666,7 +2121,9 @@ class SyncService {
         if (ChangesetLogLayout.deviceIdOf(f.name) != null)
           ChangesetLogLayout.deviceIdOf(f.name)!,
     };
-    final payloads = <SyncPayload>[];
+    final baseFilePaths = <String>[];
+    final baseExportedAt = <int>[];
+    final changesets = <SyncPayload>[];
     for (final deviceId in deviceIds) {
       final manifestFile = byName[ChangesetLogLayout.manifestName(deviceId)];
       if (manifestFile == null) continue;
@@ -1681,28 +2138,50 @@ class SyncService {
       if (manifest.epochId != epochId) continue;
       final baseSeq = manifest.baseSeq;
       if (baseSeq == null) continue;
-      final parts = <Uint8List>[];
-      var complete = true;
-      for (var i = 0; i < (manifest.basePartCount ?? 0); i++) {
-        final pf =
-            byName[ChangesetLogLayout.basePartName(deviceId, baseSeq, i)];
-        if (pf == null) {
-          complete = false;
-          break;
-        }
-        parts.add(await provider.downloadFile(pf.id));
-      }
-      if (!complete || parts.isEmpty) continue;
-      payloads.add(_changesetCodec.decodeBaseParts(parts));
+      final partCount = manifest.basePartCount ?? 0;
+      if (partCount <= 0) continue;
+      final path = await _baseSink.assemble(
+        name: 'ssv1_adopt_${deviceId}_$baseSeq',
+        partCount: partCount,
+        wholeChecksum: manifest.baseChecksum,
+        partChecksums: manifest.basePartChecksums,
+        downloadPart: (i) async {
+          final pf =
+              byName[ChangesetLogLayout.basePartName(deviceId, baseSeq, i)];
+          if (pf == null) return null;
+          return provider.downloadFile(pf.id);
+        },
+      );
+      if (path == null) continue; // base incomplete/corrupt -> skip this device
+      baseFilePaths.add(path);
+      baseExportedAt.add(await _readBaseExportedAt(path));
       for (var seq = baseSeq + 1; seq <= manifest.headSeq; seq++) {
         final cf = byName[ChangesetLogLayout.changesetName(deviceId, seq)];
         if (cf == null) break;
-        payloads.add(
+        changesets.add(
           _changesetCodec.decodeChangeset(await provider.downloadFile(cf.id)),
         );
       }
     }
-    return payloads;
+    return (
+      baseFilePaths: baseFilePaths,
+      baseExportedAt: baseExportedAt,
+      changesets: changesets,
+    );
+  }
+
+  /// Read a base file's `exportedAt` (the cross-device latest-wins order key)
+  /// from a bounded prefix rather than parsing the whole base: it is the second
+  /// top-level member of the payload JSON, always within the first bytes. 0 if
+  /// absent (an unstamped/legacy base sorts first, which is the safe default).
+  Future<int> _readBaseExportedAt(String path) async {
+    final bytes = <int>[];
+    await for (final chunk in File(path).openRead(0, 65536)) {
+      bytes.addAll(chunk);
+    }
+    final head = utf8.decode(bytes, allowMalformed: true);
+    final match = RegExp(r'"exportedAt"\s*:\s*(\d+)').firstMatch(head);
+    return match == null ? 0 : (int.tryParse(match.group(1)!) ?? 0);
   }
 
   /// Download and parse the cloud epoch marker. Returns null when absent.

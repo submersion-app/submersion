@@ -14,6 +14,7 @@ import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/domain/map_utils.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
+import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/data/services/trip_media_scanner.dart';
@@ -35,13 +36,21 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Displays the trip header, info, stats, notes, photos, and dives.
 /// For liveaboard trips, also includes the vessel section, voyage map,
 /// and enhanced statistics.
-class TripOverviewTab extends ConsumerWidget {
+class TripOverviewTab extends ConsumerStatefulWidget {
   final TripWithStats tripWithStats;
 
   const TripOverviewTab({super.key, required this.tripWithStats});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TripOverviewTab> createState() => _TripOverviewTabState();
+}
+
+class _TripOverviewTabState extends ConsumerState<TripOverviewTab> {
+  final MapController _mapController = MapController();
+
+  @override
+  Widget build(BuildContext context) {
+    final tripWithStats = widget.tripWithStats;
     final trip = tripWithStats.trip;
     final divesAsync = ref.watch(divesForTripProvider(trip.id));
     final settings = ref.watch(settingsProvider);
@@ -188,54 +197,58 @@ class TripOverviewTab extends ConsumerWidget {
         children: [
           // Map background
           Positioned.fill(
-            child: FlutterMap(
-              options: MapOptions(
-                initialCenter: center,
-                initialZoom: zoom,
-                interactionOptions: const InteractionOptions(
-                  flags: InteractiveFlag.none,
+            child: TrackpadZoomMap(
+              controller: _mapController,
+              child: FlutterMap(
+                mapController: _mapController,
+                options: MapOptions(
+                  initialCenter: center,
+                  initialZoom: zoom,
+                  interactionOptions: const InteractionOptions(
+                    flags: InteractiveFlag.none,
+                  ),
                 ),
+                children: [
+                  TileLayer(
+                    urlTemplate: ref.watch(mapTileUrlProvider),
+                    userAgentPackageName: 'app.submersion',
+                    maxZoom: ref.watch(mapTileMaxZoomProvider),
+                    tileProvider: TileCacheService.instance.isInitialized
+                        ? TileCacheService.instance.getTileProvider()
+                        : null,
+                  ),
+                  MarkerLayer(
+                    markers: sitesWithLocation.map((site) {
+                      return Marker(
+                        point: LatLng(
+                          site.location!.latitude,
+                          site.location!.longitude,
+                        ),
+                        width: 32,
+                        height: 32,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: colorScheme.primary,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: colorScheme.onPrimary,
+                              width: 2,
+                            ),
+                          ),
+                          child: Center(
+                            child: Icon(
+                              Icons.scuba_diving,
+                              size: 16,
+                              color: colorScheme.onPrimary,
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  const MapAttribution(),
+                ],
               ),
-              children: [
-                TileLayer(
-                  urlTemplate: ref.watch(mapTileUrlProvider),
-                  userAgentPackageName: 'app.submersion',
-                  maxZoom: ref.watch(mapTileMaxZoomProvider),
-                  tileProvider: TileCacheService.instance.isInitialized
-                      ? TileCacheService.instance.getTileProvider()
-                      : null,
-                ),
-                MarkerLayer(
-                  markers: sitesWithLocation.map((site) {
-                    return Marker(
-                      point: LatLng(
-                        site.location!.latitude,
-                        site.location!.longitude,
-                      ),
-                      width: 32,
-                      height: 32,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: colorScheme.primary,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: colorScheme.onPrimary,
-                            width: 2,
-                          ),
-                        ),
-                        child: Center(
-                          child: Icon(
-                            Icons.scuba_diving,
-                            size: 16,
-                            color: colorScheme.onPrimary,
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-                const MapAttribution(),
-              ],
             ),
           ),
           // Gradient overlay
@@ -305,6 +318,7 @@ class TripOverviewTab extends ConsumerWidget {
   }
 
   Widget _buildStatsSection(BuildContext context, UnitFormatter units) {
+    final tripWithStats = widget.tripWithStats;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -408,7 +422,7 @@ class TripOverviewTab extends ConsumerWidget {
                                 ref
                                     .read(diveFilterProvider.notifier)
                                     .state = DiveFilterState(
-                                  tripId: tripWithStats.trip.id,
+                                  tripId: widget.tripWithStats.trip.id,
                                 );
                                 context.go('/dives');
                               },
@@ -575,7 +589,7 @@ class TripOverviewTab extends ConsumerWidget {
 
     try {
       // Get trip and dives
-      final trip = tripWithStats.trip;
+      final trip = widget.tripWithStats.trip;
       final dives = await ref.read(divesForTripProvider(tripId).future);
 
       if (dives.isEmpty) {
@@ -713,7 +727,7 @@ class TripOverviewTab extends ConsumerWidget {
   }
 
   Future<void> _scanForDives(BuildContext context, WidgetRef ref) async {
-    final trip = tripWithStats.trip;
+    final trip = widget.tripWithStats.trip;
     if (trip.diverId == null) return;
 
     // Show loading
