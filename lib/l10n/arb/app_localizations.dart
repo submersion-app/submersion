@@ -6034,6 +6034,18 @@ abstract class AppLocalizations {
   /// **'Dive Type'**
   String get diveLog_edit_label_diveType;
 
+  /// No description provided for @diveLog_edit_label_diveTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive Types'**
+  String get diveLog_edit_label_diveTypes;
+
+  /// No description provided for @diveLog_edit_addCustomDiveType.
+  ///
+  /// In en, this message translates to:
+  /// **'Add custom type…'**
+  String get diveLog_edit_addCustomDiveType;
+
   /// No description provided for @diveLog_edit_label_diveNumber.
   ///
   /// In en, this message translates to:

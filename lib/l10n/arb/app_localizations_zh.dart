@@ -3393,6 +3393,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_edit_label_diveType => '潜水类型';
 
   @override
+  String get diveLog_edit_label_diveTypes => 'Dive Types';
+
+  @override
+  String get diveLog_edit_addCustomDiveType => 'Add custom type…';
+
+  @override
   String get diveLog_edit_label_diveNumber => '潜水编号';
 
   @override

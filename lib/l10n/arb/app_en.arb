@@ -1886,6 +1886,8 @@
   "diveLog_edit_label_currentDirection": "Current Direction",
   "diveLog_edit_label_currentStrength": "Current Strength",
   "diveLog_edit_label_diveType": "Dive Type",
+  "diveLog_edit_label_diveTypes": "Dive Types",
+  "diveLog_edit_addCustomDiveType": "Add custom type…",
   "diveLog_edit_label_diveNumber": "Dive #",
   "diveLog_edit_hint_diveNumber": "Auto-assigned if left blank",
   "diveLog_edit_label_entryMethod": "Entry Method",

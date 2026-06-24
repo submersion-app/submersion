@@ -1222,6 +1222,8 @@
   "diveLog_edit_label_currentDirection": "اتجاه التيار",
   "diveLog_edit_label_currentStrength": "قوة التيار",
   "diveLog_edit_label_diveType": "نوع الغوصة",
+  "diveLog_edit_label_diveTypes": "Dive Types",
+  "diveLog_edit_addCustomDiveType": "Add custom type…",
   "diveLog_edit_label_diveNumber": "رقم الغوصة",
   "diveLog_edit_hint_diveNumber": "يُعيَّن تلقائياً إذا تُرك فارغاً",
   "diveLog_edit_label_entryMethod": "طريقة الدخول",

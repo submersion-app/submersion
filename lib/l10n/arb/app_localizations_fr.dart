@@ -3583,6 +3583,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_edit_label_diveType => 'Type de plongee';
 
   @override
+  String get diveLog_edit_label_diveTypes => 'Dive Types';
+
+  @override
+  String get diveLog_edit_addCustomDiveType => 'Add custom type…';
+
+  @override
   String get diveLog_edit_label_diveNumber => 'No. de plongee';
 
   @override
