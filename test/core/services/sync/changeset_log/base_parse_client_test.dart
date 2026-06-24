@@ -53,4 +53,42 @@ void main() {
       expect(r.deletions.map((e) => e.row['id']).toList(), ['d1', 'd2']);
     },
   );
+
+  test(
+    'dataRows streams filtered data rows in file order across batches',
+    () async {
+      final doc = {
+        'exportedAt': 1,
+        'deletions': <String, dynamic>{},
+        'data': {
+          'dives': [
+            for (var i = 0; i < 1200; i++) {'id': 'd$i', 'updatedAt': i},
+          ],
+          'sites': [
+            {'id': 's1', 'updatedAt': 1},
+          ],
+        },
+      };
+      final f = _writeBase(tmp, doc);
+      final client = await BaseParseClient.spawn(f.path);
+
+      client.startDataRows({'dives'});
+      final got = <String>[];
+      List<({String table, Map<String, dynamic> row})>? batch;
+      while ((batch = await client.nextDataBatch()) != null) {
+        for (final r in batch!) {
+          expect(r.table, 'dives'); // 'sites' filtered out
+          got.add(r.row['id'] as String);
+        }
+      }
+      await client.dispose();
+
+      expect(got.length, 1200);
+      expect(got.first, 'd0');
+      expect(
+        got.last,
+        'd1199',
+      ); // order preserved across the 500-row boundaries
+    },
+  );
 }
