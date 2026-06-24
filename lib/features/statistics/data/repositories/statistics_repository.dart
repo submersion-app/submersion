@@ -468,11 +468,12 @@ class StatisticsRepository {
 
       final results = await _db.customSelect('''
         SELECT
-          COALESCE(dive_type, 'recreational') AS dive_type,
+          ddt.dive_type_id AS dive_type,
           COUNT(*) AS count
-        FROM dives
+        FROM dive_dive_types ddt
+        JOIN dives d ON d.id = ddt.dive_id
         WHERE 1=1 $diverFilter
-        GROUP BY dive_type
+        GROUP BY ddt.dive_type_id
         ORDER BY count DESC
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 

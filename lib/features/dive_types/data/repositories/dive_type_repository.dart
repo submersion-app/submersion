@@ -309,9 +309,9 @@ class DiveTypeRepository {
       }
 
       final result = await _db.customSelect('''
-        SELECT dt.*, COUNT(d.id) as dive_count
+        SELECT dt.*, COUNT(ddt.dive_id) as dive_count
         FROM dive_types dt
-        LEFT JOIN dives d ON dt.id = d.dive_type
+        LEFT JOIN dive_dive_types ddt ON dt.id = ddt.dive_type_id
         $whereClause
         GROUP BY dt.id
         ORDER BY dt.sort_order, dt.name
@@ -353,7 +353,7 @@ class DiveTypeRepository {
       final result = await _db
           .customSelect(
             '''
-        SELECT COUNT(*) as count FROM dives WHERE dive_type = ?
+        SELECT COUNT(*) as count FROM dive_dive_types WHERE dive_type_id = ?
       ''',
             variables: [Variable.withString(id)],
           )
