@@ -25,4 +25,32 @@ void main() {
     final client = await BaseParseClient.spawn(f.path);
     await client.dispose();
   });
+
+  test(
+    'readScalarsAndDeletions returns exportedAt + deletions in file order',
+    () async {
+      final doc = {
+        'exportedAt': 42,
+        'deletions': {
+          'dives': [
+            {'id': 'd1', 'deletedAt': 100},
+            {'id': 'd2', 'deletedAt': 200},
+          ],
+        },
+        'data': {
+          'dives': [
+            {'id': 'a', 'updatedAt': 1},
+          ],
+        },
+      };
+      final f = _writeBase(tmp, doc);
+      final client = await BaseParseClient.spawn(f.path);
+      final r = await client.readScalarsAndDeletions();
+      await client.dispose();
+
+      expect(r.exportedAt, 42);
+      expect(r.deletions.map((e) => e.table).toList(), ['dives', 'dives']);
+      expect(r.deletions.map((e) => e.row['id']).toList(), ['d1', 'd2']);
+    },
+  );
 }

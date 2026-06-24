@@ -58,6 +58,42 @@ class BaseParseClient {
     return client;
   }
 
+  /// Pass 1: the `exportedAt` scalar plus every `deletions`-section row, in
+  /// file order (`(table, row)` pairs).
+  Future<
+    ({
+      int exportedAt,
+      List<({String table, Map<String, dynamic> row})> deletions,
+    })
+  >
+  readScalarsAndDeletions() async {
+    _toWorker.send(<String, Object>{'cmd': 'deletions'});
+    final m = await _nextMessage();
+    if (m['type'] == 'error') {
+      throw BaseParseException(m['message'] as String);
+    }
+    final rows = (m['rows'] as List)
+        .map(
+          (e) => (
+            table: (e as Map)['table'] as String,
+            row: (e['row'] as Map).cast<String, dynamic>(),
+          ),
+        )
+        .toList();
+    return (exportedAt: m['exportedAt'] as int, deletions: rows);
+  }
+
+  /// Awaits the next single worker message (request/response operations only).
+  Future<Map<dynamic, dynamic>> _nextMessage() {
+    final c = Completer<Map<dynamic, dynamic>>();
+    late final StreamSubscription<Map<dynamic, dynamic>> s;
+    s = _inbox.stream.listen((m) {
+      s.cancel();
+      c.complete(m);
+    });
+    return c.future;
+  }
+
   Future<void> dispose() async {
     _toWorker.send(<String, Object>{'cmd': 'dispose'});
     await _sub.cancel();
