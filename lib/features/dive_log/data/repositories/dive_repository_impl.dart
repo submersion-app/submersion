@@ -3816,6 +3816,59 @@ class DiveRepository {
     }
   }
 
+  /// Replace each dive's dive-type membership with exactly [typeIds] (coerced
+  /// to a single recreational type if empty). No notify/txn.
+  Future<void> bulkReplaceDiveTypes(
+    List<String> diveIds,
+    List<String> typeIds,
+  ) async {
+    if (diveIds.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (final diveId in diveIds) {
+      await _replaceDiveTypeRows(diveId, typeIds, now);
+    }
+    await _bumpDives(diveIds, now);
+  }
+
+  /// Add [typeIds] to each dive's set (union, deduped). No notify/txn.
+  Future<void> bulkAddDiveTypes(
+    List<String> diveIds,
+    List<String> typeIds,
+  ) async {
+    if (diveIds.isEmpty || typeIds.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final current = await _diveTypesForDives(diveIds);
+    for (final diveId in diveIds) {
+      final merged = [...(current[diveId] ?? const <String>[])];
+      for (final t in typeIds) {
+        if (!merged.contains(t)) merged.add(t);
+      }
+      await _replaceDiveTypeRows(diveId, merged, now);
+    }
+    await _bumpDives(diveIds, now);
+  }
+
+  /// Remove [typeIds] from each dive's set. Never empties a dive: a removal
+  /// that would clear the last type falls back to a single recreational type.
+  Future<void> bulkRemoveDiveTypes(
+    List<String> diveIds,
+    List<String> typeIds,
+  ) async {
+    if (diveIds.isEmpty || typeIds.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final current = await _diveTypesForDives(diveIds);
+    for (final diveId in diveIds) {
+      final existing = current[diveId] ?? const <String>[];
+      final remaining = existing.where((t) => !typeIds.contains(t)).toList();
+      await _replaceDiveTypeRows(
+        diveId,
+        remaining.isEmpty ? const ['recreational'] : remaining,
+        now,
+      );
+    }
+    await _bumpDives(diveIds, now);
+  }
+
   /// Add each equipment id to each dive (junction upsert). No notify/txn.
   Future<void> bulkAddEquipment(
     List<String> diveIds,
