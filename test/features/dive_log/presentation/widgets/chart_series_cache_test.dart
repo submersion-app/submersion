@@ -1,18 +1,18 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/fl_spot_cache.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/chart_series_cache.dart';
 
 void main() {
   test('returns the same instance on a key hit (no rebuild)', () {
-    final cache = FlSpotCache();
+    final cache = ChartSeriesCache<FlSpot>();
     var builds = 0;
     List<FlSpot> build() {
       builds++;
       return [const FlSpot(0, 0)];
     }
 
-    final a = cache.spots('depth', build);
-    final b = cache.spots('depth', build);
+    final a = cache.series('depth', build);
+    final b = cache.series('depth', build);
     expect(identical(a, b), isTrue);
     expect(builds, 1);
   });
@@ -20,7 +20,7 @@ void main() {
   test(
     'invalidate(newSignature) forces a rebuild; same signature does not',
     () {
-      final cache = FlSpotCache();
+      final cache = ChartSeriesCache<FlSpot>();
       var builds = 0;
       List<FlSpot> build() {
         builds++;
@@ -28,22 +28,22 @@ void main() {
       }
 
       cache.invalidate('sigA');
-      cache.spots('depth', build);
+      cache.series('depth', build);
       cache.invalidate('sigA'); // unchanged -> keep cache
-      cache.spots('depth', build);
+      cache.series('depth', build);
       expect(builds, 1);
 
       cache.invalidate('sigB'); // changed -> drop cache
-      cache.spots('depth', build);
+      cache.series('depth', build);
       expect(builds, 2);
     },
   );
 
   test('distinct keys are cached independently', () {
-    final cache = FlSpotCache();
-    final depth = cache.spots('depth', () => [const FlSpot(0, 0)]);
-    final temp = cache.spots('temp', () => [const FlSpot(1, 1)]);
-    expect(identical(cache.spots('depth', () => []), depth), isTrue);
-    expect(identical(cache.spots('temp', () => []), temp), isTrue);
+    final cache = ChartSeriesCache<FlSpot>();
+    final depth = cache.series('depth', () => [const FlSpot(0, 0)]);
+    final temp = cache.series('temp', () => [const FlSpot(1, 1)]);
+    expect(identical(cache.series('depth', () => []), depth), isTrue);
+    expect(identical(cache.series('temp', () => []), temp), isTrue);
   });
 }

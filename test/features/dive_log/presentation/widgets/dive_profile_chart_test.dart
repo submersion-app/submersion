@@ -2444,4 +2444,33 @@ void main() {
       },
     );
   });
+
+  group('bars memoization (D1a)', () {
+    testWidgets(
+      'reuses bars across a playback-only rebuild, rebuilds on profile change',
+      (tester) async {
+        List<LineChartBarData> barsOf() => tester
+            .widget<LineChart>(find.byType(LineChart).first)
+            .data
+            .lineBarsData;
+
+        final profileA = _makeProfile(points: 12);
+        await tester.pumpWidget(
+          _buildChart(profile: profileA, playbackTimestamp: 30),
+        );
+        final bars1 = barsOf();
+
+        // Same data + units; only the playback cursor moved. The signature is
+        // unchanged, so the assembled bars must be the SAME cached instance.
+        await tester.pumpWidget(
+          _buildChart(profile: profileA, playbackTimestamp: 90),
+        );
+        expect(identical(barsOf(), bars1), isTrue);
+
+        // A new profile changes the signature -> the cache must rebuild.
+        await tester.pumpWidget(_buildChart(profile: _makeProfile(points: 20)));
+        expect(identical(barsOf(), bars1), isFalse);
+      },
+    );
+  });
 }

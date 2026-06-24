@@ -20,6 +20,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/chart_series_cache.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_legend.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_timeline_strip.dart';
@@ -519,6 +520,51 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   // Tooltip memoization
   int? _lastTooltipSpotIndex;
   List<LineTooltipItem?> _lastTooltipItems = [];
+
+  // Memoized lineBarsData. The chart's series builders are pure w.r.t.
+  // interaction state, so the assembled bars are reused across playback / hover
+  // / zoom rebuilds and only reconstructed when the underlying data, units,
+  // visibility, or theme change (see [_barsSignature]).
+  final ChartSeriesCache<LineChartBarData> _barsCache =
+      ChartSeriesCache<LineChartBarData>();
+
+  /// Identity of everything the assembled bars depend on. Excludes playback,
+  /// viewport, highlight, and tooltip state -- those drive separate overlays and
+  /// never change the bars. [legendState] is taken as [Object] since only its
+  /// identity (changed on any visibility toggle) matters here.
+  String _barsSignature(
+    UnitFormatter units,
+    Object legendState,
+    Brightness brightness,
+  ) => [
+    identityHashCode(widget.profile),
+    identityHashCode(widget.ascentRates),
+    identityHashCode(widget.ceilingCurve),
+    identityHashCode(widget.ndlCurve),
+    identityHashCode(widget.sacCurve),
+    identityHashCode(widget.ppO2Curve),
+    identityHashCode(widget.ppN2Curve),
+    identityHashCode(widget.ppHeCurve),
+    identityHashCode(widget.modCurve),
+    identityHashCode(widget.densityCurve),
+    identityHashCode(widget.gfCurve),
+    identityHashCode(widget.surfaceGfCurve),
+    identityHashCode(widget.meanDepthCurve),
+    identityHashCode(widget.ttsCurve),
+    identityHashCode(widget.cnsCurve),
+    identityHashCode(widget.otuCurve),
+    identityHashCode(widget.tankPressures),
+    identityHashCode(widget.computerProfiles),
+    identityHashCode(widget.gasSwitches),
+    identityHashCode(widget.tanks),
+    identityHashCode(widget.markers),
+    identityHashCode(legendState),
+    units.depthSymbol,
+    units.temperatureSymbol,
+    units.pressureSymbol,
+    units.sacSymbol,
+    brightness,
+  ].join('|');
 
   @override
   void initState() {
@@ -1064,6 +1110,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     for (final entry in legendState.showTankPressure.entries) {
       _showTankPressure[entry.key] = entry.value;
     }
+
+    // Drop the memoized bars only when their inputs change; playback / hover /
+    // zoom rebuilds keep the same signature and reuse the assembled series.
+    _barsCache.invalidate(
+      _barsSignature(units, legendState, colorScheme.brightness),
+    );
 
     // Check data availability for advanced curves
     final hasNdlData = widget.ndlCurve != null && widget.ndlCurve!.isNotEmpty;
@@ -1708,112 +1760,115 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               show: true,
               border: Border.all(color: colorScheme.outlineVariant),
             ),
-            lineBarsData: [
-              // Depth line segments (colored by active gas if gas switches exist)
-              ..._buildGasColoredDepthLines(colorScheme, units),
+            lineBarsData: _barsCache.series(
+              'main',
+              () => [
+                // Depth line segments (colored by active gas if gas switches exist)
+                ..._buildGasColoredDepthLines(colorScheme, units),
 
-              // Gas switch markers (if showing and data available)
-              if (_showGasSwitchMarkers) ..._buildGasSwitchMarkers(units),
+                // Gas switch markers (if showing and data available)
+                if (_showGasSwitchMarkers) ..._buildGasSwitchMarkers(units),
 
-              // Temperature line (if showing)
-              if (_showTemperature &&
-                  hasTemperatureData &&
-                  minTemp != null &&
-                  maxTemp != null)
-                _buildTemperatureLine(
-                  colorScheme,
-                  totalMaxDepth,
-                  minTemp,
-                  maxTemp,
+                // Temperature line (if showing)
+                if (_showTemperature &&
+                    hasTemperatureData &&
+                    minTemp != null &&
+                    maxTemp != null)
+                  _buildTemperatureLine(
+                    colorScheme,
+                    totalMaxDepth,
+                    minTemp,
+                    maxTemp,
+                    units,
+                  ),
+
+                // Multi-tank pressure lines (per-tank visibility controlled
+                // inside _buildMultiTankPressureLines via _showTankPressure)
+                if (_hasMultiTankPressure)
+                  ..._buildMultiTankPressureLines(totalMaxDepth),
+
+                // Heart rate line (if showing)
+                if (_showHeartRate &&
+                    hasHeartRateData &&
+                    minHR != null &&
+                    maxHR != null)
+                  _buildHeartRateLine(
+                    heartRateColor,
+                    totalMaxDepth,
+                    minHR,
+                    maxHR,
+                  ),
+
+                // SAC curve line (if showing)
+                if (_showSac && hasSacData && minSac != null && maxSac != null)
+                  _buildSacLine(totalMaxDepth, minSac, maxSac),
+
+                // Ascent-rate magnitude line (separate overlay; signed m/min)
+                if (_showAscentRateLine && widget.ascentRates != null)
+                  _buildAscentRateLine(totalMaxDepth),
+
+                // Ceiling line (if showing and data available)
+                if (_showCeiling && widget.ceilingCurve != null)
+                  _buildCeilingLine(units),
+
+                // NDL line (if showing)
+                if (_showNdl && widget.ndlCurve != null)
+                  _buildNdlLine(totalMaxDepth),
+
+                // ppO2 line (if showing)
+                if (_showPpO2 && widget.ppO2Curve != null)
+                  _buildPpO2Line(totalMaxDepth),
+
+                // ppN2 line (if showing)
+                if (_showPpN2 && widget.ppN2Curve != null)
+                  _buildPpN2Line(totalMaxDepth),
+
+                // ppHe line (if showing and has helium data)
+                if (_showPpHe &&
+                    widget.ppHeCurve != null &&
+                    widget.ppHeCurve!.any((v) => v > 0.001))
+                  _buildPpHeLine(totalMaxDepth),
+
+                // MOD line (if showing)
+                if (_showMod && widget.modCurve != null) _buildModLine(units),
+
+                // Gas density line (if showing)
+                if (_showDensity && widget.densityCurve != null)
+                  _buildDensityLine(totalMaxDepth),
+
+                // GF% line (if showing)
+                if (_showGf && widget.gfCurve != null)
+                  _buildGfLine(totalMaxDepth),
+
+                // Surface GF line (if showing)
+                if (_showSurfaceGf && widget.surfaceGfCurve != null)
+                  _buildSurfaceGfLine(totalMaxDepth),
+
+                // Mean depth line (if showing)
+                if (_showMeanDepth && widget.meanDepthCurve != null)
+                  _buildMeanDepthLine(units),
+
+                // TTS line (if showing)
+                if (_showTts && widget.ttsCurve != null)
+                  _buildTtsLine(totalMaxDepth),
+
+                // CNS% curve (if showing)
+                if (_showCns && widget.cnsCurve != null)
+                  _buildCnsLine(totalMaxDepth),
+
+                // OTU curve (if showing)
+                if (_showOtu && widget.otuCurve != null)
+                  _buildOtuLine(totalMaxDepth),
+
+                // Profile markers (max depth, pressure thresholds)
+                ..._buildMarkerLines(
                   units,
-                ),
-
-              // Multi-tank pressure lines (per-tank visibility controlled
-              // inside _buildMultiTankPressureLines via _showTankPressure)
-              if (_hasMultiTankPressure)
-                ..._buildMultiTankPressureLines(totalMaxDepth),
-
-              // Heart rate line (if showing)
-              if (_showHeartRate &&
-                  hasHeartRateData &&
-                  minHR != null &&
-                  maxHR != null)
-                _buildHeartRateLine(
-                  heartRateColor,
                   totalMaxDepth,
-                  minHR,
-                  maxHR,
+                  minPressure: minPressure,
+                  maxPressure: maxPressure,
                 ),
-
-              // SAC curve line (if showing)
-              if (_showSac && hasSacData && minSac != null && maxSac != null)
-                _buildSacLine(totalMaxDepth, minSac, maxSac),
-
-              // Ascent-rate magnitude line (separate overlay; signed m/min)
-              if (_showAscentRateLine && widget.ascentRates != null)
-                _buildAscentRateLine(totalMaxDepth),
-
-              // Ceiling line (if showing and data available)
-              if (_showCeiling && widget.ceilingCurve != null)
-                _buildCeilingLine(units),
-
-              // NDL line (if showing)
-              if (_showNdl && widget.ndlCurve != null)
-                _buildNdlLine(totalMaxDepth),
-
-              // ppO2 line (if showing)
-              if (_showPpO2 && widget.ppO2Curve != null)
-                _buildPpO2Line(totalMaxDepth),
-
-              // ppN2 line (if showing)
-              if (_showPpN2 && widget.ppN2Curve != null)
-                _buildPpN2Line(totalMaxDepth),
-
-              // ppHe line (if showing and has helium data)
-              if (_showPpHe &&
-                  widget.ppHeCurve != null &&
-                  widget.ppHeCurve!.any((v) => v > 0.001))
-                _buildPpHeLine(totalMaxDepth),
-
-              // MOD line (if showing)
-              if (_showMod && widget.modCurve != null) _buildModLine(units),
-
-              // Gas density line (if showing)
-              if (_showDensity && widget.densityCurve != null)
-                _buildDensityLine(totalMaxDepth),
-
-              // GF% line (if showing)
-              if (_showGf && widget.gfCurve != null)
-                _buildGfLine(totalMaxDepth),
-
-              // Surface GF line (if showing)
-              if (_showSurfaceGf && widget.surfaceGfCurve != null)
-                _buildSurfaceGfLine(totalMaxDepth),
-
-              // Mean depth line (if showing)
-              if (_showMeanDepth && widget.meanDepthCurve != null)
-                _buildMeanDepthLine(units),
-
-              // TTS line (if showing)
-              if (_showTts && widget.ttsCurve != null)
-                _buildTtsLine(totalMaxDepth),
-
-              // CNS% curve (if showing)
-              if (_showCns && widget.cnsCurve != null)
-                _buildCnsLine(totalMaxDepth),
-
-              // OTU curve (if showing)
-              if (_showOtu && widget.otuCurve != null)
-                _buildOtuLine(totalMaxDepth),
-
-              // Profile markers (max depth, pressure thresholds)
-              ..._buildMarkerLines(
-                units,
-                totalMaxDepth,
-                minPressure: minPressure,
-                maxPressure: maxPressure,
-              ),
-            ],
+              ],
+            ),
             extraLinesData: ExtraLinesData(
               verticalLines: [
                 ..._buildPlaybackCursor(colorScheme),
