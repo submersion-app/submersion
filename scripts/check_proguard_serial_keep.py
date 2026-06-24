@@ -116,29 +116,36 @@ def check_mapping(path):
         report = analyze(fh.read())
 
     lines = []
-
-    if not report["minify_ran"]:
-        # Nothing was obfuscated: not a minified release mapping, so the guard
-        # has nothing to prove. A no-op rather than a failure.
-        lines.append("  WARN  mapping shows no obfuscation; minification likely "
-                     "disabled -- nothing to verify")
-        return True, lines
-
     ok = True
+
+    # A renamed reflected method is always the #318 regression -- check it
+    # unconditionally. R8 can rename members while keeping class names (partial
+    # keep rules, -keepnames), so this must NOT be gated on class obfuscation.
     for cls, method, obf in report["renamed"]:
         ok = False
         lines.append(f"  FAIL  {cls}.{method}() renamed to '{obf}' "
                      "-- ProbeTable/UsbSerialProber reflect on this exact name")
 
-    if not report["canary_classes"]:
+    if report["canary_classes"]:
+        if ok:
+            kept = ", ".join(sorted({m for _, m in report["kept"]})) or "n/a"
+            lines.append(f"  ok    {CANARY}() preserved on "
+                         f"{len(report['canary_classes'])} drivers; "
+                         f"reflected methods kept: {kept}")
+    elif report["minify_ran"]:
+        # Obfuscation ran but no driver declares getSupportedDevices: the
+        # reflected methods were stripped or renamed away.
         ok = False
         lines.append(f"  FAIL  no driver declares {CANARY}() in an obfuscated "
                      "mapping -- the serial drivers were stripped or renamed away")
-
-    if ok:
-        lines.append(f"  ok    {CANARY}() preserved on "
-                     f"{len(report['canary_classes'])} drivers; "
-                     f"{len(report['kept'])} reflected methods kept un-obfuscated")
+    else:
+        # No obfuscation and no driver methods enumerated: a shrink-only or
+        # non-obfuscated mapping where we cannot prove the drivers survived
+        # (R8 can also strip an unused reflected member here). Warn rather than
+        # pass silently. Submersion's release builds always obfuscate, so this
+        # branch should not occur in CI.
+        lines.append(f"  WARN  no obfuscation and no {CANARY}() seen; cannot "
+                     "verify the serial drivers (minification may be disabled)")
     return ok, lines
 
 

@@ -138,12 +138,34 @@ class CheckMappingTests(unittest.TestCase):
         self.assertFalse(ok)
         self.assertTrue(any("getSupportedDevices" in line for line in lines))
 
-    def test_no_minification_warns_but_passes(self):
+    def test_member_renamed_without_class_rename_fails(self):
+        # R8 can rename getSupportedDevices while KEEPING the class name (partial
+        # keep rules / -keepnames). No class is renamed, so the obfuscation-ran
+        # heuristic is false -- but this is still the #318 regression and must
+        # fail, not be skipped. (Regression test for the early-return bug.)
+        ok, lines = self._run(
+            "com.hoho.android.usbserial.driver.ProlificSerialDriver -> "
+            "com.hoho.android.usbserial.driver.ProlificSerialDriver:\n"
+            "    java.util.Map getSupportedDevices() -> a\n"
+        )
+        self.assertFalse(ok)
+        self.assertTrue(any("getSupportedDevices" in line for line in lines))
+
+    def test_non_obfuscated_with_drivers_present_passes(self):
+        # A shrink-only/non-obfuscated mapping that still lists the driver and
+        # its un-renamed getSupportedDevices is genuinely fine.
         ok, lines = self._run(
             "com.hoho.android.usbserial.driver.ProlificSerialDriver -> "
             "com.hoho.android.usbserial.driver.ProlificSerialDriver:\n"
             "    java.util.Map getSupportedDevices() -> getSupportedDevices\n"
         )
+        self.assertTrue(ok)
+        self.assertTrue(any("preserved" in line for line in lines))
+
+    def test_warns_when_no_obfuscation_and_no_drivers(self):
+        # Cannot prove the drivers survived; warn rather than pass or fail.
+        ok, lines = self._run("com.example.Foo -> com.example.Foo:\n"
+                              "    void bar() -> bar\n")
         self.assertTrue(ok)
         self.assertTrue(any("WARN" in line for line in lines))
 
