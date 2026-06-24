@@ -74,3 +74,15 @@ The main isolate's apply logic is **unchanged except its data source**: instead 
 - Delta-path `compute()` offload (only large catch-up deltas benefit).
 - S4 (DB off the UI isolate) — fixes the open-transaction-blocks-reads issue this does not.
 - Reusing one persistent worker across syncs (this spec spawns per base apply for simplicity).
+
+## Implementation status (2026-06-24)
+
+Built and parity-proven. The base-apply parse (`BaseJsonStreamReader` + per-row `jsonDecode`) and file read now run in an `Isolate.spawn`'d worker (`base_parse_worker.dart` / `base_parse_client.dart`), pull-backpressured one ≤500-row batch at a time; the merge/writes/transaction stay on the main isolate (`_applyRemoteBaseFileViaWorker`), with `_applyRemoteBaseFileInline` retained as the fallback.
+
+- The existing `streaming base apply matches in-memory apply byte-for-byte` parity test now runs **through the worker** and is green; a forced-spawn-failure test proves the inline fallback; the whole sync suite (335 tests) passes.
+- **The offload is structural** — the parse runs in a spawned isolate by construction — so no live before/after was captured (a base apply is occasional and hard to trigger reliably).
+
+### Deferred follow-ups
+1. Fold the whole-file SHA-256 (currently in `BasePartFileSink.assemble`, ~217 ms on main) into the worker's read.
+2. The delta-path `compute()` decode offload.
+3. A persistent worker reused across syncs (avoids per-apply spawn cost).
