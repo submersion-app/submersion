@@ -158,7 +158,14 @@ class FitTankExtractor {
     final drop = startBar - endBar;
     if (drop < FitConstants.minDeriveDropBar) return null;
     final size = usedLiters / drop;
-    if (size <= 0 || size > FitConstants.maxPlausibleVolumeLiters) return null;
-    return double.parse(size.toStringAsFixed(1));
+    if (!size.isFinite ||
+        size <= 0 ||
+        size > FitConstants.maxPlausibleVolumeLiters) {
+      return null;
+    }
+    // Round to 0.1 L numerically (the value is reconstructed, not measured).
+    // Numeric rounding avoids a string round-trip; the isFinite guard above
+    // keeps round() from receiving NaN/Infinity.
+    return (size * 10).round() / 10;
   }
 }
