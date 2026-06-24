@@ -203,6 +203,8 @@ void main() {
       final tanks = d['tanks'] as List<Map<String, dynamic>>;
       expect(tanks.single['startPressure'], closeTo(221.25, 1e-6));
       expect(tanks.single['endPressure'], closeTo(88.11, 1e-6));
+      // Cylinder volume derived from volume_used: 1993.5 / 133.14 -> 15.0 L.
+      expect(tanks.single['volume'], closeTo(15.0, 1e-9));
       expect(d['avgHeartRate'], isNotNull);
       expect(d['exitLatitude'], closeTo(19.691, 1e-3));
 

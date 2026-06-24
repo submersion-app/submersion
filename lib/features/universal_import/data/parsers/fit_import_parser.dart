@@ -99,6 +99,7 @@ class FitImportParser implements ImportParser {
           tank['startPressure'] = t.startPressureBar;
         }
         if (t.endPressureBar != null) tank['endPressure'] = t.endPressureBar;
+        if (t.volumeLiters != null) tank['volume'] = t.volumeLiters;
         if (t.o2Percent != null || t.hePercent != null) {
           tank['gasMix'] = GasMix(
             o2: t.o2Percent ?? 21.0,
