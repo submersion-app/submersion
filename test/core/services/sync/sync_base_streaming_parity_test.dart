@@ -231,4 +231,43 @@ void main() {
       expect(dumpB, dumpA);
     },
   );
+
+  test(
+    'a worker-spawn failure falls back to inline and still applies',
+    () async {
+      await _seedRichLibrary();
+      final payload = await SyncDataSerializer().exportData(
+        deviceId: 'peer',
+        deletions: await SyncRepository().getAllDeletions(),
+      );
+
+      // In-memory baseline.
+      await tearDownTestDatabase();
+      await setUpTestDatabase();
+      await SyncService(
+        syncRepository: SyncRepository(),
+        serializer: SyncDataSerializer(),
+      ).debugApplyPayload(payload);
+      final dumpInMemory = await _exportCanonical();
+
+      // Worker spawn forced to fail -> must fall back to the inline file apply.
+      await tearDownTestDatabase();
+      await setUpTestDatabase();
+      final tmpDir = await Directory.systemTemp.createTemp('parity_fallback');
+      final tmp = File('${tmpDir.path}/base.json');
+      await tmp.writeAsBytes(
+        utf8.encode(SyncDataSerializer().serializePayload(payload)),
+      );
+      final svc = SyncService(
+        syncRepository: SyncRepository(),
+        serializer: SyncDataSerializer(),
+      )..baseParseClientSpawn = (_) async => throw StateError('forced failure');
+      final counts = await svc.debugApplyBaseFile(tmp.path);
+      final dumpFallback = await _exportCanonical();
+      await tmpDir.delete(recursive: true);
+
+      expect(dumpFallback, dumpInMemory, reason: 'inline fallback must match');
+      expect(counts.recordsFailed, 0);
+    },
+  );
 }

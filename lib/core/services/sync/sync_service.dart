@@ -10,6 +10,7 @@ import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.da
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_json_stream_reader.dart';
+import 'package:submersion/core/services/sync/changeset_log/base_parse_client.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_part_file_sink.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_codec.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
@@ -196,6 +197,13 @@ class SyncService {
   );
 
   SyncProgressCallback? _progressCallback;
+
+  /// Test seam: how the base apply spawns its parse worker. Overridable so a
+  /// forced-failure test can verify the inline fallback; production uses the
+  /// real isolate spawn.
+  @visibleForTesting
+  Future<BaseParseClient> Function(String filePath) baseParseClientSpawn =
+      BaseParseClient.spawn;
 
   SyncService({
     required SyncRepository syncRepository,
@@ -959,11 +967,167 @@ class SyncService {
   ///   1. header `exportedAt` + the full `deletions` map (both small),
   ///   2. parent-row id->updatedAt and contradiction keys (skips giant tables),
   ///   3. batched apply of every row through the existing [_mergeEntity].
+  /// Applies a peer's base file. Tries the worker-isolate path (file read +
+  /// parse + SHA off the UI isolate) and falls back to the inline path on any
+  /// worker failure, so a broken isolate degrades to old behaviour and never
+  /// fails or corrupts sync.
+  Future<_MergeResult> _applyRemoteBaseFile(
+    String filePath,
+    DateTime? localLastSync,
+  ) async {
+    BaseParseClient? client;
+    try {
+      client = await baseParseClientSpawn(filePath);
+      return await _applyRemoteBaseFileViaWorker(client, localLastSync);
+    } catch (e, st) {
+      _log.warning(
+        'Base-apply worker failed; falling back to inline',
+        error: e,
+        stackTrace: st,
+      );
+      return _applyRemoteBaseFileInline(filePath, localLastSync);
+    } finally {
+      await client?.dispose();
+    }
+  }
+
+  /// Worker-backed base apply: the file read + parse + SHA run in [client]'s
+  /// isolate; only the merge/writes run here. Mirrors
+  /// [_applyRemoteBaseFileInline] exactly, fed by streamed rows in file order
+  /// instead of an inline parse (so per-table batching and mergeOrder match).
+  Future<_MergeResult> _applyRemoteBaseFileViaWorker(
+    BaseParseClient client,
+    DateTime? localLastSync,
+  ) async {
+    final lastSyncMs = localLastSync?.millisecondsSinceEpoch;
+
+    // ---- Pass 1: exportedAt + deletions ----
+    final p1 = await client.readScalarsAndDeletions();
+    final baseExportedAt = p1.exportedAt;
+    final deletions = <String, List<SyncDeletion>>{};
+    for (final e in p1.deletions) {
+      (deletions[e.table] ??= []).add(SyncDeletion.fromJson(e.row));
+    }
+
+    final pendingByEntity = await _pendingRecordMap();
+
+    // ---- Pass 2: parent updatedAt + contradiction keys ----
+    final parentTypes = <String>{
+      for (final refs in parentRefs.values)
+        for (final ref in refs) ref.parent,
+    };
+    final deletionIds = <String, Set<String>>{
+      for (final e in deletions.entries) e.key: {for (final d in e.value) d.id},
+    };
+    final parentUpdatedAt = <String, Map<String, int>>{};
+    final contradictedByEntity = <String, Set<String>>{};
+    final pass2Tables = <String>{
+      for (final table in entityHasUpdatedAt.keys)
+        if (parentTypes.contains(table) || deletionIds.containsKey(table))
+          table,
+    };
+    client.startDataRows(pass2Tables);
+    List<({String table, Map<String, dynamic> row})>? p2batch;
+    while ((p2batch = await client.nextDataBatch()) != null) {
+      for (final r in p2batch!) {
+        final table = r.table;
+        final rec = r.row;
+        final id = _recordIdForEntity(table, rec);
+        if (id == null) continue;
+        if (parentTypes.contains(table) && entityHasUpdatedAt[table] == true) {
+          final u = _extractUpdatedAtMillis(rec);
+          if (u != null) (parentUpdatedAt[table] ??= {})[id] = u;
+        }
+        if (deletionIds[table]?.contains(id) == true) {
+          (contradictedByEntity[table] ??= {}).add(id);
+        }
+      }
+    }
+
+    // ---- Apply, all inside one deferred-FK transaction ----
+    return _serializer.applyInDeferredFkTransaction(() async {
+      var recordsApplied = 0;
+      var conflictsFound = 0;
+      var recordsFailed = 0;
+
+      final delResult = await _applyRemoteDeletions(
+        deletions,
+        lastSyncMs,
+        baseExportedAt,
+        pendingByEntity,
+        contradictedByEntity,
+      );
+      recordsApplied += delResult.recordsApplied;
+      conflictsFound += delResult.conflictsFound;
+      recordsFailed += delResult.recordsFailed;
+
+      final tombstonesByEntity = await _deletionMap();
+
+      final revivedParents = <String, Set<String>>{};
+      for (final parentType in parentTypes) {
+        final tombs = tombstonesByEntity[parentType];
+        final ups = parentUpdatedAt[parentType];
+        if (tombs == null || tombs.isEmpty || ups == null) continue;
+        ups.forEach((id, updatedAt) {
+          final deletedAt = tombs[id];
+          if (deletedAt != null && updatedAt > deletedAt) {
+            (revivedParents[parentType] ??= {}).add(id);
+          }
+        });
+      }
+
+      // ---- Pass 3: batched apply ----
+      const batchSize = 500;
+      String? currentTable;
+      var batch = <Map<String, dynamic>>[];
+
+      Future<void> flush() async {
+        final table = currentTable;
+        if (table == null || batch.isEmpty) return;
+        final r = await _mergeEntity(
+          entityType: table,
+          records: batch,
+          hasUpdatedAt: entityHasUpdatedAt[table] ?? false,
+          lastSyncMs: lastSyncMs,
+          pendingRecordIds: pendingByEntity[table] ?? const <String>{},
+          allTombstones: tombstonesByEntity,
+          revivedParents: revivedParents,
+          contradicted: contradictedByEntity[table] ?? const <String>{},
+        );
+        recordsApplied += r.recordsApplied;
+        conflictsFound += r.conflictsFound;
+        recordsFailed += r.recordsFailed;
+        batch = <Map<String, dynamic>>[];
+      }
+
+      client.startDataRows(entityHasUpdatedAt.keys.toSet());
+      List<({String table, Map<String, dynamic> row})>? p3batch;
+      while ((p3batch = await client.nextDataBatch()) != null) {
+        for (final r in p3batch!) {
+          if (r.table != currentTable) {
+            await flush();
+            currentTable = r.table;
+          }
+          batch.add(r.row);
+          if (batch.length >= batchSize) await flush();
+        }
+      }
+      await flush();
+
+      await _serializer.repairDanglingForeignKeys();
+      return _MergeResult(
+        recordsApplied: recordsApplied,
+        conflictsFound: conflictsFound,
+        recordsFailed: recordsFailed,
+      );
+    });
+  }
+
   /// Reuses the same merge primitives as [_applyRemotePayloadInner], so the
   /// result is identical to applying the equivalent in-memory payload, but peak
   /// memory stays at one ~8 MB part download + one batch of rows regardless of
   /// library size (issue #358).
-  Future<_MergeResult> _applyRemoteBaseFile(
+  Future<_MergeResult> _applyRemoteBaseFileInline(
     String filePath,
     DateTime? localLastSync,
   ) async {
