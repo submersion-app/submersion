@@ -1203,6 +1203,142 @@ class SyncDataSerializer {
     }
   }
 
+  /// Every local row id for [entityType], in the id form [deleteRecord]
+  /// accepts: plain `id` for most entities, `key` for `settings`, and the
+  /// composite `a|b` form (matching [_compositeId]) for the two junction
+  /// tables. Reads only the id column(s) -- never full rows -- so the streaming
+  /// replace-adopt can enumerate row-per-sample tables (diveProfiles,
+  /// tankPressureProfiles) to delete local rows absent from the restored
+  /// library (#358) without materializing their payloads. Memory still scales
+  /// with the entity's row count (the result is a Set of ids and `get()` loads
+  /// all id rows at once), but ids are orders of magnitude smaller than the
+  /// rows they stand in for. Mirrors the entity -> table mapping in
+  /// [upsertRecord] / [deleteRecord], and THROWS on an entity with no case so a
+  /// newly added synced entity that forgets one fails loudly rather than
+  /// silently skipping its stale-row deletion (asserted by the
+  /// "every synced entity" test).
+  Future<Set<String>> recordIdsFor(String entityType) async {
+    Future<Set<String>> plain(
+      ResultSetImplementation<HasResultSet, dynamic> table,
+      GeneratedColumn<String> idColumn,
+    ) async {
+      final query = _db.selectOnly(table)..addColumns([idColumn]);
+      return {for (final row in await query.get()) row.read(idColumn)!};
+    }
+
+    switch (entityType) {
+      case 'settings':
+        return plain(_db.settings, _db.settings.key);
+      case 'diveEquipment':
+        final query = _db.selectOnly(_db.diveEquipment)
+          ..addColumns([
+            _db.diveEquipment.diveId,
+            _db.diveEquipment.equipmentId,
+          ]);
+        return {
+          for (final row in await query.get())
+            '${row.read(_db.diveEquipment.diveId)}|'
+                '${row.read(_db.diveEquipment.equipmentId)}',
+        };
+      case 'equipmentSetItems':
+        final query = _db.selectOnly(_db.equipmentSetItems)
+          ..addColumns([
+            _db.equipmentSetItems.setId,
+            _db.equipmentSetItems.equipmentId,
+          ]);
+        return {
+          for (final row in await query.get())
+            '${row.read(_db.equipmentSetItems.setId)}|'
+                '${row.read(_db.equipmentSetItems.equipmentId)}',
+        };
+      case 'divers':
+        return plain(_db.divers, _db.divers.id);
+      case 'diverSettings':
+        return plain(_db.diverSettings, _db.diverSettings.id);
+      case 'buddies':
+        return plain(_db.buddies, _db.buddies.id);
+      case 'diveCenters':
+        return plain(_db.diveCenters, _db.diveCenters.id);
+      case 'trips':
+        return plain(_db.trips, _db.trips.id);
+      case 'liveaboardDetails':
+        return plain(
+          _db.liveaboardDetailRecords,
+          _db.liveaboardDetailRecords.id,
+        );
+      case 'itineraryDays':
+        return plain(_db.tripItineraryDays, _db.tripItineraryDays.id);
+      case 'equipment':
+        return plain(_db.equipment, _db.equipment.id);
+      case 'equipmentSets':
+        return plain(_db.equipmentSets, _db.equipmentSets.id);
+      case 'diveTypes':
+        return plain(_db.diveTypes, _db.diveTypes.id);
+      case 'tankPresets':
+        return plain(_db.tankPresets, _db.tankPresets.id);
+      case 'diveComputers':
+        return plain(_db.diveComputers, _db.diveComputers.id);
+      case 'species':
+        return plain(_db.species, _db.species.id);
+      case 'tags':
+        return plain(_db.tags, _db.tags.id);
+      case 'courses':
+        return plain(_db.courses, _db.courses.id);
+      case 'dives':
+        return plain(_db.dives, _db.dives.id);
+      case 'diveSites':
+        return plain(_db.diveSites, _db.diveSites.id);
+      case 'diveTanks':
+        return plain(_db.diveTanks, _db.diveTanks.id);
+      case 'diveWeights':
+        return plain(_db.diveWeights, _db.diveWeights.id);
+      case 'diveTags':
+        return plain(_db.diveTags, _db.diveTags.id);
+      case 'diveBuddies':
+        return plain(_db.diveBuddies, _db.diveBuddies.id);
+      case 'diveProfiles':
+        return plain(_db.diveProfiles, _db.diveProfiles.id);
+      case 'diveProfileEvents':
+        return plain(_db.diveProfileEvents, _db.diveProfileEvents.id);
+      case 'gasSwitches':
+        return plain(_db.gasSwitches, _db.gasSwitches.id);
+      case 'diveCustomFields':
+        return plain(_db.diveCustomFields, _db.diveCustomFields.id);
+      case 'diveDataSources':
+        return plain(_db.diveDataSources, _db.diveDataSources.id);
+      case 'siteSpecies':
+        return plain(_db.siteSpecies, _db.siteSpecies.id);
+      case 'csvPresets':
+        return plain(_db.csvPresets, _db.csvPresets.id);
+      case 'viewConfigs':
+        return plain(_db.viewConfigs, _db.viewConfigs.id);
+      case 'fieldPresets':
+        return plain(_db.fieldPresets, _db.fieldPresets.id);
+      case 'tankPressureProfiles':
+        return plain(_db.tankPressureProfiles, _db.tankPressureProfiles.id);
+      case 'tideRecords':
+        return plain(_db.tideRecords, _db.tideRecords.id);
+      case 'sightings':
+        return plain(_db.sightings, _db.sightings.id);
+      case 'certifications':
+        return plain(_db.certifications, _db.certifications.id);
+      case 'serviceRecords':
+        return plain(_db.serviceRecords, _db.serviceRecords.id);
+      case 'media':
+        return plain(_db.media, _db.media.id);
+      default:
+        // Fail loud: a synced entity without a case here would silently
+        // enumerate zero local ids, so streaming adopt would never delete its
+        // stale rows. Callers only pass entityHasUpdatedAt keys, all of which
+        // have a case (asserted by sync_data_serializer_record_ids_test.dart).
+        throw ArgumentError.value(
+          entityType,
+          'entityType',
+          'recordIdsFor has no case for this synced entity',
+        );
+    }
+  }
+
   Future<void> deleteRecord(String entityType, String recordId) async {
     switch (entityType) {
       case 'divers':

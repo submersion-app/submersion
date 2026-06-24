@@ -10,6 +10,7 @@ import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.da
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_json_stream_reader.dart';
+import 'package:submersion/core/services/sync/changeset_log/base_part_file_sink.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_codec.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_reader.dart';
@@ -177,6 +178,10 @@ class SyncService {
 
   // Changeset-log transport (Phases 1-6), lazily bound to the active database.
   late final ChangesetCodec _changesetCodec = ChangesetCodec(_serializer);
+
+  /// Assembles a peer's base parts into a temp file (per-part + whole-file
+  /// checksum verified) for the bounded-memory replace-adopt (#358).
+  final BasePartFileSink _baseSink = BasePartFileSink();
   late final ChangesetWriter _changesetWriter = ChangesetWriter(
     _serializer,
     _changesetCodec,
@@ -1847,12 +1852,15 @@ class SyncService {
       }
 
       final folderId = await provider.getOrCreateSyncFolder();
-      final payloads = await _collectEpochPayloads(
+      // Stream each epoch device's base to a temp file (bounded memory); the
+      // streaming apply (#358) replaces the old in-memory collect + union,
+      // which OOM-crashed iOS adopting a large library.
+      final sources = await _collectEpochBaseSources(
         provider,
         folderId,
         marker.epochId,
       );
-      if (payloads.isEmpty) {
+      if (sources.baseFilePaths.isEmpty) {
         // No current-format library for this epoch. If the marker is stale
         // (old-format backend or an orphaned replace), re-establish from the
         // local library rather than bricking; the notifier's follow-up sync
@@ -1872,56 +1880,20 @@ class SyncService {
               'The replaced library is still uploading. Try again shortly.',
         );
       }
-      payloads.sort((a, b) => a.exportedAt.compareTo(b.exportedAt));
 
-      final deviceId = await _syncRepository.getDeviceId();
-      final localSnapshot = await _serializer.exportData(
-        deviceId: deviceId,
-        lastSyncTimestamp: null,
-        deletions: const [],
-        uploadNonce: null,
-      );
-
-      await _serializer.applyInDeferredFkTransaction(() async {
-        // Union the restored records; for ids present in several files the
-        // latest export wins (payloads are sorted ascending).
-        final cloudIds = <String, Set<String>>{};
-        final restored = <String, Map<String, Map<String, dynamic>>>{};
-        for (final payload in payloads) {
-          for (final entry in payload.data.toJson().entries) {
-            final entityType = entry.key;
-            final records = (entry.value as List).cast<Map<String, dynamic>>();
-            for (final record in records) {
-              final id = _recordIdForEntity(entityType, record);
-              if (id == null) continue;
-              (cloudIds[entityType] ??= <String>{}).add(id);
-              (restored[entityType] ??= {})[id] = record;
-            }
-          }
+      try {
+        await _serializer.applyInDeferredFkTransaction(
+          () => _adoptApplyStreaming(
+            baseFilePaths: sources.baseFilePaths,
+            baseExportedAt: sources.baseExportedAt,
+            changesets: sources.changesets,
+          ),
+        );
+      } finally {
+        for (final path in sources.baseFilePaths) {
+          await _baseSink.deleteQuietly(path);
         }
-
-        // Delete local rows the restored library does not contain.
-        for (final entry in localSnapshot.data.toJson().entries) {
-          final entityType = entry.key;
-          final records = (entry.value as List).cast<Map<String, dynamic>>();
-          for (final record in records) {
-            final id = _recordIdForEntity(entityType, record);
-            if (id == null) continue;
-            if (!(cloudIds[entityType]?.contains(id) ?? false)) {
-              await _serializer.deleteRecord(entityType, id);
-            }
-          }
-        }
-
-        // Upsert every restored record.
-        for (final entry in restored.entries) {
-          for (final record in entry.value.values) {
-            await _serializer.upsertRecord(entry.key, record);
-          }
-        }
-
-        await _serializer.repairDanglingForeignKeys();
-      });
+      }
 
       // Re-baseline under the adopted epoch. Our tombstones are obsolete --
       // the restored library is authoritative.
@@ -1947,11 +1919,194 @@ class SyncService {
     }
   }
 
-  /// Collect every payload (base + changesets) from all changeset logs stamped
-  /// with [epochId]. Used by adoption to rebuild the authoritative library
-  /// after a Replace restore. Skips a log whose base parts are not all present
-  /// (a publish still in flight).
-  Future<List<SyncPayload>> _collectEpochPayloads(
+  /// In-memory union/delete/upsert adopt apply (parity reference for the
+  /// streaming path [_adoptApplyStreaming]). Runs inside the caller's
+  /// deferred-FK transaction. Unions every payload's `data` (latest export
+  /// wins; [payloads] must be sorted ascending by exportedAt), deletes local
+  /// rows absent from the union, then upserts the union and repairs FKs.
+  Future<void> _applyAdoptInMemory(
+    List<SyncPayload> payloads,
+    SyncPayload localSnapshot,
+  ) async {
+    // Union the restored records; for ids present in several files the latest
+    // export wins (payloads are sorted ascending).
+    final cloudIds = <String, Set<String>>{};
+    final restored = <String, Map<String, Map<String, dynamic>>>{};
+    for (final payload in payloads) {
+      for (final entry in payload.data.toJson().entries) {
+        final entityType = entry.key;
+        final records = (entry.value as List).cast<Map<String, dynamic>>();
+        for (final record in records) {
+          final id = _recordIdForEntity(entityType, record);
+          if (id == null) continue;
+          (cloudIds[entityType] ??= <String>{}).add(id);
+          (restored[entityType] ??= {})[id] = record;
+        }
+      }
+    }
+
+    // Delete local rows the restored library does not contain.
+    for (final entry in localSnapshot.data.toJson().entries) {
+      final entityType = entry.key;
+      final records = (entry.value as List).cast<Map<String, dynamic>>();
+      for (final record in records) {
+        final id = _recordIdForEntity(entityType, record);
+        if (id == null) continue;
+        if (!(cloudIds[entityType]?.contains(id) ?? false)) {
+          await _serializer.deleteRecord(entityType, id);
+        }
+      }
+    }
+
+    // Upsert every restored record.
+    for (final entry in restored.entries) {
+      for (final record in entry.value.values) {
+        await _serializer.upsertRecord(entry.key, record);
+      }
+    }
+
+    await _serializer.repairDanglingForeignKeys();
+  }
+
+  /// Test seam: in-memory adopt of [payloads] (the parity reference). Captures
+  /// the local snapshot, sorts payloads ascending, and applies in one
+  /// deferred-FK transaction. No re-baseline, so a parity comparison sees only
+  /// the data effects. See sync_adopt_streaming_parity_test.dart.
+  @visibleForTesting
+  Future<void> debugAdoptInMemory(List<SyncPayload> payloads) async {
+    final local = await _serializer.exportData(
+      deviceId: 'adopt',
+      deletions: const [],
+    );
+    final sorted = [...payloads]
+      ..sort((a, b) => a.exportedAt.compareTo(b.exportedAt));
+    await _serializer.applyInDeferredFkTransaction(
+      () => _applyAdoptInMemory(sorted, local),
+    );
+  }
+
+  /// Streaming replace-adopt apply (production path). Runs inside the caller's
+  /// deferred-FK transaction. Upserts every restored row in exportedAt order
+  /// (each base temp file streamed in 500-row batches, plus in-memory
+  /// changesets), collecting cloud ids as it goes, then deletes local rows
+  /// absent from that set, then repairs FKs. Bounded memory: one batch + the
+  /// cloud id sets (ids only, never full rows), independent of library size.
+  ///
+  /// Equivalent to [_applyAdoptInMemory]: `upsertRecord` is an unconditional
+  /// overwrite, so applying in ascending exportedAt order is latest-export-wins
+  /// (the in-memory `restored` map); and delete-not-in-cloud is order
+  /// independent, so upsert-then-delete here matches delete-then-upsert there
+  /// (final state is the cloud union either way). A null record id is skipped
+  /// entirely, exactly as the in-memory path does. Enforced by
+  /// sync_adopt_streaming_parity_test.dart.
+  Future<void> _adoptApplyStreaming({
+    required List<String> baseFilePaths,
+    required List<int> baseExportedAt,
+    required List<SyncPayload> changesets,
+  }) async {
+    final cloudIds = <String, Set<String>>{};
+
+    Future<void> upsertRow(String table, Map<String, dynamic> record) async {
+      final id = _recordIdForEntity(table, record);
+      if (id == null) return; // matches in-memory: null-id rows are skipped
+      (cloudIds[table] ??= <String>{}).add(id);
+      await _serializer.upsertRecord(table, record);
+    }
+
+    // Apply units: each base file and each changeset, ascending by exportedAt
+    // (latest export wins under the unconditional upsert).
+    final units = <({int at, String? file, SyncPayload? changeset})>[
+      for (var i = 0; i < baseFilePaths.length; i++)
+        (at: baseExportedAt[i], file: baseFilePaths[i], changeset: null),
+      for (final c in changesets) (at: c.exportedAt, file: null, changeset: c),
+    ]..sort((a, b) => a.at.compareTo(b.at));
+
+    for (final unit in units) {
+      final changeset = unit.changeset;
+      if (changeset != null) {
+        for (final entry in changeset.data.toJson().entries) {
+          if (!entityHasUpdatedAt.containsKey(entry.key)) continue;
+          for (final record
+              in (entry.value as List).cast<Map<String, dynamic>>()) {
+            await upsertRow(entry.key, record);
+          }
+        }
+        continue;
+      }
+
+      // Base file: stream `data` rows, batching 500 per table.
+      const batchSize = 500;
+      String? currentTable;
+      var batch = <Map<String, dynamic>>[];
+      Future<void> flush() async {
+        final table = currentTable;
+        if (table == null || batch.isEmpty) return;
+        for (final record in batch) {
+          await upsertRow(table, record);
+        }
+        batch = <Map<String, dynamic>>[];
+      }
+
+      await BaseJsonStreamReader().parse(
+        File(unit.file!).openRead(),
+        wantRows: (section, table) =>
+            section == 'data' && entityHasUpdatedAt.containsKey(table),
+        onRow: (section, table, rowBytes) async {
+          if (table != currentTable) {
+            await flush();
+            currentTable = table;
+          }
+          batch.add(jsonDecode(utf8.decode(rowBytes)) as Map<String, dynamic>);
+          if (batch.length >= batchSize) await flush();
+        },
+      );
+      await flush();
+    }
+
+    // Delete local rows the restored library does not contain.
+    for (final entity in entityHasUpdatedAt.keys) {
+      final cloud = cloudIds[entity] ?? const <String>{};
+      for (final localId in await _serializer.recordIdsFor(entity)) {
+        if (!cloud.contains(localId)) {
+          await _serializer.deleteRecord(entity, localId);
+        }
+      }
+    }
+
+    await _serializer.repairDanglingForeignKeys();
+  }
+
+  /// Test seam: streaming adopt of base temp files + in-memory changesets.
+  @visibleForTesting
+  Future<void> debugAdoptStreaming(
+    List<String> baseFilePaths,
+    List<int> baseExportedAt,
+    List<SyncPayload> changesets,
+  ) => _serializer.applyInDeferredFkTransaction(
+    () => _adoptApplyStreaming(
+      baseFilePaths: baseFilePaths,
+      baseExportedAt: baseExportedAt,
+      changesets: changesets,
+    ),
+  );
+
+  /// Stream every epoch-stamped changeset log into adopt sources: each device's
+  /// base assembled to a temp file (bounded memory, via [BasePartFileSink],
+  /// which verifies per-part and whole-file checksums as bytes land), its base
+  /// export time, and its post-base changesets decoded in memory (small
+  /// deltas). Skips a device whose base parts are not all present or whose base
+  /// fails its checksum (a publish still in flight -> retry next adopt).
+  /// Replaces the old in-memory collect that decoded every device's whole base
+  /// into RAM and OOM-crashed iOS adopting a large library (#358). The caller
+  /// owns the returned temp files and must delete them.
+  Future<
+    ({
+      List<String> baseFilePaths,
+      List<int> baseExportedAt,
+      List<SyncPayload> changesets,
+    })
+  >
+  _collectEpochBaseSources(
     CloudStorageProvider provider,
     String folderId,
     String epochId,
@@ -1966,7 +2121,9 @@ class SyncService {
         if (ChangesetLogLayout.deviceIdOf(f.name) != null)
           ChangesetLogLayout.deviceIdOf(f.name)!,
     };
-    final payloads = <SyncPayload>[];
+    final baseFilePaths = <String>[];
+    final baseExportedAt = <int>[];
+    final changesets = <SyncPayload>[];
     for (final deviceId in deviceIds) {
       final manifestFile = byName[ChangesetLogLayout.manifestName(deviceId)];
       if (manifestFile == null) continue;
@@ -1981,28 +2138,50 @@ class SyncService {
       if (manifest.epochId != epochId) continue;
       final baseSeq = manifest.baseSeq;
       if (baseSeq == null) continue;
-      final parts = <Uint8List>[];
-      var complete = true;
-      for (var i = 0; i < (manifest.basePartCount ?? 0); i++) {
-        final pf =
-            byName[ChangesetLogLayout.basePartName(deviceId, baseSeq, i)];
-        if (pf == null) {
-          complete = false;
-          break;
-        }
-        parts.add(await provider.downloadFile(pf.id));
-      }
-      if (!complete || parts.isEmpty) continue;
-      payloads.add(_changesetCodec.decodeBaseParts(parts));
+      final partCount = manifest.basePartCount ?? 0;
+      if (partCount <= 0) continue;
+      final path = await _baseSink.assemble(
+        name: 'ssv1_adopt_${deviceId}_$baseSeq',
+        partCount: partCount,
+        wholeChecksum: manifest.baseChecksum,
+        partChecksums: manifest.basePartChecksums,
+        downloadPart: (i) async {
+          final pf =
+              byName[ChangesetLogLayout.basePartName(deviceId, baseSeq, i)];
+          if (pf == null) return null;
+          return provider.downloadFile(pf.id);
+        },
+      );
+      if (path == null) continue; // base incomplete/corrupt -> skip this device
+      baseFilePaths.add(path);
+      baseExportedAt.add(await _readBaseExportedAt(path));
       for (var seq = baseSeq + 1; seq <= manifest.headSeq; seq++) {
         final cf = byName[ChangesetLogLayout.changesetName(deviceId, seq)];
         if (cf == null) break;
-        payloads.add(
+        changesets.add(
           _changesetCodec.decodeChangeset(await provider.downloadFile(cf.id)),
         );
       }
     }
-    return payloads;
+    return (
+      baseFilePaths: baseFilePaths,
+      baseExportedAt: baseExportedAt,
+      changesets: changesets,
+    );
+  }
+
+  /// Read a base file's `exportedAt` (the cross-device latest-wins order key)
+  /// from a bounded prefix rather than parsing the whole base: it is the second
+  /// top-level member of the payload JSON, always within the first bytes. 0 if
+  /// absent (an unstamped/legacy base sorts first, which is the safe default).
+  Future<int> _readBaseExportedAt(String path) async {
+    final bytes = <int>[];
+    await for (final chunk in File(path).openRead(0, 65536)) {
+      bytes.addAll(chunk);
+    }
+    final head = utf8.decode(bytes, allowMalformed: true);
+    final match = RegExp(r'"exportedAt"\s*:\s*(\d+)').firstMatch(head);
+    return match == null ? 0 : (int.tryParse(match.group(1)!) ?? 0);
   }
 
   /// Download and parse the cloud epoch marker. Returns null when absent.
