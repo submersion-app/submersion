@@ -1121,6 +1121,34 @@ class DiveTags extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Junction table for dive types (many-to-many).
+///
+/// Surrogate UUID primary key (never a composite key) so fresh-id reinserts
+/// never collide with a replaced row's tombstone — this is how the junction
+/// stays clear of the composite-key sync data-loss bug (#347).
+class DiveDiveTypes extends Table {
+  TextColumn get id => text()();
+  TextColumn get diveId =>
+      text().references(Dives, #id, onDelete: KeyAction.cascade)();
+  TextColumn get diveTypeId => text()();
+  IntColumn get createdAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Seeds one junction row per existing dive from its representative dive_type
+/// slug. Used by the v92 migration and asserted directly in tests.
+const String kSeedDiveDiveTypesSql = '''
+  INSERT INTO dive_dive_types (id, dive_id, dive_type_id, created_at)
+  SELECT
+    lower(hex(randomblob(16))),
+    id,
+    COALESCE(NULLIF(dive_type, ''), 'recreational'),
+    CAST(strftime('%s','now') AS INTEGER) * 1000
+  FROM dives
+''';
+
 /// Custom tank presets (user-defined tank configurations)
 class TankPresets extends Table {
   TextColumn get id => text()();
@@ -1594,6 +1622,7 @@ class FieldPresets extends Table {
     DiveCenters,
     Tags,
     DiveTags,
+    DiveDiveTypes,
     DiveTypes,
     TankPresets,
     DiveComputers,
@@ -1640,7 +1669,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 91;
+  static const int currentSchemaVersion = 92;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1735,6 +1764,7 @@ class AppDatabase extends _$AppDatabase {
     89,
     90,
     91,
+    92,
   ];
 
   /// Tables that carry a per-row Hybrid Logical Clock for cross-device conflict
@@ -4239,6 +4269,11 @@ class AppDatabase extends _$AppDatabase {
           }
         }
         if (from < 91) await reportProgress();
+        if (from < 92) {
+          await m.createTable(diveDiveTypes);
+          await customStatement(kSeedDiveDiveTypesSql);
+        }
+        if (from < 92) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
