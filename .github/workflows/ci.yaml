@@ -229,6 +229,40 @@ jobs:
           flags: shard-${{ matrix.shard }}
           fail_ci_if_error: false  # Enable after configuring repo on codecov.io
 
+  # Unit-tests the dependency-free Python guard scripts (e.g. the issue #318
+  # ProGuard keep-rule checker). No Flutter/codegen needed, so it runs in
+  # parallel and gives the guard logic its own coverage, scoped to the script.
+  script-tests:
+    name: Script Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.x'
+
+      - name: Install coverage.py
+        run: python3 -m pip install coverage
+
+      - name: Run Python guard tests with coverage
+        run: |
+          mkdir -p coverage
+          python3 -m coverage run --include='scripts/check_proguard_serial_keep.py' \
+            scripts/check_proguard_serial_keep_test.py
+          python3 -m coverage report -m --include='scripts/check_proguard_serial_keep.py'
+          python3 -m coverage xml --include='scripts/check_proguard_serial_keep.py' \
+            -o coverage/scripts.xml
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v7
+        if: always()
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage/scripts.xml
+          flags: scripts
+          fail_ci_if_error: false
+
   integration-test:
     name: Integration Test (macOS)
     needs: codegen
@@ -548,6 +582,13 @@ jobs:
       # Fails the build if any 64-bit native library is not 16 KB-aligned.
       - name: Verify 16 KB native library alignment
         run: python3 scripts/check_16kb_alignment.py build/app/outputs/flutter-apk/app-release.apk
+
+      # Guards against the second half of issue #318: R8 release minification
+      # renamed the reflectively-probed usb-serial-for-android driver methods
+      # (e.g. getSupportedDevices), so every serial-USB download crashed with a
+      # NoSuchMethodException. Fails the build if a driver method was obfuscated.
+      - name: Verify serial driver ProGuard keep rules
+        run: python3 scripts/check_proguard_serial_keep.py build/app/outputs/mapping/release/mapping.txt
 
       - name: Upload Android artifact
         uses: actions/upload-artifact@v7
