@@ -1203,6 +1203,375 @@ class SyncDataSerializer {
     }
   }
 
+  /// Batched [upsertRecord]: writes all [records] for [entityType] in one Drift
+  /// `batch()` (reused prepared statements), in list order, with identical
+  /// conflict semantics. Mirrors [upsertRecord]'s per-entity logic per record --
+  /// the same `<Type>.fromJson`, the same per-record transforms, and the same
+  /// `settings` device-local-key filter.
+  Future<void> upsertRecords(
+    String entityType,
+    List<Map<String, dynamic>> records,
+  ) async {
+    if (records.isEmpty) return;
+    switch (entityType) {
+      case 'divers':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.divers,
+            records.map((r) => Diver.fromJson(r)).toList(),
+          ),
+        );
+        return;
+      case 'diverSettings':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.diverSettings,
+            records
+                .map(
+                  (r) => DiverSetting.fromJson(_applyDiverSettingDefaults(r)),
+                )
+                .toList(),
+          ),
+        );
+        return;
+      case 'dives':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.dives,
+            records.map((r) => Dive.fromJson(r)).toList(),
+          ),
+        );
+        return;
+      case 'diveProfiles':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.diveProfiles,
+            records.map((r) => DiveProfile.fromJson(r)).toList(),
+          ),
+        );
+        return;
+      case 'diveTanks':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.diveTanks,
+            records.map((r) => DiveTank.fromJson(r)).toList(),
+          ),
+        );
+        return;
+      case 'diveEquipment':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.diveEquipment,
+            records.map((r) => DiveEquipmentData.fromJson(r)).toList(),
+          ),
+        );
+        return;
+      case 'diveWeights':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.diveWeights,
+            records.map((r) => DiveWeight.fromJson(r)).toList(),
+          ),
+        );
+        return;
+      case 'diveSites':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.diveSites,
+            records.map((r) => DiveSite.fromJson(r)).toList(),
+          ),
+        );
+        return;
+      case 'equipment':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.equipment,
+            records.map((r) => EquipmentData.fromJson(r)).toList(),
+          ),
+        );
+        return;
+      case 'equipmentSets':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.equipmentSets,
+            records.map((r) => EquipmentSet.fromJson(r)).toList(),
+          ),
+        );
+        return;
+      case 'equipmentSetItems':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.equipmentSetItems,
+            records.map((r) => EquipmentSetItem.fromJson(r)).toList(),
+          ),
+        );
+        return;
+      case 'media':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.media,
+            records
+                .map(
+                  (r) => MediaData.fromJson(r, serializer: _syncBlobSerializer),
+                )
+                .toList(),
+          ),
+        );
+        return;
+      case 'buddies':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.buddies,
+            records.map((r) => Buddy.fromJson(r)).toList(),
+          ),
+        );
+        return;
+      case 'diveBuddies':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.diveBuddies,
+            records.map((r) => DiveBuddy.fromJson(r)).toList(),
+          ),
+        );
+        return;
+      case 'certifications':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.certifications,
+            records
+                .map(
+                  (r) => Certification.fromJson(
+                    r,
+                    serializer: _syncBlobSerializer,
+                  ),
+                )
+                .toList(),
+          ),
+        );
+        return;
+      case 'courses':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.courses,
+            records.map((r) => Course.fromJson(r)).toList(),
+          ),
+        );
+        return;
+      case 'serviceRecords':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.serviceRecords,
+            records.map((r) => ServiceRecord.fromJson(r)).toList(),
+          ),
+        );
+        return;
+      case 'diveCenters':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.diveCenters,
+            records.map((r) => DiveCenter.fromJson(r)).toList(),
+          ),
+        );
+        return;
+      case 'trips':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.trips,
+            records.map((r) => Trip.fromJson(r)).toList(),
+          ),
+        );
+        return;
+      case 'liveaboardDetails':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.liveaboardDetailRecords,
+            records.map((r) => LiveaboardDetailRecord.fromJson(r)).toList(),
+          ),
+        );
+        return;
+      case 'itineraryDays':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.tripItineraryDays,
+            records.map((r) => TripItineraryDay.fromJson(r)).toList(),
+          ),
+        );
+        return;
+      case 'tags':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.tags,
+            records.map((r) => Tag.fromJson(r)).toList(),
+          ),
+        );
+        return;
+      case 'diveTags':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.diveTags,
+            records.map((r) => DiveTag.fromJson(r)).toList(),
+          ),
+        );
+        return;
+      case 'diveTypes':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.diveTypes,
+            records.map((r) => DiveType.fromJson(r)).toList(),
+          ),
+        );
+        return;
+      case 'tankPresets':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.tankPresets,
+            records.map((r) => TankPreset.fromJson(r)).toList(),
+          ),
+        );
+        return;
+      case 'diveComputers':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.diveComputers,
+            records.map((r) => DiveComputer.fromJson(r)).toList(),
+          ),
+        );
+        return;
+      case 'tankPressureProfiles':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.tankPressureProfiles,
+            records.map((r) => TankPressureProfile.fromJson(r)).toList(),
+          ),
+        );
+        return;
+      case 'tideRecords':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.tideRecords,
+            records.map((r) => TideRecord.fromJson(r)).toList(),
+          ),
+        );
+        return;
+      case 'settings':
+        // Mirror upsertRecord: never overwrite a device-local settings key.
+        final settingsRows = records
+            .where((r) => !_deviceLocalSettingsKeys.contains(r['key']))
+            .map((r) => Setting.fromJson(r))
+            .toList();
+        if (settingsRows.isEmpty) return;
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(_db.settings, settingsRows),
+        );
+        return;
+      case 'species':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.species,
+            records.map((r) => Specy.fromJson(r)).toList(),
+          ),
+        );
+        return;
+      case 'sightings':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.sightings,
+            records.map((r) => Sighting.fromJson(r)).toList(),
+          ),
+        );
+        return;
+      case 'diveProfileEvents':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.diveProfileEvents,
+            records
+                .map(
+                  (r) => DiveProfileEvent.fromJson(
+                    r['source'] == null ? {...r, 'source': 'imported'} : r,
+                  ),
+                )
+                .toList(),
+          ),
+        );
+        return;
+      case 'gasSwitches':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.gasSwitches,
+            records.map((r) => GasSwitche.fromJson(r)).toList(),
+          ),
+        );
+        return;
+      case 'diveCustomFields':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.diveCustomFields,
+            records
+                .map((r) => DiveCustomField.fromJson(_withTimestampDefaults(r)))
+                .toList(),
+          ),
+        );
+        return;
+      case 'diveDataSources':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.diveDataSources,
+            records
+                .map(
+                  (r) => DiveDataSourcesData.fromJson(
+                    _withTimestampDefaults(r),
+                    serializer: _syncBlobSerializer,
+                  ),
+                )
+                .toList(),
+          ),
+        );
+        return;
+      case 'siteSpecies':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.siteSpecies,
+            records
+                .map((r) => SiteSpecy.fromJson(_withTimestampDefaults(r)))
+                .toList(),
+          ),
+        );
+        return;
+      case 'csvPresets':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.csvPresets,
+            records
+                .map((r) => CsvPreset.fromJson(_withTimestampDefaults(r)))
+                .toList(),
+          ),
+        );
+        return;
+      case 'viewConfigs':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.viewConfigs,
+            records
+                .map((r) => ViewConfig.fromJson(_withTimestampDefaults(r)))
+                .toList(),
+          ),
+        );
+        return;
+      case 'fieldPresets':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.fieldPresets,
+            records
+                .map((r) => FieldPreset.fromJson(_withTimestampDefaults(r)))
+                .toList(),
+          ),
+        );
+        return;
+      default:
+        throw ArgumentError('upsertRecords: unknown entityType $entityType');
+    }
+  }
+
   /// Every local row id for [entityType], in the id form [deleteRecord]
   /// accepts: plain `id` for most entities, `key` for `settings`, and the
   /// composite `a|b` form (matching [_compositeId]) for the two junction
