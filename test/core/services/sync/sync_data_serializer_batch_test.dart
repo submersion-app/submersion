@@ -38,4 +38,27 @@ void main() {
     await s.upsertRecords('divers', const []);
     expect(await s.fetchRecord('divers', 'a'), isNull);
   });
+
+  test(
+    'fetchRecords returns id-keyed rows matching per-id fetchRecord',
+    () async {
+      final s = SyncDataSerializer();
+      await s.upsertRecords('divers', [_diver('a', 'A'), _diver('b', 'B')]);
+      final got = await s.fetchRecords('divers', ['a', 'b', 'missing']);
+      expect(got.keys.toSet(), {'a', 'b'}); // absent ids simply absent
+      expect(got['a'], await s.fetchRecord('divers', 'a'));
+      expect(got['b'], await s.fetchRecord('divers', 'b'));
+    },
+  );
+
+  test('fetchRecords keys settings by their key column (not id)', () async {
+    final s = SyncDataSerializer();
+    await s.upsertRecords('settings', [
+      {'key': 'theme', 'value': 'dark', 'updatedAt': 1},
+      {'key': 'units', 'value': 'metric', 'updatedAt': 1},
+    ]);
+    final got = await s.fetchRecords('settings', ['theme', 'units']);
+    expect(got.keys.toSet(), {'theme', 'units'});
+    expect(got['theme'], await s.fetchRecord('settings', 'theme'));
+  });
 }
