@@ -46,7 +46,33 @@ void main() {
     expect(await s.recordIdsFor('diveEquipment'), isEmpty);
   });
 
-  test('keys settings on key; unknown entity is empty', () async {
+  test(
+    'builds composite ids for equipmentSetItems (setId|equipmentId)',
+    () async {
+      final s = SyncDataSerializer();
+      await s.upsertRecord('equipment', _equipment('e1'));
+      await s.upsertRecord('equipmentSets', {
+        'id': 'set-1',
+        'name': 'Travel kit',
+        'description': '',
+        'createdAt': 1000,
+        'updatedAt': 1000,
+      });
+      await s.upsertRecord('equipmentSetItems', {
+        'setId': 'set-1',
+        'equipmentId': 'e1',
+      });
+
+      final ids = await s.recordIdsFor('equipmentSetItems');
+      expect(ids, {'set-1|e1'});
+
+      // Round-trip through deleteRecord.
+      await s.deleteRecord('equipmentSetItems', ids.single);
+      expect(await s.recordIdsFor('equipmentSetItems'), isEmpty);
+    },
+  );
+
+  test('keys settings on key; unknown entity throws', () async {
     final s = SyncDataSerializer();
     await s.upsertRecord('settings', {
       'key': 'theme',
@@ -55,16 +81,20 @@ void main() {
     });
 
     expect(await s.recordIdsFor('settings'), {'theme'});
-    expect(await s.recordIdsFor('notATable'), <String>{});
+    // Unknown entity fails loud rather than silently returning empty.
+    expect(() => s.recordIdsFor('notATable'), throwsArgumentError);
   });
 
-  test('every synced entity resolves without throwing (smoke)', () async {
+  test('every synced entity has a recordIdsFor case', () async {
+    // recordIdsFor throws on an entity with no case, so iterating every synced
+    // entity fails loudly if one is ever added without a case -- which would
+    // otherwise silently skip that entity's stale-row deletion on adopt.
     final s = SyncDataSerializer();
     for (final entity in SyncService.entityHasUpdatedAt.keys) {
       expect(
         await s.recordIdsFor(entity),
         isA<Set<String>>(),
-        reason: '$entity must have a recordIdsFor case',
+        reason: '$entity is missing a recordIdsFor case',
       );
     }
   });

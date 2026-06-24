@@ -1206,13 +1206,17 @@ class SyncDataSerializer {
   /// Every local row id for [entityType], in the id form [deleteRecord]
   /// accepts: plain `id` for most entities, `key` for `settings`, and the
   /// composite `a|b` form (matching [_compositeId]) for the two junction
-  /// tables. Id-only projection: it never materializes full rows, so it stays
-  /// bounded even for row-per-sample tables (diveProfiles, tankPressureProfiles)
-  /// with millions of rows. Used by the streaming replace-adopt to delete local
-  /// rows absent from the restored library (#358). Unknown entity types yield
-  /// an empty set. Mirrors the entity -> table mapping in [upsertRecord] /
-  /// [deleteRecord]; a missing case silently returns empty, so the
-  /// "every synced entity" smoke test guards against that.
+  /// tables. Reads only the id column(s) -- never full rows -- so the streaming
+  /// replace-adopt can enumerate row-per-sample tables (diveProfiles,
+  /// tankPressureProfiles) to delete local rows absent from the restored
+  /// library (#358) without materializing their payloads. Memory still scales
+  /// with the entity's row count (the result is a Set of ids and `get()` loads
+  /// all id rows at once), but ids are orders of magnitude smaller than the
+  /// rows they stand in for. Mirrors the entity -> table mapping in
+  /// [upsertRecord] / [deleteRecord], and THROWS on an entity with no case so a
+  /// newly added synced entity that forgets one fails loudly rather than
+  /// silently skipping its stale-row deletion (asserted by the
+  /// "every synced entity" test).
   Future<Set<String>> recordIdsFor(String entityType) async {
     Future<Set<String>> plain(
       ResultSetImplementation<HasResultSet, dynamic> table,
@@ -1320,8 +1324,18 @@ class SyncDataSerializer {
         return plain(_db.certifications, _db.certifications.id);
       case 'serviceRecords':
         return plain(_db.serviceRecords, _db.serviceRecords.id);
+      case 'media':
+        return plain(_db.media, _db.media.id);
       default:
-        return <String>{};
+        // Fail loud: a synced entity without a case here would silently
+        // enumerate zero local ids, so streaming adopt would never delete its
+        // stale rows. Callers only pass entityHasUpdatedAt keys, all of which
+        // have a case (asserted by sync_data_serializer_record_ids_test.dart).
+        throw ArgumentError.value(
+          entityType,
+          'entityType',
+          'recordIdsFor has no case for this synced entity',
+        );
     }
   }
 
