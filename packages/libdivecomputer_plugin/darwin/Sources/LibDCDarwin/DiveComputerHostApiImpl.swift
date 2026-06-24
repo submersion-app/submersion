@@ -872,7 +872,7 @@ private final class BlePeripheralResolver: NSObject, CBCentralManagerDelegate {
 
         switch central.state {
         case .poweredOn:
-            NativeLogger.d("DiveComputerHost", category: "BLE", "Central powered on, resolving \(targetIdentifier.uuidString)")
+            NativeLogger.d("DiveComputerHost", category: "BLE", "Central powered on, resolving \(self.targetIdentifier.uuidString)")
             attemptResolveIfReady()
         case .poweredOff, .unauthorized, .unsupported:
             NativeLogger.w("DiveComputerHost", category: "BLE", "Central unavailable (state=\(central.state.rawValue))")
@@ -899,14 +899,14 @@ private final class BlePeripheralResolver: NSObject, CBCentralManagerDelegate {
 
         if allowCachedPeripherals {
             if let cached = central.retrievePeripherals(withIdentifiers: [targetIdentifier]).first {
-                NativeLogger.d("DiveComputerHost", category: "BLE", "Found cached peripheral \(targetIdentifier.uuidString)")
+                NativeLogger.d("DiveComputerHost", category: "BLE", "Found cached peripheral \(self.targetIdentifier.uuidString)")
                 finish(peripheral: cached)
                 return
             }
         }
 
         if !isScanning {
-            NativeLogger.d("DiveComputerHost", category: "BLE", "Scanning for \(targetIdentifier.uuidString)")
+            NativeLogger.d("DiveComputerHost", category: "BLE", "Scanning for \(self.targetIdentifier.uuidString)")
             central.scanForPeripherals(
                 withServices: nil,
                 options: [CBCentralManagerScanOptionAllowDuplicatesKey: false]
