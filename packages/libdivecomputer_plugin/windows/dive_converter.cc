@@ -105,6 +105,10 @@ ParsedDive ConvertParsedDive(const libdc_parsed_dive_t& dive) {
                 (s.tank == UINT32_MAX)
                     ? std::nullopt
                     : std::optional<int64_t>(static_cast<int64_t>(s.tank));
+            std::optional<int64_t> gas_mix_index =
+                (s.gasmix == UINT32_MAX)
+                    ? std::nullopt
+                    : std::optional<int64_t>(static_cast<int64_t>(s.gasmix));
             std::optional<int64_t> heart_rate =
                 (s.heartbeat == UINT32_MAX)
                     ? std::nullopt
@@ -151,7 +155,8 @@ ParsedDive ConvertParsedDive(const libdc_parsed_dive_t& dive) {
                     o2_sensor[2] ? &*o2_sensor[2] : nullptr,
                     o2_sensor[3] ? &*o2_sensor[3] : nullptr,
                     o2_sensor[4] ? &*o2_sensor[4] : nullptr,
-                    o2_sensor[5] ? &*o2_sensor[5] : nullptr)));
+                    o2_sensor[5] ? &*o2_sensor[5] : nullptr,
+                    gas_mix_index ? &*gas_mix_index : nullptr)));
         }
     }
 

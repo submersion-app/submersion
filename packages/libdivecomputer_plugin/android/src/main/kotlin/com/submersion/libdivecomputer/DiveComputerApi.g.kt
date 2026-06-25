@@ -148,7 +148,12 @@ data class ProfileSample (
   val o2Sensor3: Double? = null,
   val o2Sensor4: Double? = null,
   val o2Sensor5: Double? = null,
-  val o2Sensor6: Double? = null
+  val o2Sensor6: Double? = null,
+  /**
+   * Active gas mix index at this sample (from DC_SAMPLE_GASMIX), carried forward
+   * from the most recent gas switch; null if the computer reported no gas.
+   */
+  val gasMixIndex: Long? = null
 )
  {
   companion object {
@@ -173,7 +178,8 @@ data class ProfileSample (
       val o2Sensor4 = pigeonVar_list[17] as Double?
       val o2Sensor5 = pigeonVar_list[18] as Double?
       val o2Sensor6 = pigeonVar_list[19] as Double?
-      return ProfileSample(timeSeconds, depthMeters, temperatureCelsius, pressureBar, tankIndex, heartRate, setpoint, ppo2, cns, rbt, decoType, decoTime, decoDepth, tts, o2Sensor1, o2Sensor2, o2Sensor3, o2Sensor4, o2Sensor5, o2Sensor6)
+      val gasMixIndex = pigeonVar_list[20] as Long?
+      return ProfileSample(timeSeconds, depthMeters, temperatureCelsius, pressureBar, tankIndex, heartRate, setpoint, ppo2, cns, rbt, decoType, decoTime, decoDepth, tts, o2Sensor1, o2Sensor2, o2Sensor3, o2Sensor4, o2Sensor5, o2Sensor6, gasMixIndex)
     }
   }
   fun toList(): List<Any?> {
@@ -198,6 +204,7 @@ data class ProfileSample (
       o2Sensor4,
       o2Sensor5,
       o2Sensor6,
+      gasMixIndex,
     )
   }
 }

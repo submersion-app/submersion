@@ -235,7 +235,8 @@ ProfileSample::ProfileSample(
   const double* o2_sensor3,
   const double* o2_sensor4,
   const double* o2_sensor5,
-  const double* o2_sensor6)
+  const double* o2_sensor6,
+  const int64_t* gas_mix_index)
  : time_seconds_(time_seconds),
     depth_meters_(depth_meters),
     temperature_celsius_(temperature_celsius ? std::optional<double>(*temperature_celsius) : std::nullopt),
@@ -255,7 +256,8 @@ ProfileSample::ProfileSample(
     o2_sensor3_(o2_sensor3 ? std::optional<double>(*o2_sensor3) : std::nullopt),
     o2_sensor4_(o2_sensor4 ? std::optional<double>(*o2_sensor4) : std::nullopt),
     o2_sensor5_(o2_sensor5 ? std::optional<double>(*o2_sensor5) : std::nullopt),
-    o2_sensor6_(o2_sensor6 ? std::optional<double>(*o2_sensor6) : std::nullopt) {}
+    o2_sensor6_(o2_sensor6 ? std::optional<double>(*o2_sensor6) : std::nullopt),
+    gas_mix_index_(gas_mix_index ? std::optional<int64_t>(*gas_mix_index) : std::nullopt) {}
 
 int64_t ProfileSample::time_seconds() const {
   return time_seconds_;
@@ -509,9 +511,22 @@ void ProfileSample::set_o2_sensor6(double value_arg) {
 }
 
 
+const int64_t* ProfileSample::gas_mix_index() const {
+  return gas_mix_index_ ? &(*gas_mix_index_) : nullptr;
+}
+
+void ProfileSample::set_gas_mix_index(const int64_t* value_arg) {
+  gas_mix_index_ = value_arg ? std::optional<int64_t>(*value_arg) : std::nullopt;
+}
+
+void ProfileSample::set_gas_mix_index(int64_t value_arg) {
+  gas_mix_index_ = value_arg;
+}
+
+
 EncodableList ProfileSample::ToEncodableList() const {
   EncodableList list;
-  list.reserve(20);
+  list.reserve(21);
   list.push_back(EncodableValue(time_seconds_));
   list.push_back(EncodableValue(depth_meters_));
   list.push_back(temperature_celsius_ ? EncodableValue(*temperature_celsius_) : EncodableValue());
@@ -532,6 +547,7 @@ EncodableList ProfileSample::ToEncodableList() const {
   list.push_back(o2_sensor4_ ? EncodableValue(*o2_sensor4_) : EncodableValue());
   list.push_back(o2_sensor5_ ? EncodableValue(*o2_sensor5_) : EncodableValue());
   list.push_back(o2_sensor6_ ? EncodableValue(*o2_sensor6_) : EncodableValue());
+  list.push_back(gas_mix_index_ ? EncodableValue(*gas_mix_index_) : EncodableValue());
   return list;
 }
 
@@ -610,6 +626,10 @@ ProfileSample ProfileSample::FromEncodableList(const EncodableList& list) {
   auto& encodable_o2_sensor6 = list[19];
   if (!encodable_o2_sensor6.IsNull()) {
     decoded.set_o2_sensor6(std::get<double>(encodable_o2_sensor6));
+  }
+  auto& encodable_gas_mix_index = list[20];
+  if (!encodable_gas_mix_index.IsNull()) {
+    decoded.set_gas_mix_index(std::get<int64_t>(encodable_gas_mix_index));
   }
   return decoded;
 }

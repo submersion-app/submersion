@@ -139,6 +139,7 @@ typedef struct {
     double temperature;        // celsius (NAN if unavailable)
     double pressure;           // bar (NAN if unavailable)
     unsigned int tank;         // tank index (UINT32_MAX if unavailable)
+    unsigned int gasmix;       // active gas mix index (UINT32_MAX if unavailable)
     // New fields for full sample capture
     unsigned int heartbeat;    // bpm (UINT32_MAX if unavailable)
     double setpoint;           // bar (NAN if unavailable)

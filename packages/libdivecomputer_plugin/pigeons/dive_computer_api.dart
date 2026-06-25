@@ -72,6 +72,7 @@ class ProfileSample {
     this.o2Sensor4,
     this.o2Sensor5,
     this.o2Sensor6,
+    this.gasMixIndex,
   });
   final int timeSeconds;
   final double depthMeters;
@@ -97,6 +98,10 @@ class ProfileSample {
   final double? o2Sensor4;
   final double? o2Sensor5;
   final double? o2Sensor6;
+
+  /// Active gas mix index at this sample (from DC_SAMPLE_GASMIX), carried forward
+  /// from the most recent gas switch; null if the computer reported no gas.
+  final int? gasMixIndex;
 }
 
 class GasMix {

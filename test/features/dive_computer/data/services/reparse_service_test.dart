@@ -2378,8 +2378,11 @@ void main() {
           isPrimary: true,
         );
 
-        // Tank gas-mix link unmatched (e.g. DC_GASMIX_UNKNOWN on a Shearwater
-        // single-gas dive): must resolve to the dive's primary mix, not air.
+        // Tank gas-mix link unmatched (e.g. DC_GASMIX_UNKNOWN on Shearwater)
+        // and no per-sample gas to disambiguate: the transmitter tank resolves
+        // to the dive's primary mix (not a hardcoded air default), and the
+        // second reported gas is kept as a pressureless cylinder rather than
+        // being dropped.
         final parsed = makeParsedDive(
           tanks: [
             pigeon.TankInfo(
@@ -2409,10 +2412,14 @@ void main() {
         final tanks = await (db.select(
           db.diveTanks,
         )..where((t) => t.diveId.equals('dive-1'))).get();
-        expect(tanks.length, 1);
-        // Primary mix (index 0 = EAN32), NOT a hardcoded 21% air default.
-        expect(tanks.first.o2Percent, 32.0);
-        expect(tanks.first.hePercent, 0.0);
+        expect(tanks.length, 2);
+        // Transmitter tank: primary mix (index 0 = EAN32), with its pressures.
+        final backGas = tanks.firstWhere((t) => t.o2Percent == 32.0);
+        expect(backGas.tankOrder, 0);
+        expect(backGas.startPressure, 200.0);
+        // Second gas kept as a pressureless cylinder.
+        final other = tanks.firstWhere((t) => t.o2Percent == 21.0);
+        expect(other.startPressure, isNull);
       },
     );
 
