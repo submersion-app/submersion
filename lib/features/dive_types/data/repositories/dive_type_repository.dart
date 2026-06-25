@@ -295,23 +295,34 @@ class DiveTypeRepository {
   }) async {
     try {
       final String whereClause;
+      final String diverJoinFilter;
       final List<Variable> variables;
 
       if (diverId != null) {
+        // Count only this diver's dives (built-in types are shared, but their
+        // per-diver count must exclude other divers' dives). The diver filter
+        // sits in the dives join, before the WHERE, so its placeholder binds
+        // first.
+        diverJoinFilter = 'AND d.diver_id = ?';
         // Built-in types OR (custom types for this diver)
         whereClause =
             'WHERE dt.is_built_in = 1 OR (dt.is_built_in = 0 AND dt.diver_id = ?)';
-        variables = [Variable.withString(diverId)];
+        variables = [
+          Variable.withString(diverId),
+          Variable.withString(diverId),
+        ];
       } else {
         // No diver specified - only show built-in types
+        diverJoinFilter = '';
         whereClause = 'WHERE dt.is_built_in = 1';
         variables = [];
       }
 
       final result = await _db.customSelect('''
-        SELECT dt.*, COUNT(ddt.dive_id) as dive_count
+        SELECT dt.*, COUNT(d.id) as dive_count
         FROM dive_types dt
         LEFT JOIN dive_dive_types ddt ON dt.id = ddt.dive_type_id
+        LEFT JOIN dives d ON d.id = ddt.dive_id $diverJoinFilter
         $whereClause
         GROUP BY dt.id
         ORDER BY dt.sort_order, dt.name

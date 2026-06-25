@@ -74,6 +74,13 @@ class BulkDiveEditService {
           for (final r in rows) {
             priorDiveTypeIds[r.diveId]!.add(r.diveTypeId);
           }
+          // Legacy dives with no junction rows: seed from the representative
+          // column so undo restores their type instead of recreational.
+          for (final row in priorDiveRows) {
+            if (priorDiveTypeIds[row.id]!.isEmpty) {
+              priorDiveTypeIds[row.id]!.add(row.diveType);
+            }
+          }
         case EquipmentOp():
           final rows = await (_db.select(
             _db.diveEquipment,

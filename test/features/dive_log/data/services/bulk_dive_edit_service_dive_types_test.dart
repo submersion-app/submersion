@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/services/bulk_dive_edit_service.dart';
@@ -12,9 +13,10 @@ import '../../../../helpers/test_database.dart';
 void main() {
   late BulkDiveEditService service;
   late DiveRepository diveRepo;
+  late AppDatabase db;
 
   setUp(() async {
-    await setUpTestDatabase();
+    db = await setUpTestDatabase();
     diveRepo = DiveRepository();
     service = BulkDiveEditService(
       diveRepo,
@@ -74,4 +76,33 @@ void main() {
     await service.undo(snapshot);
     expect(await typesOf('d1'), ['shore', 'wreck']);
   });
+
+  test(
+    'undo restores a legacy dive (no junction rows) from the column',
+    () async {
+      await seed('d1', ['shore', 'wreck']); // representative = 'shore'
+      // Make it a legacy/old-version dive: drop the junction rows, keep the
+      // dives.dive_type representative.
+      await (db.delete(
+        db.diveDiveTypes,
+      )..where((t) => t.diveId.equals('d1'))).go();
+
+      final snapshot = await service.apply(
+        const BulkEditRequest(
+          diveIds: ['d1'],
+          ops: [
+            DiveTypesOp(
+              mode: BulkCollectionMode.replace,
+              diveTypeIds: ['cave'],
+            ),
+          ],
+        ),
+      );
+      expect(await typesOf('d1'), ['cave']);
+
+      await service.undo(snapshot);
+      // Seeded from the representative 'shore', not reset to recreational.
+      expect(await typesOf('d1'), ['shore']);
+    },
+  );
 }
