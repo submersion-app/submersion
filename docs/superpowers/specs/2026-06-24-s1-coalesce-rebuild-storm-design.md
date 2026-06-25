@@ -62,3 +62,11 @@ Add one small, tested stream transformer and apply it at the shared `watch*Chang
 - S4 (DB off the UI isolate) — removes the contention this mitigates.
 - Reducing K (applying changesets in fewer transactions) — separate and riskier (per-changeset cursor advance + error isolation).
 - D2 (lazy below-the-fold), D1b (chart decimation).
+
+## Implementation status (2026-06-24)
+
+Built and committed. `CoalesceVoidStream.coalesce(window)` (`lib/core/utils/stream_coalesce.dart`) is the leading+trailing coalescer, unit-tested with `fake_async`: a single tick emits immediately with no spurious trailing; a burst within the window collapses to exactly 2 (leading + one trailing 200 ms after the last tick); ticks spaced > window each emit; and a pending trailing is flushed when the source closes (never dropped).
+
+Wired onto `watchDivesChanges` + `watchDiveDetailChanges` (the high-fan-out dive list + 22-table detail streams) with a 200 ms window via a typed `Stream<void>` local. The #217 reactivity gate stays green — the leading edge keeps a post-write refresh instant.
+
+**Scope note (deliberate):** only the two high-fan-out dive streams are wired — that is where the measured storm lands (the dive list and the detail page are what is open during a background sync, and the detail stream alone watches 22 tables / ~14 providers). The other ~12 low-fan-out `watch*Changes` (tags/species/courses/dive_types/sites/buddies/…) are a trivial one-line follow-up (`.coalesce(_changeCoalesceWindow)` each) and are intentionally left for a separate pass.
