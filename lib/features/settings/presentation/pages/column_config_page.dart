@@ -388,7 +388,7 @@ class _TableColumnConfigSection extends ConsumerWidget {
                 child: ReorderableListView.builder(
                   buildDefaultDragHandles: false,
                   itemCount: config.columns.length,
-                  onReorder: notifier.reorderColumn,
+                  onReorderItem: notifier.reorderColumn,
                   itemBuilder: (context, index) {
                     final col = config.columns[index];
                     return ListTile(
@@ -791,7 +791,7 @@ class _EntityTableConfigSection<F extends EntityField> extends ConsumerWidget {
                 child: ReorderableListView.builder(
                   buildDefaultDragHandles: false,
                   itemCount: config.columns.length,
-                  onReorder: notifier.reorderColumn,
+                  onReorderItem: notifier.reorderColumn,
                   itemBuilder: (context, index) {
                     final col = config.columns[index];
                     return ListTile(

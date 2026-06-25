@@ -56,7 +56,7 @@ class SegmentList extends ConsumerWidget {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: planState.segments.length,
-                onReorder: (oldIndex, newIndex) {
+                onReorderItem: (oldIndex, newIndex) {
                   ref
                       .read(divePlanNotifierProvider.notifier)
                       .reorderSegments(oldIndex, newIndex);

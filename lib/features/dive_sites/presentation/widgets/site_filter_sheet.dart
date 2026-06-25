@@ -82,87 +82,93 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
             color: colorScheme.surface,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
           ),
-          child: Column(
-            children: [
-              // Handle bar
-              Container(
-                margin: const EdgeInsets.symmetric(vertical: 12),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(2),
+          // Transparent Material so the ListTiles inside paint their ink and
+          // background above this decorated container (Flutter 3.44 asserts on
+          // a ListTile whose nearest decorated ancestor precedes its Material).
+          child: Material(
+            type: MaterialType.transparency,
+            child: Column(
+              children: [
+                // Handle bar
+                Container(
+                  margin: const EdgeInsets.symmetric(vertical: 12),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
-              ),
-              // Header
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      context.l10n.diveSites_filter_title,
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    TextButton(
-                      onPressed: _clearAll,
-                      child: Text(context.l10n.diveSites_filter_clearAll),
-                    ),
-                  ],
+                // Header
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        context.l10n.diveSites_filter_title,
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      TextButton(
+                        onPressed: _clearAll,
+                        child: Text(context.l10n.diveSites_filter_clearAll),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const Divider(),
-              // Filter content
-              Expanded(
-                child: ListView(
-                  controller: scrollController,
+                const Divider(),
+                // Filter content
+                Expanded(
+                  child: ListView(
+                    controller: scrollController,
+                    padding: const EdgeInsets.all(16),
+                    children: [
+                      _buildLocationSection(),
+                      const SizedBox(height: 24),
+                      _buildDifficultySection(),
+                      const SizedBox(height: 24),
+                      _buildDepthSection(),
+                      const SizedBox(height: 24),
+                      _buildRatingSection(),
+                      const SizedBox(height: 24),
+                      _buildOptionsSection(),
+                      const SizedBox(height: 80), // Space for buttons
+                    ],
+                  ),
+                ),
+                // Bottom buttons
+                Container(
                   padding: const EdgeInsets.all(16),
-                  children: [
-                    _buildLocationSection(),
-                    const SizedBox(height: 24),
-                    _buildDifficultySection(),
-                    const SizedBox(height: 24),
-                    _buildDepthSection(),
-                    const SizedBox(height: 24),
-                    _buildRatingSection(),
-                    const SizedBox(height: 24),
-                    _buildOptionsSection(),
-                    const SizedBox(height: 80), // Space for buttons
-                  ],
-                ),
-              ),
-              // Bottom buttons
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: colorScheme.surface,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 4,
-                      offset: const Offset(0, -2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: Text(context.l10n.diveSites_filter_cancel),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, -2),
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: FilledButton(
-                        onPressed: _applyFilters,
-                        child: Text(context.l10n.diveSites_filter_apply),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text(context.l10n.diveSites_filter_cancel),
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: FilledButton(
+                          onPressed: _applyFilters,
+                          child: Text(context.l10n.diveSites_filter_apply),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },

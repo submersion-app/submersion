@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
@@ -457,7 +457,7 @@ class SectionAppearancePage extends ConsumerWidget {
               .l10n
               .settings_appearance_pressureThresholdMarkers_subtitleFull,
         ),
-        secondary: Icon(MdiIcons.divingScubaTank),
+        secondary: const Icon(MdiIcons.divingScubaTank),
         value: settings.showPressureThresholdMarkers,
         onChanged: (value) {
           ref

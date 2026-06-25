@@ -96,7 +96,7 @@ class TableColumnPicker extends ConsumerWidget {
                     physics: const NeverScrollableScrollPhysics(),
                     buildDefaultDragHandles: false,
                     itemCount: config.columns.length,
-                    onReorder: notifier.reorderColumn,
+                    onReorderItem: notifier.reorderColumn,
                     itemBuilder: (context, index) {
                       final col = config.columns[index];
                       return ListTile(
