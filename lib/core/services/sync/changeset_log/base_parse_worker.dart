@@ -58,10 +58,18 @@ void baseParseWorkerMain(List<Object> args) {
         },
         wantRows: (section, _) => section == 'deletions',
         onRow: (section, table, rowBytes) async {
-          rows.add(<String, Object?>{
-            'table': table,
-            'row': jsonDecode(utf8.decode(rowBytes)),
-          });
+          final decoded = jsonDecode(utf8.decode(rowBytes));
+          // A legacy base can encode a deletion as a bare string id. Normalise
+          // it to the {id, deletedAt: 0} map the inline path synthesises, so the
+          // wire row is always a map (what _decodeRows expects) and the
+          // via-worker apply stays byte-identical for these peers instead of
+          // crashing _decodeRows and forcing a fallback. Non-map/non-string
+          // rows are dropped, mirroring the inline path's silent skip.
+          final Object? row = decoded is String
+              ? <String, Object?>{'id': decoded, 'deletedAt': 0}
+              : decoded;
+          if (row is! Map) return;
+          rows.add(<String, Object?>{'table': table, 'row': row});
         },
       );
       mainSendPort.send(<String, Object>{

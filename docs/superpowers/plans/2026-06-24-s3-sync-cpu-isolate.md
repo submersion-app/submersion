@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax. Task 5 (measurement) is interactive/main-session — it runs the app + `vmcap.dart` and cannot be done by a subagent.
 
-**Goal:** Move the base-apply's pure-CPU work (file read + SHA-256 + JSON parse) into a pull-based streaming worker isolate so background sync stops stuttering the UI; DB writes/merge stay pinned to the main isolate, with a parity test and inline fallback guaranteeing correctness.
+**Goal:** Move the base-apply's pure-CPU work (file read + JSON parse; the whole-file SHA-256 fold-in is a deferred follow-up — it still runs in `BasePartFileSink.assemble` on main) into a pull-based streaming worker isolate so background sync stops stuttering the UI; DB writes/merge stay pinned to the main isolate, with a parity test and inline fallback guaranteeing correctness.
 
 **Architecture:** A long-lived `Isolate.spawn` worker reads + parses the base file and streams decoded `Map<String,dynamic>` rows to the main isolate over `SendPort`s, backpressured (at most one batch in flight → #358 memory bound preserved). `_applyRemoteBaseFile` swaps its three inline `BaseJsonStreamReader().parse(file.openRead(), ...)` calls for `BaseParseClient` calls, keeping every `onScalar`/`onRow`/merge body unchanged; on any worker failure it falls back to the current inline path.
 
@@ -425,7 +425,7 @@ git commit -m "perf(sync): offload base-apply parse to a worker isolate with inl
 ### Task 5: Measure (interactive, main session)
 
 - [ ] **Step 1:** `flutter test` (full pre-push gate) → green.
-- [ ] **Step 2:** `flutter run --profile -d macos`; with `scratchpad/vmcap.dart` (`clear` → trigger a base-adopting sync → `read`), confirm `pread` / SHA-256 / `BaseJsonStreamReader` are **gone from the UI-isolate** CPU samples and frames stay smooth during the apply.
+- [ ] **Step 2:** `flutter run --profile -d macos`; with `scratchpad/vmcap.dart` (`clear` → trigger a base-adopting sync → `read`), confirm `pread` / `BaseJsonStreamReader` parse + per-row `jsonDecode` are **gone from the UI-isolate** CPU samples (the whole-file SHA-256 in `BasePartFileSink.assemble` stays on main until the deferred fold-in) and frames stay smooth during the apply.
 - [ ] **Step 3:** Record before/after in `docs/superpowers/specs/2026-06-24-s3-sync-cpu-isolate-design.md` under a "Measurement result" heading; commit.
 
 ---
