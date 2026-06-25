@@ -24,7 +24,7 @@ dependencies:
   # Database
   drift: ^2.30.0
   sqlite3: ^2.9.4
-  sqlite3_flutter_libs: ^0.5.41
+  sqlite3_flutter_libs: ^0.6.0+eol
   path_provider: ^2.1.5
   path: ^1.9.0
 
@@ -76,7 +76,7 @@ dependencies:
   geolocator: ^14.0.2
   geocoding: ^4.0.0
   photo_manager: ^3.6.0
-  native_exif: ^0.7.0
+  native_exif: ^0.8.0
   health: ^13.3.0  # Cross-platform health data (HealthKit, Health Connect)
 
   # Storage
@@ -103,10 +103,10 @@ dependencies:
 
   # Auto-Update
   auto_updater: ^1.0.0
-  package_info_plus: ^8.0.0
+  package_info_plus: ^9.0.1
 
   # Notifications
-  flutter_local_notifications: ^21.0.0
+  flutter_local_notifications: ^22.0.1
   workmanager: ^0.9.0+3
   timezone: ^0.11.0
   google_fonts: ^8.0.2
