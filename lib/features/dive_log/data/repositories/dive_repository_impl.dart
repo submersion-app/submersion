@@ -8,6 +8,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/utils/stream_coalesce.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
@@ -41,14 +42,24 @@ class DiveRepository {
   late final DiveCustomFieldRepository _customFieldRepository =
       DiveCustomFieldRepository(_db);
 
+  /// Coalescing window for the change-tick streams below. A sync commits one
+  /// transaction per changeset, so without this a K-changeset sync fires K
+  /// detail/list refreshes. Leading+trailing keeps a single local edit instant
+  /// while collapsing a sync burst to ~2 (see [CoalesceVoidStream]).
+  static const _changeCoalesceWindow = Duration(milliseconds: 200);
+
   // ============================================================================
   // CRUD Operations
   // ============================================================================
 
   /// Emits whenever the `dives` table changes so list providers can
   /// refresh after a sync or any other write.
-  Stream<void> watchDivesChanges() =>
-      _db.tableUpdates(TableUpdateQuery.onTable(_db.dives));
+  Stream<void> watchDivesChanges() {
+    final Stream<void> ticks = _db.tableUpdates(
+      TableUpdateQuery.onTable(_db.dives),
+    );
+    return ticks.coalesce(_changeCoalesceWindow);
+  }
 
   /// Aggregate change-tick for the dive DETAIL page: fires when ANY table that
   /// feeds a dive's detail view is written -- including a sync applying remote
@@ -67,31 +78,34 @@ class DiveRepository {
   /// + dive_computers, plus dive_sites/dive_centers/trips/courses) so a synced
   /// edit to a tag/buddy/species/equipment/site/center/trip/computer NAME also
   /// refreshes the rendered detail, not just changes to the link rows.
-  Stream<void> watchDiveDetailChanges() => _db.tableUpdates(
-    TableUpdateQuery.allOf([
-      TableUpdateQuery.onTable(_db.dives),
-      TableUpdateQuery.onTable(_db.diveProfiles),
-      TableUpdateQuery.onTable(_db.diveTanks),
-      TableUpdateQuery.onTable(_db.tankPressureProfiles),
-      TableUpdateQuery.onTable(_db.diveEquipment),
-      TableUpdateQuery.onTable(_db.equipment),
-      TableUpdateQuery.onTable(_db.gasSwitches),
-      TableUpdateQuery.onTable(_db.diveDataSources),
-      TableUpdateQuery.onTable(_db.diveComputers),
-      TableUpdateQuery.onTable(_db.diveTags),
-      TableUpdateQuery.onTable(_db.tags),
-      TableUpdateQuery.onTable(_db.diveSites),
-      TableUpdateQuery.onTable(_db.diveCenters),
-      TableUpdateQuery.onTable(_db.trips),
-      TableUpdateQuery.onTable(_db.courses),
-      TableUpdateQuery.onTable(_db.diveBuddies),
-      TableUpdateQuery.onTable(_db.buddies),
-      TableUpdateQuery.onTable(_db.sightings),
-      TableUpdateQuery.onTable(_db.species),
-      TableUpdateQuery.onTable(_db.media),
-      TableUpdateQuery.onTable(_db.tideRecords),
-    ]),
-  );
+  Stream<void> watchDiveDetailChanges() {
+    final Stream<void> ticks = _db.tableUpdates(
+      TableUpdateQuery.allOf([
+        TableUpdateQuery.onTable(_db.dives),
+        TableUpdateQuery.onTable(_db.diveProfiles),
+        TableUpdateQuery.onTable(_db.diveTanks),
+        TableUpdateQuery.onTable(_db.tankPressureProfiles),
+        TableUpdateQuery.onTable(_db.diveEquipment),
+        TableUpdateQuery.onTable(_db.equipment),
+        TableUpdateQuery.onTable(_db.gasSwitches),
+        TableUpdateQuery.onTable(_db.diveDataSources),
+        TableUpdateQuery.onTable(_db.diveComputers),
+        TableUpdateQuery.onTable(_db.diveTags),
+        TableUpdateQuery.onTable(_db.tags),
+        TableUpdateQuery.onTable(_db.diveSites),
+        TableUpdateQuery.onTable(_db.diveCenters),
+        TableUpdateQuery.onTable(_db.trips),
+        TableUpdateQuery.onTable(_db.courses),
+        TableUpdateQuery.onTable(_db.diveBuddies),
+        TableUpdateQuery.onTable(_db.buddies),
+        TableUpdateQuery.onTable(_db.sightings),
+        TableUpdateQuery.onTable(_db.species),
+        TableUpdateQuery.onTable(_db.media),
+        TableUpdateQuery.onTable(_db.tideRecords),
+      ]),
+    );
+    return ticks.coalesce(_changeCoalesceWindow);
+  }
 
   /// Get all dives, ordered by date (newest first)
   /// This method is optimized to avoid N+1 queries by batch loading related data
