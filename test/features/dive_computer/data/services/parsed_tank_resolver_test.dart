@@ -364,6 +364,30 @@ void main() {
       expect(resolveGasSwitches(parsed), isEmpty);
     });
 
+    test('ignores out-of-range gas indices without fabricating switches', () {
+      // A stray/out-of-range gasMixIndex (here 7, with only 2 gas mixes) must
+      // not become the baseline or trigger a spurious switch when the real gas
+      // resumes. Expect a single switch for the genuine 0 -> 1 change.
+      final parsed = makeParsedDive(
+        gasMixes: [
+          pigeon.GasMix(index: 0, o2Percent: 32.0, hePercent: 0.0),
+          pigeon.GasMix(index: 1, o2Percent: 99.0, hePercent: 0.0),
+        ],
+        tanks: [pigeon.TankInfo(index: 0, gasMixIndex: unknownGasMixIndex)],
+        samples: [
+          sample(2, 0, 0),
+          sample(100, 0, 7), // garbage index -> skipped, baseline stays 0
+          sample(200, 0, 0), // back to 0 -> no switch (baseline never moved)
+          sample(300, 0, 1), // genuine switch to 99%
+        ],
+      );
+
+      final switches = resolveGasSwitches(parsed);
+      expect(switches, hasLength(1));
+      expect(switches.single.timeSeconds, 300);
+      expect(switches.single.toTankIndex, 1);
+    });
+
     test('maps switches through a valid native tank->gas link', () {
       // Two transmitters with the computer's own gas links: tank 0 = gas 0
       // (21%), tank 1 = gas 1 (50%). A switch to gas 1 points at tank 1.

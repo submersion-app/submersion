@@ -30,14 +30,24 @@ List<GasSwitchEvent> resolveGasSwitches(pigeon.ParsedDive parsed) {
     return const [];
   }
 
-  final sorted = [...parsed.samples]
-    ..sort((a, b) => a.timeSeconds.compareTo(b.timeSeconds));
+  // Sort by time, tie-broken by original order, so the same raw bytes always
+  // yield identical switches (List.sort is not guaranteed stable).
+  final indexed =
+      [for (var i = 0; i < parsed.samples.length; i++) (i, parsed.samples[i])]
+        ..sort((a, b) {
+          final byTime = a.$2.timeSeconds.compareTo(b.$2.timeSeconds);
+          return byTime != 0 ? byTime : a.$1.compareTo(b.$1);
+        });
 
   final switches = <GasSwitchEvent>[];
   int? previousGasIndex;
-  for (final s in sorted) {
+  for (final (_, s) in indexed) {
     final gasIndex = s.gasMixIndex;
-    if (gasIndex == null) {
+    // Treat a sample with no usable gas (null, or an index that maps to no
+    // cylinder, e.g. an out-of-range/sentinel value) as carrying no gas info:
+    // skip it without disturbing the baseline, so a stray value can't suppress
+    // or fabricate a later switch.
+    if (gasIndex == null || !gasIndexToTankIndex.containsKey(gasIndex)) {
       continue;
     }
     if (previousGasIndex == null) {
@@ -49,15 +59,11 @@ List<GasSwitchEvent> resolveGasSwitches(pigeon.ParsedDive parsed) {
       continue;
     }
     previousGasIndex = gasIndex;
-    final tankIndex = gasIndexToTankIndex[gasIndex];
-    if (tankIndex == null) {
-      continue;
-    }
     switches.add(
       GasSwitchEvent(
         timeSeconds: s.timeSeconds,
         depth: s.depthMeters,
-        toTankIndex: tankIndex,
+        toTankIndex: gasIndexToTankIndex[gasIndex]!,
       ),
     );
   }

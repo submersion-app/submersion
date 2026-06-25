@@ -378,6 +378,112 @@ void main() {
       },
     );
 
+    test('links a gas switch to the cylinder that holds the gas', () async {
+      final computerId = await insertComputer();
+      final entryTime = DateTime(2026, 5, 1, 10, 0);
+
+      final diveId = await repository.importProfile(
+        computerId: computerId,
+        profileStartTime: entryTime,
+        points: const [
+          ProfilePointData(timestamp: 0, depth: 0.0),
+          ProfilePointData(timestamp: 600, depth: 20.0),
+        ],
+        durationSeconds: 1800,
+        maxDepth: 25.0,
+        tanks: const [
+          TankData(index: 0, o2Percent: 32.0),
+          TankData(index: 1, o2Percent: 99.0),
+        ],
+        gasSwitches: const [
+          GasSwitchData(timestamp: 600, depth: 6.0, toTankIndex: 1),
+        ],
+      );
+
+      final switches = await (db.select(
+        db.gasSwitches,
+      )..where((t) => t.diveId.equals(diveId))).get();
+      expect(switches, hasLength(1));
+      expect(switches.single.timestamp, 600);
+
+      final tank = await (db.select(
+        db.diveTanks,
+      )..where((t) => t.id.equals(switches.single.tankId))).getSingle();
+      expect(tank.o2Percent, 99.0);
+    });
+
+    test('replace-source: links a gas switch by gas mix even when the stored '
+        'tank order differs from the parsed cylinder index', () async {
+      // Regression for the re-download path: existing cylinders are kept (not
+      // re-created), and their tankOrder need not match the parsed cylinder
+      // index. The switch must still resolve to the 99% cylinder by gas, not by
+      // the index (here the 99% gas is stored at order 5, but parsed index 1).
+      final computerId = await insertComputer();
+      final entryTime = DateTime(2026, 5, 2, 9, 0);
+      await insertDive(
+        id: 'dive-redownload',
+        computerId: computerId,
+        diveDateTime: entryTime.millisecondsSinceEpoch,
+        entryTime: entryTime.millisecondsSinceEpoch,
+        exitTime: entryTime
+            .add(const Duration(minutes: 30))
+            .millisecondsSinceEpoch,
+        duration: 1800,
+        maxDepth: 25.0,
+      );
+      await db
+          .into(db.diveTanks)
+          .insert(
+            const DiveTanksCompanion(
+              id: Value('tank-back'),
+              diveId: Value('dive-redownload'),
+              o2Percent: Value(32.0),
+              hePercent: Value(0.0),
+              tankOrder: Value(0),
+            ),
+          );
+      await db
+          .into(db.diveTanks)
+          .insert(
+            const DiveTanksCompanion(
+              id: Value('tank-deco'),
+              diveId: Value('dive-redownload'),
+              o2Percent: Value(99.0),
+              hePercent: Value(0.0),
+              tankOrder: Value(5),
+            ),
+          );
+
+      final resultId = await repository.importProfile(
+        computerId: computerId,
+        profileStartTime: entryTime,
+        points: const [
+          ProfilePointData(timestamp: 0, depth: 0.0),
+          ProfilePointData(timestamp: 600, depth: 20.0),
+        ],
+        durationSeconds: 1800,
+        maxDepth: 25.0,
+        tanks: const [
+          TankData(index: 0, o2Percent: 32.0),
+          TankData(index: 1, o2Percent: 99.0),
+        ],
+        gasSwitches: const [
+          GasSwitchData(timestamp: 600, depth: 6.0, toTankIndex: 1),
+        ],
+      );
+
+      expect(resultId, 'dive-redownload');
+      final switches = await (db.select(
+        db.gasSwitches,
+      )..where((t) => t.diveId.equals('dive-redownload'))).get();
+      expect(switches, hasLength(1));
+      expect(
+        switches.single.tankId,
+        'tank-deco',
+        reason: 'switch links to the 99% cylinder by gas, not by index',
+      );
+    });
+
     test('creates a data source record when creating a new dive', () async {
       final computerId = await insertComputer();
 

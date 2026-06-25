@@ -961,6 +961,8 @@ static void libdivecomputer_plugin_parsed_dive_dispose(GObject* object) {
   g_clear_pointer(&self->gf_low, g_free);
   g_clear_pointer(&self->gf_high, g_free);
   g_clear_pointer(&self->deco_conservatism, g_free);
+  g_clear_pointer(&self->raw_data, g_free);
+  g_clear_pointer(&self->raw_fingerprint, g_free);
   g_clear_pointer(&self->entry_latitude, g_free);
   g_clear_pointer(&self->entry_longitude, g_free);
   g_clear_pointer(&self->exit_latitude, g_free);
