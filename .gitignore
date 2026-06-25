@@ -73,3 +73,5 @@ venv/
 
 # Sample data
 scripts/sample_data/
+# Swift Package Manager workspace state — project uses CocoaPods (SPM disabled)
+**/xcshareddata/swiftpm/
