@@ -973,9 +973,10 @@ class SyncService {
   ///   2. parent-row id->updatedAt and contradiction keys (skips giant tables),
   ///   3. batched apply of every row through the existing [_mergeEntity].
   /// Applies a peer's base file. Tries the worker-isolate path (file read +
-  /// parse + SHA off the UI isolate) and falls back to the inline path on any
-  /// worker failure, so a broken isolate degrades to old behaviour and never
-  /// fails or corrupts sync.
+  /// JSON parse off the UI isolate; the whole-file SHA-256 still runs on the
+  /// main isolate in BasePartFileSink.assemble -- folding it in is a deferred
+  /// follow-up) and falls back to the inline path on any worker failure, so a
+  /// broken isolate degrades to old behaviour and never fails or corrupts sync.
   Future<_MergeResult> _applyRemoteBaseFile(
     String filePath,
     DateTime? localLastSync,
@@ -996,10 +997,11 @@ class SyncService {
     }
   }
 
-  /// Worker-backed base apply: the file read + parse + SHA run in [client]'s
-  /// isolate; only the merge/writes run here. Mirrors
-  /// [_applyRemoteBaseFileInline] exactly, fed by streamed rows in file order
-  /// instead of an inline parse (so per-table batching and mergeOrder match).
+  /// Worker-backed base apply: the file read + JSON parse run in [client]'s
+  /// isolate; the merge/writes (and, for now, the whole-file SHA-256 in
+  /// BasePartFileSink.assemble) run here. Mirrors [_applyRemoteBaseFileInline]
+  /// exactly, fed by streamed rows in file order instead of an inline parse (so
+  /// per-table batching and mergeOrder match).
   Future<_MergeResult> _applyRemoteBaseFileViaWorker(
     BaseParseClient client,
     DateTime? localLastSync,
