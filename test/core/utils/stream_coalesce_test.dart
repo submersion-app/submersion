@@ -71,6 +71,35 @@ void main() {
     });
   });
 
+  test(
+    'a tick after a burst trailing leads immediately, not after a cooldown',
+    () {
+      fakeAsync((async) {
+        final src = StreamController<void>();
+        final times = <int>[];
+        final sub = src.stream
+            .coalesce(window)
+            .listen((_) => times.add(async.elapsed.inMilliseconds));
+
+        // A burst: leading at t=0, last tick at t=10 -> trailing at t=210.
+        src.add(null);
+        async.elapse(const Duration(milliseconds: 10));
+        src.add(null);
+        async.elapse(const Duration(milliseconds: 300)); // past the trailing
+
+        // A fresh tick now -- 300 ms after the last burst tick, and after the
+        // trailing already fired -- is a new leading edge and must emit
+        // immediately, NOT be folded into another delayed trailing.
+        src.add(null); // t=310
+        async.elapse(window * 2);
+
+        expect(times, [0, 210, 310]);
+        sub.cancel();
+        src.close();
+      });
+    },
+  );
+
   test('a pending trailing tick is flushed when the source closes', () async {
     // Real async with a long window so ONLY close (not the timer) can flush the
     // pending trailing -- proving close never drops the final tick.

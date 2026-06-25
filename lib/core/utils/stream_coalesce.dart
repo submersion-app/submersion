@@ -21,15 +21,13 @@ extension CoalesceVoidStream on Stream<void> {
     var hasPending = false;
 
     void onTimer() {
+      // The window has elapsed with no new tick: go idle so the NEXT tick is a
+      // fresh leading edge that emits immediately. If a burst was pending, emit
+      // its single trailing tick on the way out.
+      timer = null;
       if (hasPending) {
         hasPending = false;
         controller.add(null); // trailing edge: the burst has gone quiet
-        timer = Timer(
-          window,
-          onTimer,
-        ); // cooldown so a tail tick re-leads cleanly
-      } else {
-        timer = null; // idle
       }
     }
 
