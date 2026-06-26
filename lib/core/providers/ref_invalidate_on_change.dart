@@ -39,15 +39,9 @@ extension RefInvalidateOnChange on Ref {
       refreshDue = false;
       // invalidateSelf() is rejected inside a life-cycle callback
       // (Ref._throwIfInvalidUsage), so hop to a microtask to run it once the
-      // resume has settled. Guard against disposal, and re-defer if the
-      // provider managed to pause again in between.
+      // resume has settled; guard against disposal in that window.
       Future.microtask(() {
-        if (!mounted) return;
-        if (isPaused) {
-          refreshDue = true;
-        } else {
-          invalidateSelf();
-        }
+        if (mounted) invalidateSelf();
       });
     });
     onDispose(sub.cancel);
