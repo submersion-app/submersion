@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
+import 'package:submersion/core/deco/entities/deco_status.dart';
+import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -12,7 +15,10 @@ import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/compact_deco_status_card.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/compact_tissue_loading_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/o2_toxicity_card.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -463,5 +469,188 @@ void main() {
         }
       },
     );
+  });
+
+  group('DiveDetailPage deco/O2 panel last-good retention', () {
+    Dive diveWithProfile() {
+      return createTestDiveWithBottomTime().copyWith(
+        profile: List.generate(
+          6,
+          (i) => DiveProfilePoint(
+            timestamp: i * 60,
+            depth: (i < 3 ? i * 8.0 : (5 - i) * 8.0),
+          ),
+        ),
+      );
+    }
+
+    // A ProfileAnalysis carrying one fully-populated DecoStatus so the
+    // deco/tissue/O2 cards actually render (the panel hides on empty
+    // decoStatuses).
+    ProfileAnalysis analysisWithDeco() {
+      final compartments = List.generate(
+        zhl16CompartmentCount,
+        (i) => TissueCompartment(
+          compartmentNumber: i + 1,
+          halfTimeN2: zhl16cN2HalfTimes[i],
+          halfTimeHe: zhl16cHeHalfTimes[i],
+          mValueAN2: zhl16cN2A[i],
+          mValueBN2: zhl16cN2B[i],
+          mValueAHe: zhl16cHeA[i],
+          mValueBHe: zhl16cHeB[i],
+          currentPN2: inspiredSurfaceN2Bar,
+          currentPHe: 0.0,
+        ),
+      );
+      final status = DecoStatus(
+        compartments: compartments,
+        ndlSeconds: 999 * 60,
+        ceilingMeters: 0,
+        ttsSeconds: 0,
+        gfLow: 0.3,
+        gfHigh: 0.7,
+        decoStops: const [],
+        currentDepthMeters: 0,
+        ambientPressureBar: 1.0,
+      );
+      return ProfileAnalysis.empty().copyWith(
+        decoStatuses: [status],
+        ppO2Curve: const [0.21],
+      );
+    }
+
+    List<Override> panelOverrides(Dive dive, Override analysisOverride) {
+      return [
+        diveProvider(dive.id).overrideWith((ref) async => dive),
+        diveDataSourcesProvider(
+          dive.id,
+        ).overrideWith((ref) async => <DiveDataSource>[]),
+        analysisOverride,
+        gasSwitchesProvider(
+          dive.id,
+        ).overrideWith((ref) async => <GasSwitchWithTank>[]),
+        tankPressuresProvider(
+          dive.id,
+        ).overrideWith((ref) async => <String, List<TankPressurePoint>>{}),
+        profilesBySourceProvider(
+          dive.id,
+        ).overrideWith((ref) async => <String?, List<DiveProfilePoint>>{}),
+        weeklyOtuProvider(dive.id).overrideWith((ref) async => 0.0),
+      ];
+    }
+
+    testWidgets('shows nothing for a dive that never produced an analysis', (
+      tester,
+    ) async {
+      final dive = diveWithProfile();
+      final base = await getBaseOverrides();
+      final originalOnError = FlutterError.onError;
+      // Guaranteed restore even if the test throws before the end, so the
+      // global handler never leaks into later tests.
+      addTearDown(() => FlutterError.onError = originalOnError);
+      FlutterError.onError = (d) {
+        if (d.toString().contains('overflowed')) return;
+        originalOnError?.call(d);
+      };
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...base,
+            ...panelOverrides(
+              dive,
+              profileAnalysisProvider(
+                dive.id,
+              ).overrideWith((ref) async => null),
+            ),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: DiveDetailPage(diveId: dive.id, embedded: true),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      // Genuine null: the last-good cache must not fabricate a panel for a dive
+      // that has no analysis.
+      expect(find.byType(CompactDecoStatusCard), findsNothing);
+      expect(find.byType(CompactTissueLoadingCard), findsNothing);
+      expect(find.byType(CompactO2ToxicityPanel), findsNothing);
+    });
+
+    testWidgets('keeps the cards on a transient null instead of collapsing', (
+      tester,
+    ) async {
+      final dive = diveWithProfile();
+      final analysis = analysisWithDeco();
+      // Controllable analysis: starts good, then flips to null to mimic a
+      // mid-sync empty-profile read that makes profileAnalysisProvider emit
+      // AsyncData(null).
+      final controllable = StateProvider<ProfileAnalysis?>((ref) => analysis);
+      final base = await getBaseOverrides();
+      final originalOnError = FlutterError.onError;
+      // Guaranteed restore even if the test throws before the end, so the
+      // global handler never leaks into later tests.
+      addTearDown(() => FlutterError.onError = originalOnError);
+      FlutterError.onError = (d) {
+        if (d.toString().contains('overflowed')) return;
+        originalOnError?.call(d);
+      };
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...base,
+            ...panelOverrides(
+              dive,
+              profileAnalysisProvider(
+                dive.id,
+              ).overrideWith((ref) async => ref.watch(controllable)),
+            ),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: DiveDetailPage(diveId: dive.id, embedded: true),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      // Good analysis -> all three cards render.
+      expect(find.byType(CompactDecoStatusCard), findsOneWidget);
+      expect(find.byType(CompactTissueLoadingCard), findsOneWidget);
+      expect(find.byType(CompactO2ToxicityPanel), findsOneWidget);
+
+      // Flip to a transient null (the storm symptom, post-debounce edge case).
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DiveDetailPage)),
+      );
+      container.read(controllable.notifier).state = null;
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      // The provider has genuinely settled to AsyncData(null) -- so the cards
+      // below survive only because of the last-good fallback, not a loading
+      // window that still exposes the previous value via valueOrNull.
+      final settled = container.read(profileAnalysisProvider(dive.id));
+      expect(settled.isLoading, isFalse);
+      expect(settled.valueOrNull, isNull);
+
+      // Hardening: the cards must remain (last-good), not blink out.
+      expect(
+        find.byType(CompactDecoStatusCard),
+        findsOneWidget,
+        reason:
+            'a transient null analysis must not collapse the deco card; the '
+            'panel should fall back to the last usable analysis',
+      );
+      expect(find.byType(CompactTissueLoadingCard), findsOneWidget);
+      expect(find.byType(CompactO2ToxicityPanel), findsOneWidget);
+    });
   });
 }

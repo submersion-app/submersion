@@ -161,4 +161,88 @@ void main() {
           'stats reflect new dives without an app restart (issue #217).',
     );
   });
+
+  test(
+    'watchDiveDetailChanges coalesces a burst of writes into a single tick',
+    () async {
+      // A sync applies remote changes as MANY per-changeset transactions, each
+      // committing separately and firing its own Drift table-update tick. Left
+      // un-coalesced, every tick re-invalidates the 15 per-dive detail
+      // providers -- re-running the expensive Buhlmann analysis and, while the
+      // dive_profiles rows are mid-rewrite, transiently blanking the deco /
+      // tissue / O2 cards. The aggregate detail-change stream must debounce a
+      // burst so listeners refresh ONCE on the settled DB state.
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'd1', diveNumber: 1, maxDepth: 20.0),
+      );
+
+      final db = DatabaseService.instance.database;
+      final repo = DiveRepository();
+
+      var ticks = 0;
+      final sub = repo.watchDiveDetailChanges().listen((_) => ticks++);
+      addTearDown(sub.cancel);
+
+      // Fire a rapid burst, like a lagging peer's changesets applied
+      // back-to-back. Each write is its own transaction -> its own commit.
+      for (var i = 0; i < 10; i++) {
+        await (db.update(db.dives)..where((t) => t.id.equals('d1'))).write(
+          DivesCompanion(maxDepth: Value(21.0 + i)),
+        );
+      }
+
+      // Let the trailing debounce window elapse.
+      await Future<void>.delayed(
+        DiveRepository.changeTickDebounce + const Duration(milliseconds: 150),
+      );
+
+      expect(
+        ticks,
+        1,
+        reason:
+            'a burst of N writes must coalesce into ONE detail-change tick so '
+            'the per-dive providers recompute once on the settled state, not '
+            'once per intermediate sync write (stutter + card flicker)',
+      );
+    },
+  );
+
+  test(
+    'watchDivesChanges coalesces a burst of writes into a single tick',
+    () async {
+      // The dives-table tick fans out to the list, stats, dashboard, sites,
+      // trips and buddy providers app-wide. The same per-changeset sync burst
+      // must coalesce here too, so those cross-feature providers re-query once
+      // on the settled state instead of once per intermediate commit.
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'd1', diveNumber: 1, maxDepth: 20.0),
+      );
+
+      final db = DatabaseService.instance.database;
+      final repo = DiveRepository();
+
+      var ticks = 0;
+      final sub = repo.watchDivesChanges().listen((_) => ticks++);
+      addTearDown(sub.cancel);
+
+      for (var i = 0; i < 10; i++) {
+        await (db.update(db.dives)..where((t) => t.id.equals('d1'))).write(
+          DivesCompanion(maxDepth: Value(21.0 + i)),
+        );
+      }
+
+      await Future<void>.delayed(
+        DiveRepository.changeTickDebounce + const Duration(milliseconds: 150),
+      );
+
+      expect(
+        ticks,
+        1,
+        reason:
+            'a burst of N dives-table writes must coalesce into ONE tick so the '
+            'list/stats/dashboard providers re-query once, not once per sync '
+            'commit',
+      );
+    },
+  );
 }

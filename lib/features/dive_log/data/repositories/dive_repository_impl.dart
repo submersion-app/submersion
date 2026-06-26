@@ -7,6 +7,7 @@ import 'package:submersion/core/performance/perf_timer.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/utils/stream_debounce.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
@@ -45,10 +46,28 @@ class DiveRepository {
   // CRUD Operations
   // ============================================================================
 
-  /// Emits whenever the `dives` table changes so list providers can
-  /// refresh after a sync or any other write.
-  Stream<void> watchDivesChanges() =>
-      _db.tableUpdates(TableUpdateQuery.onTable(_db.dives));
+  /// Trailing-debounce window applied to the table-change tick streams
+  /// ([watchDivesChanges] and [watchDiveDetailChanges]).
+  ///
+  /// A sync applies remote changes as many per-changeset transactions, each
+  /// committing separately and firing its own Drift table-update tick (see
+  /// `ChangesetReader.pull`). Un-coalesced, every tick re-invalidates every
+  /// provider listening for a change -- the list, stats, dashboard, sites,
+  /// trips, buddies, and (most expensively) the per-dive detail providers that
+  /// re-run the Buhlmann analysis in [profileAnalysisProvider]. That is 20-30s
+  /// of UI stutter and, while `dive_profiles` rows are mid-rewrite, transiently
+  /// blanks the deco/tissue/O2 cards. Debouncing collapses a write burst into a
+  /// single tick that fires only once writes go quiet, so listeners refresh once
+  /// on the SETTLED DB state instead of once per intermediate commit.
+  static const changeTickDebounce = Duration(milliseconds: 300);
+
+  /// Emits whenever the `dives` table changes so the list, stats, dashboard and
+  /// other cross-feature providers can refresh after a sync or any other write.
+  /// [changeTickDebounce]-debounced so a multi-changeset sync coalesces into a
+  /// single refresh instead of re-querying on every intermediate commit.
+  Stream<void> watchDivesChanges() => _db
+      .tableUpdates(TableUpdateQuery.onTable(_db.dives))
+      .debounce(changeTickDebounce);
 
   /// Aggregate change-tick for the dive DETAIL page: fires when ANY table that
   /// feeds a dive's detail view is written -- including a sync applying remote
@@ -57,6 +76,10 @@ class DiveRepository {
   /// provider subscribes to this (via [diveRepositoryProvider], the shared
   /// cross-feature tick source) and self-invalidates, so the whole detail page
   /// refreshes after a sync the same way the dive list already does.
+  ///
+  /// Ticks are [changeTickDebounce]-debounced so a multi-changeset sync
+  /// refreshes the detail page once on the settled state instead of flickering
+  /// and re-running the Buhlmann analysis on every intermediate commit.
   ///
   /// Broader than [watchDivesChanges] because a single `Dive` entity hydrates
   /// tanks, tank pressures, profile, and equipment (see [_mapRowToDive]) and the
@@ -67,31 +90,33 @@ class DiveRepository {
   /// + dive_computers, plus dive_sites/dive_centers/trips/courses) so a synced
   /// edit to a tag/buddy/species/equipment/site/center/trip/computer NAME also
   /// refreshes the rendered detail, not just changes to the link rows.
-  Stream<void> watchDiveDetailChanges() => _db.tableUpdates(
-    TableUpdateQuery.allOf([
-      TableUpdateQuery.onTable(_db.dives),
-      TableUpdateQuery.onTable(_db.diveProfiles),
-      TableUpdateQuery.onTable(_db.diveTanks),
-      TableUpdateQuery.onTable(_db.tankPressureProfiles),
-      TableUpdateQuery.onTable(_db.diveEquipment),
-      TableUpdateQuery.onTable(_db.equipment),
-      TableUpdateQuery.onTable(_db.gasSwitches),
-      TableUpdateQuery.onTable(_db.diveDataSources),
-      TableUpdateQuery.onTable(_db.diveComputers),
-      TableUpdateQuery.onTable(_db.diveTags),
-      TableUpdateQuery.onTable(_db.tags),
-      TableUpdateQuery.onTable(_db.diveSites),
-      TableUpdateQuery.onTable(_db.diveCenters),
-      TableUpdateQuery.onTable(_db.trips),
-      TableUpdateQuery.onTable(_db.courses),
-      TableUpdateQuery.onTable(_db.diveBuddies),
-      TableUpdateQuery.onTable(_db.buddies),
-      TableUpdateQuery.onTable(_db.sightings),
-      TableUpdateQuery.onTable(_db.species),
-      TableUpdateQuery.onTable(_db.media),
-      TableUpdateQuery.onTable(_db.tideRecords),
-    ]),
-  );
+  Stream<void> watchDiveDetailChanges() => _db
+      .tableUpdates(
+        TableUpdateQuery.allOf([
+          TableUpdateQuery.onTable(_db.dives),
+          TableUpdateQuery.onTable(_db.diveProfiles),
+          TableUpdateQuery.onTable(_db.diveTanks),
+          TableUpdateQuery.onTable(_db.tankPressureProfiles),
+          TableUpdateQuery.onTable(_db.diveEquipment),
+          TableUpdateQuery.onTable(_db.equipment),
+          TableUpdateQuery.onTable(_db.gasSwitches),
+          TableUpdateQuery.onTable(_db.diveDataSources),
+          TableUpdateQuery.onTable(_db.diveComputers),
+          TableUpdateQuery.onTable(_db.diveTags),
+          TableUpdateQuery.onTable(_db.tags),
+          TableUpdateQuery.onTable(_db.diveSites),
+          TableUpdateQuery.onTable(_db.diveCenters),
+          TableUpdateQuery.onTable(_db.trips),
+          TableUpdateQuery.onTable(_db.courses),
+          TableUpdateQuery.onTable(_db.diveBuddies),
+          TableUpdateQuery.onTable(_db.buddies),
+          TableUpdateQuery.onTable(_db.sightings),
+          TableUpdateQuery.onTable(_db.species),
+          TableUpdateQuery.onTable(_db.media),
+          TableUpdateQuery.onTable(_db.tideRecords),
+        ]),
+      )
+      .debounce(changeTickDebounce);
 
   /// Get all dives, ordered by date (newest first)
   /// This method is optimized to avoid N+1 queries by batch loading related data

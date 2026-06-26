@@ -152,6 +152,17 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   /// Empty set means "all visible" (default before sources are loaded).
   Set<String> _visibleComputers = {};
 
+  /// Last usable profile analysis rendered in the deco/tissue/O2 panel, kept
+  /// (paired with the dive id it belongs to) so a transient null from
+  /// [profileAnalysisProvider] -- e.g. a mid-sync `getDiveById` reading the dive
+  /// while its profile rows are being rewritten -- keeps the cards visible
+  /// instead of collapsing them. A dive that has genuinely never produced an
+  /// analysis never populates this, so it still shows nothing. The
+  /// `watchDiveDetailChanges` debounce makes transient nulls rare; this makes
+  /// the panel robust even to a single ill-timed tick.
+  ProfileAnalysis? _lastDecoPanelAnalysis;
+  String? _lastDecoPanelAnalysisDiveId;
+
   String get diveId => widget.diveId;
 
   @override
@@ -1439,9 +1450,25 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     Dive dive,
     int? selectedPointIndex,
   ) {
-    final analysis = ref.watch(profileAnalysisProvider(dive.id)).valueOrNull;
+    final current = ref.watch(profileAnalysisProvider(dive.id)).valueOrNull;
+    final isUsable = current != null && current.decoStatuses.isNotEmpty;
 
-    // Don't show if no analysis available
+    // Retain the last usable analysis for THIS dive and fall back to it when the
+    // provider momentarily yields null/empty (e.g. a mid-sync empty-profile
+    // read), so a single transient null doesn't blink the cards out. A dive that
+    // has genuinely never produced an analysis falls through to the
+    // SizedBox.shrink below and correctly shows nothing.
+    if (isUsable) {
+      _lastDecoPanelAnalysis = current;
+      _lastDecoPanelAnalysisDiveId = dive.id;
+    }
+    final analysis = isUsable
+        ? current
+        : (_lastDecoPanelAnalysisDiveId == dive.id
+              ? _lastDecoPanelAnalysis
+              : null);
+
+    // Don't show if no analysis is, or ever was, available for this dive.
     if (analysis == null || analysis.decoStatuses.isEmpty) {
       return const SizedBox.shrink();
     }
