@@ -212,6 +212,28 @@ void main() {
       expect(t0.o2Percent, 50.0);
     });
 
+    test('picks the most-breathed gas when a later gas overtakes the first', () {
+      // Tank 0 is breathed briefly on gas 0 (air) then mostly on gas 1 (32%).
+      // The dominant-gas tally must advance past the first-seen gas, so the tank
+      // is labeled 32%, not 21%.
+      final parsed = makeParsedDive(
+        gasMixes: [
+          pigeon.GasMix(index: 0, o2Percent: 21.0, hePercent: 0.0),
+          pigeon.GasMix(index: 1, o2Percent: 32.0, hePercent: 0.0),
+        ],
+        tanks: [pigeon.TankInfo(index: 0, gasMixIndex: unknownGasMixIndex)],
+        samples: [
+          sample(2, 0, 0),
+          sample(100, 0, 1),
+          sample(200, 0, 1),
+          sample(300, 0, 1),
+        ],
+      );
+
+      final t0 = resolveParsedTanks(parsed).firstWhere((t) => t.index == 0);
+      expect(t0.o2Percent, 32.0);
+    });
+
     test(
       'synthesizes one cylinder per gas mix when there are no tank records',
       () {

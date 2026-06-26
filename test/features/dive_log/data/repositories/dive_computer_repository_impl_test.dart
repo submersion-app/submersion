@@ -484,6 +484,32 @@ void main() {
       );
     });
 
+    test('drops a gas switch that matches no cylinder', () async {
+      // The switch points at a cylinder index that doesn't exist in the parse
+      // (no gas match, and the index-fallback finds no tank either), so it must
+      // be dropped rather than linked to the wrong tank.
+      final computerId = await insertComputer();
+      final diveId = await repository.importProfile(
+        computerId: computerId,
+        profileStartTime: DateTime(2026, 5, 3, 10, 0),
+        points: const [
+          ProfilePointData(timestamp: 0, depth: 0.0),
+          ProfilePointData(timestamp: 600, depth: 20.0),
+        ],
+        durationSeconds: 1800,
+        maxDepth: 25.0,
+        tanks: const [TankData(index: 0, o2Percent: 32.0)],
+        gasSwitches: const [
+          GasSwitchData(timestamp: 600, depth: 6.0, toTankIndex: 9),
+        ],
+      );
+
+      final switches = await (db.select(
+        db.gasSwitches,
+      )..where((t) => t.diveId.equals(diveId))).get();
+      expect(switches, isEmpty);
+    });
+
     test('creates a data source record when creating a new dive', () async {
       final computerId = await insertComputer();
 
