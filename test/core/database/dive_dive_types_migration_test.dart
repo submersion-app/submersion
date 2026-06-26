@@ -35,10 +35,10 @@ void main() {
     },
   );
 
-  test('schema version is 92 and the migration list includes it', () {
-    // Latest-version tripwire: bumping the schema must come with a matching
-    // migration block and an update here.
-    expect(AppDatabase.currentSchemaVersion, 92);
+  test('the v92 migration remains registered in the migration list', () {
+    // 92 is no longer the latest schema -- the current latest-version tripwire
+    // lives in migration_v93_dive_types_seed_test.dart -- but its migration
+    // block must stay registered so upgrade step counts stay correct.
     expect(AppDatabase.migrationVersions, contains(92));
   });
 }

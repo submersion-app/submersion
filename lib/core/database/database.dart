@@ -1149,6 +1149,41 @@ const String kSeedDiveDiveTypesSql = '''
   FROM dives
 ''';
 
+/// Seeds the built-in dive types. Used by BOTH [onCreate] (fresh installs) and
+/// the v93 migration (backfill for upgraded databases). The full built-in set
+/// was historically seeded only in onCreate, so every database that reached the
+/// app via migration kept an EMPTY `dive_types` table -- harmless until the
+/// multi-select dive-type picker (#414) read it and showed no options.
+///
+/// `INSERT OR IGNORE` keyed on the stable slug ids preserves any rows already
+/// present (synced custom types, or 'cavern' added by the v88 migration) and
+/// makes re-running the seed a no-op. Keep this list in sync with the
+/// onboarding documentation; it is asserted directly in tests.
+const String kSeedBuiltInDiveTypesSql = '''
+  INSERT OR IGNORE INTO dive_types
+    (id, name, is_built_in, sort_order, created_at, updated_at)
+  SELECT id, name, 1, sort_order,
+    CAST(strftime('%s','now') AS INTEGER) * 1000,
+    CAST(strftime('%s','now') AS INTEGER) * 1000
+  FROM (
+    SELECT 'recreational' AS id, 'Recreational' AS name, 0 AS sort_order
+    UNION ALL SELECT 'technical', 'Technical', 1
+    UNION ALL SELECT 'freedive', 'Freedive', 2
+    UNION ALL SELECT 'training', 'Training', 3
+    UNION ALL SELECT 'wreck', 'Wreck', 4
+    UNION ALL SELECT 'cave', 'Cave', 5
+    UNION ALL SELECT 'ice', 'Ice', 6
+    UNION ALL SELECT 'night', 'Night', 7
+    UNION ALL SELECT 'drift', 'Drift', 8
+    UNION ALL SELECT 'deep', 'Deep', 9
+    UNION ALL SELECT 'altitude', 'Altitude', 10
+    UNION ALL SELECT 'shore', 'Shore', 11
+    UNION ALL SELECT 'boat', 'Boat', 12
+    UNION ALL SELECT 'liveaboard', 'Liveaboard', 13
+    UNION ALL SELECT 'cavern', 'Cavern', 14
+  )
+''';
+
 /// Custom tank presets (user-defined tank configurations)
 class TankPresets extends Table {
   TextColumn get id => text()();
@@ -1669,7 +1704,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 92;
+  static const int currentSchemaVersion = 93;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1765,6 +1800,7 @@ class AppDatabase extends _$AppDatabase {
     90,
     91,
     92,
+    93,
   ];
 
   /// Tables that carry a per-row Hybrid Logical Clock for cross-device conflict
@@ -1817,32 +1853,9 @@ class AppDatabase extends _$AppDatabase {
       onCreate: (Migrator m) async {
         await m.createAll();
 
-        // Seed built-in dive types
-        final now = DateTime.now().millisecondsSinceEpoch;
-        final builtInTypes = [
-          ('recreational', 'Recreational', 0),
-          ('technical', 'Technical', 1),
-          ('freedive', 'Freedive', 2),
-          ('training', 'Training', 3),
-          ('wreck', 'Wreck', 4),
-          ('cave', 'Cave', 5),
-          ('ice', 'Ice', 6),
-          ('night', 'Night', 7),
-          ('drift', 'Drift', 8),
-          ('deep', 'Deep', 9),
-          ('altitude', 'Altitude', 10),
-          ('shore', 'Shore', 11),
-          ('boat', 'Boat', 12),
-          ('liveaboard', 'Liveaboard', 13),
-          ('cavern', 'Cavern', 14),
-        ];
-
-        for (final type in builtInTypes) {
-          await customStatement('''
-            INSERT OR IGNORE INTO dive_types (id, name, is_built_in, sort_order, created_at, updated_at)
-            VALUES ('${type.$1}', '${type.$2}', 1, ${type.$3}, $now, $now)
-          ''');
-        }
+        // Seed built-in dive types (the same set the v93 migration backfills
+        // for databases created before this seed existed).
+        await customStatement(kSeedBuiltInDiveTypesSql);
       },
       onUpgrade: (Migrator m, int from, int to) async {
         int completedSteps = 0;
@@ -4285,6 +4298,23 @@ class AppDatabase extends _$AppDatabase {
           }
         }
         if (from < 92) await reportProgress();
+        if (from < 93) {
+          // Backfill built-in dive types. The full built-in set was only ever
+          // seeded in onCreate, so every database that reached the app via
+          // migration (rather than a fresh install) kept an EMPTY dive_types
+          // table -- the multi-select dive-type picker (#414) then showed no
+          // options. Guarded by a sqlite_master check so minimal-schema
+          // migration tests without dive_types are unaffected; INSERT OR IGNORE
+          // preserves rows already present (synced custom types, 'cavern' from
+          // the v88 migration).
+          final tables = await customSelect(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='dive_types'",
+          ).get();
+          if (tables.isNotEmpty) {
+            await customStatement(kSeedBuiltInDiveTypesSql);
+          }
+        }
+        if (from < 93) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
