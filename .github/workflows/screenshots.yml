@@ -37,7 +37,7 @@ jobs:
   # ============================================================================
   capture-ios:
     name: Capture iOS
-    runs-on: macos-14
+    runs-on: macos-26
     timeout-minutes: 45
 
     steps:
@@ -172,7 +172,7 @@ jobs:
   # ============================================================================
   capture-macos:
     name: Capture macOS
-    runs-on: macos-14
+    runs-on: macos-26
     timeout-minutes: 30
 
     steps:
@@ -274,7 +274,7 @@ jobs:
   # ============================================================================
   upload:
     name: Upload to App Store Connect
-    runs-on: macos-14
+    runs-on: macos-26
     needs: [capture-ios, capture-macos]
     timeout-minutes: 30
 

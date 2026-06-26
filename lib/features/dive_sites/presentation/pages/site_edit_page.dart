@@ -6,7 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/providers/location_service_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:submersion/core/icons/mdi_icons.dart';
 
 import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';

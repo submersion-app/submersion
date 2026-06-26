@@ -150,9 +150,8 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   /// Reorder segments (drag-and-drop).
   void reorderSegments(int oldIndex, int newIndex) {
     final segments = [...state.segments];
-    if (newIndex > oldIndex) newIndex--;
     final segment = segments.removeAt(oldIndex);
-    segments.insert(newIndex, segment);
+    segments.insert(newIndex.clamp(0, segments.length), segment);
     _updateSegmentOrders(segments);
     state = state.copyWith(
       segments: segments,

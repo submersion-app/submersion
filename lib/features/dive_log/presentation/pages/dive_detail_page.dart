@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart' show DateFormat;
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
@@ -3793,7 +3793,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               );
               return ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: Icon(MdiIcons.divingScubaTank),
+                leading: const Icon(MdiIcons.divingScubaTank),
                 title: Text('$tankTitle (${tank.gasMix.name})'),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

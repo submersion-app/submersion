@@ -197,16 +197,17 @@ void main() {
 
     group('reorderColumn', () {
       test('moves column from old index to new index', () {
-        // Initial: [fieldA, fieldB]. Move fieldA (0) to position 2 (after fieldB).
-        notifier.reorderColumn(0, 2);
+        // Initial: [fieldA, fieldB]. onReorderItem reports the final index, so
+        // moving fieldA (0) to after fieldB is newIndex 1.
+        notifier.reorderColumn(0, 1);
 
         expect(notifier.state.columns[0].field, equals(TestField.fieldB));
         expect(notifier.state.columns[1].field, equals(TestField.fieldA));
       });
 
       test('moving column to same position leaves order unchanged', () {
-        // Moving index 0 to index 1 (adjacent) should keep fieldA first.
-        notifier.reorderColumn(0, 1);
+        // onReorderItem contract: dropping in place reports newIndex == oldIndex.
+        notifier.reorderColumn(0, 0);
 
         expect(notifier.state.columns[0].field, equals(TestField.fieldA));
         expect(notifier.state.columns[1].field, equals(TestField.fieldB));

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart' hide Visibility;
 import 'package:go_router/go_router.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:uuid/uuid.dart';
 
@@ -1476,9 +1476,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               physics: const NeverScrollableScrollPhysics(),
               buildDefaultDragHandles: false,
               itemCount: _customFields.length,
-              onReorder: (oldIndex, newIndex) {
+              onReorderItem: (oldIndex, newIndex) {
                 setState(() {
-                  if (newIndex > oldIndex) newIndex--;
                   final item = _customFields.removeAt(oldIndex);
                   _customFields.insert(newIndex, item);
                   for (var i = 0; i < _customFields.length; i++) {

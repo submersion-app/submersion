@@ -58,6 +58,9 @@ jobs:
           restore-keys: |
             pub-${{ runner.os }}-
 
+      - name: Disable Swift Package Manager (project uses CocoaPods)
+        run: flutter config --no-enable-swift-package-manager
+
       - name: Install dependencies
         run: flutter pub get
 
@@ -66,13 +69,13 @@ jobs:
 
       # Share the generated sources (Drift/json_serializable/riverpod/freezed
       # outputs) so downstream jobs can skip the ~3 min build_runner bootstrap.
-      # Mocks (*.mocks.dart) are committed, so only the gitignored *.g.dart /
-      # *.freezed.dart files need to travel. We tar from the workspace root so
+      # All generated kinds (*.g.dart / *.freezed.dart / *.mocks.dart) are now
+      # gitignored, so they all need to travel. We tar from the workspace root so
       # the lib/ and test/ path prefixes are preserved exactly (upload-artifact
       # would otherwise collapse paths to their least-common-ancestor dir).
       - name: Package generated code
         run: |
-          mapfile -d '' files < <(find lib test -type f \( -name '*.g.dart' -o -name '*.freezed.dart' \) -print0)
+          mapfile -d '' files < <(find lib test -type f \( -name '*.g.dart' -o -name '*.freezed.dart' -o -name '*.mocks.dart' \) -print0)
           echo "Packaging ${#files[@]} generated files"
           if [ "${#files[@]}" -eq 0 ]; then echo "::error::no generated files to package"; exit 1; fi
           printf '%s\0' "${files[@]}" | tar --null -T - -czf generated-code.tar.gz
@@ -119,6 +122,9 @@ jobs:
           key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
           restore-keys: |
             pub-${{ runner.os }}-
+
+      - name: Disable Swift Package Manager (project uses CocoaPods)
+        run: flutter config --no-enable-swift-package-manager
 
       - name: Install dependencies
         run: flutter pub get
@@ -179,6 +185,9 @@ jobs:
           key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
           restore-keys: |
             pub-${{ runner.os }}-
+
+      - name: Disable Swift Package Manager (project uses CocoaPods)
+        run: flutter config --no-enable-swift-package-manager
 
       - name: Install dependencies
         run: flutter pub get
@@ -266,7 +275,7 @@ jobs:
   integration-test:
     name: Integration Test (macOS)
     needs: codegen
-    runs-on: macos-14
+    runs-on: macos-26
     if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v7
@@ -310,6 +319,9 @@ jobs:
           echo 'CODE_SIGNING_REQUIRED = NO' >> macos/Runner/Configs/Debug.xcconfig
           echo 'CODE_SIGN_IDENTITY = ' >> macos/Runner/Configs/Debug.xcconfig
 
+      - name: Disable Swift Package Manager (project uses CocoaPods)
+        run: flutter config --no-enable-swift-package-manager
+
       - name: Install dependencies
         run: flutter pub get
 
@@ -330,7 +342,7 @@ jobs:
   build-ios:
     name: Build iOS
     needs: codegen
-    runs-on: macos-14
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v7
         with:
@@ -377,6 +389,9 @@ jobs:
           restore-keys: |
             pods-ios-${{ runner.os }}-
 
+      - name: Disable Swift Package Manager (project uses CocoaPods)
+        run: flutter config --no-enable-swift-package-manager
+
       - name: Install dependencies
         run: flutter pub get
 
@@ -410,7 +425,7 @@ jobs:
   build-macos:
     name: Build macOS
     needs: codegen
-    runs-on: macos-14
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v7
         with:
@@ -465,6 +480,9 @@ jobs:
           key: deriveddata-${{ runner.os }}-${{ hashFiles('macos/Podfile.lock') }}
           restore-keys: |
             deriveddata-${{ runner.os }}-
+
+      - name: Disable Swift Package Manager (project uses CocoaPods)
+        run: flutter config --no-enable-swift-package-manager
 
       - name: Install dependencies
         run: flutter pub get
@@ -563,6 +581,9 @@ jobs:
           restore-keys: |
             gradle-${{ runner.os }}-
 
+      - name: Disable Swift Package Manager (project uses CocoaPods)
+        run: flutter config --no-enable-swift-package-manager
+
       - name: Install dependencies
         run: flutter pub get
 
@@ -646,6 +667,9 @@ jobs:
             libstdc++-12-dev \
             libsecret-1-dev
 
+      - name: Disable Swift Package Manager (project uses CocoaPods)
+        run: flutter config --no-enable-swift-package-manager
+
       - name: Install dependencies
         run: flutter pub get
 
@@ -716,6 +740,9 @@ jobs:
           key: nuget-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
           restore-keys: |
             nuget-${{ runner.os }}-
+
+      - name: Disable Swift Package Manager (project uses CocoaPods)
+        run: flutter config --no-enable-swift-package-manager
 
       - name: Install dependencies
         run: flutter pub get
