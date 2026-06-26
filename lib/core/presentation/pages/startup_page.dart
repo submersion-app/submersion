@@ -109,7 +109,7 @@ class _StartupWrapperState extends State<StartupWrapper>
   /// Forward-only; starts when _state first reaches ready.
   late final AnimationController _splashFadeController = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 900),
+    duration: const Duration(milliseconds: 750),
   );
 
   /// True once the fade completes, at which point the splash widget is
