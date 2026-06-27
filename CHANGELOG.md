@@ -3,6 +3,26 @@
 All notable changes to Submersion are documented in this file.
 
 
+## 1.5.8 (2026-06-27)
+
+### Bug Fixes
+
+- restore libsqlite3.so bundling (sqlite3_flutter_libs 0.5.x)
+
+### Documentation
+
+- release notes
+
+### CI/CD
+
+- fix Apple builds for Flutter 3.44 (pin Xcode 26 + disable SPM)
+
+### Chores
+
+- bump version to 1.5.8+111
+- bump version to 1.5.7+110
+
+
 ## 1.5.7 (2026-06-27)
 
 ### CI/CD
