@@ -3,6 +3,17 @@
 All notable changes to Submersion are documented in this file.
 
 
+## 1.5.7 (2026-06-27)
+
+### CI/CD
+
+- fix Apple builds for Flutter 3.44 (pin Xcode 26 + disable SPM)
+
+### Chores
+
+- bump version to 1.5.7+110
+
+
 ## 1.5.7 (2026-06-26)
 
 ### Features
