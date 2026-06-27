@@ -84,6 +84,16 @@ jobs:
           restore-keys: |
             pub-${{ runner.os }}-
 
+      # Flutter 3.44 enables Swift Package Manager by default. This project is
+      # not migrated to SPM (the Xcode projects carry no package references) and
+      # builds via CocoaPods. With SPM on, the full `flutter build macos` for the
+      # DMG adds the generated Swift package to the project, then the Fastlane
+      # App Store archive links google_sign_in_ios via BOTH that Swift package
+      # and CocoaPods -> "ld: duplicate symbols". Force CocoaPods-only to match
+      # local dev and the previously-working Flutter 3.41 behavior.
+      - name: Use CocoaPods (disable Swift Package Manager)
+        run: flutter config --no-enable-swift-package-manager
+
       - name: Install dependencies
         run: |
           flutter pub get
