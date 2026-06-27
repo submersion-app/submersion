@@ -538,6 +538,16 @@ jobs:
             build/app/outputs/flutter-apk/app-release.apk \
             build/app/outputs/bundle/release/app-release.aab
 
+      # Guards against issue #433: sqlite3_flutter_libs 0.6.0+eol (an empty
+      # tombstone release) silently dropped libsqlite3.so from the package, so
+      # the app could not open its database on launch. Fail the release before
+      # publishing if a required native library is missing from the APK or AAB.
+      - name: Verify required native libraries are bundled
+        run: |
+          python3 scripts/check_native_libs_present.py \
+            build/app/outputs/flutter-apk/app-release.apk \
+            build/app/outputs/bundle/release/app-release.aab
+
       - name: Rename artifacts
         env:
           TAG_NAME: ${{ github.ref_name }}

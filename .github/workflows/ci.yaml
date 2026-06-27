@@ -257,10 +257,13 @@ jobs:
       - name: Run Python guard tests with coverage
         run: |
           mkdir -p coverage
-          python3 -m coverage run --include='scripts/check_proguard_serial_keep.py' \
+          guards='scripts/check_proguard_serial_keep.py,scripts/check_native_libs_present.py'
+          python3 -m coverage run --include="$guards" \
             scripts/check_proguard_serial_keep_test.py
-          python3 -m coverage report -m --include='scripts/check_proguard_serial_keep.py'
-          python3 -m coverage xml --include='scripts/check_proguard_serial_keep.py' \
+          python3 -m coverage run --append --include="$guards" \
+            scripts/check_native_libs_present_test.py
+          python3 -m coverage report -m --include="$guards"
+          python3 -m coverage xml --include="$guards" \
             -o coverage/scripts.xml
 
       - name: Upload coverage
@@ -603,6 +606,14 @@ jobs:
       # Fails the build if any 64-bit native library is not 16 KB-aligned.
       - name: Verify 16 KB native library alignment
         run: python3 scripts/check_16kb_alignment.py build/app/outputs/flutter-apk/app-release.apk
+
+      # Guards against issue #433: a dependency bump (sqlite3_flutter_libs ->
+      # 0.6.0+eol, an empty tombstone release) silently dropped libsqlite3.so
+      # from the APK, so the app could not open its database on launch. The
+      # alignment guard above does not catch this -- a missing lib is not a
+      # misaligned one. Fails the build if a required native library is absent.
+      - name: Verify required native libraries are bundled
+        run: python3 scripts/check_native_libs_present.py build/app/outputs/flutter-apk/app-release.apk
 
       # Guards against the second half of issue #318: R8 release minification
       # renamed the reflectively-probed usb-serial-for-android driver methods

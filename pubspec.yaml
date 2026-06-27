@@ -23,7 +23,13 @@ dependencies:
   # Database
   drift: ^2.30.0
   sqlite3: ^2.9.4
-  sqlite3_flutter_libs: ^0.6.0+eol
+  # Pinned to 0.5.x on purpose. 0.6.0+eol is an empty tombstone release that
+  # removes the Android/desktop scripts which bundle libsqlite3.so into the app.
+  # It is only safe once we migrate to sqlite3 3.x (which bundles the lib itself).
+  # While we remain on sqlite3 2.x, 0.6.0 drops libsqlite3.so from the Android
+  # APK and the app fails to open the DB at startup (issue #433). Do not bump to
+  # 0.6.x without completing the sqlite3 v3 migration (UPGRADING_TO_V3.md).
+  sqlite3_flutter_libs: ^0.5.42
   path_provider: ^2.1.5
   path: ^1.9.0
 
