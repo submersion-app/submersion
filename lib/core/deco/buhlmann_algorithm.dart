@@ -484,7 +484,9 @@ class BuhlmannAlgorithm {
     double fN2 = airN2Fraction,
     double fHe = 0.0,
     int safetyStopTimeAccumulated = 0,
+    AscentGasPlan? ascentGas,
   }) {
+    final plan = ascentGas ?? FixedAscentGas(fN2: fN2, fHe: fHe);
     final ndl = calculateNdl(depthMeters: currentDepth, fN2: fN2, fHe: fHe);
 
     // Only calculate ceiling/stops when actually in deco (NDL < 0).
@@ -494,7 +496,7 @@ class BuhlmannAlgorithm {
         ? calculateCeiling(currentDepth: currentDepth)
         : 0.0;
     final stops = ndl < 0
-        ? calculateDecoSchedule(currentDepth: currentDepth, fN2: fN2, fHe: fHe)
+        ? calculateDecoSchedule(currentDepth: currentDepth, ascentGas: plan)
         : <DecoStop>[];
 
     // TTS is the MANDATORY time to surface only: the ascent plus any required
@@ -508,7 +510,7 @@ class BuhlmannAlgorithm {
     if (ndl < 0) {
       // In deco: full obligation (ascent + deco stops). The mandatory deco
       // stops supersede any recommended safety stop, so it is not reported.
-      tts = calculateTts(currentDepth: currentDepth, fN2: fN2, fHe: fHe);
+      tts = calculateTts(currentDepth: currentDepth, ascentGas: plan);
       safetyStop = 0;
     } else {
       // No deco obligation: TTS is just the direct ascent to the surface.
@@ -563,10 +565,14 @@ class BuhlmannAlgorithm {
   /// [gasSegments] must be non-empty and sorted by [startTimestamp].
   /// Each segment becomes active from its start timestamp onward until
   /// superseded by the next segment.
+  /// [ascentGasPlan] optionally overrides the ascent gas selection for TTS
+  /// and deco-schedule calculations; null reproduces the legacy per-sample
+  /// single-gas behavior.
   List<DecoStatus> processProfileWithGasSegments({
     required List<double> depths,
     required List<int> timestamps,
     required List<ProfileGasSegment> gasSegments,
+    AscentGasPlan? ascentGasPlan,
   }) {
     if (depths.length != timestamps.length || depths.isEmpty) {
       return [];
@@ -666,6 +672,7 @@ class BuhlmannAlgorithm {
           fN2: _activeGasAtTimestamp(timestamps[i], gasSegments).fN2,
           fHe: _activeGasAtTimestamp(timestamps[i], gasSegments).fHe,
           safetyStopTimeAccumulated: safetyStopTimeAccumulated,
+          ascentGas: ascentGasPlan,
         ),
       );
     }
