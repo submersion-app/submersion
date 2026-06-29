@@ -43,37 +43,47 @@ class DiveTypeMultiSelectField extends ConsumerWidget {
     final typesAsync = ref.watch(diveTypesProvider);
     final label = labelText ?? context.l10n.diveLog_edit_label_diveTypes;
 
-    return typesAsync.when(
-      loading: () => const LinearProgressIndicator(),
-      error: (e, _) =>
-          Text(context.l10n.diveLog_edit_errorLoadingDiveTypes(e.toString())),
-      data: (types) {
-        final nameById = {for (final t in types) t.id: t.name};
-        String nameOf(String id) =>
-            nameById[id] ?? Dive.diveTypeDisplayName(id);
-
-        return InkWell(
-          onTap: () => _openPicker(context, types, label),
-          child: InputDecorator(
-            decoration: InputDecoration(
-              labelText: label,
-              suffixIcon: const Icon(Icons.arrow_drop_down),
-            ),
-            child: Wrap(
-              spacing: 6,
-              runSpacing: 4,
-              children: [
-                for (final id in selectedTypeIds)
-                  Chip(
-                    label: Text(nameOf(id)),
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    visualDensity: VisualDensity.compact,
-                  ),
-              ],
-            ),
+    // diveTypesProvider self-invalidates on every dive_types write (e.g. an
+    // incoming sync), which drops it back into a loading state while Riverpod
+    // keeps the previous value. Render from that retained value so a background
+    // reload never flashes a bare progress bar over the chips; the spinner is
+    // shown only on the very first load, before any data has arrived. This
+    // mirrors the notifier's silent-reload behaviour. See #429.
+    final types = typesAsync.value;
+    if (types == null) {
+      if (typesAsync.hasError) {
+        return Text(
+          context.l10n.diveLog_edit_errorLoadingDiveTypes(
+            typesAsync.error.toString(),
           ),
         );
-      },
+      }
+      return const LinearProgressIndicator();
+    }
+
+    final nameById = {for (final t in types) t.id: t.name};
+    String nameOf(String id) => nameById[id] ?? Dive.diveTypeDisplayName(id);
+
+    return InkWell(
+      onTap: () => _openPicker(context, types, label),
+      child: InputDecorator(
+        decoration: InputDecoration(
+          labelText: label,
+          suffixIcon: const Icon(Icons.arrow_drop_down),
+        ),
+        child: Wrap(
+          spacing: 6,
+          runSpacing: 4,
+          children: [
+            for (final id in selectedTypeIds)
+              Chip(
+                label: Text(nameOf(id)),
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                visualDensity: VisualDensity.compact,
+              ),
+          ],
+        ),
+      ),
     );
   }
 
