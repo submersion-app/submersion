@@ -48,6 +48,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_locations
 import 'package:submersion/features/dive_log/presentation/widgets/surface_gps_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/data_sources_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/field_attribution_badge.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail_row.dart';
 import 'package:submersion/features/dive_log/domain/services/field_attribution_service.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/merge_dive_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_deco_status_card.dart';
@@ -3464,30 +3465,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     String value, {
     String? sourceName,
   }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(value, style: Theme.of(context).textTheme.bodyMedium),
-              if (sourceName != null) ...[
-                const SizedBox(width: 6),
-                FieldAttributionBadge(sourceName: sourceName),
-              ],
-            ],
-          ),
-        ],
-      ),
-    );
+    return DiveDetailRow(label: label, value: value, sourceName: sourceName);
   }
 
   /// Build dive computer rows from profile-linked computers or string fields.
