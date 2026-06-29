@@ -59,11 +59,9 @@ final favoriteDiveComputerProvider = FutureProvider<DiveComputer?>((ref) async {
 final computersForDiveProvider =
     FutureProvider.family<List<DiveComputer>, String>((ref, diveId) async {
       final repository = ref.watch(diveComputerRepositoryProvider);
-      final sub = ref
-          .watch(diveRepositoryProvider)
-          .watchDiveDetailChanges()
-          .listen((_) => ref.invalidateSelf());
-      ref.onDispose(sub.cancel);
+      ref.invalidateSelfWhen(
+        ref.watch(diveRepositoryProvider).watchDiveDetailChanges(),
+      );
       return repository.getComputersForDive(diveId);
     });
 

@@ -240,7 +240,9 @@ class UddfExportBuilders {
                 attributes: {'ref': 'center_${dive.diveCenter!.id}'},
               );
             }
-            builder.element('divetype', nest: dive.diveTypeId);
+            for (final typeId in dive.diveTypeIds) {
+              builder.element('divetype', nest: typeId);
+            }
             // Dive mode (oc, ccr, scr)
             if (dive.diveMode != DiveMode.oc) {
               builder.element('divemode', nest: dive.diveMode.name);

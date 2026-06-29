@@ -123,6 +123,7 @@ class ProfileSample {
     this.o2Sensor4,
     this.o2Sensor5,
     this.o2Sensor6,
+    this.gasMixIndex,
   });
 
   int timeSeconds;
@@ -168,6 +169,10 @@ class ProfileSample {
 
   double? o2Sensor6;
 
+  /// Active gas mix index at this sample (from DC_SAMPLE_GASMIX), carried forward
+  /// from the most recent gas switch; null if the computer reported no gas.
+  int? gasMixIndex;
+
   Object encode() {
     return <Object?>[
       timeSeconds,
@@ -190,6 +195,7 @@ class ProfileSample {
       o2Sensor4,
       o2Sensor5,
       o2Sensor6,
+      gasMixIndex,
     ];
   }
 
@@ -216,6 +222,7 @@ class ProfileSample {
       o2Sensor4: result[17] as double?,
       o2Sensor5: result[18] as double?,
       o2Sensor6: result[19] as double?,
+      gasMixIndex: result[20] as int?,
     );
   }
 }

@@ -217,6 +217,7 @@ class SyncData {
   final List<Map<String, dynamic>> itineraryDays;
   final List<Map<String, dynamic>> tags;
   final List<Map<String, dynamic>> diveTags;
+  final List<Map<String, dynamic>> diveDiveTypes;
   final List<Map<String, dynamic>> diveTypes;
   final List<Map<String, dynamic>> tankPresets;
   final List<Map<String, dynamic>> diveComputers;
@@ -258,6 +259,7 @@ class SyncData {
     this.itineraryDays = const [],
     this.tags = const [],
     this.diveTags = const [],
+    this.diveDiveTypes = const [],
     this.diveTypes = const [],
     this.tankPresets = const [],
     this.diveComputers = const [],
@@ -300,6 +302,7 @@ class SyncData {
     'itineraryDays': itineraryDays,
     'tags': tags,
     'diveTags': diveTags,
+    'diveDiveTypes': diveDiveTypes,
     'diveTypes': diveTypes,
     'tankPresets': tankPresets,
     'diveComputers': diveComputers,
@@ -343,6 +346,7 @@ class SyncData {
       itineraryDays: _parseList(json['itineraryDays']),
       tags: _parseList(json['tags']),
       diveTags: _parseList(json['diveTags']),
+      diveDiveTypes: _parseList(json['diveDiveTypes']),
       diveTypes: _parseList(json['diveTypes']),
       tankPresets: _parseList(json['tankPresets']),
       diveComputers: _parseList(json['diveComputers']),
@@ -586,6 +590,10 @@ class SyncDataSerializer {
       ),
       tags: await _safeExport('tags', () => _exportTags(hlcSince)),
       diveTags: await _safeExport('diveTags', () => _exportDiveTags(hlcSince)),
+      diveDiveTypes: await _safeExport(
+        'diveDiveTypes',
+        () => _exportDiveDiveTypes(hlcSince),
+      ),
       diveTypes: await _safeExport(
         'diveTypes',
         () => _exportDiveTypes(hlcSince),
@@ -889,6 +897,11 @@ class SyncDataSerializer {
           _db.diveTags,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
+      case 'diveDiveTypes':
+        final row = await (_db.select(
+          _db.diveDiveTypes,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
       case 'diveTypes':
         final row = await (_db.select(
           _db.diveTypes,
@@ -1090,6 +1103,11 @@ class SyncDataSerializer {
         await _db
             .into(_db.diveTags)
             .insertOnConflictUpdate(DiveTag.fromJson(data));
+        return;
+      case 'diveDiveTypes':
+        await _db
+            .into(_db.diveDiveTypes)
+            .insertOnConflictUpdate(DiveDiveType.fromJson(data));
         return;
       case 'diveTypes':
         await _db
@@ -1294,6 +1312,8 @@ class SyncDataSerializer {
         return plain(_db.diveWeights, _db.diveWeights.id);
       case 'diveTags':
         return plain(_db.diveTags, _db.diveTags.id);
+      case 'diveDiveTypes':
+        return plain(_db.diveDiveTypes, _db.diveDiveTypes.id);
       case 'diveBuddies':
         return plain(_db.diveBuddies, _db.diveBuddies.id);
       case 'diveProfiles':
@@ -1454,6 +1474,11 @@ class SyncDataSerializer {
       case 'diveTags':
         await (_db.delete(
           _db.diveTags,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'diveDiveTypes':
+        await (_db.delete(
+          _db.diveDiveTypes,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'diveTypes':
@@ -1842,6 +1867,25 @@ class SyncDataSerializer {
       return rows.map((r) => r.toJson()).toList();
     }
     final rows = await _db.select(_db.diveTags).get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportDiveDiveTypes(
+    String? hlcSince,
+  ) async {
+    if (hlcSince != null) {
+      final modifiedDives = await (_db.select(
+        _db.dives,
+      )..where((t) => t.hlc.isBiggerThanValue(hlcSince))).get();
+      final diveIds = modifiedDives.map((d) => d.id).toSet();
+      if (diveIds.isEmpty) return [];
+
+      final rows = await (_db.select(
+        _db.diveDiveTypes,
+      )..where((t) => t.diveId.isIn(diveIds))).get();
+      return rows.map((r) => r.toJson()).toList();
+    }
+    final rows = await _db.select(_db.diveDiveTypes).get();
     return rows.map((r) => r.toJson()).toList();
   }
 

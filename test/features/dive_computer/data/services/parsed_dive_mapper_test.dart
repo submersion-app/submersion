@@ -250,10 +250,13 @@ void main() {
       expect(downloaded.tanks[1].gasName, 'EAN50');
     });
 
-    test('unmatched gasMixIndex falls back to the primary (first) mix', () {
-      // Tank gas-mix link unknown (DC_GASMIX_UNKNOWN, e.g. Shearwater
-      // single-gas dives): must resolve to the dive's primary mix, not a
-      // hardcoded air default that would mislabel an EAN dive.
+    test('unmatched gasMixIndex with no samples uses the primary mix and keeps '
+        'the other gas as a pressureless cylinder', () {
+      // Tank gas-mix link unknown (DC_GASMIX_UNKNOWN, e.g. Shearwater) and no
+      // per-sample gas to disambiguate: the transmitter tank resolves to the
+      // dive's primary mix (not a hardcoded air default that would mislabel an
+      // EAN dive), and the second reported gas is still kept as a cylinder
+      // instead of being dropped.
       final parsed = makeParsedDive(
         fingerprint: 'fallback-primary',
         tanks: [pigeon.TankInfo(index: 0, gasMixIndex: 99)],
@@ -265,9 +268,15 @@ void main() {
 
       final downloaded = parsedDiveToDownloaded(parsed);
 
-      expect(downloaded.tanks, hasLength(1));
+      expect(downloaded.tanks, hasLength(2));
+      // Transmitter tank keeps its index and the primary mix.
+      expect(downloaded.tanks[0].index, 0);
       expect(downloaded.tanks[0].o2Percent, 32.0);
       expect(downloaded.tanks[0].hePercent, 0.0);
+      // The second gas survives as a pressureless cylinder at a fresh index.
+      final other = downloaded.tanks.firstWhere((t) => t.o2Percent == 21.0);
+      expect(other.index, isNot(0));
+      expect(other.startPressure, isNull);
     });
 
     test('falls back to air when there are no gas mixes at all', () {

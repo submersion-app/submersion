@@ -1222,6 +1222,7 @@
   "diveLog_edit_label_currentDirection": "Dirección de la corriente",
   "diveLog_edit_label_currentStrength": "Intensidad de la corriente",
   "diveLog_edit_label_diveType": "Tipo de inmersión",
+  "diveLog_edit_label_diveTypes": "Dive Types",
   "diveLog_edit_label_diveNumber": "Nro. de inmersión",
   "diveLog_edit_hint_diveNumber": "Se asigna automáticamente si se deja en blanco",
   "diveLog_edit_label_entryMethod": "Método de entrada",

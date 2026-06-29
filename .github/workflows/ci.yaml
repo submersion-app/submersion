@@ -43,13 +43,13 @@ jobs:
           channel: 'stable'
 
       - name: Cache Flutter SDK
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
           key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.pub-cache
@@ -57,6 +57,9 @@ jobs:
           key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
           restore-keys: |
             pub-${{ runner.os }}-
+
+      - name: Disable Swift Package Manager (project uses CocoaPods)
+        run: flutter config --no-enable-swift-package-manager
 
       - name: Install dependencies
         run: flutter pub get
@@ -66,13 +69,13 @@ jobs:
 
       # Share the generated sources (Drift/json_serializable/riverpod/freezed
       # outputs) so downstream jobs can skip the ~3 min build_runner bootstrap.
-      # Mocks (*.mocks.dart) are committed, so only the gitignored *.g.dart /
-      # *.freezed.dart files need to travel. We tar from the workspace root so
+      # All generated kinds (*.g.dart / *.freezed.dart / *.mocks.dart) are now
+      # gitignored, so they all need to travel. We tar from the workspace root so
       # the lib/ and test/ path prefixes are preserved exactly (upload-artifact
       # would otherwise collapse paths to their least-common-ancestor dir).
       - name: Package generated code
         run: |
-          mapfile -d '' files < <(find lib test -type f \( -name '*.g.dart' -o -name '*.freezed.dart' \) -print0)
+          mapfile -d '' files < <(find lib test -type f \( -name '*.g.dart' -o -name '*.freezed.dart' -o -name '*.mocks.dart' \) -print0)
           echo "Packaging ${#files[@]} generated files"
           if [ "${#files[@]}" -eq 0 ]; then echo "::error::no generated files to package"; exit 1; fi
           printf '%s\0' "${files[@]}" | tar --null -T - -czf generated-code.tar.gz
@@ -105,13 +108,13 @@ jobs:
           channel: 'stable'
 
       - name: Cache Flutter SDK
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
           key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.pub-cache
@@ -119,6 +122,9 @@ jobs:
           key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
           restore-keys: |
             pub-${{ runner.os }}-
+
+      - name: Disable Swift Package Manager (project uses CocoaPods)
+        run: flutter config --no-enable-swift-package-manager
 
       - name: Install dependencies
         run: flutter pub get
@@ -165,13 +171,13 @@ jobs:
           channel: 'stable'
 
       - name: Cache Flutter SDK
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
           key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.pub-cache
@@ -179,6 +185,9 @@ jobs:
           key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
           restore-keys: |
             pub-${{ runner.os }}-
+
+      - name: Disable Swift Package Manager (project uses CocoaPods)
+        run: flutter config --no-enable-swift-package-manager
 
       - name: Install dependencies
         run: flutter pub get
@@ -229,10 +238,47 @@ jobs:
           flags: shard-${{ matrix.shard }}
           fail_ci_if_error: false  # Enable after configuring repo on codecov.io
 
+  # Unit-tests the dependency-free Python guard scripts (e.g. the issue #318
+  # ProGuard keep-rule checker). No Flutter/codegen needed, so it runs in
+  # parallel and gives the guard logic its own coverage, scoped to the script.
+  script-tests:
+    name: Script Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.x'
+
+      - name: Install coverage.py
+        run: python3 -m pip install coverage
+
+      - name: Run Python guard tests with coverage
+        run: |
+          mkdir -p coverage
+          guards='scripts/check_proguard_serial_keep.py,scripts/check_native_libs_present.py'
+          python3 -m coverage run --include="$guards" \
+            scripts/check_proguard_serial_keep_test.py
+          python3 -m coverage run --append --include="$guards" \
+            scripts/check_native_libs_present_test.py
+          python3 -m coverage report -m --include="$guards"
+          python3 -m coverage xml --include="$guards" \
+            -o coverage/scripts.xml
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v7
+        if: always()
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage/scripts.xml
+          flags: scripts
+          fail_ci_if_error: false
+
   integration-test:
     name: Integration Test (macOS)
     needs: codegen
-    runs-on: macos-14
+    runs-on: macos-26
     if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v7
@@ -255,13 +301,13 @@ jobs:
           channel: 'stable'
 
       - name: Cache Flutter SDK
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
           key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.pub-cache
@@ -275,6 +321,9 @@ jobs:
           echo 'CODE_SIGNING_ALLOWED = NO' >> macos/Runner/Configs/Debug.xcconfig
           echo 'CODE_SIGNING_REQUIRED = NO' >> macos/Runner/Configs/Debug.xcconfig
           echo 'CODE_SIGN_IDENTITY = ' >> macos/Runner/Configs/Debug.xcconfig
+
+      - name: Disable Swift Package Manager (project uses CocoaPods)
+        run: flutter config --no-enable-swift-package-manager
 
       - name: Install dependencies
         run: flutter pub get
@@ -296,7 +345,7 @@ jobs:
   build-ios:
     name: Build iOS
     needs: codegen
-    runs-on: macos-14
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v7
         with:
@@ -318,13 +367,13 @@ jobs:
           channel: 'stable'
 
       - name: Cache Flutter SDK
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
           key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.pub-cache
@@ -334,7 +383,7 @@ jobs:
             pub-${{ runner.os }}-
 
       - name: Cache CocoaPods
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ios/Pods
@@ -342,6 +391,9 @@ jobs:
           key: pods-ios-${{ runner.os }}-${{ hashFiles('ios/Podfile.lock') }}
           restore-keys: |
             pods-ios-${{ runner.os }}-
+
+      - name: Disable Swift Package Manager (project uses CocoaPods)
+        run: flutter config --no-enable-swift-package-manager
 
       - name: Install dependencies
         run: flutter pub get
@@ -376,7 +428,7 @@ jobs:
   build-macos:
     name: Build macOS
     needs: codegen
-    runs-on: macos-14
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v7
         with:
@@ -398,13 +450,13 @@ jobs:
           channel: 'stable'
 
       - name: Cache Flutter SDK
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
           key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.pub-cache
@@ -414,7 +466,7 @@ jobs:
             pub-${{ runner.os }}-
 
       - name: Cache CocoaPods
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             macos/Pods
@@ -424,13 +476,16 @@ jobs:
             pods-macos-${{ runner.os }}-
 
       - name: Cache Xcode DerivedData
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/Library/Developer/Xcode/DerivedData
           key: deriveddata-${{ runner.os }}-${{ hashFiles('macos/Podfile.lock') }}
           restore-keys: |
             deriveddata-${{ runner.os }}-
+
+      - name: Disable Swift Package Manager (project uses CocoaPods)
+        run: flutter config --no-enable-swift-package-manager
 
       - name: Install dependencies
         run: flutter pub get
@@ -504,13 +559,13 @@ jobs:
           channel: 'stable'
 
       - name: Cache Flutter SDK
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
           key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.pub-cache
@@ -520,7 +575,7 @@ jobs:
             pub-${{ runner.os }}-
 
       - name: Cache Gradle
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.gradle/caches
@@ -528,6 +583,9 @@ jobs:
           key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             gradle-${{ runner.os }}-
+
+      - name: Disable Swift Package Manager (project uses CocoaPods)
+        run: flutter config --no-enable-swift-package-manager
 
       - name: Install dependencies
         run: flutter pub get
@@ -548,6 +606,21 @@ jobs:
       # Fails the build if any 64-bit native library is not 16 KB-aligned.
       - name: Verify 16 KB native library alignment
         run: python3 scripts/check_16kb_alignment.py build/app/outputs/flutter-apk/app-release.apk
+
+      # Guards against issue #433: a dependency bump (sqlite3_flutter_libs ->
+      # 0.6.0+eol, an empty tombstone release) silently dropped libsqlite3.so
+      # from the APK, so the app could not open its database on launch. The
+      # alignment guard above does not catch this -- a missing lib is not a
+      # misaligned one. Fails the build if a required native library is absent.
+      - name: Verify required native libraries are bundled
+        run: python3 scripts/check_native_libs_present.py build/app/outputs/flutter-apk/app-release.apk
+
+      # Guards against the second half of issue #318: R8 release minification
+      # renamed the reflectively-probed usb-serial-for-android driver methods
+      # (e.g. getSupportedDevices), so every serial-USB download crashed with a
+      # NoSuchMethodException. Fails the build if a driver method was obfuscated.
+      - name: Verify serial driver ProGuard keep rules
+        run: python3 scripts/check_proguard_serial_keep.py build/app/outputs/mapping/release/mapping.txt
 
       - name: Upload Android artifact
         uses: actions/upload-artifact@v7
@@ -577,13 +650,13 @@ jobs:
           channel: 'stable'
 
       - name: Cache Flutter SDK
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
           key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.pub-cache
@@ -604,6 +677,9 @@ jobs:
             liblzma-dev \
             libstdc++-12-dev \
             libsecret-1-dev
+
+      - name: Disable Swift Package Manager (project uses CocoaPods)
+        run: flutter config --no-enable-swift-package-manager
 
       - name: Install dependencies
         run: flutter pub get
@@ -652,13 +728,13 @@ jobs:
           channel: 'stable'
 
       - name: Cache Flutter SDK
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
           key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~\.pub-cache
@@ -668,13 +744,16 @@ jobs:
             pub-${{ runner.os }}-
 
       - name: Cache NuGet packages
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             C:\Users\runneradmin\.nuget\packages
           key: nuget-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
           restore-keys: |
             nuget-${{ runner.os }}-
+
+      - name: Disable Swift Package Manager (project uses CocoaPods)
+        run: flutter config --no-enable-swift-package-manager
 
       - name: Install dependencies
         run: flutter pub get

@@ -120,10 +120,7 @@ final customFieldKeySuggestionsProvider =
 final divesProvider = FutureProvider<List<domain.Dive>>((ref) async {
   final repository = ref.watch(diveRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
-  final sub = repository.watchDivesChanges().listen(
-    (_) => ref.invalidateSelf(),
-  );
-  ref.onDispose(sub.cancel);
+  ref.invalidateSelfWhen(repository.watchDivesChanges());
   return repository.getAllDives(diverId: currentDiverId);
 });
 
@@ -142,10 +139,7 @@ final diveProvider = FutureProvider.family<domain.Dive?, String>((
   id,
 ) async {
   final repository = ref.watch(diveRepositoryProvider);
-  final sub = repository.watchDiveDetailChanges().listen(
-    (_) => ref.invalidateSelf(),
-  );
-  ref.onDispose(sub.cancel);
+  ref.invalidateSelfWhen(repository.watchDiveDetailChanges());
   return repository.getDiveById(id);
 });
 
@@ -156,10 +150,7 @@ final diveProfileProvider =
       diveId,
     ) async {
       final repository = ref.watch(diveRepositoryProvider);
-      final sub = repository.watchDiveDetailChanges().listen(
-        (_) => ref.invalidateSelf(),
-      );
-      ref.onDispose(sub.cancel);
+      ref.invalidateSelfWhen(repository.watchDiveDetailChanges());
       return repository.getDiveProfile(diveId);
     });
 
@@ -171,10 +162,7 @@ final profilesBySourceProvider =
       diveId,
     ) async {
       final repository = ref.watch(diveRepositoryProvider);
-      final sub = repository.watchDiveDetailChanges().listen(
-        (_) => ref.invalidateSelf(),
-      );
-      ref.onDispose(sub.cancel);
+      ref.invalidateSelfWhen(repository.watchDiveDetailChanges());
       return repository.getProfilesBySource(diveId);
     });
 
@@ -204,10 +192,7 @@ final statisticsVersionProvider = StateProvider<int>((ref) => 0);
 final diveStatisticsProvider = FutureProvider<DiveStatistics>((ref) async {
   final repository = ref.watch(diveRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
-  final sub = repository.watchDivesChanges().listen(
-    (_) => ref.invalidateSelf(),
-  );
-  ref.onDispose(sub.cancel);
+  ref.invalidateSelfWhen(repository.watchDivesChanges());
   return repository.getStatistics(diverId: currentDiverId);
 });
 
@@ -912,10 +897,7 @@ final surfaceIntervalProvider = FutureProvider.family<Duration?, String>((
   diveId,
 ) async {
   final repository = ref.watch(diveRepositoryProvider);
-  final sub = repository.watchDiveDetailChanges().listen(
-    (_) => ref.invalidateSelf(),
-  );
-  ref.onDispose(sub.cancel);
+  ref.invalidateSelfWhen(repository.watchDiveDetailChanges());
   return repository.getSurfaceInterval(diveId);
 });
 
@@ -946,11 +928,9 @@ final tankPressuresProvider =
       diveId,
     ) async {
       final repository = ref.watch(tankPressureRepositoryProvider);
-      final sub = ref
-          .watch(diveRepositoryProvider)
-          .watchDiveDetailChanges()
-          .listen((_) => ref.invalidateSelf());
-      ref.onDispose(sub.cancel);
+      ref.invalidateSelfWhen(
+        ref.watch(diveRepositoryProvider).watchDiveDetailChanges(),
+      );
       return repository.getTankPressuresForDive(diveId);
     });
 
@@ -959,10 +939,7 @@ final tankPressuresProvider =
 final diveDataSourcesProvider =
     FutureProvider.family<List<DiveDataSource>, String>((ref, diveId) async {
       final repository = ref.watch(diveRepositoryProvider);
-      final sub = repository.watchDiveDetailChanges().listen(
-        (_) => ref.invalidateSelf(),
-      );
-      ref.onDispose(sub.cancel);
+      ref.invalidateSelfWhen(repository.watchDiveDetailChanges());
       return repository.getDataSources(diveId);
     });
 
@@ -972,9 +949,6 @@ final isMultiDataSourceDiveProvider = FutureProvider.family<bool, String>((
   diveId,
 ) async {
   final repository = ref.watch(diveRepositoryProvider);
-  final sub = repository.watchDiveDetailChanges().listen(
-    (_) => ref.invalidateSelf(),
-  );
-  ref.onDispose(sub.cancel);
+  ref.invalidateSelfWhen(repository.watchDiveDetailChanges());
   return repository.hasMultipleDataSources(diveId);
 });

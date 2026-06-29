@@ -38,7 +38,6 @@ void main() {
       diveCenterId: 'dc',
       tripId: 't',
       courseId: 'c',
-      diveTypeId: 'recreational',
       rating: 4,
       isFavorite: true,
       waterType: 'salt',

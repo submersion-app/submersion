@@ -22,10 +22,7 @@ final tankPresetsProvider = FutureProvider<List<TankPresetEntity>>((ref) async {
   final validatedDiverId = await ref.watch(
     validatedCurrentDiverIdProvider.future,
   );
-  final sub = repository.watchTankPresetsChanges().listen(
-    (_) => ref.invalidateSelf(),
-  );
-  ref.onDispose(sub.cancel);
+  ref.invalidateSelfWhen(repository.watchTankPresetsChanges());
   return repository.getAllPresets(diverId: validatedDiverId);
 });
 

@@ -457,6 +457,9 @@ class DiveImportService {
     // Convert events to EventData
     final events = _convertEvents(dive.events);
 
+    // Convert gas switches to GasSwitchData
+    final gasSwitches = _parser.parseGasSwitches(dive);
+
     // Import using repository
     final diveId = await _repository.importProfile(
       computerId: computerId,
@@ -473,6 +476,7 @@ class DiveImportService {
       gfHigh: dive.gfHigh,
       decoConservatism: dive.decoConservatism,
       events: events,
+      gasSwitches: gasSwitches,
       diveNumber: diveNumber,
       forceNew: forceNew,
       rawData: dive.rawData,
@@ -537,6 +541,11 @@ class DiveImportService {
 
     final profilePoints = _parser.parseProfile(dive);
     final events = _convertEvents(dive.events);
+    final gasSwitches = _parser.parseGasSwitches(dive);
+    // Tanks are passed (though importProfile does not re-create them for an
+    // existing dive) so gas switches can be matched to the existing cylinders
+    // by gas mix rather than by a possibly-stale cylinder index.
+    final tanks = _parser.parseTanks(dive);
 
     // Re-import using the existing dive's start time so that importProfile
     // matches it back to the same dive row.
@@ -548,11 +557,13 @@ class DiveImportService {
       maxDepth: dive.maxDepth,
       avgDepth: dive.avgDepth,
       isPrimary: true,
+      tanks: tanks,
       decoAlgorithm: dive.decoAlgorithm,
       gfLow: dive.gfLow,
       gfHigh: dive.gfHigh,
       decoConservatism: dive.decoConservatism,
       events: events,
+      gasSwitches: gasSwitches,
       rawData: dive.rawData,
       rawFingerprint: dive.rawFingerprint,
       descriptorVendor: descriptorVendor,

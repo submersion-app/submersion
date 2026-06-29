@@ -115,9 +115,8 @@ void main() {
       final results = await repository.getSacVolumeTrend();
 
       expect(results, hasLength(1));
-      // SAC = (200-50) * 11.1 / (42) / ((20/10)+1)
-      // SAC = 150 * 11.1 / 42 / 3 = 13.21 L/min
-      expect(results.first.value, closeTo(13.21, 0.5));
+      // SAC with Z-factor: gasVol(200)-gasVol(50) at 11.1L / 42 / 3.0 ≈ 12.40 L/min
+      expect(results.first.value, closeTo(12.40, 0.5));
     });
 
     test('falls back to bottom_time when runtime is null', () async {
@@ -134,9 +133,8 @@ void main() {
       final results = await repository.getSacVolumeTrend();
 
       expect(results, hasLength(1));
-      // SAC = (200-50) * 11.1 / (35) / ((20/10)+1)
-      // SAC = 150 * 11.1 / 35 / 3 = 15.86 L/min
-      expect(results.first.value, closeTo(15.86, 0.5));
+      // SAC with Z-factor: gasVol(200)-gasVol(50) at 11.1L / 35 / 3.0 ≈ 14.88 L/min
+      expect(results.first.value, closeTo(14.88, 0.5));
     });
 
     test('returns empty when no valid data', () async {
@@ -177,8 +175,8 @@ void main() {
       final results = await repository.getSacVolumeTrend();
 
       expect(results, hasLength(1));
-      // 1550 / 42 / 3.0 = 12.30 L/min
-      expect(results.first.value, closeTo(12.30, 0.5));
+      // With Z-factor: ≈ 11.15 L/min
+      expect(results.first.value, closeTo(11.15, 0.5));
     });
   });
 

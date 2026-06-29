@@ -129,7 +129,8 @@ void main() {
 
     test('reorderColumn handles moving to same position', () {
       final before = notifier.state.columns.map((c) => c.field).toList();
-      notifier.reorderColumn(0, 1);
+      // onReorderItem contract: dropping in place reports newIndex == oldIndex.
+      notifier.reorderColumn(0, 0);
       final after = notifier.state.columns.map((c) => c.field).toList();
       expect(after, equals(before));
     });
@@ -388,7 +389,8 @@ void main() {
     test('reorderColumn moves first to last', () {
       final cols = notifier.state.columns;
       final firstField = cols.first.field;
-      notifier.reorderColumn(0, cols.length);
+      // onReorderItem reports the final index (length - 1) for a move to the end.
+      notifier.reorderColumn(0, cols.length - 1);
       expect(notifier.state.columns.last.field, equals(firstField));
     });
 

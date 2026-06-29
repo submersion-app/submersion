@@ -1106,7 +1106,9 @@ class UddfEntityImporter {
       final parsedEntryTime = diveData['entryTime'] as DateTime?;
       final entryTime = parsedEntryTime ?? dateTime;
       final exitTime = runtime != null ? dateTime.add(runtime) : null;
-      final diveTypeId = diveData['diveType'] as String? ?? 'recreational';
+      final diveTypeIds =
+          (diveData['diveTypeIds'] as List?)?.cast<String>() ??
+          [diveData['diveType'] as String? ?? 'recreational'];
 
       // Parse dive mode, planner flag, and favorite
       final diveMode =
@@ -1161,7 +1163,7 @@ class UddfEntityImporter {
         rating: diveData['rating'] as int?,
         notes: notes,
         visibility: _parseEnum(diveData['visibility'], Visibility.values),
-        diveTypeId: diveTypeId,
+        diveTypeIds: diveTypeIds,
         profile: profile,
         tanks: tanks,
         weights: weights,

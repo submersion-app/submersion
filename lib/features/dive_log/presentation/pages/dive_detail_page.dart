@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart' show DateFormat;
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
@@ -48,6 +48,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_locations
 import 'package:submersion/features/dive_log/presentation/widgets/surface_gps_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/data_sources_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/field_attribution_badge.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail_row.dart';
 import 'package:submersion/features/dive_log/domain/services/field_attribution_service.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/merge_dive_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_deco_status_card.dart';
@@ -151,6 +152,28 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   /// Which computer IDs are currently visible in the profile chart.
   /// Empty set means "all visible" (default before sources are loaded).
   Set<String> _visibleComputers = {};
+
+  /// Last usable profile analysis rendered in the deco/tissue/O2 panel, kept
+  /// (paired with the dive id it belongs to) so a transient null from
+  /// [profileAnalysisProvider] -- e.g. a mid-sync `getDiveById` reading the dive
+  /// while its profile rows are being rewritten -- keeps the cards visible
+  /// instead of collapsing them. A dive that has genuinely never produced an
+  /// analysis never populates this, so it still shows nothing. The
+  /// `watchDiveDetailChanges` debounce makes transient nulls rare; this makes
+  /// the panel robust even to a single ill-timed tick.
+  ProfileAnalysis? _lastDecoPanelAnalysis;
+  String? _lastDecoPanelAnalysisDiveId;
+
+  /// Last usable profile analysis rendered in the "SAC Rate by Segment" card,
+  /// kept (paired with its dive id) so a transient null from
+  /// [profileAnalysisProvider] -- the same mid-sync empty-profile read that
+  /// blinks the deco/O2 panel -- keeps the segment card visible instead of
+  /// collapsing it to [SizedBox.shrink]. A dive that has genuinely never
+  /// produced segments never populates this, so it still shows nothing.
+  /// Sibling defense-in-depth to [_lastDecoPanelAnalysis] alongside the
+  /// `watchDiveDetailChanges` change-tick debounce.
+  ProfileAnalysis? _lastSacSegmentsAnalysis;
+  String? _lastSacSegmentsAnalysisDiveId;
 
   String get diveId => widget.diveId;
 
@@ -1439,9 +1462,25 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     Dive dive,
     int? selectedPointIndex,
   ) {
-    final analysis = ref.watch(profileAnalysisProvider(dive.id)).valueOrNull;
+    final current = ref.watch(profileAnalysisProvider(dive.id)).valueOrNull;
+    final isUsable = current != null && current.decoStatuses.isNotEmpty;
 
-    // Don't show if no analysis available
+    // Retain the last usable analysis for THIS dive and fall back to it when the
+    // provider momentarily yields null/empty (e.g. a mid-sync empty-profile
+    // read), so a single transient null doesn't blink the cards out. A dive that
+    // has genuinely never produced an analysis falls through to the
+    // SizedBox.shrink below and correctly shows nothing.
+    if (isUsable) {
+      _lastDecoPanelAnalysis = current;
+      _lastDecoPanelAnalysisDiveId = dive.id;
+    }
+    final analysis = isUsable
+        ? current
+        : (_lastDecoPanelAnalysisDiveId == dive.id
+              ? _lastDecoPanelAnalysis
+              : null);
+
+    // Don't show if no analysis is, or ever was, available for this dive.
     if (analysis == null || analysis.decoStatuses.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -1551,7 +1590,27 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     Dive dive,
     int? selectedPointIndex,
   ) {
-    final analysis = ref.watch(profileAnalysisProvider(dive.id)).valueOrNull;
+    final current = ref.watch(profileAnalysisProvider(dive.id)).valueOrNull;
+    final isUsable =
+        current != null &&
+        current.sacSegments != null &&
+        current.sacSegments!.isNotEmpty;
+
+    // Retain the last usable analysis for THIS dive and fall back to it when the
+    // provider momentarily yields null/empty (e.g. a mid-sync empty-profile
+    // read), so a single transient null doesn't blink the card out. A dive that
+    // has genuinely never produced segments falls through to the
+    // SizedBox.shrink below and correctly shows nothing.
+    if (isUsable) {
+      _lastSacSegmentsAnalysis = current;
+      _lastSacSegmentsAnalysisDiveId = dive.id;
+    }
+    final analysis = isUsable
+        ? current
+        : (_lastSacSegmentsAnalysisDiveId == dive.id
+              ? _lastSacSegmentsAnalysis
+              : null);
+
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
     final sacUnit = ref.watch(sacUnitProvider);
@@ -1571,7 +1630,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     // Get cylinder SAC data for multi-tank dives
     final cylinderSacAsync = ref.watch(cylinderSacProvider(dive.id));
 
-    // Don't show if no segments available at all
+    // Don't show if no segments are, or ever were, available for this dive
+    // (the last-good fallback above keeps a transient null from collapsing it).
     if (analysis == null ||
         (analysis.sacSegments == null || analysis.sacSegments!.isEmpty)) {
       // Still show cylinder SAC if available
@@ -1591,8 +1651,15 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     // Get collapsed state from provider
     final isExpanded = ref.watch(sacSegmentsSectionExpandedProvider);
 
-    // Use current segments or fall back to time-based
-    final displaySegments = segments ?? analysis.sacSegments!;
+    // Use the selected mode's segments, falling back to the (last-good)
+    // analysis time segments when that mode yields nothing usable. Treat an
+    // empty list like null: activeSegmentsForDiveProvider watches the LIVE
+    // profileAnalysisProvider, so a transient non-null/empty-sacSegments
+    // emission would otherwise leave `segments` empty and render an empty card
+    // even though `analysis` holds a usable last-good list.
+    final displaySegments = (segments == null || segments.isEmpty)
+        ? analysis.sacSegments!
+        : segments;
 
     // Get tank volume for L/min conversion (use first tank with volume)
     final tankVolume = dive.tanks
@@ -2501,7 +2568,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             _buildDetailRow(
               context,
               context.l10n.diveLog_detail_label_diveType,
-              dive.diveTypeName,
+              dive.diveTypeNames.join(', '),
             ),
             if (dive.trip != null) _buildTripRow(context, dive),
             if (dive.diveCenter != null) _buildDiveCenterRow(context, dive),
@@ -3398,30 +3465,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     String value, {
     String? sourceName,
   }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(value, style: Theme.of(context).textTheme.bodyMedium),
-              if (sourceName != null) ...[
-                const SizedBox(width: 6),
-                FieldAttributionBadge(sourceName: sourceName),
-              ],
-            ],
-          ),
-        ],
-      ),
-    );
+    return DiveDetailRow(label: label, value: value, sourceName: sourceName);
   }
 
   /// Build dive computer rows from profile-linked computers or string fields.
@@ -3793,7 +3837,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               );
               return ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: Icon(MdiIcons.divingScubaTank),
+                leading: const Icon(MdiIcons.divingScubaTank),
                 title: Text('$tankTitle (${tank.gasMix.name})'),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

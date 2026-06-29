@@ -21,10 +21,7 @@ final diveTypesProvider = FutureProvider<List<DiveTypeEntity>>((ref) async {
   final validatedDiverId = await ref.watch(
     validatedCurrentDiverIdProvider.future,
   );
-  final sub = repository.watchDiveTypesChanges().listen(
-    (_) => ref.invalidateSelf(),
-  );
-  ref.onDispose(sub.cancel);
+  ref.invalidateSelfWhen(repository.watchDiveTypesChanges());
   return repository.getAllDiveTypes(diverId: validatedDiverId);
 });
 

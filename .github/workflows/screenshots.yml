@@ -37,7 +37,7 @@ jobs:
   # ============================================================================
   capture-ios:
     name: Capture iOS
-    runs-on: macos-14
+    runs-on: macos-26
     timeout-minutes: 45
 
     steps:
@@ -63,13 +63,13 @@ jobs:
           channel: stable
 
       - name: Cache Flutter SDK
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
           key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.pub-cache
@@ -172,7 +172,7 @@ jobs:
   # ============================================================================
   capture-macos:
     name: Capture macOS
-    runs-on: macos-14
+    runs-on: macos-26
     timeout-minutes: 30
 
     steps:
@@ -198,13 +198,13 @@ jobs:
           channel: stable
 
       - name: Cache Flutter SDK
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
           key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.pub-cache
@@ -274,7 +274,7 @@ jobs:
   # ============================================================================
   upload:
     name: Upload to App Store Connect
-    runs-on: macos-14
+    runs-on: macos-26
     needs: [capture-ios, capture-macos]
     timeout-minutes: 30
 

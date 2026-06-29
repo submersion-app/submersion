@@ -229,8 +229,10 @@ class UddfExportService {
                                 },
                               );
                             }
-                            // Dive type
-                            builder.element('divetype', nest: dive.diveTypeId);
+                            // Dive type(s)
+                            for (final typeId in dive.diveTypeIds) {
+                              builder.element('divetype', nest: typeId);
+                            }
                             // Entry method
                             if (dive.entryMethod != null) {
                               builder.element(

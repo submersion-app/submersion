@@ -30,10 +30,7 @@ final allDiveCentersProvider = FutureProvider<List<DiveCenter>>((ref) async {
   final validatedDiverId = await ref.watch(
     validatedCurrentDiverIdProvider.future,
   );
-  final sub = repository.watchDiveCentersChanges().listen(
-    (_) => ref.invalidateSelf(),
-  );
-  ref.onDispose(sub.cancel);
+  ref.invalidateSelfWhen(repository.watchDiveCentersChanges());
   return repository.getAllDiveCenters(diverId: validatedDiverId);
 });
 
@@ -140,11 +137,7 @@ final diveCenterDiveCountProvider = FutureProvider.family<int, String>((
   final repository = ref.watch(diveCenterRepositoryProvider);
   // The count reads the `dives` table, so self-invalidate whenever dives
   // change (e.g. after a sync) to keep per-row counts fresh.
-  final sub = ref
-      .read(diveRepositoryProvider)
-      .watchDivesChanges()
-      .listen((_) => ref.invalidateSelf());
-  ref.onDispose(sub.cancel);
+  ref.invalidateSelfWhen(ref.read(diveRepositoryProvider).watchDivesChanges());
   return repository.getDiveCountForCenter(centerId);
 });
 

@@ -33,10 +33,7 @@ final allBuddiesProvider = FutureProvider<List<Buddy>>((ref) async {
     validatedCurrentDiverIdProvider.future,
   );
 
-  final sub = repository.watchBuddiesChanges().listen(
-    (_) => ref.invalidateSelf(),
-  );
-  ref.onDispose(sub.cancel);
+  ref.invalidateSelfWhen(repository.watchBuddiesChanges());
 
   return repository.getAllBuddies(diverId: validatedDiverId);
 });
@@ -56,15 +53,10 @@ final allBuddiesWithDiveCountProvider =
       final validatedDiverId = await ref.watch(
         validatedCurrentDiverIdProvider.future,
       );
-      final buddiesSub = repository.watchBuddiesChanges().listen(
-        (_) => ref.invalidateSelf(),
+      ref.invalidateSelfWhen(repository.watchBuddiesChanges());
+      ref.invalidateSelfWhen(
+        ref.read(diveRepositoryProvider).watchDivesChanges(),
       );
-      ref.onDispose(buddiesSub.cancel);
-      final divesSub = ref
-          .read(diveRepositoryProvider)
-          .watchDivesChanges()
-          .listen((_) => ref.invalidateSelf());
-      ref.onDispose(divesSub.cancel);
       return repository.getAllBuddiesWithDiveCount(diverId: validatedDiverId);
     });
 
@@ -144,11 +136,9 @@ final buddyByIdProvider = FutureProvider.family<Buddy?, String>((
 final buddiesForDiveProvider =
     FutureProvider.family<List<BuddyWithRole>, String>((ref, diveId) async {
       final repository = ref.watch(buddyRepositoryProvider);
-      final sub = ref
-          .watch(diveRepositoryProvider)
-          .watchDiveDetailChanges()
-          .listen((_) => ref.invalidateSelf());
-      ref.onDispose(sub.cancel);
+      ref.invalidateSelfWhen(
+        ref.watch(diveRepositoryProvider).watchDiveDetailChanges(),
+      );
       return repository.getBuddiesForDive(diveId);
     });
 

@@ -12,6 +12,7 @@ import 'package:submersion/core/database/database.dart'
         DiveProfileEventsCompanion,
         DivesCompanion,
         DiveTanksCompanion,
+        GasSwitchesCompanion,
         DiveProfile,
         DiveProfileEvent,
         TankPressureProfilesCompanion;
@@ -816,6 +817,7 @@ class DiveComputerRepository {
     int? gfHigh,
     int? decoConservatism,
     List<EventData>? events,
+    List<GasSwitchData>? gasSwitches,
     int? diveNumber,
     bool forceNew = false,
     Uint8List? rawData,
@@ -1029,6 +1031,11 @@ class DiveComputerRepository {
 
       // Map to track tank index → tank ID for pressure data
       final tankIdsByIndex = <int, String>{};
+      // Map gas mix (o2%, he%) → tank ID, so gas switches can be linked to the
+      // cylinder that actually holds the gas even when the stored tank order
+      // does not match the parsed cylinder index (e.g. a replace-source
+      // re-download that keeps pre-existing, possibly user-edited, tanks).
+      final tankIdByGas = <(double, double), String>{};
 
       // Insert tanks for new dives (batch insert for performance)
       if (isNewDive && tanks != null && tanks.isNotEmpty) {
@@ -1037,6 +1044,7 @@ class DiveComputerRepository {
           for (final tank in tanks) {
             final tankId = _uuid.v4();
             tankIdsByIndex[tank.index] = tankId;
+            tankIdByGas[(tank.o2Percent, tank.hePercent)] = tankId;
 
             batch.insert(
               _db.diveTanks,
@@ -1068,6 +1076,7 @@ class DiveComputerRepository {
                 .get();
         for (final tank in existingTanks) {
           tankIdsByIndex[tank.tankOrder] = tank.id;
+          tankIdByGas[(tank.o2Percent, tank.hePercent)] = tank.id;
         }
       }
 
@@ -1149,6 +1158,43 @@ class DiveComputerRepository {
             }
           }
         }
+      }
+
+      // Batch insert gas switches. The gas-usage timeline is driven solely by
+      // the gas_switches table. A switch is linked to the cylinder holding the
+      // gas it switched to: prefer matching by gas mix (robust when stored tank
+      // order differs from the parsed cylinder index, e.g. replace-source
+      // re-downloads), and only fall back to the cylinder index for new dives
+      // whose tanks were just created from this same parse. Switches that match
+      // no cylinder are dropped rather than risk a wrong-tank link.
+      if (gasSwitches != null && gasSwitches.isNotEmpty) {
+        final gasByIndex = {
+          if (tanks != null)
+            for (final t in tanks) t.index: (t.o2Percent, t.hePercent),
+        };
+        var inserted = 0;
+        await _db.batch((batch) {
+          for (final sw in gasSwitches) {
+            final gas = gasByIndex[sw.toTankIndex];
+            final tankId =
+                (gas != null ? tankIdByGas[gas] : null) ??
+                (isNewDive ? tankIdsByIndex[sw.toTankIndex] : null);
+            if (tankId == null) continue;
+            inserted++;
+            batch.insert(
+              _db.gasSwitches,
+              GasSwitchesCompanion(
+                id: Value(_uuid.v4()),
+                diveId: Value(diveId),
+                timestamp: Value(sw.timestamp),
+                tankId: Value(tankId),
+                depth: Value(sw.depth),
+                createdAt: Value(now),
+              ),
+            );
+          }
+        });
+        _log.info('Imported $inserted gas switches for dive $diveId');
       }
 
       // Batch insert dive events
@@ -1663,6 +1709,24 @@ class TankData {
     this.startPressure,
     this.endPressure,
     this.volumeLiters,
+  });
+}
+
+/// Data class for importing a gas switch (a change to the cylinder at [toTankIndex]).
+class GasSwitchData {
+  /// Time offset from dive start in seconds
+  final int timestamp;
+
+  /// Depth at the switch in meters
+  final double depth;
+
+  /// Index of the cylinder switched to (matches [TankData.index])
+  final int toTankIndex;
+
+  const GasSwitchData({
+    required this.timestamp,
+    required this.depth,
+    required this.toTankIndex,
   });
 }
 

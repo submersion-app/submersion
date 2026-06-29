@@ -121,6 +121,12 @@ class ReparseService {
           parsed: parsed,
           tankIdsByIndex: tankIdsByIndex,
         );
+        await _insertGasSwitches(
+          diveId: diveId,
+          parsed: parsed,
+          tankIdsByIndex: tankIdsByIndex,
+          now: now,
+        );
       }
     });
   }
@@ -457,6 +463,43 @@ class ReparseService {
             value: Value(
               e.data != null ? double.tryParse(e.data!['value'] ?? '') : null,
             ),
+            createdAt: Value(nowMs),
+          ),
+        );
+      }
+    });
+  }
+
+  /// Re-inserts gas switches derived from per-sample gas-mix transitions.
+  ///
+  /// The gas-usage timeline is driven solely by the `gas_switches` table; the
+  /// switches were cleared by the single-source replace step above, so without
+  /// this the dive would show the starting gas for its whole duration even when
+  /// the diver switched mixes. Each switch maps its cylinder index (assigned by
+  /// the shared resolver) to the freshly carried-over tank id.
+  Future<void> _insertGasSwitches({
+    required String diveId,
+    required pigeon.ParsedDive parsed,
+    required Map<int, String> tankIdsByIndex,
+    required DateTime now,
+  }) async {
+    final switches = resolveGasSwitches(parsed);
+    if (switches.isEmpty) return;
+
+    final nowMs = now.millisecondsSinceEpoch;
+
+    await db.batch((batch) {
+      for (final sw in switches) {
+        final tankId = tankIdsByIndex[sw.toTankIndex];
+        if (tankId == null) continue;
+        batch.insert(
+          db.gasSwitches,
+          GasSwitchesCompanion(
+            id: Value(_uuid.v4()),
+            diveId: Value(diveId),
+            timestamp: Value(sw.timeSeconds),
+            tankId: Value(tankId),
+            depth: Value(sw.depth),
             createdAt: Value(nowMs),
           ),
         );

@@ -183,7 +183,7 @@ class DiveFilterState {
           dive.dateTime.isAfter(endDate!.add(const Duration(days: 1)))) {
         return false;
       }
-      if (diveTypeId != null && dive.diveTypeId != diveTypeId) {
+      if (diveTypeId != null && !dive.diveTypeIds.contains(diveTypeId)) {
         return false;
       }
       if (siteId != null && dive.site?.id != siteId) {

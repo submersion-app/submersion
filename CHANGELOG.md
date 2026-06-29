@@ -3,6 +3,147 @@
 All notable changes to Submersion are documented in this file.
 
 
+## 1.5.8 (2026-06-27)
+
+### Bug Fixes
+
+- restore libsqlite3.so bundling (sqlite3_flutter_libs 0.5.x)
+
+### Documentation
+
+- release notes
+
+### CI/CD
+
+- fix Apple builds for Flutter 3.44 (pin Xcode 26 + disable SPM)
+
+### Chores
+
+- bump version to 1.5.8+111
+- bump version to 1.5.7+110
+
+
+## 1.5.7 (2026-06-27)
+
+### CI/CD
+
+- fix Apple builds for Flutter 3.44 (pin Xcode 26 + disable SPM)
+
+### Chores
+
+- bump version to 1.5.7+110
+
+
+## 1.5.7 (2026-06-26)
+
+### Features
+
+- trim splash fade-out dissolve to 750ms
+- remove inline Add custom type from the dive-type field (#414)
+- membership-aware dive types in CSV/Excel/PDF (#414)
+- import/export multiple dive types per dive (#414)
+- show all dive types in detail + table column (#414)
+- move bulk dive-type edit to the collection lane (#414)
+- bulk dive-type collection op with undo (#414)
+- multi-select dive types in the dive editor (#414)
+- add multi-select dive-type field widget (#414)
+- count dives toward each of their types (#414)
+- filter by dive-type membership (#414)
+- replicate the dive_dive_types junction (#414)
+- bulk add/remove/replace dive types (#414)
+- persist and hydrate the dive-type set on create/update (#414)
+- model dive types as a list on Dive/DiveSummary (#414)
+- add dive_dive_types junction table + v92 migration (#414)
+- FlSpotCache for chart series memoization
+- feature-preserving profile decimator (unwired)
+- import Garmin tank cylinder volume into dives
+- carry derived cylinder volume on ImportedTank
+- derive Garmin cylinder volume from gas consumption
+- Apply Z-factors to SAC calculations and statistics
+
+### Bug Fixes
+
+- make invalidateSelfWhen broadcast-safe (review)
+- guard tooltip cache against touched-spot count change
+- pause stream self-invalidation for Riverpod 3 auto-pause
+- seed built-in timestamps from a single value
+- backfill built-in dive types for upgraded databases (v93)
+- open the type picker via bottom sheet, not MenuAnchor
+- fall back to cached SAC segments on an empty list too
+- keep SAC-by-segment card on a transient null analysis
+- keep deco/tissue/O2 cards on a transient null analysis
+- debounce DB change-tick streams to stop sync stutter
+- nav move-down button off-by-one after onReorderItem migration
+- wrap filter-sheet content in a Material (Flutter 3.44)
+- address PR #418 re-review (#414)
+- key chart series cache on full ColorScheme, not Brightness
+- document OSTC nano short-profile limitation (#394 follow-up)
+- address PR #418 review feedback (#414)
+- guard v92 seed for minimal-schema tests; move tripwire to v92 (#414)
+- complete OSTC nano BLE downloads (#394)
+- always evaluate renamed reflected methods in the #318 guard
+- keep serial-USB driver methods from R8 obfuscation (#318)
+- exclude later dives from weekly OTU rolling total (#407)
+- bulk-edit banner auto-hides and is dismissable (#406)
+
+### Refactoring
+
+- simplify invalidateSelfWhen catch-up guard
+- round derived cylinder volume numerically with finiteness guard
+
+### Performance
+
+- memoize lineBarsData via ChartSeriesCache
+- combineMultiTankPressures O(N^2) -> O(N) merge-walk
+
+### Documentation
+
+- implementation plan
+- implementation plan for multiple dive types (#414)
+- design spec for multiple dive types per dive (#414)
+- D1a measurement result + Plan B decision (S3 > decimation)
+- D1a plan (chart memoization + combineMTP O(N) + decimator)
+- design + plan for Garmin FIT tank volume import (#403)
+- D1 dive profile chart performance design spec
+- dive-details + sync-stutter findings, phase 2 ranking
+- cold-start measurement findings (scenario 1)
+- app performance findings scaffold + measurement environment
+- app performance phase 1 measurement runbook
+- app performance investigation design spec
+- release notes
+
+### Tests
+
+- guarantee FlutterError.onError restore via addTearDown
+- align lost-notification drop to MOCK_CHUNK
+- unit-test the #318 ProGuard guard; gate patch coverage at 90%
+
+### CI/CD
+
+- restore codecov patch coverage target to 80%
+- fix Apple builds + mocks artifact for the Flutter 3.44 upgrade
+- bump pinned Flutter to 3.44.4 to match the SDK upgrade
+
+### Chores
+
+- bump version to 1.5.7+109
+- drop obsolete iOS-guard overrides (Xcode 26.5)
+- upgrade Flutter to 3.44.4 + required migrations
+- tier 2 constraint bumps (notifications 22, package_info 9, native_exif 0.8, sqlite3_flutter_libs 0.6)
+- tier 1 within-constraint upgrade (flutter pub upgrade)
+- stop tracking generated Mockito mocks
+- remove dead legacy DiveType enum (#414)
+
+### Other
+
+- docs/ci: address review nits on the #318 serial-driver guard
+- Add defensive guard for aberrant input to gas analysis service
+- Fix formatting issue that I forgot to check for
+- Handle additional issues introduced (or at least exposed by) latest commits
+- Implement code review suggestions
+- Add missing test file that somehow went AWOL
+
+
 ## 1.5.6 (2026-06-24)
 
 ### Features

@@ -58,10 +58,7 @@ final allTripsProvider = FutureProvider<List<Trip>>((ref) async {
     validatedCurrentDiverIdProvider.future,
   );
 
-  final sub = repository.watchTripsChanges().listen(
-    (_) => ref.invalidateSelf(),
-  );
-  ref.onDispose(sub.cancel);
+  ref.invalidateSelfWhen(repository.watchTripsChanges());
 
   return repository.getAllTrips(diverId: validatedDiverId);
 });

@@ -56,12 +56,13 @@ void main() {
     testWidgets('renders gated Logistics + Notes fields', (tester) async {
       await pumpBulk(tester);
 
-      // 5 Logistics + 9 Conditions + 6 Weather + 6 Rebreather + 1 Notes gates.
-      expect(find.byType(BulkFieldGate), findsNWidgets(27));
+      // 4 Logistics + 9 Conditions + 6 Weather + 6 Rebreather + 1 Notes gates.
+      // (dive type moved from a scalar gate to the collection lane, #414)
+      expect(find.byType(BulkFieldGate), findsNWidgets(26));
       expect(find.text('Favorite'), findsOneWidget);
-      // 6 collections (tags, equipment, buddies, weights, tanks, sightings)
-      // each render a mode selector.
-      expect(find.byType(BulkCollectionModeSelector), findsNWidgets(6));
+      // 7 collections (tags, diveTypes, equipment, buddies, weights, tanks,
+      // sightings) each render a mode selector.
+      expect(find.byType(BulkCollectionModeSelector), findsNWidgets(7));
     });
 
     testWidgets('toggling a gate enables its checkbox', (tester) async {

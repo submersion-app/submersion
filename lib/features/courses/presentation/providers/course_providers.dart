@@ -30,10 +30,7 @@ final allCoursesProvider = FutureProvider<List<Course>>((ref) async {
   final validatedDiverId = await ref.watch(
     validatedCurrentDiverIdProvider.future,
   );
-  final sub = repository.watchCoursesChanges().listen(
-    (_) => ref.invalidateSelf(),
-  );
-  ref.onDispose(sub.cancel);
+  ref.invalidateSelfWhen(repository.watchCoursesChanges());
   return repository.getAllCourses(diverId: validatedDiverId);
 });
 
@@ -123,11 +120,9 @@ final courseForDiveProvider = FutureProvider.family<Course?, String>((
   diveId,
 ) async {
   final repository = ref.watch(courseRepositoryProvider);
-  final sub = ref
-      .watch(diveRepositoryProvider)
-      .watchDiveDetailChanges()
-      .listen((_) => ref.invalidateSelf());
-  ref.onDispose(sub.cancel);
+  ref.invalidateSelfWhen(
+    ref.watch(diveRepositoryProvider).watchDiveDetailChanges(),
+  );
   return repository.getCourseForDive(diveId);
 });
 

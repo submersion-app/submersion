@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart' hide Visibility;
 import 'package:go_router/go_router.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:uuid/uuid.dart';
 
@@ -29,7 +29,6 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_picker.dart';
-import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
@@ -63,6 +62,7 @@ import 'package:submersion/features/courses/presentation/widgets/course_picker.d
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/photo_gps_suggestion_banner.dart';
 import 'package:submersion/features/media/presentation/widgets/quick_site_from_gps_dialog.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_type_multi_select_field.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/add_section_row.dart';
 import 'package:submersion/shared/widgets/forms/edit_form_scaffold.dart';
@@ -137,7 +137,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   final _airTempController = TextEditingController();
   final _notesController = TextEditingController();
 
-  String _selectedDiveTypeId = 'recreational';
+  List<String> _selectedDiveTypeIds = const ['recreational'];
   Visibility _selectedVisibility = Visibility.unknown;
   int _rating = 0;
   DiveSite? _selectedSite;
@@ -293,6 +293,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       // Bulk mode: start from empty form state; no draft load, no GPS/number,
       // and no starting tank (bulk tanks are Add/Replace, not a default list).
       _tanks = [];
+      // Bulk dive-type selection starts empty (like tags); a ['recreational']
+      // default would make enabling the collection silently operate on it.
+      _selectedDiveTypeIds = <String>[];
       _suppressDirty = false;
     } else if (widget.isEditing) {
       _loadExistingDive();
@@ -456,7 +459,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               ? units.convertTemperature(dive.airTemp!).toStringAsFixed(0)
               : '';
           _notesController.text = dive.notes;
-          _selectedDiveTypeId = dive.diveTypeId;
+          _selectedDiveTypeIds = List.from(dive.diveTypeIds);
           _selectedVisibility = dive.visibility ?? Visibility.unknown;
           _rating = dive.rating ?? 0;
           _selectedSite = dive.site;
@@ -737,30 +740,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     );
   }
 
-  Widget _bulkDiveTypeDropdown() {
-    final diveTypesAsync = ref.watch(diveTypeListNotifierProvider);
-    return diveTypesAsync.when(
-      loading: () => const LinearProgressIndicator(),
-      error: (e, st) =>
-          Text(context.l10n.diveLog_edit_errorLoadingDiveTypes(e.toString())),
-      data: (diveTypes) {
-        if (diveTypes.isEmpty) return const SizedBox.shrink();
-        final exists = diveTypes.any((t) => t.id == _selectedDiveTypeId);
-        final value = exists ? _selectedDiveTypeId : 'recreational';
-        return DropdownButtonFormField<String>(
-          key: ValueKey('bulk_dive_type_${diveTypes.length}_$value'),
-          initialValue: value,
-          items: diveTypes
-              .map((t) => DropdownMenuItem(value: t.id, child: Text(t.name)))
-              .toList(),
-          onChanged: (v) {
-            if (v != null) setState(() => _selectedDiveTypeId = v);
-          },
-        );
-      },
-    );
-  }
-
   Widget _buildBulkForm(UnitFormatter units) {
     final l10n = context.l10n;
     return Form(
@@ -795,13 +774,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   onClear: _selectedTrip == null
                       ? null
                       : () => setState(() => _selectedTrip = null),
-                ),
-              ),
-              _gatedRow(
-                BulkField.diveType,
-                FormRow.custom(
-                  label: l10n.diveLog_edit_label_diveType,
-                  child: _bulkDiveTypeDropdown(),
                 ),
               ),
               _gatedRow(
@@ -869,7 +841,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       diveCenterId: _selectedDiveCenter?.id,
       tripId: _selectedTrip?.id,
       courseId: _selectedCourse?.id,
-      diveTypeId: _selectedDiveTypeId,
       rating: _rating > 0 ? _rating : null,
       isFavorite: _bulkFavorite,
       waterType: _waterType?.name,
@@ -1010,6 +981,16 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           ),
         ),
         _collectionEntry(
+          type: BulkCollectionType.diveTypes,
+          label: l10n.diveLog_edit_label_diveTypes,
+          allowed: refModes,
+          editor: DiveTypeMultiSelectField(
+            selectedTypeIds: _selectedDiveTypeIds,
+            onChanged: (ids) => setState(() => _selectedDiveTypeIds = ids),
+            allowEmpty: true,
+          ),
+        ),
+        _collectionEntry(
           type: BulkCollectionType.equipment,
           label: l10n.diveLog_edit_section_equipment,
           allowed: refModes,
@@ -1052,6 +1033,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     if (tagsMode != null) {
       ops.add(
         TagsOp(mode: tagsMode, tagIds: _selectedTags.map((t) => t.id).toList()),
+      );
+    }
+    final diveTypesMode = _collectionModes[BulkCollectionType.diveTypes];
+    if (diveTypesMode != null && _selectedDiveTypeIds.isNotEmpty) {
+      ops.add(
+        DiveTypesOp(mode: diveTypesMode, diveTypeIds: _selectedDiveTypeIds),
       );
     }
     final equipMode = _collectionModes[BulkCollectionType.equipment];
@@ -1489,9 +1476,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               physics: const NeverScrollableScrollPhysics(),
               buildDefaultDragHandles: false,
               itemCount: _customFields.length,
-              onReorder: (oldIndex, newIndex) {
+              onReorderItem: (oldIndex, newIndex) {
                 setState(() {
-                  if (newIndex > oldIndex) newIndex--;
                   final item = _customFields.removeAt(oldIndex);
                   _customFields.insert(newIndex, item);
                   for (var i = 0; i < _customFields.length; i++) {
@@ -2936,46 +2922,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Consumer(
-            builder: (context, ref, child) {
-              final diveTypesAsync = ref.watch(diveTypeListNotifierProvider);
-              return diveTypesAsync.when(
-                loading: () => const LinearProgressIndicator(),
-                error: (e, st) => Text(
-                  context.l10n.diveLog_edit_errorLoadingDiveTypes(e.toString()),
-                ),
-                data: (diveTypes) {
-                  // Ensure selected dive type exists in the list
-                  final selectedExists = diveTypes.any(
-                    (t) => t.id == _selectedDiveTypeId,
-                  );
-                  final effectiveValue = selectedExists
-                      ? _selectedDiveTypeId
-                      : 'recreational';
-
-                  return DropdownButtonFormField<String>(
-                    key: ValueKey(
-                      'dive_type_${diveTypes.length}_$effectiveValue',
-                    ),
-                    initialValue: effectiveValue,
-                    decoration: InputDecoration(
-                      labelText: context.l10n.diveLog_edit_label_diveType,
-                    ),
-                    items: diveTypes.map((type) {
-                      return DropdownMenuItem(
-                        value: type.id,
-                        child: Text(type.name),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() => _selectedDiveTypeId = value);
-                      }
-                    },
-                  );
-                },
-              );
-            },
+          DiveTypeMultiSelectField(
+            selectedTypeIds: _selectedDiveTypeIds,
+            onChanged: (ids) => setState(() => _selectedDiveTypeIds = ids),
           ),
           const SizedBox(height: 16),
           DropdownButtonFormField<Visibility>(
@@ -4000,7 +3949,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         visibility: _selectedVisibility != Visibility.unknown
             ? _selectedVisibility
             : null,
-        diveTypeId: _selectedDiveTypeId,
+        diveTypeIds: _selectedDiveTypeIds,
         notes: _notesController.text,
         rating: _rating > 0 ? _rating : null,
         site: _selectedSite,

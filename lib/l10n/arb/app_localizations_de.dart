@@ -3569,6 +3569,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_edit_label_diveType => 'Tauchgangart';
 
   @override
+  String get diveLog_edit_label_diveTypes => 'Dive Types';
+
+  @override
   String get diveLog_edit_label_diveNumber => 'Tauchgang-Nr.';
 
   @override
@@ -6583,6 +6586,28 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveSites_map_appBar_title => 'Tauchplätze';
 
   @override
+  String get diveSites_map_builtInSites_add => 'Add to my sites';
+
+  @override
+  String get diveSites_map_builtInSites_addError =>
+      'Couldn\'t add site. Please try again.';
+
+  @override
+  String get diveSites_map_builtInSites_added => 'Added to your sites';
+
+  @override
+  String get diveSites_map_builtInSites_hide => 'Hide built-in sites';
+
+  @override
+  String get diveSites_map_builtInSites_off => 'Built-in sites hidden';
+
+  @override
+  String get diveSites_map_builtInSites_on => 'Built-in sites shown';
+
+  @override
+  String get diveSites_map_builtInSites_show => 'Show built-in sites';
+
+  @override
   String get diveSites_map_empty_description =>
       'Fügen Sie Ihren Tauchplätzen Koordinaten hinzu, um sie auf der Karte zu sehen';
 
@@ -6606,6 +6631,11 @@ class AppLocalizationsDe extends AppLocalizations {
       one: '1 Tauchgang',
     );
     return '$_temp0';
+  }
+
+  @override
+  String diveSites_map_semantics_builtInSiteMarker(Object name) {
+    return 'Built-in dive site: $name';
   }
 
   @override

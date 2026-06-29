@@ -61,11 +61,11 @@ Dive _makeDive({
 }
 
 /// A dive with one back-gas tank chosen to yield clean SAC values:
-/// volume-based 10.0 L/min ([Dive.sac]) and pressure-based 1.0 bar/min
+/// volume-based 9.1 L/min ([Dive.sac]) and pressure-based 1.0 bar/min
 /// ([Dive.sacPressure]).
 ///
 /// minutes = 50, avgPressureAtm = 10/10 + 1 = 2.0
-/// sac        = (10L * 100bar) / 50 / 2.0 = 10.0 L/min
+/// sac        = gasVol(200)-gasVol(100) / 50 / 2.0 ≈ 9.1 L/min (Z-factor corrected)
 /// sacPressure = 100bar / 50 / 2.0        = 1.0 bar/min
 Dive _makeSacDive() {
   return Dive(
@@ -855,7 +855,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('10.0 L/min'), findsOneWidget);
+      expect(find.text('9.1 L/min'), findsOneWidget);
     });
 
     testWidgets('sacRate volume mode converts to cuft/min in imperial', (
@@ -873,8 +873,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // 10.0 L/min * 0.0353147 = 0.4 cuft/min
-      expect(find.text('0.4 cuft/min'), findsOneWidget);
+      // 9.1 L/min * 0.0353147 = 0.3 cuft/min
+      expect(find.text('0.3 cuft/min'), findsOneWidget);
     });
   });
 }

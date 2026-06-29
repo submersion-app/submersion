@@ -47,6 +47,7 @@ typedef struct {
 typedef struct {
     libdc_parsed_dive_t *dive;
     int has_pending_sample;
+    unsigned int current_gasmix;  // active gas index, carried across samples
     libdc_sample_t current_sample;
 } sample_state_t;
 
@@ -178,6 +179,8 @@ static void sample_callback(dc_sample_type_t type,
         state->current_sample.temperature = NAN;
         state->current_sample.pressure = NAN;
         state->current_sample.tank = UINT32_MAX;
+        // Carry the active gas forward across samples, not just the switch sample.
+        state->current_sample.gasmix = state->current_gasmix;
         state->current_sample.heartbeat = UINT32_MAX;
         state->current_sample.setpoint = NAN;
         state->current_sample.ppo2 = NAN;
@@ -200,6 +203,11 @@ static void sample_callback(dc_sample_type_t type,
     case DC_SAMPLE_PRESSURE:
         state->current_sample.pressure = value->pressure.value;
         state->current_sample.tank = value->pressure.tank;
+        break;
+    case DC_SAMPLE_GASMIX:
+        // Per-sample active gas (replaces the deprecated SAMPLE_EVENT_GASCHANGE).
+        state->current_gasmix = value->gasmix;
+        state->current_sample.gasmix = value->gasmix;
         break;
     case DC_SAMPLE_HEARTBEAT:
         state->current_sample.heartbeat = value->heartbeat;
@@ -338,6 +346,7 @@ static int extract_dive_fields(dc_parser_t *parser, libdc_parsed_dive_t *dive) {
     // Extract profile samples.
     sample_state_t sample_state = {0};
     sample_state.dive = dive;
+    sample_state.current_gasmix = UINT32_MAX;  // 0 is a valid gas index
     dc_parser_samples_foreach(parser, sample_callback, &sample_state);
     push_sample(&sample_state);
 

@@ -529,12 +529,11 @@ class UddfFullImportService {
         'divemaster',
       );
 
-      final diveType = UddfImportParsers.getElementText(
-        beforeElement,
-        'divetype',
-      );
-      if (diveType != null) {
-        diveData['diveType'] = _parseDiveType(diveType);
+      final diveTypeElements = beforeElement.findElements('divetype').toList();
+      if (diveTypeElements.isNotEmpty) {
+        diveData['diveTypeIds'] = {
+          for (final e in diveTypeElements) _parseDiveType(e.innerText),
+        }.toList();
       }
 
       final entryType = UddfImportParsers.getElementText(

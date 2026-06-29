@@ -3393,6 +3393,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_edit_label_diveType => '潜水类型';
 
   @override
+  String get diveLog_edit_label_diveTypes => 'Dive Types';
+
+  @override
   String get diveLog_edit_label_diveNumber => '潜水编号';
 
   @override
@@ -6286,6 +6289,28 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_map_appBar_title => '潜水点';
 
   @override
+  String get diveSites_map_builtInSites_add => 'Add to my sites';
+
+  @override
+  String get diveSites_map_builtInSites_addError =>
+      'Couldn\'t add site. Please try again.';
+
+  @override
+  String get diveSites_map_builtInSites_added => 'Added to your sites';
+
+  @override
+  String get diveSites_map_builtInSites_hide => 'Hide built-in sites';
+
+  @override
+  String get diveSites_map_builtInSites_off => 'Built-in sites hidden';
+
+  @override
+  String get diveSites_map_builtInSites_on => 'Built-in sites shown';
+
+  @override
+  String get diveSites_map_builtInSites_show => 'Show built-in sites';
+
+  @override
   String get diveSites_map_empty_description => '为您的潜水点添加坐标以在地图上显示';
 
   @override
@@ -6308,6 +6333,11 @@ class AppLocalizationsZh extends AppLocalizations {
       one: '1 次潜水',
     );
     return '$_temp0';
+  }
+
+  @override
+  String diveSites_map_semantics_builtInSiteMarker(Object name) {
+    return 'Built-in dive site: $name';
   }
 
   @override

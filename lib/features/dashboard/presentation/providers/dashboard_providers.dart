@@ -48,10 +48,7 @@ class DashboardAlerts {
 /// site instead of relying on transitive propagation two providers away.
 final recentDivesProvider = FutureProvider<List<Dive>>((ref) async {
   final repository = ref.watch(diveRepositoryProvider);
-  final sub = repository.watchDivesChanges().listen(
-    (_) => ref.invalidateSelf(),
-  );
-  ref.onDispose(sub.cancel);
+  ref.invalidateSelfWhen(repository.watchDivesChanges());
 
   final allDives = await ref.watch(divesProvider.future);
   // Dives are already sorted by date descending in the repository

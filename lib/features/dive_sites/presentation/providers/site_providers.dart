@@ -182,10 +182,7 @@ final sitesProvider = FutureProvider<List<domain.DiveSite>>((ref) async {
   final validatedDiverId = await ref.watch(
     validatedCurrentDiverIdProvider.future,
   );
-  final sub = repository.watchSitesChanges().listen(
-    (_) => ref.invalidateSelf(),
-  );
-  ref.onDispose(sub.cancel);
+  ref.invalidateSelfWhen(repository.watchSitesChanges());
   return repository.getAllSites(diverId: validatedDiverId);
 });
 
@@ -197,15 +194,8 @@ final sitesWithCountsProvider = FutureProvider<List<SiteWithDiveCount>>((
   final validatedDiverId = await ref.watch(
     validatedCurrentDiverIdProvider.future,
   );
-  final sitesSub = repository.watchSitesChanges().listen(
-    (_) => ref.invalidateSelf(),
-  );
-  ref.onDispose(sitesSub.cancel);
-  final divesSub = ref
-      .read(diveRepositoryProvider)
-      .watchDivesChanges()
-      .listen((_) => ref.invalidateSelf());
-  ref.onDispose(divesSub.cancel);
+  ref.invalidateSelfWhen(repository.watchSitesChanges());
+  ref.invalidateSelfWhen(ref.read(diveRepositoryProvider).watchDivesChanges());
   return repository.getSitesWithDiveCounts(diverId: validatedDiverId);
 });
 

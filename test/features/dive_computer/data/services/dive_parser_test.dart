@@ -167,6 +167,31 @@ void main() {
     });
   });
 
+  group('parseGasSwitches', () {
+    test('maps every gas switch field', () {
+      final dive = DownloadedDive(
+        startTime: DateTime(2024, 6, 15, 8, 30),
+        durationSeconds: 3600,
+        maxDepth: 30.0,
+        profile: const [],
+        gasSwitches: const [
+          GasSwitchEvent(timeSeconds: 1800, depth: 6.0, toTankIndex: 1),
+        ],
+      );
+
+      final switches = parser.parseGasSwitches(dive);
+
+      expect(switches, hasLength(1));
+      expect(switches.single.timestamp, 1800);
+      expect(switches.single.depth, 6.0);
+      expect(switches.single.toTankIndex, 1);
+    });
+
+    test('returns an empty list for a dive without gas switches', () {
+      expect(parser.parseGasSwitches(diveWith()), isEmpty);
+    });
+  });
+
   group('calculateMaxDepth', () {
     test('returns the deepest sample', () {
       final profile = [

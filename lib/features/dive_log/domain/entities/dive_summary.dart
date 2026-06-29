@@ -19,7 +19,7 @@ class DiveSummary extends Equatable {
   final double? waterTemp;
   final int? rating;
   final bool isFavorite;
-  final String diveTypeId;
+  final List<String> diveTypeIds;
   final List<Tag> tags;
 
   // Site fields (from LEFT JOIN, avoids loading full DiveSite object)
@@ -43,7 +43,7 @@ class DiveSummary extends Equatable {
     this.waterTemp,
     this.rating,
     this.isFavorite = false,
-    this.diveTypeId = 'recreational',
+    this.diveTypeIds = const ['recreational'],
     this.tags = const [],
     this.siteName,
     this.siteCountry,
@@ -71,7 +71,7 @@ class DiveSummary extends Equatable {
       waterTemp: dive.waterTemp,
       rating: dive.rating,
       isFavorite: dive.isFavorite,
-      diveTypeId: dive.diveTypeId,
+      diveTypeIds: dive.diveTypeIds,
       tags: dive.tags,
       siteName: dive.site?.name,
       siteCountry: dive.site?.country,
@@ -94,6 +94,10 @@ class DiveSummary extends Equatable {
     return parts.isEmpty ? null : parts.join(', ');
   }
 
+  /// Representative (first) dive type slug. Always present (>= 1 invariant).
+  String get diveTypeId =>
+      diveTypeIds.isEmpty ? 'recreational' : diveTypeIds.first;
+
   DiveSummary copyWith({
     String? id,
     int? diveNumber,
@@ -105,7 +109,7 @@ class DiveSummary extends Equatable {
     double? waterTemp,
     int? rating,
     bool? isFavorite,
-    String? diveTypeId,
+    List<String>? diveTypeIds,
     List<Tag>? tags,
     String? siteName,
     String? siteCountry,
@@ -125,7 +129,7 @@ class DiveSummary extends Equatable {
       waterTemp: waterTemp ?? this.waterTemp,
       rating: rating ?? this.rating,
       isFavorite: isFavorite ?? this.isFavorite,
-      diveTypeId: diveTypeId ?? this.diveTypeId,
+      diveTypeIds: diveTypeIds ?? this.diveTypeIds,
       tags: tags ?? this.tags,
       siteName: siteName ?? this.siteName,
       siteCountry: siteCountry ?? this.siteCountry,
@@ -148,7 +152,7 @@ class DiveSummary extends Equatable {
     waterTemp,
     rating,
     isFavorite,
-    diveTypeId,
+    diveTypeIds,
     tags,
     siteName,
     siteCountry,

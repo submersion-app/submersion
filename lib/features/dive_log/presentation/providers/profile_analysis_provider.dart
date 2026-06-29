@@ -81,6 +81,13 @@ List<double>? combineMultiTankPressures({
   // from all tanks with pressure data
   final combinedPressures = <double>[];
 
+  // Per-tank cursor; timestamps and each tank's points are ascending, so the
+  // cursor only advances across the whole pass (O(N + sum(points)) total,
+  // replacing the previous per-timestamp restart-from-zero O(N^2) scan).
+  final cursors = <String, int>{
+    for (final entry in tankPressures.entries) entry.key: 0,
+  };
+
   for (int i = 0; i < timestamps.length; i++) {
     final targetTime = timestamps[i];
     double totalGasLiters = 0;
@@ -99,28 +106,33 @@ List<double>? combineMultiTankPressures({
       // instead of the SAC curve silently disappearing ("un-keyed").
       final tankVolume = tankVolumes[tankId] ?? 1.0;
 
-      // Find pressure at this timestamp (interpolate if needed)
-      double? pressure;
-      for (int j = 0; j < pressurePoints.length; j++) {
-        if (pressurePoints[j].timestamp == targetTime) {
-          pressure = pressurePoints[j].pressure;
-          break;
-        } else if (pressurePoints[j].timestamp > targetTime) {
-          // Interpolate between j-1 and j
-          if (j > 0) {
-            final p1 = pressurePoints[j - 1];
-            final p2 = pressurePoints[j];
-            final ratio =
-                (targetTime - p1.timestamp) / (p2.timestamp - p1.timestamp);
-            pressure = p1.pressure + (p2.pressure - p1.pressure) * ratio;
-          } else {
-            pressure = pressurePoints[j].pressure;
-          }
-          break;
-        }
+      // Advance this tank's cursor to the first point at or after targetTime.
+      // Timestamps are ascending, so the cursor never rewinds.
+      var j = cursors[tankId]!;
+      while (j < pressurePoints.length &&
+          pressurePoints[j].timestamp < targetTime) {
+        j++;
       }
-      // Use last pressure if timestamp is after all data points
-      pressure ??= pressurePoints.last.pressure;
+      cursors[tankId] = j;
+
+      final double pressure;
+      if (j < pressurePoints.length &&
+          pressurePoints[j].timestamp == targetTime) {
+        pressure = pressurePoints[j].pressure;
+      } else if (j > 0 && j < pressurePoints.length) {
+        // Interpolate between j-1 and j.
+        final p1 = pressurePoints[j - 1];
+        final p2 = pressurePoints[j];
+        final ratio =
+            (targetTime - p1.timestamp) / (p2.timestamp - p1.timestamp);
+        pressure = p1.pressure + (p2.pressure - p1.pressure) * ratio;
+      } else if (j < pressurePoints.length) {
+        // targetTime is before the first point (j == 0).
+        pressure = pressurePoints[j].pressure;
+      } else {
+        // targetTime is after all points.
+        pressure = pressurePoints.last.pressure;
+      }
 
       // Convert pressure to gas in liters: gas_liters = pressure_bar * tank_volume_liters
       totalGasLiters += pressure * tankVolume;

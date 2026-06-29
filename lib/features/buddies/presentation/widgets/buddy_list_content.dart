@@ -317,7 +317,8 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
         }
       }
 
-      final contactId = await FlutterContacts.native.showPicker();
+      final pickedContact = await FlutterContacts.native.showPicker();
+      final contactId = pickedContact?.id;
       if (contactId == null) return;
 
       final fullContact = await FlutterContacts.get(contactId);

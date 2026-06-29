@@ -51,10 +51,7 @@ final equipmentByStatusProvider =
       final validatedDiverId = await ref.watch(
         validatedCurrentDiverIdProvider.future,
       );
-      final sub = repository.watchEquipmentChanges().listen(
-        (_) => ref.invalidateSelf(),
-      );
-      ref.onDispose(sub.cancel);
+      ref.invalidateSelfWhen(repository.watchEquipmentChanges());
       if (status == null) {
         return repository.getAllEquipment(diverId: validatedDiverId);
       }
@@ -73,10 +70,7 @@ final allEquipmentProvider = FutureProvider<List<EquipmentItem>>((ref) async {
     validatedCurrentDiverIdProvider.future,
   );
 
-  final sub = repository.watchEquipmentChanges().listen(
-    (_) => ref.invalidateSelf(),
-  );
-  ref.onDispose(sub.cancel);
+  ref.invalidateSelfWhen(repository.watchEquipmentChanges());
 
   return repository.getAllEquipment(diverId: validatedDiverId);
 });
@@ -173,10 +167,7 @@ final serviceDueEquipmentProvider = FutureProvider<List<EquipmentItem>>((
   final validatedDiverId = await ref.watch(
     validatedCurrentDiverIdProvider.future,
   );
-  final sub = repository.watchEquipmentChanges().listen(
-    (_) => ref.invalidateSelf(),
-  );
-  ref.onDispose(sub.cancel);
+  ref.invalidateSelfWhen(repository.watchEquipmentChanges());
   return repository.getEquipmentWithServiceDue(diverId: validatedDiverId);
 });
 

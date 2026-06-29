@@ -33,10 +33,7 @@ final allCertificationsProvider = FutureProvider<List<Certification>>((
   final validatedDiverId = await ref.watch(
     validatedCurrentDiverIdProvider.future,
   );
-  final sub = repository.watchCertificationsChanges().listen(
-    (_) => ref.invalidateSelf(),
-  );
-  ref.onDispose(sub.cancel);
+  ref.invalidateSelfWhen(repository.watchCertificationsChanges());
   return repository.getAllCertifications(diverId: validatedDiverId);
 });
 

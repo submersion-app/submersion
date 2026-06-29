@@ -7,8 +7,13 @@ import 'package:latlong2/latlong.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
+import 'package:submersion/features/dive_sites/data/services/dive_site_api_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/built_in_sites_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/built_in_site_info_card.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/built_in_site_marker_layer.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/built_in_sites_toggle_button.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_list_content.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/presentation/providers/heat_map_providers.dart';
@@ -32,6 +37,11 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
     with TickerProviderStateMixin {
   final MapController _mapController = MapController();
 
+  /// Externally-keyed selection for a tapped built-in (bundled) site. Held
+  /// locally rather than in the shared mapListSelectionProvider, which is keyed
+  /// to the user's own sites and shared across map sections.
+  String? _selectedBuiltInId;
+
   // Default to a nice ocean view (Pacific)
   static const _defaultCenter = LatLng(20.0, -157.0);
   static const _defaultZoom = 3.0;
@@ -40,6 +50,15 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
   Widget build(BuildContext context) {
     final sitesAsync = ref.watch(sitesWithCountsProvider);
     final selectionState = ref.watch(mapListSelectionProvider('sites'));
+
+    // Clear a built-in selection when built-in sites are hidden, so the info
+    // card cannot outlive its markers. Uses listen (not watch) to avoid
+    // rebuilding the map on toggle, which would recreate the FlutterMap.
+    ref.listen<bool>(showBuiltInSitesProvider, (prev, next) {
+      if (!next && _selectedBuiltInId != null) {
+        setState(() => _selectedBuiltInId = null);
+      }
+    });
 
     // Find selected site from sitesAsync using selectionState.selectedId
     final selectedSite = sitesAsync.whenOrNull(
@@ -97,15 +116,18 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
           ),
         ),
       ),
-      infoCard: selectedSite != null
-          ? _buildMapInfoCard(context, selectedSite)
-          : null,
+      infoCard: _selectedBuiltInId != null
+          ? _buildBuiltInInfoCard(context)
+          : (selectedSite != null
+                ? _buildMapInfoCard(context, selectedSite)
+                : null),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/sites/new'),
         icon: const Icon(Icons.add_location),
         label: Text(context.l10n.diveSites_fab_label),
       ),
       actions: [
+        const BuiltInSitesToggleButton(),
         const HeatMapToggleButton(),
         IconButton(
           icon: const Icon(Icons.list),
@@ -230,6 +252,7 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
               maxZoom: 18.0,
               onTap: (_, _) {
                 ref.read(mapListSelectionProvider('sites').notifier).deselect();
+                setState(() => _selectedBuiltInId = null);
               },
               cameraConstraint: CameraConstraint.contain(
                 bounds: LatLngBounds(
@@ -246,6 +269,29 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
                 tileProvider: TileCacheService.instance.isInitialized
                     ? TileCacheService.instance.getTileProvider()
                     : null,
+              ),
+              // Built-in (bundled) sites layer - below the user markers so the
+              // user's own sites always draw on top. Shown only when toggled.
+              Consumer(
+                builder: (context, ref, _) {
+                  final show = ref.watch(showBuiltInSitesProvider);
+                  if (!show) return const SizedBox.shrink();
+                  final builtInAsync = ref.watch(visibleBuiltInSitesProvider);
+                  return builtInAsync.maybeWhen(
+                    data: (builtIn) => BuiltInSiteMarkerLayer(
+                      sites: builtIn,
+                      selectedExternalId: _selectedBuiltInId,
+                      onTap: (site) {
+                        ref
+                            .read(mapListSelectionProvider('sites').notifier)
+                            .deselect();
+                        setState(() => _selectedBuiltInId = site.externalId);
+                        _animateToLocation(site.latitude!, site.longitude!);
+                      },
+                    ),
+                    orElse: () => const SizedBox.shrink(),
+                  );
+                },
               ),
               // Markers layer - always shown
               MarkerClusterLayerWidget(
@@ -435,6 +481,7 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
   }
 
   void _onMarkerTapped(DiveSite site) {
+    setState(() => _selectedBuiltInId = null);
     final currentId = ref.read(mapListSelectionProvider('sites')).selectedId;
     if (currentId == site.id) {
       ref.read(mapListSelectionProvider('sites').notifier).deselect();
@@ -443,6 +490,42 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
       // Smooth animate to the tapped marker location
       _animateToLocation(site.location!.latitude, site.location!.longitude);
     }
+  }
+
+  Widget? _buildBuiltInInfoCard(BuildContext context) {
+    final async = ref.watch(visibleBuiltInSitesProvider);
+    final site = async.maybeWhen(
+      data: (list) =>
+          list.where((s) => s.externalId == _selectedBuiltInId).firstOrNull,
+      orElse: () => null,
+    );
+    if (site == null) return null;
+    return BuiltInSiteInfoCard(site: site, onAdd: () => _addBuiltInSite(site));
+  }
+
+  Future<void> _addBuiltInSite(ExternalDiveSite site) async {
+    try {
+      await ref
+          .read(siteListNotifierProvider.notifier)
+          .addSite(site.toDiveSite());
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.l10n.diveSites_map_builtInSites_addError),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+      return;
+    }
+    // addSite reloads the notifier but not the map's FutureProvider; invalidate
+    // so the new site appears and the built-in duplicate is deduped out.
+    ref.invalidate(sitesWithCountsProvider);
+    if (!mounted) return;
+    setState(() => _selectedBuiltInId = null);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(context.l10n.diveSites_map_builtInSites_added)),
+    );
   }
 
   Future<void> _animateToCluster(LatLngBounds bounds) async {

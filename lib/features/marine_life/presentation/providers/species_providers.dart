@@ -13,10 +13,7 @@ final speciesRepositoryProvider = Provider<SpeciesRepository>((ref) {
 /// All species provider
 final allSpeciesProvider = FutureProvider<List<Species>>((ref) async {
   final repository = ref.watch(speciesRepositoryProvider);
-  final sub = repository.watchSpeciesChanges().listen(
-    (_) => ref.invalidateSelf(),
-  );
-  ref.onDispose(sub.cancel);
+  ref.invalidateSelfWhen(repository.watchSpeciesChanges());
   return repository.getAllSpecies();
 });
 
@@ -57,11 +54,9 @@ final diveSightingsProvider = FutureProvider.family<List<Sighting>, String>((
   diveId,
 ) async {
   final repository = ref.watch(speciesRepositoryProvider);
-  final sub = ref
-      .watch(diveRepositoryProvider)
-      .watchDiveDetailChanges()
-      .listen((_) => ref.invalidateSelf());
-  ref.onDispose(sub.cancel);
+  ref.invalidateSelfWhen(
+    ref.watch(diveRepositoryProvider).watchDiveDetailChanges(),
+  );
   return repository.getSightingsForDive(diveId);
 });
 

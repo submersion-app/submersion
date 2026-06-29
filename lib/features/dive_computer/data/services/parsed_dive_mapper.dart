@@ -73,9 +73,10 @@ DownloadedDive parsedDiveToDownloaded(pigeon.ParsedDive parsed) {
           ),
         )
         .toList(),
-    // Gas-mix linking and tankless synthesis live in the shared resolver so
-    // the download and reparse paths cannot drift apart.
+    // Gas-mix linking, tankless synthesis, and gas-switch derivation live in
+    // the shared resolver so the download and reparse paths cannot drift apart.
     tanks: resolveParsedTanks(parsed),
+    gasSwitches: resolveGasSwitches(parsed),
     events: parsed.events
         .map(
           (e) => DownloadedEvent(

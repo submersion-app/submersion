@@ -1944,6 +1944,47 @@ void main() {
   LineChartData primaryChartData(WidgetTester tester) =>
       tester.widget<LineChart>(find.byType(LineChart).first).data;
 
+  group('tooltip cache', () {
+    testWidgets(
+      'getTooltipItems never returns a cached list whose length differs from '
+      'touchedSpots (fl_chart size-match contract)',
+      (tester) async {
+        await tester.pumpWidget(_buildChart());
+        await tester.pumpAndSettle();
+
+        final getItems = primaryChartData(
+          tester,
+        ).lineTouchData.touchTooltipData.getTooltipItems;
+        final depthBar = primaryChartData(tester).lineBarsData.first;
+        // Depth-line spotIndex stays fixed across both touches (cursor parked).
+        // Kept well inside the profile so the depth branch is exercised.
+        const spotIndex = 3;
+        final depthSpot = LineBarSpot(depthBar, 0, depthBar.spots[spotIndex]);
+
+        // First touch: the depth spot plus sibling bars under the cursor (the
+        // callback returns one entry per spot). Caches a 3-entry list keyed on
+        // this depth spotIndex.
+        final manyBars = <LineBarSpot>[
+          depthSpot,
+          LineBarSpot(depthBar, 1, depthBar.spots[spotIndex]),
+          LineBarSpot(depthBar, 2, depthBar.spots[spotIndex]),
+        ];
+        expect(getItems(manyBars).length, manyBars.length);
+
+        // Same depth spotIndex, fewer bars now touched (a sibling line toggled
+        // off or a data provider refreshed under the parked cursor). The
+        // stale-length cache must be rejected; otherwise fl_chart throws
+        // 'tooltipItems and touchedSpots size should be same'.
+        final fewerBars = <LineBarSpot>[depthSpot];
+        expect(
+          getItems(fewerBars).length,
+          fewerBars.length,
+          reason: 'cache must invalidate when the touched-bar count changes',
+        );
+      },
+    );
+  });
+
   group('zoom anchoring', () {
     testWidgets('mouse wheel up zooms in WITHOUT pinning the left edge to 0', (
       tester,
@@ -2441,6 +2482,102 @@ void main() {
         );
         await tester.pumpAndSettle();
         expect(find.textContaining('Rate ('), findsOneWidget);
+      },
+    );
+  });
+
+  group('bars memoization (D1a)', () {
+    testWidgets(
+      'reuses bars across a playback-only rebuild, rebuilds on profile change',
+      (tester) async {
+        List<LineChartBarData> barsOf() => tester
+            .widget<LineChart>(find.byType(LineChart).first)
+            .data
+            .lineBarsData;
+
+        final profileA = _makeProfile(points: 12);
+        await tester.pumpWidget(
+          _buildChart(profile: profileA, playbackTimestamp: 30),
+        );
+        final bars1 = barsOf();
+
+        // Same data + units; only the playback cursor moved. The signature is
+        // unchanged, so the assembled bars must be the SAME cached instance.
+        await tester.pumpWidget(
+          _buildChart(profile: profileA, playbackTimestamp: 90),
+        );
+        expect(identical(barsOf(), bars1), isTrue);
+
+        // A new profile changes the signature -> the cache must rebuild.
+        await tester.pumpWidget(_buildChart(profile: _makeProfile(points: 20)));
+        expect(identical(barsOf(), bars1), isFalse);
+      },
+    );
+
+    testWidgets(
+      'rebuilds bars with fresh colors when the theme changes at the same '
+      'brightness (e.g. switching between two light presets)',
+      (tester) async {
+        // Two light schemes that differ only in tertiary -- the colour the
+        // temperature line is drawn in. A same-brightness preset switch must
+        // still invalidate the cache; keying on Brightness alone would serve
+        // bars with stale colours.
+        const tertiaryA = Color(0xFF101010);
+        const tertiaryB = Color(0xFFF0F0F0);
+
+        final profile = List.generate(
+          10,
+          (i) => DiveProfilePoint(
+            timestamp: i * 30,
+            depth: (i < 5 ? i * 3.0 : (9 - i) * 3.0),
+            temperature: 22.0 - i * 0.5,
+          ),
+        );
+
+        // themeAnimationDuration: zero so the AnimatedTheme cross-fade does not
+        // lerp the scheme over frames (Color.lerp(a, b, 0) == a would otherwise
+        // read the stale colour right after a one-frame pump).
+        Widget app(Color tertiary) => ProviderScope(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: MaterialApp(
+            themeAnimationDuration: Duration.zero,
+            theme: ThemeData(
+              colorScheme: const ColorScheme.light().copyWith(
+                tertiary: tertiary,
+              ),
+            ),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: SizedBox(
+                width: 400,
+                height: 300,
+                child: DiveProfileChart(profile: profile),
+              ),
+            ),
+          ),
+        );
+
+        Iterable<Color?> barColors() => tester
+            .widget<LineChart>(find.byType(LineChart).first)
+            .data
+            .lineBarsData
+            .map((b) => b.color);
+
+        await tester.pumpWidget(app(tertiaryA));
+        await tester.pumpAndSettle();
+        // The temperature line is drawn in the active scheme's tertiary.
+        expect(barColors(), contains(tertiaryA));
+
+        // Same brightness, different scheme: the State (and its bars cache) is
+        // retained across this pump, so the bars must be rebuilt with the new
+        // tertiary rather than reused with the stale colour.
+        await tester.pumpWidget(app(tertiaryB));
+        await tester.pumpAndSettle();
+        expect(barColors(), contains(tertiaryB));
+        expect(barColors(), isNot(contains(tertiaryA)));
       },
     );
   });

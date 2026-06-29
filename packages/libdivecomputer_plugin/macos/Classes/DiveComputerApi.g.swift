@@ -172,6 +172,9 @@ struct ProfileSample {
   var o2Sensor4: Double? = nil
   var o2Sensor5: Double? = nil
   var o2Sensor6: Double? = nil
+  /// Active gas mix index at this sample (from DC_SAMPLE_GASMIX), carried forward
+  /// from the most recent gas switch; null if the computer reported no gas.
+  var gasMixIndex: Int64? = nil
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
@@ -196,6 +199,7 @@ struct ProfileSample {
     let o2Sensor4: Double? = nilOrValue(pigeonVar_list[17])
     let o2Sensor5: Double? = nilOrValue(pigeonVar_list[18])
     let o2Sensor6: Double? = nilOrValue(pigeonVar_list[19])
+    let gasMixIndex: Int64? = nilOrValue(pigeonVar_list[20])
 
     return ProfileSample(
       timeSeconds: timeSeconds,
@@ -217,7 +221,8 @@ struct ProfileSample {
       o2Sensor3: o2Sensor3,
       o2Sensor4: o2Sensor4,
       o2Sensor5: o2Sensor5,
-      o2Sensor6: o2Sensor6
+      o2Sensor6: o2Sensor6,
+      gasMixIndex: gasMixIndex
     )
   }
   func toList() -> [Any?] {
@@ -242,6 +247,7 @@ struct ProfileSample {
       o2Sensor4,
       o2Sensor5,
       o2Sensor6,
+      gasMixIndex,
     ]
   }
 }

@@ -207,6 +207,7 @@ struct _LibdivecomputerPluginProfileSample {
   double* o2_sensor4;
   double* o2_sensor5;
   double* o2_sensor6;
+  int64_t* gas_mix_index;
 };
 
 G_DEFINE_TYPE(LibdivecomputerPluginProfileSample, libdivecomputer_plugin_profile_sample, G_TYPE_OBJECT)
@@ -231,6 +232,7 @@ static void libdivecomputer_plugin_profile_sample_dispose(GObject* object) {
   g_clear_pointer(&self->o2_sensor4, g_free);
   g_clear_pointer(&self->o2_sensor5, g_free);
   g_clear_pointer(&self->o2_sensor6, g_free);
+  g_clear_pointer(&self->gas_mix_index, g_free);
   G_OBJECT_CLASS(libdivecomputer_plugin_profile_sample_parent_class)->dispose(object);
 }
 
@@ -241,7 +243,7 @@ static void libdivecomputer_plugin_profile_sample_class_init(LibdivecomputerPlug
   G_OBJECT_CLASS(klass)->dispose = libdivecomputer_plugin_profile_sample_dispose;
 }
 
-LibdivecomputerPluginProfileSample* libdivecomputer_plugin_profile_sample_new(int64_t time_seconds, double depth_meters, double* temperature_celsius, double* pressure_bar, int64_t* tank_index, int64_t* heart_rate, double* setpoint, double* ppo2, double* cns, int64_t* rbt, int64_t* deco_type, int64_t* deco_time, double* deco_depth, int64_t* tts, double* o2_sensor1, double* o2_sensor2, double* o2_sensor3, double* o2_sensor4, double* o2_sensor5, double* o2_sensor6) {
+LibdivecomputerPluginProfileSample* libdivecomputer_plugin_profile_sample_new(int64_t time_seconds, double depth_meters, double* temperature_celsius, double* pressure_bar, int64_t* tank_index, int64_t* heart_rate, double* setpoint, double* ppo2, double* cns, int64_t* rbt, int64_t* deco_type, int64_t* deco_time, double* deco_depth, int64_t* tts, double* o2_sensor1, double* o2_sensor2, double* o2_sensor3, double* o2_sensor4, double* o2_sensor5, double* o2_sensor6, int64_t* gas_mix_index) {
   LibdivecomputerPluginProfileSample* self = LIBDIVECOMPUTER_PLUGIN_PROFILE_SAMPLE(g_object_new(libdivecomputer_plugin_profile_sample_get_type(), nullptr));
   self->time_seconds = time_seconds;
   self->depth_meters = depth_meters;
@@ -371,6 +373,13 @@ LibdivecomputerPluginProfileSample* libdivecomputer_plugin_profile_sample_new(in
   else {
     self->o2_sensor6 = nullptr;
   }
+  if (gas_mix_index != nullptr) {
+    self->gas_mix_index = static_cast<int64_t*>(malloc(sizeof(int64_t)));
+    *self->gas_mix_index = *gas_mix_index;
+  }
+  else {
+    self->gas_mix_index = nullptr;
+  }
   return self;
 }
 
@@ -474,6 +483,11 @@ double* libdivecomputer_plugin_profile_sample_get_o2_sensor6(LibdivecomputerPlug
   return self->o2_sensor6;
 }
 
+int64_t* libdivecomputer_plugin_profile_sample_get_gas_mix_index(LibdivecomputerPluginProfileSample* self) {
+  g_return_val_if_fail(LIBDIVECOMPUTER_PLUGIN_IS_PROFILE_SAMPLE(self), nullptr);
+  return self->gas_mix_index;
+}
+
 static FlValue* libdivecomputer_plugin_profile_sample_to_list(LibdivecomputerPluginProfileSample* self) {
   FlValue* values = fl_value_new_list();
   fl_value_append_take(values, fl_value_new_int(self->time_seconds));
@@ -496,6 +510,7 @@ static FlValue* libdivecomputer_plugin_profile_sample_to_list(LibdivecomputerPlu
   fl_value_append_take(values, self->o2_sensor4 != nullptr ? fl_value_new_float(*self->o2_sensor4) : fl_value_new_null());
   fl_value_append_take(values, self->o2_sensor5 != nullptr ? fl_value_new_float(*self->o2_sensor5) : fl_value_new_null());
   fl_value_append_take(values, self->o2_sensor6 != nullptr ? fl_value_new_float(*self->o2_sensor6) : fl_value_new_null());
+  fl_value_append_take(values, self->gas_mix_index != nullptr ? fl_value_new_int(*self->gas_mix_index) : fl_value_new_null());
   return values;
 }
 
@@ -630,7 +645,14 @@ static LibdivecomputerPluginProfileSample* libdivecomputer_plugin_profile_sample
     o2_sensor6_value = fl_value_get_float(value19);
     o2_sensor6 = &o2_sensor6_value;
   }
-  return libdivecomputer_plugin_profile_sample_new(time_seconds, depth_meters, temperature_celsius, pressure_bar, tank_index, heart_rate, setpoint, ppo2, cns, rbt, deco_type, deco_time, deco_depth, tts, o2_sensor1, o2_sensor2, o2_sensor3, o2_sensor4, o2_sensor5, o2_sensor6);
+  FlValue* value20 = fl_value_get_list_value(values, 20);
+  int64_t* gas_mix_index = nullptr;
+  int64_t gas_mix_index_value;
+  if (fl_value_get_type(value20) != FL_VALUE_TYPE_NULL) {
+    gas_mix_index_value = fl_value_get_int(value20);
+    gas_mix_index = &gas_mix_index_value;
+  }
+  return libdivecomputer_plugin_profile_sample_new(time_seconds, depth_meters, temperature_celsius, pressure_bar, tank_index, heart_rate, setpoint, ppo2, cns, rbt, deco_type, deco_time, deco_depth, tts, o2_sensor1, o2_sensor2, o2_sensor3, o2_sensor4, o2_sensor5, o2_sensor6, gas_mix_index);
 }
 
 struct _LibdivecomputerPluginGasMix {
@@ -940,9 +962,7 @@ static void libdivecomputer_plugin_parsed_dive_dispose(GObject* object) {
   g_clear_pointer(&self->gf_high, g_free);
   g_clear_pointer(&self->deco_conservatism, g_free);
   g_clear_pointer(&self->raw_data, g_free);
-  self->raw_data_length = 0;
   g_clear_pointer(&self->raw_fingerprint, g_free);
-  self->raw_fingerprint_length = 0;
   g_clear_pointer(&self->entry_latitude, g_free);
   g_clear_pointer(&self->entry_longitude, g_free);
   g_clear_pointer(&self->exit_latitude, g_free);

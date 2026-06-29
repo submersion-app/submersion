@@ -20,7 +20,7 @@ Dive _makeDive({
     id: id,
     dateTime: dateTime ?? DateTime(2026, 3, 19),
     maxDepth: maxDepth,
-    diveTypeId: diveTypeId ?? 'recreational',
+    diveTypeIds: [diveTypeId ?? 'recreational'],
     isFavorite: isFavorite,
     diveComputerSerial: diveComputerSerial,
     rating: rating,

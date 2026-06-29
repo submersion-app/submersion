@@ -187,7 +187,8 @@ class ProfileSample {
     const double* o2_sensor3,
     const double* o2_sensor4,
     const double* o2_sensor5,
-    const double* o2_sensor6);
+    const double* o2_sensor6,
+    const int64_t* gas_mix_index);
 
   int64_t time_seconds() const;
   void set_time_seconds(int64_t value_arg);
@@ -270,6 +271,12 @@ class ProfileSample {
   void set_o2_sensor6(const double* value_arg);
   void set_o2_sensor6(double value_arg);
 
+  // Active gas mix index at this sample (from DC_SAMPLE_GASMIX), carried forward
+  // from the most recent gas switch; null if the computer reported no gas.
+  const int64_t* gas_mix_index() const;
+  void set_gas_mix_index(const int64_t* value_arg);
+  void set_gas_mix_index(int64_t value_arg);
+
 
  private:
   static ProfileSample FromEncodableList(const flutter::EncodableList& list);
@@ -297,6 +304,7 @@ class ProfileSample {
   std::optional<double> o2_sensor4_;
   std::optional<double> o2_sensor5_;
   std::optional<double> o2_sensor6_;
+  std::optional<int64_t> gas_mix_index_;
 
 };
 

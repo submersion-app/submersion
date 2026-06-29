@@ -212,7 +212,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
   pw.Widget _buildPadiDiveEntry(Dive dive, {List<Signature>? signatures}) {
     final tank = dive.tanks.isNotEmpty ? dive.tanks.first : null;
     final isTrainingDive =
-        dive.diveTypeId.toLowerCase().contains('training') ||
+        dive.diveTypeIds.any((t) => t.toLowerCase().contains('training')) ||
         dive.courseId != null;
 
     return pw.Container(

@@ -47,10 +47,10 @@ void main() {
     },
   );
 
-  test('schema version is 91 and the migration list includes it', () {
-    // Latest-version tripwire: bumping the schema must come with a matching
-    // migration block and an update here.
-    expect(AppDatabase.currentSchemaVersion, 91);
+  test('v91 is in the migration ladder', () {
+    // v91 is now a past migration (the latest-version tripwire lives in the
+    // newest version's test). It must remain in the ladder.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(91));
     expect(AppDatabase.migrationVersions, contains(91));
   });
 

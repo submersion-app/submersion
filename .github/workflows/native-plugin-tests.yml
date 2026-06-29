@@ -102,9 +102,24 @@ jobs:
         id: flutter-version
         run: echo "version=$(cat $FLUTTER_VERSION_FILE)" >> "$GITHUB_OUTPUT"
 
+      # device_info_plus 12.4.0 calls [NSProcessInfo isiOSAppOnVision], a
+      # selector that only exists in the iOS 26.1 SDK. The runner's default
+      # Xcode lacks it, so the iOS compile fails. Pin Xcode 26 to match the
+      # release workflow (whose iOS build compiles device_info_plus fine).
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '26'
+
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ steps.flutter-version.outputs.version }}
+
+      # This project builds with CocoaPods, not Swift Package Manager. Flutter
+      # 3.44 enables SPM by default; keep CI on CocoaPods to match ci.yaml and
+      # the release workflow.
+      - name: Disable Swift Package Manager (project uses CocoaPods)
+        run: flutter config --no-enable-swift-package-manager
 
       - name: Run code generation
         run: dart run build_runner build --delete-conflicting-outputs

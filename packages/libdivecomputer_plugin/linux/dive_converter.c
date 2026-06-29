@@ -92,6 +92,10 @@ LibdivecomputerPluginParsedDive* convert_parsed_dive(
             int64_t* tank_index =
                 (s->tank == UINT32_MAX) ? NULL : &tank_val;
 
+            int64_t gmi_val = (int64_t)s->gasmix;
+            int64_t* gas_mix_index =
+                (s->gasmix == UINT32_MAX) ? NULL : &gmi_val;
+
             int64_t hr_val = (int64_t)s->heartbeat;
             int64_t* heart_rate =
                 (s->heartbeat == UINT32_MAX) ? NULL : &hr_val;
@@ -128,7 +132,8 @@ LibdivecomputerPluginParsedDive* convert_parsed_dive(
                     time_seconds, s->depth, temp_c, pressure, tank_index,
                     heart_rate, setpoint, ppo2, cns, rbt, deco_type,
                     deco_time, deco_depth, tts, o2_sensor[0], o2_sensor[1],
-                    o2_sensor[2], o2_sensor[3], o2_sensor[4], o2_sensor[5]);
+                    o2_sensor[2], o2_sensor[3], o2_sensor[4], o2_sensor[5],
+                    gas_mix_index);
 
             fl_value_append_take(
                 samples,

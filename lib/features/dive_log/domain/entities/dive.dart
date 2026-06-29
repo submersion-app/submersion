@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
+import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
@@ -39,7 +40,9 @@ class Dive extends Equatable {
   final double? waterTemp; // celsius
   final double? airTemp; // celsius
   final Visibility? visibility;
-  final String diveTypeId; // References dive_types table
+
+  /// References dive_types table (>= 1; first is the representative).
+  final List<String> diveTypeIds;
   final DiveTypeEntity? diveType; // Loaded dive type entity (for display)
   final String? buddy;
   final String? diveMaster;
@@ -152,7 +155,7 @@ class Dive extends Equatable {
     this.waterTemp,
     this.airTemp,
     this.visibility,
-    this.diveTypeId = 'recreational',
+    this.diveTypeIds = const ['recreational'],
     this.diveType,
     this.buddy,
     this.diveMaster,
@@ -217,15 +220,21 @@ class Dive extends Equatable {
   /// Effective start time of the dive (entryTime if set, otherwise dateTime)
   DateTime get effectiveEntryTime => entryTime ?? dateTime;
 
-  /// Display name for the dive type (uses entity name if loaded, otherwise capitalizes ID)
-  String get diveTypeName {
-    if (diveType != null) {
-      return diveType!.name;
-    }
-    // Fallback: capitalize the ID (e.g., 'recreational' -> 'Recreational')
-    if (diveTypeId.isEmpty) return 'Recreational';
-    return diveTypeId[0].toUpperCase() +
-        diveTypeId.substring(1).replaceAll('_', ' ');
+  /// Display name for the representative (first) dive type.
+  String get diveTypeName => diveType?.name ?? diveTypeDisplayName(diveTypeId);
+
+  /// Representative (first) dive type slug. Always present (>= 1 invariant).
+  String get diveTypeId =>
+      diveTypeIds.isEmpty ? 'recreational' : diveTypeIds.first;
+
+  /// Display names for all of this dive's types.
+  List<String> get diveTypeNames =>
+      diveTypeIds.map(diveTypeDisplayName).toList();
+
+  /// Capitalize a slug for display, e.g. 'deep_wreck' -> 'Deep wreck'.
+  static String diveTypeDisplayName(String id) {
+    if (id.isEmpty) return 'Recreational';
+    return id[0].toUpperCase() + id.substring(1).replaceAll('_', ' ');
   }
 
   /// Best available runtime for this dive.
@@ -278,6 +287,7 @@ class Dive extends Equatable {
 
   /// Air consumption rate in L/min at surface (Surface Air Consumption)
   /// Calculates total gas consumed across all tanks with valid data.
+  /// Uses gas compressibility (Z-factor) and bar→atm conversion for accuracy.
   double? get sac {
     if (tanks.isEmpty || effectiveRuntime == null || avgDepth == null) {
       return null;
@@ -302,9 +312,22 @@ class Dive extends Equatable {
       final pressureUsed = tank.startPressure! - tank.endPressure!;
       if (pressureUsed <= 0) continue;
 
-      // Gas in liters at surface = tank_volume × pressure_used
-      // Example: 12L tank, 100 bar used = 1200 liters at surface
-      final gasLiters = tank.volume! * pressureUsed;
+      // Gas volume using real-gas compressibility correction
+      final startVolume = gasVolume(
+        tankSizeLiters: tank.volume!,
+        pressureBar: tank.startPressure!,
+        o2Percent: tank.gasMix.o2,
+        hePercent: tank.gasMix.he,
+      );
+      final endVolume = gasVolume(
+        tankSizeLiters: tank.volume!,
+        pressureBar: tank.endPressure!,
+        o2Percent: tank.gasMix.o2,
+        hePercent: tank.gasMix.he,
+      );
+      final gasLiters = startVolume - endVolume;
+      if (gasLiters <= 0) continue;
+
       totalGasLiters += gasLiters;
       tanksWithData++;
     }
@@ -488,7 +511,7 @@ class Dive extends Equatable {
     double? waterTemp,
     double? airTemp,
     Visibility? visibility,
-    String? diveTypeId,
+    List<String>? diveTypeIds,
     DiveTypeEntity? diveType,
     String? buddy,
     String? diveMaster,
@@ -575,7 +598,7 @@ class Dive extends Equatable {
       waterTemp: waterTemp ?? this.waterTemp,
       airTemp: airTemp ?? this.airTemp,
       visibility: visibility ?? this.visibility,
-      diveTypeId: diveTypeId ?? this.diveTypeId,
+      diveTypeIds: diveTypeIds ?? this.diveTypeIds,
       diveType: diveType ?? this.diveType,
       buddy: buddy ?? this.buddy,
       diveMaster: diveMaster ?? this.diveMaster,
@@ -665,7 +688,7 @@ class Dive extends Equatable {
     waterTemp,
     airTemp,
     visibility,
-    diveTypeId,
+    diveTypeIds,
     diveType,
     buddy,
     diveMaster,

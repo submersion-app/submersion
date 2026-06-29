@@ -212,7 +212,7 @@ class ExcelExportService {
         convertTemperature(dive.waterTemp, temperatureUnit),
         convertTemperature(dive.airTemp, temperatureUnit),
         dive.visibility?.displayName ?? '',
-        dive.diveTypeName,
+        dive.diveTypeNames.join('; '),
         dive.diveMode.displayName,
         dive.buddy,
         dive.diveMaster,
@@ -597,15 +597,21 @@ class ExcelExportService {
       currentRow++;
 
       final nightDives = dives
-          .where((d) => d.diveTypeName.toLowerCase().contains('night'))
+          .where(
+            (d) => d.diveTypeIds.any((t) => t.toLowerCase().contains('night')),
+          )
           .length;
       final deepDives = dives.where((d) => (d.maxDepth ?? 0) > 30).length;
       final coldDives = dives.where((d) => (d.waterTemp ?? 100) < 10).length;
       final driftDives = dives
-          .where((d) => d.diveTypeName.toLowerCase().contains('drift'))
+          .where(
+            (d) => d.diveTypeIds.any((t) => t.toLowerCase().contains('drift')),
+          )
           .length;
       final wrecks = dives
-          .where((d) => d.diveTypeName.toLowerCase().contains('wreck'))
+          .where(
+            (d) => d.diveTypeIds.any((t) => t.toLowerCase().contains('wreck')),
+          )
           .length;
 
       addStat('Night Dives', nightDives);

@@ -130,7 +130,7 @@ extension DiveFieldExtractor on DiveField {
       case DiveField.importSource:
         return dive.importSource;
       case DiveField.diveTypeName:
-        return dive.diveTypeName;
+        return dive.diveTypeNames.join(', ');
       case DiveField.surfaceInterval:
         return dive.surfaceInterval;
     }
@@ -162,9 +162,7 @@ extension DiveFieldExtractor on DiveField {
       case DiveField.isFavorite:
         return summary.isFavorite;
       case DiveField.diveTypeName:
-        final id = summary.diveTypeId;
-        if (id.isEmpty) return 'Recreational';
-        return id[0].toUpperCase() + id.substring(1).replaceAll('_', ' ');
+        return summary.diveTypeIds.map(Dive.diveTypeDisplayName).join(', ');
       case DiveField.tags:
         return summary.tags.map((t) => t.name).toList();
       case DiveField.siteLocation:

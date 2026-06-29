@@ -23,6 +23,12 @@ class TagsOp extends BulkCollectionOp {
   const TagsOp({required this.mode, required this.tagIds});
 }
 
+class DiveTypesOp extends BulkCollectionOp {
+  final BulkCollectionMode mode; // add | remove | replace
+  final List<String> diveTypeIds;
+  const DiveTypesOp({required this.mode, required this.diveTypeIds});
+}
+
 class EquipmentOp extends BulkCollectionOp {
   final BulkCollectionMode mode;
   final List<String> equipmentIds;

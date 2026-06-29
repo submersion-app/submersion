@@ -116,7 +116,7 @@ class EntityTableColumnPicker<F extends EntityField> extends StatelessWidget {
                     physics: const NeverScrollableScrollPhysics(),
                     buildDefaultDragHandles: false,
                     itemCount: config.columns.length,
-                    onReorder: onReorderColumn,
+                    onReorderItem: onReorderColumn,
                     itemBuilder: (context, index) {
                       final col = config.columns[index];
                       return ListTile(

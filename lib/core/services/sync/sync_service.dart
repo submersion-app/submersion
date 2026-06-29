@@ -834,6 +834,11 @@ class SyncService {
             hasUpdatedAt: false,
           ),
           (type: 'diveTags', records: data.diveTags, hasUpdatedAt: false),
+          (
+            type: 'diveDiveTypes',
+            records: data.diveDiveTypes,
+            hasUpdatedAt: false,
+          ),
           (type: 'diveBuddies', records: data.diveBuddies, hasUpdatedAt: false),
           (
             type: 'diveProfiles',
@@ -1240,6 +1245,7 @@ class SyncService {
     'diveWeights': false,
     'diveEquipment': false,
     'diveTags': false,
+    'diveDiveTypes': false,
     'diveBuddies': false,
     'diveProfiles': false,
     'diveProfileEvents': false,
@@ -1302,6 +1308,7 @@ class SyncService {
       (field: 'diveId', parent: 'dives', nullable: false),
       (field: 'tagId', parent: 'tags', nullable: false),
     ],
+    'diveDiveTypes': [(field: 'diveId', parent: 'dives', nullable: false)],
     'diveProfileEvents': [(field: 'diveId', parent: 'dives', nullable: false)],
     'gasSwitches': [(field: 'diveId', parent: 'dives', nullable: false)],
     'diveCustomFields': [(field: 'diveId', parent: 'dives', nullable: false)],

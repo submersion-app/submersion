@@ -1,7 +1,7 @@
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 export '../../../../features/dive_log/data/repositories/dive_computer_repository_impl.dart'
-    show EventData, TankData;
+    show EventData, TankData, GasSwitchData;
 
 /// Service for parsing downloaded dive data into app entities.
 ///
@@ -74,6 +74,19 @@ class DiveParser {
     }
 
     return tanks;
+  }
+
+  /// Convert a downloaded dive's gas switches to GasSwitchData.
+  List<GasSwitchData> parseGasSwitches(DownloadedDive dive) {
+    return dive.gasSwitches
+        .map(
+          (s) => GasSwitchData(
+            timestamp: s.timeSeconds,
+            depth: s.depth,
+            toTankIndex: s.toTankIndex,
+          ),
+        )
+        .toList();
   }
 
   /// Extract the maximum depth from a dive's profile.

@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 
@@ -1593,7 +1593,7 @@ class _ManageSectionContent extends StatelessWidget {
                 ),
                 const Divider(height: 1),
                 ListTile(
-                  leading: Icon(MdiIcons.divingScubaTank),
+                  leading: const Icon(MdiIcons.divingScubaTank),
                   title: Text(context.l10n.settings_manage_tankPresets),
                   subtitle: Text(
                     context.l10n.settings_manage_tankPresets_subtitle,
@@ -1603,7 +1603,7 @@ class _ManageSectionContent extends StatelessWidget {
                 ),
                 const Divider(height: 1),
                 ListTile(
-                  leading: Icon(MdiIcons.fish),
+                  leading: const Icon(MdiIcons.fish),
                   title: Text(context.l10n.settings_manage_species),
                   subtitle: Text(context.l10n.settings_manage_species_subtitle),
                   trailing: const Icon(Icons.chevron_right),

@@ -56,7 +56,7 @@ void main() {
       tanks: tanks,
       notes: notes,
       waterTemp: waterTemp,
-      diveTypeId: diveTypeId,
+      diveTypeIds: [diveTypeId],
       buddy: buddy,
       rating: rating,
     );

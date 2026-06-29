@@ -1,7 +1,7 @@
 name: submersion
 description: An open-source dive logging application for scuba divers.
 publish_to: 'none'
-version: 1.5.6+108
+version: 1.5.8+111
 
 environment:
   sdk: ^3.10.0
@@ -14,7 +14,6 @@ dependencies:
 
   # Core
   cupertino_icons: ^1.0.8
-  material_design_icons_flutter: ^7.0.7296
 
   # State Management
   flutter_riverpod: ^3.1.0
@@ -24,7 +23,13 @@ dependencies:
   # Database
   drift: ^2.30.0
   sqlite3: ^2.9.4
-  sqlite3_flutter_libs: ^0.5.41
+  # Pinned to 0.5.x on purpose. 0.6.0+eol is an empty tombstone release that
+  # removes the Android/desktop scripts which bundle libsqlite3.so into the app.
+  # It is only safe once we migrate to sqlite3 3.x (which bundles the lib itself).
+  # While we remain on sqlite3 2.x, 0.6.0 drops libsqlite3.so from the Android
+  # APK and the app fails to open the DB at startup (issue #433). Do not bump to
+  # 0.6.x without completing the sqlite3 v3 migration (UPGRADING_TO_V3.md).
+  sqlite3_flutter_libs: ^0.5.42
   path_provider: ^2.1.5
   path: ^1.9.0
 
@@ -68,13 +73,15 @@ dependencies:
   image_picker: ^1.1.2
   share_plus: ^12.0.1
   desktop_drop: ^0.7.0
-  receive_sharing_intent: ^1.8.1
+  # Pinned <1.9.0: 1.9.0 is Swift Package Manager-only and drops CocoaPods
+  # support, which breaks the iOS/macOS build (this project uses CocoaPods).
+  receive_sharing_intent: ">=1.8.1 <1.9.0"
   url_launcher: ^6.3.1
   flutter_contacts: ^2.0.2
   geolocator: ^14.0.2
   geocoding: ^4.0.0
   photo_manager: ^3.6.0
-  native_exif: ^0.7.0
+  native_exif: ^0.8.0
   health: ^13.3.0  # Cross-platform health data (HealthKit, Health Connect)
 
   # Storage
@@ -101,10 +108,10 @@ dependencies:
 
   # Auto-Update
   auto_updater: ^1.0.0
-  package_info_plus: ^8.0.0
+  package_info_plus: ^9.0.1
 
   # Notifications
-  flutter_local_notifications: ^21.0.0
+  flutter_local_notifications: ^22.0.1
   workmanager: ^0.9.0+3
   timezone: ^0.11.0
   google_fonts: ^8.0.2
@@ -129,17 +136,11 @@ dev_dependencies:
   fake_async: ^1.3.3  # synthetic clock + Timer driving for unit tests
 
 dependency_overrides:
-  # Pin to 9.4.5 to avoid CNAuthorizationStatusLimited compile error
-  # See: https://github.com/Baseflow/flutter-permission-handler/issues/1450
-  permission_handler_apple: 9.4.5
   # fit_tool (3 years unmaintained) has stale deps; overrides are safe because:
   # - csv: fit_tool uses csv for optional CSV export, not core FIT binary parsing
   # - logger: fit_tool uses basic logging; logger 2.x is backward-compatible
   csv: ^6.0.0
   logger: ^2.0.0
-  # Pin to 12.3.0 — v12.4.0 calls NSProcessInfo.isiOSAppOnVision which is
-  # unavailable with Xcode 16.2's SDK, causing iOS build failure in CI.
-  device_info_plus: 12.3.0
   # Vendored with threading fix for #83 — WinSparkle callbacks were calling
   # event_sink_->Success() from background threads, violating Flutter's
   # platform channel threading requirement.
@@ -157,3 +158,11 @@ flutter:
 
   shaders:
     - shaders/heatmap.frag
+
+  # Vendored Material Design Icons font (replaces material_design_icons_flutter,
+  # which extends the now-sealed IconData and breaks on Flutter 3.44+).
+  # Glyphs are referenced via lib/core/icons/mdi_icons.dart.
+  fonts:
+    - family: Material Design Icons
+      fonts:
+        - asset: assets/fonts/materialdesignicons-webfont.ttf

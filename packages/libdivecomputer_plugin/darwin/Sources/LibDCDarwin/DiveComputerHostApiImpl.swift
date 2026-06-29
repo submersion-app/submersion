@@ -603,7 +603,8 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
                     o2Sensor3: s.o2_sensor.2.isNaN ? nil : s.o2_sensor.2,
                     o2Sensor4: s.o2_sensor.3.isNaN ? nil : s.o2_sensor.3,
                     o2Sensor5: s.o2_sensor.4.isNaN ? nil : s.o2_sensor.4,
-                    o2Sensor6: s.o2_sensor.5.isNaN ? nil : s.o2_sensor.5
+                    o2Sensor6: s.o2_sensor.5.isNaN ? nil : s.o2_sensor.5,
+                    gasMixIndex: s.gasmix == UInt32.max ? nil : Int64(s.gasmix)
                 ))
             }
         }

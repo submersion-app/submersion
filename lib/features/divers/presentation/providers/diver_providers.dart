@@ -24,10 +24,7 @@ final diverMergeRepositoryProvider = Provider<DiverMergeRepository>((ref) {
 /// `ref.read(allDiversProvider.future)` reads still resolve.
 final allDiversProvider = FutureProvider<List<Diver>>((ref) async {
   final repository = ref.watch(diverRepositoryProvider);
-  final sub = repository.watchDiversChanges().listen(
-    (_) => ref.invalidateSelf(),
-  );
-  ref.onDispose(sub.cancel);
+  ref.invalidateSelfWhen(repository.watchDiversChanges());
   return repository.getAllDivers();
 });
 
@@ -332,11 +329,7 @@ final diverStatsProvider = FutureProvider.family<DiverStats, String>((
   final repository = ref.watch(diverRepositoryProvider);
   // The stats read the `dives` table, so self-invalidate when dives change
   // (e.g. after a sync) to keep the per-tile counts on the diver list fresh.
-  final diveSub = ref
-      .read(diveRepositoryProvider)
-      .watchDivesChanges()
-      .listen((_) => ref.invalidateSelf());
-  ref.onDispose(diveSub.cancel);
+  ref.invalidateSelfWhen(ref.read(diveRepositoryProvider).watchDivesChanges());
   final diveCount = await repository.getDiveCountForDiver(diverId);
   final totalTime = await repository.getTotalBottomTimeForDiver(diverId);
   return DiverStats(diveCount: diveCount, totalBottomTimeSeconds: totalTime);

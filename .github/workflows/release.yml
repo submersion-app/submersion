@@ -69,13 +69,13 @@ jobs:
           channel: stable
 
       - name: Cache Flutter SDK
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
           key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.pub-cache
@@ -83,6 +83,16 @@ jobs:
           key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
           restore-keys: |
             pub-${{ runner.os }}-
+
+      # Flutter 3.44 enables Swift Package Manager by default. This project is
+      # not migrated to SPM (the Xcode projects carry no package references) and
+      # builds via CocoaPods. With SPM on, the full `flutter build macos` for the
+      # DMG adds the generated Swift package to the project, then the Fastlane
+      # App Store archive links google_sign_in_ios via BOTH that Swift package
+      # and CocoaPods -> "ld: duplicate symbols". Force CocoaPods-only to match
+      # local dev and the previously-working Flutter 3.41 behavior.
+      - name: Use CocoaPods (disable Swift Package Manager)
+        run: flutter config --no-enable-swift-package-manager
 
       - name: Install dependencies
         run: |
@@ -334,13 +344,13 @@ jobs:
           channel: stable
 
       - name: Cache Flutter SDK
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
           key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~\.pub-cache
@@ -407,13 +417,13 @@ jobs:
           channel: stable
 
       - name: Cache Flutter SDK
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
           key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.pub-cache
@@ -476,13 +486,13 @@ jobs:
           channel: stable
 
       - name: Cache Flutter SDK
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
           key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.pub-cache
@@ -525,6 +535,16 @@ jobs:
       - name: Verify 16 KB native library alignment
         run: |
           python3 scripts/check_16kb_alignment.py \
+            build/app/outputs/flutter-apk/app-release.apk \
+            build/app/outputs/bundle/release/app-release.aab
+
+      # Guards against issue #433: sqlite3_flutter_libs 0.6.0+eol (an empty
+      # tombstone release) silently dropped libsqlite3.so from the package, so
+      # the app could not open its database on launch. Fail the release before
+      # publishing if a required native library is missing from the APK or AAB.
+      - name: Verify required native libraries are bundled
+        run: |
+          python3 scripts/check_native_libs_present.py \
             build/app/outputs/flutter-apk/app-release.apk \
             build/app/outputs/bundle/release/app-release.aab
 
@@ -612,13 +632,13 @@ jobs:
           channel: stable
 
       - name: Cache Flutter SDK
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
           key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
 
       - name: Cache pub dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.pub-cache

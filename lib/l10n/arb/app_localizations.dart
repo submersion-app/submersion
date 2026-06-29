@@ -6034,6 +6034,12 @@ abstract class AppLocalizations {
   /// **'Dive Type'**
   String get diveLog_edit_label_diveType;
 
+  /// No description provided for @diveLog_edit_label_diveTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive Types'**
+  String get diveLog_edit_label_diveTypes;
+
   /// No description provided for @diveLog_edit_label_diveNumber.
   ///
   /// In en, this message translates to:
@@ -11172,6 +11178,48 @@ abstract class AppLocalizations {
   /// **'Dive Sites'**
   String get diveSites_map_appBar_title;
 
+  /// No description provided for @diveSites_map_builtInSites_add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to my sites'**
+  String get diveSites_map_builtInSites_add;
+
+  /// No description provided for @diveSites_map_builtInSites_addError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t add site. Please try again.'**
+  String get diveSites_map_builtInSites_addError;
+
+  /// No description provided for @diveSites_map_builtInSites_added.
+  ///
+  /// In en, this message translates to:
+  /// **'Added to your sites'**
+  String get diveSites_map_builtInSites_added;
+
+  /// No description provided for @diveSites_map_builtInSites_hide.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide built-in sites'**
+  String get diveSites_map_builtInSites_hide;
+
+  /// No description provided for @diveSites_map_builtInSites_off.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in sites hidden'**
+  String get diveSites_map_builtInSites_off;
+
+  /// No description provided for @diveSites_map_builtInSites_on.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in sites shown'**
+  String get diveSites_map_builtInSites_on;
+
+  /// No description provided for @diveSites_map_builtInSites_show.
+  ///
+  /// In en, this message translates to:
+  /// **'Show built-in sites'**
+  String get diveSites_map_builtInSites_show;
+
   /// No description provided for @diveSites_map_empty_description.
   ///
   /// In en, this message translates to:
@@ -11201,6 +11249,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 dive} other{{count} dives}}'**
   String diveSites_map_infoCard_diveCount(int count);
+
+  /// No description provided for @diveSites_map_semantics_builtInSiteMarker.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in dive site: {name}'**
+  String diveSites_map_semantics_builtInSiteMarker(Object name);
 
   /// No description provided for @diveSites_map_semantics_diveSiteMarker.
   ///

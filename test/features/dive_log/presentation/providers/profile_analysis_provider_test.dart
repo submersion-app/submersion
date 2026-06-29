@@ -396,6 +396,95 @@ void main() {
       expect(result[1], closeTo(150, 0.01));
     });
 
+    test('interpolates between pressure points (O(N) merge-walk)', () {
+      // Single tank, points at t=0 (200 bar) and t=100 (100 bar). At t=50 the
+      // pressure is linearly interpolated: 200 + (100-200)*(50/100) = 150.
+      const tank = DiveTank(id: 'tank-1', gasMix: GasMix());
+      final tankPressures = {
+        'tank-1': const [
+          TankPressurePoint(
+            id: 'p0',
+            tankId: 'tank-1',
+            timestamp: 0,
+            pressure: 200,
+          ),
+          TankPressurePoint(
+            id: 'p1',
+            tankId: 'tank-1',
+            timestamp: 100,
+            pressure: 100,
+          ),
+        ],
+      };
+      final result = combineMultiTankPressures(
+        timestamps: const [0, 50, 100],
+        tankPressures: tankPressures,
+        tanks: const [tank],
+      );
+      expect(result, isNotNull);
+      expect(result![0], closeTo(200, 0.001));
+      expect(result[1], closeTo(150, 0.001));
+      expect(result[2], closeTo(100, 0.001));
+    });
+
+    test('uses the first point for timestamps before the series starts', () {
+      const tank = DiveTank(id: 'tank-1', gasMix: GasMix());
+      final tankPressures = {
+        'tank-1': const [
+          TankPressurePoint(
+            id: 'p0',
+            tankId: 'tank-1',
+            timestamp: 10,
+            pressure: 200,
+          ),
+          TankPressurePoint(
+            id: 'p1',
+            tankId: 'tank-1',
+            timestamp: 20,
+            pressure: 180,
+          ),
+        ],
+      };
+      final result = combineMultiTankPressures(
+        timestamps: const [0, 10, 20],
+        tankPressures: tankPressures,
+        tanks: const [tank],
+      );
+      expect(result, isNotNull);
+      expect(result![0], closeTo(200, 0.001)); // before first -> first pressure
+      expect(result[1], closeTo(200, 0.001));
+      expect(result[2], closeTo(180, 0.001));
+    });
+
+    test('holds the last point for timestamps past the series end', () {
+      const tank = DiveTank(id: 'tank-1', gasMix: GasMix());
+      final tankPressures = {
+        'tank-1': const [
+          TankPressurePoint(
+            id: 'p0',
+            tankId: 'tank-1',
+            timestamp: 0,
+            pressure: 200,
+          ),
+          TankPressurePoint(
+            id: 'p1',
+            tankId: 'tank-1',
+            timestamp: 10,
+            pressure: 180,
+          ),
+        ],
+      };
+      final result = combineMultiTankPressures(
+        timestamps: const [0, 10, 50],
+        tankPressures: tankPressures,
+        tanks: const [tank],
+      );
+      expect(result, isNotNull);
+      expect(result![0], closeTo(200, 0.001));
+      expect(result[1], closeTo(180, 0.001));
+      expect(result[2], closeTo(180, 0.001)); // past end -> last pressure
+    });
+
     test('returns null when no tank pressure data is available', () {
       final result = combineMultiTankPressures(
         timestamps: const [0, 60],

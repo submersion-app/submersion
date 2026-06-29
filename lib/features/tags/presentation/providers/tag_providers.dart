@@ -21,8 +21,7 @@ final tagsProvider = FutureProvider<List<Tag>>((ref) async {
   final validatedDiverId = await ref.watch(
     validatedCurrentDiverIdProvider.future,
   );
-  final sub = repository.watchTagsChanges().listen((_) => ref.invalidateSelf());
-  ref.onDispose(sub.cancel);
+  ref.invalidateSelfWhen(repository.watchTagsChanges());
   return repository.getAllTags(diverId: validatedDiverId);
 });
 
@@ -38,15 +37,8 @@ final tagStatisticsProvider = FutureProvider<List<TagStatistic>>((ref) async {
   final validatedDiverId = await ref.watch(
     validatedCurrentDiverIdProvider.future,
   );
-  final tagsSub = repository.watchTagsChanges().listen(
-    (_) => ref.invalidateSelf(),
-  );
-  ref.onDispose(tagsSub.cancel);
-  final divesSub = ref
-      .read(diveRepositoryProvider)
-      .watchDivesChanges()
-      .listen((_) => ref.invalidateSelf());
-  ref.onDispose(divesSub.cancel);
+  ref.invalidateSelfWhen(repository.watchTagsChanges());
+  ref.invalidateSelfWhen(ref.read(diveRepositoryProvider).watchDivesChanges());
   return repository.getTagStatistics(diverId: validatedDiverId);
 });
 

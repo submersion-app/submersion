@@ -500,7 +500,8 @@ class DiveComputerHostApiImpl(
                 o2Sensor3 = if (s[16].isNaN()) null else s[16],
                 o2Sensor4 = if (s[17].isNaN()) null else s[17],
                 o2Sensor5 = if (s[18].isNaN()) null else s[18],
-                o2Sensor6 = if (s[19].isNaN()) null else s[19]
+                o2Sensor6 = if (s[19].isNaN()) null else s[19],
+                gasMixIndex = if (s[20].toLong() == UINT32_SENTINEL) null else s[20].toLong(),
             )
         }
 

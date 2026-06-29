@@ -11,6 +11,7 @@ import 'package:submersion/features/buddies/domain/entities/buddy.dart'
 class BulkEditSnapshot {
   final List<Dive> priorDiveRows; // scalar + notes undo via row.toCompanion
   final Map<String, List<String>>? priorTagIds;
+  final Map<String, List<String>>? priorDiveTypeIds;
   final Map<String, List<String>>? priorEquipmentIds;
   final Map<String, List<BuddyWithRole>>? priorBuddies;
   final Map<String, List<DiveTank>>? priorTanks; // Drift DiveTanks rows
@@ -20,6 +21,7 @@ class BulkEditSnapshot {
   const BulkEditSnapshot({
     required this.priorDiveRows,
     this.priorTagIds,
+    this.priorDiveTypeIds,
     this.priorEquipmentIds,
     this.priorBuddies,
     this.priorTanks,

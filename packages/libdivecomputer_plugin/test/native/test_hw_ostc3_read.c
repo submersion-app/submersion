@@ -30,6 +30,8 @@
 
 #include "hw_ostc3.c"  // for the static hw_ostc3_read + hw_ostc3_device_t
 
+#include "ostc_nano_dive_394.h"  // real OSTC nano DIVE capture from issue #394
+
 // Stubs for the device-private symbols that the #included hw_ostc3.c
 // references only from functions this test never calls (device open/close/
 // foreach/firmware). Their real definitions live in device.c, which cannot be
@@ -554,6 +556,244 @@ static void check_foreach_call_sites(void) {
          "foreach falls back to the HEADER retry call site when COMPACT is unsupported");
 }
 
+// ---------------------------------------------------------------------------
+// Issue #394: a DIVE transfer whose firmware over-declares the profile length.
+//
+// Some OSTC nano (hwOS) firmware declares a profile a few bytes longer than the
+// data it actually streams. It terminates the profile with the 0xFD 0xFD marker
+// and the trailing ready byte, then idles. The old fixed-length profile read
+// waited forever for the missing bytes and the whole download aborted (-7).
+//
+// This mock speaks the DIVE handshake (command, echo, dive-number input) and
+// then serves a scripted dive response one notification at a time, going quiet
+// once the payload is exhausted -- exactly what the device does after the end
+// of the profile. The payload itself decides the scenario: it may carry the
+// trailing ready byte (the device idles afterwards), omit it (lost), or stop
+// before the end marker (a genuine mid-profile truncation).
+// ---------------------------------------------------------------------------
+
+typedef struct {
+  const unsigned char *payload;  // dive header + profile (+ optional ready byte)
+  size_t size;
+  size_t offset;
+  unsigned char cmd;
+  int saw_echo;        // the echo was returned; the next write is the DIVE number
+  int input_consumed;  // the DIVE number input write was consumed
+} dive_mock_t;
+
+static dc_status_t dive_write(void *userdata, const void *data, size_t size,
+                              size_t *actual) {
+  dive_mock_t *m = (dive_mock_t *)userdata;
+  if (m->saw_echo && !m->input_consumed) {
+    m->input_consumed = 1;  // the DIVE number that follows the command echo
+  } else {
+    m->cmd = ((const unsigned char *)data)[0];
+    m->saw_echo = 0;
+    m->input_consumed = 0;
+    m->offset = 0;
+  }
+  if (actual) *actual = size;
+  return DC_STATUS_SUCCESS;
+}
+
+static dc_status_t dive_read(void *userdata, void *data, size_t size,
+                             size_t *actual) {
+  dive_mock_t *m = (dive_mock_t *)userdata;
+  unsigned char *out = (unsigned char *)data;
+  if (!m->saw_echo) {
+    out[0] = m->cmd;  // echo the command byte back
+    m->saw_echo = 1;
+    if (actual) *actual = 1;
+    return DC_STATUS_SUCCESS;
+  }
+  // Data phase: serve the scripted dive response one notification at a time.
+  size_t remaining = m->size - m->offset;
+  if (remaining == 0) {
+    if (actual) *actual = 0;  // payload exhausted: the device has gone idle
+    return DC_STATUS_TIMEOUT;
+  }
+  size_t n = size < MOCK_CHUNK ? size : MOCK_CHUNK;
+  if (n > remaining) n = remaining;
+  memcpy(out, m->payload + m->offset, n);
+  m->offset += n;
+  if (actual) *actual = n;
+  return DC_STATUS_SUCCESS;
+}
+
+// Runs one DIVE transfer (dive number 4) against a mock serving `payload`, with
+// the caller-declared transfer length `osize`. Reports the status, the length
+// hw_ostc3_transfer returns, and the downloaded bytes via out-params.
+static dc_status_t run_dive(const unsigned char *payload, size_t size,
+                            unsigned int osize, unsigned int *out_len,
+                            unsigned char *dst, size_t dst_size) {
+  dc_context_t *ctx = NULL;
+  assert(dc_context_new(&ctx) == DC_STATUS_SUCCESS);
+
+  dive_mock_t mock;
+  memset(&mock, 0, sizeof(mock));
+  mock.payload = payload;
+  mock.size = size;
+
+  dc_custom_cbs_t cbs;
+  memset(&cbs, 0, sizeof(cbs));
+  cbs.read = dive_read;
+  cbs.write = dive_write;
+  cbs.sleep = proto_sleep;
+  cbs.close = mock_close;
+
+  dc_iostream_t *iostream = NULL;
+  assert(dc_custom_open(&iostream, ctx, DC_TRANSPORT_BLE, &cbs, &mock) ==
+         DC_STATUS_SUCCESS);
+
+  hw_ostc3_device_t dev;
+  memset(&dev, 0, sizeof(dev));
+  dev.base.context = ctx;
+  dev.iostream = iostream;
+  dev.state = DOWNLOAD;  // ready byte is READY (0x4D)
+
+  unsigned char number[1] = {4};
+  unsigned int length = 0;
+  memset(dst, 0xEE, dst_size);
+  dc_status_t rc = hw_ostc3_transfer(&dev, NULL, DIVE, number, sizeof(number),
+                                     dst, osize, &length, NODELAY);
+  if (out_len) *out_len = length;
+
+  dc_iostream_close(iostream);
+  dc_context_free(ctx);
+  return rc;
+}
+
+// Builds a minimal DIVE response into `buf`: a 256-byte header (version 0x24,
+// non-zero pointer fields so the empty-profile path is not taken) followed by
+// `nsamples` sample bytes (kept < 0xFD so the only 0xFD 0xFD is the marker), an
+// optional end-of-profile marker, and an optional trailing ready byte. Returns
+// the number of bytes written.
+static size_t build_dive(unsigned char *buf, size_t nsamples, int terminate,
+                         int with_ready) {
+  size_t total = 256 + nsamples + 3;
+  memset(buf, 0x12, total);
+  buf[0] = 0xFA;
+  buf[1] = 0xFA;
+  memset(buf + HDR_FULL_POINTERS, 0x11, 6);  // non-zero: not an empty profile
+  buf[8] = 0x24;                             // ostc3 profile version
+  buf[9] = 0x00;
+  buf[10] = 0x10;
+  buf[11] = 0x00;  // a length field other than 8
+  size_t off = 256;
+  for (size_t i = 0; i < nsamples; i++) buf[off++] = (unsigned char)(i & 0x7F);
+  if (terminate) {
+    buf[off++] = 0xFD;
+    buf[off++] = 0xFD;
+  }
+  if (with_ready) buf[off++] = READY;
+  return off;
+}
+
+static void check_dive_profile_terminated(void) {
+  // Headline regression: the real OSTC nano (TechOS v3.37) capture from the
+  // issue. The header declares 12383 bytes; the device streams a complete
+  // 12365-byte FD FD-terminated dive plus the ready byte, then idles.
+  {
+    unsigned char *out = (unsigned char *)malloc(OSTC_NANO_394_DECLARED_LEN);
+    unsigned int len = 0;
+    dc_status_t rc = run_dive(ostc_nano_394_stream, OSTC_NANO_394_STREAM_SIZE,
+                              OSTC_NANO_394_DECLARED_LEN, &len, out,
+                              OSTC_NANO_394_DECLARED_LEN);
+    expect(rc == DC_STATUS_SUCCESS,
+           "issue #394: the over-declared OSTC nano dive downloads");
+    expect(len == OSTC_NANO_394_DIVE_SIZE,
+           "the dive length is what the device sent, not the declared length");
+    expect(len >= 2 && out[len - 2] == 0xFD && out[len - 1] == 0xFD,
+           "the downloaded dive ends exactly at the FD FD end-of-profile marker");
+    expect(memcmp(out, ostc_nano_394_stream, OSTC_NANO_394_DIVE_SIZE) == 0,
+           "every captured profile byte is delivered intact");
+    free(out);
+  }
+
+  // Synthetic over-declared dive, ready byte present (the common case): the
+  // read stops on the FD FD + ready-byte signature without waiting out a
+  // timeout, and the ready byte is not read a second time.
+  {
+    unsigned char buf[256 + 100 + 4];
+    size_t dive = build_dive(buf, 100, 1, 1);  // 256 + 100 + FD FD + ready
+    unsigned char out[512];
+    unsigned int len = 0;
+    dc_status_t rc = run_dive(buf, dive, 380, &len, out, sizeof(out));
+    expect(rc == DC_STATUS_SUCCESS,
+           "an over-declared profile with a trailing ready byte succeeds");
+    expect(len == 256 + 100 + 2,
+           "the returned length stops at the end-of-profile marker");
+    expect(out[len - 2] == 0xFD && out[len - 1] == 0xFD,
+           "the synthetic dive ends at the FD FD marker (ready byte excluded)");
+  }
+
+  // Over-declared dive whose trailing ready byte was lost: the read goes quiet
+  // after the FD FD marker, which is still accepted as a complete profile.
+  {
+    unsigned char buf[256 + 100 + 4];
+    size_t dive = build_dive(buf, 100, 1, 0);  // 256 + 100 + FD FD, no ready
+    unsigned char out[512];
+    unsigned int len = 0;
+    dc_status_t rc = run_dive(buf, dive, 380, &len, out, sizeof(out));
+    expect(rc == DC_STATUS_SUCCESS,
+           "an over-declared profile accepts the FD FD marker at silence");
+    expect(len == 256 + 100 + 2, "the returned length still stops at the marker");
+  }
+
+  // Correctly-declared profile (the unchanged path): the data fills the whole
+  // declared length and the ready byte is read separately afterwards.
+  {
+    unsigned char buf[256 + 100 + 4];
+    size_t dive = build_dive(buf, 100, 1, 1);   // FD FD, then a separate ready
+    unsigned int declared = 256 + 100 + 2;      // exactly the profile length
+    unsigned char out[512];
+    unsigned int len = 0;
+    dc_status_t rc = run_dive(buf, dive, declared, &len, out, sizeof(out));
+    expect(rc == DC_STATUS_SUCCESS,
+           "a correctly-declared profile still downloads unchanged");
+    expect(len == declared, "the returned length equals the declared length");
+  }
+
+  // Genuine mid-profile truncation (a notification lost before the end marker):
+  // there is no FD FD tail, so the transfer still fails and the retry fires.
+  {
+    unsigned char buf[256 + 100 + 4];
+    size_t dive = build_dive(buf, 100, 0, 0);  // no end marker at all
+    unsigned char out[512];
+    unsigned int len = 0;
+    dc_status_t rc = run_dive(buf, dive, 380, &len, out, sizeof(out));
+    expect(rc == DC_STATUS_TIMEOUT,
+           "a profile truncated before the end marker still fails (and retries)");
+  }
+
+  // Documents a KNOWN LIMITATION (issue #394 review): a notification dropped
+  // mid-profile while the final FD FD marker still arrives leaves a buffer that
+  // ends in the marker but is missing interior bytes. read_profile cannot tell
+  // this from a legitimate over-declare, so it accepts the short profile and the
+  // dive is stored corrupt -- hw_ostc3_device_foreach does not catch it (its
+  // checks compare the two declared length fields to each other, not to the
+  // received count) and the hwOS profile has no CRC. Asserted here so the
+  // behavior is explicit and the suite does not imply this case is rejected; the
+  // retry narrows the window, only a less lossy link closes it.
+  {
+    unsigned char buf[256 + 100 + 4];
+    size_t full = build_dive(buf, 100, 1, 1);  // header + 100 samples + FD FD + ready
+    // Drop one whole mock notification (MOCK_CHUNK bytes), aligned to a
+    // notification boundary inside the sample stream, while keeping the FD FD +
+    // ready tail intact -- the device's BLE bridge losing a single notification.
+    const size_t cut = 256 + 2 * MOCK_CHUNK;  // a notification boundary in the samples
+    memmove(buf + cut, buf + cut + MOCK_CHUNK, full - (cut + MOCK_CHUNK));
+    size_t lossy = full - MOCK_CHUNK;
+    unsigned char out[512];
+    unsigned int len = 0;
+    dc_status_t rc = run_dive(buf, lossy, 380, &len, out, sizeof(out));
+    expect(rc == DC_STATUS_SUCCESS,
+           "lost-middle-with-FD-FD-tail is accepted as complete (known limitation)");
+    expect(len == 256 + 100 + 2 - MOCK_CHUNK,
+           "the corrupt short profile is accepted at its received length");
+  }
+}
+
 int main(void) {
   check_fill(64);    // exact multiple of the 16-byte notification size
   check_fill(40);    // non-multiple: the final read is a partial (8 bytes)
@@ -561,6 +801,7 @@ int main(void) {
   check_retry();     // issue #394: per-transfer retry recovers from byte loss
   check_retry_terminal();      // cancelled + non-transient: returned, not retried
   check_foreach_call_sites();  // foreach routes COMPACT/HEADER/DIVE through retry
+  check_dive_profile_terminated();  // issue #394: device-terminated DIVE profile
 
   if (failures == 0) {
     printf("All hw_ostc3_read tests passed.\n");

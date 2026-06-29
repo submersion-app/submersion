@@ -164,7 +164,7 @@ class CsvExportService {
         dive.waterTemp?.toStringAsFixed(0) ?? '',
         dive.airTemp?.toStringAsFixed(0) ?? '',
         dive.visibility?.displayName ?? '',
-        dive.diveTypeName,
+        dive.diveTypeNames.join('; '),
         dive.buddy ?? '',
         dive.diveMaster ?? '',
         dive.rating ?? '',

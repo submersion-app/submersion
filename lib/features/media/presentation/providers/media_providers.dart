@@ -14,11 +14,9 @@ final mediaForDiveProvider = FutureProvider.family<List<MediaItem>, String>((
   diveId,
 ) async {
   final repository = ref.watch(mediaRepositoryProvider);
-  final sub = ref
-      .watch(diveRepositoryProvider)
-      .watchDiveDetailChanges()
-      .listen((_) => ref.invalidateSelf());
-  ref.onDispose(sub.cancel);
+  ref.invalidateSelfWhen(
+    ref.watch(diveRepositoryProvider).watchDiveDetailChanges(),
+  );
   return repository.getMediaForDive(diveId);
 });
 

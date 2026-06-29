@@ -9,10 +9,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_reposit
 final gasSwitchesProvider =
     FutureProvider.family<List<GasSwitchWithTank>, String>((ref, diveId) async {
       final repository = ref.watch(diveRepositoryProvider);
-      final sub = repository.watchDiveDetailChanges().listen(
-        (_) => ref.invalidateSelf(),
-      );
-      ref.onDispose(sub.cancel);
+      ref.invalidateSelfWhen(repository.watchDiveDetailChanges());
       return repository.getGasSwitchesForDive(diveId);
     });
 
