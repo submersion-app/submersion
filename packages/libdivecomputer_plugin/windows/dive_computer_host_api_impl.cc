@@ -160,8 +160,27 @@ void DiveComputerHostApiImpl::ParseRawDiveData(
     int64_t model,
     const std::vector<uint8_t>& data,
     std::function<void(ErrorOr<ParsedDive> reply)> result) {
-    result(FlutterError("UNSUPPORTED",
-                        "Raw dive parsing not yet implemented on Windows"));
+    libdc_parsed_dive_t dive = {};
+    char error_buf[256] = {};
+
+    int rc = libdc_parse_raw_dive(
+        vendor.c_str(), product.c_str(),
+        static_cast<unsigned int>(model),
+        data.data(), static_cast<unsigned int>(data.size()),
+        &dive, error_buf, sizeof(error_buf));
+
+    if (rc != 0) {
+        std::string msg = std::string("Failed to parse raw dive data: ") + error_buf;
+        free(dive.samples);
+        free(dive.events);
+        result(FlutterError("PARSE_ERROR", msg));
+        return;
+    }
+
+    auto parsed = ConvertParsedDive(dive);
+    free(dive.samples);
+    free(dive.events);
+    result(parsed);
 }
 
 ErrorOr<std::string> DiveComputerHostApiImpl::GetLibdivecomputerVersion() {
