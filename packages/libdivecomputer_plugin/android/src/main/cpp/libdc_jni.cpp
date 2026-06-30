@@ -228,6 +228,7 @@ static void jni_on_progress(unsigned int current, unsigned int maximum, void *us
 
     jclass cls = env->GetObjectClass(ctx->callback);
     jmethodID method = env->GetMethodID(cls, "onProgress", "(II)V");
+    env->DeleteLocalRef(cls);
     if (method) {
         env->CallVoidMethod(ctx->callback, method,
             static_cast<jint>(current), static_cast<jint>(maximum));
@@ -247,6 +248,7 @@ static void jni_on_dive(const libdc_parsed_dive_t *dive, void *userdata) {
 
     jclass cls = env->GetObjectClass(ctx->callback);
     jmethodID method = env->GetMethodID(cls, "onDive", "(J)V");
+    env->DeleteLocalRef(cls);
     if (method) {
         // Pass the dive pointer so Kotlin can read fields via additional JNI calls.
         env->CallVoidMethod(ctx->callback, method,
@@ -281,6 +283,7 @@ static int jni_io_read(void *userdata, void *data, size_t size, size_t *actual) 
 
     jclass cls = env->GetObjectClass(ctx->ioHandler);
     jmethodID method = env->GetMethodID(cls, "read", "(II)[B");
+    env->DeleteLocalRef(cls);
     if (!method) {
         if (attached) ctx->jvm->DetachCurrentThread();
         return LIBDC_STATUS_IO;
@@ -313,6 +316,7 @@ static int jni_io_read(void *userdata, void *data, size_t size, size_t *actual) 
 
     jsize len = env->GetArrayLength(result);
     env->GetByteArrayRegion(result, 0, len, static_cast<jbyte *>(data));
+    env->DeleteLocalRef(result);
     *actual = static_cast<size_t>(len);
 
     if (attached) ctx->jvm->DetachCurrentThread();
@@ -330,6 +334,7 @@ static int jni_io_write(void *userdata, const void *data, size_t size, size_t *a
 
     jclass cls = env->GetObjectClass(ctx->ioHandler);
     jmethodID method = env->GetMethodID(cls, "write", "([BI)I");
+    env->DeleteLocalRef(cls);
     if (!method) {
         if (attached) ctx->jvm->DetachCurrentThread();
         return LIBDC_STATUS_IO;
@@ -341,6 +346,7 @@ static int jni_io_write(void *userdata, const void *data, size_t size, size_t *a
 
     jint result = env->CallIntMethod(ctx->ioHandler, method, arr,
         static_cast<jint>(ctx->timeout_ms));
+    env->DeleteLocalRef(arr);
 
     if (result < 0) {
         *actual = 0;
@@ -370,6 +376,7 @@ static int jni_io_configure(void *userdata, unsigned int baudrate,
 
     jclass cls = env->GetObjectClass(ctx->ioHandler);
     jmethodID method = env->GetMethodID(cls, "configure", "(IIIII)I");
+    env->DeleteLocalRef(cls);
     int status = LIBDC_STATUS_UNSUPPORTED;
     if (method != nullptr) {
         jint r = env->CallIntMethod(ctx->ioHandler, method,
@@ -396,6 +403,7 @@ static int jni_io_set_modem_line(JniIoContext *ctx, const char *methodName,
 
     jclass cls = env->GetObjectClass(ctx->ioHandler);
     jmethodID method = env->GetMethodID(cls, methodName, "(I)I");
+    env->DeleteLocalRef(cls);
     int status = LIBDC_STATUS_UNSUPPORTED;
     if (method != nullptr) {
         jint r = env->CallIntMethod(ctx->ioHandler, method, static_cast<jint>(value));
@@ -488,6 +496,7 @@ static int jni_io_ioctl(void *userdata, unsigned int request,
         }
 
         if (jPin != nullptr) env->DeleteLocalRef(jPin);
+        env->DeleteLocalRef(cls);
         if (attached) ctx->jvm->DetachCurrentThread();
         return status;
     }
@@ -548,6 +557,7 @@ static int jni_io_ioctl(void *userdata, unsigned int request,
         }
 
         env->DeleteLocalRef(jAddress);
+        env->DeleteLocalRef(cls);
         if (attached) ctx->jvm->DetachCurrentThread();
         return status;
     }
@@ -566,6 +576,7 @@ static int jni_io_purge(void *userdata, unsigned int direction) {
 
     jclass cls = env->GetObjectClass(ctx->ioHandler);
     jmethodID method = env->GetMethodID(cls, "purge", "(I)V");
+    env->DeleteLocalRef(cls);
     if (method) {
         env->CallVoidMethod(ctx->ioHandler, method, static_cast<jint>(direction));
     }
@@ -585,6 +596,7 @@ static int jni_io_close(void *userdata) {
 
     jclass cls = env->GetObjectClass(ctx->ioHandler);
     jmethodID method = env->GetMethodID(cls, "close", "()V");
+    env->DeleteLocalRef(cls);
     if (method) {
         env->CallVoidMethod(ctx->ioHandler, method);
     }
