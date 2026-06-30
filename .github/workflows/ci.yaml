@@ -254,14 +254,23 @@ jobs:
       - name: Install coverage.py
         run: python3 -m pip install coverage
 
+      - name: Check JNI local-reference hygiene (source)
+        # Source-level guard: no build artifact needed (unlike the APK/mapping
+        # guards), so it runs here. Fails if a libdivecomputer JNI callback
+        # leaks a local ref -> local reference table overflow on a long download
+        # (Mares Puck Pro) -> silent SIGABRT. See issue #318.
+        run: python3 scripts/check_jni_local_refs.py
+
       - name: Run Python guard tests with coverage
         run: |
           mkdir -p coverage
-          guards='scripts/check_proguard_serial_keep.py,scripts/check_native_libs_present.py'
+          guards='scripts/check_proguard_serial_keep.py,scripts/check_native_libs_present.py,scripts/check_jni_local_refs.py'
           python3 -m coverage run --include="$guards" \
             scripts/check_proguard_serial_keep_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/check_native_libs_present_test.py
+          python3 -m coverage run --append --include="$guards" \
+            scripts/check_jni_local_refs_test.py
           python3 -m coverage report -m --include="$guards"
           python3 -m coverage xml --include="$guards" \
             -o coverage/scripts.xml
