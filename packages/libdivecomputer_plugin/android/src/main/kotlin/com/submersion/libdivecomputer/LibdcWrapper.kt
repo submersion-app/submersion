@@ -46,6 +46,11 @@ object LibdcWrapper {
         errorBuf: ByteArray
     ): Int
 
+    // Debug-only: deliberately crash the current process natively (issue #318
+    // process-isolation test). Only ever reached via DiveDownloadService's
+    // __crash_test__ path; never in normal operation.
+    external fun nativeDebugCrash()
+
     // Dive data access (reads fields from a native dive pointer)
     external fun nativeGetDiveYear(divePtr: Long): Int
     external fun nativeGetDiveMonth(divePtr: Long): Int
