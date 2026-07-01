@@ -33,6 +33,13 @@ class BuhlmannAlgorithm {
   /// Current tissue compartments state
   List<TissueCompartment> _compartments;
 
+  /// Deepest GF-low ceiling (metres) reached so far this dive -- the fixed
+  /// anchor for gradient-factor interpolation, mirroring Subsurface's
+  /// `gf_low_pressure_this_dive`. It is a running maximum, never re-derived from
+  /// the current (off-gassing) tissue state, so shallow stops interpolate toward
+  /// GF-high instead of collapsing to GF-low.
+  double _gfLowCeilingAnchor = 0.0;
+
   BuhlmannAlgorithm({
     this.gfLow = 0.30,
     this.gfHigh = 0.70,
@@ -73,12 +80,15 @@ class BuhlmannAlgorithm {
   /// Reset compartments to surface-saturated state.
   void reset() {
     _compartments = _createSurfaceSaturatedCompartments();
+    _gfLowCeilingAnchor = 0.0;
   }
 
   /// Set compartments to a specific state (for loading from saved data).
   void setCompartments(List<TissueCompartment> compartments) {
     if (compartments.length == zhl16CompartmentCount) {
       _compartments = List.from(compartments);
+      _gfLowCeilingAnchor = 0.0;
+      _updateGfAnchor();
     }
   }
 
@@ -123,6 +133,20 @@ class BuhlmannAlgorithm {
     }
 
     _compartments = newCompartments;
+    _updateGfAnchor();
+  }
+
+  /// Grow the GF-low anchor to the current deepest GF-low ceiling. Runs after
+  /// every loading step so it records the dive's deepest stop; it only ever
+  /// increases. Simulated look-ahead (NDL, deco schedule) saves/restores it so
+  /// their transient loading cannot pollute it.
+  void _updateGfAnchor() {
+    double ceiling = 0;
+    for (final comp in _compartments) {
+      final c = comp.ceiling(gf: gfLow);
+      if (c > ceiling) ceiling = c;
+    }
+    if (ceiling > _gfLowCeilingAnchor) _gfLowCeilingAnchor = ceiling;
   }
 
   /// Schreiner equation for gas loading/unloading.
@@ -168,30 +192,16 @@ class BuhlmannAlgorithm {
   double _interpolateGf(double currentDepth) {
     if (currentDepth <= 0) return gfHigh;
 
-    final firstStopDepth = _findFirstStopDepth();
-    if (firstStopDepth <= 0) return gfHigh;
+    // Anchor GF-low at the dive's deepest ceiling, fixed for the whole ascent
+    // (Subsurface's gf_low_pressure_this_dive), not the current stop.
+    final anchorDepth = _gfLowCeilingAnchor;
+    if (anchorDepth <= 0) return gfHigh;
 
-    if (currentDepth >= firstStopDepth) return gfLow;
+    if (currentDepth >= anchorDepth) return gfLow;
 
-    // Linear interpolation
-    final ratio = currentDepth / firstStopDepth;
+    // Linear interpolation from GF-low at the anchor to GF-high at the surface.
+    final ratio = currentDepth / anchorDepth;
     return gfHigh - (gfHigh - gfLow) * ratio;
-  }
-
-  /// Find the depth of the first required stop.
-  double _findFirstStopDepth() {
-    double maxCeiling = 0;
-
-    for (final comp in _compartments) {
-      final ceiling = comp.ceiling(gf: gfLow);
-      if (ceiling > maxCeiling) {
-        maxCeiling = ceiling;
-      }
-    }
-
-    // Round up to next stop depth
-    if (maxCeiling <= 0) return 0;
-    return (maxCeiling / stopIncrement).ceil() * stopIncrement;
   }
 
   /// Calculate ceiling using GF High only (for NDL/deco obligation checks).
@@ -239,6 +249,7 @@ class BuhlmannAlgorithm {
 
     // Create a copy of current compartments for simulation
     final savedCompartments = List<TissueCompartment>.from(_compartments);
+    final savedAnchor = _gfLowCeilingAnchor;
 
     while (high - low > 1) {
       final mid = (low + high) ~/ 2;
@@ -262,8 +273,9 @@ class BuhlmannAlgorithm {
       }
     }
 
-    // Restore original compartments
+    // Restore original compartments and anchor.
     _compartments = savedCompartments;
+    _gfLowCeilingAnchor = savedAnchor;
 
     return low;
   }
@@ -283,11 +295,13 @@ class BuhlmannAlgorithm {
 
     // Create working copy of compartments
     final savedCompartments = List<TissueCompartment>.from(_compartments);
+    final savedAnchor = _gfLowCeilingAnchor;
 
     // Find first stop depth
     final double ceiling = calculateCeiling(currentDepth: currentDepth);
     if (ceiling <= 0) {
       _compartments = savedCompartments;
+      _gfLowCeilingAnchor = savedAnchor;
       return stops; // No deco required
     }
 
@@ -326,8 +340,9 @@ class BuhlmannAlgorithm {
       currentStopDepth = nextStop;
     }
 
-    // Restore original compartments
+    // Restore original compartments and anchor.
     _compartments = savedCompartments;
+    _gfLowCeilingAnchor = savedAnchor;
 
     return stops;
   }
@@ -344,6 +359,7 @@ class BuhlmannAlgorithm {
     while (stopTime < maxStopTime) {
       // Calculate ceiling after 1 minute at stop
       final testCompartments = List<TissueCompartment>.from(_compartments);
+      final testAnchor = _gfLowCeilingAnchor;
 
       calculateSegment(
         depthMeters: stopDepth,
@@ -352,10 +368,20 @@ class BuhlmannAlgorithm {
         fHe: fHe,
       );
 
-      final ceiling = calculateCeiling(currentDepth: stopDepth);
+      // Leave the stop once the diver may ascend to the NEXT (shallower) stop:
+      // evaluate the ceiling at the gradient factor for that shallower depth,
+      // matching Subsurface's trial_ascent (tissue tolerance at the target
+      // stoplevel), with GF-low anchored at the dive's deepest ceiling. At the
+      // last stop the next level is the surface, where the GF is GF-high -- the
+      // same criterion the deco-cleared check uses -- so TTS counts down to
+      // surfacing instead of collapsing in one sample.
+      final ceiling = calculateCeiling(currentDepth: nextStopDepth);
 
-      // Restore for next iteration
+      // Restore for next iteration. The trial minute must not leak into
+      // persistent state: restore the anchor too, otherwise a trial minute that
+      // is never taken (the break below) could permanently grow the anchor.
       _compartments = testCompartments;
+      _gfLowCeilingAnchor = testAnchor;
 
       if (ceiling <= nextStopDepth) {
         break;

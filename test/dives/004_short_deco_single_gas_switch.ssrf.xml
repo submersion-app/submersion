@@ -1,0 +1,269 @@
+<divelog program='subsurface' version='3'>
+<settings>
+</settings>
+<divesites>
+<site uuid='a1b2c3d4' name='Test Wall / Ideal Deco' gps='0.000000 0.000000'>
+</site>
+</divesites>
+<dives>
+<dive number='1' rating='5' divesiteid='a1b2c3d4' date='2026-06-02' time='10:00:00' duration='40:50 min'>
+  <cylinder size='24.0 l' workpressure='232.0 bar' description='Back gas (air)' />
+  <cylinder size='11.0 l' workpressure='232.0 bar' description='Deco EAN50' o2='50.0%' />
+  <divecomputer model='Submersion Test' deviceid='00000001' diveid='0a1b2c3d'>
+  <depth max='45.0 m' mean='30.0 m' />
+  <temperature water='20.0 C' />
+  <surface pressure='1.013 bar' />
+  <water salinity='1030 g/l' />
+  <extradata key='Deco model' value='GF 50/75' />
+  <extradata key='Divemode' value='OC Technical' />
+  <event time='0:10 min' type='25' flags='2' name='gaschange' cylinder='0' />
+  <event time='24:30 min' type='25' flags='1' name='gaschange' cylinder='1' o2='50.0%' />
+  <sample time='0:10 min' depth='0.0 m' ndl='45:00 min' tts='2:00 min' />
+  <sample time='0:20 min' depth='3.2 m' ndl='40:00 min' tts='3:00 min' />
+  <sample time='0:30 min' depth='6.4 m' ndl='35:00 min' tts='3:00 min' />
+  <sample time='0:40 min' depth='9.6 m' ndl='31:00 min' tts='4:00 min' />
+  <sample time='0:50 min' depth='12.9 m' ndl='26:00 min' tts='5:00 min' />
+  <sample time='1:00 min' depth='16.1 m' ndl='21:00 min' tts='6:00 min' />
+  <sample time='1:10 min' depth='19.3 m' ndl='16:00 min' tts='6:00 min' />
+  <sample time='1:20 min' depth='22.5 m' ndl='11:00 min' tts='7:00 min' />
+  <sample time='1:30 min' depth='25.7 m' ndl='6:00 min' tts='8:00 min' />
+  <sample time='1:40 min' depth='28.9 m' ndl='2:00 min' tts='8:00 min' />
+  <sample time='1:50 min' depth='32.1 m' in_deco='1' tts='9:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='2:00 min' depth='35.4 m' in_deco='1' tts='10:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='2:10 min' depth='38.6 m' in_deco='1' tts='11:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='2:20 min' depth='41.8 m' in_deco='1' tts='11:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='2:30 min' depth='45.0 m' in_deco='1' tts='12:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='2:40 min' depth='45.0 m' in_deco='1' tts='12:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='2:50 min' depth='45.0 m' in_deco='1' tts='12:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='3:00 min' depth='45.0 m' in_deco='1' tts='12:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='3:10 min' depth='45.0 m' in_deco='1' tts='12:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='3:20 min' depth='45.0 m' in_deco='1' tts='12:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='3:30 min' depth='45.0 m' in_deco='1' tts='12:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='3:40 min' depth='45.0 m' in_deco='1' tts='12:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='3:50 min' depth='45.0 m' in_deco='1' tts='12:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='4:00 min' depth='45.0 m' in_deco='1' tts='12:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='4:10 min' depth='45.0 m' in_deco='1' tts='12:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='4:20 min' depth='45.0 m' in_deco='1' tts='13:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='4:30 min' depth='45.0 m' in_deco='1' tts='13:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='4:40 min' depth='45.0 m' in_deco='1' tts='13:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='4:50 min' depth='45.0 m' in_deco='1' tts='13:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='5:00 min' depth='45.0 m' in_deco='1' tts='13:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='5:10 min' depth='45.0 m' in_deco='1' tts='13:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='5:20 min' depth='45.0 m' in_deco='1' tts='13:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='5:30 min' depth='45.0 m' in_deco='1' tts='13:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='5:40 min' depth='45.0 m' in_deco='1' tts='13:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='5:50 min' depth='45.0 m' in_deco='1' tts='13:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='6:00 min' depth='45.0 m' in_deco='1' tts='13:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='6:10 min' depth='45.0 m' in_deco='1' tts='13:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='6:20 min' depth='45.0 m' in_deco='1' tts='13:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='6:30 min' depth='45.0 m' in_deco='1' tts='13:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='6:40 min' depth='45.0 m' in_deco='1' tts='13:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='6:50 min' depth='45.0 m' in_deco='1' tts='13:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='7:00 min' depth='45.0 m' in_deco='1' tts='13:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='7:10 min' depth='45.0 m' in_deco='1' tts='13:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='7:20 min' depth='45.0 m' in_deco='1' tts='13:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='7:30 min' depth='45.0 m' in_deco='1' tts='14:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='7:40 min' depth='45.0 m' in_deco='1' tts='14:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='7:50 min' depth='45.0 m' in_deco='1' tts='14:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='8:00 min' depth='45.0 m' in_deco='1' tts='14:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='8:10 min' depth='45.0 m' in_deco='1' tts='14:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='8:20 min' depth='45.0 m' in_deco='1' tts='14:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='8:30 min' depth='45.0 m' in_deco='1' tts='14:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='8:40 min' depth='45.0 m' in_deco='1' tts='14:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='8:50 min' depth='45.0 m' in_deco='1' tts='14:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='9:00 min' depth='45.0 m' in_deco='1' tts='14:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='9:10 min' depth='45.0 m' in_deco='1' tts='14:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='9:20 min' depth='45.0 m' in_deco='1' tts='14:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='9:30 min' depth='45.0 m' in_deco='1' tts='14:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='9:40 min' depth='45.0 m' in_deco='1' tts='14:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='9:50 min' depth='45.0 m' in_deco='1' tts='14:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='10:00 min' depth='45.0 m' in_deco='1' tts='14:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='10:10 min' depth='45.0 m' in_deco='1' tts='14:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='10:20 min' depth='45.0 m' in_deco='1' tts='14:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='10:30 min' depth='45.0 m' in_deco='1' tts='14:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='10:40 min' depth='45.0 m' in_deco='1' tts='14:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='10:50 min' depth='45.0 m' in_deco='1' tts='14:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='11:00 min' depth='45.0 m' in_deco='1' tts='15:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='11:10 min' depth='45.0 m' in_deco='1' tts='15:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='11:20 min' depth='45.0 m' in_deco='1' tts='15:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='11:30 min' depth='45.0 m' in_deco='1' tts='15:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='11:40 min' depth='45.0 m' in_deco='1' tts='15:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='11:50 min' depth='45.0 m' in_deco='1' tts='15:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='12:00 min' depth='45.0 m' in_deco='1' tts='15:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='12:10 min' depth='45.0 m' in_deco='1' tts='15:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='12:20 min' depth='45.0 m' in_deco='1' tts='15:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='12:30 min' depth='45.0 m' in_deco='1' tts='15:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='12:40 min' depth='45.0 m' in_deco='1' tts='15:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='12:50 min' depth='45.0 m' in_deco='1' tts='15:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='13:00 min' depth='45.0 m' in_deco='1' tts='15:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='13:10 min' depth='45.0 m' in_deco='1' tts='15:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='13:20 min' depth='45.0 m' in_deco='1' tts='15:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='13:30 min' depth='45.0 m' in_deco='1' tts='15:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='13:40 min' depth='45.0 m' in_deco='1' tts='15:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='13:50 min' depth='45.0 m' in_deco='1' tts='15:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='14:00 min' depth='45.0 m' in_deco='1' tts='15:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='14:10 min' depth='45.0 m' in_deco='1' tts='16:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='14:20 min' depth='45.0 m' in_deco='1' tts='16:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='14:30 min' depth='45.0 m' in_deco='1' tts='16:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='14:40 min' depth='45.0 m' in_deco='1' tts='16:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='14:50 min' depth='45.0 m' in_deco='1' tts='16:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='15:00 min' depth='45.0 m' in_deco='1' tts='16:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='15:10 min' depth='45.0 m' in_deco='1' tts='16:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='15:20 min' depth='45.0 m' in_deco='1' tts='16:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='15:30 min' depth='45.0 m' in_deco='1' tts='16:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='15:40 min' depth='45.0 m' in_deco='1' tts='16:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='15:50 min' depth='45.0 m' in_deco='1' tts='16:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='16:00 min' depth='45.0 m' in_deco='1' tts='16:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='16:10 min' depth='45.0 m' in_deco='1' tts='16:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='16:20 min' depth='45.0 m' in_deco='1' tts='16:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='16:30 min' depth='45.0 m' in_deco='1' tts='16:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='16:40 min' depth='45.0 m' in_deco='1' tts='16:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='16:50 min' depth='45.0 m' in_deco='1' tts='16:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='17:00 min' depth='45.0 m' in_deco='1' tts='16:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='17:10 min' depth='45.0 m' in_deco='1' tts='16:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='17:20 min' depth='45.0 m' in_deco='1' tts='16:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='17:30 min' depth='45.0 m' in_deco='1' tts='16:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='17:40 min' depth='45.0 m' in_deco='1' tts='17:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='17:50 min' depth='45.0 m' in_deco='1' tts='17:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='18:00 min' depth='45.0 m' in_deco='1' tts='17:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='18:10 min' depth='45.0 m' in_deco='1' tts='17:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='18:20 min' depth='45.0 m' in_deco='1' tts='17:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='18:30 min' depth='45.0 m' in_deco='1' tts='17:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='18:40 min' depth='45.0 m' in_deco='1' tts='17:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='18:50 min' depth='45.0 m' in_deco='1' tts='17:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='19:00 min' depth='45.0 m' in_deco='1' tts='17:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='19:10 min' depth='45.0 m' in_deco='1' tts='17:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='19:20 min' depth='45.0 m' in_deco='1' tts='17:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='19:30 min' depth='45.0 m' in_deco='1' tts='17:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='19:40 min' depth='45.0 m' in_deco='1' tts='17:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='19:50 min' depth='45.0 m' in_deco='1' tts='17:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='20:00 min' depth='45.0 m' in_deco='1' tts='17:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='20:10 min' depth='45.0 m' in_deco='1' tts='17:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='20:20 min' depth='45.0 m' in_deco='1' tts='17:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='20:30 min' depth='45.0 m' in_deco='1' tts='17:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='20:40 min' depth='45.0 m' in_deco='1' tts='17:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='20:50 min' depth='45.0 m' in_deco='1' tts='18:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='21:00 min' depth='45.0 m' in_deco='1' tts='18:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='21:10 min' depth='45.0 m' in_deco='1' tts='18:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='21:20 min' depth='45.0 m' in_deco='1' tts='18:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='21:30 min' depth='45.0 m' in_deco='1' tts='18:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='21:40 min' depth='45.0 m' in_deco='1' tts='18:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='21:50 min' depth='45.0 m' in_deco='1' tts='18:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='22:00 min' depth='45.0 m' in_deco='1' tts='18:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='22:10 min' depth='45.0 m' in_deco='1' tts='18:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='22:20 min' depth='45.0 m' in_deco='1' tts='18:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='22:30 min' depth='45.0 m' in_deco='1' tts='18:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='22:40 min' depth='43.0 m' in_deco='1' tts='18:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='22:50 min' depth='41.0 m' in_deco='1' tts='17:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='23:00 min' depth='39.0 m' in_deco='1' tts='17:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='23:10 min' depth='37.0 m' in_deco='1' tts='17:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='23:20 min' depth='35.0 m' in_deco='1' tts='17:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='23:30 min' depth='33.0 m' in_deco='1' tts='17:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='23:40 min' depth='31.0 m' in_deco='1' tts='17:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='23:50 min' depth='29.0 m' in_deco='1' tts='16:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='24:00 min' depth='27.0 m' in_deco='1' tts='16:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='24:10 min' depth='25.0 m' in_deco='1' tts='16:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='24:20 min' depth='23.0 m' in_deco='1' tts='16:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='24:30 min' depth='21.0 m' in_deco='1' tts='16:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='24:40 min' depth='19.5 m' in_deco='1' tts='16:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='24:50 min' depth='18.0 m' in_deco='1' tts='15:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='25:00 min' depth='18.0 m' in_deco='1' tts='15:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='25:10 min' depth='18.0 m' in_deco='1' tts='15:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='25:20 min' depth='18.0 m' in_deco='1' tts='15:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='25:30 min' depth='18.0 m' in_deco='1' tts='15:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='25:40 min' depth='18.0 m' in_deco='1' tts='15:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='25:50 min' depth='18.0 m' in_deco='1' tts='14:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='26:00 min' depth='16.5 m' in_deco='1' tts='14:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='26:10 min' depth='15.0 m' in_deco='1' tts='14:00 min' stopdepth='15.0 m' stoptime='1:00 min' />
+  <sample time='26:20 min' depth='15.0 m' in_deco='1' tts='14:00 min' stopdepth='15.0 m' stoptime='1:00 min' />
+  <sample time='26:30 min' depth='15.0 m' in_deco='1' tts='14:00 min' stopdepth='15.0 m' stoptime='1:00 min' />
+  <sample time='26:40 min' depth='15.0 m' in_deco='1' tts='14:00 min' stopdepth='15.0 m' stoptime='1:00 min' />
+  <sample time='26:50 min' depth='15.0 m' in_deco='1' tts='13:00 min' stopdepth='15.0 m' stoptime='1:00 min' />
+  <sample time='27:00 min' depth='15.0 m' in_deco='1' tts='13:00 min' stopdepth='15.0 m' stoptime='1:00 min' />
+  <sample time='27:10 min' depth='15.0 m' in_deco='1' tts='13:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='27:20 min' depth='13.5 m' in_deco='1' tts='13:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='27:30 min' depth='12.0 m' in_deco='1' tts='13:00 min' stopdepth='12.0 m' stoptime='2:00 min' />
+  <sample time='27:40 min' depth='12.0 m' in_deco='1' tts='13:00 min' stopdepth='12.0 m' stoptime='2:00 min' />
+  <sample time='27:50 min' depth='12.0 m' in_deco='1' tts='12:00 min' stopdepth='12.0 m' stoptime='2:00 min' />
+  <sample time='28:00 min' depth='12.0 m' in_deco='1' tts='12:00 min' stopdepth='12.0 m' stoptime='2:00 min' />
+  <sample time='28:10 min' depth='12.0 m' in_deco='1' tts='12:00 min' stopdepth='12.0 m' stoptime='2:00 min' />
+  <sample time='28:20 min' depth='12.0 m' in_deco='1' tts='12:00 min' stopdepth='12.0 m' stoptime='2:00 min' />
+  <sample time='28:30 min' depth='12.0 m' in_deco='1' tts='12:00 min' stopdepth='12.0 m' stoptime='1:00 min' />
+  <sample time='28:40 min' depth='12.0 m' in_deco='1' tts='12:00 min' stopdepth='12.0 m' stoptime='1:00 min' />
+  <sample time='28:50 min' depth='12.0 m' in_deco='1' tts='11:00 min' stopdepth='12.0 m' stoptime='1:00 min' />
+  <sample time='29:00 min' depth='12.0 m' in_deco='1' tts='11:00 min' stopdepth='12.0 m' stoptime='1:00 min' />
+  <sample time='29:10 min' depth='12.0 m' in_deco='1' tts='11:00 min' stopdepth='12.0 m' stoptime='1:00 min' />
+  <sample time='29:20 min' depth='12.0 m' in_deco='1' tts='11:00 min' stopdepth='12.0 m' stoptime='1:00 min' />
+  <sample time='29:30 min' depth='12.0 m' in_deco='1' tts='11:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='29:40 min' depth='10.5 m' in_deco='1' tts='11:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='29:50 min' depth='9.0 m' in_deco='1' tts='10:00 min' stopdepth='9.0 m' stoptime='3:00 min' />
+  <sample time='30:00 min' depth='9.0 m' in_deco='1' tts='10:00 min' stopdepth='9.0 m' stoptime='3:00 min' />
+  <sample time='30:10 min' depth='9.0 m' in_deco='1' tts='10:00 min' stopdepth='9.0 m' stoptime='3:00 min' />
+  <sample time='30:20 min' depth='9.0 m' in_deco='1' tts='10:00 min' stopdepth='9.0 m' stoptime='3:00 min' />
+  <sample time='30:30 min' depth='9.0 m' in_deco='1' tts='10:00 min' stopdepth='9.0 m' stoptime='3:00 min' />
+  <sample time='30:40 min' depth='9.0 m' in_deco='1' tts='10:00 min' stopdepth='9.0 m' stoptime='3:00 min' />
+  <sample time='30:50 min' depth='9.0 m' in_deco='1' tts='9:00 min' stopdepth='9.0 m' stoptime='2:00 min' />
+  <sample time='31:00 min' depth='9.0 m' in_deco='1' tts='9:00 min' stopdepth='9.0 m' stoptime='2:00 min' />
+  <sample time='31:10 min' depth='9.0 m' in_deco='1' tts='9:00 min' stopdepth='9.0 m' stoptime='2:00 min' />
+  <sample time='31:20 min' depth='9.0 m' in_deco='1' tts='9:00 min' stopdepth='9.0 m' stoptime='2:00 min' />
+  <sample time='31:30 min' depth='9.0 m' in_deco='1' tts='9:00 min' stopdepth='9.0 m' stoptime='2:00 min' />
+  <sample time='31:40 min' depth='9.0 m' in_deco='1' tts='9:00 min' stopdepth='9.0 m' stoptime='2:00 min' />
+  <sample time='31:50 min' depth='9.0 m' in_deco='1' tts='8:00 min' stopdepth='9.0 m' stoptime='1:00 min' />
+  <sample time='32:00 min' depth='9.0 m' in_deco='1' tts='8:00 min' stopdepth='9.0 m' stoptime='1:00 min' />
+  <sample time='32:10 min' depth='9.0 m' in_deco='1' tts='8:00 min' stopdepth='9.0 m' stoptime='1:00 min' />
+  <sample time='32:20 min' depth='9.0 m' in_deco='1' tts='8:00 min' stopdepth='9.0 m' stoptime='1:00 min' />
+  <sample time='32:30 min' depth='9.0 m' in_deco='1' tts='8:00 min' stopdepth='9.0 m' stoptime='1:00 min' />
+  <sample time='32:40 min' depth='9.0 m' in_deco='1' tts='8:00 min' stopdepth='9.0 m' stoptime='1:00 min' />
+  <sample time='32:50 min' depth='9.0 m' in_deco='1' tts='7:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='33:00 min' depth='7.5 m' in_deco='1' tts='7:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='33:10 min' depth='6.0 m' in_deco='1' tts='7:00 min' stopdepth='6.0 m' stoptime='6:00 min' />
+  <sample time='33:20 min' depth='6.0 m' in_deco='1' tts='7:00 min' stopdepth='6.0 m' stoptime='6:00 min' />
+  <sample time='33:30 min' depth='6.0 m' in_deco='1' tts='7:00 min' stopdepth='6.0 m' stoptime='6:00 min' />
+  <sample time='33:40 min' depth='6.0 m' in_deco='1' tts='7:00 min' stopdepth='6.0 m' stoptime='6:00 min' />
+  <sample time='33:50 min' depth='6.0 m' in_deco='1' tts='6:00 min' stopdepth='6.0 m' stoptime='6:00 min' />
+  <sample time='34:00 min' depth='6.0 m' in_deco='1' tts='6:00 min' stopdepth='6.0 m' stoptime='6:00 min' />
+  <sample time='34:10 min' depth='6.0 m' in_deco='1' tts='6:00 min' stopdepth='6.0 m' stoptime='5:00 min' />
+  <sample time='34:20 min' depth='6.0 m' in_deco='1' tts='6:00 min' stopdepth='6.0 m' stoptime='5:00 min' />
+  <sample time='34:30 min' depth='6.0 m' in_deco='1' tts='6:00 min' stopdepth='6.0 m' stoptime='5:00 min' />
+  <sample time='34:40 min' depth='6.0 m' in_deco='1' tts='6:00 min' stopdepth='6.0 m' stoptime='5:00 min' />
+  <sample time='34:50 min' depth='6.0 m' in_deco='1' tts='5:00 min' stopdepth='6.0 m' stoptime='5:00 min' />
+  <sample time='35:00 min' depth='6.0 m' in_deco='1' tts='5:00 min' stopdepth='6.0 m' stoptime='5:00 min' />
+  <sample time='35:10 min' depth='6.0 m' in_deco='1' tts='5:00 min' stopdepth='6.0 m' stoptime='4:00 min' />
+  <sample time='35:20 min' depth='6.0 m' in_deco='1' tts='5:00 min' stopdepth='6.0 m' stoptime='4:00 min' />
+  <sample time='35:30 min' depth='6.0 m' in_deco='1' tts='5:00 min' stopdepth='6.0 m' stoptime='4:00 min' />
+  <sample time='35:40 min' depth='6.0 m' in_deco='1' tts='5:00 min' stopdepth='6.0 m' stoptime='4:00 min' />
+  <sample time='35:50 min' depth='6.0 m' in_deco='1' tts='4:00 min' stopdepth='6.0 m' stoptime='4:00 min' />
+  <sample time='36:00 min' depth='6.0 m' in_deco='1' tts='4:00 min' stopdepth='6.0 m' stoptime='4:00 min' />
+  <sample time='36:10 min' depth='6.0 m' in_deco='1' tts='4:00 min' stopdepth='6.0 m' stoptime='3:00 min' />
+  <sample time='36:20 min' depth='6.0 m' in_deco='1' tts='4:00 min' stopdepth='6.0 m' stoptime='3:00 min' />
+  <sample time='36:30 min' depth='6.0 m' in_deco='1' tts='4:00 min' stopdepth='6.0 m' stoptime='3:00 min' />
+  <sample time='36:40 min' depth='6.0 m' in_deco='1' tts='4:00 min' stopdepth='6.0 m' stoptime='3:00 min' />
+  <sample time='36:50 min' depth='6.0 m' in_deco='1' tts='3:00 min' stopdepth='6.0 m' stoptime='3:00 min' />
+  <sample time='37:00 min' depth='6.0 m' in_deco='1' tts='3:00 min' stopdepth='6.0 m' stoptime='3:00 min' />
+  <sample time='37:10 min' depth='6.0 m' in_deco='1' tts='3:00 min' stopdepth='6.0 m' stoptime='2:00 min' />
+  <sample time='37:20 min' depth='6.0 m' in_deco='1' tts='3:00 min' stopdepth='6.0 m' stoptime='2:00 min' />
+  <sample time='37:30 min' depth='6.0 m' in_deco='1' tts='3:00 min' stopdepth='6.0 m' stoptime='2:00 min' />
+  <sample time='37:40 min' depth='6.0 m' in_deco='1' tts='3:00 min' stopdepth='6.0 m' stoptime='2:00 min' />
+  <sample time='37:50 min' depth='6.0 m' in_deco='1' tts='2:00 min' stopdepth='6.0 m' stoptime='2:00 min' />
+  <sample time='38:00 min' depth='6.0 m' in_deco='1' tts='2:00 min' stopdepth='6.0 m' stoptime='2:00 min' />
+  <sample time='38:10 min' depth='6.0 m' in_deco='1' tts='2:00 min' stopdepth='6.0 m' stoptime='1:00 min' />
+  <sample time='38:20 min' depth='6.0 m' in_deco='1' tts='2:00 min' stopdepth='6.0 m' stoptime='1:00 min' />
+  <sample time='38:30 min' depth='6.0 m' in_deco='1' tts='2:00 min' stopdepth='6.0 m' stoptime='1:00 min' />
+  <sample time='38:40 min' depth='6.0 m' in_deco='1' tts='2:00 min' stopdepth='6.0 m' stoptime='1:00 min' />
+  <sample time='38:50 min' depth='6.0 m' in_deco='1' tts='1:00 min' stopdepth='6.0 m' stoptime='1:00 min' />
+  <sample time='39:00 min' depth='6.0 m' in_deco='1' tts='1:00 min' stopdepth='6.0 m' stoptime='1:00 min' />
+  <sample time='39:10 min' depth='6.0 m' in_deco='1' tts='1:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='39:20 min' depth='4.5 m' in_deco='1' tts='1:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='39:30 min' depth='3.0 m' in_deco='1' tts='1:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='39:40 min' depth='1.5 m' in_deco='1' tts='1:00 min' stopdepth='18.0 m' stoptime='1:00 min' />
+  <sample time='39:50 min' depth='0.0 m' tts='0:00 min' in_deco='0' stopdepth='0.0 m' />
+  <sample time='40:00 min' depth='0.0 m' tts='0:00 min' in_deco='0' stopdepth='0.0 m' />
+  <sample time='40:10 min' depth='0.0 m' tts='0:00 min' in_deco='0' stopdepth='0.0 m' />
+  <sample time='40:20 min' depth='0.0 m' tts='0:00 min' in_deco='0' stopdepth='0.0 m' />
+  <sample time='40:30 min' depth='0.0 m' tts='0:00 min' in_deco='0' stopdepth='0.0 m' />
+  <sample time='40:40 min' depth='0.0 m' tts='0:00 min' in_deco='0' stopdepth='0.0 m' />
+  <sample time='40:50 min' depth='0.0 m' tts='0:00 min' in_deco='0' stopdepth='0.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
