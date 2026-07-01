@@ -74,7 +74,7 @@ class SerialDownloadRunner(private val context: Context) {
         val buffering = drivers.size > 1
         synchronized(diveBufferLock) { isBufferingDives = buffering; bufferedDives.clear() }
 
-        val downloadCallback = object : LibdcWrapper.DownloadCallback {
+        val downloadCallback = object : DownloadCallback {
             override fun onProgress(current: Int, maximum: Int) {
                 cb.onProgress(current, maximum)
             }
@@ -124,7 +124,7 @@ class SerialDownloadRunner(private val context: Context) {
             NativeTrace.d("nativeDownloadRun returned rc=$result")
             stream.close()
             lastResult = result
-            lastErrorMsg = String(errorBuf).takeWhile { it.code != 0 }
+            lastErrorMsg = String(errorBuf, Charsets.UTF_8).takeWhile { it.code != 0 }
                 .ifEmpty { thrownMsg ?: "Download failed (rc=$result)" }
             if (result == 0 || result == RUNNER_LIBDC_STATUS_CANCELLED) break
             probeLog.append("  ${probeDev.deviceName}: download failed (rc=$result)\n")

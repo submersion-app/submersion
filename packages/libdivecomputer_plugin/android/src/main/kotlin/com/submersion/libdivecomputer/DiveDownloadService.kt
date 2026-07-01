@@ -2,6 +2,7 @@ package com.submersion.libdivecomputer
 
 import android.app.Service
 import android.content.Intent
+import android.content.pm.ApplicationInfo
 import android.os.IBinder
 import java.util.concurrent.Executors
 
@@ -24,7 +25,9 @@ class DiveDownloadService : Service() {
             executor.execute {
                 // Debug-only isolation proof: a reserved vendor triggers a real
                 // native crash so tests can verify :dc dies without killing the app.
-                if (request.vendor == CRASH_TEST_VENDOR) {
+                // Gated on a debuggable build so a production build can NEVER
+                // deliberately SIGSEGV, even if this vendor somehow appears.
+                if (isDebuggable() && request.vendor == CRASH_TEST_VENDOR) {
                     LibdcWrapper.nativeDebugCrash()
                     return@execute
                 }
@@ -50,6 +53,11 @@ class DiveDownloadService : Service() {
     }
 
     override fun onBind(intent: Intent?): IBinder = binder
+
+    // True only for debuggable builds (instrumented tests run against one). A
+    // release build returns false, so the crash hook above is inert in production.
+    private fun isDebuggable(): Boolean =
+        (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
 
     companion object {
         const val CRASH_TEST_VENDOR = "__crash_test__"

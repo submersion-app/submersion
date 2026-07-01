@@ -24,6 +24,12 @@ object DiveMarshaling {
 
     fun decode(bytes: ByteArray): ParsedDive {
         val value = DiveComputerHostApi.codec.decodeMessage(ByteBuffer.wrap(bytes))
-        return value as ParsedDive
+        // Validate rather than blind-cast: an empty/corrupt/incompatible IPC
+        // payload must fail with a clear, catchable exception (the caller on the
+        // main process converts it to an error rather than crashing).
+        return value as? ParsedDive
+            ?: throw IllegalArgumentException(
+                "IPC payload did not decode to a ParsedDive " +
+                    "(got ${value?.javaClass?.simpleName ?: "null"})")
     }
 }

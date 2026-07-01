@@ -34,7 +34,15 @@ class SerialDownloadClient(
             postProgress(current, max)
         }
         override fun onDive(pigeonEncodedDive: ByteArray) {
-            val dive = DiveMarshaling.decode(pigeonEncodedDive)
+            // Decode on the binder thread DEFENSIVELY: a corrupt/incompatible
+            // payload must not throw here -- an uncaught exception on this thread
+            // would kill the main process and defeat the crash-containment goal.
+            val dive = try {
+                DiveMarshaling.decode(pigeonEncodedDive)
+            } catch (t: Throwable) {
+                onError("download_error", "Failed to decode a downloaded dive.")
+                return
+            }
             mainHandler.post { flutterApi.onDiveDownloaded(dive) { } }
         }
         override fun onError(code: String, message: String) {
@@ -72,7 +80,17 @@ class SerialDownloadClient(
     }
 
     fun start(request: SerialDownloadRequest) {
-        if (!inFlight.compareAndSet(false, true)) return
+        if (!inFlight.compareAndSet(false, true)) {
+            // Already running. startDownload already acked success to Flutter, so
+            // report rather than return silently (which would leave the UI waiting
+            // forever with no progress or error).
+            mainHandler.post {
+                flutterApi.onError(DiveComputerError(
+                    code = "download_busy",
+                    message = "A download is already in progress.")) { }
+            }
+            return
+        }
         pending = request
         val intent = Intent(context, DiveDownloadService::class.java)
         val bound = try {
