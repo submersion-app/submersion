@@ -275,6 +275,40 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     return (min: -span, max: span);
   }
 
+  /// Contiguous velocity-band runs over the depth profile, in draw order.
+  ///
+  /// Adjacent samples in the same band merge into one run covering profile
+  /// points `[start, end)` (end exclusive). The ascent-rate at index i describes
+  /// the segment that *ends* at i (index 0 is a zero placeholder), so the first
+  /// drawable run starts at sample 1 and reaches back to point 0. Neighbouring
+  /// runs share their boundary sample, so a run's `start` is the previous run's
+  /// last point.
+  ///
+  /// This is the single source of truth for both velocity colouring
+  /// ([_DiveProfileChartState._buildVelocityColoredDepthLines]) and mapping a
+  /// touched depth spot back to its global profile index: a spot on bar `b` at
+  /// local `spotIndex` addresses profile point `runs[b].start + spotIndex`.
+  @visibleForTesting
+  static List<({int start, int end, AscentRateCategory category})>
+  velocityBandRuns(int profileLength, List<AscentRatePoint> ascentRates) {
+    final runs = <({int start, int end, AscentRateCategory category})>[];
+    var segStart = 1; // first drawable segment connects points 0 and 1
+    while (segStart < profileLength) {
+      var segEnd = segStart;
+      while (segEnd + 1 < profileLength &&
+          ascentRates[segEnd + 1].category == ascentRates[segStart].category) {
+        segEnd++;
+      }
+      runs.add((
+        start: segStart - 1,
+        end: segEnd + 1,
+        category: ascentRates[segStart].category,
+      ));
+      segStart = segEnd + 1;
+    }
+    return runs;
+  }
+
   const DiveProfileChart({
     super.key,
     required this.profile,
@@ -410,6 +444,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         return Colors.red;
     }
   }
+
+  /// Colour for a velocity-coloured depth-line band. The safe/baseline band
+  /// keeps the normal depth blue so the line looks unchanged where the ascent
+  /// is within limits; only the elevated warning/danger bands are recoloured.
+  Color _velocityDepthColor(AscentRateCategory category) =>
+      category == AscentRateCategory.safe
+      ? AppColors.chartDepth
+      : _getAscentRateColor(category);
 
   /// Interpolate tank pressure at a given timestamp
   double? _interpolateTankPressure(
@@ -614,11 +656,22 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   ) {
     if (widget.onTooltipData == null) return;
 
-    final spot = touchedSpots.where((s) => s.barIndex == 0).firstOrNull;
-    if (spot == null || spot.spotIndex >= widget.profile.length) {
+    // The depth line may be split into per-band bars (velocity colouring), so a
+    // touched spot's spotIndex is local to its segment. Resolve it to the global
+    // profile index, then shadow `spot` with that index so every row below reads
+    // the right sample without further changes.
+    final starts = _depthBarStartIndices();
+    final touched = touchedSpots
+        .where((s) => s.barIndex < starts.length)
+        .firstOrNull;
+    final index = touched == null
+        ? -1
+        : starts[touched.barIndex] + touched.spotIndex;
+    if (touched == null || index < 0 || index >= widget.profile.length) {
       widget.onTooltipData!(null);
       return;
     }
+    final spot = (spotIndex: index);
 
     final point = widget.profile[spot.spotIndex];
     final rows = <TooltipRow>[];
@@ -1895,10 +1948,20 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     }
                   } else if (response?.lineBarSpots != null &&
                       response!.lineBarSpots!.isNotEmpty) {
-                    final spot = response.lineBarSpots!.first;
-                    if (spot.barIndex == 0 &&
-                        spot.spotIndex < widget.profile.length) {
-                      widget.onPointSelected?.call(spot.spotIndex);
+                    // Velocity colouring splits the depth line into per-band
+                    // bars; find the touched depth spot on any of them and map
+                    // it back to the global profile index.
+                    final starts = _depthBarStartIndices();
+                    final depthSpot = response.lineBarSpots!
+                        .where((s) => s.barIndex < starts.length)
+                        .firstOrNull;
+                    final index = depthSpot == null
+                        ? -1
+                        : starts[depthSpot.barIndex] + depthSpot.spotIndex;
+                    if (depthSpot != null &&
+                        index >= 0 &&
+                        index < widget.profile.length) {
+                      widget.onPointSelected?.call(index);
                       if (widget.tooltipBelow) {
                         final settings = ref.read(settingsProvider);
                         final units = UnitFormatter(settings);
@@ -1930,33 +1993,48 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   if (widget.tooltipBelow) {
                     return touchedSpots.map((_) => null).toList();
                   }
-                  // Return cached result if the same spot index is touched again.
-                  // The cache is keyed on spotIndex, but the cached list length
-                  // equals the number of touched bars when it was built. fl_chart
-                  // requires the returned list to match touchedSpots.length, so
-                  // the cache is only valid while the bar count is unchanged --
-                  // the set of rendered lines can change under a parked cursor
-                  // (a metric toggled, or a data provider refreshing), and a
-                  // stale-length cached list throws
+                  // Resolve the touched depth spot to a global profile index.
+                  // Velocity colouring splits the depth line into per-band bars,
+                  // so the depth spot can land on any bar in [0, starts.length)
+                  // and its spotIndex is local to that bar.
+                  final depthBarStarts = _depthBarStartIndices();
+                  final depthSpot = touchedSpots
+                      .where((s) => s.barIndex < depthBarStarts.length)
+                      .firstOrNull;
+                  final depthIndex = depthSpot == null
+                      ? -1
+                      : depthBarStarts[depthSpot.barIndex] +
+                            depthSpot.spotIndex;
+                  final hasDepth =
+                      depthSpot != null &&
+                      depthIndex >= 0 &&
+                      depthIndex < widget.profile.length;
+
+                  // Return cached result if the same sample is touched again.
+                  // The cache is keyed on the resolved depth index, but the
+                  // cached list length equals the number of touched bars when it
+                  // was built. fl_chart requires the returned list to match
+                  // touchedSpots.length, so the cache is only valid while the bar
+                  // count is unchanged -- the set of rendered lines can change
+                  // under a parked cursor (a metric toggled, or a data provider
+                  // refreshing), and a stale-length cached list throws
                   // 'tooltipItems and touchedSpots size should be same'.
-                  if (touchedSpots.isNotEmpty) {
-                    final firstDepthSpot = touchedSpots
-                        .where((s) => s.barIndex == 0)
-                        .firstOrNull;
-                    if (firstDepthSpot != null &&
-                        firstDepthSpot.spotIndex == _lastTooltipSpotIndex &&
-                        _lastTooltipItems.length == touchedSpots.length) {
-                      return _lastTooltipItems;
-                    }
+                  if (hasDepth &&
+                      depthIndex == _lastTooltipSpotIndex &&
+                      _lastTooltipItems.length == touchedSpots.length) {
+                    return _lastTooltipItems;
                   }
 
-                  // Build tooltip showing all enabled metrics for the touched point
-                  // Only process the depth line (barIndex 0) and build combined tooltip
-                  final result = touchedSpots.map((spot) {
-                    final isDepth = spot.barIndex == 0;
-                    if (!isDepth) {
+                  // Build the combined tooltip from the resolved depth spot; all
+                  // other touched bars contribute a null entry so the returned
+                  // list still matches touchedSpots.length. `spot` is shadowed
+                  // with the global index so every metric row reads the right
+                  // sample.
+                  final result = touchedSpots.map((touched) {
+                    if (!hasDepth || !identical(touched, depthSpot)) {
                       return null;
                     }
+                    final spot = (spotIndex: depthIndex);
 
                     final point = widget.profile[spot.spotIndex];
                     final minutes = point.timestamp ~/ 60;
@@ -2458,12 +2536,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     );
                   }).toList();
 
-                  // Cache the result for next frame
-                  final depthSpot = touchedSpots
-                      .where((s) => s.barIndex == 0)
-                      .firstOrNull;
-                  if (depthSpot != null) {
-                    _lastTooltipSpotIndex = depthSpot.spotIndex;
+                  // Cache the result for next frame, keyed on the resolved
+                  // global depth index (see the resolution above).
+                  if (hasDepth) {
+                    _lastTooltipSpotIndex = depthIndex;
                     _lastTooltipItems = result;
                   }
 
@@ -2775,30 +2851,45 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     UnitFormatter units,
     List<AscentRatePoint> ascentRates,
   ) {
-    final n = widget.profile.length;
-    final lines = <LineChartBarData>[];
-    var segStart = 1; // first drawable segment connects points 0 and 1
-    while (segStart < n) {
-      var segEnd = segStart;
-      while (segEnd + 1 < n &&
-          ascentRates[segEnd + 1].category == ascentRates[segStart].category) {
-        segEnd++;
-      }
-      // Segments [segStart..segEnd] cover points [segStart-1 .. segEnd]; the
-      // sublist end is exclusive, so segEnd + 1 includes point segEnd. Adjacent
-      // runs share their boundary sample, so the coloured pieces join cleanly.
-      lines.add(
-        _buildSingleDepthSegment(
-          _getAscentRateColor(ascentRates[segStart].category),
-          units,
-          segStart - 1,
-          segEnd + 1,
-          showFill: true,
-        ),
-      );
-      segStart = segEnd + 1;
+    // One coloured bar per band. [DiveProfileChart.velocityBandRuns] is the
+    // shared source of truth so the tooltip's spot-to-sample mapping and this
+    // rendering never disagree on where a segment starts.
+    return DiveProfileChart.velocityBandRuns(widget.profile.length, ascentRates)
+        .map(
+          (run) => _buildSingleDepthSegment(
+            _velocityDepthColor(run.category),
+            units,
+            run.start,
+            run.end,
+            showFill: true,
+          ),
+        )
+        .toList();
+  }
+
+  /// Global profile start index of each depth-line bar, in bar order.
+  ///
+  /// Depth bars always occupy `barIndex` `[0, length)`. A touched spot on bar
+  /// `b` at local `spotIndex` addresses profile point `result[b] + spotIndex`.
+  /// The depth line is a single full-span bar in the common case (and for
+  /// multi-computer rendering, where only the primary line maps to
+  /// [widget.profile]); velocity colouring splits it into one bar per band.
+  /// Mirrors the branching in [_buildGasColoredDepthLines].
+  List<int> _depthBarStartIndices() {
+    final cpProfiles = widget.computerProfiles;
+    final multiComputer = cpProfiles != null && cpProfiles.length >= 2;
+    final ascentRates = widget.ascentRates;
+    if (!multiComputer &&
+        _showAscentRateColors &&
+        ascentRates != null &&
+        ascentRates.length == widget.profile.length &&
+        widget.profile.length >= 2) {
+      return DiveProfileChart.velocityBandRuns(
+        widget.profile.length,
+        ascentRates,
+      ).map((run) => run.start).toList();
     }
-    return lines;
+    return const [0];
   }
 
   /// Build one depth line per computer for multi-computer rendering.
