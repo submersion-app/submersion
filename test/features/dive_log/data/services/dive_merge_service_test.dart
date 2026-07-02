@@ -314,5 +314,59 @@ void main() {
         expect(tombstones, isNotEmpty);
       },
     );
+
+    test('apply + undo round-trip works with foreign_keys ON '
+        '(production path)', () async {
+      await db.customStatement('PRAGMA foreign_keys = ON');
+
+      // Seed every catalog row seedDive's children reference, so seeding
+      // itself passes immediate FK enforcement.
+      await db
+          .into(db.divers)
+          .insert(
+            const DiversCompanion(
+              id: Value('diver1'),
+              name: Value('diver1'),
+              createdAt: Value(0),
+              updatedAt: Value(0),
+            ),
+          );
+      await db
+          .into(db.buddies)
+          .insert(
+            const BuddiesCompanion(
+              id: Value('buddy-cat-1'),
+              name: Value('buddy-cat-1'),
+              createdAt: Value(0),
+              updatedAt: Value(0),
+            ),
+          );
+      await db
+          .into(db.species)
+          .insert(
+            const SpeciesCompanion(
+              id: Value('turtle'),
+              commonName: Value('Turtle'),
+              category: Value('reptile'),
+            ),
+          );
+
+      await seedDive('a', entry: DateTime.utc(2026, 7, 1, 9));
+      await seedDive('b', entry: DateTime.utc(2026, 7, 1, 10));
+
+      final outcome = await service.apply(['a', 'b']);
+      await service.undo(outcome.snapshot);
+
+      final after = await (db.select(
+        db.dives,
+      )..orderBy([(t) => OrderingTerm.asc(t.id)])).get();
+      expect(after.map((r) => r.id), ['a', 'b']);
+      final tanks = await db.select(db.diveTanks).get();
+      expect(tanks.map((t) => t.id).toSet(), {'tank-a', 'tank-b'});
+      // tankPressureProfiles.tankId is an FK into diveTanks: these rows only
+      // restore if the parent tanks were re-inserted first.
+      final pressures = await db.select(db.tankPressureProfiles).get();
+      expect(pressures.map((p) => p.id).toSet(), {'tp-a', 'tp-b'});
+    });
   });
 }

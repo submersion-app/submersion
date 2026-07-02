@@ -446,6 +446,21 @@ class DiveMergeService {
         );
       }
 
+      // Tanks BEFORE the batch below: tankPressureProfiles.tankId (and
+      // gasSwitches.tankId further down) are FKs into diveTanks, and FK
+      // enforcement is immediate under `PRAGMA foreign_keys = ON`, so the
+      // parent tank rows must exist before any row that references them.
+      for (final r in snapshot.tankRows) {
+        await _db
+            .into(_db.diveTanks)
+            .insert(r.toCompanion(false), mode: InsertMode.insertOrReplace);
+        await _sync.markRecordPending(
+          entityType: 'diveTanks',
+          recordId: r.id,
+          localUpdatedAt: now,
+        );
+      }
+
       // Child rows verbatim (original ids never collide with merge output:
       // merged children all had fresh ids).
       await _db.batch((batch) {
@@ -485,16 +500,6 @@ class DiveMergeService {
           );
         }
       });
-      for (final r in snapshot.tankRows) {
-        await _db
-            .into(_db.diveTanks)
-            .insert(r.toCompanion(false), mode: InsertMode.insertOrReplace);
-        await _sync.markRecordPending(
-          entityType: 'diveTanks',
-          recordId: r.id,
-          localUpdatedAt: now,
-        );
-      }
       for (final r in snapshot.weightRows) {
         await _db
             .into(_db.diveWeights)
