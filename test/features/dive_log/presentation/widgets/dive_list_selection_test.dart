@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_content.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -196,8 +197,14 @@ void main() {
     await tester.tap(find.text('Combine into one dive'));
     await tester.pumpAndSettle();
 
-    // The merged dive replaced the sources and becomes the list selection.
+    // The merged dive replaced the sources and becomes the list selection:
+    // both the detail pane (onItemSelected) and the list-row highlight
+    // (highlightedDiveIdProvider) must point at the merged dive.
     expect(selections, isNotEmpty);
     expect(selections.last, 'merged-1');
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(DiveListContent)),
+    );
+    expect(container.read(highlightedDiveIdProvider), 'merged-1');
   });
 }

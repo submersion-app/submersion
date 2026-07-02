@@ -378,10 +378,13 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     );
     if (outcome == null || !mounted) return;
 
-    // The merged dive replaced the sources; make it the list selection so
-    // the detail pane shows the combined result immediately.
-    widget.onItemSelected?.call(outcome.mergedDive.id);
+    // Select the merged dive the same way a list tap does: highlight its row
+    // (highlightedDiveIdProvider) AND open it in the detail pane
+    // (onItemSelected). Deliberately do NOT set _selectionFromList, so
+    // didUpdateWidget scrolls the newly created row into view.
     _exitSelectionMode();
+    ref.read(highlightedDiveIdProvider.notifier).state = outcome.mergedDive.id;
+    widget.onItemSelected?.call(outcome.mergedDive.id);
     _lastMergeOutcome = outcome;
     _refreshAfterMerge();
 
@@ -413,9 +416,13 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               _refreshAfterMerge();
               if (mounted) {
                 // The merged dive no longer exists; clear it from the detail
-                // pane if it is still the selection.
+                // pane and the row highlight if it is still selected.
                 if (widget.selectedId == toUndo.mergedDive.id) {
                   widget.onItemSelected?.call(null);
+                }
+                if (ref.read(highlightedDiveIdProvider) ==
+                    toUndo.mergedDive.id) {
+                  ref.read(highlightedDiveIdProvider.notifier).state = null;
                 }
                 scaffoldMessenger.showSnackBar(
                   SnackBar(
