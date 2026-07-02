@@ -2,6 +2,9 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    as domain;
 
 import '../../../../helpers/test_database.dart';
 
@@ -541,6 +544,296 @@ void main() {
       expect(newId, isNotEmpty);
       expect(newId, isNot(equals(diveId)));
     });
+  });
+
+  // ---------------------------------------------------------------------------
+  // unlinkComputer moves attributed children (Task 6)
+  // ---------------------------------------------------------------------------
+
+  group('unlinkComputer moves attributed children', () {
+    // These scenarios exercise the real computerId FK (dive_tanks,
+    // tank_pressure_profiles, dive_profile_events all reference
+    // dive_computers with onDelete: setNull), so — unlike the rest of this
+    // file, which leaves computerId null to dodge the FK — DiveComputers
+    // rows must exist. PRAGMA foreign_keys=ON is the default connection
+    // state (AppDatabase.beforeOpen), so no explicit pragma toggle is
+    // needed here.
+
+    Future<void> insertComputer(String id) async {
+      await db
+          .into(db.diveComputers)
+          .insert(
+            DiveComputersCompanion.insert(
+              id: id,
+              name: id,
+              createdAt: 0,
+              updatedAt: 0,
+            ),
+          );
+    }
+
+    domain.DiveTank tank(
+      String id, {
+      required double o2,
+      double he = 0,
+      double? start,
+      double? end,
+      int order = 0,
+    }) => domain.DiveTank(
+      id: id,
+      gasMix: domain.GasMix(o2: o2, he: he),
+      startPressure: start,
+      endPressure: end,
+      order: order,
+    );
+
+    Future<void> seedConsolidatedDive({
+      required String targetId,
+      required String secondaryId,
+    }) async {
+      await insertComputer('comp-t');
+      await insertComputer('comp-s');
+
+      await repository.createDive(
+        domain.Dive(
+          id: targetId,
+          dateTime: DateTime.utc(2026, 7, 1, 9),
+          entryTime: DateTime.utc(2026, 7, 1, 9),
+          runtime: const Duration(minutes: 30),
+          maxDepth: 18,
+          tanks: [
+            tank('tank-t1', o2: 21, start: 200, end: 100, order: 0),
+            tank('tank-t2', o2: 32, start: 200, end: 120, order: 1),
+          ],
+        ),
+      );
+      await (db.update(db.dives)..where((t) => t.id.equals(targetId))).write(
+        const DivesCompanion(computerId: Value('comp-t')),
+      );
+
+      await repository.createDive(
+        domain.Dive(
+          id: secondaryId,
+          dateTime: DateTime.utc(2026, 7, 1, 9, 1),
+          entryTime: DateTime.utc(2026, 7, 1, 9, 1),
+          runtime: const Duration(minutes: 30),
+          maxDepth: 17,
+          tanks: [
+            // Dedupable: same gas, pressures within the 5 bar tolerance of
+            // tank-t1.
+            tank('tank-s1', o2: 21, start: 205, end: 105, order: 0),
+            // Not dedupable: different gas mix.
+            tank('tank-s2', o2: 100, start: 200, end: 150, order: 1),
+          ],
+        ),
+      );
+      await (db.update(db.dives)..where((t) => t.id.equals(secondaryId))).write(
+        const DivesCompanion(computerId: Value('comp-s')),
+      );
+
+      await db
+          .into(db.tankPressureProfiles)
+          .insert(
+            TankPressureProfilesCompanion.insert(
+              id: 'tp-t1',
+              diveId: targetId,
+              tankId: 'tank-t1',
+              timestamp: 60,
+              pressure: 190,
+            ),
+          );
+      await db
+          .into(db.tankPressureProfiles)
+          .insert(
+            TankPressureProfilesCompanion.insert(
+              id: 'tp-s1',
+              diveId: secondaryId,
+              tankId: 'tank-s1',
+              timestamp: 60,
+              pressure: 195,
+            ),
+          );
+      await db
+          .into(db.tankPressureProfiles)
+          .insert(
+            TankPressureProfilesCompanion.insert(
+              id: 'tp-s2',
+              diveId: secondaryId,
+              tankId: 'tank-s2',
+              timestamp: 60,
+              pressure: 195,
+            ),
+          );
+
+      await db
+          .into(db.diveProfileEvents)
+          .insert(
+            DiveProfileEventsCompanion.insert(
+              id: 'event-s1',
+              diveId: secondaryId,
+              timestamp: 30,
+              eventType: 'gaschange',
+              createdAt: 0,
+            ).copyWith(tankId: const Value('tank-s1')),
+          );
+
+      final consolidation = DiveConsolidationService(repository);
+      await consolidation.apply(
+        targetDiveId: targetId,
+        secondaryDiveIds: [secondaryId],
+      );
+    }
+
+    test('moves the secondary computer\'s tanks, pressures, and events to the '
+        'new dive, cloning the shared tank for its pressure curve', () async {
+      await seedConsolidatedDive(targetId: 'dive-t', secondaryId: 'dive-s');
+
+      // Locate the secondary's data source row (fresh id, synthesized by
+      // consolidation) and its freshly-created (non-deduped) tank.
+      final readings = await repository.getDataSources('dive-t');
+      final secondaryReading = readings.firstWhere(
+        (r) => r.computerId == 'comp-s',
+      );
+
+      final tanksBeforeUnlink = await (db.select(
+        db.diveTanks,
+      )..where((t) => t.diveId.equals('dive-t'))).get();
+      expect(tanksBeforeUnlink, hasLength(3)); // tank-t1, tank-t2, fresh
+      final freshTank = tanksBeforeUnlink.firstWhere(
+        (t) => t.computerId == 'comp-s',
+      );
+      expect(freshTank.id, isNot(equals('tank-s1')));
+      expect(freshTank.id, isNot(equals('tank-s2')));
+
+      final newDiveId = await repository.unlinkComputer(
+        diveId: 'dive-t',
+        computerReadingId: secondaryReading.id,
+      );
+
+      // -- Tanks -------------------------------------------------------
+      final newDiveTanks = await (db.select(
+        db.diveTanks,
+      )..where((t) => t.diveId.equals(newDiveId))).get();
+      // The fresh (non-shared) tank moves outright; the shared tank gets
+      // a clone attributed to the unlinked computer.
+      expect(newDiveTanks, hasLength(2));
+      expect(newDiveTanks.every((t) => t.computerId == 'comp-s'), isTrue);
+      expect(newDiveTanks.map((t) => t.id), contains(freshTank.id));
+      final clone = newDiveTanks.firstWhere((t) => t.id != freshTank.id);
+      expect(clone.id, isNot(equals('tank-t1')));
+      expect(clone.o2Percent, equals(21.0));
+      expect(clone.hePercent, equals(0.0));
+      expect(clone.startPressure, equals(200.0));
+      expect(clone.endPressure, equals(100.0));
+
+      // The shared tank stays on the original dive, still attributed to
+      // the primary computer.
+      final originalTanks = await (db.select(
+        db.diveTanks,
+      )..where((t) => t.diveId.equals('dive-t'))).get();
+      expect(originalTanks.map((t) => t.id), contains('tank-t1'));
+      expect(originalTanks.map((t) => t.id), contains('tank-t2'));
+      expect(originalTanks.map((t) => t.id), isNot(contains(freshTank.id)));
+      final sharedTank = originalTanks.firstWhere((t) => t.id == 'tank-t1');
+      expect(sharedTank.computerId, equals('comp-t'));
+
+      // -- Tank pressure profiles ---------------------------------------
+      final newDivePressures = await (db.select(
+        db.tankPressureProfiles,
+      )..where((t) => t.diveId.equals(newDiveId))).get();
+      expect(newDivePressures, hasLength(2));
+      expect(newDivePressures.every((p) => p.computerId == 'comp-s'), isTrue);
+      // The pressure curve that lived on the shared tank now points at
+      // the clone, not the original shared tank id.
+      final movedFromShared = newDivePressures.firstWhere(
+        (p) => p.pressure == 195.0 && p.id != 'tp-s2',
+      );
+      expect(movedFromShared.tankId, equals(clone.id));
+      // The pressure curve that already lived on the fresh tank keeps
+      // that tank id.
+      final movedWithFreshTank = newDivePressures.firstWhere(
+        (p) => p.tankId == freshTank.id,
+      );
+      expect(movedWithFreshTank.computerId, equals('comp-s'));
+
+      // The original dive keeps only its own computer's pressure curve on
+      // the shared tank.
+      final originalPressures = await (db.select(
+        db.tankPressureProfiles,
+      )..where((t) => t.diveId.equals('dive-t'))).get();
+      expect(originalPressures, hasLength(1));
+      expect(originalPressures.single.tankId, equals('tank-t1'));
+      expect(originalPressures.single.computerId, equals('comp-t'));
+
+      // -- Profile events -------------------------------------------------
+      final newDiveEvents = await (db.select(
+        db.diveProfileEvents,
+      )..where((t) => t.diveId.equals(newDiveId))).get();
+      expect(newDiveEvents, hasLength(1));
+      expect(newDiveEvents.single.computerId, equals('comp-s'));
+
+      final originalEvents = await (db.select(
+        db.diveProfileEvents,
+      )..where((t) => t.diveId.equals('dive-t'))).get();
+      expect(originalEvents.any((e) => e.computerId == 'comp-s'), isFalse);
+    });
+
+    test(
+      'unlink with a null-computerId reading moves no tanks or events',
+      () async {
+        final diveId = await insertTestDive(id: 'dive-null-cid');
+
+        await repository.saveComputerReading(
+          buildReading(id: 'r-primary', diveId: diveId, isPrimary: true),
+        );
+        await repository.saveComputerReading(
+          buildReading(id: 'r-secondary', diveId: diveId, isPrimary: false),
+        );
+
+        // Manually seeded children with null computerId (no attribution
+        // possible), same shape a manual-entry dive would have.
+        await db
+            .into(db.diveTanks)
+            .insert(DiveTanksCompanion.insert(id: 'tank-x', diveId: diveId));
+        await db
+            .into(db.diveProfileEvents)
+            .insert(
+              DiveProfileEventsCompanion.insert(
+                id: 'event-x',
+                diveId: diveId,
+                timestamp: 0,
+                eventType: 'gaschange',
+                createdAt: 0,
+              ),
+            );
+
+        final newDiveId = await repository.unlinkComputer(
+          diveId: diveId,
+          computerReadingId: 'r-secondary',
+        );
+
+        // Nothing moved: the null-computerId tank/event stay put.
+        final originalTank = await (db.select(
+          db.diveTanks,
+        )..where((t) => t.id.equals('tank-x'))).getSingle();
+        expect(originalTank.diveId, equals(diveId));
+
+        final originalEvent = await (db.select(
+          db.diveProfileEvents,
+        )..where((t) => t.id.equals('event-x'))).getSingle();
+        expect(originalEvent.diveId, equals(diveId));
+
+        final newDiveTanks = await (db.select(
+          db.diveTanks,
+        )..where((t) => t.diveId.equals(newDiveId))).get();
+        expect(newDiveTanks, isEmpty);
+
+        final newDiveEvents = await (db.select(
+          db.diveProfileEvents,
+        )..where((t) => t.diveId.equals(newDiveId))).get();
+        expect(newDiveEvents, isEmpty);
+      },
+    );
   });
 
   // ---------------------------------------------------------------------------

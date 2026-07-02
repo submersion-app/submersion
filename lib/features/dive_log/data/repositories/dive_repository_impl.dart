@@ -4687,6 +4687,14 @@ class DiveRepository {
   /// data source is being unlinked — promotes the next source via
   /// [setPrimaryDataSource].
   ///
+  /// When the reading carries a `computerId`, its attributed tanks,
+  /// profile events, and tank pressure curves move with it. A pressure
+  /// curve recorded on a tank that was deduped into a shared tank (which
+  /// stays on the original dive) gets a fresh clone of that shared tank on
+  /// the new dive so the curve still has a home. Readings with a null
+  /// `computerId` cannot be attributed, so no tanks/events/pressures move
+  /// for them.
+  ///
   /// Returns the ID of the newly created dive.
   Future<String> unlinkComputer({
     required String diveId,
@@ -4773,6 +4781,67 @@ class DiveRepository {
                   isPrimary: const Value(true),
                 ),
               );
+        }
+
+        // Move this computer's attributed children to the new dive.
+        if (reading.computerId != null) {
+          final cid = reading.computerId!;
+          await (_db.update(_db.diveTanks)..where(
+                (t) => t.diveId.equals(diveId) & t.computerId.equals(cid),
+              ))
+              .write(DiveTanksCompanion(diveId: Value(newDiveId)));
+          await (_db.update(_db.diveProfileEvents)..where(
+                (t) => t.diveId.equals(diveId) & t.computerId.equals(cid),
+              ))
+              .write(DiveProfileEventsCompanion(diveId: Value(newDiveId)));
+
+          // Pressure curves recorded by this computer on a SHARED (deduped)
+          // tank need a home tank on the new dive: clone the shared tank
+          // once, then re-parent this computer's pressure rows onto the
+          // clone.
+          final pressureRows =
+              await (_db.select(_db.tankPressureProfiles)..where(
+                    (t) => t.diveId.equals(diveId) & t.computerId.equals(cid),
+                  ))
+                  .get();
+          final movedTankIds =
+              (await (_db.select(
+                    _db.diveTanks,
+                  )..where((t) => t.diveId.equals(newDiveId))).get())
+                  .map((t) => t.id)
+                  .toSet();
+          final cloneBySharedTank = <String, String>{};
+          for (final row in pressureRows) {
+            var homeTankId = row.tankId;
+            if (!movedTankIds.contains(homeTankId)) {
+              homeTankId = cloneBySharedTank[row.tankId] ??= await () async {
+                final shared = await (_db.select(
+                  _db.diveTanks,
+                )..where((t) => t.id.equals(row.tankId))).getSingle();
+                final cloneId = _uuid.v4();
+                await _db
+                    .into(_db.diveTanks)
+                    .insert(
+                      shared
+                          .toCompanion(false)
+                          .copyWith(
+                            id: Value(cloneId),
+                            diveId: Value(newDiveId),
+                            computerId: Value(cid),
+                          ),
+                    );
+                return cloneId;
+              }();
+            }
+            await (_db.update(
+              _db.tankPressureProfiles,
+            )..where((t) => t.id.equals(row.id))).write(
+              TankPressureProfilesCompanion(
+                diveId: Value(newDiveId),
+                tankId: Value(homeTankId),
+              ),
+            );
+          }
         }
 
         // Delete the computer reading from the original dive.
