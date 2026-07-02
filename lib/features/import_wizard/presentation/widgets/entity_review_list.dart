@@ -494,14 +494,12 @@ class _EntityDuplicateCardState extends State<_EntityDuplicateCard> {
     // the tertiary warning colour so the border reads as "undecided" rather
     // than implying a skip. The pending branch below also uses tertiary, so
     // this fallback only matters for the rare non-pending-null case.
-    final Color borderColor;
-    if (widget.selectedAction == null) {
-      borderColor = colorScheme.tertiary;
-    } else if (isImporting) {
-      borderColor = Colors.green;
-    } else {
-      borderColor = colorScheme.error;
-    }
+    final Color borderColor = switch (widget.selectedAction) {
+      null => colorScheme.tertiary,
+      DuplicateAction.importAsNew => Colors.green,
+      DuplicateAction.replaceSource => Colors.blue.shade700,
+      _ => colorScheme.error,
+    };
 
     final BorderSide borderSide = widget.isPending
         ? BorderSide(color: colorScheme.tertiary, width: 1.5)
@@ -580,7 +578,7 @@ class _EntityDuplicateCardState extends State<_EntityDuplicateCard> {
                     // Action badge — suppressed when no decision has been made.
                     if (widget.selectedAction != null) ...[
                       const SizedBox(width: 8),
-                      _SimpleActionBadge(isImporting: isImporting),
+                      _SimpleActionBadge(action: widget.selectedAction!),
                     ],
                     // Expand/collapse chevron (only when comparison data exists)
                     if (widget.entityMatch != null) ...[
@@ -722,6 +720,14 @@ class _EntityComparisonPanel extends StatelessWidget {
                     color: Colors.green.shade700,
                     onPressed: () =>
                         onActionChanged(DuplicateAction.importAsNew),
+                  ),
+                  _EntityActionButton(
+                    label: 'Overwrite',
+                    subtitle: 'Replace existing entry',
+                    isSelected: selectedAction == DuplicateAction.replaceSource,
+                    color: Colors.blue.shade700,
+                    onPressed: () =>
+                        onActionChanged(DuplicateAction.replaceSource),
                   ),
                 ],
               ),
@@ -872,16 +878,18 @@ class _EntityActionButton extends StatelessWidget {
 }
 
 class _SimpleActionBadge extends StatelessWidget {
-  final bool isImporting;
+  final DuplicateAction action;
 
-  const _SimpleActionBadge({required this.isImporting});
+  const _SimpleActionBadge({required this.action});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final (label, color) = isImporting
-        ? ('IMPORT', Colors.green.shade700)
-        : ('SKIP', theme.colorScheme.error);
+    final (label, color) = switch (action) {
+      DuplicateAction.importAsNew => ('IMPORT', Colors.green.shade700),
+      DuplicateAction.replaceSource => ('OVERWRITE', Colors.blue.shade700),
+      _ => ('SKIP', theme.colorScheme.error),
+    };
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
