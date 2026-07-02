@@ -8,17 +8,19 @@ enum ConsolidationInvalidReason {
   notOverlapping,
 }
 
-sealed class DiveConsolidationClassification {}
+sealed class DiveConsolidationClassification {
+  const DiveConsolidationClassification();
+}
 
 class ConsolidationInvalid extends DiveConsolidationClassification {
-  ConsolidationInvalid(this.reason);
+  const ConsolidationInvalid(this.reason);
   final ConsolidationInvalidReason reason;
 }
 
 /// A selection ready to be consolidated: the same physical dive recorded by
 /// multiple dive computers.
 class ConsolidationReady extends DiveConsolidationClassification {
-  ConsolidationReady({required this.primary, required this.secondaries});
+  const ConsolidationReady({required this.primary, required this.secondaries});
   final Dive primary;
 
   /// Chronological by entry time; excludes [primary].
@@ -82,10 +84,10 @@ class DiveConsolidationBuilder {
     String? primaryDiveId,
   }) {
     if (dives.length < 2) {
-      return ConsolidationInvalid(ConsolidationInvalidReason.tooFewDives);
+      return const ConsolidationInvalid(ConsolidationInvalidReason.tooFewDives);
     }
     if (dives.map((d) => d.diverId).toSet().length > 1) {
-      return ConsolidationInvalid(ConsolidationInvalidReason.mixedDivers);
+      return const ConsolidationInvalid(ConsolidationInvalidReason.mixedDivers);
     }
     // Two records from the same physical computer are a re-download, not a
     // second computer. Serial is the only computer identity on the domain
@@ -94,7 +96,9 @@ class DiveConsolidationBuilder {
     for (final d in dives) {
       final serial = d.diveComputerSerial;
       if (serial != null && serial.isNotEmpty && !serials.add(serial)) {
-        return ConsolidationInvalid(ConsolidationInvalidReason.sameComputer);
+        return const ConsolidationInvalid(
+          ConsolidationInvalidReason.sameComputer,
+        );
       }
     }
     final sorted = [...dives]
@@ -111,7 +115,9 @@ class DiveConsolidationBuilder {
     ];
     for (final s in secondaries) {
       if (!_overlaps(primary, s)) {
-        return ConsolidationInvalid(ConsolidationInvalidReason.notOverlapping);
+        return const ConsolidationInvalid(
+          ConsolidationInvalidReason.notOverlapping,
+        );
       }
     }
     return ConsolidationReady(primary: primary, secondaries: secondaries);
