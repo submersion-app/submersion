@@ -1056,6 +1056,7 @@
   "diveLog_combine_dataNote": "Los detalles provienen de la inmersión más antigua, y los espacios en blanco se completan con inmersiones posteriores. Las notas se combinan. Se conservan todos los tanques, el equipo, los compañeros, las etiquetas y los avistamientos.",
   "diveLog_combine_error": "No se pudieron combinar las inmersiones. No se realizó ningún cambio.",
   "diveLog_combine_gapLabel": "Intervalo de superficie: {duration}",
+  "diveLog_combine_longSurfaceWarning": "Uno o más intervalos de superficie superan los 30 minutos. Podrían ser inmersiones separadas en lugar de una sola inmersión continua.",
   "diveLog_combine_mixedDivers": "Las inmersiones seleccionadas pertenecen a buceadores diferentes y no se pueden combinar.",
   "diveLog_combine_profilePreview": "Perfil combinado",
   "diveLog_combine_overlapBody": "Las inmersiones superpuestas parecen ser la misma inmersión registrada por varios ordenadores de buceo. Combinarlas en una sola entrada que muestre los datos de cada ordenador llegará en una futura versión.",

@@ -1700,6 +1700,7 @@
   "diveLog_combine_dataNote": "Details come from the earliest dive, with blanks filled from later dives. Notes are combined. Tanks, gear, buddies, tags, and sightings are all kept.",
   "diveLog_combine_error": "Couldn't combine the dives. Nothing was changed.",
   "diveLog_combine_gapLabel": "Surface interval: {duration}",
+  "diveLog_combine_longSurfaceWarning": "One or more surface intervals are longer than 30 minutes. These may be separate dives rather than one continuous dive.",
   "diveLog_combine_mixedDivers": "The selected dives belong to different divers and can't be combined.",
   "diveLog_combine_profilePreview": "Combined profile",
   "diveLog_combine_overlapBody": "Overlapping dives look like the same dive recorded by multiple dive computers. Combining those into a single entry that shows every computer's data is coming in a future release.",

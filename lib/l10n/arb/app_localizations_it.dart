@@ -2971,6 +2971,10 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get diveLog_combine_longSurfaceWarning =>
+      'Uno o più intervalli di superficie superano i 30 minuti. Potrebbero essere immersioni separate anziché un\'unica immersione continua.';
+
+  @override
   String get diveLog_combine_mixedDivers =>
       'Le immersioni selezionate appartengono a subacquei diversi e non possono essere unite.';
 

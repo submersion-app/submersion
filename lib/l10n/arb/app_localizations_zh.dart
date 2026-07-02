@@ -2820,6 +2820,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get diveLog_combine_longSurfaceWarning =>
+      '一个或多个水面间隔超过 30 分钟。这些可能是独立的潜水，而非一次连续潜水。';
+
+  @override
   String get diveLog_combine_mixedDivers => '所选潜水属于不同的潜水员，无法合并。';
 
   @override

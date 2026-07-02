@@ -2957,6 +2957,10 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get diveLog_combine_longSurfaceWarning =>
+      'Egy vagy több felszíni szünet meghaladja a 30 percet. Ezek lehet, hogy külön merülések, nem pedig egyetlen folyamatos merülés.';
+
+  @override
   String get diveLog_combine_mixedDivers =>
       'A kiválasztott merülések különböző búvárokhoz tartoznak, ezért nem vonhatók össze.';
 

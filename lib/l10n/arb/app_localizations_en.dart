@@ -2916,6 +2916,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get diveLog_combine_longSurfaceWarning =>
+      'One or more surface intervals are longer than 30 minutes. These may be separate dives rather than one continuous dive.';
+
+  @override
   String get diveLog_combine_mixedDivers =>
       'The selected dives belong to different divers and can\'t be combined.';
 

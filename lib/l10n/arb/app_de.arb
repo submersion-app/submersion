@@ -1056,6 +1056,7 @@
   "diveLog_combine_dataNote": "Die Details stammen vom frühesten Tauchgang, wobei Lücken durch spätere Tauchgänge aufgefüllt werden. Notizen werden zusammengeführt. Flaschen, Ausrüstung, Tauchpartner, Tags und Sichtungen bleiben alle erhalten.",
   "diveLog_combine_error": "Die Tauchgänge konnten nicht kombiniert werden. Es wurde nichts geändert.",
   "diveLog_combine_gapLabel": "Oberflächenintervall: {duration}",
+  "diveLog_combine_longSurfaceWarning": "Ein oder mehrere Oberflächenintervalle sind länger als 30 Minuten. Dies könnten separate Tauchgänge sein statt eines durchgehenden Tauchgangs.",
   "diveLog_combine_mixedDivers": "Die ausgewählten Tauchgänge gehören zu unterschiedlichen Tauchern und können nicht kombiniert werden.",
   "diveLog_combine_profilePreview": "Kombiniertes Profil",
   "diveLog_combine_overlapBody": "Sich überschneidende Tauchgänge sehen aus wie derselbe Tauchgang, der von mehreren Tauchcomputern aufgezeichnet wurde. Das Zusammenführen dieser Tauchgänge zu einem einzigen Eintrag, der die Daten jedes Computers zeigt, kommt in einer zukünftigen Version.",

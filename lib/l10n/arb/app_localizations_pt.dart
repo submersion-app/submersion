@@ -2969,6 +2969,10 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get diveLog_combine_longSurfaceWarning =>
+      'Um ou mais intervalos de superfície são maiores que 30 minutos. Podem ser mergulhos separados em vez de um único mergulho contínuo.';
+
+  @override
   String get diveLog_combine_mixedDivers =>
       'Os mergulhos selecionados pertencem a mergulhadores diferentes e não podem ser combinados.';
 

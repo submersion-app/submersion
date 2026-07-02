@@ -5033,6 +5033,12 @@ abstract class AppLocalizations {
   /// **'Surface interval: {duration}'**
   String diveLog_combine_gapLabel(String duration);
 
+  /// No description provided for @diveLog_combine_longSurfaceWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'One or more surface intervals are longer than 30 minutes. These may be separate dives rather than one continuous dive.'**
+  String get diveLog_combine_longSurfaceWarning;
+
   /// No description provided for @diveLog_combine_mixedDivers.
   ///
   /// In en, this message translates to:

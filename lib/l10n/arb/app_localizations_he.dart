@@ -2884,6 +2884,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get diveLog_combine_longSurfaceWarning =>
+      'מרווח פני שטח אחד או יותר ארוך מ-30 דקות. ייתכן שאלה צלילות נפרדות ולא צלילה אחת רציפה.';
+
+  @override
   String get diveLog_combine_mixedDivers =>
       'הצלילות שנבחרו שייכות לצוללנים שונים ולא ניתן למזג אותן.';
 

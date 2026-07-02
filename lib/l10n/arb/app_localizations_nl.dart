@@ -2946,6 +2946,10 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get diveLog_combine_longSurfaceWarning =>
+      'Een of meer oppervlakte-intervallen zijn langer dan 30 minuten. Dit kunnen aparte duiken zijn in plaats van één doorlopende duik.';
+
+  @override
   String get diveLog_combine_mixedDivers =>
       'De geselecteerde duiken behoren tot verschillende duikers en kunnen niet worden samengevoegd.';
 

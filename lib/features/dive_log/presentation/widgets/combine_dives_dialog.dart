@@ -26,6 +26,11 @@ class CombineDivesDialog extends ConsumerStatefulWidget {
 }
 
 class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
+  /// A surface interval longer than this suggests the two dives are really
+  /// separate dives rather than one that a computer split; the preview warns
+  /// (but does not block) when any gap exceeds it.
+  static const _longSurfaceInterval = Duration(minutes: 30);
+
   List<domain.Dive>? _dives;
   DiveMergeClassification? _classification;
   bool _working = false;
@@ -111,89 +116,111 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
       }
     }
 
+    final hasLongSurface = seq.gaps.any(
+      (g) => g.duration > _longSurfaceInterval,
+    );
+
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              ExcludeSemantics(
-                child: Icon(Icons.call_merge, color: colorScheme.primary),
-              ),
-              const SizedBox(width: 12),
-              Flexible(
-                child: Text(
-                  context.l10n.diveLog_combine_title,
-                  style: textTheme.headlineSmall,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            context.l10n.diveLog_combine_previewIntro(seq.sortedDives.length),
-            style: textTheme.bodyMedium?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 16),
-          if (result.previewProfile.isNotEmpty) ...[
-            Text(
-              context.l10n.diveLog_combine_profilePreview,
-              style: textTheme.labelMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 8),
-            // Depth-line-only preview of the merged timeline (surface gaps
-            // included) so the user can visually confirm the seam before
-            // committing. Higher maxPoints than the list thumbnails keeps a
-            // mid-dive surface interval crisp; the inserted surface gaps are
-            // highlighted so they read apart from the real dive data.
-            DiveSparkline(
-              profile: result.previewProfile,
-              width: double.infinity,
-              height: 120,
-              color: colorScheme.primary,
-              maxPoints: 200,
-              highlightColor: Colors.green,
-              highlightBands: [
-                for (final gap in result.gaps)
-                  if (gap.endSeconds > gap.startSeconds)
-                    (
-                      startX: gap.startSeconds.toDouble(),
-                      endX: gap.endSeconds.toDouble(),
-                    ),
-              ],
-            ),
-            const SizedBox(height: 16),
-          ],
+          // Everything except the action buttons scrolls, so a chart plus a
+          // long-surface warning can never overflow the dialog.
           Flexible(
             child: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: rows,
+                children: [
+                  Row(
+                    children: [
+                      ExcludeSemantics(
+                        child: Icon(
+                          Icons.call_merge,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Flexible(
+                        child: Text(
+                          context.l10n.diveLog_combine_title,
+                          style: textTheme.headlineSmall,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    context.l10n.diveLog_combine_previewIntro(
+                      seq.sortedDives.length,
+                    ),
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  if (result.previewProfile.isNotEmpty) ...[
+                    Text(
+                      context.l10n.diveLog_combine_profilePreview,
+                      style: textTheme.labelMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    // Depth-line-only preview of the merged timeline (surface
+                    // gaps included) so the user can visually confirm the seam
+                    // before committing. Higher maxPoints than the list
+                    // thumbnails keeps a mid-dive surface interval crisp; the
+                    // inserted surface gaps are highlighted so they read apart
+                    // from the real dive data.
+                    DiveSparkline(
+                      profile: result.previewProfile,
+                      width: double.infinity,
+                      height: 120,
+                      color: colorScheme.primary,
+                      maxPoints: 200,
+                      highlightColor: Colors.green,
+                      highlightBands: [
+                        for (final gap in result.gaps)
+                          if (gap.endSeconds > gap.startSeconds)
+                            (
+                              startX: gap.startSeconds.toDouble(),
+                              endX: gap.endSeconds.toDouble(),
+                            ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  ...rows,
+                  const SizedBox(height: 12),
+                  Text(
+                    context.l10n.diveLog_combine_resultSummary(
+                      _formatDuration(
+                        result.mergedDive.runtime ?? Duration.zero,
+                      ),
+                      units.formatDepth(result.mergedDive.maxDepth),
+                      result.mergedDive.bottomTime != null
+                          ? _formatDuration(result.mergedDive.bottomTime!)
+                          : '--',
+                    ),
+                    style: textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    context.l10n.diveLog_combine_dataNote,
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  if (hasLongSurface) ...[
+                    const SizedBox(height: 12),
+                    _longSurfaceWarning(context),
+                  ],
+                ],
               ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            context.l10n.diveLog_combine_resultSummary(
-              _formatDuration(result.mergedDive.runtime ?? Duration.zero),
-              units.formatDepth(result.mergedDive.maxDepth),
-              result.mergedDive.bottomTime != null
-                  ? _formatDuration(result.mergedDive.bottomTime!)
-                  : '--',
-            ),
-            style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            context.l10n.diveLog_combine_dataNote,
-            style: textTheme.bodySmall?.copyWith(
-              color: colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 16),
@@ -244,14 +271,82 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
   Widget _gapRow(BuildContext context, Duration gapDuration) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final label = context.l10n.diveLog_combine_gapLabel(
+      _formatDuration(gapDuration),
+    );
+    final isLong = gapDuration > _longSurfaceInterval;
+
+    if (!isLong) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Text(
+          label,
+          style: textTheme.bodySmall?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+            fontStyle: FontStyle.italic,
+          ),
+        ),
+      );
+    }
+
+    // Long surface interval -- flag the specific gap in the error colour.
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Text(
-        context.l10n.diveLog_combine_gapLabel(_formatDuration(gapDuration)),
-        style: textTheme.bodySmall?.copyWith(
-          color: colorScheme.onSurfaceVariant,
-          fontStyle: FontStyle.italic,
-        ),
+      child: Row(
+        children: [
+          ExcludeSemantics(
+            child: Icon(
+              Icons.warning_amber_rounded,
+              size: 16,
+              color: colorScheme.error,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              label,
+              style: textTheme.bodySmall?.copyWith(
+                color: colorScheme.error,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// A prominent banner shown when any surface interval exceeds
+  /// [_longSurfaceInterval], cautioning that the dives may be separate.
+  Widget _longSurfaceWarning(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: colorScheme.errorContainer,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ExcludeSemantics(
+            child: Icon(
+              Icons.warning_amber_rounded,
+              size: 20,
+              color: colorScheme.onErrorContainer,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              context.l10n.diveLog_combine_longSurfaceWarning,
+              style: textTheme.bodySmall?.copyWith(
+                color: colorScheme.onErrorContainer,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

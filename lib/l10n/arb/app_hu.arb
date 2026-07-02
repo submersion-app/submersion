@@ -1022,6 +1022,7 @@
   "diveLog_combine_dataNote": "A részletek a legkorábbi merülésből származnak, az üres mezőket a későbbi merülések töltik ki. A jegyzetek összevonásra kerülnek. Az összes palack, felszerelés, búvártárs, cimke és megfigyelés megmarad.",
   "diveLog_combine_error": "Nem sikerült összevonni a merüléseket. Semmi sem változott.",
   "diveLog_combine_gapLabel": "Felszíni szünet: {duration}",
+  "diveLog_combine_longSurfaceWarning": "Egy vagy több felszíni szünet meghaladja a 30 percet. Ezek lehet, hogy külön merülések, nem pedig egyetlen folyamatos merülés.",
   "diveLog_combine_mixedDivers": "A kiválasztott merülések különböző búvárokhoz tartoznak, ezért nem vonhatók össze.",
   "diveLog_combine_profilePreview": "Összevont profil",
   "diveLog_combine_overlapBody": "Az egymást átfedő merülések úgy néznek ki, mintha ugyanaz a merülés lenne, amelyet több merülésszámítógép rögzített. Az ilyen merülések egyetlen, minden számítógép adatait megjelenítő bejegyzéssé történő összevonása egy jövőbeli verzióban lesz elérhető.",

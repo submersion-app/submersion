@@ -2900,6 +2900,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get diveLog_combine_longSurfaceWarning =>
+      'قد تتجاوز فترة سطح واحدة أو أكثر 30 دقيقة. قد تكون هذه غوصات منفصلة بدلاً من غوصة واحدة متواصلة.';
+
+  @override
   String get diveLog_combine_mixedDivers =>
       'الغوصات المحددة تخص غواصين مختلفين ولا يمكن دمجها.';
 

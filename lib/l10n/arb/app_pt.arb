@@ -1056,6 +1056,7 @@
   "diveLog_combine_dataNote": "Os detalhes vêm do mergulho mais antigo, com os espaços em branco preenchidos pelos mergulhos posteriores. As notas são combinadas. Cilindros, equipamentos, parceiros, tags e avistamentos são todos mantidos.",
   "diveLog_combine_error": "Não foi possível combinar os mergulhos. Nada foi alterado.",
   "diveLog_combine_gapLabel": "Intervalo de superfície: {duration}",
+  "diveLog_combine_longSurfaceWarning": "Um ou mais intervalos de superfície são maiores que 30 minutos. Podem ser mergulhos separados em vez de um único mergulho contínuo.",
   "diveLog_combine_mixedDivers": "Os mergulhos selecionados pertencem a mergulhadores diferentes e não podem ser combinados.",
   "diveLog_combine_profilePreview": "Perfil combinado",
   "diveLog_combine_overlapBody": "Mergulhos sobrepostos parecem ser o mesmo mergulho registrado por vários computadores de mergulho. A opção de combiná-los em um único registro que mostra os dados de cada computador chegará em uma versão futura.",

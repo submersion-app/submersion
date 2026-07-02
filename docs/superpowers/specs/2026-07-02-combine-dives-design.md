@@ -81,8 +81,11 @@ full and classifies their time relationship using `effectiveEntryTime` and
   they read apart from the real dive data.
   A note explains data handling: details are taken from the
   earliest dive, blanks filled from later dives; notes are combined; tanks,
-  gear, buddies, tags, and sightings are all kept. Confirm button:
-  **Combine into one dive**.
+  gear, buddies, tags, and sightings are all kept. If any surface interval
+  exceeds 30 minutes, that gap row is flagged in the error colour and a
+  prominent warning banner cautions that the dives may be separate rather
+  than one continuous dive — non-blocking; the user can still combine.
+  Confirm button: **Combine into one dive**.
 - **Overlapping** (any pair overlaps by any positive amount): an explanatory
   panel — these dives overlap in time, so they look like the same dive
   recorded by multiple computers; combining those into one entry with both

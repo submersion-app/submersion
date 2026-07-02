@@ -2966,6 +2966,10 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get diveLog_combine_longSurfaceWarning =>
+      'Uno o más intervalos de superficie superan los 30 minutos. Podrían ser inmersiones separadas en lugar de una sola inmersión continua.';
+
+  @override
   String get diveLog_combine_mixedDivers =>
       'Las inmersiones seleccionadas pertenecen a buceadores diferentes y no se pueden combinar.';
 

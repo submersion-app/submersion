@@ -190,6 +190,33 @@ void main() {
     expect(find.text('Combined profile'), findsNothing);
   });
 
+  testWidgets('warns when a surface interval is longer than 30 minutes', (
+    tester,
+  ) async {
+    await pumpCombineDialog(
+      tester,
+      dives: [
+        diveAt('a', DateTime.utc(2026, 7, 1, 9), runtimeMin: 5), // ends 9:05
+        diveAt('b', DateTime.utc(2026, 7, 1, 9, 40)), // ~35min surface gap
+      ],
+    );
+    expect(find.textContaining('longer than 30 minutes'), findsOneWidget);
+  });
+
+  testWidgets('no long-surface warning for a short surface interval', (
+    tester,
+  ) async {
+    await pumpCombineDialog(
+      tester,
+      dives: [
+        diveAt('a', DateTime.utc(2026, 7, 1, 9), runtimeMin: 5), // ends 9:05
+        diveAt('b', DateTime.utc(2026, 7, 1, 9, 20)), // ~15min surface gap
+      ],
+    );
+    expect(find.textContaining('longer than 30 minutes'), findsNothing);
+    expect(find.text('Combine into one dive'), findsOneWidget);
+  });
+
   testWidgets('overlapping selection shows the explanation panel', (
     tester,
   ) async {

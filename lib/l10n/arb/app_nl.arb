@@ -1056,6 +1056,7 @@
   "diveLog_combine_dataNote": "Details komen van de vroegste duik, met lege velden aangevuld vanuit latere duiken. Notities worden samengevoegd. Flessen, uitrusting, buddy's, tags en waarnemingen blijven allemaal behouden.",
   "diveLog_combine_error": "Kon de duiken niet samenvoegen. Er is niets gewijzigd.",
   "diveLog_combine_gapLabel": "Oppervlakte-interval: {duration}",
+  "diveLog_combine_longSurfaceWarning": "Een of meer oppervlakte-intervallen zijn langer dan 30 minuten. Dit kunnen aparte duiken zijn in plaats van één doorlopende duik.",
   "diveLog_combine_mixedDivers": "De geselecteerde duiken behoren tot verschillende duikers en kunnen niet worden samengevoegd.",
   "diveLog_combine_profilePreview": "Samengevoegd profiel",
   "diveLog_combine_overlapBody": "Overlappende duiken lijken op dezelfde duik die door meerdere duikcomputers is vastgelegd. Het samenvoegen daarvan tot één item dat de gegevens van elke computer toont, komt in een toekomstige release.",

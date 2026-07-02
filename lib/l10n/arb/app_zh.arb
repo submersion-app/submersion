@@ -1156,6 +1156,7 @@
   "diveLog_combine_dataNote": "详细信息取自最早的潜水，空白项由后续潜水填补。备注将被合并。气瓶、装备、潜伴、标签和目击记录都会保留。",
   "diveLog_combine_error": "无法合并这些潜水。未做任何更改。",
   "diveLog_combine_gapLabel": "水面间隔：{duration}",
+  "diveLog_combine_longSurfaceWarning": "一个或多个水面间隔超过 30 分钟。这些可能是独立的潜水，而非一次连续潜水。",
   "diveLog_combine_mixedDivers": "所选潜水属于不同的潜水员，无法合并。",
   "diveLog_combine_profilePreview": "合并后的剖面",
   "diveLog_combine_overlapBody": "重叠的潜水看起来像是由多台潜水电脑记录的同一次潜水。将它们合并为显示每台电脑数据的单条记录的功能即将在未来版本中推出。",
