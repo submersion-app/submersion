@@ -26,6 +26,11 @@ android {
     namespace = "com.submersion.libdivecomputer"
     compileSdk = 34
 
+    // AIDL for the :dc download-service IPC contract (issue #318).
+    buildFeatures {
+        aidl true
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
@@ -38,6 +43,7 @@ android {
     defaultConfig {
         minSdk = 21
         consumerProguardFiles "consumer-rules.pro"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         externalNativeBuild {
             cmake {
@@ -52,6 +58,7 @@ android {
 
     sourceSets {
         main.java.srcDirs += "src/main/kotlin"
+        androidTest.java.srcDirs += "src/androidTest/kotlin"
     }
 
     externalNativeBuild {
@@ -67,4 +74,9 @@ dependencies {
     // sources (android/third_party/usb-serial-for-android). Annotations-only
     // artifact; no runtime footprint of consequence.
     implementation "androidx.annotation:annotation:1.9.1"
+
+    // Instrumented tests for the :dc IPC (marshaling round-trip, crash isolation).
+    androidTestImplementation "androidx.test.ext:junit:1.1.5"
+    androidTestImplementation "androidx.test:runner:1.5.2"
+    androidTestImplementation "androidx.test:core:1.5.0"
 }

@@ -261,16 +261,23 @@ jobs:
         # (Mares Puck Pro) -> silent SIGABRT. See issue #318.
         run: python3 scripts/check_jni_local_refs.py
 
+      - name: Check dive-download process isolation (manifest)
+        # Fails if the serial download service loses android:process=":dc" -- a
+        # native download crash would then kill the app again (issue #318).
+        run: python3 scripts/check_dc_process_isolation.py
+
       - name: Run Python guard tests with coverage
         run: |
           mkdir -p coverage
-          guards='scripts/check_proguard_serial_keep.py,scripts/check_native_libs_present.py,scripts/check_jni_local_refs.py'
+          guards='scripts/check_proguard_serial_keep.py,scripts/check_native_libs_present.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py'
           python3 -m coverage run --include="$guards" \
             scripts/check_proguard_serial_keep_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/check_native_libs_present_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/check_jni_local_refs_test.py
+          python3 -m coverage run --append --include="$guards" \
+            scripts/check_dc_process_isolation_test.py
           python3 -m coverage report -m --include="$guards"
           python3 -m coverage xml --include="$guards" \
             -o coverage/scripts.xml

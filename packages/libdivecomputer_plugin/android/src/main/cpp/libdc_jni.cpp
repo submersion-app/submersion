@@ -211,6 +211,15 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeDownloadSessionFree(
     libdc_download_session_free(session);
 }
 
+// Debug-only: deliberately raise SIGSEGV in the current process to prove the
+// :dc download-service process isolation (issue #318). Reached only via
+// DiveDownloadService's __crash_test__ path; never in normal operation.
+extern "C" JNIEXPORT void JNICALL
+Java_com_submersion_libdivecomputer_LibdcWrapper_nativeDebugCrash(JNIEnv *, jclass) {
+    volatile int *p = nullptr;
+    *p = 42;
+}
+
 // Structs for passing callback context through JNI.
 struct JniDownloadContext {
     JavaVM *jvm;

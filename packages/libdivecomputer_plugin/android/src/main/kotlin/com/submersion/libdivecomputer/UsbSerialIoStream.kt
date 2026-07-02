@@ -47,9 +47,12 @@ class UsbSerialIoStream(
         val usbManager =
             context.getSystemService(Context.USB_SERVICE) as? UsbManager ?: return false
         val device = driver.device
+        NativeTrace.d("open begin ${device.deviceName}")
 
         if (!usbManager.hasPermission(device)) {
+            NativeTrace.d("open requesting USB permission")
             if (!requestPermission(usbManager, device)) {
+                NativeTrace.w("open USB permission not granted")
                 NativeLogger.w(TAG, "SER", "USB permission not granted for ${device.deviceName}")
                 return false
             }
@@ -75,11 +78,14 @@ class UsbSerialIoStream(
         // doesn't block the download.
         for ((index, candidate) in ports.withIndex()) {
             try {
+                NativeTrace.d("opening port[$index]")
                 candidate.open(conn)
                 port = candidate
+                NativeTrace.d("opened port[$index]")
                 NativeLogger.i(TAG, "SER", "Opened USB serial port[$index] for ${device.deviceName}")
                 return true
             } catch (e: IOException) {
+                NativeTrace.w("port[$index] open failed: ${e.message}")
                 NativeLogger.w(TAG, "SER", "port[$index] open failed: ${e.message}")
             }
         }
@@ -151,6 +157,7 @@ class UsbSerialIoStream(
         val p = port ?: return null
         if (size <= 0) return ByteArray(0)
 
+        NativeTrace.d("read enter size=$size timeoutMs=$timeoutMs")
         // libdivecomputer's read contract (see serial_posix.c dc_serial_read) is
         // "return exactly `size` bytes or time out" -- every driver relies on it.
         // A single UsbSerialPort.read() returns only the first ~64-byte USB bulk
@@ -175,6 +182,12 @@ class UsbSerialIoStream(
                 }
             }
             val tmp = ByteArray(size - received)
+            // Written BEFORE the USB read: if the read crashes the process
+            // natively (no exception and no "<- n" follows), this is the last
+            // line on disk, naming the slice size + timeout that triggered it.
+            NativeTrace.d(
+                "usb read req=${tmp.size} sliceTimeout=$sliceTimeout received=$received"
+            )
             val n = try {
                 p.read(tmp, sliceTimeout)
             } catch (e: IOException) {
@@ -182,9 +195,16 @@ class UsbSerialIoStream(
                 // not a timeout, which returns 0 rather than throwing. Propagate
                 // so the JNI bridge reports LIBDC_STATUS_IO and the driver fails
                 // fast instead of retrying a dead port.
+                NativeTrace.e("usb read IOException: ${e.message}")
                 NativeLogger.e(TAG, "SER", "read failed: ${e.message}")
                 throw e
+            } catch (e: Throwable) {
+                // e.g. FtdiSerialPort throws IllegalArgumentException for a
+                // buffer <= 2 bytes (the 1-byte header/trailer reads).
+                NativeTrace.e("usb read ${e.javaClass.simpleName}: ${e.message}")
+                throw e
             }
+            NativeTrace.d("usb read <- $n")
             if (n <= 0) break // timeout / nothing available this slice
             System.arraycopy(tmp, 0, result, received, n)
             received += n
@@ -193,16 +213,20 @@ class UsbSerialIoStream(
         // Exactly `size` -> success. A short read returns null so the JNI bridge
         // reports LIBDC_STATUS_TIMEOUT and libdivecomputer retries, rather than
         // accepting a truncated packet as a successful read.
+        NativeTrace.d("read exit received=$received/$size")
         return if (received == size) result else null
     }
 
     override fun write(data: ByteArray, timeoutMs: Int): Int {
         val p = port ?: return -1
         val timeout = if (timeoutMs < 0) 0 else timeoutMs
+        NativeTrace.d("usb write req=${data.size} timeout=$timeout")
         return try {
             p.write(data, timeout)
+            NativeTrace.d("usb write <- ok")
             data.size
         } catch (e: IOException) {
+            NativeTrace.e("usb write IOException: ${e.message}")
             NativeLogger.e(TAG, "SER", "write failed: ${e.message}")
             -1
         }
@@ -210,6 +234,7 @@ class UsbSerialIoStream(
 
     override fun purge(direction: Int) {
         val p = port ?: return
+        NativeTrace.d("purge direction=$direction")
         // libdivecomputer direction bits: 1 = input, 2 = output.
         val purgeRead = direction and 1 != 0
         val purgeWrite = direction and 2 != 0
@@ -222,6 +247,7 @@ class UsbSerialIoStream(
     }
 
     override fun close() {
+        NativeTrace.d("close")
         try {
             port?.close()
         } catch (e: Exception) {
@@ -244,6 +270,10 @@ class UsbSerialIoStream(
         flowControl: Int
     ): Int {
         val p = port ?: return -1
+        NativeTrace.d(
+            "configure baud=$baudRate dataBits=$dataBits parity=$parity " +
+                "stopBits=$stopBits flow=$flowControl"
+        )
         val db = when (dataBits) {
             5 -> UsbSerialPort.DATABITS_5
             6 -> UsbSerialPort.DATABITS_6
@@ -266,8 +296,10 @@ class UsbSerialIoStream(
             p.setParameters(baudRate, db, sb, par)
             // Dive computers use no flow control; usb-serial has no portable
             // hardware/software flow-control setter, so nothing more is applied.
+            NativeTrace.d("configure <- ok")
             0
         } catch (e: IOException) {
+            NativeTrace.e("configure IOException: ${e.message}")
             NativeLogger.e(TAG, "SER", "configure failed: ${e.message}")
             -1
         }
@@ -275,10 +307,12 @@ class UsbSerialIoStream(
 
     override fun setDtr(value: Int): Int {
         val p = port ?: return -1
+        NativeTrace.d("setDtr=$value")
         return try {
             p.setDTR(value != 0)
             0
         } catch (e: IOException) {
+            NativeTrace.e("setDtr IOException: ${e.message}")
             NativeLogger.e(TAG, "SER", "setDtr failed: ${e.message}")
             -1
         }
@@ -286,10 +320,12 @@ class UsbSerialIoStream(
 
     override fun setRts(value: Int): Int {
         val p = port ?: return -1
+        NativeTrace.d("setRts=$value")
         return try {
             p.setRTS(value != 0)
             0
         } catch (e: IOException) {
+            NativeTrace.e("setRts IOException: ${e.message}")
             NativeLogger.e(TAG, "SER", "setRts failed: ${e.message}")
             -1
         }

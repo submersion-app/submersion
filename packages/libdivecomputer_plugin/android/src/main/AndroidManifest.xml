@@ -12,4 +12,14 @@
     <uses-feature
         android:name="android.hardware.usb.host"
         android:required="false" />
+
+    <application>
+        <!-- Serial dive-computer downloads run here, in a separate process, so a
+             native libdivecomputer SIGSEGV takes down only :dc, not the app (#318).
+             Merged into the host app's <application> by the manifest merger. -->
+        <service
+            android:name=".DiveDownloadService"
+            android:process=":dc"
+            android:exported="false" />
+    </application>
 </manifest>
