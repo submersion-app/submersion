@@ -4,6 +4,7 @@ import 'package:equatable/equatable.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
 import 'package:submersion/core/deco/ascent_rate_calculator.dart';
 import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
@@ -536,6 +537,7 @@ class ProfileAnalysisService {
     List<TissueCompartment>? startCompartments,
     double startOtu = 0.0,
     List<ProfileGasSegment>? gasSegments,
+    AscentGasPlan? ascentGasPlan,
     List<double>? rebreatherPpO2Curve,
   }) {
     if (depths.isEmpty || depths.length != timestamps.length) {
@@ -576,6 +578,7 @@ class ProfileAnalysisService {
             depths: depths,
             timestamps: timestamps,
             gasSegments: gasSegments,
+            ascentGasPlan: ascentGasPlan,
           )
         : _buhlmannAlgorithm.processProfile(
             depths: depths,

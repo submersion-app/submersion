@@ -2,8 +2,10 @@ import 'package:flutter/foundation.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
+import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
 import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
+import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
 import 'package:submersion/core/deco/entities/profile_gas_segment.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
@@ -215,6 +217,46 @@ List<ProfileGasSegment> buildProfileGasSegments(
   }
 
   return segments;
+}
+
+/// Maps the dive's recorded cylinders to the gas set the ideal ascent may use.
+///
+/// [maxPpO2] is the diver's ppO2MaxDeco ceiling; each gas's MOD is derived from
+/// it via [O2ToxicityCalculator.calculateMod]. No gases are invented -- only
+/// cylinders recorded on the dive. [gasSet] filters per the diver setting; the
+/// back gas is always retained as the ascent floor.
+@visibleForTesting
+List<AvailableGas> buildAvailableGases(
+  Dive dive, {
+  required double maxPpO2,
+  required AscentGasSet gasSet,
+}) {
+  bool keep(DiveTank t) {
+    if (gasSet == AscentGasSet.allCarried) return true;
+    return t.role == TankRole.backGas ||
+        t.role == TankRole.deco ||
+        t.role == TankRole.stage ||
+        t.role == TankRole.bailout;
+  }
+
+  final gases = <AvailableGas>[];
+  final seen = <String>{};
+  for (final tank in dive.tanks.where(keep)) {
+    final fO2 = tank.gasMix.o2 / 100.0;
+    final fHe = tank.gasMix.he / 100.0;
+    final fN2 = (1.0 - fO2 - fHe).clamp(0.0, 1.0);
+    // Deduplicate identical mixes so the optimizer's tie-break stays stable.
+    final key = '${fO2.toStringAsFixed(4)}_${fHe.toStringAsFixed(4)}';
+    if (!seen.add(key)) continue;
+    gases.add(
+      AvailableGas(
+        fN2: fN2,
+        fHe: fHe,
+        maxPpO2Mod: O2ToxicityCalculator.calculateMod(fO2, maxPpO2: maxPpO2),
+      ),
+    );
+  }
+  return gases;
 }
 
 /// Creates a ProfileAnalysisService using dive-specific GF when available,
@@ -502,6 +544,8 @@ class _ProfileAnalysisInput {
   final List<TissueCompartment>? startCompartments;
   final double startOtu;
   final List<ProfileGasSegment>? gasSegments;
+  final List<AvailableGas>? ascentGases; // OC only; null => FixedAscentGas
+  final double ascentMaxPpO2;
   final List<double>? rebreatherPpO2Curve;
 
   const _ProfileAnalysisInput({
@@ -529,6 +573,8 @@ class _ProfileAnalysisInput {
     this.startCompartments,
     this.startOtu = 0.0,
     this.gasSegments,
+    this.ascentGases,
+    this.ascentMaxPpO2 = 1.6,
     this.rebreatherPpO2Curve,
   });
 }
@@ -546,6 +592,13 @@ ProfileAnalysis _runProfileAnalysis(_ProfileAnalysisInput input) {
     ascentRateCritical: input.ascentRateCritical,
     lastStopDepth: input.lastStopDepth,
   );
+  final ascentGasPlan =
+      input.ascentGases != null && input.ascentGases!.isNotEmpty
+      ? OptimalOcAscentGas(
+          gases: input.ascentGases!,
+          maxPpO2: input.ascentMaxPpO2,
+        )
+      : null;
   return service.analyze(
     diveId: input.diveId,
     depths: input.depths,
@@ -563,6 +616,7 @@ ProfileAnalysis _runProfileAnalysis(_ProfileAnalysisInput input) {
     startCompartments: input.startCompartments,
     startOtu: input.startOtu,
     gasSegments: input.gasSegments,
+    ascentGasPlan: ascentGasPlan,
     rebreatherPpO2Curve: input.rebreatherPpO2Curve,
   );
 }
@@ -689,6 +743,14 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
             await repository.getGasSwitchesForDive(diveId),
           )
         : null;
+    final ascentMaxPpO2 = ref.watch(ppO2MaxDecoProvider);
+    final ascentGases = dive.diveMode == DiveMode.oc
+        ? buildAvailableGases(
+            dive,
+            maxPpO2: ascentMaxPpO2,
+            gasSet: ref.watch(ascentGasSetProvider),
+          )
+        : null;
     // Resolve rebreather loop ppO2 once and reuse it for both the analysis
     // (CNS/OTU) and the display overlay so the two always agree.
     final rebreatherPpO2 = dive.diveMode == DiveMode.oc
@@ -727,6 +789,8 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
         startCompartments: startCompartments,
         startOtu: startOtu,
         gasSegments: gasSegments,
+        ascentGases: ascentGases,
+        ascentMaxPpO2: ascentMaxPpO2,
         rebreatherPpO2Curve: rebreatherPpO2?.curve,
       ),
     );
@@ -1097,6 +1161,20 @@ final diveProfileAnalysisProvider = Provider.family<ProfileAnalysis?, Dive>((
         ? null
         : resolveRebreatherPpO2(dive.profile);
 
+    final ascentGases = dive.diveMode == DiveMode.oc
+        ? buildAvailableGases(
+            dive,
+            maxPpO2: ref.watch(ppO2MaxDecoProvider),
+            gasSet: ref.watch(ascentGasSetProvider),
+          )
+        : null;
+    final ascentGasPlan = ascentGases != null && ascentGases.isNotEmpty
+        ? OptimalOcAscentGas(
+            gases: ascentGases,
+            maxPpO2: ref.watch(ppO2MaxDecoProvider),
+          )
+        : null;
+
     final analysis = service.analyze(
       diveId: dive.id,
       depths: depths,
@@ -1114,6 +1192,7 @@ final diveProfileAnalysisProvider = Provider.family<ProfileAnalysis?, Dive>((
       scrInjectionRate: dive.scrInjectionRate,
       scrSupplyO2Percent: dive.diluentGas?.o2,
       scrVo2: dive.assumedVo2 ?? 1.3,
+      ascentGasPlan: ascentGasPlan,
       rebreatherPpO2Curve: rebreatherPpO2?.curve,
     );
 

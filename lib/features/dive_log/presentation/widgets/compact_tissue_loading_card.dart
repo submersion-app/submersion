@@ -280,20 +280,25 @@ class _CompactTissueLoadingCardState
       ),
     ];
 
-    // Wrap bar segments in an outline when highlighted.
-    // The outline container is only as tall as the bar itself.
+    final barColumn = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: barSegments,
+    );
+
+    // Highlight via foregroundDecoration so the outline is painted OVER the
+    // bar without enlarging it. A decoration border would inset the child and
+    // add its width to the box on every side, making the bar taller than its
+    // fixed-height slot (overflowing when the bar is already full height) and
+    // wider than its unhighlighted neighbours (hover jitter).
     final bar = outlineColor != null
         ? Container(
-            decoration: BoxDecoration(
+            foregroundDecoration: BoxDecoration(
               border: Border.all(color: outlineColor, width: 2),
               borderRadius: BorderRadius.circular(2),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: barSegments,
-            ),
+            child: barColumn,
           )
-        : Column(mainAxisSize: MainAxisSize.min, children: barSegments);
+        : barColumn;
 
     return Tooltip(
       message:

@@ -32,7 +32,35 @@ const _status = DecoStatus(
   ambientPressureBar: 2.0,
 );
 
+// A compartment loaded well past its M-value. surfaceMValue for these
+// coefficients is ~3.24 bar, so currentPN2 4.5 is ~139% loading, which clamps
+// the bar to full chart height -- the case where the highlight outline used to
+// overflow the fixed-height bar slot.
+const _overloadedComp = TissueCompartment(
+  compartmentNumber: 1,
+  halfTimeN2: 4.0,
+  halfTimeHe: 1.51,
+  mValueAN2: 1.2599,
+  mValueBN2: 0.5050,
+  mValueAHe: 1.7424,
+  mValueBHe: 0.4245,
+  currentPN2: 4.5,
+);
+
+const _overloadedStatus = DecoStatus(
+  compartments: [_overloadedComp],
+  ndlSeconds: -1,
+  ceilingMeters: 6.0,
+  ttsSeconds: 300,
+  gfLow: 0.4,
+  gfHigh: 0.85,
+  decoStops: [],
+  currentDepthMeters: 30.0,
+  ambientPressureBar: 4.0,
+);
+
 Widget buildCard({
+  DecoStatus status = _status,
   List<DecoStatus>? decoStatuses,
   bool expandVisualization = false,
 }) {
@@ -43,7 +71,7 @@ Widget buildCard({
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
         body: CompactTissueLoadingCard(
-          status: _status,
+          status: status,
           decoStatuses: decoStatuses,
           expandVisualization: expandVisualization,
         ),
@@ -53,6 +81,19 @@ Widget buildCard({
 }
 
 void main() {
+  testWidgets(
+    'does not overflow when the highlighted compartment bar is full height',
+    (tester) async {
+      await tester.pumpWidget(buildCard(status: _overloadedStatus));
+      await tester.pumpAndSettle();
+
+      // The leading (only) compartment is >120% loaded, so its bar fills the
+      // whole chart height and is highlighted by default. The highlight must
+      // not push the bar past its fixed-height slot.
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   group('CompactTissueLoadingCard heatmap labels', () {
     testWidgets('shows Fast and Slow labels when heatmap data is provided', (
       tester,

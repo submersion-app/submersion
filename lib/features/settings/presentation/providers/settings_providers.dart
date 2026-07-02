@@ -19,6 +19,15 @@ import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_s
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 
+/// Which cylinders the simulated (ideal) ascent may breathe.
+enum AscentGasSet {
+  /// Every cylinder recorded on the dive (default).
+  allCarried,
+
+  /// Only deco/stage/bailout cylinders plus the current back gas.
+  decoStageOnly,
+}
+
 /// Unit system preset
 enum UnitPreset {
   metric('Metric'),
@@ -117,6 +126,9 @@ class AppSettings {
 
   /// Deco stop increment in meters (typically 3)
   final double decoStopIncrement;
+
+  /// Which carried gases feed the ideal (best-gas) ascent projection.
+  final AscentGasSet ascentGasSet;
 
   /// Whether O2 is considered narcotic (true = more conservative)
   final bool o2Narcotic;
@@ -311,6 +323,7 @@ class AppSettings {
     this.showNdlOnProfile = true,
     this.lastStopDepth = 3.0,
     this.decoStopIncrement = 3.0,
+    this.ascentGasSet = AscentGasSet.allCarried,
     this.o2Narcotic = true,
     this.endLimit = 30.0,
     this.defaultNdlSource = MetricDataSource.calculated,
@@ -438,6 +451,7 @@ class AppSettings {
     bool? showNdlOnProfile,
     double? lastStopDepth,
     double? decoStopIncrement,
+    AscentGasSet? ascentGasSet,
     bool? o2Narcotic,
     double? endLimit,
     MetricDataSource? defaultNdlSource,
@@ -532,6 +546,7 @@ class AppSettings {
       showNdlOnProfile: showNdlOnProfile ?? this.showNdlOnProfile,
       lastStopDepth: lastStopDepth ?? this.lastStopDepth,
       decoStopIncrement: decoStopIncrement ?? this.decoStopIncrement,
+      ascentGasSet: ascentGasSet ?? this.ascentGasSet,
       o2Narcotic: o2Narcotic ?? this.o2Narcotic,
       endLimit: endLimit ?? this.endLimit,
       defaultNdlSource: defaultNdlSource ?? this.defaultNdlSource,
@@ -914,6 +929,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setO2Narcotic(bool value) async {
     state = state.copyWith(o2Narcotic: value);
+    await _saveSettings();
+  }
+
+  Future<void> setAscentGasSet(AscentGasSet value) async {
+    state = state.copyWith(ascentGasSet: value);
     await _saveSettings();
   }
 
@@ -1327,6 +1347,10 @@ final showNdlOnProfileProvider = Provider<bool>((ref) {
 
 final lastStopDepthProvider = Provider<double>((ref) {
   return ref.watch(settingsProvider.select((s) => s.lastStopDepth));
+});
+
+final ascentGasSetProvider = Provider<AscentGasSet>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.ascentGasSet));
 });
 
 final decoStopIncrementProvider = Provider<double>((ref) {

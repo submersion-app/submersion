@@ -3,12 +3,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
 void main() {
-  test('v94 adds name column to dives, null for existing rows', () async {
+  test('v95 adds name column to dives, null for existing rows', () async {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
-        rawDb.execute('PRAGMA user_version = 93');
-        // Minimal pre-v94 dives shape: just enough columns to insert a row.
-        // The v94 migration adds the name column.
+        rawDb.execute('PRAGMA user_version = 94');
+        // Minimal pre-v95 dives shape: just enough columns to insert a row.
+        // The v95 migration adds the name column.
         rawDb.execute('''
         CREATE TABLE dives (
           id TEXT NOT NULL PRIMARY KEY,
@@ -39,16 +39,18 @@ void main() {
     expect(row.data['name'], isNull);
   });
 
-  test('v94 is the current version and in the migration ladder', () {
-    expect(AppDatabase.currentSchemaVersion, 94);
-    expect(AppDatabase.migrationVersions, contains(94));
-    expect(AppDatabase.migrationVersions.last, 94);
+  test('v95 is the current version and in the migration ladder', () {
+    // Latest-version tripwire: bumping the schema must come with a matching
+    // migration block and an update here.
+    expect(AppDatabase.currentSchemaVersion, 95);
+    expect(AppDatabase.migrationVersions, contains(95));
+    expect(AppDatabase.migrationVersions.last, 95);
   });
 
-  test('v94 migration is idempotent when the column already exists', () async {
+  test('v95 migration is idempotent when the column already exists', () async {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
-        rawDb.execute('PRAGMA user_version = 93');
+        rawDb.execute('PRAGMA user_version = 94');
         rawDb.execute('''
         CREATE TABLE dives (
           id TEXT NOT NULL PRIMARY KEY,

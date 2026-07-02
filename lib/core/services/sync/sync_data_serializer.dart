@@ -3148,6 +3148,7 @@ class SyncDataSerializer {
       'showNdlOnProfile': true,
       'lastStopDepth': 3.0,
       'decoStopIncrement': 3.0,
+      'ascentGasSet': 0,
       // Appearance settings
       'showDepthColoredDiveCards': false,
       'cardColorAttribute': 'none',

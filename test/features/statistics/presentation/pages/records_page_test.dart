@@ -132,6 +132,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setEndLimit(double value) async =>
       state = state.copyWith(endLimit: value);
   @override
+  Future<void> setAscentGasSet(AscentGasSet value) async =>
+      state = state.copyWith(ascentGasSet: value);
+  @override
   Future<void> setDefaultNdlSource(MetricDataSource value) async =>
       state = state.copyWith(defaultNdlSource: value);
   @override

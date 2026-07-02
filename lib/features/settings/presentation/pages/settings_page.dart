@@ -987,6 +987,47 @@ class _DecompressionSectionContent extends ConsumerWidget {
               ],
             ),
           ),
+          const SizedBox(height: 24),
+          _buildSectionHeader(context, 'Ascent planning'),
+          const SizedBox(height: 4),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              'Which carried cylinders the simulated ascent (TTS, ceiling and '
+              'stops) may switch to at each depth. Only gases recorded on the '
+              'dive are considered.',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.swap_vert),
+              title: const Text('Plan ascent with'),
+              dense: true,
+              trailing: DropdownButton<AscentGasSet>(
+                value: settings.ascentGasSet,
+                underline: const SizedBox.shrink(),
+                items: const [
+                  DropdownMenuItem(
+                    value: AscentGasSet.allCarried,
+                    child: Text('All carried cylinders'),
+                  ),
+                  DropdownMenuItem(
+                    value: AscentGasSet.decoStageOnly,
+                    child: Text('Deco/stage + back gas'),
+                  ),
+                ],
+                onChanged: (value) {
+                  if (value != null) {
+                    ref.read(settingsProvider.notifier).setAscentGasSet(value);
+                  }
+                },
+              ),
+            ),
+          ),
         ],
       ),
     );

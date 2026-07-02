@@ -1,5 +1,6 @@
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
 import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
@@ -339,6 +340,7 @@ class PlanCalculatorService {
     final decoSchedule = _buildDecoSchedule(
       algorithm: algorithm,
       segments: segments,
+      tanks: tanks,
       runtime: runtime,
     );
 
@@ -378,9 +380,16 @@ class PlanCalculatorService {
   }
 
   /// Build deco schedule from current algorithm state.
+  ///
+  /// The simulated ascent breathes the best eligible carried gas at each depth
+  /// via an [OptimalOcAscentGas] plan derived from [tanks]. Eligibility uses the
+  /// planner's deco ppO2 ceiling. Each stop reports the gas actually selected
+  /// at its depth. With a single carried gas this reduces to the legacy
+  /// fixed-gas ascent.
   List<DecoStop> _buildDecoSchedule({
     required BuhlmannAlgorithm algorithm,
     required List<PlanSegment> segments,
+    required List<DiveTank> tanks,
     required int runtime,
   }) {
     if (segments.isEmpty) return [];
@@ -391,18 +400,38 @@ class PlanCalculatorService {
 
     if (currentDepth <= 0) return [];
 
-    // Get deco schedule from algorithm
+    final ascentGases = <AvailableGas>[
+      for (final tank in tanks)
+        AvailableGas(
+          fN2: (100.0 - tank.gasMix.o2 - tank.gasMix.he) / 100.0,
+          fHe: tank.gasMix.he / 100.0,
+          maxPpO2Mod: O2ToxicityCalculator.calculateMod(
+            tank.gasMix.o2 / 100.0,
+            maxPpO2: ppO2Critical,
+          ),
+        ),
+    ];
+    final AscentGasPlan? ascentGas = ascentGases.isEmpty
+        ? null
+        : OptimalOcAscentGas(gases: ascentGases, maxPpO2: ppO2Critical);
+
+    // Get deco schedule from algorithm, breathing the best gas at each depth.
     final algoStops = algorithm.calculateDecoSchedule(
       currentDepth: currentDepth,
+      ascentGas: ascentGas,
     );
 
-    // Convert to our DecoStop type
+    // Convert to our DecoStop type, reflecting the gas used at each stop.
     int arrivalRuntime = runtime;
     return algoStops.map((stop) {
+      final gas = ascentGas?.gasForDepth(stop.depthMeters);
+      final gasMix = gas == null
+          ? const GasMix()
+          : GasMix(o2: (1.0 - gas.fN2 - gas.fHe) * 100.0, he: gas.fHe * 100.0);
       final decoStop = DecoStop(
         depth: stop.depthMeters,
         durationSeconds: stop.durationSeconds,
-        gasMix: const GasMix(), // Default to air, can be optimized
+        gasMix: gasMix,
         arrivalRuntime: arrivalRuntime,
       );
       arrivalRuntime += stop.durationSeconds;

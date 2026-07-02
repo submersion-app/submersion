@@ -86,6 +86,7 @@ class DiverSettingsRepository {
               showNdlOnProfile: Value(s.showNdlOnProfile),
               lastStopDepth: Value(s.lastStopDepth),
               decoStopIncrement: Value(s.decoStopIncrement),
+              ascentGasSet: Value(s.ascentGasSet.index),
               o2Narcotic: Value(s.o2Narcotic),
               endLimit: Value(s.endLimit),
               defaultNdlSource: Value(s.defaultNdlSource.toInt()),
@@ -221,6 +222,7 @@ class DiverSettingsRepository {
           showNdlOnProfile: Value(settings.showNdlOnProfile),
           lastStopDepth: Value(settings.lastStopDepth),
           decoStopIncrement: Value(settings.decoStopIncrement),
+          ascentGasSet: Value(settings.ascentGasSet.index),
           o2Narcotic: Value(settings.o2Narcotic),
           endLimit: Value(settings.endLimit),
           defaultNdlSource: Value(settings.defaultNdlSource.toInt()),
@@ -396,6 +398,10 @@ class DiverSettingsRepository {
       showNdlOnProfile: row.showNdlOnProfile,
       lastStopDepth: row.lastStopDepth,
       decoStopIncrement: row.decoStopIncrement,
+      ascentGasSet:
+          row.ascentGasSet >= 0 && row.ascentGasSet < AscentGasSet.values.length
+          ? AscentGasSet.values[row.ascentGasSet]
+          : AscentGasSet.allCarried,
       o2Narcotic: row.o2Narcotic,
       endLimit: row.endLimit,
       defaultNdlSource: MetricDataSource.fromInt(row.defaultNdlSource),
