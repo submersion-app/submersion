@@ -119,6 +119,28 @@ class DiveMergeService {
     return null;
   }
 
+  /// The native sample cadence around [gap]: the median inter-sample delta
+  /// of the previous segment's profile (falling back to the next segment's,
+  /// then to 60s when neither has samples). Synthesized surface samples use
+  /// this so they are indistinguishable from the computer's own rhythm.
+  int _nativeSampleIntervalSeconds(List<DiveProfile> rows, MergeGap gap) {
+    for (final diveId in [gap.afterDiveId, gap.beforeDiveId]) {
+      final timestamps =
+          rows.where((r) => r.diveId == diveId).map((r) => r.timestamp).toList()
+            ..sort();
+      final deltas = <int>[
+        for (var i = 1; i < timestamps.length; i++)
+          if (timestamps[i] - timestamps[i - 1] > 0)
+            timestamps[i] - timestamps[i - 1],
+      ];
+      if (deltas.isNotEmpty) {
+        deltas.sort();
+        return deltas[deltas.length ~/ 2];
+      }
+    }
+    return 60;
+  }
+
   /// Merges [diveIds] into one new dive inside a single transaction.
   ///
   /// Throws [ArgumentError] (via [DiveMergeBuilder.build]) if the selection
@@ -216,11 +238,11 @@ class DiveMergeService {
           );
         }
         // 3. Synthesized 0-depth samples across each gap (skip tiny gaps),
-        //    densified to one per minute and hugging both boundaries: a
-        //    2-point fill leaves a sample hole that the chart's curve
-        //    smoothing draws as a swooping line with an overshoot loop
-        //    (#449 manual test). Stamped with the adjacent segment's
-        //    computerId/isPrimary so getProfilesBySource
+        //    at the source profile's native cadence and hugging both
+        //    boundaries: a 2-point fill leaves a sample hole that the
+        //    chart's curve smoothing draws as a swooping line with an
+        //    overshoot loop (#449 manual test). Stamped with the adjacent
+        //    segment's computerId/isPrimary so getProfilesBySource
         //    (dive_repository_impl.dart) doesn't see a bogus extra
         //    'original' source next to the real computer's rows.
         for (final gap in result.gaps) {
@@ -228,8 +250,16 @@ class DiveMergeService {
           final adjacent =
               _adjacentProfileRow(snapshot.profileRows, gap.afterDiveId) ??
               _adjacentProfileRow(snapshot.profileRows, gap.beforeDiveId);
+          final interval = _nativeSampleIntervalSeconds(
+            snapshot.profileRows,
+            gap,
+          );
           final timestamps = <int>[
-            for (var ts = gap.startSeconds + 1; ts < gap.endSeconds; ts += 60)
+            for (
+              var ts = gap.startSeconds + 1;
+              ts < gap.endSeconds;
+              ts += interval
+            )
               ts,
           ];
           if (timestamps.last != gap.endSeconds - 1) {

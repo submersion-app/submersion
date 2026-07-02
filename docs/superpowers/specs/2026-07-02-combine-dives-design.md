@@ -95,10 +95,13 @@ full and classifies their time relationship using `effectiveEntryTime` and
 ### After confirm
 
 The merge runs in one transaction. On success: selection mode exits, the list
-refreshes (sources gone, merged dive present), and a snackbar shows
-"Combined N dives" with an **Undo** action (`persist: false` +
-`showCloseIcon`, per the #406 snackbar convention). On failure: the
-transaction rolls back, an error snackbar is shown, and nothing has changed.
+refreshes (sources gone, merged dive present), the merged dive becomes the
+list selection (the detail pane shows the combined result immediately), and
+a snackbar shows "Combined N dives" with an **Undo** action
+(`persist: false` + `showCloseIcon`, per the #406 snackbar convention).
+Undo removes the merged dive, restores the sources, and clears the selection
+if the merged dive was still selected. On failure: the transaction rolls
+back, an error snackbar is shown, and nothing has changed.
 
 ## Merge semantics
 
@@ -120,11 +123,12 @@ transaction rolls back, an error snackbar is shown, and nothing has changed.
   sample hole at the seam that chart smoothing renders as a swooping curve
   with overshoot loops. Profile samples that run into the next dive's entry
   classify the pair as overlapping.
-- Each gap (>= 2 s) is filled with synthesized 0-depth samples at a bounded
-  cadence: one per minute, hugging both boundaries (start + 1 s and
-  end - 1 s). Dense enough that charts render a genuinely flat surface line
-  regardless of curve smoothing, while staying far sparser than real
-  per-second sample rows.
+- Each gap (>= 2 s) is filled with synthesized 0-depth samples at the source
+  profile's native cadence (median inter-sample delta of the previous
+  segment, falling back to the next segment's, then to 60 s), hugging both
+  boundaries (start + 1 s and end - 1 s). The synthesized surface samples
+  are indistinguishable from the computer's own rhythm, so charts render a
+  genuinely flat surface line regardless of curve smoothing.
 - A `DiveProfileEvents` row (`eventType: 'surface'`) is written at each gap
   boundary so the profile chart can annotate the surface interval.
 

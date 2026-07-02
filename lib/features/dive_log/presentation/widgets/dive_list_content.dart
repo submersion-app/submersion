@@ -378,10 +378,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     );
     if (outcome == null || !mounted) return;
 
-    // The merged dive replaced the sources; clear a stale detail selection.
-    if (widget.selectedId != null && ids.contains(widget.selectedId)) {
-      widget.onItemSelected?.call(null);
-    }
+    // The merged dive replaced the sources; make it the list selection so
+    // the detail pane shows the combined result immediately.
+    widget.onItemSelected?.call(outcome.mergedDive.id);
     _exitSelectionMode();
     _lastMergeOutcome = outcome;
     _refreshAfterMerge();
@@ -413,6 +412,11 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               await ref.read(diveMergeServiceProvider).undo(toUndo.snapshot);
               _refreshAfterMerge();
               if (mounted) {
+                // The merged dive no longer exists; clear it from the detail
+                // pane if it is still the selection.
+                if (widget.selectedId == toUndo.mergedDive.id) {
+                  widget.onItemSelected?.call(null);
+                }
                 scaffoldMessenger.showSnackBar(
                   SnackBar(
                     content: Text(l10n.diveLog_combine_undone),

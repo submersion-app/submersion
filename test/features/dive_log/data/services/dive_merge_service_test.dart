@@ -39,6 +39,7 @@ void main() {
     int runtimeMin = 30,
     double depth = 10,
     String? computerId,
+    List<domain.DiveProfilePoint>? profile,
   }) async {
     await diveRepo.createDive(
       domain.Dive(
@@ -49,11 +50,13 @@ void main() {
         runtime: Duration(minutes: runtimeMin),
         maxDepth: depth,
         tanks: [domain.DiveTank(id: 'tank-$id', volume: 11.1)],
-        profile: [
-          const domain.DiveProfilePoint(timestamp: 0, depth: 0),
-          domain.DiveProfilePoint(timestamp: runtimeMin * 30, depth: depth),
-          domain.DiveProfilePoint(timestamp: runtimeMin * 60, depth: 0),
-        ],
+        profile:
+            profile ??
+            [
+              const domain.DiveProfilePoint(timestamp: 0, depth: 0),
+              domain.DiveProfilePoint(timestamp: runtimeMin * 30, depth: depth),
+              domain.DiveProfilePoint(timestamp: runtimeMin * 60, depth: 0),
+            ],
       ),
     );
     if (computerId != null) {
@@ -188,21 +191,12 @@ void main() {
           .toList();
       expect(profile, hasLength(6 + gapSamples.length));
       expect(gapSamples.every((p) => p.depth == 0), isTrue);
-      // The gap is densified (one 0-depth sample per minute, hugging both
-      // boundaries) so chart smoothing renders a flat surface line -- a
-      // 2-point fill left a sample hole the chart drew as a swooping curve
-      // with an overshoot loop (#449 manual test).
-      expect(gapSamples.first.timestamp, 1801);
-      expect(gapSamples.last.timestamp, 3599);
-      final seam = profile
-          .where((p) => p.timestamp >= 1800 && p.timestamp <= 3600)
-          .toList();
-      for (var i = 1; i < seam.length; i++) {
-        expect(
-          seam[i].timestamp - seam[i - 1].timestamp,
-          lessThanOrEqualTo(60),
-        );
-      }
+      // The gap is filled with 0-depth samples at the source profile's own
+      // cadence (median inter-sample delta; here the sparse 900s seed
+      // profile), hugging both boundaries -- a 2-point fill left a sample
+      // hole the chart drew as a swooping curve with an overshoot loop
+      // (#449 manual test).
+      expect(gapSamples.map((p) => p.timestamp), [1801, 2701, 3599]);
       // b's first sample re-based to 3600.
       expect(profile.where((p) => p.timestamp == 3600), isNotEmpty);
 
@@ -316,6 +310,52 @@ void main() {
         expect(bySource.keys, {'comp-1'});
       },
     );
+
+    test('gap samples match the source profile sample rate', () async {
+      // 10s-cadence sources -> the surface gap is filled at 10s too, so the
+      // synthesized samples are indistinguishable from the computer's own
+      // rhythm on the chart.
+      List<domain.DiveProfilePoint> dense(int runtimeSec) => [
+        for (var t = 0; t <= runtimeSec; t += 10)
+          domain.DiveProfilePoint(
+            timestamp: t,
+            depth: t == 0 || t == runtimeSec ? 0 : 10,
+          ),
+      ];
+      await seedDive(
+        'a',
+        entry: DateTime.utc(2026, 7, 1, 9),
+        runtimeMin: 5,
+        profile: dense(300),
+      );
+      await seedDive(
+        'b',
+        entry: DateTime.utc(2026, 7, 1, 9, 15),
+        runtimeMin: 5,
+        profile: dense(300),
+      );
+
+      final outcome = await service.apply(['a', 'b']);
+      final profile =
+          await (db.select(db.diveProfiles)
+                ..where((t) => t.diveId.equals(outcome.mergedDive.id))
+                ..orderBy([(t) => OrderingTerm.asc(t.timestamp)]))
+              .get();
+
+      // Gap runs 300..900 (a ends at 300; b re-based to 900).
+      final gapSamples = profile
+          .where((p) => p.timestamp > 300 && p.timestamp < 900)
+          .toList();
+      expect(gapSamples.first.timestamp, 301);
+      expect(gapSamples.last.timestamp, 899);
+      expect(gapSamples.every((p) => p.depth == 0), isTrue);
+      for (var i = 1; i < gapSamples.length; i++) {
+        expect(
+          gapSamples[i].timestamp - gapSamples[i - 1].timestamp,
+          lessThanOrEqualTo(10),
+        );
+      }
+    });
 
     test('zero-length gaps between touching dives get no surface events or '
         'gap samples (#449 F3/F8)', () async {
