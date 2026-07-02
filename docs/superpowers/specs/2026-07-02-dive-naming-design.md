@@ -33,9 +33,10 @@ searchable and included in CSV and UDDF exports.
   `ALTER TABLE dives ADD COLUMN name TEXT` followed by the `reportProgress()`
   pattern used by prior blocks.
 - `Dive` entity (`lib/features/dive_log/domain/entities/dive.dart`): add
-  `final String? name` to field, constructor, `copyWith`, `props`. Follow the
-  clear-sentinel convention the entity already uses for nullable `copyWith`
-  fields, so a name can be explicitly cleared back to null.
+  `final String? name` to field, constructor, `copyWith`, `props`, using the
+  plain `name ?? this.name` pattern the entity uses for all nullable fields
+  (no clear-sentinels exist on `Dive`). Clearing a name works because the
+  edit form constructs a fresh `Dive` rather than using `copyWith`.
 - `DiveSummary` (`.../entities/dive_summary.dart`): add `name` so list tiles can
   project it; populate from `dive.name` where the summary is built.
 - Repository (`.../data/repositories/dive_repository_impl.dart`): add
