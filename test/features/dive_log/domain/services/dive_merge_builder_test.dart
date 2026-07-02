@@ -133,4 +133,72 @@ void main() {
       expect(result.mergedDive.exitTime, DateTime.utc(2026, 7, 1, 10, 25));
     });
   });
+
+  group('build - stats', () {
+    List<DiveProfilePoint> flatProfile(int seconds, double depth) => [
+      for (var t = 0; t <= seconds; t += 10)
+        DiveProfilePoint(timestamp: t, depth: depth),
+    ];
+
+    test('bottomTime sums sources; maxDepth is the max', () {
+      final a = dive(
+        'a',
+        entry: DateTime.utc(2026, 7, 1, 9),
+      ).copyWith(bottomTime: const Duration(minutes: 25), maxDepth: 18.0);
+      final b = dive(
+        'b',
+        entry: DateTime.utc(2026, 7, 1, 10),
+      ).copyWith(bottomTime: const Duration(minutes: 20), maxDepth: 30.5);
+      final merged = builder.build([a, b]).mergedDive;
+      expect(merged.bottomTime, const Duration(minutes: 45));
+      expect(merged.maxDepth, 30.5);
+    });
+
+    test('avgDepth is weighted by sampled time and excludes the gap', () {
+      // a: 600s at a constant 10m; b: 600s at a constant 20m; 30min gap.
+      final a = dive(
+        'a',
+        entry: DateTime.utc(2026, 7, 1, 9),
+        runtimeMin: 10,
+        profile: flatProfile(600, 10),
+      );
+      final b = dive(
+        'b',
+        entry: DateTime.utc(2026, 7, 1, 10),
+        runtimeMin: 10,
+        profile: flatProfile(600, 20),
+      );
+      final merged = builder.build([a, b]).mergedDive;
+      // Equal sampled spans -> plain mean of 10 and 20; the 30min gap at
+      // 0m must NOT drag this down.
+      expect(merged.avgDepth, closeTo(15.0, 0.001));
+    });
+
+    test('profile-less source falls back to stored avgDepth x runtime', () {
+      final a = dive(
+        'a',
+        entry: DateTime.utc(2026, 7, 1, 9),
+        runtimeMin: 10,
+        profile: flatProfile(600, 10),
+      );
+      final b = dive(
+        'b',
+        entry: DateTime.utc(2026, 7, 1, 10),
+        runtimeMin: 30,
+      ).copyWith(avgDepth: 20.0);
+      final merged = builder.build([a, b]).mergedDive;
+      // 600s @ 10m + 1800s @ 20m = (6000 + 36000) / 2400 = 17.5
+      expect(merged.avgDepth, closeTo(17.5, 0.001));
+    });
+
+    test('stats are null when no source has any data', () {
+      final merged = builder.build([
+        dive('a', entry: DateTime.utc(2026, 7, 1, 9), runtimeMin: 0),
+        dive('b', entry: DateTime.utc(2026, 7, 1, 10), runtimeMin: 0),
+      ]).mergedDive;
+      expect(merged.maxDepth, isNull);
+      expect(merged.avgDepth, isNull);
+      expect(merged.bottomTime, isNull);
+    });
+  });
 }

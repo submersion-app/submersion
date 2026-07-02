@@ -79,6 +79,67 @@ class DiveMergeBuilder {
 
   static const _uuid = Uuid();
 
+  /// Trapezoidal time-weighted mean depth over one segment's samples.
+  /// Returns (weightedAreaMeterSeconds, spanSeconds) or null if < 2 samples.
+  (double, int)? _profileDepthArea(List<DiveProfilePoint> profile) {
+    if (profile.length < 2) return null;
+    final sorted = [...profile]
+      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    var area = 0.0;
+    var span = 0;
+    for (var i = 0; i < sorted.length - 1; i++) {
+      final dt = sorted[i + 1].timestamp - sorted[i].timestamp;
+      if (dt <= 0) continue;
+      area += dt * (sorted[i].depth + sorted[i + 1].depth) / 2;
+      span += dt;
+    }
+    return span > 0 ? (area, span) : null;
+  }
+
+  Duration? _mergedBottomTime(List<Dive> sorted) {
+    var total = Duration.zero;
+    var any = false;
+    for (final d in sorted) {
+      final bt =
+          d.bottomTime ??
+          d.calculateBottomTimeFromProfile() ??
+          d.effectiveRuntime;
+      if (bt != null && bt > Duration.zero) {
+        total += bt;
+        any = true;
+      }
+    }
+    return any ? total : null;
+  }
+
+  double? _mergedMaxDepth(List<Dive> sorted) {
+    double? max;
+    for (final d in sorted) {
+      final m = d.maxDepth ?? d.calculateMaxDepthFromProfile();
+      if (m != null && (max == null || m > max)) max = m;
+    }
+    return max;
+  }
+
+  double? _mergedAvgDepth(List<Dive> sorted) {
+    var area = 0.0;
+    var span = 0;
+    for (final d in sorted) {
+      final fromProfile = _profileDepthArea(d.profile);
+      if (fromProfile != null) {
+        area += fromProfile.$1;
+        span += fromProfile.$2;
+      } else if (d.avgDepth != null) {
+        final w = (d.effectiveRuntime ?? Duration.zero).inSeconds;
+        if (w > 0) {
+          area += d.avgDepth! * w;
+          span += w;
+        }
+      }
+    }
+    return span > 0 ? area / span : null;
+  }
+
   DiveMergeResult build(
     List<Dive> dives, {
     Map<String, List<Tag>> tagsByDive = const {},
@@ -113,6 +174,9 @@ class DiveMergeBuilder {
       entryTime: mergedStart,
       exitTime: mergedEnd,
       runtime: mergedEnd.difference(mergedStart),
+      bottomTime: _mergedBottomTime(sorted),
+      maxDepth: _mergedMaxDepth(sorted),
+      avgDepth: _mergedAvgDepth(sorted),
     );
 
     return DiveMergeResult(
