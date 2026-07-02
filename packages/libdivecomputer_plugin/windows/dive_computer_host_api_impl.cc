@@ -3,6 +3,7 @@
 #include "dive_converter.h"
 #include "serial_scanner.h"
 
+#include <climits>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -160,8 +161,41 @@ void DiveComputerHostApiImpl::ParseRawDiveData(
     int64_t model,
     const std::vector<uint8_t>& data,
     std::function<void(ErrorOr<ParsedDive> reply)> result) {
-    result(FlutterError("UNSUPPORTED",
-                        "Raw dive parsing not yet implemented on Windows"));
+    // model arrives as an int64 across the Pigeon boundary but libdivecomputer
+    // expects an unsigned int descriptor id. Reject out-of-range values up front
+    // so a corrupt/unexpected model yields a clear error instead of a silently
+    // wrapped cast and a misleading "no descriptor" failure downstream.
+    // UINT_MAX (not std::numeric_limits::max()) avoids the windows.h max() macro,
+    // and the signed 64-bit bound keeps the comparison free of /W4 warnings.
+    constexpr int64_t kMaxModel = UINT_MAX;
+    if (model < 0 || model > kMaxModel) {
+        result(FlutterError(
+            "PARSE_ERROR",
+            "Invalid dive computer model number: " + std::to_string(model)));
+        return;
+    }
+
+    libdc_parsed_dive_t dive = {};
+    char error_buf[256] = {};
+
+    int rc = libdc_parse_raw_dive(
+        vendor.c_str(), product.c_str(),
+        static_cast<unsigned int>(model),
+        data.data(), static_cast<unsigned int>(data.size()),
+        &dive, error_buf, sizeof(error_buf));
+
+    if (rc != 0) {
+        std::string msg = std::string("Failed to parse raw dive data: ") + error_buf;
+        free(dive.samples);
+        free(dive.events);
+        result(FlutterError("PARSE_ERROR", msg));
+        return;
+    }
+
+    auto parsed = ConvertParsedDive(dive);
+    free(dive.samples);
+    free(dive.events);
+    result(parsed);
 }
 
 ErrorOr<std::string> DiveComputerHostApiImpl::GetLibdivecomputerVersion() {

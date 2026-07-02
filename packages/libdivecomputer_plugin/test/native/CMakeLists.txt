@@ -80,9 +80,48 @@ target_include_directories(test_hw_ostc3_read PRIVATE
     ${CONFIG_DIR}
 )
 
+# test_parse_raw_dive requires the full libdivecomputer + wrapper linked in.
+# Use the Windows config on Windows, macOS config otherwise.
+if(WIN32)
+    set(PLATFORM_CONFIG_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../windows/config")
+else()
+    set(PLATFORM_CONFIG_DIR "${CONFIG_DIR}")
+endif()
+
+# Collect libdivecomputer sources needed for parsing (exclude platform I/O
+# files that don't compile cross-platform). CONFIGURE_DEPENDS re-runs the glob
+# on every build so the target stays in sync when the submodule adds/removes
+# sources, without a manual CMake cache wipe.
+file(GLOB LIBDC_ALL_SOURCES CONFIGURE_DEPENDS "${LIBDC_DIR}/src/*.c")
+list(FILTER LIBDC_ALL_SOURCES EXCLUDE REGEX "serial_posix\\.c$")
+if(NOT WIN32)
+    list(FILTER LIBDC_ALL_SOURCES EXCLUDE REGEX "serial_win32\\.c$")
+endif()
+
+add_executable(test_parse_raw_dive
+    test_parse_raw_dive.c
+    ${WRAPPER_DIR}/libdc_wrapper.c
+    ${WRAPPER_DIR}/libdc_download.c
+    ${LIBDC_ALL_SOURCES}
+)
+target_include_directories(test_parse_raw_dive PRIVATE
+    ${WRAPPER_DIR}
+    ${LIBDC_DIR}/include
+    ${LIBDC_DIR}/src
+    ${PLATFORM_CONFIG_DIR}
+)
+target_compile_definitions(test_parse_raw_dive PRIVATE HAVE_CONFIG_H)
+if(WIN32)
+    target_compile_definitions(test_parse_raw_dive PRIVATE _CRT_SECURE_NO_WARNINGS)
+    target_link_libraries(test_parse_raw_dive PRIVATE SetupAPI.lib ws2_32.lib)
+endif()
+
 enable_testing()
 add_test(NAME test_dive_converter COMMAND test_dive_converter)
 add_test(NAME test_serial_callbacks COMMAND test_serial_callbacks)
 add_test(NAME test_descriptor_matcher COMMAND test_descriptor_matcher)
 add_test(NAME test_descriptor_match_integration COMMAND test_descriptor_match_integration)
 add_test(NAME test_hw_ostc3_read COMMAND test_hw_ostc3_read)
+add_test(NAME test_parse_raw_dive COMMAND test_parse_raw_dive
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+)
