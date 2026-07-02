@@ -716,6 +716,7 @@ class DiveRepository {
               buddy: Value(dive.buddy),
               diveMaster: Value(dive.diveMaster),
               notes: Value(dive.notes),
+              name: Value(dive.name),
               siteId: Value(dive.site?.id),
               diveCenterId: Value(dive.diveCenter?.id),
               tripId: Value(dive.tripId ?? dive.trip?.id),
@@ -957,6 +958,7 @@ class DiveRepository {
           buddy: Value(dive.buddy),
           diveMaster: Value(dive.diveMaster),
           notes: Value(dive.notes),
+          name: Value(dive.name),
           siteId: Value(dive.site?.id),
           diveCenterId: Value(dive.diveCenter?.id),
           tripId: Value(dive.tripId ?? dive.trip?.id),
@@ -1362,7 +1364,8 @@ class DiveRepository {
 
         final sql =
             'SELECT '
-            'd.id, d.dive_number, d.dive_date_time, d.entry_time, '
+            'd.id, d.dive_number, d.name AS dive_name, '
+            'd.dive_date_time, d.entry_time, '
             'd.max_depth, d.bottom_time, d.runtime, d.water_temp, d.rating, '
             'd.is_favorite, d.dive_type, '
             'COALESCE(d.entry_time, d.dive_date_time) AS sort_timestamp, '
@@ -1400,6 +1403,7 @@ class DiveRepository {
           return DiveSummary(
             id: id,
             diveNumber: row.readNullable<int>('dive_number'),
+            name: row.readNullable<String>('dive_name'),
             dateTime: DateTime.fromMillisecondsSinceEpoch(
               row.read<int>('dive_date_time'),
               isUtc: true,
@@ -2256,6 +2260,7 @@ class DiveRepository {
       buddy: row.buddy,
       diveMaster: row.diveMaster,
       notes: row.notes,
+      name: row.name,
       site: domainSite,
       diveCenter: domainCenter,
       trip: domainTrip,
@@ -2606,6 +2611,7 @@ class DiveRepository {
       buddy: row.buddy,
       diveMaster: row.diveMaster,
       notes: row.notes,
+      name: row.name,
       site: site,
       diveCenter: diveCenter,
       trip: trip,
