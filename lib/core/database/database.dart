@@ -402,7 +402,8 @@ class DiveTanks extends Table {
   TextColumn get presetName =>
       text().nullable()(); // preset name (e.g., 'al80', 'hp100')
   // Which computer contributed this tank (null = primary source / manual).
-  // Mirrors dive_profiles.computerId semantics (multi-computer consolidation).
+  // Same null-means-primary semantics as dive_profiles.computerId; deletes
+  // set null.
   TextColumn get computerId => text().nullable().references(
     DiveComputers,
     #id,
@@ -1315,7 +1316,8 @@ class DiveProfileEvents extends Table {
   TextColumn get source =>
       text().withDefault(const Constant('imported'))(); // EventSource.name
   // Which computer contributed this event (null = primary source / manual).
-  // Mirrors dive_profiles.computerId semantics (multi-computer consolidation).
+  // Same null-means-primary semantics as dive_profiles.computerId; deletes
+  // set null.
   TextColumn get computerId => text().nullable().references(
     DiveComputers,
     #id,
@@ -1353,8 +1355,8 @@ class TankPressureProfiles extends Table {
   IntColumn get timestamp => integer()(); // seconds from dive start
   RealColumn get pressure => real()(); // bar
   // Which computer contributed this pressure sample (null = primary source /
-  // manual). Mirrors dive_profiles.computerId semantics (multi-computer
-  // consolidation).
+  // manual). Same null-means-primary semantics as dive_profiles.computerId;
+  // deletes set null.
   TextColumn get computerId => text().nullable().references(
     DiveComputers,
     #id,
