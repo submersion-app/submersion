@@ -1826,6 +1826,7 @@ class AppDatabase extends _$AppDatabase {
     91,
     92,
     93,
+    94,
   ];
 
   /// Tables that carry a per-row Hybrid Logical Clock for cross-device conflict

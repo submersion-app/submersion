@@ -24,6 +24,13 @@ void main() {
     expect(await columnsOf('dive_profile_events'), contains('computer_id'));
   });
 
+  test('schema version is 94 and the migration list includes it', () {
+    // Latest-version tripwire: bumping the schema must come with a matching
+    // migration block and an update here.
+    expect(AppDatabase.currentSchemaVersion, 94);
+    expect(AppDatabase.migrationVersions, contains(94));
+  });
+
   test('deleting a computer nulls attribution instead of cascading', () async {
     final now = DateTime.now().millisecondsSinceEpoch;
     await db
