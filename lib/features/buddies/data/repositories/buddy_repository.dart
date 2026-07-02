@@ -15,7 +15,12 @@ import 'package:submersion/features/buddies/domain/entities/buddy_role_credentia
 
 // Re-export merge types so callers can import from buddy_repository.dart
 export 'package:submersion/features/buddies/data/repositories/buddy_merge_repository.dart'
-    show BuddyMergeResult, BuddyMergeSnapshot, DiveBuddySnapshot;
+    show
+        BuddyMergeResult,
+        BuddyMergeSnapshot,
+        DiveBuddySnapshot,
+        BuddyRoleSnapshot,
+        CertificationInstructorSnapshot;
 
 class BuddyRepository {
   AppDatabase get _db => DatabaseService.instance.database;
