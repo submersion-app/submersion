@@ -7,6 +7,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
+import 'package:submersion/core/services/sync/changeset_log/peer_cursor_store.dart';
 import 'package:submersion/core/services/sync/library_epoch.dart';
 import 'package:submersion/core/services/sync/library_epoch_store.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
@@ -351,6 +352,55 @@ void main() {
         expect(await serializer.fetchRecord('dives', 'cloud-dive'), isNotNull);
       },
     );
+
+    test(
+      'adoption records peer cursors so the next sync does not re-pull the base',
+      () async {
+        // seedPeerLog publishes 'replacer' as a base at seq 1 (no changesets).
+        await DiveRepository().createDive(
+          createTestDiveWithBottomTime(id: 'cloud-dive'),
+        );
+        await seedPeerLog(cloud, 'replacer', epochId: 'e1');
+        final service = buildService();
+        await service.writeLibraryEpochMarker(cloud, marker);
+
+        await service.adoptReplacedLibrary();
+
+        // resetSyncState wipes cursors; without recording what adopt applied,
+        // the next sync cold-starts and re-downloads the whole adopted base.
+        final cursor = await PeerCursorStore(
+          DatabaseService.instance.database,
+        ).get('replacer', cloud.providerId);
+        expect(
+          cursor,
+          isNotNull,
+          reason: 'adopt must record the replacer cursor',
+        );
+        expect(cursor!.lastSeqApplied, 1);
+        expect(cursor.baseSeqApplied, 1);
+      },
+    );
+
+    test('the sync after adoption does not re-apply the adopted base', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'cloud-dive'),
+      );
+      await seedPeerLog(cloud, 'replacer', epochId: 'e1');
+      final service = buildService();
+      await service.writeLibraryEpochMarker(cloud, marker);
+      await service.adoptReplacedLibrary();
+
+      // The cursor adopt recorded makes the follow-up pull skip 'replacer', so
+      // nothing is re-applied. Without the fix this cold-started and re-pulled
+      // the entire adopted base.
+      final result = await service.performSync();
+      expect(result.isSuccess, isTrue);
+      expect(
+        result.recordsSynced,
+        0,
+        reason: 'the base just adopted must not be re-pulled',
+      );
+    });
 
     test('adoption preserves device identity', () async {
       await DiveRepository().createDive(

@@ -2102,6 +2102,20 @@ class SyncService {
       // Re-baseline under the adopted epoch. Our tombstones are obsolete --
       // the restored library is authoritative.
       await _syncRepository.resetSyncState(clearDeletionLog: true);
+      // Record what adopt just applied as each epoch device's transport cursor.
+      // resetSyncState wiped the cursors; without re-establishing them the next
+      // sync cold-starts and redundantly re-downloads the whole base we just
+      // adopted (the "slow second sync"). The streamed apply covered each
+      // device through its `appliedThrough` seq, so the next pull skips it.
+      final cursorStore = PeerCursorStore(DatabaseService.instance.database);
+      for (final c in sources.cursors) {
+        await cursorStore.upsert(
+          peerDeviceId: c.deviceId,
+          provider: provider.providerId,
+          baseSeqApplied: c.baseSeq,
+          lastSeqApplied: c.appliedThrough,
+        );
+      }
       await _syncRepository.setLastAcceptedEpochId(marker.epochId);
       await store.setLastAccepted(marker);
       SyncClock.instance.reset();
@@ -2311,6 +2325,7 @@ class SyncService {
       List<String> baseFilePaths,
       List<int> baseExportedAt,
       List<SyncPayload> changesets,
+      List<({String deviceId, int baseSeq, int appliedThrough})> cursors,
     })
   >
   _collectEpochBaseSources(
@@ -2331,6 +2346,7 @@ class SyncService {
     final baseFilePaths = <String>[];
     final baseExportedAt = <int>[];
     final changesets = <SyncPayload>[];
+    final cursors = <({String deviceId, int baseSeq, int appliedThrough})>[];
     for (final deviceId in deviceIds) {
       final manifestFile = byName[ChangesetLogLayout.manifestName(deviceId)];
       if (manifestFile == null) continue;
@@ -2362,18 +2378,29 @@ class SyncService {
       if (path == null) continue; // base incomplete/corrupt -> skip this device
       baseFilePaths.add(path);
       baseExportedAt.add(await _readBaseExportedAt(path));
+      // Track the last CONTIGUOUS seq we apply (base, then changesets up to the
+      // first gap) so adopt can record it as this peer's cursor -- otherwise the
+      // next sync cold-starts and re-downloads the whole base we just applied.
+      var appliedThrough = baseSeq;
       for (var seq = baseSeq + 1; seq <= manifest.headSeq; seq++) {
         final cf = byName[ChangesetLogLayout.changesetName(deviceId, seq)];
         if (cf == null) break;
         changesets.add(
           _changesetCodec.decodeChangeset(await provider.downloadFile(cf.id)),
         );
+        appliedThrough = seq;
       }
+      cursors.add((
+        deviceId: deviceId,
+        baseSeq: baseSeq,
+        appliedThrough: appliedThrough,
+      ));
     }
     return (
       baseFilePaths: baseFilePaths,
       baseExportedAt: baseExportedAt,
       changesets: changesets,
+      cursors: cursors,
     );
   }
 
