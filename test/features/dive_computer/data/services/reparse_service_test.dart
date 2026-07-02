@@ -1015,11 +1015,12 @@ void main() {
       expect(t0.tankRole, 'backGas');
       expect(t0.tankMaterial, 'aluminum');
 
-      // Tank 2: new tank inserted
+      // Tank 2: new tank inserted, stamped with the source's computerId
       final t2 = tanks.firstWhere((t) => t.tankOrder == 2);
       expect(t2.o2Percent, 100.0);
       expect(t2.startPressure, 200.0);
       expect(t2.endPressure, 100.0);
+      expect(t2.computerId, 'comp-1');
     });
 
     test('synthesizes tanks from gas mixes when the computer reports no '
@@ -1158,6 +1159,11 @@ void main() {
       expect(profiles.first.pressure, 220.0);
       expect(profiles.last.pressure, 90.0);
       expect(profiles.every((p) => p.tankId == 'tank-0'), isTrue);
+      expect(
+        profiles.every((p) => p.computerId == 'comp-1'),
+        isTrue,
+        reason: 'pressure profiles are stamped with the source computerId',
+      );
 
       // Tank start/end pressure backfilled from first/last sample.
       final tank = await (db.select(
@@ -1471,6 +1477,11 @@ void main() {
                 ..orderBy([(t) => OrderingTerm.asc(t.timestamp)]))
               .get();
       expect(events.length, 7);
+      expect(
+        events.every((e) => e.computerId == 'comp-1'),
+        isTrue,
+        reason: 'events are stamped with the source computerId',
+      );
 
       expect(events[0].eventType, 'bookmark');
       expect(events[0].severity, 'info');
@@ -2474,6 +2485,70 @@ void main() {
       )..where((t) => t.diveId.equals('dive-1'))).get();
       expect(events.length, 1);
       expect(events.first.value, isNull);
+    });
+  });
+
+  group('Coverage: null-computerId source stamps null attribution', () {
+    test('new tank, tank pressure profile, and event rows all carry a null '
+        'computerId when the source has none (manual import, no computer '
+        'association)', () async {
+      await insertDive('dive-1');
+      await insertSource(
+        id: 'src-1',
+        diveId: 'dive-1',
+        computerId: null,
+        isPrimary: true,
+      );
+      // No pre-existing tanks: exercises the _carryOverTanks new-tank
+      // insert branch, which is the one that stamps computerId.
+
+      final parsed = makeParsedDive(
+        tanks: [pigeon.TankInfo(index: 0, gasMixIndex: 0, volumeLiters: 12.0)],
+        gasMixes: [pigeon.GasMix(index: 0, o2Percent: 32.0, hePercent: 0.0)],
+        samples: [
+          pigeon.ProfileSample(
+            timeSeconds: 0,
+            depthMeters: 0.0,
+            pressureBar: 200.0,
+            tankIndex: 0,
+          ),
+          pigeon.ProfileSample(
+            timeSeconds: 60,
+            depthMeters: 18.0,
+            pressureBar: 100.0,
+            tankIndex: 0,
+          ),
+        ],
+        events: [pigeon.DiveEvent(timeSeconds: 30, type: 'bookmark')],
+      );
+
+      await service.applyParsedUpdate(
+        diveId: 'dive-1',
+        sourceRowId: 'src-1',
+        parsed: parsed,
+        descriptorVendor: null,
+        descriptorProduct: null,
+        descriptorModel: null,
+        libdivecomputerVersion: null,
+      );
+
+      final tanks = await (db.select(
+        db.diveTanks,
+      )..where((t) => t.diveId.equals('dive-1'))).get();
+      expect(tanks, hasLength(1));
+      expect(tanks.single.computerId, isNull);
+
+      final pressures = await (db.select(
+        db.tankPressureProfiles,
+      )..where((t) => t.diveId.equals('dive-1'))).get();
+      expect(pressures, isNotEmpty);
+      expect(pressures.every((p) => p.computerId == null), isTrue);
+
+      final events = await (db.select(
+        db.diveProfileEvents,
+      )..where((t) => t.diveId.equals('dive-1'))).get();
+      expect(events, hasLength(1));
+      expect(events.single.computerId, isNull);
     });
   });
 
