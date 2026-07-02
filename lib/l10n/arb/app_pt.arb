@@ -1058,7 +1058,7 @@
   "diveLog_combine_gapLabel": "Intervalo de superfície: {duration}",
   "diveLog_combine_mixedDivers": "Os mergulhos selecionados pertencem a mergulhadores diferentes e não podem ser combinados.",
   "diveLog_combine_overlapBody": "Mergulhos sobrepostos parecem ser o mesmo mergulho registrado por vários computadores de mergulho. A opção de combiná-los em um único registro que mostra os dados de cada computador chegará em uma versão futura.",
-  "diveLog_combine_overlapHintTwoDives": "Para combinar agora dois registros do mesmo mergulho, abra um deles e use «Combinar com outro mergulho».",
+  "diveLog_combine_overlapHintTwoDives": "Para combinar agora dois registros do mesmo mergulho, abra um deles e use «Mesclar com outro mergulho».",
   "diveLog_combine_overlapTitle": "Esses mergulhos se sobrepõem no tempo",
   "diveLog_combine_previewIntro": "Estes {count} mergulhos serão combinados em um único mergulho contínuo. Os intervalos entre eles se tornam tempo de superfície.",
   "diveLog_combine_resultSummary": "Resultado: {runtime} no total, profundidade máxima {maxDepth}",

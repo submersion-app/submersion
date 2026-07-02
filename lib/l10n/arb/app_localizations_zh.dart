@@ -2828,7 +2828,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_combine_overlapHintTwoDives =>
-      '要立即合并同一次潜水的两条记录，请打开其中一条并使用“与另一次潜水合并”。';
+      '要立即合并同一次潜水的两条记录，请打开其中一条并使用「与另一次潜水合并」。';
 
   @override
   String get diveLog_combine_overlapTitle => '这些潜水在时间上重叠';

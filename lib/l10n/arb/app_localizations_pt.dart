@@ -2978,7 +2978,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLog_combine_overlapHintTwoDives =>
-      'Para combinar agora dois registros do mesmo mergulho, abra um deles e use «Combinar com outro mergulho».';
+      'Para combinar agora dois registros do mesmo mergulho, abra um deles e use «Mesclar com outro mergulho».';
 
   @override
   String get diveLog_combine_overlapTitle =>

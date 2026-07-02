@@ -1058,7 +1058,7 @@
   "diveLog_combine_gapLabel": "Oppervlakte-interval: {duration}",
   "diveLog_combine_mixedDivers": "De geselecteerde duiken behoren tot verschillende duikers en kunnen niet worden samengevoegd.",
   "diveLog_combine_overlapBody": "Overlappende duiken lijken op dezelfde duik die door meerdere duikcomputers is vastgelegd. Het samenvoegen daarvan tot één item dat de gegevens van elke computer toont, komt in een toekomstige release.",
-  "diveLog_combine_overlapHintTwoDives": "Om nu twee registraties van dezelfde duik samen te voegen, open je er een en gebruik je 'Samenvoegen met een andere duik'.",
+  "diveLog_combine_overlapHintTwoDives": "Om nu twee registraties van dezelfde duik samen te voegen, open je er een en gebruik je ‘Samenvoegen met een andere duik’.",
   "diveLog_combine_overlapTitle": "Deze duiken overlappen in tijd",
   "diveLog_combine_previewIntro": "Deze {count} duiken worden samengevoegd tot één doorlopende duik. Tussenliggende intervallen worden oppervlaktetijd.",
   "diveLog_combine_resultSummary": "Resultaat: {runtime} totaal, maximale diepte {maxDepth}",

@@ -2996,10 +2996,10 @@ class AppLocalizationsEs extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'inmersiones',
-      one: 'inmersión',
+      other: 'Se combinaron $count inmersiones',
+      one: 'Se combinó $count inmersión',
     );
-    return 'Se combinaron $count $_temp0';
+    return '$_temp0';
   }
 
   @override

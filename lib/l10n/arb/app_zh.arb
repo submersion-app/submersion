@@ -1158,7 +1158,7 @@
   "diveLog_combine_gapLabel": "水面间隔：{duration}",
   "diveLog_combine_mixedDivers": "所选潜水属于不同的潜水员，无法合并。",
   "diveLog_combine_overlapBody": "重叠的潜水看起来像是由多台潜水电脑记录的同一次潜水。将它们合并为显示每台电脑数据的单条记录的功能即将在未来版本中推出。",
-  "diveLog_combine_overlapHintTwoDives": "要立即合并同一次潜水的两条记录，请打开其中一条并使用“与另一次潜水合并”。",
+  "diveLog_combine_overlapHintTwoDives": "要立即合并同一次潜水的两条记录，请打开其中一条并使用「与另一次潜水合并」。",
   "diveLog_combine_overlapTitle": "这些潜水在时间上重叠",
   "diveLog_combine_previewIntro": "这 {count} 次潜水将合并为一次连续潜水。它们之间的间隔将变为水面时间。",
   "diveLog_combine_resultSummary": "结果：总计 {runtime}，最大深度 {maxDepth}",

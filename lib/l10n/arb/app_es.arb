@@ -1062,7 +1062,7 @@
   "diveLog_combine_overlapTitle": "Estas inmersiones se superponen en el tiempo",
   "diveLog_combine_previewIntro": "Estas {count} inmersiones se combinarán en una sola inmersión continua. Los intervalos entre ellas se convertirán en tiempo en superficie.",
   "diveLog_combine_resultSummary": "Resultado: {runtime} en total, profundidad máxima {maxDepth}",
-  "diveLog_combine_snackbar": "Se combinaron {count} {count, plural, =1{inmersión} other{inmersiones}}",
+  "diveLog_combine_snackbar": "{count, plural, =1{Se combinó {count} inmersión} other{Se combinaron {count} inmersiones}}",
   "diveLog_combine_title": "Combinar inmersiones",
   "diveLog_combine_undone": "Combinación deshecha",
   "diveLog_computerSheet_description": "Selecciona desde qué perfil de ordenador editar.",

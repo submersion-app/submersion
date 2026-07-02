@@ -2955,7 +2955,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_combine_overlapHintTwoDives =>
-      'Om nu twee registraties van dezelfde duik samen te voegen, open je er een en gebruik je \'Samenvoegen met een andere duik\'.';
+      'Om nu twee registraties van dezelfde duik samen te voegen, open je er een en gebruik je ‘Samenvoegen met een andere duik’.';
 
   @override
   String get diveLog_combine_overlapTitle => 'Deze duiken overlappen in tijd';
