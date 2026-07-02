@@ -16,6 +16,7 @@ class Certification extends Equatable {
   final DateTime? expiryDate;
   final String? instructorName;
   final String? instructorNumber;
+  final String? instructorId;
   final Uint8List? photoFront;
   final Uint8List? photoBack;
   final String notes;
@@ -33,6 +34,7 @@ class Certification extends Equatable {
     this.expiryDate,
     this.instructorName,
     this.instructorNumber,
+    this.instructorId,
     this.photoFront,
     this.photoBack,
     this.notes = '',
@@ -85,6 +87,7 @@ class Certification extends Equatable {
     DateTime? expiryDate,
     String? instructorName,
     String? instructorNumber,
+    String? instructorId,
     Uint8List? photoFront,
     Uint8List? photoBack,
     String? notes,
@@ -102,6 +105,7 @@ class Certification extends Equatable {
       expiryDate: expiryDate ?? this.expiryDate,
       instructorName: instructorName ?? this.instructorName,
       instructorNumber: instructorNumber ?? this.instructorNumber,
+      instructorId: instructorId ?? this.instructorId,
       photoFront: photoFront ?? this.photoFront,
       photoBack: photoBack ?? this.photoBack,
       notes: notes ?? this.notes,
@@ -123,6 +127,7 @@ class Certification extends Equatable {
       expiryDate: expiryDate,
       instructorName: instructorName,
       instructorNumber: instructorNumber,
+      instructorId: instructorId,
       photoFront: clearFront ? null : photoFront,
       photoBack: clearBack ? null : photoBack,
       notes: notes,
@@ -155,6 +160,7 @@ class Certification extends Equatable {
     expiryDate,
     instructorName,
     instructorNumber,
+    instructorId,
     photoFront,
     photoBack,
     notes,
