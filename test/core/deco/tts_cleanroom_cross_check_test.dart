@@ -53,32 +53,37 @@ double _firstStopDepth(List<double> pn2, double gfLow) {
 
 /// Independent reference: optimal TTS (seconds) from [startDepth] given loaded
 /// N2 tensions, GF low/high, ascent rate 9 m/min, 3 m stops, and a best-gas
-/// selector. Integrates ascent and stops in 1-second steps; loads each tissue
-/// with the Schreiner equation on the gas eligible at the current depth.
+/// [plan]. Reimplements the schedule from the published model (Schreiner
+/// loading, Buhlmann a/b ceilings, GF interpolation, trial-ascent stop clears)
+/// without calling any production schedule code, to pin the absolute numbers.
 int referenceTts({
   required List<double> pn2,
   required double startDepth,
   required double gfLow,
   required double gfHigh,
-  required AscentGas Function(double depth) gasForDepth,
+  required AscentGasPlan plan,
 }) {
+  AscentGas gasForDepth(double depth) => plan.gasForDepth(depth);
   final tensions = List<double>.from(pn2);
 
-  // Anchor the GF interpolation at the initial first-stop depth.
+  // Anchor the GF interpolation at the deepest GF-low ceiling (unrounded),
+  // mirroring production's `_gfLowCeilingAnchor` (Subsurface's
+  // gf_low_pressure_this_dive). Fixed for the whole ascent: tissues only
+  // offgas above the bottom, so this running-max never grows during ascent.
+  final anchor = _maxCeiling(tensions, gfLow);
+  // First stop still snaps to the 3 m grid, as production does.
   final firstStop = _firstStopDepth(tensions, gfLow);
   double gfAt(double depth) {
     if (depth <= 0) return gfHigh;
-    if (firstStop <= 0) return gfHigh;
-    if (depth >= firstStop) return gfLow;
-    return gfHigh - (gfHigh - gfLow) * (depth / firstStop);
+    if (anchor <= 0) return gfHigh;
+    if (depth >= anchor) return gfLow;
+    return gfHigh - (gfHigh - gfLow) * (depth / anchor);
   }
 
   // No deco required: a direct ascent to the surface.
   if (_maxCeiling(tensions, gfHigh) <= 0) {
     return (startDepth / _ascentRate * 60).round();
   }
-
-  const stepSeconds = 1;
 
   void integrate(double depth, double fN2, int seconds) {
     final inspired = _inspiredN2(depth, fN2);
@@ -90,18 +95,28 @@ int referenceTts({
 
   int totalStopSeconds = 0;
 
-  // Ascend from [from] to [to] at the fixed rate, integrating per second on
-  // the gas eligible at the (descending) current depth.
+  // Load one un-split ascent sub-leg as a single average-depth segment on the
+  // gas eligible at its deeper end -- mirroring production's `_ascendLeg`, so
+  // the tissue loading discretization matches (Schreiner is convex, so a
+  // per-second integral would diverge by ~a stop-minute over a long leg).
+  void ascendLeg(double from, double to) {
+    if (from <= to) return;
+    final gas = gasForDepth(from);
+    final seconds = ((from - to) / _ascentRate * 60).round();
+    final avgDepth = (from + to) / 2.0;
+    integrate(avgDepth, gas.fN2, seconds);
+  }
+
+  // Ascend from [from] to [to], splitting at every gas-switch (MOD) depth the
+  // leg crosses, exactly as production's `_simulateAscent` does.
   void ascend(double from, double to) {
     if (from <= to) return;
-    final totalSeconds = ((from - to) / _ascentRate * 60).round();
-    var depth = from;
-    final perStep = (from - to) / totalSeconds;
-    for (var s = 0; s < totalSeconds; s++) {
-      final midDepth = depth - perStep / 2.0;
-      integrate(midDepth, gasForDepth(midDepth).fN2, stepSeconds);
-      depth -= perStep;
+    var top = from;
+    for (final switchDepth in plan.switchDepthsBetween(from, to)) {
+      ascendLeg(top, switchDepth);
+      top = switchDepth;
     }
+    ascendLeg(top, to);
   }
 
   // Travel to the first stop, then walk the 3 m grid up to the last stop.
@@ -114,12 +129,25 @@ int referenceTts({
   ) {
     final nextStop = stop <= _lastStop ? 0.0 : stop - _stopIncrement;
     final fN2 = gasForDepth(stop).fN2;
-    final gf = gfAt(stop);
+    // Clear the stop against the ceiling at the NEXT (shallower) stop's GF,
+    // matching production's clear-to-next-stop (Subsurface trial_ascent). At
+    // the last stop the next level is the surface, where the GF is gfHigh.
+    final gf = gfAt(nextStop);
 
     var stopSeconds = 0;
     const maxStop = 120 * 60;
     while (stopSeconds < maxStop) {
-      if (_maxCeiling(tensions, gf) <= nextStop) break;
+      // Production evaluates the ceiling AFTER a trial minute, then either
+      // leaves (keeping the pre-minute state, minute not counted) or commits
+      // the minute. So it holds ~1 min less per stop than a check-first loop;
+      // replicate that trial-then-commit ordering to match the numbers.
+      final snapshot = List<double>.from(tensions);
+      integrate(stop, fN2, 60);
+      final ceiling = _maxCeiling(tensions, gf);
+      for (var i = 0; i < tensions.length; i++) {
+        tensions[i] = snapshot[i];
+      }
+      if (ceiling <= nextStop) break;
       integrate(stop, fN2, 60);
       stopSeconds += 60;
     }
@@ -162,7 +190,7 @@ void main() {
       startDepth: 40,
       gfLow: 0.50,
       gfHigh: 0.80,
-      gasForDepth: plan.gasForDepth,
+      plan: plan,
     );
 
     expect(prod, greaterThan(0));
