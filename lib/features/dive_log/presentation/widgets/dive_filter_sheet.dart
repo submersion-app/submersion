@@ -151,6 +151,39 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                children: [
+                  _datePresetChip(context, 'All time', () {
+                    setState(() {
+                      _startDate = null;
+                      _endDate = null;
+                    });
+                  }),
+                  _datePresetChip(context, 'This year', () {
+                    final now = DateTime.now();
+                    setState(() {
+                      _startDate = DateTime(now.year, 1, 1);
+                      _endDate = DateTime(now.year, now.month, now.day);
+                    });
+                  }),
+                  _datePresetChip(context, 'Last 12 months', () {
+                    final now = DateTime.now();
+                    setState(() {
+                      _startDate = DateTime(now.year - 1, now.month, now.day);
+                      _endDate = DateTime(now.year, now.month, now.day);
+                    });
+                  }),
+                  _datePresetChip(context, 'Last year', () {
+                    final now = DateTime.now();
+                    setState(() {
+                      _startDate = DateTime(now.year - 1, 1, 1);
+                      _endDate = DateTime(now.year - 1, 12, 31);
+                    });
+                  }),
+                ],
+              ),
+              const SizedBox(height: 8),
               Row(
                 children: [
                   Expanded(
@@ -609,6 +642,19 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
           ),
         );
       },
+    );
+  }
+
+  Widget _datePresetChip(
+    BuildContext context,
+    String label,
+    VoidCallback onTap,
+  ) {
+    return ActionChip(
+      label: Text(label, style: const TextStyle(fontSize: 12)),
+      onPressed: onTap,
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      visualDensity: VisualDensity.compact,
     );
   }
 

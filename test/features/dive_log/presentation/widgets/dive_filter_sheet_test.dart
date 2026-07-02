@@ -89,5 +89,72 @@ void main() {
 
       expect(capturedRef.read(_testStatsFilter).favoritesOnly, true);
     });
+
+    testWidgets('Last 12 months preset sets a start date and applies', (
+      tester,
+    ) async {
+      late WidgetRef capturedRef;
+      final overrides = await getBaseOverrides();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: overrides.cast(),
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: Consumer(
+                builder: (context, ref, _) {
+                  capturedRef = ref;
+                  return Center(
+                    child: ElevatedButton(
+                      onPressed: () => showModalBottomSheet<void>(
+                        context: context,
+                        isScrollControlled: true,
+                        builder: (_) => DiveFilterSheet(
+                          ref: ref,
+                          filterProvider: _testStatsFilter,
+                        ),
+                      ),
+                      child: const Text('Open filter'),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Open filter'));
+      await tester.pumpAndSettle();
+
+      // The sheet's ListView is taller than the modal viewport, so scroll
+      // each target into view before interacting with it.
+      final scrollable = find.byType(Scrollable).first;
+
+      await tester.scrollUntilVisible(
+        find.text('Last 12 months'),
+        50.0,
+        scrollable: scrollable,
+      );
+      await tester.ensureVisible(find.text('Last 12 months'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Last 12 months'));
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(
+        find.text('Apply Filters'),
+        50.0,
+        scrollable: scrollable,
+      );
+      await tester.ensureVisible(find.text('Apply Filters'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply Filters'));
+      await tester.pumpAndSettle();
+
+      expect(capturedRef.read(_testStatsFilter).startDate, isNotNull);
+    });
   });
 }
