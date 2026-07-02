@@ -6,6 +6,9 @@ import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_filter_sheet.dart';
+import 'package:submersion/features/statistics/presentation/providers/statistics_filter_provider.dart';
+import 'package:submersion/features/statistics/presentation/widgets/statistics_filter_bar.dart';
 import 'package:submersion/features/statistics/presentation/widgets/statistics_list_content.dart';
 import 'package:submersion/features/statistics/presentation/pages/statistics_conditions_page.dart';
 import 'package:submersion/features/statistics/presentation/pages/statistics_equipment_page.dart';
@@ -78,11 +81,11 @@ class StatisticsPage extends ConsumerWidget {
 }
 
 /// Mobile content showing category grid for navigation.
-class StatisticsMobileContent extends StatelessWidget {
+class StatisticsMobileContent extends ConsumerWidget {
   const StatisticsMobileContent({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
         title: Text(context.l10n.statistics_appBar_title),
@@ -92,24 +95,48 @@ class StatisticsMobileContent extends StatelessWidget {
             tooltip: context.l10n.statistics_tooltip_diveRecords,
             onPressed: () => context.push('/records'),
           ),
+          IconButton(
+            icon: Badge(
+              isLabelVisible: ref
+                  .watch(statisticsFilterProvider)
+                  .hasActiveFilters,
+              child: const Icon(Icons.filter_list),
+            ),
+            tooltip: 'Filter statistics',
+            onPressed: () => showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              builder: (context) => DiveFilterSheet(
+                ref: ref,
+                filterProvider: statisticsFilterProvider,
+              ),
+            ),
+          ),
         ],
       ),
-      body: ListView.separated(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        itemCount: statisticsCategoriesOf(context).length,
-        separatorBuilder: (context, index) {
-          if (index == 0) {
-            return const Divider(height: 16, thickness: 1);
-          }
-          return const Divider(height: 1);
-        },
-        itemBuilder: (context, index) {
-          final category = statisticsCategoriesOf(context)[index];
-          return _StatisticsCategoryTile(
-            category: category,
-            onTap: () => context.push('/statistics/${category.id}'),
-          );
-        },
+      body: Column(
+        children: [
+          const StatisticsFilterBar(),
+          Expanded(
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              itemCount: statisticsCategoriesOf(context).length,
+              separatorBuilder: (context, index) {
+                if (index == 0) {
+                  return const Divider(height: 16, thickness: 1);
+                }
+                return const Divider(height: 1);
+              },
+              itemBuilder: (context, index) {
+                final category = statisticsCategoriesOf(context)[index];
+                return _StatisticsCategoryTile(
+                  category: category,
+                  onTap: () => context.push('/statistics/${category.id}'),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
