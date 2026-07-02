@@ -6146,6 +6146,18 @@ abstract class AppLocalizations {
   /// **'Dive #'**
   String get diveLog_edit_label_diveNumber;
 
+  /// Label for the optional dive name field in the dive edit form
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get diveLog_edit_label_diveName;
+
+  /// Placeholder shown in the empty dive name field
+  ///
+  /// In en, this message translates to:
+  /// **'Optional name for this dive'**
+  String get diveLog_edit_diveNamePlaceholder;
+
   /// No description provided for @diveLog_edit_hint_diveNumber.
   ///
   /// In en, this message translates to:

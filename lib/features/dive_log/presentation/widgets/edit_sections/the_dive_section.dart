@@ -12,6 +12,7 @@ class TheDiveSection extends StatelessWidget {
   const TheDiveSection({
     super.key,
     required this.depthSymbol,
+    required this.nameController,
     required this.maxDepthController,
     required this.avgDepthController,
     required this.bottomTimeController,
@@ -34,6 +35,7 @@ class TheDiveSection extends StatelessWidget {
   });
 
   final String depthSymbol;
+  final TextEditingController nameController;
   final TextEditingController maxDepthController;
   final TextEditingController avgDepthController;
   final TextEditingController bottomTimeController;
@@ -70,6 +72,11 @@ class TheDiveSection extends StatelessWidget {
       expanded: true,
       onToggle: null,
       children: [
+        FormRow.text(
+          label: l10n.diveLog_edit_label_diveName,
+          controller: nameController,
+          placeholder: l10n.diveLog_edit_diveNamePlaceholder,
+        ),
         FormRow.text(
           label: l10n.diveLog_edit_label_diveNumber,
           controller: diveNumberController,

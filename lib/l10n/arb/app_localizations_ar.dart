@@ -3565,6 +3565,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_label_diveNumber => 'رقم الغوصة';
 
   @override
+  String get diveLog_edit_label_diveName => 'Name';
+
+  @override
+  String get diveLog_edit_diveNamePlaceholder => 'Optional name for this dive';
+
+  @override
   String get diveLog_edit_hint_diveNumber => 'يُعيَّن تلقائياً إذا تُرك فارغاً';
 
   @override

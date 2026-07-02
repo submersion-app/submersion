@@ -25,11 +25,14 @@ void main() {
         addTearDown(c.dispose);
       }
       var avgUsed = 0;
+      final nameC = TextEditingController();
+      addTearDown(nameC.dispose);
 
       await tester.pumpWidget(
         _wrap(
           TheDiveSection(
             depthSymbol: 'm',
+            nameController: nameC,
             maxDepthController: maxC,
             avgDepthController: avgC,
             bottomTimeController: botC,
@@ -79,10 +82,13 @@ void main() {
     for (final c in [maxC, avgC, botC, runC, numC]) {
       addTearDown(c.dispose);
     }
+    final nameC = TextEditingController();
+    addTearDown(nameC.dispose);
     await tester.pumpWidget(
       _wrap(
         TheDiveSection(
           depthSymbol: 'm',
+          nameController: nameC,
           maxDepthController: maxC,
           avgDepthController: avgC,
           bottomTimeController: botC,

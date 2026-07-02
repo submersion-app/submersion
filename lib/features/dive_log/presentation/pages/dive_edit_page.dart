@@ -136,6 +136,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   final _waterTempController = TextEditingController();
   final _airTempController = TextEditingController();
   final _notesController = TextEditingController();
+  final _nameController = TextEditingController();
 
   List<String> _selectedDiveTypeIds = const ['recreational'];
   Visibility _selectedVisibility = Visibility.unknown;
@@ -317,6 +318,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       _waterTempController,
       _airTempController,
       _notesController,
+      _nameController,
       _swellHeightController,
       _altitudeController,
       _surfacePressureController,
@@ -459,6 +461,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               ? units.convertTemperature(dive.airTemp!).toStringAsFixed(0)
               : '';
           _notesController.text = dive.notes;
+          _nameController.text = dive.name ?? '';
           _selectedDiveTypeIds = List.from(dive.diveTypeIds);
           _selectedVisibility = dive.visibility ?? Visibility.unknown;
           _rating = dive.rating ?? 0;
@@ -618,6 +621,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     _waterTempController.dispose();
     _airTempController.dispose();
     _notesController.dispose();
+    _nameController.dispose();
     _swellHeightController.dispose();
     _altitudeController.dispose();
     _surfacePressureController.dispose();
@@ -1534,6 +1538,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     final hasProfile = _existingDive?.profile.isNotEmpty == true;
     return TheDiveSection(
       depthSymbol: units.depthSymbol,
+      nameController: _nameController,
       maxDepthController: _maxDepthController,
       avgDepthController: _avgDepthController,
       bottomTimeController: _durationController,
@@ -3936,6 +3941,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         diverId: _existingDive?.diverId, // Preserve diver assignment
         diveNumber: _diveNumberController.text.isNotEmpty
             ? (int.tryParse(_diveNumberController.text) ?? 0)
+            : null,
+        name: _nameController.text.trim().isNotEmpty
+            ? _nameController.text.trim()
             : null,
         dateTime: entryDateTime, // Keep for backward compatibility
         entryTime: entryDateTime,

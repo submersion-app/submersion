@@ -1904,6 +1904,14 @@
   "diveLog_edit_label_diveType": "Dive Type",
   "diveLog_edit_label_diveTypes": "Dive Types",
   "diveLog_edit_label_diveNumber": "Dive #",
+  "diveLog_edit_label_diveName": "Name",
+  "@diveLog_edit_label_diveName": {
+    "description": "Label for the optional dive name field in the dive edit form"
+  },
+  "diveLog_edit_diveNamePlaceholder": "Optional name for this dive",
+  "@diveLog_edit_diveNamePlaceholder": {
+    "description": "Placeholder shown in the empty dive name field"
+  },
   "diveLog_edit_hint_diveNumber": "Auto-assigned if left blank",
   "diveLog_edit_label_entryMethod": "Entry Method",
   "diveLog_edit_label_exitMethod": "Exit Method",

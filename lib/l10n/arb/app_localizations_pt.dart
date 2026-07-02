@@ -3645,6 +3645,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_edit_label_diveNumber => 'No. do Mergulho';
 
   @override
+  String get diveLog_edit_label_diveName => 'Name';
+
+  @override
+  String get diveLog_edit_diveNamePlaceholder => 'Optional name for this dive';
+
+  @override
   String get diveLog_edit_hint_diveNumber =>
       'Atribuido automaticamente se deixado em branco';
 
