@@ -5,17 +5,24 @@
 #include <string.h>
 #include "libdc_wrapper.h"
 
-/* Load a binary file into a malloc'd buffer. Returns size, or 0 on failure. */
+/* Load a binary file into a malloc'd buffer. On success returns the byte count
+   and sets *out to the malloc'd buffer (caller frees). On any failure returns 0
+   and sets *out to NULL, so the caller can safely free/assert without touching
+   an uninitialized or partially-filled buffer. */
 static unsigned int load_fixture(const char *path, unsigned char **out) {
+    *out = NULL;
     FILE *f = fopen(path, "rb");
     if (!f) return 0;
     fseek(f, 0, SEEK_END);
     long len = ftell(f);
     fseek(f, 0, SEEK_SET);
     if (len <= 0) { fclose(f); return 0; }
-    *out = (unsigned char *)malloc((size_t)len);
-    size_t read = fread(*out, 1, (size_t)len, f);
+    unsigned char *buf = (unsigned char *)malloc((size_t)len);
+    if (!buf) { fclose(f); return 0; }
+    size_t read = fread(buf, 1, (size_t)len, f);
     fclose(f);
+    if (read != (size_t)len) { free(buf); return 0; }
+    *out = buf;
     return (unsigned int)read;
 }
 
@@ -34,6 +41,15 @@ static void test_null_args(void) {
     assert(rc != 0);
 
     printf("PASS: test_null_args\n");
+}
+
+/* Error path: a missing fixture must report failure and null the out pointer. */
+static void test_load_fixture_missing(void) {
+    unsigned char *data = (unsigned char *)0x1; /* poison: must be overwritten */
+    unsigned int size = load_fixture("fixtures/does_not_exist.bin", &data);
+    assert(size == 0);
+    assert(data == NULL);
+    printf("PASS: test_load_fixture_missing\n");
 }
 
 /* Error path: unknown descriptor should return NODEVICE. */
@@ -89,6 +105,7 @@ static void test_parse_cressi_leonardo(void) {
 
 int main(void) {
     test_null_args();
+    test_load_fixture_missing();
     test_unknown_descriptor();
     test_parse_cressi_leonardo();
     printf("\nAll parse_raw_dive tests passed.\n");

@@ -89,8 +89,10 @@ else()
 endif()
 
 # Collect libdivecomputer sources needed for parsing (exclude platform I/O
-# files that don't compile cross-platform).
-file(GLOB LIBDC_ALL_SOURCES "${LIBDC_DIR}/src/*.c")
+# files that don't compile cross-platform). CONFIGURE_DEPENDS re-runs the glob
+# on every build so the target stays in sync when the submodule adds/removes
+# sources, without a manual CMake cache wipe.
+file(GLOB LIBDC_ALL_SOURCES CONFIGURE_DEPENDS "${LIBDC_DIR}/src/*.c")
 list(FILTER LIBDC_ALL_SOURCES EXCLUDE REGEX "serial_posix\\.c$")
 if(NOT WIN32)
     list(FILTER LIBDC_ALL_SOURCES EXCLUDE REGEX "serial_win32\\.c$")
