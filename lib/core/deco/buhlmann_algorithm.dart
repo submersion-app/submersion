@@ -356,6 +356,14 @@ class BuhlmannAlgorithm {
     int stopTime = 0;
     const maxStopTime = 120 * 60;
 
+    // This method only COMPUTES the stop time; the loop loads minutes onto the
+    // tissues to search for the clearance time, but the caller
+    // (calculateDecoSchedule) applies the stop's loading once via
+    // calculateSegment(stopTime). Snapshot the entry state and restore it before
+    // returning so those search minutes do not persist and get double-counted.
+    final entryCompartments = List<TissueCompartment>.from(_compartments);
+    final entryAnchor = _gfLowCeilingAnchor;
+
     while (stopTime < maxStopTime) {
       final testCompartments = List<TissueCompartment>.from(_compartments);
       final testAnchor = _gfLowCeilingAnchor;
@@ -394,6 +402,10 @@ class BuhlmannAlgorithm {
       );
       stopTime += 60;
     }
+
+    // Undo the search loading; the caller applies the stop's loading once.
+    _compartments = entryCompartments;
+    _gfLowCeilingAnchor = entryAnchor;
 
     return ((stopTime + 59) ~/ 60) * 60;
   }
