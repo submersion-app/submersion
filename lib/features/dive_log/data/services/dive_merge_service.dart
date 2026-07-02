@@ -215,16 +215,27 @@ class DiveMergeService {
                 ),
           );
         }
-        // 3. Synthesized 0-depth samples at gap boundaries (skip tiny gaps).
-        //    Stamped with the adjacent segment's computerId/isPrimary so
-        //    getProfilesBySource (dive_repository_impl.dart) doesn't see a
-        //    bogus extra 'original' source next to the real computer's rows.
+        // 3. Synthesized 0-depth samples across each gap (skip tiny gaps),
+        //    densified to one per minute and hugging both boundaries: a
+        //    2-point fill leaves a sample hole that the chart's curve
+        //    smoothing draws as a swooping line with an overshoot loop
+        //    (#449 manual test). Stamped with the adjacent segment's
+        //    computerId/isPrimary so getProfilesBySource
+        //    (dive_repository_impl.dart) doesn't see a bogus extra
+        //    'original' source next to the real computer's rows.
         for (final gap in result.gaps) {
           if (gap.endSeconds - gap.startSeconds < 2) continue;
           final adjacent =
               _adjacentProfileRow(snapshot.profileRows, gap.afterDiveId) ??
               _adjacentProfileRow(snapshot.profileRows, gap.beforeDiveId);
-          for (final ts in [gap.startSeconds + 1, gap.endSeconds - 1]) {
+          final timestamps = <int>[
+            for (var ts = gap.startSeconds + 1; ts < gap.endSeconds; ts += 60)
+              ts,
+          ];
+          if (timestamps.last != gap.endSeconds - 1) {
+            timestamps.add(gap.endSeconds - 1);
+          }
+          for (final ts in timestamps) {
             batch.insert(
               _db.diveProfiles,
               DiveProfilesCompanion.insert(

@@ -382,6 +382,21 @@ class DiveMergeBuilder {
     );
   }
 
+  /// The segment's occupied span: the declared runtime or the last profile
+  /// sample, whichever is later. Computers routinely keep sampling past the
+  /// runtime they report (surface bobbing before the log closes), so gap
+  /// boundaries must clear the real samples or the seam is left with an
+  /// uncovered sample hole (#449 manual-test bug).
+  Duration _segmentExtent(Dive dive) {
+    var extent = dive.effectiveRuntime ?? Duration.zero;
+    for (final point in dive.profile) {
+      if (point.timestamp > extent.inSeconds) {
+        extent = Duration(seconds: point.timestamp);
+      }
+    }
+    return extent;
+  }
+
   DiveMergeClassification classify(List<Dive> dives) {
     if (dives.length < 2) {
       return const MergeInvalid(DiveMergeInvalidReason.tooFewDives);
@@ -399,9 +414,7 @@ class DiveMergeBuilder {
       // A dive with no derivable duration is treated as zero-length: it has
       // no profile samples, so nothing can overlap it. Deliberate (#449
       // review).
-      final prevEnd = prev.effectiveEntryTime.add(
-        prev.effectiveRuntime ?? Duration.zero,
-      );
+      final prevEnd = prev.effectiveEntryTime.add(_segmentExtent(prev));
       if (next.effectiveEntryTime.isBefore(prevEnd)) {
         return const MergeOverlapping();
       }

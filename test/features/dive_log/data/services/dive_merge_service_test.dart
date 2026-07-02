@@ -176,19 +176,33 @@ void main() {
       )..where((t) => t.entityType.equals('dives'))).get();
       expect(tombstones.map((t) => t.recordId).toSet(), {'a', 'b'});
 
-      // Profile: 3 samples per source, re-based, plus 2 gap samples.
+      // Profile: 3 samples per source, re-based, plus densified gap samples.
       final profile =
           await (db.select(db.diveProfiles)
                 ..where((t) => t.diveId.equals(mergedId))
                 ..orderBy([(t) => OrderingTerm.asc(t.timestamp)]))
               .get();
-      expect(profile, hasLength(8));
       // Dive a ends at 1800s; dive b starts at 3600s; gap samples inside.
-      final gapSamples = profile.where(
-        (p) => p.timestamp > 1800 && p.timestamp < 3600,
-      );
-      expect(gapSamples, hasLength(2));
+      final gapSamples = profile
+          .where((p) => p.timestamp > 1800 && p.timestamp < 3600)
+          .toList();
+      expect(profile, hasLength(6 + gapSamples.length));
       expect(gapSamples.every((p) => p.depth == 0), isTrue);
+      // The gap is densified (one 0-depth sample per minute, hugging both
+      // boundaries) so chart smoothing renders a flat surface line -- a
+      // 2-point fill left a sample hole the chart drew as a swooping curve
+      // with an overshoot loop (#449 manual test).
+      expect(gapSamples.first.timestamp, 1801);
+      expect(gapSamples.last.timestamp, 3599);
+      final seam = profile
+          .where((p) => p.timestamp >= 1800 && p.timestamp <= 3600)
+          .toList();
+      for (var i = 1; i < seam.length; i++) {
+        expect(
+          seam[i].timestamp - seam[i - 1].timestamp,
+          lessThanOrEqualTo(60),
+        );
+      }
       // b's first sample re-based to 3600.
       expect(profile.where((p) => p.timestamp == 3600), isNotEmpty);
 
@@ -293,8 +307,9 @@ void main() {
         final profile = await (db.select(
           db.diveProfiles,
         )..where((t) => t.diveId.equals(mergedId))).get();
-        // 3 samples per source + 2 synthesized gap samples.
-        expect(profile, hasLength(8));
+        // 3 samples per source + the densified gap samples -- every row,
+        // synthesized ones included, must carry the source computerId.
+        expect(profile.length, greaterThan(6));
         expect(profile.every((p) => p.computerId == 'comp-1'), isTrue);
 
         final bySource = await diveRepo.getProfilesBySource(mergedId);

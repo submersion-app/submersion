@@ -113,10 +113,18 @@ transaction rolls back, an error snackbar is shown, and nothing has changed.
 
 ### Surface gaps
 
-- Each gap gets synthesized 0-depth samples at its boundaries: one just after
-  the previous segment's last sample and one just before the next segment's
-  first sample. Charts render a flat surface line between them; the database
-  is not bloated with per-second zeros.
+- Gap boundaries come from each segment's occupied span:
+  `max(effectiveRuntime, last profile sample timestamp)`. Computers routinely
+  keep sampling past the runtime they declare (surface bobbing before the
+  log closes); trusting the declared runtime alone leaves an uncovered
+  sample hole at the seam that chart smoothing renders as a swooping curve
+  with overshoot loops. Profile samples that run into the next dive's entry
+  classify the pair as overlapping.
+- Each gap (>= 2 s) is filled with synthesized 0-depth samples at a bounded
+  cadence: one per minute, hugging both boundaries (start + 1 s and
+  end - 1 s). Dense enough that charts render a genuinely flat surface line
+  regardless of curve smoothing, while staying far sparser than real
+  per-second sample rows.
 - A `DiveProfileEvents` row (`eventType: 'surface'`) is written at each gap
   boundary so the profile chart can annotate the surface interval.
 

@@ -88,6 +88,43 @@ void main() {
       expect(result, isA<MergeSequential>());
     });
 
+    test('gap starts at the profile extent when samples outrun runtime', () {
+      // Computers keep sampling past the runtime they declare (surface
+      // bobbing before the log closes). The gap must start after the LAST
+      // sample, or the seam is left with an uncovered sample hole that the
+      // profile chart draws as a swooping curved line (#449 manual test).
+      final a = dive(
+        'a',
+        entry: DateTime.utc(2026, 7, 1, 9),
+        runtimeMin: 5,
+        profile: const [
+          DiveProfilePoint(timestamp: 2, depth: 5),
+          DiveProfilePoint(timestamp: 300, depth: 0.2),
+          DiveProfilePoint(timestamp: 366, depth: 0.1),
+        ],
+      );
+      final b = dive('b', entry: DateTime.utc(2026, 7, 1, 9, 10));
+      final result = builder.classify([a, b]);
+      expect(result, isA<MergeSequential>());
+      final gap = (result as MergeSequential).gaps.single;
+      expect(gap.startSeconds, 366); // profile extent, not 5min runtime
+      expect(gap.endSeconds, 600);
+    });
+
+    test('profile samples running into the next dive are overlapping', () {
+      final a = dive(
+        'a',
+        entry: DateTime.utc(2026, 7, 1, 9),
+        runtimeMin: 5,
+        profile: const [
+          DiveProfilePoint(timestamp: 2, depth: 5),
+          DiveProfilePoint(timestamp: 660, depth: 1),
+        ],
+      );
+      final b = dive('b', entry: DateTime.utc(2026, 7, 1, 9, 10));
+      expect(builder.classify([a, b]), isA<MergeOverlapping>());
+    });
+
     test('touching dives (gap == 0) are sequential with a zero gap', () {
       final result = builder.classify([
         dive('a', entry: DateTime.utc(2026, 7, 1, 9), runtimeMin: 60),
