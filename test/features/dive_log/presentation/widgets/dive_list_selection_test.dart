@@ -77,10 +77,27 @@ class _StubMergeService implements DiveMergeService {
 class _MockPaginatedNotifier
     extends StateNotifier<AsyncValue<PaginatedDiveListState>>
     implements PaginatedDiveListNotifier {
-  _MockPaginatedNotifier(List<DiveSummary> dives)
+  _MockPaginatedNotifier(List<DiveSummary> dives, {this.afterRefresh})
     : super(
         AsyncValue.data(PaginatedDiveListState(dives: dives, hasMore: false)),
       );
+
+  /// When set, [refresh] swaps the list to this -- simulating the DB reload
+  /// after a combine picking up the newly created merged dive.
+  final List<DiveSummary>? afterRefresh;
+
+  @override
+  Future<void> refresh() async {
+    if (afterRefresh != null) {
+      state = AsyncValue.data(
+        PaginatedDiveListState(dives: afterRefresh!, hasMore: false),
+      );
+    }
+  }
+
+  // Scrolling to the bottom trips the list's load-more listener.
+  @override
+  Future<void> loadNextPage() async {}
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -206,5 +223,62 @@ void main() {
       tester.element(find.byType(DiveListContent)),
     );
     expect(container.read(highlightedDiveIdProvider), 'merged-1');
+  });
+
+  testWidgets('successful combine scrolls the merged dive into view', (
+    tester,
+  ) async {
+    final sources = [
+      _makeDive(id: 'd0', dateTime: DateTime(2026, 1, 1, 9)),
+      _makeDive(id: 'd1', dateTime: DateTime(2026, 1, 1, 10)),
+    ];
+    final fillers = [
+      for (var i = 0; i < 30; i++)
+        _makeDive(id: 'f$i', dateTime: DateTime(2026, 1, 2, 0, i)),
+    ];
+    final merged = _makeDive(id: 'merged-1', dateTime: DateTime(2025, 1, 1));
+
+    // Before combine the list shows the sources plus fillers (no merged dive).
+    // After the reload it becomes the fillers plus the merged dive at the very
+    // bottom -- off-screen until the list scrolls to it.
+    final before = [...sources, ...fillers].map(DiveSummary.fromDive).toList();
+    final after = [...fillers, merged].map(DiveSummary.fromDive).toList();
+
+    final base = await getBaseOverrides();
+    final overrides = [
+      ...base,
+      diveListViewModeProvider.overrideWith((ref) => ListViewMode.detailed),
+      paginatedDiveListProvider.overrideWith(
+        (ref) => _MockPaginatedNotifier(before, afterRefresh: after),
+      ),
+      diveRepositoryProvider.overrideWithValue(_FakeDiveRepository(sources)),
+      diveMergeServiceProvider.overrideWithValue(_StubMergeService('merged-1')),
+    ];
+
+    await tester.pumpWidget(
+      testApp(
+        overrides: overrides,
+        child: const DiveListContent(showAppBar: false),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    Finder tileFinder(String id) =>
+        find.byWidgetPredicate((w) => w is DiveListTile && w.diveId == id);
+
+    // Merged dive not present / off-screen before the combine.
+    expect(tileFinder('merged-1'), findsNothing);
+
+    await tester.longPress(tileFinder('d0'));
+    await tester.pumpAndSettle();
+    await tester.tap(tileFinder('d1'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Combine'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Combine into one dive'));
+    await tester.pumpAndSettle();
+
+    // The reloaded list scrolled the merged dive into view.
+    expect(tileFinder('merged-1'), findsOneWidget);
   });
 }

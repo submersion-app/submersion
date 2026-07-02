@@ -164,15 +164,19 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     }
   }
 
-  /// Scroll the list to show the selected item
-  void _scrollToSelectedItem() {
-    if (widget.selectedId == null) return;
+  /// Scroll the list to show [overrideId], or the current [widget.selectedId]
+  /// when omitted. An explicit id lets callers (e.g. the combine flow) scroll
+  /// to a freshly created row without depending on when the URL selection
+  /// propagates.
+  void _scrollToSelectedItem([String? overrideId]) {
+    final targetId = overrideId ?? widget.selectedId;
+    if (targetId == null) return;
 
     // Get the current dive list from the paginated provider
     final divesAsync = ref.read(paginatedDiveListProvider);
     divesAsync.whenData((paginatedState) {
       final dives = paginatedState.dives;
-      final index = dives.indexWhere((d) => d.id == widget.selectedId);
+      final index = dives.indexWhere((d) => d.id == targetId);
       if (index >= 0 && _scrollController.hasClients) {
         // Use post-frame callback to ensure layout is complete
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -196,7 +200,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeInOut,
           );
-          _lastScrolledToId = widget.selectedId;
+          _lastScrolledToId = targetId;
         });
       }
     });
@@ -380,13 +384,14 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
 
     // Select the merged dive the same way a list tap does: highlight its row
     // (highlightedDiveIdProvider) AND open it in the detail pane
-    // (onItemSelected). Deliberately do NOT set _selectionFromList, so
-    // didUpdateWidget scrolls the newly created row into view.
+    // (onItemSelected). Scrolling happens after the list reload settles
+    // below -- didUpdateWidget's scroll fires now, before the reloaded list
+    // contains the brand-new merged row, so it would find nothing.
     _exitSelectionMode();
     ref.read(highlightedDiveIdProvider.notifier).state = outcome.mergedDive.id;
     widget.onItemSelected?.call(outcome.mergedDive.id);
     _lastMergeOutcome = outcome;
-    _refreshAfterMerge();
+    _invalidateStatsAfterMerge();
 
     // Captured now (synchronously, while context is still valid) so the
     // Undo action's async onPressed never has to read context.l10n after an
@@ -443,13 +448,25 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         ),
       ),
     );
+
+    // Reload the list and wait for it to settle -- now including the new
+    // merged dive -- then scroll that row into view. The reload must finish
+    // first or the row won't exist yet to scroll to.
+    await ref.read(paginatedDiveListProvider.notifier).refresh();
+    if (mounted) _scrollToSelectedItem(outcome.mergedDive.id);
+  }
+
+  /// Invalidate the merge-derived providers other than the paginated list
+  /// (which the combine path reloads explicitly so it can scroll afterwards).
+  void _invalidateStatsAfterMerge() {
+    ref.invalidate(diveListNotifierProvider);
+    ref.invalidate(diveStatisticsProvider);
+    ref.invalidate(diveNumberingInfoProvider);
   }
 
   void _refreshAfterMerge() {
     ref.invalidate(paginatedDiveListProvider);
-    ref.invalidate(diveListNotifierProvider);
-    ref.invalidate(diveStatisticsProvider);
-    ref.invalidate(diveNumberingInfoProvider);
+    _invalidateStatsAfterMerge();
   }
 
   void _showExportDialog() {
