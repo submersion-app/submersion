@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -5,6 +8,7 @@ import 'package:intl/intl.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart'
     show CloudProviderType;
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/icloud_native_service.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
 import 'package:submersion/core/services/sync/library_moved.dart';
@@ -52,14 +56,7 @@ class CloudSyncPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final syncState = ref.watch(syncStateProvider);
-    // Google Drive is hidden until its integration is implemented, but a
-    // persisted selection or SyncRepository's fallback can still surface
-    // `googledrive`. Treat it as no provider so the page can never show
-    // Sync Now enabled with no selected tile.
-    final rawProvider = ref.watch(selectedCloudProviderTypeProvider);
-    final selectedProvider = rawProvider == CloudProviderType.googledrive
-        ? null
-        : rawProvider;
+    final selectedProvider = ref.watch(selectedCloudProviderTypeProvider);
     final hasProvider = selectedProvider != null;
     final isCustomFolderMode = ref.watch(
       isCloudSyncDisabledByCustomFolderProvider,
@@ -463,9 +460,7 @@ class CloudSyncPage extends ConsumerWidget {
           isAvailable: isApple && !iCloudUnsupported,
           disabledSubtitle: iCloudDisabledSubtitle,
         ),
-        // Google Drive is hidden until its integration is fully
-        // implemented; the CloudProviderType and provider plumbing remain
-        // so re-enabling is just restoring this tile.
+        _buildGoogleDriveProviderTile(context, ref, selectedProvider),
         _buildS3ProviderTile(context, ref, selectedProvider),
       ],
     );
@@ -504,6 +499,45 @@ class CloudSyncPage extends ConsumerWidget {
         enabled: isAvailable,
         onTap: isAvailable
             ? () => _selectProvider(context, ref, provider)
+            : null,
+      ),
+    );
+  }
+
+  Widget _buildGoogleDriveProviderTile(
+    BuildContext context,
+    WidgetRef ref,
+    CloudProviderType? selectedProvider,
+  ) {
+    final l10n = context.l10n;
+    final isSelected = selectedProvider == CloudProviderType.googledrive;
+    // Render from AsyncValue.value so a provider reload does not flash the
+    // tile through a disabled state.
+    final isAvailable = ref.watch(googleDriveAvailableProvider).value ?? false;
+    final email = ref.watch(googleDriveAccountEmailProvider).value;
+
+    return Semantics(
+      selected: isSelected,
+      child: ListTile(
+        leading: const Icon(Icons.add_to_drive),
+        title: Text(l10n.settings_cloudSync_provider_googleDrive),
+        subtitle: Text(
+          !isAvailable
+              ? l10n.settings_cloudSync_googleDrive_desktopNotConfigured
+              : (isSelected && email != null
+                    ? email
+                    : l10n.settings_cloudSync_provider_googleDrive_subtitle),
+        ),
+        trailing: isSelected
+            ? const Icon(
+                Icons.check_circle,
+                color: Colors.green,
+                semanticLabel: 'Connected',
+              )
+            : null,
+        enabled: isAvailable,
+        onTap: isAvailable
+            ? () => _selectProvider(context, ref, CloudProviderType.googledrive)
             : null,
       ),
     );
@@ -610,7 +644,7 @@ class CloudSyncPage extends ConsumerWidget {
 
     try {
       // Authenticate with the provider
-      await cloudProvider.authenticate();
+      await _authenticateWithBrowserWait(context, cloudProvider, provider);
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -647,6 +681,65 @@ class CloudSyncPage extends ConsumerWidget {
         );
       }
     }
+  }
+
+  /// On desktop, Google Drive authentication round-trips through the
+  /// system browser (loopback OAuth); keep a cancellable waiting dialog up
+  /// while it completes so the page does not look frozen. Other providers
+  /// and platforms authenticate directly.
+  Future<void> _authenticateWithBrowserWait(
+    BuildContext context,
+    CloudStorageProvider cloudProvider,
+    CloudProviderType provider,
+  ) async {
+    final needsDialog =
+        provider == CloudProviderType.googledrive &&
+        (Platform.isWindows || Platform.isLinux);
+    if (!needsDialog) {
+      await cloudProvider.authenticate();
+      return;
+    }
+
+    var dialogUp = true;
+    final auth = cloudProvider.authenticate().whenComplete(() {
+      if (dialogUp && context.mounted) {
+        Navigator.of(context, rootNavigator: true).pop(false);
+      }
+    });
+    final cancelled =
+        await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (dialogContext) => AlertDialog(
+            title: Text(
+              dialogContext
+                  .l10n
+                  .settings_cloudSync_googleDrive_browserWait_title,
+            ),
+            content: Text(
+              dialogContext
+                  .l10n
+                  .settings_cloudSync_googleDrive_browserWait_message,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, true),
+                child: Text(
+                  MaterialLocalizations.of(dialogContext).cancelButtonLabel,
+                ),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+    dialogUp = false;
+    if (cancelled) {
+      // Abandon the pending flow; the loopback listener times out on its
+      // own. Swallow its eventual error so nothing surfaces later.
+      unawaited(auth.catchError((_) {}));
+      throw const CloudStorageException('Google Sign-In was cancelled');
+    }
+    await auth;
   }
 
   /// Localized connection-failure message. For iCloud, the wording reflects

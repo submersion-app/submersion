@@ -326,6 +326,8 @@ void main() {
     ),
     ICloudAvailability iCloudAvailability = ICloudAvailability.available,
     bool applePlatform = true,
+    bool googleDriveAvailable = true,
+    String? googleDriveEmail,
   }) async {
     final base = await getBaseOverrides();
     final fakeSync = _FakeSyncNotifier(syncState);
@@ -352,6 +354,12 @@ void main() {
             (ref) async => iCloudAvailability,
           ),
           isApplePlatformProvider.overrideWithValue(applePlatform),
+          googleDriveAvailableProvider.overrideWith(
+            (ref) async => googleDriveAvailable,
+          ),
+          googleDriveAccountEmailProvider.overrideWith(
+            (ref) async => googleDriveEmail,
+          ),
           isCloudSyncDisabledByCustomFolderProvider.overrideWithValue(
             customFolderMode,
           ),
@@ -547,11 +555,10 @@ void main() {
       await pumpPage(tester);
 
       expect(find.text('Cloud Sync'), findsOneWidget);
-      // Provider section header and provider tiles. Google Drive is hidden
-      // until its integration is fully implemented.
+      // Provider section header and provider tiles.
       expect(find.text('Cloud Provider'), findsOneWidget);
       expect(find.text('iCloud'), findsOneWidget);
-      expect(find.text('Google Drive'), findsNothing);
+      expect(find.text('Google Drive'), findsOneWidget);
       // Behavior section.
       expect(find.text('Sync Behavior'), findsOneWidget);
       expect(find.text('Auto Sync'), findsOneWidget);
@@ -806,30 +813,51 @@ void main() {
       expect(find.text('Select a cloud provider to enable sync'), findsNothing);
     });
 
-    testWidgets(
-      'persisted googledrive selection reads as no provider since the tile is hidden',
-      (tester) async {
-        // SyncRepository.getCloudProvider() falls back to googledrive when
-        // the stored enum name does not match, and getLastProvider() returns
-        // a previously persisted googledrive choice verbatim. With the tile
-        // removed, the UI must treat that as "no provider" so Sync Now is
-        // disabled and the select-provider hint stays visible. Otherwise the
-        // user sees no selected tile but a green Sync Now -- inconsistent.
-        await pumpPage(tester, selectedProvider: CloudProviderType.googledrive);
+    testWidgets('persisted googledrive selection selects the tile', (
+      tester,
+    ) async {
+      await pumpPage(
+        tester,
+        selectedProvider: CloudProviderType.googledrive,
+        googleDriveEmail: 'diver@example.com',
+      );
 
-        // No tile shows the connected check icon (googledrive tile is hidden).
-        expect(find.byIcon(Icons.check_circle), findsNothing);
-        // Sync Now is disabled and the hint is shown.
-        final button = tester.widget<FilledButton>(
-          find.widgetWithText(FilledButton, 'Sync Now'),
-        );
-        expect(button.onPressed, isNull);
-        expect(
-          find.text('Select a cloud provider to enable sync'),
-          findsOneWidget,
-        );
-      },
-    );
+      // The Google Drive tile shows the connected check icon.
+      expect(find.byIcon(Icons.check_circle), findsOneWidget);
+      // The subtitle shows the signed-in account.
+      expect(find.text('diver@example.com'), findsOneWidget);
+      // Sync Now is enabled (no coercion to "no provider" anymore).
+      final button = tester.widget<FilledButton>(
+        find.widgetWithText(FilledButton, 'Sync Now'),
+      );
+      expect(button.onPressed, isNotNull);
+    });
+
+    testWidgets('Google Drive tile is disabled when unavailable', (
+      tester,
+    ) async {
+      await pumpPage(tester, googleDriveAvailable: false);
+
+      final tile = tester.widget<ListTile>(
+        find.ancestor(
+          of: find.text('Google Drive'),
+          matching: find.byType(ListTile),
+        ),
+      );
+      expect(tile.enabled, isFalse);
+    });
+
+    testWidgets('tapping Google Drive authenticates and connects', (
+      tester,
+    ) async {
+      final fake = FakeCloudStorageProvider();
+      await pumpPage(tester, cloudProvider: fake);
+
+      await tester.tap(find.text('Google Drive'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Connected to'), findsOneWidget);
+    });
 
     testWidgets(
       'tapping the iCloud tile authenticates and shows snackbar',

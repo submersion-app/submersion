@@ -10647,6 +10647,18 @@ class AppLocalizationsAr extends AppLocalizations {
       'المزامنة عبر Google Drive';
 
   @override
+  String get settings_cloudSync_googleDrive_desktopNotConfigured =>
+      'غير متوفر في هذا الإصدار';
+
+  @override
+  String get settings_cloudSync_googleDrive_browserWait_title =>
+      'تابع في متصفحك';
+
+  @override
+  String get settings_cloudSync_googleDrive_browserWait_message =>
+      'أكمل تسجيل الدخول إلى Google في متصفح الويب الخاص بك، ثم عد إلى Submersion.';
+
+  @override
   String get settings_cloudSync_provider_icloud => 'iCloud';
 
   @override
