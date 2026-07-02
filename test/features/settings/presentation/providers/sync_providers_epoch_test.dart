@@ -174,9 +174,12 @@ void main() {
       final state = container.read(syncStateProvider);
       expect(state.replaceAwaitingAdoption, isFalse);
       expect(await SyncRepository().getLastAcceptedEpochId(), 'e1');
-      // The follow-up sync published this device's stamped log.
+      // We adopted exactly the replacer's library and have no local changes of
+      // our own, so the follow-up sync DEFERS our redundant self-base publish
+      // (#358): the replacer already holds this library. A later local edit
+      // re-enables the publish.
       final deviceId = await SyncRepository().getDeviceId();
-      expect(await hasPublishedLog(cloud, deviceId), isTrue);
+      expect(await hasPublishedLog(cloud, deviceId), isFalse);
     });
   });
 
@@ -207,9 +210,12 @@ void main() {
         expect(await serializer.fetchRecord('dives', 'dive-a'), isNotNull);
         expect(await serializer.fetchRecord('dives', 'dive-b'), isNull);
         expect(await SyncRepository().getLastAcceptedEpochId(), 'e1');
-        // Follow-up sync published our stamped base.
+        // dive-b (the local divergence) was discarded by the Replace-adopt, so
+        // we hold exactly the adopted library and have nothing of our own to
+        // contribute -- the follow-up sync DEFERS our redundant self-base
+        // publish (#358), leaving no base of ours in the cloud.
         final deviceId = await SyncRepository().getDeviceId();
-        expect((await cloudBasePayload(cloud, deviceId))?.epochId, 'e1');
+        expect(await cloudBasePayload(cloud, deviceId), isNull);
       },
     );
 
