@@ -349,5 +349,22 @@ void main() {
         throwsArgumentError,
       );
     });
+
+    test('throws ArgumentError whose message names the notOverlapping reason '
+        '(so dive_detail_page.dart can map it to the right error text)', () {
+      expect(
+        () => builder.build([
+          makeDive('a', entry: t, runtimeMin: 30),
+          makeDive('b', entry: t.add(const Duration(hours: 2))),
+        ]),
+        throwsA(
+          isA<ArgumentError>().having(
+            (e) => e.message.toString(),
+            'message',
+            contains('notOverlapping'),
+          ),
+        ),
+      );
+    });
   });
 }

@@ -8,12 +8,13 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
 import 'package:submersion/features/dive_log/data/services/dive_merge_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart'
+    show runDiveConsolidation;
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/merge_dive_dialog.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
-import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Fixed date used for the "current" dive across all tests.
 final _currentDiveDate = DateTime(2026, 3, 20, 10, 0);
@@ -585,11 +586,9 @@ void main() {
   // Consolidation service wiring (Task 7).
   //
   // The dialog itself only plumbs the selected id out via onMerge; the
-  // apply/undo/snackbar wiring lives in dive_detail_page.dart's confirm
-  // handler. _consolidationConfirmHandler below mirrors that production
-  // wiring exactly (same provider, same apply/undo calls, same SnackBar
-  // shape) so it can be exercised here without pumping the entire
-  // DiveDetailPage widget tree.
+  // apply/undo/snackbar wiring lives in dive_detail_page.dart's
+  // `runDiveConsolidation`, which is imported and called directly below --
+  // there is no hand-copied mirror of that logic in this test file.
   // ---------------------------------------------------------------------------
   group('MergeDiveDialog - consolidation service wiring', () {
     testWidgets(
@@ -669,11 +668,10 @@ void main() {
   });
 }
 
-/// Pumps a dialog whose `onMerge` is wired exactly like
-/// dive_detail_page.dart's `_showMergeDiveDialog` confirm handler: it reads
-/// [diveConsolidationServiceProvider], calls apply/undo on it, and shows the
-/// same SnackBar shape (Undo action, persist:false, showCloseIcon:true) or
-/// error text on an ArgumentError.
+/// Pumps a dialog whose `onMerge` calls the real
+/// [runDiveConsolidation] extracted from dive_detail_page.dart -- the exact
+/// function production wires up in `_showMergeDiveDialog` -- so there is no
+/// duplicated apply/undo/SnackBar logic in this test file.
 Future<void> _pumpWithConsolidationHandler(
   WidgetTester tester, {
   required _FakeDiveConsolidationService service,
@@ -687,7 +685,6 @@ Future<void> _pumpWithConsolidationHandler(
   });
 
   late BuildContext savedContext;
-  late WidgetRef savedRef;
 
   await tester.pumpWidget(
     ProviderScope(
@@ -696,16 +693,14 @@ Future<void> _pumpWithConsolidationHandler(
           (ref) => _FakeDiveListNotifier(_sameDayCandidates()),
         ),
         settingsProvider.overrideWith((ref) => _FakeSettingsNotifier()),
-        diveConsolidationServiceProvider.overrideWithValue(service),
       ],
       child: MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
-          body: Consumer(
-            builder: (context, ref, _) {
+          body: Builder(
+            builder: (context) {
               savedContext = context;
-              savedRef = ref;
               return const SizedBox.shrink();
             },
           ),
@@ -719,64 +714,15 @@ Future<void> _pumpWithConsolidationHandler(
     context: savedContext,
     currentDiveId: currentDiveId,
     currentDiveDate: _currentDiveDate,
-    onMerge: (ids) => _consolidationConfirmHandler(
-      savedContext,
-      savedRef,
-      currentDiveId,
-      ids,
+    onMerge: (ids) => runDiveConsolidation(
+      context: savedContext,
+      service: service,
+      targetDiveId: currentDiveId,
+      secondaryDiveIds: ids,
+      onConsolidated: () {},
     ),
   );
   await tester.pumpAndSettle();
-}
-
-/// Mirrors dive_detail_page.dart's `_showMergeDiveDialog` confirm handler
-/// (same provider read, same apply/undo calls, same error mapping and
-/// SnackBar shape) so that wiring can be exercised at the dialog level
-/// without pumping the entire DiveDetailPage widget tree.
-Future<void> _consolidationConfirmHandler(
-  BuildContext context,
-  WidgetRef ref,
-  String currentDiveId,
-  List<String> secondaryDiveIds,
-) async {
-  final l10n = context.l10n;
-  final scaffoldMessenger = ScaffoldMessenger.of(context);
-  final service = ref.read(diveConsolidationServiceProvider);
-
-  final DiveConsolidationOutcome outcome;
-  try {
-    outcome = await service.apply(
-      targetDiveId: currentDiveId,
-      secondaryDiveIds: secondaryDiveIds,
-    );
-  } on ArgumentError catch (e) {
-    final message = e.message?.toString() ?? '';
-    final String text;
-    if (message.startsWith('sameComputer')) {
-      text = l10n.diveLog_consolidate_error_sameComputer;
-    } else if (message.contains('notOverlapping')) {
-      text = l10n.diveLog_consolidate_error_notOverlapping;
-    } else {
-      text = l10n.diveLog_consolidate_error_generic;
-    }
-    scaffoldMessenger.showSnackBar(SnackBar(content: Text(text)));
-    return;
-  }
-
-  scaffoldMessenger.showSnackBar(
-    SnackBar(
-      content: Text(l10n.diveLog_consolidate_snackbar),
-      duration: const Duration(seconds: 5),
-      persist: false,
-      showCloseIcon: true,
-      action: SnackBarAction(
-        label: l10n.diveLog_bulkDelete_undo,
-        onPressed: () async {
-          await service.undo(outcome.snapshot);
-        },
-      ),
-    ),
-  );
 }
 
 /// Records calls made to [DiveConsolidationService.apply] and [.undo] so

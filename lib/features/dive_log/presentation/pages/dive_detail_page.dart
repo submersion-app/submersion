@@ -4613,97 +4613,25 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     ref.invalidate(paginatedDiveListProvider);
   }
 
-  /// Maps a [DiveConsolidationService.apply] failure to user-visible text.
-  ///
-  /// `apply` throws [ArgumentError] whose message either starts with
-  /// `sameComputer` (the service's own FK-level guard) or is the builder's
-  /// generic "requires a consolidatable selection" wrapper, which does not
-  /// reliably encode which [ConsolidationInvalidReason] triggered it. Only
-  /// the substrings that are actually reachable today are matched here;
-  /// anything else -- including tooFewDives/mixedDivers, which the generic
-  /// wrapper does not distinguish in its message -- falls back to the
-  /// generic error text.
-  String _consolidationErrorText(AppLocalizations l10n, Object error) {
-    if (error is ArgumentError) {
-      final message = error.message?.toString() ?? '';
-      if (message.startsWith('sameComputer')) {
-        return l10n.diveLog_consolidate_error_sameComputer;
-      }
-      if (message.contains('notOverlapping')) {
-        return l10n.diveLog_consolidate_error_notOverlapping;
-      }
-    }
-    return l10n.diveLog_consolidate_error_generic;
-  }
-
   void _showMergeDiveDialog(BuildContext context, WidgetRef ref, Dive dive) {
-    final l10n = context.l10n;
     showMergeDiveDialog(
       context: context,
       currentDiveId: diveId,
       currentDiveDate: dive.entryTime ?? dive.dateTime,
-      onMerge: (secondaryDiveIds) async {
-        final scaffoldMessenger = ScaffoldMessenger.of(context);
-        final service = ref.read(diveConsolidationServiceProvider);
-
-        final DiveConsolidationOutcome outcome;
-        try {
-          outcome = await service.apply(
-            targetDiveId: diveId,
-            secondaryDiveIds: secondaryDiveIds,
-          );
-        } on ArgumentError catch (e) {
-          scaffoldMessenger.showSnackBar(
-            SnackBar(content: Text(_consolidationErrorText(l10n, e))),
-          );
-          return;
-        }
-
-        void refreshAfterConsolidation() {
+      onMerge: (secondaryDiveIds) => runDiveConsolidation(
+        context: context,
+        service: ref.read(diveConsolidationServiceProvider),
+        targetDiveId: diveId,
+        secondaryDiveIds: secondaryDiveIds,
+        onConsolidated: () {
           ref.invalidate(diveProvider(diveId));
           ref.invalidate(diveProfileProvider(diveId));
           ref.invalidate(profilesBySourceProvider(diveId));
           ref.invalidate(diveDataSourcesProvider(diveId));
           ref.invalidate(paginatedDiveListProvider);
           ref.invalidate(divesProvider);
-        }
-
-        refreshAfterConsolidation();
-
-        scaffoldMessenger.clearSnackBars();
-        scaffoldMessenger.showSnackBar(
-          SnackBar(
-            content: Text(l10n.diveLog_consolidate_snackbar),
-            duration: const Duration(seconds: 5),
-            // #406: an action defaults to persist: true; force auto-dismiss
-            // and allow closing without triggering Undo.
-            persist: false,
-            showCloseIcon: true,
-            action: SnackBarAction(
-              label: l10n.diveLog_bulkDelete_undo,
-              onPressed: () async {
-                try {
-                  await service.undo(outcome.snapshot);
-                  refreshAfterConsolidation();
-                  scaffoldMessenger.showSnackBar(
-                    SnackBar(
-                      content: Text(l10n.diveLog_consolidate_undone),
-                      duration: const Duration(seconds: 2),
-                    ),
-                  );
-                } catch (_) {
-                  scaffoldMessenger.showSnackBar(
-                    SnackBar(
-                      content: Text(l10n.diveLog_consolidate_undoError),
-                      duration: const Duration(seconds: 4),
-                    ),
-                  );
-                }
-              },
-            ),
-          ),
-        );
-      },
+        },
+      ),
     );
   }
 
@@ -4903,6 +4831,95 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       }
     }
   }
+}
+
+/// Applies a dive consolidation via [service] and shows the resulting
+/// success-with-undo or error SnackBar.
+///
+/// Extracted out of [_DiveDetailPageState._showMergeDiveDialog]'s `onMerge`
+/// closure so there is a single copy of this logic: the page calls it, and
+/// tests exercise it directly instead of maintaining a hand-copied mirror
+/// (Task 7 review finding).
+Future<void> runDiveConsolidation({
+  required BuildContext context,
+  required DiveConsolidationService service,
+  required String targetDiveId,
+  required List<String> secondaryDiveIds,
+  required VoidCallback onConsolidated,
+}) async {
+  final l10n = context.l10n;
+  final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+  final DiveConsolidationOutcome outcome;
+  try {
+    outcome = await service.apply(
+      targetDiveId: targetDiveId,
+      secondaryDiveIds: secondaryDiveIds,
+    );
+  } on ArgumentError catch (e) {
+    scaffoldMessenger.showSnackBar(
+      SnackBar(content: Text(consolidationErrorText(l10n, e))),
+    );
+    return;
+  }
+
+  onConsolidated();
+
+  scaffoldMessenger.clearSnackBars();
+  scaffoldMessenger.showSnackBar(
+    SnackBar(
+      content: Text(l10n.diveLog_consolidate_snackbar),
+      duration: const Duration(seconds: 5),
+      // #406: an action defaults to persist: true; force auto-dismiss
+      // and allow closing without triggering Undo.
+      persist: false,
+      showCloseIcon: true,
+      action: SnackBarAction(
+        label: l10n.diveLog_bulkDelete_undo,
+        onPressed: () async {
+          try {
+            await service.undo(outcome.snapshot);
+            onConsolidated();
+            scaffoldMessenger.showSnackBar(
+              SnackBar(
+                content: Text(l10n.diveLog_consolidate_undone),
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          } catch (_) {
+            scaffoldMessenger.showSnackBar(
+              SnackBar(
+                content: Text(l10n.diveLog_consolidate_undoError),
+                duration: const Duration(seconds: 4),
+              ),
+            );
+          }
+        },
+      ),
+    ),
+  );
+}
+
+/// Maps a [DiveConsolidationService.apply] failure to user-visible text.
+///
+/// `apply` throws [ArgumentError] whose message either starts with
+/// `sameComputer` (the service's own FK-level guard) or is
+/// `DiveConsolidationBuilder.build`'s `ConsolidationInvalid(reason.name)`
+/// wrapper, which encodes the invalid-consolidation reason by name. Only the
+/// reasons that are actually surfaced with distinct copy are matched here;
+/// anything else -- including tooFewDives/mixedDivers, which do not have
+/// dedicated error strings -- falls back to the generic error text.
+String consolidationErrorText(AppLocalizations l10n, Object error) {
+  if (error is ArgumentError) {
+    final message = error.message?.toString() ?? '';
+    if (message.startsWith('sameComputer')) {
+      return l10n.diveLog_consolidate_error_sameComputer;
+    }
+    if (message.contains('notOverlapping')) {
+      return l10n.diveLog_consolidate_error_notOverlapping;
+    }
+  }
+  return l10n.diveLog_consolidate_error_generic;
 }
 
 /// Fullscreen dive profile page with rotation support

@@ -15,6 +15,9 @@ sealed class DiveConsolidationClassification {
 class ConsolidationInvalid extends DiveConsolidationClassification {
   const ConsolidationInvalid(this.reason);
   final ConsolidationInvalidReason reason;
+
+  @override
+  String toString() => 'ConsolidationInvalid(${reason.name})';
 }
 
 /// A selection ready to be consolidated: the same physical dive recorded by
