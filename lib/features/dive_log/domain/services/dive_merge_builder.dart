@@ -393,8 +393,11 @@ class DiveMergeBuilder {
   }
 
   /// Builds the preview depth series: each source's profile shifted by its
-  /// [offsets] onto the merged timeline, with two 0-depth points bridging
-  /// each positive gap so the surface interval renders as a flat line.
+  /// [offsets] onto the merged timeline, with each gap filled by 0-depth
+  /// points at the surrounding native cadence so the surface interval reads
+  /// as a genuinely flat line -- and, being proportionally dense, survives
+  /// the preview chart's downsampling instead of collapsing to a diagonal
+  /// (#449 manual test). Mirrors the gap fill [DiveMergeService] persists.
   /// Returns an empty list when nothing submerged is present to preview.
   List<DiveProfilePoint> _previewProfile(
     List<Dive> sorted,
@@ -412,14 +415,42 @@ class DiveMergeBuilder {
         );
       }
       if (i < gaps.length && gaps[i].endSeconds > gaps[i].startSeconds) {
-        points.add(DiveProfilePoint(timestamp: gaps[i].startSeconds, depth: 0));
-        points.add(DiveProfilePoint(timestamp: gaps[i].endSeconds, depth: 0));
+        final gap = gaps[i];
+        final cadence = _previewGapCadence(sorted[i], sorted[i + 1]);
+        // Cap the fill so a very long surface interval cannot explode the
+        // series; a few hundred flat points render identically anyway.
+        final minStep = ((gap.endSeconds - gap.startSeconds) / 300).ceil();
+        final step = cadence > minStep ? cadence : minStep;
+        for (var t = gap.startSeconds; t < gap.endSeconds; t += step) {
+          points.add(DiveProfilePoint(timestamp: t, depth: 0));
+        }
+        points.add(DiveProfilePoint(timestamp: gap.endSeconds, depth: 0));
       }
     }
     // A series that never leaves the surface (no submerged samples) is not
     // worth previewing.
     if (points.every((p) => p.depth == 0)) return const [];
     return points;
+  }
+
+  /// The native sample cadence to fill a gap with: the median inter-sample
+  /// delta of the previous segment, falling back to the next segment's, then
+  /// to 60s when neither has samples. Parallels
+  /// `DiveMergeService._nativeSampleIntervalSeconds` on the domain profile.
+  int _previewGapCadence(Dive prev, Dive next) {
+    for (final d in [prev, next]) {
+      final timestamps = d.profile.map((p) => p.timestamp).toList()..sort();
+      final deltas = <int>[
+        for (var i = 1; i < timestamps.length; i++)
+          if (timestamps[i] - timestamps[i - 1] > 0)
+            timestamps[i] - timestamps[i - 1],
+      ];
+      if (deltas.isNotEmpty) {
+        deltas.sort();
+        return deltas[deltas.length ~/ 2];
+      }
+    }
+    return 60;
   }
 
   /// The segment's occupied span: the declared runtime or the last profile

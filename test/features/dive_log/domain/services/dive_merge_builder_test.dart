@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/presentation/widgets/dive_sparkline.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
@@ -401,49 +402,88 @@ void main() {
   });
 
   group('build - preview profile', () {
-    test('re-bases each segment and bridges gaps with 0-depth points', () {
+    // A plateau profile: 0-depth at both ends, [depth] in between, sampled
+    // every [cadence] seconds.
+    List<DiveProfilePoint> plateau(int seconds, int cadence, double depth) => [
+      for (var t = 0; t <= seconds; t += cadence)
+        DiveProfilePoint(
+          timestamp: t,
+          depth: (t == 0 || t == seconds) ? 0 : depth,
+        ),
+    ];
+
+    test('re-bases each segment and fills the gap with a dense flat run', () {
       final a = dive(
         'a',
         entry: DateTime.utc(2026, 7, 1, 9),
         runtimeMin: 5,
-        profile: const [
-          DiveProfilePoint(timestamp: 0, depth: 0),
-          DiveProfilePoint(timestamp: 150, depth: 12),
-          DiveProfilePoint(timestamp: 300, depth: 0),
-        ],
+        profile: plateau(300, 2, 12), // 0..300 @2s
       );
       final b = dive(
         'b',
         entry: DateTime.utc(2026, 7, 1, 9, 10), // 600s after a's entry
         runtimeMin: 5,
-        profile: const [
-          DiveProfilePoint(timestamp: 0, depth: 0),
-          DiveProfilePoint(timestamp: 150, depth: 8),
-          DiveProfilePoint(timestamp: 300, depth: 0),
-        ],
+        profile: plateau(300, 2, 8),
       );
 
       final preview = builder.build([a, b]).previewProfile;
 
-      // a unchanged (offset 0), then the 300..600 gap as two 0-depth
-      // points, then b re-based by +600.
-      expect(preview.map((p) => p.timestamp).toList(), [
-        0,
-        150,
-        300,
-        300,
-        600,
-        600,
-        750,
-        900,
-      ]);
-      expect(preview.map((p) => p.depth).toList(), [0, 12, 0, 0, 0, 0, 8, 0]);
+      // Submerged samples from both segments survive; b re-based by +600.
+      expect(preview.any((p) => p.depth == 12), isTrue);
+      expect(preview.any((p) => p.timestamp == 750 && p.depth == 8), isTrue);
+
+      // The 300..600 surface interval is a dense flat run at depth 0...
+      final gap = preview
+          .where((p) => p.timestamp > 300 && p.timestamp < 600)
+          .toList();
+      expect(gap.length, greaterThan(20));
+      expect(gap.every((p) => p.depth == 0), isTrue);
+
+      // ...with no long straight jump across the surface (native 2s cadence).
+      final surface =
+          preview
+              .where((p) => p.timestamp >= 300 && p.timestamp <= 600)
+              .map((p) => p.timestamp)
+              .toList()
+            ..sort();
+      for (var i = 1; i < surface.length; i++) {
+        expect(surface[i] - surface[i - 1], lessThanOrEqualTo(4));
+      }
       for (var i = 1; i < preview.length; i++) {
         expect(
           preview[i].timestamp,
           greaterThanOrEqualTo(preview[i - 1].timestamp),
         );
       }
+    });
+
+    test('the surface interval survives the preview downsample', () {
+      // Regression for the straight-line surface bug (#449 manual test): in a
+      // merge dominated by the second dive, uniform-stride downsampling must
+      // not drop the whole surface interval and collapse it to a diagonal.
+      final a = dive(
+        'a',
+        entry: DateTime.utc(2026, 7, 1, 9),
+        runtimeMin: 5,
+        profile: plateau(300, 2, 10), // ~150 points
+      );
+      final b = dive(
+        'b',
+        entry: DateTime.utc(2026, 7, 1, 9, 10),
+        runtimeMin: 40,
+        profile: plateau(2400, 2, 25), // ~1200 points, dominates
+      );
+
+      final preview = builder.build([a, b]).previewProfile;
+      final drawn = DiveSparkline.downsample(preview, maxPoints: 200);
+
+      // a ends at 300; b re-based to start at 600. The 300..600 surface must
+      // survive as multiple flat points, not a single diagonal.
+      final surface = drawn
+          .where((p) => p.timestamp > 300 && p.timestamp < 600)
+          .toList();
+      expect(surface.length, greaterThanOrEqualTo(3));
+      expect(surface.every((p) => p.depth == 0), isTrue);
     });
 
     test('is empty when no source carries profile data', () {
