@@ -656,12 +656,22 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  dive.site?.name ?? context.l10n.diveLog_listPage_unknownSite,
+                  dive.name ??
+                      dive.site?.name ??
+                      context.l10n.diveLog_listPage_unknownSite,
                   style: Theme.of(
                     context,
                   ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
                   overflow: TextOverflow.ellipsis,
                 ),
+                if (dive.name != null && dive.site != null)
+                  Text(
+                    dive.site!.name,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 if (dive.site?.locationString.isNotEmpty == true)
                   Text(
                     dive.site!.locationString,
@@ -819,10 +829,18 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      dive.site?.name ??
+                      dive.name ??
+                          dive.site?.name ??
                           context.l10n.diveLog_listPage_unknownSite,
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
+                    if (dive.name != null && dive.site != null)
+                      Text(
+                        dive.site!.name,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
                     if (dive.site?.locationString.isNotEmpty == true)
                       Text(
                         dive.site!.locationString,

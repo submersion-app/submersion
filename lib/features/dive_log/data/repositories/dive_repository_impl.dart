@@ -1786,8 +1786,9 @@ class DiveRepository {
   Future<List<domain.Dive>> searchDives(String query, {String? diverId}) async {
     try {
       // Search across dive fields and all related tables in a single query.
-      // Matches: notes, buddy (legacy field), dive master, site name/country/
-      // region, dive center name, linked buddy names, tag names, custom fields.
+      // Matches: name, notes, buddy (legacy field), dive master, site name/
+      // country/region, dive center name, linked buddy names, tag names,
+      // custom fields.
       final likeTerm = '%$query%';
       final diverClause = diverId != null ? 'AND d.diver_id = ?' : '';
       final diverArgs = diverId != null
@@ -1808,6 +1809,7 @@ class DiveRepository {
             LEFT JOIN dive_custom_fields cf ON cf.dive_id = d.id
             WHERE (
               d.notes LIKE ?
+              OR d.name LIKE ?
               OR d.buddy LIKE ?
               OR d.dive_master LIKE ?
               OR ds.name LIKE ?
@@ -1822,6 +1824,7 @@ class DiveRepository {
             $diverClause
             ''',
             variables: [
+              Variable(likeTerm),
               Variable(likeTerm),
               Variable(likeTerm),
               Variable(likeTerm),
