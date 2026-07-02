@@ -177,11 +177,12 @@ final googleDriveAvailableProvider = FutureProvider<bool>((ref) {
 
 /// Signed-in Google account email for the provider tile subtitle, or null
 /// when Google Drive is not the selected provider or no account is known.
-/// Watches syncStateProvider so connect/sign-out refresh the subtitle.
+/// Watches the authentication flag so connect/sign-out refresh the subtitle
+/// without re-running on every sync progress tick.
 final googleDriveAccountEmailProvider = FutureProvider<String?>((ref) async {
   final type = ref.watch(selectedCloudProviderTypeProvider);
   if (type != CloudProviderType.googledrive) return null;
-  ref.watch(syncStateProvider);
+  ref.watch(syncStateProvider.select((s) => s.isAuthenticated));
   return cloudProviderInstanceFor(CloudProviderType.googledrive).getUserEmail();
 });
 
