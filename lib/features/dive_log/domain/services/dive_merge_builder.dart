@@ -79,6 +79,25 @@ class DiveMergeBuilder {
 
   static const _uuid = Uuid();
 
+  T? _firstNonNull<T>(List<Dive> sorted, T? Function(Dive) pick) {
+    for (final d in sorted) {
+      final v = pick(d);
+      if (v != null) return v;
+    }
+    return null;
+  }
+
+  T? _lastNonNull<T>(List<Dive> sorted, T? Function(Dive) pick) {
+    for (final d in sorted.reversed) {
+      final v = pick(d);
+      if (v != null) return v;
+    }
+    return null;
+  }
+
+  String _mergedNotes(List<Dive> sorted) =>
+      sorted.map((d) => d.notes.trim()).where((n) => n.isNotEmpty).join('\n\n');
+
   /// Trapezoidal time-weighted mean depth over one segment's samples.
   /// Returns (weightedAreaMeterSeconds, spanSeconds) or null if < 2 samples.
   (double, int)? _profileDepthArea(List<DiveProfilePoint> profile) {
@@ -177,6 +196,68 @@ class DiveMergeBuilder {
       bottomTime: _mergedBottomTime(sorted),
       maxDepth: _mergedMaxDepth(sorted),
       avgDepth: _mergedAvgDepth(sorted),
+      diveNumber: first.diveNumber,
+      surfaceInterval: first.surfaceInterval,
+      diveMode: first.diveMode,
+      isPlanned: first.isPlanned,
+      notes: _mergedNotes(sorted),
+      isFavorite: sorted.any((d) => d.isFavorite),
+      entryLocation: _firstNonNull(sorted, (d) => d.entryLocation),
+      exitLocation: _lastNonNull(sorted, (d) => d.exitLocation),
+      site: _firstNonNull(sorted, (d) => d.site),
+      diveCenter: _firstNonNull(sorted, (d) => d.diveCenter),
+      trip: _firstNonNull(sorted, (d) => d.trip),
+      tripId: _firstNonNull(sorted, (d) => d.tripId),
+      buddy: _firstNonNull(sorted, (d) => d.buddy),
+      diveMaster: _firstNonNull(sorted, (d) => d.diveMaster),
+      rating: _firstNonNull(sorted, (d) => d.rating),
+      visibility: _firstNonNull(sorted, (d) => d.visibility),
+      waterTemp: _firstNonNull(sorted, (d) => d.waterTemp),
+      airTemp: _firstNonNull(sorted, (d) => d.airTemp),
+      currentDirection: _firstNonNull(sorted, (d) => d.currentDirection),
+      currentStrength: _firstNonNull(sorted, (d) => d.currentStrength),
+      swellHeight: _firstNonNull(sorted, (d) => d.swellHeight),
+      entryMethod: _firstNonNull(sorted, (d) => d.entryMethod),
+      exitMethod: _firstNonNull(sorted, (d) => d.exitMethod),
+      waterType: _firstNonNull(sorted, (d) => d.waterType),
+      altitude: _firstNonNull(sorted, (d) => d.altitude),
+      surfacePressure: _firstNonNull(sorted, (d) => d.surfacePressure),
+      gradientFactorLow: _firstNonNull(sorted, (d) => d.gradientFactorLow),
+      gradientFactorHigh: _firstNonNull(sorted, (d) => d.gradientFactorHigh),
+      decoAlgorithm: _firstNonNull(sorted, (d) => d.decoAlgorithm),
+      decoConservatism: _firstNonNull(sorted, (d) => d.decoConservatism),
+      diveComputerModel: _firstNonNull(sorted, (d) => d.diveComputerModel),
+      diveComputerSerial: _firstNonNull(sorted, (d) => d.diveComputerSerial),
+      diveComputerFirmware: _firstNonNull(
+        sorted,
+        (d) => d.diveComputerFirmware,
+      ),
+      weightAmount: _firstNonNull(sorted, (d) => d.weightAmount),
+      weightType: _firstNonNull(sorted, (d) => d.weightType),
+      setpointLow: _firstNonNull(sorted, (d) => d.setpointLow),
+      setpointHigh: _firstNonNull(sorted, (d) => d.setpointHigh),
+      setpointDeco: _firstNonNull(sorted, (d) => d.setpointDeco),
+      scrType: _firstNonNull(sorted, (d) => d.scrType),
+      scrInjectionRate: _firstNonNull(sorted, (d) => d.scrInjectionRate),
+      scrAdditionRatio: _firstNonNull(sorted, (d) => d.scrAdditionRatio),
+      scrOrificeSize: _firstNonNull(sorted, (d) => d.scrOrificeSize),
+      assumedVo2: _firstNonNull(sorted, (d) => d.assumedVo2),
+      diluentGas: _firstNonNull(sorted, (d) => d.diluentGas),
+      loopO2Min: _firstNonNull(sorted, (d) => d.loopO2Min),
+      loopO2Max: _firstNonNull(sorted, (d) => d.loopO2Max),
+      loopO2Avg: _firstNonNull(sorted, (d) => d.loopO2Avg),
+      loopVolume: _firstNonNull(sorted, (d) => d.loopVolume),
+      scrubber: _firstNonNull(sorted, (d) => d.scrubber),
+      importSource: _firstNonNull(sorted, (d) => d.importSource),
+      importId: _firstNonNull(sorted, (d) => d.importId),
+      windSpeed: _firstNonNull(sorted, (d) => d.windSpeed),
+      windDirection: _firstNonNull(sorted, (d) => d.windDirection),
+      cloudCover: _firstNonNull(sorted, (d) => d.cloudCover),
+      precipitation: _firstNonNull(sorted, (d) => d.precipitation),
+      humidity: _firstNonNull(sorted, (d) => d.humidity),
+      weatherDescription: _firstNonNull(sorted, (d) => d.weatherDescription),
+      weatherSource: _firstNonNull(sorted, (d) => d.weatherSource),
+      weatherFetchedAt: _firstNonNull(sorted, (d) => d.weatherFetchedAt),
     );
 
     return DiveMergeResult(

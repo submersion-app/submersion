@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_log/domain/services/dive_merge_builder.dart';
 
 Dive dive(
@@ -199,6 +200,57 @@ void main() {
       expect(merged.maxDepth, isNull);
       expect(merged.avgDepth, isNull);
       expect(merged.bottomTime, isNull);
+    });
+  });
+
+  group('build - metadata', () {
+    test('first non-empty wins in chronological order', () {
+      final a = dive('a', entry: DateTime.utc(2026, 7, 1, 9)).copyWith(
+        rating: 4,
+        diveNumber: 101,
+        surfaceInterval: const Duration(hours: 2),
+      );
+      final b = dive('b', entry: DateTime.utc(2026, 7, 1, 10)).copyWith(
+        rating: 2,
+        waterTemp: 19.5,
+        diveComputerModel: 'Perdix 2',
+        diveNumber: 102,
+      );
+      final merged = builder.build([b, a]).mergedDive; // unsorted input
+      expect(merged.rating, 4); // a is chronologically first
+      expect(merged.waterTemp, 19.5); // a blank -> filled from b
+      expect(merged.diveComputerModel, 'Perdix 2');
+      expect(merged.diveNumber, 101); // always the first dive's
+      expect(merged.surfaceInterval, const Duration(hours: 2));
+    });
+
+    test('notes concatenate non-empty in order; favorite is OR', () {
+      final a = dive(
+        'a',
+        entry: DateTime.utc(2026, 7, 1, 9),
+      ).copyWith(notes: 'first leg');
+      final b = dive('b', entry: DateTime.utc(2026, 7, 1, 10));
+      final c = dive(
+        'c',
+        entry: DateTime.utc(2026, 7, 1, 11),
+      ).copyWith(notes: 'second leg', isFavorite: true);
+      final merged = builder.build([a, b, c]).mergedDive;
+      expect(merged.notes, 'first leg\n\nsecond leg');
+      expect(merged.isFavorite, isTrue);
+    });
+
+    test('exitLocation comes from the LAST dive that has one', () {
+      final a = dive('a', entry: DateTime.utc(2026, 7, 1, 9)).copyWith(
+        entryLocation: const GeoPoint(1, 1),
+        exitLocation: const GeoPoint(2, 2),
+      );
+      final b = dive(
+        'b',
+        entry: DateTime.utc(2026, 7, 1, 10),
+      ).copyWith(exitLocation: const GeoPoint(3, 3));
+      final merged = builder.build([a, b]).mergedDive;
+      expect(merged.entryLocation!.latitude, 1);
+      expect(merged.exitLocation!.latitude, 3);
     });
   });
 }
