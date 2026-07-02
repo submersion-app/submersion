@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Variable;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' as db;
 import 'package:submersion/core/services/database_service.dart';
@@ -288,6 +289,16 @@ void main() {
         database.buddyRoles,
       )..where((t) => t.buddyId.equals(buddyB.id))).get();
       expect(duplicateRoles, isEmpty);
+
+      // A relinked credential is an update, not a deletion: no tombstone.
+      final tombstones = await database
+          .customSelect(
+            "SELECT COUNT(*) AS c FROM deletion_log "
+            "WHERE entity_type = 'buddyRoles' AND record_id = ?",
+            variables: [Variable.withString(originalRow.id)],
+          )
+          .getSingle();
+      expect(tombstones.read<int>('c'), 0);
     });
 
     test('merge drops a duplicate credential when the survivor already has '
@@ -337,6 +348,9 @@ void main() {
           updatedAt: now,
         ),
       ]);
+      final droppedRow = await (database.select(
+        database.buddyRoles,
+      )..where((t) => t.buddyId.equals(buddyB.id))).getSingle();
 
       await repository.mergeBuddies(
         mergedBuddy: buddyA.copyWith(name: 'Alice'),
@@ -354,6 +368,17 @@ void main() {
         database.buddyRoles,
       )..where((t) => t.buddyId.equals(buddyB.id))).get();
       expect(duplicateRoles, isEmpty);
+
+      // The dropped credential must be tombstoned so the deletion
+      // propagates to sync peers (not just cascade-deleted locally).
+      final tombstones = await database
+          .customSelect(
+            "SELECT COUNT(*) AS c FROM deletion_log "
+            "WHERE entity_type = 'buddyRoles' AND record_id = ?",
+            variables: [Variable.withString(droppedRow.id)],
+          )
+          .getSingle();
+      expect(tombstones.read<int>('c'), 1);
     });
 
     test(
