@@ -12,13 +12,14 @@ PhotoChartMarker _marker({
   String id = 'm1',
   int seconds = 500,
   double depth = 25.0,
+  MediaType type = MediaType.photo,
 }) {
   final now = DateTime.utc(2026, 1, 1);
   return PhotoChartMarker(
     item: MediaItem(
       id: id,
       diveId: 'dive-1',
-      mediaType: MediaType.photo,
+      mediaType: type,
       takenAt: now,
       createdAt: now,
       updatedAt: now,
@@ -151,6 +152,46 @@ void main() {
     );
     await tester.pump();
     expect(find.byKey(const ValueKey('photoMarkerCard')), findsNothing);
+  });
+
+  testWidgets('video markers show a videocam icon', (tester) async {
+    await tester.pumpWidget(
+      _overlay(
+        markers: [_marker(id: 'v1', type: MediaType.video)],
+      ),
+    );
+    expect(find.byIcon(Icons.videocam), findsOneWidget);
+    expect(find.byIcon(Icons.camera_alt), findsNothing);
+  });
+
+  testWidgets('all-video cluster shows the videocam icon with a count', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _overlay(
+        markers: [
+          _marker(id: 'v1', seconds: 500, type: MediaType.video),
+          _marker(id: 'v2', seconds: 510, type: MediaType.video),
+        ],
+      ),
+    );
+    expect(find.byIcon(Icons.videocam), findsOneWidget);
+    expect(find.text('2'), findsOneWidget);
+  });
+
+  testWidgets('mixed photo and video cluster shows the camera icon', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _overlay(
+        markers: [
+          _marker(id: 'p1', seconds: 500),
+          _marker(id: 'v1', seconds: 510, type: MediaType.video),
+        ],
+      ),
+    );
+    expect(find.byIcon(Icons.camera_alt), findsOneWidget);
+    expect(find.byIcon(Icons.videocam), findsNothing);
   });
 
   testWidgets('markers outside the visible window render nothing', (

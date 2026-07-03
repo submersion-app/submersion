@@ -165,6 +165,11 @@ class _PhotoMarkerOverlayState extends State<PhotoMarkerOverlay> {
   Widget _buildChip(BuildContext context, PhotoMarkerCluster cluster) {
     final colorScheme = Theme.of(context).colorScheme;
     final count = cluster.memberIndexes.length;
+    // Videos get their own glyph; a mixed cluster reads as a camera since
+    // at least one still photo sits at that position.
+    final allVideos = cluster.memberIndexes.every(
+      (i) => widget.markers[i].item.isVideo,
+    );
 
     return Semantics(
       button: true,
@@ -193,7 +198,7 @@ class _PhotoMarkerOverlayState extends State<PhotoMarkerOverlay> {
               alignment: Alignment.center,
               children: [
                 Icon(
-                  Icons.camera_alt,
+                  allVideos ? Icons.videocam : Icons.camera_alt,
                   size: 12,
                   color: colorScheme.onPrimaryContainer,
                 ),
