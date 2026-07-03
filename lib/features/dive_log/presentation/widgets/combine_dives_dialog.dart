@@ -588,6 +588,15 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
         container.invalidate(divesProvider);
         container.invalidate(diveStatisticsProvider);
         container.invalidate(diveNumberingInfoProvider);
+
+        // Invalidate per-dive detail providers for all involved dive IDs
+        // (target and secondaries) for parity with dive_detail_page.dart.
+        for (final diveId in [targetId, ...secondaryIds]) {
+          container.invalidate(diveProvider(diveId));
+          container.invalidate(diveProfileProvider(diveId));
+          container.invalidate(profilesBySourceProvider(diveId));
+          container.invalidate(diveDataSourcesProvider(diveId));
+        }
       },
     );
   }
