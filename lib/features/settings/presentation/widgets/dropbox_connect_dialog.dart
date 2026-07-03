@@ -48,6 +48,8 @@ class _DropboxConnectDialogState extends State<DropboxConnectDialog> {
           (Uri u) => launchUrl(u, mode: LaunchMode.externalApplication);
       await open(uri);
     } on CloudStorageException catch (e) {
+      // The dialog is barrier-dismissible; the open can outlive this State.
+      if (!mounted) return;
       setState(() => _errorText = e.displayMessage);
     }
   }
@@ -69,6 +71,9 @@ class _DropboxConnectDialogState extends State<DropboxConnectDialog> {
       await widget.provider.completeAuthorization(code);
       if (mounted) Navigator.of(context).pop(true);
     } on CloudStorageException catch (e) {
+      // The dialog is barrier-dismissible; the exchange can outlive this
+      // State.
+      if (!mounted) return;
       setState(() {
         _connecting = false;
         _errorText = l10n.settings_cloudSync_dropbox_connect_failed(

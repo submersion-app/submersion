@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -129,5 +131,28 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.textContaining('Could not connect to Dropbox'), findsOneWidget);
     expect(find.text('Connect Dropbox'), findsOneWidget);
+  });
+
+  testWidgets('dismissing the dialog mid-exchange does not throw when the '
+      'exchange later fails', (tester) async {
+    // Gate the token endpoint so the exchange is still in flight when the
+    // user dismisses the dialog via the barrier.
+    final gate = Completer<http.Response>();
+    final mock = MockClient((_) => gate.future);
+    await pumpDialog(tester, provider(mock));
+    await tester.enterText(find.byType(TextField), 'the-code');
+    await tester.tap(find.text('Connect'));
+    await tester.pump();
+
+    // Barrier-dismiss while completeAuthorization is pending.
+    await tester.tapAt(const Offset(5, 5));
+    await tester.pumpAndSettle();
+    expect(find.text('Connect Dropbox'), findsNothing);
+
+    // The exchange now fails against a disposed State: the error handler
+    // must not call setState.
+    gate.complete(http.Response('{"error":"invalid_grant"}', 400));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
   });
 }

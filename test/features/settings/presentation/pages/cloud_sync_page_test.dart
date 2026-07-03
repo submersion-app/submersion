@@ -8,6 +8,8 @@ import 'package:submersion/core/data/repositories/sync_repository.dart'
     show CloudProviderType, SyncRepository;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
+import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_auth_store.dart'
+    show DropboxAuthData;
 import 'package:submersion/core/services/cloud_storage/icloud_native_service.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_credentials_store.dart';
@@ -319,6 +321,7 @@ void main() {
     bool mergeThrows = false,
     bool settle = true,
     S3Config? s3Config,
+    DropboxAuthData? dropboxAuth,
     SyncBehaviorSettings behavior = const SyncBehaviorSettings(
       autoSyncEnabled: false,
       syncOnLaunch: false,
@@ -372,6 +375,8 @@ void main() {
           // Override s3ConfigProvider so existing tests never hit
           // FlutterSecureStorage; individual tests can supply a config.
           s3ConfigProvider.overrideWith((ref) async => s3Config),
+          // Same for the Dropbox connection: null means not connected.
+          dropboxAuthDataProvider.overrideWith((ref) async => dropboxAuth),
         ],
         child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -1615,6 +1620,67 @@ void main() {
         expect(find.text('s3-config-stub'), findsOneWidget);
       },
     );
+  });
+
+  group('Dropbox provider tile', () {
+    Finder dropboxTile() => find.ancestor(
+      of: find.text('Dropbox'),
+      matching: find.byType(ListTile),
+    );
+
+    testWidgets('renders title and marketing subtitle when not connected', (
+      tester,
+    ) async {
+      await pumpPage(tester);
+
+      expect(find.text('Dropbox'), findsOneWidget);
+      expect(find.text('Sync via Dropbox (Apps/Submersion)'), findsOneWidget);
+      // The account gear only appears once connected.
+      expect(
+        find.descendant(
+          of: dropboxTile(),
+          matching: find.byIcon(Icons.settings_outlined),
+        ),
+        findsNothing,
+      );
+    });
+
+    testWidgets('subtitle shows the connected account email', (tester) async {
+      await pumpPage(
+        tester,
+        dropboxAuth: DropboxAuthData(
+          refreshToken: 'rt',
+          email: 'd@example.com',
+        ),
+      );
+
+      expect(find.text('Connected as d@example.com'), findsOneWidget);
+      expect(find.text('Sync via Dropbox (Apps/Submersion)'), findsNothing);
+    });
+
+    testWidgets('gear icon when connected opens the account dialog with a '
+        'Disconnect action', (tester) async {
+      await pumpPage(
+        tester,
+        dropboxAuth: DropboxAuthData(
+          refreshToken: 'rt',
+          email: 'd@example.com',
+        ),
+      );
+
+      await tester.tap(
+        find.descendant(
+          of: dropboxTile(),
+          matching: find.byIcon(Icons.settings_outlined),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Dropbox account'), findsOneWidget);
+      // Tile subtitle plus the dialog body.
+      expect(find.text('Connected as d@example.com'), findsNWidgets(2));
+      expect(find.text('Disconnect'), findsOneWidget);
+    });
   });
 
   // ---------------------------------------------------------------------------
