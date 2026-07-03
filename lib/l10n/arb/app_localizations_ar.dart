@@ -10375,9 +10375,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_appearance_metric_ppO2 => 'ppO2';
 
   @override
-  String get settings_appearance_metric_photoMarkers => 'علامات الصور';
-
-  @override
   String get settings_appearance_metric_pressure => 'الضغط';
 
   @override
@@ -10397,6 +10394,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_otu => 'OTU (وحدات تحمل الأكسجين)';
+
+  @override
+  String get settings_appearance_metric_photoMarkers => 'علامات الصور';
 
   @override
   String settings_appearance_metricsEnabledCount(int count, int total) {

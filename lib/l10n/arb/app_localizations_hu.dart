@@ -10549,9 +10549,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_appearance_metric_ppO2 => 'ppO2';
 
   @override
-  String get settings_appearance_metric_photoMarkers => 'Fotójelölők';
-
-  @override
   String get settings_appearance_metric_pressure => 'Nyomas';
 
   @override
@@ -10571,6 +10568,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_otu => 'OTU (O2 tolerancia egységek)';
+
+  @override
+  String get settings_appearance_metric_photoMarkers => 'Fotójelölők';
 
   @override
   String settings_appearance_metricsEnabledCount(int count, int total) {

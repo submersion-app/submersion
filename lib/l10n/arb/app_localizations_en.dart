@@ -10406,9 +10406,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_appearance_metric_ppO2 => 'ppO2';
 
   @override
-  String get settings_appearance_metric_photoMarkers => 'Photo Markers';
-
-  @override
   String get settings_appearance_metric_pressure => 'Pressure';
 
   @override
@@ -10428,6 +10425,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_otu => 'OTU (O2 Tolerance Units)';
+
+  @override
+  String get settings_appearance_metric_photoMarkers => 'Photo Markers';
 
   @override
   String settings_appearance_metricsEnabledCount(int count, int total) {

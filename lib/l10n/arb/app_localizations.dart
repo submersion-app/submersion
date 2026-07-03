@@ -18068,12 +18068,6 @@ abstract class AppLocalizations {
   /// **'ppO2'**
   String get settings_appearance_metric_ppO2;
 
-  /// No description provided for @settings_appearance_metric_photoMarkers.
-  ///
-  /// In en, this message translates to:
-  /// **'Photo Markers'**
-  String get settings_appearance_metric_photoMarkers;
-
   /// No description provided for @settings_appearance_metric_pressure.
   ///
   /// In en, this message translates to:
@@ -18115,6 +18109,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'OTU (O2 Tolerance Units)'**
   String get settings_appearance_metric_otu;
+
+  /// No description provided for @settings_appearance_metric_photoMarkers.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo Markers'**
+  String get settings_appearance_metric_photoMarkers;
 
   /// No description provided for @settings_appearance_metricsEnabledCount.
   ///

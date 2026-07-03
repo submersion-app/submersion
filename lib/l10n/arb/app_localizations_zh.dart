@@ -10087,9 +10087,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_appearance_metric_ppO2 => '氧分压';
 
   @override
-  String get settings_appearance_metric_photoMarkers => '照片标记';
-
-  @override
   String get settings_appearance_metric_pressure => '压力';
 
   @override
@@ -10109,6 +10106,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_otu => 'OTU (O2 耐受单位)';
+
+  @override
+  String get settings_appearance_metric_photoMarkers => '照片标记';
 
   @override
   String settings_appearance_metricsEnabledCount(int count, int total) {

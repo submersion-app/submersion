@@ -5685,7 +5685,6 @@
   "settings_appearance_metric_ppHe": "ppHe",
   "settings_appearance_metric_ppN2": "ppN2",
   "settings_appearance_metric_ppO2": "ppO2",
-  "settings_appearance_metric_photoMarkers": "Photo Markers",
   "settings_appearance_metric_pressure": "Pressure",
   "settings_appearance_metric_sacRate": "SAC Rate",
   "settings_appearance_metric_surfaceGf": "Surface GF",
@@ -5693,6 +5692,7 @@
   "settings_appearance_metric_tts": "TTS (Time to Surface)",
   "settings_appearance_metric_cns": "CNS% (O2 Toxicity)",
   "settings_appearance_metric_otu": "OTU (O2 Tolerance Units)",
+  "settings_appearance_metric_photoMarkers": "Photo Markers",
   "settings_appearance_metricsEnabledCount": "{count} of {total} enabled",
   "@settings_appearance_metricsEnabledCount": {
     "placeholders": {
