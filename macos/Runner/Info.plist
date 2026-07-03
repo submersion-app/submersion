@@ -4,6 +4,19 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.433819313354-8sn10bh15pij7hsqbld4tunccrsgi4bf</string>
+			</array>
+		</dict>
+	</array>
+	<key>GIDClientID</key>
+	<string>433819313354-8sn10bh15pij7hsqbld4tunccrsgi4bf.apps.googleusercontent.com</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
