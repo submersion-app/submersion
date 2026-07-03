@@ -4132,6 +4132,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_legend_label_otu => 'OTU';
 
   @override
+  String get diveLog_legend_label_photoMarkers => '照片';
+
+  @override
   String get diveLog_legend_label_ppHe => '氦分压';
 
   @override

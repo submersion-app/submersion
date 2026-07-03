@@ -7316,6 +7316,12 @@ abstract class AppLocalizations {
   /// **'OTU'**
   String get diveLog_legend_label_otu;
 
+  /// No description provided for @diveLog_legend_label_photoMarkers.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos'**
+  String get diveLog_legend_label_photoMarkers;
+
   /// No description provided for @diveLog_legend_label_ppHe.
   ///
   /// In en, this message translates to:

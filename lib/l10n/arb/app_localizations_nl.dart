@@ -4313,6 +4313,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_legend_label_otu => 'OTU';
 
   @override
+  String get diveLog_legend_label_photoMarkers => 'Foto\'s';
+
+  @override
   String get diveLog_legend_label_ppHe => 'ppHe';
 
   @override

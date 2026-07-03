@@ -1562,6 +1562,7 @@
   "diveLog_legend_label_mod": "最大作业深度",
   "diveLog_legend_label_ndl": "免减压极限",
   "diveLog_legend_label_otu": "OTU",
+  "diveLog_legend_label_photoMarkers": "照片",
   "diveLog_legend_label_ppHe": "氦分压",
   "diveLog_legend_label_ppN2": "氮分压",
   "diveLog_legend_label_ppO2": "氧分压",

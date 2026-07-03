@@ -4332,6 +4332,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_legend_label_otu => 'OTU';
 
   @override
+  String get diveLog_legend_label_photoMarkers => 'Fotók';
+
+  @override
   String get diveLog_legend_label_ppHe => 'ppHe';
 
   @override
