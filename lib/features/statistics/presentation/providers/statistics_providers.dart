@@ -237,7 +237,11 @@ final temperatureByMonthProvider =
       _keepAliveWithExpiry(ref);
       final repository = ref.watch(statisticsRepositoryProvider);
       final currentDiverId = ref.watch(currentDiverIdProvider);
-      return repository.getTemperatureByMonth(diverId: currentDiverId);
+      final filter = ref.watch(statisticsFilterProvider);
+      return repository.getTemperatureByMonth(
+        diverId: currentDiverId,
+        filter: filter,
+      );
     });
 
 // ============================================================================
@@ -405,7 +409,11 @@ final surfaceIntervalStatsProvider =
       _keepAliveWithExpiry(ref);
       final repository = ref.watch(statisticsRepositoryProvider);
       final currentDiverId = ref.watch(currentDiverIdProvider);
-      return repository.getSurfaceIntervalStats(diverId: currentDiverId);
+      final filter = ref.watch(statisticsFilterProvider);
+      return repository.getSurfaceIntervalStats(
+        diverId: currentDiverId,
+        filter: filter,
+      );
     });
 
 // ============================================================================
@@ -451,7 +459,11 @@ final timeAtDepthRangesProvider =
       _keepAliveWithExpiry(ref);
       final repository = ref.watch(statisticsRepositoryProvider);
       final currentDiverId = ref.watch(currentDiverIdProvider);
-      return repository.getTimeAtDepthRanges(diverId: currentDiverId);
+      final filter = ref.watch(statisticsFilterProvider);
+      return repository.getTimeAtDepthRanges(
+        diverId: currentDiverId,
+        filter: filter,
+      );
     });
 
 final decoObligationStatsProvider =

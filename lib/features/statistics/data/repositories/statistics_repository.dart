@@ -1008,10 +1008,14 @@ class StatisticsRepository {
 
   /// Get temperature by month (min/avg/max)
   Future<List<({int month, double? minTemp, double? avgTemp, double? maxTemp})>>
-  getTemperatureByMonth({String? diverId}) async {
+  getTemperatureByMonth({
+    String? diverId,
+    DiveFilterState filter = const DiveFilterState(),
+  }) async {
     try {
       final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
-      final params = diverId != null ? [diverId] : <dynamic>[];
+      final df = _diveFilter(filter, alias: 'dives');
+      final params = diverId != null ? [diverId, ...df.params] : [...df.params];
 
       final results = await _db.customSelect('''
         SELECT
@@ -1020,7 +1024,7 @@ class StatisticsRepository {
           AVG(water_temp) AS avg_temp,
           MAX(water_temp) AS max_temp
         FROM dives
-        WHERE water_temp IS NOT NULL $diverFilter
+        WHERE water_temp IS NOT NULL $diverFilter ${df.clause}
         GROUP BY month
         ORDER BY month
         ''', variables: params.map((p) => Variable(p)).toList()).get();
@@ -1662,10 +1666,14 @@ class StatisticsRepository {
 
   /// Get surface interval statistics
   Future<({double? avgMinutes, double? minMinutes, double? maxMinutes})>
-  getSurfaceIntervalStats({String? diverId}) async {
+  getSurfaceIntervalStats({
+    String? diverId,
+    DiveFilterState filter = const DiveFilterState(),
+  }) async {
     try {
-      final diverFilter = diverId != null ? 'WHERE diver_id = ?' : '';
-      final params = diverId != null ? [diverId] : <dynamic>[];
+      final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
+      final df = _diveFilter(filter, alias: 'd');
+      final params = diverId != null ? [diverId, ...df.params] : [...df.params];
 
       final results = await _db.customSelect('''
         SELECT
@@ -1691,7 +1699,7 @@ class StatisticsRepository {
               END
             ) AS effective_si
           FROM dives d
-          $diverFilter
+          WHERE 1=1 $diverFilter ${df.clause}
         )
         WHERE effective_si IS NOT NULL AND effective_si > 0
         ''', variables: params.map((p) => Variable(p)).toList()).get();
@@ -1860,10 +1868,14 @@ class StatisticsRepository {
   /// axis label and bucket labels match the setting. The top bucket is
   /// open-ended ([upperDepth] is null).
   Future<List<({int lowerDepth, int? upperDepth, int minutes})>>
-  getTimeAtDepthRanges({String? diverId}) async {
+  getTimeAtDepthRanges({
+    String? diverId,
+    DiveFilterState filter = const DiveFilterState(),
+  }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
-      final params = diverId != null ? [diverId] : <dynamic>[];
+      final df = _diveFilter(filter, alias: 'd');
+      final params = diverId != null ? [diverId, ...df.params] : [...df.params];
 
       final results = await _db.customSelect('''
         SELECT
@@ -1877,7 +1889,7 @@ class StatisticsRepository {
           COUNT(*) AS sample_count
         FROM dive_profiles p
         JOIN dives d ON d.id = p.dive_id
-        WHERE 1=1 $diverFilter
+        WHERE 1=1 $diverFilter ${df.clause}
         GROUP BY bucket_lo
         ORDER BY bucket_lo
         ''', variables: params.map((p) => Variable(p)).toList()).get();

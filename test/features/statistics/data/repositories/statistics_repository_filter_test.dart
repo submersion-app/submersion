@@ -20,7 +20,7 @@ void main() {
 
   final now = DateTime(2026, 6, 1).millisecondsSinceEpoch;
 
-  Future<void> dive(String id, {String? visibility}) async {
+  Future<void> dive(String id, {String? visibility, double? waterTemp}) async {
     await db
         .into(db.dives)
         .insert(
@@ -28,6 +28,7 @@ void main() {
             id: Value(id),
             diveDateTime: Value(now),
             visibility: Value(visibility),
+            waterTemp: Value(waterTemp),
             createdAt: Value(now),
             updatedAt: Value(now),
           ),
@@ -213,6 +214,27 @@ void main() {
       filter: const DiveFilterState(tagIds: ['dry']),
     );
     expect(filtered, 1); // only turtle, sighted on dive 'a'
+  });
+
+  test('temperature by month respects a tag filter', () async {
+    await dive('a', waterTemp: 20.0);
+    await dive('b', waterTemp: 10.0);
+    await tag('dry');
+    await link('a', 'dry');
+
+    final all = await repo.getTemperatureByMonth();
+    expect(all.length, 1);
+    expect(all.first.minTemp, 10.0);
+    expect(all.first.maxTemp, 20.0);
+
+    final filtered = await repo.getTemperatureByMonth(
+      filter: const DiveFilterState(tagIds: ['dry']),
+    );
+    expect(filtered.length, 1);
+    // Only dive 'a' (20.0) survives the filter, so the range collapses -
+    // this differs from the unfiltered 10.0-20.0 range above.
+    expect(filtered.first.minTemp, 20.0);
+    expect(filtered.first.maxTemp, 20.0);
   });
 
   test('dives by day-of-week respects a tag filter', () async {
