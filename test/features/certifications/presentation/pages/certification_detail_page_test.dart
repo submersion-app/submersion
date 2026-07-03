@@ -222,6 +222,100 @@ void main() {
           );
         },
       );
+
+      testWidgets(
+        'falls back to a plain (non-tappable) row when the snapshot name is '
+        'present but the linked buddy does not resolve',
+        (tester) async {
+          final overrides = await getBaseOverrides();
+          final certWithText = certificationWithIdOnly.copyWith(
+            instructorName: 'Jane Snapshot',
+          );
+
+          await pumpDetail(tester, [
+            ...overrides,
+            certificationByIdProvider(
+              certWithText.id,
+            ).overrideWith((ref) async => certWithText),
+            courseForCertificationProvider(
+              certWithText.id,
+            ).overrideWith((ref) async => null),
+            buddyByIdProvider(buddy.id).overrideWith((ref) async => null),
+          ]);
+
+          expect(find.text('Jane Snapshot'), findsOneWidget);
+          // Unresolved link renders the plain row: no chevron affordance.
+          expect(find.byIcon(Icons.chevron_right), findsNothing);
+        },
+      );
+
+      Future<void> pumpDetailWithRouter(
+        WidgetTester tester,
+        List<dynamic> overrides, {
+        required bool embedded,
+      }) async {
+        final router = GoRouter(
+          initialLocation: '/detail',
+          routes: [
+            GoRoute(
+              path: '/detail',
+              builder: (context, state) => CertificationDetailPage(
+                certificationId: 'cert-2',
+                embedded: embedded,
+              ),
+            ),
+            GoRoute(
+              path: '/buddies',
+              builder: (context, state) => const Text('BUDDIES_LIST_MARKER'),
+            ),
+            GoRoute(
+              path: '/buddies/:buddyId',
+              builder: (context, state) => const Text('BUDDY_DETAIL_MARKER'),
+            ),
+          ],
+        );
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: overrides.cast(),
+            child: MaterialApp.router(
+              routerConfig: router,
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+      }
+
+      for (final (embedded, marker) in [
+        (true, 'BUDDIES_LIST_MARKER'),
+        (false, 'BUDDY_DETAIL_MARKER'),
+      ]) {
+        testWidgets(
+          'tapping the linked instructor row (embedded: $embedded) navigates '
+          'to the buddy',
+          (tester) async {
+            final overrides = await getBaseOverrides();
+
+            await pumpDetailWithRouter(tester, [
+              ...overrides,
+              certificationByIdProvider(
+                certificationWithIdOnly.id,
+              ).overrideWith((ref) async => certificationWithIdOnly),
+              courseForCertificationProvider(
+                certificationWithIdOnly.id,
+              ).overrideWith((ref) async => null),
+              buddyByIdProvider(buddy.id).overrideWith((ref) async => buddy),
+            ], embedded: embedded);
+
+            await tester.ensureVisible(find.text('Alice Instructor'));
+            await tester.pumpAndSettle();
+            await tester.tap(find.text('Alice Instructor'));
+            await tester.pumpAndSettle();
+            expect(find.text(marker), findsOneWidget);
+          },
+        );
+      }
     },
   );
 }

@@ -225,5 +225,44 @@ void main() {
         expect(restored.agency, 'padi');
       },
     );
+
+    test('per-record plumbing: fetchRecord, recordIdsFor, deleteRecord, '
+        'and SyncData.fromJson all handle buddyRoles', () async {
+      final serializer = SyncDataSerializer();
+      await serializer.upsertRecord('buddies', buddyRow('buddy-1'));
+      await serializer.upsertRecord(
+        'buddyRoles',
+        buddyRoleRow(
+          'role-1',
+          'buddy-1',
+          hlc: hlcAt(1000, 'dev-a'),
+          credentialNumber: 'ABC123',
+          agency: 'padi',
+        ),
+      );
+
+      // Single-record fetch (used by the changeset path).
+      final fetched = await serializer.fetchRecord('buddyRoles', 'role-1');
+      expect(fetched, isNotNull);
+      expect(fetched!['credentialNumber'], 'ABC123');
+
+      final missing = await serializer.fetchRecord('buddyRoles', 'nope');
+      expect(missing, isNull);
+
+      // Local id enumeration (used by streaming adopt to delete strays).
+      expect(await serializer.recordIdsFor('buddyRoles'), {'role-1'});
+
+      // Payload container survives a JSON round trip.
+      final payload = await serializer.exportData(
+        deviceId: 'dev-a',
+        deletions: const [],
+      );
+      final rehydrated = SyncData.fromJson(payload.data.toJson());
+      expect(rehydrated.buddyRoles.map((r) => r['id']), contains('role-1'));
+
+      // Tombstone application path.
+      await serializer.deleteRecord('buddyRoles', 'role-1');
+      expect(await serializer.recordIdsFor('buddyRoles'), isEmpty);
+    });
   });
 }

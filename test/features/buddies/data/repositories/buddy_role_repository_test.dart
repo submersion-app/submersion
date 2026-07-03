@@ -5,7 +5,9 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain;
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy_role_credential.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -378,6 +380,54 @@ void main() {
 
       expect(after.credentialNumber, '222');
       expect(after.updatedAt, greaterThan(before.updatedAt));
+    });
+
+    test(
+      'an unknown agency string reads back as CertificationAgency.other',
+      () async {
+        final buddy = await repository.createBuddy(buddyFixture('Alice'));
+        final now = DateTime.now().millisecondsSinceEpoch;
+        await db
+            .into(db.buddyRoles)
+            .insert(
+              BuddyRolesCompanion(
+                id: const Value('role-agency'),
+                buddyId: Value(buddy.id),
+                role: const Value('instructor'),
+                agency: const Value('someFutureAgency'),
+                createdAt: Value(now),
+                updatedAt: Value(now),
+              ),
+            );
+
+        final roles = await repository.getRolesForBuddy(buddy.id);
+        expect(roles.single.agency, CertificationAgency.other);
+      },
+    );
+
+    test('buddyRolesProvider and allBuddyRolesProvider read through the '
+        'repository', () async {
+      final buddy = await repository.createBuddy(buddyFixture('Alice'));
+      final now = DateTime.now();
+      await repository.setRolesForBuddy(buddy.id, [
+        BuddyRoleCredential(
+          id: '',
+          buddyId: buddy.id,
+          role: BuddyRole.instructor,
+          credentialNumber: '12345',
+          createdAt: now,
+          updatedAt: now,
+        ),
+      ]);
+
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final single = await container.read(buddyRolesProvider(buddy.id).future);
+      expect(single.single.credentialNumber, '12345');
+
+      final all = await container.read(allBuddyRolesProvider.future);
+      expect(all[buddy.id]!.single.role, BuddyRole.instructor);
     });
   });
 }

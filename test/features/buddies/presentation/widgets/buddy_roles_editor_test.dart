@@ -201,6 +201,54 @@ void main() {
     );
 
     testWidgets(
+      'changing the role dropdown reports the credential under the new role',
+      (tester) async {
+        List<BuddyRoleCredential>? result;
+
+        await tester.pumpWidget(
+          testApp(
+            child: BuddyRolesEditor(
+              roles: [_makeCredential(credentialNumber: '12345')],
+              onChanged: (roles) => result = roles,
+            ),
+          ),
+        );
+
+        await tester.tap(find.text(BuddyRole.instructor.displayName).last);
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(BuddyRole.diveMaster.displayName).last);
+        await tester.pumpAndSettle();
+
+        expect(result, isNotNull);
+        expect(result!.single.role, BuddyRole.diveMaster);
+        expect(result!.single.credentialNumber, '12345');
+      },
+    );
+
+    testWidgets('changing the agency dropdown to another agency reports it', (
+      tester,
+    ) async {
+      List<BuddyRoleCredential>? result;
+
+      await tester.pumpWidget(
+        testApp(
+          child: BuddyRolesEditor(
+            roles: [_makeCredential(agency: CertificationAgency.padi)],
+            onChanged: (roles) => result = roles,
+          ),
+        ),
+      );
+
+      await tester.tap(find.text(CertificationAgency.padi.displayName).last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(CertificationAgency.ssi.displayName).last);
+      await tester.pumpAndSettle();
+
+      expect(result, isNotNull);
+      expect(result!.single.agency, CertificationAgency.ssi);
+    });
+
+    testWidgets(
       'parent replacing a same-role credential refreshes the number field',
       (tester) async {
         // Same role, so the row keeps its ValueKey and is updated in place
