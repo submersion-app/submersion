@@ -1622,9 +1622,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get courses_field_notes => '备注';
 
   @override
-  String get courses_field_selectFromBuddies => '从潜伴中选择（可选）';
-
-  @override
   String get courses_filter_all => '全部';
 
   @override
@@ -1647,9 +1644,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get courses_label_name => '名称';
-
-  @override
-  String get courses_label_none => '-- 无 --';
 
   @override
   String get courses_label_startDate => '开始日期';

@@ -1724,10 +1724,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get courses_field_notes => 'Notizen';
 
   @override
-  String get courses_field_selectFromBuddies =>
-      'Aus Tauchpartnern auswählen (Optional)';
-
-  @override
   String get courses_filter_all => 'Alle';
 
   @override
@@ -1750,9 +1746,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get courses_label_name => 'Name';
-
-  @override
-  String get courses_label_none => '-- Keine --';
 
   @override
   String get courses_label_startDate => 'Startdatum';

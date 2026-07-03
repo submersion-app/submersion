@@ -1683,10 +1683,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get courses_field_notes => 'Notes';
 
   @override
-  String get courses_field_selectFromBuddies =>
-      'Select from Buddies (Optional)';
-
-  @override
   String get courses_filter_all => 'All';
 
   @override
@@ -1709,9 +1705,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get courses_label_name => 'Name';
-
-  @override
-  String get courses_label_none => '-- None --';
 
   @override
   String get courses_label_startDate => 'Start Date';

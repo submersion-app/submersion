@@ -106,7 +106,7 @@ void main() {
             'role-1',
             'buddy-1',
             hlc: hlcAt(1000, 'dev-a'),
-            role: 'divemaster',
+            role: 'diveMaster',
             credentialNumber: 'DM-42',
             agency: 'ssi',
           ),
@@ -135,7 +135,7 @@ void main() {
         final restored = await (db.select(
           db.buddyRoles,
         )..where((t) => t.id.equals('role-1'))).getSingle();
-        expect(restored.role, 'divemaster');
+        expect(restored.role, 'diveMaster');
         expect(restored.credentialNumber, 'DM-42');
         expect(restored.agency, 'ssi');
       },

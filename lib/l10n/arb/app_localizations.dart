@@ -3006,12 +3006,6 @@ abstract class AppLocalizations {
   /// **'Notes'**
   String get courses_field_notes;
 
-  /// No description provided for @courses_field_selectFromBuddies.
-  ///
-  /// In en, this message translates to:
-  /// **'Select from Buddies (Optional)'**
-  String get courses_field_selectFromBuddies;
-
   /// No description provided for @courses_filter_all.
   ///
   /// In en, this message translates to:
@@ -3059,12 +3053,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Name'**
   String get courses_label_name;
-
-  /// No description provided for @courses_label_none.
-  ///
-  /// In en, this message translates to:
-  /// **'-- None --'**
-  String get courses_label_none;
 
   /// No description provided for @courses_label_startDate.
   ///

@@ -1706,10 +1706,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get courses_field_notes => 'Notities';
 
   @override
-  String get courses_field_selectFromBuddies =>
-      'Selecteer uit buddies (optioneel)';
-
-  @override
   String get courses_filter_all => 'Alle';
 
   @override
@@ -1732,9 +1728,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get courses_label_name => 'Naam';
-
-  @override
-  String get courses_label_none => '-- Geen --';
 
   @override
   String get courses_label_startDate => 'Startdatum';

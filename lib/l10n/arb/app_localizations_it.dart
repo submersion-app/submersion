@@ -1717,10 +1717,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get courses_field_notes => 'Note';
 
   @override
-  String get courses_field_selectFromBuddies =>
-      'Seleziona dai Compagni (Facoltativo)';
-
-  @override
   String get courses_filter_all => 'Tutti';
 
   @override
@@ -1743,9 +1739,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get courses_label_name => 'Nome';
-
-  @override
-  String get courses_label_none => '-- Nessuno --';
 
   @override
   String get courses_label_startDate => 'Data Inizio';

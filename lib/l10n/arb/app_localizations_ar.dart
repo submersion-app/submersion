@@ -1673,9 +1673,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get courses_field_notes => 'ملاحظات';
 
   @override
-  String get courses_field_selectFromBuddies => 'اختر من الرفاق (اختياري)';
-
-  @override
   String get courses_filter_all => 'الكل';
 
   @override
@@ -1698,9 +1695,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get courses_label_name => 'الاسم';
-
-  @override
-  String get courses_label_none => '-- لا شيء --';
 
   @override
   String get courses_label_startDate => 'تاريخ البدء';

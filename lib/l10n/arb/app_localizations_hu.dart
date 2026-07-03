@@ -1708,10 +1708,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get courses_field_notes => 'Jegyzetek';
 
   @override
-  String get courses_field_selectFromBuddies =>
-      'Választás búvártársak közül (opcionális)';
-
-  @override
   String get courses_filter_all => 'Összes';
 
   @override
@@ -1734,9 +1730,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get courses_label_name => 'Név';
-
-  @override
-  String get courses_label_none => '-- Nincs --';
 
   @override
   String get courses_label_startDate => 'Kezdés dátuma';
