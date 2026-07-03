@@ -4231,6 +4231,18 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_filter_noTagsYet => 'Meg nincsenek letrehozott cimkek';
 
   @override
+  String get diveLog_filter_presetAllTime => 'Teljes időszak';
+
+  @override
+  String get diveLog_filter_presetLast12Months => 'Elmúlt 12 hónap';
+
+  @override
+  String get diveLog_filter_presetLastYear => 'Tavaly';
+
+  @override
+  String get diveLog_filter_presetThisYear => 'Idén';
+
+  @override
   String get diveLog_filter_sectionBuddy => 'Buddy';
 
   @override
@@ -12388,6 +12400,20 @@ class AppLocalizationsHu extends AppLocalizations {
       'Hiba a statisztikak betoltesekor';
 
   @override
+  String get statistics_filterBar_clear => 'Szűrő törlése';
+
+  @override
+  String statistics_filterBar_diveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés',
+      one: '1 merülés',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get statistics_gas_appBar_title => 'Levegofelhasznalas';
 
   @override
@@ -13146,6 +13172,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get statistics_tooltip_diveRecords => 'Merulesi rekordok';
+
+  @override
+  String get statistics_tooltip_filter => 'Statisztikák szűrése';
 
   @override
   String get statistics_tooltip_refreshRecords => 'Rekordok frissitese';

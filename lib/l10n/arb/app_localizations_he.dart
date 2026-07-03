@@ -4126,6 +4126,18 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_filter_noTagsYet => 'לא נוצרו תגיות עדיין';
 
   @override
+  String get diveLog_filter_presetAllTime => 'כל הזמן';
+
+  @override
+  String get diveLog_filter_presetLast12Months => '12 החודשים האחרונים';
+
+  @override
+  String get diveLog_filter_presetLastYear => 'השנה שעברה';
+
+  @override
+  String get diveLog_filter_presetThisYear => 'השנה';
+
+  @override
   String get diveLog_filter_sectionBuddy => 'שותף';
 
   @override
@@ -12087,6 +12099,20 @@ class AppLocalizationsHe extends AppLocalizations {
   String get statistics_error_loadingStatistics => 'שגיאה בטעינת סטטיסטיקות';
 
   @override
+  String get statistics_filterBar_clear => 'ניקוי מסנן';
+
+  @override
+  String statistics_filterBar_diveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות',
+      one: 'צלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get statistics_gas_appBar_title => 'צריכת אוויר';
 
   @override
@@ -12816,6 +12842,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get statistics_tooltip_diveRecords => 'שיאי צלילה';
+
+  @override
+  String get statistics_tooltip_filter => 'סינון סטטיסטיקות';
 
   @override
   String get statistics_tooltip_refreshRecords => 'רענן שיאים';

@@ -4247,6 +4247,18 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_filter_noTagsYet => 'Nessun tag creato';
 
   @override
+  String get diveLog_filter_presetAllTime => 'Tutto il periodo';
+
+  @override
+  String get diveLog_filter_presetLast12Months => 'Ultimi 12 mesi';
+
+  @override
+  String get diveLog_filter_presetLastYear => 'Anno scorso';
+
+  @override
+  String get diveLog_filter_presetThisYear => 'Quest\'anno';
+
+  @override
   String get diveLog_filter_sectionBuddy => 'Compagno';
 
   @override
@@ -12420,6 +12432,20 @@ class AppLocalizationsIt extends AppLocalizations {
       'Errore nel caricamento delle statistiche';
 
   @override
+  String get statistics_filterBar_clear => 'Cancella filtro';
+
+  @override
+  String statistics_filterBar_diveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count immersioni',
+      one: '1 immersione',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get statistics_gas_appBar_title => 'Consumo aria';
 
   @override
@@ -13183,6 +13209,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get statistics_tooltip_diveRecords => 'Record immersioni';
+
+  @override
+  String get statistics_tooltip_filter => 'Filtra statistiche';
 
   @override
   String get statistics_tooltip_refreshRecords => 'Aggiorna record';

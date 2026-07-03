@@ -7124,6 +7124,30 @@ abstract class AppLocalizations {
   /// **'No tags created yet'**
   String get diveLog_filter_noTagsYet;
 
+  /// No description provided for @diveLog_filter_presetAllTime.
+  ///
+  /// In en, this message translates to:
+  /// **'All time'**
+  String get diveLog_filter_presetAllTime;
+
+  /// No description provided for @diveLog_filter_presetLast12Months.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 12 months'**
+  String get diveLog_filter_presetLast12Months;
+
+  /// No description provided for @diveLog_filter_presetLastYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Last year'**
+  String get diveLog_filter_presetLastYear;
+
+  /// No description provided for @diveLog_filter_presetThisYear.
+  ///
+  /// In en, this message translates to:
+  /// **'This year'**
+  String get diveLog_filter_presetThisYear;
+
   /// No description provided for @diveLog_filter_sectionBuddy.
   ///
   /// In en, this message translates to:
@@ -21098,6 +21122,18 @@ abstract class AppLocalizations {
   /// **'Error loading statistics'**
   String get statistics_error_loadingStatistics;
 
+  /// No description provided for @statistics_filterBar_clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filter'**
+  String get statistics_filterBar_clear;
+
+  /// No description provided for @statistics_filterBar_diveCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive} other{{count} dives}}'**
+  String statistics_filterBar_diveCount(int count);
+
   /// No description provided for @statistics_gas_appBar_title.
   ///
   /// In en, this message translates to:
@@ -22329,6 +22365,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dive Records'**
   String get statistics_tooltip_diveRecords;
+
+  /// No description provided for @statistics_tooltip_filter.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter statistics'**
+  String get statistics_tooltip_filter;
 
   /// No description provided for @statistics_tooltip_refreshRecords.
   ///

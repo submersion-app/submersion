@@ -102,7 +102,7 @@ class StatisticsMobileContent extends ConsumerWidget {
                   .hasActiveFilters,
               child: const Icon(Icons.filter_list),
             ),
-            tooltip: 'Filter statistics',
+            tooltip: context.l10n.statistics_tooltip_filter,
             onPressed: () => showModalBottomSheet(
               context: context,
               isScrollControlled: true,

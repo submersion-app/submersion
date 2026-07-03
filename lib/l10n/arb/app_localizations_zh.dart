@@ -4034,6 +4034,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_filter_noTagsYet => '尚未创建标签';
 
   @override
+  String get diveLog_filter_presetAllTime => '全部时间';
+
+  @override
+  String get diveLog_filter_presetLast12Months => '最近12个月';
+
+  @override
+  String get diveLog_filter_presetLastYear => '去年';
+
+  @override
+  String get diveLog_filter_presetThisYear => '今年';
+
+  @override
   String get diveLog_filter_sectionBuddy => '潜伴';
 
   @override
@@ -11810,6 +11822,20 @@ class AppLocalizationsZh extends AppLocalizations {
   String get statistics_error_loadingStatistics => '加载统计数据时出错';
 
   @override
+  String get statistics_filterBar_clear => '清除筛选';
+
+  @override
+  String statistics_filterBar_diveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水',
+      one: '1 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get statistics_gas_appBar_title => '空气消耗';
 
   @override
@@ -12497,6 +12523,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get statistics_tooltip_diveRecords => '潜水记录';
+
+  @override
+  String get statistics_tooltip_filter => '筛选统计';
 
   @override
   String get statistics_tooltip_refreshRecords => '刷新纪录';

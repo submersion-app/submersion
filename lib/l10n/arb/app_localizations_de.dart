@@ -4244,6 +4244,18 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_filter_noTagsYet => 'Noch keine Tags erstellt';
 
   @override
+  String get diveLog_filter_presetAllTime => 'Gesamter Zeitraum';
+
+  @override
+  String get diveLog_filter_presetLast12Months => 'Letzte 12 Monate';
+
+  @override
+  String get diveLog_filter_presetLastYear => 'Letztes Jahr';
+
+  @override
+  String get diveLog_filter_presetThisYear => 'Dieses Jahr';
+
+  @override
   String get diveLog_filter_sectionBuddy => 'Tauchpartner';
 
   @override
@@ -12403,6 +12415,20 @@ class AppLocalizationsDe extends AppLocalizations {
       'Fehler beim Laden der Statistiken';
 
   @override
+  String get statistics_filterBar_clear => 'Filter zurücksetzen';
+
+  @override
+  String statistics_filterBar_diveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge',
+      one: '1 Tauchgang',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get statistics_gas_appBar_title => 'Luftverbrauch';
 
   @override
@@ -13154,6 +13180,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get statistics_tooltip_diveRecords => 'Tauchrekorde';
+
+  @override
+  String get statistics_tooltip_filter => 'Statistiken filtern';
 
   @override
   String get statistics_tooltip_refreshRecords => 'Rekorde aktualisieren';

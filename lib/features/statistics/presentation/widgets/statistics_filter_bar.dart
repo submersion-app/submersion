@@ -3,12 +3,11 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_filter_provider.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Summary bar shown at the top of the Statistics tab when a filter is active.
 /// Shows the matching dive count and a clear affordance so a scoped total is
 /// never mysterious.
-///
-/// Labels are placeholder English; Task 12 replaces them with l10n keys.
 class StatisticsFilterBar extends ConsumerWidget {
   const StatisticsFilterBar({super.key});
 
@@ -19,7 +18,7 @@ class StatisticsFilterBar extends ConsumerWidget {
 
     final statsAsync = ref.watch(filteredDiveStatisticsProvider);
     final countText = statsAsync.maybeWhen(
-      data: (s) => '${s.totalDives} dives',
+      data: (s) => context.l10n.statistics_filterBar_diveCount(s.totalDives),
       orElse: () => '',
     );
 
@@ -38,7 +37,7 @@ class StatisticsFilterBar extends ConsumerWidget {
           ),
           IconButton(
             icon: const Icon(Icons.close, size: 18),
-            tooltip: 'Clear filter',
+            tooltip: context.l10n.statistics_filterBar_clear,
             onPressed: () => ref.read(statisticsFilterProvider.notifier).state =
                 const DiveFilterState(),
           ),

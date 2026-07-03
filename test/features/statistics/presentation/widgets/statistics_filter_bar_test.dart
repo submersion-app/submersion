@@ -7,6 +7,8 @@ import 'package:submersion/features/statistics/presentation/providers/statistics
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 import 'package:submersion/features/statistics/presentation/widgets/statistics_filter_bar.dart';
 
+import '../../../../helpers/l10n_test_helpers.dart';
+
 void main() {
   testWidgets('tapping clear resets the statistics filter', (tester) async {
     await tester.pumpWidget(
@@ -31,7 +33,9 @@ void main() {
             ),
           ),
         ],
-        child: const MaterialApp(home: Scaffold(body: StatisticsFilterBar())),
+        child: localizedMaterialApp(
+          home: const Scaffold(body: StatisticsFilterBar()),
+        ),
       ),
     );
     await tester.pumpAndSettle();

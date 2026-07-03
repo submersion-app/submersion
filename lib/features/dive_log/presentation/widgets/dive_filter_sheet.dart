@@ -3,6 +3,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
@@ -154,33 +155,49 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
               Wrap(
                 spacing: 8,
                 children: [
-                  _datePresetChip(context, 'All time', () {
-                    setState(() {
-                      _startDate = null;
-                      _endDate = null;
-                    });
-                  }),
-                  _datePresetChip(context, 'This year', () {
-                    final now = DateTime.now();
-                    setState(() {
-                      _startDate = DateTime(now.year, 1, 1);
-                      _endDate = DateTime(now.year, now.month, now.day);
-                    });
-                  }),
-                  _datePresetChip(context, 'Last 12 months', () {
-                    final now = DateTime.now();
-                    setState(() {
-                      _startDate = DateTime(now.year - 1, now.month, now.day);
-                      _endDate = DateTime(now.year, now.month, now.day);
-                    });
-                  }),
-                  _datePresetChip(context, 'Last year', () {
-                    final now = DateTime.now();
-                    setState(() {
-                      _startDate = DateTime(now.year - 1, 1, 1);
-                      _endDate = DateTime(now.year - 1, 12, 31);
-                    });
-                  }),
+                  _datePresetChip(
+                    context,
+                    context.l10n.diveLog_filter_presetAllTime,
+                    () {
+                      setState(() {
+                        _startDate = null;
+                        _endDate = null;
+                      });
+                    },
+                  ),
+                  _datePresetChip(
+                    context,
+                    context.l10n.diveLog_filter_presetThisYear,
+                    () {
+                      final now = DateTime.now();
+                      setState(() {
+                        _startDate = DateTime(now.year, 1, 1);
+                        _endDate = DateTime(now.year, now.month, now.day);
+                      });
+                    },
+                  ),
+                  _datePresetChip(
+                    context,
+                    context.l10n.diveLog_filter_presetLast12Months,
+                    () {
+                      final now = DateTime.now();
+                      setState(() {
+                        _startDate = DateTime(now.year - 1, now.month, now.day);
+                        _endDate = DateTime(now.year, now.month, now.day);
+                      });
+                    },
+                  ),
+                  _datePresetChip(
+                    context,
+                    context.l10n.diveLog_filter_presetLastYear,
+                    () {
+                      final now = DateTime.now();
+                      setState(() {
+                        _startDate = DateTime(now.year - 1, 1, 1);
+                        _endDate = DateTime(now.year - 1, 12, 31);
+                      });
+                    },
+                  ),
                 ],
               ),
               const SizedBox(height: 8),

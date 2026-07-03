@@ -2086,6 +2086,10 @@
   "diveLog_filter_max": "Max",
   "diveLog_filter_min": "Min",
   "diveLog_filter_noTagsYet": "No tags created yet",
+  "diveLog_filter_presetAllTime": "All time",
+  "diveLog_filter_presetLast12Months": "Last 12 months",
+  "diveLog_filter_presetLastYear": "Last year",
+  "diveLog_filter_presetThisYear": "This year",
   "diveLog_filter_sectionBuddy": "Buddy",
   "diveLog_filter_sectionDateRange": "Date Range",
   "diveLog_filter_sectionDepthRange": "Depth Range (meters)",
@@ -6688,6 +6692,8 @@
   "statistics_equipment_weightTrend_subtitle": "Average weight over time",
   "statistics_equipment_weightTrend_title": "Weight Trend",
   "statistics_error_loadingStatistics": "Error loading statistics",
+  "statistics_filterBar_clear": "Clear filter",
+  "statistics_filterBar_diveCount": "{count, plural, =1{1 dive} other{{count} dives}}",
   "statistics_gas_appBar_title": "Air Consumption",
   "statistics_gas_gasMix_error": "Failed to load gas mix data",
   "statistics_gas_gasMix_subtitle": "Dives by gas type",
@@ -6887,6 +6893,7 @@
   "statistics_timePatterns_timeOfDay_subtitle": "Morning, afternoon, evening, or night",
   "statistics_timePatterns_timeOfDay_title": "Dives by Time of Day",
   "statistics_tooltip_diveRecords": "Dive Records",
+  "statistics_tooltip_filter": "Filter statistics",
   "statistics_tooltip_refreshRecords": "Refresh records",
   "statistics_tooltip_refreshStatistics": "Refresh statistics",
   "statistics_valueCard_semanticLabel": "{label}: {value}",
@@ -6932,6 +6939,13 @@
       },
       "yAxisLabel": {
         "type": "Object"
+      }
+    }
+  },
+  "@statistics_filterBar_diveCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
       }
     }
   },
