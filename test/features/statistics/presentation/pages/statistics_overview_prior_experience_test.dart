@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/statistics/presentation/pages/statistics_overview_page.dart';
+import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -44,6 +45,9 @@ Future<void> _pump(
       overrides: [
         ...overrides,
         diveStatisticsProvider.overrideWith((ref) async => stats ?? _stats()),
+        filteredDiveStatisticsProvider.overrideWith(
+          (ref) async => stats ?? _stats(),
+        ),
         currentDiverProvider.overrideWith((ref) async => diver),
       ],
       child: const MaterialApp(
@@ -104,6 +108,9 @@ void main() {
         overrides: [
           ...overrides,
           diveStatisticsProvider.overrideWith(
+            (ref) async => _stats(totalDives: 0),
+          ),
+          filteredDiveStatisticsProvider.overrideWith(
             (ref) async => _stats(totalDives: 0),
           ),
           currentDiverProvider.overrideWith((ref) async {

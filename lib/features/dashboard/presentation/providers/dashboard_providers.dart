@@ -248,19 +248,34 @@ class DashboardQuickStats {
   });
 }
 
-/// Quick stats provider for dashboard
+/// Quick stats provider for dashboard.
+///
+/// Deliberately UNFILTERED: the home dashboard has no filter UI, so it must
+/// not inherit whatever filter is active on the (unrelated) Statistics tab.
+/// [topBuddiesProvider], [countriesVisitedProvider], and
+/// [uniqueSpeciesCountProvider] themselves stay filter-aware -- they also
+/// back the Statistics Social/Geographic/Marine-Life pages -- so this reads
+/// the shared repository directly instead of watching those providers, and
+/// re-implements their diver scoping (but not their filter scoping).
+/// [statisticsVersionProvider] is watched explicitly to preserve the
+/// dive-mutation reactivity that used to arrive transitively through those
+/// three providers.
 final dashboardQuickStatsProvider = FutureProvider<DashboardQuickStats>((
   ref,
 ) async {
+  ref.watch(statisticsVersionProvider);
+  final repository = ref.watch(statisticsRepositoryProvider);
+  final diverId = ref.watch(currentDiverIdProvider);
+
   // Get top buddy
-  final topBuddies = await ref.watch(topBuddiesProvider.future);
+  final topBuddies = await repository.getTopBuddies(diverId: diverId);
   final topBuddy = topBuddies.isNotEmpty ? topBuddies.first : null;
 
   // Get countries visited
-  final countries = await ref.watch(countriesVisitedProvider.future);
+  final countries = await repository.getCountriesVisited(diverId: diverId);
 
   // Get species count
-  final speciesCount = await ref.watch(uniqueSpeciesCountProvider.future);
+  final speciesCount = await repository.getUniqueSpeciesCount(diverId: diverId);
 
   return DashboardQuickStats(
     topBuddyName: topBuddy?.name,

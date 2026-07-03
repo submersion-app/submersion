@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/icons/mdi_icons.dart';
+import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_filter_sheet.dart';
+import 'package:submersion/features/statistics/presentation/providers/statistics_filter_provider.dart';
+import 'package:submersion/features/statistics/presentation/widgets/statistics_filter_bar.dart';
 
 /// Statistics category data model.
 class StatisticsCategory {
@@ -97,7 +101,7 @@ List<StatisticsCategory> statisticsCategoriesOf(BuildContext context) => [
 ];
 
 /// Content widget for the statistics category list, used in master-detail layout.
-class StatisticsListContent extends StatelessWidget {
+class StatisticsListContent extends ConsumerWidget {
   final void Function(String?)? onItemSelected;
   final String? selectedId;
   final bool showAppBar;
@@ -110,7 +114,7 @@ class StatisticsListContent extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final listContent = ListView.separated(
       padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: statisticsCategoriesOf(context).length,
@@ -139,7 +143,8 @@ class StatisticsListContent extends StatelessWidget {
     if (!showAppBar) {
       return Column(
         children: [
-          _buildCompactAppBar(context),
+          _buildCompactAppBar(context, ref),
+          const StatisticsFilterBar(),
           Expanded(child: listContent),
         ],
       );
@@ -156,13 +161,32 @@ class StatisticsListContent extends StatelessWidget {
               context.push('/records');
             },
           ),
+          IconButton(
+            icon: Badge(
+              isLabelVisible: ref
+                  .watch(statisticsFilterProvider)
+                  .hasActiveFilters,
+              child: const Icon(Icons.filter_list),
+            ),
+            tooltip: context.l10n.statistics_tooltip_filter,
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                builder: (context) => DiveFilterSheet(
+                  ref: ref,
+                  filterProvider: statisticsFilterProvider,
+                ),
+              );
+            },
+          ),
         ],
       ),
       body: listContent,
     );
   }
 
-  Widget _buildCompactAppBar(BuildContext context) {
+  Widget _buildCompactAppBar(BuildContext context, WidgetRef ref) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -189,6 +213,25 @@ class StatisticsListContent extends StatelessWidget {
             tooltip: context.l10n.statistics_tooltip_diveRecords,
             onPressed: () {
               context.push('/records');
+            },
+          ),
+          IconButton(
+            icon: Badge(
+              isLabelVisible: ref
+                  .watch(statisticsFilterProvider)
+                  .hasActiveFilters,
+              child: const Icon(Icons.filter_list, size: 20),
+            ),
+            tooltip: context.l10n.statistics_tooltip_filter,
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                builder: (context) => DiveFilterSheet(
+                  ref: ref,
+                  filterProvider: statisticsFilterProvider,
+                ),
+              );
             },
           ),
         ],

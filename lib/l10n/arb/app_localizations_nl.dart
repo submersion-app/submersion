@@ -4435,6 +4435,18 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_filter_noTagsYet => 'Nog geen tags aangemaakt';
 
   @override
+  String get diveLog_filter_presetAllTime => 'Altijd';
+
+  @override
+  String get diveLog_filter_presetLast12Months => 'Afgelopen 12 maanden';
+
+  @override
+  String get diveLog_filter_presetLastYear => 'Vorig jaar';
+
+  @override
+  String get diveLog_filter_presetThisYear => 'Dit jaar';
+
+  @override
   String get diveLog_filter_sectionBuddy => 'Buddy';
 
   @override
@@ -12646,6 +12658,20 @@ class AppLocalizationsNl extends AppLocalizations {
       'Fout bij laden van statistieken';
 
   @override
+  String get statistics_filterBar_clear => 'Filter wissen';
+
+  @override
+  String statistics_filterBar_diveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken',
+      one: '1 duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get statistics_gas_appBar_title => 'Luchtverbruik';
 
   @override
@@ -13395,6 +13421,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get statistics_tooltip_diveRecords => 'Duikrecords';
+
+  @override
+  String get statistics_tooltip_filter => 'Statistieken filteren';
 
   @override
   String get statistics_tooltip_refreshRecords => 'Records verversen';

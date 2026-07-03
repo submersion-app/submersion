@@ -4364,6 +4364,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_filter_noTagsYet => 'لم يتم إنشاء وسوم بعد';
 
   @override
+  String get diveLog_filter_presetAllTime => 'كل الوقت';
+
+  @override
+  String get diveLog_filter_presetLast12Months => 'آخر 12 شهرًا';
+
+  @override
+  String get diveLog_filter_presetLastYear => 'العام الماضي';
+
+  @override
+  String get diveLog_filter_presetThisYear => 'هذا العام';
+
+  @override
   String get diveLog_filter_sectionBuddy => 'زميل الغوص';
 
   @override
@@ -12510,6 +12522,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get statistics_error_loadingStatistics => 'خطأ في تحميل الإحصائيات';
 
   @override
+  String get statistics_filterBar_clear => 'مسح التصفية';
+
+  @override
+  String statistics_filterBar_diveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غوصات',
+      one: 'غوصة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get statistics_gas_appBar_title => 'استهلاك الهواء';
 
   @override
@@ -13244,6 +13270,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get statistics_tooltip_diveRecords => 'أرقام الغوص القياسية';
+
+  @override
+  String get statistics_tooltip_filter => 'تصفية الإحصائيات';
 
   @override
   String get statistics_tooltip_refreshRecords => 'تحديث الأرقام القياسية';

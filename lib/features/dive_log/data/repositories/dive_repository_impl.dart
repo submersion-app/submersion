@@ -21,6 +21,7 @@ import 'package:submersion/features/dive_log/domain/services/profile_event_mappe
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/features/statistics/data/dive_filter_sql.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart'
     as domain;
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
@@ -1875,12 +1876,28 @@ class DiveRepository {
 
   /// Get statistics for dives
   /// Optionally filter by [diverId] for per-diver statistics
-  Future<DiveStatistics> getStatistics({String? diverId}) async {
+  Future<DiveStatistics> getStatistics({
+    String? diverId,
+    DiveFilterState filter = const DiveFilterState(),
+  }) async {
     try {
       final whereClause = diverId != null ? 'WHERE diver_id = ?' : '';
       final vars = diverId != null
           ? [Variable<String>(diverId)]
           : <Variable<Object>>[];
+
+      final df = buildFilteredDiveIdSubquery(filter);
+      // Typed as Variable<Object> (not Variable<Object?>) to match the method's
+      // `vars` list type; params are always non-null so `p!` is safe.
+      final filterVars = df.params.map((p) => Variable<Object>(p!)).toList();
+      // Clause fragments per table alias used below.
+      final fBare = df.subquery.isEmpty ? '' : 'AND id IN (${df.subquery})';
+      final fAliasD = df.subquery.isEmpty ? '' : 'AND d.id IN (${df.subquery})';
+      // WHERE-prefix helpers so an empty base WHERE still starts correctly.
+      final basicWhere = whereClause.isEmpty
+          ? (df.subquery.isEmpty ? '' : 'WHERE id IN (${df.subquery})')
+          : '$whereClause $fBare';
+      vars.addAll(filterVars);
 
       // Basic stats
       final stats = await _db.customSelect('''
@@ -1893,7 +1910,7 @@ class DiveRepository {
         COUNT(DISTINCT site_id) as total_sites,
         MIN(dive_date_time) as first_dive_date
       FROM dives
-      $whereClause
+      $basicWhere
     ''', variables: vars).getSingle();
 
       // Dives by month (last 12 months)
@@ -1906,7 +1923,7 @@ class DiveRepository {
         strftime('%m', dive_date_time / 1000, 'unixepoch') as month,
         COUNT(*) as count
       FROM dives
-      $monthlyWhereClause
+      $monthlyWhereClause $fBare
       GROUP BY year, month
       ORDER BY year, month
     ''', variables: vars).get();
@@ -1936,7 +1953,7 @@ class DiveRepository {
         END as depth_range,
         COUNT(*) as count
       FROM dives
-      $depthWhereClause
+      $depthWhereClause $fBare
       GROUP BY depth_range
       ORDER BY
         CASE depth_range
@@ -1969,7 +1986,9 @@ class DiveRepository {
       }).toList();
 
       // Top sites
-      final siteWhereClause = diverId != null ? 'WHERE d.diver_id = ?' : '';
+      final siteWhereClause = diverId != null
+          ? 'WHERE d.diver_id = ? $fAliasD'
+          : (df.subquery.isEmpty ? '' : 'WHERE 1=1 $fAliasD');
       final siteStats = await _db.customSelect('''
       SELECT
         s.id as site_id,

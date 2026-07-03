@@ -3,15 +3,30 @@ import 'dart:async';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
 import 'package:submersion/features/statistics/domain/entities/species_statistics.dart';
+import 'package:submersion/features/statistics/presentation/providers/statistics_filter_provider.dart';
 
 /// Repository provider
 final statisticsRepositoryProvider = Provider<StatisticsRepository>((ref) {
   return StatisticsRepository();
+});
+
+/// Overview totals scoped by the Statistics filter. Kept separate from
+/// diveStatisticsProvider so the home dashboard and dive-log summary (which
+/// read diveStatisticsProvider) stay unfiltered.
+final filteredDiveStatisticsProvider = FutureProvider<DiveStatistics>((
+  ref,
+) async {
+  final repository = ref.watch(diveRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final filter = ref.watch(statisticsFilterProvider);
+  ref.invalidateSelfWhen(repository.watchDivesChanges());
+  return repository.getStatistics(diverId: currentDiverId, filter: filter);
 });
 
 /// Adds keepAlive with a 5-minute expiry and watches the statistics version
@@ -36,11 +51,18 @@ final sacTrendProvider = FutureProvider<List<TrendDataPoint>>((ref) async {
   final repository = ref.watch(statisticsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final sacUnit = ref.watch(sacUnitProvider);
+  final filter = ref.watch(statisticsFilterProvider);
 
   if (sacUnit == SacUnit.litersPerMin) {
-    return repository.getSacVolumeTrend(diverId: currentDiverId);
+    return repository.getSacVolumeTrend(
+      diverId: currentDiverId,
+      filter: filter,
+    );
   } else {
-    return repository.getSacPressureTrend(diverId: currentDiverId);
+    return repository.getSacPressureTrend(
+      diverId: currentDiverId,
+      filter: filter,
+    );
   }
 });
 
@@ -50,7 +72,11 @@ final gasMixDistributionProvider = FutureProvider<List<DistributionSegment>>((
   _keepAliveWithExpiry(ref);
   final repository = ref.watch(statisticsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
-  return repository.getGasMixDistribution(diverId: currentDiverId);
+  final filter = ref.watch(statisticsFilterProvider);
+  return repository.getGasMixDistribution(
+    diverId: currentDiverId,
+    filter: filter,
+  );
 });
 
 /// SAC records provider that uses the appropriate calculation based on sacUnit setting
@@ -60,11 +86,18 @@ final sacRecordsProvider =
       final repository = ref.watch(statisticsRepositoryProvider);
       final currentDiverId = ref.watch(currentDiverIdProvider);
       final sacUnit = ref.watch(sacUnitProvider);
+      final filter = ref.watch(statisticsFilterProvider);
 
       if (sacUnit == SacUnit.litersPerMin) {
-        return repository.getSacVolumeRecords(diverId: currentDiverId);
+        return repository.getSacVolumeRecords(
+          diverId: currentDiverId,
+          filter: filter,
+        );
       } else {
-        return repository.getSacPressureRecords(diverId: currentDiverId);
+        return repository.getSacPressureRecords(
+          diverId: currentDiverId,
+          filter: filter,
+        );
       }
     });
 
@@ -74,11 +107,18 @@ final sacByTankRoleProvider = FutureProvider<Map<String, double>>((ref) async {
   final repository = ref.watch(statisticsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final sacUnit = ref.watch(sacUnitProvider);
+  final filter = ref.watch(statisticsFilterProvider);
 
   if (sacUnit == SacUnit.litersPerMin) {
-    return repository.getSacVolumeByTankRole(diverId: currentDiverId);
+    return repository.getSacVolumeByTankRole(
+      diverId: currentDiverId,
+      filter: filter,
+    );
   } else {
-    return repository.getSacPressureByTankRole(diverId: currentDiverId);
+    return repository.getSacPressureByTankRole(
+      diverId: currentDiverId,
+      filter: filter,
+    );
   }
 });
 
@@ -92,7 +132,11 @@ final diveTypeDistributionProvider = FutureProvider<List<DistributionSegment>>((
   _keepAliveWithExpiry(ref);
   final repository = ref.watch(statisticsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
-  return repository.getDiveTypeDistribution(diverId: currentDiverId);
+  final filter = ref.watch(statisticsFilterProvider);
+  return repository.getDiveTypeDistribution(
+    diverId: currentDiverId,
+    filter: filter,
+  );
 });
 
 // ============================================================================
@@ -105,7 +149,11 @@ final depthProgressionTrendProvider = FutureProvider<List<TrendDataPoint>>((
   _keepAliveWithExpiry(ref);
   final repository = ref.watch(statisticsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
-  return repository.getDepthProgressionTrend(diverId: currentDiverId);
+  final filter = ref.watch(statisticsFilterProvider);
+  return repository.getDepthProgressionTrend(
+    diverId: currentDiverId,
+    filter: filter,
+  );
 });
 
 final bottomTimeTrendProvider = FutureProvider<List<TrendDataPoint>>((
@@ -114,7 +162,8 @@ final bottomTimeTrendProvider = FutureProvider<List<TrendDataPoint>>((
   _keepAliveWithExpiry(ref);
   final repository = ref.watch(statisticsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
-  return repository.getBottomTimeTrend(diverId: currentDiverId);
+  final filter = ref.watch(statisticsFilterProvider);
+  return repository.getBottomTimeTrend(diverId: currentDiverId, filter: filter);
 });
 
 final divesPerYearProvider = FutureProvider<List<({int year, int count})>>((
@@ -123,7 +172,8 @@ final divesPerYearProvider = FutureProvider<List<({int year, int count})>>((
   _keepAliveWithExpiry(ref);
   final repository = ref.watch(statisticsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
-  return repository.getDivesPerYear(diverId: currentDiverId);
+  final filter = ref.watch(statisticsFilterProvider);
+  return repository.getDivesPerYear(diverId: currentDiverId, filter: filter);
 });
 
 final cumulativeDiveCountProvider = FutureProvider<List<TrendDataPoint>>((
@@ -132,7 +182,11 @@ final cumulativeDiveCountProvider = FutureProvider<List<TrendDataPoint>>((
   _keepAliveWithExpiry(ref);
   final repository = ref.watch(statisticsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
-  return repository.getCumulativeDiveCount(diverId: currentDiverId);
+  final filter = ref.watch(statisticsFilterProvider);
+  return repository.getCumulativeDiveCount(
+    diverId: currentDiverId,
+    filter: filter,
+  );
 });
 
 // ============================================================================
@@ -144,7 +198,11 @@ final visibilityDistributionProvider =
       _keepAliveWithExpiry(ref);
       final repository = ref.watch(statisticsRepositoryProvider);
       final currentDiverId = ref.watch(currentDiverIdProvider);
-      return repository.getVisibilityDistribution(diverId: currentDiverId);
+      final filter = ref.watch(statisticsFilterProvider);
+      return repository.getVisibilityDistribution(
+        diverId: currentDiverId,
+        filter: filter,
+      );
     });
 
 final waterTypeDistributionProvider = FutureProvider<List<DistributionSegment>>(
@@ -152,7 +210,11 @@ final waterTypeDistributionProvider = FutureProvider<List<DistributionSegment>>(
     _keepAliveWithExpiry(ref);
     final repository = ref.watch(statisticsRepositoryProvider);
     final currentDiverId = ref.watch(currentDiverIdProvider);
-    return repository.getWaterTypeDistribution(diverId: currentDiverId);
+    final filter = ref.watch(statisticsFilterProvider);
+    return repository.getWaterTypeDistribution(
+      diverId: currentDiverId,
+      filter: filter,
+    );
   },
 );
 
@@ -161,7 +223,11 @@ final entryMethodDistributionProvider =
       _keepAliveWithExpiry(ref);
       final repository = ref.watch(statisticsRepositoryProvider);
       final currentDiverId = ref.watch(currentDiverIdProvider);
-      return repository.getEntryMethodDistribution(diverId: currentDiverId);
+      final filter = ref.watch(statisticsFilterProvider);
+      return repository.getEntryMethodDistribution(
+        diverId: currentDiverId,
+        filter: filter,
+      );
     });
 
 final temperatureByMonthProvider =
@@ -171,7 +237,11 @@ final temperatureByMonthProvider =
       _keepAliveWithExpiry(ref);
       final repository = ref.watch(statisticsRepositoryProvider);
       final currentDiverId = ref.watch(currentDiverIdProvider);
-      return repository.getTemperatureByMonth(diverId: currentDiverId);
+      final filter = ref.watch(statisticsFilterProvider);
+      return repository.getTemperatureByMonth(
+        diverId: currentDiverId,
+        filter: filter,
+      );
     });
 
 // ============================================================================
@@ -182,7 +252,8 @@ final topBuddiesProvider = FutureProvider<List<RankingItem>>((ref) async {
   _keepAliveWithExpiry(ref);
   final repository = ref.watch(statisticsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
-  return repository.getTopBuddies(diverId: currentDiverId);
+  final filter = ref.watch(statisticsFilterProvider);
+  return repository.getTopBuddies(diverId: currentDiverId, filter: filter);
 });
 
 final soloVsBuddyCountProvider = FutureProvider<({int solo, int buddy})>((
@@ -191,14 +262,19 @@ final soloVsBuddyCountProvider = FutureProvider<({int solo, int buddy})>((
   _keepAliveWithExpiry(ref);
   final repository = ref.watch(statisticsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
-  return repository.getSoloVsBuddyCount(diverId: currentDiverId);
+  final filter = ref.watch(statisticsFilterProvider);
+  return repository.getSoloVsBuddyCount(
+    diverId: currentDiverId,
+    filter: filter,
+  );
 });
 
 final topDiveCentersProvider = FutureProvider<List<RankingItem>>((ref) async {
   _keepAliveWithExpiry(ref);
   final repository = ref.watch(statisticsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
-  return repository.getTopDiveCenters(diverId: currentDiverId);
+  final filter = ref.watch(statisticsFilterProvider);
+  return repository.getTopDiveCenters(diverId: currentDiverId, filter: filter);
 });
 
 // ============================================================================
@@ -209,21 +285,27 @@ final countriesVisitedProvider = FutureProvider<List<RankingItem>>((ref) async {
   _keepAliveWithExpiry(ref);
   final repository = ref.watch(statisticsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
-  return repository.getCountriesVisited(diverId: currentDiverId);
+  final filter = ref.watch(statisticsFilterProvider);
+  return repository.getCountriesVisited(
+    diverId: currentDiverId,
+    filter: filter,
+  );
 });
 
 final regionsExploredProvider = FutureProvider<List<RankingItem>>((ref) async {
   _keepAliveWithExpiry(ref);
   final repository = ref.watch(statisticsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
-  return repository.getRegionsExplored(diverId: currentDiverId);
+  final filter = ref.watch(statisticsFilterProvider);
+  return repository.getRegionsExplored(diverId: currentDiverId, filter: filter);
 });
 
 final divesPerTripProvider = FutureProvider<List<RankingItem>>((ref) async {
   _keepAliveWithExpiry(ref);
   final repository = ref.watch(statisticsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
-  return repository.getDivesPerTrip(diverId: currentDiverId);
+  final filter = ref.watch(statisticsFilterProvider);
+  return repository.getDivesPerTrip(diverId: currentDiverId, filter: filter);
 });
 
 // ============================================================================
@@ -234,7 +316,11 @@ final uniqueSpeciesCountProvider = FutureProvider<int>((ref) async {
   _keepAliveWithExpiry(ref);
   final repository = ref.watch(statisticsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
-  return repository.getUniqueSpeciesCount(diverId: currentDiverId);
+  final filter = ref.watch(statisticsFilterProvider);
+  return repository.getUniqueSpeciesCount(
+    diverId: currentDiverId,
+    filter: filter,
+  );
 });
 
 final mostCommonSightingsProvider = FutureProvider<List<RankingItem>>((
@@ -243,7 +329,11 @@ final mostCommonSightingsProvider = FutureProvider<List<RankingItem>>((
   _keepAliveWithExpiry(ref);
   final repository = ref.watch(statisticsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
-  return repository.getMostCommonSightings(diverId: currentDiverId);
+  final filter = ref.watch(statisticsFilterProvider);
+  return repository.getMostCommonSightings(
+    diverId: currentDiverId,
+    filter: filter,
+  );
 });
 
 final bestSitesForMarineLifeProvider = FutureProvider<List<RankingItem>>((
@@ -252,10 +342,20 @@ final bestSitesForMarineLifeProvider = FutureProvider<List<RankingItem>>((
   _keepAliveWithExpiry(ref);
   final repository = ref.watch(statisticsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
-  return repository.getBestSitesForMarineLife(diverId: currentDiverId);
+  final filter = ref.watch(statisticsFilterProvider);
+  return repository.getBestSitesForMarineLife(
+    diverId: currentDiverId,
+    filter: filter,
+  );
 });
 
-/// Per-species statistics (sightings, depth range, sites, first/last seen)
+/// Per-species statistics (sightings, depth range, sites, first/last seen).
+///
+/// Deliberately UNFILTERED: its only consumer is the Marine Life
+/// species-detail page (route `/species/:id`), which is not a Statistics-tab
+/// surface and has no filter UI. Watching [statisticsFilterProvider] here
+/// would silently scope each species' detail stats to whatever filter is
+/// currently active on the (unrelated) Statistics tab.
 final speciesStatisticsProvider =
     FutureProvider.family<SpeciesStatistics, String>((ref, speciesId) async {
       _keepAliveWithExpiry(ref);
@@ -276,7 +376,11 @@ final divesByDayOfWeekProvider =
       _keepAliveWithExpiry(ref);
       final repository = ref.watch(statisticsRepositoryProvider);
       final currentDiverId = ref.watch(currentDiverIdProvider);
-      return repository.getDivesByDayOfWeek(diverId: currentDiverId);
+      final filter = ref.watch(statisticsFilterProvider);
+      return repository.getDivesByDayOfWeek(
+        diverId: currentDiverId,
+        filter: filter,
+      );
     });
 
 final divesByTimeOfDayProvider = FutureProvider<List<DistributionSegment>>((
@@ -285,7 +389,11 @@ final divesByTimeOfDayProvider = FutureProvider<List<DistributionSegment>>((
   _keepAliveWithExpiry(ref);
   final repository = ref.watch(statisticsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
-  return repository.getDivesByTimeOfDay(diverId: currentDiverId);
+  final filter = ref.watch(statisticsFilterProvider);
+  return repository.getDivesByTimeOfDay(
+    diverId: currentDiverId,
+    filter: filter,
+  );
 });
 
 final divesBySeasonProvider = FutureProvider<List<({int month, int count})>>((
@@ -294,7 +402,8 @@ final divesBySeasonProvider = FutureProvider<List<({int month, int count})>>((
   _keepAliveWithExpiry(ref);
   final repository = ref.watch(statisticsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
-  return repository.getDivesBySeason(diverId: currentDiverId);
+  final filter = ref.watch(statisticsFilterProvider);
+  return repository.getDivesBySeason(diverId: currentDiverId, filter: filter);
 });
 
 final surfaceIntervalStatsProvider =
@@ -304,7 +413,11 @@ final surfaceIntervalStatsProvider =
       _keepAliveWithExpiry(ref);
       final repository = ref.watch(statisticsRepositoryProvider);
       final currentDiverId = ref.watch(currentDiverIdProvider);
-      return repository.getSurfaceIntervalStats(diverId: currentDiverId);
+      final filter = ref.watch(statisticsFilterProvider);
+      return repository.getSurfaceIntervalStats(
+        diverId: currentDiverId,
+        filter: filter,
+      );
     });
 
 // ============================================================================
@@ -315,14 +428,16 @@ final mostUsedGearProvider = FutureProvider<List<RankingItem>>((ref) async {
   _keepAliveWithExpiry(ref);
   final repository = ref.watch(statisticsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
-  return repository.getMostUsedGear(diverId: currentDiverId);
+  final filter = ref.watch(statisticsFilterProvider);
+  return repository.getMostUsedGear(diverId: currentDiverId, filter: filter);
 });
 
 final weightTrendProvider = FutureProvider<List<TrendDataPoint>>((ref) async {
   _keepAliveWithExpiry(ref);
   final repository = ref.watch(statisticsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
-  return repository.getWeightTrend(diverId: currentDiverId);
+  final filter = ref.watch(statisticsFilterProvider);
+  return repository.getWeightTrend(diverId: currentDiverId, filter: filter);
 });
 
 // ============================================================================
@@ -334,7 +449,11 @@ final ascentDescentRatesProvider =
       _keepAliveWithExpiry(ref);
       final repository = ref.watch(statisticsRepositoryProvider);
       final currentDiverId = ref.watch(currentDiverIdProvider);
-      return repository.getAscentDescentRates(diverId: currentDiverId);
+      final filter = ref.watch(statisticsFilterProvider);
+      return repository.getAscentDescentRates(
+        diverId: currentDiverId,
+        filter: filter,
+      );
     });
 
 final timeAtDepthRangesProvider =
@@ -344,7 +463,11 @@ final timeAtDepthRangesProvider =
       _keepAliveWithExpiry(ref);
       final repository = ref.watch(statisticsRepositoryProvider);
       final currentDiverId = ref.watch(currentDiverIdProvider);
-      return repository.getTimeAtDepthRanges(diverId: currentDiverId);
+      final filter = ref.watch(statisticsFilterProvider);
+      return repository.getTimeAtDepthRanges(
+        diverId: currentDiverId,
+        filter: filter,
+      );
     });
 
 final decoObligationStatsProvider =
@@ -352,5 +475,9 @@ final decoObligationStatsProvider =
       _keepAliveWithExpiry(ref);
       final repository = ref.watch(statisticsRepositoryProvider);
       final currentDiverId = ref.watch(currentDiverIdProvider);
-      return repository.getDecoObligationStats(diverId: currentDiverId);
+      final filter = ref.watch(statisticsFilterProvider);
+      return repository.getDecoObligationStats(
+        diverId: currentDiverId,
+        filter: filter,
+      );
     });

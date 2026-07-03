@@ -19,12 +19,13 @@ class StatisticsOverviewPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final statsAsync = ref.watch(diveStatisticsProvider);
+    final statsAsync = ref.watch(filteredDiveStatisticsProvider);
 
     final body = statsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) =>
-          _ErrorCard(onRetry: () => ref.invalidate(diveStatisticsProvider)),
+      error: (e, _) => _ErrorCard(
+        onRetry: () => ref.invalidate(filteredDiveStatisticsProvider),
+      ),
       data: (stats) => _OverviewBody(stats: stats),
     );
 
