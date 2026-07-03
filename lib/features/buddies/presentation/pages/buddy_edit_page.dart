@@ -90,6 +90,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
       );
       _certLevel = certLevel;
       _certAgency = certAgency;
+      _loadMergeRoles();
     } else if (isEditing) {
       _loadBuddy();
     } else if (hasInitialData) {
@@ -122,6 +123,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
         final roles = await ref
             .read(buddyRepositoryProvider)
             .getRolesForBuddy(widget.buddyId!);
+        if (!mounted) return;
         _originalBuddy = buddy;
         _nameController.text = buddy.name;
         _emailController.text = buddy.email ?? '';
@@ -138,6 +140,36 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              context.l10n.buddies_message_errorLoading(e.toString()),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  /// Seeds [_roles] with the credential set expected after the merge:
+  /// survivor's credentials first, then each duplicate's credentials whose
+  /// role is not already taken (survivor wins collisions, mirroring
+  /// BuddyMergeRepository's migration semantics). This keeps the merge save
+  /// from replacing migrated credentials with only the user's edits, and
+  /// shows the user which roles carry over.
+  Future<void> _loadMergeRoles() async {
+    try {
+      final repository = ref.read(buddyRepositoryProvider);
+      final rolesByCandidate = <List<BuddyRoleCredential>>[];
+      for (final candidate in widget.mergeBuddies!) {
+        rolesByCandidate.add(await repository.getRolesForBuddy(candidate.id));
+      }
+      if (!mounted) return;
+      setState(() {
+        _roles = mergeRoleCredentials(rolesByCandidate);
+      });
+    } catch (e) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(

@@ -151,5 +151,53 @@ void main() {
         expect(result!.single.role, BuddyRole.diveMaster);
       },
     );
+
+    testWidgets(
+      'clearing agency and credential number delivers nulled-out credential',
+      (tester) async {
+        List<BuddyRoleCredential>? result;
+        final roles = [
+          _makeCredential(
+            role: BuddyRole.instructor,
+            credentialNumber: '12345',
+            agency: CertificationAgency.padi,
+          ),
+        ];
+
+        await tester.pumpWidget(
+          testApp(
+            child: SingleChildScrollView(
+              child: BuddyRolesEditor(
+                roles: roles,
+                onChanged: (updated) => result = updated,
+              ),
+            ),
+          ),
+        );
+
+        // Select the "not specified" (null) agency item.
+        await tester.tap(find.text(CertificationAgency.padi.displayName));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Not specified').last);
+        await tester.pumpAndSettle();
+
+        expect(result, isNotNull);
+        expect(result!.single.agency, isNull);
+        expect(result!.single.credentialNumber, '12345');
+
+        // Clear the credential-number field. The editor was pumped with the
+        // original credential (agency still PADI in this instance), so only
+        // the number changes relative to it.
+        await tester.enterText(
+          find.widgetWithText(TextFormField, 'Credential number'),
+          '',
+        );
+        await tester.pumpAndSettle();
+
+        expect(result!.single.credentialNumber, isNull);
+        expect(result!.single.agency, CertificationAgency.padi);
+        expect(result!.single.role, BuddyRole.instructor);
+      },
+    );
   });
 }

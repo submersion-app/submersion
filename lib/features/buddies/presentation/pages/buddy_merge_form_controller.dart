@@ -2,6 +2,28 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy_role_credential.dart';
+
+/// Computes the professional-credential set expected after a merge.
+///
+/// [rolesByCandidate] holds each merge candidate's credentials in merge-list
+/// order (survivor first). Earlier candidates win role collisions, mirroring
+/// BuddyMergeRepository's relink semantics where the survivor's row is kept
+/// and a duplicate's colliding credential is dropped.
+List<BuddyRoleCredential> mergeRoleCredentials(
+  List<List<BuddyRoleCredential>> rolesByCandidate,
+) {
+  final seenRoles = <BuddyRole>{};
+  final merged = <BuddyRoleCredential>[];
+  for (final candidateRoles in rolesByCandidate) {
+    for (final credential in candidateRoles) {
+      if (seenRoles.add(credential.role)) {
+        merged.add(credential);
+      }
+    }
+  }
+  return merged;
+}
 
 /// Data loaded for a buddy merge operation.
 class MergeLoadData {
