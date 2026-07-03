@@ -1434,6 +1434,134 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_wallet_tooltip_share => '分享证书';
 
   @override
+  String get checklists_section_title => '清单';
+
+  @override
+  String checklists_progress(int done, int total) {
+    return '已完成 $done/$total 项待办';
+  }
+
+  @override
+  String get checklists_empty_upcoming => '规划您的旅行 - 添加待办事项或应用模板';
+
+  @override
+  String get checklists_empty_past => '暂无清单事项';
+
+  @override
+  String get checklists_addItem => '添加事项';
+
+  @override
+  String get checklists_item_titleLabel => '标题';
+
+  @override
+  String get checklists_item_titleRequired => '标题为必填项';
+
+  @override
+  String get checklists_item_categoryLabel => '类别';
+
+  @override
+  String get checklists_item_notesLabel => '备注';
+
+  @override
+  String get checklists_item_dueDateLabel => '截止日期';
+
+  @override
+  String get checklists_item_dueOffsetLabel => '旅行开始前的天数';
+
+  @override
+  String get checklists_item_overdue => '已逾期';
+
+  @override
+  String get checklists_item_edit => '编辑事项';
+
+  @override
+  String get checklists_item_delete => '删除事项';
+
+  @override
+  String get checklists_menu_applyTemplate => '应用模板…';
+
+  @override
+  String get checklists_menu_saveAsTemplate => '保存为模板…';
+
+  @override
+  String get checklists_applySheet_title => '应用模板';
+
+  @override
+  String get checklists_applySheet_empty => '暂无模板。请在设置中创建。';
+
+  @override
+  String checklists_applySheet_itemCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 项事项',
+      one: '1 项事项',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String checklists_applySheet_confirmAppend(int added, int skipped) {
+    return '将添加 $added 项事项，跳过 $skipped 项重复。';
+  }
+
+  @override
+  String checklists_apply_success(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已添加 $count 项事项',
+      one: '已添加 1 项事项',
+      zero: '未添加新事项',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get checklists_apply_templateGone => '模板已不存在';
+
+  @override
+  String get checklists_saveTemplate_title => '保存为模板';
+
+  @override
+  String get checklists_saveTemplate_nameLabel => '模板名称';
+
+  @override
+  String get checklists_saveTemplate_success => '模板已保存';
+
+  @override
+  String get checklists_templates_pageTitle => '清单模板';
+
+  @override
+  String get checklists_templates_addTemplate => '添加模板';
+
+  @override
+  String get checklists_templates_empty => '暂无模板';
+
+  @override
+  String get checklists_templates_deleteTitle => '删除模板';
+
+  @override
+  String checklists_templates_deleteContent(Object name) {
+    return '删除“$name”？已应用该模板的旅行仍会保留其事项。';
+  }
+
+  @override
+  String get checklists_template_nameLabel => '名称';
+
+  @override
+  String get checklists_template_nameRequired => '名称为必填项';
+
+  @override
+  String get checklists_template_descriptionLabel => '描述';
+
+  @override
+  String get checklists_template_itemsHeader => '事项';
+
+  @override
+  String get checklists_template_addItem => '添加事项';
+
+  @override
   String get common_action_back => '返回';
 
   @override
@@ -10899,6 +11027,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_language_systemDefault => '系统默认';
 
   @override
+  String get settings_manage_checklistTemplates => '清单模板';
+
+  @override
+  String get settings_manage_checklistTemplates_subtitle => '用于旅行规划的可重复使用待办清单';
+
+  @override
   String get settings_manage_diveTypes => '潜水类型';
 
   @override
@@ -13433,6 +13567,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_detail_stat_totalDives => '总计潜水';
 
   @override
+  String get trips_detail_tab_checklist => '清单';
+
+  @override
   String get trips_detail_tooltip_edit => '编辑旅行';
 
   @override
@@ -13666,6 +13803,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_list_button_retry => '重试';
 
   @override
+  String trips_list_countdown(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days 天后出发',
+      one: '1 天后出发',
+      zero: '今天出发',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get trips_list_empty_button => '添加您的第一次旅行';
 
   @override
@@ -13692,6 +13841,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_list_filters_clearAll => '清除全部';
 
   @override
+  String get trips_list_inProgress => '进行中';
+
+  @override
+  String get trips_list_pastSection => '过往旅行';
+
+  @override
   String get trips_list_sort_title => '排序旅行';
 
   @override
@@ -13707,6 +13862,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get trips_list_tooltip_sort => '排序';
+
+  @override
+  String get trips_list_upcomingSection => '即将到来';
 
   @override
   String get trips_photos_empty_scanButton => '扫描设备图库';

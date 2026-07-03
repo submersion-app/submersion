@@ -1481,6 +1481,136 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_wallet_tooltip_share => 'مشاركة الشهادة';
 
   @override
+  String get checklists_section_title => 'قائمة التحقق';
+
+  @override
+  String checklists_progress(int done, int total) {
+    return 'تم إنجاز $done من $total من المهام';
+  }
+
+  @override
+  String get checklists_empty_upcoming =>
+      'خطط لرحلتك - أضف مهامًا أو طبّق قالبًا';
+
+  @override
+  String get checklists_empty_past => 'لا توجد عناصر في قائمة التحقق';
+
+  @override
+  String get checklists_addItem => 'إضافة عنصر';
+
+  @override
+  String get checklists_item_titleLabel => 'العنوان';
+
+  @override
+  String get checklists_item_titleRequired => 'العنوان مطلوب';
+
+  @override
+  String get checklists_item_categoryLabel => 'الفئة';
+
+  @override
+  String get checklists_item_notesLabel => 'ملاحظات';
+
+  @override
+  String get checklists_item_dueDateLabel => 'تاريخ الاستحقاق';
+
+  @override
+  String get checklists_item_dueOffsetLabel => 'عدد الأيام قبل بدء الرحلة';
+
+  @override
+  String get checklists_item_overdue => 'متأخر';
+
+  @override
+  String get checklists_item_edit => 'تعديل العنصر';
+
+  @override
+  String get checklists_item_delete => 'حذف العنصر';
+
+  @override
+  String get checklists_menu_applyTemplate => 'تطبيق قالب...';
+
+  @override
+  String get checklists_menu_saveAsTemplate => 'حفظ كقالب...';
+
+  @override
+  String get checklists_applySheet_title => 'تطبيق القالب';
+
+  @override
+  String get checklists_applySheet_empty =>
+      'لا توجد قوالب بعد. يمكنك إنشاؤها من الإعدادات.';
+
+  @override
+  String checklists_applySheet_itemCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عناصر',
+      one: 'عنصر واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String checklists_applySheet_confirmAppend(int added, int skipped) {
+    return 'سيتم إضافة $added عنصر، وتخطي $skipped عنصر مكرر.';
+  }
+
+  @override
+  String checklists_apply_success(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تمت إضافة $count عناصر',
+      one: 'تمت إضافة عنصر واحد',
+      zero: 'لم تتم إضافة أي عناصر جديدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get checklists_apply_templateGone => 'القالب لم يعد موجودًا';
+
+  @override
+  String get checklists_saveTemplate_title => 'حفظ كقالب';
+
+  @override
+  String get checklists_saveTemplate_nameLabel => 'اسم القالب';
+
+  @override
+  String get checklists_saveTemplate_success => 'تم حفظ القالب';
+
+  @override
+  String get checklists_templates_pageTitle => 'قوالب قوائم التحقق';
+
+  @override
+  String get checklists_templates_addTemplate => 'إضافة قالب';
+
+  @override
+  String get checklists_templates_empty => 'لا توجد قوالب بعد';
+
+  @override
+  String get checklists_templates_deleteTitle => 'حذف القالب';
+
+  @override
+  String checklists_templates_deleteContent(Object name) {
+    return 'هل تريد حذف \"$name\"؟ ستحتفظ الرحلات التي طبّقته مسبقًا بعناصرها.';
+  }
+
+  @override
+  String get checklists_template_nameLabel => 'الاسم';
+
+  @override
+  String get checklists_template_nameRequired => 'الاسم مطلوب';
+
+  @override
+  String get checklists_template_descriptionLabel => 'الوصف';
+
+  @override
+  String get checklists_template_itemsHeader => 'العناصر';
+
+  @override
+  String get checklists_template_addItem => 'إضافة عنصر';
+
+  @override
   String get common_action_back => 'رجوع';
 
   @override
@@ -11219,6 +11349,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_language_systemDefault => 'الافتراضي للنظام';
 
   @override
+  String get settings_manage_checklistTemplates => 'قوالب قوائم التحقق';
+
+  @override
+  String get settings_manage_checklistTemplates_subtitle =>
+      'قوائم مهام قابلة لإعادة الاستخدام للتخطيط للرحلات';
+
+  @override
   String get settings_manage_diveTypes => 'أنواع الغوص';
 
   @override
@@ -13877,6 +14014,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_detail_stat_totalDives => 'إجمالي الغوصات';
 
   @override
+  String get trips_detail_tab_checklist => 'قائمة التحقق';
+
+  @override
   String get trips_detail_tooltip_edit => 'تعديل الرحلة';
 
   @override
@@ -14112,6 +14252,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_list_button_retry => 'إعادة المحاولة';
 
   @override
+  String trips_list_countdown(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'خلال $days أيام',
+      one: 'خلال يوم واحد',
+      zero: 'يبدأ اليوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get trips_list_empty_button => 'أضف رحلتك الأولى';
 
   @override
@@ -14140,6 +14292,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_list_filters_clearAll => 'مسح الكل';
 
   @override
+  String get trips_list_inProgress => 'جارية';
+
+  @override
+  String get trips_list_pastSection => 'الرحلات السابقة';
+
+  @override
   String get trips_list_sort_title => 'ترتيب الرحلات';
 
   @override
@@ -14155,6 +14313,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get trips_list_tooltip_sort => 'ترتيب';
+
+  @override
+  String get trips_list_upcomingSection => 'القادمة';
 
   @override
   String get trips_photos_empty_scanButton => 'مسح معرض الجهاز';

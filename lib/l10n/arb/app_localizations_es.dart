@@ -1520,6 +1520,139 @@ class AppLocalizationsEs extends AppLocalizations {
   String get certifications_wallet_tooltip_share => 'Compartir certificacion';
 
   @override
+  String get checklists_section_title => 'Lista de verificación';
+
+  @override
+  String checklists_progress(int done, int total) {
+    return '$done de $total tareas completadas';
+  }
+
+  @override
+  String get checklists_empty_upcoming =>
+      'Planifica tu viaje: agrega tareas o aplica una plantilla';
+
+  @override
+  String get checklists_empty_past =>
+      'No hay elementos en la lista de verificación';
+
+  @override
+  String get checklists_addItem => 'Agregar elemento';
+
+  @override
+  String get checklists_item_titleLabel => 'Título';
+
+  @override
+  String get checklists_item_titleRequired => 'El título es obligatorio';
+
+  @override
+  String get checklists_item_categoryLabel => 'Categoría';
+
+  @override
+  String get checklists_item_notesLabel => 'Notas';
+
+  @override
+  String get checklists_item_dueDateLabel => 'Fecha límite';
+
+  @override
+  String get checklists_item_dueOffsetLabel =>
+      'Días antes del inicio del viaje';
+
+  @override
+  String get checklists_item_overdue => 'Vencido';
+
+  @override
+  String get checklists_item_edit => 'Editar elemento';
+
+  @override
+  String get checklists_item_delete => 'Eliminar elemento';
+
+  @override
+  String get checklists_menu_applyTemplate => 'Aplicar plantilla...';
+
+  @override
+  String get checklists_menu_saveAsTemplate => 'Guardar como plantilla...';
+
+  @override
+  String get checklists_applySheet_title => 'Aplicar plantilla';
+
+  @override
+  String get checklists_applySheet_empty =>
+      'Aún no hay plantillas. Créalas en Ajustes.';
+
+  @override
+  String checklists_applySheet_itemCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementos',
+      one: '1 elemento',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String checklists_applySheet_confirmAppend(int added, int skipped) {
+    return 'Se agregarán $added elementos y se omitirán $skipped duplicados.';
+  }
+
+  @override
+  String checklists_apply_success(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Se agregaron $count elementos',
+      one: 'Se agregó 1 elemento',
+      zero: 'No se agregaron elementos nuevos',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get checklists_apply_templateGone => 'La plantilla ya no existe';
+
+  @override
+  String get checklists_saveTemplate_title => 'Guardar como plantilla';
+
+  @override
+  String get checklists_saveTemplate_nameLabel => 'Nombre de la plantilla';
+
+  @override
+  String get checklists_saveTemplate_success => 'Plantilla guardada';
+
+  @override
+  String get checklists_templates_pageTitle =>
+      'Plantillas de listas de verificación';
+
+  @override
+  String get checklists_templates_addTemplate => 'Agregar plantilla';
+
+  @override
+  String get checklists_templates_empty => 'Aún no hay plantillas';
+
+  @override
+  String get checklists_templates_deleteTitle => 'Eliminar plantilla';
+
+  @override
+  String checklists_templates_deleteContent(Object name) {
+    return '¿Eliminar \"$name\"? Los viajes que ya la aplicaron conservarán sus elementos.';
+  }
+
+  @override
+  String get checklists_template_nameLabel => 'Nombre';
+
+  @override
+  String get checklists_template_nameRequired => 'El nombre es obligatorio';
+
+  @override
+  String get checklists_template_descriptionLabel => 'Descripción';
+
+  @override
+  String get checklists_template_itemsHeader => 'Elementos';
+
+  @override
+  String get checklists_template_addItem => 'Agregar elemento';
+
+  @override
   String get common_action_back => 'Atrás';
 
   @override
@@ -11431,6 +11564,14 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_language_systemDefault => 'Predeterminado del sistema';
 
   @override
+  String get settings_manage_checklistTemplates =>
+      'Plantillas de listas de verificación';
+
+  @override
+  String get settings_manage_checklistTemplates_subtitle =>
+      'Listas de tareas reutilizables para planificar viajes';
+
+  @override
   String get settings_manage_diveTypes => 'Tipos de inmersion';
 
   @override
@@ -14162,6 +14303,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get trips_detail_stat_totalDives => 'Total de inmersiones';
 
   @override
+  String get trips_detail_tab_checklist => 'Lista de verificación';
+
+  @override
   String get trips_detail_tooltip_edit => 'Editar viaje';
 
   @override
@@ -14402,6 +14546,18 @@ class AppLocalizationsEs extends AppLocalizations {
   String get trips_list_button_retry => 'Reintentar';
 
   @override
+  String trips_list_countdown(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'En $days días',
+      one: 'En 1 día',
+      zero: 'Comienza hoy',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get trips_list_empty_button => 'Agrega tu primer viaje';
 
   @override
@@ -14431,6 +14587,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get trips_list_filters_clearAll => 'Borrar todos';
 
   @override
+  String get trips_list_inProgress => 'En curso';
+
+  @override
+  String get trips_list_pastSection => 'Viajes pasados';
+
+  @override
   String get trips_list_sort_title => 'Ordenar viajes';
 
   @override
@@ -14446,6 +14608,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get trips_list_tooltip_sort => 'Ordenar';
+
+  @override
+  String get trips_list_upcomingSection => 'Próximos';
 
   @override
   String get trips_photos_empty_scanButton =>

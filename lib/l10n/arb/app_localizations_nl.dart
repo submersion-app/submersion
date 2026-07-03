@@ -1510,6 +1510,136 @@ class AppLocalizationsNl extends AppLocalizations {
   String get certifications_wallet_tooltip_share => 'Certificering delen';
 
   @override
+  String get checklists_section_title => 'Checklist';
+
+  @override
+  String checklists_progress(int done, int total) {
+    return '$done van $total taken voltooid';
+  }
+
+  @override
+  String get checklists_empty_upcoming =>
+      'Plan je reis - voeg taken toe of pas een sjabloon toe';
+
+  @override
+  String get checklists_empty_past => 'Geen checklist-items';
+
+  @override
+  String get checklists_addItem => 'Item toevoegen';
+
+  @override
+  String get checklists_item_titleLabel => 'Titel';
+
+  @override
+  String get checklists_item_titleRequired => 'Titel is verplicht';
+
+  @override
+  String get checklists_item_categoryLabel => 'Categorie';
+
+  @override
+  String get checklists_item_notesLabel => 'Notities';
+
+  @override
+  String get checklists_item_dueDateLabel => 'Vervaldatum';
+
+  @override
+  String get checklists_item_dueOffsetLabel => 'Dagen voor start reis';
+
+  @override
+  String get checklists_item_overdue => 'Te laat';
+
+  @override
+  String get checklists_item_edit => 'Item bewerken';
+
+  @override
+  String get checklists_item_delete => 'Item verwijderen';
+
+  @override
+  String get checklists_menu_applyTemplate => 'Sjabloon toepassen...';
+
+  @override
+  String get checklists_menu_saveAsTemplate => 'Opslaan als sjabloon...';
+
+  @override
+  String get checklists_applySheet_title => 'Sjabloon toepassen';
+
+  @override
+  String get checklists_applySheet_empty =>
+      'Nog geen sjablonen. Maak ze aan in Instellingen.';
+
+  @override
+  String checklists_applySheet_itemCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '1 item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String checklists_applySheet_confirmAppend(int added, int skipped) {
+    return '$added items worden toegevoegd, $skipped duplicaten overgeslagen.';
+  }
+
+  @override
+  String checklists_apply_success(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items toegevoegd',
+      one: '1 item toegevoegd',
+      zero: 'Geen nieuwe items toegevoegd',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get checklists_apply_templateGone => 'Sjabloon bestaat niet meer';
+
+  @override
+  String get checklists_saveTemplate_title => 'Opslaan als sjabloon';
+
+  @override
+  String get checklists_saveTemplate_nameLabel => 'Sjabloonnaam';
+
+  @override
+  String get checklists_saveTemplate_success => 'Sjabloon opgeslagen';
+
+  @override
+  String get checklists_templates_pageTitle => 'Checklistsjablonen';
+
+  @override
+  String get checklists_templates_addTemplate => 'Sjabloon toevoegen';
+
+  @override
+  String get checklists_templates_empty => 'Nog geen sjablonen';
+
+  @override
+  String get checklists_templates_deleteTitle => 'Sjabloon verwijderen';
+
+  @override
+  String checklists_templates_deleteContent(Object name) {
+    return '\"$name\" verwijderen? Reizen die dit al hebben toegepast, behouden hun items.';
+  }
+
+  @override
+  String get checklists_template_nameLabel => 'Naam';
+
+  @override
+  String get checklists_template_nameRequired => 'Naam is verplicht';
+
+  @override
+  String get checklists_template_descriptionLabel => 'Beschrijving';
+
+  @override
+  String get checklists_template_itemsHeader => 'Items';
+
+  @override
+  String get checklists_template_addItem => 'Item toevoegen';
+
+  @override
   String get common_action_back => 'Terug';
 
   @override
@@ -11350,6 +11480,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_language_systemDefault => 'Systeemstandaard';
 
   @override
+  String get settings_manage_checklistTemplates => 'Checklistsjablonen';
+
+  @override
+  String get settings_manage_checklistTemplates_subtitle =>
+      'Herbruikbare takenlijsten voor reisplanning';
+
+  @override
   String get settings_manage_diveTypes => 'Duiktypes';
 
   @override
@@ -14037,6 +14174,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_detail_stat_totalDives => 'Totaal duiken';
 
   @override
+  String get trips_detail_tab_checklist => 'Checklist';
+
+  @override
   String get trips_detail_tooltip_edit => 'Reis bewerken';
 
   @override
@@ -14274,6 +14414,18 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_list_button_retry => 'Opnieuw proberen';
 
   @override
+  String trips_list_countdown(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Over $days dagen',
+      one: 'Over 1 dag',
+      zero: 'Begint vandaag',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get trips_list_empty_button => 'Voeg je eerste reis toe';
 
   @override
@@ -14303,6 +14455,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_list_filters_clearAll => 'Alles wissen';
 
   @override
+  String get trips_list_inProgress => 'Bezig';
+
+  @override
+  String get trips_list_pastSection => 'Afgelopen reizen';
+
+  @override
   String get trips_list_sort_title => 'Reizen sorteren';
 
   @override
@@ -14318,6 +14476,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get trips_list_tooltip_sort => 'Sorteren';
+
+  @override
+  String get trips_list_upcomingSection => 'Binnenkort';
 
   @override
   String get trips_photos_empty_scanButton => 'Apparaatgalerij scannen';

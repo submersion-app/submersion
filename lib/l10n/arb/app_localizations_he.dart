@@ -1468,6 +1468,136 @@ class AppLocalizationsHe extends AppLocalizations {
   String get certifications_wallet_tooltip_share => 'שתף הסמכה';
 
   @override
+  String get checklists_section_title => 'רשימת משימות';
+
+  @override
+  String checklists_progress(int done, int total) {
+    return '$done מתוך $total משימות הושלמו';
+  }
+
+  @override
+  String get checklists_empty_upcoming =>
+      'תכנן את הטיול שלך - הוסף משימות או החל תבנית';
+
+  @override
+  String get checklists_empty_past => 'אין פריטים ברשימת המשימות';
+
+  @override
+  String get checklists_addItem => 'הוסף פריט';
+
+  @override
+  String get checklists_item_titleLabel => 'כותרת';
+
+  @override
+  String get checklists_item_titleRequired => 'כותרת נדרשת';
+
+  @override
+  String get checklists_item_categoryLabel => 'קטגוריה';
+
+  @override
+  String get checklists_item_notesLabel => 'הערות';
+
+  @override
+  String get checklists_item_dueDateLabel => 'תאריך יעד';
+
+  @override
+  String get checklists_item_dueOffsetLabel => 'ימים לפני תחילת הטיול';
+
+  @override
+  String get checklists_item_overdue => 'באיחור';
+
+  @override
+  String get checklists_item_edit => 'ערוך פריט';
+
+  @override
+  String get checklists_item_delete => 'מחק פריט';
+
+  @override
+  String get checklists_menu_applyTemplate => 'החל תבנית...';
+
+  @override
+  String get checklists_menu_saveAsTemplate => 'שמור כתבנית...';
+
+  @override
+  String get checklists_applySheet_title => 'החלת תבנית';
+
+  @override
+  String get checklists_applySheet_empty =>
+      'עדיין אין תבניות. ניתן ליצור אותן בהגדרות.';
+
+  @override
+  String checklists_applySheet_itemCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים',
+      one: 'פריט אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String checklists_applySheet_confirmAppend(int added, int skipped) {
+    return '$added פריטים יתווספו, $skipped כפילויות ידולגו.';
+  }
+
+  @override
+  String checklists_apply_success(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים נוספו',
+      one: 'פריט אחד נוסף',
+      zero: 'לא נוספו פריטים חדשים',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get checklists_apply_templateGone => 'התבנית כבר לא קיימת';
+
+  @override
+  String get checklists_saveTemplate_title => 'שמירה כתבנית';
+
+  @override
+  String get checklists_saveTemplate_nameLabel => 'שם התבנית';
+
+  @override
+  String get checklists_saveTemplate_success => 'התבנית נשמרה';
+
+  @override
+  String get checklists_templates_pageTitle => 'תבניות רשימות משימות';
+
+  @override
+  String get checklists_templates_addTemplate => 'הוסף תבנית';
+
+  @override
+  String get checklists_templates_empty => 'עדיין אין תבניות';
+
+  @override
+  String get checklists_templates_deleteTitle => 'מחיקת תבנית';
+
+  @override
+  String checklists_templates_deleteContent(Object name) {
+    return 'למחוק את \"$name\"? טיולים שכבר החילו אותה ישמרו את הפריטים שלהם.';
+  }
+
+  @override
+  String get checklists_template_nameLabel => 'שם';
+
+  @override
+  String get checklists_template_nameRequired => 'שם נדרש';
+
+  @override
+  String get checklists_template_descriptionLabel => 'תיאור';
+
+  @override
+  String get checklists_template_itemsHeader => 'פריטים';
+
+  @override
+  String get checklists_template_addItem => 'הוסף פריט';
+
+  @override
   String get common_action_back => 'חזרה';
 
   @override
@@ -11136,6 +11266,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_language_systemDefault => 'ברירת מחדל של המערכת';
 
   @override
+  String get settings_manage_checklistTemplates => 'תבניות רשימות משימות';
+
+  @override
+  String get settings_manage_checklistTemplates_subtitle =>
+      'רשימות משימות לשימוש חוזר לתכנון טיולים';
+
+  @override
   String get settings_manage_diveTypes => 'סוגי צלילה';
 
   @override
@@ -13770,6 +13907,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_detail_stat_totalDives => 'סה\"כ צלילות';
 
   @override
+  String get trips_detail_tab_checklist => 'רשימת משימות';
+
+  @override
   String get trips_detail_tooltip_edit => 'ערוך טיול';
 
   @override
@@ -14005,6 +14145,18 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_list_button_retry => 'נסה שוב';
 
   @override
+  String trips_list_countdown(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'בעוד $days ימים',
+      one: 'בעוד יום אחד',
+      zero: 'מתחיל היום',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get trips_list_empty_button => 'הוסף את הטיול הראשון שלך';
 
   @override
@@ -14034,6 +14186,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_list_filters_clearAll => 'נקה הכל';
 
   @override
+  String get trips_list_inProgress => 'בעיצומו';
+
+  @override
+  String get trips_list_pastSection => 'טיולים קודמים';
+
+  @override
   String get trips_list_sort_title => 'מיון טיולים';
 
   @override
@@ -14049,6 +14207,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get trips_list_tooltip_sort => 'מיון';
+
+  @override
+  String get trips_list_upcomingSection => 'קרובים';
 
   @override
   String get trips_photos_empty_scanButton => 'סרוק גלריית מכשיר';

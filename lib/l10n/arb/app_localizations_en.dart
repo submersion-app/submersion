@@ -1491,6 +1491,136 @@ class AppLocalizationsEn extends AppLocalizations {
   String get certifications_wallet_tooltip_share => 'Share certification';
 
   @override
+  String get checklists_section_title => 'Checklist';
+
+  @override
+  String checklists_progress(int done, int total) {
+    return '$done of $total to-dos done';
+  }
+
+  @override
+  String get checklists_empty_upcoming =>
+      'Plan your trip - add to-dos or apply a template';
+
+  @override
+  String get checklists_empty_past => 'No checklist items';
+
+  @override
+  String get checklists_addItem => 'Add item';
+
+  @override
+  String get checklists_item_titleLabel => 'Title';
+
+  @override
+  String get checklists_item_titleRequired => 'Title is required';
+
+  @override
+  String get checklists_item_categoryLabel => 'Category';
+
+  @override
+  String get checklists_item_notesLabel => 'Notes';
+
+  @override
+  String get checklists_item_dueDateLabel => 'Due date';
+
+  @override
+  String get checklists_item_dueOffsetLabel => 'Days before trip start';
+
+  @override
+  String get checklists_item_overdue => 'Overdue';
+
+  @override
+  String get checklists_item_edit => 'Edit item';
+
+  @override
+  String get checklists_item_delete => 'Delete item';
+
+  @override
+  String get checklists_menu_applyTemplate => 'Apply template...';
+
+  @override
+  String get checklists_menu_saveAsTemplate => 'Save as template...';
+
+  @override
+  String get checklists_applySheet_title => 'Apply template';
+
+  @override
+  String get checklists_applySheet_empty =>
+      'No templates yet. Create them in Settings.';
+
+  @override
+  String checklists_applySheet_itemCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '1 item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String checklists_applySheet_confirmAppend(int added, int skipped) {
+    return '$added items will be added, $skipped duplicates skipped.';
+  }
+
+  @override
+  String checklists_apply_success(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items added',
+      one: '1 item added',
+      zero: 'No new items added',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get checklists_apply_templateGone => 'Template no longer exists';
+
+  @override
+  String get checklists_saveTemplate_title => 'Save as template';
+
+  @override
+  String get checklists_saveTemplate_nameLabel => 'Template name';
+
+  @override
+  String get checklists_saveTemplate_success => 'Template saved';
+
+  @override
+  String get checklists_templates_pageTitle => 'Checklist Templates';
+
+  @override
+  String get checklists_templates_addTemplate => 'Add Template';
+
+  @override
+  String get checklists_templates_empty => 'No templates yet';
+
+  @override
+  String get checklists_templates_deleteTitle => 'Delete Template';
+
+  @override
+  String checklists_templates_deleteContent(Object name) {
+    return 'Delete \"$name\"? Trips that already applied it keep their items.';
+  }
+
+  @override
+  String get checklists_template_nameLabel => 'Name';
+
+  @override
+  String get checklists_template_nameRequired => 'Name is required';
+
+  @override
+  String get checklists_template_descriptionLabel => 'Description';
+
+  @override
+  String get checklists_template_itemsHeader => 'Items';
+
+  @override
+  String get checklists_template_addItem => 'Add item';
+
+  @override
   String get common_action_back => 'Back';
 
   @override
@@ -11248,6 +11378,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_language_systemDefault => 'System Default';
 
   @override
+  String get settings_manage_checklistTemplates => 'Checklist Templates';
+
+  @override
+  String get settings_manage_checklistTemplates_subtitle =>
+      'Reusable to-do lists for trip planning';
+
+  @override
   String get settings_manage_diveTypes => 'Dive Types';
 
   @override
@@ -13908,6 +14045,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_detail_stat_totalDives => 'Total Dives';
 
   @override
+  String get trips_detail_tab_checklist => 'Checklist';
+
+  @override
   String get trips_detail_tooltip_edit => 'Edit trip';
 
   @override
@@ -14143,6 +14283,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_list_button_retry => 'Retry';
 
   @override
+  String trips_list_countdown(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'In $days days',
+      one: 'In 1 day',
+      zero: 'Starting today',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get trips_list_empty_button => 'Add Your First Trip';
 
   @override
@@ -14171,6 +14323,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_list_filters_clearAll => 'Clear all';
 
   @override
+  String get trips_list_inProgress => 'In progress';
+
+  @override
+  String get trips_list_pastSection => 'Past Trips';
+
+  @override
   String get trips_list_sort_title => 'Sort Trips';
 
   @override
@@ -14186,6 +14344,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trips_list_tooltip_sort => 'Sort';
+
+  @override
+  String get trips_list_upcomingSection => 'Upcoming';
 
   @override
   String get trips_photos_empty_scanButton => 'Scan device gallery';

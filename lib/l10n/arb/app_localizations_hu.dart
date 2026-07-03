@@ -1512,6 +1512,136 @@ class AppLocalizationsHu extends AppLocalizations {
   String get certifications_wallet_tooltip_share => 'Tanusitvany megosztasa';
 
   @override
+  String get checklists_section_title => 'Ellenőrzőlista';
+
+  @override
+  String checklists_progress(int done, int total) {
+    return '$done/$total tétel kész';
+  }
+
+  @override
+  String get checklists_empty_upcoming =>
+      'Tervezze meg útját - adjon hozzá tételeket, vagy alkalmazzon sablont';
+
+  @override
+  String get checklists_empty_past => 'Nincsenek ellenőrzőlista-tételek';
+
+  @override
+  String get checklists_addItem => 'Tétel hozzáadása';
+
+  @override
+  String get checklists_item_titleLabel => 'Cím';
+
+  @override
+  String get checklists_item_titleRequired => 'A cím megadása kötelező';
+
+  @override
+  String get checklists_item_categoryLabel => 'Kategória';
+
+  @override
+  String get checklists_item_notesLabel => 'Megjegyzések';
+
+  @override
+  String get checklists_item_dueDateLabel => 'Határidő';
+
+  @override
+  String get checklists_item_dueOffsetLabel => 'Nappal az út kezdete előtt';
+
+  @override
+  String get checklists_item_overdue => 'Lejárt';
+
+  @override
+  String get checklists_item_edit => 'Tétel szerkesztése';
+
+  @override
+  String get checklists_item_delete => 'Tétel törlése';
+
+  @override
+  String get checklists_menu_applyTemplate => 'Sablon alkalmazása...';
+
+  @override
+  String get checklists_menu_saveAsTemplate => 'Mentés sablonként...';
+
+  @override
+  String get checklists_applySheet_title => 'Sablon alkalmazása';
+
+  @override
+  String get checklists_applySheet_empty =>
+      'Még nincsenek sablonok. Hozza létre őket a Beállításokban.';
+
+  @override
+  String checklists_applySheet_itemCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tétel',
+      one: '1 tétel',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String checklists_applySheet_confirmAppend(int added, int skipped) {
+    return '$added tétel kerül hozzáadásra, $skipped duplikátum kihagyva.';
+  }
+
+  @override
+  String checklists_apply_success(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tétel hozzáadva',
+      one: '1 tétel hozzáadva',
+      zero: 'Nem került új tétel hozzáadásra',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get checklists_apply_templateGone => 'A sablon már nem létezik';
+
+  @override
+  String get checklists_saveTemplate_title => 'Mentés sablonként';
+
+  @override
+  String get checklists_saveTemplate_nameLabel => 'Sablon neve';
+
+  @override
+  String get checklists_saveTemplate_success => 'Sablon mentve';
+
+  @override
+  String get checklists_templates_pageTitle => 'Ellenőrzőlista-sablonok';
+
+  @override
+  String get checklists_templates_addTemplate => 'Sablon hozzáadása';
+
+  @override
+  String get checklists_templates_empty => 'Még nincsenek sablonok';
+
+  @override
+  String get checklists_templates_deleteTitle => 'Sablon törlése';
+
+  @override
+  String checklists_templates_deleteContent(Object name) {
+    return 'Törli a(z) \"$name\" sablont? Az utak, amelyek már alkalmazták, megtartják a tételeiket.';
+  }
+
+  @override
+  String get checklists_template_nameLabel => 'Név';
+
+  @override
+  String get checklists_template_nameRequired => 'A név megadása kötelező';
+
+  @override
+  String get checklists_template_descriptionLabel => 'Leírás';
+
+  @override
+  String get checklists_template_itemsHeader => 'Tételek';
+
+  @override
+  String get checklists_template_addItem => 'Tétel hozzáadása';
+
+  @override
   String get common_action_back => 'Vissza';
 
   @override
@@ -11415,6 +11545,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_language_systemDefault => 'Rendszer alapertelmezett';
 
   @override
+  String get settings_manage_checklistTemplates => 'Ellenőrzőlista-sablonok';
+
+  @override
+  String get settings_manage_checklistTemplates_subtitle =>
+      'Újrafelhasználható tennivalólisták az utak tervezéséhez';
+
+  @override
   String get settings_manage_diveTypes => 'Merüles tipusok';
 
   @override
@@ -14121,6 +14258,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_detail_stat_totalDives => 'Osszes merüles';
 
   @override
+  String get trips_detail_tab_checklist => 'Ellenőrzőlista';
+
+  @override
   String get trips_detail_tooltip_edit => 'Ut szerkesztese';
 
   @override
@@ -14359,6 +14499,18 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_list_button_retry => 'Ujraproba';
 
   @override
+  String trips_list_countdown(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days nap múlva',
+      one: '1 nap múlva',
+      zero: 'Ma indul',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get trips_list_empty_button => 'Adja hozza az elso utat';
 
   @override
@@ -14388,6 +14540,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_list_filters_clearAll => 'Osszes torles';
 
   @override
+  String get trips_list_inProgress => 'Folyamatban';
+
+  @override
+  String get trips_list_pastSection => 'Korábbi utak';
+
+  @override
   String get trips_list_sort_title => 'Utak rendezese';
 
   @override
@@ -14403,6 +14561,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get trips_list_tooltip_sort => 'Rendezes';
+
+  @override
+  String get trips_list_upcomingSection => 'Közelgő';
 
   @override
   String get trips_photos_empty_scanButton => 'Eszköz galeria atnezes';
