@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_review_provider.dart';
@@ -49,6 +50,15 @@ Dive _recDive() => Dive(
   ),
 );
 
+Dive _ascentDive() => Dive(
+  id: 'd2',
+  dateTime: DateTime(2026, 1, 1, 10),
+  profile: List.generate(
+    61,
+    (i) => DiveProfilePoint(timestamp: i * 10, depth: 10, ascentRate: 9.0),
+  ),
+);
+
 void main() {
   late ProviderContainer container;
 
@@ -93,6 +103,37 @@ void main() {
     // Depth at t=100 for the fixture; assert the formatted value appears.
     // (Fixture: depth 10.0 m at timestamp 100 -> default metric "10.0 m".)
     expect(find.textContaining('10.0'), findsWidgets);
+  });
+
+  testWidgets('ascent rate tile shows a per-minute rate, not a bare depth', (
+    tester,
+  ) async {
+    await tester.pumpWidget(wrap(_ascentDive()));
+    await tester.pump();
+
+    container.read(profileReviewProvider('d2').notifier).state = 100;
+    await tester.pump();
+
+    // 9.0 m/min in metric (default) formats as "9m/min", never a bare "9m".
+    expect(find.text('9m/min'), findsOneWidget);
+  });
+
+  testWidgets('ascent rate tile respects the depth unit setting', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      wrap(
+        _ascentDive(),
+        settings: const AppSettings(depthUnit: DepthUnit.feet),
+      ),
+    );
+    await tester.pump();
+
+    container.read(profileReviewProvider('d2').notifier).state = 100;
+    await tester.pump();
+
+    // 9.0 m/min converted to feet/min.
+    expect(find.text('30ft/min'), findsOneWidget);
   });
 
   testWidgets('hidden tiles are not rendered', (tester) async {

@@ -161,6 +161,49 @@ void main() {
       expect(result.take(2), [InstrumentTileId.ppO2, InstrumentTileId.depth]);
       expect(result.length, candidates.length);
     });
+
+    test('a repeated valid key in order does not duplicate the tile', () {
+      final result = applyTilePreferences(
+        candidates: candidates,
+        order: ['ppO2', 'ppO2', 'depth'],
+        hidden: [],
+      );
+      expect(
+        result.where((id) => id == InstrumentTileId.ppO2).length,
+        1,
+        reason: 'ppO2 must appear exactly once despite the duplicate key',
+      );
+      expect(result.length, candidates.length);
+    });
+  });
+
+  group('mergeTileOrder', () {
+    test('appends stored keys not in candidates, preserving their order', () {
+      final result = mergeTileOrder(
+        reordered: ['ppO2', 'depth'],
+        stored: ['depth', 'ppO2', 'heartRate', 'sac'],
+        candidates: {'ppO2', 'depth'},
+      );
+      expect(result, ['ppO2', 'depth', 'heartRate', 'sac']);
+    });
+
+    test('empty stored order yields just the reordered keys', () {
+      final result = mergeTileOrder(
+        reordered: ['depth', 'ppO2'],
+        stored: [],
+        candidates: {'depth', 'ppO2'},
+      );
+      expect(result, ['depth', 'ppO2']);
+    });
+
+    test('stored keys fully covered by candidates append nothing', () {
+      final result = mergeTileOrder(
+        reordered: ['ppO2', 'depth'],
+        stored: ['depth', 'ppO2'],
+        candidates: {'depth', 'ppO2'},
+      );
+      expect(result, ['ppO2', 'depth']);
+    });
   });
 
   group('applyDecoSwap', () {

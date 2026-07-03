@@ -193,7 +193,7 @@ class ProfileInstrumentBar extends ConsumerWidget {
       InstrumentTileId.ascentRate =>
         sample.ascentRateMetersPerMin == null
             ? null
-            : units.formatDepth(sample.ascentRateMetersPerMin, decimals: 0),
+            : '${units.formatDepth(sample.ascentRateMetersPerMin, decimals: 0)}/min',
     };
   }
 
@@ -255,7 +255,11 @@ class _CustomizeSheet extends ConsumerWidget {
                 final item = items.removeAt(oldIndex);
                 items.insert(newIndex, item);
                 notifier.setFullscreenTilePreferences(
-                  order: [for (final id in items) id.key],
+                  order: mergeTileOrder(
+                    reordered: [for (final id in items) id.key],
+                    stored: settings.fullscreenTileOrder,
+                    candidates: candidates.map((id) => id.key).toSet(),
+                  ),
                   hidden: settings.fullscreenHiddenTiles,
                 );
               },

@@ -31,11 +31,13 @@ class _ProfileTransportControlsState
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || widget.profile.isEmpty) return;
       final notifier = ref.read(playbackProvider(widget.diveId).notifier);
-      final state = ref.read(playbackProvider(widget.diveId));
-      if (state.maxTimestamp == 0) {
+      if (ref.read(playbackProvider(widget.diveId)).maxTimestamp !=
+          widget.profile.last.timestamp) {
         notifier.initialize(widget.profile.last.timestamp);
       }
-      if (!state.isActive) {
+      // Re-read after a possible initialize() so we don't act on a stale
+      // isActive snapshot from before the reset.
+      if (!ref.read(playbackProvider(widget.diveId)).isActive) {
         notifier.togglePlaybackMode();
       }
     });

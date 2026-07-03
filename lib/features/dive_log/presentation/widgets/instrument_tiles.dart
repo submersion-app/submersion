@@ -103,11 +103,13 @@ List<InstrumentTileId> applyTilePreferences({
   required List<String> hidden,
 }) {
   final candidateSet = candidates.toSet();
-  final ordered = <InstrumentTileId>[
-    for (final key in order)
-      if (InstrumentTileId.fromKey(key) case final id?)
-        if (candidateSet.contains(id)) id,
-  ];
+  final ordered = <InstrumentTileId>[];
+  for (final key in order) {
+    final id = InstrumentTileId.fromKey(key);
+    if (id != null && candidateSet.contains(id) && !ordered.contains(id)) {
+      ordered.add(id);
+    }
+  }
   final remaining = [
     for (final id in candidates)
       if (!ordered.contains(id)) id,
@@ -116,6 +118,29 @@ List<InstrumentTileId> applyTilePreferences({
   return [
     for (final id in [...ordered, ...remaining])
       if (!hiddenSet.contains(id.key)) id,
+  ];
+}
+
+/// Merges a freshly reordered set of candidate tile keys back into the
+/// persisted global tile order without discarding tiles that belong to
+/// other dives.
+///
+/// The customize sheet only ever shows (and lets the user reorder) the
+/// tiles applicable to the current dive, but [stored] may contain keys for
+/// tiles this dive doesn't have (e.g. `heartRate` when this dive has no
+/// heart-rate data). Persisting [reordered] alone would silently drop those
+/// keys from the global order. Instead, the result is [reordered] followed
+/// by every key from [stored] that isn't in [candidates], preserving their
+/// relative order from [stored].
+List<String> mergeTileOrder({
+  required List<String> reordered,
+  required List<String> stored,
+  required Set<String> candidates,
+}) {
+  return [
+    ...reordered,
+    for (final key in stored)
+      if (!candidates.contains(key) && !reordered.contains(key)) key,
   ];
 }
 

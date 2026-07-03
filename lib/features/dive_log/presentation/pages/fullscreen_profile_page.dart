@@ -32,9 +32,35 @@ class FullscreenProfilePage extends ConsumerStatefulWidget {
 class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
   late final AppLifecycleListener _lifecycleListener;
 
+  // Captured in initState rather than looked up via `ref` in dispose:
+  // Riverpod asserts on `ref.read`/`ref.watch` once the widget is
+  // unmounting. The notifier references are plain Dart objects and safe to
+  // hold onto; playback's current `isActive` is tracked via [addListener]
+  // (StateNotifier's public API) rather than its `@protected` `state`
+  // getter.
+  late final PlaybackNotifier _playbackNotifier;
+  late final StateController<int?> _reviewController;
+  late final void Function() _removePlaybackListener;
+
+  /// Whether playback mode was already active for this dive before the
+  /// fullscreen page opened. If the page itself activates playback (see
+  /// [ProfileTransportControls]), it must deactivate it again on dispose so
+  /// the inline dive-detail page doesn't inherit playback mode it never
+  /// asked for (and the 25ms ticker doesn't keep running in the background).
+  late final bool _wasPlaybackActiveOnEntry;
+  bool _isPlaybackActiveNow = false;
+
   @override
   void initState() {
     super.initState();
+    _playbackNotifier = ref.read(playbackProvider(widget.diveId).notifier);
+    _reviewController = ref.read(profileReviewProvider(widget.diveId).notifier);
+    _wasPlaybackActiveOnEntry = ref
+        .read(playbackProvider(widget.diveId))
+        .isActive;
+    _removePlaybackListener = _playbackNotifier.addListener((state) {
+      _isPlaybackActiveNow = state.isActive;
+    });
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
@@ -42,22 +68,44 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
       DeviceOrientation.landscapeRight,
     ]);
     _lifecycleListener = AppLifecycleListener(
-      onInactive: () =>
-          ref.read(playbackProvider(widget.diveId).notifier).pause(),
+      onInactive: () => _playbackNotifier.pause(),
     );
   }
 
   @override
   void dispose() {
+    _removePlaybackListener();
     _lifecycleListener.dispose();
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+    // Riverpod forbids mutating provider state synchronously from a widget
+    // lifecycle callback (dispose included), so the cleanup itself is
+    // deferred to a microtask, which runs just after the current unmount
+    // finishes. Guard with `mounted` in case the whole ProviderScope (and
+    // thus these notifiers) is torn down in the same pass, e.g. in tests
+    // that never navigate away before disposing the tree.
+    final wasActiveOnEntry = _wasPlaybackActiveOnEntry;
+    final isActiveNow = _isPlaybackActiveNow;
+    final playbackNotifier = _playbackNotifier;
+    final reviewController = _reviewController;
+    Future.microtask(() {
+      if (playbackNotifier.mounted) {
+        playbackNotifier.pause();
+        if (!wasActiveOnEntry && isActiveNow) {
+          playbackNotifier.togglePlaybackMode();
+        }
+      }
+      if (reviewController.mounted) {
+        reviewController.state = null;
+      }
+    });
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     // Render from AsyncValue.value so background reloads never flash the UI.
-    final dive = ref.watch(diveProvider(widget.diveId)).value;
+    final diveAsync = ref.watch(diveProvider(widget.diveId));
+    final dive = diveAsync.value;
     final analysis = ref.watch(profileAnalysisProvider(widget.diveId)).value;
     final gasSwitches = ref.watch(gasSwitchesProvider(widget.diveId)).value;
     final tankPressures = ref.watch(tankPressuresProvider(widget.diveId)).value;
@@ -68,14 +116,44 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
     );
 
     if (dive == null) {
+      final colorScheme = Theme.of(context).colorScheme;
       return Scaffold(
         body: SafeArea(
           child: Stack(
             children: [
-              const Center(child: CircularProgressIndicator()),
-              IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.of(context).pop(),
+              Center(
+                child: diveAsync.hasError
+                    ? Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 32),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.error_outline,
+                              size: 48,
+                              color: colorScheme.error,
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              '${diveAsync.error}',
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                          ],
+                        ),
+                      )
+                    : const CircularProgressIndicator(),
+              ),
+              Positioned(
+                top: 8,
+                left: 8,
+                child: IconButton(
+                  icon: const Icon(Icons.close),
+                  style: IconButton.styleFrom(
+                    backgroundColor: colorScheme.surface.withValues(alpha: 0.8),
+                  ),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
               ),
             ],
           ),
