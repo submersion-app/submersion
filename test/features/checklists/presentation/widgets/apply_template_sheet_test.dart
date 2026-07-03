@@ -24,9 +24,13 @@ Trip _trip() => Trip(
 /// records whether/how many times it was actually invoked so the test can
 /// assert it only runs after the user confirms.
 class _FakeTripChecklistRepository extends TripChecklistRepository {
-  _FakeTripChecklistRepository({required this.existingItems});
+  _FakeTripChecklistRepository({
+    required this.existingItems,
+    this.throwGone = false,
+  });
 
   final List<TripChecklistItem> existingItems;
+  final bool throwGone;
   int applyCallCount = 0;
 
   @override
@@ -39,6 +43,9 @@ class _FakeTripChecklistRepository extends TripChecklistRepository {
     required Trip trip,
   }) async {
     applyCallCount++;
+    if (throwGone) {
+      throw StateError('Checklist template $templateId no longer exists');
+    }
     return (added: 1, skipped: 1);
   }
 }
@@ -178,5 +185,137 @@ void main() {
 
     expect(fakeRepository.applyCallCount, 1);
     expect(find.text('1 item added'), findsOneWidget);
+  });
+
+  testWidgets('cancelling the append confirmation does not apply', (
+    tester,
+  ) async {
+    final template = ChecklistTemplate(
+      id: 'tpl1',
+      name: 'Liveaboard packing',
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+    final fakeRepository = _FakeTripChecklistRepository(
+      existingItems: [
+        TripChecklistItem(
+          id: 'existing1',
+          tripId: 't1',
+          title: 'Wetsuit',
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          checklistTemplatesProvider.overrideWith((ref) async => [template]),
+          checklistTemplateItemsProvider('tpl1').overrideWith(
+            (ref) async => [
+              ChecklistTemplateItem(
+                id: 'x1',
+                templateId: 'tpl1',
+                title: 'Wetsuit',
+                createdAt: DateTime(2026),
+                updatedAt: DateTime(2026),
+              ),
+            ],
+          ),
+          tripChecklistRepositoryProvider.overrideWithValue(fakeRepository),
+        ],
+        child: Builder(
+          builder: (context) => TextButton(
+            onPressed: () =>
+                showApplyTemplateSheet(context: context, trip: _trip()),
+            child: const Text('open'),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Liveaboard packing'));
+    await tester.pumpAndSettle();
+    expect(find.text('Apply template'), findsWidgets);
+
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(fakeRepository.applyCallCount, 0);
+    // The apply sheet itself remains open behind the dismissed confirm dialog.
+    expect(find.text('Liveaboard packing'), findsOneWidget);
+  });
+
+  testWidgets('a template deleted mid-flow surfaces the templateGone message', (
+    tester,
+  ) async {
+    final template = ChecklistTemplate(
+      id: 'tpl1',
+      name: 'Liveaboard packing',
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+    final fakeRepository = _FakeTripChecklistRepository(
+      existingItems: const [],
+      throwGone: true,
+    );
+
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          checklistTemplatesProvider.overrideWith((ref) async => [template]),
+          checklistTemplateItemsProvider(
+            'tpl1',
+          ).overrideWith((ref) async => []),
+          tripChecklistRepositoryProvider.overrideWithValue(fakeRepository),
+        ],
+        child: Builder(
+          builder: (context) => TextButton(
+            onPressed: () =>
+                showApplyTemplateSheet(context: context, trip: _trip()),
+            child: const Text('open'),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    // No existing items -> applies immediately without a confirm dialog.
+    await tester.tap(find.text('Liveaboard packing'));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(fakeRepository.applyCallCount, 1);
+    expect(find.text('Template no longer exists'), findsOneWidget);
+  });
+
+  testWidgets('shows the error message when the templates provider fails', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          checklistTemplatesProvider.overrideWith(
+            (ref) async => throw Exception('boom'),
+          ),
+        ],
+        child: Builder(
+          builder: (context) => TextButton(
+            onPressed: () =>
+                showApplyTemplateSheet(context: context, trip: _trip()),
+            child: const Text('open'),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('boom'), findsOneWidget);
   });
 }

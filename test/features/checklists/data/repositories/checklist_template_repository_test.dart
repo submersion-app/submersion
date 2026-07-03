@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/checklists/data/repositories/checklist_template_repository.dart';
 import 'package:submersion/features/checklists/domain/entities/checklist_template.dart';
+import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -88,6 +90,41 @@ void main() {
       await repository.createTemplate(template(name: 'Alpha'));
       final all = await repository.getAllTemplates();
       expect(all.map((t) => t.name).toList(), ['Alpha', 'Zeta']);
+    });
+
+    test('filtering by diverId includes that diver\'s templates and '
+        'diver-less (shared) templates but excludes other divers\'', () async {
+      final diverRepo = DiverRepository();
+      final now = DateTime.now();
+      final diverA = await diverRepo.createDiver(
+        Diver(id: '', name: 'Diver A', createdAt: now, updatedAt: now),
+      );
+      final diverB = await diverRepo.createDiver(
+        Diver(id: '', name: 'Diver B', createdAt: now, updatedAt: now),
+      );
+
+      await repository.createTemplate(
+        ChecklistTemplate(
+          id: '',
+          diverId: diverA.id,
+          name: 'Diver A only',
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+      await repository.createTemplate(
+        ChecklistTemplate(
+          id: '',
+          diverId: diverB.id,
+          name: 'Diver B only',
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+      await repository.createTemplate(template(name: 'Shared'));
+
+      final forDiverA = await repository.getAllTemplates(diverId: diverA.id);
+      expect(forDiverA.map((t) => t.name).toSet(), {'Diver A only', 'Shared'});
     });
   });
 

@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/checklists/domain/entities/checklist_template.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -85,5 +86,45 @@ void main() {
     addTearDown(container.dispose);
     final templates = await container.read(checklistTemplatesProvider.future);
     expect(templates, isEmpty);
+  });
+
+  test('checklistTemplateProvider and checklistTemplateItemsProvider read a '
+      'seeded template by id', () async {
+    final container = makeContainer();
+    addTearDown(container.dispose);
+
+    final templateRepo = container.read(checklistTemplateRepositoryProvider);
+    final created = await templateRepo.createTemplate(
+      ChecklistTemplate(
+        id: '',
+        name: 'Liveaboard packing',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+    );
+    await templateRepo.saveItems(created.id, [
+      ChecklistTemplateItem(
+        id: '',
+        templateId: created.id,
+        title: 'Wetsuit',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+    ]);
+
+    final fetched = await container.read(
+      checklistTemplateProvider(created.id).future,
+    );
+    expect(fetched?.name, 'Liveaboard packing');
+
+    final missing = await container.read(
+      checklistTemplateProvider('no-such-id').future,
+    );
+    expect(missing, isNull);
+
+    final items = await container.read(
+      checklistTemplateItemsProvider(created.id).future,
+    );
+    expect(items.map((i) => i.title).toList(), ['Wetsuit']);
   });
 }

@@ -67,6 +67,25 @@ void main() {
       expect(it.copyWith(dueOffsetDays: null).dueOffsetDays, isNull);
       expect(it.copyWith(title: 'Book hotel').dueOffsetDays, 60);
     });
+
+    test('equatable compares every field', () {
+      ChecklistTemplateItem base() => ChecklistTemplateItem(
+        id: 'x1',
+        templateId: 'tpl1',
+        title: 'Book flights',
+        category: 'Bookings',
+        notes: 'window seat',
+        dueOffsetDays: 60,
+        sortOrder: 2,
+        createdAt: created,
+        updatedAt: created,
+      );
+      expect(base(), equals(base()));
+      expect(base(), isNot(equals(base().copyWith(title: 'Book hotel'))));
+      expect(base(), isNot(equals(base().copyWith(category: null))));
+      expect(base(), isNot(equals(base().copyWith(notes: 'aisle seat'))));
+      expect(base(), isNot(equals(base().copyWith(sortOrder: 3))));
+    });
   });
 
   group('ChecklistTemplate', () {

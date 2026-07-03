@@ -114,6 +114,18 @@ void main() {
             table: db.liveaboardDetailRecords.actualTableName,
           ),
           (type: 'itineraryDays', table: db.tripItineraryDays.actualTableName),
+          (
+            type: 'checklistTemplates',
+            table: db.checklistTemplates.actualTableName,
+          ),
+          (
+            type: 'checklistTemplateItems',
+            table: db.checklistTemplateItems.actualTableName,
+          ),
+          (
+            type: 'tripChecklistItems',
+            table: db.tripChecklistItems.actualTableName,
+          ),
           (type: 'tags', table: db.tags.actualTableName),
           (type: 'diveTags', table: db.diveTags.actualTableName),
           (type: 'diveDiveTypes', table: db.diveDiveTypes.actualTableName),
