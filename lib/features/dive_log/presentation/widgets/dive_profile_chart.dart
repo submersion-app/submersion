@@ -1242,6 +1242,19 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             DiveProfileChart._leftRightAxisNameSize +
             DiveProfileChart.leftAxisSize(constraints.maxWidth);
 
+        // The chart with gesture handling
+        // Wrapped in RepaintBoundary for PNG export when exportKey is provided
+        final plot = RepaintBoundary(
+          key: widget.exportKey,
+          child: _buildInteractiveChart(
+            context,
+            units,
+            hasTemperatureData: hasTemperatureData,
+            hasPressureData: hasPressureData,
+            hasHeartRateData: hasHeartRateData,
+          ),
+        );
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1257,21 +1270,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               leftPadding: legendLeftPadding,
             ),
 
-            // The chart with gesture handling
-            // Wrapped in RepaintBoundary for PNG export when exportKey is provided
-            RepaintBoundary(
-              key: widget.exportKey,
-              child: SizedBox(
-                height: 200,
-                child: _buildInteractiveChart(
-                  context,
-                  units,
-                  hasTemperatureData: hasTemperatureData,
-                  hasPressureData: hasPressureData,
-                  hasHeartRateData: hasHeartRateData,
-                ),
-              ),
-            ),
+            // Fill bounded parents (e.g. fullscreen); keep the 200px default
+            // in unbounded contexts such as inline scroll views.
+            if (constraints.hasBoundedHeight)
+              Expanded(child: plot)
+            else
+              SizedBox(height: 200, child: plot),
             // Zoom hint
             if (_viewport.isZoomed)
               Padding(
