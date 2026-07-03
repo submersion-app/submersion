@@ -110,4 +110,31 @@ void main() {
     expect(await templateRepository.getAllTemplates(), isEmpty);
     expect(find.byType(AlertDialog), findsNothing);
   });
+
+  testWidgets('rapid double-tap on Save only saves once', (tester) async {
+    await openDialog(tester);
+
+    await tester.enterText(find.byType(TextFormField), 'Egypt prep');
+    final saveButton = find.widgetWithText(FilledButton, 'Save');
+    // Two taps before the async save settles; the _saving guard + disabled
+    // button must prevent a second saveAsTemplate.
+    await tester.tap(saveButton);
+    await tester.tap(saveButton, warnIfMissed: false);
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(await templateRepository.getAllTemplates(), hasLength(1));
+    expect(find.byType(AlertDialog), findsNothing);
+  });
+
+  testWidgets('dialog is not barrier-dismissible', (tester) async {
+    await openDialog(tester);
+
+    // Tapping the modal barrier (outside the dialog) must NOT dismiss it.
+    await tester.tapAt(const Offset(20, 20));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AlertDialog), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }

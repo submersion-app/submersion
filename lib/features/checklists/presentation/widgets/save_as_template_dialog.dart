@@ -12,6 +12,10 @@ Future<void> showSaveAsTemplateDialog({
 }) {
   return showDialog<void>(
     context: context,
+    // Not barrier-dismissible: _save() runs async work and then pops/shows a
+    // SnackBar; a tap-outside dismiss mid-save would leave it popping a
+    // disposed route. Dismissal is only via the explicit Cancel/Save buttons.
+    barrierDismissible: false,
     builder: (context) => _SaveAsTemplateDialog(trip: trip),
   );
 }
@@ -29,6 +33,7 @@ class _SaveAsTemplateDialog extends ConsumerStatefulWidget {
 class _SaveAsTemplateDialogState extends ConsumerState<_SaveAsTemplateDialog> {
   final _controller = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  bool _saving = false;
 
   @override
   void dispose() {
@@ -37,10 +42,8 @@ class _SaveAsTemplateDialogState extends ConsumerState<_SaveAsTemplateDialog> {
   }
 
   Future<void> _save() async {
-    if (!_formKey.currentState!.validate()) return;
-    final messenger = ScaffoldMessenger.of(context);
-    final navigator = Navigator.of(context);
-    final l10n = context.l10n;
+    if (_saving || !_formKey.currentState!.validate()) return;
+    setState(() => _saving = true);
     final repository = ref.read(tripChecklistRepositoryProvider);
     await repository.saveAsTemplate(
       tripId: widget.trip.id,
@@ -48,7 +51,12 @@ class _SaveAsTemplateDialogState extends ConsumerState<_SaveAsTemplateDialog> {
       name: _controller.text.trim(),
       diverId: widget.trip.diverId,
     );
-    navigator.pop();
+    // Resolve navigator/messenger after the await and guard with mounted, so a
+    // teardown during the save can never pop a disposed route.
+    if (!mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+    Navigator.of(context).pop();
     messenger.showSnackBar(
       SnackBar(
         content: Text(l10n.checklists_saveTemplate_success),
@@ -77,11 +85,11 @@ class _SaveAsTemplateDialogState extends ConsumerState<_SaveAsTemplateDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: _saving ? null : () => Navigator.of(context).pop(),
           child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
         ),
         FilledButton(
-          onPressed: _save,
+          onPressed: _saving ? null : _save,
           child: Text(MaterialLocalizations.of(context).saveButtonLabel),
         ),
       ],

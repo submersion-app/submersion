@@ -74,6 +74,9 @@ class _ApplyTemplateSheet extends ConsumerWidget {
         templateId: templateId,
         trip: trip,
       );
+      // The sheet may have been drag-dismissed during applyTemplate; without
+      // this guard the pre-captured navigator would pop the underlying route.
+      if (!context.mounted) return;
       navigator.pop();
       messenger.showSnackBar(
         SnackBar(
@@ -83,6 +86,7 @@ class _ApplyTemplateSheet extends ConsumerWidget {
         ),
       );
     } on StateError {
+      if (!context.mounted) return;
       navigator.pop();
       messenger.showSnackBar(
         SnackBar(
