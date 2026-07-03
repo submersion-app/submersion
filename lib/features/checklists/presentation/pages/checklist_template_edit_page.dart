@@ -75,99 +75,14 @@ class _ChecklistTemplateEditPageState
   Future<ChecklistTemplateItem?> _showItemDialog({
     ChecklistTemplateItem? item,
   }) {
-    final titleController = TextEditingController(text: item?.title ?? '');
-    final categoryController = TextEditingController(
-      text: item?.category ?? '',
-    );
-    final notesController = TextEditingController(text: item?.notes ?? '');
-    final offsetController = TextEditingController(
-      text: item?.dueOffsetDays?.toString() ?? '',
-    );
-    final itemFormKey = GlobalKey<FormState>();
-
     return showDialog<ChecklistTemplateItem>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.l10n.checklists_template_addItem),
-        content: Form(
-          key: itemFormKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: titleController,
-                  autofocus: true,
-                  decoration: InputDecoration(
-                    labelText: context.l10n.checklists_item_titleLabel,
-                  ),
-                  validator: (value) => (value == null || value.trim().isEmpty)
-                      ? context.l10n.checklists_item_titleRequired
-                      : null,
-                ),
-                TextFormField(
-                  controller: categoryController,
-                  decoration: InputDecoration(
-                    labelText: context.l10n.checklists_item_categoryLabel,
-                  ),
-                ),
-                TextFormField(
-                  controller: notesController,
-                  decoration: InputDecoration(
-                    labelText: context.l10n.checklists_item_notesLabel,
-                  ),
-                ),
-                TextFormField(
-                  controller: offsetController,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: context.l10n.checklists_item_dueOffsetLabel,
-                  ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) return null;
-                    final parsed = int.tryParse(value.trim());
-                    return (parsed == null || parsed < 0)
-                        ? context.l10n.checklists_item_dueOffsetInvalid
-                        : null;
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(context.l10n.common_action_cancel),
-          ),
-          FilledButton(
-            onPressed: () {
-              if (!itemFormKey.currentState!.validate()) return;
-              final category = categoryController.text.trim();
-              Navigator.of(context).pop(
-                ChecklistTemplateItem(
-                  id: item?.id ?? const Uuid().v4(),
-                  templateId: widget.templateId ?? '',
-                  title: titleController.text.trim(),
-                  category: category.isEmpty ? null : category,
-                  notes: notesController.text.trim(),
-                  dueOffsetDays: int.tryParse(offsetController.text.trim()),
-                  sortOrder: item?.sortOrder ?? _items.length,
-                  createdAt: item?.createdAt ?? DateTime.now(),
-                  updatedAt: DateTime.now(),
-                ),
-              );
-            },
-            child: Text(context.l10n.common_action_ok),
-          ),
-        ],
+      builder: (context) => _ChecklistItemDialog(
+        item: item,
+        templateId: widget.templateId ?? '',
+        defaultSortOrder: _items.length,
       ),
-    ).whenComplete(() {
-      titleController.dispose();
-      categoryController.dispose();
-      notesController.dispose();
-      offsetController.dispose();
-    });
+    );
   }
 
   Future<void> _save() async {
@@ -283,6 +198,140 @@ class _ChecklistTemplateEditPageState
                 ],
               ),
             ),
+    );
+  }
+}
+
+/// Add/edit dialog for a single template item.
+///
+/// Owns its ephemeral [TextEditingController]s and disposes them in its own
+/// [State.dispose]. Disposing them from `showDialog(...).whenComplete(...)`
+/// instead frees the controllers the instant the route is popped, while the
+/// dialog's exit transition is still rebuilding these fields — which throws
+/// "TextEditingController used after being disposed" (and, on release builds,
+/// trips the InheritedElement `_dependents` assertion) mid-animation.
+class _ChecklistItemDialog extends StatefulWidget {
+  final ChecklistTemplateItem? item;
+  final String templateId;
+  final int defaultSortOrder;
+
+  const _ChecklistItemDialog({
+    required this.item,
+    required this.templateId,
+    required this.defaultSortOrder,
+  });
+
+  @override
+  State<_ChecklistItemDialog> createState() => _ChecklistItemDialogState();
+}
+
+class _ChecklistItemDialogState extends State<_ChecklistItemDialog> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _titleController;
+  late final TextEditingController _categoryController;
+  late final TextEditingController _notesController;
+  late final TextEditingController _offsetController;
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController = TextEditingController(text: widget.item?.title ?? '');
+    _categoryController = TextEditingController(
+      text: widget.item?.category ?? '',
+    );
+    _notesController = TextEditingController(text: widget.item?.notes ?? '');
+    _offsetController = TextEditingController(
+      text: widget.item?.dueOffsetDays?.toString() ?? '',
+    );
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _categoryController.dispose();
+    _notesController.dispose();
+    _offsetController.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (!_formKey.currentState!.validate()) return;
+    final category = _categoryController.text.trim();
+    Navigator.of(context).pop(
+      ChecklistTemplateItem(
+        id: widget.item?.id ?? const Uuid().v4(),
+        templateId: widget.templateId,
+        title: _titleController.text.trim(),
+        category: category.isEmpty ? null : category,
+        notes: _notesController.text.trim(),
+        dueOffsetDays: int.tryParse(_offsetController.text.trim()),
+        sortOrder: widget.item?.sortOrder ?? widget.defaultSortOrder,
+        createdAt: widget.item?.createdAt ?? DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(context.l10n.checklists_template_addItem),
+      content: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _titleController,
+                autofocus: true,
+                decoration: InputDecoration(
+                  labelText: context.l10n.checklists_item_titleLabel,
+                ),
+                validator: (value) => (value == null || value.trim().isEmpty)
+                    ? context.l10n.checklists_item_titleRequired
+                    : null,
+              ),
+              TextFormField(
+                controller: _categoryController,
+                decoration: InputDecoration(
+                  labelText: context.l10n.checklists_item_categoryLabel,
+                ),
+              ),
+              TextFormField(
+                controller: _notesController,
+                decoration: InputDecoration(
+                  labelText: context.l10n.checklists_item_notesLabel,
+                ),
+              ),
+              TextFormField(
+                controller: _offsetController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: context.l10n.checklists_item_dueOffsetLabel,
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) return null;
+                  final parsed = int.tryParse(value.trim());
+                  return (parsed == null || parsed < 0)
+                      ? context.l10n.checklists_item_dueOffsetInvalid
+                      : null;
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(context.l10n.common_action_cancel),
+        ),
+        FilledButton(
+          onPressed: _submit,
+          child: Text(context.l10n.common_action_ok),
+        ),
+      ],
     );
   }
 }
