@@ -328,4 +328,34 @@ void main() {
       expect(container.read(profileLegendProvider).showAscentRateLine, isTrue);
     });
   });
+
+  group('ProfileLegend.showPhotoMarkers', () {
+    test('showPhotoMarkers seeds from defaultShowPhotoMarkers', () {
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith(
+            (ref) => _StubSettingsNotifier(
+              const AppSettings(defaultShowPhotoMarkers: false),
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      expect(container.read(profileLegendProvider).showPhotoMarkers, isFalse);
+    });
+
+    test('togglePhotoMarkers flips the state', () {
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith(
+            (ref) => _StubSettingsNotifier(const AppSettings()),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      expect(container.read(profileLegendProvider).showPhotoMarkers, isTrue);
+      container.read(profileLegendProvider.notifier).togglePhotoMarkers();
+      expect(container.read(profileLegendProvider).showPhotoMarkers, isFalse);
+    });
+  });
 }
