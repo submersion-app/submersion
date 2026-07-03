@@ -46,19 +46,37 @@ void main() {
       expect(markers.single.depthMeters, 18.0);
     });
 
-    test('excludes videos, missing enrichment, noProfile, and null fields', () {
+    test('includes enriched videos alongside photos', () {
+      // Underwater libraries are often mostly short clips; a video with a
+      // valid profile position gets a marker just like a photo (dive #18).
       final markers = photoMarkersFromMedia([
         _media(id: 'v1', type: MediaType.video, enrichment: _enrichment()),
-        _media(id: 'm2'),
-        _media(
-          id: 'm3',
-          enrichment: _enrichment(confidence: MatchConfidence.noProfile),
-        ),
-        _media(id: 'm4', enrichment: _enrichment(elapsedSeconds: null)),
-        _media(id: 'm5', enrichment: _enrichment(depthMeters: null)),
+        _media(id: 'p1', enrichment: _enrichment(elapsedSeconds: 900)),
       ], maxProfileSeconds: 3600);
-      expect(markers, isEmpty);
+      expect(markers, hasLength(2));
+      expect(markers.map((m) => m.item.id), containsAll(['v1', 'p1']));
     });
+
+    test(
+      'excludes signatures, missing enrichment, noProfile, and null fields',
+      () {
+        final markers = photoMarkersFromMedia([
+          _media(
+            id: 's1',
+            type: MediaType.instructorSignature,
+            enrichment: _enrichment(),
+          ),
+          _media(id: 'm2'),
+          _media(
+            id: 'm3',
+            enrichment: _enrichment(confidence: MatchConfidence.noProfile),
+          ),
+          _media(id: 'm4', enrichment: _enrichment(elapsedSeconds: null)),
+          _media(id: 'm5', enrichment: _enrichment(depthMeters: null)),
+        ], maxProfileSeconds: 3600);
+        expect(markers, isEmpty);
+      },
+    );
 
     test('clamps elapsed seconds into the profile range and sorts by time', () {
       final markers = photoMarkersFromMedia([

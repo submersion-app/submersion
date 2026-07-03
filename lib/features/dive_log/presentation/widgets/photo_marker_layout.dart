@@ -21,16 +21,19 @@ class PhotoChartMarker {
   });
 }
 
-/// Builds chart markers from a dive's media list, time-sorted. Only photos
-/// with a usable profile position are included; elapsed time is clamped to
-/// the profile range to absorb entry/exit clock skew.
+/// Builds chart markers from a dive's media list, time-sorted. Photos and
+/// videos with a usable profile position are included; elapsed time is
+/// clamped to the profile range to absorb entry/exit clock skew.
 List<PhotoChartMarker> photoMarkersFromMedia(
   List<MediaItem> media, {
   required int maxProfileSeconds,
 }) {
   final markers = <PhotoChartMarker>[];
   for (final item in media) {
-    if (item.mediaType != MediaType.photo) continue;
+    // Photos AND videos get markers — underwater libraries are often mostly
+    // short clips, and enrichment gives both the same (time, depth) position.
+    // Only signatures are categorically not dive-moment media.
+    if (item.mediaType == MediaType.instructorSignature) continue;
     final enrichment = item.enrichment;
     if (enrichment == null) continue;
     if (enrichment.matchConfidence == MatchConfidence.noProfile) continue;

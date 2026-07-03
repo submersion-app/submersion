@@ -142,6 +142,9 @@ TDD throughout:
 
 - Recomputing or backfilling enrichment for existing photos (the import
   pipeline owns that).
-- Markers for videos or media without timestamps.
+- Markers for media without timestamps or enrichment. (Videos WITH valid
+  enrichment ARE included — revised 2026-07-03 after live verification on a
+  real library that was mostly short clips; only instructor signatures are
+  categorically excluded.)
 - Showing photo markers on charts outside the dive detail profile chart
   (e.g., mini charts elsewhere).
