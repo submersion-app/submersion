@@ -1674,6 +1674,66 @@ abstract class AppLocalizations {
   /// **'Not enough buddies to merge.'**
   String get buddies_edit_merge_notEnoughBody;
 
+  /// No description provided for @buddies_section_professionalRoles.
+  ///
+  /// In en, this message translates to:
+  /// **'Professional Roles'**
+  String get buddies_section_professionalRoles;
+
+  /// No description provided for @buddies_roles_addRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Add role'**
+  String get buddies_roles_addRole;
+
+  /// No description provided for @buddies_roles_role.
+  ///
+  /// In en, this message translates to:
+  /// **'Role'**
+  String get buddies_roles_role;
+
+  /// No description provided for @buddies_roles_agency.
+  ///
+  /// In en, this message translates to:
+  /// **'Agency'**
+  String get buddies_roles_agency;
+
+  /// No description provided for @buddies_roles_credentialNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Credential number'**
+  String get buddies_roles_credentialNumber;
+
+  /// No description provided for @buddies_roles_removeTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove role'**
+  String get buddies_roles_removeTooltip;
+
+  /// No description provided for @buddies_roles_emptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add instructor or divemaster credentials to reuse them when logging certifications and courses.'**
+  String get buddies_roles_emptyHint;
+
+  /// No description provided for @buddies_instructorPicker_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Instructor from buddies'**
+  String get buddies_instructorPicker_label;
+
+  /// No description provided for @buddies_instructorPicker_none.
+  ///
+  /// In en, this message translates to:
+  /// **'None (manual entry)'**
+  String get buddies_instructorPicker_none;
+
+  /// No description provided for @buddies_detail_section_professionalRoles.
+  ///
+  /// In en, this message translates to:
+  /// **'Professional Roles'**
+  String get buddies_detail_section_professionalRoles;
+
   /// No description provided for @certifications_appBar_addCertification.
   ///
   /// In en, this message translates to:
@@ -3162,12 +3222,6 @@ abstract class AppLocalizations {
   /// **'Notes'**
   String get courses_field_notes;
 
-  /// No description provided for @courses_field_selectFromBuddies.
-  ///
-  /// In en, this message translates to:
-  /// **'Select from Buddies (Optional)'**
-  String get courses_field_selectFromBuddies;
-
   /// No description provided for @courses_filter_all.
   ///
   /// In en, this message translates to:
@@ -3215,12 +3269,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Name'**
   String get courses_label_name;
-
-  /// No description provided for @courses_label_none.
-  ///
-  /// In en, this message translates to:
-  /// **'-- None --'**
-  String get courses_label_none;
 
   /// No description provided for @courses_label_startDate.
   ///

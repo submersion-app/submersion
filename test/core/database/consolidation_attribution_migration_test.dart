@@ -25,10 +25,9 @@ void main() {
   });
 
   test('v97 is in the migration ladder', () {
-    // v97 was the latest when written; issue #164's checklist migration
-    // superseded it at v98, so this is a ladder-membership check, not an
-    // exact-latest assertion (matches the superseded-tripwire convention of
-    // the earlier migration_v9x tests).
+    // v97 is now a past migration (the latest-version tripwire lives in the
+    // newest migration's test), so assert membership, not equality. Later
+    // migrations superseded it: checklists v98 (#164), buddy roles v99 (#395).
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(97));
     expect(AppDatabase.migrationVersions, contains(97));
   });

@@ -1,9 +1,15 @@
+import 'package:drift/drift.dart' show Variable;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' as db;
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
+import 'package:submersion/features/buddies/data/repositories/buddy_role_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain;
+import 'package:submersion/features/buddies/domain/entities/buddy_role_credential.dart';
+import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
+import 'package:submersion/features/certifications/domain/entities/certification.dart'
+    as cert_domain;
 import 'package:submersion/core/constants/enums.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -11,10 +17,14 @@ import '../../../../helpers/test_database.dart';
 void main() {
   late db.AppDatabase database;
   late BuddyRepository repository;
+  late BuddyRoleRepository roleRepository;
+  late CertificationRepository certificationRepository;
 
   setUp(() async {
     await setUpTestDatabase();
     repository = BuddyRepository();
+    roleRepository = BuddyRoleRepository();
+    certificationRepository = CertificationRepository();
     database = DatabaseService.instance.database;
   });
 
@@ -222,6 +232,212 @@ void main() {
     });
   });
 
+  group('mergeBuddies - credentials and certifications (issue #395)', () {
+    test('merge relinks duplicate buddy credentials to the survivor', () async {
+      final buddyA = await repository.createBuddy(
+        domain.Buddy(
+          id: '',
+          name: 'Alice',
+          notes: '',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
+      final buddyB = await repository.createBuddy(
+        domain.Buddy(
+          id: '',
+          name: 'Bob',
+          notes: '',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
+
+      // Duplicate (buddyB) has an instructor credential; survivor (buddyA)
+      // has none.
+      final now = DateTime.now();
+      await roleRepository.setRolesForBuddy(buddyB.id, [
+        BuddyRoleCredential(
+          id: '',
+          buddyId: buddyB.id,
+          role: BuddyRole.instructor,
+          credentialNumber: 'INS-100',
+          agency: CertificationAgency.padi,
+          notes: '',
+          createdAt: now,
+          updatedAt: now,
+        ),
+      ]);
+      final originalRow = await (database.select(
+        database.buddyRoles,
+      )..where((t) => t.buddyId.equals(buddyB.id))).getSingle();
+
+      await repository.mergeBuddies(
+        mergedBuddy: buddyA.copyWith(name: 'Alice'),
+        buddyIds: [buddyA.id, buddyB.id],
+      );
+
+      final survivorRoles = await (database.select(
+        database.buddyRoles,
+      )..where((t) => t.buddyId.equals(buddyA.id))).get();
+      expect(survivorRoles.length, 1);
+      expect(survivorRoles.first.id, originalRow.id);
+      expect(survivorRoles.first.role, 'instructor');
+      expect(survivorRoles.first.credentialNumber, 'INS-100');
+      // The relink is a real mutation: updatedAt must move so the
+      // updatedAt fallback (rows without hlc) orders it correctly.
+      expect(survivorRoles.first.updatedAt, greaterThan(originalRow.updatedAt));
+
+      final duplicateRoles = await (database.select(
+        database.buddyRoles,
+      )..where((t) => t.buddyId.equals(buddyB.id))).get();
+      expect(duplicateRoles, isEmpty);
+
+      // A relinked credential is an update, not a deletion: no tombstone.
+      final tombstones = await database
+          .customSelect(
+            "SELECT COUNT(*) AS c FROM deletion_log "
+            "WHERE entity_type = 'buddyRoles' AND record_id = ?",
+            variables: [Variable.withString(originalRow.id)],
+          )
+          .getSingle();
+      expect(tombstones.read<int>('c'), 0);
+    });
+
+    test('merge drops a duplicate credential when the survivor already has '
+        'that role, keeping the survivor row', () async {
+      final buddyA = await repository.createBuddy(
+        domain.Buddy(
+          id: '',
+          name: 'Alice',
+          notes: '',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
+      final buddyB = await repository.createBuddy(
+        domain.Buddy(
+          id: '',
+          name: 'Bob',
+          notes: '',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
+
+      // Both hold an instructor credential.
+      final now = DateTime.now();
+      await roleRepository.setRolesForBuddy(buddyA.id, [
+        BuddyRoleCredential(
+          id: '',
+          buddyId: buddyA.id,
+          role: BuddyRole.instructor,
+          credentialNumber: 'A-INS',
+          agency: CertificationAgency.padi,
+          notes: '',
+          createdAt: now,
+          updatedAt: now,
+        ),
+      ]);
+      await roleRepository.setRolesForBuddy(buddyB.id, [
+        BuddyRoleCredential(
+          id: '',
+          buddyId: buddyB.id,
+          role: BuddyRole.instructor,
+          credentialNumber: 'B-INS',
+          agency: CertificationAgency.ssi,
+          notes: '',
+          createdAt: now,
+          updatedAt: now,
+        ),
+      ]);
+      final droppedRow = await (database.select(
+        database.buddyRoles,
+      )..where((t) => t.buddyId.equals(buddyB.id))).getSingle();
+
+      await repository.mergeBuddies(
+        mergedBuddy: buddyA.copyWith(name: 'Alice'),
+        buddyIds: [buddyA.id, buddyB.id],
+      );
+
+      final allInstructorRows = await (database.select(
+        database.buddyRoles,
+      )..where((t) => t.role.equals('instructor'))).get();
+      expect(allInstructorRows.length, 1);
+      expect(allInstructorRows.first.buddyId, buddyA.id);
+      expect(allInstructorRows.first.credentialNumber, 'A-INS');
+
+      final duplicateRoles = await (database.select(
+        database.buddyRoles,
+      )..where((t) => t.buddyId.equals(buddyB.id))).get();
+      expect(duplicateRoles, isEmpty);
+
+      // The dropped credential must be tombstoned so the deletion
+      // propagates to sync peers (not just cascade-deleted locally).
+      final tombstones = await database
+          .customSelect(
+            "SELECT COUNT(*) AS c FROM deletion_log "
+            "WHERE entity_type = 'buddyRoles' AND record_id = ?",
+            variables: [Variable.withString(droppedRow.id)],
+          )
+          .getSingle();
+      expect(tombstones.read<int>('c'), 1);
+    });
+
+    test(
+      'merge re-points certifications.instructorId to the survivor',
+      () async {
+        final buddyA = await repository.createBuddy(
+          domain.Buddy(
+            id: '',
+            name: 'Alice',
+            notes: '',
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+        );
+        final buddyB = await repository.createBuddy(
+          domain.Buddy(
+            id: '',
+            name: 'Bob',
+            notes: '',
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+        );
+
+        final now = DateTime.now();
+        final cert = await certificationRepository.createCertification(
+          cert_domain.Certification(
+            id: '',
+            name: 'Open Water Diver',
+            agency: CertificationAgency.padi,
+            instructorId: buddyB.id,
+            notes: '',
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+
+        final preMergeRow = await (database.select(
+          database.certifications,
+        )..where((t) => t.id.equals(cert.id))).getSingle();
+
+        await repository.mergeBuddies(
+          mergedBuddy: buddyA.copyWith(name: 'Alice'),
+          buddyIds: [buddyA.id, buddyB.id],
+        );
+
+        final row = await (database.select(
+          database.certifications,
+        )..where((t) => t.id.equals(cert.id))).getSingle();
+        expect(row.instructorId, buddyA.id);
+        // The re-point is a real mutation: updatedAt must move alongside it.
+        expect(row.updatedAt, greaterThan(preMergeRow.updatedAt));
+      },
+    );
+  });
+
   group('undoMerge', () {
     test('restores all buddies and junction entries', () async {
       final buddyA = await repository.createBuddy(
@@ -295,6 +511,127 @@ void main() {
       expect(dive2Buddies.length, 1);
       expect(dive2Buddies.first.buddy.id, buddyB.id);
     });
+
+    test(
+      'undoMerge restores duplicate credentials and certification links',
+      () async {
+        final buddyA = await repository.createBuddy(
+          domain.Buddy(
+            id: '',
+            name: 'Alice',
+            notes: '',
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+        );
+        final buddyB = await repository.createBuddy(
+          domain.Buddy(
+            id: '',
+            name: 'Bob',
+            notes: '',
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+        );
+
+        final now = DateTime.now();
+
+        // Survivor already holds an instructor credential (collision case).
+        await roleRepository.setRolesForBuddy(buddyA.id, [
+          BuddyRoleCredential(
+            id: '',
+            buddyId: buddyA.id,
+            role: BuddyRole.instructor,
+            credentialNumber: 'A-INS',
+            agency: CertificationAgency.padi,
+            notes: '',
+            createdAt: now,
+            updatedAt: now,
+          ),
+        ]);
+        // Duplicate holds a colliding instructor credential (dropped) and a
+        // dive master credential (relinked).
+        await roleRepository.setRolesForBuddy(buddyB.id, [
+          BuddyRoleCredential(
+            id: '',
+            buddyId: buddyB.id,
+            role: BuddyRole.instructor,
+            credentialNumber: 'B-INS',
+            agency: CertificationAgency.ssi,
+            notes: '',
+            createdAt: now,
+            updatedAt: now,
+          ),
+          BuddyRoleCredential(
+            id: '',
+            buddyId: buddyB.id,
+            role: BuddyRole.diveMaster,
+            credentialNumber: 'B-DM',
+            agency: CertificationAgency.padi,
+            notes: '',
+            createdAt: now,
+            updatedAt: now,
+          ),
+        ]);
+        final originalDuplicateRoles = await (database.select(
+          database.buddyRoles,
+        )..where((t) => t.buddyId.equals(buddyB.id))).get();
+        expect(originalDuplicateRoles.length, 2);
+
+        final cert = await certificationRepository.createCertification(
+          cert_domain.Certification(
+            id: '',
+            name: 'Open Water Diver',
+            agency: CertificationAgency.padi,
+            instructorId: buddyB.id,
+            notes: '',
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+
+        final result = await repository.mergeBuddies(
+          mergedBuddy: buddyA.copyWith(name: 'Alice'),
+          buddyIds: [buddyA.id, buddyB.id],
+        );
+
+        // Sanity check the merge actually mutated state before undoing.
+        final mergedCert = await (database.select(
+          database.certifications,
+        )..where((t) => t.id.equals(cert.id))).getSingle();
+        expect(mergedCert.instructorId, buddyA.id);
+
+        await repository.undoMerge(result!.snapshot!);
+
+        // Duplicate buddy's credentials are restored with original ids.
+        final restoredDuplicateRoles = await (database.select(
+          database.buddyRoles,
+        )..where((t) => t.buddyId.equals(buddyB.id))).get();
+        expect(restoredDuplicateRoles.length, 2);
+        expect(
+          restoredDuplicateRoles.map((r) => r.id).toSet(),
+          originalDuplicateRoles.map((r) => r.id).toSet(),
+        );
+        expect(restoredDuplicateRoles.map((r) => r.credentialNumber).toSet(), {
+          'B-INS',
+          'B-DM',
+        });
+
+        // Survivor's original credential set is restored (no leftover
+        // relinked rows from the duplicate).
+        final survivorRoles = await (database.select(
+          database.buddyRoles,
+        )..where((t) => t.buddyId.equals(buddyA.id))).get();
+        expect(survivorRoles.length, 1);
+        expect(survivorRoles.first.credentialNumber, 'A-INS');
+
+        // Certification instructor link restored to the duplicate.
+        final restoredCert = await (database.select(
+          database.certifications,
+        )..where((t) => t.id.equals(cert.id))).getSingle();
+        expect(restoredCert.instructorId, buddyB.id);
+      },
+    );
   });
 
   group('bulkDeleteBuddies', () {

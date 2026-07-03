@@ -933,6 +933,37 @@ class AppLocalizationsFr extends AppLocalizations {
       'Pas assez de binômes à fusionner.';
 
   @override
+  String get buddies_section_professionalRoles => 'Rôles professionnels';
+
+  @override
+  String get buddies_roles_addRole => 'Ajouter un rôle';
+
+  @override
+  String get buddies_roles_role => 'Rôle';
+
+  @override
+  String get buddies_roles_agency => 'Organisme';
+
+  @override
+  String get buddies_roles_credentialNumber => 'Numéro de qualification';
+
+  @override
+  String get buddies_roles_removeTooltip => 'Supprimer le rôle';
+
+  @override
+  String get buddies_roles_emptyHint =>
+      'Ajoutez les qualifications de moniteur ou de directeur de plongée pour les réutiliser lors de l\'enregistrement des certifications et des cours.';
+
+  @override
+  String get buddies_instructorPicker_label => 'Moniteur parmi les binômes';
+
+  @override
+  String get buddies_instructorPicker_none => 'Aucun (saisie manuelle)';
+
+  @override
+  String get buddies_detail_section_professionalRoles => 'Rôles professionnels';
+
+  @override
   String get certifications_appBar_addCertification =>
       'Ajouter une certification';
 
@@ -1839,10 +1870,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get courses_field_notes => 'Notes';
 
   @override
-  String get courses_field_selectFromBuddies =>
-      'Sélectionner parmi les binômes (facultatif)';
-
-  @override
   String get courses_filter_all => 'Tous';
 
   @override
@@ -1865,9 +1892,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get courses_label_name => 'Nom';
-
-  @override
-  String get courses_label_none => '-- Aucun --';
 
   @override
   String get courses_label_startDate => 'Date de début';

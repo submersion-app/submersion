@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy_role_credential.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 
 /// Widget for selecting buddies for a dive
@@ -250,6 +251,9 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
     final buddiesAsync = _debouncedQuery.isEmpty
         ? ref.watch(allBuddiesProvider)
         : ref.watch(buddySearchProvider(_debouncedQuery));
+    final rolesByBuddy =
+        ref.watch(allBuddyRolesProvider).value ??
+        const <String, List<BuddyRoleCredential>>{};
 
     return DraggableScrollableSheet(
       initialChildSize: 0.7,
@@ -383,7 +387,11 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
                     );
                   }
 
-                  return _buildBuddyListView(scrollController, buddies);
+                  return _buildBuddyListView(
+                    scrollController,
+                    buddies,
+                    rolesByBuddy,
+                  );
                 },
                 loading: () {
                   if (_lastSearchResults != null &&
@@ -395,6 +403,7 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
                           child: _buildBuddyListView(
                             scrollController,
                             _lastSearchResults!,
+                            rolesByBuddy,
                           ),
                         ),
                       ],
@@ -414,6 +423,7 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
   Widget _buildBuddyListView(
     ScrollController scrollController,
     List<Buddy> buddies,
+    Map<String, List<BuddyRoleCredential>> rolesByBuddy,
   ) {
     return ListView.builder(
       controller: scrollController,
@@ -447,9 +457,15 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
                   ),
           ),
           title: Text(buddy.name),
-          subtitle: buddy.certificationLevel != null
-              ? Text(buddy.certificationLevel!.displayName)
-              : null,
+          subtitle: () {
+            final credentials = rolesByBuddy[buddy.id] ?? const [];
+            final parts = <String>[
+              if (buddy.certificationLevel != null)
+                buddy.certificationLevel!.displayName,
+              ...credentials.map((c) => c.displayLabel),
+            ];
+            return parts.isEmpty ? null : Text(parts.join(' | '));
+          }(),
           trailing: isSelected
               ? Chip(
                   label: Text(selectedRole?.displayName ?? 'Buddy'),
@@ -460,7 +476,11 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
             if (isSelected) {
               _removeBuddy(buddy.id);
             } else {
-              _showRoleSelectorForBuddy(context, buddy);
+              _showRoleSelectorForBuddy(
+                context,
+                buddy,
+                rolesByBuddy[buddy.id] ?? const [],
+              );
             }
           },
         );
@@ -497,7 +517,17 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
     });
   }
 
-  void _showRoleSelectorForBuddy(BuildContext context, Buddy buddy) {
+  void _showRoleSelectorForBuddy(
+    BuildContext context,
+    Buddy buddy,
+    List<BuddyRoleCredential> credentials,
+  ) {
+    final credentialRoles = credentials.map((c) => c.role).toSet();
+    final orderedRoles = [
+      ...BuddyRole.values.where(credentialRoles.contains),
+      ...BuddyRole.values.where((r) => !credentialRoles.contains(r)),
+    ];
+
     showModalBottomSheet(
       context: context,
       builder: (ctx) => SafeArea(
@@ -512,9 +542,13 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
               ),
             ),
             const Divider(),
-            ...BuddyRole.values.map((role) {
+            ...orderedRoles.map((role) {
               return ListTile(
-                leading: const Icon(Icons.person),
+                leading: Icon(
+                  credentialRoles.contains(role)
+                      ? Icons.workspace_premium
+                      : Icons.person,
+                ),
                 title: Text(role.displayName),
                 onTap: () {
                   Navigator.pop(ctx);

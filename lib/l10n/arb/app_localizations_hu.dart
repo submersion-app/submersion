@@ -929,6 +929,37 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nincs elég búvártárs az összevonáshoz.';
 
   @override
+  String get buddies_section_professionalRoles => 'Szakmai szerepek';
+
+  @override
+  String get buddies_roles_addRole => 'Szerep hozzáadása';
+
+  @override
+  String get buddies_roles_role => 'Szerep';
+
+  @override
+  String get buddies_roles_agency => 'Szervezet';
+
+  @override
+  String get buddies_roles_credentialNumber => 'Igazolványszám';
+
+  @override
+  String get buddies_roles_removeTooltip => 'Szerep eltávolítása';
+
+  @override
+  String get buddies_roles_emptyHint =>
+      'Adja hozzá az oktatói vagy divemaster képesítéseket, hogy újra felhasználhassa őket képesítések és tanfolyamok rögzítésekor.';
+
+  @override
+  String get buddies_instructorPicker_label => 'Oktató a búvártársak közül';
+
+  @override
+  String get buddies_instructorPicker_none => 'Nincs (kézi bevitel)';
+
+  @override
+  String get buddies_detail_section_professionalRoles => 'Szakmai szerepek';
+
+  @override
   String get certifications_appBar_addCertification => 'Kepesites hozzaadasa';
 
   @override
@@ -1823,10 +1854,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get courses_field_notes => 'Jegyzetek';
 
   @override
-  String get courses_field_selectFromBuddies =>
-      'Választás búvártársak közül (opcionális)';
-
-  @override
   String get courses_filter_all => 'Összes';
 
   @override
@@ -1849,9 +1876,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get courses_label_name => 'Név';
-
-  @override
-  String get courses_label_none => '-- Nincs --';
 
   @override
   String get courses_label_startDate => 'Kezdés dátuma';

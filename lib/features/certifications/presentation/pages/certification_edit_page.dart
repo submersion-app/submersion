@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/buddies/presentation/widgets/instructor_picker_field.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
@@ -53,6 +54,7 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
   bool _isSaving = false;
   bool _hasChanges = false;
   Certification? _originalCertification;
+  String? _instructorId;
 
   bool get isEditing => widget.certificationId != null;
 
@@ -95,6 +97,7 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
           _expiryDate = cert.expiryDate;
           _photoFront = cert.photoFront;
           _photoBack = cert.photoBack;
+          _instructorId = cert.instructorId;
           _isLoading = false;
           _hasChanges = false;
         });
@@ -442,6 +445,27 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                   ),
                   const SizedBox(height: 12),
 
+                  InstructorPickerField(
+                    instructorId: _instructorId,
+                    onSelected: (buddy, credential) {
+                      setState(() {
+                        _instructorId = buddy?.id;
+                        _hasChanges = true;
+                        if (buddy != null) {
+                          // Snapshot the picked buddy fully: overwrite both
+                          // name and number so switching to a buddy without a
+                          // credential number clears a stale one rather than
+                          // leaving the previous selection's value behind.
+                          _instructorNameController.text = buddy.name;
+                          _instructorNumberController.text =
+                              credential?.credentialNumber ?? '';
+                        }
+                        // Clearing to None keeps the text fields untouched.
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
                   // Instructor name field
                   TextFormField(
                     controller: _instructorNameController,
@@ -767,6 +791,7 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
         instructorNumber: _instructorNumberController.text.trim().isEmpty
             ? null
             : _instructorNumberController.text.trim(),
+        instructorId: _instructorId,
         photoFront: _photoFront,
         photoBack: _photoBack,
         notes: _notesController.text.trim(),

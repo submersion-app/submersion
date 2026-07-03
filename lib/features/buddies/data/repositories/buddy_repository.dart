@@ -10,10 +10,17 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain;
 import 'package:submersion/features/buddies/data/repositories/buddy_merge_repository.dart';
+import 'package:submersion/features/buddies/data/repositories/buddy_role_repository.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy_role_credential.dart';
 
 // Re-export merge types so callers can import from buddy_repository.dart
 export 'package:submersion/features/buddies/data/repositories/buddy_merge_repository.dart'
-    show BuddyMergeResult, BuddyMergeSnapshot, DiveBuddySnapshot;
+    show
+        BuddyMergeResult,
+        BuddyMergeSnapshot,
+        DiveBuddySnapshot,
+        BuddyRoleSnapshot,
+        CertificationInstructorSnapshot;
 
 class BuddyRepository {
   AppDatabase get _db => DatabaseService.instance.database;
@@ -25,6 +32,29 @@ class BuddyRepository {
   /// refresh after a sync or any other write.
   Stream<void> watchBuddiesChanges() =>
       _db.tableUpdates(TableUpdateQuery.onTable(_db.buddies));
+
+  /// Emits whenever the `buddy_roles` table changes.
+  /// Delegates to [BuddyRoleRepository].
+  Stream<void> watchBuddyRolesChanges() =>
+      BuddyRoleRepository().watchBuddyRolesChanges();
+
+  /// Professional credentials for one buddy.
+  /// Delegates to [BuddyRoleRepository].
+  Future<List<BuddyRoleCredential>> getRolesForBuddy(String buddyId) =>
+      BuddyRoleRepository().getRolesForBuddy(buddyId);
+
+  /// All credentials keyed by buddy id, for pickers annotating many buddies.
+  /// Delegates to [BuddyRoleRepository].
+  Future<Map<String, List<BuddyRoleCredential>>> getAllRoles() =>
+      BuddyRoleRepository().getAllRoles();
+
+  /// Replace the credential set for [buddyId]. Dedupes by role (last entry
+  /// wins) and preserves the existing row id for roles that stay.
+  /// Delegates to [BuddyRoleRepository].
+  Future<void> setRolesForBuddy(
+    String buddyId,
+    List<BuddyRoleCredential> roles,
+  ) => BuddyRoleRepository().setRolesForBuddy(buddyId, roles);
 
   /// Get all buddies ordered by name
   Future<List<domain.Buddy>> getAllBuddies({String? diverId}) async {

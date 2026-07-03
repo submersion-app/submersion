@@ -912,6 +912,37 @@ class AppLocalizationsHe extends AppLocalizations {
       'אין מספיק חברי צוללים למיזוג.';
 
   @override
+  String get buddies_section_professionalRoles => 'תפקידים מקצועיים';
+
+  @override
+  String get buddies_roles_addRole => 'הוסף תפקיד';
+
+  @override
+  String get buddies_roles_role => 'תפקיד';
+
+  @override
+  String get buddies_roles_agency => 'גוף הסמכה';
+
+  @override
+  String get buddies_roles_credentialNumber => 'מספר הסמכה';
+
+  @override
+  String get buddies_roles_removeTooltip => 'הסר תפקיד';
+
+  @override
+  String get buddies_roles_emptyHint =>
+      'הוסף הסמכות מדריך או דייבמאסטר לשימוש חוזר בעת רישום הסמכות וקורסים.';
+
+  @override
+  String get buddies_instructorPicker_label => 'מדריך מתוך חברי הצוללים';
+
+  @override
+  String get buddies_instructorPicker_none => 'ללא (הזנה ידנית)';
+
+  @override
+  String get buddies_detail_section_professionalRoles => 'תפקידים מקצועיים';
+
+  @override
   String get certifications_appBar_addCertification => 'הוסף הסמכה';
 
   @override
@@ -1773,9 +1804,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get courses_field_notes => 'הערות';
 
   @override
-  String get courses_field_selectFromBuddies => 'בחר מחברי צוללים (אופציונלי)';
-
-  @override
   String get courses_filter_all => 'הכל';
 
   @override
@@ -1798,9 +1826,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get courses_label_name => 'שם';
-
-  @override
-  String get courses_label_none => '-- ללא --';
 
   @override
   String get courses_label_startDate => 'תאריך התחלה';

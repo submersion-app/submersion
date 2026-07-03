@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
@@ -139,8 +140,9 @@ class _CertificationDetailContent extends ConsumerWidget {
 
           // Instructor info
           if (certification.instructorName != null ||
-              certification.instructorNumber != null) ...[
-            _buildInstructorSection(context),
+              certification.instructorNumber != null ||
+              certification.instructorId != null) ...[
+            _buildInstructorSection(context, ref),
             const SizedBox(height: 16),
           ],
 
@@ -546,7 +548,20 @@ class _CertificationDetailContent extends ConsumerWidget {
     );
   }
 
-  Widget _buildInstructorSection(BuildContext context) {
+  Widget _buildInstructorSection(BuildContext context, WidgetRef ref) {
+    final instructorId = certification.instructorId;
+    final linkedBuddy = instructorId != null
+        ? ref.watch(buddyByIdProvider(instructorId)).value
+        : null;
+    // Fall back to the linked buddy's name when the snapshot text fields
+    // were cleared (e.g. after a data-quality fix-up); if there's still
+    // nothing to show, hide the section entirely.
+    final displayName = certification.instructorName ?? linkedBuddy?.name;
+
+    if (displayName == null && certification.instructorNumber == null) {
+      return const SizedBox.shrink();
+    }
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -560,12 +575,34 @@ class _CertificationDetailContent extends ConsumerWidget {
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
-            if (certification.instructorName != null)
-              _InfoRow(
-                icon: Icons.person,
-                label: context.l10n.certifications_detail_label_instructorName,
-                value: certification.instructorName!,
-              ),
+            if (displayName != null)
+              linkedBuddy != null
+                  ? ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Icon(
+                        Icons.person,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      title: Text(
+                        context.l10n.certifications_detail_label_instructorName,
+                      ),
+                      subtitle: Text(displayName),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () {
+                        if (embedded) {
+                          context.go('/buddies?selected=$instructorId');
+                        } else {
+                          context.push('/buddies/$instructorId');
+                        }
+                      },
+                    )
+                  : _InfoRow(
+                      icon: Icons.person,
+                      label: context
+                          .l10n
+                          .certifications_detail_label_instructorName,
+                      value: displayName,
+                    ),
             if (certification.instructorNumber != null)
               _InfoRow(
                 icon: Icons.badge,

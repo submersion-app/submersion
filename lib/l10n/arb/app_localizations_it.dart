@@ -930,6 +930,37 @@ class AppLocalizationsIt extends AppLocalizations {
       'Compagni insufficienti per l\'unione.';
 
   @override
+  String get buddies_section_professionalRoles => 'Ruoli Professionali';
+
+  @override
+  String get buddies_roles_addRole => 'Aggiungi ruolo';
+
+  @override
+  String get buddies_roles_role => 'Ruolo';
+
+  @override
+  String get buddies_roles_agency => 'Agenzia';
+
+  @override
+  String get buddies_roles_credentialNumber => 'Numero di credenziale';
+
+  @override
+  String get buddies_roles_removeTooltip => 'Rimuovi ruolo';
+
+  @override
+  String get buddies_roles_emptyHint =>
+      'Aggiungi le credenziali di istruttore o divemaster per riutilizzarle durante la registrazione di certificazioni e corsi.';
+
+  @override
+  String get buddies_instructorPicker_label => 'Istruttore dai compagni';
+
+  @override
+  String get buddies_instructorPicker_none => 'Nessuno (inserimento manuale)';
+
+  @override
+  String get buddies_detail_section_professionalRoles => 'Ruoli Professionali';
+
+  @override
   String get certifications_appBar_addCertification =>
       'Aggiungi certificazione';
 
@@ -1834,10 +1865,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get courses_field_notes => 'Note';
 
   @override
-  String get courses_field_selectFromBuddies =>
-      'Seleziona dai Compagni (Facoltativo)';
-
-  @override
   String get courses_filter_all => 'Tutti';
 
   @override
@@ -1860,9 +1887,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get courses_label_name => 'Nome';
-
-  @override
-  String get courses_label_none => '-- Nessuno --';
 
   @override
   String get courses_label_startDate => 'Data Inizio';

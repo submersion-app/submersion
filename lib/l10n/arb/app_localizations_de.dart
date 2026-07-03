@@ -933,6 +933,37 @@ class AppLocalizationsDe extends AppLocalizations {
       'Nicht genügend Tauchpartner zum Zusammenführen.';
 
   @override
+  String get buddies_section_professionalRoles => 'Berufliche Rollen';
+
+  @override
+  String get buddies_roles_addRole => 'Rolle hinzufügen';
+
+  @override
+  String get buddies_roles_role => 'Rolle';
+
+  @override
+  String get buddies_roles_agency => 'Organisation';
+
+  @override
+  String get buddies_roles_credentialNumber => 'Zertifizierungsnummer';
+
+  @override
+  String get buddies_roles_removeTooltip => 'Rolle entfernen';
+
+  @override
+  String get buddies_roles_emptyHint =>
+      'Fügen Sie Tauchlehrer- oder Divemaster-Qualifikationen hinzu, um sie beim Erfassen von Zertifizierungen und Kursen wiederzuverwenden.';
+
+  @override
+  String get buddies_instructorPicker_label => 'Tauchlehrer aus Tauchpartnern';
+
+  @override
+  String get buddies_instructorPicker_none => 'Keiner (manuelle Eingabe)';
+
+  @override
+  String get buddies_detail_section_professionalRoles => 'Berufliche Rollen';
+
+  @override
   String get certifications_appBar_addCertification =>
       'Zertifizierung hinzufügen';
 
@@ -1840,10 +1871,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get courses_field_notes => 'Notizen';
 
   @override
-  String get courses_field_selectFromBuddies =>
-      'Aus Tauchpartnern auswählen (Optional)';
-
-  @override
   String get courses_filter_all => 'Alle';
 
   @override
@@ -1866,9 +1893,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get courses_label_name => 'Name';
-
-  @override
-  String get courses_label_none => '-- Keine --';
 
   @override
   String get courses_label_startDate => 'Startdatum';

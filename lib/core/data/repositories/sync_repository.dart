@@ -30,6 +30,7 @@ class SyncRepository {
     'divers': (table: 'divers', pk: 'id'),
     'diverSettings': (table: 'diver_settings', pk: 'id'),
     'buddies': (table: 'buddies', pk: 'id'),
+    'buddyRoles': (table: 'buddy_roles', pk: 'id'),
     'diveCenters': (table: 'dive_centers', pk: 'id'),
     'trips': (table: 'trips', pk: 'id'),
     'liveaboardDetails': (table: 'liveaboard_detail_records', pk: 'id'),

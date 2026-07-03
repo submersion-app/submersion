@@ -12,6 +12,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/constants/buddy_field.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy_role_credential.dart';
 import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
@@ -140,6 +141,26 @@ final buddiesForDiveProvider =
         ref.watch(diveRepositoryProvider).watchDiveDetailChanges(),
       );
       return repository.getBuddiesForDive(diveId);
+    });
+
+/// Professional credentials for one buddy. Self-invalidates on any
+/// buddy_roles table change (local edit or sync apply).
+final buddyRolesProvider =
+    FutureProvider.family<List<BuddyRoleCredential>, String>((
+      ref,
+      buddyId,
+    ) async {
+      final repository = ref.watch(buddyRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchBuddyRolesChanges());
+      return repository.getRolesForBuddy(buddyId);
+    });
+
+/// All credentials keyed by buddy id, for pickers annotating many buddies.
+final allBuddyRolesProvider =
+    FutureProvider<Map<String, List<BuddyRoleCredential>>>((ref) async {
+      final repository = ref.watch(buddyRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchBuddyRolesChanges());
+      return repository.getAllRoles();
     });
 
 /// Buddy search provider

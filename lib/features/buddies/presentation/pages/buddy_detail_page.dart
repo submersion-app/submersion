@@ -137,6 +137,9 @@ class _BuddyDetailContent extends ConsumerWidget {
             const SizedBox(height: 24),
           ],
 
+          // Professional roles
+          _buildRolesSection(context, ref),
+
           // Statistics
           _buildStatsSection(context, statsAsync),
           const SizedBox(height: 24),
@@ -487,6 +490,44 @@ class _BuddyDetailContent extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildRolesSection(BuildContext context, WidgetRef ref) {
+    final rolesAsync = ref.watch(buddyRolesProvider(buddy.id));
+    final roles = rolesAsync.value;
+    if (roles == null || roles.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  context.l10n.buddies_detail_section_professionalRoles,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                for (final credential in roles)
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.workspace_premium),
+                    title: Text(credential.displayLabel),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+      ],
     );
   }
 

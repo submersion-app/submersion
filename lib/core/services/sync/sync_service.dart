@@ -815,6 +815,7 @@ class SyncService {
             hasUpdatedAt: true,
           ),
           (type: 'buddies', records: data.buddies, hasUpdatedAt: true),
+          (type: 'buddyRoles', records: data.buddyRoles, hasUpdatedAt: true),
           (type: 'diveCenters', records: data.diveCenters, hasUpdatedAt: true),
           (type: 'trips', records: data.trips, hasUpdatedAt: true),
           (
@@ -1426,6 +1427,7 @@ class SyncService {
     'divers': true,
     'diverSettings': true,
     'buddies': true,
+    'buddyRoles': true,
     'diveCenters': true,
     'trips': true,
     'liveaboardDetails': true,
@@ -1508,6 +1510,7 @@ class SyncService {
       (field: 'diveId', parent: 'dives', nullable: false),
       (field: 'buddyId', parent: 'buddies', nullable: false),
     ],
+    'buddyRoles': [(field: 'buddyId', parent: 'buddies', nullable: false)],
     'diveTags': [
       (field: 'diveId', parent: 'dives', nullable: false),
       (field: 'tagId', parent: 'tags', nullable: false),
@@ -1547,7 +1550,10 @@ class SyncService {
       (field: 'templateId', parent: 'checklistTemplates', nullable: false),
     ],
     'tripChecklistItems': [(field: 'tripId', parent: 'trips', nullable: false)],
-    'certifications': [(field: 'courseId', parent: 'courses', nullable: true)],
+    'certifications': [
+      (field: 'courseId', parent: 'courses', nullable: true),
+      (field: 'instructorId', parent: 'buddies', nullable: true),
+    ],
     'courses': [(field: 'instructorId', parent: 'buddies', nullable: true)],
     'equipmentSetItems': [
       (field: 'setId', parent: 'equipmentSets', nullable: false),

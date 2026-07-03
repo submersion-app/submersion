@@ -922,6 +922,37 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا يوجد عدد كافٍ من الرفاق للدمج.';
 
   @override
+  String get buddies_section_professionalRoles => 'الأدوار المهنية';
+
+  @override
+  String get buddies_roles_addRole => 'إضافة دور';
+
+  @override
+  String get buddies_roles_role => 'الدور';
+
+  @override
+  String get buddies_roles_agency => 'الجهة';
+
+  @override
+  String get buddies_roles_credentialNumber => 'رقم الاعتماد';
+
+  @override
+  String get buddies_roles_removeTooltip => 'إزالة الدور';
+
+  @override
+  String get buddies_roles_emptyHint =>
+      'أضف بيانات اعتماد المدرب أو مدرب الغوص الرئيسي لإعادة استخدامها عند تسجيل الشهادات والدورات.';
+
+  @override
+  String get buddies_instructorPicker_label => 'المدرب من قائمة الرفاق';
+
+  @override
+  String get buddies_instructorPicker_none => 'لا يوجد (إدخال يدوي)';
+
+  @override
+  String get buddies_detail_section_professionalRoles => 'الأدوار المهنية';
+
+  @override
   String get certifications_appBar_addCertification => 'إضافة شهادة';
 
   @override
@@ -1788,9 +1819,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get courses_field_notes => 'ملاحظات';
 
   @override
-  String get courses_field_selectFromBuddies => 'اختر من الرفاق (اختياري)';
-
-  @override
   String get courses_filter_all => 'الكل';
 
   @override
@@ -1813,9 +1841,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get courses_label_name => 'الاسم';
-
-  @override
-  String get courses_label_none => '-- لا شيء --';
 
   @override
   String get courses_label_startDate => 'تاريخ البدء';

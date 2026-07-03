@@ -930,6 +930,39 @@ class AppLocalizationsPt extends AppLocalizations {
       'Companheiros insuficientes para mesclar.';
 
   @override
+  String get buddies_section_professionalRoles => 'Funções Profissionais';
+
+  @override
+  String get buddies_roles_addRole => 'Adicionar função';
+
+  @override
+  String get buddies_roles_role => 'Função';
+
+  @override
+  String get buddies_roles_agency => 'Agência';
+
+  @override
+  String get buddies_roles_credentialNumber => 'Número de credencial';
+
+  @override
+  String get buddies_roles_removeTooltip => 'Remover função';
+
+  @override
+  String get buddies_roles_emptyHint =>
+      'Adicione as credenciais de instrutor ou divemaster para reutilizá-las ao registrar certificações e cursos.';
+
+  @override
+  String get buddies_instructorPicker_label =>
+      'Instrutor da lista de companheiros';
+
+  @override
+  String get buddies_instructorPicker_none => 'Nenhum (entrada manual)';
+
+  @override
+  String get buddies_detail_section_professionalRoles =>
+      'Funções Profissionais';
+
+  @override
   String get certifications_appBar_addCertification => 'Adicionar Certificacao';
 
   @override
@@ -1832,10 +1865,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get courses_field_notes => 'Notas';
 
   @override
-  String get courses_field_selectFromBuddies =>
-      'Selecionar dos Companheiros (Opcional)';
-
-  @override
   String get courses_filter_all => 'Todos';
 
   @override
@@ -1858,9 +1887,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get courses_label_name => 'Nome';
-
-  @override
-  String get courses_label_none => '-- Nenhum --';
 
   @override
   String get courses_label_startDate => 'Data de Início';

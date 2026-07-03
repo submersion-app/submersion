@@ -112,8 +112,11 @@ void main() {
     },
   );
 
-  test('schema version is 98 and the migration list includes it', () {
-    expect(AppDatabase.currentSchemaVersion, 98);
+  test('v98 is in the migration ladder', () {
+    // v98 is now a past migration (the latest-version tripwire lives in the
+    // newest migration's test — buddy roles v99, #395), so assert membership,
+    // not equality.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(98));
     expect(AppDatabase.migrationVersions, contains(98));
   });
 
