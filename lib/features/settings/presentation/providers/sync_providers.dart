@@ -9,6 +9,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/domain/entities/storage_config.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
+import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_app.dart';
 import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_auth_store.dart';
 import 'package:submersion/core/services/cloud_storage/dropbox_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive_storage_provider.dart';
@@ -1033,3 +1034,9 @@ final dropboxStorageProviderInstanceProvider = Provider<DropboxStorageProvider>(
 final dropboxAuthDataProvider = FutureProvider<DropboxAuthData?>((ref) async {
   return ref.watch(dropboxStorageProviderInstanceProvider).loadAuth();
 });
+
+/// Whether this build carries a Dropbox app key; the settings tile hides
+/// otherwise.
+final dropboxConfiguredProvider = Provider<bool>(
+  (ref) => dropboxAppKey.isNotEmpty,
+);

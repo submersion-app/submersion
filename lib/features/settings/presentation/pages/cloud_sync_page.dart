@@ -468,7 +468,11 @@ class CloudSyncPage extends ConsumerWidget {
         // implemented; the CloudProviderType and provider plumbing remain
         // so re-enabling is just restoring this tile.
         _buildS3ProviderTile(context, ref, selectedProvider),
-        _buildDropboxProviderTile(context, ref, selectedProvider),
+        // The feature ships dark: the tile disappears in builds without a
+        // registered Dropbox app key (dropboxAppKey left empty) so users
+        // never see a connect dialog that immediately errors.
+        if (ref.watch(dropboxConfiguredProvider))
+          _buildDropboxProviderTile(context, ref, selectedProvider),
       ],
     );
   }

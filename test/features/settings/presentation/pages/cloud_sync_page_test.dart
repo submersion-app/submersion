@@ -322,6 +322,10 @@ void main() {
     bool settle = true,
     S3Config? s3Config,
     DropboxAuthData? dropboxAuth,
+    // Existing tests exercise the Dropbox tile assuming it is visible; only
+    // the "hidden until configured" test overrides this to false, matching
+    // the current production default (dropboxAppKey is empty).
+    bool dropboxConfigured = true,
     SyncBehaviorSettings behavior = const SyncBehaviorSettings(
       autoSyncEnabled: false,
       syncOnLaunch: false,
@@ -377,6 +381,7 @@ void main() {
           s3ConfigProvider.overrideWith((ref) async => s3Config),
           // Same for the Dropbox connection: null means not connected.
           dropboxAuthDataProvider.overrideWith((ref) async => dropboxAuth),
+          dropboxConfiguredProvider.overrideWith((ref) => dropboxConfigured),
         ],
         child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -1680,6 +1685,13 @@ void main() {
       // Tile subtitle plus the dialog body.
       expect(find.text('Connected as d@example.com'), findsNWidgets(2));
       expect(find.text('Disconnect'), findsOneWidget);
+    });
+
+    testWidgets('is absent when the build has no Dropbox app key configured '
+        '(current production default)', (tester) async {
+      await pumpPage(tester, dropboxConfigured: false);
+
+      expect(find.text('Dropbox'), findsNothing);
     });
 
     testWidgets(
