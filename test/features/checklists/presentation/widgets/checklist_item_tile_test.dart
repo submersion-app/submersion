@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
 import 'package:submersion/features/checklists/presentation/widgets/checklist_item_tile.dart';
 
@@ -168,6 +169,11 @@ void main() {
     );
 
     expect(find.text('Overdue'), findsNothing);
-    expect(find.textContaining('Aug 1'), findsOneWidget);
+    // Match the widget's own formatter (DateFormat.MMMd) so the assertion is
+    // locale-independent.
+    expect(
+      find.text(DateFormat.MMMd().format(DateTime(2026, 8, 1))),
+      findsOneWidget,
+    );
   });
 }
