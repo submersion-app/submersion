@@ -827,6 +827,21 @@ class SyncService {
             records: data.itineraryDays,
             hasUpdatedAt: true,
           ),
+          (
+            type: 'checklistTemplates',
+            records: data.checklistTemplates,
+            hasUpdatedAt: true,
+          ),
+          (
+            type: 'checklistTemplateItems',
+            records: data.checklistTemplateItems,
+            hasUpdatedAt: true,
+          ),
+          (
+            type: 'tripChecklistItems',
+            records: data.tripChecklistItems,
+            hasUpdatedAt: true,
+          ),
           (type: 'equipment', records: data.equipment, hasUpdatedAt: true),
           (
             type: 'equipmentSets',
@@ -1415,6 +1430,9 @@ class SyncService {
     'trips': true,
     'liveaboardDetails': true,
     'itineraryDays': true,
+    'checklistTemplates': true,
+    'checklistTemplateItems': true,
+    'tripChecklistItems': true,
     'equipment': true,
     'equipmentSets': true,
     'equipmentSetItems': false,
@@ -1520,6 +1538,10 @@ class SyncService {
     ],
     'liveaboardDetails': [(field: 'tripId', parent: 'trips', nullable: false)],
     'itineraryDays': [(field: 'tripId', parent: 'trips', nullable: false)],
+    'checklistTemplateItems': [
+      (field: 'templateId', parent: 'checklistTemplates', nullable: false),
+    ],
+    'tripChecklistItems': [(field: 'tripId', parent: 'trips', nullable: false)],
     'certifications': [(field: 'courseId', parent: 'courses', nullable: true)],
     'courses': [(field: 'instructorId', parent: 'buddies', nullable: true)],
     'equipmentSetItems': [
