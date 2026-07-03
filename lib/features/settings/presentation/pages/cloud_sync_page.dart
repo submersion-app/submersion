@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart'
     show CloudProviderType;
+import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_auth_store.dart';
 import 'package:submersion/core/services/cloud_storage/icloud_native_service.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
 import 'package:submersion/core/services/sync/library_moved.dart';
@@ -571,7 +572,6 @@ class CloudSyncPage extends ConsumerWidget {
     final auth = ref.watch(dropboxAuthDataProvider).valueOrNull;
     final isSelected = selectedProvider == CloudProviderType.dropbox;
     final isConnected = auth != null;
-    final account = auth?.email ?? auth?.displayName ?? '';
 
     return Semantics(
       selected: isSelected,
@@ -580,7 +580,7 @@ class CloudSyncPage extends ConsumerWidget {
         title: Text(l10n.settings_cloudSync_provider_dropbox_title),
         subtitle: Text(
           isConnected
-              ? l10n.settings_cloudSync_dropbox_connectedAs(account)
+              ? _dropboxConnectedLabel(l10n, auth)
               : l10n.settings_cloudSync_provider_dropbox_subtitle,
         ),
         trailing: Row(
@@ -621,13 +621,22 @@ class CloudSyncPage extends ConsumerWidget {
     );
   }
 
+  /// "Connected as [account]" -- or a generic connected label when the
+  /// account fetch failed at connect time and the stored blob carries no
+  /// email/display name, so the UI never renders a dangling "Connected as".
+  String _dropboxConnectedLabel(AppLocalizations l10n, DropboxAuthData? auth) {
+    final account = auth?.email ?? auth?.displayName;
+    return (account == null || account.isEmpty)
+        ? l10n.settings_cloudSync_dropbox_connected
+        : l10n.settings_cloudSync_dropbox_connectedAs(account);
+  }
+
   Future<void> _showDropboxAccountDialog(
     BuildContext context,
     WidgetRef ref,
   ) async {
     final l10n = context.l10n;
     final auth = ref.read(dropboxAuthDataProvider).valueOrNull;
-    final account = auth?.email ?? auth?.displayName ?? '';
     // Disconnecting the active sync provider also takes cloud backup's
     // destination away; surface that in the same confirmation, mirroring
     // _confirmSignOut.
@@ -642,10 +651,7 @@ class CloudSyncPage extends ConsumerWidget {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(l10n.settings_cloudSync_dropbox_account_title),
-        content: Text(
-          '${l10n.settings_cloudSync_dropbox_connectedAs(account)}'
-          '$backupWarning',
-        ),
+        content: Text('${_dropboxConnectedLabel(l10n, auth)}$backupWarning'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),

@@ -10821,6 +10821,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_cloudSync_dropbox_account_title => 'Dropbox-fiók';
 
   @override
+  String get settings_cloudSync_dropbox_connect_browserFailed =>
+      'Nem sikerült megnyitni a böngészőt. Próbáld a Böngésző újranyitása gombot.';
+
+  @override
   String get settings_cloudSync_dropbox_connect_codeLabel =>
       'Engedélyezési kód';
 
@@ -10847,6 +10851,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_cloudSync_dropbox_connect_title =>
       'Dropbox csatlakoztatása';
+
+  @override
+  String get settings_cloudSync_dropbox_connected =>
+      'Csatlakoztatva a Dropboxhoz';
 
   @override
   String settings_cloudSync_dropbox_connectedAs(Object account) {

@@ -10343,6 +10343,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_cloudSync_dropbox_account_title => 'Dropbox 账户';
 
   @override
+  String get settings_cloudSync_dropbox_connect_browserFailed =>
+      '无法打开浏览器。请尝试“重新打开浏览器”按钮。';
+
+  @override
   String get settings_cloudSync_dropbox_connect_codeLabel => '授权码';
 
   @override
@@ -10365,6 +10369,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_cloudSync_dropbox_connect_title => '连接 Dropbox';
+
+  @override
+  String get settings_cloudSync_dropbox_connected => '已连接到 Dropbox';
 
   @override
   String settings_cloudSync_dropbox_connectedAs(Object account) {

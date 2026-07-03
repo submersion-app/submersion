@@ -18453,6 +18453,12 @@ abstract class AppLocalizations {
   /// **'Dropbox account'**
   String get settings_cloudSync_dropbox_account_title;
 
+  /// No description provided for @settings_cloudSync_dropbox_connect_browserFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open your browser. Try the Reopen browser button.'**
+  String get settings_cloudSync_dropbox_connect_browserFailed;
+
   /// No description provided for @settings_cloudSync_dropbox_connect_codeLabel.
   ///
   /// In en, this message translates to:
@@ -18494,6 +18500,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Connect Dropbox'**
   String get settings_cloudSync_dropbox_connect_title;
+
+  /// No description provided for @settings_cloudSync_dropbox_connected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected to Dropbox'**
+  String get settings_cloudSync_dropbox_connected;
 
   /// No description provided for @settings_cloudSync_dropbox_connectedAs.
   ///

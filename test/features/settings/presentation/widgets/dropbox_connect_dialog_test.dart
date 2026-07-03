@@ -51,6 +51,7 @@ void main() {
     WidgetTester tester,
     DropboxStorageProvider p, {
     List<Uri>? opened,
+    bool openResult = true,
   }) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -70,7 +71,7 @@ void main() {
                   provider: p,
                   openUri: (uri) async {
                     opened?.add(uri);
-                    return true;
+                    return openResult;
                   },
                 ),
               ),
@@ -96,6 +97,18 @@ void main() {
     expect(opened, hasLength(2));
     // Same PKCE verifier both times: identical URL.
     expect(opened[1], opened[0]);
+  });
+
+  testWidgets('a false return from openUri surfaces the browser error '
+      'inline', (tester) async {
+    // launchUrl reports "no browser opened" by returning false, not by
+    // throwing; the dialog must not stay silent about it.
+    await pumpDialog(tester, provider(happyMock()), openResult: false);
+    expect(
+      find.text('Could not open your browser. Try the Reopen browser button.'),
+      findsOneWidget,
+    );
+    expect(find.text('Connect Dropbox'), findsOneWidget);
   });
 
   testWidgets('empty code shows validation error and does not close', (

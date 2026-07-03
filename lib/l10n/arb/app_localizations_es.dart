@@ -10838,6 +10838,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_cloudSync_dropbox_account_title => 'Cuenta de Dropbox';
 
   @override
+  String get settings_cloudSync_dropbox_connect_browserFailed =>
+      'No se pudo abrir el navegador. Prueba el botón Reabrir navegador.';
+
+  @override
   String get settings_cloudSync_dropbox_connect_codeLabel =>
       'Código de autorización';
 
@@ -10863,6 +10867,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_cloudSync_dropbox_connect_title => 'Conectar Dropbox';
+
+  @override
+  String get settings_cloudSync_dropbox_connected => 'Conectado a Dropbox';
 
   @override
   String settings_cloudSync_dropbox_connectedAs(Object account) {

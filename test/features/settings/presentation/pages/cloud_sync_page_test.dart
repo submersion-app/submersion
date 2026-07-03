@@ -1663,6 +1663,28 @@ void main() {
       expect(find.text('Sync via Dropbox (Apps/Submersion)'), findsNothing);
     });
 
+    testWidgets('falls back to a generic connected label when the stored '
+        'blob has no account info', (tester) async {
+      // completeAuthorization deliberately persists the refresh token even
+      // when the account fetch fails; the UI must not render a dangling
+      // "Connected as ".
+      await pumpPage(tester, dropboxAuth: DropboxAuthData(refreshToken: 'rt'));
+
+      expect(find.text('Connected to Dropbox'), findsOneWidget);
+      expect(find.textContaining('Connected as'), findsNothing);
+
+      await tester.tap(
+        find.descendant(
+          of: dropboxTile(),
+          matching: find.byIcon(Icons.settings_outlined),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Tile subtitle plus the account dialog body.
+      expect(find.textContaining('Connected to Dropbox'), findsNWidgets(2));
+    });
+
     testWidgets('gear icon when connected opens the account dialog with a '
         'Disconnect action', (tester) async {
       await pumpPage(

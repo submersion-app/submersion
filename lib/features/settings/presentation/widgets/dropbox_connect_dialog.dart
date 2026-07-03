@@ -46,7 +46,17 @@ class _DropboxConnectDialogState extends State<DropboxConnectDialog> {
       final open =
           widget.openUri ??
           (Uri u) => launchUrl(u, mode: LaunchMode.externalApplication);
-      await open(uri);
+      final opened = await open(uri);
+      // launchUrl reports failure by returning false, not only by throwing;
+      // leaving that silent strands the user on a dialog whose instructions
+      // claim a browser page is open.
+      if (!opened) {
+        if (!mounted) return;
+        setState(
+          () => _errorText =
+              context.l10n.settings_cloudSync_dropbox_connect_browserFailed,
+        );
+      }
     } on CloudStorageException catch (e) {
       // The dialog is barrier-dismissible; the open can outlive this State.
       if (!mounted) return;
