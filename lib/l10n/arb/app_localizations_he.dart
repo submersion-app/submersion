@@ -3135,21 +3135,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_detail_errorLoading => 'שגיאה בטעינת צלילה';
 
   @override
-  String get diveLog_detail_fullscreen_sampleData => 'נתוני דגימה';
-
-  @override
-  String get diveLog_detail_fullscreen_tapChartCompact =>
-      'לחץ על התרשים לתצוגה קומפקטית';
-
-  @override
-  String get diveLog_detail_fullscreen_tapChartFull =>
-      'לחץ על התרשים לתצוגה במסך מלא';
-
-  @override
-  String get diveLog_detail_fullscreen_touchChart =>
-      'גע בתרשים כדי לראות נתונים באותה נקודה';
-
-  @override
   String get diveLog_detail_label_airTemp => 'טמפ\' אוויר';
 
   @override

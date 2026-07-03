@@ -3168,21 +3168,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_detail_errorLoading => 'Error loading dive';
 
   @override
-  String get diveLog_detail_fullscreen_sampleData => 'Sample Data';
-
-  @override
-  String get diveLog_detail_fullscreen_tapChartCompact =>
-      'Tap chart for compact view';
-
-  @override
-  String get diveLog_detail_fullscreen_tapChartFull =>
-      'Tap chart for full-screen view';
-
-  @override
-  String get diveLog_detail_fullscreen_touchChart =>
-      'Touch the chart to see data at that point';
-
-  @override
   String get diveLog_detail_label_airTemp => 'Air Temp';
 
   @override

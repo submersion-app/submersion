@@ -3152,21 +3152,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_detail_errorLoading => 'خطأ في تحميل الغوصة';
 
   @override
-  String get diveLog_detail_fullscreen_sampleData => 'بيانات العينة';
-
-  @override
-  String get diveLog_detail_fullscreen_tapChartCompact =>
-      'اضغط على المخطط للعرض المدمج';
-
-  @override
-  String get diveLog_detail_fullscreen_tapChartFull =>
-      'اضغط على المخطط للعرض بملء الشاشة';
-
-  @override
-  String get diveLog_detail_fullscreen_touchChart =>
-      'المس المخطط لرؤية البيانات عند تلك النقطة';
-
-  @override
   String get diveLog_detail_label_airTemp => 'درجة حرارة الهواء';
 
   @override

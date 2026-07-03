@@ -3242,21 +3242,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Erreur lors du chargement de la plongee';
 
   @override
-  String get diveLog_detail_fullscreen_sampleData => 'Données d\'échantillon';
-
-  @override
-  String get diveLog_detail_fullscreen_tapChartCompact =>
-      'Appuyez sur le graphique pour une vue compacte';
-
-  @override
-  String get diveLog_detail_fullscreen_tapChartFull =>
-      'Appuyez sur le graphique pour une vue plein écran';
-
-  @override
-  String get diveLog_detail_fullscreen_touchChart =>
-      'Touchez le graphique pour voir les données à ce point';
-
-  @override
   String get diveLog_detail_label_airTemp => 'Temp air';
 
   @override

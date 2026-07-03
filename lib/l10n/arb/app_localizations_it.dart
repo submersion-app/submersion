@@ -3226,21 +3226,6 @@ class AppLocalizationsIt extends AppLocalizations {
       'Errore nel caricamento dell\'immersione';
 
   @override
-  String get diveLog_detail_fullscreen_sampleData => 'Dati Campione';
-
-  @override
-  String get diveLog_detail_fullscreen_tapChartCompact =>
-      'Tocca il grafico per vista compatta';
-
-  @override
-  String get diveLog_detail_fullscreen_tapChartFull =>
-      'Tocca il grafico per vista a schermo intero';
-
-  @override
-  String get diveLog_detail_fullscreen_touchChart =>
-      'Tocca il grafico per vedere i dati in quel punto';
-
-  @override
   String get diveLog_detail_label_airTemp => 'Temp. aria';
 
   @override

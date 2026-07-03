@@ -3212,21 +3212,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_detail_errorLoading => 'Hiba a merules betoltesekor';
 
   @override
-  String get diveLog_detail_fullscreen_sampleData => 'Minta adatok';
-
-  @override
-  String get diveLog_detail_fullscreen_tapChartCompact =>
-      'Koppints a grafikonra a kompakt nézetért';
-
-  @override
-  String get diveLog_detail_fullscreen_tapChartFull =>
-      'Koppints a grafikonra a teljes képernyős nézetért';
-
-  @override
-  String get diveLog_detail_fullscreen_touchChart =>
-      'Érintsd meg a grafikont az adott pont adatainak megtekintéséhez';
-
-  @override
   String get diveLog_detail_label_airTemp => 'Levego hom.';
 
   @override
