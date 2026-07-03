@@ -93,12 +93,44 @@ class BuddyRoleRepository {
       final existing = await (_db.select(
         _db.buddyRoles,
       )..where((t) => t.buddyId.equals(buddyId))).get();
-      final existingByRole = {for (final row in existing) row.role: row};
+
+      // Converge duplicate (buddyId, role) rows to one winner before doing
+      // anything else. The surrogate-id PK lets sync land two rows for the
+      // same professional role (each device inserts its own UUID); keep the
+      // authoritative one (highest hlc, else highest updatedAt) and tombstone
+      // the extras so the table returns to its one-row-per-role invariant and
+      // the deletions propagate to peers. Non-professional rows are left as-is.
+      final byRoleName = <String, List<BuddyRoleRow>>{};
+      for (final row in existing) {
+        if (!_isProfessionalRole(row.role)) continue;
+        byRoleName.putIfAbsent(row.role, () => []).add(row);
+      }
+      final survivors = <BuddyRoleRow>[];
+      for (final rows in byRoleName.values) {
+        if (rows.length == 1) {
+          survivors.add(rows.first);
+          continue;
+        }
+        rows.sort(_roleRowPrecedence); // best last
+        final winner = rows.last;
+        survivors.add(winner);
+        for (final loser in rows) {
+          if (loser.id == winner.id) continue;
+          await (_db.delete(
+            _db.buddyRoles,
+          )..where((t) => t.id.equals(loser.id))).go();
+          await _syncRepository.logDeletion(
+            entityType: 'buddyRoles',
+            recordId: loser.id,
+          );
+          wroteAny = true;
+        }
+      }
+      final existingByRole = {for (final row in survivors) row.role: row};
 
       // Delete professional roles no longer present. Non-professional rows
       // (unrecognized role strings) are never touched here.
-      for (final row in existing) {
-        if (!_isProfessionalRole(row.role)) continue;
+      for (final row in survivors) {
         if (!byRole.keys.any((r) => r.name == row.role)) {
           await (_db.delete(
             _db.buddyRoles,
@@ -170,6 +202,22 @@ class BuddyRoleRepository {
 
   bool _isProfessionalRole(String roleName) =>
       kProfessionalBuddyRoles.any((r) => r.name == roleName);
+
+  /// Orders two duplicate role rows worst-to-best (best sorts last). HLC is
+  /// authoritative when present (canonical zero-padded form compares
+  /// lexicographically); a row with an HLC outranks one without; ties fall
+  /// back to updatedAt, then id for a stable, deterministic winner.
+  static int _roleRowPrecedence(BuddyRoleRow a, BuddyRoleRow b) {
+    final aHlc = a.hlc, bHlc = b.hlc;
+    if (aHlc != null && bHlc != null && aHlc != bHlc) {
+      return aHlc.compareTo(bHlc);
+    }
+    if ((aHlc == null) != (bHlc == null)) {
+      return aHlc == null ? -1 : 1; // the row with an HLC wins
+    }
+    if (a.updatedAt != b.updatedAt) return a.updatedAt.compareTo(b.updatedAt);
+    return a.id.compareTo(b.id);
+  }
 
   BuddyRoleCredential _mapRowToRoleCredential(BuddyRoleRow row) {
     return BuddyRoleCredential(

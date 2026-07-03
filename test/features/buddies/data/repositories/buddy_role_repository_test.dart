@@ -456,4 +456,116 @@ void main() {
       expect(all[buddy.id]!.single.role, BuddyRole.instructor);
     });
   });
+
+  group('BuddyRepository role convergence (duplicate (buddyId, role) rows)', () {
+    // The table has a surrogate id PK, so nothing at the DB level prevents two
+    // rows sharing a (buddyId, role) -- a sync conflict where two devices each
+    // insert an instructor credential produces exactly that. setRolesForBuddy
+    // must converge back to one row per role.
+    Future<void> insertRoleRow(
+      String buddyId,
+      String role, {
+      required String id,
+      String? credentialNumber,
+      required int updatedAt,
+      String? hlc,
+    }) async {
+      await db
+          .into(db.buddyRoles)
+          .insert(
+            BuddyRolesCompanion(
+              id: Value(id),
+              buddyId: Value(buddyId),
+              role: Value(role),
+              credentialNumber: Value(credentialNumber),
+              createdAt: Value(updatedAt),
+              updatedAt: Value(updatedAt),
+              hlc: Value(hlc),
+            ),
+          );
+    }
+
+    test('keeps the newest duplicate and tombstones the rest (updatedAt '
+        'winner)', () async {
+      final buddy = await repository.createBuddy(buddyFixture('Nora'));
+      await insertRoleRow(
+        buddy.id,
+        'instructor',
+        id: 'dup-old',
+        credentialNumber: 'OLD',
+        updatedAt: 1000,
+      );
+      await insertRoleRow(
+        buddy.id,
+        'instructor',
+        id: 'dup-new',
+        credentialNumber: 'NEW',
+        updatedAt: 2000,
+      );
+
+      // A no-op-looking save (same role) must still converge the duplicates.
+      final now = DateTime.now();
+      await repository.setRolesForBuddy(buddy.id, [
+        BuddyRoleCredential(
+          id: '',
+          buddyId: buddy.id,
+          role: BuddyRole.instructor,
+          credentialNumber: 'NEW',
+          createdAt: now,
+          updatedAt: now,
+        ),
+      ]);
+
+      final rows = await (db.select(
+        db.buddyRoles,
+      )..where((t) => t.buddyId.equals(buddy.id))).get();
+      expect(rows, hasLength(1));
+      expect(rows.single.id, 'dup-new');
+
+      // The loser is tombstoned so the deletion propagates to peers.
+      final tomb = await db
+          .customSelect(
+            "SELECT COUNT(*) AS c FROM deletion_log "
+            "WHERE entity_type = 'buddyRoles' AND record_id = 'dup-old'",
+          )
+          .getSingle();
+      expect(tomb.read<int>('c'), 1);
+    });
+
+    test('prefers the higher HLC when resolving duplicates', () async {
+      final buddy = await repository.createBuddy(buddyFixture('Omar'));
+      // Lower updatedAt but higher HLC must win (HLC is authoritative).
+      await insertRoleRow(
+        buddy.id,
+        'instructor',
+        id: 'dup-a',
+        updatedAt: 5000,
+        hlc: '000000000001000:000000:node-a',
+      );
+      await insertRoleRow(
+        buddy.id,
+        'instructor',
+        id: 'dup-b',
+        updatedAt: 1000,
+        hlc: '000000000009000:000000:node-b',
+      );
+
+      final now = DateTime.now();
+      await repository.setRolesForBuddy(buddy.id, [
+        BuddyRoleCredential(
+          id: '',
+          buddyId: buddy.id,
+          role: BuddyRole.instructor,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      ]);
+
+      final rows = await (db.select(
+        db.buddyRoles,
+      )..where((t) => t.buddyId.equals(buddy.id))).get();
+      expect(rows, hasLength(1));
+      expect(rows.single.id, 'dup-b');
+    });
+  });
 }
