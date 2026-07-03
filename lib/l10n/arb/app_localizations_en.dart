@@ -4222,6 +4222,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get diveLog_instruments_customize => 'Customize instruments';
+
+  @override
+  String get diveLog_instruments_customizeHint =>
+      'Toggle instruments on or off. Drag to reorder.';
+
+  @override
   String get diveLog_legend_label_ascentRate => 'Ascent Rate';
 
   @override

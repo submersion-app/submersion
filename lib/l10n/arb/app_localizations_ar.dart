@@ -4197,6 +4197,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get diveLog_instruments_customize => 'تخصيص الأدوات';
+
+  @override
+  String get diveLog_instruments_customizeHint =>
+      'قم بتشغيل الأدوات أو إيقافها. اسحب لإعادة الترتيب.';
+
+  @override
   String get diveLog_legend_label_ascentRate => 'معدل الصعود';
 
   @override

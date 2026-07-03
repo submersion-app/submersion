@@ -7226,6 +7226,18 @@ abstract class AppLocalizations {
   /// **'Dive #{number} Profile'**
   String diveLog_fullscreenProfile_title(Object number);
 
+  /// No description provided for @diveLog_instruments_customize.
+  ///
+  /// In en, this message translates to:
+  /// **'Customize instruments'**
+  String get diveLog_instruments_customize;
+
+  /// No description provided for @diveLog_instruments_customizeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle instruments on or off. Drag to reorder.'**
+  String get diveLog_instruments_customizeHint;
+
   /// No description provided for @diveLog_legend_label_ascentRate.
   ///
   /// In en, this message translates to:

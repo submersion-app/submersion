@@ -1386,6 +1386,8 @@
   "diveLog_filter_tooltip_close": "סגירת מסנן",
   "diveLog_fullscreenProfile_close": "סגירת מסך מלא",
   "diveLog_fullscreenProfile_title": "פרופיל צלילה #{number}",
+  "diveLog_instruments_customize": "התאמה אישית של מכשירים",
+  "diveLog_instruments_customizeHint": "הפעל או כבה מכשירים. גרור כדי לסדר מחדש.",
   "diveLog_legend_label_ascentRate": "קצב עלייה",
   "diveLog_legend_label_ascentRateLine": "קו קצב עלייה",
   "diveLog_legend_label_ceiling": "תקרה",

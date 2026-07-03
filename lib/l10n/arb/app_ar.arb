@@ -1420,6 +1420,8 @@
   "diveLog_filter_tooltip_close": "إغلاق التصفية",
   "diveLog_fullscreenProfile_close": "إغلاق ملء الشاشة",
   "diveLog_fullscreenProfile_title": "ملف الغوصة #{number}",
+  "diveLog_instruments_customize": "تخصيص الأدوات",
+  "diveLog_instruments_customizeHint": "قم بتشغيل الأدوات أو إيقافها. اسحب لإعادة الترتيب.",
   "diveLog_legend_label_ascentRate": "معدل الصعود",
   "diveLog_legend_label_ascentRateLine": "خط معدل الصعود",
   "diveLog_legend_label_ceiling": "السقف",

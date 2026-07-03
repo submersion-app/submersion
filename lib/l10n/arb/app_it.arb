@@ -1386,6 +1386,8 @@
   "diveLog_filter_tooltip_close": "Chiudi filtro",
   "diveLog_fullscreenProfile_close": "Chiudi schermo intero",
   "diveLog_fullscreenProfile_title": "Profilo immersione #{number}",
+  "diveLog_instruments_customize": "Personalizza strumenti",
+  "diveLog_instruments_customizeHint": "Attiva o disattiva gli strumenti. Trascina per riordinare.",
   "diveLog_legend_label_ascentRate": "Velocita di risalita",
   "diveLog_legend_label_ascentRateLine": "Linea velocita di risalita",
   "diveLog_legend_label_ceiling": "Ceiling",

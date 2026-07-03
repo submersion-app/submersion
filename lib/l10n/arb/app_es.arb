@@ -1420,6 +1420,8 @@
   "diveLog_filter_tooltip_close": "Cerrar filtro",
   "diveLog_fullscreenProfile_close": "Cerrar pantalla completa",
   "diveLog_fullscreenProfile_title": "Perfil de inmersión #{number}",
+  "diveLog_instruments_customize": "Personalizar instrumentos",
+  "diveLog_instruments_customizeHint": "Activa o desactiva instrumentos. Arrastra para reordenar.",
   "diveLog_legend_label_ascentRate": "Velocidad de ascenso",
   "diveLog_legend_label_ascentRateLine": "Linea de velocidad de ascenso",
   "diveLog_legend_label_ceiling": "Techo",

@@ -1547,6 +1547,8 @@
   "diveLog_filter_tooltip_close": "关闭筛选",
   "diveLog_fullscreenProfile_close": "关闭全屏",
   "diveLog_fullscreenProfile_title": "潜水 #{number} 轮廓",
+  "diveLog_instruments_customize": "自定义仪表",
+  "diveLog_instruments_customizeHint": "开启或关闭仪表。拖动以重新排序。",
   "diveLog_legend_label_ascentRate": "上升速率",
   "diveLog_legend_label_ascentRateLine": "上升速率曲线",
   "diveLog_legend_label_ceiling": "上升限制",

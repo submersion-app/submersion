@@ -4268,6 +4268,13 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get diveLog_instruments_customize => 'Instrumenten aanpassen';
+
+  @override
+  String get diveLog_instruments_customizeHint =>
+      'Schakel instrumenten in of uit. Sleep om te herschikken.';
+
+  @override
   String get diveLog_legend_label_ascentRate => 'Opstijgsnelheid';
 
   @override

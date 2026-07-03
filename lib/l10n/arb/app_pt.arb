@@ -1420,6 +1420,8 @@
   "diveLog_filter_tooltip_close": "Fechar filtro",
   "diveLog_fullscreenProfile_close": "Fechar tela cheia",
   "diveLog_fullscreenProfile_title": "Perfil do Mergulho #{number}",
+  "diveLog_instruments_customize": "Personalizar instrumentos",
+  "diveLog_instruments_customizeHint": "Ative ou desative instrumentos. Arraste para reordenar.",
   "diveLog_legend_label_ascentRate": "Taxa de Subida",
   "diveLog_legend_label_ascentRateLine": "Linha da Taxa de Subida",
   "diveLog_legend_label_ceiling": "Teto",

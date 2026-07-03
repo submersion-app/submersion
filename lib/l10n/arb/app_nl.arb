@@ -1420,6 +1420,8 @@
   "diveLog_filter_tooltip_close": "Filter sluiten",
   "diveLog_fullscreenProfile_close": "Volledig scherm sluiten",
   "diveLog_fullscreenProfile_title": "Duik #{number} profiel",
+  "diveLog_instruments_customize": "Instrumenten aanpassen",
+  "diveLog_instruments_customizeHint": "Schakel instrumenten in of uit. Sleep om te herschikken.",
   "diveLog_legend_label_ascentRate": "Opstijgsnelheid",
   "diveLog_legend_label_ascentRateLine": "Opstijgsnelheid (lijn)",
   "diveLog_legend_label_ceiling": "Plafond",

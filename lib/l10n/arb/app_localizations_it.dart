@@ -4303,6 +4303,13 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get diveLog_instruments_customize => 'Personalizza strumenti';
+
+  @override
+  String get diveLog_instruments_customizeHint =>
+      'Attiva o disattiva gli strumenti. Trascina per riordinare.';
+
+  @override
   String get diveLog_legend_label_ascentRate => 'Velocita di risalita';
 
   @override

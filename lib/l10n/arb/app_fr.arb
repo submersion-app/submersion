@@ -1386,6 +1386,8 @@
   "diveLog_filter_tooltip_close": "Fermer le filtre",
   "diveLog_fullscreenProfile_close": "Fermer le plein ecran",
   "diveLog_fullscreenProfile_title": "Profil de la plongee n{number}",
+  "diveLog_instruments_customize": "Personnaliser les instruments",
+  "diveLog_instruments_customizeHint": "Activez ou désactivez les instruments. Faites glisser pour réorganiser.",
   "diveLog_legend_label_ascentRate": "Vitesse de remontee",
   "diveLog_legend_label_ascentRateLine": "Courbe de vitesse de remontee",
   "diveLog_legend_label_ceiling": "Plafond",

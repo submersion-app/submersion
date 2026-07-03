@@ -4087,6 +4087,12 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get diveLog_instruments_customize => '自定义仪表';
+
+  @override
+  String get diveLog_instruments_customizeHint => '开启或关闭仪表。拖动以重新排序。';
+
+  @override
   String get diveLog_legend_label_ascentRate => '上升速率';
 
   @override
