@@ -10568,6 +10568,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_appearance_metric_ppO2 => 'ppO2';
 
   @override
+  String get settings_appearance_metric_photoMarkers => 'Fotomarkierungen';
+
+  @override
   String get settings_appearance_metric_pressure => 'Druck';
 
   @override

@@ -3397,6 +3397,7 @@
   "settings_appearance_metric_ppHe": "氦分压",
   "settings_appearance_metric_ppN2": "氮分压",
   "settings_appearance_metric_ppO2": "氧分压",
+  "settings_appearance_metric_photoMarkers": "照片标记",
   "settings_appearance_metric_pressure": "压力",
   "settings_appearance_metric_sacRate": "气体消耗率",
   "settings_appearance_metric_surfaceGf": "水面梯度因子",

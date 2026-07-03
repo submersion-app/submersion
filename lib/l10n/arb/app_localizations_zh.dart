@@ -10087,6 +10087,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_appearance_metric_ppO2 => '氧分压';
 
   @override
+  String get settings_appearance_metric_photoMarkers => '照片标记';
+
+  @override
   String get settings_appearance_metric_pressure => '压力';
 
   @override

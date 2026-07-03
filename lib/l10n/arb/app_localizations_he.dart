@@ -10301,6 +10301,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_appearance_metric_ppO2 => 'ppO2';
 
   @override
+  String get settings_appearance_metric_photoMarkers => 'סמני תמונות';
+
+  @override
   String get settings_appearance_metric_pressure => 'לחץ';
 
   @override

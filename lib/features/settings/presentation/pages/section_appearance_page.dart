@@ -609,6 +609,7 @@ class SectionAppearancePage extends ConsumerWidget {
       settings.defaultShowHeartRate,
       settings.defaultShowSac,
       settings.defaultShowEvents,
+      settings.defaultShowPhotoMarkers,
       settings.showCeilingOnProfile,
       settings.showAscentRateColors,
       settings.defaultShowAscentRateLine,

@@ -5685,6 +5685,7 @@
   "settings_appearance_metric_ppHe": "ppHe",
   "settings_appearance_metric_ppN2": "ppN2",
   "settings_appearance_metric_ppO2": "ppO2",
+  "settings_appearance_metric_photoMarkers": "Photo Markers",
   "settings_appearance_metric_pressure": "Pressure",
   "settings_appearance_metric_sacRate": "SAC Rate",
   "settings_appearance_metric_surfaceGf": "Surface GF",
