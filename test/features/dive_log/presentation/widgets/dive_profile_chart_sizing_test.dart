@@ -76,4 +76,24 @@ void main() {
     final plotHeight = tester.getSize(find.byType(LineChart).first).height;
     expect(plotHeight, 200);
   });
+
+  testWidgets('legendLeading renders in the legend row', (tester) async {
+    await tester.pumpWidget(
+      _wrap(
+        SizedBox(
+          width: 800,
+          height: 600,
+          child: DiveProfileChart(
+            profile: _testProfile(),
+            diveDuration: const Duration(minutes: 10),
+            maxDepth: 30,
+            legendLeading: const Text('LEADING-MARKER'),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('LEADING-MARKER'), findsOneWidget);
+  });
 }
