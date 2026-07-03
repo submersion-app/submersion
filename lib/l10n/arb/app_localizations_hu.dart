@@ -10834,6 +10834,60 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get settings_cloudSync_dropbox_account_title => 'Dropbox-fiók';
+
+  @override
+  String get settings_cloudSync_dropbox_connect_browserFailed =>
+      'Nem sikerült megnyitni a böngészőt. Próbáld a Böngésző újranyitása gombot.';
+
+  @override
+  String get settings_cloudSync_dropbox_connect_codeLabel =>
+      'Engedélyezési kód';
+
+  @override
+  String get settings_cloudSync_dropbox_connect_emptyCode =>
+      'Add meg a böngésződben megjelenő engedélyezési kódot';
+
+  @override
+  String settings_cloudSync_dropbox_connect_failed(Object error) {
+    return 'Nem sikerült csatlakozni a Dropboxhoz: $error';
+  }
+
+  @override
+  String get settings_cloudSync_dropbox_connect_instructions =>
+      'A böngésződ megnyitott egy Dropbox engedélyezési oldalt. Engedélyezd a hozzáférést, majd illeszd be ide a Dropbox által mutatott kódot.';
+
+  @override
+  String get settings_cloudSync_dropbox_connect_reopenBrowser =>
+      'Böngésző újranyitása';
+
+  @override
+  String get settings_cloudSync_dropbox_connect_submit => 'Csatlakozás';
+
+  @override
+  String get settings_cloudSync_dropbox_connect_title =>
+      'Dropbox csatlakoztatása';
+
+  @override
+  String get settings_cloudSync_dropbox_connected =>
+      'Csatlakoztatva a Dropboxhoz';
+
+  @override
+  String settings_cloudSync_dropbox_connectedAs(Object account) {
+    return 'Csatlakoztatva mint $account';
+  }
+
+  @override
+  String get settings_cloudSync_dropbox_disconnect => 'Leválasztás';
+
+  @override
+  String get settings_cloudSync_provider_dropbox_subtitle =>
+      'Szinkronizálás Dropboxon keresztül (Apps/Submersion)';
+
+  @override
+  String get settings_cloudSync_provider_dropbox_title => 'Dropbox';
+
+  @override
   String get settings_cloudSync_provider_googleDrive => 'Google Drive';
 
   @override

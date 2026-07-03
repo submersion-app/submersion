@@ -10578,6 +10578,57 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get settings_cloudSync_dropbox_account_title => 'חשבון Dropbox';
+
+  @override
+  String get settings_cloudSync_dropbox_connect_browserFailed =>
+      'לא ניתן לפתוח את הדפדפן. נסה את כפתור פתח מחדש את הדפדפן.';
+
+  @override
+  String get settings_cloudSync_dropbox_connect_codeLabel => 'קוד הרשאה';
+
+  @override
+  String get settings_cloudSync_dropbox_connect_emptyCode =>
+      'הזן את קוד ההרשאה המוצג בדפדפן שלך';
+
+  @override
+  String settings_cloudSync_dropbox_connect_failed(Object error) {
+    return 'החיבור אל Dropbox נכשל: $error';
+  }
+
+  @override
+  String get settings_cloudSync_dropbox_connect_instructions =>
+      'הדפדפן שלך פתח דף הרשאה של Dropbox. אשר את הגישה, ולאחר מכן הדבק כאן את הקוד שמוצג על ידי Dropbox.';
+
+  @override
+  String get settings_cloudSync_dropbox_connect_reopenBrowser =>
+      'פתח מחדש את הדפדפן';
+
+  @override
+  String get settings_cloudSync_dropbox_connect_submit => 'התחבר';
+
+  @override
+  String get settings_cloudSync_dropbox_connect_title => 'התחבר ל-Dropbox';
+
+  @override
+  String get settings_cloudSync_dropbox_connected => 'מחובר ל-Dropbox';
+
+  @override
+  String settings_cloudSync_dropbox_connectedAs(Object account) {
+    return 'מחובר בתור $account';
+  }
+
+  @override
+  String get settings_cloudSync_dropbox_disconnect => 'התנתק';
+
+  @override
+  String get settings_cloudSync_provider_dropbox_subtitle =>
+      'סנכרון באמצעות Dropbox (Apps/Submersion)';
+
+  @override
+  String get settings_cloudSync_provider_dropbox_title => 'Dropbox';
+
+  @override
   String get settings_cloudSync_provider_googleDrive => 'Google Drive';
 
   @override

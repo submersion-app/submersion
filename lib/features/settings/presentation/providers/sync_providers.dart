@@ -9,6 +9,9 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/domain/entities/storage_config.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
+import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_app.dart';
+import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_auth_store.dart';
+import 'package:submersion/core/services/cloud_storage/dropbox_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/icloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/icloud_native_service.dart';
@@ -152,6 +155,7 @@ final selectedCloudProviderTypeProvider = StateProvider<CloudProviderType?>(
 final _googleDriveProvider = GoogleDriveStorageProvider();
 final _icloudProvider = ICloudStorageProvider();
 final _s3Provider = S3StorageProvider();
+final _dropboxProvider = DropboxStorageProvider();
 
 /// The singleton instance backing a [CloudProviderType]. Shared by the active
 /// provider resolution and by old-backend cleanup, which must reach a backend
@@ -165,6 +169,8 @@ CloudStorageProvider cloudProviderInstanceFor(CloudProviderType type) {
       return _googleDriveProvider;
     case CloudProviderType.s3:
       return _s3Provider;
+    case CloudProviderType.dropbox:
+      return _dropboxProvider;
   }
 }
 
@@ -1016,3 +1022,21 @@ final s3StorageProviderInstanceProvider = Provider<S3StorageProvider>(
 final s3ConfigProvider = FutureProvider<S3Config?>((ref) async {
   return ref.watch(s3StorageProviderInstanceProvider).loadConfig();
 });
+
+/// Direct access to the Dropbox provider singleton for the connect UI
+/// (begin/complete authorization, account info).
+final dropboxStorageProviderInstanceProvider = Provider<DropboxStorageProvider>(
+  (ref) => _dropboxProvider,
+);
+
+/// The stored Dropbox connection, or null when Dropbox is not connected.
+/// Invalidate after connecting or disconnecting.
+final dropboxAuthDataProvider = FutureProvider<DropboxAuthData?>((ref) async {
+  return ref.watch(dropboxStorageProviderInstanceProvider).loadAuth();
+});
+
+/// Whether this build carries a Dropbox app key; the settings tile hides
+/// otherwise.
+final dropboxConfiguredProvider = Provider<bool>(
+  (ref) => dropboxAppKey.isNotEmpty,
+);

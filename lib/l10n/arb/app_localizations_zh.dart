@@ -10355,6 +10355,55 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get settings_cloudSync_dropbox_account_title => 'Dropbox 账户';
+
+  @override
+  String get settings_cloudSync_dropbox_connect_browserFailed =>
+      '无法打开浏览器。请尝试“重新打开浏览器”按钮。';
+
+  @override
+  String get settings_cloudSync_dropbox_connect_codeLabel => '授权码';
+
+  @override
+  String get settings_cloudSync_dropbox_connect_emptyCode => '输入浏览器中显示的授权码';
+
+  @override
+  String settings_cloudSync_dropbox_connect_failed(Object error) {
+    return '无法连接到 Dropbox：$error';
+  }
+
+  @override
+  String get settings_cloudSync_dropbox_connect_instructions =>
+      '浏览器已打开 Dropbox 授权页面。请批准访问权限，然后将 Dropbox 显示的代码粘贴到此处。';
+
+  @override
+  String get settings_cloudSync_dropbox_connect_reopenBrowser => '重新打开浏览器';
+
+  @override
+  String get settings_cloudSync_dropbox_connect_submit => '连接';
+
+  @override
+  String get settings_cloudSync_dropbox_connect_title => '连接 Dropbox';
+
+  @override
+  String get settings_cloudSync_dropbox_connected => '已连接到 Dropbox';
+
+  @override
+  String settings_cloudSync_dropbox_connectedAs(Object account) {
+    return '已连接为 $account';
+  }
+
+  @override
+  String get settings_cloudSync_dropbox_disconnect => '断开连接';
+
+  @override
+  String get settings_cloudSync_provider_dropbox_subtitle =>
+      '通过 Dropbox 同步（Apps/Submersion）';
+
+  @override
+  String get settings_cloudSync_provider_dropbox_title => 'Dropbox';
+
+  @override
   String get settings_cloudSync_provider_googleDrive => 'Google Drive';
 
   @override

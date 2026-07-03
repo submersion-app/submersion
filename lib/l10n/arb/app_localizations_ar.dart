@@ -10655,6 +10655,57 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get settings_cloudSync_dropbox_account_title => 'حساب Dropbox';
+
+  @override
+  String get settings_cloudSync_dropbox_connect_browserFailed =>
+      'تعذر فتح المتصفح. جرب زر إعادة فتح المتصفح.';
+
+  @override
+  String get settings_cloudSync_dropbox_connect_codeLabel => 'رمز التفويض';
+
+  @override
+  String get settings_cloudSync_dropbox_connect_emptyCode =>
+      'أدخل رمز التفويض الظاهر في متصفحك';
+
+  @override
+  String settings_cloudSync_dropbox_connect_failed(Object error) {
+    return 'فشل الاتصال بـ Dropbox: $error';
+  }
+
+  @override
+  String get settings_cloudSync_dropbox_connect_instructions =>
+      'فتح متصفحك صفحة تفويض من Dropbox. وافق على الوصول، ثم الصق هنا الرمز الذي يعرضه Dropbox.';
+
+  @override
+  String get settings_cloudSync_dropbox_connect_reopenBrowser =>
+      'إعادة فتح المتصفح';
+
+  @override
+  String get settings_cloudSync_dropbox_connect_submit => 'اتصال';
+
+  @override
+  String get settings_cloudSync_dropbox_connect_title => 'الاتصال بـ Dropbox';
+
+  @override
+  String get settings_cloudSync_dropbox_connected => 'متصل بـ Dropbox';
+
+  @override
+  String settings_cloudSync_dropbox_connectedAs(Object account) {
+    return 'متصل كـ $account';
+  }
+
+  @override
+  String get settings_cloudSync_dropbox_disconnect => 'قطع الاتصال';
+
+  @override
+  String get settings_cloudSync_provider_dropbox_subtitle =>
+      'المزامنة عبر Dropbox (Apps/Submersion)';
+
+  @override
+  String get settings_cloudSync_provider_dropbox_title => 'Dropbox';
+
+  @override
   String get settings_cloudSync_provider_googleDrive => 'Google Drive';
 
   @override

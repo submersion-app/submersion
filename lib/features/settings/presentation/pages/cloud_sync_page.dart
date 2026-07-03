@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart'
     show CloudProviderType;
+import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_auth_store.dart';
 import 'package:submersion/core/services/cloud_storage/icloud_native_service.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
 import 'package:submersion/core/services/sync/library_moved.dart';
@@ -14,6 +15,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/adopt_replaced_library_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/conflict_resolution_dialog.dart';
+import 'package:submersion/features/settings/presentation/widgets/dropbox_connect_dialog.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -467,6 +469,11 @@ class CloudSyncPage extends ConsumerWidget {
         // implemented; the CloudProviderType and provider plumbing remain
         // so re-enabling is just restoring this tile.
         _buildS3ProviderTile(context, ref, selectedProvider),
+        // The tile disappears in builds without a Dropbox app key
+        // (dropboxAppKey empty) so users never see a connect dialog that
+        // immediately errors.
+        if (ref.watch(dropboxConfiguredProvider))
+          _buildDropboxProviderTile(context, ref, selectedProvider),
       ],
     );
   }
@@ -554,6 +561,132 @@ class CloudSyncPage extends ConsumerWidget {
         },
       ),
     );
+  }
+
+  Widget _buildDropboxProviderTile(
+    BuildContext context,
+    WidgetRef ref,
+    CloudProviderType? selectedProvider,
+  ) {
+    final l10n = context.l10n;
+    final auth = ref.watch(dropboxAuthDataProvider).valueOrNull;
+    final isSelected = selectedProvider == CloudProviderType.dropbox;
+    final isConnected = auth != null;
+
+    return Semantics(
+      selected: isSelected,
+      child: ListTile(
+        leading: const Icon(Icons.cloud_queue),
+        title: Text(l10n.settings_cloudSync_provider_dropbox_title),
+        subtitle: Text(
+          isConnected
+              ? _dropboxConnectedLabel(l10n, auth)
+              : l10n.settings_cloudSync_provider_dropbox_subtitle,
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (isSelected)
+              const Icon(
+                Icons.check_circle,
+                color: Colors.green,
+                semanticLabel: 'Connected',
+              ),
+            if (isConnected)
+              IconButton(
+                icon: const Icon(Icons.settings_outlined),
+                tooltip: l10n.settings_cloudSync_dropbox_account_title,
+                onPressed: () => _showDropboxAccountDialog(context, ref),
+              ),
+          ],
+        ),
+        onTap: () async {
+          if (isConnected) {
+            await _selectProvider(context, ref, CloudProviderType.dropbox);
+            return;
+          }
+          final connected = await showDialog<bool>(
+            context: context,
+            builder: (_) => DropboxConnectDialog(
+              provider: ref.read(dropboxStorageProviderInstanceProvider),
+            ),
+          );
+          if (!context.mounted) return;
+          ref.invalidate(dropboxAuthDataProvider);
+          if (connected == true) {
+            await _selectProvider(context, ref, CloudProviderType.dropbox);
+          }
+        },
+      ),
+    );
+  }
+
+  /// "Connected as [account]" -- or a generic connected label when the
+  /// account fetch failed at connect time and the stored blob carries no
+  /// email/display name, so the UI never renders a dangling "Connected as".
+  String _dropboxConnectedLabel(AppLocalizations l10n, DropboxAuthData? auth) {
+    final account = auth?.email ?? auth?.displayName;
+    return (account == null || account.isEmpty)
+        ? l10n.settings_cloudSync_dropbox_connected
+        : l10n.settings_cloudSync_dropbox_connectedAs(account);
+  }
+
+  Future<void> _showDropboxAccountDialog(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final l10n = context.l10n;
+    final auth = ref.read(dropboxAuthDataProvider).valueOrNull;
+    // Disconnecting the active sync provider also takes cloud backup's
+    // destination away; surface that in the same confirmation, mirroring
+    // _confirmSignOut.
+    final isActiveProvider =
+        ref.read(selectedCloudProviderTypeProvider) ==
+        CloudProviderType.dropbox;
+    final backupWarning =
+        isActiveProvider && ref.read(backupSettingsProvider).cloudBackupEnabled
+        ? '\n\n${l10n.settings_cloudSync_signOut_backupWarning}'
+        : '';
+    final disconnect = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.settings_cloudSync_dropbox_account_title),
+        content: Text('${_dropboxConnectedLabel(l10n, auth)}$backupWarning'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(
+              MaterialLocalizations.of(dialogContext).cancelButtonLabel,
+            ),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.settings_cloudSync_dropbox_disconnect),
+          ),
+        ],
+      ),
+    );
+    if (disconnect != true || !context.mounted) return;
+
+    if (isActiveProvider) {
+      // Route through the canonical sign-out path: SyncNotifier.signOut()
+      // (via SyncService.signOut()) already calls through to the active
+      // CloudStorageProvider's own signOut() -- the Dropbox token
+      // revoke/blob clear -- so calling provider.signOut() again here would
+      // double-revoke. This also clears the selection, persisted provider,
+      // and sync state in one place, matching the S3 "Remove Configuration"
+      // precedent (s3_config_page.dart _remove).
+      await ref.read(syncStateProvider.notifier).signOut();
+      await ref.read(backupSettingsProvider.notifier).disableCloudBackup();
+      if (!context.mounted) return;
+      ref.invalidate(dropboxAuthDataProvider);
+      return;
+    }
+
+    final provider = ref.read(dropboxStorageProviderInstanceProvider);
+    await provider.signOut();
+    if (!context.mounted) return;
+    ref.invalidate(dropboxAuthDataProvider);
   }
 
   Future<void> _selectProvider(
@@ -680,6 +813,8 @@ class CloudSyncPage extends ConsumerWidget {
         return l10n.settings_cloudSync_provider_googleDrive;
       case CloudProviderType.s3:
         return l10n.settings_cloudSync_provider_s3_title;
+      case CloudProviderType.dropbox:
+        return l10n.settings_cloudSync_provider_dropbox_title;
     }
   }
 

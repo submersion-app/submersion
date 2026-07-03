@@ -10780,6 +10780,57 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get settings_cloudSync_dropbox_account_title => 'Dropbox-account';
+
+  @override
+  String get settings_cloudSync_dropbox_connect_browserFailed =>
+      'Kan de browser niet openen. Probeer de knop Browser opnieuw openen.';
+
+  @override
+  String get settings_cloudSync_dropbox_connect_codeLabel => 'Autorisatiecode';
+
+  @override
+  String get settings_cloudSync_dropbox_connect_emptyCode =>
+      'Voer de autorisatiecode in die in je browser wordt weergegeven';
+
+  @override
+  String settings_cloudSync_dropbox_connect_failed(Object error) {
+    return 'Kan geen verbinding maken met Dropbox: $error';
+  }
+
+  @override
+  String get settings_cloudSync_dropbox_connect_instructions =>
+      'Je browser heeft een Dropbox-autorisatiepagina geopend. Keur de toegang goed en plak daarna hier de code die Dropbox toont.';
+
+  @override
+  String get settings_cloudSync_dropbox_connect_reopenBrowser =>
+      'Browser opnieuw openen';
+
+  @override
+  String get settings_cloudSync_dropbox_connect_submit => 'Verbinden';
+
+  @override
+  String get settings_cloudSync_dropbox_connect_title => 'Dropbox verbinden';
+
+  @override
+  String get settings_cloudSync_dropbox_connected => 'Verbonden met Dropbox';
+
+  @override
+  String settings_cloudSync_dropbox_connectedAs(Object account) {
+    return 'Verbonden als $account';
+  }
+
+  @override
+  String get settings_cloudSync_dropbox_disconnect => 'Verbinding verbreken';
+
+  @override
+  String get settings_cloudSync_provider_dropbox_subtitle =>
+      'Synchroniseren via Dropbox (Apps/Submersion)';
+
+  @override
+  String get settings_cloudSync_provider_dropbox_title => 'Dropbox';
+
+  @override
   String get settings_cloudSync_provider_googleDrive => 'Google Drive';
 
   @override
