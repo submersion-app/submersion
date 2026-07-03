@@ -278,10 +278,21 @@ class DiveImportService {
     final sortedDives = List<DownloadedDive>.of(dives)
       ..sort((a, b) => a.startTime.compareTo(b.startTime));
 
+    // One source-key snapshot for the whole batch. Downloaded dives carry
+    // unique fingerprints, so a dive imported earlier in this loop can never
+    // be a fingerprint match for a later one -- the snapshot cannot go stale
+    // within the batch.
+    final sourceKeysCache = _diveRepository != null
+        ? await _diveRepository.getSourceKeysByDiveId()
+        : null;
+
     for (final dive in sortedDives) {
       try {
         // Check for duplicates
-        final duplicateResult = await detectDuplicate(dive);
+        final duplicateResult = await detectDuplicate(
+          dive,
+          sourceKeysCache: sourceKeysCache,
+        );
 
         if (duplicateResult.isDuplicate) {
           // Handle based on mode and confidence
@@ -412,15 +423,19 @@ class DiveImportService {
     double timeTolerance = 5.0, // minutes
     double depthTolerance = 0.5, // meters
     String? diverId,
+    Map<String, Set<String>>? sourceKeysCache,
   }) async {
     final rawFingerprint = dive.rawFingerprint;
     if (rawFingerprint != null &&
         rawFingerprint.isNotEmpty &&
         _diveRepository != null) {
       final hexFingerprint = _hexEncodeUppercase(rawFingerprint);
-      final sourceKeys = await _diveRepository.getSourceKeysByDiveId(
-        diverId: diverId,
-      );
+      // Callers checking many dives in one session (the wizard adapter,
+      // importDives) prefetch the source-key map once and pass it in;
+      // querying it per dive is O(dives x whole-log source keys).
+      final sourceKeys =
+          sourceKeysCache ??
+          await _diveRepository.getSourceKeysByDiveId(diverId: diverId);
       for (final entry in sourceKeys.entries) {
         if (entry.value.contains(hexFingerprint)) {
           return DuplicateResult(

@@ -95,6 +95,11 @@ void main() {
       diverId: diverId,
       knownComputer: computer,
     );
+
+    // checkDuplicates prefetches the source-key map once per download.
+    when(
+      mockDiveRepo.getSourceKeysByDiveId(diverId: anyNamed('diverId')),
+    ).thenAnswer((_) async => {});
   });
 
   // -------------------------------------------------------------------------
@@ -237,7 +242,11 @@ void main() {
       final bundle = await adapter.buildBundle();
 
       when(
-        mockImportService.detectDuplicate(dive, diverId: diverId),
+        mockImportService.detectDuplicate(
+          dive,
+          diverId: diverId,
+          sourceKeysCache: anyNamed('sourceKeysCache'),
+        ),
       ).thenAnswer(
         (_) async => const DuplicateResult(
           matchingDiveId: 'existing-dive-1',
@@ -262,7 +271,11 @@ void main() {
       final bundle = await adapter.buildBundle();
 
       when(
-        mockImportService.detectDuplicate(dive, diverId: diverId),
+        mockImportService.detectDuplicate(
+          dive,
+          diverId: diverId,
+          sourceKeysCache: anyNamed('sourceKeysCache'),
+        ),
       ).thenAnswer(
         (_) async => const DuplicateResult(
           matchingDiveId: 'existing-dive-1',
@@ -290,7 +303,11 @@ void main() {
       final bundle = await adapter.buildBundle();
 
       when(
-        mockImportService.detectDuplicate(dive, diverId: diverId),
+        mockImportService.detectDuplicate(
+          dive,
+          diverId: diverId,
+          sourceKeysCache: anyNamed('sourceKeysCache'),
+        ),
       ).thenAnswer(
         (_) async => const DuplicateResult(
           confidence: DuplicateConfidence.none,
@@ -310,7 +327,11 @@ void main() {
       final bundle = await adapter.buildBundle();
 
       when(
-        mockImportService.detectDuplicate(dive, diverId: diverId),
+        mockImportService.detectDuplicate(
+          dive,
+          diverId: diverId,
+          sourceKeysCache: anyNamed('sourceKeysCache'),
+        ),
       ).thenAnswer(
         (_) async => const DuplicateResult(
           matchingDiveId: 'existing-dive-1',
@@ -334,7 +355,11 @@ void main() {
       final bundle = await adapter.buildBundle();
 
       when(
-        mockImportService.detectDuplicate(dive, diverId: diverId),
+        mockImportService.detectDuplicate(
+          dive,
+          diverId: diverId,
+          sourceKeysCache: anyNamed('sourceKeysCache'),
+        ),
       ).thenAnswer(
         (_) async => const DuplicateResult(
           matchingDiveId: 'existing-dive-1',
@@ -357,7 +382,11 @@ void main() {
       final bundle = await adapter.buildBundle();
 
       when(
-        mockImportService.detectDuplicate(dive1, diverId: diverId),
+        mockImportService.detectDuplicate(
+          dive1,
+          diverId: diverId,
+          sourceKeysCache: anyNamed('sourceKeysCache'),
+        ),
       ).thenAnswer(
         (_) async => const DuplicateResult(
           matchingDiveId: 'existing-1',
@@ -367,7 +396,11 @@ void main() {
         ),
       );
       when(
-        mockImportService.detectDuplicate(dive2, diverId: diverId),
+        mockImportService.detectDuplicate(
+          dive2,
+          diverId: diverId,
+          sourceKeysCache: anyNamed('sourceKeysCache'),
+        ),
       ).thenAnswer((_) async => DuplicateResult.noMatch());
 
       final result = await adapter.checkDuplicates(bundle);

@@ -33,6 +33,12 @@ void main() {
       diveRepository: mockDiveRepo,
     );
 
+    // Default: no known source keys (importDives prefetches this once per
+    // batch for the fingerprint pass).
+    when(
+      mockDiveRepo.getSourceKeysByDiveId(diverId: anyNamed('diverId')),
+    ).thenAnswer((_) async => {});
+
     // Default: no duplicates found
     when(
       mockComputerRepo.findMatchingDiveWithScore(
@@ -799,6 +805,36 @@ void main() {
           fingerprint: anyNamed('fingerprint'),
           diverId: anyNamed('diverId'),
         ),
+      );
+    });
+
+    test('a prefetched sourceKeysCache is used instead of querying the '
+        'repository per dive', () async {
+      final dive = DownloadedDive(
+        fingerprint: 'fp-cached-hit',
+        startTime: DateTime(2026, 5, 1, 10, 0),
+        durationSeconds: 3000,
+        maxDepth: 20.0,
+        profile: const [],
+        tanks: const [],
+        events: const [],
+        rawFingerprint: Uint8List.fromList([0xAA, 0xBB, 0xCC]),
+      );
+
+      final result = await service.detectDuplicate(
+        dive,
+        diverId: 'diver-1',
+        sourceKeysCache: {
+          'existing-dive-cached': {'AABBCC'},
+        },
+      );
+
+      expect(result.isDuplicate, isTrue);
+      expect(result.matchingDiveId, 'existing-dive-cached');
+      expect(result.matchedExistingSource, isTrue);
+      // The cache fully replaces the per-dive repository query.
+      verifyNever(
+        mockDiveRepo.getSourceKeysByDiveId(diverId: anyNamed('diverId')),
       );
     });
 

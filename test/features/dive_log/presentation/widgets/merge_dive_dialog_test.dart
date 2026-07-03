@@ -676,6 +676,30 @@ void main() {
       final snackBar = tester.widget<SnackBar>(find.byType(SnackBar));
       expect(snackBar.action, isNull);
     });
+
+    testWidgets('a non-ArgumentError failure (e.g. a dive deleted by sync '
+        'mid-flow) surfaces the generic error text instead of crashing', (
+      tester,
+    ) async {
+      final service = _FakeDiveConsolidationService(
+        applyError: StateError('Bad state: No element'),
+      );
+
+      await _pumpWithConsolidationHandler(tester, service: service);
+      await _navigateToConfirmation(tester);
+      await tester.tap(find.widgetWithText(FilledButton, 'Merge'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text("Couldn't merge the dives. Nothing was changed."),
+        findsOneWidget,
+      );
+      final snackBar = tester.widget<SnackBar>(find.byType(SnackBar));
+      expect(snackBar.action, isNull);
+      // The interaction failed gracefully: no unhandled exception reached
+      // the framework.
+      expect(tester.takeException(), isNull);
+    });
   });
 }
 

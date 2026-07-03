@@ -29,7 +29,12 @@ Future<void> runDiveConsolidation({
       targetDiveId: targetDiveId,
       secondaryDiveIds: secondaryDiveIds,
     );
-  } on ArgumentError catch (e) {
+  } catch (e) {
+    // ArgumentError carries a mappable invalid-consolidation reason;
+    // anything else (DB failure, a dive deleted by sync mid-flow throwing
+    // StateError, ...) degrades to the generic error text instead of
+    // crashing the interaction. apply() is transactional, so nothing was
+    // written either way.
     scaffoldMessenger.showSnackBar(
       SnackBar(content: Text(consolidationErrorText(l10n, e))),
     );

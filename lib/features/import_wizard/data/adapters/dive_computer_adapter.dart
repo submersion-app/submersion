@@ -352,11 +352,18 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     final duplicateIndices = <int>{};
     final matchResults = <int, DiveMatchResult>{};
 
+    // Prefetch the source-key map once for the whole download; the
+    // fingerprint pass in detectDuplicate scans it per dive.
+    final sourceKeysCache = await _diveRepository.getSourceKeysByDiveId(
+      diverId: _diverId,
+    );
+
     for (var i = 0; i < _downloadedDives.length; i++) {
       final dive = _downloadedDives[i];
       final result = await _importService.detectDuplicate(
         dive,
         diverId: _diverId,
+        sourceKeysCache: sourceKeysCache,
       );
 
       if (result.isDuplicate && result.score >= 0.5) {

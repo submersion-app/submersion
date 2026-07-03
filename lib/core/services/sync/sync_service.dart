@@ -1479,6 +1479,7 @@ class SyncService {
     'diveTanks': [
       (field: 'diveId', parent: 'dives', nullable: false),
       (field: 'equipmentId', parent: 'equipment', nullable: true),
+      (field: 'computerId', parent: 'diveComputers', nullable: true),
     ],
     'diveWeights': [(field: 'diveId', parent: 'dives', nullable: false)],
     'diveEquipment': [
@@ -1494,11 +1495,15 @@ class SyncService {
       (field: 'tagId', parent: 'tags', nullable: false),
     ],
     'diveDiveTypes': [(field: 'diveId', parent: 'dives', nullable: false)],
-    'diveProfileEvents': [(field: 'diveId', parent: 'dives', nullable: false)],
+    'diveProfileEvents': [
+      (field: 'diveId', parent: 'dives', nullable: false),
+      (field: 'computerId', parent: 'diveComputers', nullable: true),
+    ],
     'gasSwitches': [(field: 'diveId', parent: 'dives', nullable: false)],
     'diveCustomFields': [(field: 'diveId', parent: 'dives', nullable: false)],
     'tankPressureProfiles': [
       (field: 'diveId', parent: 'dives', nullable: false),
+      (field: 'computerId', parent: 'diveComputers', nullable: true),
     ],
     'tideRecords': [(field: 'diveId', parent: 'dives', nullable: false)],
     'diveDataSources': [
