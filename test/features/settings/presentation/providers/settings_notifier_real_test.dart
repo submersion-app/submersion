@@ -311,6 +311,18 @@ void main() {
       );
     });
 
+    test('setDefaultShowPhotoMarkers persists the new default', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      // Added as a persisted default in v96; photo markers start visible.
+      expect(container.read(settingsProvider).defaultShowPhotoMarkers, isTrue);
+      await container
+          .read(settingsProvider.notifier)
+          .setDefaultShowPhotoMarkers(false);
+      expect(container.read(settingsProvider).defaultShowPhotoMarkers, isFalse);
+    });
+
     test(
       'setShowAscentRateColors toggles the velocity-coloring default',
       () async {

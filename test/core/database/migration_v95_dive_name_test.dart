@@ -39,12 +39,11 @@ void main() {
     expect(row.data['name'], isNull);
   });
 
-  test('v95 is the current version and in the migration ladder', () {
-    // Latest-version tripwire: bumping the schema must come with a matching
-    // migration block and an update here.
-    expect(AppDatabase.currentSchemaVersion, 95);
+  test('v95 is in the migration ladder', () {
+    // v95 is now a past migration (the latest-version tripwire lives in the
+    // newest version's test). It must remain in the ladder.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(95));
     expect(AppDatabase.migrationVersions, contains(95));
-    expect(AppDatabase.migrationVersions.last, 95);
   });
 
   test('v95 migration is idempotent when the column already exists', () async {
