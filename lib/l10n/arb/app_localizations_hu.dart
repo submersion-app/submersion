@@ -10821,11 +10821,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_cloudSync_dropbox_account_title => 'Dropbox-fiók';
 
   @override
-  String get settings_cloudSync_dropbox_connect_codeLabel => 'Hitelesítési kód';
+  String get settings_cloudSync_dropbox_connect_codeLabel =>
+      'Engedélyezési kód';
 
   @override
   String get settings_cloudSync_dropbox_connect_emptyCode =>
-      'Add meg a böngésződben megjelenő hitelesítési kódot';
+      'Add meg a böngésződben megjelenő engedélyezési kódot';
 
   @override
   String settings_cloudSync_dropbox_connect_failed(Object error) {
@@ -10834,7 +10835,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_cloudSync_dropbox_connect_instructions =>
-      'A böngésződ megnyitott egy Dropbox hitelesítési oldalt. Engedélyezd a hozzáférést, majd illeszd be ide a Dropbox által mutatott kódot.';
+      'A böngésződ megnyitott egy Dropbox engedélyezési oldalt. Engedélyezd a hozzáférést, majd illeszd be ide a Dropbox által mutatott kódot.';
 
   @override
   String get settings_cloudSync_dropbox_connect_reopenBrowser =>
