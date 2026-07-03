@@ -22,12 +22,6 @@ class _ApplyTemplateSheet extends ConsumerWidget {
 
   const _ApplyTemplateSheet({required this.trip});
 
-  /// Duplicate-detection key. Must stay identical to the key used by
-  /// [TripChecklistRepository.applyTemplate] so the confirm-append preview
-  /// counts match what actually happens on apply.
-  String _duplicateKey(String title, String? category) =>
-      '$title|${category ?? ''}';
-
   Future<void> _apply(
     BuildContext context,
     WidgetRef ref,
@@ -46,13 +40,9 @@ class _ApplyTemplateSheet extends ConsumerWidget {
       final templateItems = await ref.read(
         checklistTemplateItemsProvider(templateId).future,
       );
-      final existingKeys = existing
-          .map((i) => _duplicateKey(i.title, i.category))
-          .toSet();
+      final existingKeys = existing.map((i) => (i.title, i.category)).toSet();
       final skipped = templateItems
-          .where(
-            (i) => existingKeys.contains(_duplicateKey(i.title, i.category)),
-          )
+          .where((i) => existingKeys.contains((i.title, i.category)))
           .length;
       final added = templateItems.length - skipped;
       if (!context.mounted) return;

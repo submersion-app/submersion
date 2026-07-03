@@ -217,16 +217,13 @@ class TripChecklistRepository {
           templateId,
         );
         final existing = await getByTripId(trip.id);
-        final existingKeys = existing
-            .map((i) => '${i.title}|${i.category ?? ''}')
-            .toSet();
+        final existingKeys = existing.map((i) => (i.title, i.category)).toSet();
         var sortOrder = await _nextSortOrder(trip.id);
         var added = 0;
         var skipped = 0;
 
         for (final item in templateItems) {
-          final key = '${item.title}|${item.category ?? ''}';
-          if (existingKeys.contains(key)) {
+          if (existingKeys.contains((item.title, item.category))) {
             skipped++;
             continue;
           }

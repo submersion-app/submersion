@@ -146,6 +146,95 @@ void main() {
       );
       expect(await repository.getByTripId(testTrip.id), isEmpty);
     });
+
+    test(
+      'does not treat a pipe in the title as a collision with a '
+      'different (title, category) pair whose pipe-joined string matches',
+      () async {
+        // Old pipe-joined key: 'A|B' + '|' + 'C' == 'A' + '|' + 'B|C'.
+        // These are different (title, category) pairs and must not collide.
+        await repository.createItem(item(title: 'A', category: 'B|C'));
+
+        final pipeTemplate = await templateRepository.createTemplate(
+          ChecklistTemplate(
+            id: '',
+            name: 'Pipe test',
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+        );
+        await templateRepository.saveItems(pipeTemplate.id, [
+          ChecklistTemplateItem(
+            id: '',
+            templateId: pipeTemplate.id,
+            title: 'A|B',
+            category: 'C',
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+        ]);
+
+        final result = await repository.applyTemplate(
+          templateId: pipeTemplate.id,
+          trip: testTrip,
+        );
+        expect(result.added, 1);
+        expect(result.skipped, 0);
+        final items = await repository.getByTripId(testTrip.id);
+        expect(
+          items.where((i) => i.title == 'A|B' && i.category == 'C'),
+          hasLength(1),
+        );
+      },
+    );
+
+    test(
+      'treats null category as distinct from empty-string category',
+      () async {
+        await repository.createItem(item(title: 'Dup item', category: ''));
+
+        final nullCategoryTemplate = await templateRepository.createTemplate(
+          ChecklistTemplate(
+            id: '',
+            name: 'Null category test',
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+        );
+        await templateRepository.saveItems(nullCategoryTemplate.id, [
+          ChecklistTemplateItem(
+            id: '',
+            templateId: nullCategoryTemplate.id,
+            title: 'Dup item',
+            category: null,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+        ]);
+
+        final result = await repository.applyTemplate(
+          templateId: nullCategoryTemplate.id,
+          trip: testTrip,
+        );
+        expect(result.added, 1);
+        expect(result.skipped, 0);
+      },
+    );
+
+    test(
+      'skips a genuine duplicate with matching title and category',
+      () async {
+        await repository.createItem(
+          item(title: 'Book flights', category: 'Bookings'),
+        );
+        final result = await repository.applyTemplate(
+          templateId: template.id,
+          trip: testTrip,
+        );
+        expect(result.added, 1);
+        expect(result.skipped, 1);
+      },
+    );
   });
 
   group('saveAsTemplate', () {
