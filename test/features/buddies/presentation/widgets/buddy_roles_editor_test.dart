@@ -222,6 +222,10 @@ void main() {
         expect(result, isNotNull);
         expect(result!.single.role, BuddyRole.diveMaster);
         expect(result!.single.credentialNumber, '12345');
+        // The row id must reset on a role change so setRolesForBuddy assigns
+        // a fresh UUID: reusing the old id would tombstone the old-role row
+        // and re-insert a live row under the same (now-tombstoned) id.
+        expect(result!.single.id, isEmpty);
       },
     );
 

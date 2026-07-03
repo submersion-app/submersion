@@ -164,7 +164,13 @@ class _RoleEntryState extends State<_RoleEntry> {
                         .toList(),
                     onChanged: (value) {
                       if (value == null) return;
-                      widget.onChanged(credential.copyWith(role: value));
+                      // Reset the id: a role change is a new credential row,
+                      // not an edit of the existing one. Keeping the id would
+                      // make setRolesForBuddy tombstone the old-role row and
+                      // then re-insert a live row under that same id.
+                      widget.onChanged(
+                        credential.copyWith(id: '', role: value),
+                      );
                     },
                   ),
                 ),
