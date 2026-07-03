@@ -4478,6 +4478,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_legend_label_otu => 'OTU';
 
   @override
+  String get diveLog_legend_label_photoMarkers => 'Fotók';
+
+  @override
   String get diveLog_legend_label_ppHe => 'ppHe';
 
   @override
@@ -5020,6 +5023,9 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_profile_semantics_chart =>
       'Merulesi profil diagram, csipje ossze a nagyitashoz';
+
+  @override
+  String get diveLog_profile_semantics_photoMarker => 'Fotójelölő';
 
   @override
   String get diveLog_profile_tooltip_moreOptions =>
@@ -10708,6 +10714,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_otu => 'OTU (O2 tolerancia egységek)';
+
+  @override
+  String get settings_appearance_metric_photoMarkers => 'Fotójelölők';
 
   @override
   String settings_appearance_metricsEnabledCount(int count, int total) {

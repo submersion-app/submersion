@@ -17,6 +17,9 @@ import 'package:submersion/features/dive_log/domain/entities/profile_event.dart'
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_timeline_strip.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_layout.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_overlay.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -119,6 +122,7 @@ Widget _buildChart({
   void Function(int? index)? onPointSelected,
   int? playbackTimestamp,
   int? highlightedTimestamp,
+  List<PhotoChartMarker>? photoMarkers,
 }) {
   return ProviderScope(
     overrides: [
@@ -170,6 +174,7 @@ Widget _buildChart({
             onPointSelected: onPointSelected,
             playbackTimestamp: playbackTimestamp,
             highlightedTimestamp: highlightedTimestamp,
+            photoMarkers: photoMarkers,
           ),
         ),
       ),
@@ -2684,4 +2689,48 @@ void main() {
       },
     );
   });
+
+  group('photo markers', () {
+    testWidgets('renders the overlay when photo markers are provided', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_buildChart(photoMarkers: [_photoMarker()]));
+      await tester.pump();
+      expect(find.byType(PhotoMarkerOverlay), findsOneWidget);
+    });
+
+    testWidgets('renders no overlay without photo markers', (tester) async {
+      await tester.pumpWidget(_buildChart());
+      await tester.pump();
+      expect(find.byType(PhotoMarkerOverlay), findsNothing);
+    });
+
+    testWidgets('hides the overlay when the legend toggle is off', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_buildChart(photoMarkers: [_photoMarker()]));
+      await tester.pump();
+      final element = tester.element(find.byType(DiveProfileChart));
+      final container = ProviderScope.containerOf(element);
+      container.read(profileLegendProvider.notifier).togglePhotoMarkers();
+      await tester.pump();
+      expect(find.byType(PhotoMarkerOverlay), findsNothing);
+    });
+  });
+}
+
+PhotoChartMarker _photoMarker({String id = 'p1', int seconds = 120}) {
+  final now = DateTime.utc(2026, 1, 1);
+  return PhotoChartMarker(
+    item: MediaItem(
+      id: id,
+      diveId: 'dive-1',
+      mediaType: MediaType.photo,
+      takenAt: now,
+      createdAt: now,
+      updatedAt: now,
+    ),
+    elapsedSeconds: seconds,
+    depthMeters: 10.0,
+  );
 }

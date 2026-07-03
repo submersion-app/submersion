@@ -22,6 +22,10 @@ class _StubSettingsNotifier extends StateNotifier<AppSettings>
       state = state.copyWith(defaultShowAscentRateLine: value);
 
   @override
+  Future<void> setDefaultShowPhotoMarkers(bool value) async =>
+      state = state.copyWith(defaultShowPhotoMarkers: value);
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -43,6 +47,13 @@ void main() {
     await tester.pumpWidget(buildPage(_StubSettingsNotifier()));
     await tester.pumpAndSettle();
 
+    await tester.dragUntilVisible(
+      find.text('Ascent Rate'),
+      find.byType(Scrollable),
+      const Offset(0, -200),
+    );
+    await tester.pumpAndSettle();
+
     // The chart-matching labels are present; the old "Ascent Rate Colors"
     // wording is gone.
     expect(find.text('Ascent Rate'), findsOneWidget);
@@ -52,6 +63,13 @@ void main() {
 
   testWidgets('both ascent-rate toggles start off', (tester) async {
     await tester.pumpWidget(buildPage(_StubSettingsNotifier()));
+    await tester.pumpAndSettle();
+
+    await tester.dragUntilVisible(
+      find.text('Ascent Rate'),
+      find.byType(Scrollable),
+      const Offset(0, -200),
+    );
     await tester.pumpAndSettle();
 
     final switches = tester
@@ -71,6 +89,13 @@ void main() {
     await tester.pumpWidget(buildPage(notifier));
     await tester.pumpAndSettle();
 
+    await tester.dragUntilVisible(
+      find.text('Ascent Rate Line'),
+      find.byType(Scrollable),
+      const Offset(0, -200),
+    );
+    await tester.pumpAndSettle();
+
     await tester.tap(find.text('Ascent Rate Line'));
     await tester.pumpAndSettle();
 
@@ -86,5 +111,19 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(notifier.state.showAscentRateColors, isTrue);
+  });
+
+  testWidgets('toggles Photo Markers default', (tester) async {
+    await tester.pumpWidget(buildPage(_StubSettingsNotifier()));
+    await tester.pumpAndSettle();
+
+    final tile = find.widgetWithText(SwitchListTile, 'Photo Markers');
+    await tester.ensureVisible(tile);
+    await tester.pumpAndSettle();
+    expect(tester.widget<SwitchListTile>(tile).value, isTrue);
+
+    await tester.tap(tile);
+    await tester.pumpAndSettle();
+    expect(tester.widget<SwitchListTile>(tile).value, isFalse);
   });
 }

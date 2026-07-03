@@ -4370,6 +4370,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_legend_label_otu => 'OTU';
 
   @override
+  String get diveLog_legend_label_photoMarkers => 'תמונות';
+
+  @override
   String get diveLog_legend_label_ppHe => 'ppHe';
 
   @override
@@ -4899,6 +4902,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_profile_semantics_chart => 'תרשים פרופיל צלילה, צבוט לזום';
+
+  @override
+  String get diveLog_profile_semantics_photoMarker => 'סמן תמונה';
 
   @override
   String get diveLog_profile_tooltip_moreOptions => 'אפשרויות תרשים נוספות';
@@ -10460,6 +10466,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_otu => 'OTU (יחידות סבילות חמצן)';
+
+  @override
+  String get settings_appearance_metric_photoMarkers => 'סמני תמונות';
 
   @override
   String settings_appearance_metricsEnabledCount(int count, int total) {

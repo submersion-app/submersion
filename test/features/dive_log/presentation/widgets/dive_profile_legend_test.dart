@@ -394,4 +394,54 @@ void main() {
       expect(find.byIcon(Icons.tune), findsNothing);
     });
   });
+
+  group('photo markers toggle in _ChartOptionsDialog', () {
+    testWidgets(
+      'shows the Photos toggle in the Markers section when available',
+      (tester) async {
+        await tester.pumpWidget(
+          testApp(
+            overrides: [
+              settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+            ],
+            child: DiveProfileLegend(
+              config: const ProfileLegendConfig(hasPhotoMarkers: true),
+              zoomLevel: 1.0,
+              onZoomIn: () {},
+              onZoomOut: () {},
+              onResetZoom: () {},
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.byIcon(Icons.tune), warnIfMissed: false);
+        await tester.pumpAndSettle();
+        // Markers starts collapsed -- tap to expand.
+        await tester.tap(find.text('Markers'));
+        await tester.pumpAndSettle();
+        expect(find.text('Photos'), findsOneWidget);
+      },
+    );
+
+    testWidgets('hides the Photos toggle when the dive has no photos', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: DiveProfileLegend(
+            config: const ProfileLegendConfig(),
+            zoomLevel: 1.0,
+            onZoomIn: () {},
+            onZoomOut: () {},
+            onResetZoom: () {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Photos'), findsNothing);
+    });
+  });
 }

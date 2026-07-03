@@ -666,6 +666,27 @@ class DiveListTile extends ConsumerWidget {
 
     final stat1Field = slotField('stat1', DiveField.maxDepth);
     final stat2Field = slotField('stat2', DiveField.runtime);
+    final titleField = slotField('title', DiveField.siteName);
+    final dateField = slotField('date', DiveField.dateTime);
+
+    // Resolve the title and date lines from their slot assignments, keeping
+    // the legacy rendering when the slot holds its default field (mirrors
+    // CompactDiveListTile).
+    String buildTitleText() {
+      if (summary != null && titleField != DiveField.siteName) {
+        final value = titleField.extractFromSummary(summary!);
+        return titleField.formatValue(value, units);
+      }
+      return siteName ?? context.l10n.diveLog_listPage_unknownSite;
+    }
+
+    String buildDateText() {
+      if (summary != null && dateField != DiveField.dateTime) {
+        final value = dateField.extractFromSummary(summary!);
+        return dateField.formatValue(value, units);
+      }
+      return units.formatDateTime(dateTime, l10n: context.l10n);
+    }
 
     // Build the content widget (used in both map and non-map variants)
     Widget buildContent() {
@@ -724,8 +745,7 @@ class DiveListTile extends ConsumerWidget {
                             children: [
                               Expanded(
                                 child: Text(
-                                  siteName ??
-                                      context.l10n.diveLog_listPage_unknownSite,
+                                  buildTitleText(),
                                   style: Theme.of(context).textTheme.titleMedium
                                       ?.copyWith(
                                         fontWeight: FontWeight.w600,
@@ -777,9 +797,9 @@ class DiveListTile extends ConsumerWidget {
                             ),
                           ],
                           const SizedBox(height: 4),
-                          // Date and time
+                          // Date/subtitle line (configurable via 'date' slot)
                           Text(
-                            units.formatDateTime(dateTime, l10n: context.l10n),
+                            buildDateText(),
                             style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(color: secondaryTextColor),
                           ),

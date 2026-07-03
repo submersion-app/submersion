@@ -975,6 +975,10 @@ class DiverSettings extends Table {
   BoolColumn get defaultShowAscentRateLine =>
       boolean().withDefault(const Constant(false))();
   // coverage:ignore-end
+  // coverage:ignore-start
+  BoolColumn get defaultShowPhotoMarkers =>
+      boolean().withDefault(const Constant(true))();
+  // coverage:ignore-end
   // Notification settings (v26)
   BoolColumn get notificationsEnabled =>
       boolean().withDefault(const Constant(true))();
@@ -1879,6 +1883,7 @@ class AppDatabase extends _$AppDatabase {
     93,
     94,
     95,
+    96,
     97,
   ];
 
@@ -4420,6 +4425,26 @@ class AppDatabase extends _$AppDatabase {
           }
         }
         if (from < 95) await reportProgress();
+        if (from < 96) {
+          // Persisted default for the "Photo Markers" profile overlay
+          // (issue #162). Guarded like v91: skip when diver_settings does
+          // not exist (minimal-schema migration tests) or the column is
+          // already present (interrupted upgrade).
+          final cols = await customSelect(
+            "PRAGMA table_info('diver_settings')",
+          ).get();
+          if (cols.isNotEmpty) {
+            final existing = cols.map((c) => c.read<String>('name')).toSet();
+            if (!existing.contains('default_show_photo_markers')) {
+              await customStatement(
+                'ALTER TABLE diver_settings '
+                'ADD COLUMN default_show_photo_markers '
+                'INTEGER NOT NULL DEFAULT 1',
+              );
+            }
+          }
+        }
+        if (from < 96) await reportProgress();
         if (from < 97) {
           // Checklist tables for trip planning (issue #164). Raw idempotent
           // DDL (matches the v84 idiom) so interrupted migrations are safe.

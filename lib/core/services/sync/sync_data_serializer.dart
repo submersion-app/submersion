@@ -3335,6 +3335,8 @@ class SyncDataSerializer {
       // seed it so payloads predating the column hydrate instead of throwing in
       // DiverSetting.fromJson.
       'defaultShowAscentRateLine': false,
+      // Non-nullable bool added in v96; seed payloads predating the column.
+      'defaultShowPhotoMarkers': true,
       // Override with actual data (existing values take precedence)
       ...data,
     };

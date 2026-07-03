@@ -260,6 +260,9 @@ class AppSettings {
   /// Default visibility for gas switch markers on dive profile
   final bool defaultShowGasSwitchMarkers;
 
+  /// Default visibility for photo markers on dive profile
+  final bool defaultShowPhotoMarkers;
+
   /// Default visibility for the gas-usage timeline strip on the dive profile
   final bool defaultShowGasTimeline;
 
@@ -368,6 +371,7 @@ class AppSettings {
     this.defaultShowCns = false,
     this.defaultShowOtu = false,
     this.defaultShowGasSwitchMarkers = true,
+    this.defaultShowPhotoMarkers = true,
     this.defaultShowGasTimeline = false,
     this.defaultShowAscentRateLine = false,
     // Notification defaults
@@ -495,6 +499,7 @@ class AppSettings {
     bool? defaultShowCns,
     bool? defaultShowOtu,
     bool? defaultShowGasSwitchMarkers,
+    bool? defaultShowPhotoMarkers,
     bool? defaultShowGasTimeline,
     bool? defaultShowAscentRateLine,
     bool? notificationsEnabled,
@@ -602,6 +607,8 @@ class AppSettings {
       defaultShowOtu: defaultShowOtu ?? this.defaultShowOtu,
       defaultShowGasSwitchMarkers:
           defaultShowGasSwitchMarkers ?? this.defaultShowGasSwitchMarkers,
+      defaultShowPhotoMarkers:
+          defaultShowPhotoMarkers ?? this.defaultShowPhotoMarkers,
       defaultShowGasTimeline:
           defaultShowGasTimeline ?? this.defaultShowGasTimeline,
       defaultShowAscentRateLine:
@@ -1142,6 +1149,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setDefaultShowGasSwitchMarkers(bool value) async {
     state = state.copyWith(defaultShowGasSwitchMarkers: value);
+    await _saveSettings();
+  }
+
+  Future<void> setDefaultShowPhotoMarkers(bool value) async {
+    state = state.copyWith(defaultShowPhotoMarkers: value);
     await _saveSettings();
   }
 
