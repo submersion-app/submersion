@@ -18447,6 +18447,78 @@ abstract class AppLocalizations {
     Object error,
   );
 
+  /// No description provided for @settings_cloudSync_dropbox_account_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Dropbox account'**
+  String get settings_cloudSync_dropbox_account_title;
+
+  /// No description provided for @settings_cloudSync_dropbox_connect_codeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Authorization code'**
+  String get settings_cloudSync_dropbox_connect_codeLabel;
+
+  /// No description provided for @settings_cloudSync_dropbox_connect_emptyCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the authorization code shown in your browser'**
+  String get settings_cloudSync_dropbox_connect_emptyCode;
+
+  /// No description provided for @settings_cloudSync_dropbox_connect_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not connect to Dropbox: {error}'**
+  String settings_cloudSync_dropbox_connect_failed(Object error);
+
+  /// No description provided for @settings_cloudSync_dropbox_connect_instructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Your browser opened a Dropbox authorization page. Approve access, then paste the code Dropbox shows you here.'**
+  String get settings_cloudSync_dropbox_connect_instructions;
+
+  /// No description provided for @settings_cloudSync_dropbox_connect_reopenBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Reopen browser'**
+  String get settings_cloudSync_dropbox_connect_reopenBrowser;
+
+  /// No description provided for @settings_cloudSync_dropbox_connect_submit.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect'**
+  String get settings_cloudSync_dropbox_connect_submit;
+
+  /// No description provided for @settings_cloudSync_dropbox_connect_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect Dropbox'**
+  String get settings_cloudSync_dropbox_connect_title;
+
+  /// No description provided for @settings_cloudSync_dropbox_connectedAs.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected as {account}'**
+  String settings_cloudSync_dropbox_connectedAs(Object account);
+
+  /// No description provided for @settings_cloudSync_dropbox_disconnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnect'**
+  String get settings_cloudSync_dropbox_disconnect;
+
+  /// No description provided for @settings_cloudSync_provider_dropbox_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync via Dropbox (Apps/Submersion)'**
+  String get settings_cloudSync_provider_dropbox_subtitle;
+
+  /// No description provided for @settings_cloudSync_provider_dropbox_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Dropbox'**
+  String get settings_cloudSync_provider_dropbox_title;
+
   /// No description provided for @settings_cloudSync_provider_googleDrive.
   ///
   /// In en, this message translates to:

@@ -14,6 +14,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/adopt_replaced_library_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/conflict_resolution_dialog.dart';
+import 'package:submersion/features/settings/presentation/widgets/dropbox_connect_dialog.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -467,6 +468,7 @@ class CloudSyncPage extends ConsumerWidget {
         // implemented; the CloudProviderType and provider plumbing remain
         // so re-enabling is just restoring this tile.
         _buildS3ProviderTile(context, ref, selectedProvider),
+        _buildDropboxProviderTile(context, ref, selectedProvider),
       ],
     );
   }
@@ -554,6 +556,105 @@ class CloudSyncPage extends ConsumerWidget {
         },
       ),
     );
+  }
+
+  Widget _buildDropboxProviderTile(
+    BuildContext context,
+    WidgetRef ref,
+    CloudProviderType? selectedProvider,
+  ) {
+    final l10n = context.l10n;
+    final auth = ref.watch(dropboxAuthDataProvider).valueOrNull;
+    final isSelected = selectedProvider == CloudProviderType.dropbox;
+    final isConnected = auth != null;
+    final account = auth?.email ?? auth?.displayName ?? '';
+
+    return Semantics(
+      selected: isSelected,
+      child: ListTile(
+        leading: const Icon(Icons.cloud_queue),
+        title: Text(l10n.settings_cloudSync_provider_dropbox_title),
+        subtitle: Text(
+          isConnected
+              ? l10n.settings_cloudSync_dropbox_connectedAs(account)
+              : l10n.settings_cloudSync_provider_dropbox_subtitle,
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (isSelected)
+              const Icon(
+                Icons.check_circle,
+                color: Colors.green,
+                semanticLabel: 'Connected',
+              ),
+            if (isConnected)
+              IconButton(
+                icon: const Icon(Icons.settings_outlined),
+                tooltip: l10n.settings_cloudSync_dropbox_account_title,
+                onPressed: () => _showDropboxAccountDialog(context, ref),
+              ),
+          ],
+        ),
+        onTap: () async {
+          if (isConnected) {
+            await _selectProvider(context, ref, CloudProviderType.dropbox);
+            return;
+          }
+          final connected = await showDialog<bool>(
+            context: context,
+            builder: (_) => DropboxConnectDialog(
+              provider: ref.read(dropboxStorageProviderInstanceProvider),
+            ),
+          );
+          ref.invalidate(dropboxAuthDataProvider);
+          if (connected == true && context.mounted) {
+            await _selectProvider(context, ref, CloudProviderType.dropbox);
+          }
+        },
+      ),
+    );
+  }
+
+  Future<void> _showDropboxAccountDialog(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final l10n = context.l10n;
+    final auth = ref.read(dropboxAuthDataProvider).valueOrNull;
+    final account = auth?.email ?? auth?.displayName ?? '';
+    final disconnect = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.settings_cloudSync_dropbox_account_title),
+        content: Text(l10n.settings_cloudSync_dropbox_connectedAs(account)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(
+              MaterialLocalizations.of(dialogContext).cancelButtonLabel,
+            ),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.settings_cloudSync_dropbox_disconnect),
+          ),
+        ],
+      ),
+    );
+    if (disconnect != true) return;
+
+    final provider = ref.read(dropboxStorageProviderInstanceProvider);
+    await provider.signOut();
+    ref.invalidate(dropboxAuthDataProvider);
+    // If Dropbox was the active backend, clear the selection so the page
+    // cannot show Sync Now armed against a disconnected provider.
+    if (ref.read(selectedCloudProviderTypeProvider) ==
+        CloudProviderType.dropbox) {
+      ref.read(selectedCloudProviderTypeProvider.notifier).state = null;
+      await ref.read(syncInitializerProvider).saveProvider(null);
+      ref.read(syncStateProvider.notifier).refreshState();
+    }
   }
 
   Future<void> _selectProvider(
@@ -681,7 +782,7 @@ class CloudSyncPage extends ConsumerWidget {
       case CloudProviderType.s3:
         return l10n.settings_cloudSync_provider_s3_title;
       case CloudProviderType.dropbox:
-        return 'Dropbox';
+        return l10n.settings_cloudSync_provider_dropbox_title;
     }
   }
 

@@ -10563,6 +10563,51 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get settings_cloudSync_dropbox_account_title => 'Dropbox account';
+
+  @override
+  String get settings_cloudSync_dropbox_connect_codeLabel =>
+      'Authorization code';
+
+  @override
+  String get settings_cloudSync_dropbox_connect_emptyCode =>
+      'Enter the authorization code shown in your browser';
+
+  @override
+  String settings_cloudSync_dropbox_connect_failed(Object error) {
+    return 'Could not connect to Dropbox: $error';
+  }
+
+  @override
+  String get settings_cloudSync_dropbox_connect_instructions =>
+      'Your browser opened a Dropbox authorization page. Approve access, then paste the code Dropbox shows you here.';
+
+  @override
+  String get settings_cloudSync_dropbox_connect_reopenBrowser =>
+      'Reopen browser';
+
+  @override
+  String get settings_cloudSync_dropbox_connect_submit => 'Connect';
+
+  @override
+  String get settings_cloudSync_dropbox_connect_title => 'Connect Dropbox';
+
+  @override
+  String settings_cloudSync_dropbox_connectedAs(Object account) {
+    return 'Connected as $account';
+  }
+
+  @override
+  String get settings_cloudSync_dropbox_disconnect => 'Disconnect';
+
+  @override
+  String get settings_cloudSync_provider_dropbox_subtitle =>
+      'Sync via Dropbox (Apps/Submersion)';
+
+  @override
+  String get settings_cloudSync_provider_dropbox_title => 'Dropbox';
+
+  @override
   String get settings_cloudSync_provider_googleDrive => 'Google Drive';
 
   @override
