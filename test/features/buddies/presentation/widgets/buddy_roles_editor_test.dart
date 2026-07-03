@@ -199,5 +199,29 @@ void main() {
         expect(result!.single.role, BuddyRole.instructor);
       },
     );
+
+    testWidgets(
+      'parent replacing a same-role credential refreshes the number field',
+      (tester) async {
+        // Same role, so the row keeps its ValueKey and is updated in place
+        // rather than remounted (this is what the merge-form seed does when
+        // it lands after the user already added the same role).
+        Widget build(String? number) => testApp(
+          child: BuddyRolesEditor(
+            roles: [_makeCredential(credentialNumber: number)],
+            onChanged: (_) {},
+          ),
+        );
+
+        await tester.pumpWidget(build('111'));
+        expect(find.text('111'), findsOneWidget);
+
+        await tester.pumpWidget(build('222'));
+        await tester.pump();
+
+        expect(find.text('222'), findsOneWidget);
+        expect(find.text('111'), findsNothing);
+      },
+    );
   });
 }

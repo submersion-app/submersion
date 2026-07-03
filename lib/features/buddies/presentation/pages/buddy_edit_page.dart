@@ -62,6 +62,11 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
   CertificationLevel? _certLevel;
   CertificationAgency? _certAgency;
   List<BuddyRoleCredential> _roles = [];
+
+  /// True once [_loadMergeRoles] has seeded [_roles] with the post-merge
+  /// credential set. Until then a merge save must not touch roles: an empty
+  /// unseeded list would wipe the credentials the merge itself migrated.
+  bool _mergeRolesSeeded = false;
   bool _isLoading = false;
   bool _isSaving = false;
   bool _hasChanges = false;
@@ -167,6 +172,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
       if (!mounted) return;
       setState(() {
         _roles = mergeRoleCredentials(rolesByCandidate);
+        _mergeRolesSeeded = true;
       });
     } catch (e) {
       if (mounted) {
@@ -821,7 +827,12 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
             .mergeBuddies(buddy, buddyIds);
         final savedId = buddyIds.first;
 
-        if (_roles.isNotEmpty) {
+        // Persist roles once seeding has completed (so an explicit clear-all
+        // is honored), or whenever the user added roles before the seed
+        // landed. A pre-seed save with an empty list is skipped: the merge
+        // has already migrated credentials and wiping them here would lose
+        // data.
+        if (_mergeRolesSeeded || _roles.isNotEmpty) {
           await ref
               .read(buddyRepositoryProvider)
               .setRolesForBuddy(savedId, _roles);

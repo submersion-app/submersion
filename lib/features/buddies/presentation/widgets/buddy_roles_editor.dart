@@ -110,8 +110,16 @@ class _RoleEntryState extends State<_RoleEntry> {
   @override
   void didUpdateWidget(covariant _RoleEntry oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.credential.role != widget.credential.role) {
-      _numberController.text = widget.credential.credentialNumber ?? '';
+    // Resync on role change, and on an external credential-number change
+    // (e.g. the merge-form seed replacing a same-role entry). A change that
+    // originated from this field already matches the controller text, so
+    // user typing is never clobbered.
+    final incomingNumber = widget.credential.credentialNumber ?? '';
+    if (oldWidget.credential.role != widget.credential.role ||
+        (oldWidget.credential.credentialNumber !=
+                widget.credential.credentialNumber &&
+            _numberController.text != incomingNumber)) {
+      _numberController.text = incomingNumber;
     }
   }
 
