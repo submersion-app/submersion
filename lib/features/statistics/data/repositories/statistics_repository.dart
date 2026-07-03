@@ -75,7 +75,10 @@ class StatisticsRepository {
 
   /// Get SAC rate trend by month in L/min (last 5 years)
   /// Requires tank volume data
-  Future<List<TrendDataPoint>> getSacVolumeTrend({String? diverId}) async {
+  Future<List<TrendDataPoint>> getSacVolumeTrend({
+    String? diverId,
+    DiveFilterState filter = const DiveFilterState(),
+  }) async {
     try {
       final fiveYearsAgo = DateTime.now().subtract(
         const Duration(days: 365 * 5),
@@ -83,7 +86,10 @@ class StatisticsRepository {
       final cutoff = fiveYearsAgo.millisecondsSinceEpoch;
 
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
-      final params = diverId != null ? [cutoff, diverId] : [cutoff];
+      final df = _diveFilter(filter, alias: 'd');
+      final params = diverId != null
+          ? [cutoff, diverId, ...df.params]
+          : [cutoff, ...df.params];
 
       final results = await _db.customSelect('''
         SELECT
@@ -98,7 +104,7 @@ class StatisticsRepository {
           t.he_percent
         FROM dives d
         JOIN dive_tanks t ON t.dive_id = d.id
-        WHERE d.dive_date_time >= ? $diverFilter
+        WHERE d.dive_date_time >= ? $diverFilter ${df.clause}
           AND COALESCE(d.runtime, d.bottom_time) > 0
           AND d.avg_depth > 0
           AND t.start_pressure > t.end_pressure
@@ -200,7 +206,10 @@ class StatisticsRepository {
 
   /// Get SAC rate trend by month in pressure/min (last 5 years)
   /// Does not require tank volume - uses pressure drop normalized to surface
-  Future<List<TrendDataPoint>> getSacPressureTrend({String? diverId}) async {
+  Future<List<TrendDataPoint>> getSacPressureTrend({
+    String? diverId,
+    DiveFilterState filter = const DiveFilterState(),
+  }) async {
     try {
       final fiveYearsAgo = DateTime.now().subtract(
         const Duration(days: 365 * 5),
@@ -208,7 +217,10 @@ class StatisticsRepository {
       final cutoff = fiveYearsAgo.millisecondsSinceEpoch;
 
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
-      final params = diverId != null ? [cutoff, diverId] : [cutoff];
+      final df = _diveFilter(filter, alias: 'd');
+      final params = diverId != null
+          ? [cutoff, diverId, ...df.params]
+          : [cutoff, ...df.params];
 
       final results = await _db.customSelect('''
         SELECT
@@ -232,7 +244,7 @@ class StatisticsRepository {
           ORDER BY t2.tank_order, t2.rowid
           LIMIT 1
         )
-        WHERE d.dive_date_time >= ? $diverFilter
+        WHERE d.dive_date_time >= ? $diverFilter ${df.clause}
           AND COALESCE(d.runtime, d.bottom_time) > 0
           AND d.avg_depth > 0
         GROUP BY year, month
@@ -262,10 +274,12 @@ class StatisticsRepository {
   /// Get gas mix distribution (Air, Nitrox, Trimix)
   Future<List<DistributionSegment>> getGasMixDistribution({
     String? diverId,
+    DiveFilterState filter = const DiveFilterState(),
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
-      final params = diverId != null ? [diverId] : <dynamic>[];
+      final df = _diveFilter(filter, alias: 'd');
+      final params = diverId != null ? [diverId, ...df.params] : [...df.params];
 
       final results = await _db.customSelect('''
         SELECT
@@ -277,7 +291,7 @@ class StatisticsRepository {
           COUNT(DISTINCT d.id) AS dive_count
         FROM dives d
         JOIN dive_tanks t ON t.dive_id = d.id
-        WHERE 1=1 $diverFilter
+        WHERE 1=1 $diverFilter ${df.clause}
         GROUP BY gas_type
         ORDER BY dive_count DESC
         ''', variables: params.map((p) => Variable(p)).toList()).get();
@@ -310,10 +324,12 @@ class StatisticsRepository {
   /// Requires tank volume data
   Future<({RankingItem? best, RankingItem? worst})> getSacVolumeRecords({
     String? diverId,
+    DiveFilterState filter = const DiveFilterState(),
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
-      final params = diverId != null ? [diverId] : <dynamic>[];
+      final df = _diveFilter(filter, alias: 'd');
+      final params = diverId != null ? [diverId, ...df.params] : [...df.params];
 
       final results = await _db.customSelect('''
         SELECT
@@ -335,7 +351,7 @@ class StatisticsRepository {
           AND d.avg_depth > 0
           AND t.start_pressure > t.end_pressure
           AND t.volume > 0
-          $diverFilter
+          $diverFilter ${df.clause}
         ORDER BY d.dive_date_time
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
@@ -432,10 +448,12 @@ class StatisticsRepository {
   /// Does not require tank volume
   Future<({RankingItem? best, RankingItem? worst})> getSacPressureRecords({
     String? diverId,
+    DiveFilterState filter = const DiveFilterState(),
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
-      final params = diverId != null ? [diverId] : <dynamic>[];
+      final df = _diveFilter(filter, alias: 'd');
+      final params = diverId != null ? [diverId, ...df.params] : [...df.params];
 
       final results = await _db.customSelect('''
         SELECT
@@ -462,7 +480,7 @@ class StatisticsRepository {
         LEFT JOIN dive_sites ds ON ds.id = d.site_id
         WHERE COALESCE(d.runtime, d.bottom_time) > 0
           AND d.avg_depth > 0
-          $diverFilter
+          $diverFilter ${df.clause}
         ORDER BY sac ASC
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
@@ -497,10 +515,14 @@ class StatisticsRepository {
   ///
   /// Returns a map of tank role to average SAC in L/min.
   /// Requires tank volume data.
-  Future<Map<String, double>> getSacVolumeByTankRole({String? diverId}) async {
+  Future<Map<String, double>> getSacVolumeByTankRole({
+    String? diverId,
+    DiveFilterState filter = const DiveFilterState(),
+  }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
-      final params = diverId != null ? [diverId] : [];
+      final df = _diveFilter(filter, alias: 'd');
+      final params = diverId != null ? [diverId, ...df.params] : [...df.params];
 
       final results = await _db.customSelect('''
         SELECT
@@ -520,7 +542,7 @@ class StatisticsRepository {
           AND COALESCE(d.runtime, d.bottom_time) > 0
           AND d.avg_depth > 0
           AND t.volume > 0
-          $diverFilter
+          $diverFilter ${df.clause}
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       final Map<String, List<double>> sacsByRole = {};
@@ -575,10 +597,12 @@ class StatisticsRepository {
   /// Does not require tank volume.
   Future<Map<String, double>> getSacPressureByTankRole({
     String? diverId,
+    DiveFilterState filter = const DiveFilterState(),
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
-      final params = diverId != null ? [diverId] : [];
+      final df = _diveFilter(filter, alias: 'd');
+      final params = diverId != null ? [diverId, ...df.params] : [...df.params];
 
       final results = await _db.customSelect('''
         SELECT
@@ -596,7 +620,7 @@ class StatisticsRepository {
           AND t.end_pressure IS NOT NULL
           AND COALESCE(d.runtime, d.bottom_time) > 0
           AND d.avg_depth > 0
-          $diverFilter
+          $diverFilter ${df.clause}
         GROUP BY t.tank_role
         HAVING avg_sac IS NOT NULL
         ORDER BY avg_sac ASC

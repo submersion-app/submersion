@@ -51,11 +51,18 @@ final sacTrendProvider = FutureProvider<List<TrendDataPoint>>((ref) async {
   final repository = ref.watch(statisticsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final sacUnit = ref.watch(sacUnitProvider);
+  final filter = ref.watch(statisticsFilterProvider);
 
   if (sacUnit == SacUnit.litersPerMin) {
-    return repository.getSacVolumeTrend(diverId: currentDiverId);
+    return repository.getSacVolumeTrend(
+      diverId: currentDiverId,
+      filter: filter,
+    );
   } else {
-    return repository.getSacPressureTrend(diverId: currentDiverId);
+    return repository.getSacPressureTrend(
+      diverId: currentDiverId,
+      filter: filter,
+    );
   }
 });
 
@@ -65,7 +72,11 @@ final gasMixDistributionProvider = FutureProvider<List<DistributionSegment>>((
   _keepAliveWithExpiry(ref);
   final repository = ref.watch(statisticsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
-  return repository.getGasMixDistribution(diverId: currentDiverId);
+  final filter = ref.watch(statisticsFilterProvider);
+  return repository.getGasMixDistribution(
+    diverId: currentDiverId,
+    filter: filter,
+  );
 });
 
 /// SAC records provider that uses the appropriate calculation based on sacUnit setting
@@ -75,11 +86,18 @@ final sacRecordsProvider =
       final repository = ref.watch(statisticsRepositoryProvider);
       final currentDiverId = ref.watch(currentDiverIdProvider);
       final sacUnit = ref.watch(sacUnitProvider);
+      final filter = ref.watch(statisticsFilterProvider);
 
       if (sacUnit == SacUnit.litersPerMin) {
-        return repository.getSacVolumeRecords(diverId: currentDiverId);
+        return repository.getSacVolumeRecords(
+          diverId: currentDiverId,
+          filter: filter,
+        );
       } else {
-        return repository.getSacPressureRecords(diverId: currentDiverId);
+        return repository.getSacPressureRecords(
+          diverId: currentDiverId,
+          filter: filter,
+        );
       }
     });
 
@@ -89,11 +107,18 @@ final sacByTankRoleProvider = FutureProvider<Map<String, double>>((ref) async {
   final repository = ref.watch(statisticsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final sacUnit = ref.watch(sacUnitProvider);
+  final filter = ref.watch(statisticsFilterProvider);
 
   if (sacUnit == SacUnit.litersPerMin) {
-    return repository.getSacVolumeByTankRole(diverId: currentDiverId);
+    return repository.getSacVolumeByTankRole(
+      diverId: currentDiverId,
+      filter: filter,
+    );
   } else {
-    return repository.getSacPressureByTankRole(diverId: currentDiverId);
+    return repository.getSacPressureByTankRole(
+      diverId: currentDiverId,
+      filter: filter,
+    );
   }
 });
 

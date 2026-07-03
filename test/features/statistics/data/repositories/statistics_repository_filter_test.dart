@@ -107,4 +107,30 @@ void main() {
     );
     expect(filtered.first.count, 1); // only dive 'a'
   });
+
+  test('gas-mix distribution respects a tag filter', () async {
+    await dive('a');
+    await dive('b');
+    for (final id in ['a', 'b']) {
+      await db
+          .into(db.diveTanks)
+          .insert(
+            DiveTanksCompanion(
+              id: Value('tank-$id'),
+              diveId: Value(id),
+              o2Percent: const Value(32.0),
+              hePercent: const Value(0.0),
+              tankOrder: const Value(0),
+            ),
+          );
+    }
+    await tag('dry');
+    await link('a', 'dry');
+
+    final filtered = await repo.getGasMixDistribution(
+      filter: const DiveFilterState(tagIds: ['dry']),
+    );
+    final total = filtered.fold<int>(0, (s, seg) => s + seg.count);
+    expect(total, 1); // only dive 'a'
+  });
 }
