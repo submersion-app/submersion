@@ -36,6 +36,7 @@ class ProfileLegendState {
   final bool showMaxDepthMarker;
   final bool showPressureMarkers;
   final bool showGasSwitchMarkers;
+  final bool showPhotoMarkers;
 
   // Advanced decompression/gas toggles
   final bool showNdl;
@@ -80,6 +81,7 @@ class ProfileLegendState {
     this.showMaxDepthMarker = true,
     this.showPressureMarkers = true,
     this.showGasSwitchMarkers = true,
+    this.showPhotoMarkers = true,
     this.showNdl = false,
     this.showPpO2 = false,
     this.showPpN2 = false,
@@ -120,6 +122,7 @@ class ProfileLegendState {
     if (showMaxDepthMarker) count++;
     if (showPressureMarkers) count++;
     if (showGasSwitchMarkers) count++;
+    if (showPhotoMarkers) count++;
     if (showNdl) count++;
     if (showPpO2) count++;
     if (showPpN2) count++;
@@ -154,6 +157,7 @@ class ProfileLegendState {
     bool? showMaxDepthMarker,
     bool? showPressureMarkers,
     bool? showGasSwitchMarkers,
+    bool? showPhotoMarkers,
     bool? showNdl,
     bool? showPpO2,
     bool? showPpN2,
@@ -190,6 +194,7 @@ class ProfileLegendState {
       showMaxDepthMarker: showMaxDepthMarker ?? this.showMaxDepthMarker,
       showPressureMarkers: showPressureMarkers ?? this.showPressureMarkers,
       showGasSwitchMarkers: showGasSwitchMarkers ?? this.showGasSwitchMarkers,
+      showPhotoMarkers: showPhotoMarkers ?? this.showPhotoMarkers,
       showNdl: showNdl ?? this.showNdl,
       showPpO2: showPpO2 ?? this.showPpO2,
       showPpN2: showPpN2 ?? this.showPpN2,
@@ -230,6 +235,7 @@ class ProfileLegendState {
           showMaxDepthMarker == other.showMaxDepthMarker &&
           showPressureMarkers == other.showPressureMarkers &&
           showGasSwitchMarkers == other.showGasSwitchMarkers &&
+          showPhotoMarkers == other.showPhotoMarkers &&
           showNdl == other.showNdl &&
           showPpO2 == other.showPpO2 &&
           showPpN2 == other.showPpN2 &&
@@ -265,6 +271,7 @@ class ProfileLegendState {
     showMaxDepthMarker,
     showPressureMarkers,
     showGasSwitchMarkers,
+    showPhotoMarkers,
     showNdl,
     showPpO2,
     showPpN2,
@@ -314,6 +321,7 @@ class ProfileLegend extends _$ProfileLegend {
       showMaxDepthMarker: settings.showMaxDepthMarker,
       showPressureMarkers: settings.showPressureThresholdMarkers,
       showGasSwitchMarkers: settings.defaultShowGasSwitchMarkers,
+      showPhotoMarkers: settings.defaultShowPhotoMarkers,
       showGas: settings.defaultShowGasTimeline,
       showNdl: settings.showNdlOnProfile,
       showPpO2: settings.defaultShowPpO2,
@@ -400,6 +408,10 @@ class ProfileLegend extends _$ProfileLegend {
 
   void toggleGasSwitchMarkers() {
     state = state.copyWith(showGasSwitchMarkers: !state.showGasSwitchMarkers);
+  }
+
+  void togglePhotoMarkers() {
+    state = state.copyWith(showPhotoMarkers: !state.showPhotoMarkers);
   }
 
   // Advanced decompression/gas toggle methods
