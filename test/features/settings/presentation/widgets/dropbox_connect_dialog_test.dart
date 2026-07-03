@@ -52,6 +52,7 @@ void main() {
     DropboxStorageProvider p, {
     List<Uri>? opened,
     bool openResult = true,
+    List<bool>? openResultQueue,
   }) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -71,6 +72,9 @@ void main() {
                   provider: p,
                   openUri: (uri) async {
                     opened?.add(uri);
+                    if (openResultQueue != null && openResultQueue.isNotEmpty) {
+                      return openResultQueue.removeAt(0);
+                    }
                     return openResult;
                   },
                 ),
@@ -109,6 +113,23 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Connect Dropbox'), findsOneWidget);
+  });
+
+  testWidgets('a successful Reopen browser clears the stale browser error', (
+    tester,
+  ) async {
+    await pumpDialog(
+      tester,
+      provider(happyMock()),
+      openResultQueue: [false, true],
+    );
+    const browserError =
+        'Could not open your browser. Try the Reopen browser button.';
+    expect(find.text(browserError), findsOneWidget);
+
+    await tester.tap(find.text('Reopen browser'));
+    await tester.pumpAndSettle();
+    expect(find.text(browserError), findsNothing);
   });
 
   testWidgets('empty code shows validation error and does not close', (
