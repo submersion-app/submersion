@@ -70,7 +70,7 @@ class InstructorPickerField extends ConsumerWidget {
               : '${buddy.name} (${credential.displayLabel})';
           return DropdownMenuItem(
             value: buddy.id,
-            child: Text(label, overflow: TextOverflow.ellipsis),
+            child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
           );
         }),
       ],

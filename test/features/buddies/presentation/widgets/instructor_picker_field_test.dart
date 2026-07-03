@@ -108,11 +108,9 @@ void main() {
 
         await tester.tap(find.byType(DropdownButtonFormField<String?>));
         await tester.pumpAndSettle();
-        await tester
-            .tap(
-              find.text('Alice Instructor (${credential.displayLabel})').last,
-            )
-            .catchError((_) {});
+        await tester.tap(
+          find.text('Alice Instructor (${credential.displayLabel})').last,
+        );
         await tester.pumpAndSettle();
 
         expect(selectedBuddy?.id, 'buddy-1');
