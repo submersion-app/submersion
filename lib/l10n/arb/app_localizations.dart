@@ -9224,6 +9224,72 @@ abstract class AppLocalizations {
   /// **'TTS'**
   String get diveLog_tooltip_tts;
 
+  /// No description provided for @diveLog_sources_row_metric.
+  ///
+  /// In en, this message translates to:
+  /// **'Metric'**
+  String get diveLog_sources_row_metric;
+
+  /// No description provided for @diveLog_sources_row_maxDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Max Depth'**
+  String get diveLog_sources_row_maxDepth;
+
+  /// No description provided for @diveLog_sources_row_avgDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg Depth'**
+  String get diveLog_sources_row_avgDepth;
+
+  /// No description provided for @diveLog_sources_row_duration.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get diveLog_sources_row_duration;
+
+  /// No description provided for @diveLog_sources_row_waterTemp.
+  ///
+  /// In en, this message translates to:
+  /// **'Water Temp'**
+  String get diveLog_sources_row_waterTemp;
+
+  /// No description provided for @diveLog_sources_row_cns.
+  ///
+  /// In en, this message translates to:
+  /// **'CNS'**
+  String get diveLog_sources_row_cns;
+
+  /// No description provided for @diveLog_sources_row_otu.
+  ///
+  /// In en, this message translates to:
+  /// **'OTU'**
+  String get diveLog_sources_row_otu;
+
+  /// No description provided for @diveLog_sources_row_decoAlgorithm.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco Algorithm'**
+  String get diveLog_sources_row_decoAlgorithm;
+
+  /// No description provided for @diveLog_sources_row_gf.
+  ///
+  /// In en, this message translates to:
+  /// **'GF'**
+  String get diveLog_sources_row_gf;
+
+  /// No description provided for @diveLog_sources_minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 min} other{{count} min}}'**
+  String diveLog_sources_minutes(int count);
+
+  /// No description provided for @diveLog_sources_unknownComputer.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown Computer'**
+  String get diveLog_sources_unknownComputer;
+
   /// No description provided for @divePlanner_action_addTank.
   ///
   /// In en, this message translates to:

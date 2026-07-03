@@ -5412,6 +5412,47 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_tooltip_tts => 'TTS';
 
   @override
+  String get diveLog_sources_row_metric => 'Adat';
+
+  @override
+  String get diveLog_sources_row_maxDepth => 'Max mélység';
+
+  @override
+  String get diveLog_sources_row_avgDepth => 'Átl. mélység';
+
+  @override
+  String get diveLog_sources_row_duration => 'Időtartam';
+
+  @override
+  String get diveLog_sources_row_waterTemp => 'Víz hőm.';
+
+  @override
+  String get diveLog_sources_row_cns => 'CNS';
+
+  @override
+  String get diveLog_sources_row_otu => 'OTU';
+
+  @override
+  String get diveLog_sources_row_decoAlgorithm => 'Dekó algoritmus';
+
+  @override
+  String get diveLog_sources_row_gf => 'GF';
+
+  @override
+  String diveLog_sources_minutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count perc',
+      one: '1 perc',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_sources_unknownComputer => 'Ismeretlen számítógép';
+
+  @override
   String get divePlanner_action_addTank => 'Palack hozzáadása';
 
   @override

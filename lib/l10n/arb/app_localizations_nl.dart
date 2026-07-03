@@ -5384,6 +5384,47 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_tooltip_tts => 'TTS';
 
   @override
+  String get diveLog_sources_row_metric => 'Meting';
+
+  @override
+  String get diveLog_sources_row_maxDepth => 'Max diepte';
+
+  @override
+  String get diveLog_sources_row_avgDepth => 'Gem. diepte';
+
+  @override
+  String get diveLog_sources_row_duration => 'Duur';
+
+  @override
+  String get diveLog_sources_row_waterTemp => 'Watertemp.';
+
+  @override
+  String get diveLog_sources_row_cns => 'CNS';
+
+  @override
+  String get diveLog_sources_row_otu => 'OTU';
+
+  @override
+  String get diveLog_sources_row_decoAlgorithm => 'Deco-algoritme';
+
+  @override
+  String get diveLog_sources_row_gf => 'GF';
+
+  @override
+  String diveLog_sources_minutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count min',
+      one: '1 min',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_sources_unknownComputer => 'Onbekende computer';
+
+  @override
   String get divePlanner_action_addTank => 'Fles toevoegen';
 
   @override

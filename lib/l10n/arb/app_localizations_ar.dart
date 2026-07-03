@@ -5304,6 +5304,47 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_tooltip_tts => 'TTS';
 
   @override
+  String get diveLog_sources_row_metric => 'المقياس';
+
+  @override
+  String get diveLog_sources_row_maxDepth => 'أقصى عمق';
+
+  @override
+  String get diveLog_sources_row_avgDepth => 'متوسط العمق';
+
+  @override
+  String get diveLog_sources_row_duration => 'المدة';
+
+  @override
+  String get diveLog_sources_row_waterTemp => 'حرارة الماء';
+
+  @override
+  String get diveLog_sources_row_cns => 'CNS';
+
+  @override
+  String get diveLog_sources_row_otu => 'OTU';
+
+  @override
+  String get diveLog_sources_row_decoAlgorithm => 'خوارزمية إزالة التشبع';
+
+  @override
+  String get diveLog_sources_row_gf => 'GF';
+
+  @override
+  String diveLog_sources_minutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count دقيقة',
+      one: 'دقيقة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_sources_unknownComputer => 'جهاز غير معروف';
+
+  @override
   String get divePlanner_action_addTank => 'إضافة أسطوانة';
 
   @override

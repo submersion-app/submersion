@@ -5175,6 +5175,47 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_tooltip_tts => 'TTS';
 
   @override
+  String get diveLog_sources_row_metric => '指标';
+
+  @override
+  String get diveLog_sources_row_maxDepth => '最大深度';
+
+  @override
+  String get diveLog_sources_row_avgDepth => '平均深度';
+
+  @override
+  String get diveLog_sources_row_duration => '时长';
+
+  @override
+  String get diveLog_sources_row_waterTemp => '水温';
+
+  @override
+  String get diveLog_sources_row_cns => 'CNS';
+
+  @override
+  String get diveLog_sources_row_otu => 'OTU';
+
+  @override
+  String get diveLog_sources_row_decoAlgorithm => '减压算法';
+
+  @override
+  String get diveLog_sources_row_gf => 'GF';
+
+  @override
+  String diveLog_sources_minutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 分钟',
+      one: '1 分钟',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_sources_unknownComputer => '未知电脑';
+
+  @override
   String get divePlanner_action_addTank => '添加气瓶';
 
   @override

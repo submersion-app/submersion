@@ -5280,6 +5280,47 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_tooltip_tts => 'TTS';
 
   @override
+  String get diveLog_sources_row_metric => 'מדד';
+
+  @override
+  String get diveLog_sources_row_maxDepth => 'עומק מקסימלי';
+
+  @override
+  String get diveLog_sources_row_avgDepth => 'עומק ממוצע';
+
+  @override
+  String get diveLog_sources_row_duration => 'משך';
+
+  @override
+  String get diveLog_sources_row_waterTemp => 'טמפ\' מים';
+
+  @override
+  String get diveLog_sources_row_cns => 'CNS';
+
+  @override
+  String get diveLog_sources_row_otu => 'OTU';
+
+  @override
+  String get diveLog_sources_row_decoAlgorithm => 'אלגוריתם דקומפרסיה';
+
+  @override
+  String get diveLog_sources_row_gf => 'GF';
+
+  @override
+  String diveLog_sources_minutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count דקות',
+      one: 'דקה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_sources_unknownComputer => 'מחשב לא ידוע';
+
+  @override
   String get divePlanner_action_addTank => 'הוסף מיכל';
 
   @override

@@ -23,6 +23,10 @@ DiveDataSource _makeSource({
   int? duration = 3000,
   double? waterTemp = 22.0,
   double? cns = 15.0,
+  double? otu,
+  String? decoAlgorithm,
+  int? gradientFactorLow,
+  int? gradientFactorHigh,
   DateTime? entryTime,
   DateTime? exitTime,
   DateTime? importedAt,
@@ -43,6 +47,10 @@ DiveDataSource _makeSource({
     duration: duration,
     waterTemp: waterTemp,
     cns: cns,
+    otu: otu,
+    decoAlgorithm: decoAlgorithm,
+    gradientFactorLow: gradientFactorLow,
+    gradientFactorHigh: gradientFactorHigh,
     entryTime: entryTime ?? now,
     exitTime: exitTime ?? now.add(const Duration(minutes: 50)),
     importedAt: importedAt ?? now,
@@ -450,8 +458,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Tap the secondary card (find by model name)
-      await tester.tap(find.text('Suunto D5'));
+      // Tap the secondary card (find by model name). The comparison grid
+      // header also renders the model name, so target the card's copy
+      // specifically (rendered after the grid in the widget tree).
+      await tester.tap(find.text('Suunto D5').last);
       await tester.pumpAndSettle();
 
       expect(tappedId, equals('src-2'));
@@ -844,6 +854,165 @@ void main() {
       // One Primary badge, two Secondary badges
       expect(find.text('Primary'), findsOneWidget);
       expect(find.text('Secondary'), findsNWidgets(2));
+    });
+  });
+
+  group('_SourceComparisonGrid', () {
+    testWidgets(
+      'renders a comparison grid with one column per source when multi-source',
+      (tester) async {
+        final primary = _makeSource(
+          id: 'src-1',
+          isPrimary: true,
+          computerModel: 'Shearwater Perdix',
+          maxDepth: 30.1,
+          avgDepth: null,
+          duration: 3000,
+          waterTemp: 24.0,
+          cns: 20.0,
+          otu: 15.0,
+          decoAlgorithm: 'Buhlmann ZHL-16C',
+          gradientFactorLow: 30,
+          gradientFactorHigh: 70,
+        );
+        final secondary = _makeSource(
+          id: 'src-2',
+          isPrimary: false,
+          computerModel: 'Shearwater Teric',
+          maxDepth: 30.4,
+          avgDepth: null,
+          duration: 3060,
+          waterTemp: 23.5,
+          cns: 22.0,
+          otu: null,
+          decoAlgorithm: null,
+          gradientFactorLow: null,
+          gradientFactorHigh: null,
+        );
+
+        await tester.pumpWidget(
+          testApp(
+            child: SingleChildScrollView(
+              child: DataSourcesSection(
+                dataSources: [primary, secondary],
+                diveCreatedAt: DateTime(2026, 3, 20, 10, 0),
+                diveId: 'dive-1',
+                units: _units,
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final dataTableFinder = find.byType(DataTable);
+        expect(dataTableFinder, findsOneWidget);
+
+        final dataTable = tester.widget<DataTable>(dataTableFinder);
+        // One "metric" label column + one column per source.
+        expect(dataTable.columns, hasLength(3));
+        expect(
+          (dataTable.columns[1].label as Text).data,
+          equals('Shearwater Perdix'),
+        );
+        expect(
+          (dataTable.columns[2].label as Text).data,
+          equals('Shearwater Teric'),
+        );
+
+        // Primary column header is bold; secondary is not.
+        final primaryHeaderStyle = (dataTable.columns[1].label as Text).style;
+        expect(primaryHeaderStyle?.fontWeight, equals(FontWeight.bold));
+        final secondaryHeaderStyle = (dataTable.columns[2].label as Text).style;
+        expect(secondaryHeaderStyle?.fontWeight, isNot(FontWeight.bold));
+
+        // Row labels use the new l10n keys. "Duration" also appears on each
+        // per-source card's own metrics row, so scope that lookup to the grid.
+        expect(find.text('Max Depth'), findsOneWidget);
+        expect(
+          find.descendant(of: dataTableFinder, matching: find.text('Duration')),
+          findsOneWidget,
+        );
+        expect(find.text('Water Temp'), findsOneWidget);
+        expect(find.text('CNS'), findsOneWidget);
+        expect(find.text('OTU'), findsOneWidget);
+        expect(find.text('Deco Algorithm'), findsOneWidget);
+        expect(find.text('GF'), findsOneWidget);
+        // avgDepth is null for both sources: row omitted entirely.
+        expect(find.text('Avg Depth'), findsNothing);
+
+        // Values formatted via UnitFormatter and scoped to the grid,
+        // since equivalent text may also appear on the per-source cards.
+        expect(
+          find.descendant(of: dataTableFinder, matching: find.text('30.1m')),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(of: dataTableFinder, matching: find.text('30.4m')),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(of: dataTableFinder, matching: find.text('24.0°C')),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(of: dataTableFinder, matching: find.text('23.5°C')),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(of: dataTableFinder, matching: find.text('20%')),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(of: dataTableFinder, matching: find.text('50 min')),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(of: dataTableFinder, matching: find.text('51 min')),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(of: dataTableFinder, matching: find.text('15')),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(of: dataTableFinder, matching: find.text('30/70')),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(
+            of: dataTableFinder,
+            matching: find.text('Buhlmann ZHL-16C'),
+          ),
+          findsOneWidget,
+        );
+        // Missing values render as an em dash placeholder.
+        expect(
+          find.descendant(of: dataTableFinder, matching: find.text('—')),
+          findsWidgets,
+        );
+      },
+    );
+
+    testWidgets('does not render a comparison grid when single-source', (
+      tester,
+    ) async {
+      final source = _makeSource();
+
+      await tester.pumpWidget(
+        testApp(
+          child: SingleChildScrollView(
+            child: DataSourcesSection(
+              dataSources: [source],
+              diveCreatedAt: DateTime(2026, 3, 20, 10, 0),
+              diveId: 'dive-1',
+              units: _units,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DataTable), findsNothing);
     });
   });
 

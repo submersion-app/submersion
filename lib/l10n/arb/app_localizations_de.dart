@@ -5419,6 +5419,47 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_tooltip_tts => 'TTS';
 
   @override
+  String get diveLog_sources_row_metric => 'Messwert';
+
+  @override
+  String get diveLog_sources_row_maxDepth => 'Max. Tiefe';
+
+  @override
+  String get diveLog_sources_row_avgDepth => 'Ø Tiefe';
+
+  @override
+  String get diveLog_sources_row_duration => 'Dauer';
+
+  @override
+  String get diveLog_sources_row_waterTemp => 'Wassertemp.';
+
+  @override
+  String get diveLog_sources_row_cns => 'CNS';
+
+  @override
+  String get diveLog_sources_row_otu => 'OTU';
+
+  @override
+  String get diveLog_sources_row_decoAlgorithm => 'Deko-Algorithmus';
+
+  @override
+  String get diveLog_sources_row_gf => 'GF';
+
+  @override
+  String diveLog_sources_minutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Min.',
+      one: '1 Min.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_sources_unknownComputer => 'Unbekannter Computer';
+
+  @override
   String get divePlanner_action_addTank => 'Flasche hinzufügen';
 
   @override

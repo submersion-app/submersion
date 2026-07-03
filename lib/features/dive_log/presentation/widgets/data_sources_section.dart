@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/collapsible_section.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A collapsible section showing data source provenance for a dive.
 ///
@@ -77,6 +78,12 @@ class _DataSourcesSectionState extends State<DataSourcesSection> {
     }
 
     final children = <Widget>[];
+    if (isMultiSource) {
+      children.add(
+        _SourceComparisonGrid(sources: widget.dataSources, units: widget.units),
+      );
+      children.add(const SizedBox(height: 8));
+    }
     for (var i = 0; i < widget.dataSources.length; i++) {
       final source = widget.dataSources[i];
       final isViewing = widget.viewedSourceId == source.id;
@@ -103,6 +110,90 @@ class _DataSourcesSectionState extends State<DataSourcesSection> {
     }
 
     return children;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Source Comparison Grid
+// ---------------------------------------------------------------------------
+
+/// A compact table comparing key metrics across all data sources for a dive,
+/// e.g. "Perdix says 30.1 m / Teric says 30.4 m" at a glance.
+///
+/// Only rendered when there are 2+ sources; rows where every source has a
+/// null value are omitted entirely.
+class _SourceComparisonGrid extends StatelessWidget {
+  const _SourceComparisonGrid({required this.sources, required this.units});
+  final List<DiveDataSource> sources;
+  final UnitFormatter units;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final rows = <(String, String? Function(DiveDataSource))>[
+      (
+        l10n.diveLog_sources_row_maxDepth,
+        (s) => s.maxDepth != null ? units.formatDepth(s.maxDepth!) : null,
+      ),
+      (
+        l10n.diveLog_sources_row_avgDepth,
+        (s) => s.avgDepth != null ? units.formatDepth(s.avgDepth!) : null,
+      ),
+      (
+        l10n.diveLog_sources_row_duration,
+        (s) => s.duration != null
+            ? l10n.diveLog_sources_minutes(s.duration! ~/ 60)
+            : null,
+      ),
+      (
+        l10n.diveLog_sources_row_waterTemp,
+        (s) => s.waterTemp != null
+            ? units.formatTemperature(s.waterTemp!, decimals: 1)
+            : null,
+      ),
+      (
+        l10n.diveLog_sources_row_cns,
+        (s) => s.cns != null ? '${s.cns!.toStringAsFixed(0)}%' : null,
+      ),
+      (l10n.diveLog_sources_row_otu, (s) => s.otu?.toStringAsFixed(0)),
+      (l10n.diveLog_sources_row_decoAlgorithm, (s) => s.decoAlgorithm),
+      (
+        l10n.diveLog_sources_row_gf,
+        (s) => s.gradientFactorLow != null && s.gradientFactorHigh != null
+            ? '${s.gradientFactorLow}/${s.gradientFactorHigh}'
+            : null,
+      ),
+    ];
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: DataTable(
+        headingRowHeight: 36,
+        dataRowMinHeight: 30,
+        dataRowMaxHeight: 34,
+        columns: [
+          DataColumn(label: Text(l10n.diveLog_sources_row_metric)),
+          for (final s in sources)
+            DataColumn(
+              label: Text(
+                s.computerModel ?? l10n.diveLog_sources_unknownComputer,
+                style: s.isPrimary
+                    ? const TextStyle(fontWeight: FontWeight.bold)
+                    : null,
+              ),
+            ),
+        ],
+        rows: [
+          for (final (label, pick) in rows)
+            if (sources.any((s) => pick(s) != null))
+              DataRow(
+                cells: [
+                  DataCell(Text(label)),
+                  for (final s in sources) DataCell(Text(pick(s) ?? '—')),
+                ],
+              ),
+        ],
+      ),
+    );
   }
 }
 
