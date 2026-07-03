@@ -2646,6 +2646,222 @@ abstract class AppLocalizations {
   /// **'Share certification'**
   String get certifications_wallet_tooltip_share;
 
+  /// No description provided for @checklists_section_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Checklist'**
+  String get checklists_section_title;
+
+  /// No description provided for @checklists_progress.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} to-dos done'**
+  String checklists_progress(int done, int total);
+
+  /// No description provided for @checklists_empty_upcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan your trip - add to-dos or apply a template'**
+  String get checklists_empty_upcoming;
+
+  /// No description provided for @checklists_empty_past.
+  ///
+  /// In en, this message translates to:
+  /// **'No checklist items'**
+  String get checklists_empty_past;
+
+  /// No description provided for @checklists_addItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Add item'**
+  String get checklists_addItem;
+
+  /// No description provided for @checklists_item_titleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get checklists_item_titleLabel;
+
+  /// No description provided for @checklists_item_titleRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Title is required'**
+  String get checklists_item_titleRequired;
+
+  /// No description provided for @checklists_item_categoryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get checklists_item_categoryLabel;
+
+  /// No description provided for @checklists_item_notesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get checklists_item_notesLabel;
+
+  /// No description provided for @checklists_item_dueDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Due date'**
+  String get checklists_item_dueDateLabel;
+
+  /// No description provided for @checklists_item_dueOffsetLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Days before trip start'**
+  String get checklists_item_dueOffsetLabel;
+
+  /// No description provided for @checklists_item_dueOffsetInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter 0 or more days'**
+  String get checklists_item_dueOffsetInvalid;
+
+  /// No description provided for @checklists_item_overdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get checklists_item_overdue;
+
+  /// No description provided for @checklists_item_edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit item'**
+  String get checklists_item_edit;
+
+  /// No description provided for @checklists_item_delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete item'**
+  String get checklists_item_delete;
+
+  /// No description provided for @checklists_menu_applyTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply template...'**
+  String get checklists_menu_applyTemplate;
+
+  /// No description provided for @checklists_menu_saveAsTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Save as template...'**
+  String get checklists_menu_saveAsTemplate;
+
+  /// No description provided for @checklists_applySheet_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply template'**
+  String get checklists_applySheet_title;
+
+  /// No description provided for @checklists_applySheet_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No templates yet. Create them in Settings.'**
+  String get checklists_applySheet_empty;
+
+  /// No description provided for @checklists_applySheet_itemCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 item} other{{count} items}}'**
+  String checklists_applySheet_itemCount(int count);
+
+  /// No description provided for @checklists_applySheet_confirmAppend.
+  ///
+  /// In en, this message translates to:
+  /// **'{added, plural, =1{1 item will be added} other{{added} items will be added}}, {skipped, plural, =0{no duplicates skipped} =1{1 duplicate skipped} other{{skipped} duplicates skipped}}.'**
+  String checklists_applySheet_confirmAppend(int added, int skipped);
+
+  /// No description provided for @checklists_apply_success.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No new items added} =1{1 item added} other{{count} items added}}'**
+  String checklists_apply_success(int count);
+
+  /// No description provided for @checklists_apply_templateGone.
+  ///
+  /// In en, this message translates to:
+  /// **'Template no longer exists'**
+  String get checklists_apply_templateGone;
+
+  /// No description provided for @checklists_saveTemplate_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Save as template'**
+  String get checklists_saveTemplate_title;
+
+  /// No description provided for @checklists_saveTemplate_nameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Template name'**
+  String get checklists_saveTemplate_nameLabel;
+
+  /// No description provided for @checklists_saveTemplate_success.
+  ///
+  /// In en, this message translates to:
+  /// **'Template saved'**
+  String get checklists_saveTemplate_success;
+
+  /// No description provided for @checklists_templates_pageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Checklist Templates'**
+  String get checklists_templates_pageTitle;
+
+  /// No description provided for @checklists_templates_addTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Template'**
+  String get checklists_templates_addTemplate;
+
+  /// No description provided for @checklists_templates_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No templates yet'**
+  String get checklists_templates_empty;
+
+  /// No description provided for @checklists_templates_deleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Template'**
+  String get checklists_templates_deleteTitle;
+
+  /// No description provided for @checklists_templates_deleteContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{name}\"? Trips that already applied it keep their items.'**
+  String checklists_templates_deleteContent(Object name);
+
+  /// No description provided for @checklists_template_nameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get checklists_template_nameLabel;
+
+  /// No description provided for @checklists_template_nameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Name is required'**
+  String get checklists_template_nameRequired;
+
+  /// No description provided for @checklists_template_descriptionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get checklists_template_descriptionLabel;
+
+  /// No description provided for @checklists_template_itemsHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Items'**
+  String get checklists_template_itemsHeader;
+
+  /// No description provided for @checklists_template_addItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Add item'**
+  String get checklists_template_addItem;
+
   /// Back navigation tooltip
   ///
   /// In en, this message translates to:
@@ -19657,6 +19873,18 @@ abstract class AppLocalizations {
   /// **'System Default'**
   String get settings_language_systemDefault;
 
+  /// No description provided for @settings_manage_checklistTemplates.
+  ///
+  /// In en, this message translates to:
+  /// **'Checklist Templates'**
+  String get settings_manage_checklistTemplates;
+
+  /// No description provided for @settings_manage_checklistTemplates_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reusable to-do lists for trip planning'**
+  String get settings_manage_checklistTemplates_subtitle;
+
   /// No description provided for @settings_manage_diveTypes.
   ///
   /// In en, this message translates to:
@@ -24163,6 +24391,12 @@ abstract class AppLocalizations {
   /// **'Total Dives'**
   String get trips_detail_stat_totalDives;
 
+  /// No description provided for @trips_detail_tab_checklist.
+  ///
+  /// In en, this message translates to:
+  /// **'Checklist'**
+  String get trips_detail_tab_checklist;
+
   /// No description provided for @trips_detail_tooltip_edit.
   ///
   /// In en, this message translates to:
@@ -24553,6 +24787,12 @@ abstract class AppLocalizations {
   /// **'Retry'**
   String get trips_list_button_retry;
 
+  /// No description provided for @trips_list_countdown.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =0{Starting today} =1{In 1 day} other{In {days} days}}'**
+  String trips_list_countdown(int days);
+
   /// No description provided for @trips_list_empty_button.
   ///
   /// In en, this message translates to:
@@ -24601,6 +24841,18 @@ abstract class AppLocalizations {
   /// **'Clear all'**
   String get trips_list_filters_clearAll;
 
+  /// No description provided for @trips_list_inProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress'**
+  String get trips_list_inProgress;
+
+  /// No description provided for @trips_list_pastSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Past Trips'**
+  String get trips_list_pastSection;
+
   /// No description provided for @trips_list_sort_title.
   ///
   /// In en, this message translates to:
@@ -24630,6 +24882,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sort'**
   String get trips_list_tooltip_sort;
+
+  /// No description provided for @trips_list_upcomingSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming'**
+  String get trips_list_upcomingSection;
 
   /// No description provided for @trips_photos_empty_scanButton.
   ///

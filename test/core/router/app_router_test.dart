@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/router/app_router.dart';
+import 'package:submersion/features/checklists/presentation/pages/checklist_template_edit_page.dart';
+import 'package:submersion/features/checklists/presentation/pages/checklist_templates_page.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
@@ -387,6 +389,68 @@ void main() {
       final widget = route!.builder!(capturedContext, state);
       expect(widget.runtimeType.toString(), 'CloudSyncPage');
     });
+  });
+
+  group('app_router checklist templates routes', () {
+    testWidgets(
+      'newChecklistTemplate and editChecklistTemplate builders return '
+      'ChecklistTemplateEditPage with the expected templateId',
+      (tester) async {
+        await tester.pumpWidget(const MaterialApp(home: SizedBox()));
+        final context = tester.element(find.byType(SizedBox));
+        final config = router.configuration;
+
+        final listRoute = _findRouteByName(config.routes, 'checklistTemplates');
+        expect(listRoute, isNotNull);
+        final listState = GoRouterState(
+          config,
+          uri: Uri.parse('/checklist-templates'),
+          matchedLocation: '/checklist-templates',
+          fullPath: '/checklist-templates',
+          pathParameters: const {},
+          pageKey: const ValueKey('/checklist-templates'),
+        );
+        expect(
+          listRoute!.builder!(context, listState),
+          isA<ChecklistTemplatesPage>(),
+        );
+
+        final newRoute = _findRouteByName(
+          config.routes,
+          'newChecklistTemplate',
+        );
+        expect(newRoute, isNotNull);
+        final newState = GoRouterState(
+          config,
+          uri: Uri.parse('/checklist-templates/new'),
+          matchedLocation: '/checklist-templates/new',
+          fullPath: '/checklist-templates/new',
+          pathParameters: const {},
+          pageKey: const ValueKey('/checklist-templates/new'),
+        );
+        final newWidget =
+            newRoute!.builder!(context, newState) as ChecklistTemplateEditPage;
+        expect(newWidget.templateId, isNull);
+
+        final editRoute = _findRouteByName(
+          config.routes,
+          'editChecklistTemplate',
+        );
+        expect(editRoute, isNotNull);
+        final editState = GoRouterState(
+          config,
+          uri: Uri.parse('/checklist-templates/tpl-1/edit'),
+          matchedLocation: '/checklist-templates/tpl-1/edit',
+          fullPath: '/checklist-templates/tpl-1/edit',
+          pathParameters: const {'templateId': 'tpl-1'},
+          pageKey: const ValueKey('/checklist-templates/tpl-1/edit'),
+        );
+        final editWidget =
+            editRoute!.builder!(context, editState)
+                as ChecklistTemplateEditPage;
+        expect(editWidget.templateId, 'tpl-1');
+      },
+    );
   });
 
   group('app_router initialLocation', () {

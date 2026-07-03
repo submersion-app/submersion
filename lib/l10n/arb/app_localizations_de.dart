@@ -1526,6 +1526,153 @@ class AppLocalizationsDe extends AppLocalizations {
   String get certifications_wallet_tooltip_share => 'Zertifizierung teilen';
 
   @override
+  String get checklists_section_title => 'Checkliste';
+
+  @override
+  String checklists_progress(int done, int total) {
+    return '$done von $total Aufgaben erledigt';
+  }
+
+  @override
+  String get checklists_empty_upcoming =>
+      'Planen Sie Ihre Reise - fügen Sie Aufgaben hinzu oder wenden Sie eine Vorlage an';
+
+  @override
+  String get checklists_empty_past => 'Keine Checklisteneinträge';
+
+  @override
+  String get checklists_addItem => 'Eintrag hinzufügen';
+
+  @override
+  String get checklists_item_titleLabel => 'Titel';
+
+  @override
+  String get checklists_item_titleRequired => 'Titel ist erforderlich';
+
+  @override
+  String get checklists_item_categoryLabel => 'Kategorie';
+
+  @override
+  String get checklists_item_notesLabel => 'Notizen';
+
+  @override
+  String get checklists_item_dueDateLabel => 'Fälligkeitsdatum';
+
+  @override
+  String get checklists_item_dueOffsetLabel => 'Tage vor Reisebeginn';
+
+  @override
+  String get checklists_item_dueOffsetInvalid =>
+      'Geben Sie 0 oder mehr Tage ein';
+
+  @override
+  String get checklists_item_overdue => 'Überfällig';
+
+  @override
+  String get checklists_item_edit => 'Eintrag bearbeiten';
+
+  @override
+  String get checklists_item_delete => 'Eintrag löschen';
+
+  @override
+  String get checklists_menu_applyTemplate => 'Vorlage anwenden...';
+
+  @override
+  String get checklists_menu_saveAsTemplate => 'Als Vorlage speichern...';
+
+  @override
+  String get checklists_applySheet_title => 'Vorlage anwenden';
+
+  @override
+  String get checklists_applySheet_empty =>
+      'Noch keine Vorlagen vorhanden. Erstellen Sie sie in den Einstellungen.';
+
+  @override
+  String checklists_applySheet_itemCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Einträge',
+      one: '1 Eintrag',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String checklists_applySheet_confirmAppend(int added, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      added,
+      locale: localeName,
+      other: '$added Einträge werden hinzugefügt',
+      one: '1 Eintrag wird hinzugefügt',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      skipped,
+      locale: localeName,
+      other: '$skipped Duplikate übersprungen',
+      one: '1 Duplikat übersprungen',
+      zero: 'keine Duplikate übersprungen',
+    );
+    return '$_temp0, $_temp1.';
+  }
+
+  @override
+  String checklists_apply_success(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Einträge hinzugefügt',
+      one: '1 Eintrag hinzugefügt',
+      zero: 'Keine neuen Einträge hinzugefügt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get checklists_apply_templateGone => 'Vorlage existiert nicht mehr';
+
+  @override
+  String get checklists_saveTemplate_title => 'Als Vorlage speichern';
+
+  @override
+  String get checklists_saveTemplate_nameLabel => 'Vorlagenname';
+
+  @override
+  String get checklists_saveTemplate_success => 'Vorlage gespeichert';
+
+  @override
+  String get checklists_templates_pageTitle => 'Checklistenvorlagen';
+
+  @override
+  String get checklists_templates_addTemplate => 'Vorlage hinzufügen';
+
+  @override
+  String get checklists_templates_empty => 'Noch keine Vorlagen vorhanden';
+
+  @override
+  String get checklists_templates_deleteTitle => 'Vorlage löschen';
+
+  @override
+  String checklists_templates_deleteContent(Object name) {
+    return '\"$name\" löschen? Reisen, die sie bereits angewendet haben, behalten ihre Einträge.';
+  }
+
+  @override
+  String get checklists_template_nameLabel => 'Name';
+
+  @override
+  String get checklists_template_nameRequired => 'Name ist erforderlich';
+
+  @override
+  String get checklists_template_descriptionLabel => 'Beschreibung';
+
+  @override
+  String get checklists_template_itemsHeader => 'Einträge';
+
+  @override
+  String get checklists_template_addItem => 'Eintrag hinzufügen';
+
+  @override
   String get common_action_back => 'Zurück';
 
   @override
@@ -11578,6 +11725,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_language_systemDefault => 'Systemstandard';
 
   @override
+  String get settings_manage_checklistTemplates => 'Checklistenvorlagen';
+
+  @override
+  String get settings_manage_checklistTemplates_subtitle =>
+      'Wiederverwendbare Aufgabenlisten für die Reiseplanung';
+
+  @override
   String get settings_manage_diveTypes => 'Taucharten';
 
   @override
@@ -14278,6 +14432,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trips_detail_stat_totalDives => 'Tauchgänge gesamt';
 
   @override
+  String get trips_detail_tab_checklist => 'Checkliste';
+
+  @override
   String get trips_detail_tooltip_edit => 'Reise bearbeiten';
 
   @override
@@ -14516,6 +14673,18 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trips_list_button_retry => 'Erneut versuchen';
 
   @override
+  String trips_list_countdown(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'In $days Tagen',
+      one: 'In 1 Tag',
+      zero: 'Beginnt heute',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get trips_list_empty_button => 'Erste Reise hinzufügen';
 
   @override
@@ -14545,6 +14714,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trips_list_filters_clearAll => 'Alle löschen';
 
   @override
+  String get trips_list_inProgress => 'Läuft gerade';
+
+  @override
+  String get trips_list_pastSection => 'Vergangene Reisen';
+
+  @override
   String get trips_list_sort_title => 'Reisen sortieren';
 
   @override
@@ -14560,6 +14735,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get trips_list_tooltip_sort => 'Sortieren';
+
+  @override
+  String get trips_list_upcomingSection => 'Bevorstehend';
 
   @override
   String get trips_photos_empty_scanButton => 'Gerätegalerie durchsuchen';

@@ -23,6 +23,8 @@ import 'package:submersion/features/certifications/presentation/pages/certificat
 import 'package:submersion/features/certifications/presentation/pages/certification_detail_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_edit_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_wallet_page.dart';
+import 'package:submersion/features/checklists/presentation/pages/checklist_template_edit_page.dart';
+import 'package:submersion/features/checklists/presentation/pages/checklist_templates_page.dart';
 import 'package:submersion/features/courses/presentation/pages/course_list_page.dart';
 import 'package:submersion/features/courses/presentation/pages/course_detail_page.dart';
 import 'package:submersion/features/courses/presentation/pages/course_edit_page.dart';
@@ -952,6 +954,27 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 name: 'editTankPreset',
                 builder: (context, state) => TankPresetEditPage(
                   presetId: state.pathParameters['presetId'],
+                ),
+              ),
+            ],
+          ),
+
+          // Checklist Templates Management
+          GoRoute(
+            path: '/checklist-templates',
+            name: 'checklistTemplates',
+            builder: (context, state) => const ChecklistTemplatesPage(),
+            routes: [
+              GoRoute(
+                path: 'new',
+                name: 'newChecklistTemplate',
+                builder: (context, state) => const ChecklistTemplateEditPage(),
+              ),
+              GoRoute(
+                path: ':templateId/edit',
+                name: 'editChecklistTemplate',
+                builder: (context, state) => ChecklistTemplateEditPage(
+                  templateId: state.pathParameters['templateId'],
                 ),
               ),
             ],

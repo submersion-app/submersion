@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/checklists/presentation/widgets/trip_checklist_section.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -127,15 +128,15 @@ class _TripDetailContent extends ConsumerWidget {
     );
   }
 
-  /// Tabbed layout for liveaboard trips with 4 tabs:
-  /// Overview, Itinerary, Photos, Dives.
+  /// Tabbed layout for liveaboard trips with 5 tabs:
+  /// Overview, Itinerary, Photos, Dives, Checklist.
   Widget _buildLiveaboardLayout(
     BuildContext context,
     WidgetRef ref,
     Trip trip,
   ) {
     final tabbedBody = DefaultTabController(
-      length: 4,
+      length: 5,
       child: Column(
         children: [
           Material(
@@ -146,6 +147,7 @@ class _TripDetailContent extends ConsumerWidget {
                 Tab(text: context.l10n.trips_detail_tab_itinerary),
                 Tab(text: context.l10n.trips_detail_tab_photos),
                 Tab(text: context.l10n.trips_detail_tab_dives),
+                Tab(text: context.l10n.trips_detail_tab_checklist),
               ],
             ),
           ),
@@ -156,6 +158,10 @@ class _TripDetailContent extends ConsumerWidget {
                 TripItineraryTab(tripId: trip.id),
                 _buildPhotosTab(context, ref, trip),
                 _buildDivesTab(context, ref, trip),
+                SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: TripChecklistSection(trip: tripWithStats.trip),
+                ),
               ],
             ),
           ),

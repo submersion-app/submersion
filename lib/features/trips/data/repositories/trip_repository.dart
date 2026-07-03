@@ -8,6 +8,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/checklists/data/repositories/trip_checklist_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/trips/data/repositories/itinerary_day_repository.dart';
 import 'package:submersion/features/trips/data/repositories/liveaboard_details_repository.dart';
@@ -266,24 +267,38 @@ class TripRepository {
   /// Delete a trip and all associated child records.
   /// Removes liveaboard details, itinerary days, and dive associations
   /// before deleting the trip itself.
+  ///
+  /// The whole cascade runs in one transaction so a failure partway through
+  /// (e.g. a checklist delete throwing) rolls back every prior step instead
+  /// of leaving the trip half-deleted. Drift nested transactions join the
+  /// parent, so the child repositories' own `markRecordPending`/`logDeletion`
+  /// writes are safe inside this wrapper. Those child repos also fire their
+  /// own `SyncEventBus.notifyLocalChange()` mid-transaction; that is
+  /// pre-existing, debounced-downstream behavior and is left as-is. This
+  /// method's own notify is deferred until after the transaction commits so
+  /// listeners never observe a rolled-back delete as "changed".
   Future<void> deleteTrip(String id) async {
     try {
       _log.info('Deleting trip: $id');
 
-      // Delete child records with non-nullable FKs first
-      await LiveaboardDetailsRepository().deleteByTripId(id);
-      await ItineraryDayRepository().deleteByTripId(id);
+      await _db.transaction(() async {
+        // Delete child records with non-nullable FKs first
+        await LiveaboardDetailsRepository().deleteByTripId(id);
+        await ItineraryDayRepository().deleteByTripId(id);
+        await TripChecklistRepository().deleteByTripId(id);
 
-      // Remove trip association from dives (nullable FK)
-      await _db.customUpdate(
-        'UPDATE dives SET trip_id = NULL WHERE trip_id = ?',
-        variables: [Variable.withString(id)],
-        updates: {_db.dives},
-      );
+        // Remove trip association from dives (nullable FK)
+        await _db.customUpdate(
+          'UPDATE dives SET trip_id = NULL WHERE trip_id = ?',
+          variables: [Variable.withString(id)],
+          updates: {_db.dives},
+        );
 
-      // Delete the trip
-      await (_db.delete(_db.trips)..where((t) => t.id.equals(id))).go();
-      await _syncRepository.logDeletion(entityType: 'trips', recordId: id);
+        // Delete the trip
+        await (_db.delete(_db.trips)..where((t) => t.id.equals(id))).go();
+        await _syncRepository.logDeletion(entityType: 'trips', recordId: id);
+      });
+
       SyncEventBus.notifyLocalChange();
       _log.info('Deleted trip: $id');
     } catch (e, stackTrace) {

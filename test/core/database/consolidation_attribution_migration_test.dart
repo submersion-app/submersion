@@ -24,14 +24,13 @@ void main() {
     expect(await columnsOf('dive_profile_events'), contains('computer_id'));
   });
 
-  test('schema version is 97 and the migration list includes it', () {
-    // Latest-version tripwire: bumping the schema must come with a matching
-    // migration block and an update here.
-    expect(AppDatabase.currentSchemaVersion, 97);
+  test('v97 is in the migration ladder', () {
+    // v97 was the latest when written; issue #164's checklist migration
+    // superseded it at v98, so this is a ladder-membership check, not an
+    // exact-latest assertion (matches the superseded-tripwire convention of
+    // the earlier migration_v9x tests).
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(97));
     expect(AppDatabase.migrationVersions, contains(97));
-    // Latest-version tripwire: bumping the schema must come with a
-    // matching migration block and an update here.
-    expect(AppDatabase.migrationVersions.last, 97);
   });
 
   test('deleting a computer nulls attribution instead of cascading', () async {

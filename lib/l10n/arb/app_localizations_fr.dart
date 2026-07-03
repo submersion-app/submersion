@@ -1526,6 +1526,152 @@ class AppLocalizationsFr extends AppLocalizations {
   String get certifications_wallet_tooltip_share => 'Partager la certification';
 
   @override
+  String get checklists_section_title => 'Liste de contrôle';
+
+  @override
+  String checklists_progress(int done, int total) {
+    return '$done sur $total tâches effectuées';
+  }
+
+  @override
+  String get checklists_empty_upcoming =>
+      'Planifiez votre voyage - ajoutez des tâches ou appliquez un modèle';
+
+  @override
+  String get checklists_empty_past => 'Aucun élément de liste de contrôle';
+
+  @override
+  String get checklists_addItem => 'Ajouter un élément';
+
+  @override
+  String get checklists_item_titleLabel => 'Titre';
+
+  @override
+  String get checklists_item_titleRequired => 'Le titre est requis';
+
+  @override
+  String get checklists_item_categoryLabel => 'Catégorie';
+
+  @override
+  String get checklists_item_notesLabel => 'Notes';
+
+  @override
+  String get checklists_item_dueDateLabel => 'Date d\'échéance';
+
+  @override
+  String get checklists_item_dueOffsetLabel => 'Jours avant le début du voyage';
+
+  @override
+  String get checklists_item_dueOffsetInvalid => 'Saisissez 0 jour ou plus';
+
+  @override
+  String get checklists_item_overdue => 'En retard';
+
+  @override
+  String get checklists_item_edit => 'Modifier l\'élément';
+
+  @override
+  String get checklists_item_delete => 'Supprimer l\'élément';
+
+  @override
+  String get checklists_menu_applyTemplate => 'Appliquer un modèle...';
+
+  @override
+  String get checklists_menu_saveAsTemplate => 'Enregistrer comme modèle...';
+
+  @override
+  String get checklists_applySheet_title => 'Appliquer un modèle';
+
+  @override
+  String get checklists_applySheet_empty =>
+      'Aucun modèle pour l\'instant. Créez-en dans les Paramètres.';
+
+  @override
+  String checklists_applySheet_itemCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count éléments',
+      one: '1 élément',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String checklists_applySheet_confirmAppend(int added, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      added,
+      locale: localeName,
+      other: '$added éléments seront ajoutés',
+      one: '1 élément sera ajouté',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      skipped,
+      locale: localeName,
+      other: '$skipped doublons ignorés',
+      one: '1 doublon ignoré',
+      zero: 'aucun doublon ignoré',
+    );
+    return '$_temp0, $_temp1.';
+  }
+
+  @override
+  String checklists_apply_success(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count éléments ajoutés',
+      one: '1 élément ajouté',
+      zero: 'Aucun nouvel élément ajouté',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get checklists_apply_templateGone => 'Le modèle n\'existe plus';
+
+  @override
+  String get checklists_saveTemplate_title => 'Enregistrer comme modèle';
+
+  @override
+  String get checklists_saveTemplate_nameLabel => 'Nom du modèle';
+
+  @override
+  String get checklists_saveTemplate_success => 'Modèle enregistré';
+
+  @override
+  String get checklists_templates_pageTitle => 'Modèles de liste de contrôle';
+
+  @override
+  String get checklists_templates_addTemplate => 'Ajouter un modèle';
+
+  @override
+  String get checklists_templates_empty => 'Aucun modèle pour l\'instant';
+
+  @override
+  String get checklists_templates_deleteTitle => 'Supprimer le modèle';
+
+  @override
+  String checklists_templates_deleteContent(Object name) {
+    return 'Supprimer « $name » ? Les voyages qui l\'ont déjà appliqué conservent leurs éléments.';
+  }
+
+  @override
+  String get checklists_template_nameLabel => 'Nom';
+
+  @override
+  String get checklists_template_nameRequired => 'Le nom est requis';
+
+  @override
+  String get checklists_template_descriptionLabel => 'Description';
+
+  @override
+  String get checklists_template_itemsHeader => 'Éléments';
+
+  @override
+  String get checklists_template_addItem => 'Ajouter un élément';
+
+  @override
   String get common_action_back => 'Retour';
 
   @override
@@ -11631,6 +11777,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_language_systemDefault => 'Defaut du systeme';
 
   @override
+  String get settings_manage_checklistTemplates =>
+      'Modèles de liste de contrôle';
+
+  @override
+  String get settings_manage_checklistTemplates_subtitle =>
+      'Listes de tâches réutilisables pour la planification de voyages';
+
+  @override
   String get settings_manage_diveTypes => 'Types de plongee';
 
   @override
@@ -14366,6 +14520,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get trips_detail_stat_totalDives => 'Total des plongees';
 
   @override
+  String get trips_detail_tab_checklist => 'Liste de contrôle';
+
+  @override
   String get trips_detail_tooltip_edit => 'Modifier le voyage';
 
   @override
@@ -14605,6 +14762,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get trips_list_button_retry => 'Reessayer';
 
   @override
+  String trips_list_countdown(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Dans $days jours',
+      one: 'Dans 1 jour',
+      zero: 'Départ aujourd\'hui',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get trips_list_empty_button => 'Ajouter votre premier voyage';
 
   @override
@@ -14634,6 +14803,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get trips_list_filters_clearAll => 'Tout effacer';
 
   @override
+  String get trips_list_inProgress => 'En cours';
+
+  @override
+  String get trips_list_pastSection => 'Voyages passés';
+
+  @override
   String get trips_list_sort_title => 'Trier les voyages';
 
   @override
@@ -14649,6 +14824,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get trips_list_tooltip_sort => 'Trier';
+
+  @override
+  String get trips_list_upcomingSection => 'À venir';
 
   @override
   String get trips_photos_empty_scanButton =>

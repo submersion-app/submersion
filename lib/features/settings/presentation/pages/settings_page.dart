@@ -1644,6 +1644,16 @@ class _ManageSectionContent extends StatelessWidget {
                 ),
                 const Divider(height: 1),
                 ListTile(
+                  leading: const Icon(Icons.checklist),
+                  title: Text(context.l10n.settings_manage_checklistTemplates),
+                  subtitle: Text(
+                    context.l10n.settings_manage_checklistTemplates_subtitle,
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/checklist-templates'),
+                ),
+                const Divider(height: 1),
+                ListTile(
                   leading: const Icon(MdiIcons.fish),
                   title: Text(context.l10n.settings_manage_species),
                   subtitle: Text(context.l10n.settings_manage_species_subtitle),

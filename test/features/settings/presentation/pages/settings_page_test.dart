@@ -782,4 +782,54 @@ void main() {
       expect(find.byType(SectionAppearancePage), findsOneWidget);
     });
   });
+
+  group('ManageSectionContent checklist templates tile', () {
+    /// Build a widget that renders the SettingsPage via GoRouter with
+    /// ?selected=manage, which renders the _SettingsSectionDetailPage
+    /// containing _ManageSectionContent (mobile detail page path) -- mirrors
+    /// buildAppearanceWidget above.
+    Widget buildManageWidget(List<Override> overrides) {
+      final router = GoRouter(
+        initialLocation: '/settings?selected=manage',
+        routes: [
+          GoRoute(
+            path: '/settings',
+            builder: (context, state) => const SettingsPage(),
+          ),
+          GoRoute(
+            path: '/checklist-templates',
+            builder: (context, state) => const Text('Checklist Templates Stub'),
+          ),
+        ],
+      );
+
+      return ProviderScope(
+        overrides: overrides,
+        child: MaterialApp.router(
+          routerConfig: router,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      );
+    }
+
+    testWidgets('renders the checklist templates tile and navigates on tap', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildManageWidget(getOverrides()));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Checklist Templates'), findsOneWidget);
+      expect(
+        find.text('Reusable to-do lists for trip planning'),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text('Checklist Templates'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Checklist Templates Stub'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  });
 }

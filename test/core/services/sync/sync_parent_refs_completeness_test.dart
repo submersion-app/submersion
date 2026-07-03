@@ -24,6 +24,9 @@ void main() {
     'trips': 'trips',
     'liveaboard_detail_records': 'liveaboardDetails',
     'trip_itinerary_days': 'itineraryDays',
+    'checklist_templates': 'checklistTemplates',
+    'checklist_template_items': 'checklistTemplateItems',
+    'trip_checklist_items': 'tripChecklistItems',
     'equipment': 'equipment',
     'equipment_sets': 'equipmentSets',
     'equipment_set_items': 'equipmentSetItems',
@@ -74,6 +77,7 @@ void main() {
     'dive_centers': 'diveCenters',
     'species': 'species',
     'dive_computers': 'diveComputers',
+    'checklist_templates': 'checklistTemplates',
   };
 
   String camel(String snake) {

@@ -126,6 +126,77 @@ class TripItineraryDays extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Reusable checklist templates for trip planning (issue #164)
+class ChecklistTemplates extends Table {
+  // coverage:ignore-start
+  // Drift column getters run at build time via drift_dev, not at runtime, so
+  // lcov never records hits (true of every Table class in this file).
+  TextColumn get id => text()();
+  TextColumn get diverId => text().nullable().references(Divers, #id)();
+  TextColumn get name => text()();
+  TextColumn get description => text().withDefault(const Constant(''))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+  // coverage:ignore-end
+}
+
+/// Items belonging to a checklist template
+class ChecklistTemplateItems extends Table {
+  // coverage:ignore-start
+  TextColumn get id => text()();
+  TextColumn get templateId => text().references(ChecklistTemplates, #id)();
+  TextColumn get title => text()();
+  TextColumn get category => text().nullable()();
+  TextColumn get notes => text().withDefault(const Constant(''))();
+
+  /// Days before trip start the item is due (14 = "two weeks out").
+  IntColumn get dueOffsetDays => integer().nullable()();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+  // coverage:ignore-end
+}
+
+/// Per-trip checklist items (copied from templates or added ad hoc)
+class TripChecklistItems extends Table {
+  // coverage:ignore-start
+  TextColumn get id => text()();
+  TextColumn get tripId => text().references(Trips, #id)();
+  TextColumn get title => text()();
+  TextColumn get category => text().nullable()();
+  TextColumn get notes => text().withDefault(const Constant(''))();
+
+  /// Absolute due date, resolved from the template offset at apply time.
+  IntColumn get dueDate => integer().nullable()();
+  BoolColumn get isDone => boolean().withDefault(const Constant(false))();
+  IntColumn get completedAt => integer().nullable()();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+  // coverage:ignore-end
+}
+
 /// Dive log entries
 class Dives extends Table {
   TextColumn get id => text()();
@@ -1723,6 +1794,9 @@ class FieldPresets extends Table {
     // Liveaboard tracking (v2.0)
     LiveaboardDetailRecords,
     TripItineraryDays,
+    ChecklistTemplates,
+    ChecklistTemplateItems,
+    TripChecklistItems,
     // CSV import presets (local-only)
     CsvPresets,
     // Column view configuration
@@ -1742,7 +1816,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 97;
+  static const int currentSchemaVersion = 98;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1843,6 +1917,7 @@ class AppDatabase extends _$AppDatabase {
     95,
     96,
     97,
+    98,
   ];
 
   /// Tables that carry a per-row Hybrid Logical Clock for cross-device conflict
@@ -4430,6 +4505,68 @@ class AppDatabase extends _$AppDatabase {
           }
         }
         if (from < 97) await reportProgress();
+        if (from < 98) {
+          // Checklist tables for trip planning (issue #164). Raw idempotent
+          // DDL (matches the v84 idiom) so interrupted migrations are safe.
+          // Renumbered v95 -> v96 -> v97 -> v98 as parallel branches each
+          // consumed a version before this merged (dive naming v95, photo
+          // markers v96, multi-computer consolidation v97), stranding some
+          // live databases at those versions without the checklist tables.
+          // Re-running the idempotent CREATE TABLE/INDEX IF NOT EXISTS
+          // statements here recovers them without disturbing what earlier
+          // versions added — the same recovery pattern as the v82/v83
+          // schema-version-collision blocks above.
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS checklist_templates (
+              id TEXT NOT NULL PRIMARY KEY,
+              diver_id TEXT REFERENCES divers (id),
+              name TEXT NOT NULL,
+              description TEXT NOT NULL DEFAULT '',
+              created_at INTEGER NOT NULL,
+              updated_at INTEGER NOT NULL,
+              hlc TEXT
+            )
+          ''');
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS checklist_template_items (
+              id TEXT NOT NULL PRIMARY KEY,
+              template_id TEXT NOT NULL REFERENCES checklist_templates (id),
+              title TEXT NOT NULL,
+              category TEXT,
+              notes TEXT NOT NULL DEFAULT '',
+              due_offset_days INTEGER,
+              sort_order INTEGER NOT NULL DEFAULT 0,
+              created_at INTEGER NOT NULL,
+              updated_at INTEGER NOT NULL,
+              hlc TEXT
+            )
+          ''');
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS trip_checklist_items (
+              id TEXT NOT NULL PRIMARY KEY,
+              trip_id TEXT NOT NULL REFERENCES trips (id),
+              title TEXT NOT NULL,
+              category TEXT,
+              notes TEXT NOT NULL DEFAULT '',
+              due_date INTEGER,
+              is_done INTEGER NOT NULL DEFAULT 0,
+              completed_at INTEGER,
+              sort_order INTEGER NOT NULL DEFAULT 0,
+              created_at INTEGER NOT NULL,
+              updated_at INTEGER NOT NULL,
+              hlc TEXT
+            )
+          ''');
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_checklist_template_items_template_id
+            ON checklist_template_items(template_id)
+          ''');
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_trip_checklist_items_trip_id
+            ON trip_checklist_items(trip_id)
+          ''');
+        }
+        if (from < 98) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys

@@ -57,6 +57,33 @@ class Trip extends Equatable {
     return !dateOnly.isBefore(start) && !dateOnly.isAfter(end);
   }
 
+  /// Whether this trip is upcoming or currently underway (date-only
+  /// comparison, same normalization as [containsDate]).
+  bool get isUpcoming {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final end = DateTime(endDate.year, endDate.month, endDate.day);
+    return !end.isBefore(today);
+  }
+
+  /// Whether the trip has started but not yet ended (date-only).
+  bool get isInProgress {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final start = DateTime(startDate.year, startDate.month, startDate.day);
+    final end = DateTime(endDate.year, endDate.month, endDate.day);
+    return !start.isAfter(today) && !end.isBefore(today);
+  }
+
+  /// Calendar days until the trip starts (0 when started or starting today).
+  int get daysUntilStart {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final start = DateTime(startDate.year, startDate.month, startDate.day);
+    final diff = start.difference(today).inDays;
+    return diff < 0 ? 0 : diff;
+  }
+
   Trip copyWith({
     String? id,
     String? diverId,
