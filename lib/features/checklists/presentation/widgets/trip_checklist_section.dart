@@ -89,9 +89,13 @@ class TripChecklistSection extends ConsumerWidget {
           ),
         ),
         if (items.isNotEmpty)
-          Text(
-            context.l10n.checklists_progress(done, items.length),
-            style: theme.textTheme.labelMedium,
+          Flexible(
+            child: Text(
+              context.l10n.checklists_progress(done, items.length),
+              style: theme.textTheme.labelMedium,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
           ),
         _buildOverflowMenu(context, ref, items),
       ],
