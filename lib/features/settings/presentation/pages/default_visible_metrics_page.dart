@@ -53,6 +53,11 @@ class DefaultVisibleMetricsPage extends ConsumerWidget {
             value: settings.defaultShowEvents,
             onChanged: notifier.setDefaultShowEvents,
           ),
+          SwitchListTile(
+            title: Text(context.l10n.settings_appearance_metric_photoMarkers),
+            value: settings.defaultShowPhotoMarkers,
+            onChanged: notifier.setDefaultShowPhotoMarkers,
+          ),
           const Divider(),
           _buildSectionHeader(
             context,

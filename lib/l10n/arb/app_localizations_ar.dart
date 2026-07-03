@@ -4242,6 +4242,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_legend_label_otu => 'OTU';
 
   @override
+  String get diveLog_legend_label_photoMarkers => 'الصور';
+
+  @override
   String get diveLog_legend_label_ppHe => 'ppHe';
 
   @override
@@ -4775,6 +4778,9 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveLog_profile_semantics_chart =>
       'مخطط ملف الغوصة، قم بالتكبير بالضم';
+
+  @override
+  String get diveLog_profile_semantics_photoMarker => 'علامة صورة';
 
   @override
   String get diveLog_profile_tooltip_moreOptions => 'خيارات مخطط إضافية';
@@ -10388,6 +10394,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_otu => 'OTU (وحدات تحمل الأكسجين)';
+
+  @override
+  String get settings_appearance_metric_photoMarkers => 'علامات الصور';
 
   @override
   String settings_appearance_metricsEnabledCount(int count, int total) {

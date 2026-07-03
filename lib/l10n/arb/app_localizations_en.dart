@@ -4267,6 +4267,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_legend_label_otu => 'OTU';
 
   @override
+  String get diveLog_legend_label_photoMarkers => 'Photos';
+
+  @override
   String get diveLog_legend_label_ppHe => 'ppHe';
 
   @override
@@ -4799,6 +4802,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveLog_profile_semantics_chart =>
       'Dive profile chart, pinch to zoom';
+
+  @override
+  String get diveLog_profile_semantics_photoMarker => 'Photo marker';
 
   @override
   String get diveLog_profile_tooltip_moreOptions => 'More chart options';
@@ -10419,6 +10425,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_otu => 'OTU (O2 Tolerance Units)';
+
+  @override
+  String get settings_appearance_metric_photoMarkers => 'Photo Markers';
 
   @override
   String settings_appearance_metricsEnabledCount(int count, int total) {

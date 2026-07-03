@@ -24,6 +24,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/chart_series_c
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_legend.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_timeline_strip.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_layout.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_overlay.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_chart_viewport.dart';
 import 'package:submersion/core/ui/trackpad_zoom_recognizer.dart';
@@ -87,6 +89,10 @@ class DiveProfileChart extends ConsumerStatefulWidget {
 
   /// Profile markers to display (max depth, pressure thresholds)
   final List<ProfileMarker>? markers;
+
+  /// Photos positioned on the profile via their import-time enrichment.
+  /// Rendered as a tappable overlay when the legend toggle is on.
+  final List<PhotoChartMarker>? photoMarkers;
 
   /// Whether to show max depth marker (from settings)
   final bool showMaxDepthMarker;
@@ -338,6 +344,7 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.showEvents = true,
     this.showSac = false,
     this.markers,
+    this.photoMarkers,
     this.showMaxDepthMarker = false,
     this.showPressureThresholdMarkers = false,
     this.gasSwitches,
@@ -395,6 +402,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
   // Gas switch visualization toggle
   bool _showGasSwitchMarkers = true;
+
+  // Photo marker visualization toggle
+  bool _showPhotoMarkers = true;
 
   // Advanced decompression/gas toggles
   bool _showNdl = false;
@@ -1158,6 +1168,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showMaxDepthMarkerLocal = legendState.showMaxDepthMarker;
     _showPressureMarkersLocal = legendState.showPressureMarkers;
     _showGasSwitchMarkers = legendState.showGasSwitchMarkers;
+    _showPhotoMarkers = legendState.showPhotoMarkers;
     // Sync advanced deco/gas toggles
     _showNdl = legendState.showNdl;
     _showPpO2 = legendState.showPpO2;
@@ -1214,6 +1225,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           widget.showPressureThresholdMarkers && _hasPressureMarkers,
       hasGasSwitches:
           widget.gasSwitches != null && widget.gasSwitches!.isNotEmpty,
+      hasPhotoMarkers:
+          widget.photoMarkers != null && widget.photoMarkers!.isNotEmpty,
       hasMultiTankPressure: _hasMultiTankPressure,
       hasGasData:
           (widget.gasSegments?.isNotEmpty ?? false) &&
@@ -2626,6 +2639,24 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             visibleMaxX: visibleMaxX,
             hasRightAxisName:
                 effectiveRightAxisMetric != null && rightAxisRange != null,
+          ),
+        // Photo markers: tappable camera chips at each photo's (time, depth).
+        // A widget layer (not an fl_chart element) so its taps never enter
+        // the chart's gesture arena; insets mirror the plot-rect math used
+        // by the gas strip above.
+        if (_showPhotoMarkers &&
+            widget.photoMarkers != null &&
+            widget.photoMarkers!.isNotEmpty)
+          Positioned.fill(
+            child: PhotoMarkerOverlay(
+              markers: widget.photoMarkers!,
+              visibleMinSeconds: visibleMinX,
+              visibleMaxSeconds: visibleMaxX,
+              visibleMinDepth: visibleMinDepth,
+              visibleMaxDepth: visibleMaxDepth,
+              insets: _plotInsets(availableWidth, units),
+              units: units,
+            ),
           ),
       ],
     );

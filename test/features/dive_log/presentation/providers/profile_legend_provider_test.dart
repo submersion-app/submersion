@@ -73,6 +73,7 @@ void main() {
           showMaxDepthMarker: false,
           showPressureMarkers: false,
           showGasSwitchMarkers: false,
+          showPhotoMarkers: false,
         );
         expect(isolatedState.activeSecondaryCount, 1);
       });
@@ -84,6 +85,7 @@ void main() {
           showMaxDepthMarker: false,
           showPressureMarkers: false,
           showGasSwitchMarkers: false,
+          showPhotoMarkers: false,
           showCeiling: false,
         );
         expect(state.activeSecondaryCount, 0);
@@ -223,6 +225,7 @@ void main() {
         showMaxDepthMarker: false,
         showPressureMarkers: false,
         showGasSwitchMarkers: false,
+        showPhotoMarkers: false,
       );
       expect(state.activeSecondaryCount, 1);
     });
@@ -326,6 +329,36 @@ void main() {
       );
       addTearDown(container.dispose);
       expect(container.read(profileLegendProvider).showAscentRateLine, isTrue);
+    });
+  });
+
+  group('ProfileLegend.showPhotoMarkers', () {
+    test('showPhotoMarkers seeds from defaultShowPhotoMarkers', () {
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith(
+            (ref) => _StubSettingsNotifier(
+              const AppSettings(defaultShowPhotoMarkers: false),
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      expect(container.read(profileLegendProvider).showPhotoMarkers, isFalse);
+    });
+
+    test('togglePhotoMarkers flips the state', () {
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith(
+            (ref) => _StubSettingsNotifier(const AppSettings()),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      expect(container.read(profileLegendProvider).showPhotoMarkers, isTrue);
+      container.read(profileLegendProvider.notifier).togglePhotoMarkers();
+      expect(container.read(profileLegendProvider).showPhotoMarkers, isFalse);
     });
   });
 }

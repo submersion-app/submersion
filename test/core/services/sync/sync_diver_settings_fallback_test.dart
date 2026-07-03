@@ -47,7 +47,8 @@ void main() {
       // Simulate the older sender: strip the v91-era keys from the payload.
       final legacy = Map<String, dynamic>.from(exported!)
         ..remove('defaultShowAscentRateLine')
-        ..remove('showAscentRateColors');
+        ..remove('showAscentRateColors')
+        ..remove('defaultShowPhotoMarkers');
 
       // Remove the local row so the upsert is a fresh insert.
       await (db.delete(
@@ -63,6 +64,8 @@ void main() {
       // Both fields hydrate to the v91 defaults rather than throwing.
       expect(row.defaultShowAscentRateLine, isFalse);
       expect(row.showAscentRateColors, isFalse);
+      // v96 column hydrates to its default rather than throwing.
+      expect(row.defaultShowPhotoMarkers, isTrue);
     },
   );
 }

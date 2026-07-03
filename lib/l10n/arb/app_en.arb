@@ -2124,6 +2124,7 @@
   "diveLog_legend_label_mod": "MOD",
   "diveLog_legend_label_ndl": "NDL",
   "diveLog_legend_label_otu": "OTU",
+  "diveLog_legend_label_photoMarkers": "Photos",
   "diveLog_legend_label_ppHe": "ppHe",
   "diveLog_legend_label_ppN2": "ppN2",
   "diveLog_legend_label_ppO2": "ppO2",
@@ -2330,6 +2331,7 @@
   "diveLog_profile_rightAxis_none": "None",
   "diveLog_profile_semantics_changeRightAxis": "Change right axis metric",
   "diveLog_profile_semantics_chart": "Dive profile chart, pinch to zoom",
+  "diveLog_profile_semantics_photoMarker": "Photo marker",
   "diveLog_profile_tooltip_moreOptions": "More chart options",
   "diveLog_profile_tooltip_resetZoom": "Reset zoom",
   "diveLog_profile_tooltip_zoomIn": "Zoom in",
@@ -5690,6 +5692,7 @@
   "settings_appearance_metric_tts": "TTS (Time to Surface)",
   "settings_appearance_metric_cns": "CNS% (O2 Toxicity)",
   "settings_appearance_metric_otu": "OTU (O2 Tolerance Units)",
+  "settings_appearance_metric_photoMarkers": "Photo Markers",
   "settings_appearance_metricsEnabledCount": "{count} of {total} enabled",
   "@settings_appearance_metricsEnabledCount": {
     "placeholders": {

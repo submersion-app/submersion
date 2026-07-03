@@ -21,6 +21,7 @@ class ProfileLegendConfig {
   final bool hasMaxDepthMarker;
   final bool hasPressureMarkers;
   final bool hasGasSwitches;
+  final bool hasPhotoMarkers;
   final bool hasMultiTankPressure;
   final bool hasGasData;
   final List<DiveTank>? tanks;
@@ -50,6 +51,7 @@ class ProfileLegendConfig {
     this.hasMaxDepthMarker = false,
     this.hasPressureMarkers = false,
     this.hasGasSwitches = false,
+    this.hasPhotoMarkers = false,
     this.hasMultiTankPressure = false,
     this.hasGasData = false,
     this.tanks,
@@ -80,6 +82,7 @@ class ProfileLegendConfig {
       hasMaxDepthMarker ||
       hasPressureMarkers ||
       hasGasSwitches ||
+      hasPhotoMarkers ||
       hasTankListSection ||
       hasGasData ||
       hasMultiTankPressure ||
@@ -292,6 +295,7 @@ class _MoreOptionsButton extends ConsumerWidget {
     if (config.hasMaxDepthMarker && legendState.showMaxDepthMarker) count++;
     if (config.hasPressureMarkers && legendState.showPressureMarkers) count++;
     if (config.hasGasSwitches && legendState.showGasSwitchMarkers) count++;
+    if (config.hasPhotoMarkers && legendState.showPhotoMarkers) count++;
 
     // Advanced deco/gas toggles
     if (config.hasCeilingCurve && legendState.showCeiling) count++;
@@ -522,6 +526,14 @@ class _ChartOptionsDialog extends StatelessWidget {
           color: GasColors.nitrox,
           isEnabled: legendState.showGasSwitchMarkers,
           onTap: legendNotifier.toggleGasSwitchMarkers,
+        ),
+      if (config.hasPhotoMarkers)
+        _buildToggleItem(
+          context,
+          label: context.l10n.diveLog_legend_label_photoMarkers,
+          color: Colors.cyan,
+          isEnabled: legendState.showPhotoMarkers,
+          onTap: legendNotifier.togglePhotoMarkers,
         ),
     ];
     if (markerItems.isNotEmpty) {
