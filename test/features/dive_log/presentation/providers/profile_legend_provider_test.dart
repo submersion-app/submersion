@@ -73,6 +73,7 @@ void main() {
           showMaxDepthMarker: false,
           showPressureMarkers: false,
           showGasSwitchMarkers: false,
+          showPhotoMarkers: false,
         );
         expect(isolatedState.activeSecondaryCount, 1);
       });
@@ -84,6 +85,7 @@ void main() {
           showMaxDepthMarker: false,
           showPressureMarkers: false,
           showGasSwitchMarkers: false,
+          showPhotoMarkers: false,
           showCeiling: false,
         );
         expect(state.activeSecondaryCount, 0);
@@ -223,6 +225,7 @@ void main() {
         showMaxDepthMarker: false,
         showPressureMarkers: false,
         showGasSwitchMarkers: false,
+        showPhotoMarkers: false,
       );
       expect(state.activeSecondaryCount, 1);
     });
