@@ -59,12 +59,14 @@ conflicts before (#238, #372). The mini overlay proves the pattern.
   `lib/features/dive_log/presentation/widgets/`): `elapsedSeconds`,
   `depthMeters`, and the source `MediaItem`, so the popup card reuses the
   existing thumbnail resolution widgets (`MediaItemView` pipeline) unchanged.
-- `DiveProfilePanel` (`dive_profile_panel.dart`) watches
-  `mediaForDiveProvider(dive.id)`, filters to items where `enrichment` is
-  non-null, `enrichment.elapsedSeconds` is non-null, and
+- The dive detail page (`dive_detail_page.dart`), which constructs the main
+  profile chart and its fullscreen variant, watches
+  `mediaForDiveProvider(dive.id)`, filters to photos where `enrichment` is
+  non-null, `enrichment.elapsedSeconds` and `depthMeters` are non-null, and
   `matchConfidence != MatchConfidence.noProfile`, maps them to
   `PhotoChartMarker`s, and passes the list to `DiveProfileChart` alongside the
-  existing events and markers.
+  existing events and markers. The dive-list side panel
+  (`dive_profile_panel.dart`) is intentionally excluded (out of scope).
 - Because `mediaForDiveProvider` self-refreshes on dive detail changes, markers
   stay in sync when photos are imported, reassigned, or deleted.
 
