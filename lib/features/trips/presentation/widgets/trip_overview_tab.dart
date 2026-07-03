@@ -7,6 +7,7 @@ import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/checklists/presentation/widgets/trip_checklist_section.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -99,6 +100,12 @@ class _TripOverviewTabState extends ConsumerState<TripOverviewTab> {
           // Voyage map (liveaboard only)
           if (trip.isLiveaboard) ...[
             TripVoyageMap(tripId: trip.id),
+            const SizedBox(height: 24),
+          ],
+
+          // Checklist (non-liveaboard only; liveaboards get a dedicated tab).
+          if (!trip.isLiveaboard) ...[
+            _buildChecklistSection(context),
             const SizedBox(height: 24),
           ],
 
@@ -356,6 +363,15 @@ class _TripOverviewTabState extends ConsumerState<TripOverviewTab> {
               ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildChecklistSection(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: TripChecklistSection(trip: widget.tripWithStats.trip),
       ),
     );
   }
