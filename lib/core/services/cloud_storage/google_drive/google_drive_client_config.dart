@@ -1,3 +1,5 @@
+import 'dart:io';
+
 /// OAuth client configuration for Google Drive sync.
 ///
 /// The desktop client ID and secret are committed to source intentionally:
@@ -27,4 +29,13 @@ class GoogleDriveClientConfig {
   /// True when the Desktop-app client is configured in this build.
   static bool get hasDesktopClient =>
       desktopClientId.isNotEmpty && desktopClientSecret.isNotEmpty;
+
+  /// Whether Google Drive can be offered on the current platform/build.
+  ///
+  /// Single source of truth for both [GoogleDriveStorageProvider.isAvailable]
+  /// and the `supportsGoogleDrive` capability flag, so the two cannot drift:
+  /// true on iOS/macOS/Android (OAuth config is compile-time), and on
+  /// Windows/Linux only when the Desktop-app client is compiled in.
+  static bool get isSupportedOnThisPlatform =>
+      !(Platform.isWindows || Platform.isLinux) || hasDesktopClient;
 }

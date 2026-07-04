@@ -42,11 +42,10 @@ final storagePlatformCapabilitiesProvider =
         // - Android: Uses Storage Access Framework (SAF)
         supportsCustomFolder: true,
         supportsICloud: Platform.isIOS || Platform.isMacOS,
-        // Mirrors GoogleDriveStorageProvider.isAvailable(): compile-time
-        // config on mobile/macOS, Desktop-app client required on desktop.
-        supportsGoogleDrive:
-            !(Platform.isWindows || Platform.isLinux) ||
-            GoogleDriveClientConfig.hasDesktopClient,
+        // Single source of truth shared with
+        // GoogleDriveStorageProvider.isAvailable(), so the two can't diverge:
+        // compile-time config on mobile/macOS, Desktop-app client on desktop.
+        supportsGoogleDrive: GoogleDriveClientConfig.isSupportedOnThisPlatform,
         isDesktop: Platform.isMacOS || Platform.isWindows || Platform.isLinux,
       );
     });

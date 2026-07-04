@@ -45,10 +45,7 @@ class GoogleDriveStorageProvider
     // Mobile and macOS OAuth config is compile-time (Info.plist / Android
     // client registration). Desktop needs the committed Desktop-app client;
     // a build without it degrades to a hidden tile instead of crashing.
-    if (Platform.isWindows || Platform.isLinux) {
-      return GoogleDriveClientConfig.hasDesktopClient;
-    }
-    return true;
+    return GoogleDriveClientConfig.isSupportedOnThisPlatform;
   }
 
   @override
@@ -105,6 +102,13 @@ class GoogleDriveStorageProvider
   /// hourly mid-session, so one silent re-auth disambiguates a stale token
   /// from a revoked grant. On a revoked grant the authenticator clears its
   /// stored state and the user is asked to sign in again.
+  ///
+  /// The stale-vs-revoked disambiguation is the mobile authenticator's:
+  /// google_sign_in's lightweight re-auth can mint a fresh token silently.
+  /// The desktop authenticator's auto-refreshing client already handles
+  /// hourly expiry itself, so a 401 reaching here means a genuinely revoked
+  /// refresh token -- its handleAuthFailure() clears the token store, so the
+  /// retry's attemptSilentAuth() fails and the user is asked to sign in again.
   Future<T> _run<T>(Future<T> Function() operation) async {
     try {
       return await operation();

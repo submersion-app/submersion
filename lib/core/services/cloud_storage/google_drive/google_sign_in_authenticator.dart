@@ -132,6 +132,13 @@ class GoogleSignInAuthenticator implements GoogleDriveAuthenticator {
   Future<void> handleAuthFailure() async {
     // Drop the stale client; keep _allowSilentAuth so the next
     // attemptSilentAuth() can rebuild authorization without UI.
+    //
+    // Deliberately leaves _currentUser set (unlike DesktopOAuthAuthenticator,
+    // which clears _email): silent re-auth here normally restores the same
+    // account and _installClient overwrites it, while a failed re-auth leaves
+    // isAuthenticated() false so the stale email is never surfaced. Do not
+    // "fix" this to clear _currentUser -- it would blank a still-valid account
+    // during a transient token refresh.
     _authClient?.close();
     _authClient = null;
   }
