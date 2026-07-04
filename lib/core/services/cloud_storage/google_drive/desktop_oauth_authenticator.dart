@@ -32,8 +32,11 @@ typedef BuildRefreshingClient =
 /// Loopback-OAuth authenticator for Windows and Linux (RFC 8252 section
 /// 7.3): binds an ephemeral 127.0.0.1 port, opens the system browser to
 /// Google's consent page, and receives the auth code on the local
-/// redirect. Credentials persist in [GoogleDriveTokenStore]; cold-launch
-/// re-auth is silent via the stored refresh token.
+/// redirect. Uses PKCE with no client secret -- Google lists client_secret
+/// as optional for Desktop-app clients, so the code_verifier alone
+/// authenticates the token exchange. Credentials persist in
+/// [GoogleDriveTokenStore]; cold-launch re-auth is silent via the stored
+/// refresh token.
 class DesktopOAuthAuthenticator implements GoogleDriveAuthenticator {
   DesktopOAuthAuthenticator({
     GoogleDriveTokenStore? tokenStore,
@@ -70,10 +73,10 @@ class DesktopOAuthAuthenticator implements GoogleDriveAuthenticator {
   StreamSubscription<gauth.AccessCredentials>? _updateSubscription;
   String? _email;
 
-  gauth.ClientId get _clientId => gauth.ClientId(
-    GoogleDriveClientConfig.desktopClientId,
-    GoogleDriveClientConfig.desktopClientSecret,
-  );
+  // No client secret: PKCE authenticates the token exchange (Google lists
+  // client_secret as optional for Desktop-app clients).
+  gauth.ClientId get _clientId =>
+      gauth.ClientId(GoogleDriveClientConfig.desktopClientId);
 
   @override
   http.Client? get authClient => _authClient;

@@ -41,14 +41,18 @@ availability gating, error-handling refinements, and test coverage.
 | Platforms | All five: iOS, macOS, Android, Windows, Linux |
 | Data location | Hidden `appDataFolder` (`drive.appdata` scope) — unchanged |
 | Auth architecture | One provider, pluggable authenticator seam (Approach A) |
-| Desktop client secret | Committed in source (RFC 8252 §8.5: installed-app secrets are non-confidential) |
+| Desktop auth | PKCE loopback, no client secret (client_secret optional for Google Desktop-app clients) |
 | Acceptance | Full unit/widget coverage + manual device checklist pass |
 
-The `no hardcoded secrets` rule in CLAUDE.md is explicitly waived for the
-desktop OAuth client ID/secret: Google classifies installed-app client
-secrets as non-confidential (they ship inside every desktop binary and
-cannot protect anything). This matches standard practice for open-source
-desktop apps (rclone, the Google Cloud SDK).
+No client secret is committed. The desktop flow uses PKCE (code_verifier /
+S256 code_challenge, already implemented in `googleapis_auth`) on a
+loopback redirect; Google's native-app OAuth lists `client_secret` as
+optional for Desktop-app clients, so the token exchange is authenticated by
+the PKCE verifier alone. Only OAuth client IDs -- public identifiers -- are
+committed, so no `no hardcoded secrets` waiver is needed and GitHub secret
+scanning has nothing to flag. (An earlier revision committed the desktop
+client secret under an RFC 8252 §8.5 rationale; PKCE removes the need for it
+entirely.)
 
 ## Architecture
 
@@ -70,7 +74,7 @@ into the REST layer.
 | `lib/core/services/cloud_storage/google_drive/google_sign_in_authenticator.dart` | iOS/macOS/Android: the existing `google_sign_in` v7 logic lifted out of the provider, behavior unchanged, including the `_allowSilentAuth` deferral that avoids keychain prompts before the user opts in |
 | `lib/core/services/cloud_storage/google_drive/desktop_oauth_authenticator.dart` | Windows/Linux: loopback OAuth via `googleapis_auth` `clientViaUserConsent`, silent re-auth from a stored refresh token |
 | `lib/core/services/cloud_storage/google_drive/google_drive_token_store.dart` | Desktop-only `AccessCredentials` persistence in `FallbackSecureStorage` under key `sync_gdrive_credentials`; same JSON-blob pattern as `S3CredentialsStore`, including preserving (not deleting) a corrupt blob |
-| `lib/core/services/cloud_storage/google_drive/google_drive_client_config.dart` | Committed constants: desktop client ID/secret, Android `serverClientId` (Web client ID), with the RFC 8252 §8.5 comment |
+| `lib/core/services/cloud_storage/google_drive/google_drive_client_config.dart` | Committed client IDs only (desktop client ID, Android `serverClientId` Web client ID); no client secret — desktop uses PKCE |
 
 ### Changed files
 
@@ -87,12 +91,14 @@ into the REST layer.
 
 ## Desktop OAuth flow (Windows/Linux)
 
-1. **First sign-in:** `authenticate()` calls `clientViaUserConsent` with
-   the desktop client ID and the `drive.appdata` scope. It binds an
-   ephemeral port on `127.0.0.1`, opens the system browser to Google's
-   consent page, and receives the auth code on the loopback redirect
-   (RFC 8252 §7.3). A small in-app dialog shows "Complete sign-in in
-   your browser…" with a Cancel button that closes the loopback listener.
+1. **First sign-in:** `authenticate()` calls `obtainAccessCredentialsViaUserConsent`
+   with the desktop client ID (no secret) and the `drive.appdata` scope.
+   It binds an ephemeral port on `127.0.0.1`, opens the system browser to
+   Google's consent page with a PKCE `code_challenge`, and receives the
+   auth code on the loopback redirect (RFC 8252 §7.3); the token exchange
+   sends the `code_verifier` and an empty `client_secret`. A small in-app
+   dialog shows "Complete sign-in in your browser…" with a Cancel button
+   that closes the loopback listener.
 2. **Persistence:** the resulting `AccessCredentials` (access token,
    refresh token, expiry, scopes) serialize to one JSON blob in
    `FallbackSecureStorage` under `sync_gdrive_credentials`.
@@ -116,7 +122,7 @@ into the REST layer.
 | iOS | Existing iOS client (done) | Already in `ios/Runner/Info.plist` |
 | macOS | Reuses the iOS client (Google treats macOS apps as iOS-type clients) | Add `GIDClientID` + reversed-client-ID URL scheme to `macos/Runner/Info.plist`; add the Keychain Sharing entitlement `google_sign_in` requires on macOS |
 | Android | New Android client per signing key (debug SHA-1 and release SHA-1), plus a Web application client | Web client ID passed as `serverClientId` to `GoogleSignIn.instance.initialize()` via `google_drive_client_config.dart`. No `google-services.json` (that is a Firebase artifact, not needed) |
-| Windows/Linux | One shared Desktop app client | Client ID + secret committed in `google_drive_client_config.dart` |
+| Windows/Linux | One shared Desktop app client | Client ID only committed in `google_drive_client_config.dart`; PKCE loopback flow needs no secret |
 
 All clients live in the same Google Cloud project (`433819313354`) so every
 platform shares the same `appDataFolder` — this is what makes cross-device
@@ -260,8 +266,10 @@ console.cloud.google.com. Exact UI labels current as of mid-2026.
 
 1. Create Credentials → OAuth client ID → Application type
    **Desktop app**, name "Submersion Desktop".
-2. Copy the client ID and client secret — these are the committed
-   constants in `google_drive_client_config.dart`.
+2. Copy the client ID — the committed `desktopClientId` constant in
+   `google_drive_client_config.dart`. The client secret Google also issues
+   is not used: the loopback flow authenticates with PKCE, for which
+   `client_secret` is optional on Desktop-app clients. Do not commit it.
 
 ### A.4 macOS
 
