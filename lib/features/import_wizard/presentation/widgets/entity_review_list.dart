@@ -297,14 +297,22 @@ class EntityReviewList extends StatelessWidget {
     return group.items.any((item) => item.diveData != null);
   }
 
-  /// Number of pending rows whose match score is high enough (>= 0.7) to
-  /// qualify for bulk consolidation.
+  /// Number of pending rows eligible for bulk consolidation.
+  ///
+  /// Mirrors the predicate in `ImportWizardNotifier.applyBulkAction`: a row
+  /// qualifies only when its match score is high enough (>= 0.7) AND it is not
+  /// a `matchedExistingSource` re-download (exact-source hits are never valid
+  /// consolidate targets). Keeping the two in sync ensures the displayed count
+  /// and button enablement match what a bulk tap actually consolidates.
   int _matchableConsolidateCount() {
     final matchResults = group.matchResults;
     if (matchResults == null) return 0;
-    return pendingIndices
-        .where((i) => (matchResults[i]?.score ?? 0) >= 0.7)
-        .length;
+    return pendingIndices.where((i) {
+      final match = matchResults[i];
+      return match != null &&
+          match.score >= 0.7 &&
+          !match.matchedExistingSource;
+    }).length;
   }
 
   String _itemCountText(int nonDuplicates, int duplicates, int selectedCount) {
@@ -984,9 +992,14 @@ class _BulkActionRow extends StatelessWidget {
               ),
             ),
           if (availableActions.contains(DuplicateAction.consolidate))
-            // TODO(#200): enable when bulk-consolidate is implemented end-to-end.
             OutlinedButton.icon(
-              onPressed: null,
+              // Enabled only when at least one pending row is eligible for
+              // consolidation (see _matchableConsolidateCount). With nothing to
+              // consolidate the button stays disabled rather than firing a
+              // no-op bulk action.
+              onPressed: matchableConsolidateCount > 0
+                  ? () => onBulkAction(DuplicateAction.consolidate)
+                  : null,
               icon: const Icon(Icons.merge_type, size: 16),
               label: Text(
                 context.l10n.universalImport_bulk_consolidateMatched(
