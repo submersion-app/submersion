@@ -1697,7 +1697,7 @@ class SyncService {
         // remote HLC wins; an exact tie or a local-newer HLC keeps local.
         if (localHlc != null && remoteHlc != null) {
           if (remoteHlc.compareTo(localHlc) > 0) {
-            toUpsert.add(recordToApply);
+            toUpsert.add(_overlayOntoLocal(recordToApply, local));
             applied += 1;
           }
           continue;
@@ -1724,7 +1724,7 @@ class SyncService {
         if (remoteUpdatedAt == null ||
             localUpdatedAt == null ||
             remoteUpdatedAt >= localUpdatedAt) {
-          toUpsert.add(recordToApply);
+          toUpsert.add(_overlayOntoLocal(recordToApply, local));
           applied += 1;
         }
       } catch (e, stackTrace) {
@@ -1764,6 +1764,19 @@ class SyncService {
       recordsFailed: failed,
     );
   }
+
+  /// Overlays a winning remote row onto the receiver's current row so a column
+  /// the remote payload OMITS keeps its local value, while every key the remote
+  /// actually sends -- including an explicit `null` that clears a field (#474)
+  /// -- wins. Rows are applied via `.toCompanion(false)` (so explicit nulls are
+  /// written as SQL NULL); without this overlay that would also write NULL for
+  /// every omitted column, silently clearing values a cross-version peer -- one
+  /// predating a newly-added nullable column -- never intended to touch. Same-
+  /// version peers export full rows, so the overlay is a no-op for them.
+  static Map<String, dynamic> _overlayOntoLocal(
+    Map<String, dynamic> remote,
+    Map<String, dynamic>? local,
+  ) => local == null ? remote : {...local, ...remote};
 
   Future<Map<String, Set<String>>> _pendingRecordMap() async {
     final records = await _syncRepository.getPendingRecords();
