@@ -13,14 +13,16 @@ class GoogleDriveClientConfig {
   /// OAuth 2.0 "Desktop app" client used by the Windows/Linux loopback
   /// flow. Empty until the client is created in the Google Cloud console;
   /// an empty value disables Google Drive on desktop instead of crashing.
-  static const String desktopClientId = '';
+  static const String desktopClientId =
+      '433819313354-eotqmtncg57b836gvc2bls3on5ppiu07.apps.googleusercontent.com';
   static const String desktopClientSecret = '';
 
   /// "Web application" client ID passed as serverClientId to
   /// google_sign_in on Android. Empty means initialize() is called without
   /// a serverClientId (sufficient for iOS/macOS, which read GIDClientID
   /// from Info.plist).
-  static const String androidServerClientId = '';
+  static const String androidServerClientId =
+      '433819313354-qughape9gt872m38lgtjam2u4qgbdv3o.apps.googleusercontent.com';
 
   /// True when the Desktop-app client is configured in this build.
   static bool get hasDesktopClient =>
