@@ -1882,13 +1882,16 @@ class DiveRepository {
   }) async {
     try {
       final whereClause = diverId != null ? 'WHERE diver_id = ?' : '';
-      final vars = diverId != null
-          ? [Variable<String>(diverId)]
-          : <Variable<Object>>[];
+      // Explicitly typed List<Variable<Object>>: a bare `[Variable<String>(...)]`
+      // literal would reify as List<Variable<String>>, and the later
+      // `vars.addAll(filterVars)` (filterVars is List<Variable<Object>>) would
+      // then throw a runtime type error whenever diverId is non-null.
+      final List<Variable<Object>> vars = [
+        if (diverId != null) Variable<String>(diverId),
+      ];
 
       final df = buildFilteredDiveIdSubquery(filter);
-      // Typed as Variable<Object> (not Variable<Object?>) to match the method's
-      // `vars` list type; params are always non-null so `p!` is safe.
+      // params are always non-null so `p!` is safe.
       final filterVars = df.params.map((p) => Variable<Object>(p!)).toList();
       // Clause fragments per table alias used below.
       final fBare = df.subquery.isEmpty ? '' : 'AND id IN (${df.subquery})';

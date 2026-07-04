@@ -20,12 +20,26 @@ void main() {
 
   final now = DateTime(2026, 6, 1).millisecondsSinceEpoch;
 
-  Future<void> dive(String id, {DateTime? date}) async {
+  Future<void> diver(String id) async {
+    await db
+        .into(db.divers)
+        .insert(
+          DiversCompanion(
+            id: Value(id),
+            name: Value(id),
+            createdAt: Value(now),
+            updatedAt: Value(now),
+          ),
+        );
+  }
+
+  Future<void> dive(String id, {DateTime? date, String? diverId}) async {
     await db
         .into(db.dives)
         .insert(
           DivesCompanion(
             id: Value(id),
+            diverId: Value(diverId),
             diveDateTime: Value(
               (date ?? DateTime(2026, 6, 1)).millisecondsSinceEpoch,
             ),
@@ -81,4 +95,39 @@ void main() {
     );
     expect(stats.totalDives, 1);
   });
+
+  // Regression: production always calls getStatistics with a non-null diverId
+  // (filteredDiveStatisticsProvider passes currentDiverId). Before the fix, the
+  // `vars` list reified as List<Variable<String>> in that branch and
+  // `vars.addAll(filterVars)` threw a runtime type error for ANY filter,
+  // including the empty default filter on a fresh page load. See #453.
+  test(
+    'getStatistics with a non-null diverId does not throw (empty filter)',
+    () async {
+      await diver('diver1');
+      await dive('a', diverId: 'diver1');
+      await dive('b', diverId: 'diver1');
+      final stats = await repo.getStatistics(
+        diverId: 'diver1',
+        filter: const DiveFilterState(),
+      );
+      expect(stats.totalDives, 2);
+    },
+  );
+
+  test(
+    'getStatistics with a non-null diverId honors an active filter',
+    () async {
+      await diver('diver1');
+      await dive('a', diverId: 'diver1');
+      await dive('b', diverId: 'diver1');
+      await tag('dry');
+      await link('a', 'dry');
+      final stats = await repo.getStatistics(
+        diverId: 'diver1',
+        filter: const DiveFilterState(tagIds: ['dry']),
+      );
+      expect(stats.totalDives, 1);
+    },
+  );
 }
