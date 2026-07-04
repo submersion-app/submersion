@@ -5679,7 +5679,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_sources_importedFile => 'Importált fájl';
 
   @override
-  String get diveLog_sources_editedSuffix => '(szerkesztett)';
+  String get diveLog_sources_editedSuffix => ' (szerkesztett)';
 
   @override
   String get diveLog_sources_barLabel => 'FORRÁSOK';

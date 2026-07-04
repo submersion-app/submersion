@@ -9659,7 +9659,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_sources_editedSuffix.
   ///
   /// In en, this message translates to:
-  /// **'(edited)'**
+  /// **' (edited)'**
   String get diveLog_sources_editedSuffix;
 
   /// No description provided for @diveLog_sources_barLabel.

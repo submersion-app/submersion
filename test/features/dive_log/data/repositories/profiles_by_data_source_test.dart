@@ -196,6 +196,32 @@ void main() {
     expect(result['src-b']!.isEdited, false);
   });
 
+  test('metadata-only sources keep an entry with no points', () async {
+    await db
+        .into(db.diveDataSources)
+        .insert(
+          DiveDataSourcesCompanion(
+            id: const Value('src-meta'),
+            diveId: const Value('dive-1'),
+            isPrimary: const Value(false),
+            importedAt: Value(DateTime(2026, 1, 3)),
+            createdAt: Value(DateTime(2026, 1, 3)),
+          ),
+        );
+    await insertProfileRow(
+      diveId: 'dive-1',
+      timestamp: 0,
+      depth: 10.0,
+      computerId: 'dc-a',
+      isPrimary: true,
+    );
+
+    final result = await repository.getProfilesByDataSource('dive-1');
+
+    expect(result.keys, containsAll(['src-a', 'src-b', 'src-meta']));
+    expect(result['src-meta']!.points, isEmpty);
+  });
+
   test('returns empty map when the dive has no data source rows', () async {
     await insertProfileRow(
       diveId: 'dive-2',

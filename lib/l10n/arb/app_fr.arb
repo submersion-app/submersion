@@ -1783,7 +1783,7 @@
   "diveLog_sources_unknownComputer": "Ordinateur inconnu",
   "diveLog_sources_manualEntry": "Saisie manuelle",
   "diveLog_sources_importedFile": "Fichier importé",
-  "diveLog_sources_editedSuffix": "(modifié)",
+  "diveLog_sources_editedSuffix": " (modifié)",
   "diveLog_sources_barLabel": "SOURCES",
   "diveLog_sources_menu_setPrimary": "Définir comme principal",
   "diveLog_sources_menu_unlink": "Dissocier",

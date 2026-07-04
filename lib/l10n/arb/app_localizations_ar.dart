@@ -5572,7 +5572,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_sources_importedFile => 'ملف مستورد';
 
   @override
-  String get diveLog_sources_editedSuffix => '(معدل)';
+  String get diveLog_sources_editedSuffix => ' (معدل)';
 
   @override
   String get diveLog_sources_barLabel => 'المصادر';

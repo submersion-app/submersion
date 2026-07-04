@@ -30,7 +30,7 @@ const labels = SourceNameLabels(
   unknownComputer: 'Unknown Computer',
   manualEntry: 'Manual Entry',
   importedFile: 'Imported File',
-  editedSuffix: '(edited)',
+  editedSuffix: ' (edited)',
 );
 
 void main() {

@@ -1817,7 +1817,7 @@
   "diveLog_sources_unknownComputer": "جهاز غير معروف",
   "diveLog_sources_manualEntry": "إدخال يدوي",
   "diveLog_sources_importedFile": "ملف مستورد",
-  "diveLog_sources_editedSuffix": "(معدل)",
+  "diveLog_sources_editedSuffix": " (معدل)",
   "diveLog_sources_barLabel": "المصادر",
   "diveLog_sources_menu_setPrimary": "تعيين كمصدر أساسي",
   "diveLog_sources_menu_unlink": "إلغاء الربط",

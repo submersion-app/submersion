@@ -5689,7 +5689,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_sources_importedFile => 'Importierte Datei';
 
   @override
-  String get diveLog_sources_editedSuffix => '(bearbeitet)';
+  String get diveLog_sources_editedSuffix => ' (bearbeitet)';
 
   @override
   String get diveLog_sources_barLabel => 'QUELLEN';

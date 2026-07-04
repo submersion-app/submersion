@@ -1783,7 +1783,7 @@
   "diveLog_sources_unknownComputer": "Ismeretlen számítógép",
   "diveLog_sources_manualEntry": "Kézi bejegyzés",
   "diveLog_sources_importedFile": "Importált fájl",
-  "diveLog_sources_editedSuffix": "(szerkesztett)",
+  "diveLog_sources_editedSuffix": " (szerkesztett)",
   "diveLog_sources_barLabel": "FORRÁSOK",
   "diveLog_sources_menu_setPrimary": "Beállítás elsődlegesként",
   "diveLog_sources_menu_unlink": "Leválasztás",

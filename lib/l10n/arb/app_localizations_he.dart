@@ -5547,7 +5547,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_sources_importedFile => 'קובץ מיובא';
 
   @override
-  String get diveLog_sources_editedSuffix => '(נערך)';
+  String get diveLog_sources_editedSuffix => ' (נערך)';
 
   @override
   String get diveLog_sources_barLabel => 'מקורות';

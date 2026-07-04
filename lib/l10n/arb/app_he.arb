@@ -1783,7 +1783,7 @@
   "diveLog_sources_unknownComputer": "מחשב לא ידוע",
   "diveLog_sources_manualEntry": "הזנה ידנית",
   "diveLog_sources_importedFile": "קובץ מיובא",
-  "diveLog_sources_editedSuffix": "(נערך)",
+  "diveLog_sources_editedSuffix": " (נערך)",
   "diveLog_sources_barLabel": "מקורות",
   "diveLog_sources_menu_setPrimary": "הגדר כראשי",
   "diveLog_sources_menu_unlink": "בטל קישור",

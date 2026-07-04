@@ -574,17 +574,36 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// Depth of [overlay] at [timestamp], from its nearest sample strictly
   /// within 10 seconds; null when the overlay has no sample near that time
   /// (e.g. the overlaid computer surfaced earlier). Overlay points are
-  /// time-ordered, so the scan stops once past the window.
+  /// time-ordered, so a binary-search lower bound finds the window start
+  /// and only its immediate neighborhood is scanned (tooltips rebuild on
+  /// every hover move, so this must not be O(n) in profile length).
   double? _overlayDepthAt(ChartSourceOverlay overlay, int timestamp) {
+    final points = overlay.points;
+    if (points.isEmpty) return null;
+
+    // Lower bound: first index with points[i].timestamp >= timestamp - 10.
+    final windowStart = timestamp - 10;
+    var lo = 0;
+    var hi = points.length;
+    while (lo < hi) {
+      final mid = (lo + hi) >> 1;
+      if (points[mid].timestamp < windowStart) {
+        lo = mid + 1;
+      } else {
+        hi = mid;
+      }
+    }
+
     double? best;
     var bestDelta = 11;
-    for (final p in overlay.points) {
+    for (var i = lo; i < points.length; i++) {
+      final p = points[i];
+      if (p.timestamp > timestamp + 10) break;
       final delta = (p.timestamp - timestamp).abs();
       if (delta < bestDelta) {
         bestDelta = delta;
         best = p.depth;
       }
-      if (p.timestamp > timestamp + 10) break;
     }
     return best;
   }

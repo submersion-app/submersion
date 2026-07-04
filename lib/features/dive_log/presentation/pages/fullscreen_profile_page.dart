@@ -212,10 +212,10 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
     final activeProfile = activeSource == null
         ? null
         : sourceProfiles[activeSource.id];
-    final chartProfile =
-        (dataSources.length >= 2 &&
-            activeProfile != null &&
-            activeProfile.points.isNotEmpty)
+    // A metadata-only active source has an entry with no points; the chart
+    // then renders its empty-profile placeholder instead of silently
+    // falling back to the primary's profile (mixed attribution).
+    final chartProfile = (dataSources.length >= 2 && activeProfile != null)
         ? activeProfile.points
         : dive.profile;
     final sourceColorById = <String, Color>{

@@ -13,6 +13,10 @@ class SourceNameLabels {
   final String unknownComputer;
   final String manualEntry;
   final String importedFile;
+
+  /// Appended verbatim to the resolved name for a user-edited profile.
+  /// Carries its own leading spacing so locales with full-width
+  /// punctuation (e.g. zh) can omit the space.
   final String editedSuffix;
 }
 
@@ -30,7 +34,7 @@ String resolveSourceName(
       source.computerModel ??
       source.computerSerial ??
       _typeLabel(source, labels);
-  return edited ? '$base ${labels.editedSuffix}' : base;
+  return edited ? '$base${labels.editedSuffix}' : base;
 }
 
 String _typeLabel(DiveDataSource source, SourceNameLabels labels) {

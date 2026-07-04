@@ -2586,7 +2586,7 @@
   "diveLog_sources_unknownComputer": "Unknown Computer",
   "diveLog_sources_manualEntry": "Manual Entry",
   "diveLog_sources_importedFile": "Imported File",
-  "diveLog_sources_editedSuffix": "(edited)",
+  "diveLog_sources_editedSuffix": " (edited)",
   "diveLog_sources_barLabel": "SOURCES",
   "diveLog_sources_menu_setPrimary": "Set as primary",
   "diveLog_sources_menu_unlink": "Unlink",

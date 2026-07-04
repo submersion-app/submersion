@@ -5693,7 +5693,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_sources_importedFile => 'Archivo importado';
 
   @override
-  String get diveLog_sources_editedSuffix => '(editado)';
+  String get diveLog_sources_editedSuffix => ' (editado)';
 
   @override
   String get diveLog_sources_barLabel => 'FUENTES';

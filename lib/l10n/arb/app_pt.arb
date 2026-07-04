@@ -1817,7 +1817,7 @@
   "diveLog_sources_unknownComputer": "Computador Desconhecido",
   "diveLog_sources_manualEntry": "Entrada Manual",
   "diveLog_sources_importedFile": "Arquivo Importado",
-  "diveLog_sources_editedSuffix": "(editado)",
+  "diveLog_sources_editedSuffix": " (editado)",
   "diveLog_sources_barLabel": "FONTES",
   "diveLog_sources_menu_setPrimary": "Definir como principal",
   "diveLog_sources_menu_unlink": "Desvincular",

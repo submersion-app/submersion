@@ -585,15 +585,17 @@ class DiveRepository {
         grouped[owner]!.add(_profilePointFromRow(row));
       }
 
+      // Every source row gets an entry, even with no profile points, so
+      // metadata-only sources stay representable (activatable chip, empty
+      // chart placeholder) rather than silently disappearing.
       return {
         for (final s in sourceRows)
-          if (grouped[s.id]!.isNotEmpty || s.id == primary.id)
-            s.id: domain.SourceProfile(
-              sourceId: s.id,
-              computerId: s.computerId,
-              isEdited: s.id == primary.id && primaryIsEdited,
-              points: grouped[s.id]!,
-            ),
+          s.id: domain.SourceProfile(
+            sourceId: s.id,
+            computerId: s.computerId,
+            isEdited: s.id == primary.id && primaryIsEdited,
+            points: grouped[s.id]!,
+          ),
       };
     } catch (e, stackTrace) {
       _log.error(

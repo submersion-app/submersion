@@ -1817,7 +1817,7 @@
   "diveLog_sources_unknownComputer": "Onbekende computer",
   "diveLog_sources_manualEntry": "Handmatige invoer",
   "diveLog_sources_importedFile": "Geïmporteerd bestand",
-  "diveLog_sources_editedSuffix": "(bewerkt)",
+  "diveLog_sources_editedSuffix": " (bewerkt)",
   "diveLog_sources_barLabel": "BRONNEN",
   "diveLog_sources_menu_setPrimary": "Instellen als primair",
   "diveLog_sources_menu_unlink": "Ontkoppelen",

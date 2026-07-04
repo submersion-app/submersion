@@ -5720,7 +5720,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_sources_importedFile => 'Fichier importé';
 
   @override
-  String get diveLog_sources_editedSuffix => '(modifié)';
+  String get diveLog_sources_editedSuffix => ' (modifié)';
 
   @override
   String get diveLog_sources_barLabel => 'SOURCES';
