@@ -1539,167 +1539,223 @@ class SyncDataSerializer {
   ) async {
     switch (entityType) {
       case 'divers':
-        await _db.into(_db.divers).insertOnConflictUpdate(Diver.fromJson(data));
+        await _db
+            .into(_db.divers)
+            .insertOnConflictUpdate(Diver.fromJson(data).toCompanion(false));
         return;
       case 'diverSettings':
         await _db
             .into(_db.diverSettings)
             .insertOnConflictUpdate(
-              DiverSetting.fromJson(_applyDiverSettingDefaults(data)),
+              DiverSetting.fromJson(
+                _applyDiverSettingDefaults(data),
+              ).toCompanion(false),
             );
         return;
       case 'dives':
-        await _db.into(_db.dives).insertOnConflictUpdate(Dive.fromJson(data));
+        await _db
+            .into(_db.dives)
+            .insertOnConflictUpdate(Dive.fromJson(data).toCompanion(false));
         return;
       case 'diveProfiles':
         await _db
             .into(_db.diveProfiles)
-            .insertOnConflictUpdate(DiveProfile.fromJson(data));
+            .insertOnConflictUpdate(
+              DiveProfile.fromJson(data).toCompanion(false),
+            );
         return;
       case 'diveTanks':
         await _db
             .into(_db.diveTanks)
-            .insertOnConflictUpdate(DiveTank.fromJson(data));
+            .insertOnConflictUpdate(DiveTank.fromJson(data).toCompanion(false));
         return;
       case 'diveEquipment':
         await _db
             .into(_db.diveEquipment)
-            .insertOnConflictUpdate(DiveEquipmentData.fromJson(data));
+            .insertOnConflictUpdate(
+              DiveEquipmentData.fromJson(data).toCompanion(false),
+            );
         return;
       case 'diveWeights':
         await _db
             .into(_db.diveWeights)
-            .insertOnConflictUpdate(DiveWeight.fromJson(data));
+            .insertOnConflictUpdate(
+              DiveWeight.fromJson(data).toCompanion(false),
+            );
         return;
       case 'diveSites':
         await _db
             .into(_db.diveSites)
-            .insertOnConflictUpdate(DiveSite.fromJson(data));
+            .insertOnConflictUpdate(DiveSite.fromJson(data).toCompanion(false));
         return;
       case 'equipment':
         await _db
             .into(_db.equipment)
-            .insertOnConflictUpdate(EquipmentData.fromJson(data));
+            .insertOnConflictUpdate(
+              EquipmentData.fromJson(data).toCompanion(false),
+            );
         return;
       case 'equipmentSets':
         await _db
             .into(_db.equipmentSets)
-            .insertOnConflictUpdate(EquipmentSet.fromJson(data));
+            .insertOnConflictUpdate(
+              EquipmentSet.fromJson(data).toCompanion(false),
+            );
         return;
       case 'equipmentSetItems':
         await _db
             .into(_db.equipmentSetItems)
-            .insertOnConflictUpdate(EquipmentSetItem.fromJson(data));
+            .insertOnConflictUpdate(
+              EquipmentSetItem.fromJson(data).toCompanion(false),
+            );
         return;
       case 'media':
         await _db
             .into(_db.media)
             .insertOnConflictUpdate(
-              MediaData.fromJson(data, serializer: _syncBlobSerializer),
+              MediaData.fromJson(
+                data,
+                serializer: _syncBlobSerializer,
+              ).toCompanion(false),
             );
         return;
       case 'buddies':
         await _db
             .into(_db.buddies)
-            .insertOnConflictUpdate(Buddy.fromJson(data));
+            .insertOnConflictUpdate(Buddy.fromJson(data).toCompanion(false));
         return;
       case 'buddyRoles':
         await _db
             .into(_db.buddyRoles)
-            .insertOnConflictUpdate(BuddyRoleRow.fromJson(data));
+            .insertOnConflictUpdate(
+              BuddyRoleRow.fromJson(data).toCompanion(false),
+            );
         return;
       case 'diveBuddies':
         await _db
             .into(_db.diveBuddies)
-            .insertOnConflictUpdate(DiveBuddy.fromJson(data));
+            .insertOnConflictUpdate(
+              DiveBuddy.fromJson(data).toCompanion(false),
+            );
         return;
       case 'certifications':
         await _db
             .into(_db.certifications)
             .insertOnConflictUpdate(
-              Certification.fromJson(data, serializer: _syncBlobSerializer),
+              Certification.fromJson(
+                data,
+                serializer: _syncBlobSerializer,
+              ).toCompanion(false),
             );
         return;
       case 'courses':
         await _db
             .into(_db.courses)
-            .insertOnConflictUpdate(Course.fromJson(data));
+            .insertOnConflictUpdate(Course.fromJson(data).toCompanion(false));
         return;
       case 'serviceRecords':
         await _db
             .into(_db.serviceRecords)
-            .insertOnConflictUpdate(ServiceRecord.fromJson(data));
+            .insertOnConflictUpdate(
+              ServiceRecord.fromJson(data).toCompanion(false),
+            );
         return;
       case 'diveCenters':
         await _db
             .into(_db.diveCenters)
-            .insertOnConflictUpdate(DiveCenter.fromJson(data));
+            .insertOnConflictUpdate(
+              DiveCenter.fromJson(data).toCompanion(false),
+            );
         return;
       case 'trips':
-        await _db.into(_db.trips).insertOnConflictUpdate(Trip.fromJson(data));
+        await _db
+            .into(_db.trips)
+            .insertOnConflictUpdate(Trip.fromJson(data).toCompanion(false));
         return;
       case 'liveaboardDetails':
         await _db
             .into(_db.liveaboardDetailRecords)
-            .insertOnConflictUpdate(LiveaboardDetailRecord.fromJson(data));
+            .insertOnConflictUpdate(
+              LiveaboardDetailRecord.fromJson(data).toCompanion(false),
+            );
         return;
       case 'itineraryDays':
         await _db
             .into(_db.tripItineraryDays)
-            .insertOnConflictUpdate(TripItineraryDay.fromJson(data));
+            .insertOnConflictUpdate(
+              TripItineraryDay.fromJson(data).toCompanion(false),
+            );
         return;
       case 'checklistTemplates':
         await _db
             .into(_db.checklistTemplates)
-            .insertOnConflictUpdate(ChecklistTemplate.fromJson(data));
+            .insertOnConflictUpdate(
+              ChecklistTemplate.fromJson(data).toCompanion(false),
+            );
         return;
       case 'checklistTemplateItems':
         await _db
             .into(_db.checklistTemplateItems)
-            .insertOnConflictUpdate(ChecklistTemplateItem.fromJson(data));
+            .insertOnConflictUpdate(
+              ChecklistTemplateItem.fromJson(data).toCompanion(false),
+            );
         return;
       case 'tripChecklistItems':
         await _db
             .into(_db.tripChecklistItems)
-            .insertOnConflictUpdate(TripChecklistItem.fromJson(data));
+            .insertOnConflictUpdate(
+              TripChecklistItem.fromJson(data).toCompanion(false),
+            );
         return;
       case 'tags':
-        await _db.into(_db.tags).insertOnConflictUpdate(Tag.fromJson(data));
+        await _db
+            .into(_db.tags)
+            .insertOnConflictUpdate(Tag.fromJson(data).toCompanion(false));
         return;
       case 'diveTags':
         await _db
             .into(_db.diveTags)
-            .insertOnConflictUpdate(DiveTag.fromJson(data));
+            .insertOnConflictUpdate(DiveTag.fromJson(data).toCompanion(false));
         return;
       case 'diveDiveTypes':
         await _db
             .into(_db.diveDiveTypes)
-            .insertOnConflictUpdate(DiveDiveType.fromJson(data));
+            .insertOnConflictUpdate(
+              DiveDiveType.fromJson(data).toCompanion(false),
+            );
         return;
       case 'diveTypes':
         await _db
             .into(_db.diveTypes)
-            .insertOnConflictUpdate(DiveType.fromJson(data));
+            .insertOnConflictUpdate(DiveType.fromJson(data).toCompanion(false));
         return;
       case 'tankPresets':
         await _db
             .into(_db.tankPresets)
-            .insertOnConflictUpdate(TankPreset.fromJson(data));
+            .insertOnConflictUpdate(
+              TankPreset.fromJson(data).toCompanion(false),
+            );
         return;
       case 'diveComputers':
         await _db
             .into(_db.diveComputers)
-            .insertOnConflictUpdate(DiveComputer.fromJson(data));
+            .insertOnConflictUpdate(
+              DiveComputer.fromJson(data).toCompanion(false),
+            );
         return;
       case 'tankPressureProfiles':
         await _db
             .into(_db.tankPressureProfiles)
-            .insertOnConflictUpdate(TankPressureProfile.fromJson(data));
+            .insertOnConflictUpdate(
+              TankPressureProfile.fromJson(data).toCompanion(false),
+            );
         return;
       case 'tideRecords':
         await _db
             .into(_db.tideRecords)
-            .insertOnConflictUpdate(TideRecord.fromJson(data));
+            .insertOnConflictUpdate(
+              TideRecord.fromJson(data).toCompanion(false),
+            );
         return;
       case 'settings':
         // Never let an incoming payload overwrite a device-local settings key
@@ -1711,17 +1767,17 @@ class SyncDataSerializer {
         }
         await _db
             .into(_db.settings)
-            .insertOnConflictUpdate(Setting.fromJson(data));
+            .insertOnConflictUpdate(Setting.fromJson(data).toCompanion(false));
         return;
       case 'species':
         await _db
             .into(_db.species)
-            .insertOnConflictUpdate(Specy.fromJson(data));
+            .insertOnConflictUpdate(Specy.fromJson(data).toCompanion(false));
         return;
       case 'sightings':
         await _db
             .into(_db.sightings)
-            .insertOnConflictUpdate(Sighting.fromJson(data));
+            .insertOnConflictUpdate(Sighting.fromJson(data).toCompanion(false));
         return;
       case 'diveProfileEvents':
         // Back-compat: payloads from pre-v68 peers lack `source`. Default to
@@ -1732,19 +1788,25 @@ class SyncDataSerializer {
         await _db
             .into(_db.diveProfileEvents)
             .insertOnConflictUpdate(
-              DiveProfileEvent.fromJson(diveProfileEventData),
+              DiveProfileEvent.fromJson(
+                diveProfileEventData,
+              ).toCompanion(false),
             );
         return;
       case 'gasSwitches':
         await _db
             .into(_db.gasSwitches)
-            .insertOnConflictUpdate(GasSwitche.fromJson(data));
+            .insertOnConflictUpdate(
+              GasSwitche.fromJson(data).toCompanion(false),
+            );
         return;
       case 'diveCustomFields':
         await _db
             .into(_db.diveCustomFields)
             .insertOnConflictUpdate(
-              DiveCustomField.fromJson(_withTimestampDefaults(data)),
+              DiveCustomField.fromJson(
+                _withTimestampDefaults(data),
+              ).toCompanion(false),
             );
         return;
       case 'diveDataSources':
@@ -1754,35 +1816,43 @@ class SyncDataSerializer {
               DiveDataSourcesData.fromJson(
                 _withTimestampDefaults(data),
                 serializer: _syncBlobSerializer,
-              ),
+              ).toCompanion(false),
             );
         return;
       case 'siteSpecies':
         await _db
             .into(_db.siteSpecies)
             .insertOnConflictUpdate(
-              SiteSpecy.fromJson(_withTimestampDefaults(data)),
+              SiteSpecy.fromJson(
+                _withTimestampDefaults(data),
+              ).toCompanion(false),
             );
         return;
       case 'csvPresets':
         await _db
             .into(_db.csvPresets)
             .insertOnConflictUpdate(
-              CsvPreset.fromJson(_withTimestampDefaults(data)),
+              CsvPreset.fromJson(
+                _withTimestampDefaults(data),
+              ).toCompanion(false),
             );
         return;
       case 'viewConfigs':
         await _db
             .into(_db.viewConfigs)
             .insertOnConflictUpdate(
-              ViewConfig.fromJson(_withTimestampDefaults(data)),
+              ViewConfig.fromJson(
+                _withTimestampDefaults(data),
+              ).toCompanion(false),
             );
         return;
       case 'fieldPresets':
         await _db
             .into(_db.fieldPresets)
             .insertOnConflictUpdate(
-              FieldPreset.fromJson(_withTimestampDefaults(data)),
+              FieldPreset.fromJson(
+                _withTimestampDefaults(data),
+              ).toCompanion(false),
             );
         return;
     }
@@ -1803,7 +1873,7 @@ class SyncDataSerializer {
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
             _db.divers,
-            records.map((r) => Diver.fromJson(r)).toList(),
+            records.map((r) => Diver.fromJson(r).toCompanion(false)).toList(),
           ),
         );
         return;
@@ -1813,7 +1883,9 @@ class SyncDataSerializer {
             _db.diverSettings,
             records
                 .map(
-                  (r) => DiverSetting.fromJson(_applyDiverSettingDefaults(r)),
+                  (r) => DiverSetting.fromJson(
+                    _applyDiverSettingDefaults(r),
+                  ).toCompanion(false),
                 )
                 .toList(),
           ),
@@ -1823,7 +1895,7 @@ class SyncDataSerializer {
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
             _db.dives,
-            records.map((r) => Dive.fromJson(r)).toList(),
+            records.map((r) => Dive.fromJson(r).toCompanion(false)).toList(),
           ),
         );
         return;
@@ -1831,7 +1903,9 @@ class SyncDataSerializer {
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
             _db.diveProfiles,
-            records.map((r) => DiveProfile.fromJson(r)).toList(),
+            records
+                .map((r) => DiveProfile.fromJson(r).toCompanion(false))
+                .toList(),
           ),
         );
         return;
@@ -1839,7 +1913,9 @@ class SyncDataSerializer {
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
             _db.diveTanks,
-            records.map((r) => DiveTank.fromJson(r)).toList(),
+            records
+                .map((r) => DiveTank.fromJson(r).toCompanion(false))
+                .toList(),
           ),
         );
         return;
@@ -1847,7 +1923,9 @@ class SyncDataSerializer {
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
             _db.diveEquipment,
-            records.map((r) => DiveEquipmentData.fromJson(r)).toList(),
+            records
+                .map((r) => DiveEquipmentData.fromJson(r).toCompanion(false))
+                .toList(),
           ),
         );
         return;
@@ -1855,7 +1933,9 @@ class SyncDataSerializer {
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
             _db.diveWeights,
-            records.map((r) => DiveWeight.fromJson(r)).toList(),
+            records
+                .map((r) => DiveWeight.fromJson(r).toCompanion(false))
+                .toList(),
           ),
         );
         return;
@@ -1863,7 +1943,9 @@ class SyncDataSerializer {
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
             _db.diveSites,
-            records.map((r) => DiveSite.fromJson(r)).toList(),
+            records
+                .map((r) => DiveSite.fromJson(r).toCompanion(false))
+                .toList(),
           ),
         );
         return;
@@ -1871,7 +1953,9 @@ class SyncDataSerializer {
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
             _db.equipment,
-            records.map((r) => EquipmentData.fromJson(r)).toList(),
+            records
+                .map((r) => EquipmentData.fromJson(r).toCompanion(false))
+                .toList(),
           ),
         );
         return;
@@ -1879,7 +1963,9 @@ class SyncDataSerializer {
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
             _db.equipmentSets,
-            records.map((r) => EquipmentSet.fromJson(r)).toList(),
+            records
+                .map((r) => EquipmentSet.fromJson(r).toCompanion(false))
+                .toList(),
           ),
         );
         return;
@@ -1887,7 +1973,9 @@ class SyncDataSerializer {
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
             _db.equipmentSetItems,
-            records.map((r) => EquipmentSetItem.fromJson(r)).toList(),
+            records
+                .map((r) => EquipmentSetItem.fromJson(r).toCompanion(false))
+                .toList(),
           ),
         );
         return;
@@ -1897,7 +1985,10 @@ class SyncDataSerializer {
             _db.media,
             records
                 .map(
-                  (r) => MediaData.fromJson(r, serializer: _syncBlobSerializer),
+                  (r) => MediaData.fromJson(
+                    r,
+                    serializer: _syncBlobSerializer,
+                  ).toCompanion(false),
                 )
                 .toList(),
           ),
@@ -1907,7 +1998,7 @@ class SyncDataSerializer {
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
             _db.buddies,
-            records.map((r) => Buddy.fromJson(r)).toList(),
+            records.map((r) => Buddy.fromJson(r).toCompanion(false)).toList(),
           ),
         );
         return;
@@ -1915,7 +2006,9 @@ class SyncDataSerializer {
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
             _db.buddyRoles,
-            records.map((r) => BuddyRoleRow.fromJson(r)).toList(),
+            records
+                .map((r) => BuddyRoleRow.fromJson(r).toCompanion(false))
+                .toList(),
           ),
         );
         return;
@@ -1923,7 +2016,9 @@ class SyncDataSerializer {
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
             _db.diveBuddies,
-            records.map((r) => DiveBuddy.fromJson(r)).toList(),
+            records
+                .map((r) => DiveBuddy.fromJson(r).toCompanion(false))
+                .toList(),
           ),
         );
         return;
@@ -1936,7 +2031,7 @@ class SyncDataSerializer {
                   (r) => Certification.fromJson(
                     r,
                     serializer: _syncBlobSerializer,
-                  ),
+                  ).toCompanion(false),
                 )
                 .toList(),
           ),
@@ -1946,7 +2041,7 @@ class SyncDataSerializer {
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
             _db.courses,
-            records.map((r) => Course.fromJson(r)).toList(),
+            records.map((r) => Course.fromJson(r).toCompanion(false)).toList(),
           ),
         );
         return;
@@ -1954,7 +2049,9 @@ class SyncDataSerializer {
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
             _db.serviceRecords,
-            records.map((r) => ServiceRecord.fromJson(r)).toList(),
+            records
+                .map((r) => ServiceRecord.fromJson(r).toCompanion(false))
+                .toList(),
           ),
         );
         return;
@@ -1962,7 +2059,9 @@ class SyncDataSerializer {
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
             _db.diveCenters,
-            records.map((r) => DiveCenter.fromJson(r)).toList(),
+            records
+                .map((r) => DiveCenter.fromJson(r).toCompanion(false))
+                .toList(),
           ),
         );
         return;
@@ -1970,7 +2069,7 @@ class SyncDataSerializer {
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
             _db.trips,
-            records.map((r) => Trip.fromJson(r)).toList(),
+            records.map((r) => Trip.fromJson(r).toCompanion(false)).toList(),
           ),
         );
         return;
@@ -1978,7 +2077,11 @@ class SyncDataSerializer {
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
             _db.liveaboardDetailRecords,
-            records.map((r) => LiveaboardDetailRecord.fromJson(r)).toList(),
+            records
+                .map(
+                  (r) => LiveaboardDetailRecord.fromJson(r).toCompanion(false),
+                )
+                .toList(),
           ),
         );
         return;
@@ -1986,7 +2089,9 @@ class SyncDataSerializer {
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
             _db.tripItineraryDays,
-            records.map((r) => TripItineraryDay.fromJson(r)).toList(),
+            records
+                .map((r) => TripItineraryDay.fromJson(r).toCompanion(false))
+                .toList(),
           ),
         );
         return;
@@ -1994,7 +2099,9 @@ class SyncDataSerializer {
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
             _db.checklistTemplates,
-            records.map((r) => ChecklistTemplate.fromJson(r)).toList(),
+            records
+                .map((r) => ChecklistTemplate.fromJson(r).toCompanion(false))
+                .toList(),
           ),
         );
         return;
@@ -2002,7 +2109,11 @@ class SyncDataSerializer {
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
             _db.checklistTemplateItems,
-            records.map((r) => ChecklistTemplateItem.fromJson(r)).toList(),
+            records
+                .map(
+                  (r) => ChecklistTemplateItem.fromJson(r).toCompanion(false),
+                )
+                .toList(),
           ),
         );
         return;
@@ -2010,7 +2121,9 @@ class SyncDataSerializer {
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
             _db.tripChecklistItems,
-            records.map((r) => TripChecklistItem.fromJson(r)).toList(),
+            records
+                .map((r) => TripChecklistItem.fromJson(r).toCompanion(false))
+                .toList(),
           ),
         );
         return;
@@ -2018,7 +2131,7 @@ class SyncDataSerializer {
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
             _db.tags,
-            records.map((r) => Tag.fromJson(r)).toList(),
+            records.map((r) => Tag.fromJson(r).toCompanion(false)).toList(),
           ),
         );
         return;
@@ -2026,7 +2139,7 @@ class SyncDataSerializer {
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
             _db.diveTags,
-            records.map((r) => DiveTag.fromJson(r)).toList(),
+            records.map((r) => DiveTag.fromJson(r).toCompanion(false)).toList(),
           ),
         );
         return;
@@ -2034,7 +2147,9 @@ class SyncDataSerializer {
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
             _db.diveDiveTypes,
-            records.map((r) => DiveDiveType.fromJson(r)).toList(),
+            records
+                .map((r) => DiveDiveType.fromJson(r).toCompanion(false))
+                .toList(),
           ),
         );
         return;
@@ -2042,7 +2157,9 @@ class SyncDataSerializer {
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
             _db.diveTypes,
-            records.map((r) => DiveType.fromJson(r)).toList(),
+            records
+                .map((r) => DiveType.fromJson(r).toCompanion(false))
+                .toList(),
           ),
         );
         return;
@@ -2050,7 +2167,9 @@ class SyncDataSerializer {
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
             _db.tankPresets,
-            records.map((r) => TankPreset.fromJson(r)).toList(),
+            records
+                .map((r) => TankPreset.fromJson(r).toCompanion(false))
+                .toList(),
           ),
         );
         return;
@@ -2058,7 +2177,9 @@ class SyncDataSerializer {
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
             _db.diveComputers,
-            records.map((r) => DiveComputer.fromJson(r)).toList(),
+            records
+                .map((r) => DiveComputer.fromJson(r).toCompanion(false))
+                .toList(),
           ),
         );
         return;
@@ -2066,7 +2187,9 @@ class SyncDataSerializer {
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
             _db.tankPressureProfiles,
-            records.map((r) => TankPressureProfile.fromJson(r)).toList(),
+            records
+                .map((r) => TankPressureProfile.fromJson(r).toCompanion(false))
+                .toList(),
           ),
         );
         return;
@@ -2074,7 +2197,9 @@ class SyncDataSerializer {
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
             _db.tideRecords,
-            records.map((r) => TideRecord.fromJson(r)).toList(),
+            records
+                .map((r) => TideRecord.fromJson(r).toCompanion(false))
+                .toList(),
           ),
         );
         return;
@@ -2082,7 +2207,7 @@ class SyncDataSerializer {
         // Mirror upsertRecord: never overwrite a device-local settings key.
         final settingsRows = records
             .where((r) => !_deviceLocalSettingsKeys.contains(r['key']))
-            .map((r) => Setting.fromJson(r))
+            .map((r) => Setting.fromJson(r).toCompanion(false))
             .toList();
         if (settingsRows.isEmpty) return;
         await _db.batch(
@@ -2093,7 +2218,7 @@ class SyncDataSerializer {
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
             _db.species,
-            records.map((r) => Specy.fromJson(r)).toList(),
+            records.map((r) => Specy.fromJson(r).toCompanion(false)).toList(),
           ),
         );
         return;
@@ -2101,7 +2226,9 @@ class SyncDataSerializer {
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
             _db.sightings,
-            records.map((r) => Sighting.fromJson(r)).toList(),
+            records
+                .map((r) => Sighting.fromJson(r).toCompanion(false))
+                .toList(),
           ),
         );
         return;
@@ -2113,7 +2240,7 @@ class SyncDataSerializer {
                 .map(
                   (r) => DiveProfileEvent.fromJson(
                     r['source'] == null ? {...r, 'source': 'imported'} : r,
-                  ),
+                  ).toCompanion(false),
                 )
                 .toList(),
           ),
@@ -2123,7 +2250,9 @@ class SyncDataSerializer {
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
             _db.gasSwitches,
-            records.map((r) => GasSwitche.fromJson(r)).toList(),
+            records
+                .map((r) => GasSwitche.fromJson(r).toCompanion(false))
+                .toList(),
           ),
         );
         return;
@@ -2132,7 +2261,11 @@ class SyncDataSerializer {
           (b) => b.insertAllOnConflictUpdate(
             _db.diveCustomFields,
             records
-                .map((r) => DiveCustomField.fromJson(_withTimestampDefaults(r)))
+                .map(
+                  (r) => DiveCustomField.fromJson(
+                    _withTimestampDefaults(r),
+                  ).toCompanion(false),
+                )
                 .toList(),
           ),
         );
@@ -2146,7 +2279,7 @@ class SyncDataSerializer {
                   (r) => DiveDataSourcesData.fromJson(
                     _withTimestampDefaults(r),
                     serializer: _syncBlobSerializer,
-                  ),
+                  ).toCompanion(false),
                 )
                 .toList(),
           ),
@@ -2157,7 +2290,11 @@ class SyncDataSerializer {
           (b) => b.insertAllOnConflictUpdate(
             _db.siteSpecies,
             records
-                .map((r) => SiteSpecy.fromJson(_withTimestampDefaults(r)))
+                .map(
+                  (r) => SiteSpecy.fromJson(
+                    _withTimestampDefaults(r),
+                  ).toCompanion(false),
+                )
                 .toList(),
           ),
         );
@@ -2167,7 +2304,11 @@ class SyncDataSerializer {
           (b) => b.insertAllOnConflictUpdate(
             _db.csvPresets,
             records
-                .map((r) => CsvPreset.fromJson(_withTimestampDefaults(r)))
+                .map(
+                  (r) => CsvPreset.fromJson(
+                    _withTimestampDefaults(r),
+                  ).toCompanion(false),
+                )
                 .toList(),
           ),
         );
@@ -2177,7 +2318,11 @@ class SyncDataSerializer {
           (b) => b.insertAllOnConflictUpdate(
             _db.viewConfigs,
             records
-                .map((r) => ViewConfig.fromJson(_withTimestampDefaults(r)))
+                .map(
+                  (r) => ViewConfig.fromJson(
+                    _withTimestampDefaults(r),
+                  ).toCompanion(false),
+                )
                 .toList(),
           ),
         );
@@ -2187,7 +2332,11 @@ class SyncDataSerializer {
           (b) => b.insertAllOnConflictUpdate(
             _db.fieldPresets,
             records
-                .map((r) => FieldPreset.fromJson(_withTimestampDefaults(r)))
+                .map(
+                  (r) => FieldPreset.fromJson(
+                    _withTimestampDefaults(r),
+                  ).toCompanion(false),
+                )
                 .toList(),
           ),
         );
