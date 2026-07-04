@@ -6,10 +6,12 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_part_file_sink.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_codec.dart';
+import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_reader.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_writer.dart';
 import 'package:submersion/core/services/sync/changeset_log/peer_cursor_store.dart';
 import 'package:submersion/core/services/sync/changeset_log/publish_state_store.dart';
+import 'package:submersion/core/services/sync/changeset_log/sync_manifest.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 
 import '../../../../helpers/changeset_test_helpers.dart';
@@ -179,5 +181,68 @@ void main() {
     final result = await pullAs(peerId); // pull AS the publisher
     expect(result.peersProcessed, 0);
     expect(applied, isEmpty);
+  });
+
+  test('cold-start from a base-less manifest (post-adopt peer) applies its '
+      'changesets in order and advances the cursor', () async {
+    // A peer that adopted a Replace-restored library publishes changesets
+    // with NO base of its own (the adopted epoch is already published by the
+    // other devices). Hand-craft that log shape: changesets 1..2 and a
+    // manifest with a null baseSeq.
+    final serializer = SyncDataSerializer();
+    final codec = ChangesetCodec(serializer);
+    const peerId = 'adopted-peer';
+
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'edit-1', diveNumber: 1),
+    );
+    final cs1 = await serializer.exportChangeset(
+      deviceId: peerId,
+      hlcWatermark: null,
+      deletions: const [],
+      seq: 1,
+    );
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'edit-2', diveNumber: 2),
+    );
+    final cs2 = await serializer.exportChangeset(
+      deviceId: peerId,
+      hlcWatermark: cs1.toHlc,
+      deletions: const [],
+      seq: 2,
+    );
+    await provider.uploadFile(
+      codec.encodeChangeset(cs1),
+      ChangesetLogLayout.changesetName(peerId, 1),
+      folderId: folder,
+    );
+    await provider.uploadFile(
+      codec.encodeChangeset(cs2),
+      ChangesetLogLayout.changesetName(peerId, 2),
+      folderId: folder,
+    );
+    await provider.uploadFile(
+      SyncManifest(
+        deviceId: peerId,
+        provider: provider.providerId,
+        headSeq: 2,
+        publishedHlcHigh: cs2.toHlc,
+        updatedAt: 0,
+      ).toBytes(),
+      ChangesetLogLayout.manifestName(peerId),
+      folderId: folder,
+    );
+
+    final result = await pullAs('reader-x');
+
+    expect(result.peersProcessed, 1);
+    expect(applied.length, 2);
+    expect(applied.first.data.dives.map((d) => d['id']), contains('edit-1'));
+    expect(applied.last.data.dives.map((d) => d['id']), contains('edit-2'));
+    final cursor = await PeerCursorStore(
+      DatabaseService.instance.database,
+    ).get(peerId, provider.providerId);
+    expect(cursor!.lastSeqApplied, 2);
+    expect(cursor.baseSeqApplied, isNull);
   });
 }

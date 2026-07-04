@@ -437,20 +437,17 @@ class SyncService {
       // ---- Upload: publish our delta ----
       _reportProgress(SyncPhase.uploading, 0.8, 'Publishing changes...');
       final deletions = await _syncRepository.getAllDeletions();
-      if (await _shouldDeferSelfBaseAfterAdopt(
-        provider.providerId,
-        deletions,
-      )) {
+      var publishAttempted = false;
+      if (await _shouldSkipPublishAfterAdopt(provider.providerId, deletions)) {
         // Just adopted a restored library and have nothing of our own yet: our
-        // library == the adopted epoch the peers already published. Publishing
-        // our own full base here would redundantly re-upload the whole library
-        // (#358, the slow first sync after adopt). Defer until we have a local
-        // change of our own to contribute (checked before the nonce so a
-        // deferred sync does not consume a nonce ring slot).
-        _log.info(
-          'Deferring redundant self-base publish after adopt (no local changes)',
-        );
+        // library == the adopted epoch the peers already published, so there
+        // is nothing to say. Skip the publish entirely (checked before the
+        // nonce so a skipped sync does not consume a nonce ring slot). Once a
+        // local change exists, the writer publishes it as a small changeset
+        // against the adopted watermark -- never a redundant full base (#358).
+        _log.info('Skipping publish after adopt (no local changes yet)');
       } else {
+        publishAttempted = true;
         final uploadNonce = _uuid.v4();
         // Record the nonce BEFORE publishing: a lost response (timeout, app
         // death) still leaves our manifest carrying this nonce, and an
@@ -493,9 +490,16 @@ class SyncService {
       }
       await _syncRepository.persistSyncClock();
       await _syncRepository.clearOldDeletions();
-      await _syncRepository.clearPendingRecords();
-      if (conflictsFound == 0) {
-        await _syncRepository.clearAllSyncRecords();
+      // Clear upload-side bookkeeping only when a publish actually ran. On a
+      // skipped (post-adopt, nothing-to-say) sync, an edit can land between
+      // the skip decision and this cleanup; wiping its pending row here would
+      // make every following sync skip again and the edit would never publish
+      // until some unrelated later edit re-tripped the gate.
+      if (publishAttempted) {
+        await _syncRepository.clearPendingRecords();
+        if (conflictsFound == 0) {
+          await _syncRepository.clearAllSyncRecords();
+        }
       }
 
       _reportProgress(SyncPhase.complete, 1.0, 'Sync complete');
@@ -2169,9 +2173,10 @@ class SyncService {
         );
       }
       // Record the deferred self-base marker: our library is now exactly the
-      // adopted epoch, which the peers already published. The next sync must
-      // NOT re-upload our own full base (a redundant copy) until we actually
-      // make a local change of our own (#358, the slow first sync after adopt).
+      // adopted epoch, which the peers already published, so no sync may ever
+      // re-upload it as our own full base (#358, the slow first sync after
+      // adopt). Local changes publish as changesets against the adopted max
+      // HLC recorded here; the log folds into a real base at compaction.
       await _publishStateStore.markAdoptedPendingBase(
         provider.providerId,
         await _syncRepository.maxRowHlc(),
@@ -2371,21 +2376,22 @@ class SyncService {
     ),
   );
 
-  /// True when we just adopted a restored library and have nothing of our own
-  /// to publish yet -- so the next sync must NOT re-upload our own full base, a
-  /// redundant copy of the epoch the peers already published (#358, the slow
-  /// first sync after adopt).
+  /// True when we adopted a restored library and have nothing of our own to
+  /// publish yet -- so this sync skips the publish entirely (saving a nonce
+  /// ring slot and the manifest round-trip). This gate is an optimization
+  /// only: if it misfires towards publishing, the writer sees no rows above
+  /// the adopted watermark and no-ops.
   ///
-  /// The deferred marker is a publish-state row with a null `baseSeq`: adopt
-  /// records it, and the writer always sets `baseSeq` when it publishes, so a
-  /// null there uniquely means "adopted, no self-base yet". A device that has
-  /// published (baseSeq set -- including a cloud-manifest-lost cold-start that
-  /// legitimately re-bases) or never adopted (no row at all) falls straight
-  /// through and publishes normally. The deferral clears the moment we have any
+  /// The marker is a publish-state row with a null `baseSeq`: adopt records
+  /// it, and it stays null while the writer publishes post-adopt changesets
+  /// without a base, until compaction folds the log into a real base (or a
+  /// cloud-manifest-lost cold-start re-bases). A device that has published a
+  /// base (baseSeq set) or never adopted (no row at all) falls straight
+  /// through and publishes normally. The skip clears the moment we have any
   /// local change: [SyncRepository.hasUnsyncedChanges] counts pending / conflict
   /// / deletion rows, which are written in the same transaction as the edit, so
   /// it is reliable even in the window before the HLC clock is reconfigured.
-  Future<bool> _shouldDeferSelfBaseAfterAdopt(
+  Future<bool> _shouldSkipPublishAfterAdopt(
     String providerId,
     List<DeletionLogData> deletions,
   ) async {

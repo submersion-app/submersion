@@ -288,4 +288,194 @@ void main() {
       expect(diveIds, {'d1', 'd2'});
     },
   );
+
+  group('post-adopt deferred base (changeset without a base)', () {
+    /// Put the device in the adopted state: the library content exists
+    /// locally (the adopted epoch, already published by the peers) and the
+    /// publish state carries the null-baseSeq marker with the adopted
+    /// watermark. Anything written AFTER this is a post-adopt local change.
+    Future<void> adoptWithLibrary() async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'adopted-dive', diveNumber: 1),
+      );
+      await PublishStateStore(
+        DatabaseService.instance.database,
+      ).markAdoptedPendingBase(
+        provider.providerId,
+        await SyncRepository().maxRowHlc(),
+      );
+    }
+
+    Future<SyncManifest> readOwnManifest() async {
+      final deviceId = await SyncRepository().getDeviceId();
+      return SyncManifest.fromBytes(
+        await provider.downloadFile(
+          '$folder/${ChangesetLogLayout.manifestName(deviceId)}',
+        ),
+      );
+    }
+
+    test('the first publish after adopt writes a changeset, NOT a full base '
+        '(the adopted library is already in the cloud)', () async {
+      await adoptWithLibrary();
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'my-edit', diveNumber: 2),
+      );
+
+      final result = await publish();
+
+      expect(result.kind, ChangesetWriteKind.changeset);
+      expect(result.seq, 1);
+      final ns = await names();
+      expect(
+        ns.any((n) => ChangesetLogLayout.basePartOf(n) != null),
+        isFalse,
+        reason:
+            'no base part may be uploaded -- that is the redundant '
+            'full-library re-upload this path exists to avoid',
+      );
+
+      final manifest = await readOwnManifest();
+      expect(manifest.baseSeq, isNull);
+      expect(manifest.headSeq, 1);
+
+      final deviceId = await SyncRepository().getDeviceId();
+      final payload = ChangesetCodec(SyncDataSerializer()).decodeChangeset(
+        await provider.downloadFile(
+          '$folder/${ChangesetLogLayout.changesetName(deviceId, 1)}',
+        ),
+      );
+      final diveIds = payload.data.dives.map((d) => d['id']).toSet();
+      expect(diveIds.contains('my-edit'), isTrue);
+      expect(
+        diveIds.contains('adopted-dive'),
+        isFalse,
+        reason:
+            'rows at or below the adopted watermark are already published '
+            'by the peers',
+      );
+    });
+
+    test(
+      'a second post-adopt publish appends the next changeset seq',
+      () async {
+        await adoptWithLibrary();
+        await DiveRepository().createDive(
+          createTestDiveWithBottomTime(id: 'edit-1', diveNumber: 2),
+        );
+        await publish();
+        await DiveRepository().createDive(
+          createTestDiveWithBottomTime(id: 'edit-2', diveNumber: 3),
+        );
+
+        final result = await publish();
+
+        expect(result.kind, ChangesetWriteKind.changeset);
+        expect(result.seq, 2);
+        final manifest = await readOwnManifest();
+        expect(manifest.baseSeq, isNull);
+        expect(manifest.headSeq, 2);
+      },
+    );
+
+    test('a post-adopt publish with nothing new is a no-op', () async {
+      await adoptWithLibrary();
+
+      final result = await publish();
+
+      expect(result.kind, ChangesetWriteKind.noop);
+      expect(await names(), isEmpty);
+    });
+
+    test(
+      'a post-adopt deletion publishes its tombstone as a changeset',
+      () async {
+        await adoptWithLibrary();
+        await DiveRepository().deleteDive('adopted-dive');
+
+        final result = await publish();
+
+        expect(result.kind, ChangesetWriteKind.changeset);
+        final deviceId = await SyncRepository().getDeviceId();
+        final payload = ChangesetCodec(SyncDataSerializer()).decodeChangeset(
+          await provider.downloadFile(
+            '$folder/${ChangesetLogLayout.changesetName(deviceId, 1)}',
+          ),
+        );
+        expect(payload.deletions['dives'], isNotEmpty);
+      },
+    );
+
+    test('a null adopted watermark falls back to a streamed base publish '
+        '(never exportChangeset(null), the in-memory OOM path)', () async {
+      // maxRowHlc() can legitimately be null at adopt: an empty adopted
+      // library, or one whose rows all predate HLC stamping. A null
+      // watermark in the changeset path would export the ENTIRE library
+      // in memory -- the exact full-upload/OOM this mode exists to avoid.
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'legacy-dive', diveNumber: 1),
+      );
+      await PublishStateStore(
+        DatabaseService.instance.database,
+      ).markAdoptedPendingBase(provider.providerId, null);
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'my-edit', diveNumber: 2),
+      );
+
+      final result = await publish();
+
+      expect(
+        result.kind,
+        ChangesetWriteKind.base,
+        reason:
+            'with no watermark to delta against, the only safe publish '
+            'is the streamed full base',
+      );
+    });
+
+    test(
+      'a base-less log folds into a real base when compaction trips',
+      () async {
+        final compactingWriter = ChangesetWriter(
+          SyncDataSerializer(),
+          ChangesetCodec(SyncDataSerializer()),
+          PublishStateStore(DatabaseService.instance.database),
+          compactionByteRatio: 1000.0,
+          compactionMaxChangesets: 2,
+        );
+        await adoptWithLibrary();
+        final deviceId = await SyncRepository().getDeviceId();
+
+        Future<ChangesetWriteResult> publishCompacting() async =>
+            compactingWriter.publish(
+              provider: provider,
+              deviceId: deviceId,
+              folderId: folder,
+              deletions: await SyncRepository().getAllDeletions(),
+            );
+
+        await DiveRepository().createDive(
+          createTestDiveWithBottomTime(id: 'edit-1', diveNumber: 2),
+        );
+        final first = await publishCompacting();
+        expect(first.kind, ChangesetWriteKind.changeset);
+
+        await DiveRepository().createDive(
+          createTestDiveWithBottomTime(id: 'edit-2', diveNumber: 3),
+        );
+        final second = await publishCompacting();
+
+        expect(
+          second.kind,
+          ChangesetWriteKind.compacted,
+          reason:
+              'a log with no base must eventually fold into a real base so '
+              'the device is a durable source for future cold-starts',
+        );
+        final manifest = await readOwnManifest();
+        expect(manifest.baseSeq, isNotNull);
+        expect(manifest.headSeq, manifest.baseSeq);
+      },
+    );
+  });
 }

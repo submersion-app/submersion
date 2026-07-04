@@ -23,10 +23,13 @@ class PublishStateStore {
 
   /// Record the post-adopt "deferred self-base" marker for [provider]: a row
   /// with a NULL `baseSeq` (no base published yet) carrying the adopted
-  /// library's [adoptedHlcHigh]. The writer always sets `baseSeq` when it
-  /// publishes, so the null uniquely marks "adopted, nothing of our own to
-  /// publish yet" -- which SyncService uses to skip re-uploading a redundant
-  /// full base (a copy of the epoch the peers already hold, #358). Call after
+  /// library's [adoptedHlcHigh]. Only adopt writes a null `baseSeq` -- the
+  /// writer either sets it (base publish, compaction) or preserves the null
+  /// while publishing post-adopt changesets without a base -- so a null here
+  /// always means "adopted, no self-base yet". SyncService uses it to skip a
+  /// publish with nothing to say, and ChangesetWriter uses it to publish
+  /// deltas against [adoptedHlcHigh] instead of re-uploading a redundant full
+  /// base (a copy of the epoch the peers already hold, #358). Call after
   /// `resetSyncState` has cleared any prior row (so this inserts fresh).
   Future<void> markAdoptedPendingBase(
     String provider,

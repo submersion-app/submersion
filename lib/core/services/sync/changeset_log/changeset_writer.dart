@@ -62,11 +62,28 @@ class ChangesetWriter {
     // number.
     final hasBase = ownManifest?.baseSeq != null;
     final watermark = ownManifest?.publishedHlcHigh ?? state?.publishedHlcHigh;
+    // The post-adopt marker (a publish-state row with a null baseSeq): this
+    // device's library IS the adopted epoch the peers already published, so
+    // publishing its own base would redundantly re-upload the whole library --
+    // and every peer would have to re-download it just to reach the deltas
+    // behind it (the post-adopt "changes don't show up" unreliability). While
+    // the marker holds, publish changesets with NO base: a reader cold-starts
+    // a base-less manifest by applying changesets from seq 1 (the adopted
+    // content itself comes from the epoch peers' bases). Compaction
+    // eventually folds the log into a real base, clearing the marker.
+    //
+    // A null watermark disables this mode: with nothing to delta against,
+    // exportChangeset would materialize the ENTIRE library in memory (the
+    // exact full-upload/OOM this path avoids, #358). maxRowHlc() is null at
+    // adopt for an empty library (the base below no-ops) or one whose rows
+    // all predate HLC stamping (one streamed base publish, safely bounded).
+    final adoptedNoBase =
+        !hasBase && state != null && state.baseSeq == null && watermark != null;
 
     final newSeq = knownHeadSeq + 1;
     final now = DateTime.now().millisecondsSinceEpoch;
 
-    if (!hasBase) {
+    if (!hasBase && !adoptedNoBase) {
       // Stream the base to a temp file and slice-upload it, so a large library
       // is never materialized in RAM (#358 write side). Do NOT call
       // exportChangeset(null) here -- that is the OOM path.
@@ -124,8 +141,11 @@ class ChangesetWriter {
     }
 
     // Changeset: reuse the base fields from the (authoritative) own manifest;
-    // only headSeq / publishedHlcHigh advance. The incremental delta stays in
-    // memory (small); only the base path above is streamed (#358).
+    // only headSeq / publishedHlcHigh advance. In the adopted mode there is no
+    // manifest yet (or a base-less one), so the base fields stay null and the
+    // watermark comes from the publish state (the adopted library's max HLC,
+    // recorded at adopt). The incremental delta stays in memory (small); only
+    // the base path above is streamed (#358).
     final payload = await _serializer.exportChangeset(
       deviceId: deviceId,
       hlcWatermark: watermark,
@@ -143,17 +163,17 @@ class ChangesetWriter {
       ChangesetLogLayout.changesetName(deviceId, newSeq),
       folderId: folderId,
     );
-    final base = ownManifest!;
+    final publishedHigh = payload.toHlc ?? watermark;
     final manifest = SyncManifest(
       deviceId: deviceId,
       provider: providerId,
-      baseSeq: base.baseSeq,
-      basePartCount: base.basePartCount,
-      baseBytes: base.baseBytes,
-      baseChecksum: base.baseChecksum,
-      basePartChecksums: base.basePartChecksums,
+      baseSeq: ownManifest?.baseSeq,
+      basePartCount: ownManifest?.basePartCount,
+      baseBytes: ownManifest?.baseBytes,
+      baseChecksum: ownManifest?.baseChecksum,
+      basePartChecksums: ownManifest?.basePartChecksums ?? const [],
       headSeq: newSeq,
-      publishedHlcHigh: payload.toHlc ?? base.publishedHlcHigh,
+      publishedHlcHigh: publishedHigh,
       epochId: epochId,
       uploadNonce: uploadNonce,
       updatedAt: now,
@@ -162,11 +182,11 @@ class ChangesetWriter {
     await _publishState.upsert(
       LocalPublishStatesCompanion(
         provider: Value(providerId),
-        baseSeq: Value(base.baseSeq),
-        basePartCount: Value(base.basePartCount),
-        baseBytes: Value(base.baseBytes),
+        baseSeq: Value(ownManifest?.baseSeq),
+        basePartCount: Value(ownManifest?.basePartCount),
+        baseBytes: Value(ownManifest?.baseBytes),
         headSeq: Value(newSeq),
-        publishedHlcHigh: Value(payload.toHlc ?? base.publishedHlcHigh),
+        publishedHlcHigh: Value(publishedHigh),
         changesetBytesSinceBase: Value(
           (state?.changesetBytesSinceBase ?? 0) + bytes.length,
         ),
@@ -175,9 +195,12 @@ class ChangesetWriter {
     );
 
     final bytesSinceBase = (state?.changesetBytesSinceBase ?? 0) + bytes.length;
-    final baseBytes = base.baseBytes ?? 0;
+    final baseBytes = ownManifest?.baseBytes ?? 0;
+    // A base-less (post-adopt) log counts changesets from seq 0 so it still
+    // trips the count threshold and folds into a real base -- the deferred
+    // base finally gets published once, amortized, instead of never.
     final tripped =
-        (newSeq - (base.baseSeq ?? newSeq)) >= compactionMaxChangesets ||
+        (newSeq - (ownManifest?.baseSeq ?? 0)) >= compactionMaxChangesets ||
         (baseBytes > 0 && bytesSinceBase >= compactionByteRatio * baseBytes);
     if (tripped) {
       final compSeq = await _compact(
