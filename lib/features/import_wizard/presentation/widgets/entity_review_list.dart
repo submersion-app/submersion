@@ -984,9 +984,13 @@ class _BulkActionRow extends StatelessWidget {
               ),
             ),
           if (availableActions.contains(DuplicateAction.consolidate))
-            // TODO(#200): enable when bulk-consolidate is implemented end-to-end.
             OutlinedButton.icon(
-              onPressed: null,
+              // Enabled only when at least one pending row qualifies for
+              // consolidation (score >= 0.7). With nothing to consolidate the
+              // button stays disabled rather than firing a no-op bulk action.
+              onPressed: matchableConsolidateCount > 0
+                  ? () => onBulkAction(DuplicateAction.consolidate)
+                  : null,
               icon: const Icon(Icons.merge_type, size: 16),
               label: Text(
                 context.l10n.universalImport_bulk_consolidateMatched(

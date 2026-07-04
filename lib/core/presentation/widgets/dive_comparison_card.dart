@@ -450,7 +450,7 @@ class DiveComparisonCard extends ConsumerWidget {
         _ActionButton(
           label: 'Consolidate',
           subtitle: 'Add as 2nd computer reading',
-          onPressed: null, // Disabled — consolidation is under development.
+          onPressed: callbackFor(DuplicateAction.consolidate, onConsolidate),
           style: styleFor(
             DuplicateAction.consolidate,
             _ActionButtonStyle.outlined,

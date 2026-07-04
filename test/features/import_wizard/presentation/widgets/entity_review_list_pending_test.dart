@@ -344,6 +344,39 @@ void main() {
 
       expect(firedAction, DuplicateAction.skip);
     });
+
+    testWidgets(
+      'tapping bulk Consolidate button fires onBulkAction with consolidate',
+      (tester) async {
+        tester.view.physicalSize = const Size(800, 1200);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+
+        DuplicateAction? firedAction;
+
+        // Both pending items have score >= 0.7, so the bulk consolidate
+        // button is enabled with a matched count of 2.
+        final group = EntityGroup(
+          items: [_dup0, _dup1],
+          duplicateIndices: const {0, 1},
+          matchResults: const {0: _highMatch, 1: _midMatch},
+        );
+
+        await tester.pumpWidget(
+          _pumpList(
+            group: group,
+            pendingIndices: const {0, 1},
+            onBulkAction: (a) => firedAction = a,
+          ),
+        );
+        await tester.pump();
+
+        await tester.tap(find.text('Consolidate matched (2)'));
+        await tester.pump();
+
+        expect(firedAction, DuplicateAction.consolidate);
+      },
+    );
   });
 
   group('EntityReviewList pending-first sort', () {
