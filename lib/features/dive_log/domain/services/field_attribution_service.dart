@@ -12,6 +12,7 @@ class FieldAttributionService {
   static Map<String, String> computeAttribution(
     List<DiveDataSource> sources, {
     String? viewedSourceId,
+    required String Function(DiveDataSource) nameOf,
   }) {
     if (sources.length < 2) return {};
 
@@ -26,7 +27,7 @@ class FieldAttributionService {
         : sources.firstWhere((s) => s.isPrimary, orElse: () => sources.first);
 
     final attribution = <String, String>{};
-    final name = activeSource.displayName;
+    final name = nameOf(activeSource);
 
     // Standard fields — attributed to active (primary or viewed) source
     if (activeSource.maxDepth != null) attribution['maxDepth'] = name;
@@ -44,7 +45,7 @@ class FieldAttributionService {
       (s) => _hrCapableSources.contains(s.sourceFormat),
       orElse: () => activeSource,
     );
-    attribution['heartRate'] = hrSource.displayName;
+    attribution['heartRate'] = nameOf(hrSource);
 
     // GPS — attributed to the active source only when it actually has
     // entry/exit coordinates (e.g. a Shearwater Swift dive).

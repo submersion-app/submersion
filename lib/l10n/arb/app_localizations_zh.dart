@@ -5434,6 +5434,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_sources_unknownComputer => '未知电脑';
 
   @override
+  String get diveLog_sources_manualEntry => 'Manual Entry';
+
+  @override
+  String get diveLog_sources_importedFile => 'Imported File';
+
+  @override
+  String get diveLog_sources_editedSuffix => '(edited)';
+
+  @override
   String get divePlanner_action_addTank => '添加气瓶';
 
   @override

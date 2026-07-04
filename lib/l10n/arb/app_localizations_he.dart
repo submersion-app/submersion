@@ -5541,6 +5541,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_sources_unknownComputer => 'מחשב לא ידוע';
 
   @override
+  String get diveLog_sources_manualEntry => 'Manual Entry';
+
+  @override
+  String get diveLog_sources_importedFile => 'Imported File';
+
+  @override
+  String get diveLog_sources_editedSuffix => '(edited)';
+
+  @override
   String get divePlanner_action_addTank => 'הוסף מיכל';
 
   @override

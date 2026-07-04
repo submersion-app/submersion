@@ -5714,6 +5714,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_sources_unknownComputer => 'Ordinateur inconnu';
 
   @override
+  String get diveLog_sources_manualEntry => 'Manual Entry';
+
+  @override
+  String get diveLog_sources_importedFile => 'Imported File';
+
+  @override
+  String get diveLog_sources_editedSuffix => '(edited)';
+
+  @override
   String get divePlanner_action_addTank => 'Ajouter une bouteille';
 
   @override

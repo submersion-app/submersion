@@ -2584,6 +2584,9 @@
   "diveLog_sources_row_gf": "GF",
   "diveLog_sources_minutes": "{count, plural, =1{1 min} other{{count} min}}",
   "diveLog_sources_unknownComputer": "Unknown Computer",
+  "diveLog_sources_manualEntry": "Manual Entry",
+  "diveLog_sources_importedFile": "Imported File",
+  "diveLog_sources_editedSuffix": "(edited)",
   "@diveLog_sources_minutes": {
     "placeholders": {
       "count": {

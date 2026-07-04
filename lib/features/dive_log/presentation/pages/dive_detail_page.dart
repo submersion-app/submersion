@@ -50,6 +50,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/data_sources_s
 import 'package:submersion/features/dive_log/presentation/widgets/field_attribution_badge.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail_row.dart';
 import 'package:submersion/features/dive_log/domain/services/field_attribution_service.dart';
+import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/merge_dive_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/run_dive_consolidation.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_deco_status_card.dart';
@@ -281,6 +282,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               final attribution = FieldAttributionService.computeAttribution(
                 dataSources,
                 viewedSourceId: viewedSourceId,
+                nameOf: (s) => resolveSourceName(s, _sourceNameLabels(context)),
               );
               final showBadges =
                   settings.showDataSourceBadges && attribution.isNotEmpty;
@@ -324,6 +326,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               final attribution = FieldAttributionService.computeAttribution(
                 dataSources,
                 viewedSourceId: viewedSourceId,
+                nameOf: (s) => resolveSourceName(s, _sourceNameLabels(context)),
               );
               final showBadges =
                   settings.showDataSourceBadges && attribution.isNotEmpty;
@@ -464,6 +467,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 final attribution = FieldAttributionService.computeAttribution(
                   dataSources,
                   viewedSourceId: viewedSourceId,
+                  nameOf: (s) =>
+                      resolveSourceName(s, _sourceNameLabels(context)),
                 );
                 final showBadges =
                     settings.showDataSourceBadges && attribution.isNotEmpty;
@@ -1036,6 +1041,17 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           FieldAttributionBadge(sourceName: sourceName),
         ],
       ],
+    );
+  }
+
+  /// Localized fallback labels for [resolveSourceName], the shared
+  /// name-resolution path for every attribution surface on this page.
+  SourceNameLabels _sourceNameLabels(BuildContext context) {
+    return SourceNameLabels(
+      unknownComputer: context.l10n.diveLog_sources_unknownComputer,
+      manualEntry: context.l10n.diveLog_sources_manualEntry,
+      importedFile: context.l10n.diveLog_sources_importedFile,
+      editedSuffix: context.l10n.diveLog_sources_editedSuffix,
     );
   }
 

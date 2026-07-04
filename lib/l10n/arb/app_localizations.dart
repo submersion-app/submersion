@@ -9644,6 +9644,24 @@ abstract class AppLocalizations {
   /// **'Unknown Computer'**
   String get diveLog_sources_unknownComputer;
 
+  /// No description provided for @diveLog_sources_manualEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual Entry'**
+  String get diveLog_sources_manualEntry;
+
+  /// No description provided for @diveLog_sources_importedFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported File'**
+  String get diveLog_sources_importedFile;
+
+  /// No description provided for @diveLog_sources_editedSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'(edited)'**
+  String get diveLog_sources_editedSuffix;
+
   /// No description provided for @divePlanner_action_addTank.
   ///
   /// In en, this message translates to:
