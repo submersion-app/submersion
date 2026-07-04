@@ -632,22 +632,18 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
   diveId,
 ) async {
   try {
-    // Get the dive with profile data
-    final diveAsync = ref.watch(diveProvider(diveId));
-
-    // Await the dive data
-    final dive = await diveAsync.when(
-      data: (d) async => d,
-      loading: () async => null,
-      error: (e, st) async {
-        _log.error(
-          'Error loading dive for analysis: $diveId',
-          error: e,
-          stackTrace: st,
-        );
-        return null;
-      },
-    );
+    // Await the dive itself (not just its current AsyncValue snapshot). Reading
+    // `diveProvider(id).future` suspends this provider until the dive resolves,
+    // rather than mapping a momentary loading state to a resolved null. The old
+    // `ref.watch(diveProvider(id)).when(loading: () => null)` form committed an
+    // AsyncData(null) whenever the analysis built while the dive was still
+    // loading -- which a concurrent evaluator (residual-CNS/tissue/OTU lookback
+    // from another dive, or stats aggregation) reliably triggers, especially
+    // for the heavier merged profile of a multi-computer dive. Riverpod then
+    // retained that null and never recomputed until a detail-table write or an
+    // app restart, blanking every analysis-derived overlay and the deco/tissue
+    // panels in the meantime. Errors surface to the outer catch below.
+    final dive = await ref.watch(diveProvider(diveId).future);
 
     if (dive == null || dive.profile.isEmpty) {
       _log.debug('No profile data for dive $diveId');
