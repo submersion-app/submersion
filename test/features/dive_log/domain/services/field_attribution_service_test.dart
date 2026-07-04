@@ -6,6 +6,7 @@ DiveDataSource _makeSource({
   required String id,
   required String diveId,
   required bool isPrimary,
+  String? computerName,
   String? computerModel,
   String? sourceFormat,
   double? maxDepth,
@@ -21,6 +22,7 @@ DiveDataSource _makeSource({
     id: id,
     diveId: diveId,
     isPrimary: isPrimary,
+    computerName: computerName,
     computerModel: computerModel,
     sourceFormat: sourceFormat,
     maxDepth: maxDepth,
@@ -326,6 +328,35 @@ void main() {
       expect(result.containsKey('cns'), isFalse);
       expect(result.containsKey('otu'), isFalse);
       expect(result.containsKey('surfaceInterval'), isFalse);
+    });
+
+    test('uses the computer friendly name for attribution when set', () {
+      final primary = _makeSource(
+        id: 's1',
+        diveId: diveId,
+        isPrimary: true,
+        computerName: 'My Perdix',
+        computerModel: 'Shearwater Perdix AI',
+        sourceFormat: 'shearwater',
+        maxDepth: 30.0,
+        duration: 3600,
+      );
+      final secondary = _makeSource(
+        id: 's2',
+        diveId: diveId,
+        isPrimary: false,
+        computerModel: 'Suunto D5',
+        sourceFormat: 'suunto',
+        maxDepth: 31.0,
+      );
+
+      final result = FieldAttributionService.computeAttribution([
+        primary,
+        secondary,
+      ]);
+
+      expect(result['maxDepth'], equals('My Perdix'));
+      expect(result['bottomTime'], equals('My Perdix'));
     });
 
     test('uses Unknown Source display name when computerModel is null', () {

@@ -4358,7 +4358,10 @@ class DiveRepository {
           (t) => OrderingTerm.asc(t.createdAt),
         ]);
       final rows = await query.get();
-      return rows.map(_mapRowToDataSource).toList();
+      final computerNames = await _friendlyNamesFor(rows);
+      return rows
+          .map((row) => _mapRowToDataSource(row, computerNames))
+          .toList();
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get computer readings for dive: $diveId',
@@ -5058,14 +5061,46 @@ class DiveRepository {
     }
   }
 
+  /// Resolves a `{ computerId -> friendly name }` map for the given source
+  /// rows by looking up each linked [DiveComputers] row's user-assigned
+  /// `name`. Blank names are omitted so the display fallback (model, then
+  /// serial/"Unknown") still applies. Rows with no `computerId` (manual
+  /// entries, file imports, or a since-deleted computer) contribute nothing.
+  Future<Map<String, String>> _friendlyNamesFor(
+    List<DiveDataSourcesData> rows,
+  ) async {
+    final ids = {
+      for (final row in rows)
+        if (row.computerId != null) row.computerId!,
+    };
+    if (ids.isEmpty) return const {};
+    final computers = await (_db.select(
+      _db.diveComputers,
+    )..where((c) => c.id.isIn(ids))).get();
+    return {
+      for (final computer in computers)
+        if (computer.name.trim().isNotEmpty) computer.id: computer.name.trim(),
+    };
+  }
+
   /// Map a [DiveDataSourcesData] DB row to a [DiveDataSource] entity.
-  DiveDataSource _mapRowToDataSource(DiveDataSourcesData row) {
+  ///
+  /// [computerNames] carries the live `{ computerId -> friendly name }` lookup
+  /// from [_friendlyNamesFor]; a source's `computerName` is filled from it when
+  /// the row is linked to a registered computer.
+  DiveDataSource _mapRowToDataSource(
+    DiveDataSourcesData row, [
+    Map<String, String> computerNames = const {},
+  ]) {
     return DiveDataSource(
       id: row.id,
       diveId: row.diveId,
       computerId: row.computerId,
       isPrimary: row.isPrimary,
       computerModel: row.computerModel,
+      computerName: row.computerId == null
+          ? null
+          : computerNames[row.computerId],
       computerSerial: row.computerSerial,
       sourceFormat: row.sourceFormat,
       sourceFileName: row.sourceFileName,

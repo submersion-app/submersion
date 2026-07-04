@@ -162,6 +162,24 @@ void main() {
   // getDataSources
   // ---------------------------------------------------------------------------
 
+  Future<void> insertComputer({
+    required String id,
+    required String name,
+    String? model,
+  }) async {
+    await db
+        .into(db.diveComputers)
+        .insert(
+          DiveComputersCompanion.insert(
+            id: id,
+            name: name,
+            model: Value(model),
+            createdAt: 0,
+            updatedAt: 0,
+          ),
+        );
+  }
+
   group('getDataSources', () {
     test('returns empty list when no data sources exist', () async {
       final diveId = await insertTestDive(id: 'dive-no-sources');
@@ -169,6 +187,94 @@ void main() {
       final sources = await repository.getDataSources(diveId);
 
       expect(sources, isEmpty);
+    });
+
+    test(
+      'resolves the linked computer friendly name into computerName',
+      () async {
+        final diveId = await insertTestDive(id: 'dive-friendly-name');
+        await insertComputer(
+          id: 'comp-friendly',
+          name: 'My Perdix',
+          model: 'Perdix',
+        );
+        await repository.saveComputerReading(
+          buildReading(
+            id: 'reading-friendly',
+            diveId: diveId,
+            isPrimary: true,
+            computerModel: 'Shearwater Perdix AI',
+          ).copyWith(computerId: const Value('comp-friendly')),
+        );
+
+        final sources = await repository.getDataSources(diveId);
+
+        expect(sources.single.computerName, equals('My Perdix'));
+        // displayName now prefers the friendly name over the model snapshot.
+        expect(sources.single.displayName, equals('My Perdix'));
+        // The model snapshot is preserved for the subtitle.
+        expect(sources.single.computerModel, equals('Shearwater Perdix AI'));
+      },
+    );
+
+    test(
+      'leaves computerName null when the source has no linked computer',
+      () async {
+        final diveId = await insertTestDive(id: 'dive-no-linked-computer');
+        await repository.saveComputerReading(
+          buildReading(
+            id: 'reading-unlinked',
+            diveId: diveId,
+            isPrimary: true,
+            computerModel: 'Suunto D5',
+          ),
+        );
+
+        final sources = await repository.getDataSources(diveId);
+
+        expect(sources.single.computerName, isNull);
+        expect(sources.single.displayName, equals('Suunto D5'));
+      },
+    );
+
+    test('treats an empty computer name as absent (falls back to '
+        'model)', () async {
+      final diveId = await insertTestDive(id: 'dive-empty-name');
+      await insertComputer(id: 'comp-empty', name: '', model: 'Teric');
+      await repository.saveComputerReading(
+        buildReading(
+          id: 'reading-empty-name',
+          diveId: diveId,
+          isPrimary: true,
+          computerModel: 'Shearwater Teric',
+        ).copyWith(computerId: const Value('comp-empty')),
+      );
+
+      final sources = await repository.getDataSources(diveId);
+
+      expect(sources.single.computerName, isNull);
+      expect(sources.single.displayName, equals('Shearwater Teric'));
+    });
+
+    test('trims surrounding whitespace from the friendly name', () async {
+      final diveId = await insertTestDive(id: 'dive-whitespace-name');
+      await insertComputer(
+        id: 'comp-whitespace',
+        name: '  My Perdix  ',
+        model: 'Perdix',
+      );
+      await repository.saveComputerReading(
+        buildReading(
+          id: 'reading-whitespace',
+          diveId: diveId,
+          isPrimary: true,
+          computerModel: 'Shearwater Perdix AI',
+        ).copyWith(computerId: const Value('comp-whitespace')),
+      );
+
+      final sources = await repository.getDataSources(diveId);
+
+      expect(sources.single.computerName, equals('My Perdix'));
     });
 
     test(

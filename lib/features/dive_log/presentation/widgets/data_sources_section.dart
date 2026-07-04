@@ -175,7 +175,7 @@ class _SourceComparisonGrid extends StatelessWidget {
           for (final s in sources)
             DataColumn(
               label: Text(
-                s.computerModel ?? l10n.diveLog_sources_unknownComputer,
+                s.computerLabel(l10n.diveLog_sources_unknownComputer),
                 style: s.isPrimary
                     ? const TextStyle(fontWeight: FontWeight.bold)
                     : null,
@@ -308,6 +308,17 @@ class _DataSourceCard extends StatelessWidget {
     );
     final valueStyle = textTheme.bodyMedium;
 
+    // When the header shows the computer's friendly name, surface the model
+    // beneath it -- but only when it adds information (i.e. the friendly name
+    // was customized away from the model). Un-renamed computers, whose name
+    // defaults to the model, get no redundant subtitle.
+    final modelSubtitle =
+        source.computerName != null &&
+            source.computerModel != null &&
+            source.computerModel != source.computerName
+        ? source.computerModel
+        : null;
+
     // Primary card gets a green-tinted left border when in multi-source mode.
     // Viewing card gets a blue highlight.
     BoxDecoration? cardDecoration;
@@ -339,35 +350,48 @@ class _DataSourceCard extends StatelessWidget {
                   Icon(Icons.watch, size: 18, color: colorScheme.primary),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Flexible(
-                          child: Text(
-                            source.displayName,
-                            style: textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w600,
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                source.displayName,
+                                style: textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (showBadges) ...[
+                              const SizedBox(width: 6),
+                              if (isViewing)
+                                _Badge(
+                                  label: 'Viewing',
+                                  color: colorScheme.tertiaryContainer,
+                                )
+                              else if (source.isPrimary)
+                                _Badge(
+                                  label: 'Primary',
+                                  color: colorScheme.primaryContainer,
+                                )
+                              else
+                                _Badge(
+                                  label: 'Secondary',
+                                  color: colorScheme.surfaceContainerHighest,
+                                ),
+                            ],
+                          ],
+                        ),
+                        if (modelSubtitle != null)
+                          Text(
+                            modelSubtitle,
+                            style: textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                        if (showBadges) ...[
-                          const SizedBox(width: 6),
-                          if (isViewing)
-                            _Badge(
-                              label: 'Viewing',
-                              color: colorScheme.tertiaryContainer,
-                            )
-                          else if (source.isPrimary)
-                            _Badge(
-                              label: 'Primary',
-                              color: colorScheme.primaryContainer,
-                            )
-                          else
-                            _Badge(
-                              label: 'Secondary',
-                              color: colorScheme.surfaceContainerHighest,
-                            ),
-                        ],
                       ],
                     ),
                   ),

@@ -14,6 +14,7 @@ DiveDataSource _makeSource({
   String diveId = 'dive-1',
   String? computerId = 'comp-1',
   bool isPrimary = true,
+  String? computerName,
   String? computerModel = 'Shearwater Perdix',
   String? computerSerial = 'SN-12345',
   String? sourceFormat = 'SSRF',
@@ -38,6 +39,7 @@ DiveDataSource _makeSource({
     diveId: diveId,
     computerId: computerId,
     isPrimary: isPrimary,
+    computerName: computerName,
     computerModel: computerModel,
     computerSerial: computerSerial,
     sourceFormat: sourceFormat,
@@ -649,6 +651,59 @@ void main() {
       expect(find.text('Unknown Source'), findsOneWidget);
     });
 
+    testWidgets('shows friendly name as header with model as subtitle', (
+      tester,
+    ) async {
+      final source = _makeSource(
+        computerName: 'My Perdix',
+        computerModel: 'Shearwater Perdix AI',
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          child: SingleChildScrollView(
+            child: DataSourcesSection(
+              dataSources: [source],
+              diveCreatedAt: DateTime(2026, 3, 20, 10, 0),
+              diveId: 'dive-1',
+              units: _units,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Friendly name is the card title; the model appears as a subtitle.
+      expect(find.text('My Perdix'), findsOneWidget);
+      expect(find.text('Shearwater Perdix AI'), findsOneWidget);
+    });
+
+    testWidgets('omits model subtitle when friendly name equals the model', (
+      tester,
+    ) async {
+      final source = _makeSource(
+        computerName: 'Shearwater Perdix',
+        computerModel: 'Shearwater Perdix',
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          child: SingleChildScrollView(
+            child: DataSourcesSection(
+              dataSources: [source],
+              diveCreatedAt: DateTime(2026, 3, 20, 10, 0),
+              diveId: 'dive-1',
+              units: _units,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Rendered once as the header, not duplicated as a redundant subtitle.
+      expect(find.text('Shearwater Perdix'), findsOneWidget);
+    });
+
     testWidgets('omits serial and format labels when fields are null', (
       tester,
     ) async {
@@ -990,6 +1045,87 @@ void main() {
           find.descendant(of: dataTableFinder, matching: find.text('—')),
           findsWidgets,
         );
+      },
+    );
+
+    testWidgets('column header uses the computer friendly name when set', (
+      tester,
+    ) async {
+      final primary = _makeSource(
+        id: 'src-1',
+        isPrimary: true,
+        computerName: 'My Perdix',
+        computerModel: 'Shearwater Perdix AI',
+        maxDepth: 30.1,
+      );
+      final secondary = _makeSource(
+        id: 'src-2',
+        isPrimary: false,
+        computerName: null,
+        computerModel: 'Shearwater Teric',
+        maxDepth: 30.4,
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          child: SingleChildScrollView(
+            child: DataSourcesSection(
+              dataSources: [primary, secondary],
+              diveCreatedAt: DateTime(2026, 3, 20, 10, 0),
+              diveId: 'dive-1',
+              units: _units,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final dataTable = tester.widget<DataTable>(find.byType(DataTable));
+      // Primary column shows the friendly name; secondary (no friendly name)
+      // falls back to its model snapshot.
+      expect((dataTable.columns[1].label as Text).data, equals('My Perdix'));
+      expect(
+        (dataTable.columns[2].label as Text).data,
+        equals('Shearwater Teric'),
+      );
+    });
+
+    testWidgets(
+      'column header falls back to serial when name and model are absent',
+      (tester) async {
+        final primary = _makeSource(
+          id: 'src-1',
+          isPrimary: true,
+          computerModel: 'Shearwater Perdix',
+          maxDepth: 30.0,
+        );
+        final secondary = _makeSource(
+          id: 'src-2',
+          isPrimary: false,
+          computerName: null,
+          computerModel: null,
+          computerSerial: 'SN-ONLY-42',
+          maxDepth: 31.0,
+        );
+
+        await tester.pumpWidget(
+          testApp(
+            child: SingleChildScrollView(
+              child: DataSourcesSection(
+                dataSources: [primary, secondary],
+                diveCreatedAt: DateTime(2026, 3, 20, 10, 0),
+                diveId: 'dive-1',
+                units: _units,
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final dataTable = tester.widget<DataTable>(find.byType(DataTable));
+        // No friendly name and no model: the serial identifies the column,
+        // not the generic "Unknown" label.
+        expect((dataTable.columns[2].label as Text).data, equals('SN-ONLY-42'));
       },
     );
 

@@ -127,6 +127,67 @@ void main() {
       expect(source.displayName, 'Unknown Source');
     });
 
+    test('displayName prefers computerName (friendly name) over model', () {
+      final now = DateTime.now();
+      final source = DiveDataSource(
+        id: 'r1',
+        diveId: 'd1',
+        isPrimary: true,
+        computerName: 'My Perdix',
+        computerModel: 'Shearwater Perdix AI',
+        importedAt: now,
+        createdAt: now,
+      );
+
+      expect(source.displayName, 'My Perdix');
+    });
+
+    test('displayName falls back to model when computerName is null', () {
+      final now = DateTime.now();
+      final source = DiveDataSource(
+        id: 'r1',
+        diveId: 'd1',
+        isPrimary: true,
+        computerName: null,
+        computerModel: 'Shearwater Perdix AI',
+        importedAt: now,
+        createdAt: now,
+      );
+
+      expect(source.displayName, 'Shearwater Perdix AI');
+    });
+
+    test('computerLabel prefers friendly name, then model, then serial, '
+        'then the given fallback', () {
+      final now = DateTime.now();
+      DiveDataSource make({String? name, String? model, String? serial}) =>
+          DiveDataSource(
+            id: 'r1',
+            diveId: 'd1',
+            isPrimary: true,
+            computerName: name,
+            computerModel: model,
+            computerSerial: serial,
+            importedAt: now,
+            createdAt: now,
+          );
+
+      expect(
+        make(
+          name: 'My Perdix',
+          model: 'Perdix AI',
+          serial: 'SN1',
+        ).computerLabel('Unknown'),
+        'My Perdix',
+      );
+      expect(
+        make(model: 'Perdix AI', serial: 'SN1').computerLabel('Unknown'),
+        'Perdix AI',
+      );
+      expect(make(serial: 'SN1').computerLabel('Unknown'), 'SN1');
+      expect(make().computerLabel('Unknown'), 'Unknown');
+    });
+
     test('equality holds for identical field values', () {
       final now = DateTime(2026, 3, 20, 10, 0);
       final a = DiveDataSource(
@@ -176,17 +237,19 @@ void main() {
         id: 'r1',
         diveId: 'd1',
         isPrimary: true,
+        computerName: 'My Perdix',
         computerModel: 'Perdix',
         maxDepth: 30.0,
         importedAt: now,
         createdAt: now,
       );
 
-      // 29 fields total in props list
-      expect(source.props, hasLength(29));
+      // 30 fields total in props list
+      expect(source.props, hasLength(30));
       expect(source.props, contains('r1'));
       expect(source.props, contains('d1'));
       expect(source.props, contains(true));
+      expect(source.props, contains('My Perdix'));
       expect(source.props, contains('Perdix'));
       expect(source.props, contains(30.0));
     });

@@ -6,6 +6,12 @@ class DiveDataSource extends Equatable {
   final String? computerId;
   final bool isPrimary;
   final String? computerModel;
+
+  /// The linked dive computer's user-assigned friendly name (e.g. "My
+  /// Perdix"), resolved live from the registered computer via [computerId].
+  /// Null when the source has no linked computer (manual/file imports, or a
+  /// since-deleted computer); callers fall back to [computerModel].
+  final String? computerName;
   final String? computerSerial;
   final String? sourceFormat;
   final String? sourceFileName;
@@ -37,6 +43,7 @@ class DiveDataSource extends Equatable {
     this.computerId,
     required this.isPrimary,
     this.computerModel,
+    this.computerName,
     this.computerSerial,
     this.sourceFormat,
     this.sourceFileName,
@@ -63,8 +70,16 @@ class DiveDataSource extends Equatable {
     required this.createdAt,
   });
 
-  /// Display name for the data source (model, or "Unknown Source").
-  String get displayName => computerModel ?? 'Unknown Source';
+  /// Display name for the data source: the linked computer's friendly name
+  /// when known, else the model snapshot, else "Unknown Source".
+  String get displayName => computerName ?? computerModel ?? 'Unknown Source';
+
+  /// Label for this source's computer, preferring the friendly name, then the
+  /// model, then the serial, then the caller-supplied [unknownLabel]. Used
+  /// where a localized "unknown" fallback is needed (e.g. the profile chart's
+  /// per-computer legend).
+  String computerLabel(String unknownLabel) =>
+      computerName ?? computerModel ?? computerSerial ?? unknownLabel;
 
   DiveDataSource copyWith({
     String? id,
@@ -72,6 +87,7 @@ class DiveDataSource extends Equatable {
     String? computerId,
     bool? isPrimary,
     String? computerModel,
+    String? computerName,
     String? computerSerial,
     String? sourceFormat,
     String? sourceFileName,
@@ -103,6 +119,7 @@ class DiveDataSource extends Equatable {
       computerId: computerId ?? this.computerId,
       isPrimary: isPrimary ?? this.isPrimary,
       computerModel: computerModel ?? this.computerModel,
+      computerName: computerName ?? this.computerName,
       computerSerial: computerSerial ?? this.computerSerial,
       sourceFormat: sourceFormat ?? this.sourceFormat,
       sourceFileName: sourceFileName ?? this.sourceFileName,
@@ -137,6 +154,7 @@ class DiveDataSource extends Equatable {
     computerId,
     isPrimary,
     computerModel,
+    computerName,
     computerSerial,
     sourceFormat,
     sourceFileName,

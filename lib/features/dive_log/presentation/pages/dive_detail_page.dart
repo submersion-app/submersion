@@ -1040,10 +1040,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   }
 
   /// Resolves computerId -> display name for a dive's data sources, using
-  /// the same fallback chain as the Data Sources section: model, then
-  /// serial, then the localized "Unknown Computer" label. Sources without a
-  /// computerId (manual entries, edited profiles) are skipped — callers key
-  /// off computerId, so there's nothing to attach the name to.
+  /// the same fallback chain as the Data Sources section: the computer's
+  /// user-assigned friendly name, then model, then serial, then the localized
+  /// "Unknown Computer" label. Sources without a computerId (manual entries,
+  /// edited profiles) are skipped — callers key off computerId, so there's
+  /// nothing to attach the name to.
   Map<String, String> _computerDisplayNames(
     BuildContext context,
     List<DiveDataSource> dataSources,
@@ -1051,10 +1052,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     return {
       for (final source in dataSources)
         if (source.computerId != null)
-          source.computerId!:
-              source.computerModel ??
-              source.computerSerial ??
-              context.l10n.diveLog_sources_unknownComputer,
+          source.computerId!: source.computerLabel(
+            context.l10n.diveLog_sources_unknownComputer,
+          ),
     };
   }
 
