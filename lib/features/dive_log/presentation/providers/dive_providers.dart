@@ -13,6 +13,8 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_reposit
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
+import 'package:submersion/features/dive_log/domain/entities/source_profile.dart'
+    as domain;
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
@@ -178,6 +180,19 @@ final profilesBySourceProvider =
       final repository = ref.watch(diveRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchDiveDetailChanges());
       return repository.getProfilesBySource(diveId);
+    });
+
+/// Profiles grouped by owning data source (active-source model). Keys are
+/// dive_data_sources ids, primary source first; null-computerId rows are
+/// attributed to the primary source so no source ever renders as unknown.
+final sourceProfilesProvider =
+    FutureProvider.family<Map<String, domain.SourceProfile>, String>((
+      ref,
+      diveId,
+    ) async {
+      final repository = ref.watch(diveRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchDiveDetailChanges());
+      return repository.getProfilesByDataSource(diveId);
     });
 
 /// Batch profile cache for mini charts in the dive list.
