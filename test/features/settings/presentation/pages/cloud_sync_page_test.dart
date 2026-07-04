@@ -857,6 +857,28 @@ void main() {
       expect(button.onPressed, isNotNull);
     });
 
+    testWidgets(
+      'persisted googledrive selection does not enable Sync Now when Drive is unavailable',
+      (tester) async {
+        await pumpPage(
+          tester,
+          selectedProvider: CloudProviderType.googledrive,
+          googleDriveAvailable: false,
+        );
+
+        // No usable provider: Sync Now stays disabled and the hint shows,
+        // rather than an enabled Sync Now with a disabled/absent tile.
+        final button = tester.widget<FilledButton>(
+          find.widgetWithText(FilledButton, 'Sync Now'),
+        );
+        expect(button.onPressed, isNull);
+        expect(
+          find.text('Select a cloud provider to enable sync'),
+          findsOneWidget,
+        );
+      },
+    );
+
     testWidgets('Google Drive tile is disabled when unavailable', (
       tester,
     ) async {

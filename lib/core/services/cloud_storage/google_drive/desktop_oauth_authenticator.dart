@@ -151,7 +151,9 @@ class DesktopOAuthAuthenticator implements GoogleDriveAuthenticator {
         await base.post(
           Uri.parse(_revokeEndpoint),
           headers: {'content-type': 'application/x-www-form-urlencoded'},
-          body: 'token=$token',
+          // Encode the token: Google refresh tokens contain '/' and other
+          // characters that must be percent-encoded in a form body.
+          body: 'token=${Uri.encodeQueryComponent(token)}',
         );
       } catch (e) {
         _log.warning('Token revocation failed (ignored): $e');

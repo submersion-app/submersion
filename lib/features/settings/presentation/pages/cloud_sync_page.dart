@@ -59,7 +59,16 @@ class CloudSyncPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final syncState = ref.watch(syncStateProvider);
     final selectedProvider = ref.watch(selectedCloudProviderTypeProvider);
-    final hasProvider = selectedProvider != null;
+    // A persisted Google Drive selection must not enable Sync Now on a build
+    // where Drive is unavailable (e.g. a desktop build without the OAuth
+    // client compiled in) -- the tile is disabled in that case, so an enabled
+    // Sync Now with no usable provider would be inconsistent.
+    final googleDriveAvailable =
+        ref.watch(googleDriveAvailableProvider).value ?? false;
+    final selectionUsable =
+        selectedProvider != CloudProviderType.googledrive ||
+        googleDriveAvailable;
+    final hasProvider = selectedProvider != null && selectionUsable;
     final isCustomFolderMode = ref.watch(
       isCloudSyncDisabledByCustomFolderProvider,
     );
@@ -833,12 +842,24 @@ class CloudSyncPage extends ConsumerWidget {
       return;
     }
 
-    var dialogUp = true;
-    final auth = cloudProvider.authenticate().whenComplete(() {
-      if (dialogUp && context.mounted) {
-        Navigator.of(context, rootNavigator: true).pop(false);
-      }
-    });
+    // Single synchronously-checked guard: whichever happens first -- auth
+    // settling or the user tapping Cancel -- closes the dialog exactly once.
+    // Because dialogClosed is checked and set with no intervening await, the
+    // two paths can never interleave, so the pop always targets the dialog
+    // (showDialog pushes it synchronously below, before any await yields to
+    // the auth microtask) and never the page route.
+    final navigator = Navigator.of(context, rootNavigator: true);
+    var dialogClosed = false;
+    void closeDialog(bool cancelled) {
+      if (dialogClosed) return;
+      dialogClosed = true;
+      navigator.pop(cancelled);
+    }
+
+    final auth = cloudProvider.authenticate();
+    unawaited(
+      auth.then((_) => closeDialog(false), onError: (_) => closeDialog(false)),
+    );
     final cancelled =
         await showDialog<bool>(
           context: context,
@@ -856,7 +877,7 @@ class CloudSyncPage extends ConsumerWidget {
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(dialogContext, true),
+                onPressed: () => closeDialog(true),
                 child: Text(
                   MaterialLocalizations.of(dialogContext).cancelButtonLabel,
                 ),
@@ -865,7 +886,6 @@ class CloudSyncPage extends ConsumerWidget {
           ),
         ) ??
         false;
-    dialogUp = false;
     if (cancelled) {
       // Abandon the pending flow; the loopback listener times out on its
       // own. Swallow its eventual error so nothing surfaces later.

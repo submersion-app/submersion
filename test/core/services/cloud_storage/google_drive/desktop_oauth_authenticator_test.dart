@@ -177,6 +177,23 @@ void main() {
     expect(revokeRequests.single.url.path, '/revoke');
   });
 
+  test('signOut percent-encodes the token in the revocation body', () async {
+    // Google refresh tokens contain '/' and other characters that must be
+    // percent-encoded in an application/x-www-form-urlencoded body.
+    store.stored = creds(refreshToken: '1//0g-token/with+special=chars');
+    final auth = authenticator();
+    await auth.attemptSilentAuth();
+
+    await auth.signOut();
+
+    expect(
+      revokeRequests.single.body,
+      'token=${Uri.encodeQueryComponent('1//0g-token/with+special=chars')}',
+    );
+    // The raw token must not appear unencoded in the body.
+    expect(revokeRequests.single.body, isNot(contains('1//0g-token')));
+  });
+
   test('signOut still clears local state when revocation throws', () async {
     store.stored = creds(refreshToken: 'rt-1');
     final auth = DesktopOAuthAuthenticator(
