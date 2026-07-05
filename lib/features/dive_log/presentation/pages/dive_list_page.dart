@@ -827,39 +827,43 @@ class DiveListTile extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 6),
-                // Stats row: configurable via slot assignments
+                // Stats row plus tags. Tags flow onto the same line as the
+                // stats (in the space under the mini chart) when they fit, and
+                // wrap to the next line otherwise, keeping cards compact.
                 Padding(
                   padding: const EdgeInsetsDirectional.only(start: 52),
-                  child: Row(
+                  child: Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 16,
+                    runSpacing: 6,
                     children: [
-                      _buildStatWidget(
-                        stat1Field,
-                        summary,
-                        units,
-                        context,
-                        accentColor,
-                        secondaryTextColor,
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _buildStatWidget(
+                            stat1Field,
+                            summary,
+                            units,
+                            context,
+                            accentColor,
+                            secondaryTextColor,
+                          ),
+                          const SizedBox(width: 16),
+                          _buildStatWidget(
+                            stat2Field,
+                            summary,
+                            units,
+                            context,
+                            accentColor,
+                            secondaryTextColor,
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 16),
-                      _buildStatWidget(
-                        stat2Field,
-                        summary,
-                        units,
-                        context,
-                        accentColor,
-                        secondaryTextColor,
-                      ),
+                      if (tags.isNotEmpty && detailedConfig.showTags)
+                        TagChips(tags: tags, maxTags: 3),
                     ],
                   ),
                 ),
-                // Tags
-                if (tags.isNotEmpty && detailedConfig.showTags) ...[
-                  const SizedBox(height: 6),
-                  Padding(
-                    padding: const EdgeInsetsDirectional.only(start: 52),
-                    child: TagChips(tags: tags, maxTags: 3),
-                  ),
-                ],
                 // Extra configurable fields area
                 if (extraFields.isNotEmpty &&
                     (fullDive != null || summary != null)) ...[
