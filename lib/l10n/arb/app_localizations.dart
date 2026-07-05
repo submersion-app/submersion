@@ -17918,6 +17918,24 @@ abstract class AppLocalizations {
   /// **'RT {minutes}′ · {depth}'**
   String plannerCanvas_scrub_readout(String minutes, String depth);
 
+  /// No description provided for @plannerCanvas_share_import.
+  ///
+  /// In en, this message translates to:
+  /// **'Import'**
+  String get plannerCanvas_share_import;
+
+  /// No description provided for @plannerCanvas_share_importFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t import plan: {reason}'**
+  String plannerCanvas_share_importFailed(String reason);
+
+  /// No description provided for @plannerCanvas_share_menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Share plan file'**
+  String get plannerCanvas_share_menu;
+
   /// No description provided for @plannerCanvas_slate_menu.
   ///
   /// In en, this message translates to:

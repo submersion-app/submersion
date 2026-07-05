@@ -10276,6 +10276,17 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get plannerCanvas_share_import => 'Import';
+
+  @override
+  String plannerCanvas_share_importFailed(String reason) {
+    return 'Couldn\'t import plan: $reason';
+  }
+
+  @override
+  String get plannerCanvas_share_menu => 'Share plan file';
+
+  @override
   String get plannerCanvas_slate_menu => 'Export slate (PDF)';
 
   @override

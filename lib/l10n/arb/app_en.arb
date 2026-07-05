@@ -5772,6 +5772,14 @@
       "depth": { "type": "String" }
     }
   },
+  "plannerCanvas_share_import": "Import",
+  "plannerCanvas_share_importFailed": "Couldn't import plan: {reason}",
+  "@plannerCanvas_share_importFailed": {
+    "placeholders": {
+      "reason": { "type": "String" }
+    }
+  },
+  "plannerCanvas_share_menu": "Share plan file",
   "plannerCanvas_slate_menu": "Export slate (PDF)",
   "plannerCanvas_slate_minGas": "Min gas",
   "plannerCanvas_slate_turn": "Turn",

@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_planner/presentation/widgets/plan_tank_
 import 'package:submersion/features/dive_planner/presentation/widgets/segment_list.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/simple_plan_dialog.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_repository.dart';
+import 'package:submersion/features/planner/data/services/plan_file_codec.dart';
 import 'package:submersion/features/planner/data/services/plan_slate_pdf_service.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
@@ -139,6 +140,11 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
                 context.l10n.plannerCanvas_slate_menu,
               ),
               _menuItem(
+                'share',
+                Icons.ios_share,
+                context.l10n.plannerCanvas_share_menu,
+              ),
+              _menuItem(
                 'reset',
                 Icons.refresh,
                 context.l10n.divePlanner_action_resetPlan,
@@ -179,9 +185,25 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
         _convertToDive();
       case 'slate':
         _exportSlate();
+      case 'share':
+        _sharePlanFile();
       case 'reset':
         _resetPlan();
     }
+  }
+
+  Future<void> _sharePlanFile() async {
+    final state = ref.read(divePlanNotifierProvider);
+    final json = planToSubplanJson(divePlanFromState(state));
+    final safeName = state.name
+        .replaceAll(RegExp(r'[^\w\s-]'), '')
+        .trim()
+        .replaceAll(RegExp(r'\s+'), '_');
+    await saveAndShareFile(
+      json,
+      '${safeName.isEmpty ? 'dive_plan' : safeName}.$subplanExtension',
+      'application/json',
+    );
   }
 
   Future<void> _exportSlate() async {
