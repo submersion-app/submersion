@@ -12,7 +12,6 @@ import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
-import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/o2_toxicity_card.dart';
@@ -27,7 +26,6 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/dive_log/data/services/gas_usage_segments_service.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/data/services/profile_markers_service.dart';
-import 'package:submersion/features/dive_log/domain/entities/cylinder_sac.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
@@ -47,7 +45,6 @@ import 'package:submersion/features/dive_log/presentation/widgets/collapsible_se
 import 'package:submersion/features/dive_log/presentation/widgets/dive_locations_map.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/surface_gps_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/data_sources_section.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/field_attribution_badge.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail_row.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/domain/services/field_attribution_service.dart';
@@ -56,6 +53,7 @@ import 'package:submersion/features/dive_log/presentation/providers/active_sourc
 import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_deco_status_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_tissue_loading_card.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/cylinders_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_layout.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/playback_controls.dart';
@@ -337,7 +335,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         if (dive.tanks.isEmpty) return [];
         return [
           const SizedBox(height: 24),
-          _buildTanksSection(context, ref, dive, units),
+          CylindersCard(
+            dive: dive,
+            units: units,
+            settings: settings,
+            sacUnit: ref.watch(sacUnitProvider),
+          ),
         ];
       },
       DiveDetailSectionId.buddies: () {
@@ -1682,27 +1685,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     // Check availability of different segmentation methods
     final hasGasSwitches =
         ref.watch(hasGasSwitchesProvider(dive.id)).valueOrNull ?? false;
-    final isMultiTank =
-        ref.watch(isMultiTankDiveProvider(dive.id)).valueOrNull ?? false;
-
-    // Get cylinder SAC data for multi-tank dives
-    final cylinderSacAsync = ref.watch(cylinderSacProvider(dive.id));
 
     // Don't show if no segments are, or ever were, available for this dive
     // (the last-good fallback above keeps a transient null from collapsing it).
+    // Per-tank SAC lives on the Cylinders card, which renders regardless.
     if (analysis == null ||
         (analysis.sacSegments == null || analysis.sacSegments!.isEmpty)) {
-      // Still show cylinder SAC if available
-      if (isMultiTank && cylinderSacAsync.hasValue) {
-        return _buildCylinderSacSection(
-          context,
-          ref,
-          dive,
-          cylinderSacAsync.value!,
-          units,
-          sacUnit,
-        );
-      }
       return const SizedBox.shrink();
     }
 
@@ -1914,19 +1902,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           ),
         ),
 
-        // Cylinder SAC subsection for multi-tank dives
-        if (isMultiTank && cylinderSacAsync.hasValue) ...[
-          const SizedBox(height: 16),
-          _buildCylinderSacSection(
-            context,
-            ref,
-            dive,
-            cylinderSacAsync.value!,
-            units,
-            sacUnit,
-          ),
-        ],
-
         const SizedBox(height: 24),
       ],
     );
@@ -2038,130 +2013,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       SacSegmentationType.gasSwitch => Icons.swap_horiz,
       SacSegmentationType.depthPhase => Icons.trending_down,
     };
-  }
-
-  /// Build cylinder SAC section for multi-tank dives
-  Widget _buildCylinderSacSection(
-    BuildContext context,
-    WidgetRef ref,
-    Dive dive,
-    List<CylinderSac> cylinderSacs,
-    UnitFormatter units,
-    SacUnit sacUnit,
-  ) {
-    if (cylinderSacs.isEmpty) return const SizedBox.shrink();
-
-    final isExpanded = ref.watch(cylinderSacExpandedProvider);
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return CollapsibleCardSection(
-      title: context.l10n.diveLog_detail_section_sacByCylinder,
-      icon: MdiIcons.divingScubaTank,
-      collapsedSubtitle: context.l10n.diveLog_detail_tankCount(
-        cylinderSacs.length,
-      ),
-      isExpanded: isExpanded,
-      onToggle: (expanded) {
-        ref.read(cylinderSacExpandedProvider.notifier).state = expanded;
-      },
-      contentBuilder: (context) => Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: cylinderSacs.map((cylinder) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Row(
-                children: [
-                  // Tank icon with role color
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: colorScheme.primaryContainer.withValues(
-                        alpha: 0.3,
-                      ),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      MdiIcons.divingScubaTank,
-                      size: 16,
-                      color: colorScheme.primary,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  // Tank info
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          cylinder.displayLabel,
-                          style: textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        Text(
-                          '${cylinder.gasMix.name} • ${cylinder.role.displayName}',
-                          style: textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // SAC value
-                  if (cylinder.hasValidSac) ...[
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          _formatCylinderSac(cylinder, units, sacUnit),
-                          style: textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.primary,
-                          ),
-                        ),
-                        if (cylinder.gasUsedBar != null)
-                          Text(
-                            '${units.convertPressure(cylinder.gasUsedBar!).round()} ${units.pressureSymbol} used',
-                            style: textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ] else ...[
-                    Text(
-                      '--',
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            );
-          }).toList(),
-        ),
-      ),
-    );
-  }
-
-  /// Format cylinder SAC value
-  String _formatCylinderSac(
-    CylinderSac cylinder,
-    UnitFormatter units,
-    SacUnit sacUnit,
-  ) {
-    if (sacUnit == SacUnit.litersPerMin && cylinder.sacVolume != null) {
-      final value = units.convertVolume(cylinder.sacVolume!);
-      return '${value.toStringAsFixed(1)} ${units.volumeSymbol}/min';
-    } else if (cylinder.sacRate != null) {
-      final value = units.convertPressure(cylinder.sacRate!);
-      return '${value.toStringAsFixed(1)} ${units.pressureSymbol}/min';
-    }
-    return '--';
   }
 
   Widget _buildSacBar(BuildContext context, double sacRate, double maxSac) {
@@ -3820,164 +3671,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       trailing: const Icon(Icons.chevron_right, size: 20),
       onTap: () => context.push('/buddies/${bwr.buddy.id}'),
     );
-  }
-
-  Widget _buildTanksSection(
-    BuildContext context,
-    WidgetRef ref,
-    Dive dive,
-    UnitFormatter units,
-  ) {
-    final tankPressuresAsync = ref.watch(tankPressuresProvider(dive.id));
-    final tankPressures = tankPressuresAsync.valueOrNull;
-    final dataSources =
-        ref.watch(diveDataSourcesProvider(dive.id)).valueOrNull ?? const [];
-    final computerNames = _computerDisplayNames(context, dataSources);
-    // Only badge tanks once there's more than one source to disambiguate —
-    // a single-source dive never needs attribution.
-    final showTankSourceBadges = dataSources.length >= 2;
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              context.l10n.diveLog_detail_section_tanks,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const Divider(),
-            ...dive.tanks.asMap().entries.map((entry) {
-              final index = entry.key;
-              final tank = entry.value;
-
-              // Derive start/end pressure from time-series data when available,
-              // falling back to stored tank metadata only as a last resort.
-              final pressures = _resolveTankPressures(
-                tank: tank,
-                tankPressures: tankPressures,
-                profile: dive.profile,
-              );
-              final startP = units.formatPressureValue(pressures.$1);
-              final endP = units.formatPressureValue(pressures.$2);
-
-              final pressureUsed = pressures.$1 != null && pressures.$2 != null
-                  ? pressures.$1! - pressures.$2!
-                  : null;
-              final used = pressureUsed != null && pressureUsed > 0
-                  ? ' (${units.formatPressure(pressureUsed)} used)'
-                  : '';
-              // Get preset display name if available
-              final preset = tank.presetName != null
-                  ? TankPresets.byName(tank.presetName!)
-                  : null;
-              final tankLabel =
-                  preset?.displayName ??
-                  (tank.volume != null
-                      ? units.formatTankVolume(
-                          tank.volume,
-                          tank.workingPressure,
-                          decimals: 1,
-                        )
-                      : null);
-              // Use same label as profile chart: dive computer name or "Tank N"
-              final tankTitle = tank.name != null && tank.name!.isNotEmpty
-                  ? tank.name!
-                  : context.l10n.diveLog_tank_title(index + 1);
-              // MOD/MND info
-              final settings = ref.watch(settingsProvider);
-              final modDepth = units.formatDepth(
-                tank.gasMix.mod(),
-                decimals: 0,
-              );
-              final mndValue = tank.gasMix.mnd(
-                endLimit: settings.endLimit,
-                o2Narcotic: settings.o2Narcotic,
-              );
-              final mndDepth = mndValue.isFinite
-                  ? units.formatDepth(mndValue, decimals: 0)
-                  : '--';
-              final modMndText = context.l10n.diveLog_tank_modMndInfo(
-                modDepth,
-                mndDepth,
-              );
-              // Shown for every computer-attributed tank on a
-              // multi-source dive (the primary's included), so divers can
-              // tell which instrument's pressure log a tank's numbers came
-              // from. Manually added tanks carry no attribution.
-              final showSourceBadge =
-                  showTankSourceBadges && tank.computerId != null;
-              final trailingChildren = <Widget>[
-                if (showSourceBadge)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 6),
-                    child: FieldAttributionBadge(
-                      sourceName: computerNames[tank.computerId],
-                    ),
-                  ),
-                if (tankLabel != null) Text(tankLabel),
-              ];
-              return ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(MdiIcons.divingScubaTank),
-                title: Text('$tankTitle (${tank.gasMix.name})'),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '$startP ${units.pressureSymbol} → $endP ${units.pressureSymbol}$used',
-                    ),
-                    Text(
-                      modMndText,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.tertiary,
-                      ),
-                    ),
-                  ],
-                ),
-                trailing: trailingChildren.isEmpty
-                    ? null
-                    : Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: trailingChildren,
-                      ),
-              );
-            }),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Resolves the actual start and end pressure for a tank by checking
-  /// time-series data sources before falling back to stored metadata.
-  ///
-  /// Priority:
-  /// 1. Stored tank metadata (DiveTank.startPressure/endPressure) when non-null
-  /// 2. Per-tank pressure time-series (TankPressurePoint) — potentially more accurate
-  ///    but maybe not the value preferred by user if they manually entered pressures
-  (double?, double?) _resolveTankPressures({
-    required DiveTank tank,
-    required Map<String, List<TankPressurePoint>>? tankPressures,
-    required List<DiveProfilePoint> profile,
-  }) {
-    // 1. Per-tank pressure time-series
-    if (tankPressures != null && tankPressures.containsKey(tank.id)) {
-      final points = tankPressures[tank.id]!;
-      if (points.isNotEmpty) {
-        final startPressure =
-            tank.startPressure ??
-            points.first.pressure; // Only use time series if metadata is null
-        final endPressure =
-            tank.endPressure ??
-            points.last.pressure; // Only use time series if metadata is null
-        return (startPressure, endPressure);
-      }
-    }
-
-    // 2. Stored tank metadata (fallback)
-    return (tank.startPressure, tank.endPressure);
   }
 
   Widget _buildEquipmentSection(
