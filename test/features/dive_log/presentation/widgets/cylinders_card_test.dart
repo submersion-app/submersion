@@ -91,6 +91,7 @@ Widget _buildCard({
   required Dive dive,
   List<CylinderSac> cylinderSacs = const [],
   List<DiveDataSource> dataSources = const [],
+  Map<String, List<TankPressurePoint>> tankPressures = const {},
   UnitFormatter units = _units,
   AppSettings settings = _settings,
   SacUnit sacUnit = SacUnit.pressurePerMin,
@@ -98,9 +99,7 @@ Widget _buildCard({
   return testApp(
     overrides: [
       cylinderSacProvider.overrideWith((ref, id) async => cylinderSacs),
-      tankPressuresProvider.overrideWith(
-        (ref, id) async => <String, List<TankPressurePoint>>{},
-      ),
+      tankPressuresProvider.overrideWith((ref, id) async => tankPressures),
       diveDataSourcesProvider.overrideWith((ref, id) async => dataSources),
     ],
     child: SingleChildScrollView(
@@ -235,6 +234,57 @@ void main() {
       expect(find.text('29.0 psi/min'), findsOneWidget);
       // Pressure line rendered in psi.
       expect(find.textContaining('psi →'), findsOneWidget);
+    });
+
+    testWidgets('shows preset display name as the volume chip', (tester) async {
+      await tester.pumpWidget(
+        _buildCard(
+          dive: _makeDive([
+            DiveTank(
+              id: 'tank-1',
+              presetName: 'al80',
+              startPressure: 200,
+              endPressure: 50,
+              gasMix: const GasMix(o2: 32),
+            ),
+          ]),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('AL80'), findsOneWidget);
+    });
+
+    testWidgets('falls back to time-series pressures when metadata is null', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildCard(
+          dive: _makeDive([_makeTank(startPressure: null, endPressure: null)]),
+          tankPressures: const {
+            'tank-1': [
+              TankPressurePoint(
+                id: 'tp-1',
+                tankId: 'tank-1',
+                timestamp: 0,
+                pressure: 200,
+              ),
+              TankPressurePoint(
+                id: 'tp-2',
+                tankId: 'tank-1',
+                timestamp: 2700,
+                pressure: 60,
+              ),
+            ],
+          },
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.textContaining('200 bar → 60 bar (140 bar used)'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('hides source badge with a single data source', (tester) async {
