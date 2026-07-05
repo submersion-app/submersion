@@ -1302,10 +1302,14 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   Future<void> setFullscreenReadoutCardPosition(double x, double y) async {
     // Positions are fractions of the card's movable range; clamp so
     // persisted values always honor the 0..1 contract (an out-of-range
-    // value would seed the card off-screen on next launch).
+    // value would seed the card off-screen on next launch). Dart's clamp
+    // already maps non-finite values in-range (compareTo orders NaN after
+    // all values, so NaN.clamp(0, 1) is 1.0), but canonicalize them to the
+    // default top-right corner (1, 0) explicitly rather than rely on that
+    // ordering accident. Matches DraggableReadoutCard.defaultFraction.
     state = state.copyWith(
-      fullscreenReadoutCardX: x.clamp(0.0, 1.0),
-      fullscreenReadoutCardY: y.clamp(0.0, 1.0),
+      fullscreenReadoutCardX: x.isFinite ? x.clamp(0.0, 1.0) : 1.0,
+      fullscreenReadoutCardY: y.isFinite ? y.clamp(0.0, 1.0) : 0.0,
     );
     await _saveSettings();
   }

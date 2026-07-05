@@ -91,6 +91,22 @@ void main() {
     expect(cardRect.top, closeTo(stackRect.top + 12, 1.0));
   });
 
+  testWidgets('a non-finite initial fraction falls back to the default '
+      'corner', (tester) async {
+    // NaN survives double.clamp (NaN.clamp(0,1) is NaN) and would reach
+    // FractionalOffset as invalid layout input; the card must fall back to
+    // the default corner instead.
+    await tester.pumpWidget(
+      _wrap(rows: null, initialFraction: const Offset(double.nan, double.nan)),
+    );
+    await tester.pumpAndSettle();
+
+    final stackRect = tester.getRect(find.byKey(const ValueKey('arena')));
+    final cardRect = tester.getRect(find.byKey(_cardKey));
+    expect(cardRect.right, closeTo(stackRect.right - 12, 1.0));
+    expect(cardRect.top, closeTo(stackRect.top + 12, 1.0));
+  });
+
   testWidgets('dragging moves the card and clamps at the bounds', (
     tester,
   ) async {

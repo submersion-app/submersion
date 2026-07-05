@@ -391,6 +391,25 @@ void main() {
       expect(prefs.getDouble('fullscreen_readout_card_x'), 1.0);
       expect(prefs.getDouble('fullscreen_readout_card_y'), 0.0);
     });
+
+    test('readout card position sanitizes non-finite values', () async {
+      final notifier = container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      // NaN bypasses clamp (NaN.clamp(0,1) is NaN); it must never be
+      // persisted or the card would seed with invalid layout input.
+      await notifier.setFullscreenReadoutCardPosition(
+        double.nan,
+        double.negativeInfinity,
+      );
+
+      // Non-finite inputs canonicalize to the default corner (1, 0).
+      expect(container.read(settingsProvider).fullscreenReadoutCardX, 1.0);
+      expect(container.read(settingsProvider).fullscreenReadoutCardY, 0.0);
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getDouble('fullscreen_readout_card_x'), 1.0);
+      expect(prefs.getDouble('fullscreen_readout_card_y'), 0.0);
+    });
   });
 }
 

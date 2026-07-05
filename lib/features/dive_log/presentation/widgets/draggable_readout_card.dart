@@ -41,15 +41,24 @@ class DraggableReadoutCard extends StatefulWidget {
 class _DraggableReadoutCardState extends State<DraggableReadoutCard> {
   static const _inset = 12.0;
   final GlobalKey _cardKey = GlobalKey();
-  late Offset _fraction = _clamp01(
+  late Offset _fraction = _sanitize(
     widget.initialFraction ?? DraggableReadoutCard.defaultFraction,
   );
 
   /// Nothing enforces the 0..1 contract on persisted values, and the Stack
   /// clips: an out-of-range fraction would render the card invisible and
-  /// undraggable with no way to recover.
-  static Offset _clamp01(Offset fraction) =>
-      Offset(fraction.dx.clamp(0.0, 1.0), fraction.dy.clamp(0.0, 1.0));
+  /// undraggable with no way to recover. Dart's clamp would map non-finite
+  /// values in-range anyway (compareTo orders NaN after all values, so
+  /// NaN.clamp(0, 1) is 1.0), but that lands on an arbitrary corner; treat
+  /// non-finite components as the default corner explicitly instead.
+  static Offset _sanitize(Offset fraction) => Offset(
+    fraction.dx.isFinite
+        ? fraction.dx.clamp(0.0, 1.0)
+        : DraggableReadoutCard.defaultFraction.dx,
+    fraction.dy.isFinite
+        ? fraction.dy.clamp(0.0, 1.0)
+        : DraggableReadoutCard.defaultFraction.dy,
+  );
 
   void _onPanUpdate(DragUpdateDetails details, BoxConstraints constraints) {
     final cardSize = _cardKey.currentContext?.size;
