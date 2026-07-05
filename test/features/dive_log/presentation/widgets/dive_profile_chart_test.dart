@@ -346,6 +346,62 @@ void main() {
     });
 
     testWidgets(
+      'tooltip rows label overlay depth and temperature with the metric',
+      (tester) async {
+        final active = [
+          for (var i = 0; i < 5; i++)
+            DiveProfilePoint(
+              timestamp: i * 20,
+              depth: i * 3.0,
+              temperature: 27.0,
+            ),
+        ];
+        final other = [
+          for (var i = 0; i < 5; i++)
+            DiveProfilePoint(
+              timestamp: i * 20,
+              depth: i * 2.0,
+              temperature: 26.5,
+            ),
+        ];
+
+        List<TooltipRow>? receivedRows;
+        await tester.pumpWidget(
+          _buildChart(
+            profile: active,
+            activeComputerId: 'comp-a',
+            overlays: [overlay(name: 'Erics Teric', points: other)],
+            tooltipBelow: true,
+            onTooltipData: (rows) => receivedRows = rows,
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final data = tester
+            .widget<LineChart>(find.byType(LineChart).first)
+            .data;
+        final bars = data.lineBarsData;
+        final touchedSpot = bars.first.spots[2];
+        data.lineTouchData.touchCallback!(
+          FlPanDownEvent(DragDownDetails()),
+          LineTouchResponse(
+            touchLocation: Offset.zero,
+            touchChartCoordinate: Offset.zero,
+            lineBarSpots: <TouchLineBarSpot>[
+              TouchLineBarSpot(bars.first, 0, touchedSpot, 2),
+            ],
+          ),
+        );
+
+        expect(receivedRows, isNotNull);
+        final byLabel = {for (final r in receivedRows!) r.label: r.value};
+        expect(byLabel['Depth · Erics Teric'], isNotNull);
+        expect(byLabel['Depth · Erics Teric'], isNot(isEmpty));
+        expect(byLabel['Temp · Erics Teric'], isNotNull);
+      },
+    );
+
+    testWidgets(
       'touch on the active depth bar resolves the active profile sample '
       'even with a denser overlay present',
       (tester) async {

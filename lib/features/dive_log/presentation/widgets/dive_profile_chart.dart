@@ -571,13 +571,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     return overlays?.any((o) => o.computerId == computerId) ?? false;
   }
 
-  /// Depth of [overlay] at [timestamp], from its nearest sample strictly
-  /// within 10 seconds; null when the overlay has no sample near that time
-  /// (e.g. the overlaid computer surfaced earlier). Overlay points are
-  /// time-ordered, so a binary-search lower bound finds the window start
-  /// and only its immediate neighborhood is scanned (tooltips rebuild on
-  /// every hover move, so this must not be O(n) in profile length).
-  double? _overlayDepthAt(ChartSourceOverlay overlay, int timestamp) {
+  /// Nearest sample of [overlay] strictly within 10 seconds of [timestamp];
+  /// null when the overlay has no sample near that time (e.g. the overlaid
+  /// computer surfaced earlier). Overlay points are time-ordered, so a
+  /// binary-search lower bound finds the window start and only its
+  /// immediate neighborhood is scanned (tooltips rebuild on every hover
+  /// move, so this must not be O(n) in profile length).
+  DiveProfilePoint? _overlayPointAt(ChartSourceOverlay overlay, int timestamp) {
     final points = overlay.points;
     if (points.isEmpty) return null;
 
@@ -594,7 +594,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       }
     }
 
-    double? best;
+    DiveProfilePoint? best;
     var bestDelta = 11;
     for (var i = lo; i < points.length; i++) {
       final p = points[i];
@@ -602,7 +602,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       final delta = (p.timestamp - timestamp).abs();
       if (delta < bestDelta) {
         bestDelta = delta;
-        best = p.depth;
+        best = p;
       }
     }
     return best;
@@ -920,14 +920,15 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       ),
     );
 
-    // Overlaid sources' depth at this time, for comparison.
+    // Overlaid sources' depth at this time, labeled with the metric so
+    // the value is unambiguous.
     for (final overlay in widget.overlays ?? const <ChartSourceOverlay>[]) {
-      final overlayDepth = _overlayDepthAt(overlay, point.timestamp);
-      if (overlayDepth == null) continue;
+      final overlayPoint = _overlayPointAt(overlay, point.timestamp);
+      if (overlayPoint == null) continue;
       rows.add(
         TooltipRow(
-          label: overlay.name,
-          value: units.formatDepth(overlayDepth),
+          label: 'Depth · ${overlay.name}',
+          value: units.formatDepth(overlayPoint.depth),
           bulletColor: overlay.color,
         ),
       );
@@ -944,6 +945,20 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           bulletColor: colorScheme.tertiary,
         ),
       );
+      for (final overlay in widget.overlays ?? const <ChartSourceOverlay>[]) {
+        final overlayTemp = _overlayPointAt(
+          overlay,
+          point.timestamp,
+        )?.temperature;
+        if (overlayTemp == null) continue;
+        rows.add(
+          TooltipRow(
+            label: 'Temp · ${overlay.name}',
+            value: units.formatTemperature(overlayTemp),
+            bulletColor: overlay.color.withValues(alpha: 0.6),
+          ),
+        );
+      }
     }
 
     // Ceiling
@@ -2437,17 +2452,19 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       AppColors.chartDepth,
                     );
 
-                    // Overlaid sources' depth at this time, for comparison.
+                    // Overlaid sources' depth at this time, labeled with
+                    // the metric so the value is unambiguous.
                     for (final overlay
                         in widget.overlays ?? const <ChartSourceOverlay>[]) {
-                      final overlayDepth = _overlayDepthAt(
+                      final overlayPoint = _overlayPointAt(
                         overlay,
                         point.timestamp,
                       );
-                      if (overlayDepth == null) continue;
+                      if (overlayPoint == null) continue;
                       addRow(
-                        overlay.name,
-                        units.formatDepth(overlayDepth),
+                        '${context.l10n.diveLog_tooltip_depth}'
+                        ' · ${overlay.name}',
+                        units.formatDepth(overlayPoint.depth),
                         overlay.color,
                       );
                     }
@@ -2462,6 +2479,20 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                         tempValue,
                         colorScheme.tertiary,
                       );
+                      for (final overlay
+                          in widget.overlays ?? const <ChartSourceOverlay>[]) {
+                        final overlayTemp = _overlayPointAt(
+                          overlay,
+                          point.timestamp,
+                        )?.temperature;
+                        if (overlayTemp == null) continue;
+                        addRow(
+                          '${context.l10n.diveLog_tooltip_temp}'
+                          ' · ${overlay.name}',
+                          units.formatTemperature(overlayTemp),
+                          overlay.color.withValues(alpha: 0.6),
+                        );
+                      }
                     }
 
                     // Heart rate (if enabled - always show row)
