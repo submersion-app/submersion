@@ -468,6 +468,9 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   }
 
   /// Convert the plan to a Dive entity for saving.
+  ///
+  /// The dive gets a fresh id (converting twice yields two dives) and its
+  /// tanks shed their plan-side ids so the repository generates new rows.
   Dive toDive() {
     // Generate profile points from segments
     final profilePoints = _calculator.generateProfilePoints(state.segments);
@@ -487,12 +490,13 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     final avgDepth = totalTime > 0 ? totalDepthTime / totalTime : 0.0;
 
     return Dive(
-      id: state.id,
+      id: _uuid.v4(),
+      name: state.name,
       dateTime: DateTime.now(),
       runtime: Duration(seconds: totalTime),
       maxDepth: maxDepth,
       avgDepth: avgDepth,
-      tanks: state.tanks,
+      tanks: [for (final tank in state.tanks) tank.copyWith(id: '')],
       profile: profilePoints,
       notes: state.notes,
       altitude: state.altitude,

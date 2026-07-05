@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/plan_settings_panel.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/plan_tank_list.dart';
@@ -302,7 +305,7 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     );
   }
 
-  void _convertToDive() {
+  Future<void> _convertToDive() async {
     final isValid = ref.read(planIsValidProvider);
     if (!isValid) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -313,10 +316,59 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
       );
       return;
     }
-    // Convert-to-dive persistence lands in Phase 6 (log integration).
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(context.l10n.divePlanner_message_convertingPlan)),
+
+    final notifier = ref.read(divePlanNotifierProvider.notifier);
+    final outcome = ref.read(planOutcomeProvider);
+    final series = ref.read(planCanvasSeriesProvider);
+
+    // The state's segments stop at the bottom; the engine computes the
+    // ascent. Persist the full computed profile so the logged dive shows
+    // the deco schedule the plan produced.
+    final dive = notifier.toDive().copyWith(
+      profile: [
+        for (final point in series.profile)
+          DiveProfilePoint(
+            timestamp: point.timeSeconds.round(),
+            depth: point.depth,
+          ),
+      ],
+      runtime: Duration(seconds: outcome.runtimeSeconds),
+      maxDepth: outcome.maxDepth,
+      avgDepth: _timeWeightedAverageDepth(series),
     );
+
+    final created = await ref.read(diveRepositoryProvider).createDive(dive);
+    notifier.setLinkedDive(created.id);
+    await notifier.save(
+      summary: PlanSummaryData(
+        maxDepth: outcome.maxDepth,
+        runtimeSeconds: outcome.runtimeSeconds,
+        ttsSeconds: outcome.ttsAtBottom,
+      ),
+    );
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(context.l10n.plannerCanvas_convert_success),
+        action: SnackBarAction(
+          label: context.l10n.plannerCanvas_convert_view,
+          onPressed: () => context.go('/dives/${created.id}'),
+        ),
+      ),
+    );
+  }
+
+  static double _timeWeightedAverageDepth(PlanCanvasSeries series) {
+    final profile = series.profile;
+    if (profile.length < 2) return 0;
+    double weighted = 0;
+    for (var i = 1; i < profile.length; i++) {
+      final dt = profile[i].timeSeconds - profile[i - 1].timeSeconds;
+      weighted += dt * (profile[i].depth + profile[i - 1].depth) / 2;
+    }
+    final total = profile.last.timeSeconds - profile.first.timeSeconds;
+    return total > 0 ? weighted / total : 0;
   }
 
   void _showSettingsSheet(BuildContext context) {
