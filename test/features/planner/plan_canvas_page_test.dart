@@ -98,4 +98,104 @@ void main() {
 
     expect(container.read(divePlanNotifierProvider).isDirty, isFalse);
   });
+
+  Future<void> openMenu(WidgetTester tester, String label) async {
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(label).last);
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('quick-plan menu opens the simple-plan dialog', (tester) async {
+    await setSize(tester, const Size(420, 900));
+    await tester.pumpWidget(harness());
+    await tester.pumpAndSettle();
+    await openMenu(tester, 'Quick Plan');
+    expect(find.byType(AlertDialog), findsOneWidget);
+  });
+
+  testWidgets('saved menu opens the saved-plans sheet', (tester) async {
+    await setSize(tester, const Size(420, 900));
+    await tester.pumpWidget(harness());
+    await tester.pumpAndSettle();
+    await openMenu(tester, 'Saved plans');
+    expect(find.text('No saved plans yet'), findsOneWidget);
+  });
+
+  testWidgets('settings menu opens a settings sheet', (tester) async {
+    await setSize(tester, const Size(420, 900));
+    await tester.pumpWidget(harness());
+    await tester.pumpAndSettle();
+    await openMenu(tester, 'Plan Settings');
+    expect(find.byType(PlanSettingsPanel), findsOneWidget);
+  });
+
+  testWidgets('reset menu shows a confirm dialog and clears the plan', (
+    tester,
+  ) async {
+    await setSize(tester, const Size(420, 900));
+    await tester.pumpWidget(harness());
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanCanvasPage)),
+    );
+    container
+        .read(divePlanNotifierProvider.notifier)
+        .addSimplePlan(maxDepth: 30, bottomTimeMinutes: 20);
+    await tester.pumpAndSettle();
+    expect(container.read(divePlanNotifierProvider).segments, isNotEmpty);
+
+    await openMenu(tester, 'Reset Plan');
+    expect(find.byType(AlertDialog), findsOneWidget);
+    await tester.tap(find.text('Reset').last);
+    await tester.pumpAndSettle();
+    expect(container.read(divePlanNotifierProvider).segments, isEmpty);
+  });
+
+  testWidgets('convert menu surfaces a message', (tester) async {
+    await setSize(tester, const Size(420, 900));
+    await tester.pumpWidget(harness());
+    seed(tester);
+    await tester.pumpAndSettle();
+    await openMenu(tester, 'Convert to Dive');
+    expect(find.byType(SnackBar), findsOneWidget);
+  });
+
+  testWidgets('tapping the title renames the plan', (tester) async {
+    await setSize(tester, const Size(420, 900));
+    await tester.pumpWidget(harness());
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanCanvasPage)),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('New Dive Plan'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'Reef wall');
+    await tester.tap(find.text('Save').last);
+    await tester.pumpAndSettle();
+
+    expect(container.read(divePlanNotifierProvider).name, 'Reef wall');
+  });
+
+  testWidgets('wide issues chip scrolls the results pane without leaking', (
+    tester,
+  ) async {
+    await setSize(tester, const Size(1400, 900));
+    await tester.pumpWidget(harness());
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanCanvasPage)),
+    );
+    // A deep air plan trips a critical gas-density issue, so an issues chip
+    // renders and the tap has a target.
+    container
+        .read(divePlanNotifierProvider.notifier)
+        .addSimplePlan(maxDepth: 50, bottomTimeMinutes: 25);
+    await tester.pumpAndSettle();
+
+    final issuesChip = find.textContaining('issue');
+    expect(issuesChip, findsWidgets);
+    await tester.tap(issuesChip.first);
+    await tester.pumpAndSettle();
+    // No exception = the hoisted controller is wired and disposed by the page.
+  });
 }

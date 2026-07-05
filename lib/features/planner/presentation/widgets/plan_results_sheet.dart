@@ -436,7 +436,7 @@ class _BailoutSection extends StatelessWidget {
           children: [
             Text(
               context.l10n.plannerCanvas_bailout_required(
-                worst.litersRequired.toStringAsFixed(0),
+                units.formatVolume(worst.litersRequired),
               ),
               style: theme.textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w600,
@@ -446,7 +446,7 @@ class _BailoutSection extends StatelessWidget {
             const SizedBox(width: 16),
             Text(
               context.l10n.plannerCanvas_bailout_available(
-                outcome.availableLiters.toStringAsFixed(0),
+                units.formatVolume(outcome.availableLiters),
               ),
               style: theme.textTheme.bodyMedium,
             ),

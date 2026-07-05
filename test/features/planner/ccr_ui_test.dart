@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_planner/presentation/providers/dive_pla
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/presentation/pages/plan_canvas_page.dart';
+import 'package:submersion/features/planner/presentation/widgets/ccr_settings_section.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_results_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -96,5 +97,44 @@ void main() {
     expect(find.textContaining('Bailout'), findsWidgets);
     expect(find.textContaining('Worst case'), findsOneWidget);
     expect(find.textContaining('Required'), findsOneWidget);
+    // Required/available volumes respect the diver's volume unit (default L).
+    expect(find.textContaining(RegExp(r'Required \d+ L')), findsOneWidget);
+  });
+
+  testWidgets('CCR settings edit all setpoints; switch depth accepts 0', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      testApp(
+        overrides: overrides(),
+        child: const SizedBox(width: 500, child: CcrSettingsSection()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(CcrSettingsSection)),
+    );
+    final fields = find.byType(TextFormField);
+    expect(fields, findsNWidgets(3));
+
+    // Distinct from the pre-filled defaults (0.7 / 1.3 / 10) so onChanged fires.
+    await tester.enterText(fields.at(0), '0.8');
+    await tester.enterText(fields.at(1), '1.5');
+    await tester.enterText(fields.at(2), '15');
+    await tester.pumpAndSettle();
+    final state = container.read(divePlanNotifierProvider);
+    expect(state.setpointLow, 0.8);
+    expect(state.setpointHigh, 1.5);
+    expect(state.setpointSwitchDepth, 15.0);
+
+    // Switch depth 0 (high setpoint from the surface) is a valid config.
+    await tester.enterText(fields.at(2), '0');
+    await tester.pumpAndSettle();
+    expect(container.read(divePlanNotifierProvider).setpointSwitchDepth, 0.0);
+
+    // A zero setpoint is still rejected, leaving the prior value untouched.
+    await tester.enterText(fields.at(0), '0');
+    await tester.pumpAndSettle();
+    expect(container.read(divePlanNotifierProvider).setpointLow, 0.8);
   });
 }

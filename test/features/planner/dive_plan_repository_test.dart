@@ -209,5 +209,48 @@ void main() {
       final planRow = await database.select(database.divePlans).getSingle();
       expect(planRow.hlc, isNotNull);
     });
+
+    test(
+      're-save preserves child createdAt while advancing updatedAt',
+      () async {
+        final repo = DivePlanRepository();
+        await repo.savePlan(_fullPlan());
+
+        final originalTank = await (database.select(
+          database.divePlanTanks,
+        )..where((t) => t.id.equals('tank-1'))).getSingle();
+        final originalSegment = await (database.select(
+          database.divePlanSegments,
+        )..where((t) => t.id.equals('seg-1'))).getSingle();
+
+        // Let the clock advance so a regressed "createdAt = now" would differ.
+        await Future<void>.delayed(const Duration(milliseconds: 5));
+        // Edit and re-save (rename keeps the same child rows).
+        await repo.savePlan(_fullPlan().copyWith(name: 'Wreck 60 m (edited)'));
+
+        final tankAfter = await (database.select(
+          database.divePlanTanks,
+        )..where((t) => t.id.equals('tank-1'))).getSingle();
+        final segmentAfter = await (database.select(
+          database.divePlanSegments,
+        )..where((t) => t.id.equals('seg-1'))).getSingle();
+
+        expect(
+          tankAfter.createdAt,
+          originalTank.createdAt,
+          reason: 'tank createdAt must survive an edit',
+        );
+        expect(
+          segmentAfter.createdAt,
+          originalSegment.createdAt,
+          reason: 'segment createdAt must survive an edit',
+        );
+        expect(
+          tankAfter.updatedAt,
+          greaterThanOrEqualTo(originalTank.updatedAt),
+          reason: 'updatedAt still advances on edit',
+        );
+      },
+    );
   });
 }

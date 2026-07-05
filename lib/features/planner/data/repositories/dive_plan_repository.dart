@@ -58,18 +58,22 @@ class DivePlanRepository {
 
     try {
       await _db.transaction(() async {
-        final existingTankIds =
-            (await (_db.select(
-                  _db.divePlanTanks,
-                )..where((t) => t.planId.equals(plan.id))).get())
-                .map((r) => r.id)
-                .toSet();
-        final existingSegmentIds =
-            (await (_db.select(
-                  _db.divePlanSegments,
-                )..where((t) => t.planId.equals(plan.id))).get())
-                .map((r) => r.id)
-                .toSet();
+        // Keep the existing rows so their original createdAt survives an edit
+        // (only updatedAt should move); other synced child tables do the same.
+        final existingTankRows = await (_db.select(
+          _db.divePlanTanks,
+        )..where((t) => t.planId.equals(plan.id))).get();
+        final existingSegmentRows = await (_db.select(
+          _db.divePlanSegments,
+        )..where((t) => t.planId.equals(plan.id))).get();
+        final existingTankIds = existingTankRows.map((r) => r.id).toSet();
+        final existingSegmentIds = existingSegmentRows.map((r) => r.id).toSet();
+        final tankCreatedAt = {
+          for (final r in existingTankRows) r.id: r.createdAt,
+        };
+        final segmentCreatedAt = {
+          for (final r in existingSegmentRows) r.id: r.createdAt,
+        };
 
         await _db
             .into(_db.divePlans)
@@ -79,14 +83,26 @@ class DivePlanRepository {
           await _db
               .into(_db.divePlanTanks)
               .insertOnConflictUpdate(
-                _tankCompanion(plan.tanks[i], plan.id, i, now),
+                _tankCompanion(
+                  plan.tanks[i],
+                  plan.id,
+                  i,
+                  now,
+                  createdAt: tankCreatedAt[plan.tanks[i].id],
+                ),
               );
         }
         for (var i = 0; i < plan.segments.length; i++) {
           await _db
               .into(_db.divePlanSegments)
               .insertOnConflictUpdate(
-                _segmentCompanion(plan.segments[i], plan.id, i, now),
+                _segmentCompanion(
+                  plan.segments[i],
+                  plan.id,
+                  i,
+                  now,
+                  createdAt: segmentCreatedAt[plan.segments[i].id],
+                ),
               );
         }
 
@@ -340,8 +356,9 @@ class DivePlanRepository {
     DiveTank tank,
     String planId,
     int sortOrder,
-    int now,
-  ) {
+    int now, {
+    int? createdAt,
+  }) {
     return db.DivePlanTanksCompanion(
       id: Value(tank.id),
       planId: Value(planId),
@@ -355,7 +372,7 @@ class DivePlanRepository {
       material: Value(tank.material?.name),
       presetName: Value(tank.presetName),
       sortOrder: Value(sortOrder),
-      createdAt: Value(now),
+      createdAt: Value(createdAt ?? now),
       updatedAt: Value(now),
     );
   }
@@ -364,8 +381,9 @@ class DivePlanRepository {
     PlanSegment segment,
     String planId,
     int sortOrder,
-    int now,
-  ) {
+    int now, {
+    int? createdAt,
+  }) {
     return db.DivePlanSegmentsCompanion(
       id: Value(segment.id),
       planId: Value(planId),
@@ -379,7 +397,7 @@ class DivePlanRepository {
       rate: Value(segment.rate),
       switchToTankId: Value(segment.switchToTankId),
       sortOrder: Value(sortOrder),
-      createdAt: Value(now),
+      createdAt: Value(createdAt ?? now),
       updatedAt: Value(now),
     );
   }

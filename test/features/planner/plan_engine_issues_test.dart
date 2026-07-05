@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/deco/deco_model.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
@@ -206,6 +207,54 @@ void main() {
       final ean50 = outcome.tankUsages.firstWhere((u) => u.tankId == 'ean50');
       expect(ean50.litersUsed, greaterThan(0));
     });
+
+    test('CNS/OTU accumulate over decompression stops', () {
+      // 45 m / 25 min air incurs deco; the computed stops must add exposure
+      // on top of what the bottom segments alone contributed.
+      final outcome = engine.compute(_airPlan());
+      expect(outcome.stops, isNotEmpty);
+      final bottomCns = outcome.segmentOutcomes.last.cns;
+      final bottomOtu = outcome.segmentOutcomes.last.otu;
+      expect(outcome.cnsEnd, greaterThan(bottomCns));
+      expect(outcome.otuTotal, greaterThan(bottomOtu));
+    });
+
+    test(
+      'a rich deco gas on a long stop adds more CNS than back gas alone',
+      () {
+        // Same dive, once with an O2 deco gas carried and once without. The O2
+        // stop at 6 m loads CNS fast, so the deco-gas plan ends higher.
+        final backGasOnly = engine.compute(_airPlan(minutes: 30));
+        final withO2 = engine.compute(
+          _airPlan(
+            minutes: 30,
+            tanks: const [
+              DiveTank(
+                id: 'back',
+                volume: 24,
+                startPressure: 232,
+                gasMix: _air,
+              ),
+              DiveTank(
+                id: 'o2',
+                volume: 11.1,
+                startPressure: 207,
+                gasMix: GasMix(o2: 100),
+                role: TankRole.deco,
+              ),
+            ],
+          ),
+        );
+        expect(withO2.cnsEnd, greaterThan(backGasOnly.cnsEnd));
+      },
+    );
+
+    test('compute rejects a non-Buhlmann start state', () {
+      expect(
+        () => engine.compute(_airPlan(), startState: const _ForeignState()),
+        throwsArgumentError,
+      );
+    });
   });
 
   group('PlanEngine turn pressure and rock-bottom', () {
@@ -274,4 +323,10 @@ void main() {
       expect(_types(outcome), isNot(contains(PlanIssueType.minGasViolation)));
     });
   });
+}
+
+/// A tissue state the Buhlmann engine cannot consume — used to prove the
+/// start-state type guard rejects foreign seeds up front.
+class _ForeignState extends TissueState {
+  const _ForeignState();
 }

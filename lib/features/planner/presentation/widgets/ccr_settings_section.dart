@@ -56,6 +56,7 @@ class _CcrSettingsSectionState extends ConsumerState<CcrSettingsSection> {
       String label,
       void Function(double) onChanged, {
       double Function(double)? toMetric,
+      bool allowZero = false,
     }) {
       return Expanded(
         child: TextFormField(
@@ -68,7 +69,11 @@ class _CcrSettingsSectionState extends ConsumerState<CcrSettingsSection> {
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           onChanged: (text) {
             final parsed = double.tryParse(text);
-            if (parsed == null || parsed <= 0) return;
+            // Setpoints must be positive; a switch depth of 0 (surface) is a
+            // valid, useful configuration, so it opts into allowZero.
+            if (parsed == null || (allowZero ? parsed < 0 : parsed <= 0)) {
+              return;
+            }
             onChanged(toMetric != null ? toMetric(parsed) : parsed);
           },
         ),
@@ -103,6 +108,7 @@ class _CcrSettingsSectionState extends ConsumerState<CcrSettingsSection> {
             '(${units.depthSymbol})',
             (v) => notifier.updateSetpoints(switchDepth: v),
             toMetric: depthToMetric,
+            allowZero: true,
           ),
         ],
       ),
