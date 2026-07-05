@@ -1,3 +1,4 @@
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
@@ -7,6 +8,7 @@ import 'package:submersion/features/planner/domain/services/bailout_solver.dart'
 import 'package:submersion/features/planner/domain/services/contingency_service.dart';
 import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
+import 'package:submersion/features/planner/domain/services/tissue_seed.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// PlanEngine thresholds sourced from the diver's deco settings.
@@ -24,7 +26,14 @@ final planEngineConfigProvider = Provider<PlanEngineConfig>((ref) {
 final planOutcomeProvider = Provider<PlanOutcome>((ref) {
   final state = ref.watch(divePlanNotifierProvider);
   final engine = PlanEngine(config: ref.watch(planEngineConfigProvider));
-  return engine.compute(divePlanFromState(state));
+  final startState = seededTissueState(
+    compartments: state.initialTissueState,
+    surfaceInterval: state.surfaceInterval,
+    gfLow: state.gfLow / 100.0,
+    gfHigh: state.gfHigh / 100.0,
+    environment: DiveEnvironment.forConditions(altitudeMeters: state.altitude),
+  );
+  return engine.compute(divePlanFromState(state), startState: startState);
 });
 
 /// Scrub cursor position along the plan, in seconds (null = not scrubbing).
