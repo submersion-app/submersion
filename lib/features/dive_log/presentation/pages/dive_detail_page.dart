@@ -2625,7 +2625,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 context,
                 context.l10n.diveLog_detail_label_avgDepth,
                 units.formatDepth(dive.avgDepth),
-                sourceName: attribution?['avgDepth'],
               ),
             if (dive.waterType != null)
               _buildDetailRow(
