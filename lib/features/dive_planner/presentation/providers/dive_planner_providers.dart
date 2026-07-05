@@ -2,6 +2,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -421,6 +422,11 @@ final planResultsProvider = Provider<PlanResult>((ref) {
     sacRate: state.sacRate,
     reservePressure: state.reservePressure,
     initialTissueState: state.initialTissueState,
+    // Altitude finally reaches the deco math; 0 keeps the legacy sea-level
+    // surface pressure. Water type comes to the planner in Phase 2.
+    environment: DiveEnvironment.forConditions(
+      altitudeMeters: (state.altitude ?? 0) > 0 ? state.altitude : null,
+    ),
   );
 });
 

@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
 import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
@@ -65,6 +66,7 @@ class PlanCalculatorService {
     required double sacRate,
     double reservePressure = DivePlanState.kDefaultReservePressureBar,
     List<TissueCompartment>? initialTissueState,
+    DiveEnvironment environment = DiveEnvironment.standard,
   }) {
     if (segments.isEmpty) {
       return PlanResult.empty();
@@ -75,6 +77,7 @@ class PlanCalculatorService {
       gfLow: gfLow / 100.0,
       gfHigh: gfHigh / 100.0,
       ascentRate: defaultAscentRate,
+      environment: environment,
     );
 
     // Load tissue state for repetitive dives
@@ -450,10 +453,12 @@ class PlanCalculatorService {
   List<TissueCompartment> calculateSurfaceInterval({
     required List<TissueCompartment> startState,
     required Duration interval,
+    DiveEnvironment environment = DiveEnvironment.standard,
   }) {
     final algorithm = BuhlmannAlgorithm(
       gfLow: gfLow / 100.0,
       gfHigh: gfHigh / 100.0,
+      environment: environment,
     );
 
     algorithm.setCompartments(startState);

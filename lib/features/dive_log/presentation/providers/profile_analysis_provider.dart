@@ -6,6 +6,7 @@ import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
 import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
 import 'package:submersion/core/deco/entities/profile_gas_segment.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
@@ -259,26 +260,36 @@ List<AvailableGas> buildAvailableGases(
   return gases;
 }
 
-/// Creates a ProfileAnalysisService using dive-specific GF when available,
-/// falling back to user settings.
+/// Creates a ProfileAnalysisService using dive-specific GF and environment
+/// (altitude, water type) when available, falling back to user settings.
 ProfileAnalysisService _resolveAnalysisService(
   Ref ref,
   int? gradientFactorLow,
-  int? gradientFactorHigh,
-) {
-  if (gradientFactorLow != null && gradientFactorHigh != null) {
-    return ProfileAnalysisService(
-      gfLow: (gradientFactorLow / 100.0).clamp(0.0, 1.0),
-      gfHigh: (gradientFactorHigh / 100.0).clamp(0.0, 1.0),
-      ppO2WarningThreshold: ref.watch(ppO2MaxWorkingProvider),
-      ppO2CriticalThreshold: ref.watch(ppO2MaxDecoProvider),
-      cnsWarningThreshold: ref.watch(cnsWarningThresholdProvider),
-      ascentRateWarning: ref.watch(ascentRateWarningProvider),
-      ascentRateCritical: ref.watch(ascentRateCriticalProvider),
-      lastStopDepth: ref.watch(lastStopDepthProvider),
-    );
+  int? gradientFactorHigh, {
+  DiveEnvironment environment = DiveEnvironment.standard,
+}) {
+  if (gradientFactorLow == null &&
+      gradientFactorHigh == null &&
+      environment == DiveEnvironment.standard) {
+    return ref.watch(profileAnalysisServiceProvider);
   }
-  return ref.watch(profileAnalysisServiceProvider);
+  final gfLow = gradientFactorLow != null && gradientFactorHigh != null
+      ? (gradientFactorLow / 100.0).clamp(0.0, 1.0)
+      : ref.watch(gfLowProvider) / 100.0;
+  final gfHigh = gradientFactorLow != null && gradientFactorHigh != null
+      ? (gradientFactorHigh / 100.0).clamp(0.0, 1.0)
+      : ref.watch(gfHighProvider) / 100.0;
+  return ProfileAnalysisService(
+    gfLow: gfLow,
+    gfHigh: gfHigh,
+    ppO2WarningThreshold: ref.watch(ppO2MaxWorkingProvider),
+    ppO2CriticalThreshold: ref.watch(ppO2MaxDecoProvider),
+    cnsWarningThreshold: ref.watch(cnsWarningThresholdProvider),
+    ascentRateWarning: ref.watch(ascentRateWarningProvider),
+    ascentRateCritical: ref.watch(ascentRateCriticalProvider),
+    lastStopDepth: ref.watch(lastStopDepthProvider),
+    environment: environment,
+  );
 }
 
 /// Overlays computer-reported decompression data onto a calculated
@@ -547,6 +558,7 @@ class _ProfileAnalysisInput {
   final List<AvailableGas>? ascentGases; // OC only; null => FixedAscentGas
   final double ascentMaxPpO2;
   final List<double>? rebreatherPpO2Curve;
+  final DiveEnvironment environment;
 
   const _ProfileAnalysisInput({
     required this.gfLow,
@@ -576,6 +588,7 @@ class _ProfileAnalysisInput {
     this.ascentGases,
     this.ascentMaxPpO2 = 1.6,
     this.rebreatherPpO2Curve,
+    this.environment = DiveEnvironment.standard,
   });
 }
 
@@ -591,6 +604,7 @@ ProfileAnalysis _runProfileAnalysis(_ProfileAnalysisInput input) {
     ascentRateWarning: input.ascentRateWarning,
     ascentRateCritical: input.ascentRateCritical,
     lastStopDepth: input.lastStopDepth,
+    environment: input.environment,
   );
   final ascentGasPlan =
       input.ascentGases != null && input.ascentGases!.isNotEmpty
@@ -828,6 +842,11 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
         startOtu: startOtu,
         gasSegments: gasSegments,
         ascentGases: ascentGases,
+        environment: DiveEnvironment.forConditions(
+          altitudeMeters: dive.altitude,
+          waterType: dive.waterType,
+          surfacePressureBar: dive.surfacePressure,
+        ),
         ascentMaxPpO2: ascentMaxPpO2,
         rebreatherPpO2Curve: rebreatherPpO2?.curve,
       ),
@@ -1217,6 +1236,11 @@ final diveProfileAnalysisProvider = Provider.family<ProfileAnalysis?, Dive>((
       ref,
       dive.gradientFactorLow,
       dive.gradientFactorHigh,
+      environment: DiveEnvironment.forConditions(
+        altitudeMeters: dive.altitude,
+        waterType: dive.waterType,
+        surfacePressureBar: dive.surfacePressure,
+      ),
     );
 
     // Extract profile data
