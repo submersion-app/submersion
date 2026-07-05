@@ -9913,6 +9913,41 @@ class AppLocalizationsZh extends AppLocalizations {
   String get onboarding_welcome_title => '欢迎使用 Submersion';
 
   @override
+  String plannerCanvas_bailout_available(String liters) {
+    return '可用 $liters 升';
+  }
+
+  @override
+  String get plannerCanvas_bailout_insufficient => '逃生气体不足以应对最坏情况';
+
+  @override
+  String plannerCanvas_bailout_required(String liters) {
+    return '需要 $liters 升';
+  }
+
+  @override
+  String get plannerCanvas_bailout_title => '逃生（开式呼吸）';
+
+  @override
+  String plannerCanvas_bailout_tts(String minutes) {
+    return '逃生 TTS $minutes′';
+  }
+
+  @override
+  String plannerCanvas_bailout_worstCase(String minutes, String depth) {
+    return '最坏情况在 $minutes′ · $depth';
+  }
+
+  @override
+  String get plannerCanvas_ccr_setpointHigh => '高设定点（bar）';
+
+  @override
+  String get plannerCanvas_ccr_setpointLow => '低设定点（bar）';
+
+  @override
+  String get plannerCanvas_ccr_switchDepth => '设定点切换深度';
+
+  @override
   String plannerCanvas_chip_cns(String value) {
     return 'CNS $value%';
   }
@@ -9967,6 +10002,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get plannerCanvas_saved_title => '已保存的计划';
+
+  @override
+  String plannerCanvas_scrub_bailout(String minutes) {
+    return 'BO $minutes′';
+  }
 
   @override
   String plannerCanvas_scrub_readout(String minutes, String depth) {

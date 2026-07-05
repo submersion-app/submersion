@@ -10346,6 +10346,43 @@ class AppLocalizationsEs extends AppLocalizations {
   String get onboarding_welcome_title => 'Bienvenido a Submersion';
 
   @override
+  String plannerCanvas_bailout_available(String liters) {
+    return 'Disponible $liters L';
+  }
+
+  @override
+  String get plannerCanvas_bailout_insufficient =>
+      'Gas de bailout insuficiente para el peor caso';
+
+  @override
+  String plannerCanvas_bailout_required(String liters) {
+    return 'Necesario $liters L';
+  }
+
+  @override
+  String get plannerCanvas_bailout_title => 'Bailout (circuito abierto)';
+
+  @override
+  String plannerCanvas_bailout_tts(String minutes) {
+    return 'TTS de bailout $minutes′';
+  }
+
+  @override
+  String plannerCanvas_bailout_worstCase(String minutes, String depth) {
+    return 'Peor caso a los $minutes′ · $depth';
+  }
+
+  @override
+  String get plannerCanvas_ccr_setpointHigh => 'Setpoint alto (bar)';
+
+  @override
+  String get plannerCanvas_ccr_setpointLow => 'Setpoint bajo (bar)';
+
+  @override
+  String get plannerCanvas_ccr_switchDepth =>
+      'Profundidad de cambio de setpoint';
+
+  @override
   String plannerCanvas_chip_cns(String value) {
     return 'CNS $value%';
   }
@@ -10403,6 +10440,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get plannerCanvas_saved_title => 'Planes guardados';
+
+  @override
+  String plannerCanvas_scrub_bailout(String minutes) {
+    return 'BO $minutes′';
+  }
 
   @override
   String plannerCanvas_scrub_readout(String minutes, String depth) {

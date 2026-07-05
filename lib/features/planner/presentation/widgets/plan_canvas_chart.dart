@@ -311,7 +311,7 @@ class _EmptyState extends ConsumerWidget {
   }
 }
 
-class _ScrubReadout extends StatelessWidget {
+class _ScrubReadout extends ConsumerWidget {
   const _ScrubReadout({
     required this.runtimeSeconds,
     required this.depthMeters,
@@ -323,9 +323,22 @@ class _ScrubReadout extends StatelessWidget {
   final UnitFormatter units;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final minutes = (runtimeSeconds / 60).round();
+    // Scrub-to-bailout: on a CCR plan with bailout gas, show the bailout TTS
+    // from the nearest sampled instant.
+    final bailout = ref.watch(planBailoutProvider);
+    var text = context.l10n.plannerCanvas_scrub_readout(
+      minutes.toString(),
+      units.formatDepth(depthMeters, decimals: 0),
+    );
+    if (bailout != null) {
+      final point = bailout.nearest(runtimeSeconds);
+      text +=
+          ' · '
+          '${context.l10n.plannerCanvas_scrub_bailout('${(point.ttsSeconds / 60).ceil()}')}';
+    }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
@@ -338,10 +351,7 @@ class _ScrubReadout extends StatelessWidget {
         ),
       ),
       child: Text(
-        context.l10n.plannerCanvas_scrub_readout(
-          minutes.toString(),
-          units.formatDepth(depthMeters, decimals: 0),
-        ),
+        text,
         style: theme.textTheme.labelMedium?.copyWith(
           fontWeight: FontWeight.w600,
         ),

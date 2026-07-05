@@ -7,7 +7,10 @@ import 'package:submersion/features/dive_planner/presentation/widgets/plan_tank_
 import 'package:submersion/features/dive_planner/presentation/widgets/segment_list.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/simple_plan_dialog.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_repository.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
+    as domain;
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
+import 'package:submersion/features/planner/presentation/widgets/ccr_settings_section.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_canvas_chart.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_results_sheet.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
@@ -57,16 +60,31 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: InkWell(
-          onTap: () => _showRenameDialog(context),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Flexible(child: Text(planState.name)),
-              const SizedBox(width: 8),
-              const PlanChip(label: 'OC'),
-            ],
-          ),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(
+              child: InkWell(
+                onTap: () => _showRenameDialog(context),
+                child: Text(planState.name),
+              ),
+            ),
+            const SizedBox(width: 8),
+            InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () => ref
+                  .read(divePlanNotifierProvider.notifier)
+                  .updateMode(
+                    planState.mode == domain.PlanMode.ccr
+                        ? domain.PlanMode.oc
+                        : domain.PlanMode.ccr,
+                  ),
+              child: PlanChip(
+                label: planState.mode == domain.PlanMode.ccr ? 'CCR' : 'OC',
+                emphasized: planState.mode == domain.PlanMode.ccr,
+              ),
+            ),
+          ],
         ),
         actions: [
           IconButton(
@@ -209,12 +227,15 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
           width: 360,
           child: ListView(
             padding: const EdgeInsets.all(12),
-            children: const [
-              PlanSettingsPanel(),
-              SizedBox(height: 12),
-              PlanTankList(),
-              SizedBox(height: 12),
-              SegmentList(),
+            children: [
+              const PlanSettingsPanel(),
+              if (ref.watch(divePlanNotifierProvider).mode ==
+                  domain.PlanMode.ccr)
+                const CcrSettingsSection(),
+              const SizedBox(height: 12),
+              const PlanTankList(),
+              const SizedBox(height: 12),
+              const SegmentList(),
             ],
           ),
         ),
@@ -284,10 +305,20 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
       context: context,
       showDragHandle: true,
       isScrollControlled: true,
-      builder: (_) => const SafeArea(
+      builder: (_) => SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(16),
-          child: PlanSettingsPanel(),
+          padding: const EdgeInsets.all(16),
+          child: Consumer(
+            builder: (context, ref, _) => Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const PlanSettingsPanel(),
+                if (ref.watch(divePlanNotifierProvider).mode ==
+                    domain.PlanMode.ccr)
+                  const CcrSettingsSection(),
+              ],
+            ),
+          ),
         ),
       ),
     );

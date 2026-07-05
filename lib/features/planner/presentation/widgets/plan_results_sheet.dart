@@ -5,6 +5,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
+import 'package:submersion/features/planner/domain/services/bailout_solver.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -101,6 +102,8 @@ class PlanResultsSheet extends ConsumerWidget {
       return tank.name ?? tank.gasMix.name;
     }
 
+    final bailout = ref.watch(planBailoutProvider);
+
     return ListView(
       controller: controller,
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
@@ -112,6 +115,11 @@ class PlanResultsSheet extends ConsumerWidget {
         _SectionHeader(context.l10n.divePlanner_label_gasConsumption),
         for (final usage in outcome.tankUsages)
           _GasRow(usage: usage, label: tankLabel(usage.tankId), units: units),
+        if (bailout != null) ...[
+          const SizedBox(height: 20),
+          _SectionHeader(context.l10n.plannerCanvas_bailout_title),
+          _BailoutSection(outcome: bailout, units: units),
+        ],
         const SizedBox(height: 20),
         _SectionHeader(context.l10n.divePlanner_label_warnings),
         if (outcome.issues.isEmpty)
@@ -316,6 +324,80 @@ class _IssueRow extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _BailoutSection extends StatelessWidget {
+  const _BailoutSection({required this.outcome, required this.units});
+
+  final BailoutOutcome outcome;
+  final UnitFormatter units;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final worst = outcome.worstCase;
+    final shortfallColor = outcome.sufficient
+        ? theme.colorScheme.onSurface
+        : theme.colorScheme.error;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          context.l10n.plannerCanvas_bailout_worstCase(
+            '${(worst.runtimeSeconds / 60).round()}',
+            units.formatDepth(worst.depthMeters, decimals: 0),
+          ),
+          style: theme.textTheme.bodyMedium,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          context.l10n.plannerCanvas_bailout_tts(
+            '${(worst.ttsSeconds / 60).ceil()}',
+          ),
+          style: theme.textTheme.bodyMedium,
+        ),
+        const SizedBox(height: 4),
+        Row(
+          children: [
+            Text(
+              context.l10n.plannerCanvas_bailout_required(
+                worst.litersRequired.toStringAsFixed(0),
+              ),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: shortfallColor,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Text(
+              context.l10n.plannerCanvas_bailout_available(
+                outcome.availableLiters.toStringAsFixed(0),
+              ),
+              style: theme.textTheme.bodyMedium,
+            ),
+          ],
+        ),
+        if (!outcome.sufficient)
+          Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: Row(
+              children: [
+                Icon(Icons.error, size: 18, color: theme.colorScheme.error),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    context.l10n.plannerCanvas_bailout_insufficient,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.error,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 }
