@@ -9,6 +9,11 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/dive_planner/data/services/plan_calculator_service.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
+import 'package:submersion/features/planner/data/repositories/dive_plan_repository.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
+    as domain;
+import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 
 const _uuid = Uuid();
 
@@ -41,13 +46,20 @@ final planCalculatorServiceProvider = Provider<PlanCalculatorService>((ref) {
 class DivePlanNotifier extends StateNotifier<DivePlanState> {
   final PlanCalculatorService _calculator;
   final double Function() _getDefaultReservePressure;
+  final DivePlanRepository? _repository;
+
+  /// The persisted aggregate this state was loaded from (or last saved as);
+  /// preserves fields the legacy state does not carry across a save cycle.
+  domain.DivePlan? _loaded;
 
   DivePlanNotifier(
     this._calculator, {
     double reservePressure = DivePlanState.kDefaultReservePressureBar,
     double Function()? getDefaultReservePressure,
+    DivePlanRepository? repository,
   }) : _getDefaultReservePressure =
            getDefaultReservePressure ?? (() => reservePressure),
+       _repository = repository,
        super(_createInitialState(reservePressure: reservePressure));
 
   static DivePlanState _createInitialState({
@@ -84,12 +96,24 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
 
   /// Reset to a new empty plan.
   void newPlan() {
+    _loaded = null;
     state = _createInitialState(reservePressure: _getDefaultReservePressure());
   }
 
   /// Load an existing plan for editing.
   void loadPlan(DivePlanState plan) {
     state = plan;
+  }
+
+  /// Load a persisted plan by id. Returns false when it does not exist.
+  Future<bool> loadPlanById(String planId) async {
+    final repository = _repository;
+    if (repository == null) return false;
+    final plan = await repository.getPlan(planId);
+    if (plan == null || !mounted) return false;
+    _loaded = plan;
+    state = stateFromDivePlan(plan);
+    return true;
   }
 
   /// Update plan name.
@@ -340,7 +364,22 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   // Persistence
   // --------------------------------------------------------------------------
 
-  /// Mark the plan as saved.
+  /// Persist the current plan (and its summary numbers for the list view).
+  Future<void> save({PlanSummaryData? summary}) async {
+    final repository = _repository;
+    if (repository == null) {
+      state = state.copyWith(isDirty: false);
+      return;
+    }
+    final plan = divePlanFromState(state, existing: _loaded);
+    await repository.savePlan(plan, summary: summary);
+    _loaded = plan;
+    if (mounted) {
+      state = state.copyWith(isDirty: false);
+    }
+  }
+
+  /// Mark the plan as saved without persisting (legacy path; prefer [save]).
   void markSaved() {
     state = state.copyWith(isDirty: false);
   }
@@ -398,6 +437,7 @@ final divePlanNotifierProvider =
         calculator,
         reservePressure: defaultReserve(),
         getDefaultReservePressure: defaultReserve,
+        repository: ref.watch(divePlanRepositoryProvider),
       );
     });
 
