@@ -9986,25 +9986,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerCanvas_contingency_turnRule => '折返压力规则';
 
   @override
-  String get plannerCanvas_convert_success => 'Dive created from plan';
+  String get plannerCanvas_convert_success => '已从计划创建潜水';
 
   @override
-  String get plannerCanvas_convert_view => 'View';
+  String get plannerCanvas_convert_view => '查看';
 
   @override
   String plannerCanvas_follow_chip(String name) {
-    return 'Following $name';
+    return '跟随 $name';
   }
 
   @override
-  String get plannerCanvas_follow_empty => 'No logged dives yet';
+  String get plannerCanvas_follow_empty => '还没有记录的潜水';
 
   @override
-  String get plannerCanvas_follow_noTissues =>
-      'No profile data on that dive — surface interval set without tissue seeding';
+  String get plannerCanvas_follow_noTissues => '该潜水没有剖面数据 — 已设置水面间隔但未载入组织饱和度';
 
   @override
-  String get plannerCanvas_follow_title => 'Follow a dive';
+  String get plannerCanvas_follow_title => '跟随一次潜水';
 
   @override
   String plannerCanvas_gas_minGas(String pressure) {
@@ -10043,9 +10042,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerCanvas_issue_noDecoGas => '需要减压但未携带减压气体';
 
   @override
-  String get plannerCanvas_overlay_plan => 'Plan';
-
-  @override
   String get plannerCanvas_results_noDeco => '无需减压';
 
   @override
@@ -10058,7 +10054,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String plannerCanvas_sac_useLogged(String sac) {
-    return 'Use logged average ($sac)';
+    return '使用记录的平均值（$sac）';
   }
 
   @override

@@ -10239,25 +10239,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerCanvas_contingency_turnRule => 'قاعدة ضغط العودة';
 
   @override
-  String get plannerCanvas_convert_success => 'Dive created from plan';
+  String get plannerCanvas_convert_success => 'تم إنشاء غطسة من الخطة';
 
   @override
-  String get plannerCanvas_convert_view => 'View';
+  String get plannerCanvas_convert_view => 'عرض';
 
   @override
   String plannerCanvas_follow_chip(String name) {
-    return 'Following $name';
+    return 'يتبع $name';
   }
 
   @override
-  String get plannerCanvas_follow_empty => 'No logged dives yet';
+  String get plannerCanvas_follow_empty => 'لا توجد غطسات مسجلة بعد';
 
   @override
   String get plannerCanvas_follow_noTissues =>
-      'No profile data on that dive — surface interval set without tissue seeding';
+      'لا توجد بيانات ملف تعريف لهذه الغطسة — تم ضبط الفاصل السطحي دون تحميل الأنسجة';
 
   @override
-  String get plannerCanvas_follow_title => 'Follow a dive';
+  String get plannerCanvas_follow_title => 'اتباع غطسة';
 
   @override
   String plannerCanvas_gas_minGas(String pressure) {
@@ -10298,9 +10298,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'يلزم تخفيف الضغط ولكن لا يوجد غاز تخفيف';
 
   @override
-  String get plannerCanvas_overlay_plan => 'Plan';
-
-  @override
   String get plannerCanvas_results_noDeco => 'لا يلزم تخفيف الضغط';
 
   @override
@@ -10313,7 +10310,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String plannerCanvas_sac_useLogged(String sac) {
-    return 'Use logged average ($sac)';
+    return 'استخدام المتوسط المسجل ($sac)';
   }
 
   @override

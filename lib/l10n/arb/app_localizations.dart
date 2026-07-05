@@ -17846,12 +17846,6 @@ abstract class AppLocalizations {
   /// **'Decompression required but no deco gas carried'**
   String get plannerCanvas_issue_noDecoGas;
 
-  /// No description provided for @plannerCanvas_overlay_plan.
-  ///
-  /// In en, this message translates to:
-  /// **'Plan'**
-  String get plannerCanvas_overlay_plan;
-
   /// No description provided for @plannerCanvas_results_noDeco.
   ///
   /// In en, this message translates to:

@@ -10331,9 +10331,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Decompression required but no deco gas carried';
 
   @override
-  String get plannerCanvas_overlay_plan => 'Plan';
-
-  @override
   String get plannerCanvas_results_noDeco => 'No decompression required';
 
   @override

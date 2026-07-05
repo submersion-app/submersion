@@ -10360,25 +10360,25 @@ class AppLocalizationsNl extends AppLocalizations {
   String get plannerCanvas_contingency_turnRule => 'Keerdruk-regel';
 
   @override
-  String get plannerCanvas_convert_success => 'Dive created from plan';
+  String get plannerCanvas_convert_success => 'Duik aangemaakt vanuit plan';
 
   @override
-  String get plannerCanvas_convert_view => 'View';
+  String get plannerCanvas_convert_view => 'Bekijk';
 
   @override
   String plannerCanvas_follow_chip(String name) {
-    return 'Following $name';
+    return 'Volgt $name';
   }
 
   @override
-  String get plannerCanvas_follow_empty => 'No logged dives yet';
+  String get plannerCanvas_follow_empty => 'Nog geen gelogde duiken';
 
   @override
   String get plannerCanvas_follow_noTissues =>
-      'No profile data on that dive — surface interval set without tissue seeding';
+      'Geen profielgegevens voor die duik — oppervlakte-interval ingesteld zonder weefselverzadiging';
 
   @override
-  String get plannerCanvas_follow_title => 'Follow a dive';
+  String get plannerCanvas_follow_title => 'Volg een duik';
 
   @override
   String plannerCanvas_gas_minGas(String pressure) {
@@ -10419,9 +10419,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Decompressie vereist maar geen decogas meegenomen';
 
   @override
-  String get plannerCanvas_overlay_plan => 'Plan';
-
-  @override
   String get plannerCanvas_results_noDeco => 'Geen decompressie vereist';
 
   @override
@@ -10434,7 +10431,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String plannerCanvas_sac_useLogged(String sac) {
-    return 'Use logged average ($sac)';
+    return 'Gebruik gelogd gemiddelde ($sac)';
   }
 
   @override

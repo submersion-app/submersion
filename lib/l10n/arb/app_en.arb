@@ -5739,7 +5739,6 @@
   },
   "plannerCanvas_issue_noBailout": "CCR decompression plan carries no bailout gas",
   "plannerCanvas_issue_noDecoGas": "Decompression required but no deco gas carried",
-  "plannerCanvas_overlay_plan": "Plan",
   "plannerCanvas_results_noDeco": "No decompression required",
   "plannerCanvas_saved_deleteConfirmBody": "Permanently delete \"{name}\"?",
   "@plannerCanvas_saved_deleteConfirmBody": {

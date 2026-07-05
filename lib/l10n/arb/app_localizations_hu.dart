@@ -10409,25 +10409,25 @@ class AppLocalizationsHu extends AppLocalizations {
   String get plannerCanvas_contingency_turnRule => 'Fordulónyomás-szabály';
 
   @override
-  String get plannerCanvas_convert_success => 'Dive created from plan';
+  String get plannerCanvas_convert_success => 'Merülés létrehozva a tervből';
 
   @override
-  String get plannerCanvas_convert_view => 'View';
+  String get plannerCanvas_convert_view => 'Megtekintés';
 
   @override
   String plannerCanvas_follow_chip(String name) {
-    return 'Following $name';
+    return '$name követése';
   }
 
   @override
-  String get plannerCanvas_follow_empty => 'No logged dives yet';
+  String get plannerCanvas_follow_empty => 'Még nincsenek naplózott merülések';
 
   @override
   String get plannerCanvas_follow_noTissues =>
-      'No profile data on that dive — surface interval set without tissue seeding';
+      'Nincs profiladat ehhez a merüléshez — a felszíni intervallum szövettelítés nélkül lett beállítva';
 
   @override
-  String get plannerCanvas_follow_title => 'Follow a dive';
+  String get plannerCanvas_follow_title => 'Merülés követése';
 
   @override
   String plannerCanvas_gas_minGas(String pressure) {
@@ -10468,9 +10468,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Dekompresszió szükséges, de nincs deco gáz';
 
   @override
-  String get plannerCanvas_overlay_plan => 'Plan';
-
-  @override
   String get plannerCanvas_results_noDeco => 'Nincs szükség dekompresszióra';
 
   @override
@@ -10483,7 +10480,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String plannerCanvas_sac_useLogged(String sac) {
-    return 'Use logged average ($sac)';
+    return 'Naplózott átlag használata ($sac)';
   }
 
   @override

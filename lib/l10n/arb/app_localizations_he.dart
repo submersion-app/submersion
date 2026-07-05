@@ -10172,25 +10172,25 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerCanvas_contingency_turnRule => 'כלל לחץ פנייה';
 
   @override
-  String get plannerCanvas_convert_success => 'Dive created from plan';
+  String get plannerCanvas_convert_success => 'נוצרה צלילה מהתוכנית';
 
   @override
-  String get plannerCanvas_convert_view => 'View';
+  String get plannerCanvas_convert_view => 'הצג';
 
   @override
   String plannerCanvas_follow_chip(String name) {
-    return 'Following $name';
+    return 'עוקב אחרי $name';
   }
 
   @override
-  String get plannerCanvas_follow_empty => 'No logged dives yet';
+  String get plannerCanvas_follow_empty => 'אין עדיין צלילות מתועדות';
 
   @override
   String get plannerCanvas_follow_noTissues =>
-      'No profile data on that dive — surface interval set without tissue seeding';
+      'אין נתוני פרופיל לצלילה זו — מרווח הפנים נקבע ללא העמסת רקמות';
 
   @override
-  String get plannerCanvas_follow_title => 'Follow a dive';
+  String get plannerCanvas_follow_title => 'עקוב אחרי צלילה';
 
   @override
   String plannerCanvas_gas_minGas(String pressure) {
@@ -10231,9 +10231,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'נדרשת דקומפרסיה אך לא נלקח גז דקו';
 
   @override
-  String get plannerCanvas_overlay_plan => 'Plan';
-
-  @override
   String get plannerCanvas_results_noDeco => 'לא נדרשת דקומפרסיה';
 
   @override
@@ -10246,7 +10243,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String plannerCanvas_sac_useLogged(String sac) {
-    return 'Use logged average ($sac)';
+    return 'השתמש בממוצע המתועד ($sac)';
   }
 
   @override

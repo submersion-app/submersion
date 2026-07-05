@@ -10473,25 +10473,26 @@ class AppLocalizationsFr extends AppLocalizations {
       'Règle de pression de demi-tour';
 
   @override
-  String get plannerCanvas_convert_success => 'Dive created from plan';
+  String get plannerCanvas_convert_success => 'Plongée créée à partir du plan';
 
   @override
-  String get plannerCanvas_convert_view => 'View';
+  String get plannerCanvas_convert_view => 'Voir';
 
   @override
   String plannerCanvas_follow_chip(String name) {
-    return 'Following $name';
+    return 'Suit $name';
   }
 
   @override
-  String get plannerCanvas_follow_empty => 'No logged dives yet';
+  String get plannerCanvas_follow_empty =>
+      'Aucune plongée enregistrée pour l\'instant';
 
   @override
   String get plannerCanvas_follow_noTissues =>
-      'No profile data on that dive — surface interval set without tissue seeding';
+      'Pas de données de profil pour cette plongée — intervalle de surface défini sans saturation des tissus';
 
   @override
-  String get plannerCanvas_follow_title => 'Follow a dive';
+  String get plannerCanvas_follow_title => 'Suivre une plongée';
 
   @override
   String plannerCanvas_gas_minGas(String pressure) {
@@ -10532,9 +10533,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Décompression requise mais aucun gaz de déco emporté';
 
   @override
-  String get plannerCanvas_overlay_plan => 'Plan';
-
-  @override
   String get plannerCanvas_results_noDeco => 'Aucune décompression requise';
 
   @override
@@ -10547,7 +10545,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String plannerCanvas_sac_useLogged(String sac) {
-    return 'Use logged average ($sac)';
+    return 'Utiliser la moyenne enregistrée ($sac)';
   }
 
   @override
