@@ -53,11 +53,20 @@ void main() {
     );
     await _seedDecoPlan(tester, find.byType(PlanResultsSheet));
 
-    // Runtime table header.
-    expect(find.text('Depth'), findsOneWidget);
+    // Runtime table header(s) — the contingency mini-tables repeat it.
+    expect(find.text('Depth'), findsWidgets);
     // Gas section rendered a per-tank consumption bar.
     expect(find.byType(LinearProgressIndicator), findsWidgets);
-    // Air at 45 m trips the critical gas-density issue.
+    // Air at 45 m trips the critical gas-density issue (issues sit below
+    // the contingency tables — scroll the unique section header into the
+    // lazy viewport, then nudge so the issue rows build).
+    await tester.scrollUntilVisible(
+      find.text('WARNINGS'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.drag(find.byType(Scrollable).first, const Offset(0, -200));
+    await tester.pumpAndSettle();
     expect(find.textContaining('g/L'), findsWidgets);
   });
 }
