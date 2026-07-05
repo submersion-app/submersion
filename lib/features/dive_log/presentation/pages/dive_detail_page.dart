@@ -39,6 +39,7 @@ import 'package:submersion/features/dive_log/presentation/providers/gas_switch_p
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/pages/fullscreen_profile_page.dart';
 import 'package:submersion/features/dive_log/presentation/utils/sac_normalization.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_overlay_provider.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_playback_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
@@ -1152,6 +1153,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     // rows (e.g. right after a split); skip any stale entries instead of
     // crashing on the lookup.
     final sourceById = {for (final s in dataSources) s.id: s};
+    // Plan-vs-actual: the planned profile this dive was converted from,
+    // ghosted next to the actual logged profile.
+    final plannedOverlay = ref
+        .watch(plannedProfileOverlayProvider(dive.id))
+        .valueOrNull;
     final overlays = <ChartSourceOverlay>[
       for (final id in overlayIds)
         if (id != activeSource?.id &&
@@ -1168,6 +1174,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             computerId: sourceProfiles[id]!.computerId,
             points: sourceProfiles[id]!.points,
           ),
+      ?plannedOverlay,
     ];
 
     // Get unit formatter
