@@ -3,8 +3,21 @@ import 'package:intl/intl.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
+import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/collapsible_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+
+/// Localized fallback labels for [resolveSourceName], shared by the
+/// comparison grid header and the source card title.
+SourceNameLabels _labelsOf(BuildContext context) {
+  final l10n = context.l10n;
+  return SourceNameLabels(
+    unknownComputer: l10n.diveLog_sources_unknownComputer,
+    manualEntry: l10n.diveLog_sources_manualEntry,
+    importedFile: l10n.diveLog_sources_importedFile,
+    editedSuffix: l10n.diveLog_sources_editedSuffix,
+  );
+}
 
 /// A collapsible section showing data source provenance for a dive.
 ///
@@ -29,8 +42,9 @@ class DataSourcesSection extends StatefulWidget {
   /// Called with the reading ID when the user confirms "Set as primary".
   final void Function(String readingId)? onSetPrimary;
 
-  /// Called with the reading ID when the user confirms "Unlink".
-  final void Function(String readingId)? onUnlink;
+  /// Called with the reading ID when the user chooses "Split into
+  /// separate dive" (confirmation happens in the caller).
+  final void Function(String readingId)? onSplit;
 
   /// Called when the user taps a source card to temporarily view it.
   final void Function(String sourceId)? onTapSource;
@@ -43,7 +57,7 @@ class DataSourcesSection extends StatefulWidget {
     required this.units,
     this.viewedSourceId,
     this.onSetPrimary,
-    this.onUnlink,
+    this.onSplit,
     this.onTapSource,
   });
 
@@ -99,8 +113,8 @@ class _DataSourcesSectionState extends State<DataSourcesSection> {
           onSetPrimary: widget.onSetPrimary != null
               ? () => widget.onSetPrimary!(source.id)
               : null,
-          onUnlink: widget.onUnlink != null
-              ? () => widget.onUnlink!(source.id)
+          onSplit: widget.onSplit != null && isMultiSource
+              ? () => widget.onSplit!(source.id)
               : null,
           onTap: widget.onTapSource != null
               ? () => widget.onTapSource!(source.id)
@@ -175,7 +189,7 @@ class _SourceComparisonGrid extends StatelessWidget {
           for (final s in sources)
             DataColumn(
               label: Text(
-                s.computerLabel(l10n.diveLog_sources_unknownComputer),
+                resolveSourceName(s, _labelsOf(context)),
                 style: s.isPrimary
                     ? const TextStyle(fontWeight: FontWeight.bold)
                     : null,
@@ -270,7 +284,7 @@ class _DataSourceCard extends StatelessWidget {
   final bool showBadges;
   final bool isViewing;
   final VoidCallback? onSetPrimary;
-  final VoidCallback? onUnlink;
+  final VoidCallback? onSplit;
   final VoidCallback? onTap;
 
   const _DataSourceCard({
@@ -279,7 +293,7 @@ class _DataSourceCard extends StatelessWidget {
     required this.showBadges,
     required this.isViewing,
     this.onSetPrimary,
-    this.onUnlink,
+    this.onSplit,
     this.onTap,
   });
 
@@ -333,7 +347,7 @@ class _DataSourceCard extends StatelessWidget {
       );
     }
 
-    final hasOverflowMenu = onSetPrimary != null || onUnlink != null;
+    final hasOverflowMenu = onSetPrimary != null || onSplit != null;
 
     return GestureDetector(
       onTap: onTap,
@@ -357,7 +371,7 @@ class _DataSourceCard extends StatelessWidget {
                           children: [
                             Flexible(
                               child: Text(
-                                source.displayName,
+                                resolveSourceName(source, _labelsOf(context)),
                                 style: textTheme.titleSmall?.copyWith(
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -403,26 +417,30 @@ class _DataSourceCard extends StatelessWidget {
                         switch (action) {
                           case _SourceMenuAction.setPrimary:
                             onSetPrimary?.call();
-                          case _SourceMenuAction.unlink:
-                            onUnlink?.call();
+                          case _SourceMenuAction.split:
+                            onSplit?.call();
                         }
                       },
                       itemBuilder: (context) => [
                         if (!source.isPrimary && onSetPrimary != null)
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: _SourceMenuAction.setPrimary,
                             child: ListTile(
-                              leading: Icon(Icons.star_outline),
-                              title: Text('Set as primary'),
+                              leading: const Icon(Icons.star_outline),
+                              title: Text(
+                                context.l10n.diveLog_sources_menu_setPrimary,
+                              ),
                               contentPadding: EdgeInsets.zero,
                             ),
                           ),
-                        if (onUnlink != null)
-                          const PopupMenuItem(
-                            value: _SourceMenuAction.unlink,
+                        if (onSplit != null)
+                          PopupMenuItem(
+                            value: _SourceMenuAction.split,
                             child: ListTile(
-                              leading: Icon(Icons.link_off),
-                              title: Text('Unlink'),
+                              leading: const Icon(Icons.call_split),
+                              title: Text(
+                                context.l10n.diveLog_sources_menu_split,
+                              ),
                               contentPadding: EdgeInsets.zero,
                             ),
                           ),
@@ -607,7 +625,7 @@ class _DetailsGrid extends StatelessWidget {
 // Shared Widgets
 // ---------------------------------------------------------------------------
 
-enum _SourceMenuAction { setPrimary, unlink }
+enum _SourceMenuAction { setPrimary, split }
 
 /// A small badge chip with customizable background color.
 class _Badge extends StatelessWidget {

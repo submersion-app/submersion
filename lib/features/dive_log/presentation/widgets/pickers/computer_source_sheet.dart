@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
+import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Bottom sheet that lets the user choose which computer's profile to use
@@ -43,7 +44,18 @@ class ComputerSourceSelectionSheet extends StatelessWidget {
                       ? colorScheme.primary
                       : colorScheme.onSurfaceVariant,
                 ),
-                title: Text(reading.displayName),
+                title: Text(
+                  resolveSourceName(
+                    reading,
+                    SourceNameLabels(
+                      unknownComputer:
+                          context.l10n.diveLog_sources_unknownComputer,
+                      manualEntry: context.l10n.diveLog_sources_manualEntry,
+                      importedFile: context.l10n.diveLog_sources_importedFile,
+                      editedSuffix: context.l10n.diveLog_sources_editedSuffix,
+                    ),
+                  ),
+                ),
                 subtitle: reading.isPrimary
                     ? Text(
                         context.l10n.diveLog_computerSource_badge_primary,

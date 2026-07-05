@@ -306,8 +306,7 @@ void main() {
         expect(profile.length, greaterThan(6));
         expect(profile.every((p) => p.computerId == 'comp-1'), isTrue);
 
-        final bySource = await diveRepo.getProfilesBySource(mergedId);
-        expect(bySource.keys, {'comp-1'});
+        expect(profile.map((p) => p.computerId).toSet(), {'comp-1'});
       },
     );
 

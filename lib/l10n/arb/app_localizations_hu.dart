@@ -5673,6 +5673,44 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_sources_unknownComputer => 'Ismeretlen számítógép';
 
   @override
+  String get diveLog_sources_manualEntry => 'Kézi bejegyzés';
+
+  @override
+  String get diveLog_sources_importedFile => 'Importált fájl';
+
+  @override
+  String get diveLog_sources_editedSuffix => ' (szerkesztett)';
+
+  @override
+  String get diveLog_sources_barLabel => 'FORRÁSOK';
+
+  @override
+  String get diveLog_sources_menu_setPrimary => 'Beállítás elsődlegesként';
+
+  @override
+  String get diveLog_sources_menu_split => 'Szétválasztás külön merülésbe';
+
+  @override
+  String get diveLog_sources_overlayTooltip => 'Rávetítés a grafikonra';
+
+  @override
+  String get diveLog_sources_splitDialog_title =>
+      'Szétválasztás külön merülésbe?';
+
+  @override
+  String get diveLog_sources_splitDialog_body =>
+      'A forrás profilja, eseményei és palackjai új merülésbe kerülnek. A naplóbejegyzés ennél a merülésnél marad.';
+
+  @override
+  String get diveLog_sources_splitDialog_confirm => 'Szétválasztás';
+
+  @override
+  String get diveLog_sources_splitDone => 'Merülés szétválasztva';
+
+  @override
+  String get diveLog_sources_splitFailed => 'A szétválasztás sikertelen';
+
+  @override
   String get divePlanner_action_addTank => 'Palack hozzáadása';
 
   @override

@@ -15,7 +15,6 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/data/services/gas_usage_segments_service.dart';
 import 'package:submersion/features/dive_log/data/services/profile_markers_service.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/computer_toggle_bar.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
@@ -45,6 +44,26 @@ class TooltipRow {
 }
 
 /// Interactive dive profile chart showing depth over time with zoom/pan support
+/// One overlay source drawn for comparison alongside the active source.
+/// The overlay renders its own color-coded rendition of each enabled line
+/// type (depth, temperature, computer-reported ceiling/NDL); its events and
+/// tank pressures render through the shared per-computer gating.
+class ChartSourceOverlay {
+  const ChartSourceOverlay({
+    required this.sourceId,
+    required this.name,
+    required this.color,
+    required this.computerId,
+    required this.points,
+  });
+
+  final String sourceId;
+  final String name;
+  final Color color;
+  final String? computerId;
+  final List<DiveProfilePoint> points;
+}
+
 class DiveProfileChart extends ConsumerStatefulWidget {
   final List<DiveProfilePoint> profile;
   final Duration? diveDuration;
@@ -191,21 +210,16 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// Cumulative OTU curve
   final List<double>? otuCurve;
 
-  // Multi-computer rendering parameters
-  /// Map of computerId -> profile points for multi-computer rendering.
-  /// When non-null with 2+ entries, each computer is drawn with its own color.
-  final Map<String, List<DiveProfilePoint>>? computerProfiles;
+  // Multi-source rendering parameters
+  /// Overlay sources drawn for comparison alongside the active source
+  /// ([profile]). Each overlay renders dashed, in its own color.
+  final List<ChartSourceOverlay>? overlays;
 
-  /// Set of currently visible computer IDs.
-  /// When null, all computers in [computerProfiles] are visible.
-  final Set<String>? visibleComputers;
-
-  /// Map of computerId -> color for multi-computer rendering.
-  final Map<String, Color>? computerLineColors;
-
-  /// Set of computer IDs that use a solid line (primaries).
-  /// Computers not in this set use a dashed line style.
-  final Set<String>? primaryComputers;
+  /// The active source's computer id. Per-computer data (events, tank
+  /// pressures) attributed to this id — or to no computer at all — belongs
+  /// to the active source and always draws; other computers draw only while
+  /// overlaid.
+  final String? activeComputerId;
 
   /// Map of computerId -> display name (e.g. "Perdix 2"), used to label
   /// tank-pressure tooltip rows with their source computer when 2+
@@ -455,10 +469,8 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.ttsCurve,
     this.cnsCurve,
     this.otuCurve,
-    this.computerProfiles,
-    this.visibleComputers,
-    this.computerLineColors,
-    this.primaryComputers,
+    this.overlays,
+    this.activeComputerId,
     this.computerNames,
     this.tooltipBelow = false,
     this.onTooltipData,
@@ -541,25 +553,59 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     return ids;
   }
 
-  /// Whether data attributed to [computerId] should be drawn, per the
-  /// toggle bar's [widget.visibleComputers].
+  /// Whether per-computer data attributed to [computerId] should be drawn.
   ///
-  /// `null` means "no multi-computer toggle in play" (single-source dive,
-  /// or the caller hasn't wired visibility) — everything is visible. When a
-  /// visibility set IS present, a `null` [computerId] is treated as
-  /// belonging to the primary computer (this is the null-means-primary
-  /// convention used by dive_profiles/dive_profile_events/tank_pressure_
-  /// profiles rows — see database.dart), so it's visible exactly when a
-  /// primary computer is visible.
+  /// A `null` [computerId] (the null-means-primary convention used by
+  /// dive_profiles/dive_profile_events/tank_pressure_profiles rows — see
+  /// database.dart) or the active source's own computer always draws.
+  /// Other computers draw only while their source is overlaid. When the
+  /// caller wired no active computer and no overlays (single-source dive),
+  /// everything is visible.
   bool _isComputerVisible(String? computerId) {
-    final visible = widget.visibleComputers;
-    if (visible == null) return true;
-    if (computerId == null) {
-      final primaries = widget.primaryComputers;
-      if (primaries == null || primaries.isEmpty) return true;
-      return primaries.any(visible.contains);
+    if (computerId == null) return true;
+    final overlays = widget.overlays;
+    if (widget.activeComputerId == null && (overlays?.isEmpty ?? true)) {
+      return true;
     }
-    return visible.contains(computerId);
+    if (computerId == widget.activeComputerId) return true;
+    return overlays?.any((o) => o.computerId == computerId) ?? false;
+  }
+
+  /// Nearest sample of [overlay] strictly within 10 seconds of [timestamp];
+  /// null when the overlay has no sample near that time (e.g. the overlaid
+  /// computer surfaced earlier). Overlay points are time-ordered, so a
+  /// binary-search lower bound finds the window start and only its
+  /// immediate neighborhood is scanned (tooltips rebuild on every hover
+  /// move, so this must not be O(n) in profile length).
+  DiveProfilePoint? _overlayPointAt(ChartSourceOverlay overlay, int timestamp) {
+    final points = overlay.points;
+    if (points.isEmpty) return null;
+
+    // Lower bound: first index with points[i].timestamp >= timestamp - 10.
+    final windowStart = timestamp - 10;
+    var lo = 0;
+    var hi = points.length;
+    while (lo < hi) {
+      final mid = (lo + hi) >> 1;
+      if (points[mid].timestamp < windowStart) {
+        lo = mid + 1;
+      } else {
+        hi = mid;
+      }
+    }
+
+    DiveProfilePoint? best;
+    var bestDelta = 11;
+    for (var i = lo; i < points.length; i++) {
+      final p = points[i];
+      if (p.timestamp > timestamp + 10) break;
+      final delta = (p.timestamp - timestamp).abs();
+      if (delta < bestDelta) {
+        bestDelta = delta;
+        best = p;
+      }
+    }
+    return best;
   }
 
   /// Map of tankId -> owning computerId, derived from [widget.tanks].
@@ -776,7 +822,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     identityHashCode(widget.cnsCurve),
     identityHashCode(widget.otuCurve),
     identityHashCode(widget.tankPressures),
-    identityHashCode(widget.computerProfiles),
+    identityHashCode(widget.overlays),
     identityHashCode(widget.gasSwitches),
     identityHashCode(widget.tanks),
     identityHashCode(widget.markers),
@@ -874,6 +920,20 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       ),
     );
 
+    // Overlaid sources' depth at this time, labeled with the metric so
+    // the value is unambiguous.
+    for (final overlay in widget.overlays ?? const <ChartSourceOverlay>[]) {
+      final overlayPoint = _overlayPointAt(overlay, point.timestamp);
+      if (overlayPoint == null) continue;
+      rows.add(
+        TooltipRow(
+          label: 'Depth · ${overlay.name}',
+          value: units.formatDepth(overlayPoint.depth),
+          bulletColor: overlay.color,
+        ),
+      );
+    }
+
     // Temperature
     if (_showTemperature) {
       rows.add(
@@ -885,6 +945,20 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           bulletColor: colorScheme.tertiary,
         ),
       );
+      for (final overlay in widget.overlays ?? const <ChartSourceOverlay>[]) {
+        final overlayTemp = _overlayPointAt(
+          overlay,
+          point.timestamp,
+        )?.temperature;
+        if (overlayTemp == null) continue;
+        rows.add(
+          TooltipRow(
+            label: 'Temp · ${overlay.name}',
+            value: units.formatTemperature(overlayTemp),
+            bulletColor: overlay.color.withValues(alpha: 0.6),
+          ),
+        );
+      }
     }
 
     // Ceiling
@@ -1311,16 +1385,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
-    // When multi-computer profiles are present, temperature data from any
-    // computer (not just the primary/dive.profile) should surface the
-    // temperature toggle.
-    final cpProfilesForTemp = widget.computerProfiles;
+    // Temperature data from the active source or any overlaid source should
+    // surface the temperature toggle.
+    final overlaySources = widget.overlays ?? const <ChartSourceOverlay>[];
     final hasTemperatureData =
-        cpProfilesForTemp != null && cpProfilesForTemp.length >= 2
-        ? cpProfilesForTemp.values.any(
-            (points) => points.any((p) => p.temperature != null),
-          )
-        : widget.profile.any((p) => p.temperature != null);
+        widget.profile.any((p) => p.temperature != null) ||
+        overlaySources.any((o) => o.points.any((p) => p.temperature != null));
     final hasPressureData = _hasMultiTankPressure;
     final hasHeartRateData = widget.profile.any((p) => p.heartRate != null);
     final colorScheme = Theme.of(context).colorScheme;
@@ -1772,14 +1842,19 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     final sacUnit = ref.read(sacUnitProvider);
     const heartRateColor = Colors.red;
 
-    // Calculate full data bounds (all values stored in meters, convert for display)
-    final totalMaxTime = widget.profile
-        .map((p) => p.timestamp)
-        .reduce(math.max)
-        .toDouble();
-    final maxDepthValueMeters = widget.profile
-        .map((p) => p.depth)
-        .reduce(math.max);
+    // Calculate full data bounds (all values stored in meters, convert for
+    // display). Overlaid sources widen the extents so a deeper or longer
+    // overlay trace is never clipped.
+    final overlayPoints = (widget.overlays ?? const <ChartSourceOverlay>[])
+        .expand((o) => o.points);
+    final totalMaxTime = [
+      widget.profile.map((p) => p.timestamp).reduce(math.max),
+      ...overlayPoints.map((p) => p.timestamp),
+    ].reduce(math.max).toDouble();
+    final maxDepthValueMeters = [
+      widget.profile.map((p) => p.depth).reduce(math.max),
+      ...overlayPoints.map((p) => p.depth),
+    ].reduce(math.max);
     // Convert to user's preferred depth unit for chart calculations
     final maxDepthValueDisplay = units.convertDepth(
       widget.maxDepth ?? maxDepthValueMeters,
@@ -1797,14 +1872,16 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     final visibleMaxDepth = visibleMinDepth + visibleRangeY;
 
     // Temperature bounds (if showing) - convert to user's preferred unit.
-    // With multi-computer profiles, pool every computer's readings (not just
-    // the primary) so the axis range doesn't jump as computers are toggled.
+    // Pool the active source's and every overlaid source's readings so both
+    // curves share one temperature scale and the axis range doesn't jump as
+    // overlays are toggled.
     double? minTemp, maxTemp;
     if (_showTemperature && hasTemperatureData) {
-      final cpProfiles = widget.computerProfiles;
-      final tempSource = cpProfiles != null && cpProfiles.length >= 2
-          ? cpProfiles.values.expand((points) => points)
-          : widget.profile;
+      final tempSource = widget.profile.followedBy(
+        (widget.overlays ?? const <ChartSourceOverlay>[]).expand(
+          (o) => o.points,
+        ),
+      );
       final temps = tempSource
           .where((p) => p.temperature != null)
           .map((p) => units.convertTemperature(p.temperature!));
@@ -2137,6 +2214,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   minPressure: minPressure,
                   maxPressure: maxPressure,
                 ),
+
+                // Overlaid comparison sources — LAST, so depth bars keep
+                // occupying the leading barIndex range (see _depthBarCount).
+                ..._buildOverlayLines(units, totalMaxDepth, minTemp, maxTemp),
               ],
             ),
             extraLinesData: ExtraLinesData(
@@ -2203,13 +2284,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       widget.onTooltipData?.call(null);
                     }
                   } else if (active) {
-                    // The depth line is split into multiple bars (per velocity
-                    // band, or one per computer); find the touched depth spot on
-                    // any of them and map it back to the global profile index.
-                    final multiComputer = _isMultiComputer();
-                    final depthBarCount = multiComputer
-                        ? _depthBarCount()
-                        : starts.length;
+                    // The depth line can be split into multiple bars (per
+                    // velocity band); find the touched depth spot on any of
+                    // them and map it back to the global profile index.
+                    final depthBarCount = starts.length;
                     final depthSpot = spots
                         .where((s) => s.barIndex < depthBarCount)
                         .firstOrNull;
@@ -2221,7 +2299,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                             barIndex: depthSpot.barIndex,
                             spotIndex: depthSpot.spotIndex,
                             spotX: depthSpot.x,
-                            multiComputer: multiComputer,
+                            multiComputer: false,
                           );
                     if (depthSpot != null &&
                         index >= 0 &&
@@ -2263,10 +2341,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   // so the depth spot can land on any bar in [0, starts.length)
                   // and its spotIndex is local to that bar.
                   final depthBarStarts = _depthBarStartIndices();
-                  final multiComputer = _isMultiComputer();
-                  final depthBarCount = multiComputer
-                      ? _depthBarCount()
-                      : depthBarStarts.length;
+                  final depthBarCount = depthBarStarts.length;
                   final depthSpot = touchedSpots
                       .where((s) => s.barIndex < depthBarCount)
                       .firstOrNull;
@@ -2278,7 +2353,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                           barIndex: depthSpot.barIndex,
                           spotIndex: depthSpot.spotIndex,
                           spotX: depthSpot.x,
-                          multiComputer: multiComputer,
+                          multiComputer: false,
                         );
                   final hasDepth =
                       depthSpot != null &&
@@ -2377,6 +2452,23 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       AppColors.chartDepth,
                     );
 
+                    // Overlaid sources' depth at this time, labeled with
+                    // the metric so the value is unambiguous.
+                    for (final overlay
+                        in widget.overlays ?? const <ChartSourceOverlay>[]) {
+                      final overlayPoint = _overlayPointAt(
+                        overlay,
+                        point.timestamp,
+                      );
+                      if (overlayPoint == null) continue;
+                      addRow(
+                        '${context.l10n.diveLog_tooltip_depth}'
+                        ' · ${overlay.name}',
+                        units.formatDepth(overlayPoint.depth),
+                        overlay.color,
+                      );
+                    }
+
                     // Temperature (if enabled - always show row)
                     if (_showTemperature) {
                       final tempValue = point.temperature != null
@@ -2387,6 +2479,20 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                         tempValue,
                         colorScheme.tertiary,
                       );
+                      for (final overlay
+                          in widget.overlays ?? const <ChartSourceOverlay>[]) {
+                        final overlayTemp = _overlayPointAt(
+                          overlay,
+                          point.timestamp,
+                        )?.temperature;
+                        if (overlayTemp == null) continue;
+                        addRow(
+                          '${context.l10n.diveLog_tooltip_temp}'
+                          ' · ${overlay.name}',
+                          units.formatTemperature(overlayTemp),
+                          overlay.color.withValues(alpha: 0.6),
+                        );
+                      }
                     }
 
                     // Heart rate (if enabled - always show row)
@@ -3110,20 +3216,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     });
   }
 
-  /// Build depth line segments.
-  ///
-  /// When [widget.computerProfiles] is provided with 2+ entries, draws one
-  /// depth curve per visible computer using its assigned color.  Primary
-  /// computers get a solid line; secondaries get a dashed line.
-  /// Falls back to single-profile rendering when multi-computer data is absent.
+  /// Build depth line segments for the active source ([widget.profile]).
   List<LineChartBarData> _buildGasColoredDepthLines(
     ColorScheme colorScheme,
     UnitFormatter units,
   ) {
-    final cpProfiles = widget.computerProfiles;
-    if (cpProfiles != null && cpProfiles.length >= 2) {
-      return _buildMultiComputerDepthLines(cpProfiles, units);
-    }
     // When the ascent-rate overlay is on, colour the depth line by velocity
     // band; otherwise draw a single solid depth-coloured segment.
     final ascentRates = widget.ascentRates;
@@ -3175,45 +3272,16 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         .toList();
   }
 
-  /// Whether the depth line is drawn as one bar per computer (2+ computers),
-  /// rather than a single primary line optionally split into velocity bands.
-  bool _isMultiComputer() {
-    final cpProfiles = widget.computerProfiles;
-    return cpProfiles != null && cpProfiles.length >= 2;
-  }
-
-  /// Number of leading depth-line bars fl_chart renders. Depth bars always
-  /// occupy `barIndex` `[0, count)`; a touched spot with a higher barIndex is
-  /// an overlay line (tank, ceiling, ...), not depth.
-  ///
-  /// Multi-computer draws one visible-computer line each; otherwise the depth
-  /// line is a single bar (or one per velocity band). Mirrors the branching in
-  /// [_buildGasColoredDepthLines].
-  int _depthBarCount() {
-    final cpProfiles = widget.computerProfiles;
-    if (cpProfiles != null && cpProfiles.length >= 2) {
-      final visible = widget.visibleComputers;
-      return cpProfiles.keys
-          .where((id) => visible == null || visible.contains(id))
-          .length;
-    }
-    return _depthBarStartIndices().length;
-  }
-
   /// Global profile start index of each depth-line bar, in bar order.
   ///
   /// Depth bars always occupy `barIndex` `[0, length)`. A touched spot on bar
   /// `b` at local `spotIndex` addresses profile point `result[b] + spotIndex`.
-  /// The depth line is a single full-span bar in the common case (and for
-  /// multi-computer rendering, where only the primary line maps to
-  /// [widget.profile]); velocity colouring splits it into one bar per band.
-  /// Mirrors the branching in [_buildGasColoredDepthLines].
+  /// The depth line is a single full-span bar in the common case; velocity
+  /// colouring splits it into one bar per band. Mirrors the branching in
+  /// [_buildGasColoredDepthLines].
   List<int> _depthBarStartIndices() {
-    final cpProfiles = widget.computerProfiles;
-    final multiComputer = cpProfiles != null && cpProfiles.length >= 2;
     final ascentRates = widget.ascentRates;
-    if (!multiComputer &&
-        _showAscentRateColors &&
+    if (_showAscentRateColors &&
         ascentRates != null &&
         ascentRates.length == widget.profile.length &&
         widget.profile.length >= 2) {
@@ -3246,81 +3314,133 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     return false;
   }
 
-  /// Build one depth line per computer for multi-computer rendering.
-  List<LineChartBarData> _buildMultiComputerDepthLines(
-    Map<String, List<DiveProfilePoint>> cpProfiles,
+  /// Build every overlaid source's lines: dashed depth, dimmed temperature
+  /// (when the temperature metric is enabled), and computer-reported
+  /// ceiling/NDL (when those metrics are enabled), all in the overlay's
+  /// color. Appended AFTER every other bar so the depth-bar indexing
+  /// contract (depth bars occupy `barIndex` `[0, _depthBarCount())`) stays
+  /// valid for the tooltip's spot-to-sample mapping.
+  List<LineChartBarData> _buildOverlayLines(
     UnitFormatter units,
+    double chartMaxDepth,
+    double? minTemp,
+    double? maxTemp,
   ) {
+    final overlays = widget.overlays;
+    if (overlays == null || overlays.isEmpty) return const [];
+
     final lines = <LineChartBarData>[];
-    var index = 0;
-    for (final entry in cpProfiles.entries) {
-      final computerId = entry.key;
-      final points = entry.value;
+    for (final overlay in overlays) {
+      if (overlay.points.isEmpty) continue;
 
-      // Skip computers that have been toggled off.
-      final visible = widget.visibleComputers;
-      if (visible != null && !visible.contains(computerId)) {
-        index++;
-        continue;
-      }
+      // Depth: dashed, no fill.
+      lines.add(
+        LineChartBarData(
+          spots: [
+            for (final p in overlay.points)
+              FlSpot(p.timestamp.toDouble(), -units.convertDepth(p.depth)),
+          ],
+          isCurved: true,
+          curveSmoothness: 0.2,
+          color: overlay.color,
+          barWidth: 2,
+          isStrokeCapRound: true,
+          dotData: const FlDotData(show: false),
+          dashArray: const [6, 4],
+          belowBarData: BarAreaData(show: false),
+        ),
+      );
 
-      final color =
-          widget.computerLineColors?[computerId] ?? _computerColorAt(index);
-      final isPrimary =
-          widget.primaryComputers?.contains(computerId) ?? index == 0;
-
-      final spots = points
-          .map(
-            (p) => FlSpot(p.timestamp.toDouble(), -units.convertDepth(p.depth)),
-          )
-          .toList();
-
-      if (isPrimary) {
-        // Solid line with fill for the primary computer.
-        lines.add(
-          LineChartBarData(
-            spots: spots,
-            isCurved: true,
-            curveSmoothness: 0.2,
-            color: color,
-            barWidth: 2,
-            isStrokeCapRound: true,
-            dotData: const FlDotData(show: false),
-            belowBarData: BarAreaData(
-              show: true,
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: GasColors.gradientColors(color),
-              ),
+      // Temperature: dimmed dashed, on the shared temperature scale.
+      if (_showTemperature && minTemp != null && maxTemp != null) {
+        final tempPoints = overlay.points
+            .where((p) => p.temperature != null)
+            .toList();
+        if (tempPoints.isNotEmpty) {
+          lines.add(
+            LineChartBarData(
+              spots: [
+                for (final p in tempPoints)
+                  FlSpot(
+                    p.timestamp.toDouble(),
+                    -_mapTempToDepth(
+                      units.convertTemperature(p.temperature!),
+                      chartMaxDepth,
+                      minTemp,
+                      maxTemp,
+                    ),
+                  ),
+              ],
+              isCurved: true,
+              curveSmoothness: 0.2,
+              color: overlay.color.withValues(alpha: 0.6),
+              barWidth: 2,
+              isStrokeCapRound: true,
+              dotData: const FlDotData(show: false),
+              dashArray: const [5, 3],
             ),
-          ),
-        );
-      } else {
-        // Dashed line (no fill) for secondary computers.
-        lines.add(
-          LineChartBarData(
-            spots: spots,
-            isCurved: true,
-            curveSmoothness: 0.2,
-            color: color,
-            barWidth: 2,
-            isStrokeCapRound: true,
-            dotData: const FlDotData(show: false),
-            dashArray: const [6, 4],
-            belowBarData: BarAreaData(show: false),
-          ),
-        );
+          );
+        }
       }
 
-      index++;
+      // Computer-reported ceiling, mapped like the active ceiling line.
+      if (_showCeiling) {
+        final ceilingSpots = [
+          for (final p in overlay.points)
+            if (p.ceiling != null && p.ceiling! > 0)
+              FlSpot(p.timestamp.toDouble(), -units.convertDepth(p.ceiling!)),
+        ];
+        if (ceilingSpots.isNotEmpty) {
+          lines.add(
+            LineChartBarData(
+              spots: ceilingSpots,
+              isCurved: true,
+              curveSmoothness: 0.2,
+              color: overlay.color.withValues(alpha: 0.45),
+              barWidth: 2,
+              isStrokeCapRound: true,
+              dotData: const FlDotData(show: false),
+              dashArray: const [4, 4],
+            ),
+          );
+        }
+      }
+
+      // Computer-reported NDL, on the same normalized scale as the active
+      // NDL line (see _buildNdlLine).
+      if (_showNdl) {
+        const maxNdlSeconds = 3600.0;
+        final ndlSpots = <FlSpot>[];
+        for (final p in overlay.points) {
+          final ndl = p.ndl;
+          if (ndl == null) continue;
+          final clamped = ndl.clamp(0, maxNdlSeconds.toInt()).toDouble();
+          ndlSpots.add(
+            FlSpot(
+              p.timestamp.toDouble(),
+              -(chartMaxDepth * (1 - clamped / maxNdlSeconds)),
+            ),
+          );
+        }
+        if (ndlSpots.isNotEmpty) {
+          lines.add(
+            LineChartBarData(
+              spots: ndlSpots,
+              isCurved: true,
+              curveSmoothness: 0.2,
+              preventCurveOverShooting: true,
+              color: overlay.color.withValues(alpha: 0.45),
+              barWidth: 2,
+              isStrokeCapRound: true,
+              dotData: const FlDotData(show: false),
+              dashArray: const [6, 3],
+            ),
+          );
+        }
+      }
     }
     return lines;
   }
-
-  /// Returns a color for a computer at the given index.
-  /// Delegates to the shared [computerColorAt] in computer_toggle_bar.dart.
-  Color _computerColorAt(int index) => computerColorAt(index);
 
   /// Build a single depth line segment with the given color
   LineChartBarData _buildSingleDepthSegment(
@@ -3408,14 +3528,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     return widget.profile.last.depth;
   }
 
-  /// Build the temperature curve(s) to draw.
-  ///
-  /// Falls back to a single tertiary-coloured curve from [widget.profile]
-  /// (unchanged legacy behaviour) unless [widget.computerProfiles] has 2+
-  /// entries, in which case one curve per VISIBLE computer is drawn instead
-  /// — color-matched to that computer's depth line (via
-  /// [widget.computerLineColors]) at reduced opacity so the temperature
-  /// overlay reads as secondary to the depth curves.
+  /// Build the active source's temperature curve. Overlaid sources' curves
+  /// render through [_buildOverlayLines] on the same shared scale.
   List<LineChartBarData> _buildTemperatureLines(
     ColorScheme colorScheme,
     double chartMaxDepth,
@@ -3423,16 +3537,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     double maxTemp,
     UnitFormatter units,
   ) {
-    final cpProfiles = widget.computerProfiles;
-    if (cpProfiles != null && cpProfiles.length >= 2) {
-      return _buildMultiComputerTemperatureLines(
-        cpProfiles,
-        chartMaxDepth,
-        minTemp,
-        maxTemp,
-        units,
-      );
-    }
     return [
       _buildTemperatureLine(
         colorScheme,
@@ -3475,59 +3579,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       dotData: const FlDotData(show: false),
       dashArray: [5, 3],
     );
-  }
-
-  /// One temperature curve per visible computer, color-matched to its depth
-  /// line at reduced opacity. Computers with no temperature readings, or
-  /// toggled off via [widget.visibleComputers], are skipped.
-  List<LineChartBarData> _buildMultiComputerTemperatureLines(
-    Map<String, List<DiveProfilePoint>> cpProfiles,
-    double chartMaxDepth,
-    double minTemp,
-    double maxTemp,
-    UnitFormatter units,
-  ) {
-    final lines = <LineChartBarData>[];
-    var index = 0;
-    for (final entry in cpProfiles.entries) {
-      final computerId = entry.key;
-      final points = entry.value;
-      index++;
-
-      if (!_isComputerVisible(computerId)) continue;
-
-      final tempPoints = points.where((p) => p.temperature != null).toList();
-      if (tempPoints.isEmpty) continue;
-
-      final baseColor =
-          widget.computerLineColors?[computerId] ?? _computerColorAt(index - 1);
-
-      lines.add(
-        LineChartBarData(
-          spots: tempPoints
-              .map(
-                (p) => FlSpot(
-                  p.timestamp.toDouble(),
-                  -_mapTempToDepth(
-                    units.convertTemperature(p.temperature!),
-                    chartMaxDepth,
-                    minTemp,
-                    maxTemp,
-                  ),
-                ),
-              )
-              .toList(),
-          isCurved: true,
-          curveSmoothness: 0.2,
-          color: baseColor.withValues(alpha: 0.6),
-          barWidth: 2,
-          isStrokeCapRound: true,
-          dotData: const FlDotData(show: false),
-          dashArray: const [5, 3],
-        ),
-      );
-    }
-    return lines;
   }
 
   /// Build multiple pressure lines for multi-tank visualization

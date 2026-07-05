@@ -5646,6 +5646,43 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_sources_unknownComputer => 'Onbekende computer';
 
   @override
+  String get diveLog_sources_manualEntry => 'Handmatige invoer';
+
+  @override
+  String get diveLog_sources_importedFile => 'Geïmporteerd bestand';
+
+  @override
+  String get diveLog_sources_editedSuffix => ' (bewerkt)';
+
+  @override
+  String get diveLog_sources_barLabel => 'BRONNEN';
+
+  @override
+  String get diveLog_sources_menu_setPrimary => 'Instellen als primair';
+
+  @override
+  String get diveLog_sources_menu_split => 'Splitsen naar aparte duik';
+
+  @override
+  String get diveLog_sources_overlayTooltip => 'Overlay op grafiek';
+
+  @override
+  String get diveLog_sources_splitDialog_title => 'Splitsen naar aparte duik?';
+
+  @override
+  String get diveLog_sources_splitDialog_body =>
+      'Het profiel, de gebeurtenissen en de flessen van deze bron worden verplaatst naar een nieuwe duik. De logboekvermelding blijft bij deze duik.';
+
+  @override
+  String get diveLog_sources_splitDialog_confirm => 'Splitsen';
+
+  @override
+  String get diveLog_sources_splitDone => 'Duik gesplitst';
+
+  @override
+  String get diveLog_sources_splitFailed => 'Splitsen mislukt';
+
+  @override
   String get divePlanner_action_addTank => 'Fles toevoegen';
 
   @override

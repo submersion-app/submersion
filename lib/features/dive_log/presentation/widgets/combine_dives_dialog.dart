@@ -10,7 +10,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
 import 'package:submersion/features/dive_log/domain/services/dive_consolidation_builder.dart';
 import 'package:submersion/features/dive_log/domain/services/dive_merge_builder.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/computer_toggle_bar.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/run_dive_consolidation.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -485,7 +485,7 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
                           plan.previewSeries[sortedDives.first.id] ?? const [],
                       width: double.infinity,
                       height: 120,
-                      color: computerColorAt(0),
+                      color: sourceColorAt(0),
                       maxPoints: 200,
                       extraSeries: [
                         for (var i = 1; i < sortedDives.length; i++)
@@ -493,7 +493,7 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
                             profile:
                                 plan.previewSeries[sortedDives[i].id] ??
                                 const [],
-                            color: computerColorAt(i),
+                            color: sourceColorAt(i),
                           ),
                       ],
                     ),
@@ -522,7 +522,7 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
                               child: Icon(
                                 Icons.circle,
                                 size: 12,
-                                color: computerColorAt(i),
+                                color: sourceColorAt(i),
                               ),
                             ),
                             title: Text(
@@ -594,7 +594,7 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
         for (final diveId in [targetId, ...secondaryIds]) {
           container.invalidate(diveProvider(diveId));
           container.invalidate(diveProfileProvider(diveId));
-          container.invalidate(profilesBySourceProvider(diveId));
+          container.invalidate(sourceProfilesProvider(diveId));
           container.invalidate(diveDataSourcesProvider(diveId));
         }
       },

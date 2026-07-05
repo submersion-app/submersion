@@ -6,6 +6,9 @@ import 'package:submersion/features/dive_log/data/services/gas_usage_segments_se
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/data/services/profile_markers_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
+import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
+import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
@@ -15,6 +18,7 @@ import 'package:submersion/features/dive_log/presentation/utils/sac_normalizatio
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_layout.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_instrument_bar.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -108,7 +112,23 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
     // Render from AsyncValue.value so background reloads never flash the UI.
     final diveAsync = ref.watch(diveProvider(widget.diveId));
     final dive = diveAsync.value;
-    final analysis = ref.watch(profileAnalysisProvider(widget.diveId)).value;
+    // The fullscreen chart follows the same active source as the detail
+    // page (shared family providers keyed by dive id).
+    final activeSourceId = ref.watch(activeDiveSourceProvider(widget.diveId));
+    final analysis = ref
+        .watch(
+          sourceProfileAnalysisProvider((
+            diveId: widget.diveId,
+            sourceId: activeSourceId,
+          )),
+        )
+        .value;
+    final sourceProfiles =
+        ref.watch(sourceProfilesProvider(widget.diveId)).value ??
+        const <String, SourceProfile>{};
+    final dataSources =
+        ref.watch(diveDataSourcesProvider(widget.diveId)).value ?? const [];
+    final overlayIds = ref.watch(overlaySourcesProvider(widget.diveId));
     final gasSwitches = ref.watch(gasSwitchesProvider(widget.diveId)).value;
     final tankPressures = ref.watch(tankPressuresProvider(widget.diveId)).value;
     final reviewTimestamp = ref.watch(profileReviewProvider(widget.diveId));
@@ -175,6 +195,54 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
             maxProfileSeconds: dive.profile.last.timestamp,
           );
 
+    // Active source and overlays (mirrors the detail page's wiring).
+    final labels = SourceNameLabels(
+      unknownComputer: context.l10n.diveLog_sources_unknownComputer,
+      manualEntry: context.l10n.diveLog_sources_manualEntry,
+      importedFile: context.l10n.diveLog_sources_importedFile,
+      editedSuffix: context.l10n.diveLog_sources_editedSuffix,
+    );
+    final primarySource =
+        dataSources.where((s) => s.isPrimary).firstOrNull ??
+        dataSources.firstOrNull;
+    final activeSource = activeSourceId == null
+        ? primarySource
+        : dataSources.where((s) => s.id == activeSourceId).firstOrNull ??
+              primarySource;
+    final activeProfile = activeSource == null
+        ? null
+        : sourceProfiles[activeSource.id];
+    // A metadata-only active source has an entry with no points; the chart
+    // then renders its empty-profile placeholder instead of silently
+    // falling back to the primary's profile (mixed attribution).
+    final chartProfile = (dataSources.length >= 2 && activeProfile != null)
+        ? activeProfile.points
+        : dive.profile;
+    final sourceColorById = <String, Color>{
+      for (final (index, s) in dataSources.indexed) s.id: sourceColorAt(index),
+    };
+    // Overlay ids are session state and can briefly outlive their source
+    // rows (e.g. right after a split); skip any stale entries instead of
+    // crashing on the lookup.
+    final sourceById = {for (final s in dataSources) s.id: s};
+    final overlays = <ChartSourceOverlay>[
+      for (final id in overlayIds)
+        if (id != activeSource?.id &&
+            sourceProfiles[id] != null &&
+            sourceById[id] != null)
+          ChartSourceOverlay(
+            sourceId: id,
+            name: resolveSourceName(
+              sourceById[id]!,
+              labels,
+              edited: sourceProfiles[id]!.isEdited,
+            ),
+            color: sourceColorById[id] ?? sourceColorAt(0),
+            computerId: sourceProfiles[id]!.computerId,
+            points: sourceProfiles[id]!.points,
+          ),
+    ];
+
     return Scaffold(
       body: SafeArea(
         child: CallbackShortcuts(
@@ -198,7 +266,9 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
                     child: DiveProfileChart(
-                      profile: dive.profile,
+                      profile: chartProfile,
+                      overlays: overlays.isEmpty ? null : overlays,
+                      activeComputerId: activeProfile?.computerId,
                       diveDuration: dive.effectiveRuntime,
                       maxDepth: dive.maxDepth,
                       legendLeading: Row(
@@ -265,22 +335,22 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                       tanks: dive.tanks,
                       tankPressures: tankPressures,
                       gasSwitches: gasSwitches,
-                      gasSegments: (dive.tanks.isEmpty || dive.profile.isEmpty)
+                      gasSegments: (dive.tanks.isEmpty || chartProfile.isEmpty)
                           ? null
                           : buildGasUsageSegments(
                               tanks: dive.tanks,
                               gasSwitches: gasSwitches ?? const [],
-                              diveDurationSeconds: dive.profile.last.timestamp,
+                              diveDurationSeconds: chartProfile.last.timestamp,
                             ),
-                      diveDurationSeconds: dive.profile.isEmpty
+                      diveDurationSeconds: chartProfile.isEmpty
                           ? null
-                          : dive.profile.last.timestamp,
+                          : chartProfile.last.timestamp,
                       highlightedTimestamp: reviewTimestamp,
                       onPointSelected: (index) {
-                        if (index == null || index >= dive.profile.length) {
+                        if (index == null || index >= chartProfile.length) {
                           return;
                         }
-                        final timestamp = dive.profile[index].timestamp;
+                        final timestamp = chartProfile[index].timestamp;
                         ref
                                 .read(
                                   profileReviewProvider(widget.diveId).notifier,
@@ -298,6 +368,65 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                     ),
                   ),
                 ),
+                // Source switching and overlay comparison, mirroring the
+                // detail page (management actions stay on the detail page).
+                if (dataSources.length >= 2)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: SourceBar(
+                      sources: [
+                        for (final s in dataSources)
+                          SourceBarItem(
+                            sourceId: s.id,
+                            label: resolveSourceName(
+                              s,
+                              labels,
+                              edited: sourceProfiles[s.id]?.isEdited ?? false,
+                            ),
+                            color: sourceColorById[s.id] ?? sourceColorAt(0),
+                            isActive: s.id == activeSource?.id,
+                            isPrimary: s.isPrimary,
+                            isOverlaid: overlayIds.contains(s.id),
+                            hasProfile:
+                                sourceProfiles[s.id]?.points.isNotEmpty ??
+                                false,
+                          ),
+                      ],
+                      onActivate: (id) {
+                        ref
+                                .read(
+                                  activeDiveSourceProvider(
+                                    widget.diveId,
+                                  ).notifier,
+                                )
+                                .state =
+                            id;
+                        final current = ref.read(
+                          overlaySourcesProvider(widget.diveId),
+                        );
+                        if (current.contains(id)) {
+                          ref
+                              .read(
+                                overlaySourcesProvider(widget.diveId).notifier,
+                              )
+                              .state = {...current}
+                            ..remove(id);
+                        }
+                      },
+                      onToggleOverlay: (id, overlaid) {
+                        final current = ref.read(
+                          overlaySourcesProvider(widget.diveId),
+                        );
+                        ref
+                            .read(
+                              overlaySourcesProvider(widget.diveId).notifier,
+                            )
+                            .state = overlaid
+                            ? {...current, id}
+                            : ({...current}..remove(id));
+                      },
+                    ),
+                  ),
                 ProfileInstrumentBar(
                   diveId: widget.diveId,
                   dive: dive,

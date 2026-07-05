@@ -5692,6 +5692,44 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_sources_unknownComputer => 'Computer sconosciuto';
 
   @override
+  String get diveLog_sources_manualEntry => 'Inserimento manuale';
+
+  @override
+  String get diveLog_sources_importedFile => 'File importato';
+
+  @override
+  String get diveLog_sources_editedSuffix => ' (modificato)';
+
+  @override
+  String get diveLog_sources_barLabel => 'FONTI';
+
+  @override
+  String get diveLog_sources_menu_setPrimary => 'Imposta come principale';
+
+  @override
+  String get diveLog_sources_menu_split => 'Dividi in immersione separata';
+
+  @override
+  String get diveLog_sources_overlayTooltip => 'Sovrapponi sul grafico';
+
+  @override
+  String get diveLog_sources_splitDialog_title =>
+      'Dividere in immersione separata?';
+
+  @override
+  String get diveLog_sources_splitDialog_body =>
+      'Il profilo, gli eventi e le bombole di questa fonte verranno spostati in una nuova immersione. La voce del logbook resta su questa immersione.';
+
+  @override
+  String get diveLog_sources_splitDialog_confirm => 'Dividi';
+
+  @override
+  String get diveLog_sources_splitDone => 'Immersione divisa';
+
+  @override
+  String get diveLog_sources_splitFailed => 'Divisione non riuscita';
+
+  @override
   String get divePlanner_action_addTank => 'Aggiungi Bombola';
 
   @override

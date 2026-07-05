@@ -5434,6 +5434,43 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_sources_unknownComputer => '未知电脑';
 
   @override
+  String get diveLog_sources_manualEntry => '手动录入';
+
+  @override
+  String get diveLog_sources_importedFile => '导入的文件';
+
+  @override
+  String get diveLog_sources_editedSuffix => '（已编辑）';
+
+  @override
+  String get diveLog_sources_barLabel => '数据来源';
+
+  @override
+  String get diveLog_sources_menu_setPrimary => '设为主要来源';
+
+  @override
+  String get diveLog_sources_menu_split => '拆分为单独潜水';
+
+  @override
+  String get diveLog_sources_overlayTooltip => '叠加到图表';
+
+  @override
+  String get diveLog_sources_splitDialog_title => '拆分为单独潜水？';
+
+  @override
+  String get diveLog_sources_splitDialog_body =>
+      '此来源的曲线、事件和气瓶将移至新的潜水记录。日志条目保留在当前潜水中。';
+
+  @override
+  String get diveLog_sources_splitDialog_confirm => '拆分';
+
+  @override
+  String get diveLog_sources_splitDone => '潜水已拆分';
+
+  @override
+  String get diveLog_sources_splitFailed => '拆分失败';
+
+  @override
   String get divePlanner_action_addTank => '添加气瓶';
 
   @override

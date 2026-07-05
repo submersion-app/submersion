@@ -9,10 +9,13 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
 import 'package:submersion/features/dive_log/data/services/dive_merge_service.dart';
+import 'package:submersion/features/dive_log/data/services/dive_split_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
+import 'package:submersion/features/dive_log/domain/entities/source_profile.dart'
+    as domain;
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
@@ -119,6 +122,12 @@ final diveConsolidationServiceProvider = Provider<DiveConsolidationService>((
   return DiveConsolidationService(ref.watch(diveRepositoryProvider));
 });
 
+/// Split-a-source-into-its-own-dive service singleton (inverse of
+/// consolidation).
+final diveSplitServiceProvider = Provider<DiveSplitService>((ref) {
+  return DiveSplitService(ref.watch(diveRepositoryProvider));
+});
+
 /// Autocomplete suggestions: distinct keys this diver has used
 final customFieldKeySuggestionsProvider =
     FutureProvider.family<List<String>, String>((ref, diverId) async {
@@ -168,16 +177,17 @@ final diveProfileProvider =
       return repository.getDiveProfile(diveId);
     });
 
-/// Profiles grouped by source (computer ID / 'user-edited' / 'original').
-/// Used for multi-computer toggle rendering in the dive profile chart.
-final profilesBySourceProvider =
-    FutureProvider.family<Map<String?, List<domain.DiveProfilePoint>>, String>((
+/// Profiles grouped by owning data source (active-source model). Keys are
+/// dive_data_sources ids, primary source first; null-computerId rows are
+/// attributed to the primary source so no source ever renders as unknown.
+final sourceProfilesProvider =
+    FutureProvider.family<Map<String, domain.SourceProfile>, String>((
       ref,
       diveId,
     ) async {
       final repository = ref.watch(diveRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchDiveDetailChanges());
-      return repository.getProfilesBySource(diveId);
+      return repository.getProfilesByDataSource(diveId);
     });
 
 /// Batch profile cache for mini charts in the dive list.

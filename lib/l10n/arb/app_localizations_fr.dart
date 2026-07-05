@@ -5714,6 +5714,44 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_sources_unknownComputer => 'Ordinateur inconnu';
 
   @override
+  String get diveLog_sources_manualEntry => 'Saisie manuelle';
+
+  @override
+  String get diveLog_sources_importedFile => 'Fichier importé';
+
+  @override
+  String get diveLog_sources_editedSuffix => ' (modifié)';
+
+  @override
+  String get diveLog_sources_barLabel => 'SOURCES';
+
+  @override
+  String get diveLog_sources_menu_setPrimary => 'Définir comme principal';
+
+  @override
+  String get diveLog_sources_menu_split => 'Scinder en une plongée séparée';
+
+  @override
+  String get diveLog_sources_overlayTooltip => 'Superposer sur le graphique';
+
+  @override
+  String get diveLog_sources_splitDialog_title =>
+      'Scinder en une plongée séparée ?';
+
+  @override
+  String get diveLog_sources_splitDialog_body =>
+      'Le profil, les événements et les blocs de cette source seront déplacés vers une nouvelle plongée. L\'entrée du carnet reste sur cette plongée.';
+
+  @override
+  String get diveLog_sources_splitDialog_confirm => 'Scinder';
+
+  @override
+  String get diveLog_sources_splitDone => 'Plongée scindée';
+
+  @override
+  String get diveLog_sources_splitFailed => 'Échec de la scission';
+
+  @override
   String get divePlanner_action_addTank => 'Ajouter une bouteille';
 
   @override

@@ -70,17 +70,6 @@ class DiveDataSource extends Equatable {
     required this.createdAt,
   });
 
-  /// Display name for the data source: the linked computer's friendly name
-  /// when known, else the model snapshot, else "Unknown Source".
-  String get displayName => computerName ?? computerModel ?? 'Unknown Source';
-
-  /// Label for this source's computer, preferring the friendly name, then the
-  /// model, then the serial, then the caller-supplied [unknownLabel]. Used
-  /// where a localized "unknown" fallback is needed (e.g. the profile chart's
-  /// per-computer legend).
-  String computerLabel(String unknownLabel) =>
-      computerName ?? computerModel ?? computerSerial ?? unknownLabel;
-
   DiveDataSource copyWith({
     String? id,
     String? diveId,

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
+import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/presentation/pages/fullscreen_profile_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
@@ -10,6 +12,7 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_play
 import 'package:submersion/features/dive_log/presentation/providers/profile_review_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_instrument_bar.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -142,6 +145,93 @@ void main() {
       expect(playback.isPlaying, isFalse);
       expect(playback.isActive, isFalse);
       expect(container.read(profileReviewProvider('d1')), isNull);
+    },
+  );
+  testWidgets(
+    'multi-source dive shows the sources bar; tapping a chip switches the '
+    'chart profile; no management menu in fullscreen',
+    (tester) async {
+      final now = DateTime(2026, 5, 7);
+      DiveDataSource source(String id, String computerId, bool isPrimary) =>
+          DiveDataSource(
+            id: id,
+            diveId: 'd1',
+            computerId: computerId,
+            isPrimary: isPrimary,
+            computerName: isPrimary ? 'Black' : 'Bronze',
+            importedAt: now,
+            createdAt: now,
+          );
+      List<DiveProfilePoint> points(int count) => List.generate(
+        count,
+        (i) => DiveProfilePoint(timestamp: i * 10, depth: 10),
+      );
+
+      await tester.pumpWidget(
+        _wrap([
+          ..._defaultOverrides(),
+          diveDataSourcesProvider('d1').overrideWith(
+            (ref) async => [
+              source('src-a', 'dc-a', true),
+              source('src-b', 'dc-b', false),
+            ],
+          ),
+          sourceProfilesProvider('d1').overrideWith(
+            (ref) async => {
+              'src-a': SourceProfile(
+                sourceId: 'src-a',
+                computerId: 'dc-a',
+                isEdited: false,
+                points: points(61),
+              ),
+              'src-b': SourceProfile(
+                sourceId: 'src-b',
+                computerId: 'dc-b',
+                isEdited: false,
+                points: points(40),
+              ),
+            },
+          ),
+        ]),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(find.byType(SourceBar), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(SourceBar),
+          matching: find.text('Bronze'),
+        ),
+        findsOneWidget,
+      );
+      // Management stays on the detail page: no overflow menus here.
+      expect(
+        find.descendant(
+          of: find.byType(SourceBar),
+          matching: find.byIcon(Icons.more_vert),
+        ),
+        findsNothing,
+      );
+
+      expect(
+        tester.widget<DiveProfileChart>(find.byType(DiveProfileChart)).profile,
+        hasLength(61),
+      );
+
+      await tester.tap(
+        find.descendant(
+          of: find.byType(SourceBar),
+          matching: find.text('Bronze'),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(
+        tester.widget<DiveProfileChart>(find.byType(DiveProfileChart)).profile,
+        hasLength(40),
+      );
     },
   );
 }

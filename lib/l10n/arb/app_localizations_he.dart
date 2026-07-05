@@ -5541,6 +5541,43 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_sources_unknownComputer => 'מחשב לא ידוע';
 
   @override
+  String get diveLog_sources_manualEntry => 'הזנה ידנית';
+
+  @override
+  String get diveLog_sources_importedFile => 'קובץ מיובא';
+
+  @override
+  String get diveLog_sources_editedSuffix => ' (נערך)';
+
+  @override
+  String get diveLog_sources_barLabel => 'מקורות';
+
+  @override
+  String get diveLog_sources_menu_setPrimary => 'הגדר כראשי';
+
+  @override
+  String get diveLog_sources_menu_split => 'פצל לצלילה נפרדת';
+
+  @override
+  String get diveLog_sources_overlayTooltip => 'הצג כשכבה בגרף';
+
+  @override
+  String get diveLog_sources_splitDialog_title => 'לפצל לצלילה נפרדת?';
+
+  @override
+  String get diveLog_sources_splitDialog_body =>
+      'הפרופיל, האירועים והמיכלים של מקור זה יועברו לצלילה חדשה. רישום היומן נשאר בצלילה זו.';
+
+  @override
+  String get diveLog_sources_splitDialog_confirm => 'פצל';
+
+  @override
+  String get diveLog_sources_splitDone => 'הצלילה פוצלה';
+
+  @override
+  String get diveLog_sources_splitFailed => 'הפיצול נכשל';
+
+  @override
   String get divePlanner_action_addTank => 'הוסף מיכל';
 
   @override

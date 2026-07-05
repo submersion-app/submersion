@@ -831,10 +831,13 @@ void main() {
         const DiveProfilePoint(timestamp: 4, depth: 5.0),
       ]);
 
-      // getProfilesBySource should show both
-      final sources = await repository.getProfilesBySource(createdDive.id);
-      expect(sources.length, 2); // original + edited
-      expect(sources.containsKey('user-edited'), isTrue);
+      // The primary source's profile is the edited variant; the demoted
+      // originals stay restorable via restoreOriginalProfile but are not
+      // surfaced as a sibling source (spec 2026-07-04).
+      await repository.backfillPrimaryDataSource(createdDive.id);
+      final sources = await repository.getProfilesByDataSource(createdDive.id);
+      expect(sources.length, 1);
+      expect(sources.values.single.isEdited, isTrue);
     });
 
     test(
@@ -864,7 +867,8 @@ void main() {
       },
     );
 
-    test('getProfilesBySource returns both original and edited', () async {
+    test('getProfilesByDataSource surfaces the edited profile as the '
+        'primary source', () async {
       final dive = createTestDive();
       final createdDive = await repository.createDive(
         dive.copyWith(
@@ -882,11 +886,13 @@ void main() {
         const DiveProfilePoint(timestamp: 8, depth: 15.0),
       ]);
 
-      final sources = await repository.getProfilesBySource(createdDive.id);
-      expect(sources.length, 2);
-      // Check user-edited source
-      expect(sources['user-edited']!.length, 3);
-      expect(sources['user-edited']![2].depth, 15.0);
+      await repository.backfillPrimaryDataSource(createdDive.id);
+      final sources = await repository.getProfilesByDataSource(createdDive.id);
+      expect(sources.length, 1);
+      final primary = sources.values.single;
+      expect(primary.isEdited, isTrue);
+      expect(primary.points.length, 3);
+      expect(primary.points[2].depth, 15.0);
     });
 
     test('saveEditedProfile recalculates dive stats', () async {

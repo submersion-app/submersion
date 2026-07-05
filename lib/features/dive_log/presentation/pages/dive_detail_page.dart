@@ -49,12 +49,13 @@ import 'package:submersion/features/dive_log/presentation/widgets/surface_gps_se
 import 'package:submersion/features/dive_log/presentation/widgets/data_sources_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/field_attribution_badge.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail_row.dart';
+import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/domain/services/field_attribution_service.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/merge_dive_dialog.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/run_dive_consolidation.dart';
+import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
+import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_deco_status_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_tissue_loading_card.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/computer_toggle_bar.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_layout.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/playback_controls.dart';
@@ -102,11 +103,6 @@ class DiveDetailPage extends ConsumerStatefulWidget {
 }
 
 class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
-  /// Currently viewed data source ID (tap-to-view interaction)
-  final ValueNotifier<String?> _viewedSourceIdNotifier = ValueNotifier<String?>(
-    null,
-  );
-
   /// Track if we've already initiated a redirect to prevent multiple calls
   bool _hasRedirected = false;
 
@@ -121,10 +117,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
   /// Whether a page export is currently in progress
   bool _isExportingPage = false;
-
-  /// Which computer IDs are currently visible in the profile chart.
-  /// Empty set means "all visible" (default before sources are loaded).
-  Set<String> _visibleComputers = {};
 
   /// Last usable profile analysis rendered in the deco/tissue/O2 panel, kept
   /// (paired with the dive id it belongs to) so a transient null from
@@ -149,20 +141,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   String? _lastSacSegmentsAnalysisDiveId;
 
   String get diveId => widget.diveId;
-
-  @override
-  void didUpdateWidget(DiveDetailPage oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.diveId != widget.diveId) {
-      _viewedSourceIdNotifier.value = null;
-    }
-  }
-
-  @override
-  void dispose() {
-    _viewedSourceIdNotifier.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -274,22 +252,32 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       },
       DiveDetailSectionId.details: () {
         return [
-          ValueListenableBuilder<String?>(
-            valueListenable: _viewedSourceIdNotifier,
-            builder: (context, viewedSourceId, _) {
+          Consumer(
+            builder: (context, ref, _) {
+              final viewedSourceId = ref.watch(
+                activeDiveSourceProvider(dive.id),
+              );
               final dataSources = computerReadingsAsync.valueOrNull ?? [];
               final attribution = FieldAttributionService.computeAttribution(
                 dataSources,
                 viewedSourceId: viewedSourceId,
+                nameOf: (s) => resolveSourceName(s, _sourceNameLabels(context)),
               );
               final showBadges =
                   settings.showDataSourceBadges && attribution.isNotEmpty;
+              // The Dive Computer row follows the active source.
+              final activeSource = viewedSourceId == null
+                  ? dataSources.where((s) => s.isPrimary).firstOrNull
+                  : dataSources
+                        .where((s) => s.id == viewedSourceId)
+                        .firstOrNull;
               return _buildDetailsSection(
                 context,
                 ref,
                 dive,
                 units,
                 attribution: showBadges ? attribution : null,
+                activeComputerId: activeSource?.computerId,
               );
             },
           ),
@@ -317,13 +305,16 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         if (dive.entryLocation == null && dive.exitLocation == null) return [];
         return [
           const SizedBox(height: 24),
-          ValueListenableBuilder<String?>(
-            valueListenable: _viewedSourceIdNotifier,
-            builder: (context, viewedSourceId, _) {
+          Consumer(
+            builder: (context, ref, _) {
+              final viewedSourceId = ref.watch(
+                activeDiveSourceProvider(dive.id),
+              );
               final dataSources = computerReadingsAsync.valueOrNull ?? [];
               final attribution = FieldAttributionService.computeAttribution(
                 dataSources,
                 viewedSourceId: viewedSourceId,
+                nameOf: (s) => resolveSourceName(s, _sourceNameLabels(context)),
               );
               final showBadges =
                   settings.showDataSourceBadges && attribution.isNotEmpty;
@@ -396,9 +387,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       DiveDetailSectionId.dataSources: () {
         return [
           const SizedBox(height: 24),
-          ValueListenableBuilder<String?>(
-            valueListenable: _viewedSourceIdNotifier,
-            builder: (context, viewedSourceId, _) {
+          Consumer(
+            builder: (context, ref, _) {
+              final viewedSourceId = ref.watch(
+                activeDiveSourceProvider(dive.id),
+              );
               final dataSources = computerReadingsAsync.valueOrNull ?? [];
               return DataSourcesSection(
                 dataSources: dataSources,
@@ -407,11 +400,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 units: units,
                 viewedSourceId: viewedSourceId,
                 onTapSource: (sourceId) {
-                  if (_viewedSourceIdNotifier.value == sourceId) {
-                    _viewedSourceIdNotifier.value = null;
-                  } else {
-                    _viewedSourceIdNotifier.value = sourceId;
-                  }
+                  final notifier = ref.read(
+                    activeDiveSourceProvider(dive.id).notifier,
+                  );
+                  notifier.state = notifier.state == sourceId ? null : sourceId;
                 },
                 onSetPrimary: (readingId) => _onSetPrimaryDataSource(
                   context,
@@ -419,12 +411,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   diveId: dive.id,
                   readingId: readingId,
                 ),
-                onUnlink: (readingId) => _onUnlinkDataSource(
-                  context,
-                  ref,
-                  diveId: dive.id,
-                  readingId: readingId,
-                ),
+                onSplit: (readingId) => _confirmAndSplit(dive, readingId),
               );
             },
           ),
@@ -457,22 +444,27 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Fixed: Header
-            ValueListenableBuilder<String?>(
-              valueListenable: _viewedSourceIdNotifier,
-              builder: (context, viewedSourceId, _) {
-                final dataSources = computerReadingsAsync.valueOrNull ?? [];
-                final attribution = FieldAttributionService.computeAttribution(
-                  dataSources,
-                  viewedSourceId: viewedSourceId,
+            Consumer(
+              builder: (context, ref, _) {
+                final viewedSourceId = ref.watch(
+                  activeDiveSourceProvider(dive.id),
                 );
-                final showBadges =
-                    settings.showDataSourceBadges && attribution.isNotEmpty;
+                final dataSources = computerReadingsAsync.valueOrNull ?? [];
+                // Header stat values follow the active source when a
+                // non-primary source is selected on a multi-source dive;
+                // the SOURCES bar carries the attribution, so the stat
+                // metrics themselves stay badge-free.
+                final activeSource = viewedSourceId == null
+                    ? null
+                    : dataSources
+                          .where((s) => s.id == viewedSourceId && !s.isPrimary)
+                          .firstOrNull;
                 return _buildHeaderSection(
                   context,
                   ref,
                   dive,
                   units,
-                  attribution: showBadges ? attribution : null,
+                  activeSource: activeSource,
                 );
               },
             ),
@@ -530,9 +522,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 case 'export':
                   _showExportOptions(context, ref, dive);
                   break;
-                case 'merge':
-                  _showMergeDiveDialog(context, ref, dive);
-                  break;
                 case 'reparse':
                   _reparseDive(context, ref, dive);
                   break;
@@ -547,15 +536,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 child: ListTile(
                   leading: const Icon(Icons.download),
                   title: Text(context.l10n.diveLog_detail_menu_export),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-              const PopupMenuItem(
-                enabled: false,
-                value: 'merge',
-                child: ListTile(
-                  leading: Icon(Icons.merge),
-                  title: Text('Merge with another dive'),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
@@ -693,9 +673,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 case 'export':
                   _showExportOptions(context, ref, dive);
                   break;
-                case 'merge':
-                  _showMergeDiveDialog(context, ref, dive);
-                  break;
                 case 'reparse':
                   _reparseDive(context, ref, dive);
                   break;
@@ -722,15 +699,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 child: ListTile(
                   leading: const Icon(Icons.download),
                   title: Text(context.l10n.diveLog_detail_menu_export),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-              const PopupMenuItem(
-                enabled: false,
-                value: 'merge',
-                child: ListTile(
-                  leading: Icon(Icons.merge),
-                  title: Text('Merge with another dive'),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
@@ -768,7 +736,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     WidgetRef ref,
     Dive dive,
     UnitFormatter units, {
-    Map<String, String>? attribution,
+    DiveDataSource? activeSource,
   }) {
     final entryLoc = dive.entryLocation;
     final exitLoc = dive.exitLocation;
@@ -863,32 +831,32 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               _buildStatItem(
                 context,
                 Icons.arrow_downward,
-                units.formatDepth(dive.maxDepth),
+                units.formatDepth(activeSource?.maxDepth ?? dive.maxDepth),
                 context.l10n.diveLog_detail_stat_maxDepth,
-                sourceName: attribution?['maxDepth'],
               ),
               _buildStatItem(
                 context,
                 Icons.timelapse,
-                _formatRuntime(dive),
+                _formatRuntimeForSource(dive, activeSource),
                 context.l10n.diveLog_detail_stat_runtime,
-                sourceName: attribution?['bottomTime'],
               ),
               _buildStatItem(
                 context,
                 Icons.timer,
-                dive.bottomTime != null
+                activeSource?.duration != null
+                    ? '${activeSource!.duration! ~/ 60} min'
+                    : dive.bottomTime != null
                     ? '${dive.bottomTime!.inMinutes} min'
                     : '--',
                 context.l10n.diveLog_detail_stat_bottomTime,
-                sourceName: attribution?['bottomTime'],
               ),
               _buildStatItem(
                 context,
                 Icons.thermostat,
-                units.formatTemperature(dive.waterTemp),
+                units.formatTemperature(
+                  activeSource?.waterTemp ?? dive.waterTemp,
+                ),
                 context.l10n.diveLog_detail_stat_waterTemp,
-                sourceName: attribution?['waterTemp'],
               ),
             ],
           ),
@@ -998,6 +966,16 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     );
   }
 
+  /// Runtime for the active source: its entry/exit span when both are
+  /// known, else the dive's own runtime.
+  String _formatRuntimeForSource(Dive dive, DiveDataSource? activeSource) {
+    if (activeSource?.entryTime != null && activeSource?.exitTime != null) {
+      final span = activeSource!.exitTime!.difference(activeSource.entryTime!);
+      return '${span.inMinutes} min';
+    }
+    return _formatRuntime(dive);
+  }
+
   /// Format runtime: use stored value, or calculate from entry/exit times
   String _formatRuntime(Dive dive) {
     if (dive.runtime != null) {
@@ -1015,9 +993,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     BuildContext context,
     IconData icon,
     String value,
-    String label, {
-    String? sourceName,
-  }) {
+    String label,
+  ) {
     return Column(
       children: [
         ExcludeSemantics(
@@ -1031,36 +1008,47 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
-        if (sourceName != null) ...[
-          const SizedBox(height: 2),
-          FieldAttributionBadge(sourceName: sourceName),
-        ],
       ],
     );
   }
 
-  /// Resolves computerId -> display name for a dive's data sources, using
-  /// the same fallback chain as the Data Sources section: the computer's
-  /// user-assigned friendly name, then model, then serial, then the localized
-  /// "Unknown Computer" label. Sources without a computerId (manual entries,
-  /// edited profiles) are skipped — callers key off computerId, so there's
-  /// nothing to attach the name to.
+  /// Localized fallback labels for [resolveSourceName], the shared
+  /// name-resolution path for every attribution surface on this page.
+  SourceNameLabels _sourceNameLabels(BuildContext context) {
+    return SourceNameLabels(
+      unknownComputer: context.l10n.diveLog_sources_unknownComputer,
+      manualEntry: context.l10n.diveLog_sources_manualEntry,
+      importedFile: context.l10n.diveLog_sources_importedFile,
+      editedSuffix: context.l10n.diveLog_sources_editedSuffix,
+    );
+  }
+
+  /// Resolves computerId -> display name for a dive's data sources via the
+  /// shared [resolveSourceName] fallback chain. Sources without a computerId
+  /// (manual entries, edited profiles) are skipped — callers key off
+  /// computerId, so there's nothing to attach the name to.
   Map<String, String> _computerDisplayNames(
     BuildContext context,
     List<DiveDataSource> dataSources,
   ) {
+    final labels = _sourceNameLabels(context);
     return {
       for (final source in dataSources)
         if (source.computerId != null)
-          source.computerId!: source.computerLabel(
-            context.l10n.diveLog_sources_unknownComputer,
-          ),
+          source.computerId!: resolveSourceName(source, labels),
     };
   }
 
   Widget _buildProfileSection(BuildContext context, WidgetRef ref, Dive dive) {
     // Get profile analysis (async to avoid blocking UI with Buhlmann computation)
-    final analysis = ref.watch(profileAnalysisProvider(dive.id)).valueOrNull;
+    final analysis = ref
+        .watch(
+          sourceProfileAnalysisProvider((
+            diveId: dive.id,
+            sourceId: ref.watch(activeDiveSourceProvider(dive.id)),
+          )),
+        )
+        .valueOrNull;
 
     // Get marker settings
     final showMaxDepthMarker = ref.watch(showMaxDepthMarkerProvider);
@@ -1120,72 +1108,67 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             maxProfileSeconds: dive.profile.last.timestamp,
           );
 
-    // Get profiles grouped by source for multi-computer toggle bar
-    final profilesBySource = ref
-        .watch(profilesBySourceProvider(dive.id))
-        .valueOrNull;
-
-    // Data sources drive the real computer display names and the true
-    // primary source (reused from the Data Sources section's provider).
+    // Profiles grouped by owning data source, plus the active-source and
+    // overlay view state driving the whole page.
+    final sourceProfiles =
+        ref.watch(sourceProfilesProvider(dive.id)).valueOrNull ??
+        const <String, SourceProfile>{};
     final dataSources =
         ref.watch(diveDataSourcesProvider(dive.id)).valueOrNull ?? const [];
     final computerNames = _computerDisplayNames(context, dataSources);
-    final truePrimaryComputerIds = <String>{
-      for (final source in dataSources)
-        if (source.computerId != null && source.isPrimary) source.computerId!,
+    final labels = _sourceNameLabels(context);
+    final isMultiSource = dataSources.length >= 2;
+
+    final activeSourceId = ref.watch(activeDiveSourceProvider(dive.id));
+    final overlayIds = ref.watch(overlaySourcesProvider(dive.id));
+
+    final primarySource =
+        dataSources.where((s) => s.isPrimary).firstOrNull ??
+        dataSources.firstOrNull;
+    final activeSource = activeSourceId == null
+        ? primarySource
+        : dataSources.where((s) => s.id == activeSourceId).firstOrNull ??
+              primarySource;
+
+    // Stable color per source, assigned by data-source order (never changes
+    // as overlays toggle).
+    final sourceColorById = <String, Color>{
+      for (final (index, s) in dataSources.indexed) s.id: sourceColorAt(index),
     };
 
-    // Build multi-computer data when 2+ sources exist
-    final multiComputerProfiles =
-        profilesBySource != null && profilesBySource.length >= 2
-        ? Map<String, List<DiveProfilePoint>>.fromEntries(
-            profilesBySource.entries
-                .where((e) => e.key != null)
-                .map((e) => MapEntry(e.key!, e.value)),
-          )
-        : null;
+    // The chart's main series: the active source's own points on a
+    // multi-source dive; dive.profile otherwise (identical for the primary).
+    final activeProfile = activeSource == null
+        ? null
+        : sourceProfiles[activeSource.id];
+    // A metadata-only active source has an entry with no points; the chart
+    // then renders its empty-profile placeholder instead of silently
+    // falling back to the primary's profile (mixed attribution).
+    final chartProfile = (isMultiSource && activeProfile != null)
+        ? activeProfile.points
+        : dive.profile;
 
-    // Determine which computers are visible (empty set = all visible)
-    final effectiveVisible =
-        multiComputerProfiles != null && _visibleComputers.isNotEmpty
-        ? _visibleComputers
-        : multiComputerProfiles?.keys.toSet();
-
-    // Build per-computer color map and primary set
-    Map<String, Color>? computerLineColors;
-    Set<String>? primaryComputers;
-    List<ComputerToggleItem>? toggleItems;
-
-    if (multiComputerProfiles != null) {
-      computerLineColors = {};
-      primaryComputers = {};
-      toggleItems = [];
-      var idx = 0;
-      for (final computerId in multiComputerProfiles.keys) {
-        final color = computerColorAt(idx);
-        // Prefer the data sources' real isPrimary flag; only fall back to
-        // map order (idx == 0) when no source row is marked primary yet
-        // (e.g. data sources still loading), so the bar always has exactly
-        // one primary chip.
-        final isPrimary = truePrimaryComputerIds.isNotEmpty
-            ? truePrimaryComputerIds.contains(computerId)
-            : idx == 0;
-        computerLineColors[computerId] = color;
-        if (isPrimary) primaryComputers.add(computerId);
-        toggleItems.add(
-          ComputerToggleItem(
-            computerId: computerId,
-            label:
-                computerNames[computerId] ??
-                context.l10n.diveLog_sources_unknownComputer,
-            isPrimary: isPrimary,
-            isEnabled: effectiveVisible?.contains(computerId) ?? true,
-            color: color,
+    // Overlay ids are session state and can briefly outlive their source
+    // rows (e.g. right after a split); skip any stale entries instead of
+    // crashing on the lookup.
+    final sourceById = {for (final s in dataSources) s.id: s};
+    final overlays = <ChartSourceOverlay>[
+      for (final id in overlayIds)
+        if (id != activeSource?.id &&
+            sourceProfiles[id] != null &&
+            sourceById[id] != null)
+          ChartSourceOverlay(
+            sourceId: id,
+            name: resolveSourceName(
+              sourceById[id]!,
+              labels,
+              edited: sourceProfiles[id]!.isEdited,
+            ),
+            color: sourceColorById[id] ?? sourceColorAt(0),
+            computerId: sourceProfiles[id]!.computerId,
+            points: sourceProfiles[id]!.points,
           ),
-        );
-        idx++;
-      }
-    }
+    ];
 
     // Get unit formatter
     final settings = ref.watch(settingsProvider);
@@ -1308,7 +1291,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                       },
                       child: DiveProfileChart(
                         exportKey: _profileChartExportKey,
-                        profile: dive.profile,
+                        profile: chartProfile,
+                        overlays: overlays.isEmpty ? null : overlays,
+                        activeComputerId: activeProfile?.computerId,
                         diveDuration: dive.effectiveRuntime,
                         maxDepth: dive.maxDepth,
                         ceilingCurve: analysis?.ceilingCurve,
@@ -1349,30 +1334,26 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         tankPressures: tankPressures,
                         gasSwitches: gasSwitchesAsync.valueOrNull,
                         gasSegments:
-                            (dive.tanks.isEmpty || dive.profile.isEmpty)
+                            (dive.tanks.isEmpty || chartProfile.isEmpty)
                             ? null
                             : buildGasUsageSegments(
                                 tanks: dive.tanks,
                                 gasSwitches:
                                     gasSwitchesAsync.valueOrNull ?? const [],
                                 diveDurationSeconds:
-                                    dive.profile.last.timestamp,
+                                    chartProfile.last.timestamp,
                               ),
-                        diveDurationSeconds: dive.profile.isEmpty
+                        diveDurationSeconds: chartProfile.isEmpty
                             ? null
-                            : dive.profile.last.timestamp,
-                        computerProfiles: multiComputerProfiles,
-                        visibleComputers: effectiveVisible,
-                        computerLineColors: computerLineColors,
-                        primaryComputers: primaryComputers,
+                            : chartProfile.last.timestamp,
                         computerNames: computerNames,
                         playbackTimestamp: playbackState.isActive
                             ? playbackState.currentTimestamp
                             : null,
                         highlightedTimestamp:
                             trackingIndex != null &&
-                                trackingIndex < dive.profile.length
-                            ? dive.profile[trackingIndex].timestamp
+                                trackingIndex < chartProfile.length
+                            ? chartProfile[trackingIndex].timestamp
                             : null,
                         onPointSelected: (index) {
                           ref
@@ -1408,32 +1389,51 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             Align(
               alignment: Alignment.centerRight,
               child: Text(
-                context.l10n.diveLog_detail_profilePoints(dive.profile.length),
+                context.l10n.diveLog_detail_profilePoints(chartProfile.length),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   fontSize: 11,
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
             ),
-            // Multi-computer toggle bar (only shown when 2+ sources exist)
-            if (toggleItems != null)
-              ComputerToggleBar(
-                computers: toggleItems,
-                onToggle: (computerId, enabled) {
-                  setState(() {
-                    // Initialise from all-visible state if needed.
-                    if (_visibleComputers.isEmpty &&
-                        multiComputerProfiles != null) {
-                      _visibleComputers = multiComputerProfiles.keys.toSet();
-                    }
-                    if (enabled) {
-                      _visibleComputers = {..._visibleComputers, computerId};
-                    } else {
-                      _visibleComputers = {..._visibleComputers}
-                        ..remove(computerId);
-                    }
-                  });
+            // Sources bar: tap a chip to make that source drive the whole
+            // page; the eye overlays a source on the chart for comparison.
+            if (isMultiSource)
+              SourceBar(
+                sources: [
+                  for (final s in dataSources)
+                    SourceBarItem(
+                      sourceId: s.id,
+                      label: resolveSourceName(
+                        s,
+                        labels,
+                        edited: sourceProfiles[s.id]?.isEdited ?? false,
+                      ),
+                      color: sourceColorById[s.id] ?? sourceColorAt(0),
+                      isActive: s.id == activeSource?.id,
+                      isPrimary: s.isPrimary,
+                      isOverlaid: overlayIds.contains(s.id),
+                      hasProfile:
+                          sourceProfiles[s.id]?.points.isNotEmpty ?? false,
+                    ),
+                ],
+                onActivate: (id) {
+                  ref.read(activeDiveSourceProvider(dive.id).notifier).state =
+                      id;
+                  final current = ref.read(overlaySourcesProvider(dive.id));
+                  if (current.contains(id)) {
+                    ref.read(overlaySourcesProvider(dive.id).notifier).state = {
+                      ...current,
+                    }..remove(id);
+                  }
                 },
+                onToggleOverlay: (id, overlaid) {
+                  final current = ref.read(overlaySourcesProvider(dive.id));
+                  ref.read(overlaySourcesProvider(dive.id).notifier).state =
+                      overlaid ? {...current, id} : ({...current}..remove(id));
+                },
+                onMenuAction: (id, action) =>
+                    _handleSourceMenuAction(dive, id, action),
               ),
             // O2 toxicity section moved to _buildDecoO2Panel (side by side)
             // Playback controls and stats (when playback mode is active)
@@ -1442,7 +1442,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               PlaybackControls(diveId: dive.id),
               const SizedBox(height: 12),
               PlaybackStatsPanel(
-                profile: dive.profile,
+                // The analysis is computed over the active source's series,
+                // so per-timestamp lookups must index the same profile.
+                profile: chartProfile,
                 currentTimestamp: playbackState.currentTimestamp,
                 units: units,
                 analysis: analysis,
@@ -1453,12 +1455,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 Builder(
                   builder: (context) {
                     final timestamp = playbackState.currentTimestamp;
-                    // Find the closest profile index for the current playback time
+                    // Find the closest profile index for the current playback
+                    // time, over the same series the analysis indexes.
                     int closestIndex = 0;
-                    int closestDiff = (dive.profile[0].timestamp - timestamp)
+                    int closestDiff = (chartProfile[0].timestamp - timestamp)
                         .abs();
-                    for (int i = 1; i < dive.profile.length; i++) {
-                      final diff = (dive.profile[i].timestamp - timestamp)
+                    for (int i = 1; i < chartProfile.length; i++) {
+                      final diff = (chartProfile[i].timestamp - timestamp)
                           .abs();
                       if (diff < closestDiff) {
                         closestDiff = diff;
@@ -1479,7 +1482,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               const SizedBox(height: 16),
               RangeStatsPanel(
                 diveId: dive.id,
-                profile: dive.profile,
+                profile: chartProfile,
                 units: units,
                 tanks: dive.tanks,
                 sacUnit: ref.watch(sacUnitProvider),
@@ -1503,7 +1506,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     Dive dive,
     int? selectedPointIndex,
   ) {
-    final current = ref.watch(profileAnalysisProvider(dive.id)).valueOrNull;
+    final current = ref
+        .watch(
+          sourceProfileAnalysisProvider((
+            diveId: dive.id,
+            sourceId: ref.watch(activeDiveSourceProvider(dive.id)),
+          )),
+        )
+        .valueOrNull;
     final isUsable = current != null && current.decoStatuses.isNotEmpty;
 
     // Retain the last usable analysis for THIS dive and fall back to it when the
@@ -1631,7 +1641,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     Dive dive,
     int? selectedPointIndex,
   ) {
-    final current = ref.watch(profileAnalysisProvider(dive.id)).valueOrNull;
+    final current = ref
+        .watch(
+          sourceProfileAnalysisProvider((
+            diveId: dive.id,
+            sourceId: ref.watch(activeDiveSourceProvider(dive.id)),
+          )),
+        )
+        .valueOrNull;
     final isUsable =
         current != null &&
         current.sacSegments != null &&
@@ -2584,6 +2601,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     Dive dive,
     UnitFormatter units, {
     Map<String, String>? attribution,
+    String? activeComputerId,
   }) {
     final surfaceIntervalAsync = ref.watch(surfaceIntervalProvider(diveId));
 
@@ -2616,7 +2634,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 context,
                 context.l10n.diveLog_detail_label_avgDepth,
                 units.formatDepth(dive.avgDepth),
-                sourceName: attribution?['avgDepth'],
               ),
             if (dive.waterType != null)
               _buildDetailRow(
@@ -2646,7 +2663,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 'GF ${dive.gradientFactorLow}/${dive.gradientFactorHigh}',
               ),
             // Dive computer info (from profile link or string fields)
-            ..._buildDiveComputerRows(context, ref, dive),
+            ..._buildDiveComputerRows(
+              context,
+              ref,
+              dive,
+              activeComputerId: activeComputerId,
+            ),
             // Surface interval - prefer imported value, fall back to calculated
             if (dive.surfaceInterval != null)
               Builder(
@@ -3505,14 +3527,20 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   List<Widget> _buildDiveComputerRows(
     BuildContext context,
     WidgetRef ref,
-    Dive dive,
-  ) {
+    Dive dive, {
+    String? activeComputerId,
+  }) {
     final computersAsync = ref.watch(computersForDiveProvider(dive.id));
 
     return computersAsync.when(
       data: (computers) {
         if (computers.isNotEmpty) {
-          return [_buildLinkedComputerRow(context, computers.first)];
+          // Show the active source's computer when one is selected; fall
+          // back to the first linked computer.
+          final active = activeComputerId == null
+              ? null
+              : computers.where((c) => c.id == activeComputerId).firstOrNull;
+          return [_buildLinkedComputerRow(context, active ?? computers.first)];
         }
         // Fall back to string fields on Dive entity
         return _buildDiveComputerStringRows(context, dive);
@@ -3805,10 +3833,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     final dataSources =
         ref.watch(diveDataSourcesProvider(dive.id)).valueOrNull ?? const [];
     final computerNames = _computerDisplayNames(context, dataSources);
-    final primaryComputerId = dataSources
-        .where((s) => s.isPrimary)
-        .map((s) => s.computerId)
-        .firstOrNull;
     // Only badge tanks once there's more than one source to disambiguate —
     // a single-source dive never needs attribution.
     final showTankSourceBadges = dataSources.length >= 2;
@@ -3878,13 +3902,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 modDepth,
                 mndDepth,
               );
-              // Shown when this tank's readings came from a non-primary
-              // computer on a multi-source dive, so divers can tell which
-              // instrument's pressure log a tank's numbers came from.
+              // Shown for every computer-attributed tank on a
+              // multi-source dive (the primary's included), so divers can
+              // tell which instrument's pressure log a tank's numbers came
+              // from. Manually added tanks carry no attribution.
               final showSourceBadge =
-                  showTankSourceBadges &&
-                  tank.computerId != null &&
-                  tank.computerId != primaryComputerId;
+                  showTankSourceBadges && tank.computerId != null;
               final trailingChildren = <Widget>[
                 if (showSourceBadge)
                   Padding(
@@ -4616,6 +4639,69 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     );
   }
 
+  void _handleSourceMenuAction(
+    Dive dive,
+    String sourceId,
+    SourceMenuAction action,
+  ) {
+    switch (action) {
+      case SourceMenuAction.setPrimary:
+        _onSetPrimaryDataSource(
+          context,
+          ref,
+          diveId: dive.id,
+          readingId: sourceId,
+        );
+      case SourceMenuAction.split:
+        _confirmAndSplit(dive, sourceId);
+    }
+  }
+
+  Future<void> _confirmAndSplit(Dive dive, String sourceId) async {
+    final l10n = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.diveLog_sources_splitDialog_title),
+        content: Text(l10n.diveLog_sources_splitDialog_body),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.common_action_cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.diveLog_sources_splitDialog_confirm),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    try {
+      await ref
+          .read(diveSplitServiceProvider)
+          .split(diveId: dive.id, sourceId: sourceId);
+      if (!mounted) return;
+      ref.invalidate(diveProvider(dive.id));
+      ref.invalidate(diveProfileProvider(dive.id));
+      ref.invalidate(sourceProfilesProvider(dive.id));
+      ref.invalidate(diveDataSourcesProvider(dive.id));
+      ref.invalidate(paginatedDiveListProvider);
+      ref.invalidate(divesProvider);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.diveLog_sources_splitDone),
+          showCloseIcon: true,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.diveLog_sources_splitFailed)));
+    }
+  }
+
   Future<void> _onSetPrimaryDataSource(
     BuildContext context,
     WidgetRef ref, {
@@ -4629,73 +4715,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     );
     ref.invalidate(diveProvider(diveId));
     ref.invalidate(diveProfileProvider(diveId));
-    ref.invalidate(profilesBySourceProvider(diveId));
+    ref.invalidate(sourceProfilesProvider(diveId));
     ref.invalidate(diveDataSourcesProvider(diveId));
-  }
-
-  Future<void> _onUnlinkDataSource(
-    BuildContext context,
-    WidgetRef ref, {
-    required String diveId,
-    required String readingId,
-  }) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Unlink data source'),
-        content: const Text(
-          'This will split the data source into a separate dive. '
-          'The linked profile and readings from this source will be removed '
-          'from the current dive. This cannot be undone.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
-            child: const Text('Unlink'),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true) return;
-    final repository = ref.read(diveRepositoryProvider);
-    await repository.unlinkComputer(
-      diveId: diveId,
-      computerReadingId: readingId,
-    );
-    ref.invalidate(diveProvider(diveId));
-    ref.invalidate(diveProfileProvider(diveId));
-    ref.invalidate(profilesBySourceProvider(diveId));
-    ref.invalidate(diveDataSourcesProvider(diveId));
-    ref.invalidate(paginatedDiveListProvider);
-  }
-
-  void _showMergeDiveDialog(BuildContext context, WidgetRef ref, Dive dive) {
-    showMergeDiveDialog(
-      context: context,
-      currentDiveId: diveId,
-      currentDiveDate: dive.entryTime ?? dive.dateTime,
-      onMerge: (secondaryDiveIds) => runDiveConsolidation(
-        context: context,
-        service: ref.read(diveConsolidationServiceProvider),
-        targetDiveId: diveId,
-        secondaryDiveIds: secondaryDiveIds,
-        onConsolidated: () {
-          ref.invalidate(diveProvider(diveId));
-          ref.invalidate(diveProfileProvider(diveId));
-          ref.invalidate(profilesBySourceProvider(diveId));
-          ref.invalidate(diveDataSourcesProvider(diveId));
-          ref.invalidate(paginatedDiveListProvider);
-          ref.invalidate(divesProvider);
-        },
-      ),
-    );
   }
 
   Future<void> _reparseDive(
@@ -4714,7 +4735,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     // Invalidate providers so the UI reflects the re-parsed data.
     ref.invalidate(diveProvider(dive.id));
     ref.invalidate(diveProfileProvider(dive.id));
-    ref.invalidate(profilesBySourceProvider(dive.id));
+    ref.invalidate(sourceProfilesProvider(dive.id));
     ref.invalidate(diveDataSourcesProvider(dive.id));
 
     if (context.mounted) {

@@ -5683,6 +5683,44 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_sources_unknownComputer => 'Unbekannter Computer';
 
   @override
+  String get diveLog_sources_manualEntry => 'Manueller Eintrag';
+
+  @override
+  String get diveLog_sources_importedFile => 'Importierte Datei';
+
+  @override
+  String get diveLog_sources_editedSuffix => ' (bearbeitet)';
+
+  @override
+  String get diveLog_sources_barLabel => 'QUELLEN';
+
+  @override
+  String get diveLog_sources_menu_setPrimary => 'Als primär festlegen';
+
+  @override
+  String get diveLog_sources_menu_split => 'In separaten Tauchgang aufteilen';
+
+  @override
+  String get diveLog_sources_overlayTooltip => 'Im Diagramm überlagern';
+
+  @override
+  String get diveLog_sources_splitDialog_title =>
+      'In separaten Tauchgang aufteilen?';
+
+  @override
+  String get diveLog_sources_splitDialog_body =>
+      'Profil, Ereignisse und Flaschen dieser Quelle werden in einen neuen Tauchgang verschoben. Der Logbucheintrag bleibt bei diesem Tauchgang.';
+
+  @override
+  String get diveLog_sources_splitDialog_confirm => 'Aufteilen';
+
+  @override
+  String get diveLog_sources_splitDone => 'Tauchgang aufgeteilt';
+
+  @override
+  String get diveLog_sources_splitFailed => 'Aufteilen fehlgeschlagen';
+
+  @override
   String get divePlanner_action_addTank => 'Flasche hinzufügen';
 
   @override

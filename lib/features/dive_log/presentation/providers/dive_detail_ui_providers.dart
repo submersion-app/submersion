@@ -32,7 +32,7 @@ class CollapsibleSectionState {
     this.sacSegmentsExpanded = true,
     this.equipmentExpanded = true,
     this.tideExpanded = true,
-    this.surfaceGpsExpanded = false,
+    this.surfaceGpsExpanded = true,
   });
 
   CollapsibleSectionState copyWith({
@@ -77,7 +77,7 @@ class CollapsibleSectionNotifier
       tideExpanded:
           _prefs.getBool(DiveDetailUiKeys.tideSectionExpanded) ?? true,
       surfaceGpsExpanded:
-          _prefs.getBool(DiveDetailUiKeys.surfaceGpsSectionExpanded) ?? false,
+          _prefs.getBool(DiveDetailUiKeys.surfaceGpsSectionExpanded) ?? true,
     );
   }
 

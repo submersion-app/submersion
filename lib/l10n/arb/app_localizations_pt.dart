@@ -5690,6 +5690,44 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_sources_unknownComputer => 'Computador Desconhecido';
 
   @override
+  String get diveLog_sources_manualEntry => 'Entrada Manual';
+
+  @override
+  String get diveLog_sources_importedFile => 'Arquivo Importado';
+
+  @override
+  String get diveLog_sources_editedSuffix => ' (editado)';
+
+  @override
+  String get diveLog_sources_barLabel => 'FONTES';
+
+  @override
+  String get diveLog_sources_menu_setPrimary => 'Definir como principal';
+
+  @override
+  String get diveLog_sources_menu_split => 'Dividir em mergulho separado';
+
+  @override
+  String get diveLog_sources_overlayTooltip => 'Sobrepor no gráfico';
+
+  @override
+  String get diveLog_sources_splitDialog_title =>
+      'Dividir em mergulho separado?';
+
+  @override
+  String get diveLog_sources_splitDialog_body =>
+      'O perfil, os eventos e os cilindros desta fonte serão movidos para um novo mergulho. O registro do diário permanece neste mergulho.';
+
+  @override
+  String get diveLog_sources_splitDialog_confirm => 'Dividir';
+
+  @override
+  String get diveLog_sources_splitDone => 'Mergulho dividido';
+
+  @override
+  String get diveLog_sources_splitFailed => 'Falha ao dividir';
+
+  @override
   String get divePlanner_action_addTank => 'Adicionar Cilindro';
 
   @override

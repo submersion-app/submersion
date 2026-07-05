@@ -5590,6 +5590,43 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_sources_unknownComputer => 'Unknown Computer';
 
   @override
+  String get diveLog_sources_manualEntry => 'Manual Entry';
+
+  @override
+  String get diveLog_sources_importedFile => 'Imported File';
+
+  @override
+  String get diveLog_sources_editedSuffix => ' (edited)';
+
+  @override
+  String get diveLog_sources_barLabel => 'SOURCES';
+
+  @override
+  String get diveLog_sources_menu_setPrimary => 'Set as primary';
+
+  @override
+  String get diveLog_sources_menu_split => 'Split into separate dive';
+
+  @override
+  String get diveLog_sources_overlayTooltip => 'Overlay on chart';
+
+  @override
+  String get diveLog_sources_splitDialog_title => 'Split into separate dive?';
+
+  @override
+  String get diveLog_sources_splitDialog_body =>
+      'This source\'s profile, events, and tanks will move to a new dive. The logbook entry stays on this dive.';
+
+  @override
+  String get diveLog_sources_splitDialog_confirm => 'Split';
+
+  @override
+  String get diveLog_sources_splitDone => 'Dive split';
+
+  @override
+  String get diveLog_sources_splitFailed => 'Split failed';
+
+  @override
   String get divePlanner_action_addTank => 'Add Tank';
 
   @override

@@ -8,7 +8,16 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 
+import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
+
 import '../../../../helpers/test_database.dart';
+
+const _labels = SourceNameLabels(
+  unknownComputer: 'Unknown Computer',
+  manualEntry: 'Manual Entry',
+  importedFile: 'Imported File',
+  editedSuffix: ' (edited)',
+);
 
 void main() {
   late DiveRepository repository;
@@ -210,8 +219,9 @@ void main() {
         final sources = await repository.getDataSources(diveId);
 
         expect(sources.single.computerName, equals('My Perdix'));
-        // displayName now prefers the friendly name over the model snapshot.
-        expect(sources.single.displayName, equals('My Perdix'));
+        // The resolved name prefers the friendly name over the model
+        // snapshot.
+        expect(resolveSourceName(sources.single, _labels), 'My Perdix');
         // The model snapshot is preserved for the subtitle.
         expect(sources.single.computerModel, equals('Shearwater Perdix AI'));
       },
@@ -233,7 +243,7 @@ void main() {
         final sources = await repository.getDataSources(diveId);
 
         expect(sources.single.computerName, isNull);
-        expect(sources.single.displayName, equals('Suunto D5'));
+        expect(resolveSourceName(sources.single, _labels), 'Suunto D5');
       },
     );
 
@@ -253,7 +263,7 @@ void main() {
       final sources = await repository.getDataSources(diveId);
 
       expect(sources.single.computerName, isNull);
-      expect(sources.single.displayName, equals('Shearwater Teric'));
+      expect(resolveSourceName(sources.single, _labels), 'Shearwater Teric');
     });
 
     test('trims surrounding whitespace from the friendly name', () async {

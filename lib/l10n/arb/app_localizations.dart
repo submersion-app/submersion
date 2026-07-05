@@ -9644,6 +9644,78 @@ abstract class AppLocalizations {
   /// **'Unknown Computer'**
   String get diveLog_sources_unknownComputer;
 
+  /// No description provided for @diveLog_sources_manualEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual Entry'**
+  String get diveLog_sources_manualEntry;
+
+  /// No description provided for @diveLog_sources_importedFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported File'**
+  String get diveLog_sources_importedFile;
+
+  /// No description provided for @diveLog_sources_editedSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **' (edited)'**
+  String get diveLog_sources_editedSuffix;
+
+  /// No description provided for @diveLog_sources_barLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'SOURCES'**
+  String get diveLog_sources_barLabel;
+
+  /// No description provided for @diveLog_sources_menu_setPrimary.
+  ///
+  /// In en, this message translates to:
+  /// **'Set as primary'**
+  String get diveLog_sources_menu_setPrimary;
+
+  /// No description provided for @diveLog_sources_menu_split.
+  ///
+  /// In en, this message translates to:
+  /// **'Split into separate dive'**
+  String get diveLog_sources_menu_split;
+
+  /// No description provided for @diveLog_sources_overlayTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Overlay on chart'**
+  String get diveLog_sources_overlayTooltip;
+
+  /// No description provided for @diveLog_sources_splitDialog_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Split into separate dive?'**
+  String get diveLog_sources_splitDialog_title;
+
+  /// No description provided for @diveLog_sources_splitDialog_body.
+  ///
+  /// In en, this message translates to:
+  /// **'This source\'s profile, events, and tanks will move to a new dive. The logbook entry stays on this dive.'**
+  String get diveLog_sources_splitDialog_body;
+
+  /// No description provided for @diveLog_sources_splitDialog_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Split'**
+  String get diveLog_sources_splitDialog_confirm;
+
+  /// No description provided for @diveLog_sources_splitDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive split'**
+  String get diveLog_sources_splitDone;
+
+  /// No description provided for @diveLog_sources_splitFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Split failed'**
+  String get diveLog_sources_splitFailed;
+
   /// No description provided for @divePlanner_action_addTank.
   ///
   /// In en, this message translates to:

@@ -169,7 +169,7 @@ void main() {
         expect(await repository.getGasSwitchesForDive('test-id'), isEmpty);
 
         // Methods that return empty map
-        expect(await repository.getProfilesBySource('test-id'), isEmpty);
+        expect(await repository.getProfilesByDataSource('test-id'), isEmpty);
         expect(await repository.getBatchProfileSummaries(['test-id']), isEmpty);
 
         // Methods that return null

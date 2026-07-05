@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
+import 'package:submersion/features/dive_log/data/services/dive_split_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 
@@ -239,10 +240,10 @@ void main() {
   });
 
   // ---------------------------------------------------------------------------
-  // unlinkComputer
+  // DiveSplitService (successor to the removed unlinkComputer)
   // ---------------------------------------------------------------------------
 
-  group('unlinkComputer', () {
+  group('split into separate dive', () {
     test('creates a new standalone dive from detached data', () async {
       final diveId = await insertTestDive(
         id: 'dive-multi',
@@ -286,10 +287,9 @@ void main() {
         depth: 6.0,
       );
 
-      final newDiveId = await repository.unlinkComputer(
-        diveId: diveId,
-        computerReadingId: 'secondary-reading',
-      );
+      final newDiveId = await DiveSplitService(
+        repository,
+      ).split(diveId: diveId, sourceId: 'secondary-reading');
 
       // New dive should exist.
       final newDive = await (db.select(
@@ -303,10 +303,10 @@ void main() {
     });
 
     test(
-      'cleans up remaining single dive_computer_data row after unlink',
+      'keeps the remaining source row after splitting the other one',
       () async {
-        // When only one reading remains after unlink, the dive returns to
-        // single-computer state and the reading is removed.
+        // The remaining source row stays (the sources bar hides below two
+        // sources); only the departing row is removed.
         final diveId = await insertTestDive(id: 'dive-two-computers');
 
         await repository.saveComputerReading(
@@ -326,21 +326,22 @@ void main() {
           ),
         );
 
-        await repository.unlinkComputer(
-          diveId: diveId,
-          computerReadingId: 'reading-b',
-        );
+        await DiveSplitService(
+          repository,
+        ).split(diveId: diveId, sourceId: 'reading-b');
 
-        // The unlinked reading must be gone from the original dive.
+        // The departing reading must be gone from the original dive.
         final originalReadings = await repository.getDataSources(diveId);
         expect(originalReadings.any((r) => r.id == 'reading-b'), isFalse);
 
-        // Exactly zero readings remain (single-computer state cleanup).
-        expect(originalReadings.isEmpty, isTrue);
+        // The other reading remains, still primary.
+        expect(originalReadings, hasLength(1));
+        expect(originalReadings.single.id, 'reading-a');
+        expect(originalReadings.single.isPrimary, isTrue);
       },
     );
 
-    test('promotes next computer if primary is unlinked', () async {
+    test('promotes next computer if the primary is split away', () async {
       final diveId = await insertTestDive(
         id: 'dive-promote',
         diveComputerModel: 'Primary Model',
@@ -381,11 +382,10 @@ void main() {
         depth: 4.0,
       );
 
-      // Unlink the PRIMARY computer.
-      await repository.unlinkComputer(
-        diveId: diveId,
-        computerReadingId: 'primary-reading',
-      );
+      // Split away the PRIMARY computer's source.
+      await DiveSplitService(
+        repository,
+      ).split(diveId: diveId, sourceId: 'primary-reading');
 
       // primary-reading must be gone from the original dive.
       final remainingReadings = await repository.getDataSources(diveId);
@@ -409,10 +409,9 @@ void main() {
         buildReading(id: 'r-secondary', diveId: diveId, isPrimary: false),
       );
 
-      final newId = await repository.unlinkComputer(
-        diveId: diveId,
-        computerReadingId: 'r-secondary',
-      );
+      final newId = await DiveSplitService(
+        repository,
+      ).split(diveId: diveId, sourceId: 'r-secondary');
 
       expect(newId, isNotEmpty);
       expect(newId, isNot(equals(diveId)));
@@ -428,10 +427,9 @@ void main() {
         buildReading(id: 'r-secondary', diveId: diveId, isPrimary: false),
       );
 
-      final newDiveId = await repository.unlinkComputer(
-        diveId: diveId,
-        computerReadingId: 'r-secondary',
-      );
+      final newDiveId = await DiveSplitService(
+        repository,
+      ).split(diveId: diveId, sourceId: 'r-secondary');
 
       final newDiveSyncRecord =
           await (db.select(db.syncRecords)..where(
@@ -453,10 +451,11 @@ void main() {
   });
 
   // ---------------------------------------------------------------------------
-  // unlinkComputer moves attributed children (Task 6)
+  // Split moves attributed children (clone-on-demand inherited from
+  // the removed unlinkComputer)
   // ---------------------------------------------------------------------------
 
-  group('unlinkComputer moves attributed children', () {
+  group('split moves attributed children', () {
     // These scenarios exercise the real computerId FK (dive_tanks,
     // tank_pressure_profiles, dive_profile_events all reference
     // dive_computers with onDelete: setNull), so — unlike the rest of this
@@ -659,10 +658,9 @@ void main() {
       expect(freshTank.id, isNot(equals('tank-s1')));
       expect(freshTank.id, isNot(equals('tank-s2')));
 
-      final newDiveId = await repository.unlinkComputer(
-        diveId: 'dive-t',
-        computerReadingId: secondaryReading.id,
-      );
+      final newDiveId = await DiveSplitService(
+        repository,
+      ).split(diveId: 'dive-t', sourceId: secondaryReading.id);
 
       // -- Tanks -------------------------------------------------------
       final newDiveTanks = await (db.select(
@@ -672,8 +670,11 @@ void main() {
       // a clone attributed to the unlinked computer.
       expect(newDiveTanks, hasLength(2));
       expect(newDiveTanks.every((t) => t.computerId == 'comp-s'), isTrue);
-      expect(newDiveTanks.map((t) => t.id), contains(freshTank.id));
-      final clone = newDiveTanks.firstWhere((t) => t.id != freshTank.id);
+      // Split copies rows under fresh ids (tombstoning the originals), so
+      // the moved tank is identified by its gas rather than its id.
+      final movedFresh = newDiveTanks.firstWhere((t) => t.o2Percent == 100.0);
+      expect(movedFresh.id, isNot(equals(freshTank.id)));
+      final clone = newDiveTanks.firstWhere((t) => t.o2Percent == 21.0);
       expect(clone.id, isNot(equals('tank-t1')));
       expect(clone.o2Percent, equals(21.0));
       expect(clone.hePercent, equals(0.0));
@@ -687,7 +688,7 @@ void main() {
       )..where((t) => t.diveId.equals('dive-t'))).get();
       expect(originalTanks.map((t) => t.id), contains('tank-t1'));
       expect(originalTanks.map((t) => t.id), contains('tank-t2'));
-      expect(originalTanks.map((t) => t.id), isNot(contains(freshTank.id)));
+      expect(originalTanks, hasLength(2));
       final sharedTank = originalTanks.firstWhere((t) => t.id == 'tank-t1');
       expect(sharedTank.computerId, equals('comp-t'));
 
@@ -697,18 +698,12 @@ void main() {
       )..where((t) => t.diveId.equals(newDiveId))).get();
       expect(newDivePressures, hasLength(2));
       expect(newDivePressures.every((p) => p.computerId == 'comp-s'), isTrue);
-      // The pressure curve that lived on the shared tank now points at
-      // the clone, not the original shared tank id.
-      final movedFromShared = newDivePressures.firstWhere(
-        (p) => p.pressure == 195.0 && p.id != 'tp-s2',
+      // One curve points at the clone (it lived on the shared tank), the
+      // other at the moved fresh tank.
+      expect(
+        newDivePressures.map((p) => p.tankId).toSet(),
+        equals({clone.id, movedFresh.id}),
       );
-      expect(movedFromShared.tankId, equals(clone.id));
-      // The pressure curve that already lived on the fresh tank keeps
-      // that tank id.
-      final movedWithFreshTank = newDivePressures.firstWhere(
-        (p) => p.tankId == freshTank.id,
-      );
-      expect(movedWithFreshTank.computerId, equals('comp-s'));
 
       // The original dive keeps only its own computer's pressure curve on
       // the shared tank.
@@ -758,10 +753,9 @@ void main() {
         (r) => r.computerId == 'comp-t',
       );
 
-      final newDiveId = await repository.unlinkComputer(
-        diveId: 'dive-t',
-        computerReadingId: targetReading.id,
-      );
+      final newDiveId = await DiveSplitService(
+        repository,
+      ).split(diveId: 'dive-t', sourceId: targetReading.id);
 
       // -- Tanks -------------------------------------------------------
       // tank-t1 is shared: comp-s's pressure row and event still
@@ -784,11 +778,13 @@ void main() {
       final newDiveTanks = await (db.select(
         db.diveTanks,
       )..where((t) => t.diveId.equals(newDiveId))).get();
-      final movedTankT2 = newDiveTanks.firstWhere((t) => t.id == 'tank-t2');
+      // Split copies under fresh ids; the moved EAN32 tank is identified
+      // by its gas.
+      final movedTankT2 = newDiveTanks.firstWhere((t) => t.o2Percent == 32.0);
       expect(movedTankT2.computerId, equals('comp-t'));
 
       // comp-t gets a fresh clone of the shared tank on the new dive.
-      final clone = newDiveTanks.firstWhere((t) => t.id != 'tank-t2');
+      final clone = newDiveTanks.firstWhere((t) => t.o2Percent == 21.0);
       expect(clone.id, isNot(equals('tank-t1')));
       expect(clone.computerId, equals('comp-t'));
       expect(clone.o2Percent, equals(21.0));
@@ -849,7 +845,7 @@ void main() {
     });
 
     test(
-      'unlink with a null-computerId reading moves no tanks or events',
+      'split with a null-computerId reading moves no tanks or events',
       () async {
         final diveId = await insertTestDive(id: 'dive-null-cid');
 
@@ -877,10 +873,9 @@ void main() {
               ),
             );
 
-        final newDiveId = await repository.unlinkComputer(
-          diveId: diveId,
-          computerReadingId: 'r-secondary',
-        );
+        final newDiveId = await DiveSplitService(
+          repository,
+        ).split(diveId: diveId, sourceId: 'r-secondary');
 
         // Nothing moved: the null-computerId tank/event stay put.
         final originalTank = await (db.select(

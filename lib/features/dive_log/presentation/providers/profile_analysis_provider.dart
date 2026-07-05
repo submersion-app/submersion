@@ -650,6 +650,41 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
       return null;
     }
 
+    return await computeAnalysisForProfile(ref, dive, dive.profile);
+  } catch (e, stackTrace) {
+    _log.error(
+      'Failed to analyze profile for dive: $diveId',
+      error: e,
+      stackTrace: stackTrace,
+    );
+    return null;
+  }
+});
+
+/// Runs the full analysis pipeline over [profile] samples of [dive].
+///
+/// Extracted from [profileAnalysisProvider] so per-source analysis
+/// ([sourceProfileAnalysisProvider]) can run the identical pipeline over one
+/// data source's own samples. [computerId] scopes tank data to the owning
+/// computer: null keeps the legacy behavior (all tanks, used for
+/// single-source dives); non-null restricts gas mix and tank pressures to
+/// that computer's tanks plus unattributed (manually added) tanks, which
+/// belong to the dive rather than to either computer.
+///
+/// Throws on failure; callers wrap with their own error handling.
+Future<ProfileAnalysis?> computeAnalysisForProfile(
+  Ref ref,
+  Dive dive,
+  List<DiveProfilePoint> profile, {
+  String? computerId,
+}) async {
+  {
+    final diveId = dive.id;
+    final tanks = computerId == null
+        ? dive.tanks
+        : dive.tanks
+              .where((t) => t.computerId == null || t.computerId == computerId)
+              .toList();
     final repository = ref.watch(diveRepositoryProvider);
     // Resolve GF values: use dive-specific if provided, else user settings
     final double gfLow;
@@ -667,17 +702,26 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
     }
 
     // Extract profile data
-    final depths = dive.profile.map((p) => p.depth).toList();
-    final timestamps = dive.profile.map((p) => p.timestamp).toList();
+    final depths = profile.map((p) => p.depth).toList();
+    final timestamps = profile.map((p) => p.timestamp).toList();
 
     // Try to get per-tank pressure data first (works for single and multi-tank)
     List<double>? pressures;
-    if (dive.tanks.isNotEmpty) {
+    if (tanks.isNotEmpty) {
       // Load per-tank pressure data from tank_pressure_profiles table
       final tankPressureRepo = ref.watch(tankPressureRepositoryProvider);
-      final tankPressures = await tankPressureRepo.getTankPressuresForDive(
+      final allTankPressures = await tankPressureRepo.getTankPressuresForDive(
         diveId,
       );
+      // Scope pressure curves to the requested computer's tanks; null keeps
+      // every tank (primary-source / legacy behavior).
+      final tankIds = {for (final t in tanks) t.id};
+      final tankPressures = computerId == null
+          ? allTankPressures
+          : <String, List<TankPressurePoint>>{
+              for (final entry in allTankPressures.entries)
+                if (tankIds.contains(entry.key)) entry.key: entry.value,
+            };
 
       if (tankPressures.isNotEmpty) {
         _log.debug(
@@ -686,7 +730,7 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
         pressures = combineMultiTankPressures(
           timestamps: timestamps,
           tankPressures: tankPressures,
-          tanks: dive.tanks,
+          tanks: tanks,
         );
       }
     }
@@ -694,8 +738,8 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
     // Get gas mix from primary tank
     double o2Fraction = 0.21; // Default to air
     double heFraction = 0.0;
-    if (dive.tanks.isNotEmpty) {
-      final primaryTank = dive.tanks.first;
+    if (tanks.isNotEmpty) {
+      final primaryTank = tanks.first;
       o2Fraction = primaryTank.gasMix.o2 / 100.0;
       heFraction = primaryTank.gasMix.he / 100.0;
     }
@@ -718,9 +762,7 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
     );
 
     final useComputerCns = cnsSource == MetricDataSource.computer;
-    final computerCns = useComputerCns
-        ? extractComputerCns(dive.profile)
-        : null;
+    final computerCns = useComputerCns ? extractComputerCns(profile) : null;
 
     // Compute residual CNS (skip if this dive has computer CNS data)
     final startCns = computerCns != null
@@ -751,7 +793,7 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
     // (CNS/OTU) and the display overlay so the two always agree.
     final rebreatherPpO2 = dive.diveMode == DiveMode.oc
         ? null
-        : resolveRebreatherPpO2(dive.profile);
+        : resolveRebreatherPpO2(profile);
     // Run Buhlmann analysis on a background isolate to keep UI responsive
     _log.debug(
       'Analyzing profile for dive $diveId with ${depths.length} points, '
@@ -794,7 +836,7 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
     // Overlay computer-reported deco data where available
     final (overlaid, sourceInfo) = overlayComputerDecoData(
       analysis,
-      dive.profile,
+      profile,
       ndlSource: ndlSource,
       ceilingSource: ceilingSource,
       ttsSource: ttsSource,
@@ -822,15 +864,64 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
     }
     final merged = mergeEvents(withCns.events, dbEvents);
     return withCns.copyWith(events: merged);
-  } catch (e, stackTrace) {
-    _log.error(
-      'Failed to analyze profile for dive: $diveId',
-      error: e,
-      stackTrace: stackTrace,
-    );
-    return null;
   }
-});
+}
+
+/// Key for per-source analysis. sourceId null = the primary source.
+typedef DiveSourceKey = ({String diveId, String? sourceId});
+
+/// Analysis computed from one data source's own samples -- the exact
+/// series the chart draws, index for index. On multi-source dives EVERY
+/// source (the primary included) is computed from its own bucket:
+/// `dive.profile` can be a merged superset of the primary's samples (e.g.
+/// dives consolidated by older app versions flagged both computers'
+/// rows primary), and index-pairing a merged-length analysis against the
+/// primary's bucket stretches every chart curve. Single-source dives
+/// delegate to [profileAnalysisProvider] so its cache and residual-CNS
+/// recursion are shared.
+final sourceProfileAnalysisProvider =
+    FutureProvider.family<ProfileAnalysis?, DiveSourceKey>((ref, key) async {
+      try {
+        final sources = await ref.watch(
+          diveDataSourcesProvider(key.diveId).future,
+        );
+        if (sources.length < 2) {
+          return await ref.watch(profileAnalysisProvider(key.diveId).future);
+        }
+        final primaryId =
+            sources.where((s) => s.isPrimary).map((s) => s.id).firstOrNull ??
+            sources.first.id;
+        final effectiveSourceId = key.sourceId ?? primaryId;
+        final dive = await ref.watch(diveProvider(key.diveId).future);
+        if (dive == null) return null;
+        final profiles = await ref.watch(
+          sourceProfilesProvider(key.diveId).future,
+        );
+        final sourceProfile = profiles[effectiveSourceId];
+        if (sourceProfile == null) {
+          // Bucket unavailable (still loading, or stale id): fall back to
+          // the dive-level analysis rather than blanking the panels.
+          return await ref.watch(profileAnalysisProvider(key.diveId).future);
+        }
+        if (sourceProfile.points.isEmpty) {
+          return null;
+        }
+        return await computeAnalysisForProfile(
+          ref,
+          dive,
+          sourceProfile.points,
+          computerId: sourceProfile.computerId,
+        );
+      } catch (e, stackTrace) {
+        _log.error(
+          'Failed to analyze source ${key.sourceId} profile for dive: '
+          '${key.diveId}',
+          error: e,
+          stackTrace: stackTrace,
+        );
+        return null;
+      }
+    });
 
 /// Computes residual CNS% from the previous dive using recursive lookback.
 ///

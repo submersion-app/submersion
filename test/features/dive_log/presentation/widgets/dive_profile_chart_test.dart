@@ -85,10 +85,8 @@ List<DiveProfilePoint> _makeProfile({int points = 10}) {
 
 Widget _buildChart({
   List<DiveProfilePoint>? profile,
-  Map<String, List<DiveProfilePoint>>? computerProfiles,
-  Set<String>? visibleComputers,
-  Map<String, Color>? computerLineColors,
-  Set<String>? primaryComputers,
+  List<ChartSourceOverlay>? overlays,
+  String? activeComputerId,
   Map<String, String>? computerNames,
   Map<String, List<TankPressurePoint>>? tankPressures,
   List<DiveTank>? tanks,
@@ -138,10 +136,8 @@ Widget _buildChart({
           height: 300,
           child: DiveProfileChart(
             profile: profile ?? _makeProfile(),
-            computerProfiles: computerProfiles,
-            visibleComputers: visibleComputers,
-            computerLineColors: computerLineColors,
-            primaryComputers: primaryComputers,
+            overlays: overlays,
+            activeComputerId: activeComputerId,
             computerNames: computerNames,
             tankPressures: tankPressures,
             tanks: tanks,
@@ -285,15 +281,29 @@ void main() {
     });
   });
 
-  group('DiveProfileChart - multi-computer rendering', () {
-    testWidgets('renders with two computer profiles', (tester) async {
-      final profileA = _makeProfile(points: 8);
-      final profileB = _makeProfile(points: 8);
+  group('DiveProfileChart - overlay source rendering', () {
+    ChartSourceOverlay overlay({
+      String sourceId = 'src-b',
+      String name = 'Erics Teric',
+      Color color = Colors.orange,
+      String? computerId = 'comp-b',
+      required List<DiveProfilePoint> points,
+    }) {
+      return ChartSourceOverlay(
+        sourceId: sourceId,
+        name: name,
+        color: color,
+        computerId: computerId,
+        points: points,
+      );
+    }
 
+    testWidgets('renders with an overlaid source', (tester) async {
       await tester.pumpWidget(
         _buildChart(
-          computerProfiles: {'comp-a': profileA, 'comp-b': profileB},
-          primaryComputers: {'comp-a'},
+          profile: _makeProfile(points: 8),
+          activeComputerId: 'comp-a',
+          overlays: [overlay(points: _makeProfile(points: 8))],
         ),
       );
       await tester.pumpAndSettle();
@@ -301,105 +311,108 @@ void main() {
       expect(find.byType(DiveProfileChart), findsOneWidget);
     });
 
-    testWidgets('renders with custom computer line colors', (tester) async {
-      final profileA = _makeProfile(points: 5);
-      final profileB = _makeProfile(points: 5);
+    testWidgets('an overlay appends exactly one dashed depth bar in its color, '
+        'after every other bar', (tester) async {
+      await tester.pumpWidget(_buildChart(profile: _makeProfile(points: 8)));
+      await tester.pumpAndSettle();
+      final withoutOverlay = tester
+          .widget<LineChart>(find.byType(LineChart).first)
+          .data
+          .lineBarsData
+          .length;
 
       await tester.pumpWidget(
         _buildChart(
-          computerProfiles: {'comp-a': profileA, 'comp-b': profileB},
-          computerLineColors: {'comp-a': Colors.red, 'comp-b': Colors.blue},
-          primaryComputers: {'comp-a'},
+          profile: _makeProfile(points: 8),
+          activeComputerId: 'comp-a',
+          overlays: [
+            overlay(color: Colors.purple, points: _makeProfile(points: 6)),
+          ],
         ),
       );
       await tester.pumpAndSettle();
 
-      expect(find.byType(DiveProfileChart), findsOneWidget);
-    });
-
-    testWidgets('renders when some computers are hidden', (tester) async {
-      final profileA = _makeProfile(points: 5);
-      final profileB = _makeProfile(points: 5);
-
-      await tester.pumpWidget(
-        _buildChart(
-          computerProfiles: {'comp-a': profileA, 'comp-b': profileB},
-          visibleComputers: {'comp-a'},
-          primaryComputers: {'comp-a'},
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.byType(DiveProfileChart), findsOneWidget);
-    });
-
-    testWidgets('renders with all computers hidden', (tester) async {
-      final profileA = _makeProfile(points: 5);
-      final profileB = _makeProfile(points: 5);
-
-      await tester.pumpWidget(
-        _buildChart(
-          computerProfiles: {'comp-a': profileA, 'comp-b': profileB},
-          visibleComputers: <String>{},
-          primaryComputers: {'comp-a'},
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.byType(DiveProfileChart), findsOneWidget);
-    });
-
-    testWidgets('falls back to single-profile with one computer', (
-      tester,
-    ) async {
-      final profileA = _makeProfile(points: 5);
-
-      await tester.pumpWidget(
-        _buildChart(
-          computerProfiles: {'comp-a': profileA},
-          primaryComputers: {'comp-a'},
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.byType(DiveProfileChart), findsOneWidget);
-    });
-
-    testWidgets('renders secondary computers without primaryComputers set', (
-      tester,
-    ) async {
-      final profileA = _makeProfile(points: 5);
-      final profileB = _makeProfile(points: 5);
-
-      await tester.pumpWidget(
-        _buildChart(computerProfiles: {'comp-a': profileA, 'comp-b': profileB}),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.byType(DiveProfileChart), findsOneWidget);
+      final bars = tester
+          .widget<LineChart>(find.byType(LineChart).first)
+          .data
+          .lineBarsData;
+      expect(bars.length, withoutOverlay + 1);
+      final overlayBar = bars.last;
+      expect(overlayBar.color, Colors.purple);
+      expect(overlayBar.dashArray, [6, 4]);
+      expect(overlayBar.spots.length, 6);
+      // Depth bar 0 is still the active source.
+      expect(bars.first.spots.length, 8);
     });
 
     testWidgets(
-      'hover resolves to the profile sample at the touched time, not the '
-      "touched bar's local index",
+      'tooltip rows label overlay depth and temperature with the metric',
       (tester) async {
-        // Regression: multi-computer depth bars are built from each computer's
-        // OWN point array, which need not align index-for-index with
-        // [widget.profile]. The hover handler used to treat the touched bar's
-        // local spotIndex as a [widget.profile] index, so the "active location"
-        // cursor and tooltip jumped to the wrong time as soon as a second
-        // computer was present (circles tracked the pointer, the line did not).
-        //
-        // [widget.profile] is comp-a, sampled every 20s; comp-b is denser
-        // (every 10s) and, listed first, is rendered as depth bar 0. A touch on
-        // comp-b's sample at t=40s must resolve to the comp-a sample at t=40s
-        // (index 2) -- NOT comp-b's local spotIndex 4, which would address
-        // comp-a's t=80s sample (index 4).
-        final profileA = [
+        final active = [
+          for (var i = 0; i < 5; i++)
+            DiveProfilePoint(
+              timestamp: i * 20,
+              depth: i * 3.0,
+              temperature: 27.0,
+            ),
+        ];
+        final other = [
+          for (var i = 0; i < 5; i++)
+            DiveProfilePoint(
+              timestamp: i * 20,
+              depth: i * 2.0,
+              temperature: 26.5,
+            ),
+        ];
+
+        List<TooltipRow>? receivedRows;
+        await tester.pumpWidget(
+          _buildChart(
+            profile: active,
+            activeComputerId: 'comp-a',
+            overlays: [overlay(name: 'Erics Teric', points: other)],
+            tooltipBelow: true,
+            onTooltipData: (rows) => receivedRows = rows,
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final data = tester
+            .widget<LineChart>(find.byType(LineChart).first)
+            .data;
+        final bars = data.lineBarsData;
+        final touchedSpot = bars.first.spots[2];
+        data.lineTouchData.touchCallback!(
+          FlPanDownEvent(DragDownDetails()),
+          LineTouchResponse(
+            touchLocation: Offset.zero,
+            touchChartCoordinate: Offset.zero,
+            lineBarSpots: <TouchLineBarSpot>[
+              TouchLineBarSpot(bars.first, 0, touchedSpot, 2),
+            ],
+          ),
+        );
+
+        expect(receivedRows, isNotNull);
+        final byLabel = {for (final r in receivedRows!) r.label: r.value};
+        expect(byLabel['Depth · Erics Teric'], isNotNull);
+        expect(byLabel['Depth · Erics Teric'], isNot(isEmpty));
+        expect(byLabel['Temp · Erics Teric'], isNotNull);
+      },
+    );
+
+    testWidgets(
+      'touch on the active depth bar resolves the active profile sample '
+      'even with a denser overlay present',
+      (tester) async {
+        // The overlay's points need not align index-for-index with
+        // [widget.profile]; overlay bars are appended last so they never
+        // participate in the depth-spot mapping.
+        final active = [
           for (var i = 0; i < 5; i++)
             DiveProfilePoint(timestamp: i * 20, depth: i * 3.0),
         ];
-        final profileB = [
+        final other = [
           for (var i = 0; i < 9; i++)
             DiveProfilePoint(timestamp: i * 10, depth: i * 1.5),
         ];
@@ -407,9 +420,9 @@ void main() {
         int? selected;
         await tester.pumpWidget(
           _buildChart(
-            profile: profileA,
-            // comp-b first -> it is depth bar 0.
-            computerProfiles: {'comp-b': profileB, 'comp-a': profileA},
+            profile: active,
+            activeComputerId: 'comp-a',
+            overlays: [overlay(points: other)],
             onPointSelected: (i) => selected = i,
           ),
         );
@@ -419,74 +432,27 @@ void main() {
             .widget<LineChart>(find.byType(LineChart).first)
             .data;
         final bars = data.lineBarsData;
-        // Depth bars are first; bar 0 is comp-b (9 samples), bar 1 is comp-a.
-        expect(bars[0].spots.length, 9);
-        expect(bars[1].spots.length, 5);
+        // Bar 0 is the active depth line; the overlay bar is last.
+        expect(bars.first.spots.length, 5);
+        expect(bars.last.spots.length, 9);
 
-        // Touch comp-b's t=40s sample (its local spotIndex 4).
-        final touchedSpot = bars[0].spots[4];
-        expect(touchedSpot.x, 40.0);
+        final touchedSpot = bars.first.spots[3];
+        expect(touchedSpot.x, 60.0);
         data.lineTouchData.touchCallback!(
           FlPanDownEvent(DragDownDetails()),
           LineTouchResponse(
             touchLocation: Offset.zero,
             touchChartCoordinate: Offset.zero,
             lineBarSpots: <TouchLineBarSpot>[
-              TouchLineBarSpot(bars[0], 0, touchedSpot, 0),
+              TouchLineBarSpot(bars.first, 0, touchedSpot, 3),
             ],
           ),
         );
 
-        expect(selected, 2);
-        expect(profileA[selected!].timestamp, 40);
+        expect(selected, 3);
+        expect(active[selected!].timestamp, 60);
       },
     );
-
-    testWidgets('hover on a secondary computer bar still resolves a sample', (
-      tester,
-    ) async {
-      // The depth-spot detection used to accept only barIndex 0, so hovering
-      // a secondary computer's line (barIndex >= 1) produced no selection at
-      // all -- the cursor stayed parked. It must now recognise every visible
-      // computer's depth bar.
-      final profileA = [
-        for (var i = 0; i < 5; i++)
-          DiveProfilePoint(timestamp: i * 20, depth: i * 3.0),
-      ];
-      final profileB = [
-        for (var i = 0; i < 9; i++)
-          DiveProfilePoint(timestamp: i * 10, depth: i * 1.5),
-      ];
-
-      int? selected;
-      await tester.pumpWidget(
-        _buildChart(
-          profile: profileA,
-          computerProfiles: {'comp-a': profileA, 'comp-b': profileB},
-          onPointSelected: (i) => selected = i,
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      final data = tester.widget<LineChart>(find.byType(LineChart).first).data;
-      final bars = data.lineBarsData;
-      // Touch the SECOND depth bar (comp-b) at t=60s.
-      final secondBar = bars[1];
-      final touchedSpot = secondBar.spots.firstWhere((s) => s.x == 60.0);
-      data.lineTouchData.touchCallback!(
-        FlPanDownEvent(DragDownDetails()),
-        LineTouchResponse(
-          touchLocation: Offset.zero,
-          touchChartCoordinate: Offset.zero,
-          lineBarSpots: <TouchLineBarSpot>[
-            TouchLineBarSpot(secondBar, 1, touchedSpot, 0),
-          ],
-        ),
-      );
-
-      expect(selected, 3);
-      expect(profileA[selected!].timestamp, 60);
-    });
   });
 
   group('DiveProfileChart - multi-tank pressure rendering', () {
@@ -559,7 +525,7 @@ void main() {
     });
   });
 
-  group('DiveProfileChart - multi-computer temperature overlays (Task 11)', () {
+  group('DiveProfileChart - overlay temperature and event gating', () {
     // Reads the primary fl_chart LineChartData (the depth/time plot is first).
     LineChartData primaryChartData(WidgetTester tester) =>
         tester.widget<LineChart>(find.byType(LineChart).first).data;
@@ -584,43 +550,43 @@ void main() {
       ),
     );
 
-    testWidgets('draws one temperature line per visible computer', (
-      tester,
-    ) async {
-      await tester.pumpWidget(
-        _buildChart(
-          computerProfiles: {
-            'comp-a': profileWithTemp(20),
-            'comp-b': profileWithTemp(22),
-          },
-          primaryComputers: {'comp-a'},
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(temperatureLines(tester).length, 2);
-    });
+    ChartSourceOverlay overlayB(List<DiveProfilePoint> points) =>
+        ChartSourceOverlay(
+          sourceId: 'src-b',
+          name: 'Erics Teric',
+          color: Colors.orange,
+          computerId: 'comp-b',
+          points: points,
+        );
 
     testWidgets(
-      'hiding a computer removes its temperature line from the chart',
+      'active and overlaid sources each draw a temperature line on one scale',
       (tester) async {
         await tester.pumpWidget(
           _buildChart(
-            computerProfiles: {
-              'comp-a': profileWithTemp(20),
-              'comp-b': profileWithTemp(22),
-            },
-            visibleComputers: {'comp-a'},
-            primaryComputers: {'comp-a'},
+            profile: profileWithTemp(20),
+            activeComputerId: 'comp-a',
+            overlays: [overlayB(profileWithTemp(22))],
           ),
         );
         await tester.pumpAndSettle();
 
-        expect(temperatureLines(tester).length, 1);
+        expect(temperatureLines(tester).length, 2);
       },
     );
 
-    testWidgets('hiding a computer removes its event markers from the chart', (
+    testWidgets('removing the overlay removes its temperature line', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildChart(profile: profileWithTemp(20), activeComputerId: 'comp-a'),
+      );
+      await tester.pumpAndSettle();
+
+      expect(temperatureLines(tester).length, 1);
+    });
+
+    testWidgets('events draw for the active and overlaid computers only', (
       tester,
     ) async {
       final createdAt = DateTime(2024, 1, 1);
@@ -643,14 +609,56 @@ void main() {
         ),
       ];
 
+      // comp-b not overlaid: its event hides.
       await tester.pumpWidget(
         _buildChart(
-          computerProfiles: {
-            'comp-a': profileWithTemp(20),
-            'comp-b': profileWithTemp(22),
-          },
-          visibleComputers: {'comp-a'},
-          primaryComputers: {'comp-a'},
+          profile: profileWithTemp(20),
+          activeComputerId: 'comp-a',
+          overlays: const [],
+          events: events,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      var verticalLines = primaryChartData(tester).extraLinesData.verticalLines;
+      expect(verticalLines.any((l) => l.x == 30), isTrue);
+      expect(verticalLines.any((l) => l.x == 60), isFalse);
+
+      // Overlaying comp-b brings its event back.
+      await tester.pumpWidget(
+        _buildChart(
+          profile: profileWithTemp(20),
+          activeComputerId: 'comp-a',
+          overlays: [overlayB(profileWithTemp(22))],
+          events: events,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      verticalLines = primaryChartData(tester).extraLinesData.verticalLines;
+      expect(verticalLines.any((l) => l.x == 30), isTrue);
+      expect(verticalLines.any((l) => l.x == 60), isTrue);
+    });
+
+    testWidgets('a null-computerId event always draws (active-owned)', (
+      tester,
+    ) async {
+      final createdAt = DateTime(2024, 1, 1);
+      final events = [
+        ProfileEvent(
+          id: 'e-primary',
+          diveId: 'dive-1',
+          timestamp: 30,
+          eventType: ProfileEventType.bookmark,
+          createdAt: createdAt,
+        ),
+      ];
+
+      await tester.pumpWidget(
+        _buildChart(
+          profile: profileWithTemp(20),
+          activeComputerId: 'comp-a',
+          overlays: const [],
           events: events,
         ),
       );
@@ -660,43 +668,7 @@ void main() {
         tester,
       ).extraLinesData.verticalLines;
       expect(verticalLines.any((l) => l.x == 30), isTrue);
-      expect(verticalLines.any((l) => l.x == 60), isFalse);
     });
-
-    testWidgets(
-      'a null-computerId event stays tied to the primary computer\'s visibility',
-      (tester) async {
-        final createdAt = DateTime(2024, 1, 1);
-        final events = [
-          ProfileEvent(
-            id: 'e-primary',
-            diveId: 'dive-1',
-            timestamp: 30,
-            eventType: ProfileEventType.bookmark,
-            createdAt: createdAt,
-          ),
-        ];
-
-        await tester.pumpWidget(
-          _buildChart(
-            computerProfiles: {
-              'comp-a': profileWithTemp(20),
-              'comp-b': profileWithTemp(22),
-            },
-            // Primary computer toggled off.
-            visibleComputers: {'comp-b'},
-            primaryComputers: {'comp-a'},
-            events: events,
-          ),
-        );
-        await tester.pumpAndSettle();
-
-        final verticalLines = primaryChartData(
-          tester,
-        ).extraLinesData.verticalLines;
-        expect(verticalLines.any((l) => l.x == 30), isFalse);
-      },
-    );
   });
 
   group('DiveProfileChart - empty state', () {

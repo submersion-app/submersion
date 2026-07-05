@@ -5566,6 +5566,43 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_sources_unknownComputer => 'جهاز غير معروف';
 
   @override
+  String get diveLog_sources_manualEntry => 'إدخال يدوي';
+
+  @override
+  String get diveLog_sources_importedFile => 'ملف مستورد';
+
+  @override
+  String get diveLog_sources_editedSuffix => ' (معدل)';
+
+  @override
+  String get diveLog_sources_barLabel => 'المصادر';
+
+  @override
+  String get diveLog_sources_menu_setPrimary => 'تعيين كمصدر أساسي';
+
+  @override
+  String get diveLog_sources_menu_split => 'فصل إلى غطسة منفصلة';
+
+  @override
+  String get diveLog_sources_overlayTooltip => 'عرض على الرسم البياني';
+
+  @override
+  String get diveLog_sources_splitDialog_title => 'فصل إلى غطسة منفصلة؟';
+
+  @override
+  String get diveLog_sources_splitDialog_body =>
+      'سيتم نقل ملف العمق والأحداث والأسطوانات الخاصة بهذا المصدر إلى غطسة جديدة. يبقى سجل الغطسة على هذه الغطسة.';
+
+  @override
+  String get diveLog_sources_splitDialog_confirm => 'فصل';
+
+  @override
+  String get diveLog_sources_splitDone => 'تم فصل الغطسة';
+
+  @override
+  String get diveLog_sources_splitFailed => 'فشل الفصل';
+
+  @override
   String get divePlanner_action_addTank => 'إضافة أسطوانة';
 
   @override

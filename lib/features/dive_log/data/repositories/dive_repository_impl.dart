@@ -16,6 +16,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/domain/entities/source_profile.dart'
+    as domain;
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_event_mapper.dart';
 import 'package:submersion/core/constants/sort_options.dart';
@@ -491,68 +493,113 @@ class DiveRepository {
     }
   }
 
-  /// Get all profile sources for a dive.
+  domain.DiveProfilePoint _profilePointFromRow(DiveProfile row) {
+    return domain.DiveProfilePoint(
+      timestamp: row.timestamp,
+      depth: row.depth,
+      temperature: row.temperature,
+      heartRate: row.heartRate,
+      heartRateSource: row.heartRateSource,
+      setpoint: row.setpoint,
+      ppO2: row.ppO2,
+      o2Sensor1: row.o2Sensor1,
+      o2Sensor2: row.o2Sensor2,
+      o2Sensor3: row.o2Sensor3,
+      o2Sensor4: row.o2Sensor4,
+      o2Sensor5: row.o2Sensor5,
+      o2Sensor6: row.o2Sensor6,
+      cns: row.cns,
+      ndl: row.ndl,
+      ceiling: row.ceiling,
+      ascentRate: row.ascentRate,
+      rbt: row.rbt,
+      decoType: row.decoType,
+      tts: row.tts,
+    );
+  }
+
+  /// Get profile samples grouped by owning data source.
   ///
-  /// Returns a map keyed by logical source label to profile points.
-  /// Primary profiles are labeled 'user-edited', non-primary profiles
-  /// are labeled by their computerId or 'original'.
-  Future<Map<String?, List<domain.DiveProfilePoint>>> getProfilesBySource(
+  /// Keys are dive_data_sources ids, primary source first. Rows with a null
+  /// computerId belong to the primary source (schema convention). Rows whose
+  /// computerId matches no source also fall back to the primary source so no
+  /// data is ever dropped or bucketed under an invented key. When an edited
+  /// profile exists, the primary source carries only the edited rows
+  /// (isEdited: true).
+  Future<Map<String, domain.SourceProfile>> getProfilesByDataSource(
     String diveId,
   ) async {
     try {
-      final query = _db.select(_db.diveProfiles)
-        ..where((t) => t.diveId.equals(diveId))
-        ..orderBy([(t) => OrderingTerm.asc(t.timestamp)]);
-      final rows = await query.get();
+      final sourceRows =
+          await (_db.select(_db.diveDataSources)
+                ..where((t) => t.diveId.equals(diveId))
+                ..orderBy([
+                  (t) => OrderingTerm.desc(t.isPrimary),
+                  (t) => OrderingTerm.asc(t.createdAt),
+                ]))
+              .get();
+      if (sourceRows.isEmpty) return {};
 
-      // Check whether an edited (non-original) profile exists.
-      // When it does, original rows have isPrimary=false and edited rows
-      // have isPrimary=true. We use this to build meaningful source labels.
+      final primary = sourceRows.first;
+      final sourceIdByComputer = <String, String>{
+        for (final s in sourceRows)
+          if (s.computerId != null) s.computerId!: s.id,
+      };
+
+      final rows =
+          await (_db.select(_db.diveProfiles)
+                ..where((t) => t.diveId.equals(diveId))
+                ..orderBy([(t) => OrderingTerm.asc(t.timestamp)]))
+              .get();
+
+      // A row belongs to the primary source's "family" when its computerId
+      // is null (schema convention for primary/manual/edited rows) or is the
+      // primary's own computer. Only family rows participate in
+      // edited-profile detection: an edit demotes the family originals to
+      // isPrimary=false and writes edited rows with isPrimary=true, whereas
+      // secondary computers' rows are ALWAYS isPrimary=false and must never
+      // be mistaken for demoted originals.
+      bool isPrimaryFamily(DiveProfile r) =>
+          r.computerId == null || r.computerId == primary.computerId;
+
+      final familyRows = rows.where(isPrimaryFamily);
       final hasEditedProfile =
-          rows.any((r) => r.isPrimary) && rows.any((r) => !r.isPrimary);
+          familyRows.any((r) => r.isPrimary) &&
+          familyRows.any((r) => !r.isPrimary);
 
-      final result = <String?, List<domain.DiveProfilePoint>>{};
+      final grouped = <String, List<domain.DiveProfilePoint>>{
+        for (final s in sourceRows) s.id: [],
+      };
+      var primaryIsEdited = false;
+
       for (final row in rows) {
-        String? source;
-        if (hasEditedProfile) {
-          source = row.isPrimary
-              ? 'user-edited'
-              : (row.computerId ?? 'original');
-        } else {
-          source = row.computerId ?? 'original';
+        final owner = row.computerId == null
+            ? primary.id
+            : (sourceIdByComputer[row.computerId!] ?? primary.id);
+        if (hasEditedProfile && isPrimaryFamily(row)) {
+          // Edited rows (isPrimary=true) replace the primary source's
+          // originals; skip the demoted originals entirely.
+          if (!row.isPrimary) continue;
+          primaryIsEdited = true;
         }
-
-        result
-            .putIfAbsent(source, () => [])
-            .add(
-              domain.DiveProfilePoint(
-                timestamp: row.timestamp,
-                depth: row.depth,
-                temperature: row.temperature,
-                heartRate: row.heartRate,
-                heartRateSource: row.heartRateSource,
-                setpoint: row.setpoint,
-                ppO2: row.ppO2,
-                o2Sensor1: row.o2Sensor1,
-                o2Sensor2: row.o2Sensor2,
-                o2Sensor3: row.o2Sensor3,
-                o2Sensor4: row.o2Sensor4,
-                o2Sensor5: row.o2Sensor5,
-                o2Sensor6: row.o2Sensor6,
-                cns: row.cns,
-                ndl: row.ndl,
-                ceiling: row.ceiling,
-                ascentRate: row.ascentRate,
-                rbt: row.rbt,
-                decoType: row.decoType,
-                tts: row.tts,
-              ),
-            );
+        grouped[owner]!.add(_profilePointFromRow(row));
       }
-      return result;
+
+      // Every source row gets an entry, even with no profile points, so
+      // metadata-only sources stay representable (activatable chip, empty
+      // chart placeholder) rather than silently disappearing.
+      return {
+        for (final s in sourceRows)
+          s.id: domain.SourceProfile(
+            sourceId: s.id,
+            computerId: s.computerId,
+            isEdited: s.id == primary.id && primaryIsEdited,
+            points: grouped[s.id]!,
+          ),
+      };
     } catch (e, stackTrace) {
       _log.error(
-        'Failed to get profiles by source for dive: $diveId',
+        'Failed to get profiles by data source for dive: $diveId',
         error: e,
         stackTrace: stackTrace,
       );
@@ -4660,331 +4707,6 @@ class DiveRepository {
   // ============================================================================
   // Consolidation and merge operations
   // ============================================================================
-
-  /// Reverses a consolidation by detaching one computer's data into a new
-  /// standalone dive.
-  ///
-  /// Re-parents the matching profile rows to the new dive, removes the
-  /// [DiveDataSources] row from the original dive, and — when the primary
-  /// data source is being unlinked — promotes the next source via
-  /// [setPrimaryDataSource].
-  ///
-  /// When the reading carries a `computerId`, its attributed tanks,
-  /// profile events, and tank pressure curves move with it. A tank only
-  /// moves when nothing that will REMAIN on the original dive still
-  /// references it: another computer's tank pressure profile or profile
-  /// event, or any gas switch (gas switches carry no `computerId` and
-  /// always stay with the original dive). When a tank has such remaining
-  /// references — e.g. one deduped during consolidation that now also
-  /// carries another computer's pressure curve — it stays on the original
-  /// dive with its `computerId` cleared, and a fresh clone attributed to
-  /// the departing computer is created on the new dive to carry that
-  /// computer's own pressure rows instead. A pressure curve recorded on a
-  /// shared tank the departing computer never owned gets the same
-  /// clone-on-demand treatment. Readings with a null `computerId` cannot be
-  /// attributed, so no tanks/events/pressures move for them.
-  ///
-  /// Returns the ID of the newly created dive.
-  Future<String> unlinkComputer({
-    required String diveId,
-    required String computerReadingId,
-  }) async {
-    try {
-      // Load the reading to unlink.
-      final reading = await (_db.select(
-        _db.diveDataSources,
-      )..where((t) => t.id.equals(computerReadingId))).getSingleOrNull();
-
-      if (reading == null) {
-        throw StateError(
-          'Computer reading $computerReadingId not found for dive $diveId',
-        );
-      }
-
-      final now = DateTime.now();
-      final newDiveId = _uuid.v4();
-
-      await _db.transaction(() async {
-        // Load original dive row for baseline metadata.
-        final originalRow = await (_db.select(
-          _db.dives,
-        )..where((t) => t.id.equals(diveId))).getSingleOrNull();
-
-        // Create a new standalone dive from the reading's metadata.
-        await _db
-            .into(_db.dives)
-            .insert(
-              DivesCompanion(
-                id: Value(newDiveId),
-                diveDateTime: Value(
-                  reading.entryTime?.millisecondsSinceEpoch ??
-                      originalRow?.diveDateTime ??
-                      now.millisecondsSinceEpoch,
-                ),
-                entryTime: Value(reading.entryTime?.millisecondsSinceEpoch),
-                exitTime: Value(reading.exitTime?.millisecondsSinceEpoch),
-                bottomTime: Value(reading.duration),
-                maxDepth: Value(reading.maxDepth),
-                avgDepth: Value(reading.avgDepth),
-                waterTemp: Value(reading.waterTemp),
-                computerId: Value(reading.computerId),
-                diveComputerModel: Value(reading.computerModel),
-                diveComputerSerial: Value(reading.computerSerial),
-                surfaceIntervalSeconds: Value(reading.surfaceInterval),
-                cnsEnd: Value(reading.cns),
-                decoAlgorithm: Value(reading.decoAlgorithm),
-                gradientFactorLow: Value(reading.gradientFactorLow),
-                gradientFactorHigh: Value(reading.gradientFactorHigh),
-                createdAt: Value(now.millisecondsSinceEpoch),
-                updatedAt: Value(now.millisecondsSinceEpoch),
-              ),
-            );
-        await _syncRepository.markRecordPending(
-          entityType: 'dives',
-          recordId: newDiveId,
-          localUpdatedAt: now.millisecondsSinceEpoch,
-        );
-
-        // Re-parent this computer's profiles to the new dive.
-        // Match by computerId when available; fall back to non-primary, null
-        // computerId rows (but never re-parent user-edited isPrimary=true rows).
-        if (reading.computerId != null) {
-          await (_db.update(_db.diveProfiles)..where(
-                (t) =>
-                    t.diveId.equals(diveId) &
-                    t.computerId.equals(reading.computerId!),
-              ))
-              .write(
-                DiveProfilesCompanion(
-                  diveId: Value(newDiveId),
-                  isPrimary: const Value(true),
-                ),
-              );
-        } else {
-          // No computerId — match non-primary rows with null computerId.
-          // Exclude isPrimary=true to protect user-edited profiles.
-          await (_db.update(_db.diveProfiles)..where(
-                (t) =>
-                    t.diveId.equals(diveId) &
-                    t.computerId.isNull() &
-                    t.isPrimary.equals(false),
-              ))
-              .write(
-                DiveProfilesCompanion(
-                  diveId: Value(newDiveId),
-                  isPrimary: const Value(true),
-                ),
-              );
-        }
-
-        // Move this computer's attributed children to the new dive.
-        if (reading.computerId != null) {
-          final cid = reading.computerId!;
-
-          // Tanks attributed to the departing computer only move when
-          // nothing that will REMAIN on the original dive still references
-          // them: another computer's tank pressure profile or profile
-          // event, or any gas switch (gas switches carry no computerId and
-          // always stay with the original dive). A tank with such
-          // remaining references — e.g. one deduped during consolidation
-          // that now also carries another computer's pressure curve — must
-          // stay behind; moving it would leave those rows dangling,
-          // pointing at a tank that lives on a different dive.
-          final candidateTanks =
-              await (_db.select(_db.diveTanks)..where(
-                    (t) => t.diveId.equals(diveId) & t.computerId.equals(cid),
-                  ))
-                  .get();
-
-          final tankIdsToMove = <String>[];
-          for (final candidate in candidateTanks) {
-            final otherPressureRefs =
-                await (_db.select(_db.tankPressureProfiles)..where(
-                      (t) =>
-                          t.diveId.equals(diveId) &
-                          t.tankId.equals(candidate.id) &
-                          (t.computerId.equals(cid).not() |
-                              t.computerId.isNull()),
-                    ))
-                    .get();
-            final otherEventRefs =
-                await (_db.select(_db.diveProfileEvents)..where(
-                      (t) =>
-                          t.diveId.equals(diveId) &
-                          t.tankId.equals(candidate.id) &
-                          (t.computerId.equals(cid).not() |
-                              t.computerId.isNull()),
-                    ))
-                    .get();
-            final gasSwitchRefs =
-                await (_db.select(_db.gasSwitches)..where(
-                      (t) =>
-                          t.diveId.equals(diveId) &
-                          t.tankId.equals(candidate.id),
-                    ))
-                    .get();
-
-            if (otherPressureRefs.isEmpty &&
-                otherEventRefs.isEmpty &&
-                gasSwitchRefs.isEmpty) {
-              tankIdsToMove.add(candidate.id);
-              continue;
-            }
-
-            // Shared tank: stays on the original dive (freed from this
-            // computer's attribution) and gets a fresh clone on the new
-            // dive so this computer's own pressure rows still have a home.
-            final cloneId = _uuid.v4();
-            await _db
-                .into(_db.diveTanks)
-                .insert(
-                  candidate
-                      .toCompanion(false)
-                      .copyWith(
-                        id: Value(cloneId),
-                        diveId: Value(newDiveId),
-                        computerId: Value(cid),
-                      ),
-                );
-            await (_db.update(_db.tankPressureProfiles)..where(
-                  (t) =>
-                      t.diveId.equals(diveId) &
-                      t.tankId.equals(candidate.id) &
-                      t.computerId.equals(cid),
-                ))
-                .write(
-                  TankPressureProfilesCompanion(
-                    diveId: Value(newDiveId),
-                    tankId: Value(cloneId),
-                  ),
-                );
-            await (_db.update(_db.diveTanks)
-                  ..where((t) => t.id.equals(candidate.id)))
-                .write(const DiveTanksCompanion(computerId: Value(null)));
-          }
-
-          if (tankIdsToMove.isNotEmpty) {
-            await (_db.update(_db.diveTanks)..where(
-                  (t) => t.diveId.equals(diveId) & t.id.isIn(tankIdsToMove),
-                ))
-                .write(DiveTanksCompanion(diveId: Value(newDiveId)));
-          }
-
-          await (_db.update(_db.diveProfileEvents)..where(
-                (t) => t.diveId.equals(diveId) & t.computerId.equals(cid),
-              ))
-              .write(DiveProfileEventsCompanion(diveId: Value(newDiveId)));
-
-          // Pressure curves recorded by this computer on a SHARED tank it
-          // never owned (i.e. not one of the candidateTanks above) need a
-          // home tank on the new dive too: clone the shared tank once,
-          // then re-parent this computer's pressure rows onto the clone.
-          // Rows already re-pointed above (shared tanks this computer DID
-          // own) no longer match this query, since their diveId already
-          // moved off of the original dive — so they are not
-          // double-handled here.
-          final pressureRows =
-              await (_db.select(_db.tankPressureProfiles)..where(
-                    (t) => t.diveId.equals(diveId) & t.computerId.equals(cid),
-                  ))
-                  .get();
-          final movedTankIds =
-              (await (_db.select(
-                    _db.diveTanks,
-                  )..where((t) => t.diveId.equals(newDiveId))).get())
-                  .map((t) => t.id)
-                  .toSet();
-          final cloneBySharedTank = <String, String>{};
-          for (final row in pressureRows) {
-            var homeTankId = row.tankId;
-            if (!movedTankIds.contains(homeTankId)) {
-              homeTankId = cloneBySharedTank[row.tankId] ??= await () async {
-                final shared = await (_db.select(
-                  _db.diveTanks,
-                )..where((t) => t.id.equals(row.tankId))).getSingle();
-                final cloneId = _uuid.v4();
-                await _db
-                    .into(_db.diveTanks)
-                    .insert(
-                      shared
-                          .toCompanion(false)
-                          .copyWith(
-                            id: Value(cloneId),
-                            diveId: Value(newDiveId),
-                            computerId: Value(cid),
-                          ),
-                    );
-                return cloneId;
-              }();
-            }
-            await (_db.update(
-              _db.tankPressureProfiles,
-            )..where((t) => t.id.equals(row.id))).write(
-              TankPressureProfilesCompanion(
-                diveId: Value(newDiveId),
-                tankId: Value(homeTankId),
-              ),
-            );
-          }
-        }
-
-        // Delete the computer reading from the original dive.
-        await (_db.delete(
-          _db.diveDataSources,
-        )..where((t) => t.id.equals(computerReadingId))).go();
-
-        // If unlinking the primary, promote the next computer.
-        if (reading.isPrimary) {
-          final remaining =
-              await (_db.select(_db.diveDataSources)
-                    ..where((t) => t.diveId.equals(diveId))
-                    ..orderBy([(t) => OrderingTerm.asc(t.createdAt)])
-                    ..limit(1))
-                  .getSingleOrNull();
-
-          if (remaining != null) {
-            await setPrimaryDataSource(
-              diveId: diveId,
-              computerReadingId: remaining.id,
-            );
-          }
-        }
-
-        // If only one computer reading remains, clean it up (the dive returns
-        // to single-source state — no need for dive_data_sources rows).
-        final remainingReadings = await (_db.select(
-          _db.diveDataSources,
-        )..where((t) => t.diveId.equals(diveId))).get();
-        if (remainingReadings.length == 1) {
-          await (_db.delete(
-            _db.diveDataSources,
-          )..where((t) => t.diveId.equals(diveId))).go();
-        }
-
-        // Touch the original dive so incremental sync carries its changed
-        // children (moved/cloned tanks, re-pointed pressure rows and
-        // events, removed reading).
-        await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
-          DivesCompanion(updatedAt: Value(now.millisecondsSinceEpoch)),
-        );
-        await _syncRepository.markRecordPending(
-          entityType: 'dives',
-          recordId: diveId,
-          localUpdatedAt: now.millisecondsSinceEpoch,
-        );
-      });
-
-      SyncEventBus.notifyLocalChange();
-      return newDiveId;
-    } catch (e, stackTrace) {
-      _log.error(
-        'Failed to unlink computer $computerReadingId from dive $diveId',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      rethrow;
-    }
-  }
 
   /// Swaps which computer is primary for a dive.
   ///
