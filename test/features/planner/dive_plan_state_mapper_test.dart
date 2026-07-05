@@ -78,17 +78,18 @@ void main() {
 
     final merged = divePlanFromState(state(), existing: existing);
     // State-owned fields come from the state (mode/setpoints joined that
-    // set in Phase 4: the state defaults to OC with null setpoints)...
+    // set in Phase 4, contingency config in Phase 5: the state defaults to
+    // OC / null setpoints / no turn rule)...
     expect(merged.name, 'Reef dive');
     expect(merged.gfLow, 45);
     expect(merged.sacBottom, 17.0);
     expect(merged.mode, domain.PlanMode.oc);
     expect(merged.setpointHigh, isNull);
+    expect(merged.turnPressureRule, isNull);
     // ...while aggregate-only fields survive the cycle.
     expect(merged.waterType, WaterType.fresh);
     expect(merged.descentRate, 20.0);
     expect(merged.airBreaks, isNotNull);
-    expect(merged.turnPressureRule, domain.TurnPressureRule.thirds);
     expect(merged.sourceDiveId, 'dive-9');
   });
 
@@ -132,5 +133,23 @@ void main() {
     expect(merged.altitude, isNull);
     expect(merged.siteId, isNull);
     expect(merged.surfaceInterval, isNull);
+  });
+
+  test('contingency config round-trips through the state', () {
+    final configured = state().copyWith(
+      deviationDepthDelta: 6.0,
+      deviationTimeMinutes: 10,
+      turnPressureRule: domain.TurnPressureRule.halves,
+      turnPressureFraction: 0.4,
+    );
+    final plan = divePlanFromState(configured);
+    expect(plan.deviationDepthDelta, 6.0);
+    expect(plan.deviationTimeMinutes, 10);
+    expect(plan.turnPressureRule, domain.TurnPressureRule.halves);
+    expect(plan.turnPressureFraction, 0.4);
+
+    final restored = stateFromDivePlan(plan);
+    expect(restored.deviationDepthDelta, 6.0);
+    expect(restored.turnPressureRule, domain.TurnPressureRule.halves);
   });
 }

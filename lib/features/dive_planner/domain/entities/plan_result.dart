@@ -4,7 +4,7 @@ import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
-    show PlanMode;
+    show PlanMode, TurnPressureRule;
 
 /// Types of warnings that can occur during dive planning.
 enum PlanWarningType {
@@ -509,6 +509,14 @@ class DivePlanState extends Equatable {
   /// Depth below which the high setpoint is in force; null = default 10 m.
   final double? setpointSwitchDepth;
 
+  /// Contingency deviation deltas (Phase 5).
+  final double deviationDepthDelta;
+  final int deviationTimeMinutes;
+
+  /// Turn-pressure rule for penetration planning; null = none.
+  final TurnPressureRule? turnPressureRule;
+  final double? turnPressureFraction;
+
   /// Reserve pressure in bar.
   final double reservePressure;
 
@@ -540,6 +548,10 @@ class DivePlanState extends Equatable {
     this.setpointLow,
     this.setpointHigh,
     this.setpointSwitchDepth,
+    this.deviationDepthDelta = 5.0,
+    this.deviationTimeMinutes = 5,
+    this.turnPressureRule,
+    this.turnPressureFraction,
     this.reservePressure = kDefaultReservePressureBar,
     this.notes = '',
     this.isDirty = false,
@@ -591,6 +603,11 @@ class DivePlanState extends Equatable {
     double? setpointLow,
     double? setpointHigh,
     double? setpointSwitchDepth,
+    double? deviationDepthDelta,
+    int? deviationTimeMinutes,
+    TurnPressureRule? turnPressureRule,
+    double? turnPressureFraction,
+    bool clearTurnPressureRule = false,
     double? reservePressure,
     String? notes,
     bool? isDirty,
@@ -624,6 +641,14 @@ class DivePlanState extends Equatable {
       setpointSwitchDepth: clearSetpoints
           ? null
           : (setpointSwitchDepth ?? this.setpointSwitchDepth),
+      deviationDepthDelta: deviationDepthDelta ?? this.deviationDepthDelta,
+      deviationTimeMinutes: deviationTimeMinutes ?? this.deviationTimeMinutes,
+      turnPressureRule: clearTurnPressureRule
+          ? null
+          : (turnPressureRule ?? this.turnPressureRule),
+      turnPressureFraction: clearTurnPressureRule
+          ? null
+          : (turnPressureFraction ?? this.turnPressureFraction),
       reservePressure: reservePressure ?? this.reservePressure,
       notes: notes ?? this.notes,
       isDirty: isDirty ?? this.isDirty,
@@ -649,6 +674,10 @@ class DivePlanState extends Equatable {
     setpointLow,
     setpointHigh,
     setpointSwitchDepth,
+    deviationDepthDelta,
+    deviationTimeMinutes,
+    turnPressureRule,
+    turnPressureFraction,
     reservePressure,
     notes,
     isDirty,

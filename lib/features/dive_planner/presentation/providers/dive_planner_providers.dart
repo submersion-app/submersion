@@ -361,6 +361,25 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     );
   }
 
+  /// Update contingency configuration; only supplied values change.
+  void updateContingencies({
+    double? depthDelta,
+    int? timeMinutes,
+    domain.TurnPressureRule? turnRule,
+    double? turnFraction,
+    bool clearTurnRule = false,
+  }) {
+    state = state.copyWith(
+      deviationDepthDelta: depthDelta,
+      deviationTimeMinutes: timeMinutes,
+      turnPressureRule: turnRule,
+      turnPressureFraction: turnFraction,
+      clearTurnPressureRule: clearTurnRule,
+      isDirty: true,
+      updatedAt: DateTime.now(),
+    );
+  }
+
   // --------------------------------------------------------------------------
   // Repetitive Dive Support
   // --------------------------------------------------------------------------
