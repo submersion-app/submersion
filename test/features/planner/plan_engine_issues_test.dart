@@ -175,7 +175,7 @@ void main() {
       expect(outcome.stops, isEmpty);
       expect(outcome.tankUsages.single.litersUsed, closeTo(762.5, 1.0));
       // Compressibility: remaining is BELOW the ideal-gas figure.
-      final idealRemaining = 232 - 762.5 / 24.0;
+      const idealRemaining = 232 - 762.5 / 24.0;
       expect(
         outcome.tankUsages.single.remainingPressure!,
         lessThan(idealRemaining + 0.01),

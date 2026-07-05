@@ -10,7 +10,7 @@ import 'package:submersion/features/planner/domain/services/dive_plan_state_mapp
 
 void main() {
   const gas = GasMix(o2: 21);
-  final tank = DiveTank(
+  const tank = DiveTank(
     id: 't1',
     volume: 11.1,
     startPressure: 200,
