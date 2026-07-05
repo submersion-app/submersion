@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_planner/data/services/plan_calculator_service.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
@@ -124,6 +125,52 @@ void main() {
 
       notifier.newPlan();
       expect(notifier.state.reservePressure, 40);
+    });
+
+    test('setFollowedDive seeds context and clearFollowedDive drops it', () {
+      final notifier = DivePlanNotifier(PlanCalculatorService());
+      addTearDown(notifier.dispose);
+
+      final compartments = [
+        const TissueCompartment(
+          compartmentNumber: 1,
+          halfTimeN2: 5.0,
+          halfTimeHe: 1.88,
+          mValueAN2: 1.1696,
+          mValueBN2: 0.5578,
+          mValueAHe: 1.6189,
+          mValueBHe: 0.4770,
+          currentPN2: 1.2,
+        ),
+      ];
+      notifier.setFollowedDive(
+        diveId: 'dive-9',
+        compartments: compartments,
+        surfaceInterval: const Duration(hours: 2),
+      );
+
+      var state = notifier.state;
+      expect(state.sourceDiveId, 'dive-9');
+      expect(state.initialTissueState, compartments);
+      expect(state.surfaceInterval, const Duration(hours: 2));
+      expect(state.isDirty, isTrue);
+
+      notifier.clearFollowedDive();
+      state = notifier.state;
+      expect(state.sourceDiveId, isNull);
+      expect(state.initialTissueState, isNull);
+      expect(state.surfaceInterval, isNull);
+    });
+
+    test('setLinkedDive records and clears the converted dive', () {
+      final notifier = DivePlanNotifier(PlanCalculatorService());
+      addTearDown(notifier.dispose);
+
+      notifier.setLinkedDive('dive-12');
+      expect(notifier.state.linkedDiveId, 'dive-12');
+
+      notifier.setLinkedDive(null);
+      expect(notifier.state.linkedDiveId, isNull);
     });
   });
 }

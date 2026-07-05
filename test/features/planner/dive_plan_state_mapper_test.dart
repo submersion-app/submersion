@@ -78,19 +78,41 @@ void main() {
 
     final merged = divePlanFromState(state(), existing: existing);
     // State-owned fields come from the state (mode/setpoints joined that
-    // set in Phase 4, contingency config in Phase 5: the state defaults to
-    // OC / null setpoints / no turn rule)...
+    // set in Phase 4, contingency config in Phase 5, dive links in Phase 6:
+    // the state defaults to OC / null setpoints / no turn rule / no links)...
     expect(merged.name, 'Reef dive');
     expect(merged.gfLow, 45);
     expect(merged.sacBottom, 17.0);
     expect(merged.mode, domain.PlanMode.oc);
     expect(merged.setpointHigh, isNull);
     expect(merged.turnPressureRule, isNull);
+    expect(merged.sourceDiveId, isNull);
     // ...while aggregate-only fields survive the cycle.
     expect(merged.waterType, WaterType.fresh);
     expect(merged.descentRate, 20.0);
     expect(merged.airBreaks, isNotNull);
-    expect(merged.sourceDiveId, 'dive-9');
+  });
+
+  test('dive links round-trip through the state', () {
+    final linkedState = state().copyWith(
+      sourceDiveId: 'dive-9',
+      linkedDiveId: 'dive-12',
+    );
+    final plan = divePlanFromState(linkedState);
+    expect(plan.sourceDiveId, 'dive-9');
+    expect(plan.linkedDiveId, 'dive-12');
+
+    final restored = stateFromDivePlan(plan);
+    expect(restored.sourceDiveId, 'dive-9');
+    expect(restored.linkedDiveId, 'dive-12');
+
+    final cleared = restored.copyWith(
+      clearSourceDiveId: true,
+      clearLinkedDiveId: true,
+    );
+    final unlinked = divePlanFromState(cleared, existing: plan);
+    expect(unlinked.sourceDiveId, isNull);
+    expect(unlinked.linkedDiveId, isNull);
   });
 
   test('mode and setpoints round-trip through the state', () {

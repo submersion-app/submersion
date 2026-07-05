@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
+import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -394,14 +395,42 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     );
   }
 
-  /// Load tissue state from a previous dive (for repetitive planning).
-  void loadTissueFromDive(Dive previousDive) {
-    // This would require accessing the profile analysis to get end tissue state
-    // For now, we'll just set the surface interval
-    if (previousDive.dateTime.isBefore(DateTime.now())) {
-      final interval = DateTime.now().difference(previousDive.dateTime);
-      setSurfaceInterval(interval);
-    }
+  /// Follow a logged dive: seed tissues from its end-of-dive compartments
+  /// and set the surface interval separating it from this plan.
+  void setFollowedDive({
+    required String diveId,
+    List<TissueCompartment>? compartments,
+    required Duration surfaceInterval,
+  }) {
+    state = state.copyWith(
+      sourceDiveId: diveId,
+      initialTissueState: compartments,
+      clearInitialTissueState: compartments == null,
+      surfaceInterval: surfaceInterval,
+      isDirty: true,
+      updatedAt: DateTime.now(),
+    );
+  }
+
+  /// Stop following a dive: drop the seed tissues and surface interval.
+  void clearFollowedDive() {
+    state = state.copyWith(
+      clearSourceDiveId: true,
+      clearSurfaceInterval: true,
+      clearInitialTissueState: true,
+      isDirty: true,
+      updatedAt: DateTime.now(),
+    );
+  }
+
+  /// Record (or clear) the dive created from this plan via convert-to-dive.
+  void setLinkedDive(String? diveId) {
+    state = state.copyWith(
+      linkedDiveId: diveId,
+      clearLinkedDiveId: diveId == null,
+      isDirty: true,
+      updatedAt: DateTime.now(),
+    );
   }
 
   /// Clear repetitive dive settings.
