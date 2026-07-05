@@ -358,6 +358,58 @@ void main() {
       ]);
       expect(prefs.getStringList('fullscreen_hidden_tiles'), ['heartRate']);
     });
+
+    test('readout card position defaults to null and persists', () async {
+      final notifier = container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(container.read(settingsProvider).fullscreenReadoutCardX, isNull);
+      expect(container.read(settingsProvider).fullscreenReadoutCardY, isNull);
+
+      await notifier.setFullscreenReadoutCardPosition(0.25, 0.75);
+
+      expect(container.read(settingsProvider).fullscreenReadoutCardX, 0.25);
+      expect(container.read(settingsProvider).fullscreenReadoutCardY, 0.75);
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getDouble('fullscreen_readout_card_x'), 0.25);
+      expect(prefs.getDouble('fullscreen_readout_card_y'), 0.75);
+    });
+
+    test('readout card position clamps out-of-range values', () async {
+      final notifier = container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      // Keep persisted data inside the 0..1 contract even if a future call
+      // site passes junk; the widget clamps on read too, but stored values
+      // should stay canonical.
+      await notifier.setFullscreenReadoutCardPosition(5.0, -3.0);
+
+      expect(container.read(settingsProvider).fullscreenReadoutCardX, 1.0);
+      expect(container.read(settingsProvider).fullscreenReadoutCardY, 0.0);
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getDouble('fullscreen_readout_card_x'), 1.0);
+      expect(prefs.getDouble('fullscreen_readout_card_y'), 0.0);
+    });
+
+    test('readout card position sanitizes non-finite values', () async {
+      final notifier = container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      // NaN bypasses clamp (NaN.clamp(0,1) is NaN); it must never be
+      // persisted or the card would seed with invalid layout input.
+      await notifier.setFullscreenReadoutCardPosition(
+        double.nan,
+        double.negativeInfinity,
+      );
+
+      // Non-finite inputs canonicalize to the default corner (1, 0).
+      expect(container.read(settingsProvider).fullscreenReadoutCardX, 1.0);
+      expect(container.read(settingsProvider).fullscreenReadoutCardY, 0.0);
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getDouble('fullscreen_readout_card_x'), 1.0);
+      expect(prefs.getDouble('fullscreen_readout_card_y'), 0.0);
+    });
   });
 }
 

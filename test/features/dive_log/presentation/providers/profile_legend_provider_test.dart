@@ -10,10 +10,52 @@ class _StubSettingsNotifier extends StateNotifier<AppSettings>
     : super(settings ?? const AppSettings());
 
   @override
+  Future<void> setFullscreenReadoutCardPosition(double x, double y) async {
+    state = state.copyWith(
+      fullscreenReadoutCardX: x,
+      fullscreenReadoutCardY: y,
+    );
+  }
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 void main() {
+  group('ProfileLegend survives unrelated settings writes', () {
+    test(
+      'session toggles persist when the readout card position is saved',
+      () async {
+        final stub = _StubSettingsNotifier();
+        final container = ProviderContainer(
+          overrides: [settingsProvider.overrideWith((ref) => stub)],
+        );
+        addTearDown(container.dispose);
+
+        // Keep the autoDispose provider alive, like a mounted chart would.
+        final sub = container.listen(profileLegendProvider, (_, _) {});
+        addTearDown(sub.close);
+
+        final notifier = container.read(profileLegendProvider.notifier);
+        expect(container.read(profileLegendProvider).showSac, isFalse);
+        notifier.toggleSac();
+        expect(container.read(profileLegendProvider).showSac, isTrue);
+
+        // What dragging the readout card does: an unrelated settings write.
+        await stub.setFullscreenReadoutCardPosition(0.5, 0.5);
+        await Future<void>.delayed(Duration.zero);
+
+        expect(
+          container.read(profileLegendProvider).showSac,
+          isTrue,
+          reason:
+              'session legend toggles must survive settings writes that '
+              'do not touch the legend default fields',
+        );
+      },
+    );
+  });
+
   group('ProfileLegendState', () {
     group('sectionExpanded', () {
       test('defaults to expected initial values', () {

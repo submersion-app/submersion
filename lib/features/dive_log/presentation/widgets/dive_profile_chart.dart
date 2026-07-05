@@ -266,8 +266,8 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// The label is padded to [labelWidth] but never truncated; when it already
   /// fills (or overruns) the column a single separating space is kept so a long
   /// label such as "Tank 1 (EAN32)" never abuts the value. The value is clamped
-  /// only if it would overflow [valueWidth].
-  @visibleForTesting
+  /// only if it would overflow [valueWidth]. Also used by the fullscreen
+  /// readout card so both readouts share one row format.
   static String tooltipRowText(
     String label,
     String value,

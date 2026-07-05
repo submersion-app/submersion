@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:submersion/core/constants/profile_metrics.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 part 'profile_legend_provider.g.dart';
@@ -306,8 +307,45 @@ class ProfileLegendState {
 class ProfileLegend extends _$ProfileLegend {
   @override
   ProfileLegendState build() {
-    // Initialize from user settings
-    final settings = ref.watch(settingsProvider);
+    // Initialize from user settings. Select ONLY the default-visibility
+    // fields consumed below: watching the whole settingsProvider would
+    // rebuild this provider (discarding the session's toggle state) on any
+    // unrelated settings write, e.g. persisting the fullscreen readout
+    // card position on drag end.
+    final settings = ref.watch(
+      settingsProvider.select(
+        (s) => (
+          defaultShowTemperature: s.defaultShowTemperature,
+          defaultShowPressure: s.defaultShowPressure,
+          showCeilingOnProfile: s.showCeilingOnProfile,
+          defaultShowHeartRate: s.defaultShowHeartRate,
+          defaultShowSac: s.defaultShowSac,
+          showAscentRateColors: s.showAscentRateColors,
+          defaultShowAscentRateLine: s.defaultShowAscentRateLine,
+          defaultShowEvents: s.defaultShowEvents,
+          showMaxDepthMarker: s.showMaxDepthMarker,
+          showPressureThresholdMarkers: s.showPressureThresholdMarkers,
+          defaultShowGasSwitchMarkers: s.defaultShowGasSwitchMarkers,
+          defaultShowPhotoMarkers: s.defaultShowPhotoMarkers,
+          defaultShowGasTimeline: s.defaultShowGasTimeline,
+          showNdlOnProfile: s.showNdlOnProfile,
+          defaultShowPpO2: s.defaultShowPpO2,
+          defaultShowPpN2: s.defaultShowPpN2,
+          defaultShowPpHe: s.defaultShowPpHe,
+          defaultShowGasDensity: s.defaultShowGasDensity,
+          defaultShowGf: s.defaultShowGf,
+          defaultShowSurfaceGf: s.defaultShowSurfaceGf,
+          defaultShowMeanDepth: s.defaultShowMeanDepth,
+          defaultShowTts: s.defaultShowTts,
+          defaultShowCns: s.defaultShowCns,
+          defaultShowOtu: s.defaultShowOtu,
+          defaultNdlSource: s.defaultNdlSource,
+          defaultCeilingSource: s.defaultCeilingSource,
+          defaultTtsSource: s.defaultTtsSource,
+          defaultCnsSource: s.defaultCnsSource,
+        ),
+      ),
+    );
     return ProfileLegendState(
       // rightAxisMetric is null initially - uses setting default via fallback
       showTemperature: settings.defaultShowTemperature,

@@ -1445,6 +1445,7 @@
   "diveLog_filter_title": "Filtra immersioni",
   "diveLog_filter_tooltip_close": "Chiudi filtro",
   "diveLog_fullscreenProfile_close": "Chiudi schermo intero",
+  "diveLog_fullscreenProfile_readoutHint": "Passa il cursore o scorri sul profilo",
   "diveLog_fullscreenProfile_title": "Profilo immersione #{number}",
   "diveLog_instruments_customize": "Personalizza strumenti",
   "diveLog_instruments_customizeHint": "Attiva o disattiva gli strumenti. Trascina per riordinare.",
