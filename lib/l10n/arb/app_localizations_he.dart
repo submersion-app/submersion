@@ -10098,7 +10098,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String plannerCanvas_bailout_available(String liters) {
-    return 'זמין $liters ליטר';
+    return 'זמין $liters';
   }
 
   @override
@@ -10107,7 +10107,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String plannerCanvas_bailout_required(String liters) {
-    return 'נדרש $liters ליטר';
+    return 'נדרש $liters';
   }
 
   @override

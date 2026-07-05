@@ -10368,7 +10368,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String plannerCanvas_bailout_available(String liters) {
-    return 'Disponível $liters L';
+    return 'Disponível $liters';
   }
 
   @override
@@ -10377,7 +10377,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String plannerCanvas_bailout_required(String liters) {
-    return 'Necessário $liters L';
+    return 'Necessário $liters';
   }
 
   @override

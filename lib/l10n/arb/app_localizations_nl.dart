@@ -10286,7 +10286,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String plannerCanvas_bailout_available(String liters) {
-    return 'Beschikbaar $liters L';
+    return 'Beschikbaar $liters';
   }
 
   @override
@@ -10295,7 +10295,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String plannerCanvas_bailout_required(String liters) {
-    return 'Nodig $liters L';
+    return 'Nodig $liters';
   }
 
   @override

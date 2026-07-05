@@ -17657,7 +17657,7 @@ abstract class AppLocalizations {
   /// No description provided for @plannerCanvas_bailout_available.
   ///
   /// In en, this message translates to:
-  /// **'Available {liters} L'**
+  /// **'Available {liters}'**
   String plannerCanvas_bailout_available(String liters);
 
   /// No description provided for @plannerCanvas_bailout_insufficient.
@@ -17669,7 +17669,7 @@ abstract class AppLocalizations {
   /// No description provided for @plannerCanvas_bailout_required.
   ///
   /// In en, this message translates to:
-  /// **'Required {liters} L'**
+  /// **'Required {liters}'**
   String plannerCanvas_bailout_required(String liters);
 
   /// No description provided for @plannerCanvas_bailout_title.

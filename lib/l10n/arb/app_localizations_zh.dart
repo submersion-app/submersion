@@ -9914,7 +9914,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String plannerCanvas_bailout_available(String liters) {
-    return '可用 $liters 升';
+    return '可用 $liters';
   }
 
   @override
@@ -9922,7 +9922,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String plannerCanvas_bailout_required(String liters) {
-    return '需要 $liters 升';
+    return '需要 $liters';
   }
 
   @override

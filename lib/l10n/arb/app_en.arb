@@ -5635,14 +5635,14 @@
       }
     }
   },
-  "plannerCanvas_bailout_available": "Available {liters} L",
+  "plannerCanvas_bailout_available": "Available {liters}",
   "@plannerCanvas_bailout_available": {
     "placeholders": {
       "liters": { "type": "String" }
     }
   },
   "plannerCanvas_bailout_insufficient": "Bailout gas insufficient for the worst case",
-  "plannerCanvas_bailout_required": "Required {liters} L",
+  "plannerCanvas_bailout_required": "Required {liters}",
   "@plannerCanvas_bailout_required": {
     "placeholders": {
       "liters": { "type": "String" }
