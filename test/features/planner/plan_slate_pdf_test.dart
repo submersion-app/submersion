@@ -27,6 +27,13 @@ const _decoTank = DiveTank(
   gasMix: _ean50,
   role: TankRole.deco,
 );
+const _bailoutTank = DiveTank(
+  id: 'tank-3',
+  volume: 11.1,
+  startPressure: 232.0,
+  gasMix: _air,
+  role: TankRole.bailout,
+);
 
 final _labels = PlanSlateLabels(
   runtimeTable: 'Deco schedule',
@@ -69,7 +76,7 @@ domain.DivePlan _plan({domain.PlanMode mode = domain.PlanMode.oc}) {
         order: 1,
       ),
     ],
-    tanks: const [_airTank, _decoTank],
+    tanks: const [_airTank, _decoTank, _bailoutTank],
     createdAt: DateTime(2026, 7, 5),
     updatedAt: DateTime(2026, 7, 5),
   );

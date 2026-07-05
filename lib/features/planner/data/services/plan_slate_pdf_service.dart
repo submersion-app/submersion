@@ -247,7 +247,7 @@ class PlanSlatePdfService {
         pw.TableRow(
           children: [
             cell(labels.gas, header: true),
-            cell('L', header: true),
+            cell(units.volumeSymbol, header: true),
             cell('%', header: true),
             cell(labels.turnAt, header: true),
             cell(labels.minGas, header: true),
@@ -257,7 +257,7 @@ class PlanSlatePdfService {
           pw.TableRow(
             children: [
               cell(tankLabel(usage.tankId)),
-              cell(usage.litersUsed.toStringAsFixed(0)),
+              cell(units.convertVolume(usage.litersUsed).toStringAsFixed(0)),
               cell('${usage.percentUsed.toStringAsFixed(0)}%'),
               cell(
                 usage.turnPressureBar != null
@@ -279,8 +279,8 @@ class PlanSlatePdfService {
     final worst = bailout.worstCase;
     return pw.Text(
       'TTS ${_minutes(worst.ttsSeconds)} @ ${units.formatDepth(worst.depthMeters)} '
-      '(${worst.litersRequired.toStringAsFixed(0)} L / '
-      '${bailout.availableLiters.toStringAsFixed(0)} L)',
+      '(${units.formatVolume(worst.litersRequired)} / '
+      '${units.formatVolume(bailout.availableLiters)})',
       style: const pw.TextStyle(fontSize: 10),
     );
   }

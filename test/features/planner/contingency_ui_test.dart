@@ -101,19 +101,21 @@ void main() {
     expect(find.text('CONTINGENCIES'), findsOneWidget);
 
     // The deviation tables are collapsed by default (they cost extra engine
-    // runs); expand the section before the sub-tables render.
-    expect(find.text('+5′'), findsNothing);
+    // runs); expand the section before the sub-tables render. Assert on the
+    // depth-deviation label '+5m', which is unique to the contingency section
+    // (the always-visible range table uses +3m/+6m columns).
+    expect(find.text('+5m'), findsNothing);
     expect(container.read(contingenciesExpandedProvider), isFalse);
     await tester.tap(find.text('CONTINGENCIES'));
     await tester.pumpAndSettle();
     expect(container.read(contingenciesExpandedProvider), isTrue);
 
     await tester.scrollUntilVisible(
-      find.text('+5′'),
+      find.text('+5m'),
       200,
       scrollable: find.byType(Scrollable).first,
     );
-    expect(find.text('+5′'), findsOneWidget);
+    expect(find.text('+5m'), findsOneWidget);
   });
 
   testWidgets('settings section edits deltas, turn rule, and custom fraction', (

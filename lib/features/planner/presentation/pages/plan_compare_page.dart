@@ -222,7 +222,12 @@ class _CompareBody extends StatelessWidget {
         l10n.divePlanner_label_gasConsumption,
         [
           for (final p in plans)
-            '${p.outcome.tankUsages.fold<double>(0, (sum, u) => sum + u.litersUsed).toStringAsFixed(0)} L',
+            units.formatVolume(
+              p.outcome.tankUsages.fold<double>(
+                0,
+                (sum, u) => sum + u.litersUsed,
+              ),
+            ),
         ],
       ),
     ];

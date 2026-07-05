@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Creates a [ProviderScope]-wrapped [MaterialApp] with localization delegates
@@ -20,6 +21,19 @@ Widget testApp({required Widget child, List<dynamic>? overrides}) {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(body: child),
+    ),
+  );
+}
+
+/// Like [testApp] but backed by a [GoRouter], so widgets that call
+/// `context.go(...)` can be exercised end to end in a test.
+Widget testAppRouter({required GoRouter router, List<dynamic>? overrides}) {
+  return ProviderScope(
+    overrides: overrides?.cast() ?? [],
+    child: MaterialApp.router(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      routerConfig: router,
     ),
   );
 }

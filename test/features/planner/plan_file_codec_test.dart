@@ -141,4 +141,62 @@ void main() {
       throwsFormatException,
     );
   });
+
+  test('malformed plan bodies raise FormatException, not TypeError', () {
+    // gfLow required but missing / wrong type -> cast failure becomes a
+    // FormatException instead of escaping as a raw TypeError.
+    expect(
+      () => subplanFromJson(
+        jsonEncode({
+          'format': subplanFormat,
+          'version': subplanVersion,
+          'plan': {'name': 'x', 'gfLow': 'not-a-number', 'gfHigh': 80},
+        }),
+      ),
+      throwsFormatException,
+    );
+    // Tanks is not a list.
+    expect(
+      () => subplanFromJson(
+        jsonEncode({
+          'format': subplanFormat,
+          'version': subplanVersion,
+          'plan': {'name': 'x', 'gfLow': 40, 'gfHigh': 80, 'tanks': 'nope'},
+        }),
+      ),
+      throwsFormatException,
+    );
+  });
+
+  test('a segment referencing an unknown tank is rejected', () {
+    expect(
+      () => subplanFromJson(
+        jsonEncode({
+          'format': subplanFormat,
+          'version': subplanVersion,
+          'plan': {
+            'name': 'x',
+            'gfLow': 40,
+            'gfHigh': 80,
+            'tanks': [
+              {'key': 'back', 'o2': 21, 'he': 0, 'role': 'backGas', 'order': 0},
+            ],
+            'segments': [
+              {
+                'type': 'bottom',
+                'startDepth': 30,
+                'endDepth': 30,
+                'durationSeconds': 1200,
+                'tankKey': 'ghost',
+                'o2': 21,
+                'he': 0,
+                'order': 0,
+              },
+            ],
+          },
+        }),
+      ),
+      throwsFormatException,
+    );
+  });
 }

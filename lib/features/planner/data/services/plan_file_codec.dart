@@ -111,8 +111,19 @@ domain.DivePlan subplanFromJson(String source, {DateTime? now}) {
     throw const FormatException('Plan file carries no plan');
   }
 
-  final timestamp = now ?? DateTime.now();
+  try {
+    return _planFromMap(plan, now ?? DateTime.now());
+  } on FormatException {
+    rethrow;
+  } catch (e) {
+    // A cast/type failure on a malformed or foreign file surfaces as a clean
+    // FormatException so the import UI can show a friendly message instead of
+    // crashing on a raw TypeError.
+    throw FormatException('Malformed .subplan file: $e');
+  }
+}
 
+domain.DivePlan _planFromMap(Map<String, dynamic> plan, DateTime timestamp) {
   // Fresh tank ids, remembering the export keys for segment references.
   final tankIdByKey = <String, String>{};
   final tanks = <DiveTank>[];
@@ -140,6 +151,14 @@ domain.DivePlan subplanFromJson(String source, {DateTime? now}) {
   final segments = <PlanSegment>[];
   for (final (index, raw) in (plan['segments'] as List? ?? const []).indexed) {
     final segment = raw as Map<String, dynamic>;
+    // A segment must reference a tank the file actually carries; an unknown
+    // or missing key would build an unusable plan, so reject the file.
+    final tankId = tankIdByKey[segment['tankKey']];
+    if (tankId == null) {
+      throw FormatException(
+        'Segment references unknown tank "${segment['tankKey']}"',
+      );
+    }
     segments.add(
       PlanSegment(
         id: _uuid.v4(),
@@ -149,7 +168,7 @@ domain.DivePlan subplanFromJson(String source, {DateTime? now}) {
         startDepth: (segment['startDepth'] as num).toDouble(),
         endDepth: (segment['endDepth'] as num).toDouble(),
         durationSeconds: (segment['durationSeconds'] as num).toInt(),
-        tankId: tankIdByKey[segment['tankKey']] ?? '',
+        tankId: tankId,
         gasMix: GasMix(
           o2: (segment['o2'] as num).toDouble(),
           he: (segment['he'] as num?)?.toDouble() ?? 0.0,

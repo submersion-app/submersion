@@ -169,6 +169,20 @@ class _SavedPlansSheetState extends ConsumerState<SavedPlansSheet> {
           content: Text(l10n.plannerCanvas_share_importFailed(e.message)),
         ),
       );
+    } on FileSystemException catch (e) {
+      // An unreadable/missing file should surface the same friendly error
+      // rather than escaping and tearing down the sheet.
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(l10n.plannerCanvas_share_importFailed(e.message)),
+        ),
+      );
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(l10n.plannerCanvas_share_importFailed(e.toString())),
+        ),
+      );
     }
   }
 }
