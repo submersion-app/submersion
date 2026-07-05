@@ -17918,6 +17918,24 @@ abstract class AppLocalizations {
   /// **'RT {minutes}′ · {depth}'**
   String plannerCanvas_scrub_readout(String minutes, String depth);
 
+  /// No description provided for @plannerCanvas_slate_menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Export slate (PDF)'**
+  String get plannerCanvas_slate_menu;
+
+  /// No description provided for @plannerCanvas_slate_minGas.
+  ///
+  /// In en, this message translates to:
+  /// **'Min gas'**
+  String get plannerCanvas_slate_minGas;
+
+  /// No description provided for @plannerCanvas_slate_turn.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn'**
+  String get plannerCanvas_slate_turn;
+
   /// No description provided for @plannerCanvas_table_depth.
   ///
   /// In en, this message translates to:

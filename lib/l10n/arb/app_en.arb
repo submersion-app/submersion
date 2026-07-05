@@ -5772,6 +5772,9 @@
       "depth": { "type": "String" }
     }
   },
+  "plannerCanvas_slate_menu": "Export slate (PDF)",
+  "plannerCanvas_slate_minGas": "Min gas",
+  "plannerCanvas_slate_turn": "Turn",
   "plannerCanvas_table_depth": "Depth",
   "plannerCanvas_table_gas": "Gas",
   "plannerCanvas_table_runtime": "RT",

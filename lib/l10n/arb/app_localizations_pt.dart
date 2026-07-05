@@ -10549,6 +10549,15 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get plannerCanvas_slate_menu => 'Export slate (PDF)';
+
+  @override
+  String get plannerCanvas_slate_minGas => 'Min gas';
+
+  @override
+  String get plannerCanvas_slate_turn => 'Turn';
+
+  @override
   String get plannerCanvas_table_depth => 'Profundidade';
 
   @override
