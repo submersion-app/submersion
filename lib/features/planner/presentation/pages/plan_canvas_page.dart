@@ -30,6 +30,10 @@ class PlanCanvasPage extends ConsumerStatefulWidget {
 class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
   final _sheetController = DraggableScrollableController();
 
+  /// Owns the always-visible results pane on wide layouts so it is created
+  /// once (not per build) and disposed with the page.
+  final _wideResultsController = ScrollController();
+
   @override
   void initState() {
     super.initState();
@@ -47,6 +51,7 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
   @override
   void dispose() {
     _sheetController.dispose();
+    _wideResultsController.dispose();
     super.dispose();
   }
 
@@ -57,16 +62,12 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
 
     return Scaffold(
       appBar: AppBar(
+        // The mode badge (OC/CCR) lands with CCR support in a later phase,
+        // where it derives from plan state; there is only open circuit here,
+        // so a hardcoded badge would be noise.
         title: InkWell(
           onTap: () => _showRenameDialog(context),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Flexible(child: Text(planState.name)),
-              const SizedBox(width: 8),
-              const PlanChip(label: 'OC'),
-            ],
-          ),
+          child: Text(planState.name),
         ),
         actions: [
           IconButton(
@@ -200,6 +201,17 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     );
   }
 
+  /// On wide layouts the results pane is always visible; scroll it to the
+  /// issues section (the last one) when the issues chip is tapped.
+  void _scrollWideToIssues() {
+    if (!_wideResultsController.hasClients) return;
+    _wideResultsController.animateTo(
+      _wideResultsController.position.maxScrollExtent,
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOut,
+    );
+  }
+
   // --- Wide: editor column, chart + chips, always-visible results pane ---
 
   Widget _buildWide() {
@@ -230,11 +242,11 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: PlanStatusChips(onIssuesTap: () {}),
+                child: PlanStatusChips(onIssuesTap: _scrollWideToIssues),
               ),
               SizedBox(
                 height: 260,
-                child: PlanResultsSheet(controller: ScrollController()),
+                child: PlanResultsSheet(controller: _wideResultsController),
               ),
             ],
           ),

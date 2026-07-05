@@ -1,11 +1,13 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_canvas_chart.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -87,6 +89,50 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(LineChart), findsOneWidget);
+    });
+
+    testWidgets('empty-state action opens the quick-plan dialog', (
+      tester,
+    ) async {
+      await tester.pumpWidget(harness());
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.auto_awesome));
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsOneWidget);
+    });
+
+    testWidgets('gas-switch markers and the scrub readout render', (
+      tester,
+    ) async {
+      await tester.pumpWidget(harness());
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(PlanCanvasChart)),
+      );
+      // Deep air with an O2 deco gas gives a gas switch during the ascent.
+      final notifier = container.read(divePlanNotifierProvider.notifier);
+      notifier.addSimplePlan(maxDepth: 45, bottomTimeMinutes: 25);
+      notifier.addTank(
+        const DiveTank(
+          id: 'o2',
+          volume: 11.1,
+          startPressure: 207,
+          gasMix: GasMix(o2: 100),
+          role: TankRole.deco,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final chart = tester.widget<LineChart>(find.byType(LineChart));
+      expect(
+        chart.data.extraLinesData.verticalLines,
+        isNotEmpty,
+        reason: 'a gas switch should draw a vertical marker line',
+      );
+
+      // Scrubbing renders the readout overlay.
+      container.read(scrubTimeProvider.notifier).state = 300;
+      await tester.pumpAndSettle();
+      expect(find.textContaining('RT'), findsOneWidget);
     });
   });
 }
