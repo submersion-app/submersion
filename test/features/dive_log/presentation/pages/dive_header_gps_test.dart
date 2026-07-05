@@ -4,7 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_detail_ui_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -36,6 +38,10 @@ Dive _diveWithSite() => Dive(
 
 Future<void> _pump(WidgetTester tester, Dive dive) async {
   final overrides = await getBaseOverrides();
+  // These tests probe the HEADER map; collapse the Surface GPS section
+  // (expanded by default) so its map does not double the FlutterMap count.
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setBool(DiveDetailUiKeys.surfaceGpsSectionExpanded, false);
   final originalOnError = FlutterError.onError;
   FlutterError.onError = (d) {
     if (d.toString().contains('overflowed')) return;
