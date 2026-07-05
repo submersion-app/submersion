@@ -73,6 +73,8 @@ class SettingsKeys {
   // stored directly in SharedPreferences rather than per-diver in the DB).
   static const String fullscreenTileOrder = 'fullscreen_tile_order';
   static const String fullscreenHiddenTiles = 'fullscreen_hidden_tiles';
+  static const String fullscreenReadoutCardX = 'fullscreen_readout_card_x';
+  static const String fullscreenReadoutCardY = 'fullscreen_readout_card_y';
 }
 
 /// App settings state
@@ -307,6 +309,11 @@ class AppSettings {
   /// Instrument tiles the user has hidden in the fullscreen profile view.
   final List<String> fullscreenHiddenTiles;
 
+  /// Fullscreen readout card position as fractions (0..1) of the movable
+  /// range; null means the default corner. See DraggableReadoutCard.
+  final double? fullscreenReadoutCardX;
+  final double? fullscreenReadoutCardY;
+
   const AppSettings({
     this.depthUnit = DepthUnit.meters,
     this.temperatureUnit = TemperatureUnit.celsius,
@@ -403,6 +410,8 @@ class AppSettings {
     this.diveDetailSections = DiveDetailSectionConfig.defaultSections,
     this.fullscreenTileOrder = const [],
     this.fullscreenHiddenTiles = const [],
+    this.fullscreenReadoutCardX,
+    this.fullscreenReadoutCardY,
   });
 
   /// Compute the current unit preset based on actual unit values
@@ -533,6 +542,8 @@ class AppSettings {
     bool clearDiveDetailSections = false,
     List<String>? fullscreenTileOrder,
     List<String>? fullscreenHiddenTiles,
+    double? fullscreenReadoutCardX,
+    double? fullscreenReadoutCardY,
   }) {
     return AppSettings(
       depthUnit: depthUnit ?? this.depthUnit,
@@ -654,6 +665,10 @@ class AppSettings {
       fullscreenTileOrder: fullscreenTileOrder ?? this.fullscreenTileOrder,
       fullscreenHiddenTiles:
           fullscreenHiddenTiles ?? this.fullscreenHiddenTiles,
+      fullscreenReadoutCardX:
+          fullscreenReadoutCardX ?? this.fullscreenReadoutCardX,
+      fullscreenReadoutCardY:
+          fullscreenReadoutCardY ?? this.fullscreenReadoutCardY,
     );
   }
 }
@@ -749,6 +764,12 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
           prefs.getStringList(SettingsKeys.fullscreenTileOrder) ?? const [];
       final fullscreenHiddenTiles =
           prefs.getStringList(SettingsKeys.fullscreenHiddenTiles) ?? const [];
+      final fullscreenReadoutCardX = prefs.getDouble(
+        SettingsKeys.fullscreenReadoutCardX,
+      );
+      final fullscreenReadoutCardY = prefs.getDouble(
+        SettingsKeys.fullscreenReadoutCardY,
+      );
 
       final diverId = _validatedDiverId;
       if (diverId == null) {
@@ -756,6 +777,8 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
         state = AppSettings(
           fullscreenTileOrder: fullscreenTileOrder,
           fullscreenHiddenTiles: fullscreenHiddenTiles,
+          fullscreenReadoutCardX: fullscreenReadoutCardX,
+          fullscreenReadoutCardY: fullscreenReadoutCardY,
         );
         return;
       }
@@ -765,6 +788,8 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       state = settings.copyWith(
         fullscreenTileOrder: fullscreenTileOrder,
         fullscreenHiddenTiles: fullscreenHiddenTiles,
+        fullscreenReadoutCardX: fullscreenReadoutCardX,
+        fullscreenReadoutCardY: fullscreenReadoutCardY,
       );
 
       // Schedule notifications with the loaded settings
@@ -808,6 +833,14 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       SettingsKeys.fullscreenHiddenTiles,
       state.fullscreenHiddenTiles,
     );
+    final readoutCardX = state.fullscreenReadoutCardX;
+    if (readoutCardX != null) {
+      await prefs.setDouble(SettingsKeys.fullscreenReadoutCardX, readoutCardX);
+    }
+    final readoutCardY = state.fullscreenReadoutCardY;
+    if (readoutCardY != null) {
+      await prefs.setDouble(SettingsKeys.fullscreenReadoutCardY, readoutCardY);
+    }
 
     final diverId = _validatedDiverId;
     if (diverId == null) return;
@@ -1262,6 +1295,14 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     state = state.copyWith(
       fullscreenTileOrder: order,
       fullscreenHiddenTiles: hidden,
+    );
+    await _saveSettings();
+  }
+
+  Future<void> setFullscreenReadoutCardPosition(double x, double y) async {
+    state = state.copyWith(
+      fullscreenReadoutCardX: x,
+      fullscreenReadoutCardY: y,
     );
     await _saveSettings();
   }

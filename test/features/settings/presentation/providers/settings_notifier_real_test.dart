@@ -358,6 +358,23 @@ void main() {
       ]);
       expect(prefs.getStringList('fullscreen_hidden_tiles'), ['heartRate']);
     });
+
+    test('readout card position defaults to null and persists', () async {
+      final notifier = container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(container.read(settingsProvider).fullscreenReadoutCardX, isNull);
+      expect(container.read(settingsProvider).fullscreenReadoutCardY, isNull);
+
+      await notifier.setFullscreenReadoutCardPosition(0.25, 0.75);
+
+      expect(container.read(settingsProvider).fullscreenReadoutCardX, 0.25);
+      expect(container.read(settingsProvider).fullscreenReadoutCardY, 0.75);
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getDouble('fullscreen_readout_card_x'), 0.25);
+      expect(prefs.getDouble('fullscreen_readout_card_y'), 0.75);
+    });
   });
 }
 
