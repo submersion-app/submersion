@@ -73,6 +73,24 @@ void main() {
     expect(cardRect.top, closeTo(stackRect.top + 12, 1.0));
   });
 
+  testWidgets('an out-of-range initial fraction is clamped into view', (
+    tester,
+  ) async {
+    // Simulates corrupted/out-of-contract persisted values: the card must
+    // still land inside the bounds (Stack clips, so an off-range card would
+    // be invisible and undraggable forever).
+    await tester.pumpWidget(
+      _wrap(rows: null, initialFraction: const Offset(5, -3)),
+    );
+    await tester.pumpAndSettle();
+
+    final stackRect = tester.getRect(find.byKey(const ValueKey('arena')));
+    final cardRect = tester.getRect(find.byKey(_cardKey));
+    // Clamped to (1, 0): flush to the inset top-right corner.
+    expect(cardRect.right, closeTo(stackRect.right - 12, 1.0));
+    expect(cardRect.top, closeTo(stackRect.top + 12, 1.0));
+  });
+
   testWidgets('dragging moves the card and clamps at the bounds', (
     tester,
   ) async {

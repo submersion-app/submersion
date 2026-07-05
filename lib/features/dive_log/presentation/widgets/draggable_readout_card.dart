@@ -8,8 +8,11 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Renders the latest externally emitted tooltip rows (see
 /// [DiveProfileChart.onTooltipData]) in a compact card the user can drag
 /// anywhere within the enclosing [Stack]. Position is a fraction of the
-/// movable range (stack size minus card size): (0,0) is flush top-left,
-/// (1,1) flush bottom-right. Must be placed directly inside a [Stack].
+/// movable range (the stack area minus a 12 px inset margin, minus the card
+/// size): (0,0) puts the card at the inset top-left corner, (1,1) at the
+/// inset bottom-right. Out-of-range fractions are clamped so a bad persisted
+/// value can never strand the card outside the visible (clipped) area. Must
+/// be placed directly inside a [Stack].
 class DraggableReadoutCard extends StatefulWidget {
   /// Latest tooltip rows; null or empty shows the placeholder hint.
   final List<TooltipRow>? rows;
@@ -38,8 +41,15 @@ class DraggableReadoutCard extends StatefulWidget {
 class _DraggableReadoutCardState extends State<DraggableReadoutCard> {
   static const _inset = 12.0;
   final GlobalKey _cardKey = GlobalKey();
-  late Offset _fraction =
-      widget.initialFraction ?? DraggableReadoutCard.defaultFraction;
+  late Offset _fraction = _clamp01(
+    widget.initialFraction ?? DraggableReadoutCard.defaultFraction,
+  );
+
+  /// Nothing enforces the 0..1 contract on persisted values, and the Stack
+  /// clips: an out-of-range fraction would render the card invisible and
+  /// undraggable with no way to recover.
+  static Offset _clamp01(Offset fraction) =>
+      Offset(fraction.dx.clamp(0.0, 1.0), fraction.dy.clamp(0.0, 1.0));
 
   void _onPanUpdate(DragUpdateDetails details, BoxConstraints constraints) {
     final cardSize = _cardKey.currentContext?.size;

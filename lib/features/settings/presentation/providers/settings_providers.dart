@@ -1300,9 +1300,12 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   }
 
   Future<void> setFullscreenReadoutCardPosition(double x, double y) async {
+    // Positions are fractions of the card's movable range; clamp so
+    // persisted values always honor the 0..1 contract (an out-of-range
+    // value would seed the card off-screen on next launch).
     state = state.copyWith(
-      fullscreenReadoutCardX: x,
-      fullscreenReadoutCardY: y,
+      fullscreenReadoutCardX: x.clamp(0.0, 1.0),
+      fullscreenReadoutCardY: y.clamp(0.0, 1.0),
     );
     await _saveSettings();
   }

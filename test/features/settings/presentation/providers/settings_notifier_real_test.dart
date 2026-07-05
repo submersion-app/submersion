@@ -375,6 +375,22 @@ void main() {
       expect(prefs.getDouble('fullscreen_readout_card_x'), 0.25);
       expect(prefs.getDouble('fullscreen_readout_card_y'), 0.75);
     });
+
+    test('readout card position clamps out-of-range values', () async {
+      final notifier = container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      // Keep persisted data inside the 0..1 contract even if a future call
+      // site passes junk; the widget clamps on read too, but stored values
+      // should stay canonical.
+      await notifier.setFullscreenReadoutCardPosition(5.0, -3.0);
+
+      expect(container.read(settingsProvider).fullscreenReadoutCardX, 1.0);
+      expect(container.read(settingsProvider).fullscreenReadoutCardY, 0.0);
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getDouble('fullscreen_readout_card_x'), 1.0);
+      expect(prefs.getDouble('fullscreen_readout_card_y'), 0.0);
+    });
   });
 }
 
