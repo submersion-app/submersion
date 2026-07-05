@@ -362,6 +362,65 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                     ),
                   ),
                 ),
+                // Source switching and overlay comparison, mirroring the
+                // detail page (management actions stay on the detail page).
+                if (dataSources.length >= 2)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: SourceBar(
+                      sources: [
+                        for (final s in dataSources)
+                          SourceBarItem(
+                            sourceId: s.id,
+                            label: resolveSourceName(
+                              s,
+                              labels,
+                              edited: sourceProfiles[s.id]?.isEdited ?? false,
+                            ),
+                            color: sourceColorById[s.id] ?? sourceColorAt(0),
+                            isActive: s.id == activeSource?.id,
+                            isPrimary: s.isPrimary,
+                            isOverlaid: overlayIds.contains(s.id),
+                            hasProfile:
+                                sourceProfiles[s.id]?.points.isNotEmpty ??
+                                false,
+                          ),
+                      ],
+                      onActivate: (id) {
+                        ref
+                                .read(
+                                  activeDiveSourceProvider(
+                                    widget.diveId,
+                                  ).notifier,
+                                )
+                                .state =
+                            id;
+                        final current = ref.read(
+                          overlaySourcesProvider(widget.diveId),
+                        );
+                        if (current.contains(id)) {
+                          ref
+                              .read(
+                                overlaySourcesProvider(widget.diveId).notifier,
+                              )
+                              .state = {...current}
+                            ..remove(id);
+                        }
+                      },
+                      onToggleOverlay: (id, overlaid) {
+                        final current = ref.read(
+                          overlaySourcesProvider(widget.diveId),
+                        );
+                        ref
+                            .read(
+                              overlaySourcesProvider(widget.diveId).notifier,
+                            )
+                            .state = overlaid
+                            ? {...current, id}
+                            : ({...current}..remove(id));
+                      },
+                    ),
+                  ),
                 ProfileInstrumentBar(
                   diveId: widget.diveId,
                   dive: dive,

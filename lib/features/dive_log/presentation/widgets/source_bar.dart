@@ -65,13 +65,17 @@ class SourceBar extends StatelessWidget {
     required this.sources,
     required this.onActivate,
     required this.onToggleOverlay,
-    required this.onMenuAction,
+    this.onMenuAction,
   });
 
   final List<SourceBarItem> sources;
   final void Function(String sourceId) onActivate;
   final void Function(String sourceId, bool overlaid) onToggleOverlay;
-  final void Function(String sourceId, SourceMenuAction action) onMenuAction;
+
+  /// Per-source management actions. Null hides the chips' overflow menu
+  /// (e.g. the fullscreen chart, where management lives on the detail
+  /// page).
+  final void Function(String sourceId, SourceMenuAction action)? onMenuAction;
 
   @override
   Widget build(BuildContext context) {
@@ -105,8 +109,9 @@ class SourceBar extends StatelessWidget {
                     onActivate: () => onActivate(item.sourceId),
                     onToggleOverlay: () =>
                         onToggleOverlay(item.sourceId, !item.isOverlaid),
-                    onMenuAction: (action) =>
-                        onMenuAction(item.sourceId, action),
+                    onMenuAction: onMenuAction == null
+                        ? null
+                        : (action) => onMenuAction!(item.sourceId, action),
                   ),
               ],
             ),
@@ -128,7 +133,7 @@ class _SourceChip extends StatelessWidget {
   final SourceBarItem item;
   final VoidCallback onActivate;
   final VoidCallback onToggleOverlay;
-  final void Function(SourceMenuAction action) onMenuAction;
+  final void Function(SourceMenuAction action)? onMenuAction;
 
   @override
   Widget build(BuildContext context) {
@@ -154,7 +159,10 @@ class _SourceChip extends StatelessWidget {
         child: SizedBox(
           height: 28,
           child: Padding(
-            padding: const EdgeInsets.only(left: 10, right: 2),
+            padding: EdgeInsets.only(
+              left: 10,
+              right: onMenuAction == null ? 10 : 2,
+            ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -200,43 +208,44 @@ class _SourceChip extends StatelessWidget {
                     padding: EdgeInsets.zero,
                     onPressed: item.hasProfile ? onToggleOverlay : null,
                   ),
-                PopupMenuButton<SourceMenuAction>(
-                  onSelected: onMenuAction,
-                  itemBuilder: (context) => [
-                    if (!item.isPrimary)
+                if (onMenuAction != null)
+                  PopupMenuButton<SourceMenuAction>(
+                    onSelected: onMenuAction,
+                    itemBuilder: (context) => [
+                      if (!item.isPrimary)
+                        PopupMenuItem(
+                          value: SourceMenuAction.setPrimary,
+                          child: ListTile(
+                            leading: const Icon(Icons.star_outline),
+                            title: Text(l10n.diveLog_sources_menu_setPrimary),
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                        ),
                       PopupMenuItem(
-                        value: SourceMenuAction.setPrimary,
+                        value: SourceMenuAction.unlink,
                         child: ListTile(
-                          leading: const Icon(Icons.star_outline),
-                          title: Text(l10n.diveLog_sources_menu_setPrimary),
+                          leading: const Icon(Icons.link_off),
+                          title: Text(l10n.diveLog_sources_menu_unlink),
                           contentPadding: EdgeInsets.zero,
                         ),
                       ),
-                    PopupMenuItem(
-                      value: SourceMenuAction.unlink,
-                      child: ListTile(
-                        leading: const Icon(Icons.link_off),
-                        title: Text(l10n.diveLog_sources_menu_unlink),
-                        contentPadding: EdgeInsets.zero,
+                      PopupMenuItem(
+                        value: SourceMenuAction.split,
+                        child: ListTile(
+                          leading: const Icon(Icons.call_split),
+                          title: Text(l10n.diveLog_sources_menu_split),
+                          contentPadding: EdgeInsets.zero,
+                        ),
                       ),
+                    ],
+                    // A plain child (not `icon:`) avoids PopupMenuButton's
+                    // internal IconButton and its minimum tap-target size.
+                    child: const SizedBox(
+                      width: 24,
+                      height: 26,
+                      child: Icon(Icons.more_vert, size: 16),
                     ),
-                    PopupMenuItem(
-                      value: SourceMenuAction.split,
-                      child: ListTile(
-                        leading: const Icon(Icons.call_split),
-                        title: Text(l10n.diveLog_sources_menu_split),
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                    ),
-                  ],
-                  // A plain child (not `icon:`) avoids PopupMenuButton's
-                  // internal IconButton and its minimum tap-target size.
-                  child: const SizedBox(
-                    width: 24,
-                    height: 26,
-                    child: Icon(Icons.more_vert, size: 16),
                   ),
-                ),
               ],
             ),
           ),
