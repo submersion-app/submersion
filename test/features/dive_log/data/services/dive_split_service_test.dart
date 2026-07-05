@@ -603,4 +603,31 @@ void main() {
     expect(oldDive.gradientFactorLow, 40);
     expect(oldDive.gradientFactorHigh, 95);
   });
+  test('the new dive is dated by the source entry time', () async {
+    await insertDive('dive-1', computerId: 'dc-a');
+    await insertSource('src-a', 'dive-1', 'dc-a', isPrimary: true);
+    final bronzeEntry = DateTime.utc(2026, 5, 7, 14, 8);
+    await db
+        .into(db.diveDataSources)
+        .insert(
+          DiveDataSourcesCompanion(
+            id: const Value('src-b'),
+            diveId: const Value('dive-1'),
+            computerId: const Value('dc-b'),
+            isPrimary: const Value(false),
+            entryTime: Value(bronzeEntry),
+            importedAt: Value(DateTime.utc(2026, 1, 2)),
+            createdAt: Value(DateTime.utc(2026, 1, 2)),
+          ),
+        );
+    await insertProfileRow('dive-1', 'dc-a', isPrimary: true);
+    await insertProfileRow('dive-1', 'dc-b', isPrimary: false);
+
+    final newDiveId = await service.split(diveId: 'dive-1', sourceId: 'src-b');
+
+    final newDive = await (db.select(
+      db.dives,
+    )..where((t) => t.id.equals(newDiveId))).getSingle();
+    expect(newDive.diveDateTime, bronzeEntry.millisecondsSinceEpoch);
+  });
 }

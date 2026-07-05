@@ -35,8 +35,10 @@ Submersion's overlay comparison:
 - One **active source** at a time drives every line on the chart and every
   derived card on the page, always labeled.
 - Other sources can be **overlaid**, color-coded, for any enabled line type.
-- Per-source management: set primary, unlink, and (new) split into a
-  separate dive.
+- Per-source management: set primary and split into a separate dive.
+  (During implementation the pre-existing "Unlink" action turned out to
+  be a near-duplicate split; it was removed and Split absorbed its
+  clone-on-demand shared-tank handling.)
 
 ## Design
 
@@ -110,8 +112,10 @@ Submersion's overlay comparison:
   style); activating a chip removes it from the overlay set, and the
   previously active source does not auto-overlay. Non-active chips carry
   an eye icon that toggles that source's overlay. Each chip has an
-  overflow menu: Set primary, Unlink (existing handlers from
-  `data_sources_section.dart`), and Split into separate dive (new).
+  overflow menu: Set primary (existing handler from
+  `data_sources_section.dart`) and Split into separate dive. The old
+  Unlink action was removed as a duplicate of Split; its shared-tank
+  clone-on-demand semantics live on in `DiveSplitService`.
 - **Split** (`DiveSplitService`) is the inverse of
   `DiveConsolidationService`: in a single transaction, it creates a new
   dive, moves the source's profile rows, events, tank pressures, and tanks

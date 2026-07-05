@@ -79,6 +79,13 @@ class DiveSplitService {
                 .toCompanion(false)
                 .copyWith(
                   id: Value(newDiveId),
+                  // Dive.dateTime derives from diveDateTime; date the new
+                  // dive by its own source's entry time so it sorts where
+                  // that computer actually recorded it.
+                  diveDateTime: Value(
+                    source.entryTime?.millisecondsSinceEpoch ??
+                        diveRow.diveDateTime,
+                  ),
                   diveNumber: const Value(null),
                   siteId: const Value(null),
                   notes: const Value(''),
