@@ -10362,6 +10362,78 @@ class AppLocalizationsDe extends AppLocalizations {
   String get onboarding_welcome_title => 'Willkommen bei Submersion';
 
   @override
+  String plannerCanvas_chip_cns(String value) {
+    return 'CNS $value%';
+  }
+
+  @override
+  String plannerCanvas_chip_issues(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Probleme',
+      one: '1 Problem',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String plannerCanvas_issue_gasDensityCritical(String value) {
+    return 'Gasdichte $value g/L über hartem Limit';
+  }
+
+  @override
+  String plannerCanvas_issue_gasDensityHigh(String value) {
+    return 'Gasdichte $value g/L über empfohlenem Limit';
+  }
+
+  @override
+  String plannerCanvas_issue_hypoxic(String depth, String value) {
+    return 'Hypoxisches Gas bei $depth (ppO₂ $value bar)';
+  }
+
+  @override
+  String get plannerCanvas_issue_noDecoGas =>
+      'Dekompression erforderlich, aber kein Deko-Gas mitgeführt';
+
+  @override
+  String get plannerCanvas_results_noDeco => 'Keine Dekompression erforderlich';
+
+  @override
+  String plannerCanvas_saved_deleteConfirmBody(String name) {
+    return '„$name“ endgültig löschen?';
+  }
+
+  @override
+  String get plannerCanvas_saved_deleteConfirmTitle => 'Plan löschen?';
+
+  @override
+  String get plannerCanvas_saved_duplicate => 'Duplizieren';
+
+  @override
+  String get plannerCanvas_saved_empty => 'Noch keine gespeicherten Pläne';
+
+  @override
+  String get plannerCanvas_saved_title => 'Gespeicherte Pläne';
+
+  @override
+  String plannerCanvas_scrub_readout(String minutes, String depth) {
+    return 'RT $minutes′ · $depth';
+  }
+
+  @override
+  String get plannerCanvas_table_depth => 'Tiefe';
+
+  @override
+  String get plannerCanvas_table_gas => 'Gas';
+
+  @override
+  String get plannerCanvas_table_runtime => 'RT';
+
+  @override
+  String get plannerCanvas_table_stop => 'Stopp';
+
+  @override
   String get planning_appBar_title => 'Planung';
 
   @override

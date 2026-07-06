@@ -5636,6 +5636,60 @@
       }
     }
   },
+  "plannerCanvas_chip_cns": "CNS {value}%",
+  "@plannerCanvas_chip_cns": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "plannerCanvas_chip_issues": "{count, plural, =1{1 issue} other{{count} issues}}",
+  "@plannerCanvas_chip_issues": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "plannerCanvas_issue_gasDensityCritical": "Gas density {value} g/L over hard limit",
+  "@plannerCanvas_issue_gasDensityCritical": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "plannerCanvas_issue_gasDensityHigh": "Gas density {value} g/L over recommended limit",
+  "@plannerCanvas_issue_gasDensityHigh": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "plannerCanvas_issue_hypoxic": "Hypoxic gas at {depth} (ppO₂ {value} bar)",
+  "@plannerCanvas_issue_hypoxic": {
+    "placeholders": {
+      "depth": { "type": "String" },
+      "value": { "type": "String" }
+    }
+  },
+  "plannerCanvas_issue_noDecoGas": "Decompression required but no deco gas carried",
+  "plannerCanvas_results_noDeco": "No decompression required",
+  "plannerCanvas_saved_deleteConfirmBody": "Permanently delete \"{name}\"?",
+  "@plannerCanvas_saved_deleteConfirmBody": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "plannerCanvas_saved_deleteConfirmTitle": "Delete plan?",
+  "plannerCanvas_saved_duplicate": "Duplicate",
+  "plannerCanvas_saved_empty": "No saved plans yet",
+  "plannerCanvas_saved_title": "Saved plans",
+  "plannerCanvas_scrub_readout": "RT {minutes}′ · {depth}",
+  "@plannerCanvas_scrub_readout": {
+    "placeholders": {
+      "minutes": { "type": "String" },
+      "depth": { "type": "String" }
+    }
+  },
+  "plannerCanvas_table_depth": "Depth",
+  "plannerCanvas_table_gas": "Gas",
+  "plannerCanvas_table_runtime": "RT",
+  "plannerCanvas_table_stop": "Stop",
   "planning_appBar_title": "Planning",
   "planning_card_decoCalculator_description": "Calculate no-decompression limits, required deco stops, and CNS/OTU exposure for multi-level dive profiles.",
   "planning_card_decoCalculator_subtitle": "Plan dives with decompression stops",

@@ -193,7 +193,10 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     }
   }
 
-  /// Add a simple dive profile (descent + bottom + ascent).
+  /// Add a simple dive profile as the bottom portion only: a descent and a
+  /// bottom segment. The ascent and any decompression are always computed by
+  /// the PlanEngine from the deepest segment, so authoring a fixed ascent
+  /// here would suppress real deco stops.
   void addSimplePlan({
     required double maxDepth,
     required int bottomTimeMinutes,
@@ -201,11 +204,23 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     if (state.tanks.isEmpty) return;
 
     final tank = state.tanks.first;
-    final segments = _calculator.createSimplePlan(
-      maxDepth: maxDepth,
-      bottomTimeMinutes: bottomTimeMinutes,
-      tank: tank,
-    );
+    final segments = <PlanSegment>[
+      PlanSegment.descent(
+        id: _uuid.v4(),
+        targetDepth: maxDepth,
+        tankId: tank.id,
+        gasMix: tank.gasMix,
+        order: 0,
+      ),
+      PlanSegment.bottom(
+        id: _uuid.v4(),
+        depth: maxDepth,
+        durationMinutes: bottomTimeMinutes,
+        tankId: tank.id,
+        gasMix: tank.gasMix,
+        order: 1,
+      ),
+    ];
 
     state = state.copyWith(
       segments: segments,
@@ -506,9 +521,6 @@ final planIsValidProvider = Provider<bool>((ref) {
 
 /// Currently selected segment for editing.
 final selectedSegmentIdProvider = StateProvider<String?>((ref) => null);
-
-/// Currently selected tab index in planner page.
-final plannerTabIndexProvider = StateProvider<int>((ref) => 0);
 
 /// Whether the simple plan dialog is shown.
 final showSimplePlanDialogProvider = StateProvider<bool>((ref) => false);

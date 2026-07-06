@@ -10366,6 +10366,79 @@ class AppLocalizationsIt extends AppLocalizations {
   String get onboarding_welcome_title => 'Benvenuto in Submersion';
 
   @override
+  String plannerCanvas_chip_cns(String value) {
+    return 'CNS $value%';
+  }
+
+  @override
+  String plannerCanvas_chip_issues(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count problemi',
+      one: '1 problema',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String plannerCanvas_issue_gasDensityCritical(String value) {
+    return 'Densità del gas $value g/L oltre il limite massimo';
+  }
+
+  @override
+  String plannerCanvas_issue_gasDensityHigh(String value) {
+    return 'Densità del gas $value g/L oltre il limite consigliato';
+  }
+
+  @override
+  String plannerCanvas_issue_hypoxic(String depth, String value) {
+    return 'Gas ipossico a $depth (ppO₂ $value bar)';
+  }
+
+  @override
+  String get plannerCanvas_issue_noDecoGas =>
+      'Decompressione necessaria ma nessun gas deco a bordo';
+
+  @override
+  String get plannerCanvas_results_noDeco =>
+      'Nessuna decompressione necessaria';
+
+  @override
+  String plannerCanvas_saved_deleteConfirmBody(String name) {
+    return 'Eliminare definitivamente «$name»?';
+  }
+
+  @override
+  String get plannerCanvas_saved_deleteConfirmTitle => 'Eliminare il piano?';
+
+  @override
+  String get plannerCanvas_saved_duplicate => 'Duplica';
+
+  @override
+  String get plannerCanvas_saved_empty => 'Nessun piano salvato';
+
+  @override
+  String get plannerCanvas_saved_title => 'Piani salvati';
+
+  @override
+  String plannerCanvas_scrub_readout(String minutes, String depth) {
+    return 'RT $minutes′ · $depth';
+  }
+
+  @override
+  String get plannerCanvas_table_depth => 'Profondità';
+
+  @override
+  String get plannerCanvas_table_gas => 'Gas';
+
+  @override
+  String get plannerCanvas_table_runtime => 'RT';
+
+  @override
+  String get plannerCanvas_table_stop => 'Sosta';
+
+  @override
   String get planning_appBar_title => 'Pianificazione';
 
   @override

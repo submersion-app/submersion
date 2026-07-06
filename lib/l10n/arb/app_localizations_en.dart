@@ -10201,6 +10201,78 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboarding_welcome_title => 'Welcome to Submersion';
 
   @override
+  String plannerCanvas_chip_cns(String value) {
+    return 'CNS $value%';
+  }
+
+  @override
+  String plannerCanvas_chip_issues(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count issues',
+      one: '1 issue',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String plannerCanvas_issue_gasDensityCritical(String value) {
+    return 'Gas density $value g/L over hard limit';
+  }
+
+  @override
+  String plannerCanvas_issue_gasDensityHigh(String value) {
+    return 'Gas density $value g/L over recommended limit';
+  }
+
+  @override
+  String plannerCanvas_issue_hypoxic(String depth, String value) {
+    return 'Hypoxic gas at $depth (ppO₂ $value bar)';
+  }
+
+  @override
+  String get plannerCanvas_issue_noDecoGas =>
+      'Decompression required but no deco gas carried';
+
+  @override
+  String get plannerCanvas_results_noDeco => 'No decompression required';
+
+  @override
+  String plannerCanvas_saved_deleteConfirmBody(String name) {
+    return 'Permanently delete \"$name\"?';
+  }
+
+  @override
+  String get plannerCanvas_saved_deleteConfirmTitle => 'Delete plan?';
+
+  @override
+  String get plannerCanvas_saved_duplicate => 'Duplicate';
+
+  @override
+  String get plannerCanvas_saved_empty => 'No saved plans yet';
+
+  @override
+  String get plannerCanvas_saved_title => 'Saved plans';
+
+  @override
+  String plannerCanvas_scrub_readout(String minutes, String depth) {
+    return 'RT $minutes′ · $depth';
+  }
+
+  @override
+  String get plannerCanvas_table_depth => 'Depth';
+
+  @override
+  String get plannerCanvas_table_gas => 'Gas';
+
+  @override
+  String get plannerCanvas_table_runtime => 'RT';
+
+  @override
+  String get plannerCanvas_table_stop => 'Stop';
+
+  @override
   String get planning_appBar_title => 'Planning';
 
   @override

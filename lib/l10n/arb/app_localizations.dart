@@ -17660,6 +17660,108 @@ abstract class AppLocalizations {
   /// **'Welcome to Submersion'**
   String get onboarding_welcome_title;
 
+  /// No description provided for @plannerCanvas_chip_cns.
+  ///
+  /// In en, this message translates to:
+  /// **'CNS {value}%'**
+  String plannerCanvas_chip_cns(String value);
+
+  /// No description provided for @plannerCanvas_chip_issues.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 issue} other{{count} issues}}'**
+  String plannerCanvas_chip_issues(int count);
+
+  /// No description provided for @plannerCanvas_issue_gasDensityCritical.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas density {value} g/L over hard limit'**
+  String plannerCanvas_issue_gasDensityCritical(String value);
+
+  /// No description provided for @plannerCanvas_issue_gasDensityHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas density {value} g/L over recommended limit'**
+  String plannerCanvas_issue_gasDensityHigh(String value);
+
+  /// No description provided for @plannerCanvas_issue_hypoxic.
+  ///
+  /// In en, this message translates to:
+  /// **'Hypoxic gas at {depth} (ppO₂ {value} bar)'**
+  String plannerCanvas_issue_hypoxic(String depth, String value);
+
+  /// No description provided for @plannerCanvas_issue_noDecoGas.
+  ///
+  /// In en, this message translates to:
+  /// **'Decompression required but no deco gas carried'**
+  String get plannerCanvas_issue_noDecoGas;
+
+  /// No description provided for @plannerCanvas_results_noDeco.
+  ///
+  /// In en, this message translates to:
+  /// **'No decompression required'**
+  String get plannerCanvas_results_noDeco;
+
+  /// No description provided for @plannerCanvas_saved_deleteConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently delete \"{name}\"?'**
+  String plannerCanvas_saved_deleteConfirmBody(String name);
+
+  /// No description provided for @plannerCanvas_saved_deleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete plan?'**
+  String get plannerCanvas_saved_deleteConfirmTitle;
+
+  /// No description provided for @plannerCanvas_saved_duplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate'**
+  String get plannerCanvas_saved_duplicate;
+
+  /// No description provided for @plannerCanvas_saved_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No saved plans yet'**
+  String get plannerCanvas_saved_empty;
+
+  /// No description provided for @plannerCanvas_saved_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved plans'**
+  String get plannerCanvas_saved_title;
+
+  /// No description provided for @plannerCanvas_scrub_readout.
+  ///
+  /// In en, this message translates to:
+  /// **'RT {minutes}′ · {depth}'**
+  String plannerCanvas_scrub_readout(String minutes, String depth);
+
+  /// No description provided for @plannerCanvas_table_depth.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth'**
+  String get plannerCanvas_table_depth;
+
+  /// No description provided for @plannerCanvas_table_gas.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas'**
+  String get plannerCanvas_table_gas;
+
+  /// No description provided for @plannerCanvas_table_runtime.
+  ///
+  /// In en, this message translates to:
+  /// **'RT'**
+  String get plannerCanvas_table_runtime;
+
+  /// No description provided for @plannerCanvas_table_stop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get plannerCanvas_table_stop;
+
   /// No description provided for @planning_appBar_title.
   ///
   /// In en, this message translates to:

@@ -9916,6 +9916,76 @@ class AppLocalizationsZh extends AppLocalizations {
   String get onboarding_welcome_title => '欢迎使用 Submersion';
 
   @override
+  String plannerCanvas_chip_cns(String value) {
+    return 'CNS $value%';
+  }
+
+  @override
+  String plannerCanvas_chip_issues(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个问题',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String plannerCanvas_issue_gasDensityCritical(String value) {
+    return '气体密度 $value g/L 超过硬性上限';
+  }
+
+  @override
+  String plannerCanvas_issue_gasDensityHigh(String value) {
+    return '气体密度 $value g/L 超过建议上限';
+  }
+
+  @override
+  String plannerCanvas_issue_hypoxic(String depth, String value) {
+    return '$depth 处为低氧气体（ppO₂ $value bar）';
+  }
+
+  @override
+  String get plannerCanvas_issue_noDecoGas => '需要减压但未携带减压气体';
+
+  @override
+  String get plannerCanvas_results_noDeco => '无需减压';
+
+  @override
+  String plannerCanvas_saved_deleteConfirmBody(String name) {
+    return '永久删除“$name”？';
+  }
+
+  @override
+  String get plannerCanvas_saved_deleteConfirmTitle => '删除计划？';
+
+  @override
+  String get plannerCanvas_saved_duplicate => '复制';
+
+  @override
+  String get plannerCanvas_saved_empty => '尚无已保存的计划';
+
+  @override
+  String get plannerCanvas_saved_title => '已保存的计划';
+
+  @override
+  String plannerCanvas_scrub_readout(String minutes, String depth) {
+    return 'RT $minutes′ · $depth';
+  }
+
+  @override
+  String get plannerCanvas_table_depth => '深度';
+
+  @override
+  String get plannerCanvas_table_gas => '气体';
+
+  @override
+  String get plannerCanvas_table_runtime => 'RT';
+
+  @override
+  String get plannerCanvas_table_stop => '停留';
+
+  @override
   String get planning_appBar_title => '计划';
 
   @override

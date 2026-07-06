@@ -10168,6 +10168,78 @@ class AppLocalizationsAr extends AppLocalizations {
   String get onboarding_welcome_title => 'مرحباً بك في Submersion';
 
   @override
+  String plannerCanvas_chip_cns(String value) {
+    return 'CNS $value%';
+  }
+
+  @override
+  String plannerCanvas_chip_issues(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مشكلات',
+      one: 'مشكلة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String plannerCanvas_issue_gasDensityCritical(String value) {
+    return 'كثافة الغاز $value g/L تتجاوز الحد الأقصى';
+  }
+
+  @override
+  String plannerCanvas_issue_gasDensityHigh(String value) {
+    return 'كثافة الغاز $value g/L تتجاوز الحد الموصى به';
+  }
+
+  @override
+  String plannerCanvas_issue_hypoxic(String depth, String value) {
+    return 'غاز ناقص الأكسجين عند $depth (ppO₂ $value bar)';
+  }
+
+  @override
+  String get plannerCanvas_issue_noDecoGas =>
+      'يلزم تخفيف الضغط ولكن لا يوجد غاز تخفيف';
+
+  @override
+  String get plannerCanvas_results_noDeco => 'لا يلزم تخفيف الضغط';
+
+  @override
+  String plannerCanvas_saved_deleteConfirmBody(String name) {
+    return 'حذف \"$name\" نهائيًا؟';
+  }
+
+  @override
+  String get plannerCanvas_saved_deleteConfirmTitle => 'حذف الخطة؟';
+
+  @override
+  String get plannerCanvas_saved_duplicate => 'تكرار';
+
+  @override
+  String get plannerCanvas_saved_empty => 'لا توجد خطط محفوظة بعد';
+
+  @override
+  String get plannerCanvas_saved_title => 'الخطط المحفوظة';
+
+  @override
+  String plannerCanvas_scrub_readout(String minutes, String depth) {
+    return 'RT $minutes′ · $depth';
+  }
+
+  @override
+  String get plannerCanvas_table_depth => 'العمق';
+
+  @override
+  String get plannerCanvas_table_gas => 'الغاز';
+
+  @override
+  String get plannerCanvas_table_runtime => 'RT';
+
+  @override
+  String get plannerCanvas_table_stop => 'توقف';
+
+  @override
   String get planning_appBar_title => 'التخطيط';
 
   @override

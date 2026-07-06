@@ -10338,6 +10338,78 @@ class AppLocalizationsHu extends AppLocalizations {
   String get onboarding_welcome_title => 'Üdvözöl a Submersion';
 
   @override
+  String plannerCanvas_chip_cns(String value) {
+    return 'CNS $value%';
+  }
+
+  @override
+  String plannerCanvas_chip_issues(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count probléma',
+      one: '1 probléma',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String plannerCanvas_issue_gasDensityCritical(String value) {
+    return 'Gázsűrűség $value g/L a szigorú határ felett';
+  }
+
+  @override
+  String plannerCanvas_issue_gasDensityHigh(String value) {
+    return 'Gázsűrűség $value g/L az ajánlott határ felett';
+  }
+
+  @override
+  String plannerCanvas_issue_hypoxic(String depth, String value) {
+    return 'Hipoxiás gáz $depth mélységben (ppO₂ $value bar)';
+  }
+
+  @override
+  String get plannerCanvas_issue_noDecoGas =>
+      'Dekompresszió szükséges, de nincs deco gáz';
+
+  @override
+  String get plannerCanvas_results_noDeco => 'Nincs szükség dekompresszióra';
+
+  @override
+  String plannerCanvas_saved_deleteConfirmBody(String name) {
+    return 'Véglegesen törli a(z) „$name” tervet?';
+  }
+
+  @override
+  String get plannerCanvas_saved_deleteConfirmTitle => 'Törli a tervet?';
+
+  @override
+  String get plannerCanvas_saved_duplicate => 'Duplikálás';
+
+  @override
+  String get plannerCanvas_saved_empty => 'Még nincsenek mentett tervek';
+
+  @override
+  String get plannerCanvas_saved_title => 'Mentett tervek';
+
+  @override
+  String plannerCanvas_scrub_readout(String minutes, String depth) {
+    return 'RT $minutes′ · $depth';
+  }
+
+  @override
+  String get plannerCanvas_table_depth => 'Mélység';
+
+  @override
+  String get plannerCanvas_table_gas => 'Gáz';
+
+  @override
+  String get plannerCanvas_table_runtime => 'RT';
+
+  @override
+  String get plannerCanvas_table_stop => 'Megálló';
+
+  @override
   String get planning_appBar_title => 'Tervezes';
 
   @override

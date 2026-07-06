@@ -10289,6 +10289,78 @@ class AppLocalizationsNl extends AppLocalizations {
   String get onboarding_welcome_title => 'Welkom bij Submersion';
 
   @override
+  String plannerCanvas_chip_cns(String value) {
+    return 'CNS $value%';
+  }
+
+  @override
+  String plannerCanvas_chip_issues(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count problemen',
+      one: '1 probleem',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String plannerCanvas_issue_gasDensityCritical(String value) {
+    return 'Gasdichtheid $value g/L boven harde limiet';
+  }
+
+  @override
+  String plannerCanvas_issue_gasDensityHigh(String value) {
+    return 'Gasdichtheid $value g/L boven aanbevolen limiet';
+  }
+
+  @override
+  String plannerCanvas_issue_hypoxic(String depth, String value) {
+    return 'Hypoxisch gas op $depth (ppO₂ $value bar)';
+  }
+
+  @override
+  String get plannerCanvas_issue_noDecoGas =>
+      'Decompressie vereist maar geen decogas meegenomen';
+
+  @override
+  String get plannerCanvas_results_noDeco => 'Geen decompressie vereist';
+
+  @override
+  String plannerCanvas_saved_deleteConfirmBody(String name) {
+    return '\'$name\' definitief verwijderen?';
+  }
+
+  @override
+  String get plannerCanvas_saved_deleteConfirmTitle => 'Plan verwijderen?';
+
+  @override
+  String get plannerCanvas_saved_duplicate => 'Dupliceren';
+
+  @override
+  String get plannerCanvas_saved_empty => 'Nog geen opgeslagen plannen';
+
+  @override
+  String get plannerCanvas_saved_title => 'Opgeslagen plannen';
+
+  @override
+  String plannerCanvas_scrub_readout(String minutes, String depth) {
+    return 'RT $minutes′ · $depth';
+  }
+
+  @override
+  String get plannerCanvas_table_depth => 'Diepte';
+
+  @override
+  String get plannerCanvas_table_gas => 'Gas';
+
+  @override
+  String get plannerCanvas_table_runtime => 'RT';
+
+  @override
+  String get plannerCanvas_table_stop => 'Stop';
+
+  @override
   String get planning_appBar_title => 'Planning';
 
   @override
