@@ -306,6 +306,51 @@ void main() {
         isEmpty,
       );
     });
+
+    testWidgets('tooltip labels an estimated tank with the (est.) suffix', (
+      tester,
+    ) async {
+      // 20-point profile matching the proven long-press tooltip tests, so the
+      // gesture reliably lands on a data point and emits external tooltip rows.
+      final profile = List.generate(
+        20,
+        (i) => DiveProfilePoint(
+          timestamp: i * 30,
+          depth: i < 10 ? i * 3.0 : (19 - i) * 3.0,
+        ),
+      );
+      const tank = DiveTank(id: 't1', gasMix: GasMix(o2: 21), order: 0);
+      // A straight two-point estimate spanning the whole profile (0..570s).
+      const points = [
+        TankPressurePoint(id: 'e0', tankId: 't1', timestamp: 0, pressure: 200),
+        TankPressurePoint(id: 'e1', tankId: 't1', timestamp: 570, pressure: 60),
+      ];
+      List<TooltipRow>? rows;
+
+      await tester.pumpWidget(
+        _buildChart(
+          profile: profile,
+          tanks: const [tank],
+          tankPressures: {'t1': points},
+          estimatedTankIds: const {'t1'},
+          tooltipBelow: true,
+          onTooltipData: (r) => rows = r,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Long-press near the center; assert BEFORE releasing (release clears).
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.byType(LineChart)),
+      );
+      await tester.pump(const Duration(milliseconds: 600));
+      await gesture.moveBy(const Offset(2, 0));
+      await tester.pump();
+
+      expect(rows, isNotNull);
+      expect(rows!.where((r) => r.label.contains('(est.)')), isNotEmpty);
+      await gesture.up();
+    });
   });
 
   group('DiveProfileChart - single profile rendering', () {

@@ -744,6 +744,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     }
   }
 
+  /// Localized " (est.)" suffix for a synthesized (estimated) tank; empty for
+  /// tanks backed by real air-integrated data.
+  String _estimatedSuffix(String tankId) =>
+      (widget.estimatedTankIds?.contains(tankId) ?? false)
+      ? ' ${context.l10n.diveLog_pressure_estimatedSuffix}'
+      : '';
+
   // Zoom/pan state — see profile_chart_viewport.dart.
   ProfileChartViewport _viewport = ProfileChartViewport.reset;
 
@@ -1258,7 +1265,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             : _getTankColor(i);
         final tankLabel =
             DiveProfileChart.tankTooltipLabel(tank, 'Tank ${i + 1}') +
-            _tankSourceSuffix(tankId, tankComputerIds, contributingComputerIds);
+            _tankSourceSuffix(
+              tankId,
+              tankComputerIds,
+              contributingComputerIds,
+            ) +
+            _estimatedSuffix(tankId);
         rows.add(
           TooltipRow(
             label: tankLabel,
@@ -2854,7 +2866,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                               tankId,
                               tankComputerIds,
                               contributingComputerIds,
-                            );
+                            ) +
+                            _estimatedSuffix(tankId);
                         final pressValue = pressure != null
                             ? units.formatPressure(pressure)
                             : '—';
