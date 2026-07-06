@@ -178,9 +178,9 @@ class CylindersCard extends ConsumerWidget {
     );
   }
 
-  /// Trailing column: attribution badge, SAC rate, gas used in liters.
-  /// Returns null when there is nothing to show so the tile keeps its
-  /// natural width.
+  /// Trailing column: attribution badge, SAC rate, gas used (converted to
+  /// the diver's volume unit). Returns null when there is nothing to show
+  /// so the tile keeps its natural width.
   Widget? _trailingBlock(
     ThemeData theme,
     CylinderSac? cylinderSac,
