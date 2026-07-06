@@ -6,9 +6,10 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
 /// [domain.DivePlan] aggregate.
 ///
 /// The UI state carries a subset of the aggregate; [existing] preserves
-/// fields the state does not know about (rates, contingency config, water
-/// type, dive links) across an edit-save cycle so a plan touched by the UI
-/// does not lose them. Mode and setpoints travel WITH the state.
+/// fields the state does not know about (rates, water type, air breaks)
+/// across an edit-save cycle so a plan touched by the UI does not lose
+/// them. Mode, setpoints, contingency config, and dive links travel WITH
+/// the state.
 domain.DivePlan divePlanFromState(
   DivePlanState state, {
   domain.DivePlan? existing,
@@ -44,6 +45,10 @@ domain.DivePlan divePlanFromState(
     clearTurnPressureRule: state.turnPressureRule == null,
     turnPressureFraction: state.turnPressureFraction,
     clearTurnPressureFraction: state.turnPressureFraction == null,
+    sourceDiveId: state.sourceDiveId,
+    clearSourceDiveId: state.sourceDiveId == null,
+    linkedDiveId: state.linkedDiveId,
+    clearLinkedDiveId: state.linkedDiveId == null,
     gfLow: state.gfLow,
     gfHigh: state.gfHigh,
     sacBottom: state.sacRate,
@@ -73,6 +78,8 @@ DivePlanState stateFromDivePlan(domain.DivePlan plan) {
     deviationTimeMinutes: plan.deviationTimeMinutes,
     turnPressureRule: plan.turnPressureRule,
     turnPressureFraction: plan.turnPressureFraction,
+    sourceDiveId: plan.sourceDiveId,
+    linkedDiveId: plan.linkedDiveId,
     gfLow: plan.gfLow,
     gfHigh: plan.gfHigh,
     sacRate: plan.sacBottom,

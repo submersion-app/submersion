@@ -10364,6 +10364,27 @@ class AppLocalizationsNl extends AppLocalizations {
   String get plannerCanvas_contingency_turnRule => 'Keerdruk-regel';
 
   @override
+  String get plannerCanvas_convert_success => 'Duik aangemaakt vanuit plan';
+
+  @override
+  String get plannerCanvas_convert_view => 'Bekijk';
+
+  @override
+  String plannerCanvas_follow_chip(String name) {
+    return 'Volgt $name';
+  }
+
+  @override
+  String get plannerCanvas_follow_empty => 'Nog geen gelogde duiken';
+
+  @override
+  String get plannerCanvas_follow_noTissues =>
+      'Geen profielgegevens voor die duik — oppervlakte-interval ingesteld zonder weefselverzadiging';
+
+  @override
+  String get plannerCanvas_follow_title => 'Volg een duik';
+
+  @override
   String plannerCanvas_gas_minGas(String pressure) {
     return 'min. gas $pressure';
   }
@@ -10411,6 +10432,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get plannerCanvas_saved_deleteConfirmTitle => 'Plan verwijderen?';
+
+  @override
+  String plannerCanvas_sac_useLogged(String sac) {
+    return 'Gebruik gelogd gemiddelde ($sac)';
+  }
 
   @override
   String get plannerCanvas_saved_duplicate => 'Dupliceren';

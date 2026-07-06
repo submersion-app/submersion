@@ -177,5 +177,18 @@ void main() {
       expect(outcome.segmentOutcomes, hasLength(2));
       expect(outcome.segmentOutcomes.last.inDeco, isTrue);
     });
+
+    test('altitude 0 is treated as unset (legacy surface), not barometric', () {
+      const engine = PlanEngine();
+      final unset = engine.compute(_plan());
+      final zero = engine.compute(_plan().copyWith(altitude: 0));
+      final real = engine.compute(_plan().copyWith(altitude: 2000));
+
+      // A literal 0 must reproduce the unset (1.0 bar) schedule exactly.
+      expect(zero.ttsAtBottom, unset.ttsAtBottom);
+      expect(zero.totalDecoSeconds, unset.totalDecoSeconds);
+      // A real altitude thins the surface pressure and lengthens deco.
+      expect(real.totalDecoSeconds, greaterThan(unset.totalDecoSeconds));
+    });
   });
 }

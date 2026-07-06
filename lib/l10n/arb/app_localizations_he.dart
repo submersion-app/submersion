@@ -10175,6 +10175,27 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerCanvas_contingency_turnRule => 'כלל לחץ פנייה';
 
   @override
+  String get plannerCanvas_convert_success => 'נוצרה צלילה מהתוכנית';
+
+  @override
+  String get plannerCanvas_convert_view => 'הצג';
+
+  @override
+  String plannerCanvas_follow_chip(String name) {
+    return 'עוקב אחרי $name';
+  }
+
+  @override
+  String get plannerCanvas_follow_empty => 'אין עדיין צלילות מתועדות';
+
+  @override
+  String get plannerCanvas_follow_noTissues =>
+      'אין נתוני פרופיל לצלילה זו — מרווח הפנים נקבע ללא העמסת רקמות';
+
+  @override
+  String get plannerCanvas_follow_title => 'עקוב אחרי צלילה';
+
+  @override
   String plannerCanvas_gas_minGas(String pressure) {
     return 'גז מינימלי $pressure';
   }
@@ -10222,6 +10243,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get plannerCanvas_saved_deleteConfirmTitle => 'למחוק את התוכנית?';
+
+  @override
+  String plannerCanvas_sac_useLogged(String sac) {
+    return 'השתמש בממוצע המתועד ($sac)';
+  }
 
   @override
   String get plannerCanvas_saved_duplicate => 'שכפול';

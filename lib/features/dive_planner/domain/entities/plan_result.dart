@@ -493,6 +493,12 @@ class DivePlanState extends Equatable {
   /// Initial tissue state from previous dive.
   final List<TissueCompartment>? initialTissueState;
 
+  /// Logged dive this plan follows (tissue seeding source).
+  final String? sourceDiveId;
+
+  /// Dive created from this plan via convert-to-dive.
+  final String? linkedDiveId;
+
   /// Dive site for the plan.
   final String? siteId;
 
@@ -542,6 +548,8 @@ class DivePlanState extends Equatable {
     this.sacRate = 15.0,
     this.surfaceInterval,
     this.initialTissueState,
+    this.sourceDiveId,
+    this.linkedDiveId,
     this.siteId,
     this.altitude,
     this.mode = PlanMode.oc,
@@ -597,6 +605,8 @@ class DivePlanState extends Equatable {
     double? sacRate,
     Duration? surfaceInterval,
     List<TissueCompartment>? initialTissueState,
+    String? sourceDiveId,
+    String? linkedDiveId,
     String? siteId,
     double? altitude,
     PlanMode? mode,
@@ -615,6 +625,8 @@ class DivePlanState extends Equatable {
     DateTime? updatedAt,
     bool clearSurfaceInterval = false,
     bool clearInitialTissueState = false,
+    bool clearSourceDiveId = false,
+    bool clearLinkedDiveId = false,
     bool clearSiteId = false,
     bool clearAltitude = false,
     bool clearSetpoints = false,
@@ -633,6 +645,12 @@ class DivePlanState extends Equatable {
       initialTissueState: clearInitialTissueState
           ? null
           : (initialTissueState ?? this.initialTissueState),
+      sourceDiveId: clearSourceDiveId
+          ? null
+          : (sourceDiveId ?? this.sourceDiveId),
+      linkedDiveId: clearLinkedDiveId
+          ? null
+          : (linkedDiveId ?? this.linkedDiveId),
       siteId: clearSiteId ? null : (siteId ?? this.siteId),
       altitude: clearAltitude ? null : (altitude ?? this.altitude),
       mode: mode ?? this.mode,
@@ -668,6 +686,8 @@ class DivePlanState extends Equatable {
     sacRate,
     surfaceInterval,
     initialTissueState,
+    sourceDiveId,
+    linkedDiveId,
     siteId,
     altitude,
     mode,

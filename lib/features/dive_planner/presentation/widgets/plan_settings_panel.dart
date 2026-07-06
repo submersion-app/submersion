@@ -8,6 +8,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Panel for configuring dive plan settings (GF, SAC, site).
@@ -110,6 +111,7 @@ class PlanSettingsPanel extends ConsumerWidget {
                 ),
               ],
             ),
+            _LoggedSacButton(currentSac: planState.sacRate, units: units),
             const SizedBox(height: 16),
 
             // Altitude and reserve pressure row
@@ -157,6 +159,37 @@ class PlanSettingsPanel extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// One-tap SAC auto-fill from the diver's logged average ("from your log").
+/// Hidden when no logged average exists or it already matches the plan.
+class _LoggedSacButton extends ConsumerWidget {
+  const _LoggedSacButton({required this.currentSac, required this.units});
+
+  final double currentSac;
+  final UnitFormatter units;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final loggedSac = ref.watch(loggedAverageSacProvider).valueOrNull;
+    if (loggedSac == null || (loggedSac - currentSac).abs() < 0.5) {
+      return const SizedBox.shrink();
+    }
+
+    final display =
+        '${units.convertVolume(loggedSac).toStringAsFixed(1)} '
+        '${units.volumeSymbol}/min';
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: TextButton.icon(
+        icon: const Icon(Icons.history, size: 18),
+        label: Text(context.l10n.plannerCanvas_sac_useLogged(display)),
+        onPressed: () => ref
+            .read(divePlanNotifierProvider.notifier)
+            .updateSacRate(loggedSac.clamp(8.0, 30.0)),
       ),
     );
   }

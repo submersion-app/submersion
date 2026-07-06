@@ -10243,6 +10243,27 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerCanvas_contingency_turnRule => 'قاعدة ضغط العودة';
 
   @override
+  String get plannerCanvas_convert_success => 'تم إنشاء غطسة من الخطة';
+
+  @override
+  String get plannerCanvas_convert_view => 'عرض';
+
+  @override
+  String plannerCanvas_follow_chip(String name) {
+    return 'يتبع $name';
+  }
+
+  @override
+  String get plannerCanvas_follow_empty => 'لا توجد غطسات مسجلة بعد';
+
+  @override
+  String get plannerCanvas_follow_noTissues =>
+      'لا توجد بيانات ملف تعريف لهذه الغطسة — تم ضبط الفاصل السطحي دون تحميل الأنسجة';
+
+  @override
+  String get plannerCanvas_follow_title => 'اتباع غطسة';
+
+  @override
   String plannerCanvas_gas_minGas(String pressure) {
     return 'الحد الأدنى للغاز $pressure';
   }
@@ -10290,6 +10311,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get plannerCanvas_saved_deleteConfirmTitle => 'حذف الخطة؟';
+
+  @override
+  String plannerCanvas_sac_useLogged(String sac) {
+    return 'استخدام المتوسط المسجل ($sac)';
+  }
 
   @override
   String get plannerCanvas_saved_duplicate => 'تكرار';

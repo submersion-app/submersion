@@ -10448,6 +10448,28 @@ class AppLocalizationsPt extends AppLocalizations {
       'Regra de pressão de retorno';
 
   @override
+  String get plannerCanvas_convert_success =>
+      'Mergulho criado a partir do plano';
+
+  @override
+  String get plannerCanvas_convert_view => 'Ver';
+
+  @override
+  String plannerCanvas_follow_chip(String name) {
+    return 'Seguindo $name';
+  }
+
+  @override
+  String get plannerCanvas_follow_empty => 'Ainda não há mergulhos registrados';
+
+  @override
+  String get plannerCanvas_follow_noTissues =>
+      'Sem dados de perfil nesse mergulho — intervalo de superfície definido sem saturação dos tecidos';
+
+  @override
+  String get plannerCanvas_follow_title => 'Seguir um mergulho';
+
+  @override
   String plannerCanvas_gas_minGas(String pressure) {
     return 'gás mínimo $pressure';
   }
@@ -10495,6 +10517,11 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get plannerCanvas_saved_deleteConfirmTitle => 'Excluir plano?';
+
+  @override
+  String plannerCanvas_sac_useLogged(String sac) {
+    return 'Usar média registrada ($sac)';
+  }
 
   @override
   String get plannerCanvas_saved_duplicate => 'Duplicar';

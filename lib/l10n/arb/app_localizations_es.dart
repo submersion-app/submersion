@@ -10427,6 +10427,28 @@ class AppLocalizationsEs extends AppLocalizations {
       'Regla de presión de retorno';
 
   @override
+  String get plannerCanvas_convert_success =>
+      'Inmersión creada a partir del plan';
+
+  @override
+  String get plannerCanvas_convert_view => 'Ver';
+
+  @override
+  String plannerCanvas_follow_chip(String name) {
+    return 'Siguiendo $name';
+  }
+
+  @override
+  String get plannerCanvas_follow_empty => 'Aún no hay inmersiones registradas';
+
+  @override
+  String get plannerCanvas_follow_noTissues =>
+      'Sin datos de perfil en esa inmersión — intervalo en superficie establecido sin saturación de tejidos';
+
+  @override
+  String get plannerCanvas_follow_title => 'Seguir una inmersión';
+
+  @override
   String plannerCanvas_gas_minGas(String pressure) {
     return 'gas mínimo $pressure';
   }
@@ -10474,6 +10496,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get plannerCanvas_saved_deleteConfirmTitle => '¿Eliminar plan?';
+
+  @override
+  String plannerCanvas_sac_useLogged(String sac) {
+    return 'Usar promedio registrado ($sac)';
+  }
 
   @override
   String get plannerCanvas_saved_duplicate => 'Duplicar';

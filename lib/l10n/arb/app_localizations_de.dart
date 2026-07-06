@@ -10437,6 +10437,27 @@ class AppLocalizationsDe extends AppLocalizations {
   String get plannerCanvas_contingency_turnRule => 'Umkehrdruck-Regel';
 
   @override
+  String get plannerCanvas_convert_success => 'Tauchgang aus Plan erstellt';
+
+  @override
+  String get plannerCanvas_convert_view => 'Anzeigen';
+
+  @override
+  String plannerCanvas_follow_chip(String name) {
+    return 'Folgt $name';
+  }
+
+  @override
+  String get plannerCanvas_follow_empty => 'Noch keine geloggten Tauchgänge';
+
+  @override
+  String get plannerCanvas_follow_noTissues =>
+      'Keine Profildaten für diesen Tauchgang — Oberflächenpause ohne Gewebesättigung übernommen';
+
+  @override
+  String get plannerCanvas_follow_title => 'Einem Tauchgang folgen';
+
+  @override
   String plannerCanvas_gas_minGas(String pressure) {
     return 'Min-Gas $pressure';
   }
@@ -10484,6 +10505,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get plannerCanvas_saved_deleteConfirmTitle => 'Plan löschen?';
+
+  @override
+  String plannerCanvas_sac_useLogged(String sac) {
+    return 'Geloggten Durchschnitt verwenden ($sac)';
+  }
 
   @override
   String get plannerCanvas_saved_duplicate => 'Duplizieren';

@@ -17768,6 +17768,42 @@ abstract class AppLocalizations {
   /// **'Turn pressure rule'**
   String get plannerCanvas_contingency_turnRule;
 
+  /// No description provided for @plannerCanvas_convert_success.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive created from plan'**
+  String get plannerCanvas_convert_success;
+
+  /// No description provided for @plannerCanvas_convert_view.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get plannerCanvas_convert_view;
+
+  /// No description provided for @plannerCanvas_follow_chip.
+  ///
+  /// In en, this message translates to:
+  /// **'Following {name}'**
+  String plannerCanvas_follow_chip(String name);
+
+  /// No description provided for @plannerCanvas_follow_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No logged dives yet'**
+  String get plannerCanvas_follow_empty;
+
+  /// No description provided for @plannerCanvas_follow_noTissues.
+  ///
+  /// In en, this message translates to:
+  /// **'No profile data on that dive — surface interval set without tissue seeding'**
+  String get plannerCanvas_follow_noTissues;
+
+  /// No description provided for @plannerCanvas_follow_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow a dive'**
+  String get plannerCanvas_follow_title;
+
   /// No description provided for @plannerCanvas_gas_minGas.
   ///
   /// In en, this message translates to:
@@ -17833,6 +17869,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete plan?'**
   String get plannerCanvas_saved_deleteConfirmTitle;
+
+  /// No description provided for @plannerCanvas_sac_useLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'Use logged average ({sac})'**
+  String plannerCanvas_sac_useLogged(String sac);
 
   /// No description provided for @plannerCanvas_saved_duplicate.
   ///

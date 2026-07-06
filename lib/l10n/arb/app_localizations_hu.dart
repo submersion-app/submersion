@@ -10413,6 +10413,27 @@ class AppLocalizationsHu extends AppLocalizations {
   String get plannerCanvas_contingency_turnRule => 'Fordulónyomás-szabály';
 
   @override
+  String get plannerCanvas_convert_success => 'Merülés létrehozva a tervből';
+
+  @override
+  String get plannerCanvas_convert_view => 'Megtekintés';
+
+  @override
+  String plannerCanvas_follow_chip(String name) {
+    return '$name követése';
+  }
+
+  @override
+  String get plannerCanvas_follow_empty => 'Még nincsenek naplózott merülések';
+
+  @override
+  String get plannerCanvas_follow_noTissues =>
+      'Nincs profiladat ehhez a merüléshez — a felszíni intervallum szövettelítés nélkül lett beállítva';
+
+  @override
+  String get plannerCanvas_follow_title => 'Merülés követése';
+
+  @override
   String plannerCanvas_gas_minGas(String pressure) {
     return 'min. gáz $pressure';
   }
@@ -10460,6 +10481,11 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get plannerCanvas_saved_deleteConfirmTitle => 'Törli a tervet?';
+
+  @override
+  String plannerCanvas_sac_useLogged(String sac) {
+    return 'Naplózott átlag használata ($sac)';
+  }
 
   @override
   String get plannerCanvas_saved_duplicate => 'Duplikálás';

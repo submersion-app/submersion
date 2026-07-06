@@ -10276,6 +10276,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannerCanvas_contingency_turnRule => 'Turn pressure rule';
 
   @override
+  String get plannerCanvas_convert_success => 'Dive created from plan';
+
+  @override
+  String get plannerCanvas_convert_view => 'View';
+
+  @override
+  String plannerCanvas_follow_chip(String name) {
+    return 'Following $name';
+  }
+
+  @override
+  String get plannerCanvas_follow_empty => 'No logged dives yet';
+
+  @override
+  String get plannerCanvas_follow_noTissues =>
+      'No profile data on that dive — surface interval set without tissue seeding';
+
+  @override
+  String get plannerCanvas_follow_title => 'Follow a dive';
+
+  @override
   String plannerCanvas_gas_minGas(String pressure) {
     return 'min gas $pressure';
   }
@@ -10323,6 +10344,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get plannerCanvas_saved_deleteConfirmTitle => 'Delete plan?';
+
+  @override
+  String plannerCanvas_sac_useLogged(String sac) {
+    return 'Use logged average ($sac)';
+  }
 
   @override
   String get plannerCanvas_saved_duplicate => 'Duplicate';

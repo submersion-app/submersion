@@ -193,6 +193,29 @@ class DivePlanRepository {
     }
   }
 
+  /// The plan converted into [diveId] via convert-to-dive, or null.
+  /// Backs the plan-vs-actual overlay on the dive detail chart.
+  Future<domain.DivePlan?> getPlanByLinkedDiveId(String diveId) async {
+    try {
+      // Newest first: a duplicated plan can share the link, take the latest.
+      final rows =
+          await (_db.select(_db.divePlans)
+                ..where((t) => t.linkedDiveId.equals(diveId))
+                ..orderBy([(t) => OrderingTerm.desc(t.updatedAt)])
+                ..limit(1))
+              .get();
+      if (rows.isEmpty) return null;
+      return getPlan(rows.first.id);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to load plan linked to dive $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   Future<List<domain.DivePlanSummary>> getAllPlanSummaries() async {
     final rows = await (_db.select(
       _db.divePlans,

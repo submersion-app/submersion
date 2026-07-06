@@ -5690,6 +5690,17 @@
   "plannerCanvas_contingency_title": "Contingencies",
   "plannerCanvas_contingency_turnFraction": "Turn fraction",
   "plannerCanvas_contingency_turnRule": "Turn pressure rule",
+  "plannerCanvas_convert_success": "Dive created from plan",
+  "plannerCanvas_convert_view": "View",
+  "plannerCanvas_follow_chip": "Following {name}",
+  "@plannerCanvas_follow_chip": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "plannerCanvas_follow_empty": "No logged dives yet",
+  "plannerCanvas_follow_noTissues": "No profile data on that dive — surface interval set without tissue seeding",
+  "plannerCanvas_follow_title": "Follow a dive",
   "plannerCanvas_gas_minGas": "min gas {pressure}",
   "@plannerCanvas_gas_minGas": {
     "placeholders": {
@@ -5737,6 +5748,12 @@
     }
   },
   "plannerCanvas_saved_deleteConfirmTitle": "Delete plan?",
+  "plannerCanvas_sac_useLogged": "Use logged average ({sac})",
+  "@plannerCanvas_sac_useLogged": {
+    "placeholders": {
+      "sac": { "type": "String" }
+    }
+  },
   "plannerCanvas_saved_duplicate": "Duplicate",
   "plannerCanvas_saved_empty": "No saved plans yet",
   "plannerCanvas_saved_title": "Saved plans",

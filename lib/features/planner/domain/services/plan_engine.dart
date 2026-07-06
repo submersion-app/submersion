@@ -93,7 +93,10 @@ class PlanEngine {
     }
     final isCcr = plan.mode == domain.PlanMode.ccr;
     final environment = DiveEnvironment.forConditions(
-      altitudeMeters: plan.altitude,
+      // Altitude <= 0 is treated as unset (legacy 1.0 bar surface), matching
+      // the rest of the planner — a literal 0 must not switch to barometric
+      // sea-level pressure and subtly change the deco math.
+      altitudeMeters: (plan.altitude ?? 0) > 0 ? plan.altitude : null,
       waterType: plan.waterType,
     );
     final policy = SchedulePolicy(
