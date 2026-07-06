@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_planner/presentation/widgets/plan_setti
 import 'package:submersion/features/dive_planner/presentation/widgets/plan_tank_list.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/segment_list.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/simple_plan_dialog.dart';
+import 'package:submersion/features/planner/data/repositories/dive_plan_repository.dart';
 
 /// Main dive planner page with three tabs: Plan, Results, Profile.
 ///
@@ -50,6 +51,16 @@ class _DivePlannerPageState extends ConsumerState<DivePlannerPage>
         ref.read(plannerTabIndexProvider.notifier).state = _tabController.index;
       }
     });
+
+    // Load a persisted plan when routed with an id (microtask: Riverpod 3
+    // forbids provider mutation during widget lifecycle callbacks).
+    final planId = widget.planId;
+    if (planId != null) {
+      Future.microtask(() {
+        if (!mounted) return;
+        ref.read(divePlanNotifierProvider.notifier).loadPlanById(planId);
+      });
+    }
   }
 
   @override
@@ -201,9 +212,18 @@ class _DivePlannerPageState extends ConsumerState<DivePlannerPage>
     );
   }
 
-  void _savePlan() {
-    // TODO: Implement save to database
-    ref.read(divePlanNotifierProvider.notifier).markSaved();
+  Future<void> _savePlan() async {
+    final results = ref.read(planResultsProvider);
+    await ref
+        .read(divePlanNotifierProvider.notifier)
+        .save(
+          summary: PlanSummaryData(
+            maxDepth: results.maxDepth,
+            runtimeSeconds: results.totalRuntime,
+            ttsSeconds: results.ttsAtBottom,
+          ),
+        );
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(context.l10n.divePlanner_message_planSaved)),
     );

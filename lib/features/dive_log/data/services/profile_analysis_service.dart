@@ -13,6 +13,7 @@ import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
 import 'package:submersion/core/deco/entities/profile_gas_segment.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
+import 'package:submersion/core/deco/gas_density.dart';
 import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
 import 'package:submersion/core/deco/scr_calculator.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
@@ -1686,21 +1687,13 @@ class ProfileAnalysisService {
     required List<double> n2Fractions,
     required List<double> heFractions,
   }) {
-    // Average molecular weight of gas mix
-    const o2MolWeight = 32.0;
-    const n2MolWeight = 28.0;
-    const heMolWeight = 4.0;
-    const molarVolume = 24.04; // L/mol at STP
-
     return List<double>.generate(depths.length, (i) {
-      final avgMolWeight =
-          (o2Fractions[i] * o2MolWeight) +
-          (n2Fractions[i] * n2MolWeight) +
-          (heFractions[i] * heMolWeight);
-      final surfaceDensity = avgMolWeight / molarVolume;
-      final depth = depths[i];
-      final ambientPressure = 1.0 + (depth / 10.0);
-      return surfaceDensity * ambientPressure;
+      final ambientPressure = 1.0 + (depths[i] / 10.0);
+      return gasDensityGPerL(
+        fO2: o2Fractions[i],
+        fHe: heFractions[i],
+        ambientPressureBar: ambientPressure,
+      );
     });
   }
 
