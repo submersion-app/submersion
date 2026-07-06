@@ -249,6 +249,27 @@ void main() {
     expect(await buddiesOf('d1'), isEmpty);
   });
 
+  test('EquipmentOp add preserves existing gear on each dive', () async {
+    // Reproduces the r/submersion report at the service layer: adding one
+    // item in bulk must not wipe gear the dive already has.
+    await seed('d1');
+    await diveRepo.bulkAddEquipment(['d1'], ['origEq']);
+
+    await service.apply(
+      BulkEditRequest(
+        diveIds: const ['d1'],
+        ops: [
+          const EquipmentOp(
+            mode: BulkCollectionMode.add,
+            equipmentIds: ['newEq'],
+          ),
+        ],
+      ),
+    );
+
+    expect((await equipOf('d1')).toSet(), {'origEq', 'newEq'});
+  });
+
   test(
     'apply with no dives returns an empty snapshot; undo is a no-op',
     () async {

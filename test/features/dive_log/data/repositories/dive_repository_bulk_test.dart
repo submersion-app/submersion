@@ -137,6 +137,26 @@ void main() {
       )..where((t) => t.diveId.equals('d1'))).get();
       expect(rows.map((r) => r.equipmentId).toSet(), {'e9'});
     });
+
+    test('add merges with pre-existing gear on each dive, never wipes', () async {
+      // Reproduces the r/submersion report: d1 has e1, d2 has e2.
+      await seed('d1');
+      await seed('d2');
+      await repository.bulkAddEquipment(['d1'], ['e1']);
+      await repository.bulkAddEquipment(['d2'], ['e2']);
+
+      // Bulk-add e3 to BOTH dives; existing gear must survive.
+      await repository.bulkAddEquipment(['d1', 'd2'], ['e3']);
+
+      final d1 = await (db.select(
+        db.diveEquipment,
+      )..where((t) => t.diveId.equals('d1'))).get();
+      final d2 = await (db.select(
+        db.diveEquipment,
+      )..where((t) => t.diveId.equals('d2'))).get();
+      expect(d1.map((r) => r.equipmentId).toSet(), {'e1', 'e3'});
+      expect(d2.map((r) => r.equipmentId).toSet(), {'e2', 'e3'});
+    });
   });
 
   group('bulk tanks', () {
