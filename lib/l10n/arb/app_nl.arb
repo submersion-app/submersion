@@ -4844,6 +4844,7 @@
   "diveLog_chartSection_other": "Overig",
   "diveLog_chartSection_overlays": "Overlays",
   "diveLog_chartSection_tankPressures": "Flesdrukken",
+  "diveLog_pressure_estimatedSuffix": "(gesch.)",
   "diveLog_legend_source_calc": "Ber.",
   "diveLog_legend_source_dc": "DC",
   "settings_appearance_header_mode": "Modus",

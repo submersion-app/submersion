@@ -4613,6 +4613,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_chartSection_tankPressures => 'Flesdrukken';
 
   @override
+  String get diveLog_pressure_estimatedSuffix => '(gesch.)';
+
+  @override
   String get diveLog_listPage_appBar_diveMap => 'Duikkaart';
 
   @override

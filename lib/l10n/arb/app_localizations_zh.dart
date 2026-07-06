@@ -4425,6 +4425,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_chartSection_tankPressures => '气瓶压力';
 
   @override
+  String get diveLog_pressure_estimatedSuffix => '(估算)';
+
+  @override
   String get diveLog_listPage_appBar_diveMap => '潜水地图';
 
   @override

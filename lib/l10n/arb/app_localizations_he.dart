@@ -4520,6 +4520,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_chartSection_tankPressures => 'לחצי מיכלים';
 
   @override
+  String get diveLog_pressure_estimatedSuffix => '(משוער)';
+
+  @override
   String get diveLog_listPage_appBar_diveMap => 'מפת צלילות';
 
   @override

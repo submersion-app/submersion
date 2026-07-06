@@ -4810,6 +4810,7 @@
   "diveLog_chartSection_other": "Egyeb",
   "diveLog_chartSection_overlays": "Rategek",
   "diveLog_chartSection_tankPressures": "Palacknyomasok",
+  "diveLog_pressure_estimatedSuffix": "(becs.)",
   "diveLog_legend_source_calc": "Szam.",
   "diveLog_legend_source_dc": "DC",
   "settings_appearance_header_mode": "Mod",

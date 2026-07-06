@@ -4844,6 +4844,7 @@
   "diveLog_chartSection_other": "أخرى",
   "diveLog_chartSection_overlays": "طبقات إضافية",
   "diveLog_chartSection_tankPressures": "ضغوط الأسطوانات",
+  "diveLog_pressure_estimatedSuffix": "(تقديري)",
   "diveLog_legend_source_calc": "محسوب",
   "diveLog_legend_source_dc": "DC",
   "settings_appearance_header_mode": "الوضع",

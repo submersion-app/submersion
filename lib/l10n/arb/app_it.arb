@@ -4806,6 +4806,7 @@
   "diveLog_chartSection_other": "Altro",
   "diveLog_chartSection_overlays": "Sovrapposizioni",
   "diveLog_chartSection_tankPressures": "Pressioni delle bombole",
+  "diveLog_pressure_estimatedSuffix": "(stim.)",
   "diveLog_legend_source_calc": "Calc.",
   "diveLog_legend_source_dc": "DC",
   "settings_appearance_header_mode": "Modalita",

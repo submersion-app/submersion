@@ -1196,6 +1196,7 @@
   "diveLog_chartSection_other": "其他",
   "diveLog_chartSection_overlays": "叠加层",
   "diveLog_chartSection_tankPressures": "气瓶压力",
+  "diveLog_pressure_estimatedSuffix": "(估算)",
   "diveLog_collapsible_semantics_collapse": "折叠{title}部分",
   "diveLog_collapsible_semantics_expand": "展开{title}部分",
   "diveLog_combine_confirm": "合并为一次潜水",

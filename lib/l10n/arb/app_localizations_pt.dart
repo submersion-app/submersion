@@ -4651,6 +4651,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_chartSection_tankPressures => 'Pressoes dos cilindros';
 
   @override
+  String get diveLog_pressure_estimatedSuffix => '(est.)';
+
+  @override
   String get diveLog_listPage_appBar_diveMap => 'Mapa de Mergulhos';
 
   @override

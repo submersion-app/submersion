@@ -4810,6 +4810,7 @@
   "diveLog_chartSection_other": "Autre",
   "diveLog_chartSection_overlays": "Superpositions",
   "diveLog_chartSection_tankPressures": "Pressions des blocs",
+  "diveLog_pressure_estimatedSuffix": "(est.)",
   "diveLog_legend_source_calc": "Calc.",
   "diveLog_legend_source_dc": "DC",
   "settings_appearance_header_mode": "Mode",

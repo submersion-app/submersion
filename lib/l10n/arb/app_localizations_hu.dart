@@ -4631,6 +4631,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_chartSection_tankPressures => 'Palacknyomasok';
 
   @override
+  String get diveLog_pressure_estimatedSuffix => '(becs.)';
+
+  @override
   String get diveLog_listPage_appBar_diveMap => 'Merulesi terkep';
 
   @override

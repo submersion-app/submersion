@@ -4542,6 +4542,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_chartSection_tankPressures => 'ضغوط الأسطوانات';
 
   @override
+  String get diveLog_pressure_estimatedSuffix => '(تقديري)';
+
+  @override
   String get diveLog_listPage_appBar_diveMap => 'خريطة الغوص';
 
   @override

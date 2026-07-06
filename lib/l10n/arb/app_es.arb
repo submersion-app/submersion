@@ -4844,6 +4844,7 @@
   "diveLog_chartSection_other": "Otros",
   "diveLog_chartSection_overlays": "Superposiciones",
   "diveLog_chartSection_tankPressures": "Presiones de botellas",
+  "diveLog_pressure_estimatedSuffix": "(est.)",
   "diveLog_legend_source_calc": "Calc.",
   "diveLog_legend_source_dc": "DC",
   "settings_appearance_header_mode": "Modo",

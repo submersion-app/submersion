@@ -7820,6 +7820,12 @@ abstract class AppLocalizations {
   /// **'Tank Pressures'**
   String get diveLog_chartSection_tankPressures;
 
+  /// Short suffix appended to a tank label when its pressure line is a linear start-to-end estimate rather than measured air-integrated data. Abbreviation of 'estimated'.
+  ///
+  /// In en, this message translates to:
+  /// **'(est.)'**
+  String get diveLog_pressure_estimatedSuffix;
+
   /// No description provided for @diveLog_listPage_appBar_diveMap.
   ///
   /// In en, this message translates to:

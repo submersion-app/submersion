@@ -4651,6 +4651,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_chartSection_tankPressures => 'Pressioni delle bombole';
 
   @override
+  String get diveLog_pressure_estimatedSuffix => '(stim.)';
+
+  @override
   String get diveLog_listPage_appBar_diveMap => 'Mappa immersioni';
 
   @override

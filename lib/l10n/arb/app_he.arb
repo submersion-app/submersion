@@ -4844,6 +4844,7 @@
   "diveLog_chartSection_other": "אחר",
   "diveLog_chartSection_overlays": "שכבות על",
   "diveLog_chartSection_tankPressures": "לחצי מיכלים",
+  "diveLog_pressure_estimatedSuffix": "(משוער)",
   "diveLog_legend_source_calc": "מחושב",
   "diveLog_legend_source_dc": "DC",
   "settings_appearance_header_mode": "מצב",
