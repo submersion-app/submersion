@@ -17037,8 +17037,14 @@ class AppLocalizationsIt extends AppLocalizations {
       'Per registrare una traccia GPS è necessaria l\'autorizzazione alla localizzazione. Attivala nelle impostazioni di sistema.';
 
   @override
-  String gpsLogger_recordingStatus(int count) {
-    return 'Registrazione - $count punti';
+  String gpsLogger_recordingStatus(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count punti',
+      one: '$count punto',
+    );
+    return 'Registrazione - $_temp0';
   }
 
   @override
@@ -17051,8 +17057,14 @@ class AppLocalizationsIt extends AppLocalizations {
   String get gpsLogger_stopButton => 'Interrompi registrazione';
 
   @override
-  String gpsLogger_trackSubtitle(int count, String duration) {
-    return '$count punti, $duration';
+  String gpsLogger_trackSubtitle(num count, String duration) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count punti',
+      one: '$count punto',
+    );
+    return '$_temp0, $duration';
   }
 
   @override

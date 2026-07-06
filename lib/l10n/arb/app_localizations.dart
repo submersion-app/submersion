@@ -28614,8 +28614,8 @@ abstract class AppLocalizations {
   /// No description provided for @gpsLogger_recordingStatus.
   ///
   /// In en, this message translates to:
-  /// **'Recording - {count} points'**
-  String gpsLogger_recordingStatus(int count);
+  /// **'Recording - {count, plural, one{{count} point} other{{count} points}}'**
+  String gpsLogger_recordingStatus(num count);
 
   /// No description provided for @gpsLogger_reviewSites.
   ///
@@ -28638,8 +28638,8 @@ abstract class AppLocalizations {
   /// No description provided for @gpsLogger_trackSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'{count} points, {duration}'**
-  String gpsLogger_trackSubtitle(int count, String duration);
+  /// **'{count, plural, one{{count} point} other{{count} points}}, {duration}'**
+  String gpsLogger_trackSubtitle(num count, String duration);
 
   /// No description provided for @gpsLogger_tracksHeader.
   ///

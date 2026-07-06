@@ -16716,8 +16716,16 @@ class AppLocalizationsAr extends AppLocalizations {
       'يلزم إذن الموقع لتسجيل مسار GPS. فعّله من إعدادات النظام.';
 
   @override
-  String gpsLogger_recordingStatus(int count) {
-    return 'جارٍ التسجيل - $count نقطة';
+  String gpsLogger_recordingStatus(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count نقطة',
+      few: '$count نقاط',
+      two: 'نقطتان',
+      one: 'نقطة واحدة',
+    );
+    return 'جارٍ التسجيل - $_temp0';
   }
 
   @override
@@ -16730,8 +16738,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gpsLogger_stopButton => 'إيقاف التسجيل';
 
   @override
-  String gpsLogger_trackSubtitle(int count, String duration) {
-    return '$count نقطة، $duration';
+  String gpsLogger_trackSubtitle(num count, String duration) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count نقطة',
+      few: '$count نقاط',
+      two: 'نقطتان',
+      one: 'نقطة واحدة',
+    );
+    return '$_temp0، $duration';
   }
 
   @override

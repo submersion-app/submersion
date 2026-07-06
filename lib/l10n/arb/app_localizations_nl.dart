@@ -16897,8 +16897,14 @@ class AppLocalizationsNl extends AppLocalizations {
       'Locatietoestemming is vereist om een GPS-track op te nemen. Schakel deze in bij de systeeminstellingen.';
 
   @override
-  String gpsLogger_recordingStatus(int count) {
-    return 'Opname - $count punten';
+  String gpsLogger_recordingStatus(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count punten',
+      one: '$count punt',
+    );
+    return 'Opname - $_temp0';
   }
 
   @override
@@ -16911,8 +16917,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String get gpsLogger_stopButton => 'Opname stoppen';
 
   @override
-  String gpsLogger_trackSubtitle(int count, String duration) {
-    return '$count punten, $duration';
+  String gpsLogger_trackSubtitle(num count, String duration) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count punten',
+      one: '$count punt',
+    );
+    return '$_temp0, $duration';
   }
 
   @override

@@ -16207,8 +16207,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gpsLogger_permissionDenied => '记录 GPS 轨迹需要位置权限。请在系统设置中启用。';
 
   @override
-  String gpsLogger_recordingStatus(int count) {
-    return '记录中 - $count 个点';
+  String gpsLogger_recordingStatus(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个点',
+    );
+    return '记录中 - $_temp0';
   }
 
   @override
@@ -16221,8 +16226,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gpsLogger_stopButton => '停止记录';
 
   @override
-  String gpsLogger_trackSubtitle(int count, String duration) {
-    return '$count 个点，$duration';
+  String gpsLogger_trackSubtitle(num count, String duration) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个点',
+    );
+    return '$_temp0，$duration';
   }
 
   @override

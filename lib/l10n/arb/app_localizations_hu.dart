@@ -16992,8 +16992,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'GPS-útvonal rögzítéséhez helymeghatározási engedély szükséges. Engedélyezd a rendszerbeállításokban.';
 
   @override
-  String gpsLogger_recordingStatus(int count) {
-    return 'Rögzítés - $count pont';
+  String gpsLogger_recordingStatus(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pont',
+      one: '$count pont',
+    );
+    return 'Rögzítés - $_temp0';
   }
 
   @override
@@ -17006,8 +17012,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get gpsLogger_stopButton => 'Rögzítés leállítása';
 
   @override
-  String gpsLogger_trackSubtitle(int count, String duration) {
-    return '$count pont, $duration';
+  String gpsLogger_trackSubtitle(num count, String duration) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pont',
+      one: '$count pont',
+    );
+    return '$_temp0, $duration';
   }
 
   @override

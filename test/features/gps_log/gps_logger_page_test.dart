@@ -126,7 +126,7 @@ void main() {
     expect(find.text('No GPS tracks recorded yet'), findsNothing);
     expect(find.byIcon(Icons.route_outlined), findsOneWidget);
     // 1 point, 90 minutes.
-    expect(find.text('1 points, 1 h 30 min'), findsOneWidget);
+    expect(find.text('1 point, 1 h 30 min'), findsOneWidget);
     expect(find.byIcon(Icons.delete_outline), findsOneWidget);
   });
 }

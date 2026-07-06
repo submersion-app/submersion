@@ -145,18 +145,33 @@ class GpsTrackRepository {
     SyncEventBus.notifyLocalChange();
   }
 
+  /// How stale a buffer-less open track must be before recovery closes it.
+  /// Active sessions are checkpointed every few minutes, so anything not
+  /// updated for this long is genuinely dead, not recording elsewhere.
+  static const staleOrphanThreshold = Duration(hours: 24);
+
   /// Finalizes tracks left active by a crash or force-kill. Returns the ids
-  /// of tracks recovered with points; empty orphans are deleted.
+  /// of tracks recovered with points; empty local orphans are deleted.
+  ///
+  /// Must only run while no local recording session is active. A track with
+  /// buffer rows crashed on this device and is finalized from the buffer.
+  /// A buffer-less open track may be a session actively recording on another
+  /// device (its checkpoints sync with endTime still null), so it is only
+  /// closed once [staleOrphanThreshold] passes without an update.
   Future<List<String>> recoverOrphanedTracks() async {
     final orphans = await (_db.select(
       _db.gpsTracks,
     )..where((t) => t.endTime.isNull())).get();
     final recovered = <String>[];
+    final now = DateTime.now().millisecondsSinceEpoch;
     for (final row in orphans) {
       final buffered = await getBufferPoints(row.id);
+      final isStale = now - row.updatedAt > staleOrphanThreshold.inMilliseconds;
       if (buffered.isNotEmpty) {
         await finalizeTrack(row.id);
         recovered.add(row.id);
+      } else if (!isStale) {
+        continue;
       } else if (row.points != null && row.pointCount > 0) {
         // A checkpoint survived but the buffer is gone: close the track at
         // its last checkpointed point.

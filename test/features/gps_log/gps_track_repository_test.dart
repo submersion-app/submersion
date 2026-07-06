@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/gps_log/data/repositories/gps_track_repository.dart';
@@ -132,7 +133,7 @@ void main() {
     });
 
     test(
-      'recoverOrphanedTracks closes checkpointed track with no buffer',
+      'recoverOrphanedTracks closes stale checkpointed track with no buffer',
       () async {
         final id = await repo.startTrack(
           startTimeMs: 1700000000000,
@@ -145,6 +146,7 @@ void main() {
         await repo.checkpoint(id);
         // Simulate buffer loss (e.g. cleared by an interrupted finalize).
         await db.delete(db.gpsTrackPointsLocal).go();
+        await _backdateUpdatedAt(db, id);
         final recovered = await repo.recoverOrphanedTracks();
         expect(recovered, [id]);
         final track = await repo.getTrack(id);
@@ -153,11 +155,30 @@ void main() {
       },
     );
 
-    test('recoverOrphanedTracks deletes empty orphans', () async {
+    test('recoverOrphanedTracks leaves fresh buffer-less track open '
+        '(may be recording on another device)', () async {
       final id = await repo.startTrack(
         startTimeMs: 1700000000000,
         tzOffsetMinutes: 0,
       );
+      await repo.appendBufferPoint(
+        id,
+        const GpsTrackPoint(timestamp: 1700000400, latitude: 3, longitude: 4),
+      );
+      await repo.checkpoint(id);
+      await db.delete(db.gpsTrackPointsLocal).go();
+      final recovered = await repo.recoverOrphanedTracks();
+      expect(recovered, isEmpty);
+      final track = await repo.getTrack(id);
+      expect(track!.endTime, isNull);
+    });
+
+    test('recoverOrphanedTracks deletes stale empty orphans', () async {
+      final id = await repo.startTrack(
+        startTimeMs: 1700000000000,
+        tzOffsetMinutes: 0,
+      );
+      await _backdateUpdatedAt(db, id);
       await repo.recoverOrphanedTracks();
       expect(await repo.getTrack(id), isNull);
     });
@@ -181,4 +202,14 @@ void main() {
       expect(tombstones.single.entityType, 'gpsTracks');
     });
   });
+}
+
+/// Ages a track past the stale-orphan threshold so recovery will touch it.
+Future<void> _backdateUpdatedAt(AppDatabase db, String id) async {
+  final stale = DateTime.now()
+      .subtract(GpsTrackRepository.staleOrphanThreshold * 2)
+      .millisecondsSinceEpoch;
+  await (db.update(db.gpsTracks)..where((t) => t.id.equals(id))).write(
+    GpsTracksCompanion(updatedAt: Value(stale)),
+  );
 }

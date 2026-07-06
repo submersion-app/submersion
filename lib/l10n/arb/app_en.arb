@@ -10549,22 +10549,22 @@
   "gpsLogger_noFixYet": "Waiting for GPS fix",
   "gpsLogger_noTracks": "No GPS tracks recorded yet",
   "gpsLogger_permissionDenied": "Location permission is required to record a GPS track. Enable it in system settings.",
-  "gpsLogger_recordingStatus": "Recording - {count} points",
+  "gpsLogger_recordingStatus": "Recording - {count, plural, one{{count} point} other{{count} points}}",
   "@gpsLogger_recordingStatus": {
     "placeholders": {
       "count": {
-        "type": "int"
+        "type": "num"
       }
     }
   },
   "gpsLogger_reviewSites": "Review site matches",
   "gpsLogger_startButton": "Start logging",
   "gpsLogger_stopButton": "Stop logging",
-  "gpsLogger_trackSubtitle": "{count} points, {duration}",
+  "gpsLogger_trackSubtitle": "{count, plural, one{{count} point} other{{count} points}}, {duration}",
   "@gpsLogger_trackSubtitle": {
     "placeholders": {
       "count": {
-        "type": "int"
+        "type": "num"
       },
       "duration": {
         "type": "String"

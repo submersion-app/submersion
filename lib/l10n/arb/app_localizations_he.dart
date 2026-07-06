@@ -16594,8 +16594,15 @@ class AppLocalizationsHe extends AppLocalizations {
       'נדרשת הרשאת מיקום כדי להקליט מסלול GPS. יש להפעיל אותה בהגדרות המערכת.';
 
   @override
-  String gpsLogger_recordingStatus(int count) {
-    return 'מקליט - $count נקודות';
+  String gpsLogger_recordingStatus(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count נקודות',
+      two: 'שתי נקודות',
+      one: 'נקודה אחת',
+    );
+    return 'מקליט - $_temp0';
   }
 
   @override
@@ -16608,8 +16615,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gpsLogger_stopButton => 'עצור הקלטה';
 
   @override
-  String gpsLogger_trackSubtitle(int count, String duration) {
-    return '$count נקודות, $duration';
+  String gpsLogger_trackSubtitle(num count, String duration) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count נקודות',
+      two: 'שתי נקודות',
+      one: 'נקודה אחת',
+    );
+    return '$_temp0, $duration';
   }
 
   @override

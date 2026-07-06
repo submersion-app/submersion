@@ -17,10 +17,13 @@ class GpsTrackMatchService {
 
   /// Returns ids of dives that received a GPS position. Only dives with no
   /// entry GPS are candidates; existing positions are never overwritten.
+  ///
+  /// Deliberately does not recover orphaned tracks: a sweep can fire while a
+  /// recording session is active (post-import, post-sync, manual), and
+  /// recovery would finalize the live session out from under the recorder.
+  /// Unfinalized tracks are simply skipped by [GpsTrackMatcher.trackCovering];
+  /// crash recovery runs at page startup when no session is active.
   Future<List<String>> sweep({List<String>? limitToIds}) async {
-    // Close out any track a crash left open before matching against it.
-    await _trackRepository.recoverOrphanedTracks();
-
     final candidates = await _diveRepository.getDivesMissingEntryGps(
       limitToIds: limitToIds,
     );
