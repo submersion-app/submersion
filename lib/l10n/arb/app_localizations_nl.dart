@@ -2390,6 +2390,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get decoCalculator_title => 'Deco calculator';
 
   @override
+  String get decoCalculator_waterType => 'Watertype';
+
+  @override
+  String get decoCalculator_waterType_standard => 'Standaard';
+
+  @override
   String diveCenters_accessibility_markerLabel(Object name) {
     return 'Duikcentrum: $name';
   }
@@ -10341,6 +10347,16 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get plannerCanvas_compare_action => 'Vergelijken';
+
+  @override
+  String get plannerCanvas_compare_needTwo =>
+      'Selecteer minstens twee plannen om te vergelijken';
+
+  @override
+  String get plannerCanvas_compare_title => 'Plannen vergelijken';
+
+  @override
   String get plannerCanvas_contingency_base => 'Basis';
 
   @override
@@ -10423,7 +10439,22 @@ class AppLocalizationsNl extends AppLocalizations {
       'Decompressie vereist maar geen decogas meegenomen';
 
   @override
+  String get plannerCanvas_range_base => 'Basis';
+
+  @override
+  String get plannerCanvas_range_legend =>
+      'Cellen tonen de tijd naar de oppervlakte; rood = niet duikbaar zoals gepland';
+
+  @override
+  String get plannerCanvas_range_title => 'Bereiktabel';
+
+  @override
   String get plannerCanvas_results_noDeco => 'Geen decompressie vereist';
+
+  @override
+  String plannerCanvas_sac_useLogged(String sac) {
+    return 'Gebruik gelogd gemiddelde ($sac)';
+  }
 
   @override
   String plannerCanvas_saved_deleteConfirmBody(String name) {
@@ -10432,11 +10463,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get plannerCanvas_saved_deleteConfirmTitle => 'Plan verwijderen?';
-
-  @override
-  String plannerCanvas_sac_useLogged(String sac) {
-    return 'Gebruik gelogd gemiddelde ($sac)';
-  }
 
   @override
   String get plannerCanvas_saved_duplicate => 'Dupliceren';
@@ -10456,6 +10482,26 @@ class AppLocalizationsNl extends AppLocalizations {
   String plannerCanvas_scrub_readout(String minutes, String depth) {
     return 'RT $minutes′ · $depth';
   }
+
+  @override
+  String get plannerCanvas_share_import => 'Importeren';
+
+  @override
+  String plannerCanvas_share_importFailed(String reason) {
+    return 'Kon plan niet importeren: $reason';
+  }
+
+  @override
+  String get plannerCanvas_share_menu => 'Planbestand delen';
+
+  @override
+  String get plannerCanvas_slate_menu => 'Slate exporteren (PDF)';
+
+  @override
+  String get plannerCanvas_slate_minGas => 'Minimum gas';
+
+  @override
+  String get plannerCanvas_slate_turn => 'Keerpunt';
 
   @override
   String get plannerCanvas_table_depth => 'Diepte';
@@ -10545,6 +10591,12 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get planning_info_disclaimer =>
       'Deze tools zijn alleen voor planningsdoeleinden. Controleer berekeningen altijd en volg je duikopleiding.';
+
+  @override
+  String get planning_newPlan => 'Nieuw plan';
+
+  @override
+  String get planning_section_tools => 'Gereedschappen';
 
   @override
   String get planning_sidebar_appBar_title => 'Planning';

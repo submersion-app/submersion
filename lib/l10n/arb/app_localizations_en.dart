@@ -2362,6 +2362,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get decoCalculator_title => 'Deco Calculator';
 
   @override
+  String get decoCalculator_waterType => 'Water type';
+
+  @override
+  String get decoCalculator_waterType_standard => 'Standard';
+
+  @override
   String diveCenters_accessibility_markerLabel(Object name) {
     return 'Dive center: $name';
   }
@@ -10253,6 +10259,16 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get plannerCanvas_compare_action => 'Compare';
+
+  @override
+  String get plannerCanvas_compare_needTwo =>
+      'Select at least two plans to compare';
+
+  @override
+  String get plannerCanvas_compare_title => 'Compare plans';
+
+  @override
   String get plannerCanvas_contingency_base => 'Base';
 
   @override
@@ -10335,7 +10351,22 @@ class AppLocalizationsEn extends AppLocalizations {
       'Decompression required but no deco gas carried';
 
   @override
+  String get plannerCanvas_range_base => 'Base';
+
+  @override
+  String get plannerCanvas_range_legend =>
+      'Cells show time to surface; red = not diveable as planned';
+
+  @override
+  String get plannerCanvas_range_title => 'Range table';
+
+  @override
   String get plannerCanvas_results_noDeco => 'No decompression required';
+
+  @override
+  String plannerCanvas_sac_useLogged(String sac) {
+    return 'Use logged average ($sac)';
+  }
 
   @override
   String plannerCanvas_saved_deleteConfirmBody(String name) {
@@ -10344,11 +10375,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get plannerCanvas_saved_deleteConfirmTitle => 'Delete plan?';
-
-  @override
-  String plannerCanvas_sac_useLogged(String sac) {
-    return 'Use logged average ($sac)';
-  }
 
   @override
   String get plannerCanvas_saved_duplicate => 'Duplicate';
@@ -10368,6 +10394,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String plannerCanvas_scrub_readout(String minutes, String depth) {
     return 'RT $minutes′ · $depth';
   }
+
+  @override
+  String get plannerCanvas_share_import => 'Import';
+
+  @override
+  String plannerCanvas_share_importFailed(String reason) {
+    return 'Couldn\'t import plan: $reason';
+  }
+
+  @override
+  String get plannerCanvas_share_menu => 'Share plan file';
+
+  @override
+  String get plannerCanvas_slate_menu => 'Export slate (PDF)';
+
+  @override
+  String get plannerCanvas_slate_minGas => 'Min gas';
+
+  @override
+  String get plannerCanvas_slate_turn => 'Turn';
 
   @override
   String get plannerCanvas_table_depth => 'Depth';
@@ -10457,6 +10503,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get planning_info_disclaimer =>
       'These tools are for planning purposes only. Always verify calculations and follow your dive training.';
+
+  @override
+  String get planning_newPlan => 'New plan';
+
+  @override
+  String get planning_section_tools => 'Tools';
 
   @override
   String get planning_sidebar_appBar_title => 'Planning';

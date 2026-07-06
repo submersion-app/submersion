@@ -2334,6 +2334,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get decoCalculator_title => 'מחשבון דקומפרסיה';
 
   @override
+  String get decoCalculator_waterType => 'סוג מים';
+
+  @override
+  String get decoCalculator_waterType_standard => 'רגיל';
+
+  @override
   String diveCenters_accessibility_markerLabel(Object name) {
     return 'מרכז צלילה: $name';
   }
@@ -10152,6 +10158,15 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get plannerCanvas_compare_action => 'השוואה';
+
+  @override
+  String get plannerCanvas_compare_needTwo => 'בחר לפחות שתי תוכניות להשוואה';
+
+  @override
+  String get plannerCanvas_compare_title => 'השוואת תוכניות';
+
+  @override
   String get plannerCanvas_contingency_base => 'בסיס';
 
   @override
@@ -10234,7 +10249,22 @@ class AppLocalizationsHe extends AppLocalizations {
       'נדרשת דקומפרסיה אך לא נלקח גז דקו';
 
   @override
+  String get plannerCanvas_range_base => 'בסיס';
+
+  @override
+  String get plannerCanvas_range_legend =>
+      'התאים מציגים את זמן העלייה לפני המים; אדום = לא ניתן לצלול כמתוכנן';
+
+  @override
+  String get plannerCanvas_range_title => 'טבלת טווחים';
+
+  @override
   String get plannerCanvas_results_noDeco => 'לא נדרשת דקומפרסיה';
+
+  @override
+  String plannerCanvas_sac_useLogged(String sac) {
+    return 'השתמש בממוצע המתועד ($sac)';
+  }
 
   @override
   String plannerCanvas_saved_deleteConfirmBody(String name) {
@@ -10243,11 +10273,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get plannerCanvas_saved_deleteConfirmTitle => 'למחוק את התוכנית?';
-
-  @override
-  String plannerCanvas_sac_useLogged(String sac) {
-    return 'השתמש בממוצע המתועד ($sac)';
-  }
 
   @override
   String get plannerCanvas_saved_duplicate => 'שכפול';
@@ -10267,6 +10292,26 @@ class AppLocalizationsHe extends AppLocalizations {
   String plannerCanvas_scrub_readout(String minutes, String depth) {
     return 'RT $minutes′ · $depth';
   }
+
+  @override
+  String get plannerCanvas_share_import => 'ייבוא';
+
+  @override
+  String plannerCanvas_share_importFailed(String reason) {
+    return 'לא ניתן לייבא את התוכנית: $reason';
+  }
+
+  @override
+  String get plannerCanvas_share_menu => 'שיתוף קובץ תוכנית';
+
+  @override
+  String get plannerCanvas_slate_menu => 'ייצוא לוח (PDF)';
+
+  @override
+  String get plannerCanvas_slate_minGas => 'גז מינימלי';
+
+  @override
+  String get plannerCanvas_slate_turn => 'נקודת חזרה';
 
   @override
   String get plannerCanvas_table_depth => 'עומק';
@@ -10355,6 +10400,12 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get planning_info_disclaimer =>
       'כלים אלה מיועדים למטרות תכנון בלבד. תמיד אמת חישובים ופעל לפי הכשרת הצלילה שלך.';
+
+  @override
+  String get planning_newPlan => 'תוכנית חדשה';
+
+  @override
+  String get planning_section_tools => 'כלים';
 
   @override
   String get planning_sidebar_appBar_title => 'תכנון';

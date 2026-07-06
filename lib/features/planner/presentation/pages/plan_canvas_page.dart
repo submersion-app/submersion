@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/export/shared/file_export_utils.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
@@ -10,8 +12,11 @@ import 'package:submersion/features/dive_planner/presentation/widgets/plan_tank_
 import 'package:submersion/features/dive_planner/presentation/widgets/segment_list.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/simple_plan_dialog.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_repository.dart';
+import 'package:submersion/features/planner/data/services/plan_file_codec.dart';
+import 'package:submersion/features/planner/data/services/plan_slate_pdf_service.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
+import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/ccr_settings_section.dart';
 import 'package:submersion/features/planner/presentation/widgets/contingency_chips.dart';
@@ -21,6 +26,7 @@ import 'package:submersion/features/planner/presentation/widgets/plan_canvas_cha
 import 'package:submersion/features/planner/presentation/widgets/plan_results_sheet.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
 import 'package:submersion/features/planner/presentation/widgets/saved_plans_sheet.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
@@ -135,6 +141,16 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
                 context.l10n.divePlanner_action_convertToDive,
               ),
               _menuItem(
+                'slate',
+                Icons.picture_as_pdf,
+                context.l10n.plannerCanvas_slate_menu,
+              ),
+              _menuItem(
+                'share',
+                Icons.ios_share,
+                context.l10n.plannerCanvas_share_menu,
+              ),
+              _menuItem(
                 'reset',
                 Icons.refresh,
                 context.l10n.divePlanner_action_resetPlan,
@@ -173,9 +189,67 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
         _showSettingsSheet(context);
       case 'convert':
         _convertToDive();
+      case 'slate':
+        _exportSlate();
+      case 'share':
+        _sharePlanFile();
       case 'reset':
         _resetPlan();
     }
+  }
+
+  Future<void> _sharePlanFile() async {
+    final state = ref.read(divePlanNotifierProvider);
+    final json = planToSubplanJson(divePlanFromState(state));
+    final safeName = state.name
+        .replaceAll(RegExp(r'[^\w\s-]'), '')
+        .trim()
+        .replaceAll(RegExp(r'\s+'), '_');
+    await saveAndShareFile(
+      json,
+      '${safeName.isEmpty ? 'dive_plan' : safeName}.$subplanExtension',
+      'application/json',
+    );
+  }
+
+  Future<void> _exportSlate() async {
+    final l10n = context.l10n;
+    final state = ref.read(divePlanNotifierProvider);
+    final labels = PlanSlateLabels(
+      runtimeTable: l10n.divePlanner_label_decoSchedule,
+      gasPlan: l10n.divePlanner_label_gasConsumption,
+      contingencies: l10n.plannerCanvas_contingency_title,
+      lostGasLabel: l10n.plannerCanvas_contingency_lostGas,
+      rangeTable: l10n.plannerCanvas_range_title,
+      bailout: l10n.plannerCanvas_bailout_title,
+      stop: l10n.plannerCanvas_table_stop,
+      depth: l10n.plannerCanvas_table_depth,
+      runtime: l10n.plannerCanvas_table_runtime,
+      gas: l10n.plannerCanvas_table_gas,
+      turnAt: l10n.plannerCanvas_slate_turn,
+      minGas: l10n.plannerCanvas_slate_minGas,
+      base: l10n.plannerCanvas_range_base,
+    );
+
+    final bytes = await const PlanSlatePdfService().buildSlate(
+      plan: divePlanFromState(state),
+      outcome: ref.read(planOutcomeProvider),
+      deviations: ref.read(planDeviationsProvider),
+      lostGas: ref.read(planLostGasProvider),
+      rangeTable: ref.read(planRangeTableProvider),
+      bailout: ref.read(planBailoutProvider),
+      units: UnitFormatter(ref.read(settingsProvider)),
+      labels: labels,
+    );
+
+    final safeName = state.name
+        .replaceAll(RegExp(r'[^\w\s-]'), '')
+        .trim()
+        .replaceAll(RegExp(r'\s+'), '_');
+    await sharePdfBytes(
+      bytes,
+      '${safeName.isEmpty ? 'dive_plan' : safeName}_slate.pdf',
+    );
   }
 
   // --- Phone: chart + chips + editor list, results in a draggable sheet ---

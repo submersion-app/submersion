@@ -101,37 +101,54 @@ class ContingencyService {
     return results;
   }
 
-  /// Depths equal to the plan's max depth grow by the deviation delta —
-  /// the bottom deepens and the descent that feeds it follows.
-  domain.DivePlan _deepened(domain.DivePlan plan) {
+  domain.DivePlan _deepened(domain.DivePlan plan) =>
+      deviatePlan(plan, depthDelta: plan.deviationDepthDelta);
+
+  domain.DivePlan _lengthened(domain.DivePlan plan) =>
+      deviatePlan(plan, timeDeltaMinutes: plan.deviationTimeMinutes);
+}
+
+/// A [plan] variant deviated by [depthDelta] meters and/or
+/// [timeDeltaMinutes] minutes (either may be negative).
+///
+/// Depths equal to the plan's max depth shift by the delta — the bottom
+/// moves and the descent that feeds it follows. Bottom segments grow (or
+/// shrink) by the time delta. Shared by the contingency trio and the range
+/// tables so every "what if" variant deviates the same way.
+domain.DivePlan deviatePlan(
+  domain.DivePlan plan, {
+  double depthDelta = 0,
+  int timeDeltaMinutes = 0,
+}) {
+  var segments = plan.segments;
+
+  if (depthDelta != 0) {
     final maxDepth = plan.maxDepth;
-    final delta = plan.deviationDepthDelta;
-    PlanSegment deepen(PlanSegment segment) {
+    PlanSegment shift(PlanSegment segment) {
       var changed = segment;
       if ((segment.startDepth - maxDepth).abs() < 0.01) {
-        changed = changed.copyWith(startDepth: segment.startDepth + delta);
+        changed = changed.copyWith(startDepth: segment.startDepth + depthDelta);
       }
       if ((segment.endDepth - maxDepth).abs() < 0.01) {
-        changed = changed.copyWith(endDepth: segment.endDepth + delta);
+        changed = changed.copyWith(endDepth: segment.endDepth + depthDelta);
       }
       return changed;
     }
 
-    return plan.copyWith(segments: plan.segments.map(deepen).toList());
+    segments = segments.map(shift).toList();
   }
 
-  /// Bottom segments grow by the deviation minutes.
-  domain.DivePlan _lengthened(domain.DivePlan plan) {
-    final extraSeconds = plan.deviationTimeMinutes * 60;
-    return plan.copyWith(
-      segments: [
-        for (final segment in plan.segments)
-          segment.type == SegmentType.bottom
-              ? segment.copyWith(
-                  durationSeconds: segment.durationSeconds + extraSeconds,
-                )
-              : segment,
-      ],
-    );
+  if (timeDeltaMinutes != 0) {
+    final extraSeconds = timeDeltaMinutes * 60;
+    segments = [
+      for (final segment in segments)
+        segment.type == SegmentType.bottom
+            ? segment.copyWith(
+                durationSeconds: segment.durationSeconds + extraSeconds,
+              )
+            : segment,
+    ];
   }
+
+  return plan.copyWith(segments: segments);
 }

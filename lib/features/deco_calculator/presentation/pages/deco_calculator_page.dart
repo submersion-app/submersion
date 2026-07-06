@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_planner/presentation/providers/dive_pla
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/deco_calculator/presentation/providers/deco_calculator_providers.dart';
 import 'package:submersion/features/deco_calculator/presentation/widgets/depth_slider.dart';
+import 'package:submersion/features/deco_calculator/presentation/widgets/environment_inputs.dart';
 import 'package:submersion/features/deco_calculator/presentation/widgets/gas_mix_selector.dart';
 import 'package:submersion/features/deco_calculator/presentation/widgets/gas_warnings_display.dart';
 import 'package:submersion/features/deco_calculator/presentation/widgets/time_slider.dart';
@@ -68,6 +69,8 @@ class DecoCalculatorPage extends ConsumerWidget {
                     const TimeSlider(),
                     const SizedBox(height: 16),
                     const GasMixSelector(),
+                    const SizedBox(height: 16),
+                    const EnvironmentInputs(),
                   ],
                 ),
               ),

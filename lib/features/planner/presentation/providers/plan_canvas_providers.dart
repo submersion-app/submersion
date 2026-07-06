@@ -8,6 +8,7 @@ import 'package:submersion/features/planner/domain/services/bailout_solver.dart'
 import 'package:submersion/features/planner/domain/services/contingency_service.dart';
 import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
+import 'package:submersion/features/planner/domain/services/range_table_service.dart';
 import 'package:submersion/features/planner/domain/services/tissue_seed.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
@@ -256,6 +257,18 @@ final planLostGasProvider = Provider<List<LostGasOutcome>>((ref) {
     config: ref.watch(planEngineConfigProvider),
   );
   return service.lostGas(divePlanFromState(state));
+});
+
+/// The classic slate range table (depth x time variants) for the current
+/// plan; null when there is nothing to vary.
+final planRangeTableProvider = Provider<RangeTable?>((ref) {
+  final state = ref.watch(divePlanNotifierProvider);
+  if (state.segments.isEmpty) return null;
+  final service = RangeTableService(
+    config: ref.watch(planEngineConfigProvider),
+  );
+  final table = service.compute(divePlanFromState(state));
+  return table.isEmpty ? null : table;
 });
 
 /// Which deviation is ghosted on the chart ('deeper'|'longer'|'both'; null =

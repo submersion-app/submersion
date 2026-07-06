@@ -2,20 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Planning hub page displaying all dive planning tools.
-///
-/// Provides easy navigation to:
-/// - Dive Planner: Create multi-level dive plans with gas switching
-/// - Deco Calculator: Calculate NDL, deco stops, CNS/OTU exposure
-/// - Gas Calculators: MOD, Best Mix, Consumption, Rock Bottom
-/// - Weight Calculator: Recommended dive weight based on equipment
-class PlanningPage extends StatelessWidget {
+/// Planning hub page: the planner (new plan + recent saved plans) front and
+/// center, calculators as a tools list below.
+class PlanningPage extends ConsumerWidget {
   const PlanningPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
 
     final tools = _planningToolsOf(context);
@@ -25,6 +25,9 @@ class PlanningPage extends StatelessWidget {
       body: ListView(
         children: [
           const SizedBox(height: 8),
+          const _PlannerSection(),
+          const SizedBox(height: 8),
+          _SectionLabel(context.l10n.planning_section_tools),
           ...List.generate(tools.length * 2 - 1, (index) {
             if (index.isOdd) return const Divider(height: 1);
             return _PlanningTile(tool: tools[index ~/ 2]);
@@ -66,6 +69,104 @@ class PlanningPage extends StatelessWidget {
   }
 }
 
+/// Section header matching the tools/plans grouping.
+class _SectionLabel extends StatelessWidget {
+  const _SectionLabel(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      child: Text(
+        text.toUpperCase(),
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: theme.colorScheme.outline,
+          letterSpacing: 0.6,
+        ),
+      ),
+    );
+  }
+}
+
+/// The planner front and center: a New Plan call to action plus the three
+/// most recently touched saved plans.
+class _PlannerSection extends ConsumerWidget {
+  const _PlannerSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final summaries = ref.watch(divePlanSummariesProvider).valueOrNull;
+    final units = UnitFormatter(ref.watch(settingsProvider));
+    final recent = summaries?.take(3).toList() ?? const [];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  ExcludeSemantics(
+                    child: Icon(
+                      Icons.edit_calendar,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      context.l10n.planning_card_divePlanner_title,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                  FilledButton.icon(
+                    icon: const Icon(Icons.add, size: 18),
+                    label: Text(context.l10n.planning_newPlan),
+                    onPressed: () {
+                      ref.read(divePlanNotifierProvider.notifier).newPlan();
+                      context.go('/planning/dive-planner');
+                    },
+                  ),
+                ],
+              ),
+              if (recent.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                for (final summary in recent)
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    leading: const Icon(Icons.route, size: 20),
+                    title: Text(summary.name),
+                    subtitle: Text(
+                      [
+                        if (summary.maxDepth != null)
+                          units.formatDepth(summary.maxDepth!),
+                        if (summary.runtimeSeconds != null)
+                          '${(summary.runtimeSeconds! / 60).ceil()}′',
+                        summary.mode.name.toUpperCase(),
+                      ].join(' · '),
+                    ),
+                    onTap: () =>
+                        context.go('/planning/dive-planner/${summary.id}'),
+                  ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Data class for a planning tool entry.
 class _PlanningTool {
   final IconData icon;
@@ -88,13 +189,6 @@ List<_PlanningTool> _planningToolsOf(BuildContext context) {
   final colorScheme = Theme.of(context).colorScheme;
 
   return [
-    _PlanningTool(
-      icon: Icons.edit_calendar,
-      color: colorScheme.primary,
-      title: context.l10n.planning_card_divePlanner_title,
-      subtitle: context.l10n.planning_card_divePlanner_subtitle,
-      route: '/planning/dive-planner',
-    ),
     _PlanningTool(
       icon: Icons.calculate,
       color: colorScheme.secondary,

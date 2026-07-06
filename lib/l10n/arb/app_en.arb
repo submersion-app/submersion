@@ -1447,6 +1447,8 @@
   "decoCalculator_showCustomMixSemantics": "Show custom gas mix selector",
   "decoCalculator_timeValueMin": "{time} min",
   "decoCalculator_title": "Deco Calculator",
+  "decoCalculator_waterType": "Water type",
+  "decoCalculator_waterType_standard": "Standard",
   "diveCenters_accessibility_markerLabel": "Dive center: {name}",
   "diveCenters_accessibility_selected": "selected",
   "diveCenters_accessibility_viewDetails": "View details for {name}",
@@ -5678,6 +5680,9 @@
       "count": { "type": "int" }
     }
   },
+  "plannerCanvas_compare_action": "Compare",
+  "plannerCanvas_compare_needTwo": "Select at least two plans to compare",
+  "plannerCanvas_compare_title": "Compare plans",
   "plannerCanvas_contingency_base": "Base",
   "plannerCanvas_contingency_depthDelta": "Extra depth",
   "plannerCanvas_contingency_lostGas": "Lost {gas}",
@@ -5740,7 +5745,16 @@
   },
   "plannerCanvas_issue_noBailout": "CCR decompression plan carries no bailout gas",
   "plannerCanvas_issue_noDecoGas": "Decompression required but no deco gas carried",
+  "plannerCanvas_range_base": "Base",
+  "plannerCanvas_range_legend": "Cells show time to surface; red = not diveable as planned",
+  "plannerCanvas_range_title": "Range table",
   "plannerCanvas_results_noDeco": "No decompression required",
+  "plannerCanvas_sac_useLogged": "Use logged average ({sac})",
+  "@plannerCanvas_sac_useLogged": {
+    "placeholders": {
+      "sac": { "type": "String" }
+    }
+  },
   "plannerCanvas_saved_deleteConfirmBody": "Permanently delete \"{name}\"?",
   "@plannerCanvas_saved_deleteConfirmBody": {
     "placeholders": {
@@ -5748,12 +5762,6 @@
     }
   },
   "plannerCanvas_saved_deleteConfirmTitle": "Delete plan?",
-  "plannerCanvas_sac_useLogged": "Use logged average ({sac})",
-  "@plannerCanvas_sac_useLogged": {
-    "placeholders": {
-      "sac": { "type": "String" }
-    }
-  },
   "plannerCanvas_saved_duplicate": "Duplicate",
   "plannerCanvas_saved_empty": "No saved plans yet",
   "plannerCanvas_saved_title": "Saved plans",
@@ -5770,6 +5778,17 @@
       "depth": { "type": "String" }
     }
   },
+  "plannerCanvas_share_import": "Import",
+  "plannerCanvas_share_importFailed": "Couldn't import plan: {reason}",
+  "@plannerCanvas_share_importFailed": {
+    "placeholders": {
+      "reason": { "type": "String" }
+    }
+  },
+  "plannerCanvas_share_menu": "Share plan file",
+  "plannerCanvas_slate_menu": "Export slate (PDF)",
+  "plannerCanvas_slate_minGas": "Min gas",
+  "plannerCanvas_slate_turn": "Turn",
   "plannerCanvas_table_depth": "Depth",
   "plannerCanvas_table_gas": "Gas",
   "plannerCanvas_table_runtime": "RT",
@@ -5796,6 +5815,8 @@
   "planning_card_weightCalculator_subtitle": "Recommended weight for your setup",
   "planning_card_weightCalculator_title": "Weight Calculator",
   "planning_info_disclaimer": "These tools are for planning purposes only. Always verify calculations and follow your dive training.",
+  "planning_newPlan": "New plan",
+  "planning_section_tools": "Tools",
   "planning_sidebar_appBar_title": "Planning",
   "planning_sidebar_decoCalculator_subtitle": "NDL & deco stops",
   "planning_sidebar_decoCalculator_title": "Deco Calculator",

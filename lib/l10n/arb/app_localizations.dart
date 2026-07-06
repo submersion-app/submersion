@@ -4157,6 +4157,18 @@ abstract class AppLocalizations {
   /// **'Deco Calculator'**
   String get decoCalculator_title;
 
+  /// No description provided for @decoCalculator_waterType.
+  ///
+  /// In en, this message translates to:
+  /// **'Water type'**
+  String get decoCalculator_waterType;
+
+  /// No description provided for @decoCalculator_waterType_standard.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard'**
+  String get decoCalculator_waterType_standard;
+
   /// No description provided for @diveCenters_accessibility_markerLabel.
   ///
   /// In en, this message translates to:
@@ -17726,6 +17738,24 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 issue} other{{count} issues}}'**
   String plannerCanvas_chip_issues(int count);
 
+  /// No description provided for @plannerCanvas_compare_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare'**
+  String get plannerCanvas_compare_action;
+
+  /// No description provided for @plannerCanvas_compare_needTwo.
+  ///
+  /// In en, this message translates to:
+  /// **'Select at least two plans to compare'**
+  String get plannerCanvas_compare_needTwo;
+
+  /// No description provided for @plannerCanvas_compare_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare plans'**
+  String get plannerCanvas_compare_title;
+
   /// No description provided for @plannerCanvas_contingency_base.
   ///
   /// In en, this message translates to:
@@ -17852,11 +17882,35 @@ abstract class AppLocalizations {
   /// **'Decompression required but no deco gas carried'**
   String get plannerCanvas_issue_noDecoGas;
 
+  /// No description provided for @plannerCanvas_range_base.
+  ///
+  /// In en, this message translates to:
+  /// **'Base'**
+  String get plannerCanvas_range_base;
+
+  /// No description provided for @plannerCanvas_range_legend.
+  ///
+  /// In en, this message translates to:
+  /// **'Cells show time to surface; red = not diveable as planned'**
+  String get plannerCanvas_range_legend;
+
+  /// No description provided for @plannerCanvas_range_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Range table'**
+  String get plannerCanvas_range_title;
+
   /// No description provided for @plannerCanvas_results_noDeco.
   ///
   /// In en, this message translates to:
   /// **'No decompression required'**
   String get plannerCanvas_results_noDeco;
+
+  /// No description provided for @plannerCanvas_sac_useLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'Use logged average ({sac})'**
+  String plannerCanvas_sac_useLogged(String sac);
 
   /// No description provided for @plannerCanvas_saved_deleteConfirmBody.
   ///
@@ -17869,12 +17923,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete plan?'**
   String get plannerCanvas_saved_deleteConfirmTitle;
-
-  /// No description provided for @plannerCanvas_sac_useLogged.
-  ///
-  /// In en, this message translates to:
-  /// **'Use logged average ({sac})'**
-  String plannerCanvas_sac_useLogged(String sac);
 
   /// No description provided for @plannerCanvas_saved_duplicate.
   ///
@@ -17905,6 +17953,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'RT {minutes}′ · {depth}'**
   String plannerCanvas_scrub_readout(String minutes, String depth);
+
+  /// No description provided for @plannerCanvas_share_import.
+  ///
+  /// In en, this message translates to:
+  /// **'Import'**
+  String get plannerCanvas_share_import;
+
+  /// No description provided for @plannerCanvas_share_importFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t import plan: {reason}'**
+  String plannerCanvas_share_importFailed(String reason);
+
+  /// No description provided for @plannerCanvas_share_menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Share plan file'**
+  String get plannerCanvas_share_menu;
+
+  /// No description provided for @plannerCanvas_slate_menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Export slate (PDF)'**
+  String get plannerCanvas_slate_menu;
+
+  /// No description provided for @plannerCanvas_slate_minGas.
+  ///
+  /// In en, this message translates to:
+  /// **'Min gas'**
+  String get plannerCanvas_slate_minGas;
+
+  /// No description provided for @plannerCanvas_slate_turn.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn'**
+  String get plannerCanvas_slate_turn;
 
   /// No description provided for @plannerCanvas_table_depth.
   ///
@@ -18061,6 +18145,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'These tools are for planning purposes only. Always verify calculations and follow your dive training.'**
   String get planning_info_disclaimer;
+
+  /// No description provided for @planning_newPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'New plan'**
+  String get planning_newPlan;
+
+  /// No description provided for @planning_section_tools.
+  ///
+  /// In en, this message translates to:
+  /// **'Tools'**
+  String get planning_section_tools;
 
   /// No description provided for @planning_sidebar_appBar_title.
   ///

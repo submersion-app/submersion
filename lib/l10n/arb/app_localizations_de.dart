@@ -2416,6 +2416,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get decoCalculator_title => 'Deko-Rechner';
 
   @override
+  String get decoCalculator_waterType => 'Wassertyp';
+
+  @override
+  String get decoCalculator_waterType_standard => 'Standard';
+
+  @override
   String diveCenters_accessibility_markerLabel(Object name) {
     return 'Tauchcenter: $name';
   }
@@ -10414,6 +10420,16 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get plannerCanvas_compare_action => 'Vergleichen';
+
+  @override
+  String get plannerCanvas_compare_needTwo =>
+      'Wähle mindestens zwei Pläne zum Vergleichen';
+
+  @override
+  String get plannerCanvas_compare_title => 'Pläne vergleichen';
+
+  @override
   String get plannerCanvas_contingency_base => 'Basis';
 
   @override
@@ -10496,7 +10512,22 @@ class AppLocalizationsDe extends AppLocalizations {
       'Dekompression erforderlich, aber kein Deko-Gas mitgeführt';
 
   @override
+  String get plannerCanvas_range_base => 'Basis';
+
+  @override
+  String get plannerCanvas_range_legend =>
+      'Zellen zeigen die Zeit bis zur Oberfläche; rot = nicht wie geplant tauchbar';
+
+  @override
+  String get plannerCanvas_range_title => 'Bereichstabelle';
+
+  @override
   String get plannerCanvas_results_noDeco => 'Keine Dekompression erforderlich';
+
+  @override
+  String plannerCanvas_sac_useLogged(String sac) {
+    return 'Geloggten Durchschnitt verwenden ($sac)';
+  }
 
   @override
   String plannerCanvas_saved_deleteConfirmBody(String name) {
@@ -10505,11 +10536,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get plannerCanvas_saved_deleteConfirmTitle => 'Plan löschen?';
-
-  @override
-  String plannerCanvas_sac_useLogged(String sac) {
-    return 'Geloggten Durchschnitt verwenden ($sac)';
-  }
 
   @override
   String get plannerCanvas_saved_duplicate => 'Duplizieren';
@@ -10529,6 +10555,26 @@ class AppLocalizationsDe extends AppLocalizations {
   String plannerCanvas_scrub_readout(String minutes, String depth) {
     return 'RT $minutes′ · $depth';
   }
+
+  @override
+  String get plannerCanvas_share_import => 'Importieren';
+
+  @override
+  String plannerCanvas_share_importFailed(String reason) {
+    return 'Plan konnte nicht importiert werden: $reason';
+  }
+
+  @override
+  String get plannerCanvas_share_menu => 'Plandatei teilen';
+
+  @override
+  String get plannerCanvas_slate_menu => 'Slate exportieren (PDF)';
+
+  @override
+  String get plannerCanvas_slate_minGas => 'Min-Gas';
+
+  @override
+  String get plannerCanvas_slate_turn => 'Umkehr';
 
   @override
   String get plannerCanvas_table_depth => 'Tiefe';
@@ -10618,6 +10664,12 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get planning_info_disclaimer =>
       'Diese Werkzeuge dienen nur der Planung. Überprüfen Sie Berechnungen immer und befolgen Sie Ihre Tauchausbildung.';
+
+  @override
+  String get planning_newPlan => 'Neuer Plan';
+
+  @override
+  String get planning_section_tools => 'Werkzeuge';
 
   @override
   String get planning_sidebar_appBar_title => 'Planung';

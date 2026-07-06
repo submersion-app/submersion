@@ -8,6 +8,7 @@ import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/bailout_solver.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
+import 'package:submersion/features/planner/presentation/widgets/range_table_section.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -125,6 +126,11 @@ class PlanResultsSheet extends ConsumerWidget {
           _BailoutSection(outcome: bailout, units: units),
         ],
         ...?_contingencySections(context, ref, units),
+        if (ref.watch(planRangeTableProvider) != null) ...[
+          const SizedBox(height: 20),
+          _SectionHeader(context.l10n.plannerCanvas_range_title),
+          const RangeTableSection(),
+        ],
         const SizedBox(height: 20),
         _SectionHeader(context.l10n.divePlanner_label_warnings),
         if (outcome.issues.isEmpty)
