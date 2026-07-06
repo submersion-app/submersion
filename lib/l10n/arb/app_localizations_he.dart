@@ -4397,6 +4397,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_fullscreenProfile_close => 'סגירת מסך מלא';
 
   @override
+  String get diveLog_fullscreenProfile_readoutHint => 'רחפו או גררו על הפרופיל';
+
+  @override
   String diveLog_fullscreenProfile_title(Object number) {
     return 'פרופיל צלילה #$number';
   }

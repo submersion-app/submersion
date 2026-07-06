@@ -4441,6 +4441,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_fullscreenProfile_close => 'Close fullscreen';
 
   @override
+  String get diveLog_fullscreenProfile_readoutHint =>
+      'Hover or scrub the profile';
+
+  @override
   String diveLog_fullscreenProfile_title(Object number) {
     return 'Dive #$number Profile';
   }

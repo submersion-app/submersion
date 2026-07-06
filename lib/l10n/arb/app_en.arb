@@ -2187,6 +2187,7 @@
   "diveLog_filter_title": "Filter Dives",
   "diveLog_filter_tooltip_close": "Close filter",
   "diveLog_fullscreenProfile_close": "Close fullscreen",
+  "diveLog_fullscreenProfile_readoutHint": "Hover or scrub the profile",
   "diveLog_fullscreenProfile_title": "Dive #{number} Profile",
   "diveLog_instruments_customize": "Customize instruments",
   "diveLog_instruments_customizeHint": "Toggle instruments on or off. Drag to reorder.",

@@ -4489,6 +4489,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_fullscreenProfile_close => 'Volledig scherm sluiten';
 
   @override
+  String get diveLog_fullscreenProfile_readoutHint =>
+      'Beweeg de muis over het profiel of veeg erover';
+
+  @override
   String diveLog_fullscreenProfile_title(Object number) {
     return 'Duik #$number profiel';
   }

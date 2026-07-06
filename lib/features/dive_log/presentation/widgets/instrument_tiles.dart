@@ -49,11 +49,10 @@ const List<InstrumentTileId> _priorityOrder = [
 
 /// Tiles the dive's data can actually populate, in priority order.
 List<InstrumentTileId> computeCandidateTiles({
-  required Dive dive,
+  required List<DiveProfilePoint> profile,
   ProfileAnalysis? analysis,
   Map<String, List<TankPressurePoint>>? tankPressures,
 }) {
-  final profile = dive.profile;
   bool anyPoint(bool Function(DiveProfilePoint) test) => profile.any(test);
 
   final available = <InstrumentTileId>{
@@ -196,16 +195,21 @@ class InstrumentSample {
 
 /// Resolves instrument values at [timestamp] (dive-seconds).
 InstrumentSample resolveSample({
-  required Dive dive,
+  /// The profile the analysis curves were computed over (the active source's
+  /// rendered profile). Curve values are read by INDEX, so passing any other
+  /// array (e.g. dive.profile when a different source is active, or when the
+  /// sources sample at different rates) reads wrong values where the arrays
+  /// diverge and null past the shorter one's end.
+  required List<DiveProfilePoint> profile,
   ProfileAnalysis? analysis,
   Map<String, List<TankPressurePoint>>? tankPressures,
   required int timestamp,
 }) {
-  final index = indexForTimestamp(dive.profile, timestamp);
+  final index = indexForTimestamp(profile, timestamp);
   if (index == null) {
     return InstrumentSample(runtimeSeconds: timestamp);
   }
-  final point = dive.profile[index];
+  final point = profile[index];
 
   T? curveAt<T>(List<T>? curve) =>
       (curve != null && index < curve.length) ? curve[index] : null;

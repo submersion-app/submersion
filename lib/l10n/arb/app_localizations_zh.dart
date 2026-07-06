@@ -4303,6 +4303,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_fullscreenProfile_close => '关闭全屏';
 
   @override
+  String get diveLog_fullscreenProfile_readoutHint => '悬停或滑动查看轮廓';
+
+  @override
   String diveLog_fullscreenProfile_title(Object number) {
     return '潜水 #$number 轮廓';
   }
