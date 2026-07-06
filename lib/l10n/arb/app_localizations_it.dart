@@ -3604,9 +3604,6 @@ class AppLocalizationsIt extends AppLocalizations {
       'Tossicita dell\'ossigeno';
 
   @override
-  String get diveLog_detail_section_sacByCylinder => 'SAC per bombola';
-
-  @override
   String get diveLog_detail_section_sacRateBySegment =>
       'Consumo SAC per segmento';
 
@@ -3614,7 +3611,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_detail_section_tags => 'Tag';
 
   @override
-  String get diveLog_detail_section_tanks => 'Bombole';
+  String get diveLog_detail_section_cylinders => 'Bombole';
 
   @override
   String get diveLog_detail_section_tide => 'Marea';
@@ -3657,17 +3654,6 @@ class AppLocalizationsIt extends AppLocalizations {
       locale: localeName,
       other: 'tag',
       one: 'tag',
-    );
-    return '$count $_temp0';
-  }
-
-  @override
-  String diveLog_detail_tankCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'bombole',
-      one: 'bombola',
     );
     return '$count $_temp0';
   }
@@ -10893,7 +10879,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveDetailSection_sacSegments_description =>
-      'Segmentazione per fase/tempo, ripartizione bombole';
+      'Segmentazione SAC per fase/tempo';
 
   @override
   String get diveDetailSection_details_name => 'Dettagli';

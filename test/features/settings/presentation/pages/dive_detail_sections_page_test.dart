@@ -310,7 +310,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // First section should be Tanks, second should be Deco Status
+      // First section should be Cylinders (tanks id), second Deco Status
       final titles = tester.widgetList<Text>(
         find.descendant(of: find.byType(ListTile), matching: find.byType(Text)),
       );
@@ -323,7 +323,7 @@ void main() {
                 DiveDetailSectionId.values.any((id) => id.displayName == d),
           )
           .toList();
-      expect(displayNames.first, 'Tanks');
+      expect(displayNames.first, 'Cylinders');
     });
 
     testWidgets('shows app bar title', (tester) async {

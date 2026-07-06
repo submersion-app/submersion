@@ -3527,16 +3527,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_detail_section_oxygenToxicity => 'سمية الأكسجين';
 
   @override
-  String get diveLog_detail_section_sacByCylinder => 'SAC حسب الأسطوانة';
-
-  @override
   String get diveLog_detail_section_sacRateBySegment => 'معدل SAC حسب القطاع';
 
   @override
   String get diveLog_detail_section_tags => 'الوسوم';
 
   @override
-  String get diveLog_detail_section_tanks => 'الأسطوانات';
+  String get diveLog_detail_section_cylinders => 'الأسطوانات';
 
   @override
   String get diveLog_detail_section_tide => 'المد والجزر';
@@ -3578,17 +3575,6 @@ class AppLocalizationsAr extends AppLocalizations {
       locale: localeName,
       other: 'وسوم',
       one: 'وسم',
-    );
-    return '$count $_temp0';
-  }
-
-  @override
-  String diveLog_detail_tankCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'أسطوانات',
-      one: 'أسطوانة',
     );
     return '$count $_temp0';
   }
@@ -10690,7 +10676,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveDetailSection_sacSegments_description =>
-      'تقسيم المراحل/الوقت، تفصيل الأسطوانات';
+      'تقسيم SAC حسب المراحل/الوقت';
 
   @override
   String get diveDetailSection_details_name => 'التفاصيل';

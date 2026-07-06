@@ -131,6 +131,3 @@ final isMultiTankDiveProvider = FutureProvider.family<bool, String>((
 
 /// Expanded state for the Gas Analysis section in dive details
 final gasAnalysisSectionExpandedProvider = StateProvider<bool>((ref) => false);
-
-/// Expanded state for the Cylinder SAC subsection
-final cylinderSacExpandedProvider = StateProvider<bool>((ref) => true);

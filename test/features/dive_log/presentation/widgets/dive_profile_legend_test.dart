@@ -229,7 +229,7 @@ void main() {
         await tester.tap(find.byIcon(Icons.tune), warnIfMissed: false);
         await tester.pumpAndSettle();
 
-        expect(find.text('Tanks'), findsOneWidget);
+        expect(find.text('Cylinders'), findsOneWidget);
         expect(find.text('D80 (Air)'), findsOneWidget);
         expect(find.text('AL80 (EAN50)'), findsOneWidget);
         expect(find.text('Tank Pressures'), findsNothing);

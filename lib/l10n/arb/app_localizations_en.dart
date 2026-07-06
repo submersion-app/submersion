@@ -3541,16 +3541,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_detail_section_oxygenToxicity => 'Oxygen Toxicity';
 
   @override
-  String get diveLog_detail_section_sacByCylinder => 'SAC by Cylinder';
-
-  @override
   String get diveLog_detail_section_sacRateBySegment => 'SAC Rate by Segment';
 
   @override
   String get diveLog_detail_section_tags => 'Tags';
 
   @override
-  String get diveLog_detail_section_tanks => 'Tanks';
+  String get diveLog_detail_section_cylinders => 'Cylinders';
 
   @override
   String get diveLog_detail_section_tide => 'Tide';
@@ -3592,17 +3589,6 @@ class AppLocalizationsEn extends AppLocalizations {
       locale: localeName,
       other: 'tags',
       one: 'tag',
-    );
-    return '$count $_temp0';
-  }
-
-  @override
-  String diveLog_detail_tankCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'tanks',
-      one: 'tank',
     );
     return '$count $_temp0';
   }
@@ -10720,7 +10706,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveDetailSection_sacSegments_description =>
-      'Phase/time segmentation, cylinder breakdown';
+      'Phase/time SAC segmentation';
 
   @override
   String get diveDetailSection_details_name => 'Details';
@@ -10796,11 +10782,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Weight breakdown, total weight';
 
   @override
-  String get diveDetailSection_tanks_name => 'Tanks';
+  String get diveDetailSection_tanks_name => 'Cylinders';
 
   @override
   String get diveDetailSection_tanks_description =>
-      'Tank list, gas mixes, pressures, per-tank SAC';
+      'Cylinder list, gas mixes, pressures, MOD/MND, per-tank SAC';
 
   @override
   String get diveDetailSection_buddies_name => 'Buddies';
