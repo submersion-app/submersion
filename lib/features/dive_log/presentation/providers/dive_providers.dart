@@ -966,12 +966,17 @@ final tankPressuresProvider =
 /// repository directly) still see real measured data only.
 final estimatedTankPressuresProvider =
     FutureProvider.family<EstimatedTankPressures, String>((ref, diveId) async {
-      final real = await ref.watch(tankPressuresProvider(diveId).future);
-      final dive = await ref.watch(diveProvider(diveId).future);
-      final switches = await ref.watch(gasSwitchesProvider(diveId).future);
+      // Start the independent fetches concurrently to avoid a request waterfall
+      // on the chart load path.
+      final realFuture = ref.watch(tankPressuresProvider(diveId).future);
+      final diveFuture = ref.watch(diveProvider(diveId).future);
+      final switchesFuture = ref.watch(gasSwitchesProvider(diveId).future);
+      final real = await realFuture;
+      final dive = await diveFuture;
       if (dive == null) {
         return EstimatedTankPressures(real, const <String>{});
       }
+      final switches = await switchesFuture;
       return synthesizeEstimatedTankPressures(
         existing: real,
         tanks: dive.tanks,
