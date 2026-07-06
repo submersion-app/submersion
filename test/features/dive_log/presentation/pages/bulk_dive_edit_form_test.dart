@@ -6,6 +6,11 @@ import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.d
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/bulk_collection_mode_selector.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/bulk_field_gate.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/bulk_membership_editor.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -60,9 +65,45 @@ void main() {
       // (dive type moved from a scalar gate to the collection lane, #414)
       expect(find.byType(BulkFieldGate), findsNWidgets(26));
       expect(find.text('Favorite'), findsOneWidget);
-      // 7 collections (tags, diveTypes, equipment, buddies, weights, tanks,
-      // sightings) each render a mode selector.
-      expect(find.byType(BulkCollectionModeSelector), findsNWidgets(7));
+      // 6 collections still use a mode selector (tags, diveTypes, buddies,
+      // weights, tanks, sightings); equipment now uses the tri-state editor.
+      expect(find.byType(BulkCollectionModeSelector), findsNWidgets(6));
+      expect(find.byType(BulkMembershipEditor), findsOneWidget);
+    });
+
+    testWidgets('equipment membership reflects current gear and a toggle', (
+      tester,
+    ) async {
+      const reg = EquipmentItem(
+        id: 'e1',
+        name: 'Regulator',
+        type: EquipmentType.regulator,
+      );
+      await EquipmentRepository().createEquipment(reg);
+      await repository.createDive(
+        Dive(
+          id: 'd1',
+          dateTime: DateTime(2026, 1, 1),
+          notes: '',
+          equipment: const [reg],
+        ),
+      );
+      await repository.createDive(
+        Dive(id: 'd2', dateTime: DateTime(2026, 1, 1), notes: ''),
+      );
+
+      await pumpBulk(tester);
+
+      // e1 is on 1 of the 2 selected dives.
+      expect(find.text('Regulator'), findsOneWidget);
+      expect(find.text('on 1 of 2'), findsOneWidget);
+
+      // Toggling a "some" item to on flips its subtitle to "adding to all 2".
+      final toggle = find.byKey(const ValueKey('membership-toggle-e1'));
+      await tester.ensureVisible(toggle);
+      await tester.tap(toggle);
+      await tester.pump();
+      expect(find.text('adding to all 2'), findsOneWidget);
     });
 
     testWidgets('toggling a gate enables its checkbox', (tester) async {

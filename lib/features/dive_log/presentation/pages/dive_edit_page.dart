@@ -15,6 +15,7 @@ import 'package:submersion/features/buddies/presentation/providers/buddy_provide
 import 'package:submersion/features/buddies/presentation/widgets/buddy_picker.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
@@ -46,6 +47,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/trip_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/computer_source_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/edit_sighting_sheet.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/bulk_membership_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_set_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/site_picker_sheet.dart';
@@ -298,6 +300,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       // default would make enabling the collection silently operate on it.
       _selectedDiveTypeIds = <String>[];
       _suppressDirty = false;
+      _loadBulkEquipment();
     } else if (widget.isEditing) {
       _loadExistingDive();
     } else {
@@ -729,6 +732,13 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   final Map<BulkCollectionType, BulkCollectionMode> _collectionModes = {};
   bool _bulkTankOnlyIfEmpty = false;
 
+  // Bulk tri-state membership: equipment members shown across the selected
+  // dives (existing + picker-added), their per-item dive counts, and the
+  // resulting add/remove delta. Tags/diveTypes/buddies follow in a later task.
+  Map<String, int> _equipmentCounts = {};
+  List<BulkMembershipItem> _equipmentMembers = [];
+  MembershipDelta _equipmentDelta = MembershipDelta.empty;
+
   Widget _gatedRow(BulkField field, Widget child) {
     return BulkFieldGate(
       enabled: _bulkEnabled.contains(field),
@@ -994,11 +1004,18 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             allowEmpty: true,
           ),
         ),
-        _collectionEntry(
-          type: BulkCollectionType.equipment,
-          label: l10n.diveLog_edit_section_equipment,
-          allowed: refModes,
-          editor: _equipmentChild(),
+        BulkMembershipEditor(
+          title: l10n.diveLog_edit_section_equipment,
+          totalDives: widget.bulkDiveIds!.length,
+          items: _equipmentMembers,
+          counts: _equipmentCounts,
+          onAdd: _bulkAddEquipment,
+          secondaryAction: TextButton.icon(
+            onPressed: _bulkUseEquipmentSet,
+            icon: const Icon(Icons.folder_special, size: 18),
+            label: Text(l10n.diveLog_edit_useSet),
+          ),
+          onChanged: (d) => setState(() => _equipmentDelta = d),
         ),
         _collectionEntry(
           type: BulkCollectionType.buddies,
@@ -1045,12 +1062,19 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         DiveTypesOp(mode: diveTypesMode, diveTypeIds: _selectedDiveTypeIds),
       );
     }
-    final equipMode = _collectionModes[BulkCollectionType.equipment];
-    if (equipMode != null) {
+    if (_equipmentDelta.addIds.isNotEmpty) {
       ops.add(
         EquipmentOp(
-          mode: equipMode,
-          equipmentIds: _selectedEquipment.map((e) => e.id).toList(),
+          mode: BulkCollectionMode.add,
+          equipmentIds: _equipmentDelta.addIds,
+        ),
+      );
+    }
+    if (_equipmentDelta.removeIds.isNotEmpty) {
+      ops.add(
+        EquipmentOp(
+          mode: BulkCollectionMode.remove,
+          equipmentIds: _equipmentDelta.removeIds,
         ),
       );
     }
@@ -2650,12 +2674,16 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  TextButton.icon(
-                    onPressed: _saveEquipmentAsSet,
-                    icon: const Icon(Icons.save_alt, size: 18),
-                    label: Text(context.l10n.diveLog_edit_saveAsSet),
-                  ),
-                  const SizedBox(width: 8),
+                  // "Save as Set" is single-dive only; in bulk mode the
+                  // membership editor replaces this editor entirely.
+                  if (!widget.isBulk) ...[
+                    TextButton.icon(
+                      onPressed: _saveEquipmentAsSet,
+                      icon: const Icon(Icons.save_alt, size: 18),
+                      label: Text(context.l10n.diveLog_edit_saveAsSet),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
                   TextButton(
                     onPressed: () {
                       setState(() {
@@ -2760,6 +2788,94 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   _selectedEquipment.add(item);
                 }
               }
+            });
+            Navigator.of(context).pop();
+          },
+        ),
+      ),
+    );
+  }
+
+  /// Load the equipment present across the selected dives (with per-item dive
+  /// counts) so the bulk membership editor can show all/some/none state.
+  Future<void> _loadBulkEquipment() async {
+    final ids = widget.bulkDiveIds!;
+    final counts = await ref
+        .read(diveRepositoryProvider)
+        .equipmentCountsForDives(ids);
+    final items = await EquipmentRepository().getEquipmentByIds(
+      counts.keys.toList(),
+    );
+    if (!mounted) return;
+    setState(() {
+      _equipmentCounts = counts;
+      _equipmentMembers = [
+        for (final e in items)
+          BulkMembershipItem(
+            id: e.id,
+            label: e.name,
+            icon: _getEquipmentIcon(e.type),
+          ),
+      ];
+    });
+  }
+
+  void _bulkAddEquipment() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (context, scrollController) => EquipmentPickerSheet(
+          scrollController: scrollController,
+          selectedEquipmentIds: _equipmentMembers.map((e) => e.id).toSet(),
+          onEquipmentSelected: (equipment) {
+            setState(() {
+              if (!_equipmentMembers.any((e) => e.id == equipment.id)) {
+                _equipmentMembers = [
+                  ..._equipmentMembers,
+                  BulkMembershipItem(
+                    id: equipment.id,
+                    label: equipment.name,
+                    icon: _getEquipmentIcon(equipment.type),
+                  ),
+                ];
+              }
+            });
+            Navigator.of(context).pop();
+          },
+        ),
+      ),
+    );
+  }
+
+  void _bulkUseEquipmentSet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (context, scrollController) => EquipmentSetPickerSheet(
+          scrollController: scrollController,
+          onSetSelected: (set, items) {
+            setState(() {
+              final existing = _equipmentMembers.map((e) => e.id).toSet();
+              _equipmentMembers = [
+                ..._equipmentMembers,
+                for (final item in items)
+                  if (!existing.contains(item.id))
+                    BulkMembershipItem(
+                      id: item.id,
+                      label: item.name,
+                      icon: _getEquipmentIcon(item.type),
+                    ),
+              ];
             });
             Navigator.of(context).pop();
           },
