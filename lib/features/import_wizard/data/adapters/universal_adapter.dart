@@ -485,7 +485,7 @@ class UniversalAdapter implements ImportSourceAdapter {
     };
 
     var consolidated = 0;
-    var consolidationFailed = 0;
+    var removedDiveIds = const <String>{};
     if (consolidateIndices.isNotEmpty) {
       final matchResults =
           bundle.groups[wizard.ImportEntityType.dives]?.matchResults ??
@@ -498,33 +498,34 @@ class UniversalAdapter implements ImportSourceAdapter {
         diveRepository: repos.diveRepository,
       );
       consolidated = summary.consolidated;
-      consolidationFailed = summary.failed;
+      removedDiveIds = summary.removedDiveIds;
     }
 
-    // `importer.import` counted folded (and failed-then-deleted) dives as
-    // imported; subtract them so the summary reports only genuinely NEW dives.
+    // `importer.import` counted folded/removed dives as imported; subtract only
+    // the dives that were ACTUALLY removed (folded, or compensating-deleted).
+    // A dive whose fold AND cleanup both failed is still standalone in the DB,
+    // so it stays counted as imported rather than being hidden.
     final counts = _convertImportCounts(result);
-    final netDives = result.dives - consolidated - consolidationFailed;
+    final netDives = result.dives - removedDiveIds.length;
     if (netDives > 0) {
       counts[wizard.ImportEntityType.dives] = netDives;
     } else {
       counts.remove(wizard.ImportEntityType.dives);
     }
 
-    // Exclude tombstoned standalone dives from the imported-id list.
-    final removedDiveIds = <String>{
-      for (final index in consolidateIndices)
-        if (result.diveIdByIndex[index] != null) result.diveIdByIndex[index]!,
-    };
     final netImportedDiveIds = [
       for (final id in result.diveIds)
         if (!removedDiveIds.contains(id)) id,
     ];
 
+    // Removed-but-not-folded dives were consolidation attempts that failed and
+    // were cleaned up; report them as skipped (as the download adapter does).
+    final cleanedUpFailures = removedDiveIds.length - consolidated;
+
     return UnifiedImportResult(
       importedCounts: counts,
       consolidatedCount: consolidated,
-      skippedCount: skipped + consolidationFailed,
+      skippedCount: skipped + cleanedUpFailures,
       importedDiveIds: netImportedDiveIds,
     );
   }

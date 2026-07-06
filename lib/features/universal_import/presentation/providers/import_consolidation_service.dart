@@ -11,6 +11,7 @@ class ConsolidationSummary {
   const ConsolidationSummary({
     required this.consolidated,
     required this.failed,
+    this.removedDiveIds = const {},
   });
 
   /// Number of dives successfully folded into their matched dive.
@@ -20,6 +21,15 @@ class ConsolidationSummary {
   /// been imported as a standalone dive. Each one was deleted (see
   /// [performConsolidations]) rather than left stranded.
   final int failed;
+
+  /// The freshly-imported standalone dive ids that are NO LONGER present after
+  /// this call -- each was either folded into its match (and tombstoned by
+  /// [DiveConsolidationService.apply]) or removed by the compensating delete.
+  ///
+  /// A dive whose fold AND compensating delete both failed is intentionally
+  /// absent: it is still standalone in the DB, so the caller must keep
+  /// reporting it as imported instead of hiding a stranded duplicate.
+  final Set<String> removedDiveIds;
 }
 
 /// Folds consolidate-flagged imported dives into their matched existing
@@ -50,6 +60,7 @@ Future<ConsolidationSummary> performConsolidations({
 }) async {
   var consolidated = 0;
   var failed = 0;
+  final removedDiveIds = <String>{};
 
   for (final index in indices) {
     final matchResult = duplicateResult?.diveMatchFor(index);
@@ -64,6 +75,8 @@ Future<ConsolidationSummary> performConsolidations({
         secondaryDiveIds: [newDiveId],
       );
       consolidated++;
+      // The fold tombstoned the standalone dive.
+      removedDiveIds.add(newDiveId);
     } catch (e, st) {
       _log.error(
         'Consolidation fold failed for dive into ${matchResult.diveId}',
@@ -72,10 +85,14 @@ Future<ConsolidationSummary> performConsolidations({
       );
       try {
         await diveRepository.bulkDeleteDives([newDiveId]);
+        // The compensating delete removed the standalone dive.
+        removedDiveIds.add(newDiveId);
       } catch (deleteError, deleteStack) {
         // The compensating delete failed too -- log it and continue rather
-        // than rethrow, so the remaining indices are still processed
-        // instead of aborting the whole import.
+        // than rethrow, so the remaining indices are still processed instead
+        // of aborting the whole import. The dive is deliberately left OUT of
+        // [removedDiveIds] because it is still standalone in the DB; the caller
+        // must keep counting it as imported rather than hiding a duplicate.
         _log.error(
           'Compensating delete failed for orphaned dive $newDiveId',
           error: deleteError,
@@ -86,5 +103,9 @@ Future<ConsolidationSummary> performConsolidations({
     }
   }
 
-  return ConsolidationSummary(consolidated: consolidated, failed: failed);
+  return ConsolidationSummary(
+    consolidated: consolidated,
+    failed: failed,
+    removedDiveIds: removedDiveIds,
+  );
 }

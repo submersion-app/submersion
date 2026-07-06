@@ -538,6 +538,84 @@ void main() {
         },
       );
     });
+
+    testWidgets('reports a stranded dive as imported when both the fold and '
+        'its cleanup fail (does not hide it)', (tester) async {
+      final mockConsolidation = MockDiveConsolidationService();
+      when(
+        mockConsolidation.apply(
+          targetDiveId: anyNamed('targetDiveId'),
+          secondaryDiveIds: anyNamed('secondaryDiveIds'),
+        ),
+      ).thenThrow(ArgumentError('fold failed'));
+
+      // The compensating delete also fails, so the standalone dive cannot be
+      // removed and is left stranded in the DB.
+      final mockDiveRepo = MockDiveRepository();
+      when(mockDiveRepo.bulkDeleteDives(any)).thenThrow(Exception('delete'));
+
+      final payload = ImportPayload(
+        entities: {
+          ui.ImportEntityType.dives: [
+            {
+              'dateTime': DateTime(2026, 7, 1, 9, 0),
+              'maxDepth': 24.5,
+              'runtime': const Duration(minutes: 40),
+            },
+          ],
+        },
+      );
+
+      await _runWithAdapter(
+        tester,
+        overrides: [
+          ..._fullOverrides(
+            payload: payload,
+            diver: _testDiver(),
+            mockDiveRepo: mockDiveRepo,
+          ),
+          diveConsolidationServiceProvider.overrideWithValue(mockConsolidation),
+        ],
+        callback: (adapter) async {
+          final base = await adapter.buildBundle();
+          final bundle = ImportBundle(
+            source: base.source,
+            groups: {
+              wizard.ImportEntityType.dives: EntityGroup(
+                items: base.groups[wizard.ImportEntityType.dives]!.items,
+                duplicateIndices: const {0},
+                matchResults: const {
+                  0: DiveMatchResult(
+                    diveId: 'target-dive',
+                    score: 0.9,
+                    timeDifferenceMs: 0,
+                  ),
+                },
+              ),
+            },
+          );
+
+          final result = await adapter.performImport(
+            bundle,
+            {
+              wizard.ImportEntityType.dives: {0},
+            },
+            {
+              wizard.ImportEntityType.dives: {0: DuplicateAction.consolidate},
+            },
+          );
+
+          // The fold failed AND the standalone could not be deleted, so the
+          // dive is still present -- it must be reported as imported, not
+          // silently hidden.
+          expect(result.consolidatedCount, equals(0));
+          expect(
+            result.importedCounts[wizard.ImportEntityType.dives] ?? 0,
+            equals(1),
+          );
+        },
+      );
+    });
   });
 
   // -------------------------------------------------------------------------
