@@ -2842,11 +2842,14 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   updatedAt: DateTime.now(),
                 );
 
-                final repository = ref.read(equipmentSetRepositoryProvider);
-                await repository.createSet(set);
-
-                // Invalidate the sets provider to refresh the list
-                ref.invalidate(equipmentSetsProvider);
+                // Route through the notifier so the set is stamped with the
+                // active diver id. Calling the repository directly leaves
+                // diverId null, orphaning the set from the diver-scoped list
+                // (it silently "doesn't save"). addSet also refreshes the
+                // list providers.
+                await ref
+                    .read(equipmentSetListNotifierProvider.notifier)
+                    .addSet(set);
 
                 if (context.mounted) {
                   Navigator.of(context).pop();
