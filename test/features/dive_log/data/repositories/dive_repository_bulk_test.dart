@@ -138,24 +138,59 @@ void main() {
       expect(rows.map((r) => r.equipmentId).toSet(), {'e9'});
     });
 
-    test('add merges with pre-existing gear on each dive, never wipes', () async {
-      // Reproduces the r/submersion report: d1 has e1, d2 has e2.
-      await seed('d1');
-      await seed('d2');
-      await repository.bulkAddEquipment(['d1'], ['e1']);
-      await repository.bulkAddEquipment(['d2'], ['e2']);
+    test(
+      'add merges with pre-existing gear on each dive, never wipes',
+      () async {
+        // Reproduces the r/submersion report: d1 has e1, d2 has e2.
+        await seed('d1');
+        await seed('d2');
+        await repository.bulkAddEquipment(['d1'], ['e1']);
+        await repository.bulkAddEquipment(['d2'], ['e2']);
 
-      // Bulk-add e3 to BOTH dives; existing gear must survive.
-      await repository.bulkAddEquipment(['d1', 'd2'], ['e3']);
+        // Bulk-add e3 to BOTH dives; existing gear must survive.
+        await repository.bulkAddEquipment(['d1', 'd2'], ['e3']);
 
-      final d1 = await (db.select(
-        db.diveEquipment,
-      )..where((t) => t.diveId.equals('d1'))).get();
-      final d2 = await (db.select(
-        db.diveEquipment,
-      )..where((t) => t.diveId.equals('d2'))).get();
-      expect(d1.map((r) => r.equipmentId).toSet(), {'e1', 'e3'});
-      expect(d2.map((r) => r.equipmentId).toSet(), {'e2', 'e3'});
+        final d1 = await (db.select(
+          db.diveEquipment,
+        )..where((t) => t.diveId.equals('d1'))).get();
+        final d2 = await (db.select(
+          db.diveEquipment,
+        )..where((t) => t.diveId.equals('d2'))).get();
+        expect(d1.map((r) => r.equipmentId).toSet(), {'e1', 'e3'});
+        expect(d2.map((r) => r.equipmentId).toSet(), {'e2', 'e3'});
+      },
+    );
+  });
+
+  group('membership counts', () {
+    setUp(() async {
+      await db.customStatement('PRAGMA foreign_keys = OFF');
+    });
+
+    test('equipmentCountsForDives returns per-item dive counts', () async {
+      await repository.bulkAddEquipment(['d1', 'd2'], ['shared']); // both
+      await repository.bulkAddEquipment(['d1'], ['onlyD1']); // one
+      final counts = await repository.equipmentCountsForDives(['d1', 'd2']);
+      expect(counts['shared'], 2);
+      expect(counts['onlyD1'], 1);
+      expect(counts.containsKey('missing'), isFalse);
+      expect(await repository.equipmentCountsForDives(const []), isEmpty);
+    });
+
+    test('tagCountsForDives returns per-tag dive counts', () async {
+      await repository.bulkAddTags(['d1', 'd2'], ['shared']);
+      await repository.bulkAddTags(['d1'], ['onlyD1']);
+      final counts = await repository.tagCountsForDives(['d1', 'd2']);
+      expect(counts['shared'], 2);
+      expect(counts['onlyD1'], 1);
+    });
+
+    test('diveTypeCountsForDives returns per-type dive counts', () async {
+      await repository.bulkAddDiveTypes(['d1', 'd2'], ['shared']);
+      await repository.bulkAddDiveTypes(['d1'], ['onlyD1']);
+      final counts = await repository.diveTypeCountsForDives(['d1', 'd2']);
+      expect(counts['shared'], 2);
+      expect(counts['onlyD1'], 1);
     });
   });
 
