@@ -117,6 +117,10 @@ dependencies:
   google_fonts: ^8.0.2
   linked_scroll_controller: ^0.2.0
 
+  # OCR (paper logbook import)
+  # Android on-device text recognition; Apple/Windows use packages/submersion_ocr.
+  google_mlkit_text_recognition: ^0.15.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
