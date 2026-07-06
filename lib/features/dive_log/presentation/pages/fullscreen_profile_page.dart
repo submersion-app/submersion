@@ -16,6 +16,7 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_play
 import 'package:submersion/features/dive_log/presentation/providers/profile_review_provider.dart';
 import 'package:submersion/features/dive_log/presentation/utils/sac_normalization.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/draggable_readout_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_layout.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_instrument_bar.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
@@ -55,6 +56,15 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
   /// asked for (and the 25ms ticker doesn't keep running in the background).
   late final bool _wasPlaybackActiveOnEntry;
   bool _isPlaybackActiveNow = false;
+
+  /// Last non-null tooltip rows; the readout card keeps showing these after
+  /// the hover ends (sticky values).
+  List<TooltipRow>? _readoutRows;
+
+  void _onTooltipData(List<TooltipRow>? rows) {
+    if (rows == null || rows.isEmpty) return; // sticky: keep last values
+    setState(() => _readoutRows = rows);
+  }
 
   @override
   void initState() {
@@ -135,6 +145,16 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
     final showMaxDepthMarker = ref.watch(showMaxDepthMarkerProvider);
     final showPressureThresholdMarkers = ref.watch(
       showPressureThresholdMarkersProvider,
+    );
+    // Select only the readout-card fields: watching all of settings would
+    // rebuild the whole page on every unrelated settings write.
+    final settings = ref.watch(
+      settingsProvider.select(
+        (s) => (
+          fullscreenReadoutCardX: s.fullscreenReadoutCardX,
+          fullscreenReadoutCardY: s.fullscreenReadoutCardY,
+        ),
+      ),
     );
 
     final photoMedia =
@@ -263,109 +283,148 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
             child: Column(
               children: [
                 Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-                    child: DiveProfileChart(
-                      profile: chartProfile,
-                      overlays: overlays.isEmpty ? null : overlays,
-                      activeComputerId: activeProfile?.computerId,
-                      diveDuration: dive.effectiveRuntime,
-                      maxDepth: dive.maxDepth,
-                      legendLeading: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.close),
-                            tooltip:
-                                context.l10n.diveLog_fullscreenProfile_close,
-                            visualDensity: VisualDensity.compact,
-                            onPressed: () => Navigator.of(context).pop(),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(right: 12),
-                            child: Text(
-                              context.l10n.diveLog_fullscreenProfile_title(
-                                dive.diveNumber ?? 0,
+                  child: Stack(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+                        child: DiveProfileChart(
+                          profile: chartProfile,
+                          overlays: overlays.isEmpty ? null : overlays,
+                          activeComputerId: activeProfile?.computerId,
+                          diveDuration: dive.effectiveRuntime,
+                          maxDepth: dive.maxDepth,
+                          // The painted tooltip would clip at the screen edge
+                          // (no headroom above the plot in fullscreen); the
+                          // draggable readout card renders the data instead.
+                          tooltipBelow: true,
+                          onTooltipData: _onTooltipData,
+                          legendLeading: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.close),
+                                tooltip: context
+                                    .l10n
+                                    .diveLog_fullscreenProfile_close,
+                                visualDensity: VisualDensity.compact,
+                                onPressed: () => Navigator.of(context).pop(),
                               ),
-                              style: Theme.of(context).textTheme.titleSmall,
-                            ),
+                              Padding(
+                                padding: const EdgeInsets.only(right: 12),
+                                child: Text(
+                                  context.l10n.diveLog_fullscreenProfile_title(
+                                    dive.diveNumber ?? 0,
+                                  ),
+                                  style: Theme.of(context).textTheme.titleSmall,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
+                          // Analysis curves: identical wiring to the old
+                          // fullscreen call site (dive_detail_page.dart:4946-4990)
+                          ceilingCurve: analysis?.ceilingCurve,
+                          ascentRates: analysis?.ascentRates,
+                          events: analysis?.events,
+                          ndlCurve: analysis?.ndlCurve,
+                          sacCurve: analysis?.smoothedSacCurve,
+                          ppO2Curve: analysis?.ppO2Curve,
+                          o2SensorCurves: analysis?.o2SensorCurves,
+                          ppO2FromSensorAverage:
+                              analysis?.ppO2FromSensorAverage ?? false,
+                          ppN2Curve: analysis?.ppN2Curve,
+                          ppHeCurve: analysis?.ppHeCurve,
+                          modCurve: analysis?.modCurve,
+                          densityCurve: analysis?.densityCurve,
+                          gfCurve: analysis?.gfCurve,
+                          surfaceGfCurve: analysis?.surfaceGfCurve,
+                          meanDepthCurve: analysis?.meanDepthCurve,
+                          ttsCurve: analysis?.ttsCurve,
+                          cnsCurve: analysis?.cnsCurve,
+                          otuCurve: analysis?.otuCurve,
+                          tankVolume: dive.tanks
+                              .where((t) => t.volume != null && t.volume! > 0)
+                              .map((t) => t.volume!)
+                              .firstOrNull,
+                          sacNormalizationFactor:
+                              calculateSacNormalizationFactor(dive, analysis),
+                          markers: _calculateMarkers(
+                            dive: dive,
+                            analysis: analysis,
+                            tankPressures: tankPressures,
+                            showMaxDepth: showMaxDepthMarker,
+                            showPressureThresholds:
+                                showPressureThresholdMarkers,
+                          ),
+                          photoMarkers: photoMarkers.isEmpty
+                              ? null
+                              : photoMarkers,
+                          showMaxDepthMarker: showMaxDepthMarker,
+                          showPressureThresholdMarkers:
+                              showPressureThresholdMarkers,
+                          tanks: dive.tanks,
+                          tankPressures: tankPressures,
+                          gasSwitches: gasSwitches,
+                          gasSegments:
+                              (dive.tanks.isEmpty || chartProfile.isEmpty)
+                              ? null
+                              : buildGasUsageSegments(
+                                  tanks: dive.tanks,
+                                  gasSwitches: gasSwitches ?? const [],
+                                  diveDurationSeconds:
+                                      chartProfile.last.timestamp,
+                                ),
+                          diveDurationSeconds: chartProfile.isEmpty
+                              ? null
+                              : chartProfile.last.timestamp,
+                          highlightedTimestamp: reviewTimestamp,
+                          onPointSelected: (index) {
+                            if (index == null || index >= chartProfile.length) {
+                              return;
+                            }
+                            final timestamp = chartProfile[index].timestamp;
+                            ref
+                                    .read(
+                                      profileReviewProvider(
+                                        widget.diveId,
+                                      ).notifier,
+                                    )
+                                    .state =
+                                timestamp;
+                            // Keep playback in sync so play resumes from here.
+                            final playback = ref.read(
+                              playbackProvider(widget.diveId),
+                            );
+                            if (playback.isActive) {
+                              notifier.seekTo(timestamp);
+                            }
+                          },
+                        ),
                       ),
-                      // Analysis curves: identical wiring to the old
-                      // fullscreen call site (dive_detail_page.dart:4946-4990)
-                      ceilingCurve: analysis?.ceilingCurve,
-                      ascentRates: analysis?.ascentRates,
-                      events: analysis?.events,
-                      ndlCurve: analysis?.ndlCurve,
-                      sacCurve: analysis?.smoothedSacCurve,
-                      ppO2Curve: analysis?.ppO2Curve,
-                      o2SensorCurves: analysis?.o2SensorCurves,
-                      ppO2FromSensorAverage:
-                          analysis?.ppO2FromSensorAverage ?? false,
-                      ppN2Curve: analysis?.ppN2Curve,
-                      ppHeCurve: analysis?.ppHeCurve,
-                      modCurve: analysis?.modCurve,
-                      densityCurve: analysis?.densityCurve,
-                      gfCurve: analysis?.gfCurve,
-                      surfaceGfCurve: analysis?.surfaceGfCurve,
-                      meanDepthCurve: analysis?.meanDepthCurve,
-                      ttsCurve: analysis?.ttsCurve,
-                      cnsCurve: analysis?.cnsCurve,
-                      otuCurve: analysis?.otuCurve,
-                      tankVolume: dive.tanks
-                          .where((t) => t.volume != null && t.volume! > 0)
-                          .map((t) => t.volume!)
-                          .firstOrNull,
-                      sacNormalizationFactor: calculateSacNormalizationFactor(
-                        dive,
-                        analysis,
-                      ),
-                      markers: _calculateMarkers(
-                        dive: dive,
-                        analysis: analysis,
-                        tankPressures: tankPressures,
-                        showMaxDepth: showMaxDepthMarker,
-                        showPressureThresholds: showPressureThresholdMarkers,
-                      ),
-                      photoMarkers: photoMarkers.isEmpty ? null : photoMarkers,
-                      showMaxDepthMarker: showMaxDepthMarker,
-                      showPressureThresholdMarkers:
-                          showPressureThresholdMarkers,
-                      tanks: dive.tanks,
-                      tankPressures: tankPressures,
-                      gasSwitches: gasSwitches,
-                      gasSegments: (dive.tanks.isEmpty || chartProfile.isEmpty)
-                          ? null
-                          : buildGasUsageSegments(
-                              tanks: dive.tanks,
-                              gasSwitches: gasSwitches ?? const [],
-                              diveDurationSeconds: chartProfile.last.timestamp,
+                      DraggableReadoutCard(
+                        // Re-key on the saved position so a settings load
+                        // that lands after first build still seeds the card.
+                        key: ValueKey(
+                          'readout-card-seed-'
+                          '${settings.fullscreenReadoutCardX}-'
+                          '${settings.fullscreenReadoutCardY}',
+                        ),
+                        rows: _readoutRows,
+                        initialFraction:
+                            settings.fullscreenReadoutCardX != null &&
+                                settings.fullscreenReadoutCardY != null
+                            ? Offset(
+                                settings.fullscreenReadoutCardX!,
+                                settings.fullscreenReadoutCardY!,
+                              )
+                            : null,
+                        onDragEnd: (fraction) => ref
+                            .read(settingsProvider.notifier)
+                            .setFullscreenReadoutCardPosition(
+                              fraction.dx,
+                              fraction.dy,
                             ),
-                      diveDurationSeconds: chartProfile.isEmpty
-                          ? null
-                          : chartProfile.last.timestamp,
-                      highlightedTimestamp: reviewTimestamp,
-                      onPointSelected: (index) {
-                        if (index == null || index >= chartProfile.length) {
-                          return;
-                        }
-                        final timestamp = chartProfile[index].timestamp;
-                        ref
-                                .read(
-                                  profileReviewProvider(widget.diveId).notifier,
-                                )
-                                .state =
-                            timestamp;
-                        // Keep playback in sync so play resumes from here.
-                        final playback = ref.read(
-                          playbackProvider(widget.diveId),
-                        );
-                        if (playback.isActive) {
-                          notifier.seekTo(timestamp);
-                        }
-                      },
-                    ),
+                      ),
+                    ],
                   ),
                 ),
                 // Source switching and overlay comparison, mirroring the
@@ -429,7 +488,9 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                   ),
                 ProfileInstrumentBar(
                   diveId: widget.diveId,
-                  dive: dive,
+                  // The same profile the chart renders and the analysis is
+                  // computed from; tile values are index-aligned to it.
+                  profile: chartProfile,
                   analysis: analysis,
                   tankPressures: tankPressures,
                 ),

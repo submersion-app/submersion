@@ -4532,6 +4532,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_fullscreenProfile_close => 'Chiudi schermo intero';
 
   @override
+  String get diveLog_fullscreenProfile_readoutHint =>
+      'Passa il cursore o scorri sul profilo';
+
+  @override
   String diveLog_fullscreenProfile_title(Object number) {
     return 'Profilo immersione #$number';
   }

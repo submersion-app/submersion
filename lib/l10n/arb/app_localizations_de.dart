@@ -4526,6 +4526,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_fullscreenProfile_close => 'Vollbild schließen';
 
   @override
+  String get diveLog_fullscreenProfile_readoutHint =>
+      'Zeiger über das Profil bewegen oder scrubben';
+
+  @override
   String diveLog_fullscreenProfile_title(Object number) {
     return 'Tauchgang #$number Profil';
   }

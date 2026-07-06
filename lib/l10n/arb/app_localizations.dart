@@ -7592,6 +7592,12 @@ abstract class AppLocalizations {
   /// **'Close fullscreen'**
   String get diveLog_fullscreenProfile_close;
 
+  /// No description provided for @diveLog_fullscreenProfile_readoutHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Hover or scrub the profile'**
+  String get diveLog_fullscreenProfile_readoutHint;
+
   /// No description provided for @diveLog_fullscreenProfile_title.
   ///
   /// In en, this message translates to:
