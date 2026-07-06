@@ -1,3 +1,4 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -11,6 +12,7 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_anal
 import 'package:submersion/features/dive_log/presentation/providers/profile_playback_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_review_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/draggable_readout_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_instrument_bar.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -22,6 +24,19 @@ class _FakeSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
   _FakeSettingsNotifier([AppSettings? initial])
     : super(initial ?? const AppSettings());
+
+  double? savedCardX;
+  double? savedCardY;
+
+  @override
+  Future<void> setFullscreenReadoutCardPosition(double x, double y) async {
+    savedCardX = x;
+    savedCardY = y;
+    state = state.copyWith(
+      fullscreenReadoutCardX: x,
+      fullscreenReadoutCardY: y,
+    );
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -75,6 +90,94 @@ void main() {
     expect(find.byType(DiveProfileChart), findsOneWidget);
     expect(find.byType(ProfileInstrumentBar), findsOneWidget);
     expect(find.byIcon(Icons.close), findsOneWidget);
+  });
+
+  testWidgets('shows the readout card with the placeholder hint', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_wrap(_defaultOverrides()));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(DraggableReadoutCard), findsOneWidget);
+    expect(find.text('Hover or scrub the profile'), findsOneWidget);
+  });
+
+  testWidgets('chart runs in external-tooltip mode (no painted bubble)', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_wrap(_defaultOverrides()));
+    await tester.pumpAndSettle();
+
+    final chart = tester.widget<DiveProfileChart>(
+      find.byType(DiveProfileChart),
+    );
+    expect(chart.tooltipBelow, isTrue);
+    expect(chart.onTooltipData, isNotNull);
+  });
+
+  testWidgets('long-press populates the card and values stick after release', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_wrap(_defaultOverrides()));
+    await tester.pumpAndSettle();
+
+    final chartCenter = tester.getCenter(find.byType(LineChart).first);
+    final gesture = await tester.startGesture(chartCenter);
+    await tester.pump(const Duration(milliseconds: 600));
+    await gesture.moveBy(const Offset(2, 0));
+    await tester.pump();
+
+    // Rows arrived: hint is gone from the card.
+    expect(find.text('Hover or scrub the profile'), findsNothing);
+
+    await gesture.up();
+    await tester.pumpAndSettle();
+
+    // Sticky: hover ended but the card keeps the last values.
+    expect(find.text('Hover or scrub the profile'), findsNothing);
+  });
+
+  testWidgets('dragging the card persists a clamped fraction to settings', (
+    tester,
+  ) async {
+    final fake = _FakeSettingsNotifier();
+    final overrides = _defaultOverrides()
+      ..removeAt(0)
+      ..insert(0, settingsProvider.overrideWith((ref) => fake));
+    await tester.pumpWidget(_wrap(overrides));
+    await tester.pumpAndSettle();
+
+    await tester.drag(
+      find.byKey(const ValueKey('readout-card')),
+      const Offset(-3000, 3000),
+    );
+    await tester.pumpAndSettle();
+
+    expect(fake.savedCardX, 0.0);
+    expect(fake.savedCardY, 1.0);
+  });
+
+  testWidgets('saved position seeds the card at bottom-left', (tester) async {
+    final overrides = _defaultOverrides()
+      ..removeAt(0)
+      ..insert(
+        0,
+        settingsProvider.overrideWith(
+          (ref) => _FakeSettingsNotifier(
+            const AppSettings(
+              fullscreenReadoutCardX: 0,
+              fullscreenReadoutCardY: 1,
+            ),
+          ),
+        ),
+      );
+    await tester.pumpWidget(_wrap(overrides));
+    await tester.pumpAndSettle();
+
+    final chartRect = tester.getRect(find.byType(DiveProfileChart));
+    final cardRect = tester.getRect(find.byKey(const ValueKey('readout-card')));
+    expect(cardRect.left, lessThan(chartRect.center.dx));
+    expect(cardRect.bottom, greaterThan(chartRect.center.dy));
   });
 
   testWidgets('chart fills most of the screen height', (tester) async {
@@ -218,6 +321,16 @@ void main() {
         tester.widget<DiveProfileChart>(find.byType(DiveProfileChart)).profile,
         hasLength(61),
       );
+      // The instrument bar must resolve tiles against the SAME profile the
+      // chart renders and the analysis is computed from; indexing analysis
+      // curves with dive.profile positions reads wrong/blank values once the
+      // arrays differ (issue: gauges wrong/blank mid-dive on 2-source dives).
+      expect(
+        tester
+            .widget<ProfileInstrumentBar>(find.byType(ProfileInstrumentBar))
+            .profile,
+        hasLength(61),
+      );
 
       await tester.tap(
         find.descendant(
@@ -230,6 +343,12 @@ void main() {
 
       expect(
         tester.widget<DiveProfileChart>(find.byType(DiveProfileChart)).profile,
+        hasLength(40),
+      );
+      expect(
+        tester
+            .widget<ProfileInstrumentBar>(find.byType(ProfileInstrumentBar))
+            .profile,
         hasLength(40),
       );
     },

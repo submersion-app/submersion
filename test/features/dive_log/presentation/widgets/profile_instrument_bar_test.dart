@@ -76,7 +76,7 @@ void main() {
         home: Scaffold(
           body: ProfileInstrumentBar(
             diveId: dive.id,
-            dive: dive,
+            profile: dive.profile,
             analysis: null,
             tankPressures: null,
           ),
@@ -166,7 +166,7 @@ void main() {
           home: Scaffold(
             body: ProfileInstrumentBar(
               diveId: dive.id,
-              dive: dive,
+              profile: dive.profile,
               analysis: null,
               tankPressures: null,
             ),

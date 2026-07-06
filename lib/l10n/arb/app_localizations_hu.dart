@@ -4506,6 +4506,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_fullscreenProfile_close => 'Teljes kepernyo bezarasa';
 
   @override
+  String get diveLog_fullscreenProfile_readoutHint =>
+      'Vigye az egermutatot a profil fole, vagy huzza rajta az ujjat';
+
+  @override
   String diveLog_fullscreenProfile_title(Object number) {
     return 'Merules #$number profil';
   }

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/ascent_rate_calculator.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
@@ -91,7 +92,10 @@ void main() {
   group('computeCandidateTiles', () {
     test('rec dive: depth, runtime, temperature only', () {
       final dive = _recDive();
-      final tiles = computeCandidateTiles(dive: dive, analysis: null);
+      final tiles = computeCandidateTiles(
+        profile: dive.profile,
+        analysis: null,
+      );
       expect(tiles, [
         InstrumentTileId.depth,
         InstrumentTileId.runtime,
@@ -103,7 +107,7 @@ void main() {
       final techDive = _techDive();
       final techAnalysis = _techAnalysis();
       final tiles = computeCandidateTiles(
-        dive: techDive,
+        profile: techDive.profile,
         analysis: techAnalysis,
         tankPressures: _techTankPressures(),
       );
@@ -120,9 +124,8 @@ void main() {
       );
     });
 
-    test('empty dive yields no candidates', () {
-      final dive = Dive(id: 'empty', dateTime: DateTime(2026, 1, 1, 10));
-      final tiles = computeCandidateTiles(dive: dive, analysis: null);
+    test('empty profile yields no candidates', () {
+      final tiles = computeCandidateTiles(profile: const [], analysis: null);
       expect(tiles, isEmpty);
     });
   });
@@ -231,7 +234,7 @@ void main() {
   group('resolveSample', () {
     test('reads point fields and curve values at the derived index', () {
       final sample = resolveSample(
-        dive: _techDive(),
+        profile: _techDive().profile,
         analysis: _techAnalysis(),
         tankPressures: _techTankPressures(),
         timestamp: 300,
@@ -246,7 +249,7 @@ void main() {
 
     test('null-at-position values stay null (temperature gap)', () {
       final sample = resolveSample(
-        dive: _recDiveNoTemp(),
+        profile: _recDiveNoTemp().profile,
         analysis: null,
         timestamp: 60,
       );
@@ -255,7 +258,7 @@ void main() {
 
     test('inDeco reflects decoType at the position', () {
       final sample = resolveSample(
-        dive: _techDive(),
+        profile: _techDive().profile,
         analysis: _techAnalysis(),
         timestamp: 300,
       );
@@ -264,7 +267,7 @@ void main() {
 
     test('not in deco before the deco boundary', () {
       final sample = resolveSample(
-        dive: _techDive(),
+        profile: _techDive().profile,
         analysis: _techAnalysis(),
         timestamp: 0,
       );
@@ -273,12 +276,48 @@ void main() {
     });
 
     test('empty profile returns a bare sample keyed on the timestamp', () {
-      final dive = Dive(id: 'empty', dateTime: DateTime(2026, 1, 1, 10));
-      final sample = resolveSample(dive: dive, analysis: null, timestamp: 42);
+      final sample = resolveSample(
+        profile: const [],
+        analysis: null,
+        timestamp: 42,
+      );
       expect(sample.runtimeSeconds, 42);
       expect(sample.depthMeters, isNull);
       expect(sample.tankPressuresBar, isEmpty);
       expect(sample.inDeco, isFalse);
+    });
+
+    test('curve values align to the passed profile late in the dive '
+        '(the profile must be the analysis basis, not dive.profile)', () {
+      // A short, coarsely-sampled active-source profile: 5 points at 60s
+      // intervals. The analysis curves are index-aligned to THIS array.
+      final profile = List.generate(
+        5,
+        (i) => DiveProfilePoint(timestamp: i * 60, depth: 10),
+      );
+      final analysis = ProfileAnalysis.empty().copyWith(
+        cnsCurve: [1.0, 2.0, 3.0, 4.0, 5.0],
+        ascentRates: [
+          for (var i = 0; i < 5; i++)
+            AscentRatePoint(
+              timestamp: i * 60,
+              depth: 10,
+              rateMetersPerMin: i.toDouble(),
+              category: AscentRateCategory.safe,
+            ),
+        ],
+      );
+
+      // Late in the dive: index 4 of the profile. Before the fix the index
+      // came from dive.profile (a longer, differently-sampled array), which
+      // read wrong values here and null past the curves' end.
+      final sample = resolveSample(
+        profile: profile,
+        analysis: analysis,
+        timestamp: 240,
+      );
+      expect(sample.cnsPercent, 5.0);
+      expect(sample.ascentRateMetersPerMin, 4.0);
     });
   });
 }

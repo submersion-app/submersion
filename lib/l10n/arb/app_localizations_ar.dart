@@ -4418,6 +4418,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_fullscreenProfile_close => 'إغلاق ملء الشاشة';
 
   @override
+  String get diveLog_fullscreenProfile_readoutHint =>
+      'مرر المؤشر أو اسحب فوق ملف الغوصة';
+
+  @override
   String diveLog_fullscreenProfile_title(Object number) {
     return 'ملف الغوصة #$number';
   }

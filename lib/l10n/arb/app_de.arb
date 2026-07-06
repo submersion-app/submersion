@@ -1479,6 +1479,7 @@
   "diveLog_filter_title": "Tauchgänge filtern",
   "diveLog_filter_tooltip_close": "Filter schließen",
   "diveLog_fullscreenProfile_close": "Vollbild schließen",
+  "diveLog_fullscreenProfile_readoutHint": "Zeiger über das Profil bewegen oder scrubben",
   "diveLog_fullscreenProfile_title": "Tauchgang #{number} Profil",
   "diveLog_instruments_customize": "Instrumente anpassen",
   "diveLog_instruments_customizeHint": "Instrumente ein- oder ausschalten. Zum Sortieren ziehen.",

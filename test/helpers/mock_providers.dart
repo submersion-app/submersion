@@ -326,6 +326,13 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
     fullscreenTileOrder: order,
     fullscreenHiddenTiles: hidden,
   );
+
+  @override
+  Future<void> setFullscreenReadoutCardPosition(double x, double y) async =>
+      state = state.copyWith(
+        fullscreenReadoutCardX: x,
+        fullscreenReadoutCardY: y,
+      );
 }
 
 /// Mock CurrentDiverIdNotifier that doesn't access the database

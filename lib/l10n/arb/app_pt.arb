@@ -1479,6 +1479,7 @@
   "diveLog_filter_title": "Filtrar Mergulhos",
   "diveLog_filter_tooltip_close": "Fechar filtro",
   "diveLog_fullscreenProfile_close": "Fechar tela cheia",
+  "diveLog_fullscreenProfile_readoutHint": "Passe o cursor ou deslize sobre o perfil",
   "diveLog_fullscreenProfile_title": "Perfil do Mergulho #{number}",
   "diveLog_instruments_customize": "Personalizar instrumentos",
   "diveLog_instruments_customizeHint": "Ative ou desative instrumentos. Arraste para reordenar.",

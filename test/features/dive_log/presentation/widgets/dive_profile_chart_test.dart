@@ -1369,6 +1369,23 @@ void main() {
     );
   });
 
+  group('DiveProfileChart - tooltip placement', () {
+    testWidgets('default keeps the bubble pinned above the chart box '
+        '(detail-page behavior)', (tester) async {
+      await tester.pumpWidget(_buildChart());
+      await tester.pumpAndSettle();
+
+      final tooltip = tester
+          .widget<LineChart>(find.byType(LineChart).first)
+          .data
+          .lineTouchData
+          .touchTooltipData;
+      expect(tooltip.showOnTopOfTheChartBoxArea, isTrue);
+      expect(tooltip.fitInsideVertically, isFalse);
+      expect(tooltip.tooltipMargin, 0);
+    });
+  });
+
   // =========================================================================
   // Static helper coverage
   // =========================================================================

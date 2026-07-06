@@ -15,14 +15,19 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// transport plus adaptive dive-computer readout tiles.
 class ProfileInstrumentBar extends ConsumerWidget {
   final String diveId;
-  final Dive dive;
+
+  /// The profile the chart renders and the analysis was computed over (the
+  /// active source's points). Tile values are resolved by index into the
+  /// analysis curves, so this must be that same array -- not dive.profile,
+  /// which can be a different source sampled at a different rate.
+  final List<DiveProfilePoint> profile;
   final ProfileAnalysis? analysis;
   final Map<String, List<TankPressurePoint>>? tankPressures;
 
   const ProfileInstrumentBar({
     super.key,
     required this.diveId,
-    required this.dive,
+    required this.profile,
     required this.analysis,
     required this.tankPressures,
   });
@@ -34,7 +39,7 @@ class ProfileInstrumentBar extends ConsumerWidget {
     final reviewTimestamp = ref.watch(profileReviewProvider(diveId));
 
     final candidates = computeCandidateTiles(
-      dive: dive,
+      profile: profile,
       analysis: analysis,
       tankPressures: tankPressures,
     );
@@ -44,7 +49,7 @@ class ProfileInstrumentBar extends ConsumerWidget {
       hidden: settings.fullscreenHiddenTiles,
     );
     final sample = resolveSample(
-      dive: dive,
+      profile: profile,
       analysis: analysis,
       tankPressures: tankPressures,
       timestamp: reviewTimestamp ?? 0,
@@ -77,7 +82,7 @@ class ProfileInstrumentBar extends ConsumerWidget {
               Expanded(
                 child: ProfileTransportControls(
                   diveId: diveId,
-                  profile: dive.profile,
+                  profile: profile,
                 ),
               ),
               IconButton(
