@@ -40,8 +40,14 @@ class LogbookParser {
       // Notes handled separately (region, not single block).
       if (label.field == LogField.notes) continue;
       if (bound.containsKey(label.field)) continue;
-      final value = bindValue(label, ocr.blocks, labelBlocks: labelBlocks);
-      if (value != null && !bound.containsValue(value)) {
+      // Exclude values already consumed by earlier labels so binding
+      // falls through to the next-best candidate instead of dropping.
+      final value = bindValue(
+        label,
+        ocr.blocks,
+        labelBlocks: {...labelBlocks, ...bound.values},
+      );
+      if (value != null) {
         bound[label.field] = value;
       }
     }
@@ -197,12 +203,27 @@ class LogbookParser {
     Set<OcrTextBlock> consumed,
   ) {
     if (notesLabel == null) return const [];
-    final top = notesLabel.block.boundingBox.top;
+    // Comments text may start on the same line as the label, so the
+    // region opens half a line above the label's top edge.
+    final top =
+        notesLabel.block.boundingBox.top - 0.5 * notesLabel.block.height;
+    // Template chrome below the notes area (signatures, certification
+    // numbers) ends the notes region.
+    var cutoff = double.infinity;
+    for (final b in blocks) {
+      if (b.boundingBox.top > top &&
+          labelStopList.any((re) => re.hasMatch(b.text.trim())) &&
+          b.boundingBox.top < cutoff) {
+        cutoff = b.boundingBox.top;
+      }
+    }
     final region =
         blocks
             .where(
               (b) =>
+                  !identical(b, notesLabel.block) &&
                   b.boundingBox.top > top &&
+                  b.boundingBox.top < cutoff &&
                   !labelBlocks.contains(b) &&
                   !consumed.contains(b),
             )

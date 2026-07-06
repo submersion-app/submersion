@@ -48,9 +48,15 @@ OcrTextBlock? bindValue(
     // its center is far away.
     final gap = candidate.boundingBox.left - l.boundingBox.right;
 
+    // Short-range left-of: some templates write the value immediately
+    // before the label ("24 Air" on temperature scales).
+    final leftGap = l.boundingBox.left - candidate.boundingBox.right;
+
     double score;
     if (gap > -h && gap < 12 * h && dy.abs() < 1.5 * h) {
       score = gap.abs(); // right-of: strongly preferred
+    } else if (leftGap > -h && leftGap < 3 * h && dy.abs() < 1.5 * h) {
+      score = h + leftGap.abs(); // left-of: close range only
     } else if (dy > 0 && dy < 3 * h && dx.abs() < 6 * h) {
       score = 2 * h + dy + dx.abs(); // below
     } else if (dy < 0 && dy > -3 * h && dx.abs() < 6 * h) {
