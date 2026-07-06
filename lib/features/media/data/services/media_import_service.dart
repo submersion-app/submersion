@@ -1,9 +1,15 @@
+import 'dart:io';
+
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
+
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/enrichment_service.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 
 /// Result of a media import operation.
 class ImportResult {
@@ -44,8 +50,43 @@ class MediaImportService {
   MediaImportService({
     required MediaRepository mediaRepository,
     required EnrichmentService enrichmentService,
+    Future<Directory> Function()? documentsDirectory,
   }) : _mediaRepository = mediaRepository,
-       _enrichmentService = enrichmentService;
+       _enrichmentService = enrichmentService,
+       _documentsDirectory =
+           documentsDirectory ?? getApplicationDocumentsDirectory;
+
+  final Future<Directory> Function() _documentsDirectory;
+
+  /// Copies [sourceFile] into the app documents directory (subdir
+  /// 'scanned_logs/') and creates a localFile media row linked to
+  /// [diveId]. Used by the OCR scan flow to attach the source page photo.
+  Future<MediaItem> importLocalFileForDive({
+    required File sourceFile,
+    required String diveId,
+    DateTime? takenAt,
+  }) async {
+    final docs = await _documentsDirectory();
+    final dir = Directory(p.join(docs.path, 'scanned_logs'));
+    await dir.create(recursive: true);
+    final sourceExt = p.extension(sourceFile.path);
+    final ext = sourceExt.isEmpty ? '.jpg' : sourceExt;
+    final destName = '${DateTime.now().millisecondsSinceEpoch}$ext';
+    final dest = await sourceFile.copy(p.join(dir.path, destName));
+    final now = DateTime.now();
+    final item = MediaItem(
+      id: '',
+      diveId: diveId,
+      mediaType: MediaType.photo,
+      sourceType: MediaSourceType.localFile,
+      filePath: dest.path,
+      originalFilename: p.basename(sourceFile.path),
+      takenAt: takenAt ?? now,
+      createdAt: now,
+      updatedAt: now,
+    );
+    return _mediaRepository.createMedia(item);
+  }
 
   /// Import selected assets for a dive.
   ///
