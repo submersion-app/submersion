@@ -711,6 +711,10 @@ class ImportDuplicateChecker {
           score: _sourceUuidMatchScore,
           timeDifferenceMs: 0,
           siteName: existing.site?.name,
+          // The incoming dive's source data is already present on `existing`
+          // (same source_uuid) — a re-import, not a new source. The wizard
+          // defaults these to skip and excludes them from bulk-consolidate.
+          matchedExistingSource: true,
         );
         handled.add(i);
       }

@@ -452,6 +452,65 @@ void main() {
 
       expect(result.diveMatches, contains(0));
     });
+
+    test('content (fuzzy) match leaves matchedExistingSource false', () {
+      final diveTime = DateTime(2024, 1, 15, 10, 0);
+      final result = checkWith(
+        payload: ImportPayload(
+          entities: {
+            ImportEntityType.dives: [
+              {
+                'dateTime': diveTime,
+                'maxDepth': 18.0,
+                'runtime': const Duration(minutes: 45),
+              },
+            ],
+          },
+        ),
+        dives: [
+          Dive(
+            id: 'existing-1',
+            dateTime: diveTime.add(const Duration(minutes: 2)),
+            maxDepth: 18.0,
+            bottomTime: const Duration(minutes: 45),
+          ),
+        ],
+      );
+
+      final match = result.diveMatchFor(0);
+      expect(match, isNotNull);
+      expect(match!.matchedExistingSource, isFalse);
+    });
+
+    test('does not match a dive far apart in time even with identical '
+        'depth and duration', () {
+      // ScubaBoard regression at the checker level: months apart, same depth,
+      // same duration. Only the DiveMatcher time-gate keeps this from being
+      // flagged as a possible duplicate.
+      final result = checkWith(
+        payload: ImportPayload(
+          entities: {
+            ImportEntityType.dives: [
+              {
+                'dateTime': DateTime(2024, 3, 15, 10, 0),
+                'maxDepth': 18.0,
+                'runtime': const Duration(minutes: 47),
+              },
+            ],
+          },
+        ),
+        dives: [
+          Dive(
+            id: 'existing-1',
+            dateTime: DateTime(2024, 6, 20, 14, 0),
+            maxDepth: 18.0,
+            bottomTime: const Duration(minutes: 47),
+          ),
+        ],
+      );
+
+      expect(result.diveMatches, isEmpty);
+    });
   });
 
   group('Dive duplicates (source_uuid)', () {
@@ -618,6 +677,37 @@ void main() {
 
       // No UUID match (both empty), and content doesn't match either.
       expect(result.diveMatches, isEmpty);
+    });
+
+    test('source_uuid match flags matchedExistingSource so it defaults '
+        'to skip', () {
+      final result = checkWith(
+        payload: ImportPayload(
+          entities: {
+            ImportEntityType.dives: [
+              {
+                'sourceUuid': 'XYZ',
+                'dateTime': DateTime(2024, 1, 15, 10, 0),
+                'maxDepth': 18.0,
+                'runtime': const Duration(minutes: 45),
+              },
+            ],
+          },
+        ),
+        dives: [
+          Dive(
+            id: 'existing-1',
+            dateTime: DateTime(2024, 1, 15, 10, 0),
+            maxDepth: 18.0,
+            bottomTime: const Duration(minutes: 45),
+          ),
+        ],
+        existingSourceUuidByDiveId: const {'existing-1': 'XYZ'},
+      );
+
+      final match = result.diveMatchFor(0);
+      expect(match, isNotNull);
+      expect(match!.matchedExistingSource, isTrue);
     });
   });
 
