@@ -3,29 +3,20 @@ import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/services/export/models/uddf_import_result.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
-import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
-import 'package:submersion/features/dive_import/data/services/uddf_entity_importer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
-import 'package:submersion/features/tank_presets/domain/services/default_tank_preset_resolver.dart';
-import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/universal_import/data/models/detection_result.dart';
 import 'package:submersion/features/universal_import/data/models/field_mapping.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_options.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
-import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/universal_import/data/csv/pipeline/csv_pipeline.dart';
 import 'package:submersion/features/universal_import/data/csv/presets/built_in_presets.dart';
 import 'package:submersion/features/universal_import/data/csv/presets/preset_registry.dart';
@@ -43,7 +34,6 @@ import 'package:submersion/features/universal_import/data/services/format_detect
 import 'package:submersion/features/universal_import/data/services/macdive_db_reader.dart';
 import 'package:submersion/features/universal_import/data/services/shearwater_db_reader.dart';
 import 'package:submersion/features/universal_import/data/services/import_duplicate_checker.dart';
-import 'package:submersion/features/universal_import/presentation/providers/import_consolidation_service.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_state.dart';
 
 export 'package:submersion/features/universal_import/presentation/providers/universal_import_state.dart';
@@ -509,249 +499,6 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     state = state.copyWith(
       selections: {...state.selections, type: const <int>{}},
     );
-  }
-
-  /// Set the duplicate resolution for a specific dive index.
-  ///
-  /// When [resolution] is [DiveDuplicateResolution.consolidate] or
-  /// [DiveDuplicateResolution.importAsNew], the dive index is added to the
-  /// selection so it participates in the import step. When [resolution] is
-  /// [DiveDuplicateResolution.skip], it is removed from the selection.
-  void setDiveResolution(int index, DiveDuplicateResolution resolution) {
-    final updatedResolutions = Map<int, DiveDuplicateResolution>.from(
-      state.diveResolutions,
-    )..[index] = resolution;
-
-    final currentSelection = Set<int>.from(
-      state.selectionFor(ImportEntityType.dives),
-    );
-    if (resolution == DiveDuplicateResolution.skip) {
-      currentSelection.remove(index);
-    } else {
-      currentSelection.add(index);
-    }
-
-    state = state.copyWith(
-      diveResolutions: updatedResolutions,
-      selections: {
-        ...state.selections,
-        ImportEntityType.dives: currentSelection,
-      },
-    );
-  }
-
-  // -- Step 4: Import --
-
-  /// Perform the import with current selections.
-  Future<void> performImport() async {
-    final payload = state.payload;
-    if (payload == null) return;
-
-    state = state.copyWith(
-      currentStep: ImportWizardStep.importing,
-      isImporting: true,
-      clearError: true,
-    );
-
-    try {
-      final currentDiver = await _ref.read(currentDiverProvider.future);
-      if (currentDiver == null) {
-        state = state.copyWith(
-          isImporting: false,
-          error: 'Please create a diver profile before importing',
-        );
-        return;
-      }
-
-      // Partition dive selections: consolidate vs normal import. Both are
-      // imported as full standalone dives in the SAME importer.import() call
-      // below (so consolidate-flagged dives get every sample column, tank,
-      // pressure, and event, plus correct cross-references to trips/sites/
-      // buddies from this payload) -- consolidate-flagged indices are then
-      // folded into their matched dive afterwards via performConsolidations.
-      final consolidateIndices = <int>{};
-      final normalDiveSelection = Set<int>.from(
-        state.selectionFor(ImportEntityType.dives),
-      );
-      for (final entry in state.diveResolutions.entries) {
-        if (entry.value == DiveDuplicateResolution.consolidate) {
-          consolidateIndices.add(entry.key);
-          normalDiveSelection.remove(entry.key);
-        }
-      }
-
-      // Convert to UDDF format for reuse of UddfEntityImporter
-      final uddfData = _toUddfResult(payload);
-      final uddfSelections = _toUddfSelections({
-        ...state.selections,
-        ImportEntityType.dives: {...normalDiveSelection, ...consolidateIndices},
-      });
-
-      final repos = ImportRepositories(
-        tripRepository: _ref.read(tripRepositoryProvider),
-        equipmentRepository: _ref.read(equipmentRepositoryProvider),
-        equipmentSetRepository: _ref.read(equipmentSetRepositoryProvider),
-        buddyRepository: _ref.read(buddyRepositoryProvider),
-        diveCenterRepository: _ref.read(diveCenterRepositoryProvider),
-        certificationRepository: _ref.read(certificationRepositoryProvider),
-        tagRepository: _ref.read(tagRepositoryProvider),
-        diveTypeRepository: _ref.read(diveTypeRepositoryProvider),
-        siteRepository: _ref.read(siteRepositoryProvider),
-        diveRepository: _ref.read(diveRepositoryProvider),
-        tankPressureRepository: _ref.read(tankPressureRepositoryProvider),
-        courseRepository: _ref.read(courseRepositoryProvider),
-      );
-
-      final settings = _ref.read(settingsProvider);
-      final resolver = DefaultTankPresetResolver(
-        repository: _ref.read(tankPresetRepositoryProvider),
-      );
-      final defaultTankPreset = await resolver.resolve(
-        settings.defaultTankPreset,
-      );
-      final importer = UddfEntityImporter(
-        defaultTankPreset: defaultTankPreset,
-        defaultStartPressure: settings.defaultStartPressure,
-        applyDefaultTankToImports: settings.applyDefaultTankToImports,
-      );
-      final result = await importer.import(
-        data: uddfData,
-        selections: uddfSelections,
-        repositories: repos,
-        diverId: currentDiver.id,
-        onProgress: (phase, current, total) {
-          state = state.copyWith(
-            importPhase: phase.name,
-            importCurrent: current,
-            importTotal: total,
-          );
-        },
-      );
-
-      // Fold consolidate-flagged dives (just imported above as standalone
-      // dives) into their matched existing dive.
-      var consolidationWarnings = const <ImportWarning>[];
-      if (consolidateIndices.isNotEmpty) {
-        final consolidationService = _ref.read(
-          diveConsolidationServiceProvider,
-        );
-        final summary = await performConsolidations(
-          indices: consolidateIndices,
-          diveIdByIndex: result.diveIdByIndex,
-          duplicateResult: state.duplicateResult,
-          consolidationService: consolidationService,
-          diveRepository: repos.diveRepository,
-        );
-        if (summary.failed > 0) {
-          consolidationWarnings = [
-            ImportWarning(
-              severity: ImportWarningSeverity.error,
-              message:
-                  '${summary.failed} dive(s) could not be consolidated '
-                  'into their matched dive; the partial imports were '
-                  'removed again to avoid duplicates.',
-              entityType: ImportEntityType.dives,
-            ),
-          ];
-        }
-      }
-
-      _invalidateProviders();
-
-      final counts = <ImportEntityType, int>{
-        if (result.dives > 0) ImportEntityType.dives: result.dives,
-        if (result.sites > 0) ImportEntityType.sites: result.sites,
-        if (result.trips > 0) ImportEntityType.trips: result.trips,
-        if (result.equipment > 0) ImportEntityType.equipment: result.equipment,
-        if (result.equipmentSets > 0)
-          ImportEntityType.equipmentSets: result.equipmentSets,
-        if (result.buddies > 0) ImportEntityType.buddies: result.buddies,
-        if (result.diveCenters > 0)
-          ImportEntityType.diveCenters: result.diveCenters,
-        if (result.certifications > 0)
-          ImportEntityType.certifications: result.certifications,
-        if (result.courses > 0) ImportEntityType.courses: result.courses,
-        if (result.tags > 0) ImportEntityType.tags: result.tags,
-        if (result.diveTypes > 0) ImportEntityType.diveTypes: result.diveTypes,
-      };
-
-      state = state.copyWith(
-        currentStep: ImportWizardStep.summary,
-        isImporting: false,
-        importCounts: counts,
-        payload: consolidationWarnings.isEmpty
-            ? null
-            : ImportPayload(
-                entities: payload.entities,
-                warnings: [...payload.warnings, ...consolidationWarnings],
-                metadata: payload.metadata,
-              ),
-      );
-    } catch (e) {
-      state = state.copyWith(isImporting: false, error: 'Import failed: $e');
-    }
-  }
-
-  // -- Adapter Helpers --
-
-  static UddfImportResult _toUddfResult(ImportPayload payload) {
-    return UddfImportResult(
-      dives: payload.entitiesOf(ImportEntityType.dives),
-      sites: payload.entitiesOf(ImportEntityType.sites),
-      trips: payload.entitiesOf(ImportEntityType.trips),
-      equipment: payload.entitiesOf(ImportEntityType.equipment),
-      buddies: payload.entitiesOf(ImportEntityType.buddies),
-      diveCenters: payload.entitiesOf(ImportEntityType.diveCenters),
-      certifications: payload.entitiesOf(ImportEntityType.certifications),
-      tags: payload.entitiesOf(ImportEntityType.tags),
-      customDiveTypes: payload.entitiesOf(ImportEntityType.diveTypes),
-      equipmentSets: payload.entitiesOf(ImportEntityType.equipmentSets),
-      courses: payload.entitiesOf(ImportEntityType.courses),
-    );
-  }
-
-  static UddfImportSelections _toUddfSelections(
-    Map<ImportEntityType, Set<int>> sel,
-  ) {
-    return UddfImportSelections(
-      trips: sel[ImportEntityType.trips] ?? const {},
-      equipment: sel[ImportEntityType.equipment] ?? const {},
-      buddies: sel[ImportEntityType.buddies] ?? const {},
-      diveCenters: sel[ImportEntityType.diveCenters] ?? const {},
-      certifications: sel[ImportEntityType.certifications] ?? const {},
-      tags: sel[ImportEntityType.tags] ?? const {},
-      diveTypes: sel[ImportEntityType.diveTypes] ?? const {},
-      sites: sel[ImportEntityType.sites] ?? const {},
-      equipmentSets: sel[ImportEntityType.equipmentSets] ?? const {},
-      dives: sel[ImportEntityType.dives] ?? const {},
-      courses: sel[ImportEntityType.courses] ?? const {},
-    );
-  }
-
-  // -- Provider Invalidation --
-
-  void _invalidateProviders() {
-    _ref.invalidate(sitesProvider);
-    _ref.invalidate(sitesWithCountsProvider);
-    _ref.invalidate(siteListNotifierProvider);
-    _ref.invalidate(allBuddiesProvider);
-    _ref.invalidate(buddyListNotifierProvider);
-    _ref.invalidate(allEquipmentProvider);
-    _ref.invalidate(activeEquipmentProvider);
-    _ref.invalidate(retiredEquipmentProvider);
-    _ref.invalidate(serviceDueEquipmentProvider);
-    _ref.invalidate(equipmentListNotifierProvider);
-    _ref.invalidate(equipmentSetsProvider);
-    _ref.invalidate(allTripsProvider);
-    _ref.invalidate(allDiveCentersProvider);
-    _ref.invalidate(allCertificationsProvider);
-    _ref.invalidate(diveTypesProvider);
-    _ref.invalidate(tagsProvider);
-    _ref.invalidate(diveListNotifierProvider);
-    _ref.invalidate(paginatedDiveListProvider);
-    _ref.invalidate(diveStatisticsProvider);
-    _ref.invalidate(diveRecordsProvider);
-    _ref.invalidate(allBuddiesWithDiveCountProvider);
   }
 
   /// Clear the external-load flag after the wizard has consumed it.

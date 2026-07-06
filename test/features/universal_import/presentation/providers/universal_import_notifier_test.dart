@@ -3,55 +3,20 @@ import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite3;
-import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
-import 'package:submersion/features/dive_log/data/services/dive_merge_snapshot.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
-import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
-import 'package:submersion/features/divers/domain/entities/diver.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/universal_import/data/models/detection_result.dart';
 import 'package:submersion/features/universal_import/data/models/field_mapping.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_options.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
-import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/universal_import/data/parsers/macdive_sqlite_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/macdive_xml_parser.dart';
-import 'package:submersion/features/universal_import/data/services/import_duplicate_checker.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 
 import '../../../../fixtures/macdive_sqlite/build_synthetic_db.dart';
-import '../../../../helpers/test_database.dart';
-import 'import_consolidation_service_test.mocks.dart';
 
-/// Minimal empty snapshot for stubbing [DiveConsolidationService.apply]
-/// results -- mirrors the one in import_consolidation_service_test.dart.
-const _emptyMergeSnapshot = DiveMergeSnapshot(
-  mergedDiveId: 'target-dive',
-  diveRows: [],
-  profileRows: [],
-  tankRows: [],
-  weightRows: [],
-  customFieldRows: [],
-  equipmentRows: [],
-  diveTypeRows: [],
-  tagRows: [],
-  buddyRows: [],
-  sightingRows: [],
-  eventRows: [],
-  gasSwitchRows: [],
-  tankPressureRows: [],
-  dataSourceRows: [],
-  tideRows: [],
-  mediaDiveIds: {},
-);
-
-/// Helper to encode a CSV string to bytes for testing.
 Uint8List _csvBytes(String csv) => Uint8List.fromList(csv.codeUnits);
 
 /// Wait for the notifier's background async work (e.g. _parseAndCheckDuplicates)
@@ -321,115 +286,6 @@ void main() {
       });
     });
 
-    group('setDiveResolution', () {
-      test('sets resolution for a dive index', () {
-        notifier.setDiveResolution(0, DiveDuplicateResolution.skip);
-
-        expect(notifier.state.diveResolutions[0], DiveDuplicateResolution.skip);
-      });
-
-      test('skip resolution removes dive from selection', () {
-        // First add the dive to selection.
-        notifier.toggleSelection(ImportEntityType.dives, 0);
-        expect(notifier.state.selectionFor(ImportEntityType.dives), {0});
-
-        notifier.setDiveResolution(0, DiveDuplicateResolution.skip);
-
-        expect(
-          notifier.state.selectionFor(ImportEntityType.dives),
-          isNot(contains(0)),
-        );
-      });
-
-      test('importAsNew resolution adds dive to selection', () {
-        notifier.setDiveResolution(0, DiveDuplicateResolution.importAsNew);
-
-        expect(
-          notifier.state.selectionFor(ImportEntityType.dives),
-          contains(0),
-        );
-        expect(
-          notifier.state.diveResolutions[0],
-          DiveDuplicateResolution.importAsNew,
-        );
-      });
-
-      test('consolidate resolution adds dive to selection', () {
-        notifier.setDiveResolution(0, DiveDuplicateResolution.consolidate);
-
-        expect(
-          notifier.state.selectionFor(ImportEntityType.dives),
-          contains(0),
-        );
-        expect(
-          notifier.state.diveResolutions[0],
-          DiveDuplicateResolution.consolidate,
-        );
-      });
-
-      test('changing from importAsNew to skip removes from selection', () {
-        notifier.setDiveResolution(0, DiveDuplicateResolution.importAsNew);
-        expect(
-          notifier.state.selectionFor(ImportEntityType.dives),
-          contains(0),
-        );
-
-        notifier.setDiveResolution(0, DiveDuplicateResolution.skip);
-
-        expect(
-          notifier.state.selectionFor(ImportEntityType.dives),
-          isNot(contains(0)),
-        );
-      });
-
-      test('changing from skip to consolidate adds to selection', () {
-        notifier.setDiveResolution(0, DiveDuplicateResolution.skip);
-        expect(
-          notifier.state.selectionFor(ImportEntityType.dives),
-          isNot(contains(0)),
-        );
-
-        notifier.setDiveResolution(0, DiveDuplicateResolution.consolidate);
-
-        expect(
-          notifier.state.selectionFor(ImportEntityType.dives),
-          contains(0),
-        );
-      });
-
-      test('sets resolutions for multiple dive indices independently', () {
-        notifier.setDiveResolution(0, DiveDuplicateResolution.skip);
-        notifier.setDiveResolution(1, DiveDuplicateResolution.importAsNew);
-        notifier.setDiveResolution(2, DiveDuplicateResolution.consolidate);
-
-        expect(notifier.state.diveResolutions[0], DiveDuplicateResolution.skip);
-        expect(
-          notifier.state.diveResolutions[1],
-          DiveDuplicateResolution.importAsNew,
-        );
-        expect(
-          notifier.state.diveResolutions[2],
-          DiveDuplicateResolution.consolidate,
-        );
-
-        // Indices 1 and 2 should be selected, 0 should not.
-        final diveSelection = notifier.state.selectionFor(
-          ImportEntityType.dives,
-        );
-        expect(diveSelection, isNot(contains(0)));
-        expect(diveSelection, contains(1));
-        expect(diveSelection, contains(2));
-      });
-
-      test('does not affect other entity type selections', () {
-        notifier.toggleSelection(ImportEntityType.sites, 0);
-
-        notifier.setDiveResolution(0, DiveDuplicateResolution.importAsNew);
-
-        expect(notifier.state.selectionFor(ImportEntityType.sites), {0});
-      });
-    });
-
     group('reset', () {
       test('resets to initial state', () {
         // Modify state in multiple ways.
@@ -439,7 +295,6 @@ void main() {
         );
         notifier.skipAdditionalFile();
         notifier.toggleSelection(ImportEntityType.dives, 0);
-        notifier.setDiveResolution(1, DiveDuplicateResolution.consolidate);
 
         notifier.reset();
 
@@ -457,7 +312,6 @@ void main() {
         expect(notifier.state.payload, isNull);
         expect(notifier.state.duplicateResult, isNull);
         expect(notifier.state.selections, isEmpty);
-        expect(notifier.state.diveResolutions, isEmpty);
         expect(notifier.state.importCounts, isEmpty);
       });
 
@@ -474,7 +328,6 @@ void main() {
         expect(notifier.state.isImporting, defaultState.isImporting);
         expect(notifier.state.error, defaultState.error);
         expect(notifier.state.selections, defaultState.selections);
-        expect(notifier.state.diveResolutions, defaultState.diveResolutions);
         expect(notifier.state.importCounts, defaultState.importCounts);
         expect(notifier.state.importPhase, defaultState.importPhase);
         expect(notifier.state.importCurrent, defaultState.importCurrent);
@@ -1549,213 +1402,6 @@ void main() {
 
           expect(payload.entitiesOf(ImportEntityType.dives).length, 3);
           expect(payload.entitiesOf(ImportEntityType.tags).length, 2);
-        },
-      );
-    });
-
-    group('performImport - consolidation seam', () {
-      late Diver testDiver;
-      late MockDiveConsolidationService mockConsolidationService;
-      late ProviderContainer importContainer;
-      late UniversalImportNotifier importNotifier;
-
-      /// Builds a payload with two minimal standalone dives so
-      /// UddfEntityImporter has enough to persist both as real dives.
-      ImportPayload buildTwoDivePayload() => ImportPayload(
-        entities: {
-          ImportEntityType.dives: [
-            {
-              'dateTime': DateTime.utc(2025, 1, 1, 10),
-              'maxDepth': 18.0,
-              'duration': const Duration(minutes: 40),
-            },
-            {
-              'dateTime': DateTime.utc(2025, 1, 2, 10),
-              'maxDepth': 20.0,
-              'duration': const Duration(minutes: 35),
-            },
-          ],
-        },
-      );
-
-      setUp(() async {
-        await setUpTestDatabase();
-
-        // Persist a real diver row: UddfEntityImporter writes dives with a
-        // diverId FK, so the diver must actually exist in the in-memory DB
-        // (not just be stubbed via provider override) or the insert fails
-        // FK validation.
-        testDiver = await DiverRepository().createDiver(
-          Diver(
-            id: 'diver-1',
-            name: 'Test Diver',
-            createdAt: DateTime.utc(2025, 1, 1),
-            updatedAt: DateTime.utc(2025, 1, 1),
-          ),
-        );
-
-        mockConsolidationService = MockDiveConsolidationService();
-        when(
-          mockConsolidationService.apply(
-            targetDiveId: anyNamed('targetDiveId'),
-            secondaryDiveIds: anyNamed('secondaryDiveIds'),
-          ),
-        ).thenAnswer(
-          (invocation) async => DiveConsolidationOutcome(
-            targetDiveId: invocation.namedArguments[#targetDiveId] as String,
-            snapshot: _emptyMergeSnapshot,
-          ),
-        );
-
-        SharedPreferences.setMockInitialValues({});
-        final importPrefs = await SharedPreferences.getInstance();
-
-        importContainer = ProviderContainer(
-          overrides: [
-            sharedPreferencesProvider.overrideWithValue(importPrefs),
-            diveConsolidationServiceProvider.overrideWithValue(
-              mockConsolidationService,
-            ),
-            currentDiverProvider.overrideWith((ref) async => testDiver),
-          ],
-        );
-        importNotifier = importContainer.read(
-          universalImportNotifierProvider.notifier,
-        );
-      });
-
-      tearDown(() async {
-        importContainer.dispose();
-        await tearDownTestDatabase();
-      });
-
-      test('consolidate-marked index reaches performConsolidations and is '
-          'folded into its matched dive, while the plain-selected index is '
-          'never passed to the consolidation service', () async {
-        importNotifier.state = importNotifier.state.copyWith(
-          payload: buildTwoDivePayload(),
-          selections: {
-            ImportEntityType.dives: {0, 1},
-          },
-          diveResolutions: {1: DiveDuplicateResolution.consolidate},
-          duplicateResult: const ImportDuplicateResult(
-            diveMatches: {
-              1: DiveMatchResult(
-                diveId: 'existing-dive-1',
-                score: 0.9,
-                timeDifferenceMs: 100,
-              ),
-            },
-          ),
-        );
-
-        await importNotifier.performImport();
-
-        expect(importNotifier.state.error, isNull);
-        // Both dives were imported as standalone dives (index 0 stays
-        // standalone, index 1 was also imported before being folded).
-        expect(importNotifier.state.importCounts[ImportEntityType.dives], 2);
-
-        // Only the consolidate-flagged index (1) should have reached
-        // DiveConsolidationService.apply -- exactly once, targeting the
-        // dive it matched against.
-        final captured = verify(
-          mockConsolidationService.apply(
-            targetDiveId: captureAnyNamed('targetDiveId'),
-            secondaryDiveIds: captureAnyNamed('secondaryDiveIds'),
-          ),
-        ).captured;
-        expect(captured, hasLength(2));
-        expect(captured[0], 'existing-dive-1');
-        expect(captured[1], hasLength(1));
-      });
-
-      test('a failed consolidation produces the failed-consolidation '
-          'ImportWarning with the exact expected wording', () async {
-        when(
-          mockConsolidationService.apply(
-            targetDiveId: anyNamed('targetDiveId'),
-            secondaryDiveIds: anyNamed('secondaryDiveIds'),
-          ),
-        ).thenThrow(ArgumentError('targetDiveId not in selection'));
-
-        importNotifier.state = importNotifier.state.copyWith(
-          payload: buildTwoDivePayload(),
-          selections: {
-            ImportEntityType.dives: {0, 1},
-          },
-          diveResolutions: {1: DiveDuplicateResolution.consolidate},
-          duplicateResult: const ImportDuplicateResult(
-            diveMatches: {
-              1: DiveMatchResult(
-                diveId: 'existing-dive-1',
-                score: 0.9,
-                timeDifferenceMs: 100,
-              ),
-            },
-          ),
-        );
-
-        await importNotifier.performImport();
-
-        // The consolidation failure must not surface as a hard error --
-        // it's compensated (standalone dive deleted) and reported as a
-        // warning attached to the payload instead.
-        expect(importNotifier.state.error, isNull);
-        expect(importNotifier.state.payload, isNotNull);
-        expect(
-          importNotifier.state.payload!.warnings,
-          contains(
-            const ImportWarning(
-              severity: ImportWarningSeverity.error,
-              message:
-                  '1 dive(s) could not be consolidated into their matched '
-                  'dive; the partial imports were removed again to avoid '
-                  'duplicates.',
-              entityType: ImportEntityType.dives,
-            ),
-          ),
-        );
-      });
-
-      test(
-        'zero consolidation failures produce no consolidation warning',
-        () async {
-          final inputPayload = buildTwoDivePayload();
-          importNotifier.state = importNotifier.state.copyWith(
-            payload: inputPayload,
-            selections: {
-              ImportEntityType.dives: {0, 1},
-            },
-            diveResolutions: {1: DiveDuplicateResolution.consolidate},
-            duplicateResult: const ImportDuplicateResult(
-              diveMatches: {
-                1: DiveMatchResult(
-                  diveId: 'existing-dive-1',
-                  score: 0.9,
-                  timeDifferenceMs: 100,
-                ),
-              },
-            ),
-          );
-
-          await importNotifier.performImport();
-
-          expect(importNotifier.state.error, isNull);
-          verify(
-            mockConsolidationService.apply(
-              targetDiveId: anyNamed('targetDiveId'),
-              secondaryDiveIds: anyNamed('secondaryDiveIds'),
-            ),
-          ).called(1);
-          // When there are no consolidation failures, performImport passes
-          // `payload: null` to copyWith without the `clearPayload` sentinel,
-          // which copyWith's `clearPayload ? null : (payload ?? this.payload)`
-          // treats as "leave unchanged" -- so the payload is left exactly as
-          // it was before the import ran, with no consolidation warning
-          // appended.
-          expect(importNotifier.state.payload, inputPayload);
-          expect(importNotifier.state.payload!.warnings, isEmpty);
         },
       );
     });

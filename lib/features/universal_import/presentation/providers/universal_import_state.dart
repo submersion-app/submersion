@@ -49,7 +49,6 @@ class UniversalImportState {
     this.payload,
     this.duplicateResult,
     this.selections = const {},
-    this.diveResolutions = const {},
     this.importCounts = const {},
     this.importPhase = '',
     this.importCurrent = 0,
@@ -103,12 +102,6 @@ class UniversalImportState {
   /// Selected indices per entity type.
   final Map<ImportEntityType, Set<int>> selections;
 
-  /// Per-dive duplicate resolution choices (keyed by dive index).
-  ///
-  /// Only present for dives that were flagged as potential duplicates.
-  /// Absent entries default to [DiveDuplicateResolution.skip].
-  final Map<int, DiveDuplicateResolution> diveResolutions;
-
   /// Import result counts per entity type.
   final Map<ImportEntityType, int> importCounts;
 
@@ -142,7 +135,6 @@ class UniversalImportState {
     bool clearPayload = false,
     ImportDuplicateResult? duplicateResult,
     Map<ImportEntityType, Set<int>>? selections,
-    Map<int, DiveDuplicateResolution>? diveResolutions,
     Map<ImportEntityType, int>? importCounts,
     String? importPhase,
     int? importCurrent,
@@ -188,7 +180,6 @@ class UniversalImportState {
       payload: clearPayload ? null : (payload ?? this.payload),
       duplicateResult: duplicateResult ?? this.duplicateResult,
       selections: selections ?? this.selections,
-      diveResolutions: diveResolutions ?? this.diveResolutions,
       importCounts: importCounts ?? this.importCounts,
       importPhase: importPhase ?? this.importPhase,
       importCurrent: importCurrent ?? this.importCurrent,

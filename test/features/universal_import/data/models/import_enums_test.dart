@@ -2,27 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 
 void main() {
-  group('DiveDuplicateResolution', () {
-    test('has three values', () {
-      expect(DiveDuplicateResolution.values, hasLength(3));
-    });
-
-    test('skip displayName', () {
-      expect(DiveDuplicateResolution.skip.displayName, 'Skip');
-    });
-
-    test('importAsNew displayName', () {
-      expect(DiveDuplicateResolution.importAsNew.displayName, 'Import as New');
-    });
-
-    test('consolidate displayName', () {
-      expect(
-        DiveDuplicateResolution.consolidate.displayName,
-        'Consolidate as additional computer',
-      );
-    });
-  });
-
   group('ImportFormat', () {
     test('has all expected values', () {
       expect(ImportFormat.values, hasLength(14));
