@@ -3434,16 +3434,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_detail_section_oxygenToxicity => '氧中毒';
 
   @override
-  String get diveLog_detail_section_sacByCylinder => '按气瓶的气体消耗率';
-
-  @override
   String get diveLog_detail_section_sacRateBySegment => '按分段的气体消耗率';
 
   @override
   String get diveLog_detail_section_tags => '标签';
 
   @override
-  String get diveLog_detail_section_tanks => '气瓶';
+  String get diveLog_detail_section_cylinders => '气瓶';
 
   @override
   String get diveLog_detail_section_tide => '潮汐';
@@ -3484,17 +3481,6 @@ class AppLocalizationsZh extends AppLocalizations {
       locale: localeName,
       other: '个标签',
       one: '个标签',
-    );
-    return '$count $_temp0';
-  }
-
-  @override
-  String diveLog_detail_tankCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '个气瓶',
-      one: '个气瓶',
     );
     return '$count $_temp0';
   }
@@ -10406,7 +10392,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveDetailSection_sacSegments_name => '分段耗气率';
 
   @override
-  String get diveDetailSection_sacSegments_description => '阶段/时间分段、气瓶分解';
+  String get diveDetailSection_sacSegments_description => '按阶段/时间的SAC分段';
 
   @override
   String get diveDetailSection_details_name => '详情';

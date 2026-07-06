@@ -399,7 +399,7 @@ void main() {
       expect(DiveDetailSectionId.altitude.displayName, 'Altitude');
       expect(DiveDetailSectionId.tide.displayName, 'Tide');
       expect(DiveDetailSectionId.weights.displayName, 'Weights');
-      expect(DiveDetailSectionId.tanks.displayName, 'Tanks');
+      expect(DiveDetailSectionId.tanks.displayName, 'Cylinders');
       expect(DiveDetailSectionId.buddies.displayName, 'Buddies');
       expect(DiveDetailSectionId.signatures.displayName, 'Signatures');
       expect(DiveDetailSectionId.equipment.displayName, 'Equipment');
@@ -421,7 +421,7 @@ void main() {
       );
       expect(
         DiveDetailSectionId.sacSegments.description,
-        'Phase/time segmentation, cylinder breakdown',
+        'Phase/time SAC segmentation',
       );
       expect(
         DiveDetailSectionId.details.description,
@@ -445,7 +445,7 @@ void main() {
       );
       expect(
         DiveDetailSectionId.tanks.description,
-        'Tank list, gas mixes, pressures, per-tank SAC',
+        'Cylinder list, gas mixes, pressures, MOD/MND, per-tank SAC',
       );
       expect(DiveDetailSectionId.buddies.description, 'Buddy list with roles');
       expect(
@@ -532,7 +532,7 @@ void main() {
       );
       expect(DiveDetailSectionId.tide.localizedDisplayName(l10n), 'Tide');
       expect(DiveDetailSectionId.weights.localizedDisplayName(l10n), 'Weights');
-      expect(DiveDetailSectionId.tanks.localizedDisplayName(l10n), 'Tanks');
+      expect(DiveDetailSectionId.tanks.localizedDisplayName(l10n), 'Cylinders');
       expect(DiveDetailSectionId.buddies.localizedDisplayName(l10n), 'Buddies');
       expect(
         DiveDetailSectionId.signatures.localizedDisplayName(l10n),
@@ -566,7 +566,7 @@ void main() {
       );
       expect(
         DiveDetailSectionId.sacSegments.localizedDescription(l10n),
-        'Phase/time segmentation, cylinder breakdown',
+        'Phase/time SAC segmentation',
       );
       expect(
         DiveDetailSectionId.details.localizedDescription(l10n),
@@ -590,7 +590,7 @@ void main() {
       );
       expect(
         DiveDetailSectionId.tanks.localizedDescription(l10n),
-        'Tank list, gas mixes, pressures, per-tank SAC',
+        'Cylinder list, gas mixes, pressures, MOD/MND, per-tank SAC',
       );
       expect(
         DiveDetailSectionId.buddies.localizedDescription(l10n),

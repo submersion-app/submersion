@@ -568,7 +568,7 @@ class _ChartOptionsDialog extends StatelessWidget {
           _buildSection(
             context,
             key: 'tanks',
-            title: context.l10n.diveLog_detail_section_tanks,
+            title: context.l10n.diveLog_detail_section_cylinders,
             legendState: legendState,
             legendNotifier: legendNotifier,
             children: tankItems,

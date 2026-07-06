@@ -6050,12 +6050,6 @@ abstract class AppLocalizations {
   /// **'Oxygen Toxicity'**
   String get diveLog_detail_section_oxygenToxicity;
 
-  /// No description provided for @diveLog_detail_section_sacByCylinder.
-  ///
-  /// In en, this message translates to:
-  /// **'SAC by Cylinder'**
-  String get diveLog_detail_section_sacByCylinder;
-
   /// No description provided for @diveLog_detail_section_sacRateBySegment.
   ///
   /// In en, this message translates to:
@@ -6068,11 +6062,11 @@ abstract class AppLocalizations {
   /// **'Tags'**
   String get diveLog_detail_section_tags;
 
-  /// No description provided for @diveLog_detail_section_tanks.
+  /// No description provided for @diveLog_detail_section_cylinders.
   ///
   /// In en, this message translates to:
-  /// **'Tanks'**
-  String get diveLog_detail_section_tanks;
+  /// **'Cylinders'**
+  String get diveLog_detail_section_cylinders;
 
   /// No description provided for @diveLog_detail_section_tide.
   ///
@@ -6139,12 +6133,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} {count, plural, =1{tag} other{tags}}'**
   String diveLog_detail_tagCount(int count);
-
-  /// No description provided for @diveLog_detail_tankCount.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} {count, plural, =1{tank} other{tanks}}'**
-  String diveLog_detail_tankCount(int count);
 
   /// No description provided for @diveLog_detail_tideCalculated.
   ///
@@ -18533,7 +18521,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveDetailSection_sacSegments_description.
   ///
   /// In en, this message translates to:
-  /// **'Phase/time segmentation, cylinder breakdown'**
+  /// **'Phase/time SAC segmentation'**
   String get diveDetailSection_sacSegments_description;
 
   /// No description provided for @diveDetailSection_details_name.
@@ -18671,13 +18659,13 @@ abstract class AppLocalizations {
   /// No description provided for @diveDetailSection_tanks_name.
   ///
   /// In en, this message translates to:
-  /// **'Tanks'**
+  /// **'Cylinders'**
   String get diveDetailSection_tanks_name;
 
   /// No description provided for @diveDetailSection_tanks_description.
   ///
   /// In en, this message translates to:
-  /// **'Tank list, gas mixes, pressures, per-tank SAC'**
+  /// **'Cylinder list, gas mixes, pressures, MOD/MND, per-tank SAC'**
   String get diveDetailSection_tanks_description;
 
   /// No description provided for @diveDetailSection_buddies_name.

@@ -1896,10 +1896,9 @@
   "diveLog_detail_section_marineLife": "Marine Life",
   "diveLog_detail_section_notes": "Notes",
   "diveLog_detail_section_oxygenToxicity": "Oxygen Toxicity",
-  "diveLog_detail_section_sacByCylinder": "SAC by Cylinder",
   "diveLog_detail_section_sacRateBySegment": "SAC Rate by Segment",
   "diveLog_detail_section_tags": "Tags",
-  "diveLog_detail_section_tanks": "Tanks",
+  "diveLog_detail_section_cylinders": "Cylinders",
   "diveLog_detail_section_tide": "Tide",
   "diveLog_detail_section_trainingSignature": "Training Signature",
   "diveLog_detail_section_weight": "Weight",
@@ -1911,7 +1910,6 @@
   "diveLog_detail_stat_runtime": "Runtime",
   "diveLog_detail_stat_waterTemp": "Water Temp",
   "diveLog_detail_tagCount": "{count} {count, plural, =1{tag} other{tags}}",
-  "diveLog_detail_tankCount": "{count} {count, plural, =1{tank} other{tanks}}",
   "diveLog_detail_tideCalculated": "Calculated from tide model",
   "diveLog_detail_tooltip_addToFavorites": "Add to favorites",
   "diveLog_detail_tooltip_edit": "Edit",
@@ -2777,13 +2775,6 @@
     }
   },
   "@diveLog_detail_tagCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@diveLog_detail_tankCount": {
     "placeholders": {
       "count": {
         "type": "int"
@@ -5886,7 +5877,7 @@
   "diveDetailSection_decoO2_name": "Deco Status / Tissue Loading",
   "diveDetailSection_decoO2_description": "NDL, ceiling, tissue heat map, O2 toxicity",
   "diveDetailSection_sacSegments_name": "SAC Rate by Segment",
-  "diveDetailSection_sacSegments_description": "Phase/time segmentation, cylinder breakdown",
+  "diveDetailSection_sacSegments_description": "Phase/time SAC segmentation",
   "diveDetailSection_details_name": "Details",
   "diveDetailSection_details_description": "Type, location, trip, dive center, interval",
   "diveDetailSection_environment_name": "Environment",
@@ -5909,8 +5900,8 @@
   "diveLog_detail_openInMaps": "Open in Maps",
   "diveDetailSection_weights_name": "Weights",
   "diveDetailSection_weights_description": "Weight breakdown, total weight",
-  "diveDetailSection_tanks_name": "Tanks",
-  "diveDetailSection_tanks_description": "Tank list, gas mixes, pressures, per-tank SAC",
+  "diveDetailSection_tanks_name": "Cylinders",
+  "diveDetailSection_tanks_description": "Cylinder list, gas mixes, pressures, MOD/MND, per-tank SAC",
   "diveDetailSection_buddies_name": "Buddies",
   "diveDetailSection_buddies_description": "Buddy list with roles",
   "diveDetailSection_signatures_name": "Signatures",
