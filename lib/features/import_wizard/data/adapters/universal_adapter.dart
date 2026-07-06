@@ -42,6 +42,8 @@ import 'package:submersion/features/universal_import/data/models/import_enums.da
     as ui;
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/services/import_duplicate_checker.dart';
+import 'package:submersion/features/universal_import/presentation/providers/import_consolidation_service.dart'
+    show performConsolidations;
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 import 'package:submersion/features/universal_import/presentation/widgets/field_mapping_step.dart';
 import 'package:submersion/features/universal_import/presentation/widgets/file_selection_step.dart';
@@ -140,6 +142,9 @@ class UniversalAdapter implements ImportSourceAdapter {
   Set<DuplicateAction> get supportedDuplicateActions => const {
     DuplicateAction.skip,
     DuplicateAction.importAsNew,
+    // File imports offer MANUAL consolidation only (no auto-consolidate: a
+    // file has no single "current computer" to prove a cross-computer match).
+    DuplicateAction.consolidate,
   };
 
   @override
@@ -468,11 +473,60 @@ class UniversalAdapter implements ImportSourceAdapter {
       cancelToken: cancelToken,
     );
 
+    // Fold consolidate-flagged dives (imported as standalone above) into their
+    // matched existing dive. These indices come only from an explicit user
+    // choice in the review step, and each has a match result (the UI offers
+    // Consolidate only on matches).
+    final diveActions =
+        duplicateActions[wizard.ImportEntityType.dives] ?? const {};
+    final consolidateIndices = <int>{
+      for (final entry in diveActions.entries)
+        if (entry.value == DuplicateAction.consolidate) entry.key,
+    };
+
+    var consolidated = 0;
+    var removedDiveIds = const <String>{};
+    if (consolidateIndices.isNotEmpty) {
+      final matchResults =
+          bundle.groups[wizard.ImportEntityType.dives]?.matchResults ??
+          const <int, DiveMatchResult>{};
+      final summary = await performConsolidations(
+        indices: consolidateIndices,
+        diveIdByIndex: result.diveIdByIndex,
+        duplicateResult: ImportDuplicateResult(diveMatches: matchResults),
+        consolidationService: _ref.read(diveConsolidationServiceProvider),
+        diveRepository: repos.diveRepository,
+      );
+      consolidated = summary.consolidated;
+      removedDiveIds = summary.removedDiveIds;
+    }
+
+    // `importer.import` counted folded/removed dives as imported; subtract only
+    // the dives that were ACTUALLY removed (folded, or compensating-deleted).
+    // A dive whose fold AND cleanup both failed is still standalone in the DB,
+    // so it stays counted as imported rather than being hidden.
+    final counts = _convertImportCounts(result);
+    final netDives = result.dives - removedDiveIds.length;
+    if (netDives > 0) {
+      counts[wizard.ImportEntityType.dives] = netDives;
+    } else {
+      counts.remove(wizard.ImportEntityType.dives);
+    }
+
+    final netImportedDiveIds = [
+      for (final id in result.diveIds)
+        if (!removedDiveIds.contains(id)) id,
+    ];
+
+    // Removed-but-not-folded dives were consolidation attempts that failed and
+    // were cleaned up; report them as skipped (as the download adapter does).
+    final cleanedUpFailures = removedDiveIds.length - consolidated;
+
     return UnifiedImportResult(
-      importedCounts: _convertImportCounts(result),
-      consolidatedCount: 0,
-      skippedCount: skipped,
-      importedDiveIds: result.diveIds,
+      importedCounts: counts,
+      consolidatedCount: consolidated,
+      skippedCount: skipped + cleanedUpFailures,
+      importedDiveIds: netImportedDiveIds,
     );
   }
 
@@ -713,7 +767,10 @@ class UniversalAdapter implements ImportSourceAdapter {
     }
 
     for (final entry in actions.entries) {
-      if (entry.value == DuplicateAction.importAsNew) {
+      // Consolidate-flagged items are imported as standalone dives first (like
+      // importAsNew); performImport folds them into their match afterwards.
+      if (entry.value == DuplicateAction.importAsNew ||
+          entry.value == DuplicateAction.consolidate) {
         resolved.add(entry.key);
       }
     }

@@ -23,7 +23,10 @@ import 'package:submersion/features/dive_centers/data/repositories/dive_center_r
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_import/data/services/uddf_entity_importer.dart';
+import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
+import 'package:submersion/features/dive_log/data/services/dive_merge_snapshot.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -80,6 +83,7 @@ import 'package:submersion/features/universal_import/presentation/providers/univ
   MockSpec<CourseRepository>(),
   MockSpec<TankPresetRepository>(),
   MockSpec<UddfEntityImporter>(),
+  MockSpec<DiveConsolidationService>(),
 ])
 import 'universal_adapter_test.mocks.dart';
 
@@ -90,6 +94,30 @@ typedef Override = riverpod.Override;
 // ---------------------------------------------------------------------------
 
 final _now = DateTime.now();
+
+/// Minimal snapshot for a stubbed [DiveConsolidationService.apply]. The fold
+/// is exercised for real by dive_consolidation_service_test and the download
+/// adapter's consolidate integration test; here we only assert the adapter's
+/// wiring (that it delegates to apply and adjusts its counts).
+const _emptySnapshot = DiveMergeSnapshot(
+  mergedDiveId: 'target-dive',
+  diveRows: [],
+  profileRows: [],
+  tankRows: [],
+  weightRows: [],
+  customFieldRows: [],
+  equipmentRows: [],
+  diveTypeRows: [],
+  tagRows: [],
+  buddyRows: [],
+  sightingRows: [],
+  eventRows: [],
+  gasSwitchRows: [],
+  tankPressureRows: [],
+  dataSourceRows: [],
+  tideRows: [],
+  mediaDiveIds: {},
+);
 
 Diver _testDiver() =>
     Diver(id: 'diver-1', name: 'Test Diver', createdAt: _now, updatedAt: _now);
@@ -319,20 +347,19 @@ void main() {
       );
     });
 
-    testWidgets('supportedDuplicateActions contains skip and importAsNew', (
-      tester,
-    ) async {
+    testWidgets('supportedDuplicateActions includes skip, importAsNew, and '
+        'consolidate', (tester) async {
       await _runWithAdapter(
         tester,
         overrides: _buildBundleOverrides(),
         callback: (adapter) async {
           expect(
             adapter.supportedDuplicateActions,
-            containsAll([DuplicateAction.skip, DuplicateAction.importAsNew]),
-          );
-          expect(
-            adapter.supportedDuplicateActions,
-            isNot(contains(DuplicateAction.consolidate)),
+            containsAll([
+              DuplicateAction.skip,
+              DuplicateAction.importAsNew,
+              DuplicateAction.consolidate,
+            ]),
           );
         },
       );
@@ -419,6 +446,172 @@ void main() {
           expect(
             adapter.defaultTagName,
             matches(RegExp(r'^dive_log\.csv Import \d{4}-\d{2}-\d{2}$')),
+          );
+        },
+      );
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // performImport -- consolidate
+  // -------------------------------------------------------------------------
+
+  group('performImport() - consolidate', () {
+    testWidgets('folds a consolidate-flagged dive into its matched dive and '
+        'reports it as consolidated, not imported', (tester) async {
+      final mockConsolidation = MockDiveConsolidationService();
+      when(
+        mockConsolidation.apply(
+          targetDiveId: anyNamed('targetDiveId'),
+          secondaryDiveIds: anyNamed('secondaryDiveIds'),
+        ),
+      ).thenAnswer(
+        (invocation) async => DiveConsolidationOutcome(
+          targetDiveId: invocation.namedArguments[#targetDiveId] as String,
+          snapshot: _emptySnapshot,
+        ),
+      );
+
+      final payload = ImportPayload(
+        entities: {
+          ui.ImportEntityType.dives: [
+            {
+              'dateTime': DateTime(2026, 7, 1, 9, 0),
+              'maxDepth': 24.5,
+              'runtime': const Duration(minutes: 40),
+            },
+          ],
+        },
+      );
+
+      await _runWithAdapter(
+        tester,
+        overrides: [
+          ..._fullOverrides(payload: payload, diver: _testDiver()),
+          diveConsolidationServiceProvider.overrideWithValue(mockConsolidation),
+        ],
+        callback: (adapter) async {
+          final base = await adapter.buildBundle();
+          // Flag the single incoming dive as a duplicate of an existing dive
+          // and mark it for consolidation, mirroring what the review step
+          // hands to performImport.
+          final bundle = ImportBundle(
+            source: base.source,
+            groups: {
+              wizard.ImportEntityType.dives: EntityGroup(
+                items: base.groups[wizard.ImportEntityType.dives]!.items,
+                duplicateIndices: const {0},
+                matchResults: const {
+                  0: DiveMatchResult(
+                    diveId: 'target-dive',
+                    score: 0.9,
+                    timeDifferenceMs: 0,
+                  ),
+                },
+              ),
+            },
+          );
+
+          final result = await adapter.performImport(
+            bundle,
+            {
+              wizard.ImportEntityType.dives: {0},
+            },
+            {
+              wizard.ImportEntityType.dives: {0: DuplicateAction.consolidate},
+            },
+          );
+
+          expect(result.consolidatedCount, equals(1));
+          // The folded dive was imported as a standalone then tombstoned by the
+          // fold, so it must NOT also be counted as a new imported dive.
+          expect(
+            result.importedCounts[wizard.ImportEntityType.dives] ?? 0,
+            equals(0),
+          );
+          verify(
+            mockConsolidation.apply(
+              targetDiveId: 'target-dive',
+              secondaryDiveIds: anyNamed('secondaryDiveIds'),
+            ),
+          ).called(1);
+        },
+      );
+    });
+
+    testWidgets('reports a stranded dive as imported when both the fold and '
+        'its cleanup fail (does not hide it)', (tester) async {
+      final mockConsolidation = MockDiveConsolidationService();
+      when(
+        mockConsolidation.apply(
+          targetDiveId: anyNamed('targetDiveId'),
+          secondaryDiveIds: anyNamed('secondaryDiveIds'),
+        ),
+      ).thenThrow(ArgumentError('fold failed'));
+
+      // The compensating delete also fails, so the standalone dive cannot be
+      // removed and is left stranded in the DB.
+      final mockDiveRepo = MockDiveRepository();
+      when(mockDiveRepo.bulkDeleteDives(any)).thenThrow(Exception('delete'));
+
+      final payload = ImportPayload(
+        entities: {
+          ui.ImportEntityType.dives: [
+            {
+              'dateTime': DateTime(2026, 7, 1, 9, 0),
+              'maxDepth': 24.5,
+              'runtime': const Duration(minutes: 40),
+            },
+          ],
+        },
+      );
+
+      await _runWithAdapter(
+        tester,
+        overrides: [
+          ..._fullOverrides(
+            payload: payload,
+            diver: _testDiver(),
+            mockDiveRepo: mockDiveRepo,
+          ),
+          diveConsolidationServiceProvider.overrideWithValue(mockConsolidation),
+        ],
+        callback: (adapter) async {
+          final base = await adapter.buildBundle();
+          final bundle = ImportBundle(
+            source: base.source,
+            groups: {
+              wizard.ImportEntityType.dives: EntityGroup(
+                items: base.groups[wizard.ImportEntityType.dives]!.items,
+                duplicateIndices: const {0},
+                matchResults: const {
+                  0: DiveMatchResult(
+                    diveId: 'target-dive',
+                    score: 0.9,
+                    timeDifferenceMs: 0,
+                  ),
+                },
+              ),
+            },
+          );
+
+          final result = await adapter.performImport(
+            bundle,
+            {
+              wizard.ImportEntityType.dives: {0},
+            },
+            {
+              wizard.ImportEntityType.dives: {0: DuplicateAction.consolidate},
+            },
+          );
+
+          // The fold failed AND the standalone could not be deleted, so the
+          // dive is still present -- it must be reported as imported, not
+          // silently hidden.
+          expect(result.consolidatedCount, equals(0));
+          expect(
+            result.importedCounts[wizard.ImportEntityType.dives] ?? 0,
+            equals(1),
           );
         },
       );

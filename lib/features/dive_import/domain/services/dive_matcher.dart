@@ -23,6 +23,14 @@ class DiveMatcher {
     required int existingDurationSeconds,
   }) {
     final timeScore = _calculateTimeScore(wearableStartTime, existingStartTime);
+
+    // Time is a NECESSARY condition, not just a weighted term.
+    // `_calculateTimeScore` is 0.0 once the two starts are >= 15 min apart;
+    // with no time evidence, a depth + duration coincidence (0.30 + 0.20 =
+    // 0.50) must not be able to reach the possible-duplicate threshold. Two
+    // recordings that do not line up in time cannot be the same physical dive.
+    if (timeScore <= 0) return 0.0;
+
     final depthScore = _calculateDepthScore(wearableMaxDepth, existingMaxDepth);
     final durationScore = _calculateDurationScore(
       wearableDurationSeconds,

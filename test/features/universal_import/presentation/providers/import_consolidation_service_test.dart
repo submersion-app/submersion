@@ -168,6 +168,7 @@ void main() {
 
       expect(summary.consolidated, 1);
       expect(summary.failed, 0);
+      expect(summary.removedDiveIds, {'new-dive-1'});
       verify(
         mockConsolidationService.apply(
           targetDiveId: 'existing-dive-1',
@@ -199,6 +200,7 @@ void main() {
       );
 
       expect(summary.consolidated, 2);
+      expect(summary.removedDiveIds, {'new-dive-0', 'new-dive-1'});
       verify(
         mockConsolidationService.apply(
           targetDiveId: 'existing-dive-a',
@@ -232,6 +234,7 @@ void main() {
       );
 
       expect(summary.consolidated, 1);
+      expect(summary.removedDiveIds, {'new-dive-0'});
       verify(
         mockConsolidationService.apply(
           targetDiveId: 'existing-dive-a',
@@ -284,6 +287,8 @@ void main() {
       // the exception from index 0 must not abort the loop.
       expect(summary.consolidated, 1);
       expect(summary.failed, 1);
+      // Both are gone: new-dive-0 was compensating-deleted, new-dive-1 folded.
+      expect(summary.removedDiveIds, {'new-dive-0', 'new-dive-1'});
       verify(mockDiveRepository.bulkDeleteDives(['new-dive-0'])).called(1);
       verifyNever(mockDiveRepository.bulkDeleteDives(['new-dive-1']));
       verify(
@@ -334,6 +339,11 @@ void main() {
         // still gets processed and succeeds.
         expect(summary.consolidated, 1);
         expect(summary.failed, 1);
+        // new-dive-0's fold AND its compensating delete both failed, so it is
+        // still standalone -- it must NOT be reported as removed, which is what
+        // keeps the caller from hiding a stranded duplicate from the summary.
+        expect(summary.removedDiveIds, {'new-dive-1'});
+        expect(summary.removedDiveIds, isNot(contains('new-dive-0')));
         verify(mockDiveRepository.bulkDeleteDives(['new-dive-0'])).called(1);
         verify(
           mockConsolidationService.apply(
