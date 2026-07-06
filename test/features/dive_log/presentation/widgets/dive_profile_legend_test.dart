@@ -30,6 +30,46 @@ const _testTanks = [
 ];
 
 void main() {
+  group('DiveProfileLegend - estimated tank pressure', () {
+    testWidgets('estimated tank row shows the (est.) suffix', (tester) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: DiveProfileLegend(
+            config: const ProfileLegendConfig(
+              hasMultiTankPressure: true,
+              tanks: _testTanks,
+              tankPressures: {
+                'tank-1': [
+                  TankPressurePoint(
+                    id: 'e0',
+                    tankId: 'tank-1',
+                    timestamp: 0,
+                    pressure: 200,
+                  ),
+                ],
+              },
+              estimatedTankIds: {'tank-1'},
+            ),
+            zoomLevel: 1.0,
+            onZoomIn: () {},
+            onZoomOut: () {},
+            onResetZoom: () {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Tank Pressures lives in the "more options" (tune) dialog.
+      await tester.tap(find.byIcon(Icons.tune), warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('(est.)'), findsWidgets);
+    });
+  });
+
   group('DiveProfileLegend - primary toggles', () {
     testWidgets('shows Events toggle when hasEvents is true', (tester) async {
       await tester.pumpWidget(

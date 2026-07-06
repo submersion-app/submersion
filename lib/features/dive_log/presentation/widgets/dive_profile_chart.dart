@@ -1493,6 +1493,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               widget.diveDurationSeconds! > 0),
       tanks: widget.tanks,
       tankPressures: widget.tankPressures,
+      estimatedTankIds: widget.estimatedTankIds ?? const {},
       hasNdlData: hasNdlData,
       hasPpO2Data: hasPpO2Data,
       hasPpN2Data: hasPpN2Data,

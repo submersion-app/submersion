@@ -27,6 +27,10 @@ class ProfileLegendConfig {
   final List<DiveTank>? tanks;
   final Map<String, List<TankPressurePoint>>? tankPressures;
 
+  /// Tank IDs whose pressure series is a synthesized linear estimate (#197),
+  /// labelled with a "(est.)" suffix in the Tank Pressures section.
+  final Set<String> estimatedTankIds;
+
   // Advanced decompression/gas data availability
   final bool hasNdlData;
   final bool hasPpO2Data;
@@ -56,6 +60,7 @@ class ProfileLegendConfig {
     this.hasGasData = false,
     this.tanks,
     this.tankPressures,
+    this.estimatedTankIds = const {},
     this.hasNdlData = false,
     this.hasPpO2Data = false,
     this.hasPpN2Data = false,
@@ -587,9 +592,12 @@ class _ChartOptionsDialog extends StatelessWidget {
         final color = tank != null
             ? GasColors.forGasMix(tank.gasMix)
             : _getTankColor(i);
-        final label = tank != null
+        final baseLabel = tank != null
             ? _buildTankLabel(context, tank, fallbackIndex: i + 1)
             : context.l10n.diveLog_tank_title(i + 1);
+        final label = config.estimatedTankIds.contains(tankId)
+            ? '$baseLabel ${context.l10n.diveLog_pressure_estimatedSuffix}'
+            : baseLabel;
 
         tankItems.add(
           _buildToggleItem(
