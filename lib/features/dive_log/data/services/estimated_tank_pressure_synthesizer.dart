@@ -84,17 +84,17 @@ List<TankPressurePoint> _buildFlatDropFlat({
   }
   for (var i = 0; i < sorted.length; i++) {
     final w = sorted[i];
+    final isLast = i == sorted.length - 1;
     pressure -= dropRate * (w.end - w.start);
-    points.add(_pt(tankId, w.end, pressure));
-    if (i + 1 < sorted.length && sorted[i + 1].start > w.end) {
+    // Clamp the final window-end vertex to endPressure so accumulated float
+    // drift never leaves the drop (or the flat tail) slightly sloped.
+    points.add(_pt(tankId, w.end, isLast ? endPressure : pressure));
+    if (!isLast && sorted[i + 1].start > w.end) {
       points.add(_pt(tankId, sorted[i + 1].start, pressure));
     }
   }
   if (sorted.last.end < diveDurationSeconds) {
     points.add(_pt(tankId, diveDurationSeconds, endPressure));
-  } else {
-    // Clamp the final vertex to endPressure to absorb floating-point drift.
-    points[points.length - 1] = _pt(tankId, sorted.last.end, endPressure);
   }
   return points;
 }

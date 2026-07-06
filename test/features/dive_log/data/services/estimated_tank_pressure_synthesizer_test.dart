@@ -131,6 +131,32 @@ void main() {
       }
     });
 
+    test('trailing flat is perfectly flat despite float drift', () {
+      // deco: 210 -> 100 over a single 300s window ([700,1000]) on a 1400s dive.
+      // 210 - (110/300)*300 == 100.00000000000001 in IEEE-754, so the computed
+      // window-end vertex lands one ULP off 100; the tail after last use must be
+      // clamped to endPressure so it stays perfectly flat. (Verified drifting
+      // parameters, not a hypothetical.)
+      final result = synthesizeEstimatedTankPressures(
+        existing: const {},
+        tanks: [
+          _tank(id: 'back', start: 220, end: 120),
+          _tank(id: 'deco', start: 210, end: 100, order: 1),
+        ],
+        gasSwitches: [
+          _switch(tankId: 'deco', timestamp: 700),
+          _switch(tankId: 'back', timestamp: 1000),
+        ],
+        diveDurationSeconds: 1400,
+      );
+      final deco = result.pressures['deco']!;
+      final atLastUse = deco.firstWhere((p) => p.timestamp == 1000);
+      final atDiveEnd = deco.firstWhere((p) => p.timestamp == 1400);
+      // Both vertices are exactly endPressure -> the tail is perfectly flat.
+      expect(atLastUse.pressure, 100.0);
+      expect(atDiveEnd.pressure, 100.0);
+    });
+
     test('no profile duration -> nothing synthesized', () {
       final result = synthesizeEstimatedTankPressures(
         existing: const {},
