@@ -68,6 +68,8 @@ dependencies:
     path: packages/libdivecomputer_plugin
   submersion_saf:
     path: packages/submersion_saf
+  submersion_ocr:
+    path: packages/submersion_ocr
   permission_handler: ^12.0.1
   file_picker: ^11.0.2
   image_picker: ^1.1.2

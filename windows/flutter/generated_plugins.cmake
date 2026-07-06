@@ -15,6 +15,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   printing
   share_plus
   sqlite3_flutter_libs
+  submersion_ocr
   url_launcher_windows
 )
 
