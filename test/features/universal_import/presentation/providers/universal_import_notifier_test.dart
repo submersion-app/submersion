@@ -1012,6 +1012,9 @@ void main() {
             const ImportOptions(
               sourceApp: SourceApp.suunto,
               format: ImportFormat.uddf,
+              // fileName is threaded from the picked file (#507); the batch
+              // model exposes it via the derived state.fileName getter.
+              fileName: 'test-file',
             ),
           );
         },

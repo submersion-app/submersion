@@ -4546,6 +4546,31 @@ class AppLocalizationsAr extends AppLocalizations {
       'استيراد من حاسوب الغوص';
 
   @override
+  String get diveLog_listPage_bottomSheet_scanPaperLog =>
+      'مسح دفتر السجل الورقي';
+
+  @override
+  String get ocrImport_scanPage_processing => 'جارٍ قراءة الصفحة...';
+
+  @override
+  String get ocrImport_scanPage_pickPhoto => 'اختيار صورة';
+
+  @override
+  String get ocrImport_scanPage_takePhoto => 'التقاط صورة';
+
+  @override
+  String get ocrImport_scanPage_nothingRead =>
+      'تعذرت قراءة الكثير من هذه الصفحة - تُركت الحقول فارغة';
+
+  @override
+  String get ocrImport_scanPage_engineMissing =>
+      'التعرف على النص غير متوفر. ثبّت Tesseract لمسح السجلات الورقية (مثلاً: sudo apt install tesseract-ocr).';
+
+  @override
+  String get ocrImport_editPage_photoAttachFailed =>
+      'تم حفظ الغطسة، لكن فشل إرفاق الصفحة الممسوحة';
+
+  @override
   String get diveLog_listPage_bottomSheet_logManually => 'تسجيل غوصة يدويا';
 
   @override
@@ -10092,6 +10117,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get nav_equipment => 'المعدات';
+
+  @override
+  String get nav_gpsLog => 'سجل GPS';
 
   @override
   String get nav_home => 'الرئيسية';
@@ -15867,6 +15895,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveComputer_downloadStep_retry => 'إعادة المحاولة';
 
   @override
+  String diveComputer_downloadStep_importPartialCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'استيراد $count غطسات تم تنزيلها',
+      one: 'استيراد غطسة واحدة تم تنزيلها',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveComputer_download_cancel => 'إلغاء';
 
   @override
@@ -16757,6 +16796,103 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_rockBottom_yourSac => 'SAC الخاص بك';
 
   @override
+  String get gpsLogger_androidNotificationText => 'يجري تسجيل مسار السطح';
+
+  @override
+  String get gpsLogger_androidNotificationTitle => 'مسجّل GPS في Submersion';
+
+  @override
+  String get gpsLogger_deleteTrackMessage =>
+      'سيؤدي هذا إلى إزالة مسار GPS المسجّل. تبقى المواقع المسندة إلى الغطسات محفوظة.';
+
+  @override
+  String get gpsLogger_deleteTrackTitle => 'حذف المسار؟';
+
+  @override
+  String get gpsLogger_interruptedNotice =>
+      'توقف تسجيل سابق قبل اكتماله. تم حفظ المسار.';
+
+  @override
+  String gpsLogger_lastFix(String age, String accuracy) {
+    return 'آخر إشارة قبل $age ($accuracy)';
+  }
+
+  @override
+  String get gpsLogger_locationOff => 'خدمات الموقع متوقفة.';
+
+  @override
+  String get gpsLogger_matchButton => 'مطابقة الغطسات مع سجلات GPS';
+
+  @override
+  String gpsLogger_matchResult(int count) {
+    return 'تم تحديد موقع $count غطسة';
+  }
+
+  @override
+  String get gpsLogger_matchResultNone => 'لا توجد غطسات تطابق مسارًا مسجّلًا';
+
+  @override
+  String get gpsLogger_noFixYet => 'في انتظار إشارة GPS';
+
+  @override
+  String get gpsLogger_noTracks => 'لا توجد مسارات GPS مسجّلة بعد';
+
+  @override
+  String get gpsLogger_permissionDenied =>
+      'يلزم إذن الموقع لتسجيل مسار GPS. فعّله من إعدادات النظام.';
+
+  @override
+  String gpsLogger_recordingStatus(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count نقطة',
+      few: '$count نقاط',
+      two: 'نقطتان',
+      one: 'نقطة واحدة',
+    );
+    return 'جارٍ التسجيل - $_temp0';
+  }
+
+  @override
+  String get gpsLogger_reviewSites => 'مراجعة مطابقات مواقع الغطس';
+
+  @override
+  String get gpsLogger_startButton => 'بدء التسجيل';
+
+  @override
+  String get gpsLogger_stopButton => 'إيقاف التسجيل';
+
+  @override
+  String gpsLogger_stripStatus(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count نقطة',
+      few: '$count نقاط',
+      two: 'نقطتان',
+      one: 'نقطة واحدة',
+    );
+    return 'جارٍ تسجيل مسار GPS · $_temp0';
+  }
+
+  @override
+  String gpsLogger_trackSubtitle(num count, String duration) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count نقطة',
+      few: '$count نقاط',
+      two: 'نقطتان',
+      one: 'نقطة واحدة',
+    );
+    return '$_temp0، $duration';
+  }
+
+  @override
+  String get gpsLogger_tracksHeader => 'المسارات المسجّلة';
+
+  @override
   String get maps_heatMap_hide => 'إخفاء خريطة الحرارة';
 
   @override
@@ -17120,6 +17256,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get tools_gas_title => 'حاسبات الغاز';
+
+  @override
+  String get tools_gpsLogger_description =>
+      'سجّل موقعك خلال يوم الغطس وتتم مطابقة الغطسات المستوردة مع مواقع GPS تلقائيًا.';
+
+  @override
+  String get tools_gpsLogger_subtitle => 'تسجيل مسار السطح';
+
+  @override
+  String get tools_gpsLogger_title => 'مسجّل GPS';
 
   @override
   String get tools_title => 'الأدوات';
@@ -17852,4 +17998,26 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get db_location_external_note =>
       'تُحذف الملفات هنا عند إلغاء تثبيت التطبيق.';
+
+  @override
+  String diveLog_bulkEdit_membership_onAll(int count) {
+    return 'في كل الـ $count';
+  }
+
+  @override
+  String diveLog_bulkEdit_membership_onSome(int count, int total) {
+    return 'في $count من $total';
+  }
+
+  @override
+  String diveLog_bulkEdit_membership_adding(int total) {
+    return 'إضافة إلى كل الـ $total';
+  }
+
+  @override
+  String get diveLog_bulkEdit_membership_removing => 'إزالة من الكل';
+
+  @override
+  String get diveLog_bulkEdit_membership_empty =>
+      'لا توجد عناصر في الغطسات المحددة بعد';
 }

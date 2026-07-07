@@ -14,6 +14,7 @@ import 'package:submersion/features/dive_computer/data/services/parsed_dive_mapp
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/discovery_providers.dart';
+import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
 
 /// Provider for the dive computer repository.
 final diveComputerRepositoryProvider = Provider<DiveComputerRepository>((ref) {
@@ -27,6 +28,7 @@ final diveImportServiceProvider = Provider<DiveImportService>((ref) {
   return DiveImportService(
     repository: repository,
     diveRepository: diveRepository,
+    gpsTrackMatchService: ref.watch(gpsTrackMatchServiceProvider),
   );
 });
 

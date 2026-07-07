@@ -382,10 +382,22 @@ class ReparseService {
         gradientFactorHigh: Value(parsed.gfHigh),
         decoAlgorithm: Value(parsed.decoAlgorithm),
         decoConservatism: Value(parsed.decoConservatism),
-        entryLatitude: Value(parsed.entryLatitude),
-        entryLongitude: Value(parsed.entryLongitude),
-        exitLatitude: Value(parsed.exitLatitude),
-        exitLongitude: Value(parsed.exitLongitude),
+        // Only overwrite dive GPS when the computer actually parsed a fix.
+        // Value.absent() preserves positions stamped from other sources
+        // (GPS track logs, manual entry); the dive_data_sources row above
+        // still records exactly what the computer provided.
+        entryLatitude: parsed.entryLatitude != null
+            ? Value(parsed.entryLatitude)
+            : const Value.absent(),
+        entryLongitude: parsed.entryLongitude != null
+            ? Value(parsed.entryLongitude)
+            : const Value.absent(),
+        exitLatitude: parsed.exitLatitude != null
+            ? Value(parsed.exitLatitude)
+            : const Value.absent(),
+        exitLongitude: parsed.exitLongitude != null
+            ? Value(parsed.exitLongitude)
+            : const Value.absent(),
         updatedAt: Value(now.millisecondsSinceEpoch),
       ),
     );

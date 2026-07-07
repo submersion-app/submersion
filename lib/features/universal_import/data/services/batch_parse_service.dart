@@ -69,6 +69,9 @@ class BatchParseService {
         final options = ImportOptions(
           sourceApp: file.detection.sourceApp ?? SourceApp.generic,
           format: file.detection.format,
+          // Thread the source filename so parsers that derive data from it
+          // (e.g. FIT dive naming, #507) work for batch imports too.
+          fileName: file.name,
         );
         final payload = await parser.parse(bytes, options: options);
 

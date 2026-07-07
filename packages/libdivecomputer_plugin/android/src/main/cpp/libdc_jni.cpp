@@ -241,6 +241,8 @@ static void jni_on_progress(unsigned int current, unsigned int maximum, void *us
     if (method) {
         env->CallVoidMethod(ctx->callback, method,
             static_cast<jint>(current), static_cast<jint>(maximum));
+    } else {
+        env->ExceptionClear();
     }
 
     if (attached) ctx->jvm->DetachCurrentThread();
@@ -262,6 +264,8 @@ static void jni_on_dive(const libdc_parsed_dive_t *dive, void *userdata) {
         // Pass the dive pointer so Kotlin can read fields via additional JNI calls.
         env->CallVoidMethod(ctx->callback, method,
             reinterpret_cast<jlong>(dive));
+    } else {
+        env->ExceptionClear();
     }
 
     if (attached) ctx->jvm->DetachCurrentThread();
@@ -294,6 +298,7 @@ static int jni_io_read(void *userdata, void *data, size_t size, size_t *actual) 
     jmethodID method = env->GetMethodID(cls, "read", "(II)[B");
     env->DeleteLocalRef(cls);
     if (!method) {
+        env->ExceptionClear();
         if (attached) ctx->jvm->DetachCurrentThread();
         return LIBDC_STATUS_IO;
     }
@@ -345,6 +350,7 @@ static int jni_io_write(void *userdata, const void *data, size_t size, size_t *a
     jmethodID method = env->GetMethodID(cls, "write", "([BI)I");
     env->DeleteLocalRef(cls);
     if (!method) {
+        env->ExceptionClear();
         if (attached) ctx->jvm->DetachCurrentThread();
         return LIBDC_STATUS_IO;
     }
@@ -485,6 +491,12 @@ static int jni_io_ioctl(void *userdata, unsigned int request,
         jclass cls = env->GetObjectClass(ctx->ioHandler);
         jmethodID method = env->GetMethodID(cls, "onPinCodeRequired",
             "(Ljava/lang/String;)Ljava/lang/String;");
+        if (method == nullptr) {
+            env->ExceptionClear();
+            env->DeleteLocalRef(cls);
+            if (attached) ctx->jvm->DetachCurrentThread();
+            return LIBDC_STATUS_UNSUPPORTED;
+        }
 
         jstring jAddress = env->NewStringUTF(ctx->ble_name);
         jstring jPin = (jstring)env->CallObjectMethod(ctx->ioHandler, method, jAddress);
@@ -533,6 +545,13 @@ static int jni_io_ioctl(void *userdata, unsigned int request,
             // GET access code
             jmethodID method = env->GetMethodID(cls, "getAccessCode",
                 "(Ljava/lang/String;)[B");
+            if (method == nullptr) {
+                env->ExceptionClear();
+                env->DeleteLocalRef(jAddress);
+                env->DeleteLocalRef(cls);
+                if (attached) ctx->jvm->DetachCurrentThread();
+                return LIBDC_STATUS_UNSUPPORTED;
+            }
             jbyteArray jCode = (jbyteArray)env->CallObjectMethod(
                 ctx->ioHandler, method, jAddress);
 
@@ -552,12 +571,18 @@ static int jni_io_ioctl(void *userdata, unsigned int request,
             }
         } else {
             // SET access code
+            jmethodID method = env->GetMethodID(cls, "setAccessCode",
+                "(Ljava/lang/String;[B)V");
+            if (method == nullptr) {
+                env->ExceptionClear();
+                env->DeleteLocalRef(jAddress);
+                env->DeleteLocalRef(cls);
+                if (attached) ctx->jvm->DetachCurrentThread();
+                return LIBDC_STATUS_UNSUPPORTED;
+            }
             jbyteArray jCode = env->NewByteArray((jsize)size);
             env->SetByteArrayRegion(jCode, 0, (jsize)size,
                 reinterpret_cast<const jbyte *>(data));
-
-            jmethodID method = env->GetMethodID(cls, "setAccessCode",
-                "(Ljava/lang/String;[B)V");
             env->CallVoidMethod(ctx->ioHandler, method, jAddress, jCode);
             env->DeleteLocalRef(jCode);
             status = LIBDC_STATUS_SUCCESS;
@@ -588,6 +613,14 @@ static int jni_io_purge(void *userdata, unsigned int direction) {
     env->DeleteLocalRef(cls);
     if (method) {
         env->CallVoidMethod(ctx->ioHandler, method, static_cast<jint>(direction));
+    } else {
+        // A failed GetMethodID leaves a pending NoSuchMethodError; every
+        // JNI call made while an exception is pending is undefined behavior,
+        // so it MUST be cleared before this callback returns. Leaving it
+        // pending here crashed the whole download process when R8 stripped
+        // the handler methods (#318). Same rule applies to every failed
+        // GetMethodID in this file.
+        env->ExceptionClear();
     }
 
     if (attached) ctx->jvm->DetachCurrentThread();
@@ -608,6 +641,8 @@ static int jni_io_close(void *userdata) {
     env->DeleteLocalRef(cls);
     if (method) {
         env->CallVoidMethod(ctx->ioHandler, method);
+    } else {
+        env->ExceptionClear();
     }
 
     if (attached) ctx->jvm->DetachCurrentThread();

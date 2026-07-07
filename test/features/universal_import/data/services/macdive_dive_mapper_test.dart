@@ -85,6 +85,18 @@ void main() {
       // unit-converter tests in M2 did that.
       expect(tank['startPressure'], 3000);
       expect(tank['endPressure'], 1000);
+      // #517: volume and working pressure must use the same payload keys the
+      // shared UddfEntityImporter._buildTanks reads (`volume` /
+      // `workingPressure`), NOT `volumeL` / `workingPressureBar`. A mismatched
+      // key silently drops the value, which zeroes out volume-based SAC
+      // statistics even though the per-dive SAC (which has a volume fallback)
+      // still renders.
+      expect(tank['volume'], isNotNull);
+      expect(tank['volume'] as num, greaterThan(0));
+      expect(tank['workingPressure'], isNotNull);
+      expect(tank['workingPressure'] as num, greaterThan(0));
+      expect(tank.containsKey('volumeL'), isFalse);
+      expect(tank.containsKey('workingPressureBar'), isFalse);
       // gasMix must be a `GasMix` object, not a Map — UddfEntityImporter does
       // `t['gasMix'] as GasMix?` and a Map cast would throw at runtime.
       // MacDive stores oxygen as a fraction (0.32); GasMix.o2 is a percent.

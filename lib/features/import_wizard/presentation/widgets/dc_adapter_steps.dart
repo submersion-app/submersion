@@ -319,33 +319,7 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
     // from a previous session is ignored — only fresh transitions trigger.
     ref.listen<DownloadState>(downloadNotifierProvider, (previous, next) {
       if (!_captured && next.phase == DownloadPhase.complete) {
-        _captured = true;
-        widget.adapter.setDownloadedDives(next.downloadedDives);
-
-        // No new dives — show an informational message instead of advancing
-        // to an empty Review step.
-        if (next.downloadedDives.isEmpty) {
-          if (mounted) setState(() => _noDives = true);
-          return;
-        }
-
-        WidgetsBinding.instance.addPostFrameCallback((_) async {
-          if (!mounted) return;
-
-          final discoveryState = ref.read(discoveryNotifierProvider);
-          final device = discoveryState.selectedDevice;
-          if (device != null) {
-            await widget.adapter.ensureComputer(
-              device: device,
-              serialNumber: next.serialNumber,
-              firmwareVersion: next.firmwareVersion,
-            );
-          }
-
-          if (mounted) {
-            ref.read(dcAdapterDownloadCanAdvanceProvider.notifier).state = true;
-          }
-        });
+        _captureAndAdvance(next);
       }
     });
 
@@ -406,7 +380,49 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
       onError: (error) {
         // Download errors are shown by the DownloadStepWidget itself.
       },
+      onImportPartial: () {
+        // The user chose to keep the dives delivered before an interrupted
+        // download. For drivers that deliver oldest-first (as Shearwater
+        // does), this is a contiguous prefix of the oldest dives, so capturing
+        // it advances the fingerprint to a correct resume point for the next
+        // download. Ordering depends on the native driver, not this code.
+        _captureAndAdvance(ref.read(downloadNotifierProvider));
+      },
     );
+  }
+
+  /// Captures the downloaded dives into the adapter and advances the wizard to
+  /// the Review step. Shared by the normal completion path and the
+  /// import-partial action for an interrupted download.
+  void _captureAndAdvance(DownloadState state) {
+    if (_captured) return;
+    _captured = true;
+    widget.adapter.setDownloadedDives(state.downloadedDives);
+
+    // No dives — show an informational message instead of advancing to an
+    // empty Review step.
+    if (state.downloadedDives.isEmpty) {
+      if (mounted) setState(() => _noDives = true);
+      return;
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+
+      final discoveryState = ref.read(discoveryNotifierProvider);
+      final device = discoveryState.selectedDevice;
+      if (device != null) {
+        await widget.adapter.ensureComputer(
+          device: device,
+          serialNumber: state.serialNumber,
+          firmwareVersion: state.firmwareVersion,
+        );
+      }
+
+      if (mounted) {
+        ref.read(dcAdapterDownloadCanAdvanceProvider.notifier).state = true;
+      }
+    });
   }
 }
 

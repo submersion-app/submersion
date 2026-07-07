@@ -73,6 +73,36 @@ void main() {
     container.dispose();
   });
 
+  group('gps-log relocation', () {
+    test('gpsLog route is registered at top level', () {
+      final route = _findRouteByName(router.configuration.routes, 'gpsLog');
+      expect(route, isNotNull);
+      expect(route!.path, '/gps-log');
+    });
+
+    test('old planning gps-logger path is a redirect', () {
+      GoRoute? findByPath(List<RouteBase> routes) {
+        for (final route in routes) {
+          if (route is GoRoute) {
+            if (route.path == 'gps-logger') return route;
+            final found = findByPath(route.routes);
+            if (found != null) return found;
+          }
+          if (route is ShellRoute) {
+            final found = findByPath(route.routes);
+            if (found != null) return found;
+          }
+        }
+        return null;
+      }
+
+      final route = findByPath(router.configuration.routes);
+      expect(route, isNotNull);
+      expect(route!.redirect, isNotNull);
+      expect(route.builder, isNull);
+    });
+  });
+
   group('app_router route configuration', () {
     test('contains universalImport route', () {
       final names = _collectRouteNames(router.configuration.routes);

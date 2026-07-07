@@ -54,6 +54,16 @@ void showAddDiveBottomSheet({
                   context.push('/dive-computers');
                 },
               ),
+              ListTile(
+                leading: const Icon(Icons.document_scanner_outlined),
+                title: Text(
+                  sheetContext.l10n.diveLog_listPage_bottomSheet_scanPaperLog,
+                ),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  context.push('/dives/scan');
+                },
+              ),
             ],
           ),
         ),

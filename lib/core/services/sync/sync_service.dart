@@ -847,6 +847,7 @@ class SyncService {
             records: data.tripChecklistItems,
             hasUpdatedAt: true,
           ),
+          (type: 'gpsTracks', records: data.gpsTracks, hasUpdatedAt: true),
           (type: 'divePlans', records: data.divePlans, hasUpdatedAt: true),
           (
             type: 'divePlanTanks',
@@ -1450,6 +1451,7 @@ class SyncService {
     'checklistTemplates': true,
     'checklistTemplateItems': true,
     'tripChecklistItems': true,
+    'gpsTracks': true,
     'divePlans': true,
     'divePlanTanks': true,
     'divePlanSegments': true,

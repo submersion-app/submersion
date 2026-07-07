@@ -76,4 +76,87 @@ void main() {
       expect(dive.exitLocation, const GeoPoint(12.34612, 98.76489));
     });
   });
+
+  group('DiveRepository.setDiveGps (fills only NULL columns)', () {
+    Future<Dive> readRow(String id) async =>
+        (db.select(db.dives)..where((t) => t.id.equals(id))).getSingle();
+
+    test('fills all four coordinates when the dive has none', () async {
+      await insertDiveWithGps('set-1', withGps: false);
+
+      await repository.setDiveGps(
+        'set-1',
+        entryLatitude: 10.5,
+        entryLongitude: 20.5,
+        exitLatitude: 10.8,
+        exitLongitude: 20.8,
+      );
+
+      final row = await readRow('set-1');
+      expect(row.entryLatitude, 10.5);
+      expect(row.entryLongitude, 20.5);
+      expect(row.exitLatitude, 10.8);
+      expect(row.exitLongitude, 20.8);
+    });
+
+    test('preserves an existing exit fix while filling entry', () async {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await db
+          .into(db.dives)
+          .insert(
+            DivesCompanion.insert(
+              id: 'set-2',
+              diveDateTime: now,
+              createdAt: now,
+              updatedAt: now,
+              exitLatitude: const Value(50.0),
+              exitLongitude: const Value(60.0),
+            ),
+          );
+
+      await repository.setDiveGps(
+        'set-2',
+        entryLatitude: 10.5,
+        entryLongitude: 20.5,
+        exitLatitude: 11.0,
+        exitLongitude: 21.0,
+      );
+
+      final row = await readRow('set-2');
+      expect(row.entryLatitude, 10.5);
+      expect(row.entryLongitude, 20.5);
+      // Computer-provided exit fix is untouched.
+      expect(row.exitLatitude, 50.0);
+      expect(row.exitLongitude, 60.0);
+    });
+
+    test('is a no-op when every target column is already set', () async {
+      await insertDiveWithGps('set-3', withGps: true);
+      final before = await readRow('set-3');
+
+      await repository.setDiveGps(
+        'set-3',
+        entryLatitude: 1.0,
+        entryLongitude: 2.0,
+        exitLatitude: 3.0,
+        exitLongitude: 4.0,
+      );
+
+      final after = await readRow('set-3');
+      expect(after.entryLatitude, before.entryLatitude);
+      expect(after.exitLatitude, before.exitLatitude);
+      // updatedAt is not bumped when nothing changed.
+      expect(after.updatedAt, before.updatedAt);
+    });
+
+    test('is a no-op when the dive does not exist', () async {
+      await repository.setDiveGps(
+        'missing',
+        entryLatitude: 1.0,
+        entryLongitude: 2.0,
+      );
+      final rows = await db.select(db.dives).get();
+      expect(rows, isEmpty);
+    });
+  });
 }

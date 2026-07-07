@@ -4569,6 +4569,30 @@ class AppLocalizationsEn extends AppLocalizations {
       'Import from Computer';
 
   @override
+  String get diveLog_listPage_bottomSheet_scanPaperLog => 'Scan Paper Log';
+
+  @override
+  String get ocrImport_scanPage_processing => 'Reading page...';
+
+  @override
+  String get ocrImport_scanPage_pickPhoto => 'Choose Photo';
+
+  @override
+  String get ocrImport_scanPage_takePhoto => 'Take Photo';
+
+  @override
+  String get ocrImport_scanPage_nothingRead =>
+      'Couldn\'t read much from this page - fields left blank';
+
+  @override
+  String get ocrImport_scanPage_engineMissing =>
+      'Text recognition is not available. Install Tesseract to scan paper logs (for example: sudo apt install tesseract-ocr).';
+
+  @override
+  String get ocrImport_editPage_photoAttachFailed =>
+      'The dive was saved, but attaching the scanned page failed';
+
+  @override
   String get diveLog_listPage_bottomSheet_logManually => 'Log Dive Manually';
 
   @override
@@ -10124,6 +10148,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get nav_equipment => 'Equipment';
+
+  @override
+  String get nav_gpsLog => 'GPS Log';
 
   @override
   String get nav_home => 'Home';
@@ -15901,6 +15928,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveComputer_downloadStep_retry => 'Retry';
 
   @override
+  String diveComputer_downloadStep_importPartialCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Import $count downloaded dives',
+      one: 'Import 1 downloaded dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveComputer_download_cancel => 'Cancel';
 
   @override
@@ -16792,6 +16830,98 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gasCalculators_rockBottom_yourSac => 'Your SAC';
 
   @override
+  String get gpsLogger_androidNotificationText =>
+      'Recording your surface track';
+
+  @override
+  String get gpsLogger_androidNotificationTitle => 'Submersion GPS Logger';
+
+  @override
+  String get gpsLogger_deleteTrackMessage =>
+      'This removes the recorded GPS track. Positions already stamped on dives are kept.';
+
+  @override
+  String get gpsLogger_deleteTrackTitle => 'Delete track?';
+
+  @override
+  String get gpsLogger_interruptedNotice =>
+      'A previous recording was interrupted. The track was saved.';
+
+  @override
+  String gpsLogger_lastFix(String age, String accuracy) {
+    return 'Last fix $age ago ($accuracy)';
+  }
+
+  @override
+  String get gpsLogger_locationOff => 'Location services are turned off.';
+
+  @override
+  String get gpsLogger_matchButton => 'Match dives to GPS logs';
+
+  @override
+  String gpsLogger_matchResult(int count) {
+    return '$count dives positioned';
+  }
+
+  @override
+  String get gpsLogger_matchResultNone => 'No dives matched a recorded track';
+
+  @override
+  String get gpsLogger_noFixYet => 'Waiting for GPS fix';
+
+  @override
+  String get gpsLogger_noTracks => 'No GPS tracks recorded yet';
+
+  @override
+  String get gpsLogger_permissionDenied =>
+      'Location permission is required to record a GPS track. Enable it in system settings.';
+
+  @override
+  String gpsLogger_recordingStatus(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count points',
+      one: '$count point',
+    );
+    return 'Recording - $_temp0';
+  }
+
+  @override
+  String get gpsLogger_reviewSites => 'Review site matches';
+
+  @override
+  String get gpsLogger_startButton => 'Start logging';
+
+  @override
+  String get gpsLogger_stopButton => 'Stop logging';
+
+  @override
+  String gpsLogger_stripStatus(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count points',
+      one: '$count point',
+    );
+    return 'Recording GPS track · $_temp0';
+  }
+
+  @override
+  String gpsLogger_trackSubtitle(num count, String duration) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count points',
+      one: '$count point',
+    );
+    return '$_temp0, $duration';
+  }
+
+  @override
+  String get gpsLogger_tracksHeader => 'Recorded tracks';
+
+  @override
   String get maps_heatMap_hide => 'Hide Heat Map';
 
   @override
@@ -17156,6 +17286,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tools_gas_title => 'Gas Calculators';
+
+  @override
+  String get tools_gpsLogger_description =>
+      'Record your position during a dive day and match imported dives to GPS locations automatically.';
+
+  @override
+  String get tools_gpsLogger_subtitle => 'Record a surface track';
+
+  @override
+  String get tools_gpsLogger_title => 'GPS Logger';
 
   @override
   String get tools_title => 'Tools';
@@ -17888,4 +18028,26 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get db_location_external_note =>
       'Files here are removed if you uninstall the app.';
+
+  @override
+  String diveLog_bulkEdit_membership_onAll(int count) {
+    return 'on all $count';
+  }
+
+  @override
+  String diveLog_bulkEdit_membership_onSome(int count, int total) {
+    return 'on $count of $total';
+  }
+
+  @override
+  String diveLog_bulkEdit_membership_adding(int total) {
+    return 'adding to all $total';
+  }
+
+  @override
+  String get diveLog_bulkEdit_membership_removing => 'removing from all';
+
+  @override
+  String get diveLog_bulkEdit_membership_empty =>
+      'No items on the selected dives yet';
 }

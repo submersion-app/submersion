@@ -319,6 +319,102 @@ class DiveRepository {
     }
   }
 
+  /// Dives lacking an entry GPS position, as (id, start, end) timestamps for
+  /// GPS-track matching. Times are wall-clock-as-UTC epoch milliseconds.
+  Future<List<({String id, int startMs, int? endMs})>> getDivesMissingEntryGps({
+    List<String>? limitToIds,
+  }) async {
+    // An explicit empty id set means "match nothing" — skip the query.
+    if (limitToIds != null && limitToIds.isEmpty) return [];
+    try {
+      final query = _db.select(_db.dives)
+        ..where((t) {
+          var cond = t.entryLatitude.isNull() & t.entryLongitude.isNull();
+          if (limitToIds != null) cond = cond & t.id.isIn(limitToIds);
+          return cond;
+        });
+      final rows = await query.get();
+      return [
+        for (final r in rows)
+          (
+            id: r.id,
+            startMs: r.entryTime ?? r.diveDateTime,
+            endMs:
+                r.exitTime ??
+                (r.runtime != null
+                    ? (r.entryTime ?? r.diveDateTime) + r.runtime! * 1000
+                    : null),
+          ),
+      ];
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get dives missing entry GPS',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Stamps GPS coordinates onto a dive (GPS-track matching). Fills only
+  /// columns that are currently NULL: a dive selected for its missing entry
+  /// GPS may still carry a computer-provided exit fix, which must never be
+  /// overwritten. No-ops entirely when nothing is fillable.
+  Future<void> setDiveGps(
+    String diveId, {
+    double? entryLatitude,
+    double? entryLongitude,
+    double? exitLatitude,
+    double? exitLongitude,
+  }) async {
+    try {
+      final row = await (_db.select(
+        _db.dives,
+      )..where((t) => t.id.equals(diveId))).getSingleOrNull();
+      if (row == null) return;
+
+      Value<double> fill(double? current, double? incoming) =>
+          current == null && incoming != null
+          ? Value(incoming)
+          : const Value.absent();
+
+      final entryLat = fill(row.entryLatitude, entryLatitude);
+      final entryLon = fill(row.entryLongitude, entryLongitude);
+      final exitLat = fill(row.exitLatitude, exitLatitude);
+      final exitLon = fill(row.exitLongitude, exitLongitude);
+      if (!entryLat.present &&
+          !entryLon.present &&
+          !exitLat.present &&
+          !exitLon.present) {
+        return;
+      }
+
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+        DivesCompanion(
+          entryLatitude: entryLat,
+          entryLongitude: entryLon,
+          exitLatitude: exitLat,
+          exitLongitude: exitLon,
+          updatedAt: Value(now),
+        ),
+      );
+      await _syncRepository.markRecordPending(
+        entityType: 'dives',
+        recordId: diveId,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to set GPS on dive: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Dives that have entry or exit GPS but no assigned site.
   /// When [limitToIds] is provided, restricts to that id set (post-download
   /// seed); otherwise returns the whole eligible backlog.
@@ -4089,6 +4185,49 @@ class DiveRepository {
       }
     }
     await _bumpDives(diveIds, now);
+  }
+
+  /// {equipmentId: number of the given dives that reference it}. Junction PK
+  /// is (diveId, equipmentId), so COUNT(diveId) equals the distinct-dive count.
+  Future<Map<String, int>> equipmentCountsForDives(List<String> diveIds) async {
+    if (diveIds.isEmpty) return {};
+    final j = _db.diveEquipment;
+    final countExpr = j.diveId.count();
+    final rows =
+        await (_db.selectOnly(j)
+              ..addColumns([j.equipmentId, countExpr])
+              ..where(j.diveId.isIn(diveIds))
+              ..groupBy([j.equipmentId]))
+            .get();
+    return {for (final r in rows) r.read(j.equipmentId)!: r.read(countExpr)!};
+  }
+
+  /// {tagId: number of the given dives that carry it}.
+  Future<Map<String, int>> tagCountsForDives(List<String> diveIds) async {
+    if (diveIds.isEmpty) return {};
+    final j = _db.diveTags;
+    final countExpr = j.diveId.count();
+    final rows =
+        await (_db.selectOnly(j)
+              ..addColumns([j.tagId, countExpr])
+              ..where(j.diveId.isIn(diveIds))
+              ..groupBy([j.tagId]))
+            .get();
+    return {for (final r in rows) r.read(j.tagId)!: r.read(countExpr)!};
+  }
+
+  /// {diveTypeId: number of the given dives that have it}.
+  Future<Map<String, int>> diveTypeCountsForDives(List<String> diveIds) async {
+    if (diveIds.isEmpty) return {};
+    final j = _db.diveDiveTypes;
+    final countExpr = j.diveId.count();
+    final rows =
+        await (_db.selectOnly(j)
+              ..addColumns([j.diveTypeId, countExpr])
+              ..where(j.diveId.isIn(diveIds))
+              ..groupBy([j.diveTypeId]))
+            .get();
+    return {for (final r in rows) r.read(j.diveTypeId)!: r.read(countExpr)!};
   }
 
   DiveTanksCompanion _tankCompanion(

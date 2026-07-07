@@ -24,6 +24,22 @@ export 'package:submersion/features/buddies/data/repositories/buddy_merge_reposi
 
 class BuddyRepository {
   AppDatabase get _db => DatabaseService.instance.database;
+
+  /// {buddyId: number of the given dives that include the buddy}. Junction PK
+  /// is (diveId, buddyId), so COUNT(diveId) equals the distinct-dive count.
+  Future<Map<String, int>> buddyCountsForDives(List<String> diveIds) async {
+    if (diveIds.isEmpty) return {};
+    final j = _db.diveBuddies;
+    final countExpr = j.diveId.count();
+    final rows =
+        await (_db.selectOnly(j)
+              ..addColumns([j.buddyId, countExpr])
+              ..where(j.diveId.isIn(diveIds))
+              ..groupBy([j.buddyId]))
+            .get();
+    return {for (final r in rows) r.read(j.buddyId)!: r.read(countExpr)!};
+  }
+
   final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(BuddyRepository);

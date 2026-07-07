@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart' hide Visibility;
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/icons/mdi_icons.dart';
@@ -15,6 +17,7 @@ import 'package:submersion/features/buddies/presentation/providers/buddy_provide
 import 'package:submersion/features/buddies/presentation/widgets/buddy_picker.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
@@ -24,12 +27,16 @@ import 'package:submersion/features/dive_centers/domain/entities/dive_center.dar
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_picker.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
+import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_picker.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
+import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
@@ -46,6 +53,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/trip_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/computer_source_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/edit_sighting_sheet.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/bulk_membership_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_set_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/site_picker_sheet.dart';
@@ -99,6 +107,10 @@ class DiveEditPage extends ConsumerStatefulWidget {
   /// Callback when user cancels editing (used in embedded mode).
   final VoidCallback? onCancel;
 
+  /// Initial values for create mode (e.g. from the OCR scan flow).
+  /// Ignored when editing an existing dive or in bulk mode.
+  final DivePrefill? prefill;
+
   const DiveEditPage({
     super.key,
     this.diveId,
@@ -106,6 +118,7 @@ class DiveEditPage extends ConsumerStatefulWidget {
     this.embedded = false,
     this.onSaved,
     this.onCancel,
+    this.prefill,
   }) : assert(
          diveId == null || bulkDiveIds == null,
          'diveId and bulkDiveIds are mutually exclusive',
@@ -298,12 +311,17 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       // default would make enabling the collection silently operate on it.
       _selectedDiveTypeIds = <String>[];
       _suppressDirty = false;
+      _loadBulkMembers();
     } else if (widget.isEditing) {
       _loadExistingDive();
     } else {
       // For new dives, capture GPS in the background to suggest nearby sites
       _captureLocationForNearby();
-      _suggestNextDiveNumber();
+      if (widget.prefill?.diveNumber == null) {
+        // The async suggestion would overwrite a prefilled number.
+        _suggestNextDiveNumber();
+      }
+      _applyPrefill();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _suppressDirty = false;
       });
@@ -373,6 +391,84 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           }
         });
       }
+    }
+  }
+
+  void _applyPrefill() {
+    final p = widget.prefill;
+    if (p == null) return;
+    final units = UnitFormatter(ref.read(settingsProvider));
+    if (p.diveNumber != null) {
+      _diveNumberController.text = p.diveNumber.toString();
+    }
+    if (p.dateTime != null) {
+      _entryDate = p.dateTime!;
+      if (p.hasTimeOfDay) {
+        _entryTime = TimeOfDay.fromDateTime(p.dateTime!);
+      }
+    }
+    if (p.durationMinutes != null) {
+      _durationController.text = p.durationMinutes.toString();
+    }
+    if (p.maxDepthMeters != null) {
+      _maxDepthController.text = units
+          .convertDepth(p.maxDepthMeters!)
+          .toStringAsFixed(1);
+    }
+    if (p.waterTempCelsius != null) {
+      _waterTempController.text = units
+          .convertTemperature(p.waterTempCelsius!)
+          .toStringAsFixed(0);
+    }
+    if (p.airTempCelsius != null) {
+      _airTempController.text = units
+          .convertTemperature(p.airTempCelsius!)
+          .toStringAsFixed(0);
+    }
+    if (p.notes != null) _notesController.text = p.notes!;
+    if (p.rating != null) _rating = p.rating!;
+    if (p.site != null) _selectedSite = p.site;
+    if (p.weightKg != null) {
+      // Paper logs record a total; the carry type is unknown.
+      _weights = [
+        DiveWeight(
+          id: _uuid.v4(),
+          diveId: widget.diveId ?? '',
+          weightType: WeightType.mixed,
+          amountKg: p.weightKg!,
+        ),
+      ];
+    }
+    // Expand sections that received prefilled content so the user can
+    // review what the scan extracted without hunting for it.
+    if (p.notes != null || p.rating != null) {
+      _expanded['experience'] = true;
+    }
+    if (p.waterTempCelsius != null || p.airTempCelsius != null) {
+      _expanded['conditions'] = true;
+    }
+    if (p.startPressureBar != null ||
+        p.endPressureBar != null ||
+        p.o2Percent != null ||
+        p.cylinderVolumeLiters != null) {
+      final base = _tanks.isNotEmpty ? _tanks.first : null;
+      _tanks = [
+        DiveTank(
+          id: base?.id ?? _uuid.v4(),
+          volume: p.cylinderVolumeLiters ?? base?.volume,
+          workingPressure: base?.workingPressure,
+          startPressure: p.startPressureBar ?? base?.startPressure,
+          endPressure: p.endPressureBar ?? base?.endPressure,
+          gasMix: p.o2Percent != null
+              ? GasMix(o2: p.o2Percent!)
+              : (base?.gasMix ?? const GasMix()),
+          role: base?.role ?? TankRole.backGas,
+          material: base?.material,
+          order: 0,
+          presetName: base?.presetName,
+        ),
+        ..._tanks.skip(1),
+      ];
     }
   }
 
@@ -729,6 +825,27 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   final Map<BulkCollectionType, BulkCollectionMode> _collectionModes = {};
   bool _bulkTankOnlyIfEmpty = false;
 
+  // Bulk tri-state membership state for each reference collection: the members
+  // shown across the selected dives (existing + picker-added), their per-item
+  // dive counts, and the resulting add/remove delta.
+  Map<String, int> _equipmentCounts = {};
+  List<BulkMembershipItem> _equipmentMembers = [];
+  MembershipDelta _equipmentDelta = MembershipDelta.empty;
+
+  Map<String, int> _tagCounts = {};
+  List<BulkMembershipItem> _tagMembers = [];
+  MembershipDelta _tagDelta = MembershipDelta.empty;
+
+  Map<String, int> _diveTypeCounts = {};
+  final Map<String, String> _diveTypeNames = {};
+  List<BulkMembershipItem> _diveTypeMembers = [];
+  MembershipDelta _diveTypeDelta = MembershipDelta.empty;
+
+  Map<String, int> _buddyCounts = {};
+  final Map<String, Buddy> _buddyById = {};
+  List<BulkMembershipItem> _buddyMembers = [];
+  MembershipDelta _buddyDelta = MembershipDelta.empty;
+
   Widget _gatedRow(BulkField field, Widget child) {
     return BulkFieldGate(
       enabled: _bulkEnabled.contains(field),
@@ -964,50 +1081,48 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   Widget _buildBulkCollectionsSection(UnitFormatter units) {
     final l10n = context.l10n;
-    const refModes = [
-      BulkCollectionMode.add,
-      BulkCollectionMode.remove,
-      BulkCollectionMode.replace,
-    ];
     const ownedModes = [BulkCollectionMode.add, BulkCollectionMode.replace];
     return FormSection(
       label: context.l10n.diveLog_bulkEdit_groupCollections,
       expanded: true,
       onToggle: null,
       children: [
-        _collectionEntry(
-          type: BulkCollectionType.tags,
-          label: l10n.diveLog_edit_section_tags,
-          allowed: refModes,
-          editor: TagInputWidget(
-            selectedTags: _selectedTags,
-            onTagsChanged: (tags) => setState(() => _selectedTags = tags),
-          ),
+        BulkMembershipEditor(
+          title: l10n.diveLog_edit_section_tags,
+          totalDives: widget.bulkDiveIds!.length,
+          items: _tagMembers,
+          counts: _tagCounts,
+          onAdd: _bulkAddTags,
+          onChanged: (d) => setState(() => _tagDelta = d),
         ),
-        _collectionEntry(
-          type: BulkCollectionType.diveTypes,
-          label: l10n.diveLog_edit_label_diveTypes,
-          allowed: refModes,
-          editor: DiveTypeMultiSelectField(
-            selectedTypeIds: _selectedDiveTypeIds,
-            onChanged: (ids) => setState(() => _selectedDiveTypeIds = ids),
-            allowEmpty: true,
-          ),
+        BulkMembershipEditor(
+          title: l10n.diveLog_edit_label_diveTypes,
+          totalDives: widget.bulkDiveIds!.length,
+          items: _diveTypeMembers,
+          counts: _diveTypeCounts,
+          onAdd: _bulkAddDiveTypes,
+          onChanged: (d) => setState(() => _diveTypeDelta = d),
         ),
-        _collectionEntry(
-          type: BulkCollectionType.equipment,
-          label: l10n.diveLog_edit_section_equipment,
-          allowed: refModes,
-          editor: _equipmentChild(),
-        ),
-        _collectionEntry(
-          type: BulkCollectionType.buddies,
-          label: l10n.diveLog_edit_group_buddies,
-          allowed: refModes,
-          editor: BuddyPicker(
-            selectedBuddies: _selectedBuddies,
-            onChanged: (b) => setState(() => _selectedBuddies = b),
+        BulkMembershipEditor(
+          title: l10n.diveLog_edit_section_equipment,
+          totalDives: widget.bulkDiveIds!.length,
+          items: _equipmentMembers,
+          counts: _equipmentCounts,
+          onAdd: _bulkAddEquipment,
+          secondaryAction: TextButton.icon(
+            onPressed: _bulkUseEquipmentSet,
+            icon: const Icon(Icons.folder_special, size: 18),
+            label: Text(l10n.diveLog_edit_useSet),
           ),
+          onChanged: (d) => setState(() => _equipmentDelta = d),
+        ),
+        BulkMembershipEditor(
+          title: l10n.diveLog_edit_group_buddies,
+          totalDives: widget.bulkDiveIds!.length,
+          items: _buddyMembers,
+          counts: _buddyCounts,
+          onAdd: _bulkAddBuddies,
+          onChanged: (d) => setState(() => _buddyDelta = d),
         ),
         _collectionEntry(
           type: BulkCollectionType.weights,
@@ -1033,30 +1148,61 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   List<BulkCollectionOp> _collectCollectionOps() {
     final ops = <BulkCollectionOp>[];
-    final tagsMode = _collectionModes[BulkCollectionType.tags];
-    if (tagsMode != null) {
+    if (_tagDelta.addIds.isNotEmpty) {
+      ops.add(TagsOp(mode: BulkCollectionMode.add, tagIds: _tagDelta.addIds));
+    }
+    if (_tagDelta.removeIds.isNotEmpty) {
       ops.add(
-        TagsOp(mode: tagsMode, tagIds: _selectedTags.map((t) => t.id).toList()),
+        TagsOp(mode: BulkCollectionMode.remove, tagIds: _tagDelta.removeIds),
       );
     }
-    final diveTypesMode = _collectionModes[BulkCollectionType.diveTypes];
-    if (diveTypesMode != null && _selectedDiveTypeIds.isNotEmpty) {
+    if (_diveTypeDelta.addIds.isNotEmpty) {
       ops.add(
-        DiveTypesOp(mode: diveTypesMode, diveTypeIds: _selectedDiveTypeIds),
-      );
-    }
-    final equipMode = _collectionModes[BulkCollectionType.equipment];
-    if (equipMode != null) {
-      ops.add(
-        EquipmentOp(
-          mode: equipMode,
-          equipmentIds: _selectedEquipment.map((e) => e.id).toList(),
+        DiveTypesOp(
+          mode: BulkCollectionMode.add,
+          diveTypeIds: _diveTypeDelta.addIds,
         ),
       );
     }
-    final buddiesMode = _collectionModes[BulkCollectionType.buddies];
-    if (buddiesMode != null) {
-      ops.add(BuddiesOp(mode: buddiesMode, buddies: _selectedBuddies));
+    if (_diveTypeDelta.removeIds.isNotEmpty) {
+      ops.add(
+        DiveTypesOp(
+          mode: BulkCollectionMode.remove,
+          diveTypeIds: _diveTypeDelta.removeIds,
+        ),
+      );
+    }
+    if (_equipmentDelta.addIds.isNotEmpty) {
+      ops.add(
+        EquipmentOp(
+          mode: BulkCollectionMode.add,
+          equipmentIds: _equipmentDelta.addIds,
+        ),
+      );
+    }
+    if (_equipmentDelta.removeIds.isNotEmpty) {
+      ops.add(
+        EquipmentOp(
+          mode: BulkCollectionMode.remove,
+          equipmentIds: _equipmentDelta.removeIds,
+        ),
+      );
+    }
+    if (_buddyDelta.addIds.isNotEmpty) {
+      ops.add(
+        BuddiesOp(
+          mode: BulkCollectionMode.add,
+          buddies: _buddyDelta.addIds.map(_buddyWithRole).toList(),
+        ),
+      );
+    }
+    if (_buddyDelta.removeIds.isNotEmpty) {
+      ops.add(
+        BuddiesOp(
+          mode: BulkCollectionMode.remove,
+          buddies: _buddyDelta.removeIds.map(_buddyWithRole).toList(),
+        ),
+      );
     }
     final tanksMode = _collectionModes[BulkCollectionType.tanks];
     if (tanksMode != null) {
@@ -2650,12 +2796,16 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  TextButton.icon(
-                    onPressed: _saveEquipmentAsSet,
-                    icon: const Icon(Icons.save_alt, size: 18),
-                    label: Text(context.l10n.diveLog_edit_saveAsSet),
-                  ),
-                  const SizedBox(width: 8),
+                  // "Save as Set" is single-dive only; in bulk mode the
+                  // membership editor replaces this editor entirely.
+                  if (!widget.isBulk) ...[
+                    TextButton.icon(
+                      onPressed: _saveEquipmentAsSet,
+                      icon: const Icon(Icons.save_alt, size: 18),
+                      label: Text(context.l10n.diveLog_edit_saveAsSet),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
                   TextButton(
                     onPressed: () {
                       setState(() {
@@ -2768,6 +2918,300 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     );
   }
 
+  /// Load the members (with per-item dive counts) of every id-based reference
+  /// collection across the selected dives, so each tri-state editor can show
+  /// its all/some/none state.
+  Future<void> _loadBulkMembers() async {
+    final ids = widget.bulkDiveIds!;
+    final repo = ref.read(diveRepositoryProvider);
+    final equipCounts = await repo.equipmentCountsForDives(ids);
+    final tagCounts = await repo.tagCountsForDives(ids);
+    final typeCounts = await repo.diveTypeCountsForDives(ids);
+    final buddyRepo = ref.read(buddyRepositoryProvider);
+    final buddyCounts = await buddyRepo.buddyCountsForDives(ids);
+
+    final equip = await EquipmentRepository().getEquipmentByIds(
+      equipCounts.keys.toList(),
+    );
+    final allTags = await ref.read(tagsProvider.future);
+    final allTypes = await ref.read(diveTypesProvider.future);
+    final allBuddies = await buddyRepo.getAllBuddies();
+    if (!mounted) return;
+
+    final tagName = {for (final t in allTags) t.id: t.name};
+    final typeName = {for (final t in allTypes) t.id: t.name};
+    final buddyMap = {for (final b in allBuddies) b.id: b};
+    // The count queries group by id with no ORDER BY, so sort each member list
+    // by label to keep the bulk editor's row order stable across loads/devices.
+    int byLabel(BulkMembershipItem a, BulkMembershipItem b) =>
+        a.label.toLowerCase().compareTo(b.label.toLowerCase());
+    setState(() {
+      _equipmentCounts = equipCounts;
+      _equipmentMembers = [
+        for (final e in equip)
+          BulkMembershipItem(
+            id: e.id,
+            label: e.name,
+            icon: _getEquipmentIcon(e.type),
+          ),
+      ]..sort(byLabel);
+      _tagCounts = tagCounts;
+      _tagMembers = [
+        for (final id in tagCounts.keys)
+          BulkMembershipItem(
+            id: id,
+            label: tagName[id] ?? id,
+            icon: Icons.label_outline,
+          ),
+      ]..sort(byLabel);
+      _diveTypeCounts = typeCounts;
+      _diveTypeNames
+        ..clear()
+        ..addAll(typeName);
+      _diveTypeMembers = [
+        for (final id in typeCounts.keys)
+          BulkMembershipItem(
+            id: id,
+            label: typeName[id] ?? id,
+            icon: Icons.scuba_diving,
+          ),
+      ]..sort(byLabel);
+      _buddyCounts = buddyCounts;
+      _buddyById
+        ..clear()
+        ..addAll(buddyMap);
+      _buddyMembers = [
+        for (final id in buddyCounts.keys)
+          BulkMembershipItem(
+            id: id,
+            label: buddyMap[id]?.name ?? id,
+            icon: Icons.person_outline,
+          ),
+      ]..sort(byLabel);
+    });
+  }
+
+  void _bulkAddEquipment() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (context, scrollController) => EquipmentPickerSheet(
+          scrollController: scrollController,
+          selectedEquipmentIds: _equipmentMembers.map((e) => e.id).toSet(),
+          onEquipmentSelected: (equipment) {
+            setState(() {
+              if (!_equipmentMembers.any((e) => e.id == equipment.id)) {
+                _equipmentMembers = [
+                  ..._equipmentMembers,
+                  BulkMembershipItem(
+                    id: equipment.id,
+                    label: equipment.name,
+                    icon: _getEquipmentIcon(equipment.type),
+                  ),
+                ];
+              }
+            });
+            Navigator.of(context).pop();
+          },
+        ),
+      ),
+    );
+  }
+
+  void _bulkUseEquipmentSet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (context, scrollController) => EquipmentSetPickerSheet(
+          scrollController: scrollController,
+          onSetSelected: (set, items) {
+            setState(() {
+              final existing = _equipmentMembers.map((e) => e.id).toSet();
+              _equipmentMembers = [
+                ..._equipmentMembers,
+                for (final item in items)
+                  if (!existing.contains(item.id))
+                    BulkMembershipItem(
+                      id: item.id,
+                      label: item.name,
+                      icon: _getEquipmentIcon(item.type),
+                    ),
+              ];
+            });
+            Navigator.of(context).pop();
+          },
+        ),
+      ),
+    );
+  }
+
+  void _bulkAddTags() {
+    var picked = <Tag>[];
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(context.l10n.diveLog_edit_section_tags),
+        content: StatefulBuilder(
+          builder: (ctx, setSt) => TagInputWidget(
+            selectedTags: picked,
+            onTagsChanged: (t) => setSt(() => picked = t),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(context.l10n.diveLog_edit_cancel),
+          ),
+          FilledButton(
+            onPressed: () {
+              _addTagMembers(picked);
+              Navigator.pop(ctx);
+            },
+            child: Text(context.l10n.diveLog_edit_add),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _addTagMembers(List<Tag> tags) {
+    setState(() {
+      final existing = _tagMembers.map((e) => e.id).toSet();
+      _tagMembers = [
+        ..._tagMembers,
+        for (final t in tags)
+          if (!existing.contains(t.id))
+            BulkMembershipItem(
+              id: t.id,
+              label: t.name,
+              icon: Icons.label_outline,
+            ),
+      ];
+    });
+  }
+
+  void _bulkAddDiveTypes() {
+    var picked = <String>[];
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(context.l10n.diveLog_edit_label_diveTypes),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: StatefulBuilder(
+            builder: (ctx, setSt) => DiveTypeMultiSelectField(
+              selectedTypeIds: picked,
+              allowEmpty: true,
+              onChanged: (ids) => setSt(() => picked = ids),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(context.l10n.diveLog_edit_cancel),
+          ),
+          FilledButton(
+            onPressed: () {
+              _addDiveTypeMembers(picked);
+              Navigator.pop(ctx);
+            },
+            child: Text(context.l10n.diveLog_edit_add),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _addDiveTypeMembers(List<String> ids) {
+    setState(() {
+      final existing = _diveTypeMembers.map((e) => e.id).toSet();
+      _diveTypeMembers = [
+        ..._diveTypeMembers,
+        for (final id in ids)
+          if (!existing.contains(id))
+            BulkMembershipItem(
+              id: id,
+              label: _diveTypeNames[id] ?? id,
+              icon: Icons.scuba_diving,
+            ),
+      ];
+    });
+  }
+
+  void _bulkAddBuddies() {
+    var picked = <BuddyWithRole>[];
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(context.l10n.diveLog_edit_group_buddies),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: StatefulBuilder(
+            builder: (ctx, setSt) => BuddyPicker(
+              selectedBuddies: picked,
+              onChanged: (b) => setSt(() => picked = b),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(context.l10n.diveLog_edit_cancel),
+          ),
+          FilledButton(
+            onPressed: () {
+              _addBuddyMembers(picked);
+              Navigator.pop(ctx);
+            },
+            child: Text(context.l10n.diveLog_edit_add),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _addBuddyMembers(List<BuddyWithRole> buddies) {
+    setState(() {
+      final existing = _buddyMembers.map((e) => e.id).toSet();
+      for (final bwr in buddies) {
+        _buddyById[bwr.buddy.id] = bwr.buddy;
+      }
+      _buddyMembers = [
+        ..._buddyMembers,
+        for (final bwr in buddies)
+          if (!existing.contains(bwr.buddy.id))
+            BulkMembershipItem(
+              id: bwr.buddy.id,
+              label: bwr.buddy.name,
+              icon: Icons.person_outline,
+            ),
+      ];
+    });
+  }
+
+  BuddyWithRole _buddyWithRole(String id) => BuddyWithRole(
+    buddy:
+        _buddyById[id] ??
+        Buddy(
+          id: id,
+          name: '',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+    role: BuddyRole.buddy,
+  );
+
   void _saveEquipmentAsSet() {
     if (_selectedEquipment.isEmpty) return;
 
@@ -2842,11 +3286,14 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   updatedAt: DateTime.now(),
                 );
 
-                final repository = ref.read(equipmentSetRepositoryProvider);
-                await repository.createSet(set);
-
-                // Invalidate the sets provider to refresh the list
-                ref.invalidate(equipmentSetsProvider);
+                // Route through the notifier so the set is stamped with the
+                // active diver id. Calling the repository directly leaves
+                // diverId null, orphaning the set from the diver-scoped list
+                // (it silently "doesn't save"). addSet also refreshes the
+                // list providers.
+                await ref
+                    .read(equipmentSetListNotifierProvider.notifier)
+                    .addSet(set);
 
                 if (context.mounted) {
                   Navigator.of(context).pop();
@@ -3961,6 +4408,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         notes: _notesController.text,
         rating: _rating > 0 ? _rating : null,
         site: _selectedSite,
+        importSource:
+            widget.prefill?.importSource ?? _existingDive?.importSource,
         trip: _selectedTrip,
         diveCenter: _selectedDiveCenter,
         courseId: _selectedCourse?.id,
@@ -4046,6 +4495,31 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       } else {
         final savedDive = await notifier.addDive(dive);
         savedDiveId = savedDive.id;
+
+        // Attach the scanned logbook page photo (OCR flow). Failure must
+        // never block the save.
+        final photoPath = widget.prefill?.photoPath;
+        if (photoPath != null) {
+          try {
+            await ref
+                .read(mediaImportServiceProvider)
+                .importLocalFileForDive(
+                  sourceFile: File(photoPath),
+                  diveId: savedDive.id,
+                  takenAt: dive.dateTime,
+                );
+          } catch (_) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    context.l10n.ocrImport_editPage_photoAttachFailed,
+                  ),
+                ),
+              );
+            }
+          }
+        }
 
         // Auto-fetch weather for new dives with coordinates
         if (_selectedSite != null && _selectedSite!.hasCoordinates) {

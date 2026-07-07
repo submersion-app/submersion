@@ -5,6 +5,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_parser.dart';
+import 'package:submersion/features/gps_log/data/services/gps_track_match_service.dart';
 
 /// Mode for importing dives.
 enum ImportMode {
@@ -234,14 +235,17 @@ class DiveImportService {
   final DiveComputerRepository _repository;
   final DiveRepository? _diveRepository;
   final DiveParser _parser;
+  final GpsTrackMatchService? _gpsTrackMatchService;
 
   DiveImportService({
     required DiveComputerRepository repository,
     DiveRepository? diveRepository,
     DiveParser? parser,
+    GpsTrackMatchService? gpsTrackMatchService,
   }) : _repository = repository,
        _diveRepository = diveRepository,
-       _parser = parser ?? const DiveParser();
+       _parser = parser ?? const DiveParser(),
+       _gpsTrackMatchService = gpsTrackMatchService;
 
   /// Import a list of downloaded dives.
   ///
@@ -395,6 +399,17 @@ class DiveImportService {
       } catch (e) {
         // Log error but continue with other dives
         skipped++;
+      }
+    }
+
+    // Stamp GPS from recorded surface tracks before the summary step, so
+    // the existing "Match sites" flow sees these dives as site-matchable.
+    // Best-effort: a matching failure must never fail the import itself.
+    if (_gpsTrackMatchService != null && importedDiveIds.isNotEmpty) {
+      try {
+        await _gpsTrackMatchService.sweep(limitToIds: importedDiveIds);
+      } catch (_) {
+        // GPS stamping is an enhancement; the dives imported fine.
       }
     }
 

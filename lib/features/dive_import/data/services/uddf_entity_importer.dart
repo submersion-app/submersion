@@ -1146,9 +1146,11 @@ class UddfEntityImporter {
             )
           : null;
 
+      final diveName = (diveData['name'] as String?)?.trim();
       var dive = Dive(
         id: diveId,
         diverId: diverId,
+        name: diveName != null && diveName.isNotEmpty ? diveName : null,
         diveNumber: nextDiveNumber != null
             ? nextDiveNumber++
             : diveData['diveNumber'] as int?,

@@ -4617,6 +4617,31 @@ class AppLocalizationsNl extends AppLocalizations {
       'Importeren van duikcomputer';
 
   @override
+  String get diveLog_listPage_bottomSheet_scanPaperLog =>
+      'Papieren logboek scannen';
+
+  @override
+  String get ocrImport_scanPage_processing => 'Pagina wordt gelezen...';
+
+  @override
+  String get ocrImport_scanPage_pickPhoto => 'Foto kiezen';
+
+  @override
+  String get ocrImport_scanPage_takePhoto => 'Foto maken';
+
+  @override
+  String get ocrImport_scanPage_nothingRead =>
+      'Er kon weinig van deze pagina worden gelezen - velden blijven leeg';
+
+  @override
+  String get ocrImport_scanPage_engineMissing =>
+      'Tekstherkenning is niet beschikbaar. Installeer Tesseract om papieren logboeken te scannen (bijvoorbeeld: sudo apt install tesseract-ocr).';
+
+  @override
+  String get ocrImport_editPage_photoAttachFailed =>
+      'De duik is opgeslagen, maar het bijvoegen van de gescande pagina is mislukt';
+
+  @override
   String get diveLog_listPage_bottomSheet_logManually =>
       'Duik handmatig loggen';
 
@@ -10212,6 +10237,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get nav_equipment => 'Uitrusting';
+
+  @override
+  String get nav_gpsLog => 'GPS-log';
 
   @override
   String get nav_home => 'Home';
@@ -16041,6 +16069,17 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveComputer_downloadStep_retry => 'Opnieuw proberen';
 
   @override
+  String diveComputer_downloadStep_importPartialCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gedownloade duiken importeren',
+      one: '1 gedownloade duik importeren',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveComputer_download_cancel => 'Annuleren';
 
   @override
@@ -16938,6 +16977,99 @@ class AppLocalizationsNl extends AppLocalizations {
   String get gasCalculators_rockBottom_yourSac => 'Jouw SAC';
 
   @override
+  String get gpsLogger_androidNotificationText =>
+      'Je oppervlaktetrack wordt opgenomen';
+
+  @override
+  String get gpsLogger_androidNotificationTitle => 'Submersion GPS-logger';
+
+  @override
+  String get gpsLogger_deleteTrackMessage =>
+      'Verwijdert de opgenomen GPS-track. Posities die al aan duiken zijn toegekend blijven behouden.';
+
+  @override
+  String get gpsLogger_deleteTrackTitle => 'Track verwijderen?';
+
+  @override
+  String get gpsLogger_interruptedNotice =>
+      'Een eerdere opname is onderbroken. De track is opgeslagen.';
+
+  @override
+  String gpsLogger_lastFix(String age, String accuracy) {
+    return 'Laatste fix $age geleden ($accuracy)';
+  }
+
+  @override
+  String get gpsLogger_locationOff => 'Locatievoorzieningen staan uit.';
+
+  @override
+  String get gpsLogger_matchButton => 'Duiken koppelen aan GPS-logs';
+
+  @override
+  String gpsLogger_matchResult(int count) {
+    return '$count duiken gepositioneerd';
+  }
+
+  @override
+  String get gpsLogger_matchResultNone =>
+      'Geen duiken komen overeen met een opgenomen track';
+
+  @override
+  String get gpsLogger_noFixYet => 'Wachten op GPS-fix';
+
+  @override
+  String get gpsLogger_noTracks => 'Nog geen GPS-tracks opgenomen';
+
+  @override
+  String get gpsLogger_permissionDenied =>
+      'Locatietoestemming is vereist om een GPS-track op te nemen. Schakel deze in bij de systeeminstellingen.';
+
+  @override
+  String gpsLogger_recordingStatus(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count punten',
+      one: '$count punt',
+    );
+    return 'Opname - $_temp0';
+  }
+
+  @override
+  String get gpsLogger_reviewSites => 'Duikstek-koppelingen controleren';
+
+  @override
+  String get gpsLogger_startButton => 'Opname starten';
+
+  @override
+  String get gpsLogger_stopButton => 'Opname stoppen';
+
+  @override
+  String gpsLogger_stripStatus(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count punten',
+      one: '$count punt',
+    );
+    return 'GPS-track wordt opgenomen · $_temp0';
+  }
+
+  @override
+  String gpsLogger_trackSubtitle(num count, String duration) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count punten',
+      one: '$count punt',
+    );
+    return '$_temp0, $duration';
+  }
+
+  @override
+  String get gpsLogger_tracksHeader => 'Opgenomen tracks';
+
+  @override
   String get maps_heatMap_hide => 'Heatmap verbergen';
 
   @override
@@ -17304,6 +17436,16 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get tools_gas_title => 'Gascalculators';
+
+  @override
+  String get tools_gpsLogger_description =>
+      'Registreer je positie tijdens een duikdag en koppel geïmporteerde duiken automatisch aan GPS-locaties.';
+
+  @override
+  String get tools_gpsLogger_subtitle => 'Neem een oppervlaktetrack op';
+
+  @override
+  String get tools_gpsLogger_title => 'GPS-logger';
 
   @override
   String get tools_title => 'Gereedschap';
@@ -18046,4 +18188,26 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get db_location_external_note =>
       'Bestanden hier worden verwijderd als je de app verwijdert.';
+
+  @override
+  String diveLog_bulkEdit_membership_onAll(int count) {
+    return 'op alle $count';
+  }
+
+  @override
+  String diveLog_bulkEdit_membership_onSome(int count, int total) {
+    return 'op $count van $total';
+  }
+
+  @override
+  String diveLog_bulkEdit_membership_adding(int total) {
+    return 'toevoegen aan alle $total';
+  }
+
+  @override
+  String get diveLog_bulkEdit_membership_removing => 'verwijderen van alle';
+
+  @override
+  String get diveLog_bulkEdit_membership_empty =>
+      'Nog geen items bij de geselecteerde duiken';
 }

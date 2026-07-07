@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/services/backup_bookmark_service.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
+import 'package:submersion/features/backup/data/services/backup_target.dart';
 
 /// Fake of the narrow bookmark seam so the leased resolver can be tested
 /// without a native channel.
@@ -244,6 +245,45 @@ void main() {
 
         expect(lease.path, tmp.path);
         expect(port.resolveCalls, 0);
+      },
+    );
+
+    // Issue #505: an Android SAF custom location is a content:// URI, not a
+    // filesystem path. The pre-migration safety copy is written with dart:io,
+    // which cannot create a content:// URI: Directory('content://...').create
+    // treats it as a relative path and throws
+    // "FileSystemException: Creation failed, path = 'content:'" against the
+    // read-only app working directory, bricking startup on the "Database
+    // upgrade failed" screen. The filesystem copy must route to the sandbox
+    // default instead, without disturbing the SAF location (still used for
+    // normal backups).
+    test(
+      'Android SAF content:// location -> sandbox default, setting preserved',
+      () async {
+        const safUri =
+            'content://com.android.externalstorage.documents/tree/primary%3ABackups';
+        await preferences.setBackupLocation(safUri);
+        BackupBookmarkService.debugSupportedOverride = false; // Android
+        final port = _FakeBookmarkPort();
+
+        // Guard: the buggy code path creates a stray 'content:' dir under CWD.
+        addTearDown(() async {
+          final stray = Directory('content:');
+          if (await stray.exists()) await stray.delete(recursive: true);
+        });
+
+        final lease = await BackupService.resolveBackupsDirectoryLeased(
+          preferences,
+          bookmarks: port,
+        );
+
+        expect(lease.path, contains('Submersion'));
+        expect(lease.path, contains('Backups'));
+        expect(isSafRef(lease.path), isFalse);
+        // The user's SAF choice must remain for normal (SAF) backups.
+        expect(preferences.getSettings().backupLocation, safUri);
+        expect(port.resolveCalls, 0);
+        await lease.release(); // no-op; must not throw
       },
     );
   });

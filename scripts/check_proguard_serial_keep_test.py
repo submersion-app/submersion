@@ -26,6 +26,30 @@ guard = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(guard)
 
 
+# Healthy JNI handler sections: the class may be renamed (GetObjectClass is
+# name-agnostic) but every JNI-resolved method is identity-mapped. BleIoStream
+# also carries an inlined copy of close() under another name, which must not
+# mask the identity-mapped method.
+HANDLERS_GREEN = """\
+com.submersion.libdivecomputer.UsbSerialIoStream -> X5.U:
+    0:5:byte[] read(int,int) -> read
+    0:3:int write(byte[],int) -> write
+    0:2:void purge(int) -> purge
+    0:2:void close() -> close
+    0:9:int configure(int,int,int,int,int) -> configure
+    0:1:int setDtr(int) -> setDtr
+    0:1:int setRts(int) -> setRts
+com.submersion.libdivecomputer.BleIoStream -> X5.c:
+    0:5:byte[] read(int,int) -> read
+    0:3:int write(byte[],int) -> write
+    0:2:void purge(int) -> purge
+    0:2:void close() -> close
+    924:932:void close():250:250 -> b
+    0:4:java.lang.String onPinCodeRequired(java.lang.String) -> onPinCodeRequired
+    0:4:byte[] getAccessCode(java.lang.String) -> getAccessCode
+    0:4:void setAccessCode(java.lang.String,byte[]) -> setAccessCode
+"""
+
 # A driver class kept verbatim by `-keep class ...driver.** { *; }`: it maps to
 # itself and its reflected methods keep their names.
 GREEN = """\
@@ -35,7 +59,7 @@ com.hoho.android.usbserial.driver.ProlificSerialDriver -> com.hoho.android.usbse
     1:1:java.util.Map getSupportedDevices() -> getSupportedDevices
     2:2:boolean probe(android.hardware.usb.UsbDevice) -> probe
     3:5:void <init>(android.hardware.usb.UsbDevice) -> <init>
-"""
+""" + HANDLERS_GREEN
 
 # The issue #318 signature: no keep rule, so R8 renamed the class to P5.a and
 # getSupportedDevices/probe to short names.
@@ -45,7 +69,7 @@ com.example.app.MainActivity -> a.b.c:
 com.hoho.android.usbserial.driver.ProlificSerialDriver -> P5.a:
     1:1:java.util.Map getSupportedDevices() -> a
     2:2:boolean probe(android.hardware.usb.UsbDevice) -> b
-"""
+""" + HANDLERS_GREEN
 
 
 class AnalyzeTests(unittest.TestCase):
@@ -176,6 +200,92 @@ class CheckMappingTests(unittest.TestCase):
                               "    void onCreate(android.os.Bundle) -> a\n")
         self.assertFalse(ok)
         self.assertTrue(any("stripped" in line for line in lines))
+
+
+class JniHandlerTests(unittest.TestCase):
+    """The fourth #318 root cause: JNI GetMethodID-resolved handler methods."""
+
+    def _run(self, text):
+        with tempfile.NamedTemporaryFile(
+            "w", suffix=".txt", delete=False, encoding="utf-8"
+        ) as fh:
+            fh.write(text)
+            path = fh.name
+        try:
+            return guard.check_mapping(path)
+        finally:
+            os.unlink(path)
+
+    # Driver section is healthy; only the handlers vary per test.
+    DRIVERS_OK = (
+        "com.example.app.MainActivity -> a.b.c:\n"
+        "    void onCreate(android.os.Bundle) -> a\n"
+        "com.hoho.android.usbserial.driver.ProlificSerialDriver -> "
+        "com.hoho.android.usbserial.driver.ProlificSerialDriver:\n"
+        "    1:1:java.util.Map getSupportedDevices() -> getSupportedDevices\n"
+        "    2:2:boolean probe(android.hardware.usb.UsbDevice) -> probe\n"
+    )
+
+    def test_removed_handler_class_fails(self):
+        # The real-world regression: R8 merged UsbSerialIoStream away and
+        # stripped its methods, so the class has no mapping section at all.
+        ok, lines = self._run(self.DRIVERS_OK)
+        self.assertFalse(ok)
+        self.assertTrue(any("UsbSerialIoStream has no mapping section" in line
+                            for line in lines))
+
+    def test_stripped_handler_method_fails(self):
+        # Section exists but configure() has no mapping line: R8 deleted the
+        # method (its only caller is native code).
+        broken = HANDLERS_GREEN.replace(
+            "    0:9:int configure(int,int,int,int,int) -> configure\n", "")
+        ok, lines = self._run(self.DRIVERS_OK + broken)
+        self.assertFalse(ok)
+        self.assertTrue(any("configure() stripped" in line for line in lines))
+
+    def test_renamed_handler_method_fails(self):
+        broken = HANDLERS_GREEN.replace(
+            "    0:5:byte[] read(int,int) -> read\n"
+            "    0:3:int write(byte[],int) -> write\n"
+            "    0:2:void purge(int) -> purge\n"
+            "    0:2:void close() -> close\n"
+            "    0:9:int configure(int,int,int,int,int) -> configure\n",
+            "    0:5:byte[] read(int,int) -> a\n"
+            "    0:3:int write(byte[],int) -> write\n"
+            "    0:2:void purge(int) -> purge\n"
+            "    0:2:void close() -> close\n"
+            "    0:9:int configure(int,int,int,int,int) -> configure\n",
+            1,
+        )
+        ok, lines = self._run(self.DRIVERS_OK + broken)
+        self.assertFalse(ok)
+        self.assertTrue(any("read() renamed" in line for line in lines))
+
+    def test_inlined_copy_does_not_mask_identity_mapping(self):
+        # BleIoStream in HANDLERS_GREEN carries "close():250:250 -> b" (an
+        # inlined copy) alongside "close() -> close"; the identity mapping
+        # must win and the mapping must pass.
+        r = guard.analyze(self.DRIVERS_OK + HANDLERS_GREEN)
+        ble = r["handler_methods"]["com.submersion.libdivecomputer.BleIoStream"]
+        self.assertEqual(ble["close"], {"close", "b"})
+        ok, _ = self._run(self.DRIVERS_OK + HANDLERS_GREEN)
+        self.assertTrue(ok)
+
+    def test_renamed_handler_class_name_is_allowed(self):
+        # HANDLERS_GREEN maps the classes to X5.U / X5.c. That must pass:
+        # JNI resolves the class via GetObjectClass, never by name.
+        ok, lines = self._run(self.DRIVERS_OK + HANDLERS_GREEN)
+        self.assertTrue(ok)
+        self.assertTrue(any("JNI-resolved methods preserved" in line
+                            for line in lines))
+
+    def test_missing_handlers_warn_when_not_obfuscated(self):
+        # Shrink-only mapping: cannot prove anything, warn rather than fail.
+        ok, lines = self._run(
+            "com.example.Foo -> com.example.Foo:\n    void bar() -> bar\n")
+        self.assertTrue(ok)
+        self.assertTrue(any("WARN" in line and "UsbSerialIoStream" in line
+                            for line in lines))
 
 
 class MainTests(unittest.TestCase):

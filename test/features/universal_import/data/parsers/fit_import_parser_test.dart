@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
+import 'package:submersion/features/universal_import/data/models/import_options.dart';
 import 'package:submersion/features/universal_import/data/parsers/fit_import_parser.dart';
 
 /// A rich dive FIT file (deco records, gas, settings, summary, GPS) built with
@@ -217,4 +218,54 @@ void main() {
       expect(reading['pressure'], closeTo(220.0, 1e-6));
     },
   );
+
+  group('dive name from source filename', () {
+    ImportOptions optsWithFile(String name) => ImportOptions(
+      sourceApp: SourceApp.garminConnect,
+      format: ImportFormat.fit,
+      fileName: name,
+    );
+
+    Future<Map<String, dynamic>> parseWith(String fileName) async {
+      final payload = await const FitImportParser().parse(
+        _richFitBytes(),
+        options: optsWithFile(fileName),
+      );
+      return payload.entities[ImportEntityType.dives]!.single;
+    }
+
+    test('uses the filename stem as the dive name', () async {
+      final d = await parseWith('Dos Ojos Cenote Dive (Barbie Line).fit');
+      expect(d['name'], 'Dos Ojos Cenote Dive (Barbie Line)');
+    });
+
+    test('strips a leading Garmin dive-number prefix', () async {
+      final d = await parseWith('22 Dos Ojos Cenote Dive (Barbie Line).fit');
+      expect(d['name'], 'Dos Ojos Cenote Dive (Barbie Line)');
+    });
+
+    test('strips a leading #-number prefix', () async {
+      final d = await parseWith('#7 Blue Hole.FIT');
+      expect(d['name'], 'Blue Hole');
+    });
+
+    test(
+      'keeps a date-like prefix intact (no space after the digits)',
+      () async {
+        final d = await parseWith('2024-10-13 Night Dive.fit');
+        expect(d['name'], '2024-10-13 Night Dive');
+      },
+    );
+
+    test('emits no name when the stem is only a dive number', () async {
+      final d = await parseWith('22.fit');
+      expect(d.containsKey('name'), isFalse);
+    });
+
+    test('emits no name when no filename is supplied', () async {
+      final payload = await const FitImportParser().parse(_richFitBytes());
+      final d = payload.entities[ImportEntityType.dives]!.single;
+      expect(d.containsKey('name'), isFalse);
+    });
+  });
 }

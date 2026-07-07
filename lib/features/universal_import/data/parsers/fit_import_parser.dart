@@ -47,7 +47,13 @@ class FitImportParser implements ImportParser {
 
     final sourceUuid = dive.sourceUuid ?? dive.sourceId;
 
+    // FIT files carry no user-facing dive name (the sport message only holds
+    // the sport profile, e.g. "Multi-Gas"). Garmin Connect encodes the dive
+    // name in the exported filename, so seed the dive name from there.
+    final nameFromFile = _diveNameFromFileName(options?.fileName);
+
     final diveData = <String, dynamic>{
+      'name': ?nameFromFile,
       'dateTime': dive.startTime,
       'maxDepth': dive.maxDepth,
       'avgDepth': dive.avgDepth,
@@ -158,5 +164,24 @@ class FitImportParser implements ImportParser {
         'sourceUuid': sourceUuid,
       },
     );
+  }
+
+  /// Derives a dive name from the source [fileName]: drops the extension and
+  /// a leading Garmin dive-number prefix (`22 `, `#7 `), which is redundant
+  /// with the separately stored dive number. Returns null when nothing
+  /// name-like remains (e.g. the stem is only a number or the file is
+  /// unnamed), so the dive is simply left unnamed rather than labelled with a
+  /// bare number.
+  ///
+  /// The prefix must be followed by whitespace, so a date-led name such as
+  /// `2024-10-13 Night Dive` is preserved intact.
+  static String? _diveNameFromFileName(String? fileName) {
+    if (fileName == null) return null;
+    var stem = fileName.trim();
+    final dot = stem.lastIndexOf('.');
+    if (dot > 0) stem = stem.substring(0, dot);
+    stem = stem.replaceFirst(RegExp(r'^#?\d{1,4}\s+'), '').trim();
+    if (stem.isEmpty || RegExp(r'^\d+$').hasMatch(stem)) return null;
+    return stem;
   }
 }

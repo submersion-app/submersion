@@ -4635,6 +4635,31 @@ class AppLocalizationsHu extends AppLocalizations {
       'Importalas meruloszamitogebol';
 
   @override
+  String get diveLog_listPage_bottomSheet_scanPaperLog =>
+      'Papir naplo beolvasasa';
+
+  @override
+  String get ocrImport_scanPage_processing => 'Oldal beolvasasa...';
+
+  @override
+  String get ocrImport_scanPage_pickPhoto => 'Foto kivalasztasa';
+
+  @override
+  String get ocrImport_scanPage_takePhoto => 'Foto keszitese';
+
+  @override
+  String get ocrImport_scanPage_nothingRead =>
+      'Nem sikerult sokat kiolvasni az oldalbol - a mezok uresen maradtak';
+
+  @override
+  String get ocrImport_scanPage_engineMissing =>
+      'A szovegfelismeres nem erheto el. Telepitse a Tesseract-ot a papir naplok beolvasasahoz (peldaul: sudo apt install tesseract-ocr).';
+
+  @override
+  String get ocrImport_editPage_photoAttachFailed =>
+      'A merules mentve, de a beolvasott oldal csatolasa nem sikerult';
+
+  @override
   String get diveLog_listPage_bottomSheet_logManually =>
       'Merules manualis rogzitese';
 
@@ -10262,6 +10287,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get nav_equipment => 'Felszereles';
+
+  @override
+  String get nav_gpsLog => 'GPS-napló';
 
   @override
   String get nav_home => 'Fooldal';
@@ -16131,6 +16159,17 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveComputer_downloadStep_retry => 'Ujraproba';
 
   @override
+  String diveComputer_downloadStep_importPartialCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count letöltött merülés importálása',
+      one: '1 letöltött merülés importálása',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveComputer_download_cancel => 'Megse';
 
   @override
@@ -17033,6 +17072,99 @@ class AppLocalizationsHu extends AppLocalizations {
   String get gasCalculators_rockBottom_yourSac => 'Sajat SAC';
 
   @override
+  String get gpsLogger_androidNotificationText =>
+      'Felszíni útvonal rögzítése folyamatban';
+
+  @override
+  String get gpsLogger_androidNotificationTitle => 'Submersion GPS-naplózó';
+
+  @override
+  String get gpsLogger_deleteTrackMessage =>
+      'Törli a rögzített GPS-útvonalat. A merülésekhez már hozzárendelt pozíciók megmaradnak.';
+
+  @override
+  String get gpsLogger_deleteTrackTitle => 'Útvonal törlése?';
+
+  @override
+  String get gpsLogger_interruptedNotice =>
+      'Egy korábbi rögzítés megszakadt. Az útvonal mentésre került.';
+
+  @override
+  String gpsLogger_lastFix(String age, String accuracy) {
+    return 'Utolsó pozíció $age ezelőtt ($accuracy)';
+  }
+
+  @override
+  String get gpsLogger_locationOff => 'A helymeghatározás ki van kapcsolva.';
+
+  @override
+  String get gpsLogger_matchButton => 'Merülések párosítása GPS-naplókkal';
+
+  @override
+  String gpsLogger_matchResult(int count) {
+    return '$count merülés pozicionálva';
+  }
+
+  @override
+  String get gpsLogger_matchResultNone =>
+      'Egyik merülés sem illeszkedik rögzített útvonalhoz';
+
+  @override
+  String get gpsLogger_noFixYet => 'Várakozás GPS-jelre';
+
+  @override
+  String get gpsLogger_noTracks => 'Még nincs rögzített GPS-útvonal';
+
+  @override
+  String get gpsLogger_permissionDenied =>
+      'GPS-útvonal rögzítéséhez helymeghatározási engedély szükséges. Engedélyezd a rendszerbeállításokban.';
+
+  @override
+  String gpsLogger_recordingStatus(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pont',
+      one: '$count pont',
+    );
+    return 'Rögzítés - $_temp0';
+  }
+
+  @override
+  String get gpsLogger_reviewSites => 'Merülőhely-párosítások áttekintése';
+
+  @override
+  String get gpsLogger_startButton => 'Rögzítés indítása';
+
+  @override
+  String get gpsLogger_stopButton => 'Rögzítés leállítása';
+
+  @override
+  String gpsLogger_stripStatus(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pont',
+      one: '$count pont',
+    );
+    return 'GPS-útvonal rögzítése · $_temp0';
+  }
+
+  @override
+  String gpsLogger_trackSubtitle(num count, String duration) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pont',
+      one: '$count pont',
+    );
+    return '$_temp0, $duration';
+  }
+
+  @override
+  String get gpsLogger_tracksHeader => 'Rögzített útvonalak';
+
+  @override
   String get maps_heatMap_hide => 'Hoterkep elrejtese';
 
   @override
@@ -17401,6 +17533,16 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get tools_gas_title => 'Gaz szamologepek';
+
+  @override
+  String get tools_gpsLogger_description =>
+      'Rögzítsd a pozíciódat a merülőnap során, és párosítsd automatikusan az importált merüléseket GPS-helyekhez.';
+
+  @override
+  String get tools_gpsLogger_subtitle => 'Felszíni útvonal rögzítése';
+
+  @override
+  String get tools_gpsLogger_title => 'GPS-naplózó';
 
   @override
   String get tools_title => 'Eszkozok';
@@ -18143,4 +18285,26 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get db_location_external_note =>
       'Az itt tárolt fájlok törlődnek, ha eltávolítja az alkalmazást.';
+
+  @override
+  String diveLog_bulkEdit_membership_onAll(int count) {
+    return 'mind a $count merülésen';
+  }
+
+  @override
+  String diveLog_bulkEdit_membership_onSome(int count, int total) {
+    return '$count/$total merülésen';
+  }
+
+  @override
+  String diveLog_bulkEdit_membership_adding(int total) {
+    return 'hozzáadás mind a $total merüléshez';
+  }
+
+  @override
+  String get diveLog_bulkEdit_membership_removing => 'eltávolítás az összesből';
+
+  @override
+  String get diveLog_bulkEdit_membership_empty =>
+      'Még nincsenek elemek a kiválasztott merüléseken';
 }

@@ -8,6 +8,7 @@ import 'package:libdivecomputer_plugin/src/dive_computer_service.dart'
     show DownloadEvent;
 
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
+import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/discovery_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
@@ -532,5 +533,118 @@ void main() {
       // After resolution, the DownloadStepWidget is rendered.
       expect(find.byType(DownloadStepWidget), findsOneWidget);
     });
+
+    // -----------------------------------------------------------------------
+    // Capturing downloaded dives (_captureAndAdvance): the completion listener
+    // and the import-partial action both funnel here.
+    // -----------------------------------------------------------------------
+
+    testWidgets('a completed download captures dives and advances the wizard', (
+      tester,
+    ) async {
+      final computer = _makeComputer();
+      final adapter = _makeAdapter(knownComputer: computer);
+
+      await tester.pumpWidget(
+        _buildDownloadStep(
+          adapter: adapter,
+          knownComputer: computer,
+          discoveryState: DiscoveryState(selectedDevice: _testDevice),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DcAdapterDownloadStep)),
+      );
+      expect(container.read(dcAdapterDownloadCanAdvanceProvider), isFalse);
+
+      // Transition the download to complete with dives: the step's listener
+      // fires _captureAndAdvance, which (via a post-frame callback) flips the
+      // can-advance provider so the wizard can move to Review.
+      container.read(downloadNotifierProvider.notifier).state = DownloadState(
+        phase: DownloadPhase.complete,
+        downloadedDives: [_downloadedDive(), _downloadedDive()],
+      );
+      await tester.pumpAndSettle();
+
+      expect(container.read(dcAdapterDownloadCanAdvanceProvider), isTrue);
+    });
+
+    testWidgets('a completed download with no dives shows the no-dives view', (
+      tester,
+    ) async {
+      final computer = _makeComputer();
+      final adapter = _makeAdapter(knownComputer: computer);
+
+      await tester.pumpWidget(
+        _buildDownloadStep(
+          adapter: adapter,
+          knownComputer: computer,
+          discoveryState: DiscoveryState(selectedDevice: _testDevice),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DcAdapterDownloadStep)),
+      );
+      container
+          .read(downloadNotifierProvider.notifier)
+          .state = const DownloadState(
+        phase: DownloadPhase.complete,
+        downloadedDives: [],
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DcNoNewDivesView), findsOneWidget);
+      expect(container.read(dcAdapterDownloadCanAdvanceProvider), isFalse);
+    });
+
+    testWidgets(
+      'importing a partial download captures dives and advances the wizard',
+      (tester) async {
+        final computer = _makeComputer();
+        final adapter = _makeAdapter(knownComputer: computer);
+
+        await tester.pumpWidget(
+          _buildDownloadStep(
+            adapter: adapter,
+            knownComputer: computer,
+            discoveryState: DiscoveryState(selectedDevice: _testDevice),
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(DcAdapterDownloadStep)),
+        );
+
+        // An interrupted download that already delivered dives: the download
+        // widget offers an import-partial action wired to _captureAndAdvance.
+        container.read(downloadNotifierProvider.notifier).state = DownloadState(
+          phase: DownloadPhase.error,
+          errorMessage: 'Connection timed out',
+          downloadedDives: [_downloadedDive(), _downloadedDive()],
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Import 2 downloaded dives'));
+        await tester.pumpAndSettle();
+
+        expect(container.read(dcAdapterDownloadCanAdvanceProvider), isTrue);
+      },
+    );
   });
 }
+
+DownloadedDive _downloadedDive() => DownloadedDive(
+  startTime: DateTime(2026, 3, 15, 10, 0),
+  durationSeconds: 40 * 60,
+  maxDepth: 20.0,
+  profile: const [],
+  tanks: const [],
+);

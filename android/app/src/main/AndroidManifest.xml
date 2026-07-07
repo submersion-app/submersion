@@ -13,8 +13,13 @@
     <!-- Legacy Bluetooth permissions for Android 11 and below -->
     <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
-    <!-- Location permission required for BLE scanning on Android 6-11 -->
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" android:maxSdkVersion="30" />
+    <!-- Location permissions: BLE scanning on Android 6-11, dive site
+         coordinates, and GPS surface track logging (foreground service
+         keeps recording while the screen is locked on a dive boat) -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
 
     <!-- Declare Bluetooth feature as optional (app works without dive computer) -->
     <uses-feature android:name="android.hardware.bluetooth_le" android:required="false" />

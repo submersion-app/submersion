@@ -4428,6 +4428,28 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_listPage_bottomSheet_importFromComputer => '从电脑导入';
 
   @override
+  String get diveLog_listPage_bottomSheet_scanPaperLog => '扫描纸质潜水日志';
+
+  @override
+  String get ocrImport_scanPage_processing => '正在读取页面...';
+
+  @override
+  String get ocrImport_scanPage_pickPhoto => '选择照片';
+
+  @override
+  String get ocrImport_scanPage_takePhoto => '拍摄照片';
+
+  @override
+  String get ocrImport_scanPage_nothingRead => '无法从此页面读取太多内容 - 字段留空';
+
+  @override
+  String get ocrImport_scanPage_engineMissing =>
+      '文本识别不可用。请安装 Tesseract 以扫描纸质日志（例如：sudo apt install tesseract-ocr）。';
+
+  @override
+  String get ocrImport_editPage_photoAttachFailed => '潜水已保存，但附加扫描页面失败';
+
+  @override
   String get diveLog_listPage_bottomSheet_logManually => '手动记录潜水';
 
   @override
@@ -9840,6 +9862,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get nav_equipment => '装备';
+
+  @override
+  String get nav_gpsLog => 'GPS 记录';
 
   @override
   String get nav_home => '首页';
@@ -15365,6 +15390,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveComputer_downloadStep_retry => '重试';
 
   @override
+  String diveComputer_downloadStep_importPartialCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '导入 $count 次已下载的潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveComputer_download_cancel => '取消';
 
   @override
@@ -16229,6 +16264,91 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_rockBottom_yourSac => '您的 SAC';
 
   @override
+  String get gpsLogger_androidNotificationText => '正在记录水面轨迹';
+
+  @override
+  String get gpsLogger_androidNotificationTitle => 'Submersion GPS 记录器';
+
+  @override
+  String get gpsLogger_deleteTrackMessage => '将删除已记录的 GPS 轨迹。已标注到潜水记录的位置会保留。';
+
+  @override
+  String get gpsLogger_deleteTrackTitle => '删除轨迹？';
+
+  @override
+  String get gpsLogger_interruptedNotice => '上次记录被中断，轨迹已保存。';
+
+  @override
+  String gpsLogger_lastFix(String age, String accuracy) {
+    return '上次定位于 $age 前（$accuracy）';
+  }
+
+  @override
+  String get gpsLogger_locationOff => '定位服务已关闭。';
+
+  @override
+  String get gpsLogger_matchButton => '将潜水与 GPS 记录匹配';
+
+  @override
+  String gpsLogger_matchResult(int count) {
+    return '已定位 $count 次潜水';
+  }
+
+  @override
+  String get gpsLogger_matchResultNone => '没有潜水与已记录的轨迹匹配';
+
+  @override
+  String get gpsLogger_noFixYet => '正在等待 GPS 定位';
+
+  @override
+  String get gpsLogger_noTracks => '尚未记录 GPS 轨迹';
+
+  @override
+  String get gpsLogger_permissionDenied => '记录 GPS 轨迹需要位置权限。请在系统设置中启用。';
+
+  @override
+  String gpsLogger_recordingStatus(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个点',
+    );
+    return '记录中 - $_temp0';
+  }
+
+  @override
+  String get gpsLogger_reviewSites => '查看潜点匹配';
+
+  @override
+  String get gpsLogger_startButton => '开始记录';
+
+  @override
+  String get gpsLogger_stopButton => '停止记录';
+
+  @override
+  String gpsLogger_stripStatus(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个点',
+    );
+    return '正在记录 GPS 轨迹 · $_temp0';
+  }
+
+  @override
+  String gpsLogger_trackSubtitle(num count, String duration) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个点',
+    );
+    return '$_temp0，$duration';
+  }
+
+  @override
+  String get gpsLogger_tracksHeader => '已记录的轨迹';
+
+  @override
   String get maps_heatMap_hide => '隐藏热力图';
 
   @override
@@ -16585,6 +16705,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get tools_gas_title => '气体计算器';
+
+  @override
+  String get tools_gpsLogger_description => '在潜水日记录你的位置，自动将导入的潜水与 GPS 位置匹配。';
+
+  @override
+  String get tools_gpsLogger_subtitle => '记录水面轨迹';
+
+  @override
+  String get tools_gpsLogger_title => 'GPS 记录器';
 
   @override
   String get tools_title => '工具';
@@ -17295,4 +17424,25 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get db_location_external_note => '卸载应用后，此处的文件将被删除。';
+
+  @override
+  String diveLog_bulkEdit_membership_onAll(int count) {
+    return '全部 $count 次潜水';
+  }
+
+  @override
+  String diveLog_bulkEdit_membership_onSome(int count, int total) {
+    return '$count/$total 次潜水';
+  }
+
+  @override
+  String diveLog_bulkEdit_membership_adding(int total) {
+    return '添加到全部 $total 次';
+  }
+
+  @override
+  String get diveLog_bulkEdit_membership_removing => '从全部移除';
+
+  @override
+  String get diveLog_bulkEdit_membership_empty => '所选潜水尚无项目';
 }
