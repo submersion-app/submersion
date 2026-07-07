@@ -22,7 +22,11 @@ import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/data/services/pre_migration_backup_service.dart';
 import 'package:submersion/features/backup/domain/exceptions/backup_failed_exception.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
+import 'package:submersion/core/services/maintenance/startup_maintenance_task.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
+import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/data/services/media_enrichment_backfill_service.dart';
 import 'package:submersion/main.dart' show SubmersionRestart;
 
 /// Callback signature for the service initializer used by [StartupWrapper].
@@ -306,6 +310,17 @@ class _StartupWrapperState extends State<StartupWrapper>
 
     final speciesRepository = SpeciesRepository();
     await speciesRepository.seedBuiltInSpecies();
+
+    // Run idempotent data-cleanup tasks after the DB is open. Each is safe to
+    // run on every launch and self-terminates once its work is done, so this
+    // also self-heals after a restore (which reopens an older DB in-app, past
+    // the migration path). Register future cleanup tasks by adding them here.
+    await StartupMaintenanceRunner([
+      MediaEnrichmentBackfillService(
+        mediaRepository: MediaRepository(),
+        diveRepository: DiveRepository(),
+      ),
+    ]).run();
   }
 
   Future<void> _runPreMigrationBackup({

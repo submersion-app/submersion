@@ -603,6 +603,42 @@ class MediaRepository {
     }
   }
 
+  /// Dive ids that have at least one dive-linked media item missing its
+  /// [MediaEnrichment] row, where the dive also has primary profile points to
+  /// enrich against.
+  ///
+  /// Used by the enrichment backfill (issue #511): photos linked before the
+  /// profile-marker feature never had enrichment computed, so their markers
+  /// don't render. Restricting to profiled dives keeps the backfill
+  /// self-terminating — every candidate the enrichment service can process
+  /// gets a row and drops out of this query.
+  Future<List<String>> diveIdsNeedingEnrichmentBackfill() async {
+    try {
+      final rows = await _db.customSelect('''
+        SELECT DISTINCT m.dive_id AS dive_id
+        FROM media m
+        WHERE m.dive_id IS NOT NULL
+          AND m.taken_at IS NOT NULL
+          AND m.file_type != 'instructor_signature'
+          AND NOT EXISTS (
+            SELECT 1 FROM media_enrichment e WHERE e.media_id = m.id
+          )
+          AND EXISTS (
+            SELECT 1 FROM dive_profiles p
+            WHERE p.dive_id = m.dive_id AND p.is_primary = 1
+          )
+      ''').get();
+      return rows.map((row) => row.data['dive_id'] as String).toList();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to list dives needing enrichment backfill',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Get the set of platformAssetIds already linked to a specific dive.
   ///
   /// Returns only non-null platformAssetIds for gallery photos.
