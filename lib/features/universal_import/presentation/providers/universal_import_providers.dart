@@ -31,6 +31,7 @@ import 'package:submersion/features/universal_import/data/parsers/subsurface_xml
 import 'package:submersion/features/universal_import/data/parsers/shearwater_cloud_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/uddf_import_parser.dart';
 import 'package:submersion/features/universal_import/data/services/format_detector.dart';
+import 'package:submersion/features/universal_import/data/models/picked_import_file.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_db_reader.dart';
 import 'package:submersion/features/universal_import/data/services/shearwater_db_reader.dart';
 import 'package:submersion/features/universal_import/data/services/import_duplicate_checker.dart';
@@ -126,8 +127,14 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
 
       state = state.copyWith(
         isLoading: false,
-        fileBytes: bytes,
-        fileName: fileName,
+        files: [
+          PickedImportFile(
+            name: fileName,
+            bytes: bytes,
+            detection: detection,
+            status: ImportFileStatus.pending,
+          ),
+        ],
         detectionResult: detection,
         currentStep: ImportWizardStep.sourceConfirmation,
         wasLoadedExternally: true,
@@ -187,8 +194,15 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
 
       state = state.copyWith(
         isLoading: false,
-        fileBytes: bytes,
-        fileName: fileName,
+        files: [
+          PickedImportFile(
+            name: fileName,
+            path: filePath,
+            bytes: bytes,
+            detection: detection,
+            status: ImportFileStatus.pending,
+          ),
+        ],
         detectionResult: detection,
         currentStep: ImportWizardStep.sourceConfirmation,
       );

@@ -65,6 +65,7 @@ import 'package:submersion/features/universal_import/data/models/import_enums.da
     as ui;
 import 'package:submersion/features/universal_import/data/models/import_options.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
+import 'package:submersion/features/universal_import/data/models/picked_import_file.dart';
 import 'package:submersion/features/universal_import/data/parsers/subsurface_xml_parser.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 
@@ -149,7 +150,19 @@ class _TestableImportNotifier extends UniversalImportNotifier {
   }
 
   void setFileName(String name) {
-    state = state.copyWith(fileName: name);
+    state = state.copyWith(
+      files: [
+        PickedImportFile(
+          name: name,
+          bytes: Uint8List(0),
+          detection: const DetectionResult(
+            format: ui.ImportFormat.unknown,
+            confidence: 0,
+          ),
+          status: ImportFileStatus.pending,
+        ),
+      ],
+    );
   }
 
   void setDetectedCsvPreset(CsvPreset? preset) {

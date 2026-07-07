@@ -16,6 +16,19 @@ import 'package:submersion/features/universal_import/data/parsers/macdive_xml_pa
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 
 import '../../../../fixtures/macdive_sqlite/build_synthetic_db.dart';
+import 'package:submersion/features/universal_import/data/models/picked_import_file.dart';
+
+PickedImportFile testPickedFile(Uint8List bytes, [String name = 'test-file']) {
+  return PickedImportFile(
+    name: name,
+    bytes: bytes,
+    detection: const DetectionResult(
+      format: ImportFormat.unknown,
+      confidence: 0,
+    ),
+    status: ImportFileStatus.pending,
+  );
+}
 
 Uint8List _csvBytes(String csv) => Uint8List.fromList(csv.codeUnits);
 
@@ -355,7 +368,7 @@ void main() {
             sourceApp: SourceApp.subsurface,
             confidence: 0.9,
           ),
-          fileBytes: _csvBytes('placeholder'),
+          files: [testPickedFile(_csvBytes('placeholder'), 'test-file')],
         );
 
         // Set pending overrides.
@@ -381,7 +394,7 @@ void main() {
               sourceApp: SourceApp.subsurface,
               confidence: 0.9,
             ),
-            fileBytes: _csvBytes('placeholder'),
+            files: [testPickedFile(_csvBytes('placeholder'), 'test-file')],
           );
 
           notifier.setPendingSourceOverride(SourceApp.macdive);
@@ -402,7 +415,7 @@ void main() {
               sourceApp: SourceApp.generic,
               confidence: 0.5,
             ),
-            fileBytes: _csvBytes('placeholder'),
+            files: [testPickedFile(_csvBytes('placeholder'), 'test-file')],
           );
 
           notifier.setPendingSourceOverride(
@@ -427,7 +440,7 @@ void main() {
             sourceApp: SourceApp.subsurface,
             confidence: 0.95,
           ),
-          fileBytes: _csvBytes('<xml></xml>'),
+          files: [testPickedFile(_csvBytes('<xml></xml>'), 'test-file')],
         );
 
         await notifier.confirmSource();
@@ -444,7 +457,7 @@ void main() {
               format: ImportFormat.uddf,
               confidence: 0.8,
             ),
-            fileBytes: _csvBytes('<xml></xml>'),
+            files: [testPickedFile(_csvBytes('<xml></xml>'), 'test-file')],
           );
 
           await notifier.confirmSource();
@@ -461,7 +474,7 @@ void main() {
             sourceApp: SourceApp.subsurface,
             confidence: 0.9,
           ),
-          fileBytes: _csvBytes('test'),
+          files: [testPickedFile(_csvBytes('test'), 'test-file')],
         );
 
         notifier.setPendingSourceOverride(
@@ -489,7 +502,7 @@ void main() {
             sourceApp: SourceApp.generic,
             confidence: 0.8,
           ),
-          fileBytes: csvData,
+          files: [testPickedFile(csvData, 'test-file')],
         );
 
         await notifier.confirmSource();
@@ -515,7 +528,7 @@ void main() {
             sourceApp: SourceApp.generic,
             confidence: 0.8,
           ),
-          fileBytes: csvData,
+          files: [testPickedFile(csvData, 'test-file')],
         );
 
         await notifier.confirmSource();
@@ -535,7 +548,7 @@ void main() {
             sourceApp: SourceApp.subsurface,
             confidence: 0.9,
           ),
-          fileBytes: _csvBytes('<xml></xml>'),
+          files: [testPickedFile(_csvBytes('<xml></xml>'), 'test-file')],
         );
 
         await notifier.confirmSource();
@@ -555,7 +568,7 @@ void main() {
               sourceApp: SourceApp.generic,
               confidence: 0.8,
             ),
-            fileBytes: Uint8List(0),
+            files: [testPickedFile(Uint8List(0), 'test-file')],
           );
 
           await notifier.confirmSource();
@@ -577,7 +590,7 @@ void main() {
             sourceApp: SourceApp.generic,
             confidence: 0.8,
           ),
-          fileBytes: _csvBytes('A,B\n1,2\n'),
+          files: [testPickedFile(_csvBytes('A,B\n1,2\n'), 'test-file')],
         );
 
         // After confirmSource completes, step should advance past
@@ -650,7 +663,12 @@ void main() {
             format: ImportFormat.csv,
           ),
           payload: existingPayload,
-          fileBytes: _csvBytes('Date,Depth\n2024-01-01,30\n'),
+          files: [
+            testPickedFile(
+              _csvBytes('Date,Depth\n2024-01-01,30\n'),
+              'test-file',
+            ),
+          ],
           currentStep: ImportWizardStep.fieldMapping,
         );
 
@@ -690,7 +708,12 @@ void main() {
       test('sets error when options is null during parse attempt', () async {
         // Set file bytes but no options.
         notifier.state = notifier.state.copyWith(
-          fileBytes: _csvBytes('Date,Depth\n2024-01-01,30\n'),
+          files: [
+            testPickedFile(
+              _csvBytes('Date,Depth\n2024-01-01,30\n'),
+              'test-file',
+            ),
+          ],
         );
 
         await notifier.confirmFieldMapping();
@@ -712,7 +735,7 @@ void main() {
               sourceApp: SourceApp.generic,
               format: ImportFormat.unknown,
             ),
-            fileBytes: _csvBytes('some data'),
+            files: [testPickedFile(_csvBytes('some data'), 'test-file')],
           );
 
           notifier.addListener((state) {
@@ -735,7 +758,7 @@ void main() {
             sourceApp: SourceApp.generic,
             format: ImportFormat.unknown,
           ),
-          fileBytes: _csvBytes('some bytes'),
+          files: [testPickedFile(_csvBytes('some bytes'), 'test-file')],
         );
 
         await notifier.confirmFieldMapping();
@@ -754,7 +777,7 @@ void main() {
               sourceApp: SourceApp.generic,
               format: ImportFormat.unknown,
             ),
-            fileBytes: _csvBytes('test data'),
+            files: [testPickedFile(_csvBytes('test data'), 'test-file')],
           );
 
           await notifier.confirmFieldMapping();
@@ -772,7 +795,9 @@ void main() {
             sourceApp: SourceApp.subsurface,
             format: ImportFormat.subsurfaceXml,
           ),
-          fileBytes: _csvBytes('not valid xml at all {{{'),
+          files: [
+            testPickedFile(_csvBytes('not valid xml at all {{{'), 'test-file'),
+          ],
         );
 
         await notifier.confirmFieldMapping();
@@ -798,9 +823,12 @@ void main() {
             sourceApp: SourceApp.generic,
             format: ImportFormat.csv,
           ),
-          fileBytes: _csvBytes(
-            'MyDate,MyDepth,MyDuration\n2024-01-01,30.0,2700\n',
-          ),
+          files: [
+            testPickedFile(
+              _csvBytes('MyDate,MyDepth,MyDuration\n2024-01-01,30.0,2700\n'),
+              'test-file',
+            ),
+          ],
           fieldMapping: mapping,
         );
 
@@ -829,7 +857,7 @@ void main() {
             sourceApp: SourceApp.subsurface,
             confidence: 0.8,
           ),
-          fileBytes: csvData,
+          files: [testPickedFile(csvData, 'test-file')],
         );
 
         await notifier.confirmSource();
@@ -857,7 +885,7 @@ void main() {
             sourceApp: SourceApp.macdive,
             confidence: 0.8,
           ),
-          fileBytes: csvData,
+          files: [testPickedFile(csvData, 'test-file')],
         );
 
         await notifier.confirmSource();
@@ -880,7 +908,7 @@ void main() {
               sourceApp: SourceApp.generic,
               confidence: 0.5,
             ),
-            fileBytes: csvData,
+            files: [testPickedFile(csvData, 'test-file')],
           );
 
           await notifier.confirmSource();
@@ -898,7 +926,7 @@ void main() {
             sourceApp: SourceApp.submersion,
             confidence: 0.95,
           ),
-          fileBytes: _csvBytes('<uddf></uddf>'),
+          files: [testPickedFile(_csvBytes('<uddf></uddf>'), 'test-file')],
         );
 
         await notifier.confirmSource();
@@ -916,7 +944,9 @@ void main() {
             sourceApp: SourceApp.subsurface,
             confidence: 0.9,
           ),
-          fileBytes: _csvBytes('<divelog></divelog>'),
+          files: [
+            testPickedFile(_csvBytes('<divelog></divelog>'), 'test-file'),
+          ],
         );
 
         await notifier.confirmSource();
@@ -933,7 +963,7 @@ void main() {
             sourceApp: SourceApp.garminConnect,
             confidence: 0.9,
           ),
-          fileBytes: _csvBytes('fit data'),
+          files: [testPickedFile(_csvBytes('fit data'), 'test-file')],
         );
 
         await notifier.confirmSource();
@@ -950,7 +980,7 @@ void main() {
             sourceApp: SourceApp.shearwater,
             confidence: 0.95,
           ),
-          fileBytes: _csvBytes('db data'),
+          files: [testPickedFile(_csvBytes('db data'), 'test-file')],
         );
 
         await notifier.confirmSource();
@@ -971,7 +1001,7 @@ void main() {
               sourceApp: SourceApp.suunto,
               confidence: 0.8,
             ),
-            fileBytes: _csvBytes('data'),
+            files: [testPickedFile(_csvBytes('data'), 'test-file')],
           );
 
           await notifier.confirmSource();
@@ -994,7 +1024,7 @@ void main() {
             sourceApp: SourceApp.subsurface,
             confidence: 0.7,
           ),
-          fileBytes: _csvBytes('data'),
+          files: [testPickedFile(_csvBytes('data'), 'test-file')],
         );
 
         await notifier.confirmSource(overrideApp: SourceApp.scubapro);
@@ -1011,7 +1041,7 @@ void main() {
             sourceApp: SourceApp.generic,
             confidence: 0.5,
           ),
-          fileBytes: _csvBytes('data'),
+          files: [testPickedFile(_csvBytes('data'), 'test-file')],
         );
 
         await notifier.confirmSource(
@@ -1229,8 +1259,7 @@ void main() {
             'Date,Depth,Duration\n2024-01-01,30.0,2700\n',
           );
           notifier.state = notifier.state.copyWith(
-            fileBytes: csvData,
-            fileName: 'test.csv',
+            files: [testPickedFile(csvData, 'test.csv')],
             detectionResult: const DetectionResult(
               format: ImportFormat.csv,
               sourceApp: SourceApp.generic,
@@ -1264,8 +1293,7 @@ void main() {
 
       test('non-CSV flow: confirm source goes directly to review', () async {
         notifier.state = notifier.state.copyWith(
-          fileBytes: _csvBytes('<uddf/>'),
-          fileName: 'test.uddf',
+          files: [testPickedFile(_csvBytes('<uddf/>'), 'test.uddf')],
           detectionResult: const DetectionResult(
             format: ImportFormat.uddf,
             sourceApp: SourceApp.submersion,
@@ -1284,8 +1312,7 @@ void main() {
       test('reset after partial wizard flow restores initial state', () async {
         final csvData = _csvBytes('A,B\n1,2\n');
         notifier.state = notifier.state.copyWith(
-          fileBytes: csvData,
-          fileName: 'test.csv',
+          files: [testPickedFile(csvData, 'test.csv')],
           detectionResult: const DetectionResult(
             format: ImportFormat.csv,
             sourceApp: SourceApp.generic,

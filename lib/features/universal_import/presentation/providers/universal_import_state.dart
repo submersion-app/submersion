@@ -5,6 +5,7 @@ import 'package:submersion/features/universal_import/data/models/field_mapping.d
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_options.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
+import 'package:submersion/features/universal_import/data/models/picked_import_file.dart';
 import 'package:submersion/features/universal_import/data/csv/models/parsed_csv.dart';
 import 'package:submersion/features/universal_import/data/csv/presets/csv_preset.dart';
 import 'package:submersion/features/universal_import/data/services/import_duplicate_checker.dart';
@@ -35,11 +36,12 @@ class UniversalImportState {
     this.isLoading = false,
     this.isImporting = false,
     this.error,
-    this.fileBytes,
-    this.fileName,
+    this.files = const [],
     this.additionalFileBytes,
     this.additionalFileName,
     this.detectionResult,
+    this.parseCurrent = 0,
+    this.parseTotal = 0,
     this.pendingSourceOverride,
     this.pendingFormatOverride,
     this.detectedCsvPreset,
@@ -61,9 +63,33 @@ class UniversalImportState {
   final bool isImporting;
   final String? error;
 
-  /// Raw file bytes (kept for re-parsing if field mapping changes).
-  final Uint8List? fileBytes;
-  final String? fileName;
+  /// The selected files. One element for classic single-file imports;
+  /// multiple for a bulk batch. Path-backed entries drop their bytes after
+  /// detection and re-read them lazily at parse time.
+  final List<PickedImportFile> files;
+
+  /// Batch parse progress (files parsed so far / files pending).
+  final int parseCurrent;
+  final int parseTotal;
+
+  /// Raw file bytes for the classic single-file flow (kept for re-parsing if
+  /// field mapping changes). Null for batches: batch parsing re-reads bytes
+  /// per file from [PickedImportFile.path].
+  Uint8List? get fileBytes => files.length == 1 ? files.first.bytes : null;
+
+  /// Display name: the file's name for a single pick, a count for a batch.
+  String? get fileName => files.isEmpty
+      ? null
+      : (files.length == 1 ? files.first.name : '${files.length} files');
+
+  /// True when more than one file was selected (batch import path).
+  bool get isBatch => files.length > 1;
+
+  /// Files awaiting batch parse.
+  List<PickedImportFile> get pendingFiles => [
+    for (final f in files)
+      if (f.status == ImportFileStatus.pending) f,
+  ];
 
   /// Profile CSV bytes for multi-file presets (e.g. Subsurface).
   final Uint8List? additionalFileBytes;
@@ -121,13 +147,16 @@ class UniversalImportState {
     bool? isImporting,
     String? error,
     bool clearError = false,
-    Uint8List? fileBytes,
-    String? fileName,
+    List<PickedImportFile>? files,
+    bool clearFiles = false,
+    int? parseCurrent,
+    int? parseTotal,
     Uint8List? additionalFileBytes,
     bool clearAdditionalFileBytes = false,
     String? additionalFileName,
     bool clearAdditionalFileName = false,
     DetectionResult? detectionResult,
+    bool clearDetectionResult = false,
     ImportOptions? options,
     FieldMapping? fieldMapping,
     bool clearFieldMapping = false,
@@ -154,15 +183,18 @@ class UniversalImportState {
       isLoading: isLoading ?? this.isLoading,
       isImporting: isImporting ?? this.isImporting,
       error: clearError ? null : (error ?? this.error),
-      fileBytes: fileBytes ?? this.fileBytes,
-      fileName: fileName ?? this.fileName,
+      files: clearFiles ? const [] : (files ?? this.files),
+      parseCurrent: parseCurrent ?? this.parseCurrent,
+      parseTotal: parseTotal ?? this.parseTotal,
       additionalFileBytes: clearAdditionalFileBytes
           ? null
           : (additionalFileBytes ?? this.additionalFileBytes),
       additionalFileName: clearAdditionalFileName
           ? null
           : (additionalFileName ?? this.additionalFileName),
-      detectionResult: detectionResult ?? this.detectionResult,
+      detectionResult: clearDetectionResult
+          ? null
+          : (detectionResult ?? this.detectionResult),
       pendingSourceOverride: clearPendingSourceOverride
           ? null
           : (pendingSourceOverride ?? this.pendingSourceOverride),
