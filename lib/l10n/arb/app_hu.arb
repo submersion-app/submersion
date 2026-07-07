@@ -851,6 +851,7 @@
   "diveComputer_downloadStep_progressPercent": "{percent}%",
   "diveComputer_downloadStep_progressSemanticLabel": "Letoltesi folyamat: {status}{percent}",
   "diveComputer_downloadStep_retry": "Ujraproba",
+  "diveComputer_downloadStep_importPartialCount": "{count, plural, =1{1 letöltött merülés importálása} other{{count} letöltött merülés importálása}}",
   "diveComputer_download_cancel": "Megse",
   "diveComputer_download_closeTooltip": "Bezaras",
   "diveComputer_download_computerNotFound": "A szamitogep nem talalhato",

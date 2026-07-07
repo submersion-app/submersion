@@ -15697,6 +15697,17 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveComputer_downloadStep_retry => 'נסה שוב';
 
   @override
+  String diveComputer_downloadStep_importPartialCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ייבוא $count צלילות שהורדו',
+      one: 'ייבוא צלילה אחת שהורדה',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveComputer_download_cancel => 'ביטול';
 
   @override

@@ -945,6 +945,7 @@
   "diveComputer_downloadStep_progressPercent": "{percent}%",
   "diveComputer_downloadStep_progressSemanticLabel": "下载进度：{status}{percent}",
   "diveComputer_downloadStep_retry": "重试",
+  "diveComputer_downloadStep_importPartialCount": "{count, plural, other{导入 {count} 次已下载的潜水}}",
   "diveComputer_download_cancel": "取消",
   "diveComputer_download_closeTooltip": "关闭",
   "diveComputer_download_computerNotFound": "未找到潜水电脑",

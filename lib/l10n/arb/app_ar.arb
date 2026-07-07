@@ -885,6 +885,7 @@
   "diveComputer_downloadStep_progressPercent": "{percent}%",
   "diveComputer_downloadStep_progressSemanticLabel": "تقدم التنزيل: {status}{percent}",
   "diveComputer_downloadStep_retry": "إعادة المحاولة",
+  "diveComputer_downloadStep_importPartialCount": "{count, plural, =1{استيراد غطسة واحدة تم تنزيلها} other{استيراد {count} غطسات تم تنزيلها}}",
   "diveComputer_download_cancel": "إلغاء",
   "diveComputer_download_closeTooltip": "إغلاق",
   "diveComputer_download_computerNotFound": "لم يتم العثور على الكمبيوتر",

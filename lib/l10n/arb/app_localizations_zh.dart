@@ -15328,6 +15328,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveComputer_downloadStep_retry => '重试';
 
   @override
+  String diveComputer_downloadStep_importPartialCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '导入 $count 次已下载的潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveComputer_download_cancel => '取消';
 
   @override

@@ -15983,6 +15983,17 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveComputer_downloadStep_retry => 'Opnieuw proberen';
 
   @override
+  String diveComputer_downloadStep_importPartialCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gedownloade duiken importeren',
+      one: '1 gedownloade duik importeren',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveComputer_download_cancel => 'Annuleren';
 
   @override

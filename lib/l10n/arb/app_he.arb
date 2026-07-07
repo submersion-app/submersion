@@ -851,6 +851,7 @@
   "diveComputer_downloadStep_progressPercent": "{percent}%",
   "diveComputer_downloadStep_progressSemanticLabel": "התקדמות הורדה: {status}{percent}",
   "diveComputer_downloadStep_retry": "נסה שוב",
+  "diveComputer_downloadStep_importPartialCount": "{count, plural, =1{ייבוא צלילה אחת שהורדה} other{ייבוא {count} צלילות שהורדו}}",
   "diveComputer_download_cancel": "ביטול",
   "diveComputer_download_closeTooltip": "סגירה",
   "diveComputer_download_computerNotFound": "המחשב לא נמצא",

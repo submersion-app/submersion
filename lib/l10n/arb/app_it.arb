@@ -851,6 +851,7 @@
   "diveComputer_downloadStep_progressPercent": "{percent}%",
   "diveComputer_downloadStep_progressSemanticLabel": "Avanzamento download: {status}{percent}",
   "diveComputer_downloadStep_retry": "Riprova",
+  "diveComputer_downloadStep_importPartialCount": "{count, plural, =1{Importa 1 immersione scaricata} other{Importa {count} immersioni scaricate}}",
   "diveComputer_download_cancel": "Annulla",
   "diveComputer_download_closeTooltip": "Chiudi",
   "diveComputer_download_computerNotFound": "Computer non trovato",

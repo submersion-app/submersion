@@ -80,6 +80,27 @@ target_include_directories(test_hw_ostc3_read PRIVATE
     ${CONFIG_DIR}
 )
 
+# Regression test for issue #480: shearwater_petrel_device_foreach must
+# deliver dives oldest first (so the newest-fingerprint resume point works
+# after a partial BLE download), preserve manifest records behind deleted
+# (0x5A23) entries, and keep exact progress accounting. The test #includes
+# shearwater_petrel.c to reach the static foreach and mocks the whole
+# shearwater_common transport layer, so only leaf dependencies are linked.
+add_executable(test_shearwater_petrel_foreach
+    test_shearwater_petrel_foreach.c
+    ${LIBDC_DIR}/src/array.c
+    ${LIBDC_DIR}/src/buffer.c
+    ${LIBDC_DIR}/src/context.c
+    ${LIBDC_DIR}/src/common.c
+    ${LIBDC_DIR}/src/platform.c
+)
+target_include_directories(test_shearwater_petrel_foreach PRIVATE
+    ${WRAPPER_DIR}
+    ${LIBDC_DIR}/include
+    ${LIBDC_DIR}/src
+    ${CONFIG_DIR}
+)
+
 # test_parse_raw_dive requires the full libdivecomputer + wrapper linked in.
 # Use the Windows config on Windows, macOS config otherwise.
 if(WIN32)
@@ -122,6 +143,7 @@ add_test(NAME test_serial_callbacks COMMAND test_serial_callbacks)
 add_test(NAME test_descriptor_matcher COMMAND test_descriptor_matcher)
 add_test(NAME test_descriptor_match_integration COMMAND test_descriptor_match_integration)
 add_test(NAME test_hw_ostc3_read COMMAND test_hw_ostc3_read)
+add_test(NAME test_shearwater_petrel_foreach COMMAND test_shearwater_petrel_foreach)
 add_test(NAME test_parse_raw_dive COMMAND test_parse_raw_dive
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
 )

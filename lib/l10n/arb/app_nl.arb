@@ -851,6 +851,7 @@
   "diveComputer_downloadStep_progressPercent": "{percent}%",
   "diveComputer_downloadStep_progressSemanticLabel": "Downloadvoortgang: {status}{percent}",
   "diveComputer_downloadStep_retry": "Opnieuw proberen",
+  "diveComputer_downloadStep_importPartialCount": "{count, plural, =1{1 gedownloade duik importeren} other{{count} gedownloade duiken importeren}}",
   "diveComputer_download_cancel": "Annuleren",
   "diveComputer_download_closeTooltip": "Sluiten",
   "diveComputer_download_computerNotFound": "Computer niet gevonden",

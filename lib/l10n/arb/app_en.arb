@@ -9950,6 +9950,14 @@
     }
   },
   "diveComputer_downloadStep_retry": "Retry",
+  "diveComputer_downloadStep_importPartialCount": "{count, plural, =1{Import 1 downloaded dive} other{Import {count} downloaded dives}}",
+  "@diveComputer_downloadStep_importPartialCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "diveComputer_download_cancel": "Cancel",
   "diveComputer_download_closeTooltip": "Close",
   "diveComputer_download_computerNotFound": "Computer not found",

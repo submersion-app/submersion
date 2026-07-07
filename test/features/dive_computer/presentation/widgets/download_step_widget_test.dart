@@ -144,6 +144,7 @@ Widget _buildWidget({
   DownloadState initialState = const DownloadState(),
   VoidCallback? onComplete,
   void Function(String)? onError,
+  VoidCallback? onImportPartial,
 }) {
   return ProviderScope(
     overrides: [
@@ -165,6 +166,7 @@ Widget _buildWidget({
           device: device ?? _testDevice,
           onComplete: onComplete ?? () {},
           onError: onError ?? (_) {},
+          onImportPartial: onImportPartial,
         ),
       ),
     ),
@@ -559,6 +561,162 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Cancel'), findsNothing);
+    });
+
+    // -----------------------------------------------------------------------
+    // Partial import: an interrupted download that already delivered dives
+    // (issue #480). Because dives are delivered oldest-first, the retained
+    // prefix is a contiguous run of the oldest dives, so importing it and
+    // advancing the fingerprint gives a correct resume point.
+    // -----------------------------------------------------------------------
+
+    testWidgets(
+      'shows import-partial button in error state when dives were delivered',
+      (tester) async {
+        await tester.pumpWidget(
+          _buildWidget(
+            initialState: DownloadState(
+              phase: DownloadPhase.error,
+              errorMessage: 'Connection timed out',
+              downloadedDives: [_makeDive(diveNumber: 1), _makeDive()],
+            ),
+            onImportPartial: () {},
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // The error is still shown, and an explicit action to keep the dives
+        // pulled before the failure is offered alongside Retry.
+        expect(find.text('Connection timed out'), findsOneWidget);
+        expect(find.text('Import 2 downloaded dives'), findsOneWidget);
+        expect(find.text('Retry'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'does not show import-partial button in error state with no dives',
+      (tester) async {
+        await tester.pumpWidget(
+          _buildWidget(
+            initialState: const DownloadState(
+              phase: DownloadPhase.error,
+              errorMessage: 'Connection timed out',
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.textContaining('downloaded dives'), findsNothing);
+        expect(find.text('Retry'), findsOneWidget);
+      },
+    );
+
+    testWidgets('import-partial button fires onImportPartial when tapped', (
+      tester,
+    ) async {
+      var importPartialCalled = false;
+
+      await tester.pumpWidget(
+        _buildWidget(
+          initialState: DownloadState(
+            phase: DownloadPhase.error,
+            errorMessage: 'Connection timed out',
+            downloadedDives: [_makeDive(diveNumber: 1)],
+          ),
+          onImportPartial: () => importPartialCalled = true,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // A single dive uses the grammatical singular form.
+      await tester.tap(find.text('Import 1 downloaded dive'));
+      await tester.pumpAndSettle();
+
+      expect(importPartialCalled, isTrue);
+    });
+
+    testWidgets('import-partial button uses singular label for one dive', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildWidget(
+          initialState: DownloadState(
+            phase: DownloadPhase.error,
+            errorMessage: 'Connection timed out',
+            downloadedDives: [_makeDive(diveNumber: 1)],
+          ),
+          onImportPartial: () {},
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Import 1 downloaded dive'), findsOneWidget);
+      expect(find.text('Import 1 downloaded dives'), findsNothing);
+    });
+
+    testWidgets('tapping Retry with no partial dives restarts the download', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildWidget(
+          initialState: const DownloadState(
+            phase: DownloadPhase.error,
+            errorMessage: 'Connection timed out',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // No onImportPartial and no dives: Retry is the sole FilledButton.
+      await tester.tap(find.text('Retry'));
+      await tester.pump();
+
+      // The stubbed notifier makes the restart a no-op; the widget survives.
+      expect(find.byType(DownloadStepWidget), findsOneWidget);
+    });
+
+    testWidgets(
+      'tapping Retry alongside import-partial restarts the download',
+      (tester) async {
+        await tester.pumpWidget(
+          _buildWidget(
+            initialState: DownloadState(
+              phase: DownloadPhase.cancelled,
+              downloadedDives: [_makeDive(diveNumber: 1)],
+            ),
+            onImportPartial: () {},
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // With partial dives, Retry is the secondary OutlinedButton.
+        await tester.tap(find.text('Retry'));
+        await tester.pump();
+
+        expect(find.byType(DownloadStepWidget), findsOneWidget);
+      },
+    );
+
+    testWidgets('shows import-partial button in cancelled state with dives', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildWidget(
+          initialState: DownloadState(
+            phase: DownloadPhase.cancelled,
+            downloadedDives: [
+              _makeDive(diveNumber: 1),
+              _makeDive(),
+              _makeDive(),
+            ],
+          ),
+          onImportPartial: () {},
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Import 3 downloaded dives'), findsOneWidget);
+      expect(find.text('Retry'), findsOneWidget);
     });
 
     testWidgets('shows fallback error text when errorMessage is null', (

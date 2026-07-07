@@ -851,6 +851,7 @@
   "diveComputer_downloadStep_progressPercent": "{percent}%",
   "diveComputer_downloadStep_progressSemanticLabel": "Progresso do download: {status}{percent}",
   "diveComputer_downloadStep_retry": "Tentar Novamente",
+  "diveComputer_downloadStep_importPartialCount": "{count, plural, =1{Importar 1 mergulho baixado} other{Importar {count} mergulhos baixados}}",
   "diveComputer_download_cancel": "Cancelar",
   "diveComputer_download_closeTooltip": "Fechar",
   "diveComputer_download_computerNotFound": "Computador nao encontrado",

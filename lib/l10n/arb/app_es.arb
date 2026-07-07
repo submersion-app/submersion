@@ -851,6 +851,7 @@
   "diveComputer_downloadStep_progressPercent": "{percent}%",
   "diveComputer_downloadStep_progressSemanticLabel": "Progreso de descarga: {status}{percent}",
   "diveComputer_downloadStep_retry": "Reintentar",
+  "diveComputer_downloadStep_importPartialCount": "{count, plural, =1{Importar 1 inmersión descargada} other{Importar {count} inmersiones descargadas}}",
   "diveComputer_download_cancel": "Cancelar",
   "diveComputer_download_closeTooltip": "Cerrar",
   "diveComputer_download_computerNotFound": "Ordenador no encontrado",
