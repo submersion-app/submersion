@@ -81,6 +81,26 @@ void main() {
     expect(result.parsed, hasLength(1));
   });
 
+  test('a file that parses to an empty payload is marked failed', () async {
+    // Valid UDDF root but no dives -> parser returns an empty payload
+    // (not an exception). The service must still flag it as failed.
+    final empty = PickedImportFile(
+      name: 'empty.uddf',
+      bytes: Uint8List.fromList(
+        utf8.encode('<uddf version="3.2.1"><profiledata></profiledata></uddf>'),
+      ),
+      detection: const DetectionResult(
+        format: ImportFormat.uddf,
+        confidence: 1,
+      ),
+      status: ImportFileStatus.pending,
+    );
+
+    final result = await service.parseAll([empty]);
+    expect(result.files.single.status, ImportFileStatus.failed);
+    expect(result.parsed, isEmpty);
+  });
+
   test('excluded and unsupported files are skipped untouched', () async {
     final csv = PickedImportFile(
       name: 'log.csv',

@@ -38,6 +38,7 @@ import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_file_outcome.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -150,17 +151,22 @@ class _TestableImportNotifier extends UniversalImportNotifier {
   }
 
   void setFileName(String name) {
+    setFiles([name]);
+  }
+
+  void setFiles(List<String> names) {
     state = state.copyWith(
       files: [
-        PickedImportFile(
-          name: name,
-          bytes: Uint8List(0),
-          detection: const DetectionResult(
-            format: ui.ImportFormat.unknown,
-            confidence: 0,
+        for (final name in names)
+          PickedImportFile(
+            name: name,
+            bytes: Uint8List(0),
+            detection: const DetectionResult(
+              format: ui.ImportFormat.unknown,
+              confidence: 0,
+            ),
+            status: ImportFileStatus.pending,
           ),
-          status: ImportFileStatus.pending,
-        ),
       ],
     );
   }
@@ -238,6 +244,7 @@ List<Override> _fullOverrides({
   required ImportPayload payload,
   ImportOptions? options,
   Diver? diver,
+  List<String> fileNames = const [],
   List<Dive> existingDives = const [],
   List<DiveSite> existingSites = const [],
   List<Trip> existingTrips = const [],
@@ -288,6 +295,7 @@ List<Override> _fullOverrides({
       final notifier = _TestableImportNotifier(ref);
       notifier.setPayload(payload);
       if (options != null) notifier.setOptions(options);
+      if (fileNames.isNotEmpty) notifier.setFiles(fileNames);
       return notifier;
     }),
     settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
@@ -632,6 +640,93 @@ void main() {
   });
 
   // -------------------------------------------------------------------------
+  // performImport -- per-file outcomes (bulk import)
+  // -------------------------------------------------------------------------
+
+  group('performImport() - per-file outcomes', () {
+    testWidgets('attributes imported dives to files by _sourceFileId', (
+      tester,
+    ) async {
+      // Two files, one dive each, attributed by the collision-free id.
+      final payload = ImportPayload(
+        entities: {
+          ui.ImportEntityType.dives: [
+            {
+              'dateTime': DateTime(2026, 5, 1, 9, 0),
+              'maxDepth': 20.0,
+              'runtime': const Duration(minutes: 30),
+              '_sourceFile': 'jan.fit',
+              '_sourceFileId': 'f0',
+            },
+            {
+              'dateTime': DateTime(2026, 6, 1, 9, 0),
+              'maxDepth': 18.0,
+              'runtime': const Duration(minutes: 35),
+              '_sourceFile': 'feb.uddf',
+              '_sourceFileId': 'f1',
+            },
+          ],
+        },
+        metadata: const {'batchFileCount': 2},
+      );
+
+      await _runWithAdapter(
+        tester,
+        overrides: _fullOverrides(
+          payload: payload,
+          diver: _testDiver(),
+          fileNames: ['jan.fit', 'feb.uddf'],
+        ),
+        callback: (adapter) async {
+          final bundle = await adapter.buildBundle();
+          final result = await adapter.performImport(bundle, {
+            wizard.ImportEntityType.dives: {0, 1},
+          }, const {});
+
+          expect(result.fileOutcomes, hasLength(2));
+          final byName = {for (final o in result.fileOutcomes) o.fileName: o};
+          expect(byName['jan.fit']!.status, ImportFileOutcomeStatus.imported);
+          expect(byName['jan.fit']!.importedDives, 1);
+          expect(byName['feb.uddf']!.importedDives, 1);
+        },
+      );
+    });
+
+    testWidgets('single-file import produces no per-file outcomes', (
+      tester,
+    ) async {
+      final payload = ImportPayload(
+        entities: {
+          ui.ImportEntityType.dives: [
+            {
+              'dateTime': DateTime(2026, 5, 1, 9, 0),
+              'maxDepth': 20.0,
+              'runtime': const Duration(minutes: 30),
+            },
+          ],
+        },
+      );
+
+      await _runWithAdapter(
+        tester,
+        overrides: _fullOverrides(
+          payload: payload,
+          diver: _testDiver(),
+          fileNames: ['solo.uddf'],
+        ),
+        callback: (adapter) async {
+          final bundle = await adapter.buildBundle();
+          final result = await adapter.performImport(bundle, {
+            wizard.ImportEntityType.dives: {0},
+          }, const {});
+
+          expect(result.fileOutcomes, isEmpty);
+        },
+      );
+    });
+  });
+
+  // -------------------------------------------------------------------------
   // buildBundle -- null payload
   // -------------------------------------------------------------------------
 
@@ -759,6 +854,32 @@ void main() {
           final item = bundle.groups[ImportEntityType.dives]!.items.first;
 
           expect(item.subtitle, contains('35 min'));
+        },
+      );
+    });
+
+    testWidgets('dive subtitle includes source file for batch imports', (
+      tester,
+    ) async {
+      final payload = ImportPayload(
+        entities: {
+          ui.ImportEntityType.dives: [
+            {
+              'dateTime': DateTime(2026, 3, 15, 10, 0),
+              'maxDepth': 20.0,
+              '_sourceFile': 'january.fit',
+            },
+          ],
+        },
+      );
+
+      await _runWithAdapter(
+        tester,
+        overrides: _buildBundleOverrides(payload: payload),
+        callback: (adapter) async {
+          final bundle = await adapter.buildBundle();
+          final item = bundle.groups[ImportEntityType.dives]!.items.first;
+          expect(item.subtitle, contains('january.fit'));
         },
       );
     });
