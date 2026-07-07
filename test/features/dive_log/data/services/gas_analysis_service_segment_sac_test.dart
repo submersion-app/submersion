@@ -203,6 +203,51 @@ void main() {
         expect(seg.sacRate, greaterThan(0));
       }
     });
+
+    test(
+      'uses transmitter pressure keyed under an orphaned tank id (#510)',
+      () {
+        // Same re-keyed-pressure condition as the per-cylinder path: the tank
+        // carries no start/end pressure, so segment SAC can only come from the
+        // time-series, which is stored under a stale tank id.
+        const tank = DiveTank(
+          id: 'current-tank',
+          volume: 11.1,
+          gasMix: GasMix(o2: 21, he: 0),
+        );
+        final profile = <DiveProfilePoint>[];
+        for (int t = 0; t <= 120; t += 10) {
+          profile.add(DiveProfilePoint(timestamp: t, depth: t / 120 * 25));
+        }
+        for (int t = 130; t <= 2220; t += 10) {
+          profile.add(DiveProfilePoint(timestamp: t, depth: 25.0));
+        }
+        for (int t = 2230; t <= 2520; t += 10) {
+          profile.add(
+            DiveProfilePoint(
+              timestamp: t,
+              depth: 25.0 * (1 - (t - 2220) / 300),
+            ),
+          );
+        }
+
+        final tankPressures = {
+          'stale-uuid': linearPressure('stale-uuid', 200, 80, 2520),
+        };
+
+        final segments = service.calculatePhaseSegments(
+          profile: profile,
+          tanks: [tank],
+          tankPressures: tankPressures,
+        );
+
+        expect(segments, isNotNull);
+        expect(segments!, isNotEmpty);
+        for (final seg in segments) {
+          expect(seg.sacRate, greaterThan(0));
+        }
+      },
+    );
   });
 
   group('_calculateSacFromTimeSeries (via calculateCylinderSac)', () {

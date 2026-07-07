@@ -137,17 +137,67 @@ void main() {
         profile: const [],
       );
 
-      // With empty profile, calculateCylinderSac should still work
-      // using effectiveRuntime fallback chain (bottomTime as last resort)
+      // With empty profile, calculateCylinderSac still runs using the
+      // effectiveRuntime fallback chain (bottomTime as last resort).
       final results = service.calculateCylinderSac(
         dive: dive,
         profile: dive.profile,
       );
 
-      // Empty profile means no usage profile points, so SAC can't be
-      // calculated with depth data - but the method should still run
-      expect(results, isA<List>());
+      expect(results, hasLength(1));
     });
+
+    test('computes SAC from start/end pressures when the dive has no profile '
+        '(older/manually-logged dives) using the dive average depth', () {
+      // Regression for #510: SAC by cylinder must show on profileless dives
+      // that still carry an average depth and tank start/end pressures.
+      final dive = makeDive(
+        runtime: const Duration(minutes: 40),
+        bottomTime: const Duration(minutes: 40),
+        avgDepth: 18.0,
+        tanks: [makeTank(startPressure: 200, endPressure: 50, volume: 11.1)],
+        profile: const [], // no depth samples, as in older manual entries
+      );
+
+      final results = service.calculateCylinderSac(
+        dive: dive,
+        profile: dive.profile,
+      );
+
+      expect(results, hasLength(1));
+      expect(
+        results.first.sacRate,
+        isNotNull,
+        reason: 'basic SAC branch must fall back to dive.avgDepth',
+      );
+      expect(results.first.sacRate!, greaterThan(0));
+      expect(results.first.hasValidSac, isTrue);
+      // Depth data was inferred from the dive, not per-sample.
+      expect(results.first.hasTimeSeriesData, isFalse);
+    });
+
+    test(
+      'still yields no SAC when a profileless dive also lacks an average depth',
+      () {
+        // Without any depth reference the ambient-pressure correction is
+        // undefined, so SAC stays null (the cylinder row is still returned).
+        final dive = makeDive(
+          runtime: const Duration(minutes: 40),
+          bottomTime: const Duration(minutes: 40),
+          tanks: [makeTank(startPressure: 200, endPressure: 50, volume: 11.1)],
+          profile: const [],
+        );
+
+        final results = service.calculateCylinderSac(
+          dive: dive,
+          profile: dive.profile,
+        );
+
+        expect(results, hasLength(1));
+        expect(results.first.sacRate, isNull);
+        expect(results.first.hasValidSac, isFalse);
+      },
+    );
 
     test('computes SAC rate from start/end pressures', () {
       final dive = makeDive(
@@ -168,6 +218,142 @@ void main() {
       expect(results.first.startPressure, 200);
       expect(results.first.endPressure, 30);
     });
+
+    test(
+      'uses transmitter pressure keyed under an orphaned tank id (#510)',
+      () {
+        // Regression for #510. Air-integration dives re-keyed by a reparse /
+        // consolidation (issue #276) store their pressure series under a tank
+        // id that no longer matches the current dive tank. The overall SAC
+        // curve tolerates this; per-cylinder SAC must too, instead of coming
+        // out blank. The tank has NO start/end pressure, so the ONLY way to a
+        // SAC value is via the (mis-keyed) time-series data.
+        final dive = makeDive(
+          runtime: const Duration(minutes: 40),
+          avgDepth: 18.0,
+          tanks: [makeTank(id: 'current-tank', volume: 11.1)],
+          profile: makeProfile(40 * 60),
+        );
+
+        // Pressure series keyed under an id that is NOT dive.tanks[0].id.
+        final orphanPressures = <String, List<TankPressurePoint>>{
+          'stale-uuid': [
+            for (var t = 0; t <= 40 * 60; t += 60)
+              TankPressurePoint(
+                id: 'p$t',
+                tankId: 'stale-uuid',
+                timestamp: t,
+                // Linear drain 200 -> 60 bar over the dive.
+                pressure: 200 - (140 * t / (40 * 60)),
+              ),
+          ],
+        };
+
+        final results = service.calculateCylinderSac(
+          dive: dive,
+          profile: dive.profile,
+          tankPressures: orphanPressures,
+        );
+
+        expect(results, hasLength(1));
+        expect(
+          results.first.sacRate,
+          isNotNull,
+          reason: 'orphaned time-series pressure must still drive SAC',
+        );
+        expect(results.first.sacRate!, greaterThan(0));
+        expect(results.first.hasValidSac, isTrue);
+        expect(results.first.hasTimeSeriesData, isTrue);
+      },
+    );
+
+    test('still prefers an exact tank-id match over orphaned series', () {
+      // When the pressure series IS correctly keyed, nothing changes.
+      final dive = makeDive(
+        runtime: const Duration(minutes: 40),
+        avgDepth: 18.0,
+        tanks: [makeTank(id: 'tank-A', volume: 11.1)],
+        profile: makeProfile(40 * 60),
+      );
+
+      final pressures = <String, List<TankPressurePoint>>{
+        'tank-A': [
+          for (var t = 0; t <= 40 * 60; t += 60)
+            TankPressurePoint(
+              id: 'a$t',
+              tankId: 'tank-A',
+              timestamp: t,
+              pressure: 210 - (150 * t / (40 * 60)),
+            ),
+        ],
+      };
+
+      final results = service.calculateCylinderSac(
+        dive: dive,
+        profile: dive.profile,
+        tankPressures: pressures,
+      );
+
+      expect(results.first.hasTimeSeriesData, isTrue);
+      expect(results.first.hasValidSac, isTrue);
+    });
+
+    test(
+      'orphan-to-tank pairing is deterministic when tanks share an order',
+      () {
+        // Two current tanks with the DEFAULT order (0) and two orphaned
+        // series. The pairing must be stable regardless of Dart's unstable
+        // sort: orphans by earliest sample then key, tanks by order then id.
+        // Expected: tank-a (id-first) <- early series, tank-b <- late series.
+        const tankA = DiveTank(
+          id: 'tank-a',
+          volume: 11.1,
+          gasMix: GasMix(o2: 21, he: 0),
+        );
+        const tankB = DiveTank(
+          id: 'tank-b',
+          volume: 11.1,
+          gasMix: GasMix(o2: 21, he: 0),
+        );
+        final dive = makeDive(
+          runtime: const Duration(minutes: 40),
+          avgDepth: 18.0,
+          tanks: const [tankB, tankA], // list order deliberately reversed
+          profile: makeProfile(40 * 60),
+        );
+
+        List<TankPressurePoint> series(String key, int firstTs, double drain) {
+          return [
+            for (var t = firstTs; t <= 40 * 60; t += 60)
+              TankPressurePoint(
+                id: '$key-$t',
+                tankId: key,
+                timestamp: t,
+                pressure: 200 - drain * (t - firstTs) / (40 * 60 - firstTs),
+              ),
+          ];
+        }
+
+        // Iteration order reversed vs. the expected time order to prove the
+        // sort (not map order) decides the pairing.
+        final pressures = <String, List<TankPressurePoint>>{
+          'z-late': series('z-late', 600, 20), // small drain -> low SAC
+          'y-early': series('y-early', 0, 150), // big drain -> high SAC
+        };
+
+        final results = service.calculateCylinderSac(
+          dive: dive,
+          profile: dive.profile,
+          tankPressures: pressures,
+        );
+
+        final byId = {for (final r in results) r.tankId: r};
+        expect(byId['tank-a']!.hasValidSac, isTrue);
+        expect(byId['tank-b']!.hasValidSac, isTrue);
+        // tank-a adopted the early, big-drain series -> higher SAC than tank-b.
+        expect(byId['tank-a']!.sacRate!, greaterThan(byId['tank-b']!.sacRate!));
+      },
+    );
 
     test('returns empty list for dive with no tanks', () {
       final dive = makeDive(

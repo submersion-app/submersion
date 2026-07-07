@@ -2030,7 +2030,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 101;
+  static const int currentSchemaVersion = 102;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -2135,6 +2135,7 @@ class AppDatabase extends _$AppDatabase {
     99,
     100,
     101,
+    102,
   ];
 
   /// Tables that carry a per-row Hybrid Logical Clock for cross-device conflict
@@ -2181,6 +2182,117 @@ class AppDatabase extends _$AppDatabase {
 
   @override
   int get schemaVersion => currentSchemaVersion;
+
+  /// Test hook: run the v102 stranded-pressure repair on demand so tests can
+  /// assert it is idempotent (a second run over already-healed data is a
+  /// no-op). Not used in production; the migration invokes the private method.
+  Future<void> relinkStrandedTankPressuresForTest() =>
+      _relinkStrandedTankPressures();
+
+  /// Re-link tank pressure series stranded under a stale tank id (issue #510).
+  ///
+  /// A reparse, re-import, or multi-computer consolidation can regenerate a
+  /// dive's tanks with fresh UUIDs while its `tank_pressure_profiles` rows keep
+  /// the old tank id. The per-cylinder SAC calculation looked those up by exact
+  /// tank id and missed them, so SAC by cylinder went blank even though the
+  /// pressure data was present (the runtime fix now tolerates this at read
+  /// time; this migration heals the stored data once so the exact-id path works
+  /// for every future consumer too).
+  ///
+  /// Mirrors the runtime resolver (`GasAnalysisService`): exact id matches are
+  /// left alone; each orphaned series (keyed to an id that is no longer one of
+  /// the dive's tanks) is adopted by a still-unmatched current tank, in tank
+  /// order. Every reassignment targets a current tank of the same dive, so it
+  /// is foreign-key safe. Idempotent: a second run finds no orphans.
+  Future<void> _relinkStrandedTankPressures() async {
+    // Defensive: both tables predate v102 in any real database, but migration
+    // tests (and any partial DB) may reach this block without them. A missing
+    // table would make the query below throw and abort the whole upgrade.
+    Future<bool> tableExists(String name) async {
+      final rows = await customSelect(
+        "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
+        variables: [Variable<String>(name)],
+      ).get();
+      return rows.isNotEmpty;
+    }
+
+    if (!await tableExists('dive_tanks') ||
+        !await tableExists('tank_pressure_profiles')) {
+      return;
+    }
+
+    // Current tanks per dive (id + order for deterministic assignment).
+    final tankRows = await customSelect(
+      'SELECT dive_id, id, tank_order FROM dive_tanks',
+    ).get();
+    final tanksByDive = <String, List<({String id, int order})>>{};
+    for (final r in tankRows) {
+      (tanksByDive[r.read<String>('dive_id')] ??= []).add((
+        id: r.read<String>('id'),
+        order: r.read<int>('tank_order'),
+      ));
+    }
+    if (tanksByDive.isEmpty) return;
+
+    // One entry per (dive, pressure tank id), with the earliest sample time so
+    // orphans are ordered the same way the runtime resolver iterates them.
+    final pressureKeyRows = await customSelect(
+      'SELECT dive_id, tank_id, MIN(timestamp) AS first_ts '
+      'FROM tank_pressure_profiles GROUP BY dive_id, tank_id',
+    ).get();
+    final pressureKeysByDive = <String, List<({String tankId, int firstTs})>>{};
+    for (final r in pressureKeyRows) {
+      (pressureKeysByDive[r.read<String>('dive_id')] ??= []).add((
+        tankId: r.read<String>('tank_id'),
+        firstTs: r.read<int>('first_ts'),
+      ));
+    }
+
+    for (final entry in pressureKeysByDive.entries) {
+      final diveId = entry.key;
+      final tanks = tanksByDive[diveId];
+      if (tanks == null || tanks.isEmpty) continue;
+
+      final currentIds = {for (final t in tanks) t.id};
+      final matchedIds = {
+        for (final k in entry.value)
+          if (currentIds.contains(k.tankId)) k.tankId,
+      };
+
+      final orphans =
+          [
+            for (final k in entry.value)
+              if (!currentIds.contains(k.tankId)) k,
+          ]..sort((a, b) {
+            final byTime = a.firstTs.compareTo(b.firstTs);
+            return byTime != 0 ? byTime : a.tankId.compareTo(b.tankId);
+          });
+      if (orphans.isEmpty) continue;
+
+      final unmatchedTanks =
+          [
+            for (final t in tanks)
+              if (!matchedIds.contains(t.id)) t,
+          ]..sort((a, b) {
+            // id tie-break so tanks sharing the default order (0) pair
+            // deterministically -- Dart's sort is not stable.
+            final byOrder = a.order.compareTo(b.order);
+            return byOrder != 0 ? byOrder : a.id.compareTo(b.id);
+          });
+      if (unmatchedTanks.isEmpty) continue;
+
+      final count = orphans.length < unmatchedTanks.length
+          ? orphans.length
+          : unmatchedTanks.length;
+      for (var i = 0; i < count; i++) {
+        await customStatement(
+          'UPDATE tank_pressure_profiles SET tank_id = ? '
+          'WHERE dive_id = ? AND tank_id = ?',
+          [unmatchedTanks[i].id, diveId, orphans[i].tankId],
+        );
+      }
+    }
+  }
 
   @override
   MigrationStrategy get migration {
@@ -4863,6 +4975,10 @@ class AppDatabase extends _$AppDatabase {
           ''');
         }
         if (from < 101) await reportProgress();
+        if (from < 102) {
+          await _relinkStrandedTankPressures();
+        }
+        if (from < 102) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
