@@ -15243,6 +15243,75 @@ class AppLocalizationsEn extends AppLocalizations {
   String get universalImport_action_selectFile => 'Select File';
 
   @override
+  String get universalImport_action_selectFiles => 'Select Files';
+
+  @override
+  String get universalImport_action_chooseFolder => 'Choose Folder';
+
+  @override
+  String get universalImport_triage_title => 'Files to Import';
+
+  @override
+  String universalImport_triage_readyCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count files ready to import',
+      one: '1 file ready to import',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_triage_excludedCsv => 'Import individually (CSV)';
+
+  @override
+  String get universalImport_triage_unsupported => 'Unsupported format';
+
+  @override
+  String get universalImport_triage_parseFailed => 'Could not be read';
+
+  @override
+  String universalImport_triage_parsing(int current, int total) {
+    return 'Parsing file $current of $total…';
+  }
+
+  @override
+  String get universalImport_triage_cancelParsing => 'Cancel';
+
+  @override
+  String get universalImport_triage_allExcluded =>
+      'None of the selected files can be imported together. CSV files must be imported one at a time.';
+
+  @override
+  String get universalImport_review_inBatchDuplicate =>
+      'Duplicate of another dive in this import batch.';
+
+  @override
+  String get universalImport_summary_filesTitle => 'Files';
+
+  @override
+  String universalImport_summary_fileImported(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives imported',
+      one: '1 dive imported',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_fileNeedsIndividualImport =>
+      'Needs individual import';
+
+  @override
+  String get universalImport_summary_fileUnsupported => 'Unsupported format';
+
+  @override
+  String get universalImport_summary_fileParseFailed => 'Failed to read';
+
+  @override
   String universalImport_bulk_consolidateMatched(int count) {
     return 'Consolidate matched ($count)';
   }

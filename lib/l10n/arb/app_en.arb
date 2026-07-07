@@ -8605,6 +8605,22 @@
   "universalImport_action_selectAll": "Select All",
   "universalImport_action_changeFile": "Change File",
   "universalImport_action_selectFile": "Select File",
+  "universalImport_action_selectFiles": "Select Files",
+  "universalImport_action_chooseFolder": "Choose Folder",
+  "universalImport_triage_title": "Files to Import",
+  "universalImport_triage_readyCount": "{count, plural, =1{1 file ready to import} other{{count} files ready to import}}",
+  "universalImport_triage_excludedCsv": "Import individually (CSV)",
+  "universalImport_triage_unsupported": "Unsupported format",
+  "universalImport_triage_parseFailed": "Could not be read",
+  "universalImport_triage_parsing": "Parsing file {current} of {total}…",
+  "universalImport_triage_cancelParsing": "Cancel",
+  "universalImport_triage_allExcluded": "None of the selected files can be imported together. CSV files must be imported one at a time.",
+  "universalImport_review_inBatchDuplicate": "Duplicate of another dive in this import batch.",
+  "universalImport_summary_filesTitle": "Files",
+  "universalImport_summary_fileImported": "{count, plural, =1{1 dive imported} other{{count} dives imported}}",
+  "universalImport_summary_fileNeedsIndividualImport": "Needs individual import",
+  "universalImport_summary_fileUnsupported": "Unsupported format",
+  "universalImport_summary_fileParseFailed": "Failed to read",
   "universalImport_bulk_consolidateMatched": "Consolidate matched ({count})",
   "universalImport_bulk_importAll": "Import all ({count})",
   "universalImport_bulk_importAllAsNew": "Import all as new ({count})",
@@ -8679,6 +8695,72 @@
   },
   "@universalImport_action_selectFile": {
     "description": "Button label for the file picker button"
+  },
+  "@universalImport_action_selectFiles":   {
+      "description": "Button label for the multi-select file picker button"
+  },
+  "@universalImport_action_chooseFolder":   {
+      "description": "Desktop-only button that picks a folder and scans it for importable dive files"
+  },
+  "@universalImport_triage_title":   {
+      "description": "Header for the batch file triage list"
+  },
+  "@universalImport_triage_readyCount":   {
+      "description": "How many selected files will join the import batch",
+      "placeholders": {
+          "count": {
+              "type": "num"
+          }
+      }
+  },
+  "@universalImport_triage_excludedCsv":   {
+      "description": "Triage status for CSV files, which need the single-file mapping wizard"
+  },
+  "@universalImport_triage_unsupported":   {
+      "description": "Triage status for files whose format has no parser"
+  },
+  "@universalImport_triage_parseFailed":   {
+      "description": "Triage status for files that failed to parse"
+  },
+  "@universalImport_triage_parsing":   {
+      "description": "Progress label while parsing a batch of files",
+      "placeholders": {
+          "current": {
+              "type": "int"
+          },
+          "total": {
+              "type": "int"
+          }
+      }
+  },
+  "@universalImport_triage_cancelParsing":   {
+      "description": "Button that cancels a running batch parse at the next file boundary"
+  },
+  "@universalImport_triage_allExcluded":   {
+      "description": "Shown when every selected file was excluded from the batch"
+  },
+  "@universalImport_review_inBatchDuplicate":   {
+      "description": "Expanded duplicate card body when the match is another dive in the same import batch"
+  },
+  "@universalImport_summary_filesTitle":   {
+      "description": "Section header for the per-file outcome list on the bulk import summary"
+  },
+  "@universalImport_summary_fileImported":   {
+      "description": "Per-file summary line for a successfully imported file",
+      "placeholders": {
+          "count": {
+              "type": "num"
+          }
+      }
+  },
+  "@universalImport_summary_fileNeedsIndividualImport":   {
+      "description": "Per-file summary line for CSV files excluded from the batch"
+  },
+  "@universalImport_summary_fileUnsupported":   {
+      "description": "Per-file summary line for unsupported files"
+  },
+  "@universalImport_summary_fileParseFailed":   {
+      "description": "Per-file summary line for files that failed to parse"
   },
   "@universalImport_bulk_consolidateMatched": {
     "description": "Bulk action button that consolidates all matched pending duplicate dives",

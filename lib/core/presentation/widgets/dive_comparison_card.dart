@@ -98,7 +98,7 @@ class DiveComparisonCard extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.all(16),
             child: Text(
-              'Duplicate of another dive in this import batch.',
+              context.l10n.universalImport_review_inBatchDuplicate,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),

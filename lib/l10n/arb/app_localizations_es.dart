@@ -15512,6 +15512,76 @@ class AppLocalizationsEs extends AppLocalizations {
   String get universalImport_action_selectFile => 'Seleccionar Archivo';
 
   @override
+  String get universalImport_action_selectFiles => 'Seleccionar archivos';
+
+  @override
+  String get universalImport_action_chooseFolder => 'Elegir carpeta';
+
+  @override
+  String get universalImport_triage_title => 'Archivos a importar';
+
+  @override
+  String universalImport_triage_readyCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count archivos listos para importar',
+      one: '1 archivo listo para importar',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_triage_excludedCsv =>
+      'Importar individualmente (CSV)';
+
+  @override
+  String get universalImport_triage_unsupported => 'Formato no compatible';
+
+  @override
+  String get universalImport_triage_parseFailed => 'No se pudo leer';
+
+  @override
+  String universalImport_triage_parsing(int current, int total) {
+    return 'Analizando archivo $current de $total…';
+  }
+
+  @override
+  String get universalImport_triage_cancelParsing => 'Cancelar';
+
+  @override
+  String get universalImport_triage_allExcluded =>
+      'Ninguno de los archivos seleccionados puede importarse junto. Los archivos CSV deben importarse de uno en uno.';
+
+  @override
+  String get universalImport_review_inBatchDuplicate =>
+      'Duplicado de otra inmersión en este lote de importación.';
+
+  @override
+  String get universalImport_summary_filesTitle => 'Archivos';
+
+  @override
+  String universalImport_summary_fileImported(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count inmersiones importadas',
+      one: '1 inmersión importada',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_fileNeedsIndividualImport =>
+      'Requiere importación individual';
+
+  @override
+  String get universalImport_summary_fileUnsupported => 'Formato no compatible';
+
+  @override
+  String get universalImport_summary_fileParseFailed => 'Error de lectura';
+
+  @override
   String universalImport_bulk_consolidateMatched(int count) {
     return 'Consolidar coincidentes ($count)';
   }

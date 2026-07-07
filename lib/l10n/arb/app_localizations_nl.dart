@@ -15376,6 +15376,77 @@ class AppLocalizationsNl extends AppLocalizations {
   String get universalImport_action_selectFile => 'Selecteer bestand';
 
   @override
+  String get universalImport_action_selectFiles => 'Bestanden selecteren';
+
+  @override
+  String get universalImport_action_chooseFolder => 'Map kiezen';
+
+  @override
+  String get universalImport_triage_title => 'Te importeren bestanden';
+
+  @override
+  String universalImport_triage_readyCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bestanden klaar voor import',
+      one: '1 bestand klaar voor import',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_triage_excludedCsv =>
+      'Afzonderlijk importeren (CSV)';
+
+  @override
+  String get universalImport_triage_unsupported => 'Niet-ondersteund formaat';
+
+  @override
+  String get universalImport_triage_parseFailed => 'Kon niet worden gelezen';
+
+  @override
+  String universalImport_triage_parsing(int current, int total) {
+    return 'Bestand $current van $total wordt verwerkt…';
+  }
+
+  @override
+  String get universalImport_triage_cancelParsing => 'Annuleren';
+
+  @override
+  String get universalImport_triage_allExcluded =>
+      'Geen van de geselecteerde bestanden kan samen worden geïmporteerd. CSV-bestanden moeten één voor één worden geïmporteerd.';
+
+  @override
+  String get universalImport_review_inBatchDuplicate =>
+      'Duplicaat van een andere duik in deze importbatch.';
+
+  @override
+  String get universalImport_summary_filesTitle => 'Bestanden';
+
+  @override
+  String universalImport_summary_fileImported(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken geïmporteerd',
+      one: '1 duik geïmporteerd',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_fileNeedsIndividualImport =>
+      'Afzonderlijke import vereist';
+
+  @override
+  String get universalImport_summary_fileUnsupported =>
+      'Niet-ondersteund formaat';
+
+  @override
+  String get universalImport_summary_fileParseFailed => 'Lezen mislukt';
+
+  @override
   String universalImport_bulk_consolidateMatched(int count) {
     return 'Gematchte consolideren ($count)';
   }

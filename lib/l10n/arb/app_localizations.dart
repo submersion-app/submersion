@@ -26197,6 +26197,102 @@ abstract class AppLocalizations {
   /// **'Select File'**
   String get universalImport_action_selectFile;
 
+  /// Button label for the multi-select file picker button
+  ///
+  /// In en, this message translates to:
+  /// **'Select Files'**
+  String get universalImport_action_selectFiles;
+
+  /// Desktop-only button that picks a folder and scans it for importable dive files
+  ///
+  /// In en, this message translates to:
+  /// **'Choose Folder'**
+  String get universalImport_action_chooseFolder;
+
+  /// Header for the batch file triage list
+  ///
+  /// In en, this message translates to:
+  /// **'Files to Import'**
+  String get universalImport_triage_title;
+
+  /// How many selected files will join the import batch
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 file ready to import} other{{count} files ready to import}}'**
+  String universalImport_triage_readyCount(num count);
+
+  /// Triage status for CSV files, which need the single-file mapping wizard
+  ///
+  /// In en, this message translates to:
+  /// **'Import individually (CSV)'**
+  String get universalImport_triage_excludedCsv;
+
+  /// Triage status for files whose format has no parser
+  ///
+  /// In en, this message translates to:
+  /// **'Unsupported format'**
+  String get universalImport_triage_unsupported;
+
+  /// Triage status for files that failed to parse
+  ///
+  /// In en, this message translates to:
+  /// **'Could not be read'**
+  String get universalImport_triage_parseFailed;
+
+  /// Progress label while parsing a batch of files
+  ///
+  /// In en, this message translates to:
+  /// **'Parsing file {current} of {total}…'**
+  String universalImport_triage_parsing(int current, int total);
+
+  /// Button that cancels a running batch parse at the next file boundary
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get universalImport_triage_cancelParsing;
+
+  /// Shown when every selected file was excluded from the batch
+  ///
+  /// In en, this message translates to:
+  /// **'None of the selected files can be imported together. CSV files must be imported one at a time.'**
+  String get universalImport_triage_allExcluded;
+
+  /// Expanded duplicate card body when the match is another dive in the same import batch
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate of another dive in this import batch.'**
+  String get universalImport_review_inBatchDuplicate;
+
+  /// Section header for the per-file outcome list on the bulk import summary
+  ///
+  /// In en, this message translates to:
+  /// **'Files'**
+  String get universalImport_summary_filesTitle;
+
+  /// Per-file summary line for a successfully imported file
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive imported} other{{count} dives imported}}'**
+  String universalImport_summary_fileImported(num count);
+
+  /// Per-file summary line for CSV files excluded from the batch
+  ///
+  /// In en, this message translates to:
+  /// **'Needs individual import'**
+  String get universalImport_summary_fileNeedsIndividualImport;
+
+  /// Per-file summary line for unsupported files
+  ///
+  /// In en, this message translates to:
+  /// **'Unsupported format'**
+  String get universalImport_summary_fileUnsupported;
+
+  /// Per-file summary line for files that failed to parse
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to read'**
+  String get universalImport_summary_fileParseFailed;
+
   /// Bulk action button that consolidates all matched pending duplicate dives
   ///
   /// In en, this message translates to:

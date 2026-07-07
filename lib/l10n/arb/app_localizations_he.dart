@@ -15101,6 +15101,75 @@ class AppLocalizationsHe extends AppLocalizations {
   String get universalImport_action_selectFile => 'בחר קובץ';
 
   @override
+  String get universalImport_action_selectFiles => 'בחירת קבצים';
+
+  @override
+  String get universalImport_action_chooseFolder => 'בחירת תיקייה';
+
+  @override
+  String get universalImport_triage_title => 'קבצים לייבוא';
+
+  @override
+  String universalImport_triage_readyCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count קבצים מוכנים לייבוא',
+      one: 'קובץ אחד מוכן לייבוא',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_triage_excludedCsv => 'ייבוא נפרד (CSV)';
+
+  @override
+  String get universalImport_triage_unsupported => 'פורמט לא נתמך';
+
+  @override
+  String get universalImport_triage_parseFailed => 'לא ניתן לקרוא';
+
+  @override
+  String universalImport_triage_parsing(int current, int total) {
+    return 'מנתח קובץ $current מתוך $total…';
+  }
+
+  @override
+  String get universalImport_triage_cancelParsing => 'ביטול';
+
+  @override
+  String get universalImport_triage_allExcluded =>
+      'לא ניתן לייבא יחד את הקבצים שנבחרו. יש לייבא קובצי CSV אחד אחד.';
+
+  @override
+  String get universalImport_review_inBatchDuplicate =>
+      'כפילות של צלילה אחרת באצוות הייבוא הזו.';
+
+  @override
+  String get universalImport_summary_filesTitle => 'קבצים';
+
+  @override
+  String universalImport_summary_fileImported(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות יובאו',
+      one: 'צלילה אחת יובאה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_fileNeedsIndividualImport =>
+      'נדרש ייבוא נפרד';
+
+  @override
+  String get universalImport_summary_fileUnsupported => 'פורמט לא נתמך';
+
+  @override
+  String get universalImport_summary_fileParseFailed => 'הקריאה נכשלה';
+
+  @override
   String universalImport_bulk_consolidateMatched(int count) {
     return 'איחוד מתאימים ($count)';
   }

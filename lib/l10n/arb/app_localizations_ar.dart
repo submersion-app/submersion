@@ -15211,6 +15211,75 @@ class AppLocalizationsAr extends AppLocalizations {
   String get universalImport_action_selectFile => 'اختيار ملف';
 
   @override
+  String get universalImport_action_selectFiles => 'تحديد الملفات';
+
+  @override
+  String get universalImport_action_chooseFolder => 'اختيار مجلد';
+
+  @override
+  String get universalImport_triage_title => 'الملفات المراد استيرادها';
+
+  @override
+  String universalImport_triage_readyCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ملفات جاهزة للاستيراد',
+      one: 'ملف واحد جاهز للاستيراد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_triage_excludedCsv => 'استيراد فردي (CSV)';
+
+  @override
+  String get universalImport_triage_unsupported => 'تنسيق غير مدعوم';
+
+  @override
+  String get universalImport_triage_parseFailed => 'تعذرت القراءة';
+
+  @override
+  String universalImport_triage_parsing(int current, int total) {
+    return 'جارٍ تحليل الملف $current من $total…';
+  }
+
+  @override
+  String get universalImport_triage_cancelParsing => 'إلغاء';
+
+  @override
+  String get universalImport_triage_allExcluded =>
+      'لا يمكن استيراد الملفات المحددة معًا. يجب استيراد ملفات CSV واحدًا تلو الآخر.';
+
+  @override
+  String get universalImport_review_inBatchDuplicate =>
+      'نسخة مكررة من غطسة أخرى في دفعة الاستيراد هذه.';
+
+  @override
+  String get universalImport_summary_filesTitle => 'الملفات';
+
+  @override
+  String universalImport_summary_fileImported(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم استيراد $count غطسات',
+      one: 'تم استيراد غطسة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_fileNeedsIndividualImport =>
+      'يتطلب استيرادًا فرديًا';
+
+  @override
+  String get universalImport_summary_fileUnsupported => 'تنسيق غير مدعوم';
+
+  @override
+  String get universalImport_summary_fileParseFailed => 'فشلت القراءة';
+
+  @override
   String universalImport_bulk_consolidateMatched(int count) {
     return 'دمج المتطابقة ($count)';
   }

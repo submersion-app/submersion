@@ -14745,6 +14745,60 @@ class AppLocalizationsZh extends AppLocalizations {
   String get universalImport_action_selectFile => '选择文件';
 
   @override
+  String get universalImport_action_selectFiles => '选择文件';
+
+  @override
+  String get universalImport_action_chooseFolder => '选择文件夹';
+
+  @override
+  String get universalImport_triage_title => '要导入的文件';
+
+  @override
+  String universalImport_triage_readyCount(num count) {
+    return '$count 个文件已准备好导入';
+  }
+
+  @override
+  String get universalImport_triage_excludedCsv => '单独导入（CSV）';
+
+  @override
+  String get universalImport_triage_unsupported => '不支持的格式';
+
+  @override
+  String get universalImport_triage_parseFailed => '无法读取';
+
+  @override
+  String universalImport_triage_parsing(int current, int total) {
+    return '正在解析第 $current/$total 个文件…';
+  }
+
+  @override
+  String get universalImport_triage_cancelParsing => '取消';
+
+  @override
+  String get universalImport_triage_allExcluded => '所选文件无法一起导入。CSV 文件必须逐个导入。';
+
+  @override
+  String get universalImport_review_inBatchDuplicate => '与此导入批次中的另一次潜水重复。';
+
+  @override
+  String get universalImport_summary_filesTitle => '文件';
+
+  @override
+  String universalImport_summary_fileImported(num count) {
+    return '已导入 $count 次潜水';
+  }
+
+  @override
+  String get universalImport_summary_fileNeedsIndividualImport => '需要单独导入';
+
+  @override
+  String get universalImport_summary_fileUnsupported => '不支持的格式';
+
+  @override
+  String get universalImport_summary_fileParseFailed => '读取失败';
+
+  @override
   String universalImport_bulk_consolidateMatched(int count) {
     return '合并匹配项 ($count)';
   }

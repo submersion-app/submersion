@@ -15464,6 +15464,77 @@ class AppLocalizationsHu extends AppLocalizations {
   String get universalImport_action_selectFile => 'Fájl kiválasztása';
 
   @override
+  String get universalImport_action_selectFiles => 'Fájlok kiválasztása';
+
+  @override
+  String get universalImport_action_chooseFolder => 'Mappa kiválasztása';
+
+  @override
+  String get universalImport_triage_title => 'Importálandó fájlok';
+
+  @override
+  String universalImport_triage_readyCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fájl importálásra kész',
+      one: '1 fájl importálásra kész',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_triage_excludedCsv =>
+      'Egyenkénti importálás (CSV)';
+
+  @override
+  String get universalImport_triage_unsupported => 'Nem támogatott formátum';
+
+  @override
+  String get universalImport_triage_parseFailed => 'Nem sikerült beolvasni';
+
+  @override
+  String universalImport_triage_parsing(int current, int total) {
+    return 'Fájl feldolgozása: $current/$total…';
+  }
+
+  @override
+  String get universalImport_triage_cancelParsing => 'Mégse';
+
+  @override
+  String get universalImport_triage_allExcluded =>
+      'A kiválasztott fájlok együtt nem importálhatók. A CSV-fájlokat egyenként kell importálni.';
+
+  @override
+  String get universalImport_review_inBatchDuplicate =>
+      'Egy másik merülés duplikátuma ebben az importálási kötegben.';
+
+  @override
+  String get universalImport_summary_filesTitle => 'Fájlok';
+
+  @override
+  String universalImport_summary_fileImported(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés importálva',
+      one: '1 merülés importálva',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_fileNeedsIndividualImport =>
+      'Egyenkénti importálás szükséges';
+
+  @override
+  String get universalImport_summary_fileUnsupported =>
+      'Nem támogatott formátum';
+
+  @override
+  String get universalImport_summary_fileParseFailed => 'Beolvasás sikertelen';
+
+  @override
   String universalImport_bulk_consolidateMatched(int count) {
     return 'Egyezoek osszevonasa ($count)';
   }
