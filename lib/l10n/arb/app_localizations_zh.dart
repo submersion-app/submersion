@@ -10968,6 +10968,16 @@ class AppLocalizationsZh extends AppLocalizations {
       '通过 Google Drive 同步';
 
   @override
+  String get settings_cloudSync_googleDrive_desktopNotConfigured => '此版本不可用';
+
+  @override
+  String get settings_cloudSync_googleDrive_browserWait_title => '请在浏览器中继续';
+
+  @override
+  String get settings_cloudSync_googleDrive_browserWait_message =>
+      '请在网页浏览器中完成 Google 登录，然后返回 Submersion。';
+
+  @override
   String get settings_cloudSync_provider_icloud => 'iCloud';
 
   @override

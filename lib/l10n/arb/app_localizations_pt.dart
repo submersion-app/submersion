@@ -11506,6 +11506,18 @@ class AppLocalizationsPt extends AppLocalizations {
       'Sincronizar via Google Drive';
 
   @override
+  String get settings_cloudSync_googleDrive_desktopNotConfigured =>
+      'Indisponível nesta versão';
+
+  @override
+  String get settings_cloudSync_googleDrive_browserWait_title =>
+      'Continue no navegador';
+
+  @override
+  String get settings_cloudSync_googleDrive_browserWait_message =>
+      'Conclua a autenticação com a sua conta Google no navegador e depois regresse ao Submersion.';
+
+  @override
   String get settings_cloudSync_provider_icloud => 'iCloud';
 
   @override

@@ -175,6 +175,24 @@ CloudStorageProvider cloudProviderInstanceFor(CloudProviderType type) {
   }
 }
 
+/// Whether Google Drive can be offered on this platform/build. True on
+/// iOS/macOS/Android; on Windows/Linux only when the Desktop-app OAuth
+/// client is compiled in (GoogleDriveClientConfig).
+final googleDriveAvailableProvider = FutureProvider<bool>((ref) {
+  return cloudProviderInstanceFor(CloudProviderType.googledrive).isAvailable();
+});
+
+/// Signed-in Google account email for the provider tile subtitle, or null
+/// when Google Drive is not the selected provider or no account is known.
+/// Watches the authentication flag so connect/sign-out refresh the subtitle
+/// without re-running on every sync progress tick.
+final googleDriveAccountEmailProvider = FutureProvider<String?>((ref) async {
+  final type = ref.watch(selectedCloudProviderTypeProvider);
+  if (type != CloudProviderType.googledrive) return null;
+  ref.watch(syncStateProvider.select((s) => s.isAuthenticated));
+  return cloudProviderInstanceFor(CloudProviderType.googledrive).getUserEmail();
+});
+
 /// Cloud storage provider instance (null if none selected or custom folder mode)
 ///
 /// When using custom folder mode, app-managed cloud sync is disabled to prevent

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -213,6 +214,19 @@ class _ThrowingCloudStorageProvider extends FakeCloudStorageProvider {
   }
 }
 
+/// [FakeCloudStorageProvider] whose [authenticate] blocks on a completer, so
+/// tests can hold the desktop browser-wait dialog open and resolve (or fail)
+/// the sign-in at a chosen moment.
+class _PendingAuthCloudStorageProvider extends FakeCloudStorageProvider {
+  final authCompleter = Completer<void>();
+
+  @override
+  Future<void> authenticate() async {
+    await authCompleter.future;
+    await super.authenticate();
+  }
+}
+
 /// Fake [SyncBehaviorNotifier] holding fixed settings and recording setter
 /// invocations, so the behavior switches can be rendered and toggled without
 /// SharedPreferences.
@@ -333,6 +347,8 @@ void main() {
     ),
     ICloudAvailability iCloudAvailability = ICloudAvailability.available,
     bool applePlatform = true,
+    bool googleDriveAvailable = true,
+    String? googleDriveEmail,
   }) async {
     final base = await getBaseOverrides();
     final fakeSync = _FakeSyncNotifier(syncState);
@@ -359,6 +375,12 @@ void main() {
             (ref) async => iCloudAvailability,
           ),
           isApplePlatformProvider.overrideWithValue(applePlatform),
+          googleDriveAvailableProvider.overrideWith(
+            (ref) async => googleDriveAvailable,
+          ),
+          googleDriveAccountEmailProvider.overrideWith(
+            (ref) async => googleDriveEmail,
+          ),
           isCloudSyncDisabledByCustomFolderProvider.overrideWithValue(
             customFolderMode,
           ),
@@ -557,11 +579,10 @@ void main() {
       await pumpPage(tester);
 
       expect(find.text('Cloud Sync'), findsOneWidget);
-      // Provider section header and provider tiles. Google Drive is hidden
-      // until its integration is fully implemented.
+      // Provider section header and provider tiles.
       expect(find.text('Cloud Provider'), findsOneWidget);
       expect(find.text('iCloud'), findsOneWidget);
-      expect(find.text('Google Drive'), findsNothing);
+      expect(find.text('Google Drive'), findsOneWidget);
       // Behavior section.
       expect(find.text('Sync Behavior'), findsOneWidget);
       expect(find.text('Auto Sync'), findsOneWidget);
@@ -816,20 +837,37 @@ void main() {
       expect(find.text('Select a cloud provider to enable sync'), findsNothing);
     });
 
-    testWidgets(
-      'persisted googledrive selection reads as no provider since the tile is hidden',
-      (tester) async {
-        // SyncRepository.getCloudProvider() falls back to googledrive when
-        // the stored enum name does not match, and getLastProvider() returns
-        // a previously persisted googledrive choice verbatim. With the tile
-        // removed, the UI must treat that as "no provider" so Sync Now is
-        // disabled and the select-provider hint stays visible. Otherwise the
-        // user sees no selected tile but a green Sync Now -- inconsistent.
-        await pumpPage(tester, selectedProvider: CloudProviderType.googledrive);
+    testWidgets('persisted googledrive selection selects the tile', (
+      tester,
+    ) async {
+      await pumpPage(
+        tester,
+        selectedProvider: CloudProviderType.googledrive,
+        googleDriveEmail: 'diver@example.com',
+      );
 
-        // No tile shows the connected check icon (googledrive tile is hidden).
-        expect(find.byIcon(Icons.check_circle), findsNothing);
-        // Sync Now is disabled and the hint is shown.
+      // The Google Drive tile shows the connected check icon.
+      expect(find.byIcon(Icons.check_circle), findsOneWidget);
+      // The subtitle shows the signed-in account.
+      expect(find.text('diver@example.com'), findsOneWidget);
+      // Sync Now is enabled (no coercion to "no provider" anymore).
+      final button = tester.widget<FilledButton>(
+        find.widgetWithText(FilledButton, 'Sync Now'),
+      );
+      expect(button.onPressed, isNotNull);
+    });
+
+    testWidgets(
+      'persisted googledrive selection does not enable Sync Now when Drive is unavailable',
+      (tester) async {
+        await pumpPage(
+          tester,
+          selectedProvider: CloudProviderType.googledrive,
+          googleDriveAvailable: false,
+        );
+
+        // No usable provider: Sync Now stays disabled and the hint shows,
+        // rather than an enabled Sync Now with a disabled/absent tile.
         final button = tester.widget<FilledButton>(
           find.widgetWithText(FilledButton, 'Sync Now'),
         );
@@ -840,6 +878,32 @@ void main() {
         );
       },
     );
+
+    testWidgets('Google Drive tile is disabled when unavailable', (
+      tester,
+    ) async {
+      await pumpPage(tester, googleDriveAvailable: false);
+
+      final tile = tester.widget<ListTile>(
+        find.ancestor(
+          of: find.text('Google Drive'),
+          matching: find.byType(ListTile),
+        ),
+      );
+      expect(tile.enabled, isFalse);
+    });
+
+    testWidgets('tapping Google Drive authenticates and connects', (
+      tester,
+    ) async {
+      final fake = FakeCloudStorageProvider();
+      await pumpPage(tester, cloudProvider: fake);
+
+      await tester.tap(find.text('Google Drive'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Connected to'), findsOneWidget);
+    });
 
     testWidgets(
       'tapping the iCloud tile authenticates and shows snackbar',
@@ -879,6 +943,68 @@ void main() {
         expect(find.textContaining('Fake connection failed:'), findsOneWidget);
       },
       skip: tapUnavailable,
+    );
+  });
+
+  group('CloudSyncPage - Google Drive desktop browser-wait dialog', () {
+    // _authenticateWithBrowserWait only shows the dialog on Windows/Linux
+    // (desktop loopback OAuth). These tests are the inverse of this file's
+    // Apple-only tile-tap tests: they run on the Linux CI runner and are
+    // skipped on macOS developer machines, where the branch is unreachable.
+    final dialogReachable = Platform.isWindows || Platform.isLinux;
+
+    testWidgets(
+      'shows the wait dialog and connects when auth completes',
+      (tester) async {
+        final fake = _PendingAuthCloudStorageProvider();
+        await pumpPage(tester, cloudProvider: fake);
+
+        await tester.tap(find.text('Google Drive'));
+        await tester.pump();
+
+        // The browser-wait dialog is up while authenticate() is pending.
+        expect(find.text('Continue in your browser'), findsOneWidget);
+
+        fake.authCompleter.complete();
+        await tester.pumpAndSettle();
+
+        // Dialog dismissed itself and the success snackbar is shown.
+        expect(find.text('Continue in your browser'), findsNothing);
+        expect(find.textContaining('Connected to'), findsOneWidget);
+      },
+      skip: !dialogReachable,
+    );
+
+    testWidgets(
+      'Cancel abandons the sign-in and clears the selection',
+      (tester) async {
+        final fake = _PendingAuthCloudStorageProvider();
+        await pumpPage(tester, cloudProvider: fake);
+
+        await tester.tap(find.text('Google Drive'));
+        await tester.pump();
+
+        final cancelLabel = MaterialLocalizations.of(
+          tester.element(find.byType(AlertDialog)),
+        ).cancelButtonLabel;
+        await tester.tap(find.text(cancelLabel));
+        await tester.pumpAndSettle();
+
+        // Dialog gone, selection cleared (no connected check icon), and the
+        // connection-failed snackbar shown.
+        expect(find.text('Continue in your browser'), findsNothing);
+        expect(find.byIcon(Icons.check_circle), findsNothing);
+        expect(find.textContaining('connection failed'), findsOneWidget);
+
+        // The abandoned flow's eventual error must be swallowed; nothing
+        // may surface after the user has already cancelled.
+        fake.authCompleter.completeError(
+          const CloudStorageException('loopback timeout'),
+        );
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+      },
+      skip: !dialogReachable,
     );
   });
 

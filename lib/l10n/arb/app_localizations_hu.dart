@@ -11468,6 +11468,18 @@ class AppLocalizationsHu extends AppLocalizations {
       'Szinkronizalas Google Drive-on keresztül';
 
   @override
+  String get settings_cloudSync_googleDrive_desktopNotConfigured =>
+      'Ebben a buildben nem érhető el';
+
+  @override
+  String get settings_cloudSync_googleDrive_browserWait_title =>
+      'Folytassa a böngészőjében';
+
+  @override
+  String get settings_cloudSync_googleDrive_browserWait_message =>
+      'Fejezze be a Google-bejelentkezést a webböngészőjében, majd térjen vissza a Submersionbe.';
+
+  @override
   String get settings_cloudSync_provider_icloud => 'iCloud';
 
   @override

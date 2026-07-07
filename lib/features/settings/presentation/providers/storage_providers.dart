@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/domain/entities/storage_config.dart';
+import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_client_config.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/database_migration_service.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -41,7 +42,10 @@ final storagePlatformCapabilitiesProvider =
         // - Android: Uses Storage Access Framework (SAF)
         supportsCustomFolder: true,
         supportsICloud: Platform.isIOS || Platform.isMacOS,
-        supportsGoogleDrive: true, // All platforms
+        // Single source of truth shared with
+        // GoogleDriveStorageProvider.isAvailable(), so the two can't diverge:
+        // compile-time config on mobile/macOS, Desktop-app client on desktop.
+        supportsGoogleDrive: GoogleDriveClientConfig.isSupportedOnThisPlatform,
         isDesktop: Platform.isMacOS || Platform.isWindows || Platform.isLinux,
       );
     });
