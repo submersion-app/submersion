@@ -727,7 +727,10 @@ class BackupService {
       return BackupDirLease(await resolveDefaultBackupsDirectory(), _noRelease);
     }
     if (!BackupBookmarkService.isSupported) {
-      // Desktop: bare custom filesystem paths persist and work without scoping.
+      // Non-Apple platforms (desktop Linux/Windows, and Android with a plain
+      // filesystem path -- SAF content:// locations were already handled
+      // above). Security-scoped bookmarks are an Apple-only concept, so a bare
+      // custom filesystem path here persists and works without scoping.
       return BackupDirLease(await _ensureDir(custom), _noRelease);
     }
     final port = bookmarks ?? const _DefaultBackupBookmarkPort();
