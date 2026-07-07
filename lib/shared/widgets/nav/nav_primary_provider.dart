@@ -3,12 +3,12 @@ import 'package:submersion/features/settings/data/repositories/app_settings_repo
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/nav/nav_destinations.dart';
 
-/// Canonical list of every nav destination (14 entries including `more`).
+/// Canonical list of every nav destination (15 entries including `more`).
 final navDestinationsProvider = Provider<List<NavDestination>>((ref) {
   return kNavDestinations;
 });
 
-/// Ids of destinations that can be moved between primary and overflow (12 entries).
+/// Ids of destinations that can be moved between primary and overflow (13 entries).
 final movableNavIdsProvider = Provider<List<String>>((ref) => movableNavIds);
 
 /// StateNotifier owning the 3-element primary middle-slot id list.

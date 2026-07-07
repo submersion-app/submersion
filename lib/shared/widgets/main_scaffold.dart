@@ -42,7 +42,8 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
       if (location.startsWith('/statistics')) return 9;
       if (location.startsWith('/planning')) return 10;
       if (location.startsWith('/transfer')) return 11;
-      if (location.startsWith('/settings')) return 12;
+      if (location.startsWith('/gps-log')) return 12;
+      if (location.startsWith('/settings')) return 13;
       return 0;
     }
 
@@ -107,6 +108,9 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
           context.go('/transfer');
           break;
         case 12:
+          context.go('/gps-log');
+          break;
+        case 13:
           context.go('/settings');
           break;
       }
@@ -291,6 +295,11 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
                                 icon: const Icon(Icons.sync_alt_outlined),
                                 selectedIcon: const Icon(Icons.sync_alt),
                                 label: Text(context.l10n.nav_transfer),
+                              ),
+                              NavigationRailDestination(
+                                icon: const Icon(Icons.gps_fixed),
+                                selectedIcon: const Icon(Icons.gps_fixed),
+                                label: Text(context.l10n.nav_gpsLog),
                               ),
                               NavigationRailDestination(
                                 icon: const Icon(Icons.settings_outlined),

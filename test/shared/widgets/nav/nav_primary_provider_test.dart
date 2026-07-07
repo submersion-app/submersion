@@ -152,6 +152,7 @@ void main() {
           'courses',
           'planning',
           'transfer',
+          'gps-log',
           'settings',
         ]);
       },
