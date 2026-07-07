@@ -638,13 +638,67 @@ class SyncService {
       'Epoch ${marker.epochId} has no readable library; re-establishing this '
       'backend from the local library',
     );
+    await _reestablishEpochFromLocalLibrary(provider, marker);
+    return true;
+  }
+
+  /// Make THIS device's library the authoritative base for [marker]'s epoch:
+  /// wipe the (unreadable/incomplete) sync files, drop this backend's publish
+  /// and peer state so the next sync republishes a full base, and accept the
+  /// epoch locally. Shared by the automatic unreadable-epoch recovery and the
+  /// user-driven [rebuildBackendFromThisDevice].
+  Future<void> _reestablishEpochFromLocalLibrary(
+    CloudStorageProvider provider,
+    LibraryEpochMarker marker,
+  ) async {
     await deleteAllSyncFiles(provider);
     final db = DatabaseService.instance.database;
     await PublishStateStore(db).resetForProvider(provider.providerId);
     await PeerCursorStore(db).resetForProvider(provider.providerId);
     await _syncRepository.setLastAcceptedEpochId(marker.epochId);
-    await epochStore.setLastAccepted(marker);
-    return true;
+    await _epochStore?.setLastAccepted(marker);
+  }
+
+  /// User-driven escape from a stuck library replacement (issue #509): the
+  /// device that ran "Replace everywhere" went offline before uploading the new
+  /// base, so every other device waits forever on "still uploading". This
+  /// forces the re-establish that [_recoverUnreadableEpoch] defers during its
+  /// grace window: THIS device's library becomes the epoch's authoritative
+  /// base, and the caller's follow-up sync publishes it. Peers then adopt from
+  /// us instead of the offline device.
+  Future<SyncResult> rebuildBackendFromThisDevice() async {
+    final provider = _cloudProvider;
+    if (provider == null) {
+      return const SyncResult(
+        status: SyncResultStatus.error,
+        message: 'No cloud provider configured',
+      );
+    }
+    final marker = await readLibraryEpochMarker(provider);
+    if (marker == null) {
+      return const SyncResult(
+        status: SyncResultStatus.error,
+        message: 'No library replacement to rebuild from',
+      );
+    }
+    try {
+      await _reestablishEpochFromLocalLibrary(provider, marker);
+      _log.info('Rebuilt backend from this device for epoch ${marker.epochId}');
+      return const SyncResult(
+        status: SyncResultStatus.success,
+        message: 'Rebuilt this backend from this device’s library',
+      );
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to rebuild backend from this device',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return SyncResult(
+        status: SyncResultStatus.error,
+        message: 'Rebuild failed: $e',
+      );
+    }
   }
 
   /// True if any device has published a current-format (ssv1) base for

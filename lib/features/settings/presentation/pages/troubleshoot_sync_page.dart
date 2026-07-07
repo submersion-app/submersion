@@ -25,6 +25,16 @@ class TroubleshootSyncPage extends ConsumerWidget {
             ),
             onTap: () => _confirmRepair(context, ref),
           ),
+          ListTile(
+            leading: const Icon(Icons.cloud_upload_outlined),
+            title: const Text('Rebuild backend from this device'),
+            subtitle: const Text(
+              'Use if sync is stuck waiting on a library that another device '
+              'replaced but never finished uploading (that device may be '
+              'offline). Publishes this device’s library as the current one.',
+            ),
+            onTap: () => _confirmRebuild(context, ref),
+          ),
           const Divider(),
           ListTile(
             leading: const Icon(Icons.cleaning_services_outlined),
@@ -81,6 +91,38 @@ class TroubleshootSyncPage extends ConsumerWidget {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Sync repaired')));
+    }
+  }
+
+  Future<void> _confirmRebuild(BuildContext context, WidgetRef ref) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Rebuild backend from this device?'),
+        content: const Text(
+          'This makes this device’s library the current one on the backend and '
+          'republishes it, so other devices sync from you. Use it when a '
+          'replacement from another device is stuck. Your dive data is not '
+          'affected.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Rebuild'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    await ref.read(syncStateProvider.notifier).rebuildBackendFromThisDevice();
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Rebuilt backend from this device')),
+      );
     }
   }
 

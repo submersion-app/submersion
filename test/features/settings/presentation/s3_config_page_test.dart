@@ -137,6 +137,9 @@ class _FakeSyncNotifier extends StateNotifier<SyncState>
   Future<void> wipeAllCloudSyncData() async {}
 
   @override
+  Future<void> rebuildBackendFromThisDevice() async {}
+
+  @override
   Future<void> signOut() async {
     _ref.read(selectedCloudProviderTypeProvider.notifier).state = null;
     state = const SyncState();

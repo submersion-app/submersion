@@ -206,6 +206,11 @@ class _FakeSyncNotifier extends StateNotifier<SyncState>
   @override
   Future<void> wipeAllCloudSyncData() async => wipeAllCloudSyncDataCalls++;
 
+  int rebuildBackendFromThisDeviceCalls = 0;
+  @override
+  Future<void> rebuildBackendFromThisDevice() async =>
+      rebuildBackendFromThisDeviceCalls++;
+
   @override
   Future<void> signOut() async => signOutCalls++;
 

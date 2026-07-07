@@ -78,4 +78,36 @@ void main() {
       expect(leftover.existsSync(), isFalse);
     },
   );
+
+  test(
+    'rebuildBackendFromThisDevice re-establishes the epoch from local library',
+    () async {
+      final service = buildService();
+      const marker = LibraryEpochMarker(
+        epochId: 'e-stuck',
+        replacedAt: 1,
+        deviceId: 'offline-device',
+      );
+      // The offline device published the epoch marker but no base; a stale peer
+      // log lingers in the folder.
+      await service.writeLibraryEpochMarker(cloud, marker);
+      cloud.seedFile(
+        'ssv1.offline-device.manifest.json',
+        Uint8List.fromList('m'.codeUnits),
+      );
+
+      final result = await service.rebuildBackendFromThisDevice();
+
+      expect(result.status, SyncResultStatus.success);
+      // The stuck sync files are wiped so this device can republish...
+      expect(cloud.bytesOf('ssv1.offline-device.manifest.json'), isNull);
+      // ...and this device now accepts the epoch (its next sync publishes base).
+      expect(epochStore.lastAcceptedMarker?.epochId, 'e-stuck');
+    },
+  );
+
+  test('rebuildBackendFromThisDevice errors when no marker exists', () async {
+    final result = await buildService().rebuildBackendFromThisDevice();
+    expect(result.status, SyncResultStatus.error);
+  });
 }

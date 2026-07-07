@@ -25,6 +25,24 @@ void main() {
     expect(find.text('Wipe all sync data on this backend'), findsOneWidget);
   });
 
+  testWidgets('shows the rebuild-from-this-device action and confirm dialog', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const ProviderScope(child: MaterialApp(home: TroubleshootSyncPage())),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Rebuild backend from this device'), findsOneWidget);
+
+    await tester.tap(find.text('Rebuild backend from this device'));
+    await tester.pumpAndSettle();
+
+    // Confirm dialog appears (title ends with '?').
+    expect(find.text('Rebuild backend from this device?'), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, 'Rebuild'), findsOneWidget);
+  });
+
   testWidgets('wipe-all requires typed confirmation', (tester) async {
     await tester.pumpWidget(
       const ProviderScope(child: MaterialApp(home: TroubleshootSyncPage())),

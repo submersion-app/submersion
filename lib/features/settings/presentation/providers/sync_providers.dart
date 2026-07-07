@@ -948,6 +948,26 @@ class SyncNotifier extends StateNotifier<SyncState> {
     await refreshState();
   }
 
+  /// Escape a stuck library replacement whose uploader went offline (issue
+  /// #509): rebuild this backend from THIS device's library, then publish it so
+  /// peers adopt from us. Un-pauses the awaiting-adoption state.
+  Future<void> rebuildBackendFromThisDevice() async {
+    final result = await _syncService.rebuildBackendFromThisDevice();
+    if (result.status == SyncResultStatus.success) {
+      state = state.copyWith(
+        replaceAwaitingAdoption: false,
+        replaceMarker: null,
+        status: SyncStatus.idle,
+        message: null,
+      );
+      await _ref.read(libraryEpochStoreProvider).clearPendingReplace();
+      await performSync(); // publish our library as the epoch's base
+    } else {
+      state = state.copyWith(status: SyncStatus.error, message: result.message);
+    }
+    await refreshState();
+  }
+
   @override
   void dispose() {
     _autoSyncTimer?.cancel();
