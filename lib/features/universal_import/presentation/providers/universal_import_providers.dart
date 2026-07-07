@@ -240,7 +240,11 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     final sourceApp =
         effectiveOverride ?? detection.sourceApp ?? SourceApp.generic;
 
-    final options = ImportOptions(sourceApp: sourceApp, format: format);
+    final options = ImportOptions(
+      sourceApp: sourceApp,
+      format: format,
+      fileName: state.fileName,
+    );
 
     // For CSV files, run pipeline detection to check for multi-file presets.
     if (format == ImportFormat.csv && state.fileBytes != null) {
