@@ -1260,6 +1260,27 @@ void main() {
       expect(find.text('Repair Sync'), findsOneWidget);
     });
 
+    testWidgets('Troubleshoot Sync entry is disabled during an active sync', (
+      tester,
+    ) async {
+      // Syncing shows an indeterminate spinner that never settles.
+      await pumpPage(
+        tester,
+        syncState: const SyncState(status: SyncStatus.syncing),
+        settle: false,
+      );
+      await tester.pump();
+
+      final tile = tester.widget<ListTile>(
+        find.ancestor(
+          of: find.text('Troubleshoot Sync'),
+          matching: find.byType(ListTile),
+        ),
+      );
+      expect(tile.enabled, isFalse);
+      expect(tile.onTap, isNull);
+    });
+
     testWidgets('tapping the sync error banner opens Troubleshoot Sync', (
       tester,
     ) async {

@@ -1183,6 +1183,11 @@ class CloudSyncPage extends ConsumerWidget {
   }
 
   Widget _buildAdvancedSection(BuildContext context, WidgetRef ref) {
+    // Recovery resets sync identity/cursors and cloud files; doing that while a
+    // sync is writing races it. Disable the entry during an active sync, as the
+    // former "Reset Sync State" tile did. A sync ERROR (the banner route) is not
+    // `syncing`, so a stuck-error user can still reach Troubleshoot.
+    final isSyncing = ref.watch(syncStateProvider).status == SyncStatus.syncing;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1199,9 +1204,14 @@ class CloudSyncPage extends ConsumerWidget {
           leading: const Icon(Icons.build),
           title: const Text('Troubleshoot Sync'),
           subtitle: const Text('Fix a stuck sync or free cloud space'),
-          onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const TroubleshootSyncPage()),
-          ),
+          enabled: !isSyncing,
+          onTap: isSyncing
+              ? null
+              : () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const TroubleshootSyncPage(),
+                  ),
+                ),
         ),
         ListTile(
           leading: const Icon(Icons.logout),
