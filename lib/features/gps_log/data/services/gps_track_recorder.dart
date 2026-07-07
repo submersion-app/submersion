@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:geolocator/geolocator.dart';
 
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/gps_log/data/repositories/gps_track_repository.dart';
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 import 'package:submersion/features/gps_log/domain/track_point_codec.dart';
@@ -47,12 +48,18 @@ class GpsTrackRecorder {
   final Duration _checkpointInterval;
   final Future<void> Function(String trackId)? _onTrackFinalized;
 
+  final _log = LoggerService.forClass(GpsTrackRecorder);
   final _stateController = StreamController<GpsRecorderState>.broadcast();
   GpsRecorderState _state = const GpsRecorderState();
   StreamSubscription<Position>? _subscription;
   Timer? _keepaliveTimer;
   Timer? _checkpointTimer;
   Position? _lastPosition;
+
+  /// Serializes point writes so [stop] can await the tail of the queue
+  /// before finalizing (a write racing finalize could land buffer rows
+  /// after the finalize clears them).
+  Future<void> _lastRecord = Future<void>.value();
 
   GpsTrackRecorder({
     required GpsTrackRepository repository,
@@ -106,7 +113,7 @@ class GpsTrackRecorder {
       }
       // Re-record the last known position with a fresh timestamp so a
       // moored boat still produces continuous track coverage.
-      _record(last, timestampOverride: DateTime.now().toUtc());
+      _enqueueRecord(last, timestampOverride: DateTime.now().toUtc());
     });
     _checkpointTimer = Timer.periodic(_checkpointInterval, (_) {
       final id = _state.trackId;
@@ -123,17 +130,45 @@ class GpsTrackRecorder {
     _keepaliveTimer = null;
     _checkpointTimer = null;
     _lastPosition = null;
+    // Let any in-flight point write land before finalizing so the last fix
+    // makes it into the blob and cannot repopulate the buffer afterwards.
+    await _lastRecord;
     if (trackId != null) {
       await _repository.finalizeTrack(trackId);
-      await _onTrackFinalized?.call(trackId);
+      try {
+        await _onTrackFinalized?.call(trackId);
+      } catch (e, stackTrace) {
+        // Matching is best-effort; a sweep failure must not prevent the
+        // recorder from returning to idle.
+        _log.error(
+          'Post-stop GPS match sweep failed',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
     }
     _setState(const GpsRecorderState());
   }
 
-  Future<void> _onPosition(Position position) async {
+  void _onPosition(Position position) {
     if (position.accuracy > maxAccuracyMeters) return;
     _lastPosition = position;
-    await _record(position);
+    _enqueueRecord(position);
+  }
+
+  /// Chains a point write onto the queue. Errors are logged, never thrown:
+  /// a failed write must not surface as an unhandled async error from the
+  /// stream or the keepalive timer, and must not break the chain.
+  void _enqueueRecord(Position position, {DateTime? timestampOverride}) {
+    _lastRecord = _lastRecord
+        .then((_) => _record(position, timestampOverride: timestampOverride))
+        .catchError((Object e, StackTrace stackTrace) {
+          _log.error(
+            'Failed to record GPS point',
+            error: e,
+            stackTrace: stackTrace,
+          );
+        });
   }
 
   Future<void> _record(Position position, {DateTime? timestampOverride}) async {

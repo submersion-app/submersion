@@ -82,15 +82,28 @@ void main() {
   testWidgets(
     'recording state shows point count and stop button',
     (tester) async {
-      final controller = StreamController<Position>();
-      final recorder = GpsTrackRecorder(
-        repository: repo,
-        positionStreamFactory: (_) => controller.stream,
-      );
-      await recorder.start(notificationTitle: 't', notificationText: 'x');
-      controller.add(_fix(lat: 10, lon: 20));
-      controller.add(_fix(lat: 10.001, lon: 20.001));
-      await tester.pump();
+      // Construct and drive the recorder entirely inside runAsync blocks:
+      // futures capture their creation zone (including the record queue's
+      // seed future made in the constructor), so anything created in the
+      // fake zone can never complete or be awaited on the real event loop.
+      late StreamController<Position> controller;
+      late GpsTrackRecorder recorder;
+      await tester.runAsync(() async {
+        controller = StreamController<Position>();
+        recorder = GpsTrackRecorder(
+          repository: repo,
+          positionStreamFactory: (_) => controller.stream,
+        );
+        await recorder.start(notificationTitle: 't', notificationText: 'x');
+        controller.add(_fix(lat: 10, lon: 20));
+        controller.add(_fix(lat: 10.001, lon: 20.001));
+        // Let the stream deliver and the buffered writes land.
+        final deadline = DateTime.now().add(const Duration(seconds: 5));
+        while (recorder.state.pointCount < 2 &&
+            DateTime.now().isBefore(deadline)) {
+          await Future<void>.delayed(const Duration(milliseconds: 10));
+        }
+      });
 
       await tester.pumpWidget(await app(recorder: recorder));
       await tester.pumpAndSettle();
@@ -98,9 +111,7 @@ void main() {
       expect(find.text('Stop logging'), findsOneWidget);
       expect(find.text('Start logging'), findsNothing);
 
-      // Stop inside the test body so no timers outlive the fake zone.
-      // runAsync: with the page live, drift work scheduled from the fake
-      // zone never flushes, so a bare await on stop() deadlocks the test.
+      // Stop inside the test body so no timers outlive the test.
       await tester.runAsync(() => recorder.stop());
       await tester.runAsync(() => controller.close());
     },

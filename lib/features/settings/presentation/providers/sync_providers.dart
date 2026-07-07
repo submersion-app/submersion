@@ -822,8 +822,14 @@ class SyncNotifier extends StateNotifier<SyncState> {
           // GPS-less dives against the freshly merged tracks. Best-effort.
           try {
             await _ref.read(gpsTrackMatchServiceProvider).sweep();
-          } catch (_) {
-            // Matching is an enhancement; the sync itself succeeded.
+          } catch (e, stackTrace) {
+            // Matching is an enhancement; the sync itself succeeded. Log so
+            // "why didn't my dives get positioned?" is diagnosable.
+            _log.error(
+              'Post-sync GPS match sweep failed',
+              error: e,
+              stackTrace: stackTrace,
+            );
           }
         } else {
           state = state.copyWith(

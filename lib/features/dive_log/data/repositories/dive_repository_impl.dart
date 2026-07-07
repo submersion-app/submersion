@@ -356,9 +356,10 @@ class DiveRepository {
     }
   }
 
-  /// Stamps GPS coordinates onto a dive (GPS-track matching). Callers must
-  /// only target dives missing GPS: this write does not re-check, so the
-  /// matching sweep can batch-verify candidates once up front.
+  /// Stamps GPS coordinates onto a dive (GPS-track matching). Fills only
+  /// columns that are currently NULL: a dive selected for its missing entry
+  /// GPS may still carry a computer-provided exit fix, which must never be
+  /// overwritten. No-ops entirely when nothing is fillable.
   Future<void> setDiveGps(
     String diveId, {
     double? entryLatitude,
@@ -367,21 +368,34 @@ class DiveRepository {
     double? exitLongitude,
   }) async {
     try {
+      final row = await (_db.select(
+        _db.dives,
+      )..where((t) => t.id.equals(diveId))).getSingleOrNull();
+      if (row == null) return;
+
+      Value<double> fill(double? current, double? incoming) =>
+          current == null && incoming != null
+          ? Value(incoming)
+          : const Value.absent();
+
+      final entryLat = fill(row.entryLatitude, entryLatitude);
+      final entryLon = fill(row.entryLongitude, entryLongitude);
+      final exitLat = fill(row.exitLatitude, exitLatitude);
+      final exitLon = fill(row.exitLongitude, exitLongitude);
+      if (!entryLat.present &&
+          !entryLon.present &&
+          !exitLat.present &&
+          !exitLon.present) {
+        return;
+      }
+
       final now = DateTime.now().millisecondsSinceEpoch;
       await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
         DivesCompanion(
-          entryLatitude: entryLatitude != null
-              ? Value(entryLatitude)
-              : const Value.absent(),
-          entryLongitude: entryLongitude != null
-              ? Value(entryLongitude)
-              : const Value.absent(),
-          exitLatitude: exitLatitude != null
-              ? Value(exitLatitude)
-              : const Value.absent(),
-          exitLongitude: exitLongitude != null
-              ? Value(exitLongitude)
-              : const Value.absent(),
+          entryLatitude: entryLat,
+          entryLongitude: entryLon,
+          exitLatitude: exitLat,
+          exitLongitude: exitLon,
           updatedAt: Value(now),
         ),
       );

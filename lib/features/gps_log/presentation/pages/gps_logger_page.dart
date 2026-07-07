@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import 'package:submersion/core/services/location_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/gps_log/data/services/gps_track_recorder.dart';
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
@@ -25,6 +26,8 @@ class GpsLoggerPage extends ConsumerStatefulWidget {
 }
 
 class _GpsLoggerPageState extends ConsumerState<GpsLoggerPage> {
+  final _log = LoggerService.forClass(GpsLoggerPage);
+
   /// Recording only makes sense on the device that goes on the boat.
   /// defaultTargetPlatform (not dart:io) so widget tests can override it.
   bool get _canRecord =>
@@ -40,12 +43,21 @@ class _GpsLoggerPageState extends ConsumerState<GpsLoggerPage> {
       if (!mounted) return;
       final recorder = ref.read(gpsTrackRecorderProvider);
       if (recorder.isRecording) return;
-      final recovered = await ref
-          .read(gpsTrackRepositoryProvider)
-          .recoverOrphanedTracks();
-      if (recovered.isNotEmpty && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.gpsLogger_interruptedNotice)),
+      try {
+        final recovered = await ref
+            .read(gpsTrackRepositoryProvider)
+            .recoverOrphanedTracks();
+        if (recovered.isNotEmpty && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(context.l10n.gpsLogger_interruptedNotice)),
+          );
+        }
+      } catch (e, stackTrace) {
+        // Recovery is best-effort; the page must render regardless.
+        _log.error(
+          'Orphan track recovery failed',
+          error: e,
+          stackTrace: stackTrace,
         );
       }
     });

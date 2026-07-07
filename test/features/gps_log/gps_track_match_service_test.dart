@@ -49,6 +49,8 @@ void main() {
     int? exitTimeMs,
     double? entryLatitude,
     double? entryLongitude,
+    double? exitLatitude,
+    double? exitLongitude,
   }) async {
     await db
         .into(db.dives)
@@ -59,6 +61,8 @@ void main() {
             exitTime: Value(exitTimeMs),
             entryLatitude: Value(entryLatitude),
             entryLongitude: Value(entryLongitude),
+            exitLatitude: Value(exitLatitude),
+            exitLongitude: Value(exitLongitude),
             createdAt: diveDateTimeMs,
             updatedAt: diveDateTimeMs,
           ),
@@ -108,6 +112,28 @@ void main() {
     expect(await service.sweep(), isEmpty);
     final dive = await readDive('dive-far');
     expect(dive.entryLatitude, isNull);
+  });
+
+  test('sweep never overwrites an existing exit fix', () async {
+    await seedTrack();
+    // Missing entry GPS (so it is a candidate) but carrying a
+    // computer-provided exit fix that must survive the stamp.
+    await seedDive(
+      'dive-exit-fix',
+      1500000,
+      exitTimeMs: 1800000,
+      exitLatitude: 50.0,
+      exitLongitude: 60.0,
+    );
+
+    final stamped = await service.sweep();
+    expect(stamped, ['dive-exit-fix']);
+
+    final dive = await readDive('dive-exit-fix');
+    expect(dive.entryLatitude, closeTo(10.5, 1e-9));
+    expect(dive.entryLongitude, closeTo(20.5, 1e-9));
+    expect(dive.exitLatitude, 50.0);
+    expect(dive.exitLongitude, 60.0);
   });
 
   test('sweep respects limitToIds', () async {
