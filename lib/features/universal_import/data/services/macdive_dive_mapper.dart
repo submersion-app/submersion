@@ -334,11 +334,16 @@ class MacDiveDiveMapper {
         if (tank?.name != null) entry['name'] = tank!.name;
         if (tank?.size != null) {
           final volumeL = c.tankSizeLiters(tank!.size, tank.workingPressure);
-          if (volumeL != null) entry['volumeL'] = volumeL;
+          // Key must be `volume` (not `volumeL`) — the shared UDDF importer's
+          // _buildTanks reads `t['volume']`. A mismatched key silently drops
+          // tank volume, which zeroes out volume-based SAC statistics (#517).
+          if (volumeL != null) entry['volume'] = volumeL;
         }
         if (tank?.workingPressure != null) {
           final wp = c.pressureToBar(tank!.workingPressure);
-          if (wp != null) entry['workingPressureBar'] = wp;
+          // Key must be `workingPressure` (not `workingPressureBar`) for the
+          // same reason as `volume` above.
+          if (wp != null) entry['workingPressure'] = wp;
         }
         final startPressure = c.pressureToBar(t.airStart);
         if (startPressure != null) entry['startPressure'] = startPressure;
