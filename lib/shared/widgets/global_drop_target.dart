@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui';
 
@@ -8,6 +9,7 @@ import 'package:desktop_drop/desktop_drop.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/universal_import/data/services/batch_parse_service.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/services/incoming_file_handler.dart';
@@ -72,11 +74,34 @@ class _GlobalDropTargetState extends ConsumerState<GlobalDropTarget> {
       return;
     }
 
-    // Read the first file only
-    final xFile = details.files.first;
+    // Expand any dropped folders into their importable files.
+    final paths = <String>[];
+    for (final xFile in details.files) {
+      final path = xFile.path;
+      if (path.isEmpty) continue;
+      if (FileSystemEntity.isDirectorySync(path)) {
+        paths.addAll(await scanFolderForImportableFiles(path));
+      } else {
+        paths.add(path);
+      }
+    }
+
+    if (paths.isEmpty) return;
+    if (!mounted) return;
+
+    if (paths.length > 1) {
+      await ref
+          .read(universalImportNotifierProvider.notifier)
+          .loadFilesFromPaths(paths);
+      if (!mounted) return;
+      context.go('/transfer/import-wizard');
+      return;
+    }
+
+    // Single file: keep the existing byte-based path (share-intent parity).
     final Uint8List bytes;
     try {
-      bytes = await xFile.readAsBytes();
+      bytes = await File(paths.first).readAsBytes();
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -90,7 +115,7 @@ class _GlobalDropTargetState extends ConsumerState<GlobalDropTarget> {
 
     final shouldNavigate = await handleIncomingFile(
       bytes: bytes,
-      fileName: xFile.name,
+      fileName: paths.first.split(Platform.pathSeparator).last,
       currentPath: currentPath,
       notifier: ref.read(universalImportNotifierProvider.notifier),
       messenger: ScaffoldMessenger.of(context),
