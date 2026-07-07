@@ -940,6 +940,14 @@ class SyncNotifier extends StateNotifier<SyncState> {
     await refreshState();
   }
 
+  /// Wipe ALL sync data on the active backend, including the epoch/moved
+  /// markers (issue #509, cloud clear 3b). Every device re-establishes from
+  /// scratch. Dive data is untouched.
+  Future<void> wipeAllCloudSyncData() async {
+    await _syncService.wipeAllSyncDataOnActiveProvider();
+    await refreshState();
+  }
+
   @override
   void dispose() {
     _autoSyncTimer?.cancel();

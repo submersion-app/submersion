@@ -2092,6 +2092,39 @@ class SyncService {
     }
   }
 
+  /// Delete EVERY sync artifact on [provider], INCLUDING the library epoch and
+  /// moved markers that [deleteAllSyncFiles] intentionally preserves. A genuine
+  /// fresh start (issue #509, cloud clear 3b): every device re-establishes from
+  /// scratch. Best-effort; failures are logged and skipped.
+  Future<void> wipeAllSyncData(CloudStorageProvider provider) async {
+    await deleteAllSyncFiles(provider);
+    for (final pattern in [libraryEpochFileName, libraryMovedFileName]) {
+      try {
+        final markers = await provider
+            .listFiles(namePattern: pattern)
+            .timeout(const Duration(seconds: 8));
+        for (final f in markers) {
+          try {
+            await provider.deleteFile(f.id).timeout(const Duration(seconds: 8));
+            _log.info('Deleted marker ${f.name} for full sync wipe');
+          } catch (e) {
+            _log.warning('Could not delete marker ${f.name}: $e');
+          }
+        }
+      } catch (e) {
+        _log.warning('Could not list markers for full sync wipe: $e');
+      }
+    }
+  }
+
+  /// Wipe all sync data on the active provider (issue #509, cloud clear 3b).
+  /// No-op when no provider is configured.
+  Future<void> wipeAllSyncDataOnActiveProvider() async {
+    final provider = _cloudProvider;
+    if (provider == null) return;
+    await wipeAllSyncData(provider);
+  }
+
   /// Execute the cloud side of a Replace restore: write the new epoch marker
   /// FIRST (a peer syncing mid-replace must learn the new epoch before it can
   /// misread a half-empty folder), wipe every sync file, upload our library

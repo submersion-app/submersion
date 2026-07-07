@@ -5,6 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
+import 'package:submersion/core/services/sync/library_epoch.dart';
+import 'package:submersion/core/services/sync/library_moved.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
 
@@ -56,5 +58,25 @@ void main() {
       isNotNull,
       reason: 'other devices keep syncing',
     );
+  });
+
+  test('wipeAllSyncData deletes logs AND the epoch/moved markers', () async {
+    cloud.seedFile(ChangesetLogLayout.manifestName('dev1'), b('m1'));
+    cloud.seedFile(ChangesetLogLayout.basePartName('dev1', 0, 0), b('bp1'));
+    cloud.seedFile(libraryEpochFileName, b('epoch'));
+    cloud.seedFile(libraryMovedFileName, b('moved'));
+
+    await buildService().wipeAllSyncData(cloud);
+
+    // deleteAllSyncFiles clears the logs...
+    expect(cloud.bytesOf(ChangesetLogLayout.manifestName('dev1')), isNull);
+    expect(
+      cloud.bytesOf(ChangesetLogLayout.basePartName('dev1', 0, 0)),
+      isNull,
+    );
+    // ...and wipeAllSyncData additionally clears the epoch/moved markers that
+    // deleteAllSyncFiles deliberately preserves, for a genuine fresh start.
+    expect(cloud.bytesOf(libraryEpochFileName), isNull);
+    expect(cloud.bytesOf(libraryMovedFileName), isNull);
   });
 }
