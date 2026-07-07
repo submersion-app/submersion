@@ -11,7 +11,7 @@ import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/compact_dive_list_tile.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_list_item.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/map_view_toggle_button.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -611,19 +611,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     if (ids.isEmpty) return;
     await context.pushNamed('bulkEditDives', extra: ids);
     if (mounted) _exitSelectionMode();
-  }
-
-  /// Returns the [DiveField] for [slotId] from [slots], or [defaultField] if
-  /// no matching slot is found.
-  DiveField _slotField(
-    List<CardSlotConfig> slots,
-    String slotId,
-    DiveField defaultField,
-  ) {
-    for (final slot in slots) {
-      if (slot.slotId == slotId) return slot.field;
-    }
-    return defaultField;
   }
 
   void _handleItemTap(DiveSummary dive) {
@@ -1255,131 +1242,31 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 final isMasterSelected = widget.selectedId == dive.id;
                 final isHighlighted =
                     ref.watch(highlightedDiveIdProvider) == dive.id;
-                final viewMode = ref.watch(diveListViewModeProvider);
-                return switch (viewMode) {
-                  ListViewMode.detailed => DiveListTile(
-                    diveId: dive.id,
-                    diveNumber: dive.diveNumber ?? index + 1,
-                    dateTime: dive.dateTime,
-                    siteName: dive.siteName,
-                    siteLocation: dive.siteLocation,
-                    maxDepth: dive.maxDepth,
-                    duration: dive.runtime ?? dive.bottomTime,
-                    waterTemp: dive.waterTemp,
-                    rating: dive.rating,
-                    isFavorite: dive.isFavorite,
-                    tags: dive.tags,
-                    isSelectionMode: _isSelectionMode,
-                    isSelected: _isSelectionMode
-                        ? isSelected
-                        : (isSelected || isMasterSelected || isHighlighted),
-                    colorValue: getCardColorValue(dive, colorAttribute),
-                    minValueInList: minValue,
-                    maxValueInList: maxValue,
-                    gradientStartColor: gradientColors.start,
-                    gradientEndColor: gradientColors.end,
-                    siteLatitude: dive.siteLatitude,
-                    siteLongitude: dive.siteLongitude,
-                    onTap: () {
-                      if (_isSelectionMode && _isShiftPressed()) {
-                        _selectRangeTo(dive.id, dives);
-                      } else {
-                        _handleItemTap(dive);
-                      }
-                    },
-                    onLongPress: _isSelectionMode
-                        ? null
-                        : () => _enterSelectionMode(dive.id),
-                    summary: dive,
-                    fullDive: fullDiveLookup[dive.id],
-                  ),
-                  ListViewMode.compact => CompactDiveListTile(
-                    diveId: dive.id,
-                    diveNumber: dive.diveNumber ?? index + 1,
-                    dateTime: dive.dateTime,
-                    siteName: dive.siteName,
-                    maxDepth: dive.maxDepth,
-                    duration: dive.runtime ?? dive.bottomTime,
-                    isSelectionMode: _isSelectionMode,
-                    isSelected: _isSelectionMode
-                        ? isSelected
-                        : (isSelected || isMasterSelected || isHighlighted),
-                    colorValue: getCardColorValue(dive, colorAttribute),
-                    minValueInList: minValue,
-                    maxValueInList: maxValue,
-                    gradientStartColor: gradientColors.start,
-                    gradientEndColor: gradientColors.end,
-                    summary: dive,
-                    titleField: _slotField(
-                      ref.watch(compactCardConfigProvider).slots,
-                      'title',
-                      DiveField.siteName,
-                    ),
-                    dateField: _slotField(
-                      ref.watch(compactCardConfigProvider).slots,
-                      'date',
-                      DiveField.dateTime,
-                    ),
-                    stat1Field: _slotField(
-                      ref.watch(compactCardConfigProvider).slots,
-                      'stat1',
-                      DiveField.maxDepth,
-                    ),
-                    stat2Field: _slotField(
-                      ref.watch(compactCardConfigProvider).slots,
-                      'stat2',
-                      DiveField.bottomTime,
-                    ),
-                    onTap: () {
-                      if (_isSelectionMode && _isShiftPressed()) {
-                        _selectRangeTo(dive.id, dives);
-                      } else {
-                        _handleItemTap(dive);
-                      }
-                    },
-                    onLongPress: _isSelectionMode
-                        ? null
-                        : () => _enterSelectionMode(dive.id),
-                  ),
-                  // Dense is no longer a dive view option; table is handled
-                  // in _buildTableModeScaffold. Fall through to detailed.
-                  ListViewMode.dense || ListViewMode.table => DiveListTile(
-                    diveId: dive.id,
-                    diveNumber: dive.diveNumber ?? index + 1,
-                    dateTime: dive.dateTime,
-                    siteName: dive.siteName,
-                    siteLocation: dive.siteLocation,
-                    maxDepth: dive.maxDepth,
-                    duration: dive.runtime ?? dive.bottomTime,
-                    waterTemp: dive.waterTemp,
-                    rating: dive.rating,
-                    isFavorite: dive.isFavorite,
-                    tags: dive.tags,
-                    isSelectionMode: _isSelectionMode,
-                    isSelected: _isSelectionMode
-                        ? isSelected
-                        : (isSelected || isMasterSelected || isHighlighted),
-                    colorValue: getCardColorValue(dive, colorAttribute),
-                    minValueInList: minValue,
-                    maxValueInList: maxValue,
-                    gradientStartColor: gradientColors.start,
-                    gradientEndColor: gradientColors.end,
-                    siteLatitude: dive.siteLatitude,
-                    siteLongitude: dive.siteLongitude,
-                    onTap: () {
-                      if (_isSelectionMode && _isShiftPressed()) {
-                        _selectRangeTo(dive.id, dives);
-                      } else {
-                        _handleItemTap(dive);
-                      }
-                    },
-                    onLongPress: _isSelectionMode
-                        ? null
-                        : () => _enterSelectionMode(dive.id),
-                    summary: dive,
-                    fullDive: fullDiveLookup[dive.id],
-                  ),
-                };
+                // Shared renderer: honours the active view mode and card
+                // config, and keeps the home Recent dives list in sync (#506).
+                return DiveListItem(
+                  summary: dive,
+                  fullDive: fullDiveLookup[dive.id],
+                  diveNumber: dive.diveNumber ?? index + 1,
+                  colorValue: getCardColorValue(dive, colorAttribute),
+                  minValueInList: minValue,
+                  maxValueInList: maxValue,
+                  gradientStartColor: gradientColors.start,
+                  gradientEndColor: gradientColors.end,
+                  isSelectionMode: _isSelectionMode,
+                  isSelected: isSelected,
+                  isHighlighted: isMasterSelected || isHighlighted,
+                  onTap: () {
+                    if (_isSelectionMode && _isShiftPressed()) {
+                      _selectRangeTo(dive.id, dives);
+                    } else {
+                      _handleItemTap(dive);
+                    }
+                  },
+                  onLongPress: _isSelectionMode
+                      ? null
+                      : () => _enterSelectionMode(dive.id),
+                );
               },
             ),
           ),

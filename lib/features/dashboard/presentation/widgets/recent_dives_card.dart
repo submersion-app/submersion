@@ -4,8 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_list_item.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -74,25 +75,19 @@ class RecentDivesCard extends ConsumerWidget {
               children: dives.asMap().entries.map((entry) {
                 final index = entry.key;
                 final dive = entry.value;
-                return DiveListTile(
-                  diveId: dive.id,
+                // Render through the shared DiveListItem so Recent dives honour
+                // the same view-mode and card configuration as the Dives tab
+                // (issue #506). The full Dive is passed for configurable extra
+                // fields; the summary drives title/date/stat slots.
+                return DiveListItem(
+                  summary: DiveSummary.fromDive(dive),
+                  fullDive: dive,
                   diveNumber: dive.diveNumber ?? index + 1,
-                  dateTime: dive.dateTime,
-                  siteName: dive.site?.name,
-                  siteLocation: dive.site?.locationString,
-                  maxDepth: dive.maxDepth,
-                  duration: dive.runtime ?? dive.bottomTime,
-                  waterTemp: dive.waterTemp,
-                  rating: dive.rating,
-                  isFavorite: dive.isFavorite,
-                  tags: dive.tags,
                   colorValue: getCardColorValueFromDive(dive, colorAttribute),
                   minValueInList: minValue,
                   maxValueInList: maxValue,
                   gradientStartColor: gradientColors.start,
                   gradientEndColor: gradientColors.end,
-                  siteLatitude: dive.site?.location?.latitude,
-                  siteLongitude: dive.site?.location?.longitude,
                   margin: const EdgeInsets.symmetric(vertical: 4),
                   onTap: () => context.push('/dives/${dive.id}'),
                 );
