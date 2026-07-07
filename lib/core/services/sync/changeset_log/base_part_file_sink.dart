@@ -2,10 +2,10 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/services/sync/changeset_log/base_chunker.dart';
+import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
 
 /// Downloads a base's parts one at a time into a single temp file, verifying
 /// integrity as bytes land so the whole base is never held in memory. Each part
@@ -14,7 +14,7 @@ import 'package:submersion/core/services/sync/changeset_log/base_chunker.dart';
 /// partial file and returns null (transient -> the caller retries next sync).
 class BasePartFileSink {
   BasePartFileSink({Future<Directory> Function()? tempDirProvider})
-    : _tempDir = tempDirProvider ?? getTemporaryDirectory;
+    : _tempDir = tempDirProvider ?? resolveSyncTempDir;
 
   final Future<Directory> Function() _tempDir;
   static const _uuid = Uuid();
