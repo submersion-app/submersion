@@ -5116,5 +5116,10 @@
   "db_location_choose_volume": "选择存储位置",
   "db_location_internal": "内部存储",
   "db_location_sd_card": "SD卡",
-  "db_location_external_note": "卸载应用后，此处的文件将被删除。"
+  "db_location_external_note": "卸载应用后，此处的文件将被删除。",
+  "diveLog_bulkEdit_membership_onAll": "全部 {count} 次潜水",
+  "diveLog_bulkEdit_membership_onSome": "{count}/{total} 次潜水",
+  "diveLog_bulkEdit_membership_adding": "添加到全部 {total} 次",
+  "diveLog_bulkEdit_membership_removing": "从全部移除",
+  "diveLog_bulkEdit_membership_empty": "所选潜水尚无项目"
 }

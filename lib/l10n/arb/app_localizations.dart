@@ -30361,6 +30361,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Files here are removed if you uninstall the app.'**
   String get db_location_external_note;
+
+  /// No description provided for @diveLog_bulkEdit_membership_onAll.
+  ///
+  /// In en, this message translates to:
+  /// **'on all {count}'**
+  String diveLog_bulkEdit_membership_onAll(int count);
+
+  /// No description provided for @diveLog_bulkEdit_membership_onSome.
+  ///
+  /// In en, this message translates to:
+  /// **'on {count} of {total}'**
+  String diveLog_bulkEdit_membership_onSome(int count, int total);
+
+  /// No description provided for @diveLog_bulkEdit_membership_adding.
+  ///
+  /// In en, this message translates to:
+  /// **'adding to all {total}'**
+  String diveLog_bulkEdit_membership_adding(int total);
+
+  /// No description provided for @diveLog_bulkEdit_membership_removing.
+  ///
+  /// In en, this message translates to:
+  /// **'removing from all'**
+  String get diveLog_bulkEdit_membership_removing;
+
+  /// No description provided for @diveLog_bulkEdit_membership_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No items on the selected dives yet'**
+  String get diveLog_bulkEdit_membership_empty;
 }
 
 class _AppLocalizationsDelegate

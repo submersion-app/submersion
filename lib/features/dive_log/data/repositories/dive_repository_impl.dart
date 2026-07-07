@@ -4091,6 +4091,49 @@ class DiveRepository {
     await _bumpDives(diveIds, now);
   }
 
+  /// {equipmentId: number of the given dives that reference it}. Junction PK
+  /// is (diveId, equipmentId), so COUNT(diveId) equals the distinct-dive count.
+  Future<Map<String, int>> equipmentCountsForDives(List<String> diveIds) async {
+    if (diveIds.isEmpty) return {};
+    final j = _db.diveEquipment;
+    final countExpr = j.diveId.count();
+    final rows =
+        await (_db.selectOnly(j)
+              ..addColumns([j.equipmentId, countExpr])
+              ..where(j.diveId.isIn(diveIds))
+              ..groupBy([j.equipmentId]))
+            .get();
+    return {for (final r in rows) r.read(j.equipmentId)!: r.read(countExpr)!};
+  }
+
+  /// {tagId: number of the given dives that carry it}.
+  Future<Map<String, int>> tagCountsForDives(List<String> diveIds) async {
+    if (diveIds.isEmpty) return {};
+    final j = _db.diveTags;
+    final countExpr = j.diveId.count();
+    final rows =
+        await (_db.selectOnly(j)
+              ..addColumns([j.tagId, countExpr])
+              ..where(j.diveId.isIn(diveIds))
+              ..groupBy([j.tagId]))
+            .get();
+    return {for (final r in rows) r.read(j.tagId)!: r.read(countExpr)!};
+  }
+
+  /// {diveTypeId: number of the given dives that have it}.
+  Future<Map<String, int>> diveTypeCountsForDives(List<String> diveIds) async {
+    if (diveIds.isEmpty) return {};
+    final j = _db.diveDiveTypes;
+    final countExpr = j.diveId.count();
+    final rows =
+        await (_db.selectOnly(j)
+              ..addColumns([j.diveTypeId, countExpr])
+              ..where(j.diveId.isIn(diveIds))
+              ..groupBy([j.diveTypeId]))
+            .get();
+    return {for (final r in rows) r.read(j.diveTypeId)!: r.read(countExpr)!};
+  }
+
   DiveTanksCompanion _tankCompanion(
     String id,
     String diveId,

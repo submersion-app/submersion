@@ -17960,4 +17960,26 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get db_location_external_note =>
       'Bestanden hier worden verwijderd als je de app verwijdert.';
+
+  @override
+  String diveLog_bulkEdit_membership_onAll(int count) {
+    return 'op alle $count';
+  }
+
+  @override
+  String diveLog_bulkEdit_membership_onSome(int count, int total) {
+    return 'op $count van $total';
+  }
+
+  @override
+  String diveLog_bulkEdit_membership_adding(int total) {
+    return 'toevoegen aan alle $total';
+  }
+
+  @override
+  String get diveLog_bulkEdit_membership_removing => 'verwijderen van alle';
+
+  @override
+  String get diveLog_bulkEdit_membership_empty =>
+      'Nog geen items bij de geselecteerde duiken';
 }

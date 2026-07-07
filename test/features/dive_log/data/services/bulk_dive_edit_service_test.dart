@@ -249,6 +249,51 @@ void main() {
     expect(await buddiesOf('d1'), isEmpty);
   });
 
+  test('EquipmentOp add preserves existing gear on each dive', () async {
+    // Reproduces the r/submersion report at the service layer: adding one
+    // item in bulk must not wipe gear the dive already has.
+    await seed('d1');
+    await diveRepo.bulkAddEquipment(['d1'], ['origEq']);
+
+    await service.apply(
+      const BulkEditRequest(
+        diveIds: ['d1'],
+        ops: [
+          EquipmentOp(mode: BulkCollectionMode.add, equipmentIds: ['newEq']),
+        ],
+      ),
+    );
+
+    expect((await equipOf('d1')).toSet(), {'origEq', 'newEq'});
+  });
+
+  test(
+    'apply handles simultaneous add + remove ops for one collection',
+    () async {
+      // The tri-state editor decomposes into an AddOp + a RemoveOp; both must
+      // apply in one request and undo must restore the prior membership.
+      await seed('d1');
+      await diveRepo.bulkAddEquipment(['d1'], ['keep', 'drop']);
+
+      final snap = await service.apply(
+        const BulkEditRequest(
+          diveIds: ['d1'],
+          ops: [
+            EquipmentOp(mode: BulkCollectionMode.add, equipmentIds: ['added']),
+            EquipmentOp(
+              mode: BulkCollectionMode.remove,
+              equipmentIds: ['drop'],
+            ),
+          ],
+        ),
+      );
+      expect((await equipOf('d1')).toSet(), {'keep', 'added'});
+
+      await service.undo(snap);
+      expect((await equipOf('d1')).toSet(), {'keep', 'drop'});
+    },
+  );
+
   test(
     'apply with no dives returns an empty snapshot; undo is a no-op',
     () async {

@@ -18057,4 +18057,26 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get db_location_external_note =>
       'Az itt tárolt fájlok törlődnek, ha eltávolítja az alkalmazást.';
+
+  @override
+  String diveLog_bulkEdit_membership_onAll(int count) {
+    return 'mind a $count merülésen';
+  }
+
+  @override
+  String diveLog_bulkEdit_membership_onSome(int count, int total) {
+    return '$count/$total merülésen';
+  }
+
+  @override
+  String diveLog_bulkEdit_membership_adding(int total) {
+    return 'hozzáadás mind a $total merüléshez';
+  }
+
+  @override
+  String get diveLog_bulkEdit_membership_removing => 'eltávolítás az összesből';
+
+  @override
+  String get diveLog_bulkEdit_membership_empty =>
+      'Még nincsenek elemek a kiválasztott merüléseken';
 }

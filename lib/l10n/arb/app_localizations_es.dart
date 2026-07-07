@@ -18114,4 +18114,26 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get db_location_external_note =>
       'Los archivos aquí se eliminan si desinstalas la aplicación.';
+
+  @override
+  String diveLog_bulkEdit_membership_onAll(int count) {
+    return 'en todas las $count';
+  }
+
+  @override
+  String diveLog_bulkEdit_membership_onSome(int count, int total) {
+    return 'en $count de $total';
+  }
+
+  @override
+  String diveLog_bulkEdit_membership_adding(int total) {
+    return 'añadiendo a todas ($total)';
+  }
+
+  @override
+  String get diveLog_bulkEdit_membership_removing => 'quitando de todas';
+
+  @override
+  String get diveLog_bulkEdit_membership_empty =>
+      'Aún no hay elementos en las inmersiones seleccionadas';
 }

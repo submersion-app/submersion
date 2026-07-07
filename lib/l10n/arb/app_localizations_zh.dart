@@ -17233,4 +17233,25 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get db_location_external_note => '卸载应用后，此处的文件将被删除。';
+
+  @override
+  String diveLog_bulkEdit_membership_onAll(int count) {
+    return '全部 $count 次潜水';
+  }
+
+  @override
+  String diveLog_bulkEdit_membership_onSome(int count, int total) {
+    return '$count/$total 次潜水';
+  }
+
+  @override
+  String diveLog_bulkEdit_membership_adding(int total) {
+    return '添加到全部 $total 次';
+  }
+
+  @override
+  String get diveLog_bulkEdit_membership_removing => '从全部移除';
+
+  @override
+  String get diveLog_bulkEdit_membership_empty => '所选潜水尚无项目';
 }

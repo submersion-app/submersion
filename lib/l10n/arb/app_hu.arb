@@ -5116,5 +5116,10 @@
   "db_location_choose_volume": "Tárhely kiválasztása",
   "db_location_internal": "Belső tárhely",
   "db_location_sd_card": "SD-kártya",
-  "db_location_external_note": "Az itt tárolt fájlok törlődnek, ha eltávolítja az alkalmazást."
+  "db_location_external_note": "Az itt tárolt fájlok törlődnek, ha eltávolítja az alkalmazást.",
+  "diveLog_bulkEdit_membership_onAll": "mind a {count} merülésen",
+  "diveLog_bulkEdit_membership_onSome": "{count}/{total} merülésen",
+  "diveLog_bulkEdit_membership_adding": "hozzáadás mind a {total} merüléshez",
+  "diveLog_bulkEdit_membership_removing": "eltávolítás az összesből",
+  "diveLog_bulkEdit_membership_empty": "Még nincsenek elemek a kiválasztott merüléseken"
 }

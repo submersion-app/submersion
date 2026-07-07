@@ -17768,4 +17768,26 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get db_location_external_note =>
       'تُحذف الملفات هنا عند إلغاء تثبيت التطبيق.';
+
+  @override
+  String diveLog_bulkEdit_membership_onAll(int count) {
+    return 'في كل الـ $count';
+  }
+
+  @override
+  String diveLog_bulkEdit_membership_onSome(int count, int total) {
+    return 'في $count من $total';
+  }
+
+  @override
+  String diveLog_bulkEdit_membership_adding(int total) {
+    return 'إضافة إلى كل الـ $total';
+  }
+
+  @override
+  String get diveLog_bulkEdit_membership_removing => 'إزالة من الكل';
+
+  @override
+  String get diveLog_bulkEdit_membership_empty =>
+      'لا توجد عناصر في الغطسات المحددة بعد';
 }

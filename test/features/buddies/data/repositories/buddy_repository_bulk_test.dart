@@ -43,6 +43,15 @@ void main() {
     expect(d2.length, 2);
   });
 
+  test('buddyCountsForDives returns per-buddy dive counts', () async {
+    await repository.bulkAddBuddies(['d1', 'd2'], [bwr('shared')]);
+    await repository.bulkAddBuddies(['d1'], [bwr('onlyD1')]);
+    final counts = await repository.buddyCountsForDives(['d1', 'd2']);
+    expect(counts['shared'], 2);
+    expect(counts['onlyD1'], 1);
+    expect(await repository.buddyCountsForDives(const []), isEmpty);
+  });
+
   test('bulkReplaceBuddies overwrites; bulkRemoveBuddies subtracts', () async {
     await repository.bulkAddBuddies(['d1'], [bwr('x'), bwr('y')]);
     await repository.bulkReplaceBuddies(['d1'], [bwr('z')]);

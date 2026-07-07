@@ -5116,5 +5116,10 @@
   "db_location_choose_volume": "Elegir ubicación de almacenamiento",
   "db_location_internal": "Almacenamiento interno",
   "db_location_sd_card": "Tarjeta SD",
-  "db_location_external_note": "Los archivos aquí se eliminan si desinstalas la aplicación."
+  "db_location_external_note": "Los archivos aquí se eliminan si desinstalas la aplicación.",
+  "diveLog_bulkEdit_membership_onAll": "en todas las {count}",
+  "diveLog_bulkEdit_membership_onSome": "en {count} de {total}",
+  "diveLog_bulkEdit_membership_adding": "añadiendo a todas ({total})",
+  "diveLog_bulkEdit_membership_removing": "quitando de todas",
+  "diveLog_bulkEdit_membership_empty": "Aún no hay elementos en las inmersiones seleccionadas"
 }

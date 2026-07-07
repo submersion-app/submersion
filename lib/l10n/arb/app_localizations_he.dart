@@ -17642,4 +17642,26 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get db_location_external_note =>
       'הקבצים כאן נמחקים אם מסירים את האפליקציה.';
+
+  @override
+  String diveLog_bulkEdit_membership_onAll(int count) {
+    return 'בכל $count';
+  }
+
+  @override
+  String diveLog_bulkEdit_membership_onSome(int count, int total) {
+    return 'ב-$count מתוך $total';
+  }
+
+  @override
+  String diveLog_bulkEdit_membership_adding(int total) {
+    return 'מוסיף לכל $total';
+  }
+
+  @override
+  String get diveLog_bulkEdit_membership_removing => 'מסיר מהכול';
+
+  @override
+  String get diveLog_bulkEdit_membership_empty =>
+      'אין עדיין פריטים בצלילות שנבחרו';
 }
