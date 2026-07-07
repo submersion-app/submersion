@@ -714,8 +714,20 @@ class BackupService {
     if (custom == null) {
       return BackupDirLease(await resolveDefaultBackupsDirectory(), _noRelease);
     }
+    if (isSafRef(custom)) {
+      // An Android SAF location is a content:// URI, not a filesystem path.
+      // This leased directory is consumed by the pre-migration safety copy,
+      // which writes with dart:io -- and Directory('content://...').create
+      // treats the URI as a relative path and throws
+      // "FileSystemException: Creation failed, path = 'content:'" against the
+      // read-only app working directory, bricking startup on the "Database
+      // upgrade failed" screen (issue #505). Route the filesystem copy to the
+      // always-writable sandbox default. The SAF location is left intact and
+      // still used for normal backups via resolveBackupTargetLeased.
+      return BackupDirLease(await resolveDefaultBackupsDirectory(), _noRelease);
+    }
     if (!BackupBookmarkService.isSupported) {
-      // Desktop/Android: bare custom paths persist and work without scoping.
+      // Desktop: bare custom filesystem paths persist and work without scoping.
       return BackupDirLease(await _ensureDir(custom), _noRelease);
     }
     final port = bookmarks ?? const _DefaultBackupBookmarkPort();
