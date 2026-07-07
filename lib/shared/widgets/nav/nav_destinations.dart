@@ -29,7 +29,7 @@ class NavDestination {
   /// Returns the localized label for this destination.
   final String Function(AppLocalizations) label;
 
-  /// Optional localized subtitle, used for Courses and Planning.
+  /// Optional localized subtitle, used for Courses, Planning, and GPS Log.
   final String Function(AppLocalizations)? subtitle;
 
   /// When `true`, this destination cannot be moved between primary and overflow.
@@ -38,7 +38,7 @@ class NavDestination {
 
 /// The complete, ordered list of nav destinations in default wide-screen order.
 ///
-/// Length is **14** — 13 routable destinations plus the `more` sentinel.
+/// Length is **15** — 14 routable destinations plus the `more` sentinel.
 final List<NavDestination> kNavDestinations = List.unmodifiable([
   NavDestination(
     id: 'dashboard',
@@ -128,6 +128,14 @@ final List<NavDestination> kNavDestinations = List.unmodifiable([
     label: (l10n) => l10n.nav_transfer,
   ),
   NavDestination(
+    id: 'gps-log',
+    route: '/gps-log',
+    icon: Icons.gps_fixed,
+    selectedIcon: Icons.gps_fixed,
+    label: (l10n) => l10n.nav_gpsLog,
+    subtitle: (l10n) => l10n.tools_gpsLogger_subtitle,
+  ),
+  NavDestination(
     id: 'settings',
     route: '/settings',
     icon: Icons.settings_outlined,
@@ -144,7 +152,7 @@ final List<NavDestination> kNavDestinations = List.unmodifiable([
   ),
 ]);
 
-/// The 12 ids that can be moved between primary slots and overflow.
+/// The 13 ids that can be moved between primary slots and overflow.
 final List<String> movableNavIds = List.unmodifiable(
   kNavDestinations.where((d) => !d.isPinned).map((d) => d.id),
 );

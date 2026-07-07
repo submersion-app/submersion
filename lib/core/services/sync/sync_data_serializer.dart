@@ -235,6 +235,7 @@ class SyncData {
   final List<Map<String, dynamic>> checklistTemplates;
   final List<Map<String, dynamic>> checklistTemplateItems;
   final List<Map<String, dynamic>> tripChecklistItems;
+  final List<Map<String, dynamic>> gpsTracks;
   final List<Map<String, dynamic>> divePlans;
   final List<Map<String, dynamic>> divePlanTanks;
   final List<Map<String, dynamic>> divePlanSegments;
@@ -284,6 +285,7 @@ class SyncData {
     this.checklistTemplates = const [],
     this.checklistTemplateItems = const [],
     this.tripChecklistItems = const [],
+    this.gpsTracks = const [],
     this.divePlans = const [],
     this.divePlanTanks = const [],
     this.divePlanSegments = const [],
@@ -334,6 +336,7 @@ class SyncData {
     'checklistTemplates': checklistTemplates,
     'checklistTemplateItems': checklistTemplateItems,
     'tripChecklistItems': tripChecklistItems,
+    'gpsTracks': gpsTracks,
     'divePlans': divePlans,
     'divePlanTanks': divePlanTanks,
     'divePlanSegments': divePlanSegments,
@@ -385,6 +388,7 @@ class SyncData {
       checklistTemplates: _parseList(json['checklistTemplates']),
       checklistTemplateItems: _parseList(json['checklistTemplateItems']),
       tripChecklistItems: _parseList(json['tripChecklistItems']),
+      gpsTracks: _parseList(json['gpsTracks']),
       divePlans: _parseList(json['divePlans']),
       divePlanTanks: _parseList(json['divePlanTanks']),
       divePlanSegments: _parseList(json['divePlanSegments']),
@@ -593,6 +597,7 @@ class SyncDataSerializer {
       blob: false,
       full: null,
     ),
+    (key: 'gpsTracks', table: _db.gpsTracks, blob: true, full: null),
     (key: 'divePlans', table: _db.divePlans, blob: false, full: null),
     (key: 'divePlanTanks', table: _db.divePlanTanks, blob: false, full: null),
     (
@@ -970,6 +975,10 @@ class SyncDataSerializer {
         'tripChecklistItems',
         () => _exportTripChecklistItems(hlcSince),
       ),
+      gpsTracks: await _safeExport(
+        'gpsTracks',
+        () => _exportGpsTracks(hlcSince),
+      ),
       divePlans: await _safeExport(
         'divePlans',
         () => _exportDivePlans(hlcSince),
@@ -1301,6 +1310,12 @@ class SyncDataSerializer {
           _db.tripChecklistItems,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
+      case 'gpsTracks':
+        final row = await (_db.select(
+          _db.gpsTracks,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        // The points BLOB rides as base64, matching _exportGpsTracks.
+        return row?.toJson(serializer: _syncBlobSerializer);
       case 'divePlans':
         final row = await (_db.select(
           _db.divePlans,
@@ -1779,6 +1794,13 @@ class SyncDataSerializer {
               TripChecklistItem.fromJson(data).toCompanion(false),
             );
         return;
+      case 'gpsTracks':
+        await _db
+            .into(_db.gpsTracks)
+            .insertOnConflictUpdate(
+              GpsTrackRow.fromJson(data, serializer: _syncBlobSerializer),
+            );
+        return;
       case 'divePlans':
         await _db
             .into(_db.divePlans)
@@ -2187,6 +2209,19 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'gpsTracks':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.gpsTracks,
+            records
+                .map(
+                  (r) =>
+                      GpsTrackRow.fromJson(r, serializer: _syncBlobSerializer),
+                )
+                .toList(),
+          ),
+        );
+        return;
       case 'divePlans':
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
@@ -2487,6 +2522,8 @@ class SyncDataSerializer {
         return plain(_db.checklistTemplateItems, _db.checklistTemplateItems.id);
       case 'tripChecklistItems':
         return plain(_db.tripChecklistItems, _db.tripChecklistItems.id);
+      case 'gpsTracks':
+        return plain(_db.gpsTracks, _db.gpsTracks.id);
       case 'divePlans':
         return plain(_db.divePlans, _db.divePlans.id);
       case 'divePlanTanks':
@@ -2616,6 +2653,8 @@ class SyncDataSerializer {
         return _db.checklistTemplateItems;
       case 'tripChecklistItems':
         return _db.tripChecklistItems;
+      case 'gpsTracks':
+        return _db.gpsTracks;
       case 'divePlans':
         return _db.divePlans;
       case 'divePlanTanks':
@@ -2818,6 +2857,11 @@ class SyncDataSerializer {
       case 'tripChecklistItems':
         await (_db.delete(
           _db.tripChecklistItems,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'gpsTracks':
+        await (_db.delete(
+          _db.gpsTracks,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'divePlans':
@@ -3251,6 +3295,17 @@ class SyncDataSerializer {
     }
     final rows = await query.get();
     return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportGpsTracks(String? hlcSince) async {
+    final query = _db.select(_db.gpsTracks);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    // gps_tracks carries the points BLOB; encode it as base64, not a byte
+    // array (same as media/certifications).
+    return rows.map((r) => r.toJson(serializer: _syncBlobSerializer)).toList();
   }
 
   Future<List<Map<String, dynamic>>> _exportDivePlans(String? hlcSince) async {

@@ -106,6 +106,7 @@ import 'package:submersion/features/marine_life/presentation/pages/species_detai
 import 'package:submersion/features/planning/presentation/pages/planning_page.dart';
 import 'package:submersion/features/planning/presentation/widgets/planning_shell.dart';
 import 'package:submersion/features/planning/presentation/widgets/planning_welcome.dart';
+import 'package:submersion/features/gps_log/presentation/pages/gps_logger_page.dart';
 import 'package:submersion/features/tools/presentation/pages/weight_calculator_page.dart';
 import 'package:submersion/features/deco_calculator/presentation/pages/deco_calculator_page.dart';
 import 'package:submersion/features/gas_calculators/presentation/pages/gas_calculators_page.dart';
@@ -248,6 +249,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     name: 'surfaceInterval',
                     builder: (context, state) =>
                         const SurfaceIntervalToolPage(),
+                  ),
+                  // GPS Logger moved to top-level /gps-log; keep old deep
+                  // links working.
+                  GoRoute(
+                    path: 'gps-logger',
+                    redirect: (context, state) => '/gps-log',
                   ),
                 ],
               ),
@@ -740,6 +747,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     const _UniversalImportWizardRoute(),
               ),
             ],
+          ),
+
+          // GPS surface track logger
+          GoRoute(
+            path: '/gps-log',
+            name: 'gpsLog',
+            pageBuilder: (context, state) => NoTransitionPage(
+              key: state.pageKey,
+              child: const GpsLoggerPage(),
+            ),
           ),
 
           // Settings

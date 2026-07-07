@@ -10126,6 +10126,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nav_equipment => 'Equipment';
 
   @override
+  String get nav_gpsLog => 'GPS Log';
+
+  @override
   String get nav_home => 'Home';
 
   @override
@@ -16708,6 +16711,98 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gasCalculators_rockBottom_yourSac => 'Your SAC';
 
   @override
+  String get gpsLogger_androidNotificationText =>
+      'Recording your surface track';
+
+  @override
+  String get gpsLogger_androidNotificationTitle => 'Submersion GPS Logger';
+
+  @override
+  String get gpsLogger_deleteTrackMessage =>
+      'This removes the recorded GPS track. Positions already stamped on dives are kept.';
+
+  @override
+  String get gpsLogger_deleteTrackTitle => 'Delete track?';
+
+  @override
+  String get gpsLogger_interruptedNotice =>
+      'A previous recording was interrupted. The track was saved.';
+
+  @override
+  String gpsLogger_lastFix(String age, String accuracy) {
+    return 'Last fix $age ago ($accuracy)';
+  }
+
+  @override
+  String get gpsLogger_locationOff => 'Location services are turned off.';
+
+  @override
+  String get gpsLogger_matchButton => 'Match dives to GPS logs';
+
+  @override
+  String gpsLogger_matchResult(int count) {
+    return '$count dives positioned';
+  }
+
+  @override
+  String get gpsLogger_matchResultNone => 'No dives matched a recorded track';
+
+  @override
+  String get gpsLogger_noFixYet => 'Waiting for GPS fix';
+
+  @override
+  String get gpsLogger_noTracks => 'No GPS tracks recorded yet';
+
+  @override
+  String get gpsLogger_permissionDenied =>
+      'Location permission is required to record a GPS track. Enable it in system settings.';
+
+  @override
+  String gpsLogger_recordingStatus(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count points',
+      one: '$count point',
+    );
+    return 'Recording - $_temp0';
+  }
+
+  @override
+  String get gpsLogger_reviewSites => 'Review site matches';
+
+  @override
+  String get gpsLogger_startButton => 'Start logging';
+
+  @override
+  String get gpsLogger_stopButton => 'Stop logging';
+
+  @override
+  String gpsLogger_stripStatus(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count points',
+      one: '$count point',
+    );
+    return 'Recording GPS track · $_temp0';
+  }
+
+  @override
+  String gpsLogger_trackSubtitle(num count, String duration) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count points',
+      one: '$count point',
+    );
+    return '$_temp0, $duration';
+  }
+
+  @override
+  String get gpsLogger_tracksHeader => 'Recorded tracks';
+
+  @override
   String get maps_heatMap_hide => 'Hide Heat Map';
 
   @override
@@ -17072,6 +17167,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tools_gas_title => 'Gas Calculators';
+
+  @override
+  String get tools_gpsLogger_description =>
+      'Record your position during a dive day and match imported dives to GPS locations automatically.';
+
+  @override
+  String get tools_gpsLogger_subtitle => 'Record a surface track';
+
+  @override
+  String get tools_gpsLogger_title => 'GPS Logger';
 
   @override
   String get tools_title => 'Tools';

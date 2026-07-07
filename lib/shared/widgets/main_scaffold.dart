@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/auto_update/presentation/widgets/update_banner.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/download_exit_dialog.dart';
+import 'package:submersion/features/gps_log/presentation/widgets/gps_recording_strip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/global_drop_target.dart';
 import 'package:submersion/shared/widgets/nav/nav_primary_provider.dart';
@@ -42,7 +43,8 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
       if (location.startsWith('/statistics')) return 9;
       if (location.startsWith('/planning')) return 10;
       if (location.startsWith('/transfer')) return 11;
-      if (location.startsWith('/settings')) return 12;
+      if (location.startsWith('/gps-log')) return 12;
+      if (location.startsWith('/settings')) return 13;
       return 0;
     }
 
@@ -107,6 +109,9 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
           context.go('/transfer');
           break;
         case 12:
+          context.go('/gps-log');
+          break;
+        case 13:
           context.go('/settings');
           break;
       }
@@ -293,6 +298,11 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
                                 label: Text(context.l10n.nav_transfer),
                               ),
                               NavigationRailDestination(
+                                icon: const Icon(Icons.gps_fixed),
+                                selectedIcon: const Icon(Icons.gps_fixed),
+                                label: Text(context.l10n.nav_gpsLog),
+                              ),
+                              NavigationRailDestination(
                                 icon: const Icon(Icons.settings_outlined),
                                 selectedIcon: const Icon(Icons.settings),
                                 label: Text(context.l10n.nav_settings),
@@ -310,6 +320,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
                     children: [
                       const UpdateBanner(),
                       Expanded(child: widget.child),
+                      const GpsRecordingStrip(),
                     ],
                   ),
                 ),
@@ -327,6 +338,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
           children: [
             const UpdateBanner(),
             Expanded(child: widget.child),
+            const GpsRecordingStrip(),
           ],
         ),
       ),

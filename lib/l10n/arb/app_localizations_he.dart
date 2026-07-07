@@ -10026,6 +10026,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get nav_equipment => 'ציוד';
 
   @override
+  String get nav_gpsLog => 'יומן GPS';
+
+  @override
   String get nav_home => 'בית';
 
   @override
@@ -16552,6 +16555,99 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_rockBottom_yourSac => 'ה-SAC שלך';
 
   @override
+  String get gpsLogger_androidNotificationText => 'מקליט את מסלול פני המים';
+
+  @override
+  String get gpsLogger_androidNotificationTitle => 'מקליט ה-GPS של Submersion';
+
+  @override
+  String get gpsLogger_deleteTrackMessage =>
+      'פעולה זו תסיר את מסלול ה-GPS שהוקלט. מיקומים שכבר הוצמדו לצלילות יישמרו.';
+
+  @override
+  String get gpsLogger_deleteTrackTitle => 'למחוק את המסלול?';
+
+  @override
+  String get gpsLogger_interruptedNotice => 'הקלטה קודמת נקטעה. המסלול נשמר.';
+
+  @override
+  String gpsLogger_lastFix(String age, String accuracy) {
+    return 'איתור אחרון לפני $age ($accuracy)';
+  }
+
+  @override
+  String get gpsLogger_locationOff => 'שירותי המיקום כבויים.';
+
+  @override
+  String get gpsLogger_matchButton => 'התאמת צלילות ליומני GPS';
+
+  @override
+  String gpsLogger_matchResult(int count) {
+    return '$count צלילות מוקמו';
+  }
+
+  @override
+  String get gpsLogger_matchResultNone => 'אף צלילה לא תואמת מסלול שהוקלט';
+
+  @override
+  String get gpsLogger_noFixYet => 'ממתין לאות GPS';
+
+  @override
+  String get gpsLogger_noTracks => 'עדיין לא הוקלטו מסלולי GPS';
+
+  @override
+  String get gpsLogger_permissionDenied =>
+      'נדרשת הרשאת מיקום כדי להקליט מסלול GPS. יש להפעיל אותה בהגדרות המערכת.';
+
+  @override
+  String gpsLogger_recordingStatus(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count נקודות',
+      two: 'שתי נקודות',
+      one: 'נקודה אחת',
+    );
+    return 'מקליט - $_temp0';
+  }
+
+  @override
+  String get gpsLogger_reviewSites => 'סקירת התאמות אתרי צלילה';
+
+  @override
+  String get gpsLogger_startButton => 'התחל הקלטה';
+
+  @override
+  String get gpsLogger_stopButton => 'עצור הקלטה';
+
+  @override
+  String gpsLogger_stripStatus(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count נקודות',
+      two: 'שתי נקודות',
+      one: 'נקודה אחת',
+    );
+    return 'מקליט מסלול GPS · $_temp0';
+  }
+
+  @override
+  String gpsLogger_trackSubtitle(num count, String duration) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count נקודות',
+      two: 'שתי נקודות',
+      one: 'נקודה אחת',
+    );
+    return '$_temp0, $duration';
+  }
+
+  @override
+  String get gpsLogger_tracksHeader => 'מסלולים שהוקלטו';
+
+  @override
   String get maps_heatMap_hide => 'הסתר מפת חום';
 
   @override
@@ -16914,6 +17010,16 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get tools_gas_title => 'מחשבוני גז';
+
+  @override
+  String get tools_gpsLogger_description =>
+      'הקלט את מיקומך במהלך יום צלילה והתאם אוטומטית צלילות מיובאות למיקומי GPS.';
+
+  @override
+  String get tools_gpsLogger_subtitle => 'הקלטת מסלול פני המים';
+
+  @override
+  String get tools_gpsLogger_title => 'מקליט GPS';
 
   @override
   String get tools_title => 'כלים';

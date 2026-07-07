@@ -197,6 +197,54 @@ class TripChecklistItems extends Table {
   // coverage:ignore-end
 }
 
+/// GPS surface tracks recorded by the phone during a dive day (spec
+/// 2026-07-06-gps-track-logging). One row per recording session; points
+/// live in a gzipped JSON blob because matching always reads whole tracks
+/// and blob-per-session keeps sync to one HLC row per boat day.
+@DataClassName('GpsTrackRow')
+class GpsTracks extends Table {
+  // coverage:ignore-start
+  TextColumn get id => text()();
+
+  /// Wall-clock-as-UTC epoch milliseconds (same convention as dives.entryTime)
+  IntColumn get startTime => integer()();
+  IntColumn get endTime => integer().nullable()();
+
+  /// Device UTC offset at recording start, to reconstruct true UTC later
+  IntColumn get tzOffsetMinutes => integer().withDefault(const Constant(0))();
+  TextColumn get deviceName => text().nullable()();
+  IntColumn get pointCount => integer().withDefault(const Constant(0))();
+
+  /// Gzipped JSON array of [wallClockEpochSeconds, lat, lon, accuracyMeters]
+  BlobColumn get points => blob().nullable()();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+  // coverage:ignore-end
+}
+
+/// Local-only append buffer for the in-progress GPS recording session.
+/// Never synced (no hlc). Finalized into gps_tracks.points on stop or
+/// crash recovery.
+@DataClassName('GpsTrackPointRow')
+class GpsTrackPointsLocal extends Table {
+  // coverage:ignore-start
+  IntColumn get rowId => integer().autoIncrement()();
+  TextColumn get trackId => text()();
+
+  /// Wall-clock-as-UTC epoch seconds
+  IntColumn get timestamp => integer()();
+  RealColumn get latitude => real()();
+  RealColumn get longitude => real()();
+  RealColumn get accuracy => real().nullable()();
+  // coverage:ignore-end
+}
+
 /// Saved dive plans (dive planner redesign, Phase 2)
 class DivePlans extends Table {
   // coverage:ignore-start
@@ -1956,6 +2004,9 @@ class FieldPresets extends Table {
     ChecklistTemplates,
     ChecklistTemplateItems,
     TripChecklistItems,
+    // GPS surface track logging (discussion #289)
+    GpsTracks,
+    GpsTrackPointsLocal,
     // Saved dive plans (planner redesign Phase 2)
     DivePlans,
     DivePlanTanks,
@@ -1979,7 +2030,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 100;
+  static const int currentSchemaVersion = 101;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -2083,6 +2134,7 @@ class AppDatabase extends _$AppDatabase {
     98,
     99,
     100,
+    101,
   ];
 
   /// Tables that carry a per-row Hybrid Logical Clock for cross-device conflict
@@ -4776,6 +4828,41 @@ class AppDatabase extends _$AppDatabase {
           ''');
         }
         if (from < 100) await reportProgress();
+        if (from < 101) {
+          // GPS surface track logging (discussion #289). Raw idempotent DDL
+          // (v98 checklist idiom) so interrupted migrations and schema-version
+          // collisions are safe. gps_track_points_local is a device-local
+          // recording buffer and is never synced.
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS gps_tracks (
+              id TEXT NOT NULL PRIMARY KEY,
+              start_time INTEGER NOT NULL,
+              end_time INTEGER,
+              tz_offset_minutes INTEGER NOT NULL DEFAULT 0,
+              device_name TEXT,
+              point_count INTEGER NOT NULL DEFAULT 0,
+              points BLOB,
+              created_at INTEGER NOT NULL,
+              updated_at INTEGER NOT NULL,
+              hlc TEXT
+            )
+          ''');
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS gps_track_points_local (
+              row_id INTEGER PRIMARY KEY AUTOINCREMENT,
+              track_id TEXT NOT NULL,
+              timestamp INTEGER NOT NULL,
+              latitude REAL NOT NULL,
+              longitude REAL NOT NULL,
+              accuracy REAL
+            )
+          ''');
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_gps_track_points_local_track_id
+            ON gps_track_points_local(track_id)
+          ''');
+        }
+        if (from < 101) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys

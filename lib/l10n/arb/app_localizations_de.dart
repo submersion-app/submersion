@@ -10286,6 +10286,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get nav_equipment => 'Ausrüstung';
 
   @override
+  String get nav_gpsLog => 'GPS-Log';
+
+  @override
   String get nav_home => 'Startseite';
 
   @override
@@ -16962,6 +16965,99 @@ class AppLocalizationsDe extends AppLocalizations {
   String get gasCalculators_rockBottom_yourSac => 'Dein AMV';
 
   @override
+  String get gpsLogger_androidNotificationText =>
+      'Oberflächen-Track wird aufgezeichnet';
+
+  @override
+  String get gpsLogger_androidNotificationTitle => 'Submersion GPS-Logger';
+
+  @override
+  String get gpsLogger_deleteTrackMessage =>
+      'Entfernt den aufgezeichneten GPS-Track. Bereits auf Tauchgänge übertragene Positionen bleiben erhalten.';
+
+  @override
+  String get gpsLogger_deleteTrackTitle => 'Track löschen?';
+
+  @override
+  String get gpsLogger_interruptedNotice =>
+      'Eine frühere Aufzeichnung wurde unterbrochen. Der Track wurde gespeichert.';
+
+  @override
+  String gpsLogger_lastFix(String age, String accuracy) {
+    return 'Letzter Fix vor $age ($accuracy)';
+  }
+
+  @override
+  String get gpsLogger_locationOff => 'Ortungsdienste sind deaktiviert.';
+
+  @override
+  String get gpsLogger_matchButton => 'Tauchgänge mit GPS-Logs abgleichen';
+
+  @override
+  String gpsLogger_matchResult(int count) {
+    return '$count Tauchgänge positioniert';
+  }
+
+  @override
+  String get gpsLogger_matchResultNone =>
+      'Keine Tauchgänge passen zu einem aufgezeichneten Track';
+
+  @override
+  String get gpsLogger_noFixYet => 'Warte auf GPS-Fix';
+
+  @override
+  String get gpsLogger_noTracks => 'Noch keine GPS-Tracks aufgezeichnet';
+
+  @override
+  String get gpsLogger_permissionDenied =>
+      'Zur Aufzeichnung eines GPS-Tracks ist die Standortberechtigung erforderlich. Aktiviere sie in den Systemeinstellungen.';
+
+  @override
+  String gpsLogger_recordingStatus(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Punkte',
+      one: '$count Punkt',
+    );
+    return 'Aufzeichnung - $_temp0';
+  }
+
+  @override
+  String get gpsLogger_reviewSites => 'Tauchplatz-Zuordnungen prüfen';
+
+  @override
+  String get gpsLogger_startButton => 'Aufzeichnung starten';
+
+  @override
+  String get gpsLogger_stopButton => 'Aufzeichnung beenden';
+
+  @override
+  String gpsLogger_stripStatus(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Punkte',
+      one: '$count Punkt',
+    );
+    return 'GPS-Track wird aufgezeichnet · $_temp0';
+  }
+
+  @override
+  String gpsLogger_trackSubtitle(num count, String duration) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Punkte',
+      one: '$count Punkt',
+    );
+    return '$_temp0, $duration';
+  }
+
+  @override
+  String get gpsLogger_tracksHeader => 'Aufgezeichnete Tracks';
+
+  @override
   String get maps_heatMap_hide => 'Heatmap ausblenden';
 
   @override
@@ -17328,6 +17424,16 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get tools_gas_title => 'Gasrechner';
+
+  @override
+  String get tools_gpsLogger_description =>
+      'Zeichne deine Position während eines Tauchtags auf und ordne importierte Tauchgänge automatisch GPS-Positionen zu.';
+
+  @override
+  String get tools_gpsLogger_subtitle => 'Oberflächen-Track aufzeichnen';
+
+  @override
+  String get tools_gpsLogger_title => 'GPS-Logger';
 
   @override
   String get tools_title => 'Werkzeuge';

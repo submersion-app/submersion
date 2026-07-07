@@ -10274,6 +10274,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get nav_equipment => 'Equipo';
 
   @override
+  String get nav_gpsLog => 'Registro GPS';
+
+  @override
   String get nav_home => 'Inicio';
 
   @override
@@ -16999,6 +17002,102 @@ class AppLocalizationsEs extends AppLocalizations {
   String get gasCalculators_rockBottom_yourSac => 'Tu SAC';
 
   @override
+  String get gpsLogger_androidNotificationText =>
+      'Grabando tu track de superficie';
+
+  @override
+  String get gpsLogger_androidNotificationTitle =>
+      'Registrador GPS de Submersion';
+
+  @override
+  String get gpsLogger_deleteTrackMessage =>
+      'Elimina el track GPS grabado. Las posiciones ya asignadas a las inmersiones se conservan.';
+
+  @override
+  String get gpsLogger_deleteTrackTitle => '¿Eliminar track?';
+
+  @override
+  String get gpsLogger_interruptedNotice =>
+      'Una grabación anterior se interrumpió. El track se guardó.';
+
+  @override
+  String gpsLogger_lastFix(String age, String accuracy) {
+    return 'Última posición hace $age ($accuracy)';
+  }
+
+  @override
+  String get gpsLogger_locationOff =>
+      'Los servicios de ubicación están desactivados.';
+
+  @override
+  String get gpsLogger_matchButton => 'Emparejar inmersiones con registros GPS';
+
+  @override
+  String gpsLogger_matchResult(int count) {
+    return '$count inmersiones posicionadas';
+  }
+
+  @override
+  String get gpsLogger_matchResultNone =>
+      'Ninguna inmersión coincide con un track grabado';
+
+  @override
+  String get gpsLogger_noFixYet => 'Esperando señal GPS';
+
+  @override
+  String get gpsLogger_noTracks => 'Aún no hay tracks GPS grabados';
+
+  @override
+  String get gpsLogger_permissionDenied =>
+      'Se necesita permiso de ubicación para grabar un track GPS. Actívalo en los ajustes del sistema.';
+
+  @override
+  String gpsLogger_recordingStatus(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count puntos',
+      one: '$count punto',
+    );
+    return 'Grabando - $_temp0';
+  }
+
+  @override
+  String get gpsLogger_reviewSites =>
+      'Revisar coincidencias de puntos de buceo';
+
+  @override
+  String get gpsLogger_startButton => 'Iniciar registro';
+
+  @override
+  String get gpsLogger_stopButton => 'Detener registro';
+
+  @override
+  String gpsLogger_stripStatus(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count puntos',
+      one: '$count punto',
+    );
+    return 'Grabando track GPS · $_temp0';
+  }
+
+  @override
+  String gpsLogger_trackSubtitle(num count, String duration) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count puntos',
+      one: '$count punto',
+    );
+    return '$_temp0, $duration';
+  }
+
+  @override
+  String get gpsLogger_tracksHeader => 'Tracks grabados';
+
+  @override
   String get maps_heatMap_hide => 'Ocultar mapa de calor';
 
   @override
@@ -17369,6 +17468,16 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get tools_gas_title => 'Calculadoras de gas';
+
+  @override
+  String get tools_gpsLogger_description =>
+      'Graba tu posición durante un día de buceo y empareja automáticamente las inmersiones importadas con ubicaciones GPS.';
+
+  @override
+  String get tools_gpsLogger_subtitle => 'Graba un track de superficie';
+
+  @override
+  String get tools_gpsLogger_title => 'Registrador GPS';
 
   @override
   String get tools_title => 'Herramientas';

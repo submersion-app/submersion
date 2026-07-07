@@ -30,6 +30,7 @@ import 'package:submersion/core/services/sync/sync_preferences.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_providers.dart';
 
@@ -816,6 +817,20 @@ class SyncNotifier extends StateNotifier<SyncState> {
           // learns of the move here -- the moment it is actively writing into
           // the now-orphaned copy.
           await checkLibraryMoved();
+          // A GPS track that just synced in may cover dives imported earlier
+          // on this device (phone-records/desktop-imports race): sweep
+          // GPS-less dives against the freshly merged tracks. Best-effort.
+          try {
+            await _ref.read(gpsTrackMatchServiceProvider).sweep();
+          } catch (e, stackTrace) {
+            // Matching is an enhancement; the sync itself succeeded. Log so
+            // "why didn't my dives get positioned?" is diagnosable.
+            _log.error(
+              'Post-sync GPS match sweep failed',
+              error: e,
+              stackTrace: stackTrace,
+            );
+          }
         } else {
           state = state.copyWith(
             status: SyncStatus.error,

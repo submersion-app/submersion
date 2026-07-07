@@ -17534,6 +17534,12 @@ abstract class AppLocalizations {
   /// **'Equipment'**
   String get nav_equipment;
 
+  /// No description provided for @nav_gpsLog.
+  ///
+  /// In en, this message translates to:
+  /// **'GPS Log'**
+  String get nav_gpsLog;
+
   /// Navigation label for home/dashboard
   ///
   /// In en, this message translates to:
@@ -28539,6 +28545,126 @@ abstract class AppLocalizations {
   /// **'Your SAC'**
   String get gasCalculators_rockBottom_yourSac;
 
+  /// No description provided for @gpsLogger_androidNotificationText.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording your surface track'**
+  String get gpsLogger_androidNotificationText;
+
+  /// No description provided for @gpsLogger_androidNotificationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Submersion GPS Logger'**
+  String get gpsLogger_androidNotificationTitle;
+
+  /// No description provided for @gpsLogger_deleteTrackMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This removes the recorded GPS track. Positions already stamped on dives are kept.'**
+  String get gpsLogger_deleteTrackMessage;
+
+  /// No description provided for @gpsLogger_deleteTrackTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete track?'**
+  String get gpsLogger_deleteTrackTitle;
+
+  /// No description provided for @gpsLogger_interruptedNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'A previous recording was interrupted. The track was saved.'**
+  String get gpsLogger_interruptedNotice;
+
+  /// No description provided for @gpsLogger_lastFix.
+  ///
+  /// In en, this message translates to:
+  /// **'Last fix {age} ago ({accuracy})'**
+  String gpsLogger_lastFix(String age, String accuracy);
+
+  /// No description provided for @gpsLogger_locationOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Location services are turned off.'**
+  String get gpsLogger_locationOff;
+
+  /// No description provided for @gpsLogger_matchButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Match dives to GPS logs'**
+  String get gpsLogger_matchButton;
+
+  /// No description provided for @gpsLogger_matchResult.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} dives positioned'**
+  String gpsLogger_matchResult(int count);
+
+  /// No description provided for @gpsLogger_matchResultNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No dives matched a recorded track'**
+  String get gpsLogger_matchResultNone;
+
+  /// No description provided for @gpsLogger_noFixYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for GPS fix'**
+  String get gpsLogger_noFixYet;
+
+  /// No description provided for @gpsLogger_noTracks.
+  ///
+  /// In en, this message translates to:
+  /// **'No GPS tracks recorded yet'**
+  String get gpsLogger_noTracks;
+
+  /// No description provided for @gpsLogger_permissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Location permission is required to record a GPS track. Enable it in system settings.'**
+  String get gpsLogger_permissionDenied;
+
+  /// No description provided for @gpsLogger_recordingStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording - {count, plural, one{{count} point} other{{count} points}}'**
+  String gpsLogger_recordingStatus(num count);
+
+  /// No description provided for @gpsLogger_reviewSites.
+  ///
+  /// In en, this message translates to:
+  /// **'Review site matches'**
+  String get gpsLogger_reviewSites;
+
+  /// No description provided for @gpsLogger_startButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Start logging'**
+  String get gpsLogger_startButton;
+
+  /// No description provided for @gpsLogger_stopButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop logging'**
+  String get gpsLogger_stopButton;
+
+  /// No description provided for @gpsLogger_stripStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording GPS track · {count, plural, one{{count} point} other{{count} points}}'**
+  String gpsLogger_stripStatus(num count);
+
+  /// No description provided for @gpsLogger_trackSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} point} other{{count} points}}, {duration}'**
+  String gpsLogger_trackSubtitle(num count, String duration);
+
+  /// No description provided for @gpsLogger_tracksHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded tracks'**
+  String get gpsLogger_tracksHeader;
+
   /// No description provided for @maps_heatMap_hide.
   ///
   /// In en, this message translates to:
@@ -29127,6 +29253,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Gas Calculators'**
   String get tools_gas_title;
+
+  /// No description provided for @tools_gpsLogger_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Record your position during a dive day and match imported dives to GPS locations automatically.'**
+  String get tools_gpsLogger_description;
+
+  /// No description provided for @tools_gpsLogger_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Record a surface track'**
+  String get tools_gpsLogger_subtitle;
+
+  /// No description provided for @tools_gpsLogger_title.
+  ///
+  /// In en, this message translates to:
+  /// **'GPS Logger'**
+  String get tools_gpsLogger_title;
 
   /// No description provided for @tools_title.
   ///

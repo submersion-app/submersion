@@ -160,8 +160,9 @@ void main() {
     },
   );
 
-  test('v100 is the current schema version and in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, 100);
+  test('v100 is at or below the current schema version and in the ladder', () {
+    // greaterThanOrEqualTo so a later bump does not break this version's test.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(100));
     expect(AppDatabase.migrationVersions, contains(100));
   });
 

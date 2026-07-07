@@ -7,7 +7,13 @@
   "diveLog_bulkEdit_fieldScrubberDuration": "Scrubber duration",
   "diveLog_bulkEdit_contradiction": "OC mode can't carry rebreather settings. Turn off those fields or change the mode.",
   "diveLog_bulkEdit_appBarTitle": "Edit {count} dives",
-  "@diveLog_bulkEdit_appBarTitle": {"placeholders": {"count": {"type": "int"}}},
+  "@diveLog_bulkEdit_appBarTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "diveLog_bulkEdit_groupLogistics": "Logistics",
   "diveLog_bulkEdit_groupWeather": "Weather",
   "diveLog_bulkEdit_groupCollections": "Tags, Gear & Life",
@@ -24,14 +30,26 @@
   "diveLog_bulkEdit_confirmApply": "Apply",
   "diveLog_bulkEdit_nothingSelected": "Turn on at least one field to apply changes.",
   "diveLog_bulkEdit_applied": "Updated {count} dives",
-  "@diveLog_bulkEdit_applied": {"placeholders": {"count": {"type": "int"}}},
+  "@diveLog_bulkEdit_applied": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "settings_cloudSync_error_icloudSignedOut": "iCloud is not available. Please sign in to iCloud in your device settings.",
   "settings_cloudSync_error_icloudUnknown": "Couldn't reach iCloud. Please try again.",
   "settings_cloudSync_error_icloudUnsupported": "iCloud sync isn't available in this build of Submersion. Use S3 sync, or the App Store version.",
   "settings_cloudSync_provider_icloud_unsupportedSubtitle": "Not available in this build — use S3 or the App Store version",
   "@@locale": "en",
   "settings_cloudSync_replace_globalBanner": "Sync is paused — the library was replaced from a backup on \"{deviceName}\".",
-  "@settings_cloudSync_replace_globalBanner": {"placeholders": {"deviceName": {"type": "String"}}},
+  "@settings_cloudSync_replace_globalBanner": {
+    "placeholders": {
+      "deviceName": {
+        "type": "String"
+      }
+    }
+  },
   "settings_cloudSync_postRestore_syncing": "Syncing your restored library with the cloud…",
   "settings_cloudSync_postRestore_synced": "Restored library synced.",
   "settings_cloudSync_replace_reviewAction": "Review",
@@ -973,7 +991,16 @@
   },
   "checklists_section_title": "Checklist",
   "checklists_progress": "{done} of {total} to-dos done",
-  "@checklists_progress": { "placeholders": { "done": { "type": "int" }, "total": { "type": "int" } } },
+  "@checklists_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "checklists_empty_upcoming": "Plan your trip - add to-dos or apply a template",
   "checklists_empty_past": "No checklist items",
   "checklists_addItem": "Add item",
@@ -992,11 +1019,32 @@
   "checklists_applySheet_title": "Apply template",
   "checklists_applySheet_empty": "No templates yet. Create them in Settings.",
   "checklists_applySheet_itemCount": "{count, plural, =1{1 item} other{{count} items}}",
-  "@checklists_applySheet_itemCount": { "placeholders": { "count": { "type": "int" } } },
+  "@checklists_applySheet_itemCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "checklists_applySheet_confirmAppend": "{added, plural, =1{1 item will be added} other{{added} items will be added}}, {skipped, plural, =0{no duplicates skipped} =1{1 duplicate skipped} other{{skipped} duplicates skipped}}.",
-  "@checklists_applySheet_confirmAppend": { "placeholders": { "added": { "type": "int" }, "skipped": { "type": "int" } } },
+  "@checklists_applySheet_confirmAppend": {
+    "placeholders": {
+      "added": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
   "checklists_apply_success": "{count, plural, =0{No new items added} =1{1 item added} other{{count} items added}}",
-  "@checklists_apply_success": { "placeholders": { "count": { "type": "int" } } },
+  "@checklists_apply_success": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "checklists_apply_templateGone": "Template no longer exists",
   "checklists_saveTemplate_title": "Save as template",
   "checklists_saveTemplate_nameLabel": "Template name",
@@ -1006,7 +1054,13 @@
   "checklists_templates_empty": "No templates yet",
   "checklists_templates_deleteTitle": "Delete Template",
   "checklists_templates_deleteContent": "Delete \"{name}\"? Trips that already applied it keep their items.",
-  "@checklists_templates_deleteContent": { "placeholders": { "name": { "type": "Object" } } },
+  "@checklists_templates_deleteContent": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
   "checklists_template_nameLabel": "Name",
   "checklists_template_nameRequired": "Name is required",
   "checklists_template_descriptionLabel": "Description",
@@ -1794,9 +1848,13 @@
   "diveLog_mergeDialog_title": "Merge with another dive",
   "diveLog_mergeDialog_whatThisDoes": "What this does",
   "diveLog_computerSheet_description": "Select which computer's profile to edit from.",
-  "@diveLog_computerSheet_description": {"description": "Description of the computer profile selection sheet"},
+  "@diveLog_computerSheet_description": {
+    "description": "Description of the computer profile selection sheet"
+  },
   "diveLog_computerSheet_title": "Choose starting profile",
-  "@diveLog_computerSheet_title": {"description": "Title of the sheet choosing which computer profile to edit from"},
+  "@diveLog_computerSheet_title": {
+    "description": "Title of the sheet choosing which computer profile to edit from"
+  },
   "diveLog_cylinderSac_avgDepth": "Avg: {depth}",
   "diveLog_cylinderSac_badge_ai": "AI",
   "diveLog_cylinderSac_badge_basic": "Basic",
@@ -1948,28 +2006,50 @@
   "diveLog_edit_errorLoadingDiveTypes": "Error loading dive types: {error}",
   "diveLog_edit_gettingLocation": "Getting location...",
   "diveLog_edit_group_buddies": "Buddies",
-  "@diveLog_edit_group_buddies": {"description": "Form group: dive buddies"},
+  "@diveLog_edit_group_buddies": {
+    "description": "Form group: dive buddies"
+  },
   "diveLog_edit_group_conditions": "Conditions",
-  "@diveLog_edit_group_conditions": {"description": "Form group: water, environment and weather"},
+  "@diveLog_edit_group_conditions": {
+    "description": "Form group: water, environment and weather"
+  },
   "diveLog_edit_group_experience": "Experience",
-  "@diveLog_edit_group_experience": {"description": "Form group: rating, marine life, notes, tags"},
+  "@diveLog_edit_group_experience": {
+    "description": "Form group: rating, marine life, notes, tags"
+  },
   "diveLog_edit_group_gasGear": "Gas & Gear",
-  "@diveLog_edit_group_gasGear": {"description": "Form group: mode, tanks, equipment, weight"},
+  "@diveLog_edit_group_gasGear": {
+    "description": "Form group: mode, tanks, equipment, weight"
+  },
   "diveLog_edit_group_theDive": "The Dive",
-  "@diveLog_edit_group_theDive": {"description": "Form group: core dive facts"},
+  "@diveLog_edit_group_theDive": {
+    "description": "Form group: core dive facts"
+  },
   "diveLog_edit_group_trip": "Trip",
-  "@diveLog_edit_group_trip": {"description": "Form group: trip and dive center"},
+  "@diveLog_edit_group_trip": {
+    "description": "Form group: trip and dive center"
+  },
   "diveLog_edit_headerNew": "Log New Dive",
   "diveLog_edit_invite_buddies": "Add buddies",
-  "@diveLog_edit_invite_buddies": {"description": "Empty-state invitation for the Buddies group"},
+  "@diveLog_edit_invite_buddies": {
+    "description": "Empty-state invitation for the Buddies group"
+  },
   "diveLog_edit_invite_conditions": "Add conditions - water, visibility, weather",
-  "@diveLog_edit_invite_conditions": {"description": "Empty-state invitation for the Conditions group"},
+  "@diveLog_edit_invite_conditions": {
+    "description": "Empty-state invitation for the Conditions group"
+  },
   "diveLog_edit_invite_experience": "Add rating, sightings, notes or tags",
-  "@diveLog_edit_invite_experience": {"description": "Empty-state invitation for the Experience group"},
+  "@diveLog_edit_invite_experience": {
+    "description": "Empty-state invitation for the Experience group"
+  },
   "diveLog_edit_invite_gasGear": "Add gas & gear - mode, tanks, equipment, weight",
-  "@diveLog_edit_invite_gasGear": {"description": "Empty-state invitation for the Gas & Gear group"},
+  "@diveLog_edit_invite_gasGear": {
+    "description": "Empty-state invitation for the Gas & Gear group"
+  },
   "diveLog_edit_invite_trip": "Add trip or dive center",
-  "@diveLog_edit_invite_trip": {"description": "Empty-state invitation for the Trip group"},
+  "@diveLog_edit_invite_trip": {
+    "description": "Empty-state invitation for the Trip group"
+  },
   "diveLog_edit_label_airTemp": "Air Temp",
   "diveLog_edit_label_altitude": "Altitude",
   "diveLog_edit_label_avgDepth": "Avg Depth",
@@ -2005,21 +2085,37 @@
   "diveLog_edit_notSpecified": "Not specified",
   "diveLog_edit_notesHint": "Add notes about this dive...",
   "diveLog_edit_row_addSite": "Add site",
-  "@diveLog_edit_row_addSite": {"description": "Placeholder when no site selected"},
+  "@diveLog_edit_row_addSite": {
+    "description": "Placeholder when no site selected"
+  },
   "diveLog_edit_row_diveCenter": "Dive center",
-  "@diveLog_edit_row_diveCenter": {"description": "Row label: dive center picker"},
+  "@diveLog_edit_row_diveCenter": {
+    "description": "Row label: dive center picker"
+  },
   "diveLog_edit_row_entry": "Entry",
-  "@diveLog_edit_row_entry": {"description": "Row label: entry date and time"},
+  "@diveLog_edit_row_entry": {
+    "description": "Row label: entry date and time"
+  },
   "diveLog_edit_row_exit": "Exit",
-  "@diveLog_edit_row_exit": {"description": "Row label: exit date and time"},
+  "@diveLog_edit_row_exit": {
+    "description": "Row label: exit date and time"
+  },
   "diveLog_edit_row_notSet": "Not set",
-  "@diveLog_edit_row_notSet": {"description": "Placeholder for unset picker rows"},
+  "@diveLog_edit_row_notSet": {
+    "description": "Placeholder for unset picker rows"
+  },
   "diveLog_edit_row_site": "Site",
-  "@diveLog_edit_row_site": {"description": "Row label: dive site picker"},
+  "@diveLog_edit_row_site": {
+    "description": "Row label: dive site picker"
+  },
   "diveLog_edit_row_surfaceInterval": "Surface interval",
-  "@diveLog_edit_row_surfaceInterval": {"description": "Row label: surface interval since previous dive"},
+  "@diveLog_edit_row_surfaceInterval": {
+    "description": "Row label: surface interval since previous dive"
+  },
   "diveLog_edit_row_trip": "Trip",
-  "@diveLog_edit_row_trip": {"description": "Row label: trip picker"},
+  "@diveLog_edit_row_trip": {
+    "description": "Row label: trip picker"
+  },
   "diveLog_edit_save": "Save",
   "diveLog_edit_saveAsSet": "Save as Set",
   "diveLog_edit_saveAsSetDialog_content": "Save {count} {count, plural, =1{item} other{items}} as a new equipment set.",
@@ -2062,28 +2158,68 @@
   "diveLog_edit_snackbar_unableToCalculateMaxDepth": "Unable to calculate max depth from profile",
   "diveLog_edit_snackbar_unableToCalculateRuntime": "Unable to calculate runtime from profile",
   "diveLog_edit_summary_items": "{count, plural, one{1 item} other{{count} items}}",
-  "@diveLog_edit_summary_items": {"description": "Collapsed summary fragment: equipment count", "placeholders": {"count": {"type": "int"}}},
+  "@diveLog_edit_summary_items": {
+    "description": "Collapsed summary fragment: equipment count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "diveLog_edit_summary_notes": "notes",
-  "@diveLog_edit_summary_notes": {"description": "Collapsed summary fragment indicating notes exist"},
+  "@diveLog_edit_summary_notes": {
+    "description": "Collapsed summary fragment indicating notes exist"
+  },
   "diveLog_edit_summary_species": "{count, plural, one{1 species} other{{count} species}}",
-  "@diveLog_edit_summary_species": {"description": "Collapsed summary fragment: sighting species count", "placeholders": {"count": {"type": "int"}}},
+  "@diveLog_edit_summary_species": {
+    "description": "Collapsed summary fragment: sighting species count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "diveLog_edit_summary_tanks": "{count, plural, one{1 tank} other{{count} tanks}}",
-  "@diveLog_edit_summary_tanks": {"description": "Collapsed summary fragment: tank count", "placeholders": {"count": {"type": "int"}}},
+  "@diveLog_edit_summary_tanks": {
+    "description": "Collapsed summary fragment: tank count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "diveLog_edit_surfaceInterval": "Surface Interval: {interval}",
   "diveLog_edit_surfacePressureDefault": "1013",
   "diveLog_edit_surfacePressureHint": "Standard: 1013 mbar at sea level",
   "diveLog_edit_tankCard_done": "Done",
-  "@diveLog_edit_tankCard_done": {"description": "Collapse the tank editor back to the card"},
+  "@diveLog_edit_tankCard_done": {
+    "description": "Collapse the tank editor back to the card"
+  },
   "diveLog_edit_tankCard_edit": "Edit",
-  "@diveLog_edit_tankCard_edit": {"description": "Expand a tank card into the full editor"},
+  "@diveLog_edit_tankCard_edit": {
+    "description": "Expand a tank card into the full editor"
+  },
   "diveLog_edit_tankCard_mix": "Mix",
-  "@diveLog_edit_tankCard_mix": {"description": "Hero label on tank card: gas mix"},
+  "@diveLog_edit_tankCard_mix": {
+    "description": "Hero label on tank card: gas mix"
+  },
   "diveLog_edit_tankCard_pressure": "Pressure",
-  "@diveLog_edit_tankCard_pressure": {"description": "Hero label on tank card: start to end pressure"},
+  "@diveLog_edit_tankCard_pressure": {
+    "description": "Hero label on tank card: start to end pressure"
+  },
   "diveLog_edit_tankCard_title": "Tank {number}",
-  "@diveLog_edit_tankCard_title": {"description": "Caption on a tank card", "placeholders": {"number": {"type": "int"}}},
+  "@diveLog_edit_tankCard_title": {
+    "description": "Caption on a tank card",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "diveLog_edit_tankCard_volume": "Volume",
-  "@diveLog_edit_tankCard_volume": {"description": "Hero label on tank card: tank volume"},
+  "@diveLog_edit_tankCard_volume": {
+    "description": "Hero label on tank card: tank volume"
+  },
   "diveLog_edit_tooltip_calculateFromProfile": "Calculate from dive profile",
   "diveLog_edit_tooltip_clearDiveCenter": "Clear dive center",
   "diveLog_edit_tooltip_clearSite": "Clear site",
@@ -2113,7 +2249,17 @@
   "diveLog_equipmentSetPicker_errorItems": "Error loading items",
   "diveLog_equipmentSetPicker_errorLoading": "Error loading equipment sets: {error}",
   "diveLog_equipmentSetPicker_itemsSummary": "{count, plural, one{1 item} other{{count} items}}: {names}",
-  "@diveLog_equipmentSetPicker_itemsSummary": {"description": "Equipment set subtitle: item count and names", "placeholders": {"count": {"type": "int"}, "names": {"type": "String"}}},
+  "@diveLog_equipmentSetPicker_itemsSummary": {
+    "description": "Equipment set subtitle: item count and names",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "names": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_equipmentSetPicker_loading": "Loading...",
   "diveLog_equipmentSetPicker_noSets": "No equipment sets yet",
   "diveLog_equipmentSetPicker_title": "Use Equipment Set",
@@ -2240,86 +2386,178 @@
   "diveLog_listPage_menuDiveNumbering": "Dive Numbering",
   "diveLog_listPage_menuMatchSites": "Match Dives to Sites",
   "diveLog_sighting_decreaseCount": "Decrease count",
-  "@diveLog_sighting_decreaseCount": {"description": "Tooltip: decrease the sighting count"},
+  "@diveLog_sighting_decreaseCount": {
+    "description": "Tooltip: decrease the sighting count"
+  },
   "diveLog_sighting_increaseCount": "Increase count",
-  "@diveLog_sighting_increaseCount": {"description": "Tooltip: increase the sighting count"},
+  "@diveLog_sighting_increaseCount": {
+    "description": "Tooltip: increase the sighting count"
+  },
   "diveLog_speciesPicker_errorLoading": "Error loading species: {error}",
-  "@diveLog_speciesPicker_errorLoading": {"description": "Error shown when the species list fails to load", "placeholders": {"error": {"type": "String"}}},
+  "@diveLog_speciesPicker_errorLoading": {
+    "description": "Error shown when the species list fails to load",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "diveSites_edit_depth_heroMax": "Max depth",
-  "@diveSites_edit_depth_heroMax": {"description": "Hero stat label: maximum site depth"},
+  "@diveSites_edit_depth_heroMax": {
+    "description": "Hero stat label: maximum site depth"
+  },
   "diveSites_edit_depth_heroMin": "Min depth",
-  "@diveSites_edit_depth_heroMin": {"description": "Hero stat label: minimum site depth"},
+  "@diveSites_edit_depth_heroMin": {
+    "description": "Hero stat label: minimum site depth"
+  },
   "diveSites_edit_group_accessSafety": "Access & safety",
-  "@diveSites_edit_group_accessSafety": {"description": "Site form group: access, mooring, parking, hazards"},
+  "@diveSites_edit_group_accessSafety": {
+    "description": "Site form group: access, mooring, parking, hazards"
+  },
   "diveSites_edit_group_diveInfo": "Dive info",
-  "@diveSites_edit_group_diveInfo": {"description": "Site form group: depth, difficulty, rating"},
+  "@diveSites_edit_group_diveInfo": {
+    "description": "Site form group: depth, difficulty, rating"
+  },
   "diveSites_edit_group_identity": "Identity",
-  "@diveSites_edit_group_identity": {"description": "Site form group: name, description, country, region"},
+  "@diveSites_edit_group_identity": {
+    "description": "Site form group: name, description, country, region"
+  },
   "diveSites_edit_group_lifeNotes": "Life & notes",
-  "@diveSites_edit_group_lifeNotes": {"description": "Site form group: species, notes, sharing"},
+  "@diveSites_edit_group_lifeNotes": {
+    "description": "Site form group: species, notes, sharing"
+  },
   "diveSites_edit_group_location": "Location",
-  "@diveSites_edit_group_location": {"description": "Site form group: GPS and altitude"},
+  "@diveSites_edit_group_location": {
+    "description": "Site form group: GPS and altitude"
+  },
   "diveSites_edit_invite_accessSafety": "Add access, parking, mooring or hazards",
-  "@diveSites_edit_invite_accessSafety": {"description": "Empty-state invitation for the Access & safety group"},
+  "@diveSites_edit_invite_accessSafety": {
+    "description": "Empty-state invitation for the Access & safety group"
+  },
   "diveSites_edit_invite_diveInfo": "Add depth range, difficulty or rating",
-  "@diveSites_edit_invite_diveInfo": {"description": "Empty-state invitation for the Dive info group"},
+  "@diveSites_edit_invite_diveInfo": {
+    "description": "Empty-state invitation for the Dive info group"
+  },
   "diveSites_edit_invite_lifeNotes": "Add marine life, notes or sharing",
-  "@diveSites_edit_invite_lifeNotes": {"description": "Empty-state invitation for the Life & notes group"},
+  "@diveSites_edit_invite_lifeNotes": {
+    "description": "Empty-state invitation for the Life & notes group"
+  },
   "diveSites_edit_invite_location": "Add GPS position or altitude",
-  "@diveSites_edit_invite_location": {"description": "Empty-state invitation for the Location group"},
+  "@diveSites_edit_invite_location": {
+    "description": "Empty-state invitation for the Location group"
+  },
   "diveSites_edit_summary_shared": "shared",
-  "@diveSites_edit_summary_shared": {"description": "Collapsed summary fragment indicating the site is shared"},
+  "@diveSites_edit_summary_shared": {
+    "description": "Collapsed summary fragment indicating the site is shared"
+  },
   "forms_addSection_prefix": "Add:",
-  "@forms_addSection_prefix": {"description": "Prefix of the trailing row listing unused optional form sections, e.g. '+ Add: Course / Custom fields'"},
+  "@forms_addSection_prefix": {
+    "description": "Prefix of the trailing row listing unused optional form sections, e.g. '+ Add: Course / Custom fields'"
+  },
   "forms_cancel": "Cancel",
-  "@forms_cancel": {"description": "Cancel action on shared edit form scaffold"},
+  "@forms_cancel": {
+    "description": "Cancel action on shared edit form scaffold"
+  },
   "forms_discard_body": "You have unsaved changes. If you leave now they will be lost.",
-  "@forms_discard_body": {"description": "Body of the unsaved-changes dialog"},
+  "@forms_discard_body": {
+    "description": "Body of the unsaved-changes dialog"
+  },
   "forms_discard_discard": "Discard",
-  "@forms_discard_discard": {"description": "Leave the form, losing changes"},
+  "@forms_discard_discard": {
+    "description": "Leave the form, losing changes"
+  },
   "forms_discard_keepEditing": "Keep editing",
-  "@forms_discard_keepEditing": {"description": "Stay on the form"},
+  "@forms_discard_keepEditing": {
+    "description": "Stay on the form"
+  },
   "forms_discard_title": "Discard changes?",
-  "@forms_discard_title": {"description": "Title of the unsaved-changes dialog"},
+  "@forms_discard_title": {
+    "description": "Title of the unsaved-changes dialog"
+  },
   "forms_save": "Save",
-  "@forms_save": {"description": "Save action on shared edit form scaffold"},
+  "@forms_save": {
+    "description": "Save action on shared edit form scaffold"
+  },
   "forms_section_issues": "{count, plural, one{1 issue} other{{count} issues}}",
-  "@forms_section_issues": {"description": "Badge on a collapsed form section that contains validation errors", "placeholders": {"count": {"type": "int"}}},
+  "@forms_section_issues": {
+    "description": "Badge on a collapsed form section that contains validation errors",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "siteMatchReview_title": "Match Sites",
   "siteMatchReview_diveNumber": "Dive #{number}",
   "@siteMatchReview_diveNumber": {
-    "placeholders": { "number": { "type": "Object" } }
+    "placeholders": {
+      "number": {
+        "type": "Object"
+      }
+    }
   },
   "siteMatchReview_empty": "Nothing to match.",
   "siteMatchReview_summary": "{selected} selected · {review} to review · {none} no match",
   "@siteMatchReview_summary": {
     "placeholders": {
-      "selected": { "type": "int" },
-      "review": { "type": "int" },
-      "none": { "type": "int" }
+      "selected": {
+        "type": "int"
+      },
+      "review": {
+        "type": "int"
+      },
+      "none": {
+        "type": "int"
+      }
     }
   },
   "siteMatchReview_confirm": "Confirm {count} matches",
   "@siteMatchReview_confirm": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "siteMatchReview_cancel": "Cancel",
   "siteMatchReview_tapToChoose": "Tap to choose a site",
   "siteMatchReview_awayMeters": "{meters} m away",
   "@siteMatchReview_awayMeters": {
-    "placeholders": { "meters": { "type": "int" } }
+    "placeholders": {
+      "meters": {
+        "type": "int"
+      }
+    }
   },
   "siteMatchReview_depthTo": "to {meters} m",
   "@siteMatchReview_depthTo": {
-    "placeholders": { "meters": { "type": "int" } }
+    "placeholders": {
+      "meters": {
+        "type": "int"
+      }
+    }
   },
   "siteMatchReview_depthRange": "{min}–{max} m",
   "@siteMatchReview_depthRange": {
-    "placeholders": { "min": { "type": "int" }, "max": { "type": "int" } }
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
   },
   "siteMatchReview_appliedSnack": "Linked {dives} dives · added {sites} sites",
   "@siteMatchReview_appliedSnack": {
-    "placeholders": { "dives": { "type": "int" }, "sites": { "type": "int" } }
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      },
+      "sites": {
+        "type": "int"
+      }
+    }
   },
   "siteMatchReview_applyError": "Couldn't apply matches",
   "siteMatchReview_discardTitle": "Discard matches?",
@@ -2332,7 +2570,9 @@
   "importSummary_matchSitesButton": "Match {count} dives to sites",
   "@importSummary_matchSitesButton": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "diveLog_listPage_searchFieldLabel": "Search dives...",
@@ -5547,6 +5787,7 @@
   "nav_diveCenters": "Dive Centers",
   "nav_dives": "Dives",
   "nav_equipment": "Equipment",
+  "nav_gpsLog": "GPS Log",
   "nav_home": "Home",
   "nav_more": "More",
   "nav_planning": "Planning",
@@ -5636,28 +5877,38 @@
   "plannerCanvas_bailout_available": "Available {liters}",
   "@plannerCanvas_bailout_available": {
     "placeholders": {
-      "liters": { "type": "String" }
+      "liters": {
+        "type": "String"
+      }
     }
   },
   "plannerCanvas_bailout_insufficient": "Bailout gas insufficient for the worst case",
   "plannerCanvas_bailout_required": "Required {liters}",
   "@plannerCanvas_bailout_required": {
     "placeholders": {
-      "liters": { "type": "String" }
+      "liters": {
+        "type": "String"
+      }
     }
   },
   "plannerCanvas_bailout_title": "Bailout (open circuit)",
   "plannerCanvas_bailout_tts": "Bailout TTS {minutes}′",
   "@plannerCanvas_bailout_tts": {
     "placeholders": {
-      "minutes": { "type": "String" }
+      "minutes": {
+        "type": "String"
+      }
     }
   },
   "plannerCanvas_bailout_worstCase": "Worst case at {minutes}′ · {depth}",
   "@plannerCanvas_bailout_worstCase": {
     "placeholders": {
-      "minutes": { "type": "String" },
-      "depth": { "type": "String" }
+      "minutes": {
+        "type": "String"
+      },
+      "depth": {
+        "type": "String"
+      }
     }
   },
   "plannerCanvas_ccr_setpointHigh": "Setpoint high (bar)",
@@ -5666,13 +5917,17 @@
   "plannerCanvas_chip_cns": "CNS {value}%",
   "@plannerCanvas_chip_cns": {
     "placeholders": {
-      "value": { "type": "String" }
+      "value": {
+        "type": "String"
+      }
     }
   },
   "plannerCanvas_chip_issues": "{count, plural, =1{1 issue} other{{count} issues}}",
   "@plannerCanvas_chip_issues": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "plannerCanvas_compare_action": "Compare",
@@ -5683,7 +5938,9 @@
   "plannerCanvas_contingency_lostGas": "Lost {gas}",
   "@plannerCanvas_contingency_lostGas": {
     "placeholders": {
-      "gas": { "type": "String" }
+      "gas": {
+        "type": "String"
+      }
     }
   },
   "plannerCanvas_contingency_timeDelta": "Extra minutes",
@@ -5695,7 +5952,9 @@
   "plannerCanvas_follow_chip": "Following {name}",
   "@plannerCanvas_follow_chip": {
     "placeholders": {
-      "name": { "type": "String" }
+      "name": {
+        "type": "String"
+      }
     }
   },
   "plannerCanvas_follow_empty": "No logged dives yet",
@@ -5704,38 +5963,52 @@
   "plannerCanvas_gas_minGas": "min gas {pressure}",
   "@plannerCanvas_gas_minGas": {
     "placeholders": {
-      "pressure": { "type": "String" }
+      "pressure": {
+        "type": "String"
+      }
     }
   },
   "plannerCanvas_gas_turnAt": "turn @ {pressure}",
   "@plannerCanvas_gas_turnAt": {
     "placeholders": {
-      "pressure": { "type": "String" }
+      "pressure": {
+        "type": "String"
+      }
     }
   },
   "plannerCanvas_issue_gasDensityCritical": "Gas density {value} g/L over hard limit",
   "@plannerCanvas_issue_gasDensityCritical": {
     "placeholders": {
-      "value": { "type": "String" }
+      "value": {
+        "type": "String"
+      }
     }
   },
   "plannerCanvas_issue_gasDensityHigh": "Gas density {value} g/L over recommended limit",
   "@plannerCanvas_issue_gasDensityHigh": {
     "placeholders": {
-      "value": { "type": "String" }
+      "value": {
+        "type": "String"
+      }
     }
   },
   "plannerCanvas_issue_hypoxic": "Hypoxic gas at {depth} (ppO₂ {value} bar)",
   "@plannerCanvas_issue_hypoxic": {
     "placeholders": {
-      "depth": { "type": "String" },
-      "value": { "type": "String" }
+      "depth": {
+        "type": "String"
+      },
+      "value": {
+        "type": "String"
+      }
     }
   },
   "plannerCanvas_issue_minGas": "Tank ends below the rock-bottom minimum of {pressure}",
   "@plannerCanvas_issue_minGas": {
     "placeholders": {
-      "pressure": { "type": "String" }
+      "pressure": {
+        "type": "String"
+      }
     }
   },
   "plannerCanvas_issue_noBailout": "CCR decompression plan carries no bailout gas",
@@ -5747,13 +6020,17 @@
   "plannerCanvas_sac_useLogged": "Use logged average ({sac})",
   "@plannerCanvas_sac_useLogged": {
     "placeholders": {
-      "sac": { "type": "String" }
+      "sac": {
+        "type": "String"
+      }
     }
   },
   "plannerCanvas_saved_deleteConfirmBody": "Permanently delete \"{name}\"?",
   "@plannerCanvas_saved_deleteConfirmBody": {
     "placeholders": {
-      "name": { "type": "String" }
+      "name": {
+        "type": "String"
+      }
     }
   },
   "plannerCanvas_saved_deleteConfirmTitle": "Delete plan?",
@@ -5763,21 +6040,29 @@
   "plannerCanvas_scrub_bailout": "BO {minutes}′",
   "@plannerCanvas_scrub_bailout": {
     "placeholders": {
-      "minutes": { "type": "String" }
+      "minutes": {
+        "type": "String"
+      }
     }
   },
   "plannerCanvas_scrub_readout": "RT {minutes}′ · {depth}",
   "@plannerCanvas_scrub_readout": {
     "placeholders": {
-      "minutes": { "type": "String" },
-      "depth": { "type": "String" }
+      "minutes": {
+        "type": "String"
+      },
+      "depth": {
+        "type": "String"
+      }
     }
   },
   "plannerCanvas_share_import": "Import",
   "plannerCanvas_share_importFailed": "Couldn't import plan: {reason}",
   "@plannerCanvas_share_importFailed": {
     "placeholders": {
-      "reason": { "type": "String" }
+      "reason": {
+        "type": "String"
+      }
     }
   },
   "plannerCanvas_share_menu": "Share plan file",
@@ -6010,23 +6295,35 @@
   "@settings_navCustomization_moveUpLabel": {
     "description": "Accessibility label for move-up button on a reorderable nav item.",
     "placeholders": {
-      "destination": {"type": "String", "example": "Equipment"}
+      "destination": {
+        "type": "String",
+        "example": "Equipment"
+      }
     }
   },
   "settings_navCustomization_moveDownLabel": "Move {destination} down",
   "@settings_navCustomization_moveDownLabel": {
     "description": "Accessibility label for move-down button on a reorderable nav item.",
     "placeholders": {
-      "destination": {"type": "String", "example": "Equipment"}
+      "destination": {
+        "type": "String",
+        "example": "Equipment"
+      }
     }
   },
   "settings_navCustomization_subtitlePreview": "{first} · {second} · {third}",
   "@settings_navCustomization_subtitlePreview": {
     "description": "Dot-separated preview of the 3 primary destinations shown on the Appearance page entry tile.",
     "placeholders": {
-      "first": {"type": "String"},
-      "second": {"type": "String"},
-      "third": {"type": "String"}
+      "first": {
+        "type": "String"
+      },
+      "second": {
+        "type": "String"
+      },
+      "third": {
+        "type": "String"
+      }
     }
   },
   "settings_navCustomization_saveError": "Could not save navigation layout. Please try again.",
@@ -8191,7 +8488,13 @@
   "trips_gallery_tripNotFound": "Trip not found",
   "trips_list_button_retry": "Retry",
   "trips_list_countdown": "{days, plural, =0{Starting today} =1{In 1 day} other{In {days} days}}",
-  "@trips_list_countdown": { "placeholders": { "days": { "type": "int" } } },
+  "@trips_list_countdown": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "trips_list_empty_button": "Add Your First Trip",
   "trips_list_empty_filtered_subtitle": "Try adjusting or clearing your filters",
   "trips_list_empty_filtered_title": "No trips match your filters",
@@ -10221,6 +10524,67 @@
     }
   },
   "gasCalculators_rockBottom_yourSac": "Your SAC",
+  "gpsLogger_androidNotificationText": "Recording your surface track",
+  "gpsLogger_androidNotificationTitle": "Submersion GPS Logger",
+  "gpsLogger_deleteTrackMessage": "This removes the recorded GPS track. Positions already stamped on dives are kept.",
+  "gpsLogger_deleteTrackTitle": "Delete track?",
+  "gpsLogger_interruptedNotice": "A previous recording was interrupted. The track was saved.",
+  "gpsLogger_lastFix": "Last fix {age} ago ({accuracy})",
+  "@gpsLogger_lastFix": {
+    "placeholders": {
+      "age": {
+        "type": "String"
+      },
+      "accuracy": {
+        "type": "String"
+      }
+    }
+  },
+  "gpsLogger_locationOff": "Location services are turned off.",
+  "gpsLogger_matchButton": "Match dives to GPS logs",
+  "gpsLogger_matchResult": "{count} dives positioned",
+  "@gpsLogger_matchResult": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "gpsLogger_matchResultNone": "No dives matched a recorded track",
+  "gpsLogger_noFixYet": "Waiting for GPS fix",
+  "gpsLogger_noTracks": "No GPS tracks recorded yet",
+  "gpsLogger_permissionDenied": "Location permission is required to record a GPS track. Enable it in system settings.",
+  "gpsLogger_recordingStatus": "Recording - {count, plural, one{{count} point} other{{count} points}}",
+  "@gpsLogger_recordingStatus": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "gpsLogger_reviewSites": "Review site matches",
+  "gpsLogger_startButton": "Start logging",
+  "gpsLogger_stopButton": "Stop logging",
+  "gpsLogger_stripStatus": "Recording GPS track · {count, plural, one{{count} point} other{{count} points}}",
+  "@gpsLogger_stripStatus": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "gpsLogger_trackSubtitle": "{count, plural, one{{count} point} other{{count} points}}, {duration}",
+  "@gpsLogger_trackSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "gpsLogger_tracksHeader": "Recorded tracks",
   "maps_heatMap_hide": "Hide Heat Map",
   "maps_heatMap_overlayOff": "Heat map overlay is off",
   "maps_heatMap_overlayOn": "Heat map overlay is on",
@@ -10537,6 +10901,9 @@
   "tools_gas_description": "Four specialized gas calculators:\n• MOD - Maximum operating depth for a gas mix\n• Best Mix - Ideal O₂% for a target depth\n• Consumption - Gas usage estimation\n• Rock Bottom - Emergency reserve calculation",
   "tools_gas_subtitle": "MOD, Best Mix, Consumption, Rock Bottom",
   "tools_gas_title": "Gas Calculators",
+  "tools_gpsLogger_description": "Record your position during a dive day and match imported dives to GPS locations automatically.",
+  "tools_gpsLogger_subtitle": "Record a surface track",
+  "tools_gpsLogger_title": "GPS Logger",
   "tools_title": "Tools",
   "tools_weight_aluminumImperial": "More buoyant when empty (+4 lbs)",
   "tools_weight_aluminumMetric": "More buoyant when empty (+2 kg)",
@@ -10976,9 +11343,18 @@
   "@divers_delete_reassigned_snackbar": {
     "description": "Snackbar shown after deleting a diver when shared trips/sites were reassigned to a surviving diver instead of deleted.",
     "placeholders": {
-      "trips": {"type": "int", "example": "2"},
-      "sites": {"type": "int", "example": "1"},
-      "name": {"type": "String", "example": "Alice"}
+      "trips": {
+        "type": "int",
+        "example": "2"
+      },
+      "sites": {
+        "type": "int",
+        "example": "1"
+      },
+      "name": {
+        "type": "String",
+        "example": "Alice"
+      }
     }
   },
   "settings_cloudSync_duplicateDivers_title": "Duplicate diver profiles",
@@ -10993,8 +11369,14 @@
   "@settings_cloudSync_duplicateDivers_groupLabel": {
     "description": "Label for a single duplicate group, e.g. 'Eric (2 profiles)'.",
     "placeholders": {
-      "name": {"type": "String", "example": "Eric"},
-      "count": {"type": "int", "example": "2"}
+      "name": {
+        "type": "String",
+        "example": "Eric"
+      },
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
     }
   },
   "settings_cloudSync_duplicateDivers_mergeButton": "Merge",
@@ -11009,8 +11391,14 @@
   "@settings_cloudSync_duplicateDivers_confirmBody": {
     "description": "Body text of the merge confirmation dialog.",
     "placeholders": {
-      "count": {"type": "int", "example": "1"},
-      "name": {"type": "String", "example": "Eric"}
+      "count": {
+        "type": "int",
+        "example": "1"
+      },
+      "name": {
+        "type": "String",
+        "example": "Eric"
+      }
     }
   },
   "settings_cloudSync_duplicateDivers_confirmCancel": "Cancel",
@@ -11024,12 +11412,22 @@
   "settings_cloudSync_duplicateDivers_successSnack": "Merged into {name}",
   "@settings_cloudSync_duplicateDivers_successSnack": {
     "description": "Snackbar shown after a successful diver merge.",
-    "placeholders": {"name": {"type": "String", "example": "Eric"}}
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Eric"
+      }
+    }
   },
   "settings_cloudSync_duplicateDivers_failureSnack": "Merge failed: {error}",
   "@settings_cloudSync_duplicateDivers_failureSnack": {
     "description": "Snackbar shown when a diver merge throws an exception.",
-    "placeholders": {"error": {"type": "String", "example": "Database error"}}
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Database error"
+      }
+    }
   },
   "settings_cloudSync_duplicateDivers_undo": "Undo",
   "@settings_cloudSync_duplicateDivers_undo": {
@@ -11045,9 +11443,24 @@
   "divers_edit_clearDivingSinceTooltip": "Clear diving since",
   "divers_edit_priorInvalidNumber": "Enter a valid number",
   "statistics_priorBreakdown": "{logged} logged + {prior} prior",
-  "@statistics_priorBreakdown": {"placeholders": {"logged": {"type": "String"}, "prior": {"type": "String"}}},
+  "@statistics_priorBreakdown": {
+    "placeholders": {
+      "logged": {
+        "type": "String"
+      },
+      "prior": {
+        "type": "String"
+      }
+    }
+  },
   "statistics_divingSince": "Diving since {year}",
-  "@statistics_divingSince": {"placeholders": {"year": {"type": "int"}}},
+  "@statistics_divingSince": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
   "db_location_choose_volume": "Choose storage location",
   "db_location_internal": "Internal storage",
   "db_location_sd_card": "SD card",

@@ -10094,6 +10094,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nav_equipment => 'المعدات';
 
   @override
+  String get nav_gpsLog => 'سجل GPS';
+
+  @override
   String get nav_home => 'الرئيسية';
 
   @override
@@ -16673,6 +16676,103 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_rockBottom_yourSac => 'SAC الخاص بك';
 
   @override
+  String get gpsLogger_androidNotificationText => 'يجري تسجيل مسار السطح';
+
+  @override
+  String get gpsLogger_androidNotificationTitle => 'مسجّل GPS في Submersion';
+
+  @override
+  String get gpsLogger_deleteTrackMessage =>
+      'سيؤدي هذا إلى إزالة مسار GPS المسجّل. تبقى المواقع المسندة إلى الغطسات محفوظة.';
+
+  @override
+  String get gpsLogger_deleteTrackTitle => 'حذف المسار؟';
+
+  @override
+  String get gpsLogger_interruptedNotice =>
+      'توقف تسجيل سابق قبل اكتماله. تم حفظ المسار.';
+
+  @override
+  String gpsLogger_lastFix(String age, String accuracy) {
+    return 'آخر إشارة قبل $age ($accuracy)';
+  }
+
+  @override
+  String get gpsLogger_locationOff => 'خدمات الموقع متوقفة.';
+
+  @override
+  String get gpsLogger_matchButton => 'مطابقة الغطسات مع سجلات GPS';
+
+  @override
+  String gpsLogger_matchResult(int count) {
+    return 'تم تحديد موقع $count غطسة';
+  }
+
+  @override
+  String get gpsLogger_matchResultNone => 'لا توجد غطسات تطابق مسارًا مسجّلًا';
+
+  @override
+  String get gpsLogger_noFixYet => 'في انتظار إشارة GPS';
+
+  @override
+  String get gpsLogger_noTracks => 'لا توجد مسارات GPS مسجّلة بعد';
+
+  @override
+  String get gpsLogger_permissionDenied =>
+      'يلزم إذن الموقع لتسجيل مسار GPS. فعّله من إعدادات النظام.';
+
+  @override
+  String gpsLogger_recordingStatus(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count نقطة',
+      few: '$count نقاط',
+      two: 'نقطتان',
+      one: 'نقطة واحدة',
+    );
+    return 'جارٍ التسجيل - $_temp0';
+  }
+
+  @override
+  String get gpsLogger_reviewSites => 'مراجعة مطابقات مواقع الغطس';
+
+  @override
+  String get gpsLogger_startButton => 'بدء التسجيل';
+
+  @override
+  String get gpsLogger_stopButton => 'إيقاف التسجيل';
+
+  @override
+  String gpsLogger_stripStatus(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count نقطة',
+      few: '$count نقاط',
+      two: 'نقطتان',
+      one: 'نقطة واحدة',
+    );
+    return 'جارٍ تسجيل مسار GPS · $_temp0';
+  }
+
+  @override
+  String gpsLogger_trackSubtitle(num count, String duration) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count نقطة',
+      few: '$count نقاط',
+      two: 'نقطتان',
+      one: 'نقطة واحدة',
+    );
+    return '$_temp0، $duration';
+  }
+
+  @override
+  String get gpsLogger_tracksHeader => 'المسارات المسجّلة';
+
+  @override
   String get maps_heatMap_hide => 'إخفاء خريطة الحرارة';
 
   @override
@@ -17036,6 +17136,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get tools_gas_title => 'حاسبات الغاز';
+
+  @override
+  String get tools_gpsLogger_description =>
+      'سجّل موقعك خلال يوم الغطس وتتم مطابقة الغطسات المستوردة مع مواقع GPS تلقائيًا.';
+
+  @override
+  String get tools_gpsLogger_subtitle => 'تسجيل مسار السطح';
+
+  @override
+  String get tools_gpsLogger_title => 'مسجّل GPS';
 
   @override
   String get tools_title => 'الأدوات';
