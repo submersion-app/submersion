@@ -5787,6 +5787,7 @@
   "nav_diveCenters": "Dive Centers",
   "nav_dives": "Dives",
   "nav_equipment": "Equipment",
+  "nav_gpsLog": "GPS Log",
   "nav_home": "Home",
   "nav_more": "More",
   "nav_planning": "Planning",
@@ -10564,6 +10565,14 @@
   "gpsLogger_reviewSites": "Review site matches",
   "gpsLogger_startButton": "Start logging",
   "gpsLogger_stopButton": "Stop logging",
+  "gpsLogger_stripStatus": "Recording GPS track · {count, plural, one{{count} point} other{{count} points}}",
+  "@gpsLogger_stripStatus": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "gpsLogger_trackSubtitle": "{count, plural, one{{count} point} other{{count} points}}, {duration}",
   "@gpsLogger_trackSubtitle": {
     "placeholders": {

@@ -10026,6 +10026,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get nav_equipment => 'ציוד';
 
   @override
+  String get nav_gpsLog => 'יומן GPS';
+
+  @override
   String get nav_home => 'בית';
 
   @override
@@ -16616,6 +16619,18 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get gpsLogger_stopButton => 'עצור הקלטה';
+
+  @override
+  String gpsLogger_stripStatus(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count נקודות',
+      two: 'שתי נקודות',
+      one: 'נקודה אחת',
+    );
+    return 'מקליט מסלול GPS · $_temp0';
+  }
 
   @override
   String gpsLogger_trackSubtitle(num count, String duration) {

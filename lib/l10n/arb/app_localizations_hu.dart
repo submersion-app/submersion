@@ -10264,6 +10264,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get nav_equipment => 'Felszereles';
 
   @override
+  String get nav_gpsLog => 'GPS-napló';
+
+  @override
   String get nav_home => 'Fooldal';
 
   @override
@@ -17013,6 +17016,17 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get gpsLogger_stopButton => 'Rögzítés leállítása';
+
+  @override
+  String gpsLogger_stripStatus(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pont',
+      one: '$count pont',
+    );
+    return 'GPS-útvonal rögzítése · $_temp0';
+  }
 
   @override
   String gpsLogger_trackSubtitle(num count, String duration) {

@@ -17534,6 +17534,12 @@ abstract class AppLocalizations {
   /// **'Equipment'**
   String get nav_equipment;
 
+  /// No description provided for @nav_gpsLog.
+  ///
+  /// In en, this message translates to:
+  /// **'GPS Log'**
+  String get nav_gpsLog;
+
   /// Navigation label for home/dashboard
   ///
   /// In en, this message translates to:
@@ -28640,6 +28646,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Stop logging'**
   String get gpsLogger_stopButton;
+
+  /// No description provided for @gpsLogger_stripStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording GPS track · {count, plural, one{{count} point} other{{count} points}}'**
+  String gpsLogger_stripStatus(num count);
 
   /// No description provided for @gpsLogger_trackSubtitle.
   ///

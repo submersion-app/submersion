@@ -10296,6 +10296,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get nav_equipment => 'Equipamentos';
 
   @override
+  String get nav_gpsLog => 'Registro GPS';
+
+  @override
   String get nav_home => 'Inicio';
 
   @override
@@ -17064,6 +17067,17 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get gpsLogger_stopButton => 'Parar registro';
+
+  @override
+  String gpsLogger_stripStatus(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pontos',
+      one: '$count ponto',
+    );
+    return 'Gravando trilha GPS · $_temp0';
+  }
 
   @override
   String gpsLogger_trackSubtitle(num count, String duration) {

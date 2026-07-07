@@ -10094,6 +10094,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nav_equipment => 'المعدات';
 
   @override
+  String get nav_gpsLog => 'سجل GPS';
+
+  @override
   String get nav_home => 'الرئيسية';
 
   @override
@@ -16739,6 +16742,19 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get gpsLogger_stopButton => 'إيقاف التسجيل';
+
+  @override
+  String gpsLogger_stripStatus(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count نقطة',
+      few: '$count نقاط',
+      two: 'نقطتان',
+      one: 'نقطة واحدة',
+    );
+    return 'جارٍ تسجيل مسار GPS · $_temp0';
+  }
 
   @override
   String gpsLogger_trackSubtitle(num count, String duration) {

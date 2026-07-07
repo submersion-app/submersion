@@ -9842,6 +9842,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get nav_equipment => '装备';
 
   @override
+  String get nav_gpsLog => 'GPS 记录';
+
+  @override
   String get nav_home => '首页';
 
   @override
@@ -16227,6 +16230,16 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gpsLogger_stopButton => '停止记录';
+
+  @override
+  String gpsLogger_stripStatus(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个点',
+    );
+    return '正在记录 GPS 轨迹 · $_temp0';
+  }
 
   @override
   String gpsLogger_trackSubtitle(num count, String duration) {
