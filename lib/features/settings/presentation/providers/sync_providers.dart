@@ -931,6 +931,15 @@ class SyncNotifier extends StateNotifier<SyncState> {
     await refreshState();
   }
 
+  /// Remove THIS device's sync files from the active backend (issue #509,
+  /// cloud clear 3a). Safe: other devices keep syncing; frees this device's
+  /// changeset log, base parts, and manifest.
+  Future<void> removeThisDeviceCloudFiles() async {
+    final deviceId = await _syncRepository.getDeviceId();
+    await _syncService.deleteDeviceSyncFile(deviceId);
+    await refreshState();
+  }
+
   @override
   void dispose() {
     _autoSyncTimer?.cancel();
