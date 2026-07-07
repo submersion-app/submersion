@@ -255,6 +255,53 @@ void main() {
       expect(dive.profile.any((p) => p.ceiling == 6.0), isTrue);
       expect(dive.profile.any((p) => p.tts == 480), isTrue);
     });
+
+    test('maps the dive name from the payload (FIT filename seed)', () async {
+      final data = UddfImportResult(
+        dives: [
+          {
+            'name': 'Dos Ojos Cenote Dive (Barbie Line)',
+            'dateTime': DateTime.utc(2025, 10, 13, 11, 24, 0),
+            'maxDepth': 29.5,
+            'duration': const Duration(seconds: 3263),
+          },
+        ],
+      );
+
+      await importer.import(
+        data: data,
+        selections: const UddfImportSelections(dives: {0}),
+        repositories: repos,
+        diverId: diverId,
+      );
+
+      final dive =
+          verify(mockDiveRepo.createDive(captureAny)).captured.single as Dive;
+      expect(dive.name, 'Dos Ojos Cenote Dive (Barbie Line)');
+    });
+
+    test('leaves the dive unnamed when the payload has no name', () async {
+      final data = UddfImportResult(
+        dives: [
+          {
+            'dateTime': DateTime.utc(2025, 10, 13, 11, 24, 0),
+            'maxDepth': 29.5,
+            'duration': const Duration(seconds: 3263),
+          },
+        ],
+      );
+
+      await importer.import(
+        data: data,
+        selections: const UddfImportSelections(dives: {0}),
+        repositories: repos,
+        diverId: diverId,
+      );
+
+      final dive =
+          verify(mockDiveRepo.createDive(captureAny)).captured.single as Dive;
+      expect(dive.name, isNull);
+    });
   });
 
   group('Import equipment', () {
