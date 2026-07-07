@@ -776,6 +776,41 @@ void main() {
         },
       );
 
+      test(
+        'does not load metadata for unrelated slack-window assets',
+        () async {
+          final dive = Dive(
+            id: 'dive-1',
+            dateTime: DateTime.utc(2024, 1, 15, 10, 0),
+            entryTime: DateTime.utc(2024, 1, 15, 10, 0),
+            exitTime: DateTime.utc(2024, 1, 15, 11, 0),
+            entryLocation: const GeoPoint(18, -60),
+          );
+          final picker = _StubPhotoPicker(
+            assets: [
+              _testAsset('unrelated', createdAt: DateTime(2024, 1, 14, 3, 30)),
+              _testAsset('candidate', createdAt: DateTime(2024, 1, 15, 7, 30)),
+            ],
+          );
+          final metadataRequests = <String>[];
+
+          final result = await TripMediaScanner.scanGalleryForTrip(
+            dives: [dive],
+            tripStartDate: DateTime.utc(2024, 1, 15),
+            tripEndDate: DateTime.utc(2024, 1, 15),
+            existingAssetIds: const {},
+            photoPickerService: picker,
+            assetMetadataResolver: (asset) async {
+              metadataRequests.add(asset.id);
+              return null;
+            },
+          );
+
+          expect(result, isNotNull);
+          expect(metadataRequests, ['candidate']);
+        },
+      );
+
       test('handles permission limited (still scans)', () async {
         final picker = _StubPhotoPicker(
           permission: PhotoPermissionStatus.limited,

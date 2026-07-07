@@ -48,7 +48,7 @@ class PhotoMetadataHandler: NSObject {
 
         guard asset.mediaType == .image else {
             result([
-                "durationSeconds": Int(asset.duration),
+                "durationSeconds": Int(asset.duration.rounded()),
                 "mimeType": "video/quicktime"
             ])
             return

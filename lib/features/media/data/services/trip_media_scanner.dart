@@ -263,13 +263,11 @@ class TripMediaScanner {
     final fallbackCandidates = newAssets
         .where((asset) => !primaryMatchedAssetIds.contains(asset.id))
         .where(
-          (asset) =>
-              !primaryExtractedById.containsKey(asset.id) ||
-              _couldMatchWithTimezoneShift(
-                asset.createDateTime,
-                bounds,
-                timezoneOffsets,
-              ),
+          (asset) => _couldMatchWithTimezoneShift(
+            asset.createDateTime,
+            bounds,
+            timezoneOffsets,
+          ),
         )
         .toList();
     final fallbackExtractedById = await _loadExifFallbacks(
