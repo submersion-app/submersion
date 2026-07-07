@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:desktop_drop/desktop_drop.dart';
@@ -5,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/global_drop_target.dart';
 
@@ -57,12 +59,19 @@ Future<void> _triggerDrop(WidgetTester tester, DropDoneDetails details) async {
   }
 }
 
-/// Create a [DropItemFile] with pre-loaded [bytes] that avoids real file I/O.
+/// Temp directory backing the dropped test files, recreated per test.
+late Directory _tempDir;
+
+/// Write [bytes] to a real file named [name] under [_tempDir] and return a
+/// [DropItemFile] pointing at that path.
 ///
-/// On dart:io platforms [DropItemFile.fromData] stores the bytes in memory so
-/// [readAsBytes] returns them directly (unlike [DropItemFile()] which ignores bytes).
-DropItemFile _dropItemFromBytes(Uint8List bytes, String name) =>
-    DropItemFile.fromData(bytes, path: name);
+/// The widget reads dropped files via `File(path).readAsBytes()` (matching a
+/// real desktop drop, where every dropped item is a file on disk), so the test
+/// double must be a real file rather than in-memory data.
+DropItemFile _dropItemFromBytes(Uint8List bytes, String name) {
+  final file = File(p.join(_tempDir.path, name))..writeAsBytesSync(bytes);
+  return DropItemFile(file.path);
+}
 
 /// UDDF XML content recognised by the format detector.
 final _uddfBytes = Uint8List.fromList(
@@ -101,6 +110,16 @@ final _fitBytes = () {
 
 void main() {
   group('GlobalDropTarget', () {
+    setUp(() {
+      _tempDir = Directory.systemTemp.createTempSync('global_drop_target_test');
+    });
+
+    tearDown(() {
+      if (_tempDir.existsSync()) {
+        _tempDir.deleteSync(recursive: true);
+      }
+    });
+
     testWidgets('renders child content on desktop', variant: _macOS, (
       tester,
     ) async {
