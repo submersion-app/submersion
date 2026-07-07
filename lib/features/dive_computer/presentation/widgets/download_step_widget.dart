@@ -19,9 +19,11 @@ class DownloadStepWidget extends ConsumerStatefulWidget {
 
   /// Invoked when the user chooses to import the dives that were delivered
   /// before an interrupted (errored or cancelled) download. Null disables the
-  /// action. Because dives arrive oldest-first, the retained set is a
-  /// contiguous prefix of the oldest dives, so importing it and advancing the
-  /// fingerprint yields a correct resume point for the next download.
+  /// action. When the native driver delivers dives oldest-first (as the
+  /// Shearwater driver does), the retained set is a contiguous prefix of the
+  /// oldest dives, so importing it and advancing the fingerprint yields a
+  /// correct resume point for the next download. This widget does not itself
+  /// enforce that ordering — it relies on the driver's delivery order.
   final VoidCallback? onImportPartial;
 
   /// When true, `newDivesOnly` is set to false after the notifier reset,
@@ -239,10 +241,12 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
   /// Actions shown after an interrupted (errored or cancelled) download.
   ///
   /// When the download delivered some dives before stopping, offers to import
-  /// that partial set. Delivery is oldest-first, so the retained dives are a
-  /// contiguous prefix of the oldest dives; importing them advances the
-  /// fingerprint to a correct high-water mark and the next download resumes
-  /// with the newer dives. Retry is always available.
+  /// that partial set. For drivers that deliver dives oldest-first (as
+  /// Shearwater does), the retained dives are a contiguous prefix of the
+  /// oldest dives; importing them advances the fingerprint to a correct
+  /// high-water mark and the next download resumes with the newer dives.
+  /// Ordering is the driver's responsibility, not this widget's. Retry is
+  /// always available.
   List<Widget> _buildInterruptedActions(
     BuildContext context,
     DownloadState state,

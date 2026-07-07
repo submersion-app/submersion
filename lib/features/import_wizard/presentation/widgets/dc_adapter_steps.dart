@@ -382,9 +382,10 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
       },
       onImportPartial: () {
         // The user chose to keep the dives delivered before an interrupted
-        // download. Delivery is oldest-first, so this is a contiguous prefix
-        // of the oldest dives; capturing it advances the fingerprint to a
-        // correct resume point for the next download.
+        // download. For drivers that deliver oldest-first (as Shearwater
+        // does), this is a contiguous prefix of the oldest dives, so capturing
+        // it advances the fingerprint to a correct resume point for the next
+        // download. Ordering depends on the native driver, not this code.
         _captureAndAdvance(ref.read(downloadNotifierProvider));
       },
     );
