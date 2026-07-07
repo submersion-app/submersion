@@ -23,6 +23,7 @@ import 'package:submersion/features/import_wizard/domain/models/duplicate_action
 import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/import_wizard/domain/models/entity_match_result.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_file_outcome.dart';
 // Import wizard bundle types: hide ImportEntityType to avoid name clash with
 // universal_import's same-named enum. Access it via the ImportSourceAdapter
 // interface which already uses the wizard's ImportEntityType.
@@ -41,6 +42,7 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:submersion/features/universal_import/data/models/import_enums.dart'
     as ui;
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
+import 'package:submersion/features/universal_import/data/models/picked_import_file.dart';
 import 'package:submersion/features/universal_import/data/services/import_duplicate_checker.dart';
 import 'package:submersion/features/universal_import/presentation/providers/import_consolidation_service.dart'
     show performConsolidations;
@@ -523,11 +525,48 @@ class UniversalAdapter implements ImportSourceAdapter {
     // were cleaned up; report them as skipped (as the download adapter does).
     final cleanedUpFailures = removedDiveIds.length - consolidated;
 
+    // Per-file outcomes for the bulk summary. Imported dive counts are
+    // attributed through each payload dive's `_sourceFile` stamp.
+    final pickedFiles = notifierState.files;
+    var fileOutcomes = const <ImportFileOutcome>[];
+    if (pickedFiles.length > 1) {
+      final dives = payload.entitiesOf(ui.ImportEntityType.dives);
+      final importedByFile = <String, int>{};
+      result.diveIdByIndex.forEach((index, diveId) {
+        if (removedDiveIds.contains(diveId)) return;
+        if (index < 0 || index >= dives.length) return;
+        final source = dives[index]['_sourceFile'] as String?;
+        if (source != null) {
+          importedByFile[source] = (importedByFile[source] ?? 0) + 1;
+        }
+      });
+
+      fileOutcomes = [
+        for (final f in pickedFiles)
+          ImportFileOutcome(
+            fileName: f.name,
+            formatName: f.detection.format.displayName,
+            status: switch (f.status) {
+              ImportFileStatus.parsed ||
+              ImportFileStatus.pending => ImportFileOutcomeStatus.imported,
+              ImportFileStatus.failed => ImportFileOutcomeStatus.parseFailed,
+              ImportFileStatus.excludedCsv =>
+                ImportFileOutcomeStatus.needsIndividualImport,
+              ImportFileStatus.unsupported =>
+                ImportFileOutcomeStatus.unsupported,
+            },
+            importedDives: importedByFile[f.name] ?? 0,
+            error: f.error,
+          ),
+      ];
+    }
+
     return UnifiedImportResult(
       importedCounts: counts,
       consolidatedCount: consolidated,
       skippedCount: skipped + cleanedUpFailures,
       importedDiveIds: netImportedDiveIds,
+      fileOutcomes: fileOutcomes,
     );
   }
 
@@ -577,6 +616,10 @@ class UniversalAdapter implements ImportSourceAdapter {
     if (effectiveDuration != null) {
       parts.add('${effectiveDuration.inMinutes} min');
     }
+    // Only merged batch payloads carry `_sourceFile`; single-file review
+    // subtitles are unchanged.
+    final sourceFile = data['_sourceFile'] as String?;
+    if (sourceFile != null && sourceFile.isNotEmpty) parts.add(sourceFile);
     final subtitle = parts.isEmpty ? '' : parts.join(' \u00b7 ');
 
     final diveData = IncomingDiveData.fromImportMap(data);

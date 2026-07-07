@@ -1,4 +1,5 @@
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_file_outcome.dart';
 
 /// The outcome of a completed unified import wizard run.
 ///
@@ -26,6 +27,9 @@ class UnifiedImportResult {
   /// Non-null when the import failed with an error.
   final String? errorMessage;
 
+  /// Per-file outcomes for bulk imports; empty for single-file/DC imports.
+  final List<ImportFileOutcome> fileOutcomes;
+
   const UnifiedImportResult({
     required this.importedCounts,
     required this.consolidatedCount,
@@ -33,5 +37,6 @@ class UnifiedImportResult {
     required this.skippedCount,
     this.importedDiveIds = const [],
     this.errorMessage,
+    this.fileOutcomes = const [],
   });
 }

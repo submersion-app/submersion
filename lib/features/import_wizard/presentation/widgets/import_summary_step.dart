@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/features/dive_sites/presentation/providers/site_match_review_notifier.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_file_outcome.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -51,6 +52,7 @@ class ImportSummaryStep extends ConsumerWidget {
       updatedCount: result.updatedCount,
       skippedCount: result.skippedCount,
       importedDiveIds: result.importedDiveIds,
+      fileOutcomes: result.fileOutcomes,
       onDone: onDone,
       onViewDives: onViewDives,
     );
@@ -67,6 +69,7 @@ class _SuccessView extends StatelessWidget {
   final int updatedCount;
   final int skippedCount;
   final List<String> importedDiveIds;
+  final List<ImportFileOutcome> fileOutcomes;
   final VoidCallback onDone;
   final VoidCallback onViewDives;
 
@@ -76,6 +79,7 @@ class _SuccessView extends StatelessWidget {
     this.updatedCount = 0,
     required this.skippedCount,
     this.importedDiveIds = const [],
+    this.fileOutcomes = const [],
     required this.onDone,
     required this.onViewDives,
   });
@@ -171,6 +175,16 @@ class _SuccessView extends StatelessWidget {
                 count: skippedCount,
                 key: const Key('import_summary_skipped_row'),
               ),
+            if (fileOutcomes.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Text(
+                l10n.universalImport_summary_filesTitle,
+                style: theme.textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              for (final outcome in fileOutcomes)
+                _FileOutcomeRow(outcome: outcome),
+            ],
             const SizedBox(height: 32),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -308,6 +322,65 @@ class _ErrorView extends StatelessWidget {
             OutlinedButton(onPressed: onDone, child: const Text('Done')),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Per-file outcome row (bulk imports)
+// ---------------------------------------------------------------------------
+
+class _FileOutcomeRow extends StatelessWidget {
+  final ImportFileOutcome outcome;
+
+  const _FileOutcomeRow({required this.outcome});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = context.l10n;
+
+    final icon = switch (outcome.status) {
+      ImportFileOutcomeStatus.imported => Icons.check_circle_outline,
+      ImportFileOutcomeStatus.parseFailed => Icons.error_outline,
+      ImportFileOutcomeStatus.needsIndividualImport => Icons.block,
+      ImportFileOutcomeStatus.unsupported => Icons.help_outline,
+    };
+    final label = switch (outcome.status) {
+      ImportFileOutcomeStatus.imported =>
+        l10n.universalImport_summary_fileImported(outcome.importedDives),
+      ImportFileOutcomeStatus.parseFailed =>
+        l10n.universalImport_summary_fileParseFailed,
+      ImportFileOutcomeStatus.needsIndividualImport =>
+        l10n.universalImport_summary_fileNeedsIndividualImport,
+      ImportFileOutcomeStatus.unsupported =>
+        l10n.universalImport_summary_fileUnsupported,
+    };
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 18, color: theme.colorScheme.onSurfaceVariant),
+          const SizedBox(width: 10),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 200),
+            child: Text(
+              outcome.fileName,
+              style: theme.textTheme.bodySmall,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Text(
+            label,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
       ),
     );
   }
