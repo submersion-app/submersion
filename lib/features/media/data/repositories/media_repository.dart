@@ -613,7 +613,8 @@ class MediaRepository {
   /// recorded in the maintenance ledger for this task. Restricting to these
   /// keeps the backfill self-terminating: every candidate either gets an
   /// enrichment row or is marked in the ledger, so it drops out.
-  static const String _enrichmentCandidateWhere = '''
+  static const String _enrichmentCandidateWhere =
+      '''
       m.dive_id IS NOT NULL
       AND m.taken_at IS NOT NULL
       AND m.file_type != 'instructor_signature'
@@ -626,7 +627,7 @@ class MediaRepository {
       )
       AND NOT EXISTS (
         SELECT 1 FROM maintenance_processed mp
-        WHERE mp.task_name = 'photo-enrichment-backfill'
+        WHERE mp.task_name = '$_enrichmentTaskName'
           AND mp.entity_id = m.id
       )
   ''';
@@ -698,17 +699,21 @@ class MediaRepository {
             ..where(_db.media.takenAt.isNotNull())
             ..where(_db.media.fileType.isNotValue('instructor_signature'))
             ..where(_db.mediaEnrichment.id.isNull()) // no enrichment row yet
+            // Exclude ledgered media in SQL (indexed PK lookup) rather than
+            // fetching the whole ledger and filtering in memory per dive.
+            ..where(
+              const CustomExpression<bool>(
+                "NOT EXISTS (SELECT 1 FROM maintenance_processed mp "
+                "WHERE mp.task_name = '$_enrichmentTaskName' "
+                "AND mp.entity_id = media.id)",
+              ),
+            )
             ..orderBy([OrderingTerm.asc(_db.media.takenAt)]);
 
       final rows = await query.get();
-      final ledgered = await _ledgeredMediaIds();
-      final result = <domain.MediaItem>[];
-      for (final row in rows) {
-        final mediaRow = row.readTable(_db.media);
-        if (ledgered.contains(mediaRow.id)) continue;
-        result.add(_mapRowToMediaItem(mediaRow, null));
-      }
-      return result;
+      return rows
+          .map((row) => _mapRowToMediaItem(row.readTable(_db.media), null))
+          .toList();
     } catch (e, stackTrace) {
       _log.error(
         'Failed to load candidate enrichment media for dive: $diveId',
@@ -717,16 +722,6 @@ class MediaRepository {
       );
       rethrow;
     }
-  }
-
-  Future<Set<String>> _ledgeredMediaIds() async {
-    final rows = await _db
-        .customSelect(
-          'SELECT entity_id FROM maintenance_processed WHERE task_name = ?',
-          variables: [Variable.withString(_enrichmentTaskName)],
-        )
-        .get();
-    return rows.map((r) => r.read<String>('entity_id')).toSet();
   }
 
   /// Get the set of platformAssetIds already linked to a specific dive.
