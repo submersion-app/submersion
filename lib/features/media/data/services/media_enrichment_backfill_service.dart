@@ -36,8 +36,10 @@ class MediaEnrichmentBackfillService implements StartupMaintenanceTask {
        _ledger = ledger ?? MaintenanceLedgerRepository(),
        _enrichmentService = enrichmentService;
 
+  // Single source of truth shared with the candidate queries, so the ledger
+  // task_name written here always matches the one the queries exclude on.
   @override
-  String get name => 'photo-enrichment-backfill';
+  String get name => MediaRepository.enrichmentBackfillTaskName;
 
   @override
   String get progressLabel => 'Optimizing dive data';

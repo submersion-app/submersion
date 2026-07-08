@@ -62,13 +62,14 @@ class StartupMaintenanceRunner {
         );
 
         // Convergence safety net: if the backlog did not shrink, the task is
-        // stuck (likely a persistent per-item failure). Log loudly instead of
-        // silently repeating a startup hang on every future launch.
+        // stuck (likely a persistent per-item failure) or growing. Log loudly
+        // instead of silently repeating a startup hang on every future launch.
         final remaining = await task.pendingWork();
         if (remaining >= total) {
           _log.warning(
-            'Startup maintenance task "${task.name}" made no progress '
-            '($remaining of $total still pending) - check earlier error logs.',
+            'Startup maintenance task "${task.name}" did not reduce its '
+            'backlog ($remaining of $total pending after run) - check earlier '
+            'error logs.',
           );
         }
       } catch (e, stackTrace) {

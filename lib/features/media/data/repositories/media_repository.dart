@@ -604,7 +604,12 @@ class MediaRepository {
   }
 
   /// Ledger namespace for the photo-enrichment backfill (issues #511, #524).
-  static const String _enrichmentTaskName = 'photo-enrichment-backfill';
+  ///
+  /// Single source of truth: `MediaEnrichmentBackfillService.name` references
+  /// this so the ledger `task_name` written by the task always matches the
+  /// `task_name` the candidate queries exclude on. Renaming one alone would
+  /// regress the task to non-convergence.
+  static const String enrichmentBackfillTaskName = 'photo-enrichment-backfill';
 
   /// Shared WHERE predicate for enrichment-backfill candidate media.
   ///
@@ -627,7 +632,7 @@ class MediaRepository {
       )
       AND NOT EXISTS (
         SELECT 1 FROM maintenance_processed mp
-        WHERE mp.task_name = '$_enrichmentTaskName'
+        WHERE mp.task_name = '$enrichmentBackfillTaskName'
           AND mp.entity_id = m.id
       )
   ''';
@@ -704,7 +709,7 @@ class MediaRepository {
             ..where(
               const CustomExpression<bool>(
                 "NOT EXISTS (SELECT 1 FROM maintenance_processed mp "
-                "WHERE mp.task_name = '$_enrichmentTaskName' "
+                "WHERE mp.task_name = '$enrichmentBackfillTaskName' "
                 "AND mp.entity_id = media.id)",
               ),
             )

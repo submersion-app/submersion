@@ -9,6 +9,15 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 
 import '../../../../helpers/test_database.dart';
 
+/// A MediaRepository whose saveEnrichment always throws, to exercise the
+/// terminal-failure path: the item must still be ledger-marked so it converges.
+class _ThrowingSaveMediaRepository extends MediaRepository {
+  @override
+  Future<void> saveEnrichment(MediaEnrichment enrichment) async {
+    throw StateError('simulated save failure');
+  }
+}
+
 void main() {
   late MediaRepository mediaRepo;
   late DiveRepository diveRepo;
@@ -183,4 +192,29 @@ void main() {
     expect(await service.pendingWork(), 0);
     expect(await enrichmentFor('dive-1', 'sig-1'), isNull);
   });
+
+  test(
+    'an item whose save fails is still ledger-marked and does not re-qualify',
+    () async {
+      await createProfiledDive();
+      await linkPhoto(id: 'photo-1', diveId: 'dive-1', takenAt: photoAt(60));
+
+      final throwingService = MediaEnrichmentBackfillService(
+        mediaRepository: _ThrowingSaveMediaRepository(),
+        diveRepository: diveRepo,
+        ledger: ledger,
+      );
+
+      // The save throws, is caught, and the item is marked processed so the
+      // backlog converges instead of re-scanning every launch (issue #524).
+      await throwingService.run();
+
+      expect(await throwingService.pendingWork(), 0);
+      expect(await enrichmentFor('dive-1', 'photo-1'), isNull);
+      expect(
+        await ledger.countProcessed(MediaRepository.enrichmentBackfillTaskName),
+        1,
+      );
+    },
+  );
 }

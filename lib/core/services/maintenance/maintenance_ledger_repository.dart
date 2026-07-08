@@ -50,15 +50,28 @@ class MaintenanceLedgerRepository {
     final ids = entityIds.toList();
     if (ids.isEmpty) return;
     final millis = (at ?? DateTime.now()).millisecondsSinceEpoch;
+
+    MaintenanceProcessedCompanion row(String id) =>
+        MaintenanceProcessedCompanion.insert(
+          taskName: taskName,
+          entityId: id,
+          attemptedAt: millis,
+        );
+
+    // Common case (the backfill marks one item at a time): a single insert
+    // avoids the batch/transaction wrapper.
+    if (ids.length == 1) {
+      await _db
+          .into(_db.maintenanceProcessed)
+          .insert(row(ids.first), mode: InsertMode.insertOrIgnore);
+      return;
+    }
+
     await _db.batch((batch) {
       for (final id in ids) {
         batch.insert(
           _db.maintenanceProcessed,
-          MaintenanceProcessedCompanion.insert(
-            taskName: taskName,
-            entityId: id,
-            attemptedAt: millis,
-          ),
+          row(id),
           mode: InsertMode.insertOrIgnore,
         );
       }
