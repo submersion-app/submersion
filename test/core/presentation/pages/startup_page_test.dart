@@ -10,6 +10,7 @@ import 'package:sqlite3/sqlite3.dart' as sqlite3;
 import 'package:submersion/core/database/database_version_exception.dart';
 import 'package:submersion/core/domain/entities/migration_progress.dart';
 import 'package:submersion/core/presentation/pages/startup_page.dart';
+import 'package:submersion/core/services/maintenance/startup_maintenance_task.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
@@ -585,7 +586,7 @@ void main() {
           locationService: locationService,
           schemaVersionProbeOverride: (_) =>
               (needsMigration: false, totalSteps: 0),
-          initializerOverride: (_) => Completer<void>().future,
+          initializerOverride: (_, _) => Completer<void>().future,
         ),
       );
 
@@ -616,7 +617,7 @@ void main() {
           schemaVersionProbeOverride: (_) =>
               (needsMigration: true, totalSteps: 5),
           preMigrationBackupFactory: _noOpBackupFactory,
-          initializerOverride: (onProgress) {
+          initializerOverride: (onProgress, _) {
             capturedCallback = onProgress;
             // Never completes -- we stay on the migration screen
             return Completer<void>().future;
@@ -659,7 +660,7 @@ void main() {
           locationService: locationService,
           schemaVersionProbeOverride: (_) =>
               (needsMigration: false, totalSteps: 0),
-          initializerOverride: (_) async {
+          initializerOverride: (_, _) async {
             throw const DatabaseVersionMismatchException(
               databaseVersion: 99,
               appVersion: 63,
@@ -690,7 +691,7 @@ void main() {
           locationService: locationService,
           schemaVersionProbeOverride: (_) =>
               (needsMigration: false, totalSteps: 0),
-          initializerOverride: (_) async {
+          initializerOverride: (_, _) async {
             throw Exception('Disk is full');
           },
         ),
@@ -719,7 +720,7 @@ void main() {
           locationService: locationService,
           schemaVersionProbeOverride: (_) =>
               (needsMigration: false, totalSteps: 0),
-          initializerOverride: (_) async {
+          initializerOverride: (_, _) async {
             throw Exception('Something broke');
           },
           closeAppOverride: () => closeCalled = true,
@@ -748,7 +749,7 @@ void main() {
             locationService: locationService,
             schemaVersionProbeOverride: (_) =>
                 (needsMigration: false, totalSteps: 0),
-            initializerOverride: (_) async {
+            initializerOverride: (_, _) async {
               throw const DatabaseVersionMismatchException(
                 databaseVersion: 70,
                 appVersion: 63,
@@ -778,7 +779,7 @@ void main() {
           locationService: locationService,
           schemaVersionProbeOverride: (_) =>
               (needsMigration: false, totalSteps: 0),
-          initializerOverride: (_) => Completer<void>().future,
+          initializerOverride: (_, _) => Completer<void>().future,
         ),
       );
 
@@ -804,7 +805,7 @@ void main() {
           schemaVersionProbeOverride: (_) =>
               (needsMigration: true, totalSteps: 10),
           preMigrationBackupFactory: _noOpBackupFactory,
-          initializerOverride: (onProgress) {
+          initializerOverride: (onProgress, _) {
             progressCallback = onProgress;
             return Completer<void>().future;
           },
@@ -841,6 +842,47 @@ void main() {
       await tester.pump(const Duration(seconds: 2));
     });
 
+    testWidgets(
+      'shows the optimizing progress bar when maintenance reports work',
+      (tester) async {
+        late MaintenanceProgressReporter maintenanceCallback;
+
+        await tester.pumpWidget(
+          _buildStartupWrapper(
+            prefs: prefs,
+            logFileService: logFileService,
+            locationService: locationService,
+            schemaVersionProbeOverride: (_) =>
+                (needsMigration: false, totalSteps: 0),
+            initializerOverride: (_, onMaintenance) {
+              maintenanceCallback = onMaintenance;
+              return Completer<void>().future; // stay on the splash
+            },
+          ),
+        );
+
+        await tester.pump();
+
+        // No progress UI until a task reports work.
+        expect(find.byType(LinearProgressIndicator), findsNothing);
+        expect(find.textContaining('Optimizing dive data'), findsNothing);
+
+        // A maintenance task reports 3 of 10 -> optimizing bar appears.
+        maintenanceCallback('Optimizing dive data', 3, 10);
+        await tester.pump();
+
+        expect(find.text('Optimizing dive data... 3 of 10'), findsOneWidget);
+        expect(find.byType(LinearProgressIndicator), findsOneWidget);
+        final indicator = tester.widget<LinearProgressIndicator>(
+          find.byType(LinearProgressIndicator),
+        );
+        expect(indicator.value, closeTo(0.3, 1e-9));
+
+        // Drain the 1-second splash delay timer
+        await tester.pump(const Duration(seconds: 2));
+      },
+    );
+
     testWidgets('splash scaffold key is used during init', (tester) async {
       await tester.pumpWidget(
         _buildStartupWrapper(
@@ -849,7 +891,7 @@ void main() {
           locationService: locationService,
           schemaVersionProbeOverride: (_) =>
               (needsMigration: false, totalSteps: 0),
-          initializerOverride: (_) => Completer<void>().future,
+          initializerOverride: (_, _) => Completer<void>().future,
         ),
       );
 
@@ -873,7 +915,7 @@ void main() {
           schemaVersionProbeOverride: (_) =>
               (needsMigration: true, totalSteps: 3),
           preMigrationBackupFactory: _noOpBackupFactory,
-          initializerOverride: (_) => Completer<void>().future,
+          initializerOverride: (_, _) => Completer<void>().future,
         ),
       );
 
@@ -893,7 +935,7 @@ void main() {
           locationService: locationService,
           schemaVersionProbeOverride: (_) =>
               (needsMigration: false, totalSteps: 0),
-          initializerOverride: (_) async {
+          initializerOverride: (_, _) async {
             throw Exception('Test error');
           },
         ),
@@ -914,7 +956,7 @@ void main() {
           locationService: locationService,
           schemaVersionProbeOverride: (_) =>
               (needsMigration: false, totalSteps: 0),
-          initializerOverride: (_) async {
+          initializerOverride: (_, _) async {
             throw Exception('Corrupt database header');
           },
         ),
@@ -937,7 +979,7 @@ void main() {
           locationService: locationService,
           schemaVersionProbeOverride: (_) =>
               (needsMigration: false, totalSteps: 0),
-          initializerOverride: (_) async {
+          initializerOverride: (_, _) async {
             throw const DatabaseVersionMismatchException(
               databaseVersion: 100,
               appVersion: 50,
@@ -995,7 +1037,7 @@ void main() {
             schemaVersionProbeOverride: (_) =>
                 (needsMigration: true, totalSteps: 5),
             preMigrationBackupFactory: failingFactory,
-            initializerOverride: (_) async {
+            initializerOverride: (_, _) async {
               // Should never be called: backup failure blocks migration.
               throw StateError('initializer must not run on backup failure');
             },
@@ -1048,7 +1090,7 @@ void main() {
             preMigrationBackupFactory: flakyFactory,
             // Never completes so retry path stops at the "migrating" state,
             // avoiding go_router redirect that would need DatabaseService.
-            initializerOverride: (_) => Completer<void>().future,
+            initializerOverride: (_, _) => Completer<void>().future,
           ),
         );
 
@@ -1099,7 +1141,7 @@ void main() {
             schemaVersionProbeOverride: (_) =>
                 (needsMigration: true, totalSteps: 1),
             preMigrationBackupFactory: alwaysFailingFactory,
-            initializerOverride: (_) async {},
+            initializerOverride: (_, _) async {},
           ),
         );
 
@@ -1150,7 +1192,7 @@ void main() {
             schemaVersionProbeOverride: (_) =>
                 (needsMigration: true, totalSteps: 1),
             preMigrationBackupFactory: factory,
-            initializerOverride: (_) async {},
+            initializerOverride: (_, _) async {},
           ),
         );
 
@@ -1196,7 +1238,7 @@ void main() {
           schemaVersionProbeOverride: (_) =>
               (needsMigration: true, totalSteps: 1),
           preMigrationBackupFactory: factory,
-          initializerOverride: (_) async {},
+          initializerOverride: (_, _) async {},
           closeAppOverride: () => quitCalled++,
         ),
       );
@@ -1267,7 +1309,7 @@ void main() {
             locationService: locationService,
             schemaVersionProbeOverride: (_) =>
                 (needsMigration: false, totalSteps: 0),
-            initializerOverride: (_) async {
+            initializerOverride: (_, _) async {
               throw sqlite3.SqliteException(
                 776,
                 'attempt to write a readonly database',
@@ -1305,7 +1347,7 @@ void main() {
             locationService: locationService,
             schemaVersionProbeOverride: (_) =>
                 (needsMigration: false, totalSteps: 0),
-            initializerOverride: (_) async {
+            initializerOverride: (_, _) async {
               throw sqlite3.SqliteException(776, 'readonly');
             },
           ),
@@ -1328,7 +1370,7 @@ void main() {
             locationService: locationService,
             schemaVersionProbeOverride: (_) =>
                 (needsMigration: false, totalSteps: 0),
-            initializerOverride: (_) async {
+            initializerOverride: (_, _) async {
               // SQLITE_BUSY — primary code 5; not in the READONLY family.
               throw sqlite3.SqliteException(5, 'database is locked');
             },
@@ -1355,7 +1397,7 @@ void main() {
             locationService: locationService,
             schemaVersionProbeOverride: (_) =>
                 (needsMigration: false, totalSteps: 0),
-            initializerOverride: (_) async {
+            initializerOverride: (_, _) async {
               throw sqlite3.SqliteException(776, 'readonly');
             },
             closeAppOverride: () => closeCalled++,
@@ -1394,7 +1436,7 @@ void main() {
             locationService: locationService,
             schemaVersionProbeOverride: (_) =>
                 (needsMigration: false, totalSteps: 0),
-            initializerOverride: (_) async {
+            initializerOverride: (_, _) async {
               throw sqlite3.SqliteException(776, 'readonly');
             },
           ),
@@ -1438,7 +1480,7 @@ void main() {
             locationService: flaky,
             schemaVersionProbeOverride: (_) =>
                 (needsMigration: false, totalSteps: 0),
-            initializerOverride: (_) async {
+            initializerOverride: (_, _) async {
               throw sqlite3.SqliteException(776, 'readonly');
             },
           ),
@@ -1485,7 +1527,7 @@ void main() {
           locationService: flaky,
           schemaVersionProbeOverride: (_) =>
               (needsMigration: false, totalSteps: 0),
-          initializerOverride: (_) async {
+          initializerOverride: (_, _) async {
             throw sqlite3.SqliteException(776, 'readonly');
           },
         ),
@@ -1529,7 +1571,7 @@ void main() {
           locationService: flaky,
           schemaVersionProbeOverride: (_) =>
               (needsMigration: false, totalSteps: 0),
-          initializerOverride: (_) async {
+          initializerOverride: (_, _) async {
             throw sqlite3.SqliteException(776, 'readonly');
           },
           closeAppOverride: () => closeCalled++,
@@ -1565,7 +1607,7 @@ void main() {
           locationService: locationService,
           schemaVersionProbeOverride: (_) =>
               (needsMigration: false, totalSteps: 0),
-          initializerOverride: (_) async {
+          initializerOverride: (_, _) async {
             calls++;
             if (calls == 1) {
               throw sqlite3.SqliteException(776, 'readonly');

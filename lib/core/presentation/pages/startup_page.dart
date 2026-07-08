@@ -36,6 +36,7 @@ import 'package:submersion/main.dart' show SubmersionRestart;
 typedef ServiceInitializer =
     Future<void> Function(
       void Function(int currentStep, int totalSteps) onMigrationProgress,
+      MaintenanceProgressReporter onMaintenanceProgress,
     );
 
 /// Callback signature for the schema-version probe used by [StartupWrapper]
@@ -47,6 +48,7 @@ enum _StartupState {
   initializing,
   backingUp,
   migrating,
+  optimizing,
   backupFailed,
   recoveryRequired,
   recovering,
@@ -102,6 +104,9 @@ class _StartupWrapperState extends State<StartupWrapper>
     currentStep: 0,
     totalSteps: 0,
   );
+
+  /// User-facing label for the current maintenance task (optimizing state).
+  String _maintenanceLabel = '';
   String _errorMessage = '';
   bool _isVersionMismatch = false;
   int _dbVersion = 0;
@@ -288,8 +293,24 @@ class _StartupWrapperState extends State<StartupWrapper>
       }
     }
 
+    // Maintenance tasks report (label, completed, total). Flipping to the
+    // optimizing state only happens when a task actually reports work, so a
+    // caught-up launch never shows this UI (no flicker).
+    void onMaintenance(String label, int completed, int total) {
+      if (mounted) {
+        setState(() {
+          _state = _StartupState.optimizing;
+          _maintenanceLabel = label;
+          _progress = MigrationProgress(
+            currentStep: completed,
+            totalSteps: total,
+          );
+        });
+      }
+    }
+
     if (widget.initializerOverride != null) {
-      await widget.initializerOverride!(onProgress);
+      await widget.initializerOverride!(onProgress, onMaintenance);
       return;
     }
 
@@ -320,7 +341,7 @@ class _StartupWrapperState extends State<StartupWrapper>
         mediaRepository: MediaRepository(),
         diveRepository: DiveRepository(),
       ),
-    ]).run();
+    ]).run(onProgress: onMaintenance);
   }
 
   Future<void> _runPreMigrationBackup({
@@ -549,12 +570,14 @@ class _StartupWrapperState extends State<StartupWrapper>
             width: 240,
             child: AnimatedSize(
               duration: const Duration(milliseconds: 200),
-              child: _state == _StartupState.migrating
+              child:
+                  (_state == _StartupState.migrating ||
+                      _state == _StartupState.optimizing)
                   ? Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         LinearProgressIndicator(
-                          value: _progress.fraction,
+                          value: _progress.fraction.clamp(0.0, 1.0).toDouble(),
                           backgroundColor: Colors.white.withValues(alpha: 0.2),
                           valueColor: const AlwaysStoppedAnimation<Color>(
                             Colors.white,
@@ -562,8 +585,11 @@ class _StartupWrapperState extends State<StartupWrapper>
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          'Upgrading database... '
-                          'step ${_progress.currentStep} of ${_progress.totalSteps}',
+                          _state == _StartupState.migrating
+                              ? 'Upgrading database... '
+                                    'step ${_progress.currentStep} of ${_progress.totalSteps}'
+                              : '$_maintenanceLabel... '
+                                    '${_progress.currentStep} of ${_progress.totalSteps}',
                           style: TextStyle(
                             fontSize: 13,
                             color: Colors.white.withValues(alpha: 0.8),
