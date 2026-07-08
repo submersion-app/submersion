@@ -245,6 +245,24 @@ class GpsTrackPointsLocal extends Table {
   // coverage:ignore-end
 }
 
+/// Device-local idempotency ledger for [StartupMaintenanceTask]s.
+///
+/// A maintenance task records the entities it has handled here (keyed by an
+/// opaque [taskName]), so its `pendingWork()` can exclude already-processed
+/// items and converge to zero. Task identity lives in the data, not the schema,
+/// so new maintenance tasks reuse this table with no further migration.
+///
+/// Never synced (not in `_hlcTables`): it is per-device bookkeeping, like a
+/// cache.
+class MaintenanceProcessed extends Table {
+  TextColumn get taskName => text()();
+  TextColumn get entityId => text()();
+  IntColumn get attemptedAt => integer()(); // epoch millis
+
+  @override
+  Set<Column> get primaryKey => {taskName, entityId};
+}
+
 /// Saved dive plans (dive planner redesign, Phase 2)
 class DivePlans extends Table {
   // coverage:ignore-start
@@ -2007,6 +2025,8 @@ class FieldPresets extends Table {
     // GPS surface track logging (discussion #289)
     GpsTracks,
     GpsTrackPointsLocal,
+    // Generic device-local maintenance ledger (issue #524)
+    MaintenanceProcessed,
     // Saved dive plans (planner redesign Phase 2)
     DivePlans,
     DivePlanTanks,
@@ -2030,7 +2050,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 102;
+  static const int currentSchemaVersion = 103;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -2136,6 +2156,7 @@ class AppDatabase extends _$AppDatabase {
     100,
     101,
     102,
+    103,
   ];
 
   /// Tables that carry a per-row Hybrid Logical Clock for cross-device conflict
@@ -4979,6 +5000,20 @@ class AppDatabase extends _$AppDatabase {
           await _relinkStrandedTankPressures();
         }
         if (from < 102) await reportProgress();
+        if (from < 103) {
+          // Generic device-local maintenance ledger (issue #524). Raw
+          // idempotent DDL (v98 checklist idiom); the beforeOpen backstop
+          // re-asserts it against schema-version collisions. Never synced.
+          await customStatement('''
+            CREATE TABLE IF NOT EXISTS maintenance_processed (
+              task_name TEXT NOT NULL,
+              entity_id TEXT NOT NULL,
+              attempted_at INTEGER NOT NULL,
+              PRIMARY KEY (task_name, entity_id)
+            )
+          ''');
+        }
+        if (from < 103) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
@@ -5018,6 +5053,10 @@ class AppDatabase extends _$AppDatabase {
           CREATE INDEX IF NOT EXISTS idx_dive_plan_segments_plan_id
           ON dive_plan_segments(plan_id)
         ''');
+
+        // v103 backstop: re-assert the maintenance ledger (collision-safe,
+        // idempotent).
+        await createMigrator().createTable(maintenanceProcessed);
       },
     );
   }
