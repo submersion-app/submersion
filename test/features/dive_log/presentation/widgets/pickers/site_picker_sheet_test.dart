@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/site_picker_sheet.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 const _nearSite = DiveSite(
@@ -26,10 +28,19 @@ const _noGpsSite = DiveSite(id: 'nogps', name: 'Mystery Lake');
 
 const _here = LocationResult(latitude: 10.0, longitude: 10.0);
 
+class _TestSettingsNotifier extends StateNotifier<AppSettings>
+    implements SettingsNotifier {
+  _TestSettingsNotifier(super.state);
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 Future<void> _pump(
   WidgetTester tester, {
   required List<DiveSite> sites,
   LocationResult? currentLocation,
+  GeoPoint? diveLocation,
+  AppSettings settings = const AppSettings(),
   String? selectedSiteId,
   void Function(DiveSite)? onSiteSelected,
   VoidCallback? onCreateNewSite,
@@ -39,7 +50,10 @@ Future<void> _pump(
   addTearDown(tester.view.reset);
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [sitesProvider.overrideWith((ref) async => sites)],
+      overrides: [
+        sitesProvider.overrideWith((ref) async => sites),
+        settingsProvider.overrideWith((ref) => _TestSettingsNotifier(settings)),
+      ],
       child: MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
@@ -48,6 +62,7 @@ Future<void> _pump(
             scrollController: ScrollController(),
             selectedSiteId: selectedSiteId,
             currentLocation: currentLocation,
+            diveLocation: diveLocation,
             onSiteSelected: onSiteSelected ?? (_) {},
             onCreateNewSite: onCreateNewSite ?? () {},
           ),
@@ -125,5 +140,39 @@ void main() {
     expect(find.text('No dive sites yet'), findsOneWidget);
     await tester.tap(find.text('Add Dive Site'));
     expect(created, 1);
+  });
+
+  testWidgets('sorts by diveLocation when provided', (tester) async {
+    await _pump(
+      tester,
+      sites: const [_farSite, _nearSite, _midSite],
+      diveLocation: const GeoPoint(10.0, 10.0),
+    );
+    expect(_tileTitles(tester), ['House Reef', 'Channel', 'Blue Hole']);
+    expect(find.text('Sorted by distance from this dive'), findsOneWidget);
+  });
+
+  testWidgets('falls back to currentLocation when diveLocation is null', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      sites: const [_farSite, _nearSite, _midSite],
+      currentLocation: _here,
+    );
+    expect(_tileTitles(tester), ['House Reef', 'Channel', 'Blue Hole']);
+    expect(find.text('Sorted by distance'), findsOneWidget);
+    expect(find.text('Sorted by distance from this dive'), findsNothing);
+  });
+
+  testWidgets('distance readout respects imperial units', (tester) async {
+    await _pump(
+      tester,
+      sites: const [_farSite],
+      diveLocation: const GeoPoint(10.0, 10.0),
+      settings: const AppSettings(depthUnit: DepthUnit.feet),
+    );
+    expect(find.textContaining('mi'), findsWidgets);
+    expect(find.textContaining('km'), findsNothing);
   });
 }
