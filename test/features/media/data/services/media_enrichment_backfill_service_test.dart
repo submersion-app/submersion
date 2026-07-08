@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/maintenance/maintenance_ledger_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
@@ -10,46 +12,41 @@ import '../../../../helpers/test_database.dart';
 void main() {
   late MediaRepository mediaRepo;
   late DiveRepository diveRepo;
+  late MaintenanceLedgerRepository ledger;
   late MediaEnrichmentBackfillService service;
 
   setUp(() async {
     await setUpTestDatabase();
     mediaRepo = MediaRepository();
     diveRepo = DiveRepository();
+    ledger = MaintenanceLedgerRepository(DatabaseService.instance.database);
     service = MediaEnrichmentBackfillService(
       mediaRepository: mediaRepo,
       diveRepository: diveRepo,
+      ledger: ledger,
     );
   });
-
   tearDown(tearDownTestDatabase);
 
   // Dive starting at a fixed wall-clock time with a two-point profile:
   // t=0s depth 0m/24C, t=120s depth 20m/18C.
-  //
-  // Dive entry time is stored/read as wall-clock-as-UTC; photo takenAt is
-  // stored/read as a LOCAL time and reinterpreted as wall-clock-UTC by the
-  // enrichment service. To make elapsed-seconds timezone-independent, express
-  // the dive start in UTC and photo times as LOCAL wall-clocks with the same
-  // clock face — mirroring a diver whose camera and computer share a timezone.
   final diveStart = DateTime.utc(2025, 6, 1, 10, 0, 0);
   DateTime photoAt(int secondsIn) =>
       DateTime(2025, 6, 1, 10, 0, 0).add(Duration(seconds: secondsIn));
 
-  Future<Dive> createProfiledDive({String id = 'dive-1'}) {
-    return diveRepo.createDive(
-      Dive(
-        id: id,
-        diveNumber: 1,
-        dateTime: diveStart,
-        entryTime: diveStart,
-        profile: const [
-          DiveProfilePoint(timestamp: 0, depth: 0, temperature: 24),
-          DiveProfilePoint(timestamp: 120, depth: 20, temperature: 18),
-        ],
-      ),
-    );
-  }
+  Future<Dive> createProfiledDive({String id = 'dive-1'}) =>
+      diveRepo.createDive(
+        Dive(
+          id: id,
+          diveNumber: 1,
+          dateTime: diveStart,
+          entryTime: diveStart,
+          profile: const [
+            DiveProfilePoint(timestamp: 0, depth: 0, temperature: 24),
+            DiveProfilePoint(timestamp: 120, depth: 20, temperature: 18),
+          ],
+        ),
+      );
 
   Future<MediaItem> linkPhoto({
     required String id,
@@ -72,8 +69,8 @@ void main() {
   }
 
   Future<MediaEnrichment?> enrichmentFor(String diveId, String mediaId) async {
-    final media = await mediaRepo.getMediaForDive(diveId);
-    return media.firstWhere((m) => m.id == mediaId).enrichment;
+    final all = await mediaRepo.getMediaForDive(diveId);
+    return all.firstWhere((m) => m.id == mediaId).enrichment;
   }
 
   test('backfills enrichment for a linked photo that has none', () async {
@@ -81,8 +78,7 @@ void main() {
     // Photo taken 60s into the dive -> interpolated depth ~10m.
     await linkPhoto(id: 'photo-1', diveId: 'dive-1', takenAt: photoAt(60));
 
-    final count = await service.backfill();
-    expect(count, 1);
+    expect(await service.backfill(), 1);
 
     final enrichment = await enrichmentFor('dive-1', 'photo-1');
     expect(enrichment, isNotNull);
@@ -96,19 +92,38 @@ void main() {
     () async {
       await createProfiledDive();
       await linkPhoto(id: 'photo-1', diveId: 'dive-1', takenAt: photoAt(60));
-
       await service.run();
-
       expect(await enrichmentFor('dive-1', 'photo-1'), isNotNull);
     },
   );
 
+  test('pendingWork reflects the backlog and reaches 0 after run', () async {
+    await createProfiledDive();
+    await linkPhoto(id: 'photo-1', diveId: 'dive-1', takenAt: photoAt(60));
+    await linkPhoto(id: 'photo-2', diveId: 'dive-1', takenAt: photoAt(90));
+
+    expect(await service.pendingWork(), 2);
+    await service.run();
+    expect(await service.pendingWork(), 0);
+  });
+
+  test('run ticks progress up to the total', () async {
+    await createProfiledDive();
+    await linkPhoto(id: 'photo-1', diveId: 'dive-1', takenAt: photoAt(60));
+    await linkPhoto(id: 'photo-2', diveId: 'dive-1', takenAt: photoAt(90));
+
+    final ticks = <int>[];
+    await service.run(onProgress: ticks.add);
+    expect(ticks.last, 2);
+    expect(ticks, [1, 2]);
+  });
+
   test('is idempotent: a second run enriches nothing', () async {
     await createProfiledDive();
     await linkPhoto(id: 'photo-1', diveId: 'dive-1', takenAt: photoAt(60));
-
     expect(await service.backfill(), 1);
     expect(await service.backfill(), 0);
+    expect(await service.pendingWork(), 0);
   });
 
   test('leaves an already-enriched photo untouched', () async {
@@ -125,10 +140,8 @@ void main() {
         createdAt: DateTime.now(),
       ),
     );
-
     expect(await service.backfill(), 0);
     final enrichment = await enrichmentFor('dive-1', 'photo-1');
-    // Untouched: the pre-existing (sentinel) values survive.
     expect(enrichment!.depthMeters, 99.0);
     expect(enrichment.elapsedSeconds, 999);
   });
@@ -142,7 +155,6 @@ void main() {
       diveId: 'dive-noprofile',
       takenAt: photoAt(30),
     );
-
     expect(await service.backfill(), 0);
     expect(await enrichmentFor('dive-noprofile', 'photo-np'), isNull);
   });
@@ -155,7 +167,6 @@ void main() {
       takenAt: photoAt(90),
       mediaType: MediaType.video,
     );
-
     expect(await service.backfill(), 1);
     expect(await enrichmentFor('dive-1', 'clip-1'), isNotNull);
   });
@@ -168,11 +179,8 @@ void main() {
       takenAt: photoAt(45),
       mediaType: MediaType.instructorSignature,
     );
-
-    // Signature-only dive is never a candidate, so nothing is enriched and a
-    // second run still finds nothing (no perpetual re-scan).
     expect(await service.backfill(), 0);
-    expect(await service.backfill(), 0);
+    expect(await service.pendingWork(), 0);
     expect(await enrichmentFor('dive-1', 'sig-1'), isNull);
   });
 }

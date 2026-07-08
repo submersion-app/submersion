@@ -1,17 +1,24 @@
 import 'package:submersion/core/services/logger_service.dart';
 
+/// Reports incremental progress within a task: [completed] work units done.
+typedef MaintenanceProgressCallback = void Function(int completed);
+
+/// Reports a task's progress to the UI: its [label], [completed] of [total].
+typedef MaintenanceProgressReporter =
+    void Function(String label, int completed, int total);
+
 /// A cleanup/backfill task run once per launch, after the database is open.
 ///
-/// Tasks exist to reconcile data that older app versions left in an incomplete
-/// state (e.g. backfilling values a feature now expects). They run on every
-/// launch rather than being gated to a single schema migration, so they also
-/// self-heal after a database restore — which reopens an older database in-app,
-/// past the migration path. That makes idempotency the core contract:
+/// Tasks reconcile data older app versions left incomplete. They run on every
+/// launch (so they also self-heal after a database restore, which reopens an
+/// older database in-app past the migration path), which makes idempotency the
+/// core contract:
 ///
-/// - [run] MUST be safe to invoke on every launch. Once its work is done it
-///   should become a cheap no-op (typically by scoping its own query to the
-///   rows that still need it, so a completed task finds nothing to do).
-/// - [run] MUST NOT assume it is the first time it has run.
+/// - [pendingWork] MUST be a cheap, indexed count of remaining units. It is
+///   called on every launch; the runner only invokes [run] when it is > 0.
+/// - [run] MUST be idempotent and drive [pendingWork] strictly toward 0 (record
+///   handled entities durably - e.g. via MaintenanceLedgerRepository - so
+///   items that cannot produce their normal artifact still drop out).
 ///
 /// The [StartupMaintenanceRunner] invokes tasks best-effort: a throwing task is
 /// logged and does not prevent the others (or app startup) from proceeding.
@@ -19,8 +26,15 @@ abstract interface class StartupMaintenanceTask {
   /// Stable, human-readable identifier used in logs.
   String get name;
 
-  /// Perform the task. Must be idempotent (see class docs).
-  Future<void> run();
+  /// User-facing label shown on the startup progress bar.
+  String get progressLabel;
+
+  /// Cheap, indexed count of remaining work units (0 => nothing to do).
+  Future<int> pendingWork();
+
+  /// Perform the work. Only called when [pendingWork] > 0. [onProgress] is
+  /// ticked with the running completed-count as each unit finishes.
+  Future<void> run({MaintenanceProgressCallback? onProgress});
 }
 
 /// Runs a list of [StartupMaintenanceTask]s best-effort during startup.
@@ -34,11 +48,29 @@ class StartupMaintenanceRunner {
   StartupMaintenanceRunner(this._tasks);
 
   /// Runs every task in order. Each is isolated: a failure is logged and the
-  /// remaining tasks still run.
-  Future<void> run() async {
+  /// remaining tasks still run. Tasks with no pending work are skipped cheaply.
+  Future<void> run({MaintenanceProgressReporter? onProgress}) async {
     for (final task in _tasks) {
       try {
-        await task.run();
+        final total = await task.pendingWork();
+        if (total == 0) continue; // cheap gate: skip the heavy path entirely
+
+        onProgress?.call(task.progressLabel, 0, total);
+        await task.run(
+          onProgress: (done) =>
+              onProgress?.call(task.progressLabel, done, total),
+        );
+
+        // Convergence safety net: if the backlog did not shrink, the task is
+        // stuck (likely a persistent per-item failure). Log loudly instead of
+        // silently repeating a startup hang on every future launch.
+        final remaining = await task.pendingWork();
+        if (remaining >= total) {
+          _log.warning(
+            'Startup maintenance task "${task.name}" made no progress '
+            '($remaining of $total still pending) - check earlier error logs.',
+          );
+        }
       } catch (e, stackTrace) {
         _log.error(
           'Startup maintenance task "${task.name}" failed',

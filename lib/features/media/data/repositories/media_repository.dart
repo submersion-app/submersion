@@ -603,32 +603,73 @@ class MediaRepository {
     }
   }
 
-  /// Dive ids that have at least one dive-linked media item missing its
-  /// [MediaEnrichment] row, where the dive also has primary profile points to
-  /// enrich against.
+  /// Ledger namespace for the photo-enrichment backfill (issues #511, #524).
+  static const String _enrichmentTaskName = 'photo-enrichment-backfill';
+
+  /// Shared WHERE predicate for enrichment-backfill candidate media.
   ///
-  /// Used by the enrichment backfill (issue #511): photos linked before the
-  /// profile-marker feature never had enrichment computed, so their markers
-  /// don't render. Restricting to profiled dives keeps the backfill
-  /// self-terminating — every candidate the enrichment service can process
-  /// gets a row and drops out of this query.
-  Future<List<String>> diveIdsNeedingEnrichmentBackfill() async {
+  /// Media that is dive-linked, timestamped, not an instructor signature, has
+  /// no enrichment row, sits on a dive with a primary profile, and has not been
+  /// recorded in the maintenance ledger for this task. Restricting to these
+  /// keeps the backfill self-terminating: every candidate either gets an
+  /// enrichment row or is marked in the ledger, so it drops out.
+  static const String _enrichmentCandidateWhere = '''
+      m.dive_id IS NOT NULL
+      AND m.taken_at IS NOT NULL
+      AND m.file_type != 'instructor_signature'
+      AND NOT EXISTS (
+        SELECT 1 FROM media_enrichment e WHERE e.media_id = m.id
+      )
+      AND EXISTS (
+        SELECT 1 FROM dive_profiles p
+        WHERE p.dive_id = m.dive_id AND p.is_primary = 1
+      )
+      AND NOT EXISTS (
+        SELECT 1 FROM maintenance_processed mp
+        WHERE mp.task_name = 'photo-enrichment-backfill'
+          AND mp.entity_id = m.id
+      )
+  ''';
+
+  /// Cheap count of remaining enrichment-backfill candidate media (issue #524).
+  Future<int> countEnrichmentBackfillCandidates() async {
+    try {
+      final row = await _db
+          .customSelect(
+            'SELECT COUNT(*) AS c FROM media m WHERE $_enrichmentCandidateWhere',
+          )
+          .getSingle();
+      return row.read<int>('c');
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to count enrichment backfill candidates',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Distinct dives that have enrichment-backfill candidate media, each with
+  /// its effective start time (entry time, else dive date-time) in epoch ms.
+  Future<List<({String diveId, int diveStartMs})>>
+  divesNeedingEnrichmentBackfill() async {
     try {
       final rows = await _db.customSelect('''
-        SELECT DISTINCT m.dive_id AS dive_id
+        SELECT DISTINCT m.dive_id AS dive_id,
+               COALESCE(d.entry_time, d.dive_date_time) AS start_ms
         FROM media m
-        WHERE m.dive_id IS NOT NULL
-          AND m.taken_at IS NOT NULL
-          AND m.file_type != 'instructor_signature'
-          AND NOT EXISTS (
-            SELECT 1 FROM media_enrichment e WHERE e.media_id = m.id
-          )
-          AND EXISTS (
-            SELECT 1 FROM dive_profiles p
-            WHERE p.dive_id = m.dive_id AND p.is_primary = 1
-          )
+        JOIN dives d ON d.id = m.dive_id
+        WHERE $_enrichmentCandidateWhere
       ''').get();
-      return rows.map((row) => row.data['dive_id'] as String).toList();
+      return rows
+          .map(
+            (r) => (
+              diveId: r.read<String>('dive_id'),
+              diveStartMs: r.read<int>('start_ms'),
+            ),
+          )
+          .toList();
     } catch (e, stackTrace) {
       _log.error(
         'Failed to list dives needing enrichment backfill',
@@ -637,6 +678,55 @@ class MediaRepository {
       );
       rethrow;
     }
+  }
+
+  /// Candidate media on a single dive, mapped like [getMediaForDive] so
+  /// [domain.MediaItem.takenAt] keeps its wall-clock semantics. Excludes media
+  /// already recorded in the maintenance ledger for this task.
+  Future<List<domain.MediaItem>> candidateEnrichmentMediaForDive(
+    String diveId,
+  ) async {
+    try {
+      final query =
+          _db.select(_db.media).join([
+              leftOuterJoin(
+                _db.mediaEnrichment,
+                _db.mediaEnrichment.mediaId.equalsExp(_db.media.id),
+              ),
+            ])
+            ..where(_db.media.diveId.equals(diveId))
+            ..where(_db.media.takenAt.isNotNull())
+            ..where(_db.media.fileType.isNotValue('instructor_signature'))
+            ..where(_db.mediaEnrichment.id.isNull()) // no enrichment row yet
+            ..orderBy([OrderingTerm.asc(_db.media.takenAt)]);
+
+      final rows = await query.get();
+      final ledgered = await _ledgeredMediaIds();
+      final result = <domain.MediaItem>[];
+      for (final row in rows) {
+        final mediaRow = row.readTable(_db.media);
+        if (ledgered.contains(mediaRow.id)) continue;
+        result.add(_mapRowToMediaItem(mediaRow, null));
+      }
+      return result;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to load candidate enrichment media for dive: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  Future<Set<String>> _ledgeredMediaIds() async {
+    final rows = await _db
+        .customSelect(
+          'SELECT entity_id FROM maintenance_processed WHERE task_name = ?',
+          variables: [Variable.withString(_enrichmentTaskName)],
+        )
+        .get();
+    return rows.map((r) => r.read<String>('entity_id')).toSet();
   }
 
   /// Get the set of platformAssetIds already linked to a specific dive.
