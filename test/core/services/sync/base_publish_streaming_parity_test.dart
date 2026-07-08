@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
@@ -54,6 +54,28 @@ Future<void> _seedRich() async {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  // exportBaseToTempFile now defaults to path_provider's getTemporaryDirectory
+  // (app-container temp, not /tmp -- issue #509). These calls do not inject a
+  // tempDir, so mock the channel to a real writable dir.
+  late Directory fakeAppTemp;
+  setUpAll(() async {
+    fakeAppTemp = await Directory.systemTemp.createTemp('parity_app_temp_');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+          const MethodChannel('plugins.flutter.io/path_provider'),
+          (call) async =>
+              call.method == 'getTemporaryDirectory' ? fakeAppTemp.path : null,
+        );
+  });
+  tearDownAll(() async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+          const MethodChannel('plugins.flutter.io/path_provider'),
+          null,
+        );
+    if (fakeAppTemp.existsSync()) await fakeAppTemp.delete(recursive: true);
+  });
 
   setUp(() async {
     await setUpTestDatabase();

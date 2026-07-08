@@ -47,6 +47,15 @@ class LibraryEpochStore {
     await _prefs.remove(_pendingReplaceKey);
   }
 
+  /// Wipe both epoch records. Used by the comprehensive local sync repair: the
+  /// last-accepted marker is the only local sync state a DB reset does not
+  /// touch (it lives in SharedPreferences), so a wedge that survives Reset
+  /// needs this cleared for a true reinstall-equivalent.
+  Future<void> clear() async {
+    await _prefs.remove(_lastAcceptedMarkerKey);
+    await _prefs.remove(_pendingReplaceKey);
+  }
+
   LibraryEpochMarker? _decode(String? raw) {
     if (raw == null) return null;
     try {

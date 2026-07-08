@@ -6,6 +6,7 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 
@@ -727,7 +728,7 @@ class SyncDataSerializer {
     DateTime Function() now = DateTime.now,
     Future<Directory> Function()? tempDir,
   }) async {
-    final dir = await (tempDir?.call() ?? Future.value(Directory.systemTemp));
+    final dir = await (tempDir?.call() ?? resolveSyncTempDir());
     final path =
         '${dir.path}/ssv1_base_${deviceId}_${seq ?? 0}.${_baseTempUuid.v4()}.json';
     final raf = await File(path).open(mode: FileMode.write);

@@ -63,6 +63,18 @@ class _DrivableSyncNotifier extends StateNotifier<SyncState>
   Future<void> resetSyncState() async {}
 
   @override
+  Future<void> repairSync() async {}
+
+  @override
+  Future<void> removeThisDeviceCloudFiles() async {}
+
+  @override
+  Future<void> wipeAllCloudSyncData() async {}
+
+  @override
+  Future<void> rebuildBackendFromThisDevice() async {}
+
+  @override
   Future<void> signOut() async {}
 
   @override

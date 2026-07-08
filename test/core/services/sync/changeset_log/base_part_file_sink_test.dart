@@ -1,11 +1,12 @@
 import 'dart:io';
-import 'dart:typed_data';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_chunker.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_part_file_sink.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   late Directory dir;
   late BasePartFileSink sink;
 
@@ -98,5 +99,54 @@ void main() {
     await sink.deleteQuietly(f.path);
     expect(f.existsSync(), isFalse);
     await sink.deleteQuietly('${dir.path}/does-not-exist'); // no throw
+  });
+
+  // Issue #509: with no injected temp dir, the sink must default to the
+  // app-container temp dir (path_provider's getTemporaryDirectory), NOT
+  // Directory.systemTemp (/tmp on macOS, where a hardened-runtime app is
+  // denied -> PathAccessException errno 1).
+  group('default temp dir', () {
+    late Directory fakeAppTemp;
+
+    setUpAll(() async {
+      fakeAppTemp = await Directory.systemTemp.createTemp('app_temp_');
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel('plugins.flutter.io/path_provider'),
+            (call) async => call.method == 'getTemporaryDirectory'
+                ? fakeAppTemp.path
+                : null,
+          );
+    });
+
+    tearDownAll(() async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel('plugins.flutter.io/path_provider'),
+            null,
+          );
+      if (fakeAppTemp.existsSync()) await fakeAppTemp.delete(recursive: true);
+    });
+
+    test(
+      'assemble writes into the app-container temp dir by default',
+      () async {
+        final defaultSink = BasePartFileSink(); // no injected dir
+        final path = await defaultSink.assemble(
+          name: 'ssv1_base_dev_0',
+          partCount: 1,
+          wholeChecksum: null,
+          partChecksums: const [],
+          downloadPart: (_) async => Uint8List.fromList([1, 2, 3]),
+        );
+        expect(path, isNotNull);
+        expect(
+          path!.startsWith(fakeAppTemp.path),
+          isTrue,
+          reason: 'must not fall back to /tmp (systemTemp)',
+        );
+        await defaultSink.deleteQuietly(path);
+      },
+    );
   });
 }

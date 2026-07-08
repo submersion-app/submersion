@@ -13,6 +13,7 @@ import 'package:submersion/features/backup/presentation/providers/backup_provide
 import 'package:submersion/features/divers/data/repositories/diver_merge_repository.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
+import 'package:submersion/features/settings/presentation/pages/troubleshoot_sync_page.dart';
 import 'package:submersion/features/settings/presentation/widgets/adopt_replaced_library_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/conflict_resolution_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/dropbox_connect_dialog.dart';
@@ -332,61 +333,74 @@ class CloudSyncPage extends ConsumerWidget {
       liveRegion: syncState.status == SyncStatus.syncing,
       child: Card(
         margin: const EdgeInsets.all(16),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  ExcludeSemantics(child: _buildStatusIcon(syncState.status)),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _getStatusTitle(syncState.status),
-                          style: theme.textTheme.titleMedium,
-                        ),
-                        if (syncState.message != null)
+        // On an error, the whole card is a shortcut into Troubleshoot Sync so a
+        // stuck user finds the way out where the error is shown (issue #509).
+        child: InkWell(
+          onTap: syncState.status == SyncStatus.error
+              ? () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const TroubleshootSyncPage(),
+                  ),
+                )
+              : null,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    ExcludeSemantics(child: _buildStatusIcon(syncState.status)),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Text(
-                            syncState.message!,
-                            style: theme.textTheme.bodySmall,
+                            _getStatusTitle(syncState.status),
+                            style: theme.textTheme.titleMedium,
                           ),
-                      ],
+                          if (syncState.message != null)
+                            Text(
+                              syncState.message!,
+                              style: theme.textTheme.bodySmall,
+                            ),
+                        ],
+                      ),
+                    ),
+                    if (syncState.status == SyncStatus.error)
+                      const Icon(Icons.chevron_right),
+                  ],
+                ),
+                if (syncState.status == SyncStatus.syncing &&
+                    syncState.progress != null) ...[
+                  const SizedBox(height: 16),
+                  Semantics(
+                    label:
+                        'Sync progress: ${(syncState.progress! * 100).toStringAsFixed(0)} percent',
+                    child: LinearProgressIndicator(value: syncState.progress),
+                  ),
+                ],
+                if (syncState.lastSync != null) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    'Last synced: ${_formatDateTime(syncState.lastSync!)}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
-              ),
-              if (syncState.status == SyncStatus.syncing &&
-                  syncState.progress != null) ...[
-                const SizedBox(height: 16),
-                Semantics(
-                  label:
-                      'Sync progress: ${(syncState.progress! * 100).toStringAsFixed(0)} percent',
-                  child: LinearProgressIndicator(value: syncState.progress),
-                ),
-              ],
-              if (syncState.lastSync != null) ...[
-                const SizedBox(height: 12),
-                Text(
-                  'Last synced: ${_formatDateTime(syncState.lastSync!)}',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                if (syncState.pendingChanges > 0) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    '${syncState.pendingChanges} pending change${syncState.pendingChanges == 1 ? '' : 's'}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.primary,
+                    ),
                   ),
-                ),
+                ],
               ],
-              if (syncState.pendingChanges > 0) ...[
-                const SizedBox(height: 4),
-                Text(
-                  '${syncState.pendingChanges} pending change${syncState.pendingChanges == 1 ? '' : 's'}',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
-              ],
-            ],
+            ),
           ),
         ),
       ),
@@ -1169,6 +1183,10 @@ class CloudSyncPage extends ConsumerWidget {
   }
 
   Widget _buildAdvancedSection(BuildContext context, WidgetRef ref) {
+    // Recovery resets sync identity/cursors and cloud files; doing that while a
+    // sync is writing races it. Disable the entry during an active sync, as the
+    // former "Reset Sync State" tile did. A sync ERROR (the banner route) is not
+    // `syncing`, so a stuck-error user can still reach Troubleshoot.
     final isSyncing = ref.watch(syncStateProvider).status == SyncStatus.syncing;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1183,11 +1201,17 @@ class CloudSyncPage extends ConsumerWidget {
           ),
         ),
         ListTile(
-          leading: const Icon(Icons.refresh),
-          title: const Text('Reset Sync State'),
-          subtitle: const Text('Clear sync history and start fresh'),
+          leading: const Icon(Icons.build),
+          title: const Text('Troubleshoot Sync'),
+          subtitle: const Text('Fix a stuck sync or free cloud space'),
           enabled: !isSyncing,
-          onTap: isSyncing ? null : () => _confirmResetSyncState(context, ref),
+          onTap: isSyncing
+              ? null
+              : () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const TroubleshootSyncPage(),
+                  ),
+                ),
         ),
         ListTile(
           leading: const Icon(Icons.logout),
@@ -1241,42 +1265,6 @@ class CloudSyncPage extends ConsumerWidget {
     );
     if (confirmed == true) {
       await notifier.performSync();
-    }
-  }
-
-  Future<void> _confirmResetSyncState(
-    BuildContext context,
-    WidgetRef ref,
-  ) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Reset Sync State?'),
-        content: const Text(
-          'This will clear sync history and give this device a new '
-          'sync identity. Your data is not deleted, and the record of '
-          'past deletions is kept so deleted items do not come back.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Reset'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true) {
-      await ref.read(syncStateProvider.notifier).resetSyncState();
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Sync state reset')));
-      }
     }
   }
 

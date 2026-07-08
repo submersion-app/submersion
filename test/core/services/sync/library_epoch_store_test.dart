@@ -38,6 +38,19 @@ void main() {
     expect(store.pendingReplace, isNull);
   });
 
+  test(
+    'clear() removes both the last-accepted and pending-replace markers',
+    () async {
+      await store.setLastAccepted(marker);
+      await store.setPendingReplace(marker);
+
+      await store.clear();
+
+      expect(store.lastAcceptedMarker, isNull);
+      expect(store.pendingReplace, isNull);
+    },
+  );
+
   test('corrupt stored JSON reads as null', () async {
     SharedPreferences.setMockInitialValues({
       'sync_last_accepted_epoch_marker': 'not json',

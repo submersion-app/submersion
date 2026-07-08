@@ -14,6 +14,7 @@ import 'package:submersion/core/services/sync/changeset_log/base_json_stream_rea
 import 'package:submersion/core/services/sync/changeset_log/base_parse_client.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_part_file_sink.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_codec.dart';
+import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_reader.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_writer.dart';
@@ -637,13 +638,67 @@ class SyncService {
       'Epoch ${marker.epochId} has no readable library; re-establishing this '
       'backend from the local library',
     );
+    await _reestablishEpochFromLocalLibrary(provider, marker);
+    return true;
+  }
+
+  /// Make THIS device's library the authoritative base for [marker]'s epoch:
+  /// wipe the (unreadable/incomplete) sync files, drop this backend's publish
+  /// and peer state so the next sync republishes a full base, and accept the
+  /// epoch locally. Shared by the automatic unreadable-epoch recovery and the
+  /// user-driven [rebuildBackendFromThisDevice].
+  Future<void> _reestablishEpochFromLocalLibrary(
+    CloudStorageProvider provider,
+    LibraryEpochMarker marker,
+  ) async {
     await deleteAllSyncFiles(provider);
     final db = DatabaseService.instance.database;
     await PublishStateStore(db).resetForProvider(provider.providerId);
     await PeerCursorStore(db).resetForProvider(provider.providerId);
     await _syncRepository.setLastAcceptedEpochId(marker.epochId);
-    await epochStore.setLastAccepted(marker);
-    return true;
+    await _epochStore?.setLastAccepted(marker);
+  }
+
+  /// User-driven escape from a stuck library replacement (issue #509): the
+  /// device that ran "Replace everywhere" went offline before uploading the new
+  /// base, so every other device waits forever on "still uploading". This
+  /// forces the re-establish that [_recoverUnreadableEpoch] defers during its
+  /// grace window: THIS device's library becomes the epoch's authoritative
+  /// base, and the caller's follow-up sync publishes it. Peers then adopt from
+  /// us instead of the offline device.
+  Future<SyncResult> rebuildBackendFromThisDevice() async {
+    final provider = _cloudProvider;
+    if (provider == null) {
+      return const SyncResult(
+        status: SyncResultStatus.error,
+        message: 'No cloud provider configured',
+      );
+    }
+    final marker = await readLibraryEpochMarker(provider);
+    if (marker == null) {
+      return const SyncResult(
+        status: SyncResultStatus.error,
+        message: 'No library replacement to rebuild from',
+      );
+    }
+    try {
+      await _reestablishEpochFromLocalLibrary(provider, marker);
+      _log.info('Rebuilt backend from this device for epoch ${marker.epochId}');
+      return const SyncResult(
+        status: SyncResultStatus.success,
+        message: 'Rebuilt this backend from this device’s library',
+      );
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to rebuild backend from this device',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return SyncResult(
+        status: SyncResultStatus.error,
+        message: 'Rebuild failed: $e',
+      );
+    }
   }
 
   /// True if any device has published a current-format (ssv1) base for
@@ -2004,6 +2059,43 @@ class SyncService {
     _log.info('Sync state reset');
   }
 
+  /// Comprehensive local sync reset: everything [resetSyncState] clears, PLUS
+  /// the SharedPreferences epoch markers (the one local sync state a DB reset
+  /// misses -- see [LibraryEpochStore.clear]) and any leftover base temp files.
+  /// A true reinstall-equivalent for sync state that never touches dive data.
+  /// The notifier-level caller still runs the identity/cloud-file cleanup.
+  Future<void> repairLocalSyncState() async {
+    await resetSyncState();
+    await _epochStore?.clear();
+    await deleteLeftoverBaseTempFiles();
+    _log.info('Local sync state repaired');
+  }
+
+  /// Best-effort sweep of leftover streaming-base temp files (base export
+  /// base export `ssv1_base_*.json` and assembled `ssv1_*.base` / `ssv1_adopt_*`
+  /// parts) from the app temp dir. Every sync temp file is prefixed `ssv1_`, so
+  /// the sweep matches ONLY that prefix -- never an unrelated app temp file
+  /// (the dir is a shared, general-purpose temp location). Failure is logged
+  /// and ignored; a stale temp file is harmless.
+  Future<void> deleteLeftoverBaseTempFiles() async {
+    try {
+      final dir = await resolveSyncTempDir();
+      await for (final entity in dir.list(followLinks: false)) {
+        if (entity is! File) continue;
+        final name = entity.uri.pathSegments.last;
+        if (name.startsWith('ssv1_')) {
+          try {
+            await entity.delete();
+          } catch (_) {
+            // best effort
+          }
+        }
+      }
+    } catch (e) {
+      _log.warning('Could not sweep leftover base temp files: $e');
+    }
+  }
+
   /// Best-effort removal of [deviceId]'s entire changeset log from the cloud
   /// (manifest, base parts, changesets). Used when this install retires an
   /// identity (Reset Sync State): once the device id changes, its old log would
@@ -2055,6 +2147,39 @@ class SyncService {
         _log.warning('Could not list sync files for replace wipe: $e');
       }
     }
+  }
+
+  /// Delete EVERY sync artifact on [provider], INCLUDING the library epoch and
+  /// moved markers that [deleteAllSyncFiles] intentionally preserves. A genuine
+  /// fresh start (issue #509, cloud clear 3b): every device re-establishes from
+  /// scratch. Best-effort; failures are logged and skipped.
+  Future<void> wipeAllSyncData(CloudStorageProvider provider) async {
+    await deleteAllSyncFiles(provider);
+    for (final pattern in [libraryEpochFileName, libraryMovedFileName]) {
+      try {
+        final markers = await provider
+            .listFiles(namePattern: pattern)
+            .timeout(const Duration(seconds: 8));
+        for (final f in markers) {
+          try {
+            await provider.deleteFile(f.id).timeout(const Duration(seconds: 8));
+            _log.info('Deleted marker ${f.name} for full sync wipe');
+          } catch (e) {
+            _log.warning('Could not delete marker ${f.name}: $e');
+          }
+        }
+      } catch (e) {
+        _log.warning('Could not list markers for full sync wipe: $e');
+      }
+    }
+  }
+
+  /// Wipe all sync data on the active provider (issue #509, cloud clear 3b).
+  /// No-op when no provider is configured.
+  Future<void> wipeAllSyncDataOnActiveProvider() async {
+    final provider = _cloudProvider;
+    if (provider == null) return;
+    await wipeAllSyncData(provider);
   }
 
   /// Execute the cloud side of a Replace restore: write the new epoch marker
