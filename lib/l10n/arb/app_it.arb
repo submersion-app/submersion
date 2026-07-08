@@ -1698,6 +1698,8 @@
   "diveLog_sighting_notesOptional": "Note (opzionale)",
   "diveLog_sitePicker_addDiveSite": "Aggiungi sito di immersione",
   "diveLog_sitePicker_distanceKm": "{distance} km di distanza",
+  "diveLog_sitePicker_distanceAway": "{distance} di distanza",
+  "diveLog_sitePicker_sortedByDiveDistance": "Ordinati per distanza da questa immersione",
   "diveLog_sitePicker_distanceMeters": "{distance} m di distanza",
   "diveLog_sitePicker_errorLoading": "Errore nel caricamento dei siti: {error}",
   "diveLog_sitePicker_newDiveSite": "Nuovo sito di immersione",

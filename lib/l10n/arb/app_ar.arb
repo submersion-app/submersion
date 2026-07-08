@@ -1732,6 +1732,8 @@
   "diveLog_sighting_notesOptional": "ملاحظات (اختياري)",
   "diveLog_sitePicker_addDiveSite": "إضافة موقع غوص",
   "diveLog_sitePicker_distanceKm": "{distance} km بعيداً",
+  "diveLog_sitePicker_distanceAway": "{distance} بعيداً",
+  "diveLog_sitePicker_sortedByDiveDistance": "مرتبة حسب المسافة من هذه الغطسة",
   "diveLog_sitePicker_distanceMeters": "{distance} m بعيداً",
   "diveLog_sitePicker_errorLoading": "خطأ في تحميل المواقع: {error}",
   "diveLog_sitePicker_newDiveSite": "موقع غوص جديد",

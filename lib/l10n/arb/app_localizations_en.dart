@@ -5308,6 +5308,15 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String diveLog_sitePicker_distanceAway(String distance) {
+    return '$distance away';
+  }
+
+  @override
+  String get diveLog_sitePicker_sortedByDiveDistance =>
+      'Sorted by distance from this dive';
+
+  @override
   String diveLog_sitePicker_distanceMeters(Object distance) {
     return '$distance m away';
   }

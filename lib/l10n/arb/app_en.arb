@@ -2744,6 +2744,8 @@
   "diveLog_sighting_notesOptional": "Notes (optional)",
   "diveLog_sitePicker_addDiveSite": "Add Dive Site",
   "diveLog_sitePicker_distanceKm": "{distance} km away",
+  "diveLog_sitePicker_distanceAway": "{distance} away",
+  "diveLog_sitePicker_sortedByDiveDistance": "Sorted by distance from this dive",
   "diveLog_sitePicker_distanceMeters": "{distance} m away",
   "diveLog_sitePicker_errorLoading": "Error loading sites: {error}",
   "diveLog_sitePicker_newDiveSite": "New Dive Site",
@@ -3324,6 +3326,15 @@
         "type": "Object"
       }
     }
+  },
+  "@diveLog_sitePicker_distanceAway": {
+    "description": "A site's distance from the reference point; {distance} already includes the unit, e.g. '1.2 km' or '800 ft'",
+    "placeholders": {
+      "distance": { "type": "String", "example": "1.2 km" }
+    }
+  },
+  "@diveLog_sitePicker_sortedByDiveDistance": {
+    "description": "Site picker header shown when sites are sorted by distance from the edited dive's GPS position"
   },
   "@diveLog_sitePicker_distanceKm": {
     "placeholders": {

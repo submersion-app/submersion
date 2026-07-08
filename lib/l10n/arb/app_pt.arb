@@ -1732,6 +1732,8 @@
   "diveLog_sighting_notesOptional": "Observacoes (opcional)",
   "diveLog_sitePicker_addDiveSite": "Adicionar Ponto de Mergulho",
   "diveLog_sitePicker_distanceKm": "{distance} km de distancia",
+  "diveLog_sitePicker_distanceAway": "{distance} de distância",
+  "diveLog_sitePicker_sortedByDiveDistance": "Ordenado por distância deste mergulho",
   "diveLog_sitePicker_distanceMeters": "{distance} m de distancia",
   "diveLog_sitePicker_errorLoading": "Erro ao carregar pontos: {error}",
   "diveLog_sitePicker_newDiveSite": "Novo Ponto de Mergulho",

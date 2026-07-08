@@ -5389,6 +5389,15 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String diveLog_sitePicker_distanceAway(String distance) {
+    return '$distance távolságra';
+  }
+
+  @override
+  String get diveLog_sitePicker_sortedByDiveDistance =>
+      'Távolság szerint rendezve ettől a merüléstől';
+
+  @override
   String diveLog_sitePicker_distanceMeters(Object distance) {
     return '$distance m tavolsagra';
   }

@@ -1698,6 +1698,8 @@
   "diveLog_sighting_notesOptional": "Megjegyzesek (opcionalis)",
   "diveLog_sitePicker_addDiveSite": "Merulohely hozzaadasa",
   "diveLog_sitePicker_distanceKm": "{distance} km tavolsagra",
+  "diveLog_sitePicker_distanceAway": "{distance} távolságra",
+  "diveLog_sitePicker_sortedByDiveDistance": "Távolság szerint rendezve ettől a merüléstől",
   "diveLog_sitePicker_distanceMeters": "{distance} m tavolsagra",
   "diveLog_sitePicker_errorLoading": "Hiba a helyszinek betoltesekor: {error}",
   "diveLog_sitePicker_newDiveSite": "Uj merulohely",

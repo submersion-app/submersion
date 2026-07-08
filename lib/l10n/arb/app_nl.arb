@@ -1732,6 +1732,8 @@
   "diveLog_sighting_notesOptional": "Notities (optioneel)",
   "diveLog_sitePicker_addDiveSite": "Duikstek toevoegen",
   "diveLog_sitePicker_distanceKm": "{distance} km afstand",
+  "diveLog_sitePicker_distanceAway": "{distance} afstand",
+  "diveLog_sitePicker_sortedByDiveDistance": "Gesorteerd op afstand tot deze duik",
   "diveLog_sitePicker_distanceMeters": "{distance} m afstand",
   "diveLog_sitePicker_errorLoading": "Fout bij laden van stekken: {error}",
   "diveLog_sitePicker_newDiveSite": "Nieuwe duikstek",

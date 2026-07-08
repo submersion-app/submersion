@@ -5260,6 +5260,15 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String diveLog_sitePicker_distanceAway(String distance) {
+    return '$distance משם';
+  }
+
+  @override
+  String get diveLog_sitePicker_sortedByDiveDistance =>
+      'ממוין לפי מרחק מהצלילה הזו';
+
+  @override
   String diveLog_sitePicker_distanceMeters(Object distance) {
     return '$distance m משם';
   }

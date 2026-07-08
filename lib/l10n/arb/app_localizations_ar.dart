@@ -5286,6 +5286,15 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String diveLog_sitePicker_distanceAway(String distance) {
+    return '$distance بعيداً';
+  }
+
+  @override
+  String get diveLog_sitePicker_sortedByDiveDistance =>
+      'مرتبة حسب المسافة من هذه الغطسة';
+
+  @override
   String diveLog_sitePicker_distanceMeters(Object distance) {
     return '$distance m بعيداً';
   }

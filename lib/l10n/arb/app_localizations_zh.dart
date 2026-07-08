@@ -5150,6 +5150,14 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String diveLog_sitePicker_distanceAway(String distance) {
+    return '距离 $distance';
+  }
+
+  @override
+  String get diveLog_sitePicker_sortedByDiveDistance => '按与本次潜水的距离排序';
+
+  @override
   String diveLog_sitePicker_distanceMeters(Object distance) {
     return '距离 $distance 米';
   }

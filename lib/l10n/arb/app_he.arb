@@ -1698,6 +1698,8 @@
   "diveLog_sighting_notesOptional": "הערות (אופציונלי)",
   "diveLog_sitePicker_addDiveSite": "הוסף אתר צלילה",
   "diveLog_sitePicker_distanceKm": "{distance} km משם",
+  "diveLog_sitePicker_distanceAway": "{distance} משם",
+  "diveLog_sitePicker_sortedByDiveDistance": "ממוין לפי מרחק מהצלילה הזו",
   "diveLog_sitePicker_distanceMeters": "{distance} m משם",
   "diveLog_sitePicker_errorLoading": "שגיאה בטעינת אתרים: {error}",
   "diveLog_sitePicker_newDiveSite": "אתר צלילה חדש",

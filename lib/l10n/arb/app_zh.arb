@@ -1862,6 +1862,8 @@
   "diveLog_sighting_notesOptional": "备注（可选）",
   "diveLog_sitePicker_addDiveSite": "添加潜水点",
   "diveLog_sitePicker_distanceKm": "距离 {distance} 公里",
+  "diveLog_sitePicker_distanceAway": "距离 {distance}",
+  "diveLog_sitePicker_sortedByDiveDistance": "按与本次潜水的距离排序",
   "diveLog_sitePicker_distanceMeters": "距离 {distance} 米",
   "diveLog_sitePicker_errorLoading": "加载潜水点出错：{error}",
   "diveLog_sitePicker_newDiveSite": "新潜水点",

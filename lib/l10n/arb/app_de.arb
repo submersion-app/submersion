@@ -1732,6 +1732,8 @@
   "diveLog_sighting_notesOptional": "Notizen (optional)",
   "diveLog_sitePicker_addDiveSite": "Tauchplatz hinzufügen",
   "diveLog_sitePicker_distanceKm": "{distance} km entfernt",
+  "diveLog_sitePicker_distanceAway": "{distance} entfernt",
+  "diveLog_sitePicker_sortedByDiveDistance": "Nach Entfernung zu diesem Tauchgang sortiert",
   "diveLog_sitePicker_distanceMeters": "{distance} m entfernt",
   "diveLog_sitePicker_errorLoading": "Fehler beim Laden der Plätze: {error}",
   "diveLog_sitePicker_newDiveSite": "Neuer Tauchplatz",

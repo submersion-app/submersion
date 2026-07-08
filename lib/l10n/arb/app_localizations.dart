@@ -9146,6 +9146,18 @@ abstract class AppLocalizations {
   /// **'{distance} km away'**
   String diveLog_sitePicker_distanceKm(Object distance);
 
+  /// A site's distance from the reference point; {distance} already includes the unit, e.g. '1.2 km' or '800 ft'
+  ///
+  /// In en, this message translates to:
+  /// **'{distance} away'**
+  String diveLog_sitePicker_distanceAway(String distance);
+
+  /// Site picker header shown when sites are sorted by distance from the edited dive's GPS position
+  ///
+  /// In en, this message translates to:
+  /// **'Sorted by distance from this dive'**
+  String get diveLog_sitePicker_sortedByDiveDistance;
+
   /// No description provided for @diveLog_sitePicker_distanceMeters.
   ///
   /// In en, this message translates to:

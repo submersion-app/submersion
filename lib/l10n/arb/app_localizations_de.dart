@@ -5401,6 +5401,15 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String diveLog_sitePicker_distanceAway(String distance) {
+    return '$distance entfernt';
+  }
+
+  @override
+  String get diveLog_sitePicker_sortedByDiveDistance =>
+      'Nach Entfernung zu diesem Tauchgang sortiert';
+
+  @override
   String diveLog_sitePicker_distanceMeters(Object distance) {
     return '$distance m entfernt';
   }
