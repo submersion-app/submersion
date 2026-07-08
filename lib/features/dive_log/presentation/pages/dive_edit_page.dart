@@ -1925,6 +1925,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   }
 
   Future<void> _showSitePicker() async {
+    final anchor = _existingDive?.entryLocation ?? _existingDive?.exitLocation;
     final result = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
@@ -1937,6 +1938,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           scrollController: scrollController,
           selectedSiteId: _selectedSite?.id,
           currentLocation: _currentLocation,
+          diveLocation: anchor,
           onSiteSelected: (site) {
             _markDirty();
             setState(() => _selectedSite = site);
@@ -1950,7 +1952,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     );
 
     if (result == _createNewSiteSentinel && mounted) {
-      final siteId = await context.push<String>('/sites/new');
+      final siteId = await context.push<String>('/sites/new', extra: anchor);
       if (siteId != null && mounted) {
         final repo = ref.read(siteRepositoryProvider);
         final site = await repo.getSiteById(siteId);
