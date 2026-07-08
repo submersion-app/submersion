@@ -69,7 +69,9 @@ void main() {
     await profiledDive('d1');
     await photo('m1', 'd1');
     await photo('m2', 'd1');
-    await ledger.markProcessed('photo-enrichment-backfill', ['m1']);
+    await ledger.markProcessed(MediaRepository.enrichmentBackfillTaskName, [
+      'm1',
+    ]);
 
     expect(await media.countEnrichmentBackfillCandidates(), 1);
     expect(
