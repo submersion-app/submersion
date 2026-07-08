@@ -152,6 +152,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
   }
 
   Future<void> _geocodeSeed(GeoPoint loc) async {
+    if (!mounted) return;
     final result = await ref
         .read(locationServiceProvider)
         .reverseGeocode(loc.latitude, loc.longitude);
