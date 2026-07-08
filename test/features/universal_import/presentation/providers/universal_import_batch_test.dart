@@ -8,6 +8,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:file_picker/src/platform/file_picker_platform_interface.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -43,7 +44,7 @@ class _FakeFilePicker extends FilePickerPlatform
     if (paths == null) return null;
     return FilePickerResult([
       for (final path in paths)
-        PlatformFile(path: path, name: path.split('/').last, size: 0),
+        PlatformFile(path: path, name: p.basename(path), size: 0),
     ]);
   }
 

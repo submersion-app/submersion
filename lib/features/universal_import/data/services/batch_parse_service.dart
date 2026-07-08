@@ -107,8 +107,8 @@ class BatchParseService {
 }
 
 /// Recursively list files under [dirPath] whose extension is importable.
-/// Hidden directories (dot-prefixed) are skipped. Results sorted by path
-/// for a stable batch order.
+/// Any entry with a dot-prefixed path segment -- hidden files or directories --
+/// is skipped. Results sorted by path for a stable batch order.
 Future<List<String>> scanFolderForImportableFiles(String dirPath) async {
   final paths = <String>[];
   await for (final entity in Directory(
