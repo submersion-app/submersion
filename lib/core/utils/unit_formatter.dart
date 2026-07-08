@@ -43,6 +43,31 @@ class UnitFormatter {
     return '${converted.toStringAsFixed(decimals)}${settings.depthUnit.symbol}';
   }
 
+  /// Format a geographic distance (meters) for site lists and pickers.
+  ///
+  /// Unlike [formatDistance] (depth-unit m/ft, for short surface drift), this
+  /// auto-scales across the full range of site distances and respects the
+  /// diver's metric/imperial preference (derived from depth unit): metric -> m
+  /// under 1 km else km; imperial -> ft under 1 mile else mi. Unit symbols are
+  /// latin (m/km/ft/mi), consistent with [formatDepth].
+  String formatGeoDistance(double meters) {
+    final isMetric = settings.depthUnit == DepthUnit.meters;
+    if (isMetric) {
+      if (meters < 1000) return '${meters.round()} m';
+      final km = meters / 1000;
+      final text = km < 10 ? km.toStringAsFixed(1) : km.round().toString();
+      return '$text km';
+    }
+    final feet = meters * 3.28084;
+    const feetPerMile = 5280.0;
+    if (feet < feetPerMile) return '${feet.round()} ft';
+    final miles = feet / feetPerMile;
+    final text = miles < 10
+        ? miles.toStringAsFixed(1)
+        : miles.round().toString();
+    return '$text mi';
+  }
+
   // ============================================================================
   // Temperature
   // ============================================================================
