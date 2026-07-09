@@ -2613,12 +2613,33 @@ class SyncDataSerializer {
   /// `active_diver_id`) are preserved: they are never part of a synced or
   /// replaced library, so an adopt must not wipe them (they are also excluded
   /// from the base by [_exportSettings], so re-insert would not restore them).
+  ///
+  /// Built-in reference rows are preserved for the same reason:
+  /// [_exportDiveTypes], [_exportSpecies] and [_exportFieldPresets] all omit
+  /// `isBuiltIn` rows, so the refill that follows this clear cannot put them
+  /// back. Deleting them would leave the catalog permanently empty.
   Future<void> deleteAllRecords(String entityType) async {
-    if (entityType == 'settings') {
-      await (_db.delete(
-        _db.settings,
-      )..where((t) => t.key.isNotIn(_deviceLocalSettingsKeys.toList()))).go();
-      return;
+    switch (entityType) {
+      case 'settings':
+        await (_db.delete(
+          _db.settings,
+        )..where((t) => t.key.isNotIn(_deviceLocalSettingsKeys.toList()))).go();
+        return;
+      case 'diveTypes':
+        await (_db.delete(
+          _db.diveTypes,
+        )..where((t) => t.isBuiltIn.equals(false))).go();
+        return;
+      case 'species':
+        await (_db.delete(
+          _db.species,
+        )..where((t) => t.isBuiltIn.equals(false))).go();
+        return;
+      case 'fieldPresets':
+        await (_db.delete(
+          _db.fieldPresets,
+        )..where((t) => t.isBuiltIn.equals(false))).go();
+        return;
     }
     await _db.delete(_syncTableFor(entityType)).go();
   }
