@@ -483,7 +483,7 @@ class TripMediaScanner {
           dive.exitLocation?.longitude ??
           dive.site?.location?.longitude;
       if (longitude == null) continue;
-      final hours = (longitude / 15).round().clamp(-12, 14);
+      final hours = (longitude / 15).round().clamp(-12, 14).toInt();
       offsets.add(Duration(hours: hours));
     }
     return offsets;
