@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -31,12 +32,24 @@ String _canonical(Map<String, dynamic> dataJson) {
   return jsonEncode(out);
 }
 
+/// `exportData` omits built-in reference rows, so a snapshot built only from it
+/// is blind to precisely the rows an adopt's table-clear destroys: the two paths
+/// once diverged there (streaming wiped built-in dive types, in-memory kept
+/// them) while this comparison stayed green. Fold them in explicitly.
 Future<String> _dump() async {
   final export = await SyncDataSerializer().exportData(
     deviceId: 'snapshot',
     deletions: const [],
   );
-  return _canonical(export.data.toJson());
+  final json = export.data.toJson();
+  final db = DatabaseService.instance.database;
+  final builtIns = await (db.select(
+    db.diveTypes,
+  )..where((t) => t.isBuiltIn.equals(true))).get();
+  json['builtInDiveTypes'] = [
+    for (final t in builtIns) {'id': t.id, 'name': t.name},
+  ];
+  return _canonical(json);
 }
 
 SyncService _svc() => SyncService(

@@ -4984,6 +4984,22 @@ class AppDatabase extends _$AppDatabase {
         // Enable foreign keys
         await customStatement('PRAGMA foreign_keys = ON');
 
+        // Built-in dive types are reference data: identical on every device and
+        // undeletable through DiveTypeRepository. Nothing else restores them --
+        // the seed runs only in onCreate and the one-shot v93 step -- yet a
+        // replace-adopt clears dive_types and refills from a payload that omits
+        // built-ins, and a library copied from an already-empty device carries
+        // the hole with it. Re-assert on every open, mirroring the built-in
+        // species seed. INSERT OR IGNORE is idempotent, and the stable slug ids
+        // are exactly what dive_dive_types references, so orphaned junction
+        // rows resolve again.
+        final diveTypesTable = await customSelect(
+          "SELECT name FROM sqlite_master WHERE type='table' AND name='dive_types'",
+        ).get();
+        if (diveTypesTable.isNotEmpty) {
+          await customStatement(kSeedBuiltInDiveTypesSql);
+        }
+
         // Backstop for schema-version collisions (issue #395; same disease
         // as the v77/v82/v83 sync-branch incidents): a parallel branch build
         // that claims the same schema version can advance user_version past
