@@ -87,6 +87,20 @@ object LibdcWrapper {
     // Raw dive data access
     external fun nativeGetDiveRawData(divePtr: Long): ByteArray?
     external fun nativeGetDiveRawFingerprint(divePtr: Long): ByteArray?
+
+    // Standalone raw dive parsing (re-parse of archived bytes).
+    // nativeParseRawDive returns a libdc_parsed_dive_t* as a Long, or 0 on
+    // failure, in which case errorBuf receives a NUL-terminated message.
+    // The returned handle must be released with nativeParsedDiveFree.
+    external fun nativeParseRawDive(
+        vendor: String,
+        product: String,
+        model: Int,
+        data: ByteArray,
+        errorBuf: ByteArray
+    ): Long
+
+    external fun nativeParsedDiveFree(divePtr: Long)
 }
 
 // Mutable data class for receiving descriptor info from JNI.

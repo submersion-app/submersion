@@ -3,6 +3,7 @@
 
 #include <jni.h>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <android/log.h>
 
@@ -1098,4 +1099,71 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeGetDiveRawFingerprint(
     env->SetByteArrayRegion(arr, 0, static_cast<jint>(dive->raw_fingerprint_size),
         reinterpret_cast<const jbyte *>(dive->raw_fingerprint));
     return arr;
+}
+
+// ============================================================
+// Standalone Raw Dive Parsing
+// ============================================================
+
+// Releases a dive allocated by nativeParseRawDive. Inside libdc_parsed_dive_t
+// only `samples` and `events` are heap-allocated; `gasmixes`, `tanks` and
+// `fingerprint` are inline arrays and must not be freed. This is the only
+// place that rule is expressed.
+static void free_parsed_dive(libdc_parsed_dive_t *dive) {
+    if (dive == nullptr) return;
+    free(dive->samples);
+    free(dive->events);
+    free(dive);
+}
+
+extern "C" JNIEXPORT jlong JNICALL
+Java_com_submersion_libdivecomputer_LibdcWrapper_nativeParseRawDive(
+    JNIEnv *env, jclass,
+    jstring vendor, jstring product, jint model,
+    jbyteArray data, jbyteArray errorBuf) {
+
+    // Heap-allocated because Kotlin reads the fields afterwards through the
+    // nativeGetDiveXxx accessors, which need the struct to outlive this call.
+    auto *dive = static_cast<libdc_parsed_dive_t *>(
+        calloc(1, sizeof(libdc_parsed_dive_t)));
+    if (dive == nullptr) return 0;
+
+    const char *vendorStr = env->GetStringUTFChars(vendor, nullptr);
+    const char *productStr = env->GetStringUTFChars(product, nullptr);
+    jsize dataLen = env->GetArrayLength(data);
+    jbyte *dataPtr = env->GetByteArrayElements(data, nullptr);
+
+    char error_buf[256] = {0};
+
+    // model was range-checked in Kotlin against UINT32_MAX before narrowing to
+    // jint, so this reinterprets the bit pattern rather than losing a value.
+    int rc = libdc_parse_raw_dive(
+        vendorStr, productStr, static_cast<unsigned int>(model),
+        reinterpret_cast<const unsigned char *>(dataPtr),
+        static_cast<unsigned int>(dataLen),
+        dive, error_buf, sizeof(error_buf));
+
+    env->ReleaseByteArrayElements(data, dataPtr, JNI_ABORT);
+    env->ReleaseStringUTFChars(vendor, vendorStr);
+    env->ReleaseStringUTFChars(product, productStr);
+
+    if (rc != 0) {
+        if (errorBuf != nullptr && error_buf[0]) {
+            jsize len = env->GetArrayLength(errorBuf);
+            jsize msgLen = static_cast<jsize>(strlen(error_buf));
+            if (msgLen > len) msgLen = len;
+            env->SetByteArrayRegion(errorBuf, 0, msgLen,
+                reinterpret_cast<const jbyte *>(error_buf));
+        }
+        free_parsed_dive(dive);
+        return 0;
+    }
+
+    return reinterpret_cast<jlong>(dive);
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_submersion_libdivecomputer_LibdcWrapper_nativeParsedDiveFree(
+    JNIEnv *, jclass, jlong divePtr) {
+    free_parsed_dive(reinterpret_cast<libdc_parsed_dive_t *>(divePtr));
 }
