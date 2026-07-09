@@ -36,6 +36,12 @@ class DiveComputerHostApiImpl(
         NativeLogger.setFlutterApi(it)
     }
     private val executor = Executors.newSingleThreadExecutor()
+
+    // Re-parsing archived raw bytes runs here rather than on [executor], which
+    // is the download worker: a re-parse must not queue behind an in-flight
+    // BLE download. Never shut down, matching [executor] -- this instance lives
+    // for the process lifetime.
+    private val parseExecutor = Executors.newSingleThreadExecutor()
     private val mainHandler = Handler(Looper.getMainLooper())
     private var bleScanner: BleScanner? = null
     private var downloadSessionPtr: Long = 0
@@ -676,10 +682,57 @@ class DiveComputerHostApiImpl(
         data: ByteArray,
         callback: (Result<ParsedDive>) -> Unit
     ) {
-        callback(Result.failure(
-            FlutterError("UNSUPPORTED",
-                "Raw dive parsing not yet implemented on Android",
+        // Guard before touching any external fun: on a 16 KB-page device the
+        // native library never loaded (issue #318) and the JNI call would throw
+        // UnsatisfiedLinkError on the executor thread, killing the process.
+        val loadError = LibdcWrapper.loadError
+        if (loadError != null) {
+            callback(Result.failure(FlutterError(
+                "native_library_unavailable",
+                "Dive computer support could not be loaded on this device " +
+                    "(${loadError.javaClass.simpleName}). Please update Submersion " +
+                    "to the latest version.",
                 null)))
+            return
+        }
+
+        // model crosses Pigeon as an int64 but libdivecomputer expects an
+        // unsigned int descriptor id. Reject out-of-range values up front so a
+        // corrupt model yields a clear error instead of a silently wrapped cast
+        // and a misleading "no descriptor" failure downstream.
+        if (model < 0 || model > 0xFFFFFFFFL) {
+            callback(Result.failure(FlutterError(
+                "PARSE_ERROR",
+                "Invalid dive computer model number: $model",
+                null)))
+            return
+        }
+
+        parseExecutor.execute {
+            val errorBuf = ByteArray(256)
+            val divePtr = LibdcWrapper.nativeParseRawDive(
+                vendor, product, model.toInt(), data, errorBuf
+            )
+
+            if (divePtr == 0L) {
+                val errorMsg = String(errorBuf).trim('\u0000')
+                mainHandler.post {
+                    callback(Result.failure(FlutterError(
+                        "PARSE_ERROR",
+                        "Failed to parse raw dive data: $errorMsg",
+                        null)))
+                }
+                return@execute
+            }
+
+            val parsedDive = try {
+                convertParsedDive(divePtr)
+            } finally {
+                LibdcWrapper.nativeParsedDiveFree(divePtr)
+            }
+
+            mainHandler.post { callback(Result.success(parsedDive)) }
+        }
     }
 
     // MARK: - Version
