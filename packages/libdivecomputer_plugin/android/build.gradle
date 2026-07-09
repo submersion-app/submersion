@@ -42,6 +42,16 @@ android {
 
     defaultConfig {
         minSdk = 21
+        // Without an explicit targetSdk, AGP targets the androidTest APK at
+        // minSdk (21). Anything below 23 runs in permission review mode, where
+        // the system refuses to start a component until the user dismisses a
+        // permission-review dialog -- this manifest declares dangerous
+        // permissions (ACCESS_FINE_LOCATION, BLUETOOTH_CONNECT). That made
+        // DownloadIsolationTest's bindService return true while the :dc process
+        // was never created, so the test timed out waiting for a crash that
+        // could not happen. Does not affect consumers: the host app sets its own
+        // targetSdk.
+        targetSdk = 34
         consumerProguardFiles "consumer-rules.pro"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
