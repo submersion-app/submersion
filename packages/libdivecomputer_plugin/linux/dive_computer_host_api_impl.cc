@@ -1,5 +1,7 @@
 #include "dive_computer_host_api_impl.h"
 
+#include <limits.h>
+#include <stdlib.h>
 #include <string.h>
 
 extern "C" {
@@ -698,9 +700,52 @@ static void handle_parse_raw_dive_data(
     size_t data_length,
     LibdivecomputerPluginDiveComputerHostApiResponseHandle* response_handle,
     gpointer user_data) {
-  libdivecomputer_plugin_dive_computer_host_api_respond_error_parse_raw_dive_data(
-      response_handle, "UNSUPPORTED",
-      "Raw dive parsing not yet implemented on Linux", nullptr);
+  // model arrives as an int64 across the Pigeon boundary but libdivecomputer
+  // expects an unsigned int descriptor id. Reject out-of-range values up front
+  // so a corrupt model yields a clear error instead of a silently wrapped cast
+  // and a misleading "no descriptor" failure downstream.
+  if (model < 0 || model > static_cast<int64_t>(UINT_MAX)) {
+    g_autofree gchar* msg = g_strdup_printf(
+        "Invalid dive computer model number: %" G_GINT64_FORMAT, model);
+    libdivecomputer_plugin_dive_computer_host_api_respond_error_parse_raw_dive_data(
+        response_handle, "PARSE_ERROR", msg, nullptr);
+    return;
+  }
+
+  libdc_parsed_dive_t dive = {};
+  char error_buf[256] = {};
+
+  int rc = libdc_parse_raw_dive(
+      vendor, product, static_cast<unsigned int>(model),
+      data, static_cast<unsigned int>(data_length),
+      &dive, error_buf, sizeof(error_buf));
+
+  if (rc != 0) {
+    // Only samples and events are heap-allocated; gasmixes, tanks and
+    // fingerprint are inline arrays.
+    free(dive.samples);
+    free(dive.events);
+    g_autofree gchar* msg =
+        g_strdup_printf("Failed to parse raw dive data: %s", error_buf);
+    libdivecomputer_plugin_dive_computer_host_api_respond_error_parse_raw_dive_data(
+        response_handle, "PARSE_ERROR", msg, nullptr);
+    return;
+  }
+
+  LibdivecomputerPluginParsedDive* parsed = convert_parsed_dive(&dive);
+  free(dive.samples);
+  free(dive.events);
+
+  if (parsed == nullptr) {
+    libdivecomputer_plugin_dive_computer_host_api_respond_error_parse_raw_dive_data(
+        response_handle, "PARSE_ERROR",
+        "Failed to convert parsed dive data", nullptr);
+    return;
+  }
+
+  libdivecomputer_plugin_dive_computer_host_api_respond_parse_raw_dive_data(
+      response_handle, parsed);
+  g_object_unref(parsed);
 }
 
 // --- Public registration ---
