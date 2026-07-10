@@ -147,6 +147,30 @@ Signatures (what the profiler actually showed):
   + full series rebuild = undecimated 4,762-point curves redrawn wholesale
   per toggle. WS3 (decimation + per-series cache scoping) maps directly.
 
+### Debug-only startup freeze (persistent, ~20 s per debug launch)
+
+After the heal and WAL checkpoint, `flutter run -d macos` (debug) still froze
+~20 s at the splash fade on every launch, while profile mode was clean.
+Startup instrumentation put all six init steps at ~220 ms total and the
+first frame after the ready state at 265 ms -- the freeze is NOT init and
+NOT the widget build; it begins when the dashboard's async providers
+resolve. Native sampling during the freeze shows the io.flutter.ui thread
+spending 87% of the window in DartMicrotaskQueue::RunMicrotasks with ~40%
+inside
+dart::Compiler::CompileOptimizedFunction / FlowGraphInliner::Inline via
+DRT_InterruptOrStackOverflow: the debug JIT's OPTIMIZING COMPILER running
+synchronously on the UI thread, recompiling the hot Drift row-mapping
+functions that the dashboard's getAllDives() microtask flood makes hot.
+
+Implications:
+- Debug-launch pain is WS4's workload amplified by JIT compilation of the
+  very large generated database.g.dart mapping code. AOT (profile/release)
+  users pay only the raw hydration (~1-2 s today, hidden behind the fade),
+  which still scales linearly with dive count.
+- No WS0 action; this hardens the case for WS4 (remove hot-path
+  getAllDives) which fixes both the debug developer experience and the
+  release-mode scaling liability.
+
 ## Recommended workstream order (evidence-based)
 
 1. WS1 search (small change, 3.5 s -> sub-500 ms expected; fires on every

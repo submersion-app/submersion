@@ -122,6 +122,9 @@ class _StartupWrapperState extends State<StartupWrapper>
     super.initState();
     _splashFadeController.addStatusListener((status) {
       if (status == AnimationStatus.completed && mounted) {
+        if (!kReleaseMode) {
+          debugPrint('[startup] splash fade complete');
+        }
         setState(() => _splashRemoved = true);
       }
     });
@@ -193,6 +196,16 @@ class _StartupWrapperState extends State<StartupWrapper>
       ]);
 
       if (mounted) {
+        final readyAt = Stopwatch()..start();
+        if (!kReleaseMode) {
+          debugPrint('[startup] ready; building app under splash');
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            debugPrint(
+              '[startup] first frame after ready: '
+              '${readyAt.elapsedMilliseconds}ms',
+            );
+          });
+        }
         setState(() => _state = _StartupState.ready);
         _splashFadeController.forward();
       }
