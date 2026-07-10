@@ -1,10 +1,13 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/data/repositories/local_asset_cache_repository.dart';
 import 'package:submersion/features/media/data/services/asset_resolution_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
+import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 
 /// Provider for the asset resolution service (singleton).
 final assetResolutionServiceProvider = Provider<AssetResolutionService>((ref) {
@@ -86,18 +89,37 @@ final resolvedFullResolutionProvider =
     });
 
 /// Resolved file path provider for video playback.
+///
+/// Resolution order: gallery asset (when the item carries an asset id) ->
+/// the item's own localPath when that file exists -> the media store
+/// fallback (downloads the original into the content-addressed cache;
+/// design spec section 10) -> null.
 final resolvedFilePathProvider = FutureProvider.family<String?, MediaItem>((
   ref,
   item,
 ) async {
-  final service = ref.watch(assetResolutionServiceProvider);
-  final resolution = await service.resolveAssetId(item);
-
-  if (resolution.status == ResolutionStatus.unavailable ||
-      resolution.localAssetId == null) {
-    return null;
+  // Gallery fast path.
+  if (item.platformAssetId != null) {
+    final service = ref.watch(assetResolutionServiceProvider);
+    final resolution = await service.resolveAssetId(item);
+    if (resolution.status != ResolutionStatus.unavailable &&
+        resolution.localAssetId != null) {
+      final pickerService = ref.watch(photoPickerServiceProvider);
+      final path = await pickerService.getFilePath(resolution.localAssetId!);
+      if (path != null) return path;
+    }
   }
 
-  final pickerService = ref.watch(photoPickerServiceProvider);
-  return pickerService.getFilePath(resolution.localAssetId!);
+  // Device-local file (localFile source rows).
+  final localPath = item.localPath;
+  if (localPath != null && await File(localPath).exists()) {
+    return localPath;
+  }
+
+  // Media store fallback: play from the cached (or freshly downloaded)
+  // original. The viewer's loading state covers the download.
+  final runtime = await ref.read(mediaStoreRuntimeProvider.future);
+  final data = await runtime?.resolver.tryResolveRemote(item, thumbnail: false);
+  if (data is FileData) return data.file.path;
+  return null;
 });
