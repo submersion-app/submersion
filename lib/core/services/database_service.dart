@@ -217,8 +217,15 @@ class DatabaseService {
           .get()
           .timeout(const Duration(seconds: 10));
     } catch (e) {
-      // If verification fails, close and rethrow
-      await close();
+      // Verification failed: close the just-opened connection before
+      // rethrowing. Strict close so a timed-out close does NOT null
+      // _database and orphan a still-open background connection whose locks
+      // would block a rollback/retry. If the strict close itself throws,
+      // the reference is intentionally kept (strict contract) and we still
+      // surface the ORIGINAL verification error rather than masking it.
+      try {
+        await close(strict: true);
+      } catch (_) {}
       rethrow;
     }
   }
