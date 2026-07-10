@@ -51,12 +51,17 @@ class MediaImportService {
     required MediaRepository mediaRepository,
     required EnrichmentService enrichmentService,
     Future<Directory> Function()? documentsDirectory,
+    this.onMediaCreated,
   }) : _mediaRepository = mediaRepository,
        _enrichmentService = enrichmentService,
        _documentsDirectory =
            documentsDirectory ?? getApplicationDocumentsDirectory;
 
   final Future<Directory> Function() _documentsDirectory;
+
+  /// Invoked after every successful createMedia so the media store can
+  /// enqueue an upload. Null when no store is configured.
+  final void Function(String mediaId)? onMediaCreated;
 
   /// Copies [sourceFile] into the app documents directory (subdir
   /// 'scanned_logs/') and creates a localFile media row linked to
@@ -85,7 +90,9 @@ class MediaImportService {
       createdAt: now,
       updatedAt: now,
     );
-    return _mediaRepository.createMedia(item);
+    final created = await _mediaRepository.createMedia(item);
+    onMediaCreated?.call(created.id);
+    return created;
   }
 
   /// Import selected assets for a dive.
@@ -141,6 +148,7 @@ class MediaImportService {
         }
 
         imported.add(saved);
+        onMediaCreated?.call(saved.id);
         _log.info('Imported asset ${asset.id} as media ${saved.id}');
       } catch (e, stackTrace) {
         _log.error(

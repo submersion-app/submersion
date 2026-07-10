@@ -1,0 +1,133 @@
+import 'dart:io';
+
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/media_store/media_object_store.dart';
+import 'package:submersion/core/services/media_store/store_keys.dart';
+import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/media_source_type.dart';
+import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
+import 'package:submersion/features/media_store/data/media_cache_store.dart';
+import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
+
+enum UploadOutcome { uploaded, deduplicated, skippedIneligible, failed }
+
+/// The six-step upload pipeline (design spec section 9), photos and
+/// single-shot transfers in Phase 1. Every step is idempotent: a crash
+/// mid-item replays harmlessly because the content key derives from the
+/// bytes and the head() dedup check short-circuits completed work.
+class MediaUploadPipeline {
+  MediaUploadPipeline({
+    required MediaRepository mediaRepository,
+    required MediaTransferQueueRepository queue,
+    required MediaObjectStore store,
+    required MediaSourceResolverRegistry registry,
+    required MediaCacheStore cache,
+    DateTime Function()? now,
+  }) : _mediaRepository = mediaRepository,
+       _queue = queue,
+       _store = store,
+       _registry = registry,
+       _cache = cache,
+       _now = now ?? DateTime.now;
+
+  final MediaRepository _mediaRepository;
+  final MediaTransferQueueRepository _queue;
+  final MediaObjectStore _store;
+  final MediaSourceResolverRegistry _registry;
+  final MediaCacheStore _cache;
+  final DateTime Function() _now;
+  final _log = LoggerService.forClass(MediaUploadPipeline);
+
+  static const Set<MediaSourceType> _eligibleSources = {
+    MediaSourceType.platformGallery,
+    MediaSourceType.localFile,
+  };
+
+  Future<UploadOutcome> process(MediaTransferQueueEntry entry) async {
+    await _queue.markTransferring(entry.id);
+    final item = await _mediaRepository.getMediaById(entry.mediaId);
+    if (item == null || !_isEligible(item)) {
+      await _queue.markDone(entry.id);
+      return UploadOutcome.skippedIneligible;
+    }
+    if (item.remoteUploadedAt != null) {
+      await _queue.markDone(entry.id);
+      return UploadOutcome.deduplicated;
+    }
+
+    File? staged;
+    try {
+      staged = await _materialize(item);
+      if (staged == null) {
+        await _queue.markFailed(entry.id, 'source unavailable on this device');
+        return UploadOutcome.failed;
+      }
+
+      final digest = await sha256OfFile(staged);
+      if (item.contentHash != digest.hash) {
+        await _mediaRepository.stampContentIdentity(
+          item.id,
+          contentHash: digest.hash,
+          sizeBytes: digest.sizeBytes,
+        );
+      }
+
+      final extension = StoreKeys.extensionFor(item.originalFilename);
+      final key = StoreKeys.objectKey(digest.hash, extension: extension);
+      final existing = await _store.head(key);
+      if (existing == null) {
+        await _store.putFile(
+          key,
+          staged,
+          contentType: StoreKeys.contentTypeFor(extension),
+        );
+      }
+
+      await _mediaRepository.stampRemoteUploaded(item.id, uploadedAt: _now());
+      await _queue.markDone(entry.id);
+      return existing == null
+          ? UploadOutcome.uploaded
+          : UploadOutcome.deduplicated;
+    } on Exception catch (e, stackTrace) {
+      _log.error(
+        'Upload failed for media ${entry.mediaId}',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      await _queue.markFailed(entry.id, e.toString());
+      return UploadOutcome.failed;
+    } finally {
+      if (staged != null && await staged.exists()) {
+        await staged.delete();
+      }
+    }
+  }
+
+  bool _isEligible(MediaItem item) {
+    if (!_eligibleSources.contains(item.sourceType)) return false;
+    if (item.mediaType == MediaType.instructorSignature) return false;
+    final resolver = _registry.resolverFor(item.sourceType);
+    return resolver.canResolveOnThisDevice(item);
+  }
+
+  /// Resolves the item's bytes to a private temp file the pipeline owns.
+  Future<File?> _materialize(MediaItem item) async {
+    final resolver = _registry.resolverFor(item.sourceType);
+    final data = await resolver.resolve(item);
+    switch (data) {
+      case FileData(file: final f):
+        final staged = await _cache.stagingFile();
+        await f.copy(staged.path);
+        return staged;
+      case BytesData(bytes: final b):
+        final staged = await _cache.stagingFile();
+        await staged.writeAsBytes(b, flush: true);
+        return staged;
+      case NetworkData():
+      case UnavailableData():
+        return null;
+    }
+  }
+}
