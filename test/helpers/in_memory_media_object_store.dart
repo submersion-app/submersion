@@ -35,14 +35,23 @@ class InMemoryMediaObjectStore implements MediaObjectStore {
     String key,
     File source, {
     required String contentType,
+    TransferProgressCallback? onProgress,
+    String? resumeStateJson,
+    void Function(String resumeStateJson)? onResumeStateChanged,
   }) async {
     _maybeFail();
-    objects[key] = await source.readAsBytes();
+    final bytes = await source.readAsBytes();
+    objects[key] = bytes;
     modified[key] = DateTime.now();
+    onProgress?.call(bytes.length, bytes.length);
   }
 
   @override
-  Future<void> getFile(String key, File destination) async {
+  Future<void> getFile(
+    String key,
+    File destination, {
+    TransferProgressCallback? onProgress,
+  }) async {
     _maybeFail();
     final bytes = objects[key];
     if (bytes == null) {
@@ -52,6 +61,7 @@ class InMemoryMediaObjectStore implements MediaObjectStore {
       );
     }
     await destination.writeAsBytes(bytes, flush: true);
+    onProgress?.call(bytes.length, bytes.length);
   }
 
   @override

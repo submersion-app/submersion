@@ -89,5 +89,31 @@ void runMediaObjectStoreContract(
       final keys = await store.list('smv1/objects/').map((o) => o.key).toList();
       expect(keys, ['smv1/objects/aa/one.bin']);
     });
+
+    test('putFile and getFile report progress reaching the full '
+        'size', () async {
+      final bytes = List<int>.generate(4096, (i) => i % 251);
+      final src = tempFile('p.bin', bytes);
+      final putProgress = <int>[];
+      await store.putFile(
+        'smv1/objects/aa/p.bin',
+        src,
+        contentType: 'application/octet-stream',
+        onProgress: (sent, total) => putProgress.add(sent),
+      );
+      expect(putProgress, isNotEmpty);
+      expect(putProgress.last, bytes.length);
+
+      final getProgress = <int>[];
+      final dest = File('${tmp.path}/p.out');
+      await store.getFile(
+        'smv1/objects/aa/p.bin',
+        dest,
+        onProgress: (received, total) => getProgress.add(received),
+      );
+      expect(getProgress, isNotEmpty);
+      expect(getProgress.last, bytes.length);
+      expect(await dest.readAsBytes(), bytes);
+    });
   });
 }

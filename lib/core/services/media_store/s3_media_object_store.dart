@@ -41,6 +41,9 @@ class S3MediaObjectStore implements MediaObjectStore {
     String key,
     File source, {
     required String contentType,
+    TransferProgressCallback? onProgress,
+    String? resumeStateJson,
+    void Function(String resumeStateJson)? onResumeStateChanged,
   }) async {
     final Uint8List bytes;
     try {
@@ -54,16 +57,22 @@ class S3MediaObjectStore implements MediaObjectStore {
     }
     try {
       await _client.putObject(_wire(key), bytes);
+      onProgress?.call(bytes.length, bytes.length);
     } on CloudStorageException catch (e) {
       throw _map('put', key, e);
     }
   }
 
   @override
-  Future<void> getFile(String key, File destination) async {
+  Future<void> getFile(
+    String key,
+    File destination, {
+    TransferProgressCallback? onProgress,
+  }) async {
     try {
       final bytes = await _client.getObject(_wire(key));
       await destination.writeAsBytes(bytes, flush: true);
+      onProgress?.call(bytes.length, bytes.length);
     } on CloudStorageException catch (e) {
       throw _map('get', key, e);
     }
