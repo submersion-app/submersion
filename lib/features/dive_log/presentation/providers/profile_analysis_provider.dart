@@ -635,12 +635,6 @@ ProfileAnalysis _runProfileAnalysis(_ProfileAnalysisInput input) {
   );
 }
 
-/// Provider for profile analysis of a specific dive.
-///
-/// Recursively computes residual CNS from previous dives: looks up the
-/// previous dive via [profileAnalysisProvider] (different dive ID), applies
-/// surface-interval decay, and uses the result as startCns. The chain
-/// terminates when there is no previous dive or the surface interval >= 24h.
 /// Lean dive hydration for the analysis pipeline: dive-row scalars, tanks,
 /// and the merged profile only -- no joined display entities (WS2, large-DB
 /// performance). keepAlive family, so a residual-chain walk over a
@@ -658,6 +652,12 @@ final analysisDiveProvider = FutureProvider.family<Dive?, String>((
   return repository.getDiveForAnalysis(diveId);
 });
 
+/// Provider for profile analysis of a specific dive.
+///
+/// Recursively computes residual CNS from previous dives: looks up the
+/// previous dive via [profileAnalysisProvider] (different dive ID), applies
+/// surface-interval decay, and uses the result as startCns. The chain
+/// terminates when there is no previous dive or the surface interval >= 24h.
 final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>((
   ref,
   diveId,
