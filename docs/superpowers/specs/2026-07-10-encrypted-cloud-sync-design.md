@@ -345,9 +345,10 @@ All new strings land in English plus the 10 non-English locales, then
     warnings (other devices must update and re-download; lost passphrase +
     code = cloud data unrecoverable, local data safe) -> optional delete of
     existing plaintext cloud backups (default on).
-  - Change passphrase; View recovery code (re-auth with passphrase);
-    Regenerate recovery code; Disable (confirmation, explains plaintext
-    republish).
+  - Change passphrase; Regenerate recovery code (re-auth with passphrase;
+    the code itself is never stored, so viewing an existing code is
+    impossible by design -- regeneration is the only honest action);
+    Disable (confirmation, explains plaintext republish).
 - Cloud Sync page + Troubleshoot Sync screen: `awaitingPassphrase` banner
   and action.
 - Restore flow: passphrase/recovery prompt when an `.sbe` artifact is

@@ -105,125 +105,128 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ebben a buildben nem érhető el – használj S3-at vagy az App Store-verziót';
 
   @override
-  String get settings_cloudSync_encryption_title => 'End-to-end encryption';
+  String get settings_cloudSync_encryption_title =>
+      'Végpontok közötti titkosítás';
 
   @override
   String get settings_cloudSync_encryption_subtitleOff =>
-      'Encrypt all sync data and cloud backups before upload';
+      'Minden szinkronizálási adat és felhőmentés titkosítása feltöltés előtt';
 
   @override
   String get settings_cloudSync_encryption_subtitleNeedsProvider =>
-      'Select a cloud provider first';
+      'Előbb válasszon felhőszolgáltatót';
 
   @override
-  String get settings_cloudSync_encryption_statusOn => 'Encryption is on';
+  String get settings_cloudSync_encryption_statusOn =>
+      'A titkosítás be van kapcsolva';
 
   @override
   String get settings_cloudSync_encryption_statusOnSubtitle =>
-      'Sync data and cloud backups are encrypted before upload';
+      'A szinkronizálási adatok és a felhőmentések feltöltés előtt titkosítva lesznek';
 
   @override
   String get settings_cloudSync_encryption_statusLocked =>
-      'Encrypted — passphrase needed';
+      'Titkosítva — jelmondat szükséges';
 
   @override
   String get settings_cloudSync_encryption_statusLockedSubtitle =>
-      'Enter the passphrase to sync on this device';
+      'Adja meg a jelmondatot a szinkronizáláshoz ezen az eszközön';
 
   @override
-  String get settings_cloudSync_encryption_enable => 'Enable encryption';
+  String get settings_cloudSync_encryption_enable => 'Titkosítás bekapcsolása';
 
   @override
   String get settings_cloudSync_encryption_enterPassphrase =>
-      'Enter passphrase';
+      'Jelmondat megadása';
 
   @override
-  String get settings_cloudSync_encryption_passphrase => 'Passphrase';
+  String get settings_cloudSync_encryption_passphrase => 'Jelmondat';
 
   @override
   String get settings_cloudSync_encryption_passphraseConfirm =>
-      'Confirm passphrase';
+      'Jelmondat megerősítése';
 
   @override
   String get settings_cloudSync_encryption_passphraseMismatch =>
-      'Passphrases do not match';
+      'A jelmondatok nem egyeznek';
 
   @override
   String get settings_cloudSync_encryption_passphraseTooShort =>
-      'Use at least 8 characters';
+      'Legalább 8 karaktert használjon';
 
   @override
   String get settings_cloudSync_encryption_wrongPassphrase =>
-      'Incorrect passphrase or recovery code';
+      'Hibás jelmondat vagy helyreállítási kód';
 
   @override
   String get settings_cloudSync_encryption_warnUpdateDevices =>
-      'All other devices must be updated to the latest app version and will re-download the library.';
+      'Minden más eszközt a legújabb alkalmazásverzióra kell frissíteni, és újra letöltik a könyvtárat.';
 
   @override
   String get settings_cloudSync_encryption_warnLoss =>
-      'If you lose both the passphrase and the recovery code, data in the cloud cannot be recovered. Data on your devices is never at risk.';
+      'Ha a jelmondat és a helyreállítási kód is elvész, a felhőben lévő adatok nem állíthatók helyre. Az eszközein lévő adatok soha nincsenek veszélyben.';
 
   @override
   String get settings_cloudSync_encryption_deletePlaintextBackups =>
-      'Delete existing unencrypted cloud backups';
+      'Meglévő titkosítatlan felhőmentések törlése';
 
   @override
-  String get settings_cloudSync_encryption_recoveryTitle => 'Recovery code';
+  String get settings_cloudSync_encryption_recoveryTitle =>
+      'Helyreállítási kód';
 
   @override
   String get settings_cloudSync_encryption_recoveryExplain =>
-      'Write this code down and keep it somewhere safe. It is the only way back in if you forget your passphrase.';
+      'Írja fel ezt a kódot, és őrizze biztonságos helyen. Ez az egyetlen visszaút, ha elfelejti a jelmondatot.';
 
   @override
   String get settings_cloudSync_encryption_recoverySavedConfirm =>
-      'I have saved my recovery code';
+      'Elmentettem a helyreállítási kódomat';
 
   @override
   String get settings_cloudSync_encryption_changePassphrase =>
-      'Change passphrase';
+      'Jelmondat módosítása';
 
   @override
   String get settings_cloudSync_encryption_currentPassphrase =>
-      'Current passphrase';
+      'Jelenlegi jelmondat';
 
   @override
-  String get settings_cloudSync_encryption_newPassphrase => 'New passphrase';
+  String get settings_cloudSync_encryption_newPassphrase => 'Új jelmondat';
 
   @override
   String get settings_cloudSync_encryption_regenerateRecovery =>
-      'Generate new recovery code';
+      'Új helyreállítási kód létrehozása';
 
   @override
   String get settings_cloudSync_encryption_regenerateRecoveryWarn =>
-      'The old recovery code stops working immediately.';
+      'A régi helyreállítási kód azonnal érvénytelenné válik.';
 
   @override
-  String get settings_cloudSync_encryption_disable => 'Turn off encryption';
+  String get settings_cloudSync_encryption_disable => 'Titkosítás kikapcsolása';
 
   @override
   String get settings_cloudSync_encryption_disableWarn =>
-      'The library will be re-uploaded unencrypted, and other devices will re-download it. Existing encrypted backups stay restorable with the passphrase.';
+      'A könyvtár titkosítatlanul lesz újra feltöltve, és a többi eszköz újra letölti. A meglévő titkosított mentések a jelmondattal továbbra is visszaállíthatók.';
 
   @override
   String get settings_cloudSync_encryption_unlockTitle =>
-      'Enter your encryption passphrase';
+      'Adja meg a titkosítási jelmondatot';
 
   @override
   String get settings_cloudSync_encryption_unlockHint =>
-      'Passphrase or recovery code';
+      'Jelmondat vagy helyreállítási kód';
 
   @override
-  String get settings_cloudSync_encryption_unlock => 'Unlock';
+  String get settings_cloudSync_encryption_unlock => 'Feloldás';
 
   @override
-  String get settings_cloudSync_encryption_continue => 'Continue';
+  String get settings_cloudSync_encryption_continue => 'Folytatás';
 
   @override
-  String get settings_cloudSync_encryption_done => 'Done';
+  String get settings_cloudSync_encryption_done => 'Kész';
 
   @override
-  String get settings_cloudSync_encryption_cancel => 'Cancel';
+  String get settings_cloudSync_encryption_cancel => 'Mégse';
 
   @override
   String settings_cloudSync_replace_globalBanner(String deviceName) {

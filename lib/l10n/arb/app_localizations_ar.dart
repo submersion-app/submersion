@@ -105,125 +105,126 @@ class AppLocalizationsAr extends AppLocalizations {
       'غير متوفر في هذا الإصدار — استخدم S3 أو نسخة App Store';
 
   @override
-  String get settings_cloudSync_encryption_title => 'End-to-end encryption';
+  String get settings_cloudSync_encryption_title => 'التشفير من طرف إلى طرف';
 
   @override
   String get settings_cloudSync_encryption_subtitleOff =>
-      'Encrypt all sync data and cloud backups before upload';
+      'تشفير جميع بيانات المزامنة والنسخ الاحتياطية السحابية قبل الرفع';
 
   @override
   String get settings_cloudSync_encryption_subtitleNeedsProvider =>
-      'Select a cloud provider first';
+      'اختر مزود التخزين السحابي أولاً';
 
   @override
-  String get settings_cloudSync_encryption_statusOn => 'Encryption is on';
+  String get settings_cloudSync_encryption_statusOn => 'التشفير مفعّل';
 
   @override
   String get settings_cloudSync_encryption_statusOnSubtitle =>
-      'Sync data and cloud backups are encrypted before upload';
+      'يتم تشفير بيانات المزامنة والنسخ الاحتياطية السحابية قبل الرفع';
 
   @override
   String get settings_cloudSync_encryption_statusLocked =>
-      'Encrypted — passphrase needed';
+      'مشفّر — مطلوب عبارة المرور';
 
   @override
   String get settings_cloudSync_encryption_statusLockedSubtitle =>
-      'Enter the passphrase to sync on this device';
+      'أدخل عبارة المرور للمزامنة على هذا الجهاز';
 
   @override
-  String get settings_cloudSync_encryption_enable => 'Enable encryption';
+  String get settings_cloudSync_encryption_enable => 'تفعيل التشفير';
 
   @override
   String get settings_cloudSync_encryption_enterPassphrase =>
-      'Enter passphrase';
+      'إدخال عبارة المرور';
 
   @override
-  String get settings_cloudSync_encryption_passphrase => 'Passphrase';
+  String get settings_cloudSync_encryption_passphrase => 'عبارة المرور';
 
   @override
   String get settings_cloudSync_encryption_passphraseConfirm =>
-      'Confirm passphrase';
+      'تأكيد عبارة المرور';
 
   @override
   String get settings_cloudSync_encryption_passphraseMismatch =>
-      'Passphrases do not match';
+      'عبارتا المرور غير متطابقتين';
 
   @override
   String get settings_cloudSync_encryption_passphraseTooShort =>
-      'Use at least 8 characters';
+      'استخدم 8 أحرف على الأقل';
 
   @override
   String get settings_cloudSync_encryption_wrongPassphrase =>
-      'Incorrect passphrase or recovery code';
+      'عبارة مرور أو رمز استرداد غير صحيح';
 
   @override
   String get settings_cloudSync_encryption_warnUpdateDevices =>
-      'All other devices must be updated to the latest app version and will re-download the library.';
+      'يجب تحديث جميع الأجهزة الأخرى إلى أحدث إصدار من التطبيق وستعيد تنزيل المكتبة.';
 
   @override
   String get settings_cloudSync_encryption_warnLoss =>
-      'If you lose both the passphrase and the recovery code, data in the cloud cannot be recovered. Data on your devices is never at risk.';
+      'إذا فقدت عبارة المرور ورمز الاسترداد معًا، فلا يمكن استرداد البيانات في السحابة. بيانات أجهزتك ليست في خطر أبدًا.';
 
   @override
   String get settings_cloudSync_encryption_deletePlaintextBackups =>
-      'Delete existing unencrypted cloud backups';
+      'حذف النسخ الاحتياطية السحابية غير المشفرة الموجودة';
 
   @override
-  String get settings_cloudSync_encryption_recoveryTitle => 'Recovery code';
+  String get settings_cloudSync_encryption_recoveryTitle => 'رمز الاسترداد';
 
   @override
   String get settings_cloudSync_encryption_recoveryExplain =>
-      'Write this code down and keep it somewhere safe. It is the only way back in if you forget your passphrase.';
+      'دوّن هذا الرمز واحفظه في مكان آمن. إنه الطريقة الوحيدة للعودة إذا نسيت عبارة المرور.';
 
   @override
   String get settings_cloudSync_encryption_recoverySavedConfirm =>
-      'I have saved my recovery code';
+      'لقد حفظت رمز الاسترداد الخاص بي';
 
   @override
   String get settings_cloudSync_encryption_changePassphrase =>
-      'Change passphrase';
+      'تغيير عبارة المرور';
 
   @override
   String get settings_cloudSync_encryption_currentPassphrase =>
-      'Current passphrase';
+      'عبارة المرور الحالية';
 
   @override
-  String get settings_cloudSync_encryption_newPassphrase => 'New passphrase';
+  String get settings_cloudSync_encryption_newPassphrase =>
+      'عبارة المرور الجديدة';
 
   @override
   String get settings_cloudSync_encryption_regenerateRecovery =>
-      'Generate new recovery code';
+      'إنشاء رمز استرداد جديد';
 
   @override
   String get settings_cloudSync_encryption_regenerateRecoveryWarn =>
-      'The old recovery code stops working immediately.';
+      'يتوقف رمز الاسترداد القديم عن العمل فورًا.';
 
   @override
-  String get settings_cloudSync_encryption_disable => 'Turn off encryption';
+  String get settings_cloudSync_encryption_disable => 'إيقاف التشفير';
 
   @override
   String get settings_cloudSync_encryption_disableWarn =>
-      'The library will be re-uploaded unencrypted, and other devices will re-download it. Existing encrypted backups stay restorable with the passphrase.';
+      'سيُعاد رفع المكتبة دون تشفير وستعيد الأجهزة الأخرى تنزيلها. تظل النسخ الاحتياطية المشفرة الموجودة قابلة للاستعادة بعبارة المرور.';
 
   @override
   String get settings_cloudSync_encryption_unlockTitle =>
-      'Enter your encryption passphrase';
+      'أدخل عبارة مرور التشفير';
 
   @override
   String get settings_cloudSync_encryption_unlockHint =>
-      'Passphrase or recovery code';
+      'عبارة المرور أو رمز الاسترداد';
 
   @override
-  String get settings_cloudSync_encryption_unlock => 'Unlock';
+  String get settings_cloudSync_encryption_unlock => 'فتح';
 
   @override
-  String get settings_cloudSync_encryption_continue => 'Continue';
+  String get settings_cloudSync_encryption_continue => 'متابعة';
 
   @override
-  String get settings_cloudSync_encryption_done => 'Done';
+  String get settings_cloudSync_encryption_done => 'تم';
 
   @override
-  String get settings_cloudSync_encryption_cancel => 'Cancel';
+  String get settings_cloudSync_encryption_cancel => 'إلغاء';
 
   @override
   String settings_cloudSync_replace_globalBanner(String deviceName) {

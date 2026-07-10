@@ -103,125 +103,124 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא זמין בגרסה זו — השתמש ב-S3 או בגרסת App Store';
 
   @override
-  String get settings_cloudSync_encryption_title => 'End-to-end encryption';
+  String get settings_cloudSync_encryption_title => 'הצפנה מקצה לקצה';
 
   @override
   String get settings_cloudSync_encryption_subtitleOff =>
-      'Encrypt all sync data and cloud backups before upload';
+      'הצפנת כל נתוני הסנכרון והגיבויים בענן לפני ההעלאה';
 
   @override
   String get settings_cloudSync_encryption_subtitleNeedsProvider =>
-      'Select a cloud provider first';
+      'בחרו קודם ספק ענן';
 
   @override
-  String get settings_cloudSync_encryption_statusOn => 'Encryption is on';
+  String get settings_cloudSync_encryption_statusOn => 'ההצפנה פועלת';
 
   @override
   String get settings_cloudSync_encryption_statusOnSubtitle =>
-      'Sync data and cloud backups are encrypted before upload';
+      'נתוני סנכרון וגיבויים בענן מוצפנים לפני ההעלאה';
 
   @override
   String get settings_cloudSync_encryption_statusLocked =>
-      'Encrypted — passphrase needed';
+      'מוצפן — נדרש משפט סיסמה';
 
   @override
   String get settings_cloudSync_encryption_statusLockedSubtitle =>
-      'Enter the passphrase to sync on this device';
+      'הזינו את משפט הסיסמה כדי לסנכרן במכשיר זה';
 
   @override
-  String get settings_cloudSync_encryption_enable => 'Enable encryption';
+  String get settings_cloudSync_encryption_enable => 'הפעלת הצפנה';
 
   @override
-  String get settings_cloudSync_encryption_enterPassphrase =>
-      'Enter passphrase';
+  String get settings_cloudSync_encryption_enterPassphrase => 'הזנת משפט סיסמה';
 
   @override
-  String get settings_cloudSync_encryption_passphrase => 'Passphrase';
+  String get settings_cloudSync_encryption_passphrase => 'משפט סיסמה';
 
   @override
   String get settings_cloudSync_encryption_passphraseConfirm =>
-      'Confirm passphrase';
+      'אישור משפט הסיסמה';
 
   @override
   String get settings_cloudSync_encryption_passphraseMismatch =>
-      'Passphrases do not match';
+      'משפטי הסיסמה אינם תואמים';
 
   @override
   String get settings_cloudSync_encryption_passphraseTooShort =>
-      'Use at least 8 characters';
+      'השתמשו ב-8 תווים לפחות';
 
   @override
   String get settings_cloudSync_encryption_wrongPassphrase =>
-      'Incorrect passphrase or recovery code';
+      'משפט סיסמה או קוד שחזור שגויים';
 
   @override
   String get settings_cloudSync_encryption_warnUpdateDevices =>
-      'All other devices must be updated to the latest app version and will re-download the library.';
+      'יש לעדכן את כל שאר המכשירים לגרסת האפליקציה האחרונה והם יורידו מחדש את הספרייה.';
 
   @override
   String get settings_cloudSync_encryption_warnLoss =>
-      'If you lose both the passphrase and the recovery code, data in the cloud cannot be recovered. Data on your devices is never at risk.';
+      'אם תאבדו גם את משפט הסיסמה וגם את קוד השחזור, לא ניתן יהיה לשחזר את הנתונים בענן. הנתונים במכשירים שלכם לעולם אינם בסיכון.';
 
   @override
   String get settings_cloudSync_encryption_deletePlaintextBackups =>
-      'Delete existing unencrypted cloud backups';
+      'מחיקת גיבויי ענן לא מוצפנים קיימים';
 
   @override
-  String get settings_cloudSync_encryption_recoveryTitle => 'Recovery code';
+  String get settings_cloudSync_encryption_recoveryTitle => 'קוד שחזור';
 
   @override
   String get settings_cloudSync_encryption_recoveryExplain =>
-      'Write this code down and keep it somewhere safe. It is the only way back in if you forget your passphrase.';
+      'רשמו את הקוד הזה ושמרו אותו במקום בטוח. זו הדרך היחידה לחזור אם תשכחו את משפט הסיסמה.';
 
   @override
   String get settings_cloudSync_encryption_recoverySavedConfirm =>
-      'I have saved my recovery code';
+      'שמרתי את קוד השחזור שלי';
 
   @override
   String get settings_cloudSync_encryption_changePassphrase =>
-      'Change passphrase';
+      'שינוי משפט סיסמה';
 
   @override
   String get settings_cloudSync_encryption_currentPassphrase =>
-      'Current passphrase';
+      'משפט הסיסמה הנוכחי';
 
   @override
-  String get settings_cloudSync_encryption_newPassphrase => 'New passphrase';
+  String get settings_cloudSync_encryption_newPassphrase => 'משפט סיסמה חדש';
 
   @override
   String get settings_cloudSync_encryption_regenerateRecovery =>
-      'Generate new recovery code';
+      'יצירת קוד שחזור חדש';
 
   @override
   String get settings_cloudSync_encryption_regenerateRecoveryWarn =>
-      'The old recovery code stops working immediately.';
+      'קוד השחזור הישן מפסיק לפעול מיד.';
 
   @override
-  String get settings_cloudSync_encryption_disable => 'Turn off encryption';
+  String get settings_cloudSync_encryption_disable => 'כיבוי ההצפנה';
 
   @override
   String get settings_cloudSync_encryption_disableWarn =>
-      'The library will be re-uploaded unencrypted, and other devices will re-download it. Existing encrypted backups stay restorable with the passphrase.';
+      'הספרייה תועלה מחדש ללא הצפנה ושאר המכשירים יורידו אותה שוב. גיבויים מוצפנים קיימים יישארו ניתנים לשחזור עם משפט הסיסמה.';
 
   @override
   String get settings_cloudSync_encryption_unlockTitle =>
-      'Enter your encryption passphrase';
+      'הזינו את משפט הסיסמה של ההצפנה';
 
   @override
   String get settings_cloudSync_encryption_unlockHint =>
-      'Passphrase or recovery code';
+      'משפט סיסמה או קוד שחזור';
 
   @override
-  String get settings_cloudSync_encryption_unlock => 'Unlock';
+  String get settings_cloudSync_encryption_unlock => 'ביטול נעילה';
 
   @override
-  String get settings_cloudSync_encryption_continue => 'Continue';
+  String get settings_cloudSync_encryption_continue => 'המשך';
 
   @override
-  String get settings_cloudSync_encryption_done => 'Done';
+  String get settings_cloudSync_encryption_done => 'סיום';
 
   @override
-  String get settings_cloudSync_encryption_cancel => 'Cancel';
+  String get settings_cloudSync_encryption_cancel => 'ביטול';
 
   @override
   String settings_cloudSync_replace_globalBanner(String deviceName) {

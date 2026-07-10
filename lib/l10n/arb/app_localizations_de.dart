@@ -104,125 +104,130 @@ class AppLocalizationsDe extends AppLocalizations {
       'In diesem Build nicht verfügbar – verwende S3 oder die App-Store-Version';
 
   @override
-  String get settings_cloudSync_encryption_title => 'End-to-end encryption';
+  String get settings_cloudSync_encryption_title =>
+      'Ende-zu-Ende-Verschlüsselung';
 
   @override
   String get settings_cloudSync_encryption_subtitleOff =>
-      'Encrypt all sync data and cloud backups before upload';
+      'Alle Sync-Daten und Cloud-Backups vor dem Hochladen verschlüsseln';
 
   @override
   String get settings_cloudSync_encryption_subtitleNeedsProvider =>
-      'Select a cloud provider first';
+      'Zuerst einen Cloud-Anbieter auswählen';
 
   @override
-  String get settings_cloudSync_encryption_statusOn => 'Encryption is on';
+  String get settings_cloudSync_encryption_statusOn =>
+      'Verschlüsselung ist aktiv';
 
   @override
   String get settings_cloudSync_encryption_statusOnSubtitle =>
-      'Sync data and cloud backups are encrypted before upload';
+      'Sync-Daten und Cloud-Backups werden vor dem Hochladen verschlüsselt';
 
   @override
   String get settings_cloudSync_encryption_statusLocked =>
-      'Encrypted — passphrase needed';
+      'Verschlüsselt — Passphrase erforderlich';
 
   @override
   String get settings_cloudSync_encryption_statusLockedSubtitle =>
-      'Enter the passphrase to sync on this device';
+      'Passphrase eingeben, um auf diesem Gerät zu synchronisieren';
 
   @override
-  String get settings_cloudSync_encryption_enable => 'Enable encryption';
+  String get settings_cloudSync_encryption_enable =>
+      'Verschlüsselung aktivieren';
 
   @override
   String get settings_cloudSync_encryption_enterPassphrase =>
-      'Enter passphrase';
+      'Passphrase eingeben';
 
   @override
   String get settings_cloudSync_encryption_passphrase => 'Passphrase';
 
   @override
   String get settings_cloudSync_encryption_passphraseConfirm =>
-      'Confirm passphrase';
+      'Passphrase bestätigen';
 
   @override
   String get settings_cloudSync_encryption_passphraseMismatch =>
-      'Passphrases do not match';
+      'Passphrasen stimmen nicht überein';
 
   @override
   String get settings_cloudSync_encryption_passphraseTooShort =>
-      'Use at least 8 characters';
+      'Mindestens 8 Zeichen verwenden';
 
   @override
   String get settings_cloudSync_encryption_wrongPassphrase =>
-      'Incorrect passphrase or recovery code';
+      'Falsche Passphrase oder falscher Wiederherstellungscode';
 
   @override
   String get settings_cloudSync_encryption_warnUpdateDevices =>
-      'All other devices must be updated to the latest app version and will re-download the library.';
+      'Alle anderen Geräte müssen auf die neueste App-Version aktualisiert werden und laden die Bibliothek erneut herunter.';
 
   @override
   String get settings_cloudSync_encryption_warnLoss =>
-      'If you lose both the passphrase and the recovery code, data in the cloud cannot be recovered. Data on your devices is never at risk.';
+      'Gehen Passphrase und Wiederherstellungscode verloren, können die Daten in der Cloud nicht wiederhergestellt werden. Die Daten auf Ihren Geräten sind nie in Gefahr.';
 
   @override
   String get settings_cloudSync_encryption_deletePlaintextBackups =>
-      'Delete existing unencrypted cloud backups';
+      'Vorhandene unverschlüsselte Cloud-Backups löschen';
 
   @override
-  String get settings_cloudSync_encryption_recoveryTitle => 'Recovery code';
+  String get settings_cloudSync_encryption_recoveryTitle =>
+      'Wiederherstellungscode';
 
   @override
   String get settings_cloudSync_encryption_recoveryExplain =>
-      'Write this code down and keep it somewhere safe. It is the only way back in if you forget your passphrase.';
+      'Notieren Sie diesen Code und bewahren Sie ihn sicher auf. Er ist der einzige Weg zurück, falls Sie die Passphrase vergessen.';
 
   @override
   String get settings_cloudSync_encryption_recoverySavedConfirm =>
-      'I have saved my recovery code';
+      'Ich habe meinen Wiederherstellungscode gespeichert';
 
   @override
   String get settings_cloudSync_encryption_changePassphrase =>
-      'Change passphrase';
+      'Passphrase ändern';
 
   @override
   String get settings_cloudSync_encryption_currentPassphrase =>
-      'Current passphrase';
+      'Aktuelle Passphrase';
 
   @override
-  String get settings_cloudSync_encryption_newPassphrase => 'New passphrase';
+  String get settings_cloudSync_encryption_newPassphrase => 'Neue Passphrase';
 
   @override
   String get settings_cloudSync_encryption_regenerateRecovery =>
-      'Generate new recovery code';
+      'Neuen Wiederherstellungscode erzeugen';
 
   @override
   String get settings_cloudSync_encryption_regenerateRecoveryWarn =>
-      'The old recovery code stops working immediately.';
+      'Der alte Wiederherstellungscode wird sofort ungültig.';
 
   @override
-  String get settings_cloudSync_encryption_disable => 'Turn off encryption';
+  String get settings_cloudSync_encryption_disable =>
+      'Verschlüsselung ausschalten';
 
   @override
   String get settings_cloudSync_encryption_disableWarn =>
-      'The library will be re-uploaded unencrypted, and other devices will re-download it. Existing encrypted backups stay restorable with the passphrase.';
+      'Die Bibliothek wird unverschlüsselt neu hochgeladen und andere Geräte laden sie erneut herunter. Vorhandene verschlüsselte Backups bleiben mit der Passphrase wiederherstellbar.';
 
   @override
   String get settings_cloudSync_encryption_unlockTitle =>
-      'Enter your encryption passphrase';
+      'Verschlüsselungs-Passphrase eingeben';
 
   @override
   String get settings_cloudSync_encryption_unlockHint =>
-      'Passphrase or recovery code';
+      'Passphrase oder Wiederherstellungscode';
 
   @override
-  String get settings_cloudSync_encryption_unlock => 'Unlock';
+  String get settings_cloudSync_encryption_unlock => 'Entsperren';
 
   @override
-  String get settings_cloudSync_encryption_continue => 'Continue';
+  String get settings_cloudSync_encryption_continue => 'Weiter';
 
   @override
-  String get settings_cloudSync_encryption_done => 'Done';
+  String get settings_cloudSync_encryption_done => 'Fertig';
 
   @override
-  String get settings_cloudSync_encryption_cancel => 'Cancel';
+  String get settings_cloudSync_encryption_cancel => 'Abbrechen';
 
   @override
   String settings_cloudSync_replace_globalBanner(String deviceName) {

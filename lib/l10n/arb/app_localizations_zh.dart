@@ -100,125 +100,111 @@ class AppLocalizationsZh extends AppLocalizations {
       '此版本不可用 — 请使用 S3 或 App Store 版本';
 
   @override
-  String get settings_cloudSync_encryption_title => 'End-to-end encryption';
+  String get settings_cloudSync_encryption_title => '端到端加密';
 
   @override
-  String get settings_cloudSync_encryption_subtitleOff =>
-      'Encrypt all sync data and cloud backups before upload';
+  String get settings_cloudSync_encryption_subtitleOff => '上传前加密所有同步数据和云备份';
 
   @override
-  String get settings_cloudSync_encryption_subtitleNeedsProvider =>
-      'Select a cloud provider first';
+  String get settings_cloudSync_encryption_subtitleNeedsProvider => '请先选择云服务商';
 
   @override
-  String get settings_cloudSync_encryption_statusOn => 'Encryption is on';
+  String get settings_cloudSync_encryption_statusOn => '加密已开启';
 
   @override
   String get settings_cloudSync_encryption_statusOnSubtitle =>
-      'Sync data and cloud backups are encrypted before upload';
+      '同步数据和云备份在上传前会被加密';
 
   @override
-  String get settings_cloudSync_encryption_statusLocked =>
-      'Encrypted — passphrase needed';
+  String get settings_cloudSync_encryption_statusLocked => '已加密 — 需要口令';
 
   @override
   String get settings_cloudSync_encryption_statusLockedSubtitle =>
-      'Enter the passphrase to sync on this device';
+      '输入口令以在此设备上同步';
 
   @override
-  String get settings_cloudSync_encryption_enable => 'Enable encryption';
+  String get settings_cloudSync_encryption_enable => '开启加密';
 
   @override
-  String get settings_cloudSync_encryption_enterPassphrase =>
-      'Enter passphrase';
+  String get settings_cloudSync_encryption_enterPassphrase => '输入口令';
 
   @override
-  String get settings_cloudSync_encryption_passphrase => 'Passphrase';
+  String get settings_cloudSync_encryption_passphrase => '口令';
 
   @override
-  String get settings_cloudSync_encryption_passphraseConfirm =>
-      'Confirm passphrase';
+  String get settings_cloudSync_encryption_passphraseConfirm => '确认口令';
 
   @override
-  String get settings_cloudSync_encryption_passphraseMismatch =>
-      'Passphrases do not match';
+  String get settings_cloudSync_encryption_passphraseMismatch => '两次输入的口令不一致';
 
   @override
-  String get settings_cloudSync_encryption_passphraseTooShort =>
-      'Use at least 8 characters';
+  String get settings_cloudSync_encryption_passphraseTooShort => '请至少使用 8 个字符';
 
   @override
-  String get settings_cloudSync_encryption_wrongPassphrase =>
-      'Incorrect passphrase or recovery code';
+  String get settings_cloudSync_encryption_wrongPassphrase => '口令或恢复码不正确';
 
   @override
   String get settings_cloudSync_encryption_warnUpdateDevices =>
-      'All other devices must be updated to the latest app version and will re-download the library.';
+      '所有其他设备都必须更新到最新版应用，并将重新下载资料库。';
 
   @override
   String get settings_cloudSync_encryption_warnLoss =>
-      'If you lose both the passphrase and the recovery code, data in the cloud cannot be recovered. Data on your devices is never at risk.';
+      '如果口令和恢复码都丢失，云端数据将无法恢复。设备上的数据永远不会有风险。';
 
   @override
   String get settings_cloudSync_encryption_deletePlaintextBackups =>
-      'Delete existing unencrypted cloud backups';
+      '删除现有的未加密云备份';
 
   @override
-  String get settings_cloudSync_encryption_recoveryTitle => 'Recovery code';
+  String get settings_cloudSync_encryption_recoveryTitle => '恢复码';
 
   @override
   String get settings_cloudSync_encryption_recoveryExplain =>
-      'Write this code down and keep it somewhere safe. It is the only way back in if you forget your passphrase.';
+      '请抄写此恢复码并妥善保管。如果忘记口令，这是唯一的恢复途径。';
 
   @override
-  String get settings_cloudSync_encryption_recoverySavedConfirm =>
-      'I have saved my recovery code';
+  String get settings_cloudSync_encryption_recoverySavedConfirm => '我已保存恢复码';
 
   @override
-  String get settings_cloudSync_encryption_changePassphrase =>
-      'Change passphrase';
+  String get settings_cloudSync_encryption_changePassphrase => '更改口令';
 
   @override
-  String get settings_cloudSync_encryption_currentPassphrase =>
-      'Current passphrase';
+  String get settings_cloudSync_encryption_currentPassphrase => '当前口令';
 
   @override
-  String get settings_cloudSync_encryption_newPassphrase => 'New passphrase';
+  String get settings_cloudSync_encryption_newPassphrase => '新口令';
 
   @override
-  String get settings_cloudSync_encryption_regenerateRecovery =>
-      'Generate new recovery code';
+  String get settings_cloudSync_encryption_regenerateRecovery => '生成新的恢复码';
 
   @override
   String get settings_cloudSync_encryption_regenerateRecoveryWarn =>
-      'The old recovery code stops working immediately.';
+      '旧的恢复码将立即失效。';
 
   @override
-  String get settings_cloudSync_encryption_disable => 'Turn off encryption';
+  String get settings_cloudSync_encryption_disable => '关闭加密';
 
   @override
   String get settings_cloudSync_encryption_disableWarn =>
-      'The library will be re-uploaded unencrypted, and other devices will re-download it. Existing encrypted backups stay restorable with the passphrase.';
+      '资料库将以未加密方式重新上传，其他设备将重新下载。现有的加密备份仍可用口令恢复。';
 
   @override
-  String get settings_cloudSync_encryption_unlockTitle =>
-      'Enter your encryption passphrase';
+  String get settings_cloudSync_encryption_unlockTitle => '输入您的加密口令';
 
   @override
-  String get settings_cloudSync_encryption_unlockHint =>
-      'Passphrase or recovery code';
+  String get settings_cloudSync_encryption_unlockHint => '口令或恢复码';
 
   @override
-  String get settings_cloudSync_encryption_unlock => 'Unlock';
+  String get settings_cloudSync_encryption_unlock => '解锁';
 
   @override
-  String get settings_cloudSync_encryption_continue => 'Continue';
+  String get settings_cloudSync_encryption_continue => '继续';
 
   @override
-  String get settings_cloudSync_encryption_done => 'Done';
+  String get settings_cloudSync_encryption_done => '完成';
 
   @override
-  String get settings_cloudSync_encryption_cancel => 'Cancel';
+  String get settings_cloudSync_encryption_cancel => '取消';
 
   @override
   String settings_cloudSync_replace_globalBanner(String deviceName) {
