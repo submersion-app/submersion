@@ -10,6 +10,16 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/database_version_exception.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 
+/// Which executor path [DatabaseService] used for the most recent open.
+enum DatabaseOpenMode {
+  /// Straight to the background-isolate executor (no migration pending).
+  background,
+
+  /// A pending upgrade ladder ran on the synchronous main-isolate executor
+  /// first, then the database reopened on the background executor.
+  migrationThenBackground,
+}
+
 class DatabaseService {
   DatabaseService._();
 
@@ -94,14 +104,65 @@ class DatabaseService {
     // Guard: reject databases created by a newer version of the app
     _assertSchemaVersionCompatible(dbPath);
 
+    _database = await _openDatabase(
+      dbPath,
+      onMigrationProgress: onMigrationProgress,
+    );
+  }
+
+  /// Which executor path [_openDatabase] took on the most recent open.
+  @visibleForTesting
+  DatabaseOpenMode? lastOpenMode;
+
+  /// Opens [dbPath] with SQLite execution OFF the UI isolate (WS5,
+  /// large-DB performance), while keeping the battle-tested migration
+  /// semantics on the synchronous executor.
+  ///
+  /// Two phases:
+  /// 1. If an upgrade ladder is PENDING, run it to completion on the
+  ///    synchronous main-isolate [NativeDatabase] exactly as before —
+  ///    progress callbacks, pre-migration backup close/reopen, and
+  ///    hot-journal recovery are proven there, and closing a background
+  ///    executor MID-migration has historically hung. The close happens
+  ///    strictly after the ladder finishes.
+  /// 2. Open with [NativeDatabase.createInBackground]: every statement
+  ///    executes on drift's worker isolate. Migration callbacks (onCreate
+  ///    for fresh files, the beforeOpen re-asserts) still run on the main
+  ///    isolate and issue their statements through the remote executor,
+  ///    so their semantics are unchanged.
+  Future<AppDatabase> _openDatabase(
+    String dbPath, {
+    void Function(int currentStep, int totalSteps)? onMigrationProgress,
+  }) async {
     final file = File(dbPath);
-    // Use synchronous NativeDatabase instead of createInBackground to avoid
-    // isolate communication issues during migration. Background isolates can
-    // cause close() to hang indefinitely if called mid-migration.
-    // Progress bar updates still render between migration steps via the
-    // Future.delayed(Duration.zero) yield in reportProgress().
-    _database = AppDatabase(
-      NativeDatabase(file),
+    final stored = getStoredSchemaVersion(dbPath);
+    final migrationPending =
+        stored != null &&
+        stored > 0 &&
+        stored < AppDatabase.currentSchemaVersion;
+
+    if (migrationPending) {
+      final migrator = AppDatabase(
+        NativeDatabase(file),
+        onMigrationProgress: onMigrationProgress,
+      );
+      try {
+        // Force the upgrade ladder to completion before switching
+        // executors.
+        await migrator.customSelect('SELECT 1').get();
+      } finally {
+        await migrator.close().timeout(
+          const Duration(seconds: 5),
+          onTimeout: () {},
+        );
+      }
+      lastOpenMode = DatabaseOpenMode.migrationThenBackground;
+    } else {
+      lastOpenMode = DatabaseOpenMode.background;
+    }
+
+    return AppDatabase(
+      NativeDatabase.createInBackground(file),
       onMigrationProgress: onMigrationProgress,
     );
   }
@@ -125,10 +186,7 @@ class DatabaseService {
     // This helps prevent SQLite file locking issues, especially with WAL mode
     await Future.delayed(const Duration(milliseconds: 100));
 
-    final file = File(newPath);
-    // Use synchronous NativeDatabase instead of createInBackground to avoid
-    // isolate communication issues during migration
-    _database = AppDatabase(NativeDatabase(file));
+    _database = await _openDatabase(newPath);
 
     // Verify the database is ready by running a simple query
     // This ensures the connection is fully established before returning
