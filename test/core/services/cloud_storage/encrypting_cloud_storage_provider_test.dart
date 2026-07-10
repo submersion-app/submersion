@@ -4,7 +4,9 @@ import 'dart:typed_data';
 import 'package:cryptography/cryptography.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/encrypting_cloud_storage_provider.dart';
+import 'package:submersion/core/services/sync/crypto/crypto_errors.dart';
 import 'package:submersion/core/services/sync/crypto/keyslots.dart';
 import 'package:submersion/core/services/sync/crypto/sync_envelope.dart';
 
@@ -111,4 +113,102 @@ void main() {
     await provider.deleteFile(up.fileId);
     expect(await inner.fileExists(up.fileId), isFalse);
   });
+
+  test('delegates the remaining provider surface untouched', () async {
+    expect(await provider.isAvailable(), isTrue);
+    expect(await provider.isAuthenticated(), isTrue);
+    expect(await provider.getUserEmail(), 'test@example.com');
+    // authenticate / signOut are no-ops on the fake; assert they pass through
+    // without throwing.
+    await provider.authenticate();
+    await provider.signOut();
+    expect(await provider.getOrCreateSyncFolder(), 'sync');
+    final folder = await provider.createFolder('Sub', parentFolderId: 'root');
+    expect(folder, 'root/Sub');
+    final up = await provider.uploadFile(bytesOf('y'), 'ssv1.devA.cs.2.json');
+    expect(await provider.fileExists(up.fileId), isTrue);
+    final info = await provider.getFileInfo(up.fileId);
+    expect(info?.name, 'ssv1.devA.cs.2.json');
+  });
+
+  test(
+    'framed backup artifacts pass through download untouched (exempt)',
+    () async {
+      // A backup artifact is self-framed: it carries the SBE1 magic but must
+      // NOT be opened as a single-shot envelope. Upload it via the RAW inner
+      // provider (the backup service owns its encryption) with the SBE1 magic,
+      // then download through the decorator and expect the bytes verbatim.
+      final framed = Uint8List.fromList([
+        ...SyncEnvelope.magic,
+        ...List<int>.filled(64, 7), // opaque framed body; never opened
+      ]);
+      final up = await inner.uploadFile(
+        framed,
+        'submersion_backup_2026-07-10.sbe',
+      );
+      // Populate the decorator's name cache the way production does (listFiles).
+      await provider.listFiles(namePattern: 'submersion_backup_');
+      final out = await provider.downloadFile(up.fileId);
+      expect(out, framed, reason: 'exempt artifact must not be decrypted');
+    },
+  );
+
+  test('exemption rules: keyslots and .sbe backups only', () {
+    expect(
+      EncryptingCloudStorageProvider.isExempt('submersion_keyslots.json'),
+      isTrue,
+    );
+    expect(
+      EncryptingCloudStorageProvider.isExempt('submersion_backup_x.sbe'),
+      isTrue,
+    );
+    // A plaintext .db backup is NOT exempt by the framed rule (it has no
+    // magic on download, so it never needs the exemption anyway).
+    expect(
+      EncryptingCloudStorageProvider.isExempt('submersion_backup_x.db'),
+      isFalse,
+    );
+    expect(
+      EncryptingCloudStorageProvider.isExempt('ssv1.devA.manifest.json'),
+      isFalse,
+    );
+  });
+
+  test(
+    'download throws when an encrypted file has no resolvable name',
+    () async {
+      // A (pathological) provider that returns SBE1 bytes on download but no
+      // file info and no listing -- the decorator cannot resolve the AAD name
+      // and must fail closed rather than guess.
+      final sealed = await SyncEnvelope.seal(
+        plaintext: bytesOf('{"x":1}'),
+        dataKey: dataKey,
+        libraryKeyId: _keyId,
+        filename: 'ssv1.devA.cs.9.json',
+      );
+      final nameless = _NamelessProvider(sealed);
+      final wrapped = EncryptingCloudStorageProvider(
+        nameless,
+        dataKey: dataKey,
+        libraryKeyId: _keyId,
+      );
+      await expectLater(
+        wrapped.downloadFile('whatever'),
+        throwsA(isA<EnvelopeCorruptException>()),
+      );
+    },
+  );
+}
+
+/// Returns SBE1 bytes on download but null file info and no listing, so the
+/// decorator has no name to authenticate with.
+class _NamelessProvider extends Fake implements CloudStorageProvider {
+  _NamelessProvider(this._bytes);
+  final Uint8List _bytes;
+
+  @override
+  Future<Uint8List> downloadFile(String fileId) async => _bytes;
+
+  @override
+  Future<CloudFileInfo?> getFileInfo(String fileId) async => null;
 }

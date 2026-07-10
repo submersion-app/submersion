@@ -195,4 +195,31 @@ void main() {
     final after = await cloud.listFiles(namePattern: KeyslotFile.cloudFileName);
     expect(after.length, before.length);
   });
+
+  test('changePassphrase falls back to the local mirror when the cloud '
+      'keyslot file is momentarily missing', () async {
+    await enable();
+    // Simulate an eventually-consistent backend where the just-written
+    // keyslot file is not yet listable: delete it from the cloud but keep
+    // the local mirror. changePassphrase must still succeed via the mirror.
+    await service.deleteCloudKeyslots(cloud);
+    await service.changePassphrase(
+      rawProvider: cloud,
+      currentSecret: 'correct horse battery staple',
+      newPassphrase: 'freshly rotated pass',
+      kdf: _fastKdf,
+    );
+    final file = await cloudKeyslots();
+    expect(
+      await Keyslots.tryUnwrap(file: file, secret: 'freshly rotated pass'),
+      isNotNull,
+    );
+  });
+
+  test('WrongPassphraseException toString', () {
+    expect(
+      const WrongPassphraseException().toString(),
+      'WrongPassphraseException',
+    );
+  });
 }

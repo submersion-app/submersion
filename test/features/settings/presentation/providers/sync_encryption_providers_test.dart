@@ -100,4 +100,34 @@ void main() {
       isNot(isA<EncryptingCloudStorageProvider>()),
     );
   });
+
+  test(
+    'clear() does not memoize null: ensureLoaded reloads afterwards',
+    () async {
+      // Regression for the review note: clear() must reset the memoized load so
+      // a later ensureLoaded() re-reads secure storage (e.g. a re-enable in the
+      // same container). With the key still present and the flag on, the reload
+      // must produce a fresh session rather than the memoized null.
+      final container = await makeContainer(encryptionEnabled: true);
+      final notifier = container.read(encryptionKeyNotifierProvider.notifier);
+      await keyStore.saveKey(libraryKeyId: keyId, mlkBytes: mlkBytes);
+
+      final first = await notifier.ensureLoaded();
+      expect(first, isNotNull);
+
+      await notifier.clear();
+      expect(container.read(encryptionKeyNotifierProvider), isNull);
+
+      final reloaded = await notifier.ensureLoaded();
+      expect(
+        reloaded,
+        isNotNull,
+        reason: 'ensureLoaded must re-read the store after clear()',
+      );
+      expect(
+        container.read(cloudStorageProviderProvider),
+        isA<EncryptingCloudStorageProvider>(),
+      );
+    },
+  );
 }

@@ -87,6 +87,29 @@ void main() {
     expect(find.textContaining('dive data'), findsWidgets);
   });
 
+  testWidgets('encryption status row shows Off by default', (tester) async {
+    await _pumpBare(tester);
+    expect(find.text('End-to-end encryption'), findsOneWidget);
+    expect(find.text('Off'), findsOneWidget);
+  });
+
+  testWidgets('encryption status row shows the locked state when enabled '
+      'without a session', (tester) async {
+    SharedPreferences.setMockInitialValues({'sync_encryption_enabled': true});
+    final prefs = await SharedPreferences.getInstance();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+        child: const MaterialApp(home: TroubleshootSyncPage()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.textContaining('Sync is paused until the passphrase'),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('shows both cloud-clear actions', (tester) async {
     await _pumpBare(tester);
 

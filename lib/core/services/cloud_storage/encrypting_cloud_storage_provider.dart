@@ -27,11 +27,19 @@ class EncryptingCloudStorageProvider implements CloudStorageProvider {
   }) : _dataKey = dataKey,
        _libraryKeyId = libraryKeyId;
 
+  /// Backup artifacts are self-framed (BackupCrypto's `.sbe` format) and
+  /// must pass through untouched on both upload and download.
+  static const String _backupPrefix = 'submersion_backup_';
+  static const String _backupExtension = '.sbe';
+
   /// Exactly two exemptions (spec 4.1): the keyslot bootstrap file and
-  /// backup artifacts, which carry their own framed encryption.
+  /// framed backup artifacts, which carry their own encryption. Backups are
+  /// matched by prefix AND the `.sbe` extension, so a plaintext `.db` backup
+  /// is never mistaken for a self-framed one.
   static bool isExempt(String filename) =>
       filename == KeyslotFile.cloudFileName ||
-      filename.startsWith('submersion_backup_');
+      (filename.startsWith(_backupPrefix) &&
+          filename.endsWith(_backupExtension));
 
   @override
   Future<UploadResult> uploadFile(
@@ -57,6 +65,12 @@ class EncryptingCloudStorageProvider implements CloudStorageProvider {
     final bytes = await inner.downloadFile(fileId);
     if (!SyncEnvelope.hasMagic(bytes)) return bytes;
     final name = _names[fileId] ?? (await inner.getFileInfo(fileId))?.name;
+    // Self-framed artifacts (backups) share the SBE1 magic but are exempt:
+    // pass their bytes through untouched, symmetric with upload. Their own
+    // codec (BackupCrypto) owns decryption. Without this, restoring an
+    // encrypted cloud backup through the decorated provider would try to
+    // open the framed `.sbe` as a single-shot envelope and fail.
+    if (name != null && isExempt(name)) return bytes;
     if (name == null) {
       throw const EnvelopeCorruptException(
         'Encrypted file has no resolvable name for authentication',

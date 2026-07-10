@@ -9,6 +9,7 @@ import 'package:submersion/features/backup/data/repositories/backup_preferences.
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/restore_mode.dart';
+import 'package:submersion/features/backup/domain/exceptions/backup_encrypted_exception.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -35,6 +36,11 @@ class _NoopAdapter implements BackupDatabaseAdapter {
 class _RecordingBackupService extends BackupService {
   final List<String> calls = [];
   RestoreMode? lastMode;
+  String? lastSecret;
+
+  /// When true, restore throws [BackupEncryptedException] UNLESS a secret is
+  /// supplied -- modelling the "encrypted artifact needs a passphrase" path.
+  bool requireSecret = false;
 
   _RecordingBackupService(BackupPreferences prefs)
     : super(dbAdapter: _NoopAdapter(), preferences: prefs);
@@ -51,6 +57,10 @@ class _RecordingBackupService extends BackupService {
   }) async {
     calls.add('restoreFromBackup');
     lastMode = mode;
+    lastSecret = encryptionSecret;
+    if (requireSecret && encryptionSecret == null) {
+      throw const BackupEncryptedException();
+    }
   }
 
   @override
@@ -61,6 +71,10 @@ class _RecordingBackupService extends BackupService {
   }) async {
     calls.add('restoreFromFile');
     lastMode = mode;
+    lastSecret = encryptionSecret;
+    if (requireSecret && encryptionSecret == null) {
+      throw const BackupEncryptedException();
+    }
   }
 }
 
@@ -153,5 +167,69 @@ void main() {
     final container = makeContainer(overrideService: false);
     final built = container.read(backupServiceProvider);
     expect(built, isA<BackupService>());
+  });
+
+  test('restoreFromFilePath rethrows BackupEncryptedException and resets '
+      'to idle so the page can prompt', () async {
+    service.requireSecret = true;
+    final container = makeContainer();
+    final tmp = File(
+      '${Directory.systemTemp.path}/notifier_enc_'
+      '${DateTime.now().microsecondsSinceEpoch}.db',
+    );
+    await tmp.writeAsString('db');
+    addTearDown(() async {
+      if (await tmp.exists()) await tmp.delete();
+    });
+
+    await expectLater(
+      container
+          .read(backupOperationProvider.notifier)
+          .restoreFromFilePath(tmp.path),
+      throwsA(isA<BackupEncryptedException>()),
+    );
+    expect(
+      container.read(backupOperationProvider).status,
+      BackupOperationStatus.idle,
+    );
+
+    // Retrying with a secret succeeds and threads it to the service.
+    await container
+        .read(backupOperationProvider.notifier)
+        .restoreFromFilePath(tmp.path, encryptionSecret: 'pw');
+    expect(service.lastSecret, 'pw');
+    expect(
+      container.read(backupOperationProvider).status,
+      BackupOperationStatus.restoreComplete,
+    );
+  });
+
+  test('restoreFromBackup rethrows BackupEncryptedException and resets '
+      'to idle', () async {
+    service.requireSecret = true;
+    final container = makeContainer();
+    final record = BackupRecord(
+      id: 'enc',
+      filename: 'b.sbe',
+      timestamp: DateTime(2026),
+      sizeBytes: 1,
+      location: BackupLocation.local,
+    );
+
+    await expectLater(
+      container
+          .read(backupOperationProvider.notifier)
+          .restoreFromBackup(record),
+      throwsA(isA<BackupEncryptedException>()),
+    );
+    expect(
+      container.read(backupOperationProvider).status,
+      BackupOperationStatus.idle,
+    );
+
+    await container
+        .read(backupOperationProvider.notifier)
+        .restoreFromBackup(record, encryptionSecret: 'pw');
+    expect(service.lastSecret, 'pw');
   });
 }

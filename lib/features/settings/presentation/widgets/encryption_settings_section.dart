@@ -19,14 +19,18 @@ Future<bool> runEncryptionUnlockFlow(
   BuildContext context,
   WidgetRef ref,
 ) async {
+  // Resolve the provider up front and capture it for the closure. With no
+  // provider there is nothing to unlock against, so bail before showing the
+  // dialog rather than letting onSubmit succeed silently (which would close
+  // the dialog and trigger a pointless sync without any key).
+  final provider = ref.read(cloudStorageProviderProvider);
+  if (provider == null) return false;
   final l10n = context.l10n;
   final unlocked = await showEncryptionPassphraseDialog(
     context,
     title: l10n.settings_cloudSync_encryption_unlockTitle,
     hint: l10n.settings_cloudSync_encryption_unlockHint,
     onSubmit: (secret) async {
-      final provider = ref.read(cloudStorageProviderProvider);
-      if (provider == null) return;
       final key = await ref
           .read(syncEncryptionServiceProvider)
           .unlock(rawProvider: provider, secret: secret);

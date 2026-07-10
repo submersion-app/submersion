@@ -129,7 +129,10 @@ class EncryptionKeyNotifier extends StateNotifier<EncryptionSessionState?> {
 
   Future<void> clear() async {
     state = null;
-    _loading = Future.value(null);
+    // Reset the memoization to null (not a completed null future) so a later
+    // ensureLoaded() genuinely re-reads secure storage -- e.g. a disable
+    // followed by a re-enable in the same container must pick up the new key.
+    _loading = null;
   }
 }
 

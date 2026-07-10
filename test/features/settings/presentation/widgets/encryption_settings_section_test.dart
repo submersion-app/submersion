@@ -170,5 +170,115 @@ void main() {
       await tester.pumpAndSettle();
       expect(finishedWith, [true], reason: 'delete-backups defaults to on');
     });
+
+    testWidgets('too-short passphrase blocks Continue', (tester) async {
+      var enableCalls = 0;
+      await tester.pumpWidget(
+        wrap(
+          Builder(
+            builder: (context) => TextButton(
+              onPressed: () => showDialog<void>(
+                context: context,
+                builder: (_) => EnableEncryptionDialog(
+                  onEnable: (_) async {
+                    enableCalls++;
+                    return 'code';
+                  },
+                  onFinished: (_) async {},
+                ),
+              ),
+              child: const Text('open'),
+            ),
+          ),
+          const [],
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Passphrase'),
+        'short',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Confirm passphrase'),
+        'short',
+      );
+      await tester.tap(find.text('Continue'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Use at least 8 characters'), findsOneWidget);
+      expect(enableCalls, 0);
+    });
+
+    testWidgets('onEnable failure returns to the form with an error', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        wrap(
+          Builder(
+            builder: (context) => TextButton(
+              onPressed: () => showDialog<void>(
+                context: context,
+                builder: (_) => EnableEncryptionDialog(
+                  onEnable: (_) async => throw Exception('upload failed'),
+                  onFinished: (_) async {},
+                ),
+              ),
+              child: const Text('open'),
+            ),
+          ),
+          const [],
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Passphrase'),
+        'longenough1',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Confirm passphrase'),
+        'longenough1',
+      );
+      await tester.tap(find.text('Continue'));
+      await tester.pumpAndSettle();
+
+      // Back on the form (Continue still present) with the error surfaced.
+      expect(find.textContaining('upload failed'), findsOneWidget);
+      expect(find.text('Continue'), findsOneWidget);
+    });
+
+    testWidgets('cancel closes the dialog without enabling', (tester) async {
+      var enableCalls = 0;
+      await tester.pumpWidget(
+        wrap(
+          Builder(
+            builder: (context) => TextButton(
+              onPressed: () => showDialog<void>(
+                context: context,
+                builder: (_) => EnableEncryptionDialog(
+                  onEnable: (_) async {
+                    enableCalls++;
+                    return 'code';
+                  },
+                  onFinished: (_) async {},
+                ),
+              ),
+              child: const Text('open'),
+            ),
+          ),
+          const [],
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(EnableEncryptionDialog), findsNothing);
+      expect(enableCalls, 0);
+    });
   });
 }

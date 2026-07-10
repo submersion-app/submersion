@@ -192,6 +192,34 @@ void main() {
     await service.restoreFromFile(picked.path, encryptionSecret: _passphrase);
   });
 
+  test('validateBackupFile accepts an encrypted .sbe artifact', () async {
+    await seedEncryption();
+    await preferences.setCloudBackupEnabled(true);
+    final service = buildService();
+    await service.performBackup();
+    final uploaded = await singleCloudBackup();
+    final picked = File('${Directory.systemTemp.path}/valid_enc.sbe');
+    await picked.writeAsBytes(uploaded.bytes);
+    addTearDown(() async {
+      if (await picked.exists()) await picked.delete();
+    });
+
+    final result = await service.validateBackupFile(picked.path);
+    expect(result.isValid, isTrue);
+  });
+
+  test('validateBackupFile rejects a .sbe file that lacks the magic', () async {
+    final service = buildService();
+    final bogus = File('${Directory.systemTemp.path}/bogus.sbe');
+    await bogus.writeAsString('not an encrypted backup at all');
+    addTearDown(() async {
+      if (await bogus.exists()) await bogus.delete();
+    });
+
+    final result = await service.validateBackupFile(bogus.path);
+    expect(result.isValid, isFalse);
+  });
+
   test('deletePlaintextCloudBackups removes only *.db artifacts', () async {
     await preferences.setCloudBackupEnabled(true);
     final service = buildService();
