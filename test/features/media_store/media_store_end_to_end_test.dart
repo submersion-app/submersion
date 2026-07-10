@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:drift/native.dart';
@@ -205,5 +206,75 @@ void main() {
     gateResult = WorkerGate.stopDraining;
     await worker.drain();
     expect(bucket.objects, isEmpty);
+  });
+
+  test('device B grid resolves the thumb object, not the original', () async {
+    // Device A uploads a real (decodable) photo so a thumb is produced.
+    final mediaRepositoryA = MediaRepository();
+    final cacheA = MediaCacheStore(database: cacheDbA, root: rootA);
+    final queueA = MediaTransferQueueRepository(database: cacheDbA);
+    final resolverA = FakeLocalFileResolver();
+    final workerA = MediaStoreWorker(
+      queue: queueA,
+      pipeline: MediaUploadPipeline(
+        mediaRepository: mediaRepositoryA,
+        queue: queueA,
+        store: bucket,
+        registry: MediaSourceResolverRegistry({
+          MediaSourceType.localFile: resolverA,
+        }),
+        cache: cacheA,
+      ),
+    );
+
+    final pngBytes = base64Decode(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR4nGNgAAIAAAUAAXpe'
+      'qz8AAAAASUVORK5CYII=',
+    );
+    final photo = File('${rootA.path}/reef.png')..writeAsBytesSync(pngBytes);
+    resolverA.data = FileData(file: photo);
+
+    final created = await mediaRepositoryA.createMedia(
+      domain.MediaItem(
+        id: '',
+        mediaType: domain.MediaType.photo,
+        sourceType: MediaSourceType.localFile,
+        filePath: photo.path,
+        localPath: photo.path,
+        originalFilename: 'reef.png',
+        takenAt: DateTime(2026, 7, 1),
+        createdAt: DateTime(2026, 7, 1),
+        updatedAt: DateTime(2026, 7, 1),
+      ),
+    );
+    await queueA.enqueueUpload(mediaId: created.id);
+    await workerA.drain();
+
+    final uploaded = (await mediaRepositoryA.getMediaById(created.id))!;
+    expect(uploaded.remoteThumbUploadedAt, isNotNull);
+    expect(uploaded.remoteUploadedAt, isNotNull);
+    expect(bucket.objects, hasLength(2), reason: 'thumb + original');
+
+    // Device B resolves a THUMBNAIL: it must come from the thumb object.
+    final onB = uploaded.copyWith(
+      platformAssetId: null,
+      localPath: '/nonexistent/on/device-b.png',
+    );
+    final cacheB = MediaCacheStore(database: cacheDbB, root: rootB);
+    final resolverB = MediaStoreResolver(store: bucket, cache: cacheB);
+    final data = await resolverB.tryResolveRemote(onB, thumbnail: true);
+    expect(data, isA<FileData>());
+    final thumbBytes = await (data! as FileData).file.readAsBytes();
+    expect(thumbBytes.take(2).toList(), [0xFF, 0xD8], reason: 'JPEG thumb');
+    expect(thumbBytes, isNot(equals(pngBytes)));
+    expect(
+      await cacheB.get(uploaded.contentHash!, MediaCacheKind.thumb),
+      isNotNull,
+    );
+    expect(
+      await cacheB.get(uploaded.contentHash!, MediaCacheKind.original),
+      isNull,
+      reason: 'grids never pull originals',
+    );
   });
 }
