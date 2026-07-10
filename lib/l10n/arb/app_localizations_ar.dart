@@ -4672,6 +4672,329 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get settings_manage_setupAssistant => 'مساعد الإعداد';
+
+  @override
+  String get settings_manage_setupAssistant_subtitle =>
+      'مراجعة الوحدات والمظهر وخيارات النسخ الاحتياطي';
+
+  @override
+  String get setup_appearance_language => 'اللغة';
+
+  @override
+  String get setup_appearance_mapStyle => 'نمط الخريطة';
+
+  @override
+  String get setup_appearance_mapStyle_esriSatellite => 'قمر صناعي';
+
+  @override
+  String get setup_appearance_mapStyle_openStreetMap => 'شوارع';
+
+  @override
+  String get setup_appearance_mapStyle_openTopoMap => 'طبوغرافي';
+
+  @override
+  String get setup_appearance_subtitle =>
+      'اجعل Submersion خاصًا بك. يمكن تغيير كل شيء هنا لاحقًا.';
+
+  @override
+  String get setup_appearance_theme => 'السمة';
+
+  @override
+  String get setup_appearance_themeDark => 'داكن';
+
+  @override
+  String get setup_appearance_themeLight => 'فاتح';
+
+  @override
+  String get setup_appearance_themePreset => 'سمة الألوان';
+
+  @override
+  String get setup_appearance_themeSystem => 'النظام';
+
+  @override
+  String get setup_appearance_title => 'المظهر';
+
+  @override
+  String get setup_backup_cloudCopy => 'الاحتفاظ بنسخة احتياطية في السحابة';
+
+  @override
+  String get setup_backup_frequency => 'التكرار';
+
+  @override
+  String get setup_backup_frequency_daily => 'يوميًا';
+
+  @override
+  String get setup_backup_frequency_monthly => 'شهريًا';
+
+  @override
+  String get setup_backup_frequency_weekly => 'أسبوعيًا';
+
+  @override
+  String get setup_backup_scheduleSubtitle =>
+      'انسخ سجل غوصك احتياطيًا وفق جدول زمني';
+
+  @override
+  String get setup_backup_scheduleToggle => 'نسخ احتياطي تلقائي';
+
+  @override
+  String get setup_backup_subtitle => 'احمِ سجل غوصك من اليوم الأول.';
+
+  @override
+  String get setup_backup_title => 'النسخ الاحتياطي والمزامنة';
+
+  @override
+  String get setup_common_back => 'رجوع';
+
+  @override
+  String get setup_common_next => 'التالي';
+
+  @override
+  String get setup_common_skip => 'تخطي';
+
+  @override
+  String get setup_existing_folder_subtitle =>
+      'وجّه Submersion إلى مجلد يحتوي بالفعل على مكتبة';
+
+  @override
+  String get setup_existing_folder_title => 'فتح مجلد موجود';
+
+  @override
+  String get setup_existing_restore_subtitle =>
+      'اختر ملف نسخ احتياطي تم تصديره من Submersion';
+
+  @override
+  String get setup_existing_restore_title => 'استعادة ملف نسخ احتياطي';
+
+  @override
+  String get setup_existing_subtitle =>
+      'اختر طريقة تحميل مكتبة Submersion الحالية';
+
+  @override
+  String get setup_existing_sync_subtitle =>
+      'اسحب مكتبتك من iCloud أو Dropbox أو S3';
+
+  @override
+  String get setup_existing_sync_title => 'توصيل مزامنة السحابة';
+
+  @override
+  String get setup_existing_title => 'أحضر بياناتك';
+
+  @override
+  String get setup_finish_applying => 'جارٍ الإعداد...';
+
+  @override
+  String setup_finish_error(Object error) {
+    return 'تعذّر إكمال الإعداد: $error';
+  }
+
+  @override
+  String get setup_finish_feature_diveComputer =>
+      'نزّل الغوصات من كمبيوتر الغوص';
+
+  @override
+  String get setup_finish_feature_gear => 'تتبّع المعدات ومواعيد الصيانة';
+
+  @override
+  String get setup_finish_feature_import =>
+      'استورد السجلات من الملفات والتطبيقات الأخرى';
+
+  @override
+  String get setup_finish_feature_sites => 'اعرض مواقع الغوص على الخريطة';
+
+  @override
+  String get setup_finish_feature_statistics => 'استكشف إحصاءات الغوص';
+
+  @override
+  String get setup_finish_start => 'ابدأ التسجيل';
+
+  @override
+  String get setup_finish_subtitle => 'يمكن لـ Submersion أيضًا...';
+
+  @override
+  String get setup_finish_title => 'كل شيء جاهز';
+
+  @override
+  String get setup_folder_notFound_message =>
+      'المجلد المحدد لا يحتوي على قاعدة بيانات Submersion.';
+
+  @override
+  String get setup_folder_notFound_title => 'لا توجد مكتبة في هذا المجلد';
+
+  @override
+  String get setup_folder_pick => 'اختيار مجلد';
+
+  @override
+  String get setup_folder_switching => 'جارٍ فتح المكتبة...';
+
+  @override
+  String get setup_folder_title => 'فتح مجلد موجود';
+
+  @override
+  String get setup_profile_nameHint => 'أدخل اسمك';
+
+  @override
+  String get setup_profile_nameLabel => 'اسمك';
+
+  @override
+  String get setup_profile_nameValidation => 'الرجاء إدخال اسمك';
+
+  @override
+  String get setup_profile_subtitle =>
+      'أدخل اسمك للبدء. يمكنك إضافة المزيد من التفاصيل لاحقاً.';
+
+  @override
+  String get setup_profile_title => 'إنشاء ملفك الشخصي';
+
+  @override
+  String get setup_restore_inProgress => 'جارٍ الاستعادة...';
+
+  @override
+  String get setup_restore_pick => 'اختيار ملف النسخ الاحتياطي';
+
+  @override
+  String get setup_restore_title => 'استعادة النسخة الاحتياطية';
+
+  @override
+  String get setup_step_appearance => 'المظهر';
+
+  @override
+  String get setup_step_backup => 'نسخ احتياطي';
+
+  @override
+  String get setup_step_finish => 'تم';
+
+  @override
+  String get setup_step_profile => 'الملف الشخصي';
+
+  @override
+  String get setup_step_units => 'الوحدات';
+
+  @override
+  String get setup_syncPull_continue => 'متابعة';
+
+  @override
+  String get setup_syncPull_noLibrary_message =>
+      'لم يتم العثور على مكتبة Submersion في هذا الحساب. هل تبدأ من جديد؟ سيتم الاحتفاظ باتصالك.';
+
+  @override
+  String get setup_syncPull_noLibrary_title => 'لم يتم العثور على مكتبة';
+
+  @override
+  String get setup_syncPull_success => 'تم اعتماد المكتبة';
+
+  @override
+  String get setup_syncPull_syncing => 'جارٍ سحب مكتبتك...';
+
+  @override
+  String get setup_syncPull_title => 'الاتصال والسحب';
+
+  @override
+  String setup_sync_connectedTo(String provider) {
+    return 'متصل بـ $provider';
+  }
+
+  @override
+  String setup_sync_error(Object error) {
+    return 'تعذّر الاتصال: $error';
+  }
+
+  @override
+  String get setup_sync_header => 'مزامنة السحابة';
+
+  @override
+  String get setup_sync_icloudUnavailable => 'iCloud غير متاح على هذا الجهاز';
+
+  @override
+  String get setup_sync_libraryFound_adopt => 'اعتماد المكتبة الحالية';
+
+  @override
+  String get setup_sync_libraryFound_keepFresh => 'البدء من جديد';
+
+  @override
+  String get setup_sync_libraryFound_message =>
+      'يحتوي هذا الحساب بالفعل على مكتبة Submersion. هل تريد اعتمادها بدلًا من البدء من جديد؟';
+
+  @override
+  String get setup_sync_libraryFound_title => 'تم العثور على مكتبة موجودة';
+
+  @override
+  String get setup_sync_manageInSettings => 'الإدارة في الإعدادات';
+
+  @override
+  String get setup_sync_notConnected => 'غير متصل';
+
+  @override
+  String get setup_sync_subtitle => 'زامن سجلك عبر الأجهزة';
+
+  @override
+  String get setup_units_advanced => 'ضبط الوحدات';
+
+  @override
+  String get setup_units_altitude => 'الارتفاع';
+
+  @override
+  String get setup_units_dateFormat => 'تنسيق التاريخ';
+
+  @override
+  String get setup_units_depth => 'العمق';
+
+  @override
+  String get setup_units_imperial => 'إمبراطوري';
+
+  @override
+  String get setup_units_metric => 'متري';
+
+  @override
+  String get setup_units_pressure => 'الضغط';
+
+  @override
+  String get setup_units_sac => 'معدل SAC';
+
+  @override
+  String get setup_units_subtitle =>
+      'اختر كيفية عرض القياسات. يمكنك ضبط كل وحدة.';
+
+  @override
+  String get setup_units_temperature => 'درجة الحرارة';
+
+  @override
+  String get setup_units_timeFormat => 'تنسيق الوقت';
+
+  @override
+  String get setup_units_title => 'الوحدات';
+
+  @override
+  String get setup_units_volume => 'الحجم';
+
+  @override
+  String get setup_units_weight => 'الوزن';
+
+  @override
+  String get setup_welcome_existingData_subtitle =>
+      'استعد نسخة احتياطية، أو صِل مزامنة السحابة، أو افتح مجلدًا موجودًا';
+
+  @override
+  String get setup_welcome_existingData_title =>
+      'لديّ بيانات Submersion موجودة';
+
+  @override
+  String get setup_welcome_skipSetup => 'تخطي الإعداد';
+
+  @override
+  String get setup_welcome_startFresh_subtitle =>
+      'أنشئ ملف الغواص الخاص بك واضبط التطبيق';
+
+  @override
+  String get setup_welcome_startFresh_title => 'إعداد سجل جديد';
+
+  @override
+  String get setup_welcome_subtitle => 'تسجيل وتحليل متقدم للغوص';
+
+  @override
+  String get setup_welcome_title => 'مرحباً بك في Submersion';
+
+  @override
   String get siteMatchReview_title => 'مطابقة المواقع';
 
   @override

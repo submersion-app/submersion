@@ -2494,6 +2494,127 @@
       }
     }
   },
+  "settings_manage_setupAssistant": "Setup assistant",
+  "settings_manage_setupAssistant_subtitle": "Revisit units, appearance, and backup choices",
+  "setup_appearance_language": "Language",
+  "setup_appearance_mapStyle": "Map style",
+  "setup_appearance_mapStyle_esriSatellite": "Satellite",
+  "setup_appearance_mapStyle_openStreetMap": "Street",
+  "setup_appearance_mapStyle_openTopoMap": "Topographic",
+  "setup_appearance_subtitle": "Make Submersion yours. Everything here can be changed later.",
+  "setup_appearance_theme": "Theme",
+  "setup_appearance_themeDark": "Dark",
+  "setup_appearance_themeLight": "Light",
+  "setup_appearance_themePreset": "Color theme",
+  "setup_appearance_themeSystem": "System",
+  "setup_appearance_title": "Appearance",
+  "setup_backup_cloudCopy": "Keep a backup copy in the cloud",
+  "setup_backup_frequency": "Frequency",
+  "setup_backup_frequency_daily": "Daily",
+  "setup_backup_frequency_monthly": "Monthly",
+  "setup_backup_frequency_weekly": "Weekly",
+  "setup_backup_scheduleSubtitle": "Back up your logbook on a schedule",
+  "setup_backup_scheduleToggle": "Automatic backups",
+  "setup_backup_subtitle": "Protect your dive log from day one.",
+  "setup_backup_title": "Backups & Sync",
+  "setup_common_back": "Back",
+  "setup_common_next": "Next",
+  "setup_common_skip": "Skip",
+  "setup_existing_folder_subtitle": "Point Submersion at a folder that already contains a library",
+  "setup_existing_folder_title": "Open an existing folder",
+  "setup_existing_restore_subtitle": "Pick a backup file exported from Submersion",
+  "setup_existing_restore_title": "Restore a backup file",
+  "setup_existing_subtitle": "Choose how to load your existing Submersion library",
+  "setup_existing_sync_subtitle": "Pull your library from iCloud, Dropbox, or S3",
+  "setup_existing_sync_title": "Connect cloud sync",
+  "setup_existing_title": "Bring your data",
+  "setup_finish_applying": "Setting up...",
+  "setup_finish_error": "Could not complete setup: {error}",
+  "@setup_finish_error": {
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
+  "setup_finish_feature_diveComputer": "Download dives from your dive computer",
+  "setup_finish_feature_gear": "Track gear and service intervals",
+  "setup_finish_feature_import": "Import logs from files and other apps",
+  "setup_finish_feature_sites": "Map your dive sites",
+  "setup_finish_feature_statistics": "Explore statistics about your diving",
+  "setup_finish_start": "Start logging",
+  "setup_finish_subtitle": "Submersion can also...",
+  "setup_finish_title": "You're all set",
+  "setup_folder_notFound_message": "The selected folder does not contain a Submersion database.",
+  "setup_folder_notFound_title": "No library in that folder",
+  "setup_folder_pick": "Choose folder",
+  "setup_folder_switching": "Opening library...",
+  "setup_folder_title": "Open existing folder",
+  "setup_profile_nameHint": "Enter your name",
+  "setup_profile_nameLabel": "Your Name",
+  "setup_profile_nameValidation": "Please enter your name",
+  "setup_profile_subtitle": "Enter your name to get started. You can add more details later.",
+  "setup_profile_title": "Create Your Profile",
+  "setup_restore_inProgress": "Restoring...",
+  "setup_restore_pick": "Choose backup file",
+  "setup_restore_title": "Restore backup",
+  "setup_step_appearance": "Appearance",
+  "setup_step_backup": "Backup",
+  "setup_step_finish": "Done",
+  "setup_step_profile": "Profile",
+  "setup_step_units": "Units",
+  "setup_syncPull_continue": "Continue",
+  "setup_syncPull_noLibrary_message": "No existing Submersion library was found on this account. Start fresh instead? Your connection will be kept.",
+  "setup_syncPull_noLibrary_title": "No library found",
+  "setup_syncPull_success": "Library adopted",
+  "setup_syncPull_syncing": "Pulling your library...",
+  "setup_syncPull_title": "Connect and pull",
+  "setup_sync_connectedTo": "Connected to {provider}",
+  "@setup_sync_connectedTo": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "setup_sync_error": "Could not connect: {error}",
+  "@setup_sync_error": {
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
+  "setup_sync_header": "Cloud sync",
+  "setup_sync_icloudUnavailable": "iCloud is not available on this device",
+  "setup_sync_libraryFound_adopt": "Adopt existing library",
+  "setup_sync_libraryFound_keepFresh": "Start fresh",
+  "setup_sync_libraryFound_message": "This account already contains a Submersion library. Adopt it instead of starting fresh?",
+  "setup_sync_libraryFound_title": "Existing library found",
+  "setup_sync_manageInSettings": "Manage in Settings",
+  "setup_sync_notConnected": "Not connected",
+  "setup_sync_subtitle": "Sync your logbook across devices",
+  "setup_units_advanced": "Fine-tune units",
+  "setup_units_altitude": "Altitude",
+  "setup_units_dateFormat": "Date format",
+  "setup_units_depth": "Depth",
+  "setup_units_imperial": "Imperial",
+  "setup_units_metric": "Metric",
+  "setup_units_pressure": "Pressure",
+  "setup_units_sac": "SAC rate",
+  "setup_units_subtitle": "Choose how measurements are displayed. You can fine-tune each unit.",
+  "setup_units_temperature": "Temperature",
+  "setup_units_timeFormat": "Time format",
+  "setup_units_title": "Units",
+  "setup_units_volume": "Volume",
+  "setup_units_weight": "Weight",
+  "setup_welcome_existingData_subtitle": "Restore a backup, connect cloud sync, or open an existing folder",
+  "setup_welcome_existingData_title": "I have existing Submersion data",
+  "setup_welcome_skipSetup": "Skip setup",
+  "setup_welcome_startFresh_subtitle": "Create your diver profile and configure the app",
+  "setup_welcome_startFresh_title": "Set up a new logbook",
+  "setup_welcome_subtitle": "Advanced dive logging and analytics",
+  "setup_welcome_title": "Welcome to Submersion",
   "siteMatchReview_title": "Match Sites",
   "siteMatchReview_diveNumber": "Dive #{number}",
   "@siteMatchReview_diveNumber": {
@@ -3330,7 +3451,10 @@
   "@diveLog_sitePicker_distanceAway": {
     "description": "A site's distance from the reference point; {distance} already includes the unit, e.g. '1.2 km' or '800 ft'",
     "placeholders": {
-      "distance": { "type": "String", "example": "1.2 km" }
+      "distance": {
+        "type": "String",
+        "example": "1.2 km"
+      }
     }
   },
   "@diveLog_sitePicker_sortedByDiveDistance": {
@@ -9019,22 +9143,22 @@
   "@universalImport_action_selectFile": {
     "description": "Button label for the file picker button"
   },
-  "@universalImport_action_selectFiles":   {
-      "description": "Button label for the multi-select file picker button"
+  "@universalImport_action_selectFiles": {
+    "description": "Button label for the multi-select file picker button"
   },
-  "@universalImport_action_chooseFolder":   {
-      "description": "Desktop-only button that picks a folder and scans it for importable dive files"
+  "@universalImport_action_chooseFolder": {
+    "description": "Desktop-only button that picks a folder and scans it for importable dive files"
   },
-  "@universalImport_triage_title":   {
-      "description": "Header for the batch file triage list"
+  "@universalImport_triage_title": {
+    "description": "Header for the batch file triage list"
   },
-  "@universalImport_triage_readyCount":   {
-      "description": "How many selected files will join the import batch",
-      "placeholders": {
-          "count": {
-              "type": "num"
-          }
+  "@universalImport_triage_readyCount": {
+    "description": "How many selected files will join the import batch",
+    "placeholders": {
+      "count": {
+        "type": "num"
       }
+    }
   },
   "@universalImport_label_filesSelected": {
     "description": "Selected-files card label on the file selection step when a batch is active",
@@ -9044,57 +9168,57 @@
       }
     }
   },
-  "@universalImport_triage_excludedCsv":   {
-      "description": "Triage status for CSV files, which need the single-file mapping wizard"
+  "@universalImport_triage_excludedCsv": {
+    "description": "Triage status for CSV files, which need the single-file mapping wizard"
   },
-  "@universalImport_triage_unsupported":   {
-      "description": "Triage status for files whose format has no parser"
+  "@universalImport_triage_unsupported": {
+    "description": "Triage status for files whose format has no parser"
   },
-  "@universalImport_triage_parseFailed":   {
-      "description": "Triage status for files that failed to parse"
+  "@universalImport_triage_parseFailed": {
+    "description": "Triage status for files that failed to parse"
   },
-  "@universalImport_triage_parsing":   {
-      "description": "Progress label while parsing a batch of files",
-      "placeholders": {
-          "current": {
-              "type": "int"
-          },
-          "total": {
-              "type": "int"
-          }
+  "@universalImport_triage_parsing": {
+    "description": "Progress label while parsing a batch of files",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
       }
+    }
   },
-  "@universalImport_triage_cancelParsing":   {
-      "description": "Button that cancels a running batch parse at the next file boundary"
+  "@universalImport_triage_cancelParsing": {
+    "description": "Button that cancels a running batch parse at the next file boundary"
   },
-  "@universalImport_triage_allExcluded":   {
-      "description": "Shown when every selected file was excluded from the batch"
+  "@universalImport_triage_allExcluded": {
+    "description": "Shown when every selected file was excluded from the batch"
   },
-  "@universalImport_triage_noneImportable":   {
-      "description": "Shown when no selected file can be imported and none were excluded specifically because they are CSV (format-neutral variant of universalImport_triage_allExcluded)"
+  "@universalImport_triage_noneImportable": {
+    "description": "Shown when no selected file can be imported and none were excluded specifically because they are CSV (format-neutral variant of universalImport_triage_allExcluded)"
   },
-  "@universalImport_review_inBatchDuplicate":   {
-      "description": "Expanded duplicate card body when the match is another dive in the same import batch"
+  "@universalImport_review_inBatchDuplicate": {
+    "description": "Expanded duplicate card body when the match is another dive in the same import batch"
   },
-  "@universalImport_summary_filesTitle":   {
-      "description": "Section header for the per-file outcome list on the bulk import summary"
+  "@universalImport_summary_filesTitle": {
+    "description": "Section header for the per-file outcome list on the bulk import summary"
   },
-  "@universalImport_summary_fileImported":   {
-      "description": "Per-file summary line for a successfully imported file",
-      "placeholders": {
-          "count": {
-              "type": "num"
-          }
+  "@universalImport_summary_fileImported": {
+    "description": "Per-file summary line for a successfully imported file",
+    "placeholders": {
+      "count": {
+        "type": "num"
       }
+    }
   },
-  "@universalImport_summary_fileNeedsIndividualImport":   {
-      "description": "Per-file summary line for CSV files excluded from the batch"
+  "@universalImport_summary_fileNeedsIndividualImport": {
+    "description": "Per-file summary line for CSV files excluded from the batch"
   },
-  "@universalImport_summary_fileUnsupported":   {
-      "description": "Per-file summary line for unsupported files"
+  "@universalImport_summary_fileUnsupported": {
+    "description": "Per-file summary line for unsupported files"
   },
-  "@universalImport_summary_fileParseFailed":   {
-      "description": "Per-file summary line for files that failed to parse"
+  "@universalImport_summary_fileParseFailed": {
+    "description": "Per-file summary line for files that failed to parse"
   },
   "@universalImport_bulk_consolidateMatched": {
     "description": "Bulk action button that consolidates all matched pending duplicate dives",
@@ -11587,11 +11711,32 @@
   "db_location_sd_card": "SD card",
   "db_location_external_note": "Files here are removed if you uninstall the app.",
   "diveLog_bulkEdit_membership_onAll": "on all {count}",
-  "@diveLog_bulkEdit_membership_onAll": { "placeholders": { "count": { "type": "int" } } },
+  "@diveLog_bulkEdit_membership_onAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "diveLog_bulkEdit_membership_onSome": "on {count} of {total}",
-  "@diveLog_bulkEdit_membership_onSome": { "placeholders": { "count": { "type": "int" }, "total": { "type": "int" } } },
+  "@diveLog_bulkEdit_membership_onSome": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "diveLog_bulkEdit_membership_adding": "adding to all {total}",
-  "@diveLog_bulkEdit_membership_adding": { "placeholders": { "total": { "type": "int" } } },
+  "@diveLog_bulkEdit_membership_adding": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "diveLog_bulkEdit_membership_removing": "removing from all",
   "@diveLog_bulkEdit_membership_removing": {},
   "diveLog_bulkEdit_membership_empty": "No items on the selected dives yet",

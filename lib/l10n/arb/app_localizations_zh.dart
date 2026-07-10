@@ -4547,6 +4547,314 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get settings_manage_setupAssistant => '设置向导';
+
+  @override
+  String get settings_manage_setupAssistant_subtitle => '重新设置单位、外观和备份选项';
+
+  @override
+  String get setup_appearance_language => '语言';
+
+  @override
+  String get setup_appearance_mapStyle => '地图样式';
+
+  @override
+  String get setup_appearance_mapStyle_esriSatellite => '卫星';
+
+  @override
+  String get setup_appearance_mapStyle_openStreetMap => '街道';
+
+  @override
+  String get setup_appearance_mapStyle_openTopoMap => '地形';
+
+  @override
+  String get setup_appearance_subtitle => '打造你自己的 Submersion。这里的所有设置以后都可以更改。';
+
+  @override
+  String get setup_appearance_theme => '主题';
+
+  @override
+  String get setup_appearance_themeDark => '深色';
+
+  @override
+  String get setup_appearance_themeLight => '浅色';
+
+  @override
+  String get setup_appearance_themePreset => '配色主题';
+
+  @override
+  String get setup_appearance_themeSystem => '跟随系统';
+
+  @override
+  String get setup_appearance_title => '外观';
+
+  @override
+  String get setup_backup_cloudCopy => '在云端保留备份副本';
+
+  @override
+  String get setup_backup_frequency => '频率';
+
+  @override
+  String get setup_backup_frequency_daily => '每天';
+
+  @override
+  String get setup_backup_frequency_monthly => '每月';
+
+  @override
+  String get setup_backup_frequency_weekly => '每周';
+
+  @override
+  String get setup_backup_scheduleSubtitle => '按计划备份你的潜水日志';
+
+  @override
+  String get setup_backup_scheduleToggle => '自动备份';
+
+  @override
+  String get setup_backup_subtitle => '从第一天起保护你的潜水日志。';
+
+  @override
+  String get setup_backup_title => '备份与同步';
+
+  @override
+  String get setup_common_back => '返回';
+
+  @override
+  String get setup_common_next => '下一步';
+
+  @override
+  String get setup_common_skip => '跳过';
+
+  @override
+  String get setup_existing_folder_subtitle => '让 Submersion 使用已包含资料库的文件夹';
+
+  @override
+  String get setup_existing_folder_title => '打开现有文件夹';
+
+  @override
+  String get setup_existing_restore_subtitle => '选择从 Submersion 导出的备份文件';
+
+  @override
+  String get setup_existing_restore_title => '恢复备份文件';
+
+  @override
+  String get setup_existing_subtitle => '选择如何加载现有的 Submersion 资料库';
+
+  @override
+  String get setup_existing_sync_subtitle => '从 iCloud、Dropbox 或 S3 拉取资料库';
+
+  @override
+  String get setup_existing_sync_title => '连接云同步';
+
+  @override
+  String get setup_existing_title => '导入你的数据';
+
+  @override
+  String get setup_finish_applying => '正在设置...';
+
+  @override
+  String setup_finish_error(Object error) {
+    return '无法完成设置：$error';
+  }
+
+  @override
+  String get setup_finish_feature_diveComputer => '从潜水电脑下载潜水记录';
+
+  @override
+  String get setup_finish_feature_gear => '跟踪装备和保养周期';
+
+  @override
+  String get setup_finish_feature_import => '从文件和其他应用导入日志';
+
+  @override
+  String get setup_finish_feature_sites => '在地图上标记潜点';
+
+  @override
+  String get setup_finish_feature_statistics => '探索你的潜水统计数据';
+
+  @override
+  String get setup_finish_start => '开始记录';
+
+  @override
+  String get setup_finish_subtitle => 'Submersion 还可以...';
+
+  @override
+  String get setup_finish_title => '一切就绪';
+
+  @override
+  String get setup_folder_notFound_message => '所选文件夹不包含 Submersion 数据库。';
+
+  @override
+  String get setup_folder_notFound_title => '该文件夹中没有资料库';
+
+  @override
+  String get setup_folder_pick => '选择文件夹';
+
+  @override
+  String get setup_folder_switching => '正在打开资料库...';
+
+  @override
+  String get setup_folder_title => '打开现有文件夹';
+
+  @override
+  String get setup_profile_nameHint => '输入您的名字';
+
+  @override
+  String get setup_profile_nameLabel => '您的名字';
+
+  @override
+  String get setup_profile_nameValidation => '请输入您的名字';
+
+  @override
+  String get setup_profile_subtitle => '输入您的名字以开始使用。稍后可以添加更多详细信息。';
+
+  @override
+  String get setup_profile_title => '创建您的档案';
+
+  @override
+  String get setup_restore_inProgress => '正在恢复...';
+
+  @override
+  String get setup_restore_pick => '选择备份文件';
+
+  @override
+  String get setup_restore_title => '恢复备份';
+
+  @override
+  String get setup_step_appearance => '外观';
+
+  @override
+  String get setup_step_backup => '备份';
+
+  @override
+  String get setup_step_finish => '完成';
+
+  @override
+  String get setup_step_profile => '个人资料';
+
+  @override
+  String get setup_step_units => '单位';
+
+  @override
+  String get setup_syncPull_continue => '继续';
+
+  @override
+  String get setup_syncPull_noLibrary_message =>
+      '此账户中未找到 Submersion 资料库。要重新开始吗？你的连接将被保留。';
+
+  @override
+  String get setup_syncPull_noLibrary_title => '未找到资料库';
+
+  @override
+  String get setup_syncPull_success => '已采用资料库';
+
+  @override
+  String get setup_syncPull_syncing => '正在拉取资料库...';
+
+  @override
+  String get setup_syncPull_title => '连接并拉取';
+
+  @override
+  String setup_sync_connectedTo(String provider) {
+    return '已连接到 $provider';
+  }
+
+  @override
+  String setup_sync_error(Object error) {
+    return '无法连接：$error';
+  }
+
+  @override
+  String get setup_sync_header => '云同步';
+
+  @override
+  String get setup_sync_icloudUnavailable => '此设备不支持 iCloud';
+
+  @override
+  String get setup_sync_libraryFound_adopt => '采用现有资料库';
+
+  @override
+  String get setup_sync_libraryFound_keepFresh => '重新开始';
+
+  @override
+  String get setup_sync_libraryFound_message =>
+      '此账户已包含 Submersion 资料库。要采用它而不是重新开始吗？';
+
+  @override
+  String get setup_sync_libraryFound_title => '发现现有资料库';
+
+  @override
+  String get setup_sync_manageInSettings => '在设置中管理';
+
+  @override
+  String get setup_sync_notConnected => '未连接';
+
+  @override
+  String get setup_sync_subtitle => '在多设备间同步日志';
+
+  @override
+  String get setup_units_advanced => '微调单位';
+
+  @override
+  String get setup_units_altitude => '海拔';
+
+  @override
+  String get setup_units_dateFormat => '日期格式';
+
+  @override
+  String get setup_units_depth => '深度';
+
+  @override
+  String get setup_units_imperial => '英制';
+
+  @override
+  String get setup_units_metric => '公制';
+
+  @override
+  String get setup_units_pressure => '压力';
+
+  @override
+  String get setup_units_sac => 'SAC 耗气率';
+
+  @override
+  String get setup_units_subtitle => '选择测量值的显示方式。每个单位都可以单独微调。';
+
+  @override
+  String get setup_units_temperature => '温度';
+
+  @override
+  String get setup_units_timeFormat => '时间格式';
+
+  @override
+  String get setup_units_title => '单位';
+
+  @override
+  String get setup_units_volume => '容积';
+
+  @override
+  String get setup_units_weight => '重量';
+
+  @override
+  String get setup_welcome_existingData_subtitle => '恢复备份、连接云同步或打开现有文件夹';
+
+  @override
+  String get setup_welcome_existingData_title => '我已有 Submersion 数据';
+
+  @override
+  String get setup_welcome_skipSetup => '跳过设置';
+
+  @override
+  String get setup_welcome_startFresh_subtitle => '创建潜水员档案并配置应用';
+
+  @override
+  String get setup_welcome_startFresh_title => '创建新日志';
+
+  @override
+  String get setup_welcome_subtitle => '高级潜水日志与分析';
+
+  @override
+  String get setup_welcome_title => '欢迎使用 Submersion';
+
+  @override
   String get siteMatchReview_title => '匹配潜水点';
 
   @override

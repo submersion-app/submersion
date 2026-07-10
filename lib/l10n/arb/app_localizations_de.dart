@@ -4778,6 +4778,337 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get settings_manage_setupAssistant => 'Einrichtungsassistent';
+
+  @override
+  String get settings_manage_setupAssistant_subtitle =>
+      'Einheiten, Darstellung und Backup-Einstellungen erneut durchgehen';
+
+  @override
+  String get setup_appearance_language => 'Sprache';
+
+  @override
+  String get setup_appearance_mapStyle => 'Kartenstil';
+
+  @override
+  String get setup_appearance_mapStyle_esriSatellite => 'Satellit';
+
+  @override
+  String get setup_appearance_mapStyle_openStreetMap => 'Straße';
+
+  @override
+  String get setup_appearance_mapStyle_openTopoMap => 'Topografisch';
+
+  @override
+  String get setup_appearance_subtitle =>
+      'Machen Sie Submersion zu Ihrem eigenen. Alles hier kann später geändert werden.';
+
+  @override
+  String get setup_appearance_theme => 'Design';
+
+  @override
+  String get setup_appearance_themeDark => 'Dunkel';
+
+  @override
+  String get setup_appearance_themeLight => 'Hell';
+
+  @override
+  String get setup_appearance_themePreset => 'Farbschema';
+
+  @override
+  String get setup_appearance_themeSystem => 'System';
+
+  @override
+  String get setup_appearance_title => 'Darstellung';
+
+  @override
+  String get setup_backup_cloudCopy =>
+      'Eine Sicherungskopie in der Cloud aufbewahren';
+
+  @override
+  String get setup_backup_frequency => 'Häufigkeit';
+
+  @override
+  String get setup_backup_frequency_daily => 'Täglich';
+
+  @override
+  String get setup_backup_frequency_monthly => 'Monatlich';
+
+  @override
+  String get setup_backup_frequency_weekly => 'Wöchentlich';
+
+  @override
+  String get setup_backup_scheduleSubtitle => 'Ihr Logbuch regelmäßig sichern';
+
+  @override
+  String get setup_backup_scheduleToggle => 'Automatische Sicherungen';
+
+  @override
+  String get setup_backup_subtitle =>
+      'Schützen Sie Ihr Tauchlogbuch vom ersten Tag an.';
+
+  @override
+  String get setup_backup_title => 'Sicherung & Synchronisierung';
+
+  @override
+  String get setup_common_back => 'Zurück';
+
+  @override
+  String get setup_common_next => 'Weiter';
+
+  @override
+  String get setup_common_skip => 'Überspringen';
+
+  @override
+  String get setup_existing_folder_subtitle =>
+      'Submersion auf einen Ordner verweisen, der bereits eine Bibliothek enthält';
+
+  @override
+  String get setup_existing_folder_title => 'Vorhandenen Ordner öffnen';
+
+  @override
+  String get setup_existing_restore_subtitle =>
+      'Eine aus Submersion exportierte Sicherungsdatei auswählen';
+
+  @override
+  String get setup_existing_restore_title => 'Sicherungsdatei wiederherstellen';
+
+  @override
+  String get setup_existing_subtitle =>
+      'Wählen Sie, wie Ihre vorhandene Submersion-Bibliothek geladen werden soll';
+
+  @override
+  String get setup_existing_sync_subtitle =>
+      'Ihre Bibliothek aus iCloud, Dropbox oder S3 laden';
+
+  @override
+  String get setup_existing_sync_title => 'Cloud-Synchronisierung verbinden';
+
+  @override
+  String get setup_existing_title => 'Daten übernehmen';
+
+  @override
+  String get setup_finish_applying => 'Wird eingerichtet...';
+
+  @override
+  String setup_finish_error(Object error) {
+    return 'Einrichtung konnte nicht abgeschlossen werden: $error';
+  }
+
+  @override
+  String get setup_finish_feature_diveComputer =>
+      'Tauchgänge von Ihrem Tauchcomputer herunterladen';
+
+  @override
+  String get setup_finish_feature_gear =>
+      'Ausrüstung und Wartungsintervalle verwalten';
+
+  @override
+  String get setup_finish_feature_import =>
+      'Logbücher aus Dateien und anderen Apps importieren';
+
+  @override
+  String get setup_finish_feature_sites =>
+      'Ihre Tauchplätze auf der Karte anzeigen';
+
+  @override
+  String get setup_finish_feature_statistics =>
+      'Statistiken zu Ihren Tauchgängen entdecken';
+
+  @override
+  String get setup_finish_start => 'Loslegen';
+
+  @override
+  String get setup_finish_subtitle => 'Submersion kann außerdem...';
+
+  @override
+  String get setup_finish_title => 'Alles bereit';
+
+  @override
+  String get setup_folder_notFound_message =>
+      'Der ausgewählte Ordner enthält keine Submersion-Datenbank.';
+
+  @override
+  String get setup_folder_notFound_title => 'Keine Bibliothek in diesem Ordner';
+
+  @override
+  String get setup_folder_pick => 'Ordner auswählen';
+
+  @override
+  String get setup_folder_switching => 'Bibliothek wird geöffnet...';
+
+  @override
+  String get setup_folder_title => 'Vorhandenen Ordner öffnen';
+
+  @override
+  String get setup_profile_nameHint => 'Geben Sie Ihren Namen ein';
+
+  @override
+  String get setup_profile_nameLabel => 'Ihr Name';
+
+  @override
+  String get setup_profile_nameValidation => 'Bitte geben Sie Ihren Namen ein';
+
+  @override
+  String get setup_profile_subtitle =>
+      'Geben Sie Ihren Namen ein, um zu beginnen. Sie können später weitere Details hinzufügen.';
+
+  @override
+  String get setup_profile_title => 'Erstellen Sie Ihr Profil';
+
+  @override
+  String get setup_restore_inProgress => 'Wird wiederhergestellt...';
+
+  @override
+  String get setup_restore_pick => 'Sicherungsdatei auswählen';
+
+  @override
+  String get setup_restore_title => 'Sicherung wiederherstellen';
+
+  @override
+  String get setup_step_appearance => 'Darstellung';
+
+  @override
+  String get setup_step_backup => 'Sicherung';
+
+  @override
+  String get setup_step_finish => 'Fertig';
+
+  @override
+  String get setup_step_profile => 'Profil';
+
+  @override
+  String get setup_step_units => 'Einheiten';
+
+  @override
+  String get setup_syncPull_continue => 'Weiter';
+
+  @override
+  String get setup_syncPull_noLibrary_message =>
+      'Auf diesem Konto wurde keine Submersion-Bibliothek gefunden. Stattdessen neu beginnen? Die Verbindung bleibt bestehen.';
+
+  @override
+  String get setup_syncPull_noLibrary_title => 'Keine Bibliothek gefunden';
+
+  @override
+  String get setup_syncPull_success => 'Bibliothek übernommen';
+
+  @override
+  String get setup_syncPull_syncing => 'Bibliothek wird geladen...';
+
+  @override
+  String get setup_syncPull_title => 'Verbinden und laden';
+
+  @override
+  String setup_sync_connectedTo(String provider) {
+    return 'Verbunden mit $provider';
+  }
+
+  @override
+  String setup_sync_error(Object error) {
+    return 'Verbindung fehlgeschlagen: $error';
+  }
+
+  @override
+  String get setup_sync_header => 'Cloud-Synchronisierung';
+
+  @override
+  String get setup_sync_icloudUnavailable =>
+      'iCloud ist auf diesem Gerät nicht verfügbar';
+
+  @override
+  String get setup_sync_libraryFound_adopt =>
+      'Vorhandene Bibliothek übernehmen';
+
+  @override
+  String get setup_sync_libraryFound_keepFresh => 'Neu beginnen';
+
+  @override
+  String get setup_sync_libraryFound_message =>
+      'Dieses Konto enthält bereits eine Submersion-Bibliothek. Diese übernehmen, statt neu zu beginnen?';
+
+  @override
+  String get setup_sync_libraryFound_title => 'Vorhandene Bibliothek gefunden';
+
+  @override
+  String get setup_sync_manageInSettings => 'In den Einstellungen verwalten';
+
+  @override
+  String get setup_sync_notConnected => 'Nicht verbunden';
+
+  @override
+  String get setup_sync_subtitle =>
+      'Ihr Logbuch auf allen Geräten synchronisieren';
+
+  @override
+  String get setup_units_advanced => 'Einheiten anpassen';
+
+  @override
+  String get setup_units_altitude => 'Höhe';
+
+  @override
+  String get setup_units_dateFormat => 'Datumsformat';
+
+  @override
+  String get setup_units_depth => 'Tiefe';
+
+  @override
+  String get setup_units_imperial => 'Imperial';
+
+  @override
+  String get setup_units_metric => 'Metrisch';
+
+  @override
+  String get setup_units_pressure => 'Druck';
+
+  @override
+  String get setup_units_sac => 'SAC-Rate';
+
+  @override
+  String get setup_units_subtitle =>
+      'Wählen Sie, wie Messwerte angezeigt werden. Jede Einheit lässt sich einzeln anpassen.';
+
+  @override
+  String get setup_units_temperature => 'Temperatur';
+
+  @override
+  String get setup_units_timeFormat => 'Zeitformat';
+
+  @override
+  String get setup_units_title => 'Einheiten';
+
+  @override
+  String get setup_units_volume => 'Volumen';
+
+  @override
+  String get setup_units_weight => 'Gewicht';
+
+  @override
+  String get setup_welcome_existingData_subtitle =>
+      'Sicherung wiederherstellen, Cloud-Sync verbinden oder vorhandenen Ordner öffnen';
+
+  @override
+  String get setup_welcome_existingData_title =>
+      'Ich habe bereits Submersion-Daten';
+
+  @override
+  String get setup_welcome_skipSetup => 'Einrichtung überspringen';
+
+  @override
+  String get setup_welcome_startFresh_subtitle =>
+      'Taucherprofil erstellen und die App einrichten';
+
+  @override
+  String get setup_welcome_startFresh_title => 'Neues Logbuch einrichten';
+
+  @override
+  String get setup_welcome_subtitle =>
+      'Erweiterte Tauchprotokollierung und -analyse';
+
+  @override
+  String get setup_welcome_title => 'Willkommen bei Submersion';
+
+  @override
   String get siteMatchReview_title => 'Tauchplätze zuordnen';
 
   @override

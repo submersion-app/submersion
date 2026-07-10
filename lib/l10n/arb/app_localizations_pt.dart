@@ -4783,6 +4783,335 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get settings_manage_setupAssistant => 'Assistente de configuração';
+
+  @override
+  String get settings_manage_setupAssistant_subtitle =>
+      'Reveja unidades, aparência e opções de backup';
+
+  @override
+  String get setup_appearance_language => 'Idioma';
+
+  @override
+  String get setup_appearance_mapStyle => 'Estilo do mapa';
+
+  @override
+  String get setup_appearance_mapStyle_esriSatellite => 'Satélite';
+
+  @override
+  String get setup_appearance_mapStyle_openStreetMap => 'Ruas';
+
+  @override
+  String get setup_appearance_mapStyle_openTopoMap => 'Topográfico';
+
+  @override
+  String get setup_appearance_subtitle =>
+      'Torne o Submersion seu. Tudo aqui pode ser alterado depois.';
+
+  @override
+  String get setup_appearance_theme => 'Tema';
+
+  @override
+  String get setup_appearance_themeDark => 'Escuro';
+
+  @override
+  String get setup_appearance_themeLight => 'Claro';
+
+  @override
+  String get setup_appearance_themePreset => 'Tema de cores';
+
+  @override
+  String get setup_appearance_themeSystem => 'Sistema';
+
+  @override
+  String get setup_appearance_title => 'Aparência';
+
+  @override
+  String get setup_backup_cloudCopy => 'Manter uma cópia de backup na nuvem';
+
+  @override
+  String get setup_backup_frequency => 'Frequência';
+
+  @override
+  String get setup_backup_frequency_daily => 'Diária';
+
+  @override
+  String get setup_backup_frequency_monthly => 'Mensal';
+
+  @override
+  String get setup_backup_frequency_weekly => 'Semanal';
+
+  @override
+  String get setup_backup_scheduleSubtitle =>
+      'Faça backup do seu registro periodicamente';
+
+  @override
+  String get setup_backup_scheduleToggle => 'Backups automáticos';
+
+  @override
+  String get setup_backup_subtitle =>
+      'Proteja seu registro de mergulho desde o primeiro dia.';
+
+  @override
+  String get setup_backup_title => 'Backups e sincronização';
+
+  @override
+  String get setup_common_back => 'Voltar';
+
+  @override
+  String get setup_common_next => 'Avançar';
+
+  @override
+  String get setup_common_skip => 'Ignorar';
+
+  @override
+  String get setup_existing_folder_subtitle =>
+      'Aponte o Submersion para uma pasta que já contém uma biblioteca';
+
+  @override
+  String get setup_existing_folder_title => 'Abrir uma pasta existente';
+
+  @override
+  String get setup_existing_restore_subtitle =>
+      'Escolha um arquivo de backup exportado do Submersion';
+
+  @override
+  String get setup_existing_restore_title => 'Restaurar um arquivo de backup';
+
+  @override
+  String get setup_existing_subtitle =>
+      'Escolha como carregar sua biblioteca existente do Submersion';
+
+  @override
+  String get setup_existing_sync_subtitle =>
+      'Baixe sua biblioteca do iCloud, Dropbox ou S3';
+
+  @override
+  String get setup_existing_sync_title => 'Conectar sincronização na nuvem';
+
+  @override
+  String get setup_existing_title => 'Traga seus dados';
+
+  @override
+  String get setup_finish_applying => 'Configurando...';
+
+  @override
+  String setup_finish_error(Object error) {
+    return 'Não foi possível concluir a configuração: $error';
+  }
+
+  @override
+  String get setup_finish_feature_diveComputer =>
+      'Baixe mergulhos do seu computador de mergulho';
+
+  @override
+  String get setup_finish_feature_gear =>
+      'Acompanhe equipamentos e intervalos de manutenção';
+
+  @override
+  String get setup_finish_feature_import =>
+      'Importe registros de arquivos e outros aplicativos';
+
+  @override
+  String get setup_finish_feature_sites =>
+      'Veja seus pontos de mergulho no mapa';
+
+  @override
+  String get setup_finish_feature_statistics =>
+      'Explore estatísticas sobre seus mergulhos';
+
+  @override
+  String get setup_finish_start => 'Começar a registrar';
+
+  @override
+  String get setup_finish_subtitle => 'O Submersion também pode...';
+
+  @override
+  String get setup_finish_title => 'Tudo pronto';
+
+  @override
+  String get setup_folder_notFound_message =>
+      'A pasta selecionada não contém um banco de dados do Submersion.';
+
+  @override
+  String get setup_folder_notFound_title => 'Nenhuma biblioteca nessa pasta';
+
+  @override
+  String get setup_folder_pick => 'Escolher pasta';
+
+  @override
+  String get setup_folder_switching => 'Abrindo biblioteca...';
+
+  @override
+  String get setup_folder_title => 'Abrir pasta existente';
+
+  @override
+  String get setup_profile_nameHint => 'Digite seu nome';
+
+  @override
+  String get setup_profile_nameLabel => 'Seu Nome';
+
+  @override
+  String get setup_profile_nameValidation => 'Digite seu nome';
+
+  @override
+  String get setup_profile_subtitle =>
+      'Digite seu nome para começar. Você pode adicionar mais detalhes depois.';
+
+  @override
+  String get setup_profile_title => 'Crie Seu Perfil';
+
+  @override
+  String get setup_restore_inProgress => 'Restaurando...';
+
+  @override
+  String get setup_restore_pick => 'Escolher arquivo de backup';
+
+  @override
+  String get setup_restore_title => 'Restaurar backup';
+
+  @override
+  String get setup_step_appearance => 'Aparência';
+
+  @override
+  String get setup_step_backup => 'Backup';
+
+  @override
+  String get setup_step_finish => 'Concluído';
+
+  @override
+  String get setup_step_profile => 'Perfil';
+
+  @override
+  String get setup_step_units => 'Unidades';
+
+  @override
+  String get setup_syncPull_continue => 'Continuar';
+
+  @override
+  String get setup_syncPull_noLibrary_message =>
+      'Nenhuma biblioteca do Submersion foi encontrada nesta conta. Começar do zero? Sua conexão será mantida.';
+
+  @override
+  String get setup_syncPull_noLibrary_title => 'Nenhuma biblioteca encontrada';
+
+  @override
+  String get setup_syncPull_success => 'Biblioteca adotada';
+
+  @override
+  String get setup_syncPull_syncing => 'Baixando sua biblioteca...';
+
+  @override
+  String get setup_syncPull_title => 'Conectar e baixar';
+
+  @override
+  String setup_sync_connectedTo(String provider) {
+    return 'Conectado a $provider';
+  }
+
+  @override
+  String setup_sync_error(Object error) {
+    return 'Não foi possível conectar: $error';
+  }
+
+  @override
+  String get setup_sync_header => 'Sincronização na nuvem';
+
+  @override
+  String get setup_sync_icloudUnavailable =>
+      'O iCloud não está disponível neste dispositivo';
+
+  @override
+  String get setup_sync_libraryFound_adopt => 'Adotar biblioteca existente';
+
+  @override
+  String get setup_sync_libraryFound_keepFresh => 'Começar do zero';
+
+  @override
+  String get setup_sync_libraryFound_message =>
+      'Esta conta já contém uma biblioteca do Submersion. Adotá-la em vez de começar do zero?';
+
+  @override
+  String get setup_sync_libraryFound_title => 'Biblioteca existente encontrada';
+
+  @override
+  String get setup_sync_manageInSettings => 'Gerenciar nas Configurações';
+
+  @override
+  String get setup_sync_notConnected => 'Não conectado';
+
+  @override
+  String get setup_sync_subtitle =>
+      'Sincronize seu registro entre dispositivos';
+
+  @override
+  String get setup_units_advanced => 'Ajustar unidades';
+
+  @override
+  String get setup_units_altitude => 'Altitude';
+
+  @override
+  String get setup_units_dateFormat => 'Formato de data';
+
+  @override
+  String get setup_units_depth => 'Profundidade';
+
+  @override
+  String get setup_units_imperial => 'Imperial';
+
+  @override
+  String get setup_units_metric => 'Métrico';
+
+  @override
+  String get setup_units_pressure => 'Pressão';
+
+  @override
+  String get setup_units_sac => 'Taxa SAC';
+
+  @override
+  String get setup_units_subtitle =>
+      'Escolha como as medidas são exibidas. Você pode ajustar cada unidade.';
+
+  @override
+  String get setup_units_temperature => 'Temperatura';
+
+  @override
+  String get setup_units_timeFormat => 'Formato de hora';
+
+  @override
+  String get setup_units_title => 'Unidades';
+
+  @override
+  String get setup_units_volume => 'Volume';
+
+  @override
+  String get setup_units_weight => 'Peso';
+
+  @override
+  String get setup_welcome_existingData_subtitle =>
+      'Restaure um backup, conecte a sincronização ou abra uma pasta existente';
+
+  @override
+  String get setup_welcome_existingData_title => 'Já tenho dados do Submersion';
+
+  @override
+  String get setup_welcome_skipSetup => 'Ignorar configuração';
+
+  @override
+  String get setup_welcome_startFresh_subtitle =>
+      'Crie seu perfil de mergulhador e configure o aplicativo';
+
+  @override
+  String get setup_welcome_startFresh_title => 'Configurar um novo registro';
+
+  @override
+  String get setup_welcome_subtitle =>
+      'Registro e análise avançada de mergulhos';
+
+  @override
+  String get setup_welcome_title => 'Bem-vindo ao Submersion';
+
+  @override
   String get siteMatchReview_title => 'Associar pontos';
 
   @override

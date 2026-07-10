@@ -4745,6 +4745,332 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get settings_manage_setupAssistant => 'Configuratie-assistent';
+
+  @override
+  String get settings_manage_setupAssistant_subtitle =>
+      'Eenheden, weergave en back-upkeuzes opnieuw bekijken';
+
+  @override
+  String get setup_appearance_language => 'Taal';
+
+  @override
+  String get setup_appearance_mapStyle => 'Kaartstijl';
+
+  @override
+  String get setup_appearance_mapStyle_esriSatellite => 'Satelliet';
+
+  @override
+  String get setup_appearance_mapStyle_openStreetMap => 'Straat';
+
+  @override
+  String get setup_appearance_mapStyle_openTopoMap => 'Topografisch';
+
+  @override
+  String get setup_appearance_subtitle =>
+      'Maak Submersion helemaal van jou. Alles hier kan later worden gewijzigd.';
+
+  @override
+  String get setup_appearance_theme => 'Thema';
+
+  @override
+  String get setup_appearance_themeDark => 'Donker';
+
+  @override
+  String get setup_appearance_themeLight => 'Licht';
+
+  @override
+  String get setup_appearance_themePreset => 'Kleurthema';
+
+  @override
+  String get setup_appearance_themeSystem => 'Systeem';
+
+  @override
+  String get setup_appearance_title => 'Weergave';
+
+  @override
+  String get setup_backup_cloudCopy => 'Een back-upkopie in de cloud bewaren';
+
+  @override
+  String get setup_backup_frequency => 'Frequentie';
+
+  @override
+  String get setup_backup_frequency_daily => 'Dagelijks';
+
+  @override
+  String get setup_backup_frequency_monthly => 'Maandelijks';
+
+  @override
+  String get setup_backup_frequency_weekly => 'Wekelijks';
+
+  @override
+  String get setup_backup_scheduleSubtitle =>
+      'Maak volgens schema een back-up van je logboek';
+
+  @override
+  String get setup_backup_scheduleToggle => 'Automatische back-ups';
+
+  @override
+  String get setup_backup_subtitle => 'Bescherm je duiklogboek vanaf dag één.';
+
+  @override
+  String get setup_backup_title => 'Back-ups en synchronisatie';
+
+  @override
+  String get setup_common_back => 'Terug';
+
+  @override
+  String get setup_common_next => 'Volgende';
+
+  @override
+  String get setup_common_skip => 'Overslaan';
+
+  @override
+  String get setup_existing_folder_subtitle =>
+      'Wijs Submersion naar een map die al een bibliotheek bevat';
+
+  @override
+  String get setup_existing_folder_title => 'Een bestaande map openen';
+
+  @override
+  String get setup_existing_restore_subtitle =>
+      'Kies een back-upbestand dat uit Submersion is geëxporteerd';
+
+  @override
+  String get setup_existing_restore_title => 'Een back-upbestand terugzetten';
+
+  @override
+  String get setup_existing_subtitle =>
+      'Kies hoe je bestaande Submersion-bibliotheek wordt geladen';
+
+  @override
+  String get setup_existing_sync_subtitle =>
+      'Haal je bibliotheek op uit iCloud, Dropbox of S3';
+
+  @override
+  String get setup_existing_sync_title => 'Cloudsynchronisatie verbinden';
+
+  @override
+  String get setup_existing_title => 'Breng je gegevens mee';
+
+  @override
+  String get setup_finish_applying => 'Instellen...';
+
+  @override
+  String setup_finish_error(Object error) {
+    return 'Kon de installatie niet voltooien: $error';
+  }
+
+  @override
+  String get setup_finish_feature_diveComputer =>
+      'Duiken downloaden vanaf je duikcomputer';
+
+  @override
+  String get setup_finish_feature_gear =>
+      'Uitrusting en onderhoudsintervallen bijhouden';
+
+  @override
+  String get setup_finish_feature_import =>
+      'Logboeken importeren uit bestanden en andere apps';
+
+  @override
+  String get setup_finish_feature_sites => 'Je duikstekken op de kaart zetten';
+
+  @override
+  String get setup_finish_feature_statistics =>
+      'Statistieken over je duiken verkennen';
+
+  @override
+  String get setup_finish_start => 'Beginnen met loggen';
+
+  @override
+  String get setup_finish_subtitle => 'Submersion kan ook...';
+
+  @override
+  String get setup_finish_title => 'Je bent klaar';
+
+  @override
+  String get setup_folder_notFound_message =>
+      'De geselecteerde map bevat geen Submersion-database.';
+
+  @override
+  String get setup_folder_notFound_title => 'Geen bibliotheek in die map';
+
+  @override
+  String get setup_folder_pick => 'Map kiezen';
+
+  @override
+  String get setup_folder_switching => 'Bibliotheek openen...';
+
+  @override
+  String get setup_folder_title => 'Bestaande map openen';
+
+  @override
+  String get setup_profile_nameHint => 'Voer je naam in';
+
+  @override
+  String get setup_profile_nameLabel => 'Je naam';
+
+  @override
+  String get setup_profile_nameValidation => 'Voer je naam in';
+
+  @override
+  String get setup_profile_subtitle =>
+      'Voer je naam in om te beginnen. Je kunt later meer details toevoegen.';
+
+  @override
+  String get setup_profile_title => 'Maak je profiel aan';
+
+  @override
+  String get setup_restore_inProgress => 'Terugzetten...';
+
+  @override
+  String get setup_restore_pick => 'Back-upbestand kiezen';
+
+  @override
+  String get setup_restore_title => 'Back-up terugzetten';
+
+  @override
+  String get setup_step_appearance => 'Weergave';
+
+  @override
+  String get setup_step_backup => 'Back-up';
+
+  @override
+  String get setup_step_finish => 'Klaar';
+
+  @override
+  String get setup_step_profile => 'Profiel';
+
+  @override
+  String get setup_step_units => 'Eenheden';
+
+  @override
+  String get setup_syncPull_continue => 'Doorgaan';
+
+  @override
+  String get setup_syncPull_noLibrary_message =>
+      'Er is geen Submersion-bibliotheek gevonden op dit account. Opnieuw beginnen? Je verbinding blijft behouden.';
+
+  @override
+  String get setup_syncPull_noLibrary_title => 'Geen bibliotheek gevonden';
+
+  @override
+  String get setup_syncPull_success => 'Bibliotheek overgenomen';
+
+  @override
+  String get setup_syncPull_syncing => 'Bibliotheek ophalen...';
+
+  @override
+  String get setup_syncPull_title => 'Verbinden en ophalen';
+
+  @override
+  String setup_sync_connectedTo(String provider) {
+    return 'Verbonden met $provider';
+  }
+
+  @override
+  String setup_sync_error(Object error) {
+    return 'Kon geen verbinding maken: $error';
+  }
+
+  @override
+  String get setup_sync_header => 'Cloudsynchronisatie';
+
+  @override
+  String get setup_sync_icloudUnavailable =>
+      'iCloud is niet beschikbaar op dit apparaat';
+
+  @override
+  String get setup_sync_libraryFound_adopt => 'Bestaande bibliotheek overnemen';
+
+  @override
+  String get setup_sync_libraryFound_keepFresh => 'Opnieuw beginnen';
+
+  @override
+  String get setup_sync_libraryFound_message =>
+      'Dit account bevat al een Submersion-bibliotheek. Deze overnemen in plaats van opnieuw te beginnen?';
+
+  @override
+  String get setup_sync_libraryFound_title => 'Bestaande bibliotheek gevonden';
+
+  @override
+  String get setup_sync_manageInSettings => 'Beheren in Instellingen';
+
+  @override
+  String get setup_sync_notConnected => 'Niet verbonden';
+
+  @override
+  String get setup_sync_subtitle => 'Synchroniseer je logboek tussen apparaten';
+
+  @override
+  String get setup_units_advanced => 'Eenheden verfijnen';
+
+  @override
+  String get setup_units_altitude => 'Hoogte';
+
+  @override
+  String get setup_units_dateFormat => 'Datumnotatie';
+
+  @override
+  String get setup_units_depth => 'Diepte';
+
+  @override
+  String get setup_units_imperial => 'Imperiaal';
+
+  @override
+  String get setup_units_metric => 'Metrisch';
+
+  @override
+  String get setup_units_pressure => 'Druk';
+
+  @override
+  String get setup_units_sac => 'SAC-waarde';
+
+  @override
+  String get setup_units_subtitle =>
+      'Kies hoe metingen worden weergegeven. Je kunt elke eenheid apart instellen.';
+
+  @override
+  String get setup_units_temperature => 'Temperatuur';
+
+  @override
+  String get setup_units_timeFormat => 'Tijdnotatie';
+
+  @override
+  String get setup_units_title => 'Eenheden';
+
+  @override
+  String get setup_units_volume => 'Volume';
+
+  @override
+  String get setup_units_weight => 'Gewicht';
+
+  @override
+  String get setup_welcome_existingData_subtitle =>
+      'Zet een back-up terug, verbind cloudsynchronisatie of open een bestaande map';
+
+  @override
+  String get setup_welcome_existingData_title =>
+      'Ik heb al Submersion-gegevens';
+
+  @override
+  String get setup_welcome_skipSetup => 'Installatie overslaan';
+
+  @override
+  String get setup_welcome_startFresh_subtitle =>
+      'Maak je duikersprofiel en stel de app in';
+
+  @override
+  String get setup_welcome_startFresh_title => 'Een nieuw logboek instellen';
+
+  @override
+  String get setup_welcome_subtitle => 'Geavanceerd duiklogboek en analyse';
+
+  @override
+  String get setup_welcome_title => 'Welkom bij Submersion';
+
+  @override
   String get siteMatchReview_title => 'Stekken koppelen';
 
   @override
