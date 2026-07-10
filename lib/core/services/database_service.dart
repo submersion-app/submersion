@@ -351,7 +351,11 @@ class DatabaseService {
   }
 
   Future<void> restore(String backupPath) async {
-    await close();
+    // Strict close: restore overwrites the live database file with the
+    // backup copy and then reopens it, so a connection that timed out
+    // mid-close and still holds the file must throw here rather than race
+    // the copy/reopen.
+    await close(strict: true);
 
     final backupFile = File(backupPath);
     final destinationPath = await databasePath;
@@ -379,8 +383,10 @@ class DatabaseService {
     // Step 1: Backup first (throws on failure, aborting the reset)
     await backup(backupPath);
 
-    // Step 2: Close the connection
-    await close();
+    // Step 2: Close the connection (strict: the files are about to be
+    // deleted and the path reopened, so a still-open connection must throw
+    // rather than be abandoned — deleting an open file fails on Windows).
+    await close(strict: true);
 
     // Step 3: Delete database files
     for (final suffix in ['', '-wal', '-shm']) {
