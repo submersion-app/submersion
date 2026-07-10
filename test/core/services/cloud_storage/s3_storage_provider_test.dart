@@ -21,8 +21,10 @@ class _MemoryCredentialsStore implements S3CredentialsStore {
   Future<void> clear() async => stored = null;
 }
 
-/// Records calls; serves canned objects.
-class _FakeS3ApiClient implements S3ApiClient {
+/// Records calls; serves canned objects. Extends Fake so client additions
+/// (e.g. the multipart operations) never break this double: unstubbed
+/// members throw only if actually called.
+class _FakeS3ApiClient extends Fake implements S3ApiClient {
   _FakeS3ApiClient(this.config);
 
   final S3Config config;

@@ -23,6 +23,15 @@ class S3ObjectInfo {
   });
 }
 
+/// One uploaded part of a multipart session, as needed for completion
+/// and resume validation.
+class S3PartInfo {
+  final int partNumber;
+  final String etag;
+
+  const S3PartInfo({required this.partNumber, required this.etag});
+}
+
 /// Minimal S3 REST client: the five operations the sync backend needs,
 /// signed with SigV4. Throws [CloudStorageException] for every failure so
 /// callers never see raw HTTP details. The secret key and Authorization
@@ -162,6 +171,144 @@ class S3ApiClient {
     }
   }
 
+  /// Starts a multipart upload session; returns the server's uploadId.
+  Future<String> createMultipartUpload(
+    String key, {
+    required String contentType,
+  }) async {
+    final response = await _sendWithRetry(
+      'POST',
+      key,
+      queryParams: {'uploads': ''},
+    );
+    if (response.statusCode != 200) _throwFor('start upload', key, response);
+    final uploadId = _xmlElementText(response.body, 'UploadId');
+    if (uploadId == null || uploadId.isEmpty) {
+      throw CloudStorageException('S3 returned no UploadId for "$key"');
+    }
+    return uploadId;
+  }
+
+  /// Uploads one part; returns its ETag for the completion manifest.
+  Future<String> uploadPart(
+    String key, {
+    required String uploadId,
+    required int partNumber,
+    required Uint8List bytes,
+  }) async {
+    final response = await _sendWithRetry(
+      'PUT',
+      key,
+      queryParams: {'partNumber': '$partNumber', 'uploadId': uploadId},
+      body: bytes,
+    );
+    if (response.statusCode != 200) {
+      _throwFor('upload part $partNumber of', key, response);
+    }
+    final etag = response.headers['etag'];
+    if (etag == null || etag.isEmpty) {
+      throw CloudStorageException(
+        'S3 returned no ETag for part $partNumber of "$key"',
+      );
+    }
+    return etag;
+  }
+
+  Future<void> completeMultipartUpload(
+    String key, {
+    required String uploadId,
+    required List<S3PartInfo> parts,
+  }) async {
+    final manifest = StringBuffer('<CompleteMultipartUpload>');
+    for (final part in parts) {
+      manifest.write(
+        '<Part><PartNumber>${part.partNumber}</PartNumber>'
+        '<ETag>${part.etag}</ETag></Part>',
+      );
+    }
+    manifest.write('</CompleteMultipartUpload>');
+    final response = await _sendWithRetry(
+      'POST',
+      key,
+      queryParams: {'uploadId': uploadId},
+      body: Uint8List.fromList(utf8.encode(manifest.toString())),
+    );
+    if (response.statusCode != 200) _throwFor('finish upload', key, response);
+    // S3 reports completion errors inside a 200 body.
+    if (_xmlElementText(response.body, 'Code') != null) {
+      throw CloudStorageException(
+        'S3 rejected the upload completion for "$key"',
+      );
+    }
+  }
+
+  /// Idempotent: aborting an unknown session succeeds.
+  Future<void> abortMultipartUpload(
+    String key, {
+    required String uploadId,
+  }) async {
+    final response = await _sendWithRetry(
+      'DELETE',
+      key,
+      queryParams: {'uploadId': uploadId},
+    );
+    const okStatuses = {200, 204, 404};
+    if (!okStatuses.contains(response.statusCode)) {
+      _throwFor('abort upload', key, response);
+    }
+  }
+
+  Future<List<S3PartInfo>> listParts(
+    String key, {
+    required String uploadId,
+  }) async {
+    final response = await _sendWithRetry(
+      'GET',
+      key,
+      queryParams: {'uploadId': uploadId},
+    );
+    if (response.statusCode != 200) _throwFor('list parts of', key, response);
+    try {
+      final document = XmlDocument.parse(response.body);
+      return document
+          .findAllElements('Part')
+          .map(
+            (part) => S3PartInfo(
+              partNumber: int.parse(part.getElement('PartNumber')!.innerText),
+              etag: part.getElement('ETag')!.innerText,
+            ),
+          )
+          .toList();
+    } on Exception catch (e) {
+      throw CloudStorageException('S3 returned an unreadable part list', e);
+    }
+  }
+
+  /// Byte-range read: [start]..[endInclusive]. Returns the slice and the
+  /// object's total length parsed from Content-Range.
+  Future<({Uint8List bytes, int totalLength})> getObjectRange(
+    String key, {
+    required int start,
+    required int endInclusive,
+  }) async {
+    final response = await _sendWithRetry(
+      'GET',
+      key,
+      extraHeaders: {'range': 'bytes=$start-$endInclusive'},
+    );
+    if (response.statusCode == 404) {
+      throw CloudStorageException('File not found in S3: $key');
+    }
+    if (response.statusCode != 206 && response.statusCode != 200) {
+      _throwFor('download range of', key, response);
+    }
+    final contentRange = response.headers['content-range'];
+    final total = contentRange == null
+        ? response.bodyBytes.length
+        : int.parse(contentRange.split('/').last);
+    return (bytes: response.bodyBytes, totalLength: total);
+  }
+
   /// Closes the underlying HTTP client (including an injected one).
   void close() => _http.close();
 
@@ -199,6 +346,7 @@ class S3ApiClient {
     String key, {
     Map<String, String> queryParams = const {},
     Uint8List? body,
+    Map<String, String> extraHeaders = const {},
   }) async {
     try {
       var response = await _send(
@@ -206,6 +354,7 @@ class S3ApiClient {
         key,
         queryParams: queryParams,
         body: body,
+        extraHeaders: extraHeaders,
       );
       if (response.statusCode >= 300) {
         final corrected = await _replayWithRegionHint(
@@ -214,6 +363,7 @@ class S3ApiClient {
           key,
           queryParams,
           body,
+          extraHeaders,
         );
         // The replay flows through the normal 5xx retry below, which now
         // signs with the corrected region.
@@ -232,7 +382,7 @@ class S3ApiClient {
     } on TimeoutException {
       // Timed out; retry once below.
     }
-    return _retry(method, key, queryParams, body);
+    return _retry(method, key, queryParams, body, extraHeaders);
   }
 
   Future<http.Response> _retry(
@@ -240,10 +390,17 @@ class S3ApiClient {
     String key,
     Map<String, String> queryParams,
     Uint8List? body,
+    Map<String, String> extraHeaders,
   ) async {
     await Future<void>.delayed(_retryDelay);
     try {
-      return await _send(method, key, queryParams: queryParams, body: body);
+      return await _send(
+        method,
+        key,
+        queryParams: queryParams,
+        body: body,
+        extraHeaders: extraHeaders,
+      );
     } on Exception catch (e) {
       throw CloudStorageException(
         'Could not reach S3 endpoint ${_config.displayHost}',
@@ -264,6 +421,7 @@ class S3ApiClient {
     String key,
     Map<String, String> queryParams,
     Uint8List? body,
+    Map<String, String> extraHeaders,
   ) async {
     final hint = _regionHint(response);
     if (hint == null || hint == _region) return null;
@@ -273,6 +431,7 @@ class S3ApiClient {
       key,
       queryParams: queryParams,
       body: body,
+      extraHeaders: extraHeaders,
     );
     if (replay.statusCode < 300) onRegionCorrected?.call(hint);
     return replay;
@@ -317,6 +476,7 @@ class S3ApiClient {
     String key, {
     Map<String, String> queryParams = const {},
     Uint8List? body,
+    Map<String, String> extraHeaders = const {},
   }) async {
     final target = _target(key);
     final authority = target.port == null
@@ -344,6 +504,9 @@ class S3ApiClient {
     headers.remove('host');
 
     final request = http.Request(method, uri)..headers.addAll(headers);
+    // Unsigned extras (e.g. Range): only signed headers participate in the
+    // SigV4 signature, so S3 accepts these alongside it.
+    request.headers.addAll(extraHeaders);
     if (body != null) request.bodyBytes = body;
     return http.Response.fromStream(await _http.send(request));
   }

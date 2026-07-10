@@ -39,8 +39,9 @@ class _MemoryCredentialsStore implements S3CredentialsStore {
 
 // Stores objects written via putObject and serves them via getObject.
 // Throws CloudStorageException for keys that have never been put, mirroring
-// the real client's 404 path.
-class _FakeS3ApiClient implements S3ApiClient {
+// the real client's 404 path. Extends Fake so client additions never break
+// this double: unstubbed members throw only if actually called.
+class _FakeS3ApiClient extends Fake implements S3ApiClient {
   final List<String> calls = [];
   final Map<String, Uint8List> _objects = {};
   CloudStorageException? failListWith;

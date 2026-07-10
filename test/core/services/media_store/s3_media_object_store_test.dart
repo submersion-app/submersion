@@ -1,88 +1,39 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:http/http.dart' as http;
-import 'package:http/testing.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_api_client.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 import 'package:submersion/core/services/media_store/s3_media_object_store.dart';
 
+import '../../../helpers/fake_s3_server.dart';
+
 void main() {
   late Directory tmp;
-  final captured = <http.Request>[];
-  final remote = <String, Uint8List>{}; // wire key -> bytes
+  late FakeS3Server server;
 
-  S3MediaObjectStore build({String prefix = 'submersion-media/'}) {
+  S3MediaObjectStore build({int? partSizeBytes, int? downloadChunkBytes}) {
     final config = S3Config(
       endpoint: 'http://localhost:9000',
       bucket: 'test-bucket',
-      prefix: prefix,
+      prefix: 'submersion-media/',
       accessKeyId: 'AKIA_TEST',
       secretAccessKey: 'secret',
     );
-    final client = S3ApiClient(
-      config,
-      httpClient: MockClient((request) async {
-        captured.add(request);
-        // Path-style addressing: /test-bucket/<key>
-        final key = Uri.decodeComponent(
-          request.url.path.replaceFirst('/test-bucket/', ''),
-        );
-        switch (request.method) {
-          case 'PUT':
-            remote[key] = Uint8List.fromList(request.bodyBytes);
-            return http.Response('', 200);
-          case 'HEAD':
-            final body = remote[key];
-            if (body == null) return http.Response('', 404);
-            return http.Response(
-              '',
-              200,
-              headers: {
-                'content-length': '${body.length}',
-                'last-modified': 'Thu, 09 Jul 2026 00:00:00 GMT',
-              },
-            );
-          case 'GET':
-            if (request.url.queryParameters.containsKey('list-type')) {
-              final prefixParam = request.url.queryParameters['prefix'] ?? '';
-              final keys = remote.keys
-                  .where((k) => k.startsWith(prefixParam))
-                  .toList();
-              final contents = keys
-                  .map(
-                    (k) =>
-                        '<Contents><Key>$k</Key>'
-                        '<LastModified>2026-07-09T00:00:00.000Z</LastModified>'
-                        '<Size>${remote[k]!.length}</Size></Contents>',
-                  )
-                  .join();
-              return http.Response(
-                '<?xml version="1.0"?><ListBucketResult>'
-                '<IsTruncated>false</IsTruncated>$contents'
-                '</ListBucketResult>',
-                200,
-              );
-            }
-            final body = remote[key];
-            if (body == null) return http.Response('', 404);
-            return http.Response.bytes(body, 200);
-          case 'DELETE':
-            remote.remove(key);
-            return http.Response('', 204);
-          default:
-            return http.Response('', 500);
-        }
-      }),
+    return S3MediaObjectStore(
+      client: S3ApiClient(
+        config,
+        httpClient: server.client,
+        retryDelay: const Duration(milliseconds: 1),
+      ),
+      keyPrefix: config.prefix,
+      partSizeBytes: partSizeBytes ?? 8 * 1024 * 1024,
+      downloadChunkBytes: downloadChunkBytes ?? 8 * 1024 * 1024,
     );
-    return S3MediaObjectStore(client: client, keyPrefix: config.prefix);
   }
 
   setUp(() async {
-    captured.clear();
-    remote.clear();
+    server = FakeS3Server();
     tmp = await Directory.systemTemp.createTemp('s3_mos_test');
   });
 
@@ -96,8 +47,8 @@ void main() {
       src,
       contentType: 'image/jpeg',
     );
-    expect(remote.keys, ['submersion-media/smv1/objects/ab/abc.jpg']);
-    expect(remote.values.single, [1, 2, 3]);
+    expect(server.objects.keys, ['submersion-media/smv1/objects/ab/abc.jpg']);
+    expect(server.objects.values.single, [1, 2, 3]);
   });
 
   test('head returns size and null for missing; getFile round-trips and '
@@ -147,6 +98,98 @@ void main() {
     final store = build();
     await store.delete('smv1/objects/aa/gone.bin');
     await store.delete('smv1/objects/aa/gone.bin');
-    expect(remote, isEmpty);
+    expect(server.objects, isEmpty);
+  });
+
+  test('large putFile goes multipart, reports progress, and '
+      'round-trips', () async {
+    final store = build(
+      partSizeBytes: 64 * 1024,
+      downloadChunkBytes: 64 * 1024,
+    );
+    final bytes = List<int>.generate(200 * 1024, (i) => i % 251);
+    final src = File('${tmp.path}/video.mp4')..writeAsBytesSync(bytes);
+
+    final progress = <int>[];
+    String? resumeJson;
+    await store.putFile(
+      'smv1/objects/aa/video.mp4',
+      src,
+      contentType: 'video/mp4',
+      onProgress: (sent, total) => progress.add(sent),
+      onResumeStateChanged: (json) => resumeJson = json,
+    );
+
+    expect(server.objects['submersion-media/smv1/objects/aa/video.mp4'], bytes);
+    expect(server.partUploadCount, 4, reason: '200KiB / 64KiB = 4 parts');
+    expect(progress.last, bytes.length);
+    expect(resumeJson, contains('"uploadId"'));
+
+    final dest = File('${tmp.path}/video.out');
+    final getProgress = <int>[];
+    await store.getFile(
+      'smv1/objects/aa/video.mp4',
+      dest,
+      onProgress: (received, total) => getProgress.add(received),
+    );
+    expect(await dest.readAsBytes(), bytes);
+    expect(getProgress.length, greaterThan(1), reason: 'chunked download');
+    expect(getProgress.last, bytes.length);
+  });
+
+  test('kill-and-resume: a mid-upload failure resumes from the last '
+      'acknowledged part without re-uploading it', () async {
+    final store = build(partSizeBytes: 64 * 1024);
+    final bytes = List<int>.generate(200 * 1024, (i) => (i * 3) % 251);
+    final src = File('${tmp.path}/kr.mp4')..writeAsBytesSync(bytes);
+
+    String? resumeJson;
+    server.failAfterPartUploads = 2; // parts 1-2 succeed, part 3 dies
+    await expectLater(
+      store.putFile(
+        'smv1/objects/aa/kr.mp4',
+        src,
+        contentType: 'video/mp4',
+        onResumeStateChanged: (json) => resumeJson = json,
+      ),
+      throwsA(isA<MediaStoreException>()),
+    );
+    expect(resumeJson, isNotNull);
+    final partsBefore = server.partUploadCount;
+    expect(partsBefore, 2);
+
+    // "Restart the app": a fresh store instance resumes from the JSON.
+    server.failAfterPartUploads = null;
+    final resumed = build(partSizeBytes: 64 * 1024);
+    await resumed.putFile(
+      'smv1/objects/aa/kr.mp4',
+      src,
+      contentType: 'video/mp4',
+      resumeStateJson: resumeJson,
+      onResumeStateChanged: (json) => resumeJson = json,
+    );
+    expect(server.objects['submersion-media/smv1/objects/aa/kr.mp4'], bytes);
+    expect(
+      server.partUploadCount - partsBefore,
+      2,
+      reason: 'only parts 3-4 upload on resume',
+    );
+  });
+
+  test('a stale resume state (unknown uploadId) aborts and restarts '
+      'fresh', () async {
+    final store = build(partSizeBytes: 64 * 1024);
+    final bytes = List<int>.generate(130 * 1024, (i) => i % 199);
+    final src = File('${tmp.path}/stale.mp4')..writeAsBytesSync(bytes);
+
+    await store.putFile(
+      'smv1/objects/aa/stale.mp4',
+      src,
+      contentType: 'video/mp4',
+      resumeStateJson:
+          '{"uploadId":"upload-does-not-exist","partSizeBytes":65536,'
+          '"parts":[{"n":1,"etag":"\\"bogus\\""}]}',
+    );
+    expect(server.objects['submersion-media/smv1/objects/aa/stale.mp4'], bytes);
   });
 }
