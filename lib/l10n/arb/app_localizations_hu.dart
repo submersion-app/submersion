@@ -4771,43 +4771,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Mértékegységek, megjelenés és biztonsági mentés áttekintése';
 
   @override
-  String get setup_appearance_language => 'Nyelv';
-
-  @override
-  String get setup_appearance_mapStyle => 'Térkép stílusa';
-
-  @override
-  String get setup_appearance_mapStyle_esriSatellite => 'Műhold';
-
-  @override
-  String get setup_appearance_mapStyle_openStreetMap => 'Utca';
-
-  @override
-  String get setup_appearance_mapStyle_openTopoMap => 'Domborzati';
-
-  @override
-  String get setup_appearance_subtitle =>
-      'Tegye a Submersiont a sajátjává. Itt minden később is módosítható.';
-
-  @override
-  String get setup_appearance_theme => 'Téma';
-
-  @override
-  String get setup_appearance_themeDark => 'Sötét';
-
-  @override
-  String get setup_appearance_themeLight => 'Világos';
-
-  @override
-  String get setup_appearance_themePreset => 'Színeséma';
-
-  @override
-  String get setup_appearance_themeSystem => 'Rendszer';
-
-  @override
-  String get setup_appearance_title => 'Megjelenés';
-
-  @override
   String get setup_backup_cloudCopy =>
       'Biztonsági másolat megőrzése a felhőben';
 
@@ -4951,9 +4914,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get setup_restore_title => 'Biztonsági mentés visszaállítása';
-
-  @override
-  String get setup_step_appearance => 'Megjelenés';
 
   @override
   String get setup_step_backup => 'Mentés';

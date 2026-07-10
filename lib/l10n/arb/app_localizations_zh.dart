@@ -4553,42 +4553,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_manage_setupAssistant_subtitle => '重新设置单位、外观和备份选项';
 
   @override
-  String get setup_appearance_language => '语言';
-
-  @override
-  String get setup_appearance_mapStyle => '地图样式';
-
-  @override
-  String get setup_appearance_mapStyle_esriSatellite => '卫星';
-
-  @override
-  String get setup_appearance_mapStyle_openStreetMap => '街道';
-
-  @override
-  String get setup_appearance_mapStyle_openTopoMap => '地形';
-
-  @override
-  String get setup_appearance_subtitle => '打造你自己的 Submersion。这里的所有设置以后都可以更改。';
-
-  @override
-  String get setup_appearance_theme => '主题';
-
-  @override
-  String get setup_appearance_themeDark => '深色';
-
-  @override
-  String get setup_appearance_themeLight => '浅色';
-
-  @override
-  String get setup_appearance_themePreset => '配色主题';
-
-  @override
-  String get setup_appearance_themeSystem => '跟随系统';
-
-  @override
-  String get setup_appearance_title => '外观';
-
-  @override
   String get setup_backup_cloudCopy => '在云端保留备份副本';
 
   @override
@@ -4718,9 +4682,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get setup_restore_title => '恢复备份';
-
-  @override
-  String get setup_step_appearance => '外观';
 
   @override
   String get setup_step_backup => '备份';

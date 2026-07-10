@@ -4752,43 +4752,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Eenheden, weergave en back-upkeuzes opnieuw bekijken';
 
   @override
-  String get setup_appearance_language => 'Taal';
-
-  @override
-  String get setup_appearance_mapStyle => 'Kaartstijl';
-
-  @override
-  String get setup_appearance_mapStyle_esriSatellite => 'Satelliet';
-
-  @override
-  String get setup_appearance_mapStyle_openStreetMap => 'Straat';
-
-  @override
-  String get setup_appearance_mapStyle_openTopoMap => 'Topografisch';
-
-  @override
-  String get setup_appearance_subtitle =>
-      'Maak Submersion helemaal van jou. Alles hier kan later worden gewijzigd.';
-
-  @override
-  String get setup_appearance_theme => 'Thema';
-
-  @override
-  String get setup_appearance_themeDark => 'Donker';
-
-  @override
-  String get setup_appearance_themeLight => 'Licht';
-
-  @override
-  String get setup_appearance_themePreset => 'Kleurthema';
-
-  @override
-  String get setup_appearance_themeSystem => 'Systeem';
-
-  @override
-  String get setup_appearance_title => 'Weergave';
-
-  @override
   String get setup_backup_cloudCopy => 'Een back-upkopie in de cloud bewaren';
 
   @override
@@ -4929,9 +4892,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get setup_restore_title => 'Back-up terugzetten';
-
-  @override
-  String get setup_step_appearance => 'Weergave';
 
   @override
   String get setup_step_backup => 'Back-up';

@@ -17,7 +17,6 @@ enum SetupStepId {
   welcomeFork,
   profile,
   units,
-  appearance,
   backupSync,
   finish,
   existingChoice,
@@ -117,7 +116,6 @@ List<SetupStepId> computeSteps(SetupWizardDraft draft) {
   if (draft.mode == SetupWizardMode.settings) {
     return const [
       SetupStepId.units,
-      SetupStepId.appearance,
       SetupStepId.backupSync,
       SetupStepId.finish,
     ];
@@ -137,7 +135,6 @@ List<SetupStepId> computeSteps(SetupWizardDraft draft) {
         SetupStepId.welcomeFork,
         SetupStepId.profile,
         SetupStepId.units,
-        SetupStepId.appearance,
         SetupStepId.backupSync,
         SetupStepId.finish,
       ];

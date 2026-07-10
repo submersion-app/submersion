@@ -31,8 +31,6 @@ class _FinishStepState extends ConsumerState<FinishStep> {
       } else {
         await service.applySettingsMode(draft);
       }
-      // Locale now persists via settings; drop the preview override.
-      ref.read(previewLocaleProvider.notifier).state = null;
       if (!mounted) return;
       if (widget.mode == SetupWizardMode.firstRun || route != '/dashboard') {
         context.go(route);

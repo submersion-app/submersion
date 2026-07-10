@@ -4679,43 +4679,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'مراجعة الوحدات والمظهر وخيارات النسخ الاحتياطي';
 
   @override
-  String get setup_appearance_language => 'اللغة';
-
-  @override
-  String get setup_appearance_mapStyle => 'نمط الخريطة';
-
-  @override
-  String get setup_appearance_mapStyle_esriSatellite => 'قمر صناعي';
-
-  @override
-  String get setup_appearance_mapStyle_openStreetMap => 'شوارع';
-
-  @override
-  String get setup_appearance_mapStyle_openTopoMap => 'طبوغرافي';
-
-  @override
-  String get setup_appearance_subtitle =>
-      'اجعل Submersion خاصًا بك. يمكن تغيير كل شيء هنا لاحقًا.';
-
-  @override
-  String get setup_appearance_theme => 'السمة';
-
-  @override
-  String get setup_appearance_themeDark => 'داكن';
-
-  @override
-  String get setup_appearance_themeLight => 'فاتح';
-
-  @override
-  String get setup_appearance_themePreset => 'سمة الألوان';
-
-  @override
-  String get setup_appearance_themeSystem => 'النظام';
-
-  @override
-  String get setup_appearance_title => 'المظهر';
-
-  @override
   String get setup_backup_cloudCopy => 'الاحتفاظ بنسخة احتياطية في السحابة';
 
   @override
@@ -4854,9 +4817,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get setup_restore_title => 'استعادة النسخة الاحتياطية';
-
-  @override
-  String get setup_step_appearance => 'المظهر';
 
   @override
   String get setup_step_backup => 'نسخ احتياطي';

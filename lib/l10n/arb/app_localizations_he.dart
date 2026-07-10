@@ -4657,43 +4657,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'עיון מחדש ביחידות, במראה ובאפשרויות הגיבוי';
 
   @override
-  String get setup_appearance_language => 'שפה';
-
-  @override
-  String get setup_appearance_mapStyle => 'סגנון מפה';
-
-  @override
-  String get setup_appearance_mapStyle_esriSatellite => 'לוויין';
-
-  @override
-  String get setup_appearance_mapStyle_openStreetMap => 'רחוב';
-
-  @override
-  String get setup_appearance_mapStyle_openTopoMap => 'טופוגרפי';
-
-  @override
-  String get setup_appearance_subtitle =>
-      'התאימו את Submersion לעצמכם. אפשר לשנות הכול כאן מאוחר יותר.';
-
-  @override
-  String get setup_appearance_theme => 'ערכת נושא';
-
-  @override
-  String get setup_appearance_themeDark => 'כהה';
-
-  @override
-  String get setup_appearance_themeLight => 'בהיר';
-
-  @override
-  String get setup_appearance_themePreset => 'ערכת צבעים';
-
-  @override
-  String get setup_appearance_themeSystem => 'מערכת';
-
-  @override
-  String get setup_appearance_title => 'מראה';
-
-  @override
   String get setup_backup_cloudCopy => 'שמירת עותק גיבוי בענן';
 
   @override
@@ -4831,9 +4794,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get setup_restore_title => 'שחזור גיבוי';
-
-  @override
-  String get setup_step_appearance => 'מראה';
 
   @override
   String get setup_step_backup => 'גיבוי';

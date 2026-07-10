@@ -4,7 +4,6 @@ import 'package:submersion/core/presentation/widgets/ocean_background.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/setup_wizard/domain/setup_wizard_models.dart';
 import 'package:submersion/features/setup_wizard/presentation/providers/setup_wizard_providers.dart';
-import 'package:submersion/features/setup_wizard/presentation/widgets/steps/appearance_step.dart';
 import 'package:submersion/features/setup_wizard/presentation/widgets/steps/backup_sync_step.dart';
 import 'package:submersion/features/setup_wizard/presentation/widgets/steps/existing_choice_step.dart';
 import 'package:submersion/features/setup_wizard/presentation/widgets/steps/finish_step.dart';
@@ -33,7 +32,6 @@ class SetupWizardPage extends ConsumerStatefulWidget {
 const _formZone = {
   SetupStepId.profile,
   SetupStepId.units,
-  SetupStepId.appearance,
   SetupStepId.backupSync,
 };
 
@@ -85,8 +83,6 @@ class _SetupWizardPageState extends ConsumerState<SetupWizardPage> {
         return l10n.setup_step_profile;
       case SetupStepId.units:
         return l10n.setup_step_units;
-      case SetupStepId.appearance:
-        return l10n.setup_step_appearance;
       case SetupStepId.backupSync:
         return l10n.setup_step_backup;
       case SetupStepId.finish:
@@ -127,12 +123,6 @@ class _SetupWizardPageState extends ConsumerState<SetupWizardPage> {
           label: _stepLabel(id),
           canAdvance: setupWizardProvider(mode).select((_) => true),
           builder: (_) => UnitsStep(mode: mode),
-        );
-      case SetupStepId.appearance:
-        return WizardStepDef(
-          label: _stepLabel(id),
-          canAdvance: setupWizardProvider(mode).select((_) => true),
-          builder: (_) => AppearanceStep(mode: mode),
         );
       case SetupStepId.backupSync:
         return WizardStepDef(
@@ -267,7 +257,12 @@ class _SetupWizardPageState extends ConsumerState<SetupWizardPage> {
                           WizardStepIndicator(
                             labels: labelledIds.map(_stepLabel).toList(),
                             currentStep: labelledIndex,
-                          ),
+                          )
+                        // Choice/existing-data steps have no bottom bar, so a
+                        // slim top back bar keeps every step past the fork
+                        // reversible.
+                        else if (_currentIndex > 0)
+                          _buildBackBar(),
                         // Keyed so the PageView survives the indicator and
                         // bottom bar toggling in and out of the Column (a
                         // slot shift would otherwise remount it at page 0).
@@ -290,6 +285,20 @@ class _SetupWizardPageState extends ConsumerState<SetupWizardPage> {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBackBar() {
+    return Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+        child: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          tooltip: context.l10n.setup_common_back,
+          onPressed: _back,
         ),
       ),
     );

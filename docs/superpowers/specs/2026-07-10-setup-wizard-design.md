@@ -2,7 +2,23 @@
 
 **Date:** 2026-07-10
 **Source:** [Discussion #523](https://github.com/submersion-app/submersion/discussions/523)
-**Status:** Approved design, pending implementation plan
+**Status:** Implemented (PR #544)
+
+## Revisions (post-implementation)
+
+- **Appearance step removed** from the fresh path per user feedback during
+  device testing. Theme, map style, and language stay in Settings. The fresh
+  path is now Profile → Units → Backup & Sync → Finish. The `previewLocale`
+  locale-preview mechanism (below) was removed with it — the sections
+  describing Appearance and locale preview are retained for history but no
+  longer reflect the shipped flow.
+- **S3 config opens on the root navigator**, not `context.push`. During first
+  run the database has zero divers, so the router's onboarding redirect
+  bounces any go_router navigation back to `/welcome`; S3 config is a modal
+  action pushed above the wizard instead.
+- **Every step past the fork is reversible.** The existing-data steps (choice,
+  restore, sync, open-folder) render a top back bar; the form-zone steps keep
+  their bottom-bar Back button.
 
 ## Problem
 
@@ -63,10 +79,9 @@ Welcome (fork)
 ├─ "Set up a new logbook"          → FRESH PATH
 │    1. Profile      name (required; sole mandatory input)
 │    2. Units        Metric | Imperial preset + advanced per-unit fine-tune
-│    3. Appearance   theme mode, theme preset, map style, language
-│    4. Backup&Sync  scheduled-backup toggle (+ frequency); optional cloud
+│    3. Backup&Sync  scheduled-backup toggle (+ frequency); optional cloud
 │                    provider connect; cloud-copy toggle once connected
-│    5. Finish       feature highlights → "Start logging"
+│    4. Finish       feature highlights → "Start logging"
 │         └─ applies draft: create diver → set current → write settings
 │            → navigate to /dashboard
 │

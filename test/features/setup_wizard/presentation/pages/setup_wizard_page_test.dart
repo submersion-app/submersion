@@ -94,4 +94,30 @@ void main() {
     expect(find.text('Welcome to Submersion'), findsNothing);
     expect(find.text('Units'), findsWidgets);
   });
+
+  testWidgets('existing-data steps have a back button to the fork', (
+    tester,
+  ) async {
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        overrides: overrides,
+        child: const SetupWizardPage(mode: SetupWizardMode.firstRun),
+      ),
+    );
+    await pumpWizard(tester);
+
+    await tester.tap(find.text('I have existing Submersion data'));
+    await pumpWizard(tester);
+    expect(find.text('Bring your data'), findsOneWidget);
+
+    // The choice step must be reversible (regression: it had no bottom bar
+    // and no back affordance, stranding the user).
+    final backButton = find.byTooltip('Back');
+    expect(backButton, findsOneWidget);
+
+    await tester.tap(backButton);
+    await pumpWizard(tester);
+    expect(find.text('Set up a new logbook'), findsOneWidget);
+  });
 }

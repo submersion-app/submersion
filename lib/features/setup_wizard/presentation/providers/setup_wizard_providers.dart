@@ -5,11 +5,6 @@ import 'package:submersion/features/backup/domain/entities/backup_settings.dart'
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/setup_wizard/domain/setup_wizard_models.dart';
 
-/// Locale code the wizard previews before settings are applied at Finish.
-/// Consulted by the app's locale resolution (see app.dart) so a language
-/// choice takes effect immediately while the wizard is open.
-final previewLocaleProvider = StateProvider<String?>((ref) => null);
-
 /// Draft state for one wizard session, keyed by mode.
 final setupWizardProvider = StateNotifierProvider.autoDispose
     .family<SetupWizardNotifier, SetupWizardDraft, SetupWizardMode>(

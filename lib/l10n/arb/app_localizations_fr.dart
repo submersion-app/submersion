@@ -4809,43 +4809,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Revoir les unités, l\'apparence et les choix de sauvegarde';
 
   @override
-  String get setup_appearance_language => 'Langue';
-
-  @override
-  String get setup_appearance_mapStyle => 'Style de carte';
-
-  @override
-  String get setup_appearance_mapStyle_esriSatellite => 'Satellite';
-
-  @override
-  String get setup_appearance_mapStyle_openStreetMap => 'Rues';
-
-  @override
-  String get setup_appearance_mapStyle_openTopoMap => 'Topographique';
-
-  @override
-  String get setup_appearance_subtitle =>
-      'Personnalisez Submersion. Tout ceci peut être modifié plus tard.';
-
-  @override
-  String get setup_appearance_theme => 'Thème';
-
-  @override
-  String get setup_appearance_themeDark => 'Sombre';
-
-  @override
-  String get setup_appearance_themeLight => 'Clair';
-
-  @override
-  String get setup_appearance_themePreset => 'Thème de couleurs';
-
-  @override
-  String get setup_appearance_themeSystem => 'Système';
-
-  @override
-  String get setup_appearance_title => 'Apparence';
-
-  @override
   String get setup_backup_cloudCopy =>
       'Conserver une copie de sauvegarde dans le cloud';
 
@@ -4990,9 +4953,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get setup_restore_title => 'Restaurer la sauvegarde';
-
-  @override
-  String get setup_step_appearance => 'Apparence';
 
   @override
   String get setup_step_backup => 'Sauvegarde';

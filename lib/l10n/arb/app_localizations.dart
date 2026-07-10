@@ -8066,78 +8066,6 @@ abstract class AppLocalizations {
   /// **'Revisit units, appearance, and backup choices'**
   String get settings_manage_setupAssistant_subtitle;
 
-  /// No description provided for @setup_appearance_language.
-  ///
-  /// In en, this message translates to:
-  /// **'Language'**
-  String get setup_appearance_language;
-
-  /// No description provided for @setup_appearance_mapStyle.
-  ///
-  /// In en, this message translates to:
-  /// **'Map style'**
-  String get setup_appearance_mapStyle;
-
-  /// No description provided for @setup_appearance_mapStyle_esriSatellite.
-  ///
-  /// In en, this message translates to:
-  /// **'Satellite'**
-  String get setup_appearance_mapStyle_esriSatellite;
-
-  /// No description provided for @setup_appearance_mapStyle_openStreetMap.
-  ///
-  /// In en, this message translates to:
-  /// **'Street'**
-  String get setup_appearance_mapStyle_openStreetMap;
-
-  /// No description provided for @setup_appearance_mapStyle_openTopoMap.
-  ///
-  /// In en, this message translates to:
-  /// **'Topographic'**
-  String get setup_appearance_mapStyle_openTopoMap;
-
-  /// No description provided for @setup_appearance_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Make Submersion yours. Everything here can be changed later.'**
-  String get setup_appearance_subtitle;
-
-  /// No description provided for @setup_appearance_theme.
-  ///
-  /// In en, this message translates to:
-  /// **'Theme'**
-  String get setup_appearance_theme;
-
-  /// No description provided for @setup_appearance_themeDark.
-  ///
-  /// In en, this message translates to:
-  /// **'Dark'**
-  String get setup_appearance_themeDark;
-
-  /// No description provided for @setup_appearance_themeLight.
-  ///
-  /// In en, this message translates to:
-  /// **'Light'**
-  String get setup_appearance_themeLight;
-
-  /// No description provided for @setup_appearance_themePreset.
-  ///
-  /// In en, this message translates to:
-  /// **'Color theme'**
-  String get setup_appearance_themePreset;
-
-  /// No description provided for @setup_appearance_themeSystem.
-  ///
-  /// In en, this message translates to:
-  /// **'System'**
-  String get setup_appearance_themeSystem;
-
-  /// No description provided for @setup_appearance_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Appearance'**
-  String get setup_appearance_title;
-
   /// No description provided for @setup_backup_cloudCopy.
   ///
   /// In en, this message translates to:
@@ -8395,12 +8323,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Restore backup'**
   String get setup_restore_title;
-
-  /// No description provided for @setup_step_appearance.
-  ///
-  /// In en, this message translates to:
-  /// **'Appearance'**
-  String get setup_step_appearance;
 
   /// No description provided for @setup_step_backup.
   ///

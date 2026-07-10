@@ -5,6 +5,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/cloud_storage/icloud_native_service.dart';
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
+import 'package:submersion/features/settings/presentation/pages/s3_config_page.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/dropbox_connect_dialog.dart';
 import 'package:submersion/features/setup_wizard/domain/setup_wizard_models.dart';
@@ -70,17 +71,23 @@ class _BackupSyncStepState extends ConsumerState<BackupSyncStep> {
     }
   }
 
-  void _openS3Config() {
-    context.push('/settings/cloud-sync/s3-config').then((_) {
-      if (!mounted) return;
-      // S3ConfigPage activates S3 itself on save; reflect it in the draft.
-      final sel = ref.read(selectedCloudProviderTypeProvider);
-      if (sel == CloudProviderType.s3) {
-        ref
-            .read(setupWizardProvider(widget.mode).notifier)
-            .setConnectedProvider(sel);
-      }
-    });
+  Future<void> _openS3Config() async {
+    // Push on the ROOT navigator, not go_router: during first run the wizard
+    // has zero divers, so the router's onboarding redirect bounces any
+    // context.push to a real route straight back to /welcome (the fork).
+    // S3 config is a modal action within the wizard, not a route destination.
+    await Navigator.of(
+      context,
+      rootNavigator: true,
+    ).push(MaterialPageRoute<void>(builder: (_) => const S3ConfigPage()));
+    if (!mounted) return;
+    // S3ConfigPage activates S3 itself on save; reflect it in the draft.
+    final sel = ref.read(selectedCloudProviderTypeProvider);
+    if (sel == CloudProviderType.s3) {
+      ref
+          .read(setupWizardProvider(widget.mode).notifier)
+          .setConnectedProvider(sel);
+    }
   }
 
   @override

@@ -19,7 +19,6 @@ void main() {
         SetupStepId.welcomeFork,
         SetupStepId.profile,
         SetupStepId.units,
-        SetupStepId.appearance,
         SetupStepId.backupSync,
         SetupStepId.finish,
       ]);
@@ -78,7 +77,6 @@ void main() {
       const draft = SetupWizardDraft(mode: SetupWizardMode.settings);
       expect(computeSteps(draft), [
         SetupStepId.units,
-        SetupStepId.appearance,
         SetupStepId.backupSync,
         SetupStepId.finish,
       ]);
