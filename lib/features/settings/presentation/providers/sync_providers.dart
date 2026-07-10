@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io' show Platform;
 
+import 'package:cryptography/cryptography.dart' show SecretKey;
 import 'package:package_info_plus/package_info_plus.dart';
 
 import 'package:submersion/core/providers/provider.dart';
@@ -12,11 +13,15 @@ import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.da
 import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_app.dart';
 import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_auth_store.dart';
 import 'package:submersion/core/services/cloud_storage/dropbox_storage_provider.dart';
+import 'package:submersion/core/services/cloud_storage/encrypting_cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/icloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/icloud_native_service.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
 import 'package:submersion/core/services/cloud_storage/s3_storage_provider.dart';
+import 'package:submersion/core/services/sync/crypto/encryption_key_store.dart';
+import 'package:submersion/core/services/sync/crypto/keyslots.dart';
+import 'package:submersion/core/services/sync/crypto/sync_encryption_service.dart';
 import 'package:submersion/core/services/sync/established_provider_store.dart';
 import 'package:submersion/core/services/sync/library_epoch.dart';
 import 'package:submersion/core/services/sync/library_epoch_store.dart';
@@ -65,6 +70,78 @@ final syncPreferencesProvider = Provider<SyncPreferences>((ref) {
   final prefs = ref.watch(sharedPreferencesProvider);
   return SyncPreferences(prefs);
 });
+
+/// Device-local custody of the encryption master key + keyslot mirror.
+final encryptionKeyStoreProvider = Provider<EncryptionKeyStore>((ref) {
+  return EncryptionKeyStore();
+});
+
+/// Encryption lifecycle operations (enable / unlock / rotate / self-heal).
+final syncEncryptionServiceProvider = Provider<SyncEncryptionService>((ref) {
+  return SyncEncryptionService(
+    keyStore: ref.watch(encryptionKeyStoreProvider),
+    preferences: ref.watch(syncPreferencesProvider),
+  );
+});
+
+/// Unlocked-session state: null = encryption disabled, or enabled but locked
+/// (no key on this device yet). Non-null makes the provider wrap encrypting.
+class EncryptionSessionState {
+  final UnlockedKey key;
+  final SecretKey dataKey;
+
+  const EncryptionSessionState({required this.key, required this.dataKey});
+}
+
+class EncryptionKeyNotifier extends StateNotifier<EncryptionSessionState?> {
+  EncryptionKeyNotifier(this._keyStore, this._preferences) : super(null);
+
+  final EncryptionKeyStore _keyStore;
+  final SyncPreferences _preferences;
+  Future<EncryptionSessionState?>? _loading;
+
+  /// Memoized load from the key store; sync triggers await this before
+  /// resolving the sync service so the provider wrap is already in place.
+  Future<EncryptionSessionState?> ensureLoaded() {
+    return _loading ??= _load();
+  }
+
+  Future<EncryptionSessionState?> _load() async {
+    if (state != null) return state;
+    // The stored key outlives a disable (old encrypted backups stay
+    // restorable via EncryptionKeyStore directly); a SESSION only exists
+    // while the feature flag is on, so the provider wrap follows the flag.
+    if (!_preferences.syncEncryptionEnabled) return null;
+    final key = await _keyStore.loadKey();
+    if (key == null) return null;
+    final dataKey = await Keyslots.deriveDataKey(key.mlk);
+    if (!mounted) return null;
+    state = EncryptionSessionState(key: key, dataKey: dataKey);
+    return state;
+  }
+
+  Future<void> setUnlocked(UnlockedKey key) async {
+    final dataKey = await Keyslots.deriveDataKey(key.mlk);
+    if (!mounted) return;
+    state = EncryptionSessionState(key: key, dataKey: dataKey);
+    _loading = Future.value(state);
+  }
+
+  Future<void> clear() async {
+    state = null;
+    _loading = Future.value(null);
+  }
+}
+
+final encryptionKeyNotifierProvider =
+    StateNotifierProvider<EncryptionKeyNotifier, EncryptionSessionState?>((
+      ref,
+    ) {
+      return EncryptionKeyNotifier(
+        ref.watch(encryptionKeyStoreProvider),
+        ref.watch(syncPreferencesProvider),
+      );
+    });
 
 /// Library epoch persistence (mirror + pending replace intent).
 final libraryEpochStoreProvider = Provider<LibraryEpochStore>((ref) {
@@ -189,7 +266,18 @@ final cloudStorageProviderProvider = Provider<CloudStorageProvider?>((ref) {
   final providerType = ref.watch(selectedCloudProviderTypeProvider);
   if (providerType == null) return null;
 
-  return cloudProviderInstanceFor(providerType);
+  final raw = cloudProviderInstanceFor(providerType);
+  // End-to-end encryption: with an unlocked session, every byte through this
+  // provider is sealed/opened at the byte boundary (spec 4.1). No session
+  // (disabled, or enabled-but-locked) resolves to the raw provider; a locked
+  // library is detected downstream and halts with awaitingPassphrase.
+  final session = ref.watch(encryptionKeyNotifierProvider);
+  if (session == null) return raw;
+  return EncryptingCloudStorageProvider(
+    raw,
+    dataKey: session.dataKey,
+    libraryKeyId: session.key.libraryKeyId,
+  );
 });
 
 /// Sync service provider
@@ -200,6 +288,7 @@ final syncServiceProvider = Provider<SyncService>((ref) {
     cloudProvider: ref.watch(cloudStorageProviderProvider),
     syncInitializer: ref.watch(syncInitializerProvider),
     epochStore: ref.watch(libraryEpochStoreProvider),
+    encryptionService: ref.watch(syncEncryptionServiceProvider),
   );
 });
 
@@ -224,6 +313,10 @@ class SyncState {
   /// True when the cloud library was replaced from a backup under an epoch
   /// this device has not accepted; sync is paused until the user adopts.
   final bool replaceAwaitingAdoption;
+
+  /// True when the cloud library is end-to-end encrypted and this device has
+  /// no matching key; sync is paused until the user enters the passphrase.
+  final bool needsPassphrase;
 
   /// The replacement marker behind [replaceAwaitingAdoption] (who/when).
   final LibraryEpochMarker? replaceMarker;
@@ -255,6 +348,7 @@ class SyncState {
     this.firstSyncAwaitingConfirmation = false,
     this.postRestoreSyncing = false,
     this.replaceAwaitingAdoption = false,
+    this.needsPassphrase = false,
     this.replaceMarker,
     this.movedMarker,
     this.cleanupOldBackendProviderId,
@@ -271,6 +365,7 @@ class SyncState {
     bool? firstSyncAwaitingConfirmation,
     bool? postRestoreSyncing,
     bool? replaceAwaitingAdoption,
+    bool? needsPassphrase,
     Object? replaceMarker = _markerSentinel,
     Object? movedMarker = _movedSentinel,
     Object? cleanupOldBackendProviderId = _cleanupSentinel,
@@ -290,6 +385,7 @@ class SyncState {
       postRestoreSyncing: postRestoreSyncing ?? this.postRestoreSyncing,
       replaceAwaitingAdoption:
           replaceAwaitingAdoption ?? this.replaceAwaitingAdoption,
+      needsPassphrase: needsPassphrase ?? this.needsPassphrase,
       replaceMarker: identical(replaceMarker, _markerSentinel)
           ? this.replaceMarker
           : replaceMarker as LibraryEpochMarker?,
@@ -721,6 +817,12 @@ class SyncNotifier extends StateNotifier<SyncState> {
     }
     _syncInFlight = true;
     try {
+      // Load any stored encryption key BEFORE resolving the sync service:
+      // the provider wrap watches the session, so a launch-triggered sync
+      // must not race the async key load and run unencrypted-eyed.
+      await _ref.read(encryptionKeyNotifierProvider.notifier).ensureLoaded();
+      if (!mounted) return;
+
       if (auto) {
         final info = await firstSyncMergeInfo();
         if (info != null) {
@@ -742,6 +844,7 @@ class SyncNotifier extends StateNotifier<SyncState> {
         progress: 0.0,
         firstSyncAwaitingConfirmation: false,
         replaceAwaitingAdoption: false,
+        needsPassphrase: false,
         replaceMarker: null,
       );
 
@@ -786,6 +889,19 @@ class SyncNotifier extends StateNotifier<SyncState> {
             );
             return;
           }
+        }
+
+        if (result.status == SyncResultStatus.awaitingPassphrase) {
+          state = state.copyWith(
+            status: SyncStatus.idle,
+            needsPassphrase: true,
+            message:
+                result.message ??
+                'Sync paused: this library is encrypted. '
+                    'Enter the passphrase to continue.',
+            progress: null,
+          );
+          return;
         }
 
         if (result.isSuccess) {
