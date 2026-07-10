@@ -233,28 +233,31 @@ class DatabaseService {
   /// they immediately reopen the same file, so a half-closed background
   /// connection still holding locks would race the reopen and surface as
   /// "database is locked"/corruption. In strict mode a timed-out or failed
-  /// close THROWS instead of being abandoned, so the caller aborts before
-  /// reopening.
+  /// close THROWS instead of being abandoned, and [_database] is left
+  /// non-null so the still-open connection is not orphaned and the caller
+  /// can retry — [_database] is cleared ONLY on a clean close.
   Future<void> close({bool strict = false}) async {
     if (_database == null) return;
 
+    if (strict) {
+      // No onTimeout swallow: a timeout throws TimeoutException. Clear the
+      // reference only after the close actually completed — on failure we
+      // keep it so the connection (and its locks) is not leaked and a
+      // retry can re-attempt the close before reopening.
+      await _database!.close().timeout(const Duration(seconds: 5));
+      _database = null;
+      return;
+    }
+
     try {
-      if (strict) {
-        // No onTimeout swallow: a timeout throws TimeoutException.
-        await _database!.close().timeout(const Duration(seconds: 5));
-      } else {
-        await _database!.close().timeout(
-          const Duration(seconds: 5),
-          onTimeout: () {
-            // If close times out, just abandon the connection
-            // The OS will clean up the file handles when the app exits
-          },
-        );
-      }
+      // Shutdown/abandon path: if close times out, drop the connection and
+      // let the OS reclaim the file handles when the app exits.
+      await _database!.close().timeout(
+        const Duration(seconds: 5),
+        onTimeout: () {},
+      );
     } catch (e) {
-      // Strict callers must learn the connection did not close cleanly;
-      // shutdown callers are abandoning it anyway.
-      if (strict) rethrow;
+      // Ignore close errors - we're abandoning this connection anyway.
     } finally {
       _database = null;
     }

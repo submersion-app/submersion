@@ -31,9 +31,16 @@ void main() {
   });
 
   tearDown(() async {
-    await DatabaseService.instance.close();
-    DatabaseService.instance.resetForTesting();
-    await tempDir.delete(recursive: true);
+    // Strict close so any open handle is definitely released before we
+    // delete the temp dir — a non-strict close could swallow a timeout and
+    // leave a handle open, making delete flaky (notably on Windows). The
+    // reset + delete still run even if the close throws.
+    try {
+      await DatabaseService.instance.close(strict: true);
+    } finally {
+      DatabaseService.instance.resetForTesting();
+      await tempDir.delete(recursive: true);
+    }
   });
 
   test(
