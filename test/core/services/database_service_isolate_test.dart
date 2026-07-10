@@ -98,26 +98,30 @@ void main() {
     expect(one.read<int>('v'), 1);
   });
 
-  test('a database newer than the app is rejected before any open', () async {
-    // Seed a current-schema file, then bump user_version PAST the app's
-    // version so the single synchronous read in _openDatabase trips the
-    // newer-than-app guard.
-    final seed = AppDatabase(NativeDatabase(File(dbPath)));
-    await seed.customSelect('SELECT 1').get();
-    await seed.close();
-    final raw = sqlite3.sqlite3.open(dbPath);
-    raw.execute(
-      'PRAGMA user_version = ${AppDatabase.currentSchemaVersion + 1}',
-    );
-    raw.dispose();
+  test(
+    'a database newer than the app is rejected before any Drift open',
+    () async {
+      // Seed a current-schema file, then bump user_version PAST the app's
+      // version. _openDatabase's single synchronous getStoredSchemaVersion
+      // read (raw sqlite3) trips the newer-than-app guard and throws before
+      // any Drift executor — migrator or background — opens the file.
+      final seed = AppDatabase(NativeDatabase(File(dbPath)));
+      await seed.customSelect('SELECT 1').get();
+      await seed.close();
+      final raw = sqlite3.sqlite3.open(dbPath);
+      raw.execute(
+        'PRAGMA user_version = ${AppDatabase.currentSchemaVersion + 1}',
+      );
+      raw.dispose();
 
-    await expectLater(
-      DatabaseService.instance.initialize(
-        locationService: _FakeLocation(dbPath),
-      ),
-      throwsA(isA<DatabaseVersionMismatchException>()),
-    );
-  });
+      await expectLater(
+        DatabaseService.instance.initialize(
+          locationService: _FakeLocation(dbPath),
+        ),
+        throwsA(isA<DatabaseVersionMismatchException>()),
+      );
+    },
+  );
 
   test('reinitializeAtPath reopens on the background executor', () async {
     await DatabaseService.instance.initialize(
