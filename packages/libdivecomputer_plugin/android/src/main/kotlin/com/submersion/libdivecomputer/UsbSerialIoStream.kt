@@ -82,9 +82,10 @@ class UsbSerialIoStream(
                 NativeTrace.d("opening port[$index]")
                 candidate.open(conn)
                 port = candidate
-                // Bulk reads must request at least one full USB packet or the
-                // kernel fails them with EOVERFLOW and drops the data (#318);
-                // SerialReadBuffer enforces that and buffers the surplus.
+                // Bulk reads must request whole multiples of the USB packet
+                // size or the kernel fails them with EOVERFLOW and drops the
+                // data (#318); SerialReadBuffer enforces that and buffers the
+                // surplus.
                 val maxPacketSize = candidate.readEndpoint?.maxPacketSize ?: 0
                 readBuffer = SerialReadBuffer(
                     minChunkSize = if (maxPacketSize > 0) maxPacketSize else 64,
@@ -172,7 +173,7 @@ class UsbSerialIoStream(
         // "return exactly `size` bytes or time out" -- every driver relies on
         // it. SerialReadBuffer reassembles that byte-stream contract from raw
         // bulk chunk reads: accumulating chunks until the requested size or the
-        // deadline (#334), never requesting less than one USB packet, and
+        // deadline (#334), requesting whole USB packets only, and
         // keeping surplus bytes for the next read (#318). It returns exactly
         // `size` bytes, or null so the JNI bridge reports LIBDC_STATUS_TIMEOUT
         // and libdivecomputer retries, rather than accepting a truncated read.

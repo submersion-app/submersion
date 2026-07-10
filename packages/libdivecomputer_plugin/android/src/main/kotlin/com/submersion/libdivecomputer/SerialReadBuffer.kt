@@ -13,8 +13,10 @@ package com.submersion.libdivecomputer
 // one 64-byte bulk packet, and every retry threw the response away.
 //
 // Two invariants fix that:
-//  1. Never hand USB a buffer smaller than one bulk packet (minChunkSize =
-//     the endpoint's max packet size).
+//  1. Only hand USB buffers sized to a whole number of bulk packets
+//     (minChunkSize = the endpoint's max packet size). "At least one packet"
+//     is not enough: a request ending mid-packet still babbles when the
+//     response runs one packet past it (issue #318, Puck Pro version block).
 //  2. Keep whatever a chunk returns beyond the requested size buffered for
 //     subsequent reads, since the next protocol bytes ride in the same packet.
 //
@@ -70,7 +72,12 @@ class SerialReadBuffer(
                     ((remainingNanos + 999_999L) / 1_000_000L).toInt().coerceAtLeast(1)
                 }
             }
-            val chunk = ByteArray(maxOf(size - received, minChunkSize))
+            // Request a whole number of bulk packets (invariant 1): a request
+            // ending mid-packet babbles (EOVERFLOW) when the response runs
+            // past it, and the kernel discards the transfer. Overshoot lands
+            // in `pending`.
+            val packets = (size - received + minChunkSize - 1) / minChunkSize
+            val chunk = ByteArray(packets * minChunkSize)
             trace("usb read req=${chunk.size} sliceTimeout=$sliceTimeout received=$received")
             val n = readChunk(chunk, sliceTimeout)
             trace("usb read <- $n")

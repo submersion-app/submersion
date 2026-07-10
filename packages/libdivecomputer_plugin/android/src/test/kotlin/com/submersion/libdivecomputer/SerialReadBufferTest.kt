@@ -61,6 +61,87 @@ class SerialReadBufferTest {
     }
 
     @Test
+    fun chunkRequestsAreWholeMultiplesOfMinChunkSize() {
+        val buffer = SerialReadBuffer(CHUNK)
+
+        // ACK-style read: one 64-byte packet arrives, 63 bytes stay buffered.
+        buffer.read(1, 3000) { dest, _ ->
+            System.arraycopy(ByteArray(CHUNK) { it.toByte() }, 0, dest, 0, CHUNK)
+            CHUNK
+        }
+
+        // Version-block read: 77 bytes are still needed. Requesting exactly 77
+        // babbles when the tail arrives as a 64-byte packet followed by a
+        // 14-byte packet (the second packet exceeds the 13 bytes of remaining
+        // buffer space), so the kernel fails the transfer with EOVERFLOW and
+        // the tail is lost (issue #318). The request must be rounded up to a
+        // whole number of bulk packets: 128, never 77.
+        buffer.read(140, 3000) { dest, _ ->
+            assertEquals(
+                "USB buffer must be a whole multiple of the packet size",
+                0,
+                dest.size % CHUNK,
+            )
+            System.arraycopy(ByteArray(78), 0, dest, 0, 78)
+            78
+        }
+    }
+
+    @Test
+    fun puckProVersionResponseSurvivesPacketSplitTail() {
+        // The exact issue #318 round-6 failure: after the 1-byte ACK read
+        // consumes the head of the first 64-byte packet, the remaining 141
+        // bytes of ACK + version(140) + EOM arrive as a 64-byte packet plus a
+        // 14-byte packet. The fake reader below enforces real bulk-endpoint
+        // semantics: a packet larger than the space left in the request fails
+        // the whole transfer (EOVERFLOW -> 0 bytes, data discarded); a packet
+        // shorter than the packet size terminates the transfer.
+        val buffer = SerialReadBuffer(CHUNK)
+        val packets = ArrayDeque(
+            listOf(
+                ByteArray(CHUNK) { (it + 1).toByte() }, // ACK + version[0..62]
+                ByteArray(CHUNK) { (65 + it).toByte() }, // version[63..126]
+                ByteArray(14) { (129 + it).toByte() }, // version[127..139] + EOM
+            ),
+        )
+        val readChunk = { dest: ByteArray, _: Int ->
+            var copied = 0
+            while (packets.isNotEmpty()) {
+                val space = dest.size - copied
+                if (space == 0) break // request filled: transfer complete
+                val packet = packets.removeFirst()
+                if (packet.size > space) {
+                    // Babble: the transfer errors out, bytes already copied
+                    // into it are lost with it, and so is the packet.
+                    copied = 0
+                    break
+                }
+                System.arraycopy(packet, 0, dest, copied, packet.size)
+                copied += packet.size
+                if (packet.size < CHUNK) break // short packet terminates
+            }
+            copied
+        }
+
+        val ack = buffer.read(1, 3000, readChunk)
+        assertArrayEquals(byteArrayOf(1), ack)
+
+        val version = buffer.read(140, 3000, readChunk)
+        assertArrayEquals(
+            "version block must survive the 64+14 packet split",
+            ByteArray(140) { (it + 2).toByte() },
+            version,
+        )
+
+        // The EOM trailer rode in the last packet and must still be buffered.
+        val trailer = buffer.read(1, 3000) { _, _ ->
+            fail("trailer must be served from the buffer")
+            0
+        }
+        assertArrayEquals(byteArrayOf(142.toByte()), trailer)
+    }
+
+    @Test
     fun accumulatesAcrossMultipleChunks() {
         val buffer = SerialReadBuffer(CHUNK)
         val deliveries = listOf(bytes(1..4), bytes(5..8), bytes(9..10))
