@@ -101,6 +101,7 @@ dependencies:
   pdf: ^3.11.1
   csv: ^6.0.0
   excel: ^4.0.6
+  archive: ^3.6.1  # ZIP expansion for DiveCloud export archives
   fit_tool: ^1.0.5  # Garmin FIT file parsing for dive imports
   logger: ^2.0.0  # Used to suppress fit_tool's verbose warnings
   collection: ^1.18.0
