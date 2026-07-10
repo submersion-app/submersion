@@ -228,6 +228,14 @@ class _SetupWizardPageState extends ConsumerState<SetupWizardPage> {
     final steps = computeSteps(draft);
     if (_currentIndex >= steps.length) {
       _currentIndex = steps.length - 1;
+      // The step list shrank under us (e.g. the adopt pivot from the fresh
+      // path to the shorter existing-data path). Resync the controller
+      // post-frame so the PageView can't sit on an out-of-range page.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _pageController.hasClients) {
+          _pageController.jumpToPage(_currentIndex);
+        }
+      });
     }
     final defs = steps.map(_defFor).toList();
     final currentId = steps[_currentIndex];

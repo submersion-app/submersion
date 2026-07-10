@@ -14,10 +14,18 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// Callers should pass the return values of `.overrideWithValue(...)` or
 /// `.overrideWith(...)` -- the Riverpod `Override` type is sealed and not
 /// re-exported, so we accept `dynamic` here.
-Widget testApp({required Widget child, List<dynamic>? overrides}) {
+/// Pass [locale] to pin the UI language deterministically (defaults to
+/// MaterialApp's platform-locale resolution). Useful when a test drives the
+/// device locale for other reasons but still asserts on English labels.
+Widget testApp({
+  required Widget child,
+  List<dynamic>? overrides,
+  Locale? locale,
+}) {
   return ProviderScope(
     overrides: overrides?.cast() ?? [],
     child: MaterialApp(
+      locale: locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(body: child),

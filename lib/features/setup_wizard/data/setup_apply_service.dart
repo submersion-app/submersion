@@ -82,8 +82,9 @@ class SetupApplyService {
     if (draft.backupEnabled) {
       await backup.setFrequency(draft.backupFrequency);
     }
-    if (draft.connectedProvider != null && draft.cloudBackupEnabled) {
-      await backup.setCloudBackupEnabled(true);
-    }
+    // Apply the cloud-copy choice in both directions so re-entry can turn it
+    // off. The flag is inert without a configured provider, so writing it is
+    // safe even when none is connected.
+    await backup.setCloudBackupEnabled(draft.cloudBackupEnabled);
   }
 }

@@ -105,12 +105,10 @@ class _BackupSyncStepState extends ConsumerState<BackupSyncStep> {
         isApple && iCloudAvailability != ICloudAvailability.unsupported;
     final dropboxConfigured = ref.watch(dropboxConfiguredProvider);
 
-    // Re-entry mode: a provider configured outside this wizard session
-    // renders as connected status with a manage link instead of cards.
-    final alreadyActive = widget.mode == SetupWizardMode.settings
-        ? ref.watch(selectedCloudProviderTypeProvider)
-        : null;
-    final connected = draft.connectedProvider ?? alreadyActive;
+    // The draft holds the connected provider in both modes: seeded from the
+    // active provider on settings re-entry, set by the connect flow at first
+    // run. A non-null value renders connected status instead of the cards.
+    final connected = draft.connectedProvider;
 
     Widget sectionLabel(String text) => Padding(
       padding: const EdgeInsets.only(top: 20, bottom: 4),
@@ -182,7 +180,7 @@ class _BackupSyncStepState extends ConsumerState<BackupSyncStep> {
                 l10n.setup_sync_connectedTo(_providerName(connected)),
               ),
             ),
-            if (alreadyActive != null && draft.connectedProvider == null)
+            if (widget.mode == SetupWizardMode.settings)
               Align(
                 alignment: AlignmentDirectional.centerStart,
                 child: TextButton(
@@ -218,7 +216,7 @@ class _BackupSyncStepState extends ConsumerState<BackupSyncStep> {
               onTap: _connecting ? null : _openS3Config,
             ),
           ],
-          if (draft.connectedProvider != null)
+          if (connected != null)
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(l10n.setup_backup_cloudCopy),

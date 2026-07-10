@@ -12,6 +12,7 @@ import 'package:submersion/features/settings/data/repositories/diver_settings_re
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/setup_wizard/data/setup_apply_service.dart';
 import 'package:submersion/features/setup_wizard/domain/setup_wizard_models.dart';
+import 'package:submersion/features/setup_wizard/presentation/providers/setup_wizard_providers.dart';
 
 import '../../../helpers/test_database.dart';
 
@@ -134,6 +135,38 @@ void main() {
       );
       expect(stored!.depthUnit, DepthUnit.feet);
       expect(stored.volumeUnit, VolumeUnit.cubicFeet);
+    },
+  );
+
+  test(
+    'settings-mode draft seeds live backup state; Finish preserves it',
+    () async {
+      // A backup schedule is already enabled before the wizard opens.
+      SharedPreferences.setMockInitialValues({
+        'backup_enabled': true,
+        'backup_frequency': 'daily',
+      });
+      final seededPrefs = await SharedPreferences.getInstance();
+      final container = ProviderContainer(
+        overrides: [sharedPreferencesProvider.overrideWithValue(seededPrefs)],
+      );
+      addTearDown(container.dispose);
+
+      // The re-entry draft must mirror the live schedule, not defaults.
+      final draft = container.read(
+        setupWizardProvider(SetupWizardMode.settings),
+      );
+      expect(draft.backupEnabled, isTrue);
+      expect(draft.backupFrequency, BackupFrequency.daily);
+
+      // Applying an untouched settings-mode draft must not disable backups
+      // (regression: seeding defaults here silently turned them off).
+      await container.read(setupApplyServiceProvider).applySettingsMode(draft);
+      expect(container.read(backupSettingsProvider).enabled, isTrue);
+      expect(
+        container.read(backupSettingsProvider).frequency,
+        BackupFrequency.daily,
+      );
     },
   );
 }

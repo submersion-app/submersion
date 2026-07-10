@@ -20,6 +20,9 @@ void main() {
     late ProviderContainer container;
     await tester.pumpWidget(
       testApp(
+        // UI pinned to English; the device locale set above only drives
+        // presetForLocale, not the labels this test taps.
+        locale: const Locale('en'),
         child: Builder(
           builder: (context) {
             container = ProviderScope.containerOf(context);
@@ -48,6 +51,9 @@ void main() {
     late ProviderContainer container;
     await tester.pumpWidget(
       testApp(
+        // UI pinned to English; the device locale set above only drives
+        // presetForLocale, not the labels this test taps.
+        locale: const Locale('en'),
         child: Builder(
           builder: (context) {
             container = ProviderScope.containerOf(context);
@@ -84,6 +90,9 @@ void main() {
     late ProviderContainer container;
     await tester.pumpWidget(
       testApp(
+        // UI pinned to English; the device locale set above only drives
+        // presetForLocale, not the labels this test taps.
+        locale: const Locale('en'),
         child: Builder(
           builder: (context) {
             container = ProviderScope.containerOf(context);
