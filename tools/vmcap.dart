@@ -7,11 +7,11 @@ import 'dart:io';
 /// Usage:
 ///
 ///     flutter run --profile -d macos   # note the ws://127.0.0.1:PORT/TOKEN=/ws URI
-///     dart run tools/vmcap.dart [ws-uri] probe
-///     dart run tools/vmcap.dart [ws-uri] clear     # right BEFORE interacting
+///     dart run tools/vmcap.dart <ws-uri> probe
+///     dart run tools/vmcap.dart <ws-uri> clear     # right BEFORE interacting
 ///     (interact with the app)
-///     dart run tools/vmcap.dart [ws-uri] read      # right AFTER interacting
-///     dart run tools/vmcap.dart [ws-uri] frames 10 # frame events for 10 s
+///     dart run tools/vmcap.dart <ws-uri> read      # right AFTER interacting
+///     dart run tools/vmcap.dart <ws-uri> frames 10 # frame events for 10 s
 ///
 /// Gotchas (learned in the June 2026 Phase 1 effort):
 /// - Always `clear` immediately before the window; otherwise the VM service's
@@ -39,7 +39,14 @@ Future<void> main(List<String> args) async {
       stderr.writeln('No isolates.');
       exit(1);
     }
-    final main = isolates.first['id'] as String;
+    // Prefer the isolate named 'main': a profile/debug app can expose helper
+    // isolates (background workers, plugins), and isolates.first is not
+    // guaranteed to be the root isolate whose CPU samples/frames we want.
+    final mainIso = isolates.firstWhere(
+      (iso) => iso['name'] == 'main',
+      orElse: () => isolates.first,
+    );
+    final main = mainIso['id'] as String;
 
     switch (mode) {
       case 'probe':
