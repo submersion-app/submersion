@@ -291,10 +291,7 @@ class AqualungZarDialect {
 
   static List<int> _parseIntArray(String? raw) {
     if (raw == null || raw.trim().isEmpty) return const [];
-    return [
-      for (final part in raw.split(','))
-        if (int.tryParse(part.trim()) case final value?) value,
-    ];
+    return [for (final part in raw.split(',')) ?int.tryParse(part.trim())];
   }
 
   static String? _nonEmpty(String? value) {

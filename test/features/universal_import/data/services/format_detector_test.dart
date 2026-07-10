@@ -252,6 +252,42 @@ void main() {
       expect(result.format, ImportFormat.fit);
     });
   });
+
+  group('DAN DL7 detection', () {
+    test('detects DiverLog+ export (FSH prefix + AQUALUNG ZAR)', () {
+      const content =
+          'FSH|^~<>{}|OCI201^^|ZXU|20220604000837|\n'
+          'ZRH|^~<>{}||13960|MSWG|ThM|C|BAR|L|\n'
+          'ZAR{\n<AQUALUNG>\n<APP>DiverLog+</APP>\n</AQUALUNG>\n}\n'
+          'ZDH|1|1|I|Q1S|20220224130600|27.2||FO2|\n';
+      final result = detector.detect(_toBytes(content));
+      expect(result.format, ImportFormat.danDl7);
+      expect(result.sourceApp, SourceApp.diverLog);
+      expect(result.confidence, greaterThanOrEqualTo(0.85));
+    });
+
+    test('detects generic DL7 (FSH prefix, no AQUALUNG) as DAN', () {
+      const content =
+          'FSH|^~\\&{}|ANST01^12X456^A|ZXU|20180106163705+02:00|\n'
+          'ZRH|^~\\&{}|||MFWG|ThM|C|bar|L|\n'
+          'ZDH|1|1|I|QS|20180101101000|27|11|FO2|||\n';
+      final result = detector.detect(_toBytes(content));
+      expect(result.format, ImportFormat.danDl7);
+      expect(result.sourceApp, SourceApp.dan);
+    });
+
+    test('a BOM before FSH still detects', () {
+      final result = detector.detect(
+        _toBytes('﻿FSH|^~<>{}|X^^|ZXU|20240101120000|\n'),
+      );
+      expect(result.format, ImportFormat.danDl7);
+    });
+
+    test('pipe-delimited text without FSH prefix is not DL7', () {
+      final result = detector.detect(_toBytes('name|depth|time\nreef|18|45\n'));
+      expect(result.format, isNot(ImportFormat.danDl7));
+    });
+  });
 }
 
 Uint8List _toBytes(String text) => Uint8List.fromList(utf8.encode(text));
