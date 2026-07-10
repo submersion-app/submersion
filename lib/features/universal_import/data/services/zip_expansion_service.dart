@@ -4,6 +4,8 @@ import 'dart:typed_data';
 import 'package:archive/archive.dart';
 import 'package:path/path.dart' as p;
 
+import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
+
 /// Result of expanding a file selection that may contain ZIP archives.
 class ArchiveExpansion {
   /// Importable file paths: original non-ZIP paths plus extracted members.
@@ -46,12 +48,20 @@ class ZipExpansionService {
   static const _diveFileExtensions = {'.zxu', '.zxl'};
   static const _photoExtensions = {'.jpg', '.jpeg', '.png', '.heic', '.heif'};
 
-  static bool isZipBytes(Uint8List bytes) =>
-      bytes.length >= 4 &&
-      bytes[0] == 0x50 &&
-      bytes[1] == 0x4B &&
-      bytes[2] == 0x03 &&
-      bytes[3] == 0x04;
+  /// True for any of the three ZIP signatures: `PK\x03\x04` (local file
+  /// header, the normal case), `PK\x05\x06` (empty archive), and
+  /// `PK\x07\x08` (spanned/data-descriptor). DiveCloud exports are always the
+  /// first form; the others are accepted so an empty or unusual ZIP routes to
+  /// expansion (and a clear "no importable files" / corrupt-archive error)
+  /// instead of being mis-detected as some other format.
+  static bool isZipBytes(Uint8List bytes) {
+    if (bytes.length < 4 || bytes[0] != 0x50 || bytes[1] != 0x4B) return false;
+    final b2 = bytes[2];
+    final b3 = bytes[3];
+    return (b2 == 0x03 && b3 == 0x04) ||
+        (b2 == 0x05 && b3 == 0x06) ||
+        (b2 == 0x07 && b3 == 0x08);
+  }
 
   /// Expands any ZIPs in [paths]; non-ZIP paths pass through unchanged and
   /// keep their position. Results from multiple ZIPs are merged.
@@ -133,7 +143,12 @@ class ZipExpansionService {
       );
     }
 
-    final tempDir = await Directory.systemTemp.createTemp('submersion_zip_');
+    // Extract under the app-container temp dir, never /tmp: a sandboxed or
+    // hardened-runtime macOS build is denied Directory.systemTemp and would
+    // hit EPERM (issue #509). resolveSyncTempDir falls back to systemTemp only
+    // in unit tests where the path_provider channel is absent.
+    final tempRoot = await resolveSyncTempDir();
+    final tempDir = await tempRoot.createTemp('submersion_zip_');
     try {
       return await _extractInto(tempDir, archive);
     } catch (_) {
@@ -214,6 +229,18 @@ class ZipExpansionService {
       } else {
         unmatched.add(photo.extractedPath);
       }
+    }
+
+    // No dive files means nothing to import — any extracted photos are
+    // unattachable without a dive. Remove the temp dir now and report no
+    // temp dirs so a cancelled/empty import leaves nothing behind.
+    if (diveFiles.isEmpty) {
+      try {
+        if (tempDir.existsSync()) await tempDir.delete(recursive: true);
+      } catch (_) {
+        // ignore: best-effort cleanup.
+      }
+      return ArchiveExpansion(filePaths: const [], skippedEntryCount: skipped);
     }
 
     return ArchiveExpansion(

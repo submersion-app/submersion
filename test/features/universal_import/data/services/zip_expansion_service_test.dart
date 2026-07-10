@@ -53,6 +53,27 @@ void main() {
       );
       expect(ZipExpansionService.isZipBytes(Uint8List(0)), isFalse);
     });
+
+    test('recognizes all three ZIP signatures', () {
+      // Local file header (normal), empty archive, spanned/data-descriptor.
+      expect(
+        ZipExpansionService.isZipBytes(Uint8List.fromList([0x50, 0x4B, 3, 4])),
+        isTrue,
+      );
+      expect(
+        ZipExpansionService.isZipBytes(Uint8List.fromList([0x50, 0x4B, 5, 6])),
+        isTrue,
+      );
+      expect(
+        ZipExpansionService.isZipBytes(Uint8List.fromList([0x50, 0x4B, 7, 8])),
+        isTrue,
+      );
+      // "PK" followed by an unrelated signature is not a ZIP.
+      expect(
+        ZipExpansionService.isZipBytes(Uint8List.fromList([0x50, 0x4B, 1, 2])),
+        isFalse,
+      );
+    });
   });
 
   group('expandAll', () {
@@ -143,6 +164,35 @@ void main() {
       await tempDir.delete(recursive: true);
       expect(File(expansion.filePaths.single).existsSync(), isFalse);
     });
+
+    test(
+      'an archive with no dive files leaves no temp directory behind',
+      () async {
+        final before = Directory.systemTemp
+            .listSync()
+            .whereType<Directory>()
+            .where((d) => p.basename(d.path).startsWith('submersion_zip_'))
+            .length;
+
+        // Photos only, no .zxu/.zxl: nothing importable.
+        final zipPath = await writeZip('photos_only.zip', {
+          'holiday.jpg': [1, 2, 3],
+          'readme.txt': [65],
+        });
+        final expansion = await service.expandAll([zipPath]);
+
+        expect(expansion.filePaths, isEmpty);
+        expect(expansion.tempDirPaths, isEmpty);
+        expect(expansion.photoPathsByBaseName, isEmpty);
+
+        final after = Directory.systemTemp
+            .listSync()
+            .whereType<Directory>()
+            .where((d) => p.basename(d.path).startsWith('submersion_zip_'))
+            .length;
+        expect(after, before, reason: 'the empty extraction dir is removed');
+      },
+    );
 
     test('a corrupt archive leaves no temp directory behind', () async {
       final before = Directory.systemTemp
