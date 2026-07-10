@@ -1,13 +1,60 @@
 import 'dart:io';
 
+import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_api_client.dart';
+import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_auth_manager.dart';
+import 'package:submersion/core/services/cloud_storage/google_drive_storage_provider.dart';
+import 'package:submersion/core/services/cloud_storage/icloud_native_service.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_api_client.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
+import 'package:submersion/core/services/media_store/dropbox_media_object_store.dart';
+import 'package:submersion/core/services/media_store/google_drive_media_object_store.dart';
+import 'package:submersion/core/services/media_store/icloud_media_object_store.dart';
+import 'package:submersion/core/services/media_store/icloud_media_platform.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
 import 'package:submersion/core/services/media_store/media_store_credentials_store.dart';
 import 'package:submersion/core/services/media_store/s3_media_object_store.dart';
 import 'package:submersion/core/services/media_store/store_marker.dart';
 import 'package:submersion/features/media_store/data/media_stores_repository.dart';
+import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
+
+/// Builds the store adapter for [type], or null when the provider is not
+/// usable right now (missing config, no silent Google session, iCloud
+/// unavailable). Shared by the runtime provider and the connect flows.
+Future<MediaObjectStore?> buildMediaObjectStore(
+  CloudProviderType type, {
+  S3Config? s3Config,
+}) async {
+  switch (type) {
+    case CloudProviderType.s3:
+      if (s3Config == null) return null;
+      return S3MediaObjectStore(
+        client: S3ApiClient(s3Config),
+        keyPrefix: s3Config.prefix,
+      );
+    case CloudProviderType.dropbox:
+      final auth = DropboxAuthManager();
+      if (await auth.loadAuth() == null) return null;
+      return DropboxMediaObjectStore(
+        client: DropboxApiClient(
+          getAccessToken: auth.getAccessToken,
+          onAccessTokenRejected: auth.invalidateAccessToken,
+        ),
+      );
+    case CloudProviderType.googledrive:
+      final provider =
+          cloudProviderInstanceFor(CloudProviderType.googledrive)
+              as GoogleDriveStorageProvider;
+      final client = await provider.mediaHttpClient();
+      if (client == null) return null;
+      return GoogleDriveMediaObjectStore(client: client);
+    case CloudProviderType.icloud:
+      final availability = await ICloudNativeService.getAvailability();
+      if (availability != ICloudAvailability.available) return null;
+      return ICloudMediaObjectStore(platform: NativeICloudMediaPlatform());
+  }
+}
 
 class MediaStoreConnectResult {
   final String storeId;
@@ -76,7 +123,10 @@ class MediaStoreService {
     final store = _storeFactory(config);
     final ensured = await StoreMarkerStore(store: store).ensure();
     await _credentials.save(config);
-    await _attachState.setAttached(ensured.marker.storeId);
+    await _attachState.setAttached(
+      ensured.marker.storeId,
+      providerType: CloudProviderType.s3,
+    );
     await _storesRepository.upsertActive(
       storeId: ensured.marker.storeId,
       providerType: 's3',

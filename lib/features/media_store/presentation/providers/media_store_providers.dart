@@ -5,14 +5,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
-import 'package:submersion/core/services/cloud_storage/s3/s3_api_client.dart';
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
 import 'package:submersion/core/services/media_store/media_store_credentials_store.dart';
 import 'package:submersion/core/services/media_store/media_store_policies.dart';
 import 'package:submersion/core/services/media_store/network_status_service.dart';
-import 'package:submersion/core/services/media_store/s3_media_object_store.dart';
 import 'package:submersion/core/services/media_store/store_marker.dart';
 import 'package:submersion/features/media/data/resolvers/media_store_resolver.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -128,16 +127,16 @@ final mediaStoreServiceProvider = Provider<MediaStoreService>(
 final mediaStoreRuntimeProvider = FutureProvider<MediaStoreRuntime?>((
   ref,
 ) async {
-  final config = await ref.watch(mediaStoreCredentialsStoreProvider).load();
-  if (config == null) return null;
-  final attachedId = await ref
-      .watch(mediaStoreAttachStateProvider)
-      .attachedStoreId();
+  final attachState = ref.watch(mediaStoreAttachStateProvider);
+  final attachedId = await attachState.attachedStoreId();
   if (attachedId == null) return null;
-
-  final client = S3ApiClient(config);
-  ref.onDispose(client.close);
-  final store = S3MediaObjectStore(client: client, keyPrefix: config.prefix);
+  final providerType =
+      await attachState.attachedProviderType() ?? CloudProviderType.s3;
+  final s3Config = providerType == CloudProviderType.s3
+      ? await ref.watch(mediaStoreCredentialsStoreProvider).load()
+      : null;
+  final store = await buildMediaObjectStore(providerType, s3Config: s3Config);
+  if (store == null) return null;
 
   final supportDir = await getApplicationSupportDirectory();
   final cache = MediaCacheStore(
