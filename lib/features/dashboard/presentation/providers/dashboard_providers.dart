@@ -40,19 +40,25 @@ class DashboardAlerts {
 ///
 /// Self-invalidates on any `dives`-table write -- a dive computer import or an
 /// iCloud sync applying remote changes directly to the DB -- so the home tab
-/// reflects new dives without an app restart (issue #217). [divesProvider]
-/// already self-invalidates on the same tick, so today this is belt-and-braces;
-/// keeping the subscription here means the home tab stays correct even if this
-/// provider is ever changed to read recent dives independently of
-/// [divesProvider], and makes its reactivity contract explicit at the call
-/// site instead of relying on transitive propagation two providers away.
+/// reflects new dives without an app restart (issue #217).
+///
+/// Discovery is SQL-bounded (`getDiveSummaries(limit: 3)`); only the three
+/// winners hydrate as full [Dive]s. The dashboard no longer forces
+/// `getAllDives()` on the first home frame (WS4, large-DB performance).
 final recentDivesProvider = FutureProvider<List<Dive>>((ref) async {
   final repository = ref.watch(diveRepositoryProvider);
   ref.invalidateSelfWhen(repository.watchDivesChanges());
 
-  final allDives = await ref.watch(divesProvider.future);
-  // Dives are already sorted by date descending in the repository
-  final recent = allDives.take(3).toList();
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final summaries = await repository.getDiveSummaries(
+    diverId: currentDiverId,
+    limit: 3,
+  );
+  final recent = <Dive>[];
+  for (final summary in summaries) {
+    final dive = await repository.getDiveById(summary.id);
+    if (dive != null) recent.add(dive);
+  }
 
   // Pre-load downsampled profiles so DiveListTile mini charts render
   // immediately (the batch cache is shared with the paginated dive list).
@@ -105,22 +111,28 @@ final daysSinceLastDiveProvider = FutureProvider<int?>((ref) async {
   return today.difference(diveDay).inDays;
 });
 
-/// Monthly dive count provider (dives in current month)
+/// Monthly dive count provider (dives in current month): one SQL COUNT.
 final monthlyDiveCountProvider = FutureProvider<int>((ref) async {
-  final allDives = await ref.watch(divesProvider.future);
+  final repository = ref.watch(diveRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchDivesChanges());
+  final currentDiverId = ref.watch(currentDiverIdProvider);
   final now = DateTime.now();
-  final startOfMonth = DateTime(now.year, now.month, 1);
-
-  return allDives.where((dive) => dive.dateTime.isAfter(startOfMonth)).length;
+  return repository.countDivesSince(
+    DateTime(now.year, now.month, 1),
+    diverId: currentDiverId,
+  );
 });
 
-/// Year-to-date dive count provider
+/// Year-to-date dive count provider: one SQL COUNT.
 final yearToDateDiveCountProvider = FutureProvider<int>((ref) async {
-  final allDives = await ref.watch(divesProvider.future);
+  final repository = ref.watch(diveRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchDivesChanges());
+  final currentDiverId = ref.watch(currentDiverIdProvider);
   final now = DateTime.now();
-  final startOfYear = DateTime(now.year, 1, 1);
-
-  return allDives.where((dive) => dive.dateTime.isAfter(startOfYear)).length;
+  return repository.countDivesSince(
+    DateTime(now.year, 1, 1),
+    diverId: currentDiverId,
+  );
 });
 
 /// Personal records data class
@@ -151,85 +163,42 @@ class PersonalRecords {
       mostVisitedSiteName != null;
 }
 
-/// Personal records provider
+/// Personal records provider.
+///
+/// Winner SELECTION runs in SQL (six small indexed statements via
+/// [DiveRepository.getPersonalRecordIds], including the full
+/// effectiveRuntime resolution order for the longest dive); only the
+/// handful of distinct winner dives hydrate as full [Dive]s, instead of
+/// loading and scanning the entire table (WS4, large-DB performance).
 final personalRecordsProvider = FutureProvider<PersonalRecords>((ref) async {
-  final allDives = await ref.watch(divesProvider.future);
-  if (allDives.isEmpty) return const PersonalRecords();
+  final repository = ref.watch(diveRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchDivesChanges());
+  final currentDiverId = ref.watch(currentDiverIdProvider);
 
-  // Find deepest dive
-  Dive? deepestDive;
-  double maxDepth = 0;
-  for (final dive in allDives) {
-    if (dive.maxDepth != null && dive.maxDepth! > maxDepth) {
-      maxDepth = dive.maxDepth!;
-      deepestDive = dive;
-    }
-  }
+  final winners = await repository.getPersonalRecordIds(
+    diverId: currentDiverId,
+  );
 
-  // Find longest dive (by total runtime, including descent/ascent)
-  Dive? longestDive;
-  int maxDuration = 0;
-  for (final dive in allDives) {
-    final runtime = dive.effectiveRuntime;
-    if (runtime != null && runtime.inSeconds > maxDuration) {
-      maxDuration = runtime.inSeconds;
-      longestDive = dive;
-    }
-  }
-
-  // Find coldest dive
-  Dive? coldestDive;
-  double? minTemp;
-  for (final dive in allDives) {
-    if (dive.waterTemp != null) {
-      if (minTemp == null || dive.waterTemp! < minTemp) {
-        minTemp = dive.waterTemp;
-        coldestDive = dive;
-      }
-    }
-  }
-
-  // Find warmest dive
-  Dive? warmestDive;
-  double? maxTemp;
-  for (final dive in allDives) {
-    if (dive.waterTemp != null) {
-      if (maxTemp == null || dive.waterTemp! > maxTemp) {
-        maxTemp = dive.waterTemp;
-        warmestDive = dive;
-      }
-    }
-  }
-
-  // Find most visited site
-  final siteCounts = <String, int>{};
-  final siteNames = <String, String>{};
-  for (final dive in allDives) {
-    if (dive.site != null) {
-      siteCounts[dive.site!.id] = (siteCounts[dive.site!.id] ?? 0) + 1;
-      siteNames[dive.site!.id] = dive.site!.name;
-    }
-  }
-
-  String? mostVisitedSiteId;
-  String? mostVisitedSiteName;
-  int mostVisitedCount = 0;
-  for (final entry in siteCounts.entries) {
-    if (entry.value > mostVisitedCount) {
-      mostVisitedCount = entry.value;
-      mostVisitedSiteId = entry.key;
-      mostVisitedSiteName = siteNames[entry.key];
-    }
+  final ids = <String>{
+    if (winners.deepestId != null) winners.deepestId!,
+    if (winners.longestId != null) winners.longestId!,
+    if (winners.coldestId != null) winners.coldestId!,
+    if (winners.warmestId != null) winners.warmestId!,
+  };
+  final divesById = <String, Dive>{};
+  for (final id in ids) {
+    final dive = await repository.getDiveById(id);
+    if (dive != null) divesById[id] = dive;
   }
 
   return PersonalRecords(
-    deepestDive: deepestDive,
-    longestDive: longestDive,
-    coldestDive: coldestDive,
-    warmestDive: warmestDive,
-    mostVisitedSiteId: mostVisitedSiteId,
-    mostVisitedSiteName: mostVisitedSiteName,
-    mostVisitedSiteCount: mostVisitedCount > 0 ? mostVisitedCount : null,
+    deepestDive: divesById[winners.deepestId],
+    longestDive: divesById[winners.longestId],
+    coldestDive: divesById[winners.coldestId],
+    warmestDive: divesById[winners.warmestId],
+    mostVisitedSiteId: winners.mostVisitedSiteId,
+    mostVisitedSiteName: winners.mostVisitedSiteName,
+    mostVisitedSiteCount: winners.mostVisitedSiteCount,
   );
 });
 

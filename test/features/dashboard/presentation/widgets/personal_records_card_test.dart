@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/personal_records_card.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -40,7 +40,9 @@ void main() {
         ProviderScope(
           overrides: [
             ...overrides,
-            divesProvider.overrideWith((ref) async => dives),
+            personalRecordsProvider.overrideWith(
+              (ref) async => PersonalRecords(longestDive: dives.first),
+            ),
           ].cast(),
           child: MaterialApp.router(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
