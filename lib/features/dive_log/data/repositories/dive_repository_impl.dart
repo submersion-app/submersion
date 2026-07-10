@@ -1915,6 +1915,11 @@ class DiveRepository {
   }) async {
     try {
       return await PerfTimer.measure('searchDiveSummaries', () async {
+        // Empty/whitespace queries match everything ('%%'); the provider
+        // already treats them as "no search", so return nothing here too.
+        // Guarding limit <= 0 also avoids SQLite's negative-LIMIT (unbounded)
+        // case, which would defeat the bound this method exists to enforce.
+        if (query.trim().isEmpty || limit <= 0) return <DiveSummary>[];
         final likeTerm = '%$query%';
         final diverClause = diverId != null ? 'AND d.diver_id = ?' : '';
         final diverArgs = diverId != null
@@ -1925,7 +1930,8 @@ class DiveRepository {
             .customSelect(
               '''
               SELECT DISTINCT d.id,
-                COALESCE(d.entry_time, d.dive_date_time) AS sort_ts
+                COALESCE(d.entry_time, d.dive_date_time) AS sort_ts,
+                d.dive_number AS dive_number
               FROM dives d
               LEFT JOIN dive_sites ds ON d.site_id = ds.id
               LEFT JOIN dive_centers dc ON d.dive_center_id = dc.id
@@ -1949,7 +1955,8 @@ class DiveRepository {
                 OR cf.field_value LIKE ?
               )
               $diverClause
-              ORDER BY sort_ts DESC
+              ORDER BY sort_ts DESC,
+                COALESCE(d.dive_number, 0) DESC, d.id DESC
               LIMIT ?
               ''',
               variables: [

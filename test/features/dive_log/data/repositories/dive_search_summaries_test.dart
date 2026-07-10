@@ -51,6 +51,41 @@ void main() {
     expect(ids, isNot(contains('d2')));
   });
 
+  test('tie-broken bound matches the final ordering', () async {
+    // All six dives share the same timestamp, so the LIMIT cutoff is decided
+    // entirely by the tie-breakers. The bounded id pre-query must apply the
+    // same dive_number/id tie-breakers as the hydration query, otherwise it
+    // can drop dives that should survive the cut.
+    final when = DateTime(2026, 1, 1);
+    for (final (id, number) in [
+      ('a', 10),
+      ('b', 20),
+      ('c', 30),
+      ('d', 40),
+      ('e', 50),
+      ('f', 60),
+    ]) {
+      await repository.createDive(
+        domain.Dive(
+          id: id,
+          dateTime: when,
+          notes: 'reef survey',
+          diveNumber: number,
+        ),
+      );
+    }
+
+    final results = await repository.searchDiveSummaries('reef', limit: 3);
+    // Highest dive_number wins the tie: f(60), e(50), d(40).
+    expect(results.map((s) => s.id).toList(), ['f', 'e', 'd']);
+  });
+
+  test('empty or whitespace query returns empty', () async {
+    await repository.createDive(dive('present', notes: 'manta'));
+    expect(await repository.searchDiveSummaries(''), isEmpty);
+    expect(await repository.searchDiveSummaries('   '), isEmpty);
+  });
+
   test('summary fields are populated', () async {
     await repository.createDive(
       domain.Dive(
