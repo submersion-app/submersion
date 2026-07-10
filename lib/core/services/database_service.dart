@@ -101,9 +101,6 @@ class DatabaseService {
       await dbDir.create(recursive: true);
     }
 
-    // Guard: reject databases created by a newer version of the app
-    _assertSchemaVersionCompatible(dbPath);
-
     _database = await _openDatabase(
       dbPath,
       onMigrationProgress: onMigrationProgress,
@@ -130,12 +127,26 @@ class DatabaseService {
   ///    for fresh files, the beforeOpen re-asserts) still run on the main
   ///    isolate and issue their statements through the remote executor,
   ///    so their semantics are unchanged.
+  ///
+  /// A single synchronous `PRAGMA user_version` read (via
+  /// [getStoredSchemaVersion]) drives BOTH the newer-than-app guard and
+  /// the migration-pending decision, so the file is opened synchronously
+  /// on the UI isolate at most once per open — the rest is executor work.
   Future<AppDatabase> _openDatabase(
     String dbPath, {
     void Function(int currentStep, int totalSteps)? onMigrationProgress,
   }) async {
     final file = File(dbPath);
     final stored = getStoredSchemaVersion(dbPath);
+
+    // Guard: reject databases created by a newer version of the app.
+    if (stored != null && stored > AppDatabase.currentSchemaVersion) {
+      throw DatabaseVersionMismatchException(
+        databaseVersion: stored,
+        appVersion: AppDatabase.currentSchemaVersion,
+      );
+    }
+
     final migrationPending =
         stored != null &&
         stored > 0 &&
@@ -150,12 +161,21 @@ class DatabaseService {
         // Force the upgrade ladder to completion before switching
         // executors.
         await migrator.customSelect('SELECT 1').get();
-      } finally {
-        await migrator.close().timeout(
-          const Duration(seconds: 5),
-          onTimeout: () {},
-        );
+      } catch (_) {
+        // Migration failed: best-effort close so we don't leak the
+        // connection, then let the original error surface.
+        await migrator
+            .close()
+            .timeout(const Duration(seconds: 5), onTimeout: () {})
+            .catchError((_) {});
+        rethrow;
       }
+      // The synchronous connection MUST fully close (releasing its file
+      // locks) before the background executor reopens the same file.
+      // A timed-out close would leave locks held and risk "database is
+      // locked"/corruption on the reopen, so fail fast rather than
+      // silently proceed.
+      await migrator.close().timeout(const Duration(seconds: 5));
       lastOpenMode = DatabaseOpenMode.migrationThenBackground;
     } else {
       lastOpenMode = DatabaseOpenMode.background;
@@ -178,9 +198,6 @@ class DatabaseService {
     if (!await dbDir.exists()) {
       await dbDir.create(recursive: true);
     }
-
-    // Guard: reject databases created by a newer version of the app
-    _assertSchemaVersionCompatible(newPath);
 
     // Small delay to ensure any previous database connections are fully released
     // This helps prevent SQLite file locking issues, especially with WAL mode
@@ -218,36 +235,6 @@ class DatabaseService {
       // Ignore close errors - we're abandoning this connection anyway
     } finally {
       _database = null;
-    }
-  }
-
-  /// Throws [DatabaseVersionMismatchException] if the database file's schema
-  /// version is newer than what this build of the app supports.
-  ///
-  /// Uses raw sqlite3 to read PRAGMA user_version before Drift opens the
-  /// database, ensuring the file is never modified by a stale migration.
-  void _assertSchemaVersionCompatible(String dbPath) {
-    final file = File(dbPath);
-    if (!file.existsSync()) return;
-
-    // Open in read-write mode so SQLite can recover any hot journal/WAL
-    // from a previous crash. Opening read-only would fail with
-    // SQLITE_READONLY_ROLLBACK (code 776) if recovery is needed.
-    final db = sqlite3.sqlite3.open(dbPath);
-    try {
-      final result = db.select('PRAGMA user_version');
-      if (result.isEmpty) return;
-
-      final storedVersion = result.first.values.first;
-      if (storedVersion is int &&
-          storedVersion > AppDatabase.currentSchemaVersion) {
-        throw DatabaseVersionMismatchException(
-          databaseVersion: storedVersion,
-          appVersion: AppDatabase.currentSchemaVersion,
-        );
-      }
-    } finally {
-      db.dispose();
     }
   }
 

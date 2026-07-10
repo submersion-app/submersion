@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqlite3/sqlite3.dart' as sqlite3;
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/database/database_version_exception.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/database_service.dart';
 
@@ -88,6 +89,27 @@ void main() {
     expect(version.data.values.first, AppDatabase.currentSchemaVersion);
     final one = await db.customSelect('SELECT 1 AS v').getSingle();
     expect(one.read<int>('v'), 1);
+  });
+
+  test('a database newer than the app is rejected before any open', () async {
+    // Seed a current-schema file, then bump user_version PAST the app's
+    // version so the single synchronous read in _openDatabase trips the
+    // newer-than-app guard.
+    final seed = AppDatabase(NativeDatabase(File(dbPath)));
+    await seed.customSelect('SELECT 1').get();
+    await seed.close();
+    final raw = sqlite3.sqlite3.open(dbPath);
+    raw.execute(
+      'PRAGMA user_version = ${AppDatabase.currentSchemaVersion + 1}',
+    );
+    raw.dispose();
+
+    await expectLater(
+      DatabaseService.instance.initialize(
+        locationService: _FakeLocation(dbPath),
+      ),
+      throwsA(isA<DatabaseVersionMismatchException>()),
+    );
   });
 
   test('reinitializeAtPath reopens on the background executor', () async {
