@@ -4,6 +4,7 @@ import 'package:submersion/core/presentation/widgets/ocean_background.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/setup_wizard/domain/setup_wizard_models.dart';
 import 'package:submersion/features/setup_wizard/presentation/providers/setup_wizard_providers.dart';
+import 'package:submersion/features/setup_wizard/presentation/widgets/steps/appearance_step.dart';
 import 'package:submersion/features/setup_wizard/presentation/widgets/steps/placeholder_step.dart';
 import 'package:submersion/features/setup_wizard/presentation/widgets/steps/profile_step.dart';
 import 'package:submersion/features/setup_wizard/presentation/widgets/steps/units_step.dart';
@@ -126,7 +127,7 @@ class _SetupWizardPageState extends ConsumerState<SetupWizardPage> {
         return WizardStepDef(
           label: _stepLabel(id),
           canAdvance: setupWizardProvider(mode).select((_) => true),
-          builder: (_) => const PlaceholderStep(title: 'Appearance'),
+          builder: (_) => AppearanceStep(mode: mode),
         );
       case SetupStepId.backupSync:
         return WizardStepDef(

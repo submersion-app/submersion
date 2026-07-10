@@ -12,6 +12,7 @@ import 'package:submersion/features/auto_update/presentation/providers/update_me
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/adopt_replaced_library_dialog.dart';
+import 'package:submersion/features/setup_wizard/presentation/providers/setup_wizard_providers.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 import 'package:submersion/shared/services/file_share_handler.dart';
 import 'package:submersion/shared/services/incoming_file_handler.dart';
@@ -267,6 +268,9 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     final themeMode = ref.watch(themeModeProvider);
     final themePreset = ref.watch(themePresetProvider);
     final localeSetting = ref.watch(localeProvider);
+    // Setup wizard language preview: overrides the persisted locale while
+    // the wizard is open so the choice is visible before Finish applies it.
+    final previewLocale = ref.watch(previewLocaleProvider);
 
     // Detect a database restore and re-baseline sync before anything reads
     // sync state, so a rewound baseline can't stall sync or resurrect deletes.
@@ -288,7 +292,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       theme: AppThemeRegistry.resolveTheme(themePreset, Brightness.light),
       darkTheme: AppThemeRegistry.resolveTheme(themePreset, Brightness.dark),
       themeMode: themeMode,
-      locale: _resolveLocale(localeSetting),
+      locale: _resolveLocale(previewLocale ?? localeSetting),
       localeListResolutionCallback: (preferredLocales, supportedLocales) {
         return resolveAppLocale(preferredLocales, supportedLocales);
       },
