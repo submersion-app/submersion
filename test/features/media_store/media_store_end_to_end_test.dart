@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
+import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_api_client.dart';
+import 'package:submersion/core/services/media_store/dropbox_media_object_store.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/resolvers/media_store_resolver.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
@@ -16,6 +18,7 @@ import 'package:submersion/features/media_store/data/media_store_worker.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/media_store/data/media_upload_pipeline.dart';
 
+import '../../helpers/fake_dropbox_server.dart';
 import '../../helpers/in_memory_media_object_store.dart';
 import '../../helpers/test_database.dart';
 import '../media_store/support/fake_local_file_resolver.dart';
@@ -349,5 +352,85 @@ void main() {
     final thumbBytes = await (thumb! as FileData).file.readAsBytes();
     expect(thumbBytes, posterBytes, reason: 'poster round-trips exactly');
     expect(thumbBytes, isNot(equals(videoBytes)));
+  });
+
+  test('the cross-device video flow works over the Dropbox adapter', () async {
+    // Phase 4 exit criterion: the same video journey as the in-memory
+    // test, but through the real Dropbox protocol adapter (upload
+    // sessions on the way up, ranged downloads on the way back). Both
+    // devices talk to one fake Dropbox account.
+    final server = FakeDropboxServer();
+    DropboxMediaObjectStore storeFor() => DropboxMediaObjectStore(
+      client: DropboxApiClient(
+        getAccessToken: () async => server.bearerToken,
+        onAccessTokenRejected: () {},
+        httpClient: server.client,
+      ),
+      // Well below the video size so the upload takes the session path.
+      chunkSizeBytes: 16 * 1024,
+    );
+
+    final mediaRepositoryA = MediaRepository();
+    final cacheA = MediaCacheStore(database: cacheDbA, root: rootA);
+    final queueA = MediaTransferQueueRepository(database: cacheDbA);
+    final resolverA = FakeLocalFileResolver();
+    final workerA = MediaStoreWorker(
+      queue: queueA,
+      pipeline: MediaUploadPipeline(
+        mediaRepository: mediaRepositoryA,
+        queue: queueA,
+        store: storeFor(),
+        registry: MediaSourceResolverRegistry({
+          MediaSourceType.localFile: resolverA,
+        }),
+        cache: cacheA,
+      ),
+    );
+
+    final videoBytes = List<int>.generate(64 * 1024, (i) => (i * 13) % 251);
+    final video = File('${rootA.path}/drift.mp4')..writeAsBytesSync(videoBytes);
+    resolverA.data = FileData(file: video);
+    final posterBytes = base64Decode(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR4nGNgAAIAAAUAAXpe'
+      'qz8AAAAASUVORK5CYII=',
+    );
+    resolverA.thumbnailData = BytesData(bytes: posterBytes);
+
+    final created = await mediaRepositoryA.createMedia(
+      domain.MediaItem(
+        id: '',
+        mediaType: domain.MediaType.video,
+        sourceType: MediaSourceType.localFile,
+        filePath: video.path,
+        localPath: video.path,
+        originalFilename: 'drift.mp4',
+        takenAt: DateTime(2026, 7, 1),
+        createdAt: DateTime(2026, 7, 1),
+        updatedAt: DateTime(2026, 7, 1),
+      ),
+    );
+    await queueA.enqueueUpload(mediaId: created.id);
+    await workerA.drain();
+
+    final uploaded = (await mediaRepositoryA.getMediaById(created.id))!;
+    expect(uploaded.remoteUploadedAt, isNotNull);
+    expect(uploaded.remoteThumbUploadedAt, isNotNull);
+    expect(server.files, hasLength(2), reason: 'thumb + original');
+
+    // Device B holds only the synced row and its own Dropbox link.
+    final onB = uploaded.copyWith(
+      platformAssetId: null,
+      localPath: '/nonexistent/on/device-b.mp4',
+    );
+    final cacheB = MediaCacheStore(database: cacheDbB, root: rootB);
+    final resolverB = MediaStoreResolver(store: storeFor(), cache: cacheB);
+
+    final full = await resolverB.tryResolveRemote(onB, thumbnail: false);
+    expect(full, isA<FileData>());
+    expect(await (full! as FileData).file.readAsBytes(), videoBytes);
+
+    final thumb = await resolverB.tryResolveRemote(onB, thumbnail: true);
+    expect(thumb, isA<FileData>());
+    expect(await (thumb! as FileData).file.readAsBytes(), posterBytes);
   });
 }
