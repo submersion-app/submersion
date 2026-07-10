@@ -10420,39 +10420,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get nav_trips => 'טיולים';
 
   @override
-  String get onboarding_welcome_createProfile => 'צור את הפרופיל שלך';
-
-  @override
-  String get onboarding_welcome_createProfileSubtitle =>
-      'הזן את שמך כדי להתחיל. תוכל להוסיף פרטים נוספים מאוחר יותר.';
-
-  @override
-  String get onboarding_welcome_creating => 'יוצר...';
-
-  @override
-  String onboarding_welcome_errorCreatingProfile(Object error) {
-    return 'שגיאה ביצירת פרופיל: $error';
-  }
-
-  @override
-  String get onboarding_welcome_getStarted => 'התחל';
-
-  @override
-  String get onboarding_welcome_nameHint => 'הזן את שמך';
-
-  @override
-  String get onboarding_welcome_nameLabel => 'השם שלך';
-
-  @override
-  String get onboarding_welcome_nameValidation => 'נא להזין את שמך';
-
-  @override
-  String get onboarding_welcome_subtitle => 'רישום וניתוח צלילה מתקדם';
-
-  @override
-  String get onboarding_welcome_title => 'ברוכים הבאים ל-Submersion';
-
-  @override
   String plannerCanvas_bailout_available(String liters) {
     return 'זמין $liters';
   }

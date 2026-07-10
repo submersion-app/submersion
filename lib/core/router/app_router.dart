@@ -15,7 +15,8 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/import_wizard/data/adapters/healthkit_adapter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/import_wizard/presentation/pages/unified_import_wizard.dart';
-import 'package:submersion/features/onboarding/presentation/pages/welcome_page.dart';
+import 'package:submersion/features/setup_wizard/domain/setup_wizard_models.dart';
+import 'package:submersion/features/setup_wizard/presentation/pages/setup_wizard_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_edit_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_merge_page.dart';
@@ -169,7 +170,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/welcome',
         name: 'welcome',
-        builder: (context, state) => const WelcomePage(),
+        builder: (context, state) =>
+            const SetupWizardPage(mode: SetupWizardMode.firstRun),
       ),
       ShellRoute(
         builder: (context, state, child) => CallbackShortcuts(
@@ -889,6 +891,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'backup',
                 name: 'backupSettings',
                 builder: (context, state) => const BackupSettingsPage(),
+              ),
+              GoRoute(
+                path: 'setup-assistant',
+                name: 'setupAssistant',
+                builder: (context, state) =>
+                    const SetupWizardPage(mode: SetupWizardMode.settings),
               ),
               GoRoute(
                 path: 'cloud-sync',

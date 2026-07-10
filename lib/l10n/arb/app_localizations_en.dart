@@ -10523,40 +10523,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nav_trips => 'Trips';
 
   @override
-  String get onboarding_welcome_createProfile => 'Create Your Profile';
-
-  @override
-  String get onboarding_welcome_createProfileSubtitle =>
-      'Enter your name to get started. You can add more details later.';
-
-  @override
-  String get onboarding_welcome_creating => 'Creating...';
-
-  @override
-  String onboarding_welcome_errorCreatingProfile(Object error) {
-    return 'Error creating profile: $error';
-  }
-
-  @override
-  String get onboarding_welcome_getStarted => 'Get Started';
-
-  @override
-  String get onboarding_welcome_nameHint => 'Enter your name';
-
-  @override
-  String get onboarding_welcome_nameLabel => 'Your Name';
-
-  @override
-  String get onboarding_welcome_nameValidation => 'Please enter your name';
-
-  @override
-  String get onboarding_welcome_subtitle =>
-      'Advanced dive logging and analytics';
-
-  @override
-  String get onboarding_welcome_title => 'Welcome to Submersion';
-
-  @override
   String plannerCanvas_bailout_available(String liters) {
     return 'Available $liters';
   }

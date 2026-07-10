@@ -10731,40 +10731,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get nav_trips => 'Voyages';
 
   @override
-  String get onboarding_welcome_createProfile => 'Créer votre profil';
-
-  @override
-  String get onboarding_welcome_createProfileSubtitle =>
-      'Entrez votre nom pour commencer. Vous pourrez ajouter plus de détails plus tard.';
-
-  @override
-  String get onboarding_welcome_creating => 'Création...';
-
-  @override
-  String onboarding_welcome_errorCreatingProfile(Object error) {
-    return 'Erreur lors de la création du profil : $error';
-  }
-
-  @override
-  String get onboarding_welcome_getStarted => 'Commencer';
-
-  @override
-  String get onboarding_welcome_nameHint => 'Entrez votre nom';
-
-  @override
-  String get onboarding_welcome_nameLabel => 'Votre nom';
-
-  @override
-  String get onboarding_welcome_nameValidation => 'Veuillez entrer votre nom';
-
-  @override
-  String get onboarding_welcome_subtitle =>
-      'Enregistrement et analyse avancés de plongée';
-
-  @override
-  String get onboarding_welcome_title => 'Bienvenue dans Submersion';
-
-  @override
   String plannerCanvas_bailout_available(String liters) {
     return 'Disponible $liters';
   }

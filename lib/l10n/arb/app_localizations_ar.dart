@@ -10490,39 +10490,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nav_trips => 'الرحلات';
 
   @override
-  String get onboarding_welcome_createProfile => 'إنشاء ملفك الشخصي';
-
-  @override
-  String get onboarding_welcome_createProfileSubtitle =>
-      'أدخل اسمك للبدء. يمكنك إضافة المزيد من التفاصيل لاحقاً.';
-
-  @override
-  String get onboarding_welcome_creating => 'جارٍ الإنشاء...';
-
-  @override
-  String onboarding_welcome_errorCreatingProfile(Object error) {
-    return 'خطأ في إنشاء الملف الشخصي: $error';
-  }
-
-  @override
-  String get onboarding_welcome_getStarted => 'البدء';
-
-  @override
-  String get onboarding_welcome_nameHint => 'أدخل اسمك';
-
-  @override
-  String get onboarding_welcome_nameLabel => 'اسمك';
-
-  @override
-  String get onboarding_welcome_nameValidation => 'الرجاء إدخال اسمك';
-
-  @override
-  String get onboarding_welcome_subtitle => 'تسجيل وتحليل متقدم للغوص';
-
-  @override
-  String get onboarding_welcome_title => 'مرحباً بك في Submersion';
-
-  @override
   String plannerCanvas_bailout_available(String liters) {
     return 'المتاح $liters';
   }

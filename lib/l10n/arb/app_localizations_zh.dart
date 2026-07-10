@@ -10219,39 +10219,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get nav_trips => '旅行';
 
   @override
-  String get onboarding_welcome_createProfile => '创建您的档案';
-
-  @override
-  String get onboarding_welcome_createProfileSubtitle =>
-      '输入您的名字以开始使用。稍后可以添加更多详细信息。';
-
-  @override
-  String get onboarding_welcome_creating => '正在创建...';
-
-  @override
-  String onboarding_welcome_errorCreatingProfile(Object error) {
-    return '创建档案时出错：$error';
-  }
-
-  @override
-  String get onboarding_welcome_getStarted => '开始使用';
-
-  @override
-  String get onboarding_welcome_nameHint => '输入您的名字';
-
-  @override
-  String get onboarding_welcome_nameLabel => '您的名字';
-
-  @override
-  String get onboarding_welcome_nameValidation => '请输入您的名字';
-
-  @override
-  String get onboarding_welcome_subtitle => '高级潜水日志与分析';
-
-  @override
-  String get onboarding_welcome_title => '欢迎使用 Submersion';
-
-  @override
   String plannerCanvas_bailout_available(String liters) {
     return '可用 $liters';
   }

@@ -10666,39 +10666,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get nav_trips => 'Utak';
 
   @override
-  String get onboarding_welcome_createProfile => 'Profil létrehozása';
-
-  @override
-  String get onboarding_welcome_createProfileSubtitle =>
-      'Add meg a neved a kezdéshez. Később további részleteket adhatsz hozzá.';
-
-  @override
-  String get onboarding_welcome_creating => 'Létrehozás...';
-
-  @override
-  String onboarding_welcome_errorCreatingProfile(Object error) {
-    return 'Hiba a profil létrehozásakor: $error';
-  }
-
-  @override
-  String get onboarding_welcome_getStarted => 'Kezdés';
-
-  @override
-  String get onboarding_welcome_nameHint => 'Add meg a neved';
-
-  @override
-  String get onboarding_welcome_nameLabel => 'Neved';
-
-  @override
-  String get onboarding_welcome_nameValidation => 'Add meg a neved';
-
-  @override
-  String get onboarding_welcome_subtitle => 'Fejlett merülés napló és elemzés';
-
-  @override
-  String get onboarding_welcome_title => 'Üdvözöl a Submersion';
-
-  @override
   String plannerCanvas_bailout_available(String liters) {
     return 'Elérhető $liters';
   }

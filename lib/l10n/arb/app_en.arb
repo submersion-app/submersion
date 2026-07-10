@@ -5999,23 +5999,6 @@
   "@nav_trips": {
     "description": "Navigation label for trips section"
   },
-  "onboarding_welcome_createProfile": "Create Your Profile",
-  "onboarding_welcome_createProfileSubtitle": "Enter your name to get started. You can add more details later.",
-  "onboarding_welcome_creating": "Creating...",
-  "onboarding_welcome_errorCreatingProfile": "Error creating profile: {error}",
-  "onboarding_welcome_getStarted": "Get Started",
-  "onboarding_welcome_nameHint": "Enter your name",
-  "onboarding_welcome_nameLabel": "Your Name",
-  "onboarding_welcome_nameValidation": "Please enter your name",
-  "onboarding_welcome_subtitle": "Advanced dive logging and analytics",
-  "onboarding_welcome_title": "Welcome to Submersion",
-  "@onboarding_welcome_errorCreatingProfile": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
-      }
-    }
-  },
   "plannerCanvas_bailout_available": "Available {liters}",
   "@plannerCanvas_bailout_available": {
     "placeholders": {

@@ -10613,40 +10613,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get nav_trips => 'Reizen';
 
   @override
-  String get onboarding_welcome_createProfile => 'Maak je profiel aan';
-
-  @override
-  String get onboarding_welcome_createProfileSubtitle =>
-      'Voer je naam in om te beginnen. Je kunt later meer details toevoegen.';
-
-  @override
-  String get onboarding_welcome_creating => 'Aanmaken...';
-
-  @override
-  String onboarding_welcome_errorCreatingProfile(Object error) {
-    return 'Fout bij aanmaken profiel: $error';
-  }
-
-  @override
-  String get onboarding_welcome_getStarted => 'Aan de slag';
-
-  @override
-  String get onboarding_welcome_nameHint => 'Voer je naam in';
-
-  @override
-  String get onboarding_welcome_nameLabel => 'Je naam';
-
-  @override
-  String get onboarding_welcome_nameValidation => 'Voer je naam in';
-
-  @override
-  String get onboarding_welcome_subtitle =>
-      'Geavanceerd duiklogboek en analyse';
-
-  @override
-  String get onboarding_welcome_title => 'Welkom bij Submersion';
-
-  @override
   String plannerCanvas_bailout_available(String liters) {
     return 'Beschikbaar $liters';
   }

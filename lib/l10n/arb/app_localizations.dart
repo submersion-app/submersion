@@ -18266,66 +18266,6 @@ abstract class AppLocalizations {
   /// **'Trips'**
   String get nav_trips;
 
-  /// No description provided for @onboarding_welcome_createProfile.
-  ///
-  /// In en, this message translates to:
-  /// **'Create Your Profile'**
-  String get onboarding_welcome_createProfile;
-
-  /// No description provided for @onboarding_welcome_createProfileSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter your name to get started. You can add more details later.'**
-  String get onboarding_welcome_createProfileSubtitle;
-
-  /// No description provided for @onboarding_welcome_creating.
-  ///
-  /// In en, this message translates to:
-  /// **'Creating...'**
-  String get onboarding_welcome_creating;
-
-  /// No description provided for @onboarding_welcome_errorCreatingProfile.
-  ///
-  /// In en, this message translates to:
-  /// **'Error creating profile: {error}'**
-  String onboarding_welcome_errorCreatingProfile(Object error);
-
-  /// No description provided for @onboarding_welcome_getStarted.
-  ///
-  /// In en, this message translates to:
-  /// **'Get Started'**
-  String get onboarding_welcome_getStarted;
-
-  /// No description provided for @onboarding_welcome_nameHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter your name'**
-  String get onboarding_welcome_nameHint;
-
-  /// No description provided for @onboarding_welcome_nameLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Your Name'**
-  String get onboarding_welcome_nameLabel;
-
-  /// No description provided for @onboarding_welcome_nameValidation.
-  ///
-  /// In en, this message translates to:
-  /// **'Please enter your name'**
-  String get onboarding_welcome_nameValidation;
-
-  /// No description provided for @onboarding_welcome_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Advanced dive logging and analytics'**
-  String get onboarding_welcome_subtitle;
-
-  /// No description provided for @onboarding_welcome_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Welcome to Submersion'**
-  String get onboarding_welcome_title;
-
   /// No description provided for @plannerCanvas_bailout_available.
   ///
   /// In en, this message translates to:
