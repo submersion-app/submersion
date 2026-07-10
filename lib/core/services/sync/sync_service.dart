@@ -26,6 +26,7 @@ import 'package:submersion/core/services/sync/hlc.dart';
 import 'package:submersion/core/services/sync/library_epoch.dart';
 import 'package:submersion/core/services/sync/library_epoch_store.dart';
 import 'package:submersion/core/services/sync/crypto/crypto_errors.dart';
+import 'package:submersion/core/services/sync/crypto/sync_encryption_service.dart';
 import 'package:submersion/core/services/sync/crypto/sync_envelope.dart';
 import 'package:submersion/core/services/sync/library_moved.dart';
 import 'package:submersion/core/services/sync/sync_clock.dart';
@@ -173,6 +174,10 @@ class SyncService {
   /// Library epoch persistence (restore Replace mode). Nullable so existing
   /// constructions keep working; epoch gating activates only when provided.
   final LibraryEpochStore? _epochStore;
+
+  /// Keyslot self-heal after publish (encrypted libraries). Nullable so
+  /// existing constructions keep working; heal runs only when provided.
+  final SyncEncryptionService? _encryptionService;
   final _log = LoggerService.forClass(SyncService);
   final _uuid = const Uuid();
 
@@ -219,11 +224,13 @@ class SyncService {
     CloudStorageProvider? cloudProvider,
     SyncInitializer? syncInitializer,
     LibraryEpochStore? epochStore,
+    SyncEncryptionService? encryptionService,
   }) : _syncRepository = syncRepository,
        _serializer = serializer,
        _cloudProvider = cloudProvider,
        _syncInitializer = syncInitializer,
-       _epochStore = epochStore;
+       _epochStore = epochStore,
+       _encryptionService = encryptionService;
 
   /// Set a callback to receive progress updates during sync
   void setProgressCallback(SyncProgressCallback? callback) {
@@ -481,6 +488,18 @@ class SyncService {
             );
           }
           rethrow;
+        }
+      }
+
+      // ---- Keyslot self-heal (encrypted libraries) ----
+      // Keyslot list/upload use an exempt name, so the decorated provider is
+      // equivalent to the raw one for this call. Never fatal to the sync.
+      final enc = _encryptionService;
+      if (enc != null) {
+        try {
+          await enc.selfHealKeyslots(provider);
+        } catch (e) {
+          _log.warning('Keyslot self-heal failed (non-fatal): $e');
         }
       }
 
