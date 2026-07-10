@@ -82,6 +82,7 @@ class DatabaseService {
     _database = null;
     _locationService = null;
     _currentDatabasePath = null;
+    lastOpenMode = null;
   }
 
   /// Initialize the database with optional location service for custom paths
@@ -189,7 +190,10 @@ class DatabaseService {
 
   /// Reinitialize the database at a specific path (used during migration)
   Future<void> reinitializeAtPath(String newPath) async {
-    await close();
+    // Strict close: this method reopens immediately, so it must not race a
+    // background connection that timed out mid-close and is still holding
+    // file locks. A stuck close throws here rather than being abandoned.
+    await close(strict: true);
 
     _currentDatabasePath = newPath;
 
@@ -219,20 +223,38 @@ class DatabaseService {
     }
   }
 
-  Future<void> close() async {
+  /// Closes the active database connection.
+  ///
+  /// Default (shutdown/abandon) behavior: a timed-out or failed close is
+  /// swallowed and the connection is dropped — the OS reclaims the file
+  /// handles when the app exits.
+  ///
+  /// [strict] is for reopen-after-close paths (storage move / restore):
+  /// they immediately reopen the same file, so a half-closed background
+  /// connection still holding locks would race the reopen and surface as
+  /// "database is locked"/corruption. In strict mode a timed-out or failed
+  /// close THROWS instead of being abandoned, so the caller aborts before
+  /// reopening.
+  Future<void> close({bool strict = false}) async {
     if (_database == null) return;
 
     try {
-      // Add timeout to prevent hanging indefinitely
-      await _database!.close().timeout(
-        const Duration(seconds: 5),
-        onTimeout: () {
-          // If close times out, just abandon the connection
-          // The OS will clean up the file handles when the app exits
-        },
-      );
+      if (strict) {
+        // No onTimeout swallow: a timeout throws TimeoutException.
+        await _database!.close().timeout(const Duration(seconds: 5));
+      } else {
+        await _database!.close().timeout(
+          const Duration(seconds: 5),
+          onTimeout: () {
+            // If close times out, just abandon the connection
+            // The OS will clean up the file handles when the app exits
+          },
+        );
+      }
     } catch (e) {
-      // Ignore close errors - we're abandoning this connection anyway
+      // Strict callers must learn the connection did not close cleanly;
+      // shutdown callers are abandoning it anyway.
+      if (strict) rethrow;
     } finally {
       _database = null;
     }
