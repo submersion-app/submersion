@@ -246,8 +246,10 @@ class DatabaseMigrationService {
       await _checkpointWal();
 
       // Step 1: Close the current database FIRST to release file locks
-      // This is critical on macOS/iOS where WAL mode locks the -shm file
-      await _dbService.close();
+      // This is critical on macOS/iOS where WAL mode locks the -shm file.
+      // Strict: a timed-out close must throw (caught below -> rollback)
+      // rather than let the copy read a still-locked file.
+      await _dbService.close(strict: true);
 
       // Small delay to ensure file locks are fully released
       await Future.delayed(const Duration(milliseconds: 100));
@@ -349,8 +351,10 @@ class DatabaseMigrationService {
       // inconsistent database state.
       await _checkpointWal();
 
-      // Step 1: Close current database FIRST to release file locks
-      await _dbService.close();
+      // Step 1: Close current database FIRST to release file locks.
+      // Strict: a timed-out close throws (caught below -> rollback) rather
+      // than let the copy read a still-locked file.
+      await _dbService.close(strict: true);
 
       // Small delay to ensure file locks are fully released
       await Future.delayed(const Duration(milliseconds: 100));
@@ -444,8 +448,10 @@ class DatabaseMigrationService {
       await _checkpointWal();
 
       // Close current database FIRST to release file locks
-      // This is critical on macOS/iOS where WAL mode locks the -shm file
-      await _dbService.close();
+      // This is critical on macOS/iOS where WAL mode locks the -shm file.
+      // Strict: a timed-out close throws (caught below -> rollback) rather
+      // than let the copy read a still-locked file.
+      await _dbService.close(strict: true);
 
       // Small delay to ensure file locks are fully released
       await Future.delayed(const Duration(milliseconds: 100));
@@ -663,7 +669,15 @@ class DatabaseMigrationService {
     String originalPath,
     String? backupPath,
   ) async {
-    // Close any open connection
+    // Close any open connection. Best-effort (non-strict) on purpose: this
+    // is a recovery path that must reopen the original no matter what. A
+    // strict close would defeat that twice over — it would throw on a stuck
+    // connection AND keep _database non-null, so the reinitializeAtPath
+    // below (which starts with its own strict close) would re-hit the same
+    // stuck connection and abort the rollback, leaving the app with no open
+    // database and config already reset. Non-strict nulls _database so the
+    // reopen can proceed; the abandoned connection's locks are on the failed
+    // path, not the original being reopened.
     await _dbService.close();
 
     // Reset configuration to default or previous
