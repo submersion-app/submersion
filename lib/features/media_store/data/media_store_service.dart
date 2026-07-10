@@ -75,15 +75,30 @@ class MediaStoreService {
     required MediaStoreAttachState attachState,
     required MediaStoresRepository storesRepository,
     MediaObjectStore Function(S3Config config)? storeFactory,
+    Future<MediaObjectStore?> Function()? dropboxStoreFactory,
+    Future<MediaObjectStore?> Function()? googleDriveStoreFactory,
+    Future<MediaObjectStore?> Function()? icloudStoreFactory,
   }) : _credentials = credentials,
        _attachState = attachState,
        _storesRepository = storesRepository,
-       _storeFactory = storeFactory ?? _defaultStoreFactory;
+       _storeFactory = storeFactory ?? _defaultStoreFactory,
+       _dropboxStoreFactory =
+           dropboxStoreFactory ??
+           (() => buildMediaObjectStore(CloudProviderType.dropbox)),
+       _googleDriveStoreFactory =
+           googleDriveStoreFactory ??
+           (() => buildMediaObjectStore(CloudProviderType.googledrive)),
+       _icloudStoreFactory =
+           icloudStoreFactory ??
+           (() => buildMediaObjectStore(CloudProviderType.icloud));
 
   final MediaStoreCredentialsStore _credentials;
   final MediaStoreAttachState _attachState;
   final MediaStoresRepository _storesRepository;
   final MediaObjectStore Function(S3Config config) _storeFactory;
+  final Future<MediaObjectStore?> Function() _dropboxStoreFactory;
+  final Future<MediaObjectStore?> Function() _googleDriveStoreFactory;
+  final Future<MediaObjectStore?> Function() _icloudStoreFactory;
 
   static MediaObjectStore _defaultStoreFactory(S3Config config) =>
       S3MediaObjectStore(client: S3ApiClient(config), keyPrefix: config.prefix);
@@ -131,6 +146,53 @@ class MediaStoreService {
       storeId: ensured.marker.storeId,
       providerType: 's3',
       displayHint: '${config.bucket} @ ${config.displayHost}',
+    );
+    return MediaStoreConnectResult(
+      storeId: ensured.marker.storeId,
+      createdNewStore: ensured.created,
+    );
+  }
+
+  /// Connects the media store through the user's Dropbox link (made in
+  /// Cloud Sync settings); media lives in the Dropbox app folder.
+  Future<MediaStoreConnectResult> connectDropbox() => _connectManaged(
+    CloudProviderType.dropbox,
+    'Dropbox',
+    _dropboxStoreFactory,
+  );
+
+  /// Connects through the Google account session; media lives in this
+  /// app's private Drive space.
+  Future<MediaStoreConnectResult> connectGoogleDrive() => _connectManaged(
+    CloudProviderType.googledrive,
+    'Google Drive',
+    _googleDriveStoreFactory,
+  );
+
+  /// Connects through the signed-in Apple ID's iCloud container.
+  Future<MediaStoreConnectResult> connectICloud() =>
+      _connectManaged(CloudProviderType.icloud, 'iCloud', _icloudStoreFactory);
+
+  /// Shared managed-provider flow: no credentials-store write - managed
+  /// providers keep credentials in their own auth stores.
+  Future<MediaStoreConnectResult> _connectManaged(
+    CloudProviderType type,
+    String displayHint,
+    Future<MediaObjectStore?> Function() factory,
+  ) async {
+    final store = await factory();
+    if (store == null) {
+      throw MediaStoreException(
+        '$displayHint is not connected or unavailable on this device',
+        kind: MediaStoreErrorKind.auth,
+      );
+    }
+    final ensured = await StoreMarkerStore(store: store).ensure();
+    await _attachState.setAttached(ensured.marker.storeId, providerType: type);
+    await _storesRepository.upsertActive(
+      storeId: ensured.marker.storeId,
+      providerType: type.name,
+      displayHint: displayHint,
     );
     return MediaStoreConnectResult(
       storeId: ensured.marker.storeId,

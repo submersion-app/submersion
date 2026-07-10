@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
 import 'package:submersion/core/services/media_store/media_store_credentials_store.dart';
@@ -90,6 +91,64 @@ void main() {
     await service.connectS3(config);
     await service.disconnect();
     expect(await credentials.load(), isNull);
+    expect(await attachState.attachedStoreId(), isNull);
+  });
+
+  test('connectDropbox ensures the marker and records provider '
+      'type', () async {
+    final dropboxFake = InMemoryMediaObjectStore();
+    final svc = MediaStoreService(
+      credentials: credentials,
+      attachState: attachState,
+      storesRepository: storesRepository,
+      dropboxStoreFactory: () async => dropboxFake,
+    );
+    final result = await svc.connectDropbox();
+    expect(result.createdNewStore, isTrue);
+    expect(dropboxFake.objects.containsKey('smv1/store.json'), isTrue);
+    expect(await attachState.attachedProviderType(), CloudProviderType.dropbox);
+    final active = await storesRepository.getActive();
+    expect(active!.providerType, 'dropbox');
+    expect(
+      await credentials.load(),
+      isNull,
+      reason: 'managed providers never touch the S3 keychain entry',
+    );
+  });
+
+  test('connectICloud ensures the marker and records provider '
+      'type', () async {
+    final icloudFake = InMemoryMediaObjectStore();
+    final svc = MediaStoreService(
+      credentials: credentials,
+      attachState: attachState,
+      storesRepository: storesRepository,
+      icloudStoreFactory: () async => icloudFake,
+    );
+    final result = await svc.connectICloud();
+    expect(icloudFake.objects.containsKey('smv1/store.json'), isTrue);
+    expect(await attachState.attachedProviderType(), CloudProviderType.icloud);
+    expect((await storesRepository.getActive())!.displayHint, 'iCloud');
+    expect(result.storeId, isNotEmpty);
+  });
+
+  test('connect on an unavailable managed provider throws auth', () async {
+    final svc = MediaStoreService(
+      credentials: credentials,
+      attachState: attachState,
+      storesRepository: storesRepository,
+      googleDriveStoreFactory: () async => null,
+    );
+    await expectLater(
+      svc.connectGoogleDrive(),
+      throwsA(
+        isA<MediaStoreException>().having(
+          (e) => e.kind,
+          'kind',
+          MediaStoreErrorKind.auth,
+        ),
+      ),
+    );
     expect(await attachState.attachedStoreId(), isNull);
   });
 }
