@@ -284,6 +284,204 @@ abstract class AppLocalizations {
   /// **'Not available in this build — use S3 or the App Store version'**
   String get settings_cloudSync_provider_icloud_unsupportedSubtitle;
 
+  /// No description provided for @settings_cloudSync_encryption_title.
+  ///
+  /// In en, this message translates to:
+  /// **'End-to-end encryption'**
+  String get settings_cloudSync_encryption_title;
+
+  /// No description provided for @settings_cloudSync_encryption_subtitleOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Encrypt all sync data and cloud backups before upload'**
+  String get settings_cloudSync_encryption_subtitleOff;
+
+  /// No description provided for @settings_cloudSync_encryption_subtitleNeedsProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a cloud provider first'**
+  String get settings_cloudSync_encryption_subtitleNeedsProvider;
+
+  /// No description provided for @settings_cloudSync_encryption_statusOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Encryption is on'**
+  String get settings_cloudSync_encryption_statusOn;
+
+  /// No description provided for @settings_cloudSync_encryption_statusOnSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync data and cloud backups are encrypted before upload'**
+  String get settings_cloudSync_encryption_statusOnSubtitle;
+
+  /// No description provided for @settings_cloudSync_encryption_statusLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Encrypted — passphrase needed'**
+  String get settings_cloudSync_encryption_statusLocked;
+
+  /// No description provided for @settings_cloudSync_encryption_statusLockedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the passphrase to sync on this device'**
+  String get settings_cloudSync_encryption_statusLockedSubtitle;
+
+  /// No description provided for @settings_cloudSync_encryption_enable.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable encryption'**
+  String get settings_cloudSync_encryption_enable;
+
+  /// No description provided for @settings_cloudSync_encryption_enterPassphrase.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter passphrase'**
+  String get settings_cloudSync_encryption_enterPassphrase;
+
+  /// No description provided for @settings_cloudSync_encryption_passphrase.
+  ///
+  /// In en, this message translates to:
+  /// **'Passphrase'**
+  String get settings_cloudSync_encryption_passphrase;
+
+  /// No description provided for @settings_cloudSync_encryption_passphraseConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm passphrase'**
+  String get settings_cloudSync_encryption_passphraseConfirm;
+
+  /// No description provided for @settings_cloudSync_encryption_passphraseMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passphrases do not match'**
+  String get settings_cloudSync_encryption_passphraseMismatch;
+
+  /// No description provided for @settings_cloudSync_encryption_passphraseTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Use at least 8 characters'**
+  String get settings_cloudSync_encryption_passphraseTooShort;
+
+  /// No description provided for @settings_cloudSync_encryption_wrongPassphrase.
+  ///
+  /// In en, this message translates to:
+  /// **'Incorrect passphrase or recovery code'**
+  String get settings_cloudSync_encryption_wrongPassphrase;
+
+  /// No description provided for @settings_cloudSync_encryption_warnUpdateDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'All other devices must be updated to the latest app version and will re-download the library.'**
+  String get settings_cloudSync_encryption_warnUpdateDevices;
+
+  /// No description provided for @settings_cloudSync_encryption_warnLoss.
+  ///
+  /// In en, this message translates to:
+  /// **'If you lose both the passphrase and the recovery code, data in the cloud cannot be recovered. Data on your devices is never at risk.'**
+  String get settings_cloudSync_encryption_warnLoss;
+
+  /// No description provided for @settings_cloudSync_encryption_deletePlaintextBackups.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete existing unencrypted cloud backups'**
+  String get settings_cloudSync_encryption_deletePlaintextBackups;
+
+  /// No description provided for @settings_cloudSync_encryption_recoveryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery code'**
+  String get settings_cloudSync_encryption_recoveryTitle;
+
+  /// No description provided for @settings_cloudSync_encryption_recoveryExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'Write this code down and keep it somewhere safe. It is the only way back in if you forget your passphrase.'**
+  String get settings_cloudSync_encryption_recoveryExplain;
+
+  /// No description provided for @settings_cloudSync_encryption_recoverySavedConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'I have saved my recovery code'**
+  String get settings_cloudSync_encryption_recoverySavedConfirm;
+
+  /// No description provided for @settings_cloudSync_encryption_changePassphrase.
+  ///
+  /// In en, this message translates to:
+  /// **'Change passphrase'**
+  String get settings_cloudSync_encryption_changePassphrase;
+
+  /// No description provided for @settings_cloudSync_encryption_currentPassphrase.
+  ///
+  /// In en, this message translates to:
+  /// **'Current passphrase'**
+  String get settings_cloudSync_encryption_currentPassphrase;
+
+  /// No description provided for @settings_cloudSync_encryption_newPassphrase.
+  ///
+  /// In en, this message translates to:
+  /// **'New passphrase'**
+  String get settings_cloudSync_encryption_newPassphrase;
+
+  /// No description provided for @settings_cloudSync_encryption_regenerateRecovery.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate new recovery code'**
+  String get settings_cloudSync_encryption_regenerateRecovery;
+
+  /// No description provided for @settings_cloudSync_encryption_regenerateRecoveryWarn.
+  ///
+  /// In en, this message translates to:
+  /// **'The old recovery code stops working immediately.'**
+  String get settings_cloudSync_encryption_regenerateRecoveryWarn;
+
+  /// No description provided for @settings_cloudSync_encryption_disable.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn off encryption'**
+  String get settings_cloudSync_encryption_disable;
+
+  /// No description provided for @settings_cloudSync_encryption_disableWarn.
+  ///
+  /// In en, this message translates to:
+  /// **'The library will be re-uploaded unencrypted, and other devices will re-download it. Existing encrypted backups stay restorable with the passphrase.'**
+  String get settings_cloudSync_encryption_disableWarn;
+
+  /// No description provided for @settings_cloudSync_encryption_unlockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your encryption passphrase'**
+  String get settings_cloudSync_encryption_unlockTitle;
+
+  /// No description provided for @settings_cloudSync_encryption_unlockHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Passphrase or recovery code'**
+  String get settings_cloudSync_encryption_unlockHint;
+
+  /// No description provided for @settings_cloudSync_encryption_unlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock'**
+  String get settings_cloudSync_encryption_unlock;
+
+  /// No description provided for @settings_cloudSync_encryption_continue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get settings_cloudSync_encryption_continue;
+
+  /// No description provided for @settings_cloudSync_encryption_done.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get settings_cloudSync_encryption_done;
+
+  /// No description provided for @settings_cloudSync_encryption_cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get settings_cloudSync_encryption_cancel;
+
   /// No description provided for @settings_cloudSync_replace_globalBanner.
   ///
   /// In en, this message translates to:

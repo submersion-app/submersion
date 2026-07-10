@@ -100,6 +100,127 @@ class AppLocalizationsZh extends AppLocalizations {
       '此版本不可用 — 请使用 S3 或 App Store 版本';
 
   @override
+  String get settings_cloudSync_encryption_title => 'End-to-end encryption';
+
+  @override
+  String get settings_cloudSync_encryption_subtitleOff =>
+      'Encrypt all sync data and cloud backups before upload';
+
+  @override
+  String get settings_cloudSync_encryption_subtitleNeedsProvider =>
+      'Select a cloud provider first';
+
+  @override
+  String get settings_cloudSync_encryption_statusOn => 'Encryption is on';
+
+  @override
+  String get settings_cloudSync_encryption_statusOnSubtitle =>
+      'Sync data and cloud backups are encrypted before upload';
+
+  @override
+  String get settings_cloudSync_encryption_statusLocked =>
+      'Encrypted — passphrase needed';
+
+  @override
+  String get settings_cloudSync_encryption_statusLockedSubtitle =>
+      'Enter the passphrase to sync on this device';
+
+  @override
+  String get settings_cloudSync_encryption_enable => 'Enable encryption';
+
+  @override
+  String get settings_cloudSync_encryption_enterPassphrase =>
+      'Enter passphrase';
+
+  @override
+  String get settings_cloudSync_encryption_passphrase => 'Passphrase';
+
+  @override
+  String get settings_cloudSync_encryption_passphraseConfirm =>
+      'Confirm passphrase';
+
+  @override
+  String get settings_cloudSync_encryption_passphraseMismatch =>
+      'Passphrases do not match';
+
+  @override
+  String get settings_cloudSync_encryption_passphraseTooShort =>
+      'Use at least 8 characters';
+
+  @override
+  String get settings_cloudSync_encryption_wrongPassphrase =>
+      'Incorrect passphrase or recovery code';
+
+  @override
+  String get settings_cloudSync_encryption_warnUpdateDevices =>
+      'All other devices must be updated to the latest app version and will re-download the library.';
+
+  @override
+  String get settings_cloudSync_encryption_warnLoss =>
+      'If you lose both the passphrase and the recovery code, data in the cloud cannot be recovered. Data on your devices is never at risk.';
+
+  @override
+  String get settings_cloudSync_encryption_deletePlaintextBackups =>
+      'Delete existing unencrypted cloud backups';
+
+  @override
+  String get settings_cloudSync_encryption_recoveryTitle => 'Recovery code';
+
+  @override
+  String get settings_cloudSync_encryption_recoveryExplain =>
+      'Write this code down and keep it somewhere safe. It is the only way back in if you forget your passphrase.';
+
+  @override
+  String get settings_cloudSync_encryption_recoverySavedConfirm =>
+      'I have saved my recovery code';
+
+  @override
+  String get settings_cloudSync_encryption_changePassphrase =>
+      'Change passphrase';
+
+  @override
+  String get settings_cloudSync_encryption_currentPassphrase =>
+      'Current passphrase';
+
+  @override
+  String get settings_cloudSync_encryption_newPassphrase => 'New passphrase';
+
+  @override
+  String get settings_cloudSync_encryption_regenerateRecovery =>
+      'Generate new recovery code';
+
+  @override
+  String get settings_cloudSync_encryption_regenerateRecoveryWarn =>
+      'The old recovery code stops working immediately.';
+
+  @override
+  String get settings_cloudSync_encryption_disable => 'Turn off encryption';
+
+  @override
+  String get settings_cloudSync_encryption_disableWarn =>
+      'The library will be re-uploaded unencrypted, and other devices will re-download it. Existing encrypted backups stay restorable with the passphrase.';
+
+  @override
+  String get settings_cloudSync_encryption_unlockTitle =>
+      'Enter your encryption passphrase';
+
+  @override
+  String get settings_cloudSync_encryption_unlockHint =>
+      'Passphrase or recovery code';
+
+  @override
+  String get settings_cloudSync_encryption_unlock => 'Unlock';
+
+  @override
+  String get settings_cloudSync_encryption_continue => 'Continue';
+
+  @override
+  String get settings_cloudSync_encryption_done => 'Done';
+
+  @override
+  String get settings_cloudSync_encryption_cancel => 'Cancel';
+
+  @override
   String settings_cloudSync_replace_globalBanner(String deviceName) {
     return '同步已暂停 — 资料库已从 \"$deviceName\" 上的备份替换。';
   }

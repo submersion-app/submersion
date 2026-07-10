@@ -17,6 +17,7 @@ import 'package:submersion/features/settings/presentation/pages/troubleshoot_syn
 import 'package:submersion/features/settings/presentation/widgets/adopt_replaced_library_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/conflict_resolution_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/dropbox_connect_dialog.dart';
+import 'package:submersion/features/settings/presentation/widgets/encryption_settings_section.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -93,6 +94,8 @@ class CloudSyncPage extends ConsumerWidget {
             behaviorSettings,
             isCustomFolderMode,
           ),
+          const Divider(),
+          const EncryptionSettingsSection(),
           const Divider(),
           _buildAdvancedSection(context, ref),
         ],
