@@ -40,16 +40,12 @@ const List<PerformanceIndex> kPerformanceIndexes = [
         'CREATE INDEX IF NOT EXISTS idx_dives_diver_exittime '
         'ON dives(diver_id, exit_time DESC)',
   ),
-  // Matches the paginated dive list's ORDER BY expression exactly
-  // (dive_repository_impl.dart getDiveSummaries: sort_timestamp =
-  // COALESCE(entry_time, dive_date_time)). Empirically validated in the
-  // WS0 baseline; remove if EXPLAIN QUERY PLAN never selects it.
-  (
-    name: 'idx_dives_diver_sort_timestamp',
-    ddl:
-        'CREATE INDEX IF NOT EXISTS idx_dives_diver_sort_timestamp '
-        'ON dives(diver_id, COALESCE(entry_time, dive_date_time) DESC)',
-  ),
+  // NOTE: an expression index on (diver_id, COALESCE(entry_time,
+  // dive_date_time) DESC) matching the paginated list's sort key was
+  // evaluated in the WS0 baseline and DROPPED: the planner never selected
+  // it (sorting a ~1k-row candidate set beats maintaining expression-index
+  // order), so it would cost write amplification for nothing. Evidence in
+  // docs/superpowers/specs/2026-07-10-large-db-performance-findings.md.
   (
     name: 'idx_dives_site_id',
     ddl: 'CREATE INDEX IF NOT EXISTS idx_dives_site_id ON dives(site_id)',
