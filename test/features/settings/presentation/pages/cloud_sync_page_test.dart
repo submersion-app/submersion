@@ -1904,4 +1904,32 @@ void main() {
       expect(svc.signOutCalled, isTrue);
     });
   });
+
+  group('encryption unlock banner', () {
+    testWidgets('needsPassphrase renders the banner with the unlock action', (
+      tester,
+    ) async {
+      await pumpPage(
+        tester,
+        syncState: const SyncState(needsPassphrase: true),
+        selectedProvider: CloudProviderType.s3,
+      );
+
+      expect(
+        find.text('Enter the passphrase to sync on this device'),
+        findsOneWidget,
+      );
+      expect(find.text('Enter passphrase'), findsOneWidget);
+    });
+
+    testWidgets('no banner without needsPassphrase', (tester) async {
+      await pumpPage(
+        tester,
+        syncState: const SyncState(),
+        selectedProvider: CloudProviderType.s3,
+      );
+
+      expect(find.text('Enter passphrase'), findsNothing);
+    });
+  });
 }

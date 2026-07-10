@@ -11,6 +11,35 @@ import 'package:submersion/features/settings/presentation/widgets/enable_encrypt
 import 'package:submersion/features/settings/presentation/widgets/encryption_passphrase_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
+/// Shared unlock flow: prompt for the passphrase/recovery code, unwrap the
+/// key from the cloud keyslot file, activate the session, and re-run sync.
+/// Used by the section's locked tile, the sync-page banner, and the
+/// Troubleshoot screen. Returns true when unlocked.
+Future<bool> runEncryptionUnlockFlow(
+  BuildContext context,
+  WidgetRef ref,
+) async {
+  final l10n = context.l10n;
+  final unlocked = await showEncryptionPassphraseDialog(
+    context,
+    title: l10n.settings_cloudSync_encryption_unlockTitle,
+    hint: l10n.settings_cloudSync_encryption_unlockHint,
+    onSubmit: (secret) async {
+      final provider = ref.read(cloudStorageProviderProvider);
+      if (provider == null) return;
+      final key = await ref
+          .read(syncEncryptionServiceProvider)
+          .unlock(rawProvider: provider, secret: secret);
+      await ref.read(encryptionKeyNotifierProvider.notifier).setUnlocked(key);
+    },
+  );
+  if (unlocked != null) {
+    unawaited(ref.read(syncStateProvider.notifier).performSync());
+    return true;
+  }
+  return false;
+}
+
 /// The "End-to-end encryption" section of the Cloud Sync page. Renders one
 /// of three states -- off, on+unlocked, on+locked -- and orchestrates the
 /// lifecycle flows against the encryption service and sync notifier.
@@ -184,24 +213,8 @@ class _EncryptionSettingsSectionState
     );
   }
 
-  Future<void> _unlock(BuildContext context) async {
-    final l10n = context.l10n;
-    final unlocked = await showEncryptionPassphraseDialog(
-      context,
-      title: l10n.settings_cloudSync_encryption_unlockTitle,
-      hint: l10n.settings_cloudSync_encryption_unlockHint,
-      onSubmit: (secret) async {
-        final provider = ref.read(cloudStorageProviderProvider)!;
-        final key = await ref
-            .read(syncEncryptionServiceProvider)
-            .unlock(rawProvider: provider, secret: secret);
-        await ref.read(encryptionKeyNotifierProvider.notifier).setUnlocked(key);
-      },
-    );
-    if (unlocked != null) {
-      unawaited(ref.read(syncStateProvider.notifier).performSync());
-    }
-  }
+  Future<void> _unlock(BuildContext context) =>
+      runEncryptionUnlockFlow(context, ref);
 
   Future<void> _changePassphrase(BuildContext context) async {
     await showChangePassphraseDialog(

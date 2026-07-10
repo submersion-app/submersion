@@ -915,6 +915,49 @@ class CloudSyncPage extends ConsumerWidget {
                 ),
               ),
             ),
+          if (syncState.needsPassphrase)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Card(
+                color: Theme.of(context).colorScheme.secondaryContainer,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.lock_outline,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSecondaryContainer,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              context
+                                  .l10n
+                                  .settings_cloudSync_encryption_statusLockedSubtitle,
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      FilledButton.tonal(
+                        onPressed: () => runEncryptionUnlockFlow(context, ref),
+                        child: Text(
+                          context
+                              .l10n
+                              .settings_cloudSync_encryption_enterPassphrase,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           if (syncState.firstSyncAwaitingConfirmation)
             Padding(
               padding: const EdgeInsets.only(bottom: 12),

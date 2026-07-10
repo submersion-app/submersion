@@ -12,11 +12,13 @@ import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.da
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
 import 'package:submersion/features/backup/presentation/pages/restore_complete_page.dart';
+import 'package:submersion/features/backup/domain/exceptions/backup_encrypted_exception.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/backup/presentation/widgets/backup_history_tile.dart';
 import 'package:submersion/features/backup/presentation/widgets/export_bottom_sheet.dart';
 import 'package:submersion/features/backup/presentation/widgets/restore_confirmation_dialog.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/encryption_passphrase_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 class BackupSettingsPage extends ConsumerWidget {
@@ -247,9 +249,25 @@ class BackupSettingsPage extends ConsumerWidget {
       offerReplace: ref.read(cloudStorageProviderProvider) != null,
     );
     if (mode != null) {
-      ref
-          .read(backupOperationProvider.notifier)
-          .restoreFromFilePath(filePath, mode: mode);
+      try {
+        await ref
+            .read(backupOperationProvider.notifier)
+            .restoreFromFilePath(filePath, mode: mode);
+      } on BackupEncryptedException {
+        if (!context.mounted) return;
+        await showEncryptionPassphraseDialog(
+          context,
+          title: context.l10n.settings_cloudSync_encryption_unlockTitle,
+          hint: context.l10n.settings_cloudSync_encryption_unlockHint,
+          onSubmit: (secret) => ref
+              .read(backupOperationProvider.notifier)
+              .restoreFromFilePath(
+                filePath,
+                mode: mode,
+                encryptionSecret: secret,
+              ),
+        );
+      }
     }
   }
 
@@ -366,9 +384,25 @@ class BackupSettingsPage extends ConsumerWidget {
           offerReplace: ref.read(cloudStorageProviderProvider) != null,
         );
         if (mode != null) {
-          ref
-              .read(backupOperationProvider.notifier)
-              .restoreFromBackup(record, mode: mode);
+          try {
+            await ref
+                .read(backupOperationProvider.notifier)
+                .restoreFromBackup(record, mode: mode);
+          } on BackupEncryptedException {
+            if (!context.mounted) return;
+            await showEncryptionPassphraseDialog(
+              context,
+              title: context.l10n.settings_cloudSync_encryption_unlockTitle,
+              hint: context.l10n.settings_cloudSync_encryption_unlockHint,
+              onSubmit: (secret) => ref
+                  .read(backupOperationProvider.notifier)
+                  .restoreFromBackup(
+                    record,
+                    mode: mode,
+                    encryptionSecret: secret,
+                  ),
+            );
+          }
         }
       case 'delete':
         final confirmed = await _showDeleteConfirmation(context);

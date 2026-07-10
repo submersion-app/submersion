@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/providers/provider.dart' show StateNotifier;
 import 'package:submersion/features/settings/presentation/pages/troubleshoot_sync_page.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 
 /// Records the recovery calls the Troubleshoot page routes to the notifier so
@@ -44,11 +46,17 @@ class _FakeSyncNotifier extends StateNotifier<SyncState>
 }
 
 /// Pumps the page with [fake] backing syncStateProvider. Returns the fake.
+/// SharedPreferences backs the encryption-status row (preference flag read).
 Future<_FakeSyncNotifier> _pump(WidgetTester tester) async {
   final fake = _FakeSyncNotifier();
+  SharedPreferences.setMockInitialValues({});
+  final prefs = await SharedPreferences.getInstance();
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [syncStateProvider.overrideWith((ref) => fake)],
+      overrides: [
+        syncStateProvider.overrideWith((ref) => fake),
+        sharedPreferencesProvider.overrideWithValue(prefs),
+      ],
       child: const MaterialApp(home: TroubleshootSyncPage()),
     ),
   );
@@ -56,12 +64,23 @@ Future<_FakeSyncNotifier> _pump(WidgetTester tester) async {
   return fake;
 }
 
+/// Pump without a fake notifier, for display-only assertions. Preferences
+/// still need backing (the encryption-status row reads the flag).
+Future<void> _pumpBare(WidgetTester tester) async {
+  SharedPreferences.setMockInitialValues({});
+  final prefs = await SharedPreferences.getInstance();
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+      child: const MaterialApp(home: TroubleshootSyncPage()),
+    ),
+  );
+  await tester.pumpAndSettle();
+}
+
 void main() {
   testWidgets('shows Repair Sync action with an explanation', (tester) async {
-    await tester.pumpWidget(
-      const ProviderScope(child: MaterialApp(home: TroubleshootSyncPage())),
-    );
-    await tester.pumpAndSettle();
+    await _pumpBare(tester);
 
     expect(find.text('Repair Sync'), findsOneWidget);
     // The explanation must reassure the user their dive data is safe.
@@ -69,10 +88,7 @@ void main() {
   });
 
   testWidgets('shows both cloud-clear actions', (tester) async {
-    await tester.pumpWidget(
-      const ProviderScope(child: MaterialApp(home: TroubleshootSyncPage())),
-    );
-    await tester.pumpAndSettle();
+    await _pumpBare(tester);
 
     expect(find.text('Remove this device’s cloud files'), findsOneWidget);
     expect(find.text('Wipe all sync data on this backend'), findsOneWidget);
@@ -81,10 +97,7 @@ void main() {
   testWidgets('shows the rebuild-from-this-device action and confirm dialog', (
     tester,
   ) async {
-    await tester.pumpWidget(
-      const ProviderScope(child: MaterialApp(home: TroubleshootSyncPage())),
-    );
-    await tester.pumpAndSettle();
+    await _pumpBare(tester);
 
     expect(find.text('Rebuild backend from this device'), findsOneWidget);
 
@@ -97,10 +110,7 @@ void main() {
   });
 
   testWidgets('wipe-all requires typed confirmation', (tester) async {
-    await tester.pumpWidget(
-      const ProviderScope(child: MaterialApp(home: TroubleshootSyncPage())),
-    );
-    await tester.pumpAndSettle();
+    await _pumpBare(tester);
 
     await tester.tap(find.text('Wipe all sync data on this backend'));
     await tester.pumpAndSettle();
