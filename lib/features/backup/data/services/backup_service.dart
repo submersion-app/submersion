@@ -12,9 +12,13 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/backup_bookmark_service.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/crypto/encryption_key_store.dart';
 import 'package:submersion/core/services/sync/library_epoch.dart';
 import 'package:submersion/core/services/sync/library_epoch_store.dart';
 import 'package:submersion/core/services/sync/post_restore_sync_store.dart';
+import 'package:submersion/core/services/sync/sync_preferences.dart';
+import 'package:submersion/features/backup/data/services/backup_crypto.dart';
+import 'package:submersion/features/backup/domain/exceptions/backup_encrypted_exception.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_database_adapter.dart';
 import 'package:submersion/features/backup/data/services/backup_saf_port.dart';
@@ -82,6 +86,13 @@ class BackupService {
   /// Nullable so existing constructions keep working.
   final PostRestoreSyncStore? _postRestoreSyncStore;
 
+  /// End-to-end encryption deps: when the sync-encryption flag is on and a
+  /// key + keyslot mirror are available, cloud uploads become framed .sbe
+  /// artifacts and encrypted restores can decrypt silently. Both nullable so
+  /// existing constructions keep working (plaintext behavior).
+  final EncryptionKeyStore? _encryptionKeyStore;
+  final SyncPreferences? _syncPreferences;
+
   /// SAF write/read/delete seam for Android custom (`content://`) backup
   /// locations. Defaults to the real platform channel; injectable for tests.
   final BackupSafPort _safPort;
@@ -99,13 +110,17 @@ class BackupService {
     LibraryEpochStore? epochStore,
     PostRestoreSyncStore? postRestoreSyncStore,
     BackupSafPort? safPort,
+    EncryptionKeyStore? encryptionKeyStore,
+    SyncPreferences? syncPreferences,
   }) : _dbAdapter = dbAdapter,
        _preferences = preferences,
        _cloudProvider = cloudProvider,
        _syncRepository = syncRepository ?? SyncRepository(),
        _epochStore = epochStore,
        _postRestoreSyncStore = postRestoreSyncStore,
-       _safPort = safPort ?? const MethodChannelBackupSafPort();
+       _safPort = safPort ?? const MethodChannelBackupSafPort(),
+       _encryptionKeyStore = encryptionKeyStore,
+       _syncPreferences = syncPreferences;
 
   // ===========================================================================
   // Backup
@@ -260,9 +275,22 @@ class BackupService {
 
     // Check extension
     final ext = p.extension(filePath).toLowerCase();
-    if (ext != '.sqlite' && ext != '.db') {
+    if (ext != '.sqlite' && ext != '.db' && ext != BackupCrypto.fileExtension) {
       return BackupValidationResult.invalid(
-        'Invalid file extension "$ext". Expected .db or .sqlite',
+        'Invalid file extension "$ext". Expected .db, .sqlite, or '
+        '${BackupCrypto.fileExtension}',
+      );
+    }
+
+    // An encrypted artifact cannot be opened as SQLite here; the magic check
+    // admits it and deep validation runs on the decrypted copy during
+    // restore (see restoreFromFile / restoreFromBackup).
+    if (await BackupCrypto.isEncryptedBackup(filePath)) {
+      return BackupValidationResult.valid(sizeBytes: await file.length());
+    }
+    if (ext == BackupCrypto.fileExtension) {
+      return const BackupValidationResult.invalid(
+        'File is not a valid encrypted backup',
       );
     }
 
@@ -317,6 +345,7 @@ class BackupService {
   Future<void> restoreFromBackup(
     BackupRecord record, {
     RestoreMode mode = RestoreMode.merge,
+    String? encryptionSecret,
   }) async {
     _log.info('Starting restore from: ${record.filename} (mode: $mode)');
 
@@ -350,19 +379,29 @@ class BackupService {
       throw const BackupException('Backup file not found locally or in cloud');
     }
 
-    // Parity with the file-picker path: the file on disk (or the fresh
-    // download) may have been corrupted since the record was written.
-    final validation = await validateBackupFile(sourcePath);
-    if (!validation.isValid) {
-      throw BackupException(
-        validation.error ?? 'Backup file failed validation',
-      );
-    }
+    // An encrypted cloud artifact must be decrypted BEFORE validation (the
+    // SQLite deep-check needs plaintext).
+    final materialized = await _materializePlaintextBackup(
+      sourcePath,
+      encryptionSecret: encryptionSecret,
+    );
+    try {
+      // Parity with the file-picker path: the file on disk (or the fresh
+      // download) may have been corrupted since the record was written.
+      final validation = await validateBackupFile(materialized.path);
+      if (!validation.isValid) {
+        throw BackupException(
+          validation.error ?? 'Backup file failed validation',
+        );
+      }
 
-    // Restore using DatabaseService (handles close/copy/reinitialize), then
-    // re-baseline sync so the restored data syncs cleanly instead of replaying
-    // the backup's stale sync position.
-    await _replaceDatabaseAndRebaselineSync(sourcePath);
+      // Restore using DatabaseService (handles close/copy/reinitialize), then
+      // re-baseline sync so the restored data syncs cleanly instead of
+      // replaying the backup's stale sync position.
+      await _replaceDatabaseAndRebaselineSync(materialized.path);
+    } finally {
+      await materialized.cleanUp();
+    }
     if (mode == RestoreMode.replace) {
       await _mintPendingReplace();
     } else {
@@ -384,6 +423,7 @@ class BackupService {
   Future<void> restoreFromFile(
     String filePath, {
     RestoreMode mode = RestoreMode.merge,
+    String? encryptionSecret,
   }) async {
     _log.info('Starting restore from file: $filePath (mode: $mode)');
 
@@ -392,13 +432,23 @@ class BackupService {
       throw const BackupException('Backup file not found');
     }
 
-    // Create a proper backup before restoring so the user can find it
-    // in their configured backup location and in the history list.
-    await performBackup();
+    // Decrypt an encrypted artifact BEFORE the pre-restore backup runs, so a
+    // wrong passphrase aborts the flow without side effects.
+    final materialized = await _materializePlaintextBackup(
+      filePath,
+      encryptionSecret: encryptionSecret,
+    );
+    try {
+      // Create a proper backup before restoring so the user can find it
+      // in their configured backup location and in the history list.
+      await performBackup();
 
-    // Restore using DatabaseService, then re-baseline sync (see
-    // _replaceDatabaseAndRebaselineSync).
-    await _replaceDatabaseAndRebaselineSync(filePath);
+      // Restore using DatabaseService, then re-baseline sync (see
+      // _replaceDatabaseAndRebaselineSync).
+      await _replaceDatabaseAndRebaselineSync(materialized.path);
+    } finally {
+      await materialized.cleanUp();
+    }
     if (mode == RestoreMode.replace) {
       await _mintPendingReplace();
     } else {
@@ -846,13 +896,112 @@ class BackupService {
     final folderId = await _getOrCreateCloudBackupFolder();
     if (folderId == null) return null;
 
-    final bytes = await File(localPath).readAsBytes();
-    final result = await _cloudProvider.uploadFile(
-      Uint8List.fromList(bytes),
-      filename,
+    // End-to-end encryption: the CLOUD copy becomes a framed .sbe artifact
+    // (local artifacts stay plaintext by design -- disaster recovery must
+    // never sit behind a passphrase). File-to-file crypto keeps memory
+    // bounded regardless of database size.
+    var uploadPath = localPath;
+    var uploadName = filename;
+    File? encryptedTemp;
+    if (_syncPreferences?.syncEncryptionEnabled ?? false) {
+      final key = await _encryptionKeyStore?.loadKey();
+      final mirror = await _encryptionKeyStore?.loadKeyslotMirror();
+      if (key == null || mirror == null) {
+        _log.error(
+          'Encryption is enabled but no key/keyslots are available; '
+          'uploading backup UNENCRYPTED',
+        );
+      } else {
+        final tempDir = await getTemporaryDirectory();
+        uploadName =
+            p.basenameWithoutExtension(filename) + BackupCrypto.fileExtension;
+        uploadPath = p.join(tempDir.path, uploadName);
+        await BackupCrypto.encryptFile(
+          inPath: localPath,
+          outPath: uploadPath,
+          mlk: key.mlk,
+          libraryKeyId: key.libraryKeyId,
+          keyslotBytes: mirror,
+        );
+        encryptedTemp = File(uploadPath);
+      }
+    }
+
+    try {
+      final bytes = await File(uploadPath).readAsBytes();
+      final result = await _cloudProvider.uploadFile(
+        Uint8List.fromList(bytes),
+        uploadName,
+        folderId: folderId,
+      );
+      return result.fileId;
+    } finally {
+      if (encryptedTemp != null && await encryptedTemp.exists()) {
+        try {
+          await encryptedTemp.delete();
+        } catch (_) {
+          // best-effort temp cleanup
+        }
+      }
+    }
+  }
+
+  /// When [sourcePath] is an encrypted (.sbe framed) artifact, decrypt it to
+  /// a temp .db: silently with the cached key when the artifact's keyId
+  /// matches, else with [encryptionSecret] (passphrase or recovery code)
+  /// against the embedded keyslots. Throws [BackupEncryptedException] when
+  /// neither is available. Plaintext sources pass through untouched.
+  Future<_MaterializedBackup> _materializePlaintextBackup(
+    String sourcePath, {
+    String? encryptionSecret,
+  }) async {
+    if (!await BackupCrypto.isEncryptedBackup(sourcePath)) {
+      return _MaterializedBackup(sourcePath, isTemp: false);
+    }
+    final tempDir = await getTemporaryDirectory();
+    final decrypted = p.join(tempDir.path, 'restore_${_uuid.v4()}.db');
+    final key = await _encryptionKeyStore?.loadKey();
+    final artifactKeyId = await BackupCrypto.libraryKeyIdOf(sourcePath);
+    if (key != null && key.libraryKeyId == artifactKeyId) {
+      await BackupCrypto.decryptFileWithKey(
+        inPath: sourcePath,
+        outPath: decrypted,
+        mlk: key.mlk,
+        expectedLibraryKeyId: key.libraryKeyId,
+      );
+    } else if (encryptionSecret != null) {
+      await BackupCrypto.decryptFile(
+        inPath: sourcePath,
+        outPath: decrypted,
+        secret: encryptionSecret,
+      );
+    } else {
+      throw const BackupEncryptedException();
+    }
+    return _MaterializedBackup(decrypted, isTemp: true);
+  }
+
+  /// Delete every UNENCRYPTED backup (`submersion_backup_*.db`) from the
+  /// cloud backup folder. Offered at encryption-enable time; encrypted .sbe
+  /// artifacts are left alone. Returns the number deleted.
+  Future<int> deletePlaintextCloudBackups() async {
+    final provider = _cloudProvider;
+    if (provider == null) return 0;
+    final folderId = await _getOrCreateCloudBackupFolder();
+    if (folderId == null) return 0;
+    final files = await provider.listFiles(
       folderId: folderId,
+      namePattern: 'submersion_backup_',
     );
-    return result.fileId;
+    var deleted = 0;
+    for (final f in files) {
+      if (f.name.startsWith('submersion_backup_') && f.name.endsWith('.db')) {
+        await provider.deleteFile(f.id);
+        deleted++;
+      }
+    }
+    _log.info('Deleted $deleted unencrypted cloud backups');
+    return deleted;
   }
 
   Future<String> _downloadFromCloud(String cloudFileId, String filename) async {
@@ -894,6 +1043,25 @@ class BackupException implements Exception {
 }
 
 /// Result of validating a backup file
+/// A restore source resolved to a plaintext path: either the original file
+/// (pass-through) or a decrypted temp copy that [cleanUp] removes.
+class _MaterializedBackup {
+  final String path;
+  final bool isTemp;
+
+  const _MaterializedBackup(this.path, {required this.isTemp});
+
+  Future<void> cleanUp() async {
+    if (!isTemp) return;
+    try {
+      final f = File(path);
+      if (await f.exists()) await f.delete();
+    } catch (_) {
+      // best-effort temp cleanup
+    }
+  }
+}
+
 class BackupValidationResult {
   final bool isValid;
   final String? error;

@@ -33,6 +33,8 @@ final backupServiceProvider = Provider<BackupService>((ref) {
     postRestoreSyncStore: PostRestoreSyncStore(
       ref.watch(sharedPreferencesProvider),
     ),
+    encryptionKeyStore: ref.watch(encryptionKeyStoreProvider),
+    syncPreferences: ref.watch(syncPreferencesProvider),
   );
 });
 
