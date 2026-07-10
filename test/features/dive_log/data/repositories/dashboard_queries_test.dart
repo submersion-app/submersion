@@ -155,6 +155,32 @@ void main() {
       expect(winners.warmestId, 'newer-tie');
     });
 
+    test('longest falls through a zero-span profile to bottom time', () async {
+      // A dive with an explicit 10-minute runtime.
+      await repository.createDive(
+        domain.Dive(
+          id: 'runtime-10',
+          dateTime: DateTime(2026, 4, 1),
+          runtime: const Duration(minutes: 10),
+        ),
+      );
+      // No runtime/exit; a single-point profile has a zero span, which Dart's
+      // calculateRuntimeFromProfile() treats as null -> falls through to the
+      // 40-minute bottom time. The SQL must NOT read the 0-span as a
+      // 0-second runtime (which would exclude it and let runtime-10 win).
+      await repository.createDive(
+        domain.Dive(
+          id: 'bottom-40',
+          dateTime: DateTime(2026, 4, 2),
+          bottomTime: const Duration(minutes: 40),
+          profile: const [domain.DiveProfilePoint(timestamp: 300, depth: 18)],
+        ),
+      );
+
+      final winners = await repository.getPersonalRecordIds();
+      expect(winners.longestId, 'bottom-40');
+    });
+
     test('a most-visited-site count tie resolves to the site with the most '
         'recent dive', () async {
       final siteRepo = SiteRepository();
@@ -183,6 +209,33 @@ void main() {
       expect(winners.mostVisitedSiteCount, 2);
       expect(winners.mostVisitedSiteId, bravo.id);
       expect(winners.mostVisitedSiteName, 'Bravo');
+    });
+
+    test('a full site tie (count and recency) resolves deterministically by '
+        'site id', () async {
+      final siteRepo = SiteRepository();
+      final one = await siteRepo.createSite(
+        const DiveSite(id: '', name: 'One'),
+      );
+      final two = await siteRepo.createSite(
+        const DiveSite(id: '', name: 'Two'),
+      );
+
+      // One dive each at the SAME timestamp: count and max-recency both tie,
+      // so only the final site_id key decides -- and it must be stable.
+      final sameInstant = DateTime(2026, 5, 5, 9);
+      await repository.createDive(
+        domain.Dive(id: 'o0', dateTime: sameInstant, site: one),
+      );
+      await repository.createDive(
+        domain.Dive(id: 't0', dateTime: sameInstant, site: two),
+      );
+
+      final winners = await repository.getPersonalRecordIds();
+      // ORDER BY ... d.site_id (ascending) -> the lexicographically smaller id.
+      final expected = ([one.id, two.id]..sort()).first;
+      expect(winners.mostVisitedSiteId, expected);
+      expect(winners.mostVisitedSiteCount, 1);
     });
 
     test('empty database produces no winners', () async {

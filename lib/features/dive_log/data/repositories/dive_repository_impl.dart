@@ -2336,9 +2336,13 @@ class DiveRepository {
       'COALESCE(d.runtime, '
       'CASE WHEN d.exit_time IS NOT NULL AND d.entry_time IS NOT NULL '
       'AND d.exit_time > d.entry_time '
-      'THEN (d.exit_time - d.entry_time) / 1000 END, '
-      '(SELECT MAX(p.timestamp) - MIN(p.timestamp) FROM dive_profiles p '
-      'WHERE p.dive_id = d.id), '
+      // CAST truncates toward zero to match Dart's Duration.inSeconds.
+      'THEN CAST((d.exit_time - d.entry_time) / 1000 AS INTEGER) END, '
+      // NULLIF drops a zero-span profile (single point or same-timestamp
+      // samples) to NULL so COALESCE falls through to bottom_time, matching
+      // calculateRuntimeFromProfile()'s `totalSeconds > 0 ? ... : null`.
+      'NULLIF((SELECT MAX(p.timestamp) - MIN(p.timestamp) FROM dive_profiles p '
+      'WHERE p.dive_id = d.id), 0), '
       'd.bottom_time)';
 
   /// Deterministic tie-break for the personal-record winners, matching the
@@ -2403,14 +2407,17 @@ class DiveRepository {
 
     // On a count tie, keep the site whose most recent dive is latest -- the
     // old loop scanned most-recent-first and kept the first site to reach the
-    // max count, i.e. the one owning the newest dive among the tied sites.
+    // max count, i.e. the one owning the newest dive among the tied sites. The
+    // trailing site_id is a final deterministic key so an exact recency tie
+    // cannot flap across SQLite query plans.
     final siteRow = await _db
         .customSelect(
           'SELECT d.site_id AS site_id, s.name AS site_name, COUNT(*) AS c '
           'FROM dives d JOIN dive_sites s ON d.site_id = s.id '
           'WHERE d.site_id IS NOT NULL $diverFilter '
           'GROUP BY d.site_id ORDER BY c DESC, '
-          'MAX(COALESCE(d.entry_time, d.dive_date_time)) DESC LIMIT 1',
+          'MAX(COALESCE(d.entry_time, d.dive_date_time)) DESC, d.site_id '
+          'LIMIT 1',
           variables: vars,
           readsFrom: {_db.dives, _db.diveSites},
         )
