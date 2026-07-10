@@ -13,6 +13,28 @@
 /// span a band boundary, so the velocity recomputed on the decimated series
 /// stays in the same band as the original -- a brief rapid-ascent excursion can
 /// never be averaged into a safer-looking band.
+/// Returns the ascending indices to keep when rendering a dense analysis
+/// curve (ceiling, NDL, ppO2, ...): endpoints, the global extreme, and the
+/// min/max envelope per time bucket. Identity when already under budget.
+///
+/// This is [decimateProfileIndices] without the safety force-keeps, which
+/// only apply to the depth trace (ascent-rate bands, decoType transitions).
+List<int> decimateSeriesIndices(
+  List<double> values, {
+  int targetPoints = 2000,
+}) {
+  final n = values.length;
+  if (n <= targetPoints) {
+    return List<int>.generate(n, (i) => i);
+  }
+  return decimateProfileIndices(
+    depths: values,
+    bands: List<int>.filled(n, 0),
+    decoTypes: List<int>.filled(n, -1),
+    targetPoints: targetPoints,
+  );
+}
+
 List<int> decimateProfileIndices({
   required List<double> depths,
   required List<int> bands,

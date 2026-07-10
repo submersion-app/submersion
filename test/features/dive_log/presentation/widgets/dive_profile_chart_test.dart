@@ -3398,6 +3398,57 @@ void main() {
       expect(find.byType(PhotoMarkerOverlay), findsNothing);
     });
   });
+
+  group('analysis-curve decimation (WS3)', () {
+    testWidgets(
+      'a dense ceiling curve renders decimated while the depth trace keeps '
+      'full resolution',
+      (tester) async {
+        const samples = 5000;
+        final profile = _makeProfile(points: samples);
+        // A ceiling that is positive everywhere so every sample would emit
+        // a spot without decimation.
+        final ceiling = List<double>.generate(
+          samples,
+          (i) => 3.0 + (i % 7) * 0.5,
+        );
+
+        await tester.pumpWidget(
+          _buildChart(profile: profile, ceilingCurve: ceiling),
+        );
+
+        final bars = tester
+            .widget<LineChart>(find.byType(LineChart).first)
+            .data
+            .lineBarsData;
+
+        final depthBars = bars.where((b) => b.spots.length == samples);
+        expect(
+          depthBars,
+          isNotEmpty,
+          reason: 'the depth trace must stay at full resolution',
+        );
+
+        // The ceiling line is the dashed [4, 4] bar; it must be decimated
+        // to the point budget instead of emitting all 5,000 spots.
+        final ceilingBars = bars.where(
+          (b) =>
+              b.dashArray != null &&
+              b.dashArray!.length == 2 &&
+              b.dashArray!.first == 4 &&
+              b.dashArray!.last == 4 &&
+              b.spots.isNotEmpty,
+        );
+        expect(ceilingBars, isNotEmpty);
+        for (final bar in ceilingBars) {
+          // The decimator targets ~2000 points; endpoints and the global
+          // extreme can add a couple beyond the bucket envelope.
+          expect(bar.spots.length, lessThanOrEqualTo(2008));
+          expect(bar.spots.length, lessThan(samples ~/ 2));
+        }
+      },
+    );
+  });
 }
 
 PhotoChartMarker _photoMarker({String id = 'p1', int seconds = 120}) {

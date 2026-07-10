@@ -21,6 +21,7 @@ import 'package:submersion/features/dive_log/domain/entities/profile_event.dart'
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/chart_series_cache.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_legend.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_decimator.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_timeline_strip.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_layout.dart';
@@ -805,46 +806,118 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   final ChartSeriesCache<LineChartBarData> _barsCache =
       ChartSeriesCache<LineChartBarData>();
 
-  /// Identity of everything the assembled bars depend on. Excludes playback,
-  /// viewport, highlight, and tooltip state -- those drive separate overlays and
-  /// never change the bars. [legendState] is taken as [Object] since only its
-  /// identity (changed on any visibility toggle) matters here. [colorScheme] is
-  /// hashed by value (not just its [Brightness]) so switching between two
-  /// presets of the same brightness -- which recolours series such as the
-  /// tertiary temperature line -- still invalidates the cached bars.
-  String _barsSignature(
-    UnitFormatter units,
-    Object legendState,
-    ColorScheme colorScheme,
-  ) => [
-    identityHashCode(widget.profile),
-    identityHashCode(widget.ascentRates),
-    identityHashCode(widget.ceilingCurve),
-    identityHashCode(widget.ndlCurve),
-    identityHashCode(widget.sacCurve),
-    identityHashCode(widget.ppO2Curve),
-    identityHashCode(widget.ppN2Curve),
-    identityHashCode(widget.ppHeCurve),
-    identityHashCode(widget.modCurve),
-    identityHashCode(widget.densityCurve),
-    identityHashCode(widget.gfCurve),
-    identityHashCode(widget.surfaceGfCurve),
-    identityHashCode(widget.meanDepthCurve),
-    identityHashCode(widget.ttsCurve),
-    identityHashCode(widget.cnsCurve),
-    identityHashCode(widget.otuCurve),
-    identityHashCode(widget.tankPressures),
-    identityHashCode(widget.overlays),
-    identityHashCode(widget.gasSwitches),
-    identityHashCode(widget.tanks),
-    identityHashCode(widget.markers),
-    identityHashCode(legendState),
-    units.depthSymbol,
-    units.temperatureSymbol,
-    units.pressureSymbol,
-    units.sacSymbol,
-    colorScheme.hashCode,
-  ].join('|');
+  // Per-group cache signatures, computed once per build in the legend-sync
+  // pass and consumed by the chart assembly (see _barsCache).
+  String _baseSig = '';
+  String _sacSig = '';
+  String _ascentSig = '';
+  String _analysisSig = '';
+  String _markersSig = '';
+  String _overlaysSig = '';
+
+  /// Joins signature parts for [_barsCache] group keys. Each group's
+  /// signature covers exactly the inputs its series read, so changing one
+  /// group's data (analysis curves, overlays) leaves the others cached.
+  /// [ColorScheme.hashCode] is by value (not just [Brightness]) so switching
+  /// between two presets of the same brightness still invalidates. Playback,
+  /// highlight, and tooltip state are deliberately excluded.
+  String _sigOf(List<Object?> parts) => parts.join('|');
+
+  /// Fixed point budget per analysis-curve series (WS3, large-DB
+  /// performance). Depth/touch series are never decimated: tooltips,
+  /// scrubbing, and velocity-band suppression all key off the depth bars at
+  /// full resolution.
+  static const int _curvePointBudget = 2000;
+
+  /// Decimation bucket for the current viewport. Within one bucket, zoomed
+  /// pans/zooms stay pure cache hits (as unzoomed interaction always has
+  /// been); crossing a half-octave zoom step or a quarter-window pan
+  /// re-decimates the analysis curves over the newly visible window, so
+  /// deep zoom converges back to full sample resolution.
+  String _viewportDecimationBucket() {
+    if (!_viewport.isZoomed) return 'full';
+    final zoomBucket = (math.log(_viewport.zoom) / math.ln2 * 2).round();
+    final panBucket = (_viewport.offsetX * _viewport.zoom * 4).round();
+    return 'z$zoomBucket-p$panBucket';
+  }
+
+  /// Indices of [values] (parallel to [widget.profile]) to render: clipped
+  /// to the visible window expanded by half a window on each side, then
+  /// decimated to [_curvePointBudget] preserving the value envelope
+  /// (min/max per bucket, global extreme, endpoints).
+  List<int> _decimatedCurveIndices(List<num> values) {
+    final n = math.min(widget.profile.length, values.length);
+    if (n == 0) return const [];
+    var start = 0;
+    var end = n;
+    if (_viewport.isZoomed) {
+      final t0 = widget.profile.first.timestamp;
+      final span = (widget.profile[n - 1].timestamp - t0).toDouble();
+      if (span > 0) {
+        final w = _viewport.visibleWidth;
+        final loT = t0 + span * (_viewport.offsetX - w / 2);
+        final hiT = t0 + span * (_viewport.offsetX + w * 1.5);
+        start = _firstProfileIndexAtOrAfter(loT, n);
+        end = _lastProfileIndexAtOrBefore(hiT, n) + 1;
+        if (end - start < 2) {
+          start = 0;
+          end = n;
+        }
+      }
+    }
+    final kept = decimateSeriesIndices([
+      for (var i = start; i < end; i++) values[i].toDouble(),
+    ], targetPoints: _curvePointBudget);
+    if (start == 0) return kept;
+    return [for (final k in kept) k + start];
+  }
+
+  int _firstProfileIndexAtOrAfter(double t, int n) {
+    var lo = 0;
+    var hi = n - 1;
+    var ans = 0;
+    while (lo <= hi) {
+      final mid = (lo + hi) >> 1;
+      if (widget.profile[mid].timestamp >= t) {
+        ans = mid;
+        hi = mid - 1;
+      } else {
+        lo = mid + 1;
+      }
+    }
+    return ans;
+  }
+
+  int _lastProfileIndexAtOrBefore(double t, int n) {
+    var lo = 0;
+    var hi = n - 1;
+    var ans = n - 1;
+    while (lo <= hi) {
+      final mid = (lo + hi) >> 1;
+      if (widget.profile[mid].timestamp <= t) {
+        ans = mid;
+        lo = mid + 1;
+      } else {
+        hi = mid - 1;
+      }
+    }
+    return ans;
+  }
+
+  /// Overlay variant of [_decimatedCurveIndices]: indices into [points]
+  /// selected by the envelope of [value]. Overlay series are decimated by
+  /// budget only (their timestamps live on their own domain).
+  List<int> _decimatedOverlayIndices(
+    List<DiveProfilePoint> points,
+    double Function(DiveProfilePoint) value,
+  ) {
+    if (points.length <= _curvePointBudget) {
+      return List<int>.generate(points.length, (i) => i);
+    }
+    return decimateSeriesIndices([
+      for (final p in points) value(p),
+    ], targetPoints: _curvePointBudget);
+  }
 
   @override
   void initState() {
@@ -1446,9 +1519,52 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       _showTankPressure[entry.key] = entry.value;
     }
 
-    // Drop the memoized bars only when their inputs change; playback / hover /
-    // zoom rebuilds keep the same signature and reuse the assembled series.
-    _barsCache.invalidate(_barsSignature(units, legendState, colorScheme));
+    // Per-group signatures for the memoized bars (see _barsCache): playback /
+    // hover / zoom rebuilds inside one decimation bucket reuse every group;
+    // an analysis-curve re-emission (e.g. a ceiling-source toggle) rebuilds
+    // only the analysis group over decimated points.
+    final vpBucket = _viewportDecimationBucket();
+    final commonSig = _sigOf([
+      identityHashCode(widget.profile),
+      identityHashCode(legendState),
+      units.depthSymbol,
+      units.temperatureSymbol,
+      units.pressureSymbol,
+      units.sacSymbol,
+      colorScheme.hashCode,
+    ]);
+    _baseSig = _sigOf([
+      commonSig,
+      identityHashCode(widget.ascentRates),
+      identityHashCode(widget.gasSwitches),
+      identityHashCode(widget.tanks),
+      identityHashCode(widget.tankPressures),
+    ]);
+    _sacSig = _sigOf([commonSig, identityHashCode(widget.sacCurve), vpBucket]);
+    _ascentSig = _sigOf([commonSig, identityHashCode(widget.ascentRates)]);
+    _analysisSig = _sigOf([
+      commonSig,
+      identityHashCode(widget.ceilingCurve),
+      identityHashCode(widget.ndlCurve),
+      identityHashCode(widget.ppO2Curve),
+      identityHashCode(widget.ppN2Curve),
+      identityHashCode(widget.ppHeCurve),
+      identityHashCode(widget.modCurve),
+      identityHashCode(widget.densityCurve),
+      identityHashCode(widget.gfCurve),
+      identityHashCode(widget.surfaceGfCurve),
+      identityHashCode(widget.meanDepthCurve),
+      identityHashCode(widget.ttsCurve),
+      identityHashCode(widget.cnsCurve),
+      identityHashCode(widget.otuCurve),
+      vpBucket,
+    ]);
+    _markersSig = _sigOf([
+      commonSig,
+      identityHashCode(widget.markers),
+      identityHashCode(widget.tankPressures),
+    ]);
+    _overlaysSig = _sigOf([commonSig, identityHashCode(widget.overlays)]);
 
     // Check data availability for advanced curves
     final hasNdlData = widget.ndlCurve != null && widget.ndlCurve!.isNotEmpty;
@@ -2123,119 +2239,174 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               show: true,
               border: Border.all(color: colorScheme.outlineVariant),
             ),
+            // Bar order is invariant: depth bars first (velocity suppression
+            // and tooltip resolution key off the leading barIndex range),
+            // overlays last (see _depthBarCount). The groups scope cache
+            // invalidation; the combined key memoizes the concatenation so a
+            // playback-only rebuild returns the identical outer list (fl_chart
+            // listEquals short-circuits on identity).
             lineBarsData: _barsCache.series(
-              'main',
+              'combined',
+              _sigOf([
+                _baseSig,
+                _sacSig,
+                _ascentSig,
+                _analysisSig,
+                _markersSig,
+                _overlaysSig,
+              ]),
               () => [
-                // Depth line segments (colored by active gas if gas switches exist)
-                ..._buildGasColoredDepthLines(colorScheme, units),
+                ..._barsCache.series(
+                  'base',
+                  _baseSig,
+                  () => [
+                    // Depth line segments (colored by active gas if present)
+                    ..._buildGasColoredDepthLines(colorScheme, units),
 
-                // Gas switch markers (if showing and data available)
-                if (_showGasSwitchMarkers) ..._buildGasSwitchMarkers(units),
+                    // Gas switch markers (if showing and data available)
+                    if (_showGasSwitchMarkers) ..._buildGasSwitchMarkers(units),
 
-                // Temperature line(s) (if showing) — one per visible computer
-                // when multi-computer profiles are present, else a single
-                // curve from the primary profile.
-                if (_showTemperature &&
-                    hasTemperatureData &&
-                    minTemp != null &&
-                    maxTemp != null)
-                  ..._buildTemperatureLines(
-                    colorScheme,
-                    totalMaxDepth,
-                    minTemp,
-                    maxTemp,
-                    units,
-                  ),
+                    // Temperature line(s) (if showing) — one per visible
+                    // computer when multi-computer profiles are present, else
+                    // a single curve from the primary profile.
+                    if (_showTemperature &&
+                        hasTemperatureData &&
+                        minTemp != null &&
+                        maxTemp != null)
+                      ..._buildTemperatureLines(
+                        colorScheme,
+                        totalMaxDepth,
+                        minTemp,
+                        maxTemp,
+                        units,
+                      ),
 
-                // Multi-tank pressure lines (per-tank visibility controlled
-                // inside _buildMultiTankPressureLines via _showTankPressure)
-                if (_hasMultiTankPressure)
-                  ..._buildMultiTankPressureLines(totalMaxDepth),
+                    // Multi-tank pressure lines (per-tank visibility controlled
+                    // inside _buildMultiTankPressureLines via _showTankPressure)
+                    if (_hasMultiTankPressure)
+                      ..._buildMultiTankPressureLines(totalMaxDepth),
 
-                // Heart rate line (if showing)
-                if (_showHeartRate &&
-                    hasHeartRateData &&
-                    minHR != null &&
-                    maxHR != null)
-                  _buildHeartRateLine(
-                    heartRateColor,
-                    totalMaxDepth,
-                    minHR,
-                    maxHR,
-                  ),
-
-                // SAC curve line (if showing)
-                if (_showSac && hasSacData && minSac != null && maxSac != null)
-                  _buildSacLine(totalMaxDepth, minSac, maxSac),
-
-                // Ascent-rate magnitude line (separate overlay; signed m/min)
-                if (_showAscentRateLine && widget.ascentRates != null)
-                  _buildAscentRateLine(totalMaxDepth),
-
-                // Ceiling line (if showing and data available)
-                if (_showCeiling && widget.ceilingCurve != null)
-                  _buildCeilingLine(units),
-
-                // NDL line (if showing)
-                if (_showNdl && widget.ndlCurve != null)
-                  _buildNdlLine(totalMaxDepth),
-
-                // ppO2 line (if showing)
-                if (_showPpO2 && widget.ppO2Curve != null)
-                  _buildPpO2Line(totalMaxDepth),
-
-                // ppN2 line (if showing)
-                if (_showPpN2 && widget.ppN2Curve != null)
-                  _buildPpN2Line(totalMaxDepth),
-
-                // ppHe line (if showing and has helium data)
-                if (_showPpHe &&
-                    widget.ppHeCurve != null &&
-                    widget.ppHeCurve!.any((v) => v > 0.001))
-                  _buildPpHeLine(totalMaxDepth),
-
-                // MOD line (if showing)
-                if (_showMod && widget.modCurve != null) _buildModLine(units),
-
-                // Gas density line (if showing)
-                if (_showDensity && widget.densityCurve != null)
-                  _buildDensityLine(totalMaxDepth),
-
-                // GF% line (if showing)
-                if (_showGf && widget.gfCurve != null)
-                  _buildGfLine(totalMaxDepth),
-
-                // Surface GF line (if showing)
-                if (_showSurfaceGf && widget.surfaceGfCurve != null)
-                  _buildSurfaceGfLine(totalMaxDepth),
-
-                // Mean depth line (if showing)
-                if (_showMeanDepth && widget.meanDepthCurve != null)
-                  _buildMeanDepthLine(units),
-
-                // TTS line (if showing)
-                if (_showTts && widget.ttsCurve != null)
-                  _buildTtsLine(totalMaxDepth),
-
-                // CNS% curve (if showing)
-                if (_showCns && widget.cnsCurve != null)
-                  _buildCnsLine(totalMaxDepth),
-
-                // OTU curve (if showing)
-                if (_showOtu && widget.otuCurve != null)
-                  _buildOtuLine(totalMaxDepth),
-
-                // Profile markers (max depth, pressure thresholds)
-                ..._buildMarkerLines(
-                  units,
-                  totalMaxDepth,
-                  minPressure: minPressure,
-                  maxPressure: maxPressure,
+                    // Heart rate line (if showing)
+                    if (_showHeartRate &&
+                        hasHeartRateData &&
+                        minHR != null &&
+                        maxHR != null)
+                      _buildHeartRateLine(
+                        heartRateColor,
+                        totalMaxDepth,
+                        minHR,
+                        maxHR,
+                      ),
+                  ],
                 ),
+                ..._barsCache.series(
+                  'sac',
+                  _sacSig,
+                  () => [
+                    // SAC curve line (if showing)
+                    if (_showSac &&
+                        hasSacData &&
+                        minSac != null &&
+                        maxSac != null)
+                      _buildSacLine(totalMaxDepth, minSac, maxSac),
+                  ],
+                ),
+                ..._barsCache.series(
+                  'ascent',
+                  _ascentSig,
+                  () => [
+                    // Ascent-rate magnitude line (separate overlay; signed
+                    // m/min)
+                    if (_showAscentRateLine && widget.ascentRates != null)
+                      _buildAscentRateLine(totalMaxDepth),
+                  ],
+                ),
+                ..._barsCache.series(
+                  'analysis',
+                  _analysisSig,
+                  () => [
+                    // Ceiling line (if showing and data available)
+                    if (_showCeiling && widget.ceilingCurve != null)
+                      _buildCeilingLine(units),
 
-                // Overlaid comparison sources — LAST, so depth bars keep
-                // occupying the leading barIndex range (see _depthBarCount).
-                ..._buildOverlayLines(units, totalMaxDepth, minTemp, maxTemp),
+                    // NDL line (if showing)
+                    if (_showNdl && widget.ndlCurve != null)
+                      _buildNdlLine(totalMaxDepth),
+
+                    // ppO2 line (if showing)
+                    if (_showPpO2 && widget.ppO2Curve != null)
+                      _buildPpO2Line(totalMaxDepth),
+
+                    // ppN2 line (if showing)
+                    if (_showPpN2 && widget.ppN2Curve != null)
+                      _buildPpN2Line(totalMaxDepth),
+
+                    // ppHe line (if showing and has helium data)
+                    if (_showPpHe &&
+                        widget.ppHeCurve != null &&
+                        widget.ppHeCurve!.any((v) => v > 0.001))
+                      _buildPpHeLine(totalMaxDepth),
+
+                    // MOD line (if showing)
+                    if (_showMod && widget.modCurve != null)
+                      _buildModLine(units),
+
+                    // Gas density line (if showing)
+                    if (_showDensity && widget.densityCurve != null)
+                      _buildDensityLine(totalMaxDepth),
+
+                    // GF% line (if showing)
+                    if (_showGf && widget.gfCurve != null)
+                      _buildGfLine(totalMaxDepth),
+
+                    // Surface GF line (if showing)
+                    if (_showSurfaceGf && widget.surfaceGfCurve != null)
+                      _buildSurfaceGfLine(totalMaxDepth),
+
+                    // Mean depth line (if showing)
+                    if (_showMeanDepth && widget.meanDepthCurve != null)
+                      _buildMeanDepthLine(units),
+
+                    // TTS line (if showing)
+                    if (_showTts && widget.ttsCurve != null)
+                      _buildTtsLine(totalMaxDepth),
+
+                    // CNS% curve (if showing)
+                    if (_showCns && widget.cnsCurve != null)
+                      _buildCnsLine(totalMaxDepth),
+
+                    // OTU curve (if showing)
+                    if (_showOtu && widget.otuCurve != null)
+                      _buildOtuLine(totalMaxDepth),
+                  ],
+                ),
+                ..._barsCache.series(
+                  'markers',
+                  _markersSig,
+                  () => [
+                    // Profile markers (max depth, pressure thresholds)
+                    ..._buildMarkerLines(
+                      units,
+                      totalMaxDepth,
+                      minPressure: minPressure,
+                      maxPressure: maxPressure,
+                    ),
+                  ],
+                ),
+                ..._barsCache.series(
+                  'overlays',
+                  _overlaysSig,
+                  () => [
+                    // Overlaid comparison sources — LAST, so depth bars keep
+                    // occupying the leading barIndex range (_depthBarCount).
+                    ..._buildOverlayLines(
+                      units,
+                      totalMaxDepth,
+                      minTemp,
+                      maxTemp,
+                    ),
+                  ],
+                ),
               ],
             ),
             extraLinesData: ExtraLinesData(
@@ -3352,12 +3523,19 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     for (final overlay in overlays) {
       if (overlay.points.isEmpty) continue;
 
-      // Depth: dashed, no fill.
+      // Depth: dashed, no fill. Decimated on the depth envelope (WS3).
+      final depthKeep = _decimatedOverlayIndices(
+        overlay.points,
+        (p) => p.depth,
+      );
       lines.add(
         LineChartBarData(
           spots: [
-            for (final p in overlay.points)
-              FlSpot(p.timestamp.toDouble(), -units.convertDepth(p.depth)),
+            for (final i in depthKeep)
+              FlSpot(
+                overlay.points[i].timestamp.toDouble(),
+                -units.convertDepth(overlay.points[i].depth),
+              ),
           ],
           isCurved: true,
           curveSmoothness: 0.2,
@@ -3376,14 +3554,18 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             .where((p) => p.temperature != null)
             .toList();
         if (tempPoints.isNotEmpty) {
+          final tempKeep = _decimatedOverlayIndices(
+            tempPoints,
+            (p) => p.temperature!,
+          );
           lines.add(
             LineChartBarData(
               spots: [
-                for (final p in tempPoints)
+                for (final i in tempKeep)
                   FlSpot(
-                    p.timestamp.toDouble(),
+                    tempPoints[i].timestamp.toDouble(),
                     -_mapTempToDepth(
-                      units.convertTemperature(p.temperature!),
+                      units.convertTemperature(tempPoints[i].temperature!),
                       chartMaxDepth,
                       minTemp,
                       maxTemp,
@@ -3404,15 +3586,23 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
       // Computer-reported ceiling, mapped like the active ceiling line.
       if (_showCeiling) {
-        final ceilingSpots = [
-          for (final p in overlay.points)
-            if (p.ceiling != null && p.ceiling! > 0)
-              FlSpot(p.timestamp.toDouble(), -units.convertDepth(p.ceiling!)),
-        ];
-        if (ceilingSpots.isNotEmpty) {
+        final ceilingPoints = overlay.points
+            .where((p) => p.ceiling != null && p.ceiling! > 0)
+            .toList();
+        if (ceilingPoints.isNotEmpty) {
+          final ceilingKeep = _decimatedOverlayIndices(
+            ceilingPoints,
+            (p) => p.ceiling!,
+          );
           lines.add(
             LineChartBarData(
-              spots: ceilingSpots,
+              spots: [
+                for (final i in ceilingKeep)
+                  FlSpot(
+                    ceilingPoints[i].timestamp.toDouble(),
+                    -units.convertDepth(ceilingPoints[i].ceiling!),
+                  ),
+              ],
               isCurved: true,
               curveSmoothness: 0.2,
               color: overlay.color.withValues(alpha: 0.45),
@@ -3429,19 +3619,24 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       // NDL line (see _buildNdlLine).
       if (_showNdl) {
         const maxNdlSeconds = 3600.0;
-        final ndlSpots = <FlSpot>[];
-        for (final p in overlay.points) {
-          final ndl = p.ndl;
-          if (ndl == null) continue;
-          final clamped = ndl.clamp(0, maxNdlSeconds.toInt()).toDouble();
-          ndlSpots.add(
-            FlSpot(
-              p.timestamp.toDouble(),
-              -(chartMaxDepth * (1 - clamped / maxNdlSeconds)),
-            ),
+        final ndlPoints = overlay.points.where((p) => p.ndl != null).toList();
+        if (ndlPoints.isNotEmpty) {
+          final ndlKeep = _decimatedOverlayIndices(
+            ndlPoints,
+            (p) => p.ndl!.clamp(0, maxNdlSeconds.toInt()).toDouble(),
           );
-        }
-        if (ndlSpots.isNotEmpty) {
+          final ndlSpots = <FlSpot>[
+            for (final i in ndlKeep)
+              FlSpot(
+                ndlPoints[i].timestamp.toDouble(),
+                -(chartMaxDepth *
+                    (1 -
+                        ndlPoints[i].ndl!
+                                .clamp(0, maxNdlSeconds.toInt())
+                                .toDouble() /
+                            maxNdlSeconds)),
+              ),
+          ];
           lines.add(
             LineChartBarData(
               spots: ndlSpots,
@@ -3735,7 +3930,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
     // Build spots for each profile point that has SAC data
     final spots = <FlSpot>[];
-    for (int i = 0; i < widget.profile.length && i < sacCurve.length; i++) {
+    for (final i in _decimatedCurveIndices(sacCurve)) {
       final sac = sacCurve[i];
       if (sac > 0) {
         spots.add(
@@ -3846,7 +4041,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
     // Build spots only where ceiling > 0
     final spots = <FlSpot>[];
-    for (int i = 0; i < widget.profile.length && i < ceilingData.length; i++) {
+    for (final i in _decimatedCurveIndices(ceilingData)) {
       final ceiling = ceilingData[i];
       if (ceiling > 0) {
         spots.add(
@@ -3888,7 +4083,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     const maxNdlSeconds = 3600.0; // 60 minutes as max display
 
     final spots = <FlSpot>[];
-    for (int i = 0; i < widget.profile.length && i < ndlData.length; i++) {
+    for (final i in _decimatedCurveIndices(ndlData)) {
       // Clamp NDL to display range to avoid gaps that cause Bezier artifacts.
       // Negative values (in deco) clamp to 0; values > 60 min clamp to 60 min.
       final ndl = ndlData[i].clamp(0, maxNdlSeconds.toInt()).toDouble();
@@ -3921,7 +4116,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     const maxPpO2 = 2.0;
 
     final spots = <FlSpot>[];
-    for (int i = 0; i < widget.profile.length && i < ppO2Data.length; i++) {
+    for (final i in _decimatedCurveIndices(ppO2Data)) {
       final ppO2 = ppO2Data[i].clamp(minPpO2, maxPpO2);
       final yValue = _mapValueToDepth(ppO2, chartMaxDepth, minPpO2, maxPpO2);
       spots.add(FlSpot(widget.profile[i].timestamp.toDouble(), -yValue));
@@ -3949,7 +4144,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     const maxPpN2 = 5.0;
 
     final spots = <FlSpot>[];
-    for (int i = 0; i < widget.profile.length && i < ppN2Data.length; i++) {
+    for (final i in _decimatedCurveIndices(ppN2Data)) {
       final ppN2 = ppN2Data[i].clamp(minPpN2, maxPpN2);
       final yValue = _mapValueToDepth(ppN2, chartMaxDepth, minPpN2, maxPpN2);
       spots.add(FlSpot(widget.profile[i].timestamp.toDouble(), -yValue));
@@ -3977,7 +4172,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     const maxPpHe = 3.0;
 
     final spots = <FlSpot>[];
-    for (int i = 0; i < widget.profile.length && i < ppHeData.length; i++) {
+    for (final i in _decimatedCurveIndices(ppHeData)) {
       final ppHe = ppHeData[i];
       if (ppHe > 0.001) {
         final clamped = ppHe.clamp(minPpHe, maxPpHe);
@@ -4011,7 +4206,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
     // MOD is typically constant for a given gas
     final spots = <FlSpot>[];
-    for (int i = 0; i < widget.profile.length && i < modData.length; i++) {
+    for (final i in _decimatedCurveIndices(modData)) {
       final mod = modData[i];
       if (mod > 0 && mod < 200) {
         spots.add(
@@ -4045,7 +4240,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     const maxDensity = 8.0;
 
     final spots = <FlSpot>[];
-    for (int i = 0; i < widget.profile.length && i < densityData.length; i++) {
+    for (final i in _decimatedCurveIndices(densityData)) {
       final density = densityData[i].clamp(minDensity, maxDensity);
       final yValue = _mapValueToDepth(
         density,
@@ -4079,7 +4274,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     const maxGf = 120.0;
 
     final spots = <FlSpot>[];
-    for (int i = 0; i < widget.profile.length && i < gfData.length; i++) {
+    for (final i in _decimatedCurveIndices(gfData)) {
       final gf = gfData[i].clamp(minGf, maxGf);
       final yValue = _mapValueToDepth(gf, chartMaxDepth, minGf, maxGf);
       spots.add(FlSpot(widget.profile[i].timestamp.toDouble(), -yValue));
@@ -4108,11 +4303,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     const maxGf = 150.0;
 
     final spots = <FlSpot>[];
-    for (
-      int i = 0;
-      i < widget.profile.length && i < surfaceGfData.length;
-      i++
-    ) {
+    for (final i in _decimatedCurveIndices(surfaceGfData)) {
       final gf = surfaceGfData[i].clamp(minGf, maxGf);
       final yValue = _mapValueToDepth(gf, chartMaxDepth, minGf, maxGf);
       spots.add(FlSpot(widget.profile[i].timestamp.toDouble(), -yValue));
@@ -4136,11 +4327,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     const meanDepthColor = Colors.blueGrey;
 
     final spots = <FlSpot>[];
-    for (
-      int i = 0;
-      i < widget.profile.length && i < meanDepthData.length;
-      i++
-    ) {
+    for (final i in _decimatedCurveIndices(meanDepthData)) {
       spots.add(
         FlSpot(
           widget.profile[i].timestamp.toDouble(),
@@ -4173,7 +4360,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     const maxTtsSeconds = 3600.0;
 
     final spots = <FlSpot>[];
-    for (int i = 0; i < widget.profile.length && i < ttsData.length; i++) {
+    for (final i in _decimatedCurveIndices(ttsData)) {
       final tts = ttsData[i].toDouble().clamp(0, maxTtsSeconds);
       final normalized = tts / maxTtsSeconds;
       final yValue = chartMaxDepth * (1 - normalized);
@@ -4215,7 +4402,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     final maxCns = _getCnsMaxScale();
 
     final spots = <FlSpot>[];
-    for (int i = 0; i < widget.profile.length && i < cnsData.length; i++) {
+    for (final i in _decimatedCurveIndices(cnsData)) {
       final cns = cnsData[i].clamp(minCns, maxCns);
       final yValue = _mapValueToDepth(cns, chartMaxDepth, minCns, maxCns);
       spots.add(FlSpot(widget.profile[i].timestamp.toDouble(), -yValue));
@@ -4242,7 +4429,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     final maxOtu = _getOtuMaxScale();
 
     final spots = <FlSpot>[];
-    for (int i = 0; i < widget.profile.length && i < otuData.length; i++) {
+    for (final i in _decimatedCurveIndices(otuData)) {
       final otu = otuData[i].clamp(minOtu, maxOtu);
       final yValue = _mapValueToDepth(otu, chartMaxDepth, minOtu, maxOtu);
       spots.add(FlSpot(widget.profile[i].timestamp.toDouble(), -yValue));
