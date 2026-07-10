@@ -10,6 +10,7 @@ import 'package:submersion/features/media/domain/entities/media_source_type.dart
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
 import 'package:submersion/features/media_store/data/media_cache_store.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
+import 'package:submersion/features/media_store/data/thumbnail_generator.dart';
 
 enum UploadOutcome { uploaded, deduplicated, skippedIneligible, failed }
 
@@ -24,12 +25,15 @@ class MediaUploadPipeline {
     required MediaObjectStore store,
     required MediaSourceResolverRegistry registry,
     required MediaCacheStore cache,
+    ThumbnailGenerator? thumbnails,
     DateTime Function()? now,
   }) : _mediaRepository = mediaRepository,
        _queue = queue,
        _store = store,
        _registry = registry,
        _cache = cache,
+       _thumbnails =
+           thumbnails ?? ThumbnailGenerator(registry: registry, cache: cache),
        _now = now ?? DateTime.now;
 
   final MediaRepository _mediaRepository;
@@ -37,6 +41,7 @@ class MediaUploadPipeline {
   final MediaObjectStore _store;
   final MediaSourceResolverRegistry _registry;
   final MediaCacheStore _cache;
+  final ThumbnailGenerator _thumbnails;
   final DateTime Function() _now;
   final _log = LoggerService.forClass(MediaUploadPipeline);
 
@@ -72,6 +77,32 @@ class MediaUploadPipeline {
           contentHash: digest.hash,
           sizeBytes: digest.sizeBytes,
         );
+      }
+
+      // Thumb first (spec section 9 step 5): tiny, so remote devices get
+      // something renderable while the original uploads. Best-effort - a
+      // thumb failure must never block the original.
+      if (item.remoteThumbUploadedAt == null) {
+        File? thumb;
+        try {
+          thumb = await _thumbnails.generateFor(item);
+          if (thumb != null) {
+            final thumbKey = StoreKeys.thumbKey(digest.hash);
+            if (await _store.head(thumbKey) == null) {
+              await _store.putFile(thumbKey, thumb, contentType: 'image/jpeg');
+            }
+            await _mediaRepository.stampRemoteThumbUploaded(
+              item.id,
+              uploadedAt: _now(),
+            );
+          }
+        } on Exception catch (e) {
+          _log.warning('Thumb upload failed for ${item.id}: $e');
+        } finally {
+          if (thumb != null && await thumb.exists()) {
+            await thumb.delete();
+          }
+        }
       }
 
       final extension = StoreKeys.extensionFor(item.originalFilename);

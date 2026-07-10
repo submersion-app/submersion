@@ -777,6 +777,26 @@ class MediaRepository {
     SyncEventBus.notifyLocalChange();
   }
 
+  /// Confirms the thumbnail object exists in the media store.
+  Future<void> stampRemoteThumbUploaded(
+    String mediaId, {
+    required DateTime uploadedAt,
+  }) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await (_db.update(_db.media)..where((t) => t.id.equals(mediaId))).write(
+      MediaCompanion(
+        remoteThumbUploadedAt: Value(uploadedAt.millisecondsSinceEpoch),
+        updatedAt: Value(now),
+      ),
+    );
+    await _syncRepository.markRecordPending(
+      entityType: 'media',
+      recordId: mediaId,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
+  }
+
   domain.MediaItem _mapRowToMediaItem(
     MediaData row, [
     MediaEnrichmentData? enrichmentRow,

@@ -83,4 +83,15 @@ void main() {
     expect(loaded.remoteUploadedAt, DateTime(2026, 3, 3));
     expect(loaded.remoteThumbUploadedAt, DateTime(2026, 3, 4));
   });
+
+  test('stampRemoteThumbUploaded round-trips', () async {
+    final created = await repository.createMedia(localFileItem('/tmp/t.jpg'));
+    await repository.stampRemoteThumbUploaded(
+      created.id,
+      uploadedAt: DateTime(2026, 7, 10, 13),
+    );
+    final loaded = await repository.getMediaById(created.id);
+    expect(loaded!.remoteThumbUploadedAt, DateTime(2026, 7, 10, 13));
+    expect(loaded.remoteUploadedAt, isNull);
+  });
 }

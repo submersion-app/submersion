@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' show Size;
 
@@ -17,6 +18,7 @@ import 'package:submersion/features/media/domain/value_objects/verify_result.dar
 import 'package:submersion/features/media_store/data/media_cache_store.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/media_store/data/media_upload_pipeline.dart';
+import 'package:submersion/features/media_store/data/thumbnail_generator.dart';
 
 import '../../helpers/in_memory_media_object_store.dart';
 import '../../helpers/test_database.dart';
@@ -71,14 +73,16 @@ void main() {
     resolver = _FakeLocalFileResolver(
       const UnavailableData(kind: UnavailableKind.notFound),
     );
+    final registry = MediaSourceResolverRegistry({
+      MediaSourceType.localFile: resolver,
+    });
     pipeline = MediaUploadPipeline(
       mediaRepository: mediaRepository,
       queue: queue,
       store: fakeStore,
-      registry: MediaSourceResolverRegistry({
-        MediaSourceType.localFile: resolver,
-      }),
+      registry: registry,
       cache: cache,
+      thumbnails: ThumbnailGenerator(registry: registry, cache: cache),
       now: () => DateTime(2026, 7, 10, 12),
     );
   });
@@ -182,6 +186,38 @@ void main() {
     expect(row.errorMessage, contains('unavailable'));
     expect(fakeStore.objects, isEmpty);
     expect((await mediaRepository.getMediaById(id))!.remoteUploadedAt, isNull);
+  });
+
+  test('thumb object uploads alongside the original and stamps '
+      'remoteThumbUploadedAt', () async {
+    final png = base64Decode(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR4nGNgAAIAAAUAAXpe'
+      'qz8AAAAASUVORK5CYII=',
+    );
+    final id = await enqueueLocalFileItem(bytes: png, name: 'a.png');
+    final entry = (await queue.nextPending(DateTime.now()))!;
+    expect(await pipeline.process(entry), UploadOutcome.uploaded);
+
+    final item = (await mediaRepository.getMediaById(id))!;
+    expect(item.remoteThumbUploadedAt, isNotNull);
+    final thumbKey =
+        'smv1/thumbs/${item.contentHash!.substring(0, 2)}/'
+        '${item.contentHash}.jpg';
+    expect(fakeStore.objects.containsKey(thumbKey), isTrue);
+    expect(fakeStore.objects, hasLength(2));
+  });
+
+  test('thumb failure never blocks the original upload', () async {
+    // Undecodable bytes: the resize path fails while the original path
+    // still materializes and uploads.
+    final id = await enqueueLocalFileItem(bytes: [1, 2, 3], name: 'a.jpg');
+    final entry = (await queue.nextPending(DateTime.now()))!;
+    expect(await pipeline.process(entry), UploadOutcome.uploaded);
+
+    final item = (await mediaRepository.getMediaById(id))!;
+    expect(item.remoteUploadedAt, isNotNull);
+    expect(item.remoteThumbUploadedAt, isNull);
+    expect(fakeStore.objects, hasLength(1));
   });
 
   test('video rows are ineligible until Phase 3', () async {
