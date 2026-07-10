@@ -1537,6 +1537,7 @@
   "siteMatchReview_noNearbySite": "אין אתר בקרבת מקום",
   "importSummary_matchSitesButton": "התאמת {count} צלילות לאתרים",
   "diveLog_listPage_searchFieldLabel": "חיפוש צלילות...",
+  "diveLog_listPage_searchLimitNotice": "מוצגות {limit} ההתאמות הראשונות. חדדו את החיפוש כדי לצמצם את התוצאות.",
   "diveLog_listPage_searchNoResults": "לא נמצאו צלילות עבור \"{query}\"",
   "diveLog_listPage_searchSuggestion": "חיפוש לפי אתר, שותף או הערות",
   "diveLog_listPage_title": "יומן צלילה",

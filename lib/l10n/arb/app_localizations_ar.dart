@@ -4751,6 +4751,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => 'البحث في الغوصات...';
 
   @override
+  String diveLog_listPage_searchLimitNotice(int limit) {
+    return 'عرض أول $limit نتيجة مطابقة. حسّن البحث لتضييق النتائج.';
+  }
+
+  @override
   String diveLog_listPage_searchNoResults(Object query) {
     return 'لم يتم العثور على غوصات لـ \"$query\"';
   }

@@ -2583,6 +2583,7 @@
     }
   },
   "diveLog_listPage_searchFieldLabel": "Search dives...",
+  "diveLog_listPage_searchLimitNotice": "Showing the first {limit} matches. Refine your search to narrow results.",
   "diveLog_listPage_searchNoResults": "No dives found for \"{query}\"",
   "diveLog_listPage_searchSuggestion": "Search by site, buddy, or notes",
   "diveLog_listPage_title": "Dive Log",
@@ -3206,6 +3207,13 @@
     "placeholders": {
       "error": {
         "type": "Object"
+      }
+    }
+  },
+  "@diveLog_listPage_searchLimitNotice": {
+    "placeholders": {
+      "limit": {
+        "type": "int"
       }
     }
   },

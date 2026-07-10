@@ -4825,6 +4825,11 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => 'Duiken zoeken...';
 
   @override
+  String diveLog_listPage_searchLimitNotice(int limit) {
+    return 'De eerste $limit resultaten worden getoond. Verfijn je zoekopdracht om de resultaten te beperken.';
+  }
+
+  @override
   String diveLog_listPage_searchNoResults(Object query) {
     return 'Geen duiken gevonden voor \"$query\"';
   }

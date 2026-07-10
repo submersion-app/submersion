@@ -4860,6 +4860,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => 'Tauchgänge suchen...';
 
   @override
+  String diveLog_listPage_searchLimitNotice(int limit) {
+    return 'Die ersten $limit Treffer werden angezeigt. Verfeinern Sie die Suche, um die Ergebnisse einzugrenzen.';
+  }
+
+  @override
   String diveLog_listPage_searchNoResults(Object query) {
     return 'Keine Tauchgänge gefunden für \"$query\"';
   }

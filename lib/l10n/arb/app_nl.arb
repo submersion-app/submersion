@@ -1571,6 +1571,7 @@
   "siteMatchReview_noNearbySite": "Geen stek in de buurt",
   "importSummary_matchSitesButton": "{count} duiken aan stekken koppelen",
   "diveLog_listPage_searchFieldLabel": "Duiken zoeken...",
+  "diveLog_listPage_searchLimitNotice": "De eerste {limit} resultaten worden getoond. Verfijn je zoekopdracht om de resultaten te beperken.",
   "diveLog_listPage_searchNoResults": "Geen duiken gevonden voor \"{query}\"",
   "diveLog_listPage_searchSuggestion": "Zoek op stek, buddy of notities",
   "diveLog_listPage_title": "Duiklogboek",

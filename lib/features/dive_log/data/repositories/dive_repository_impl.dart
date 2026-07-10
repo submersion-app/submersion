@@ -1540,41 +1540,7 @@ class DiveRepository {
         final tagsByDive = await _tagRepository.getTagsForDives(diveIds);
         final diveTypesByDive = await _diveTypesForDives(diveIds);
 
-        return rows.map((row) {
-          final id = row.read<String>('id');
-          final entryTime = row.readNullable<int>('entry_time');
-          final bottomTime = row.readNullable<int>('bottom_time');
-          final runtime = row.readNullable<int>('runtime');
-
-          return DiveSummary(
-            id: id,
-            diveNumber: row.readNullable<int>('dive_number'),
-            name: row.readNullable<String>('dive_name'),
-            dateTime: DateTime.fromMillisecondsSinceEpoch(
-              row.read<int>('dive_date_time'),
-              isUtc: true,
-            ),
-            entryTime: entryTime != null
-                ? DateTime.fromMillisecondsSinceEpoch(entryTime, isUtc: true)
-                : null,
-            maxDepth: row.readNullable<double>('max_depth'),
-            bottomTime: bottomTime != null
-                ? Duration(seconds: bottomTime)
-                : null,
-            runtime: runtime != null ? Duration(seconds: runtime) : null,
-            waterTemp: row.readNullable<double>('water_temp'),
-            rating: row.readNullable<int>('rating'),
-            isFavorite: row.read<int>('is_favorite') == 1,
-            diveTypeIds: diveTypesByDive[id] ?? [row.read<String>('dive_type')],
-            tags: tagsByDive[id] ?? [],
-            siteName: row.readNullable<String>('site_name'),
-            siteCountry: row.readNullable<String>('site_country'),
-            siteRegion: row.readNullable<String>('site_region'),
-            siteLatitude: row.readNullable<double>('site_latitude'),
-            siteLongitude: row.readNullable<double>('site_longitude'),
-            sortTimestamp: row.read<int>('sort_timestamp'),
-          );
-        }).toList();
+        return _mapSummaryRows(rows, tagsByDive, diveTypesByDive);
       });
     } catch (e, stackTrace) {
       _log.error(
@@ -1928,89 +1894,160 @@ class DiveRepository {
     return getNextDiveNumber(diverId: diverId);
   }
 
-  /// Search dives by name, notes, or buddy name
-  Future<List<domain.Dive>> searchDives(String query, {String? diverId}) async {
+  /// Maximum number of results returned by [searchDiveSummaries]; the UI
+  /// shows a "showing first N" notice when the bound is hit.
+  static const int searchResultLimit = 100;
+
+  /// Search dives by name, notes, buddy, dive master, site name/country/
+  /// region, dive center name, linked buddy names, tag names, or custom
+  /// fields, returning lightweight [DiveSummary] rows.
+  ///
+  /// Exactly four SQL statements regardless of match count (match ids,
+  /// summary rows, batched tags, batched dive types), bounded to the [limit]
+  /// most recent matches. Replaces the unbounded full-Dive-hydrating search
+  /// whose roughly-ten-queries-per-match N+1 dominated search cost on large
+  /// databases (docs/superpowers/specs/2026-07-10-large-db-performance-
+  /// findings.md).
+  Future<List<DiveSummary>> searchDiveSummaries(
+    String query, {
+    String? diverId,
+    int limit = searchResultLimit,
+  }) async {
     try {
-      // Search across dive fields and all related tables in a single query.
-      // Matches: name, notes, buddy (legacy field), dive master, site name/
-      // country/region, dive center name, linked buddy names, tag names,
-      // custom fields.
-      final likeTerm = '%$query%';
-      final diverClause = diverId != null ? 'AND d.diver_id = ?' : '';
-      final diverArgs = diverId != null
-          ? [Variable<String>(diverId)]
-          : <Variable<String>>[];
+      return await PerfTimer.measure('searchDiveSummaries', () async {
+        final likeTerm = '%$query%';
+        final diverClause = diverId != null ? 'AND d.diver_id = ?' : '';
+        final diverArgs = diverId != null
+            ? [Variable<String>(diverId)]
+            : <Variable<String>>[];
 
-      final matchingIds = await _db
-          .customSelect(
-            '''
-            SELECT DISTINCT d.id
-            FROM dives d
-            LEFT JOIN dive_sites ds ON d.site_id = ds.id
-            LEFT JOIN dive_centers dc ON d.dive_center_id = dc.id
-            LEFT JOIN dive_buddies db ON db.dive_id = d.id
-            LEFT JOIN buddies b ON db.buddy_id = b.id
-            LEFT JOIN dive_tags dt ON dt.dive_id = d.id
-            LEFT JOIN tags t ON dt.tag_id = t.id
-            LEFT JOIN dive_custom_fields cf ON cf.dive_id = d.id
-            WHERE (
-              d.notes LIKE ?
-              OR d.name LIKE ?
-              OR d.buddy LIKE ?
-              OR d.dive_master LIKE ?
-              OR ds.name LIKE ?
-              OR ds.country LIKE ?
-              OR ds.region LIKE ?
-              OR dc.name LIKE ?
-              OR b.name LIKE ?
-              OR t.name LIKE ?
-              OR cf.field_key LIKE ?
-              OR cf.field_value LIKE ?
+        final matchingIds = await _db
+            .customSelect(
+              '''
+              SELECT DISTINCT d.id,
+                COALESCE(d.entry_time, d.dive_date_time) AS sort_ts
+              FROM dives d
+              LEFT JOIN dive_sites ds ON d.site_id = ds.id
+              LEFT JOIN dive_centers dc ON d.dive_center_id = dc.id
+              LEFT JOIN dive_buddies db ON db.dive_id = d.id
+              LEFT JOIN buddies b ON db.buddy_id = b.id
+              LEFT JOIN dive_tags dt ON dt.dive_id = d.id
+              LEFT JOIN tags t ON dt.tag_id = t.id
+              LEFT JOIN dive_custom_fields cf ON cf.dive_id = d.id
+              WHERE (
+                d.notes LIKE ?
+                OR d.name LIKE ?
+                OR d.buddy LIKE ?
+                OR d.dive_master LIKE ?
+                OR ds.name LIKE ?
+                OR ds.country LIKE ?
+                OR ds.region LIKE ?
+                OR dc.name LIKE ?
+                OR b.name LIKE ?
+                OR t.name LIKE ?
+                OR cf.field_key LIKE ?
+                OR cf.field_value LIKE ?
+              )
+              $diverClause
+              ORDER BY sort_ts DESC
+              LIMIT ?
+              ''',
+              variables: [
+                for (var i = 0; i < 12; i++) Variable<String>(likeTerm),
+                ...diverArgs,
+                Variable<int>(limit),
+              ],
             )
-            $diverClause
-            ''',
-            variables: [
-              Variable(likeTerm),
-              Variable(likeTerm),
-              Variable(likeTerm),
-              Variable(likeTerm),
-              Variable(likeTerm),
-              Variable(likeTerm),
-              Variable(likeTerm),
-              Variable(likeTerm),
-              Variable(likeTerm),
-              Variable(likeTerm),
-              Variable(likeTerm),
-              Variable(likeTerm),
-              ...diverArgs,
-            ],
-          )
-          .get();
+            .get();
 
-      if (matchingIds.isEmpty) return [];
+        if (matchingIds.isEmpty) return <DiveSummary>[];
 
-      final ids = matchingIds.map((r) => r.data['id'] as String).toList();
-
-      final rows =
-          await (_db.select(_db.dives)
-                ..where((t) => t.id.isIn(ids))
-                ..orderBy([
-                  (t) => OrderingTerm.desc(
-                    coalesce([t.entryTime, t.diveDateTime]),
-                  ),
-                  (t) => OrderingTerm.desc(t.diveNumber),
-                ]))
-              .get();
-
-      return Future.wait(rows.map(_mapRowToDive));
+        final ids = matchingIds.map((r) => r.read<String>('id')).toList();
+        return _summariesForIds(ids);
+      });
     } catch (e, stackTrace) {
       _log.error(
-        'Failed to search dives: $query',
+        'Failed to search dive summaries: $query',
         error: e,
         stackTrace: stackTrace,
       );
       rethrow;
     }
+  }
+
+  /// Loads [DiveSummary] rows for [ids] (slim SELECT plus batched tags and
+  /// dive types), ordered most recent first.
+  Future<List<DiveSummary>> _summariesForIds(List<String> ids) async {
+    final placeholders = List.filled(ids.length, '?').join(', ');
+    final rows = await _db
+        .customSelect(
+          'SELECT '
+          'd.id, d.dive_number, d.name AS dive_name, '
+          'd.dive_date_time, d.entry_time, '
+          'd.max_depth, d.bottom_time, d.runtime, d.water_temp, d.rating, '
+          'd.is_favorite, d.dive_type, '
+          'COALESCE(d.entry_time, d.dive_date_time) AS sort_timestamp, '
+          's.name AS site_name, s.country AS site_country, '
+          's.region AS site_region, s.latitude AS site_latitude, '
+          's.longitude AS site_longitude '
+          'FROM dives d '
+          'LEFT JOIN dive_sites s ON d.site_id = s.id '
+          'WHERE d.id IN ($placeholders) '
+          'ORDER BY sort_timestamp DESC, '
+          'COALESCE(d.dive_number, 0) DESC, d.id DESC',
+          variables: [for (final id in ids) Variable<String>(id)],
+          readsFrom: {_db.dives, _db.diveSites},
+        )
+        .get();
+
+    if (rows.isEmpty) return [];
+
+    final diveIds = rows.map((r) => r.read<String>('id')).toList();
+    final tagsByDive = await _tagRepository.getTagsForDives(diveIds);
+    final diveTypesByDive = await _diveTypesForDives(diveIds);
+    return _mapSummaryRows(rows, tagsByDive, diveTypesByDive);
+  }
+
+  /// Shared row mapper for the summary SELECT column list (used by
+  /// [getDiveSummaries] and [_summariesForIds]).
+  List<DiveSummary> _mapSummaryRows(
+    List<QueryRow> rows,
+    Map<String, List<domain.Tag>> tagsByDive,
+    Map<String, List<String>> diveTypesByDive,
+  ) {
+    return rows.map((row) {
+      final id = row.read<String>('id');
+      final entryTime = row.readNullable<int>('entry_time');
+      final bottomTime = row.readNullable<int>('bottom_time');
+      final runtime = row.readNullable<int>('runtime');
+
+      return DiveSummary(
+        id: id,
+        diveNumber: row.readNullable<int>('dive_number'),
+        name: row.readNullable<String>('dive_name'),
+        dateTime: DateTime.fromMillisecondsSinceEpoch(
+          row.read<int>('dive_date_time'),
+          isUtc: true,
+        ),
+        entryTime: entryTime != null
+            ? DateTime.fromMillisecondsSinceEpoch(entryTime, isUtc: true)
+            : null,
+        maxDepth: row.readNullable<double>('max_depth'),
+        bottomTime: bottomTime != null ? Duration(seconds: bottomTime) : null,
+        runtime: runtime != null ? Duration(seconds: runtime) : null,
+        waterTemp: row.readNullable<double>('water_temp'),
+        rating: row.readNullable<int>('rating'),
+        isFavorite: row.read<int>('is_favorite') == 1,
+        diveTypeIds: diveTypesByDive[id] ?? [row.read<String>('dive_type')],
+        tags: tagsByDive[id] ?? [],
+        siteName: row.readNullable<String>('site_name'),
+        siteCountry: row.readNullable<String>('site_country'),
+        siteRegion: row.readNullable<String>('site_region'),
+        siteLatitude: row.readNullable<double>('site_latitude'),
+        siteLongitude: row.readNullable<double>('site_longitude'),
+        sortTimestamp: row.read<int>('sort_timestamp'),
+      );
+    }).toList();
   }
 
   // ============================================================================

@@ -1571,6 +1571,7 @@
   "siteMatchReview_noNearbySite": "Ningún punto cercano",
   "importSummary_matchSitesButton": "Asociar {count} inmersiones a puntos",
   "diveLog_listPage_searchFieldLabel": "Buscar inmersiones...",
+  "diveLog_listPage_searchLimitNotice": "Mostrando las primeras {limit} coincidencias. Refina la búsqueda para acotar los resultados.",
   "diveLog_listPage_searchNoResults": "No se encontraron inmersiones para \"{query}\"",
   "diveLog_listPage_searchSuggestion": "Buscar por punto, compañero o notas",
   "diveLog_listPage_title": "Registro de buceo",

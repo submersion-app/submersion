@@ -4845,6 +4845,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => 'Merulesek keresese...';
 
   @override
+  String diveLog_listPage_searchLimitNotice(int limit) {
+    return 'Az első $limit találat látható. Pontosítsa a keresést az eredmények szűkítéséhez.';
+  }
+
+  @override
   String diveLog_listPage_searchNoResults(Object query) {
     return 'Nem talalhato merules: \"$query\"';
   }

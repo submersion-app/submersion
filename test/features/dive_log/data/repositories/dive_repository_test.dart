@@ -563,21 +563,21 @@ void main() {
       });
 
       test('should find dives by notes', () async {
-        final results = await repository.searchDives('coral');
+        final results = await repository.searchDiveSummaries('coral');
 
         expect(results.length, equals(1));
         expect(results[0].diveNumber, equals(1));
       });
 
       test('should find dives by buddy', () async {
-        final results = await repository.searchDives('Bob');
+        final results = await repository.searchDiveSummaries('Bob');
 
         expect(results.length, equals(1));
         expect(results[0].diveNumber, equals(2));
       });
 
       test('should return empty list for no matches', () async {
-        final results = await repository.searchDives('NonExistent');
+        final results = await repository.searchDiveSummaries('NonExistent');
 
         expect(results, isEmpty);
       });
@@ -588,7 +588,7 @@ void main() {
         );
         await repository.createDive(createTestDive(diveNumber: 10, site: site));
 
-        final results = await repository.searchDives('Blue Hole');
+        final results = await repository.searchDiveSummaries('Blue Hole');
 
         expect(results.length, equals(1));
         expect(results[0].diveNumber, equals(10));
@@ -600,7 +600,7 @@ void main() {
         );
         await repository.createDive(createTestDive(diveNumber: 11, site: site));
 
-        final results = await repository.searchDives('Thailand');
+        final results = await repository.searchDiveSummaries('Thailand');
 
         expect(results.length, equals(1));
         expect(results[0].diveNumber, equals(11));
@@ -612,7 +612,7 @@ void main() {
         );
         await repository.createDive(createTestDive(diveNumber: 12, site: site));
 
-        final results = await repository.searchDives('Cozumel');
+        final results = await repository.searchDiveSummaries('Cozumel');
 
         expect(results.length, equals(1));
         expect(results[0].diveNumber, equals(12));
@@ -633,7 +633,7 @@ void main() {
         );
         await buddyRepo.addBuddyToDive(dive.id, buddy.id, BuddyRole.buddy);
 
-        final results = await repository.searchDives('Cousteau');
+        final results = await repository.searchDiveSummaries('Cousteau');
 
         expect(results.length, equals(1));
         expect(results[0].diveNumber, equals(13));
@@ -654,7 +654,9 @@ void main() {
         );
         await tagRepo.addTagToDive(dive.id, tag.id);
 
-        final results = await repository.searchDives('wreck-exploration');
+        final results = await repository.searchDiveSummaries(
+          'wreck-exploration',
+        );
 
         expect(results.length, equals(1));
         expect(results[0].diveNumber, equals(14));

@@ -1571,6 +1571,7 @@
   "siteMatchReview_noNearbySite": "Nenhum ponto próximo",
   "importSummary_matchSitesButton": "Associar {count} mergulhos a pontos",
   "diveLog_listPage_searchFieldLabel": "Buscar mergulhos...",
+  "diveLog_listPage_searchLimitNotice": "Mostrando as primeiras {limit} correspondências. Refine a busca para restringir os resultados.",
   "diveLog_listPage_searchNoResults": "Nenhum mergulho encontrado para \"{query}\"",
   "diveLog_listPage_searchSuggestion": "Buscar por ponto, dupla ou anotacoes",
   "diveLog_listPage_title": "Log de Mergulhos",

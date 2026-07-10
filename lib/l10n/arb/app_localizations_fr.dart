@@ -4883,6 +4883,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => 'Rechercher des plongees...';
 
   @override
+  String diveLog_listPage_searchLimitNotice(int limit) {
+    return 'Affichage des $limit premières correspondances. Affinez votre recherche pour réduire les résultats.';
+  }
+
+  @override
   String diveLog_listPage_searchNoResults(Object query) {
     return 'Aucune plongee trouvee pour \"$query\"';
   }

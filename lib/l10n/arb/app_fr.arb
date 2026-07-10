@@ -1537,6 +1537,7 @@
   "siteMatchReview_noNearbySite": "Aucun site à proximité",
   "importSummary_matchSitesButton": "Associer {count} plongées aux sites",
   "diveLog_listPage_searchFieldLabel": "Rechercher des plongees...",
+  "diveLog_listPage_searchLimitNotice": "Affichage des {limit} premières correspondances. Affinez votre recherche pour réduire les résultats.",
   "diveLog_listPage_searchNoResults": "Aucune plongee trouvee pour \"{query}\"",
   "diveLog_listPage_searchSuggestion": "Rechercher par site, binome ou notes",
   "diveLog_listPage_title": "Carnet de plongee",

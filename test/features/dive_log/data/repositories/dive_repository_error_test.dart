@@ -47,7 +47,10 @@ void main() {
         throwsA(anything),
       );
       await expectLater(repository.getNextDiveNumber(), throwsA(anything));
-      await expectLater(repository.searchDives('test'), throwsA(anything));
+      await expectLater(
+        repository.searchDiveSummaries('test'),
+        throwsA(anything),
+      );
       await expectLater(repository.getStatistics(), throwsA(anything));
       await expectLater(repository.getRecords(), throwsA(anything));
       final dummyDive = Dive(id: 'test-id', dateTime: DateTime.now());

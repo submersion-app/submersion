@@ -236,19 +236,21 @@ final nextDiveNumberProvider = FutureProvider<int>((ref) async {
   return repository.getNextDiveNumber(diverId: currentDiverId);
 });
 
-/// Search results provider
-final diveSearchProvider = FutureProvider.family<List<domain.Dive>, String>((
+/// Search results provider.
+///
+/// Returns lightweight [DiveSummary] rows, bounded to the
+/// [DiveRepository.searchResultLimit] most recent matches (exactly four SQL
+/// statements regardless of match count).
+final diveSearchProvider = FutureProvider.family<List<DiveSummary>, String>((
   ref,
   query,
 ) async {
+  if (query.isEmpty) return const [];
   final validatedDiverId = await ref.watch(
     validatedCurrentDiverIdProvider.future,
   );
-  if (query.isEmpty) {
-    return ref.watch(divesProvider).value ?? [];
-  }
   final repository = ref.watch(diveRepositoryProvider);
-  return repository.searchDives(query, diverId: validatedDiverId);
+  return repository.searchDiveSummaries(query, diverId: validatedDiverId);
 });
 
 /// Dive list notifier for mutations

@@ -1571,6 +1571,7 @@
   "siteMatchReview_noNearbySite": "لا يوجد موقع قريب",
   "importSummary_matchSitesButton": "مطابقة {count} غوصات بالمواقع",
   "diveLog_listPage_searchFieldLabel": "البحث في الغوصات...",
+  "diveLog_listPage_searchLimitNotice": "عرض أول {limit} نتيجة مطابقة. حسّن البحث لتضييق النتائج.",
   "diveLog_listPage_searchNoResults": "لم يتم العثور على غوصات لـ \"{query}\"",
   "diveLog_listPage_searchSuggestion": "البحث حسب الموقع أو زميل الغوص أو الملاحظات",
   "diveLog_listPage_title": "سجل الغوص",

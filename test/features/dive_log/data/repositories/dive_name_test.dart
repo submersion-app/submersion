@@ -70,19 +70,19 @@ void main() {
     });
   });
 
-  group('searchDives by name', () {
+  group('searchDiveSummaries by name', () {
     test('matches a dive by its custom name', () async {
       await repository.createDive(makeDive(name: 'Wreck penetration dive'));
       await repository.createDive(makeDive(name: 'Reef checkout'));
 
-      final results = await repository.searchDives('penetration');
+      final results = await repository.searchDiveSummaries('penetration');
       expect(results, hasLength(1));
       expect(results.first.name, 'Wreck penetration dive');
     });
 
     test('does not match unnamed dives', () async {
       await repository.createDive(makeDive());
-      final results = await repository.searchDives('penetration');
+      final results = await repository.searchDiveSummaries('penetration');
       expect(results, isEmpty);
     });
   });

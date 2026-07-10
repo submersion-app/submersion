@@ -4864,6 +4864,11 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => 'Cerca immersioni...';
 
   @override
+  String diveLog_listPage_searchLimitNotice(int limit) {
+    return 'Vengono mostrate le prime $limit corrispondenze. Affina la ricerca per restringere i risultati.';
+  }
+
+  @override
   String diveLog_listPage_searchNoResults(Object query) {
     return 'Nessuna immersione trovata per \"$query\"';
   }

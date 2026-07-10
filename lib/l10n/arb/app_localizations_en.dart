@@ -4774,6 +4774,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => 'Search dives...';
 
   @override
+  String diveLog_listPage_searchLimitNotice(int limit) {
+    return 'Showing the first $limit matches. Refine your search to narrow results.';
+  }
+
+  @override
   String diveLog_listPage_searchNoResults(Object query) {
     return 'No dives found for \"$query\"';
   }

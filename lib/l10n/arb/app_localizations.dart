@@ -8180,6 +8180,12 @@ abstract class AppLocalizations {
   /// **'Search dives...'**
   String get diveLog_listPage_searchFieldLabel;
 
+  /// No description provided for @diveLog_listPage_searchLimitNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing the first {limit} matches. Refine your search to narrow results.'**
+  String diveLog_listPage_searchLimitNotice(int limit);
+
   /// No description provided for @diveLog_listPage_searchNoResults.
   ///
   /// In en, this message translates to:

@@ -4729,6 +4729,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => 'חיפוש צלילות...';
 
   @override
+  String diveLog_listPage_searchLimitNotice(int limit) {
+    return 'מוצגות $limit ההתאמות הראשונות. חדדו את החיפוש כדי לצמצם את התוצאות.';
+  }
+
+  @override
   String diveLog_listPage_searchNoResults(Object query) {
     return 'לא נמצאו צלילות עבור \"$query\"';
   }

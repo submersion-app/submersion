@@ -16,6 +16,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
 import 'package:submersion/core/constants/dive_field.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -361,7 +362,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
 }
 
 /// Search delegate for diving through dive logs
-class DiveSearchDelegate extends SearchDelegate<Dive?> {
+class DiveSearchDelegate extends SearchDelegate<String?> {
   final WidgetRef ref;
 
   DiveSearchDelegate(this.ref);
@@ -427,7 +428,7 @@ class DiveSearchDelegate extends SearchDelegate<Dive?> {
   }
 
   Widget _buildSearchResults(BuildContext context) {
-    return DebouncedSearchResults<Dive>(
+    return DebouncedSearchResults<DiveSummary>(
       query: query,
       watchProvider: (ref, q) => ref.watch(diveSearchProvider(q)),
       emptyBuilder: (context, q) => Center(
@@ -456,7 +457,7 @@ class DiveSearchDelegate extends SearchDelegate<Dive?> {
       dataBuilder: (context, dives) {
         final colorAttribute = ref.read(settingsProvider).cardColorAttribute;
         final colorValues = dives
-            .map((d) => getCardColorValueFromDive(d, colorAttribute))
+            .map((d) => getCardColorValue(d, colorAttribute))
             .whereType<double>();
         final minValue = colorValues.isNotEmpty
             ? colorValues.reduce((a, b) => a < b ? a : b)
@@ -464,30 +465,46 @@ class DiveSearchDelegate extends SearchDelegate<Dive?> {
         final maxValue = colorValues.isNotEmpty
             ? colorValues.reduce((a, b) => a > b ? a : b)
             : null;
+        final showLimitNotice =
+            dives.length >= DiveRepository.searchResultLimit;
 
         return ListView.builder(
-          itemCount: dives.length,
+          itemCount: dives.length + (showLimitNotice ? 1 : 0),
           itemBuilder: (context, index) {
+            if (index >= dives.length) {
+              return Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  context.l10n.diveLog_listPage_searchLimitNotice(
+                    DiveRepository.searchResultLimit,
+                  ),
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              );
+            }
             final dive = dives[index];
             return DiveListTile(
               diveId: dive.id,
               diveNumber: dive.diveNumber ?? index + 1,
               dateTime: dive.dateTime,
-              siteName: dive.site?.name,
-              siteLocation: dive.site?.locationString,
+              siteName: dive.siteName,
+              siteLocation: dive.siteLocation,
               maxDepth: dive.maxDepth,
               duration: dive.bottomTime,
               waterTemp: dive.waterTemp,
               rating: dive.rating,
               isFavorite: dive.isFavorite,
               tags: dive.tags,
-              colorValue: getCardColorValueFromDive(dive, colorAttribute),
+              colorValue: getCardColorValue(dive, colorAttribute),
               minValueInList: minValue,
               maxValueInList: maxValue,
-              siteLatitude: dive.site?.location?.latitude,
-              siteLongitude: dive.site?.location?.longitude,
+              siteLatitude: dive.siteLatitude,
+              siteLongitude: dive.siteLongitude,
               onTap: () {
-                close(context, dive);
+                close(context, dive.id);
                 context.go('/dives/${dive.id}');
               },
             );

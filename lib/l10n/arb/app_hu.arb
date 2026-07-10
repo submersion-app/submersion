@@ -1537,6 +1537,7 @@
   "siteMatchReview_noNearbySite": "Nincs közeli hely",
   "importSummary_matchSitesButton": "{count} merülés hozzárendelése helyekhez",
   "diveLog_listPage_searchFieldLabel": "Merulesek keresese...",
+  "diveLog_listPage_searchLimitNotice": "Az első {limit} találat látható. Pontosítsa a keresést az eredmények szűkítéséhez.",
   "diveLog_listPage_searchNoResults": "Nem talalhato merules: \"{query}\"",
   "diveLog_listPage_searchSuggestion": "Kereses merulohely, buddy vagy jegyzetek alapjan",
   "diveLog_listPage_title": "Merulesi naplo",

@@ -4863,6 +4863,11 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => 'Buscar mergulhos...';
 
   @override
+  String diveLog_listPage_searchLimitNotice(int limit) {
+    return 'Mostrando as primeiras $limit correspondências. Refine a busca para restringir os resultados.';
+  }
+
+  @override
   String diveLog_listPage_searchNoResults(Object query) {
     return 'Nenhum mergulho encontrado para \"$query\"';
   }

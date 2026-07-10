@@ -4626,6 +4626,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_listPage_searchFieldLabel => '搜索潜水...';
 
   @override
+  String diveLog_listPage_searchLimitNotice(int limit) {
+    return '仅显示前 $limit 条匹配结果。请细化搜索以缩小范围。';
+  }
+
+  @override
   String diveLog_listPage_searchNoResults(Object query) {
     return '未找到与「$query」匹配的潜水';
   }

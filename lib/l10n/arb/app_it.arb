@@ -1537,6 +1537,7 @@
   "siteMatchReview_noNearbySite": "Nessun sito nelle vicinanze",
   "importSummary_matchSitesButton": "Associa {count} immersioni ai siti",
   "diveLog_listPage_searchFieldLabel": "Cerca immersioni...",
+  "diveLog_listPage_searchLimitNotice": "Vengono mostrate le prime {limit} corrispondenze. Affina la ricerca per restringere i risultati.",
   "diveLog_listPage_searchNoResults": "Nessuna immersione trovata per \"{query}\"",
   "diveLog_listPage_searchSuggestion": "Cerca per sito, compagno o note",
   "diveLog_listPage_title": "Diario immersioni",
