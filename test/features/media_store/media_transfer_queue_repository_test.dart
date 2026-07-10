@@ -162,4 +162,95 @@ void main() {
     expect(await repo.deleteDone(), 1);
     expect((await repo.allForTesting()).length, 1);
   });
+
+  test('v3 migration adds progress columns to an existing v2 '
+      'database', () async {
+    final nativeDb = NativeDatabase.memory(
+      setup: (rawDb) {
+        rawDb.execute('PRAGMA user_version = 2');
+        rawDb.execute('''
+          CREATE TABLE local_asset_cache (
+            media_id TEXT NOT NULL PRIMARY KEY,
+            local_asset_id TEXT,
+            resolved_at INTEGER NOT NULL,
+            resolution_method TEXT NOT NULL,
+            attempt_count INTEGER NOT NULL DEFAULT 0
+          )
+        ''');
+        rawDb.execute('''
+          CREATE TABLE media_transfer_queue (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            media_id TEXT NOT NULL,
+            direction TEXT NOT NULL DEFAULT 'upload',
+            object_kind TEXT NOT NULL DEFAULT 'original',
+            content_hash TEXT,
+            state TEXT NOT NULL DEFAULT 'pending',
+            attempts INTEGER NOT NULL DEFAULT 0,
+            next_attempt_at INTEGER,
+            resume_state_json TEXT,
+            error_message TEXT,
+            priority INTEGER NOT NULL DEFAULT 0,
+            created_at INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL
+          )
+        ''');
+        rawDb.execute('''
+          CREATE TABLE media_cache_entries (
+            content_hash TEXT NOT NULL,
+            kind TEXT NOT NULL,
+            relative_path TEXT NOT NULL,
+            size_bytes INTEGER NOT NULL,
+            last_accessed_at INTEGER NOT NULL,
+            created_at INTEGER NOT NULL,
+            PRIMARY KEY (content_hash, kind)
+          )
+        ''');
+        rawDb.execute(
+          "INSERT INTO media_transfer_queue "
+          "(media_id, created_at, updated_at) VALUES ('m1', 1, 1)",
+        );
+      },
+    );
+    final upgraded = LocalCacheDatabase(nativeDb);
+    addTearDown(upgraded.close);
+
+    final cols = await upgraded
+        .customSelect("PRAGMA table_info('media_transfer_queue')")
+        .get();
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    expect(names, containsAll(['progress_bytes', 'total_bytes']));
+    final kept = await upgraded
+        .customSelect("SELECT media_id FROM media_transfer_queue")
+        .getSingle();
+    expect(kept.data['media_id'], 'm1');
+  });
+
+  test('resume state persists through markFailed and retry, and clears on '
+      'markDone', () async {
+    final id = await repo.enqueueUpload(mediaId: 'm1');
+    await repo.updateResumeState(id, '{"uploadId":"u1"}');
+    await repo.updateProgress(id, transferredBytes: 16, totalBytes: 64);
+
+    await repo.markFailed(id, 'network blip');
+    var row = (await repo.allForTesting()).single;
+    expect(row.resumeStateJson, '{"uploadId":"u1"}');
+    expect(row.progressBytes, 16);
+
+    for (var i = 0; i < 4; i++) {
+      await repo.markFailed(id, 'boom');
+    }
+    await repo.retry(id);
+    row = (await repo.allForTesting()).single;
+    expect(
+      row.resumeStateJson,
+      '{"uploadId":"u1"}',
+      reason: 'retry must keep the resume point',
+    );
+
+    await repo.markDone(id);
+    row = (await repo.allForTesting()).single;
+    expect(row.resumeStateJson, isNull);
+    expect(row.progressBytes, isNull);
+    expect(row.totalBytes, isNull);
+  });
 }

@@ -30,6 +30,9 @@ class MediaTransferQueue extends Table {
   TextColumn get resumeStateJson => text().nullable()();
   TextColumn get errorMessage => text().nullable()();
   IntColumn get priority => integer().withDefault(const Constant(0))();
+  // Transfer progress (v3), surfaced in the Transfers view.
+  IntColumn get progressBytes => integer().nullable()();
+  IntColumn get totalBytes => integer().nullable()();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 }
@@ -52,14 +55,19 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
   LocalCacheDatabase(super.e);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onUpgrade: (m, from, to) async {
       if (from < 2) {
+        // Creates the tables with the CURRENT schema, columns included.
         await m.createTable(mediaTransferQueue);
         await m.createTable(mediaCacheEntries);
+      }
+      if (from >= 2 && from < 3) {
+        await m.addColumn(mediaTransferQueue, mediaTransferQueue.progressBytes);
+        await m.addColumn(mediaTransferQueue, mediaTransferQueue.totalBytes);
       }
     },
   );
