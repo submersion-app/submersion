@@ -238,6 +238,8 @@ class DiveRepository {
                   serviceIntervalDays: e.serviceIntervalDays,
                   notes: e.notes,
                   isActive: e.isActive,
+                  buoyancyKg: e.buoyancyKg,
+                  weightKg: e.weightKg,
                 ),
               );
         }
@@ -2832,6 +2834,8 @@ class DiveRepository {
         serviceIntervalDays: e.serviceIntervalDays,
         notes: e.notes,
         isActive: e.isActive,
+        buoyancyKg: e.buoyancyKg,
+        weightKg: e.weightKg,
       );
     }).toList();
 

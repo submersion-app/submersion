@@ -21,6 +21,12 @@ class EquipmentItem extends Equatable {
   final String notes;
   final bool isActive;
 
+  // Buoyancy metadata (v104): net in-water buoyancy in kg (positive floats,
+  // negative sinks) and dry weight in kg. Both optional; the weight
+  // prediction engine falls back to type-based defaults when absent.
+  final double? buoyancyKg;
+  final double? weightKg;
+
   // Notification overrides
   final bool? customReminderEnabled; // NULL = use global
   final List<int>? customReminderDays; // Override reminder days
@@ -42,6 +48,8 @@ class EquipmentItem extends Equatable {
     this.serviceIntervalDays,
     this.notes = '',
     this.isActive = true,
+    this.buoyancyKg,
+    this.weightKg,
     this.customReminderEnabled,
     this.customReminderDays,
   });
@@ -97,6 +105,8 @@ class EquipmentItem extends Equatable {
     int? serviceIntervalDays,
     String? notes,
     bool? isActive,
+    double? buoyancyKg,
+    double? weightKg,
     bool? customReminderEnabled,
     List<int>? customReminderDays,
   }) {
@@ -117,6 +127,8 @@ class EquipmentItem extends Equatable {
       serviceIntervalDays: serviceIntervalDays ?? this.serviceIntervalDays,
       notes: notes ?? this.notes,
       isActive: isActive ?? this.isActive,
+      buoyancyKg: buoyancyKg ?? this.buoyancyKg,
+      weightKg: weightKg ?? this.weightKg,
       customReminderEnabled:
           customReminderEnabled ?? this.customReminderEnabled,
       customReminderDays: customReminderDays ?? this.customReminderDays,
@@ -141,6 +153,8 @@ class EquipmentItem extends Equatable {
     serviceIntervalDays,
     notes,
     isActive,
+    buoyancyKg,
+    weightKg,
     customReminderEnabled,
     customReminderDays,
   ];

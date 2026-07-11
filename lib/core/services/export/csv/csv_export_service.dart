@@ -246,6 +246,8 @@ class CsvExportService {
       'Purchase Date',
       'Last Service',
       'Next Service Due',
+      'Buoyancy (kg)',
+      'Dry Weight (kg)',
       'Active',
       'Notes',
     ];
@@ -266,6 +268,8 @@ class CsvExportService {
         item.nextServiceDue != null
             ? _dateFormat.format(item.nextServiceDue!)
             : '',
+        item.buoyancyKg?.toString() ?? '',
+        item.weightKg?.toString() ?? '',
         item.isActive ? 'Yes' : 'No',
         item.notes.replaceAll('\n', ' '),
       ]);
