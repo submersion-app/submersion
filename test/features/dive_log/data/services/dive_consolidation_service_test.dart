@@ -5,6 +5,8 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
+    as domain;
 
 import '../../../../helpers/test_database.dart';
 
@@ -52,6 +54,8 @@ void main() {
     String? computerId,
     String? serial,
     Duration? bottomTime,
+    domain.GeoPoint? entryLocation,
+    domain.GeoPoint? exitLocation,
     List<domain.DiveTank> tanks = const [],
     List<domain.DiveProfilePoint>? profile,
   }) async {
@@ -65,6 +69,8 @@ void main() {
         bottomTime: bottomTime,
         maxDepth: depth,
         diveComputerSerial: serial,
+        entryLocation: entryLocation,
+        exitLocation: exitLocation,
         tanks: tanks,
         profile:
             profile ??
@@ -1014,6 +1020,142 @@ void main() {
           db.deletionLog,
         )..where((t) => t.recordId.equals('t'))).get();
         expect(targetTombstones, isEmpty);
+      },
+    );
+  });
+
+  // #542: entry/exit GPS fixes are scalar columns on the dives row, not
+  // re-parented child rows, so a secondary's coordinates would vanish when it
+  // is folded in and tombstoned. The detail-page map is gated on entry/exit/
+  // site location, so dropping them makes the map disappear entirely. The
+  // fold must adopt a secondary's fix onto the target when the target has none
+  // of its own (target wins -- the same "fill the gap" rule already applied to
+  // weights, and DiveMergeBuilder's _firstNonNull(entryLocation) on the
+  // sequential-combine path).
+  group('apply GPS (#542)', () {
+    const secEntry = domain.GeoPoint(12.5, -70.0);
+    const secExit = domain.GeoPoint(12.51, -70.01);
+
+    test('target lacking GPS adopts entry and exit from a secondary', () async {
+      await seedDive(
+        't',
+        entry: DateTime.utc(2026, 7, 1, 9),
+        computerId: 'comp-t',
+        serial: 'SER-T',
+      );
+      await seedDive(
+        's',
+        entry: DateTime.utc(2026, 7, 1, 9, 1),
+        computerId: 'comp-s',
+        serial: 'SER-S',
+        entryLocation: secEntry,
+        exitLocation: secExit,
+      );
+
+      await service.apply(targetDiveId: 't', secondaryDiveIds: ['s']);
+
+      final target = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals('t'))).getSingle();
+      expect(target.entryLatitude, secEntry.latitude);
+      expect(target.entryLongitude, secEntry.longitude);
+      expect(target.exitLatitude, secExit.latitude);
+      expect(target.exitLongitude, secExit.longitude);
+    });
+
+    test('target GPS is never overwritten by a secondary', () async {
+      const targetEntry = domain.GeoPoint(40.0, -74.0);
+      const targetExit = domain.GeoPoint(40.01, -74.01);
+      await seedDive(
+        't',
+        entry: DateTime.utc(2026, 7, 1, 9),
+        computerId: 'comp-t',
+        serial: 'SER-T',
+        entryLocation: targetEntry,
+        exitLocation: targetExit,
+      );
+      await seedDive(
+        's',
+        entry: DateTime.utc(2026, 7, 1, 9, 1),
+        computerId: 'comp-s',
+        serial: 'SER-S',
+        entryLocation: secEntry,
+        exitLocation: secExit,
+      );
+
+      await service.apply(targetDiveId: 't', secondaryDiveIds: ['s']);
+
+      final target = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals('t'))).getSingle();
+      expect(target.entryLatitude, targetEntry.latitude);
+      expect(target.entryLongitude, targetEntry.longitude);
+      expect(target.exitLatitude, targetExit.latitude);
+      expect(target.exitLongitude, targetExit.longitude);
+    });
+
+    test('entry and exit fill independently across sources', () async {
+      const targetEntry = domain.GeoPoint(40.0, -74.0);
+      await seedDive(
+        't',
+        entry: DateTime.utc(2026, 7, 1, 9),
+        computerId: 'comp-t',
+        serial: 'SER-T',
+        entryLocation: targetEntry, // exit intentionally absent
+      );
+      await seedDive(
+        's',
+        entry: DateTime.utc(2026, 7, 1, 9, 1),
+        computerId: 'comp-s',
+        serial: 'SER-S',
+        entryLocation: secEntry,
+        exitLocation: secExit,
+      );
+
+      await service.apply(targetDiveId: 't', secondaryDiveIds: ['s']);
+
+      final target = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals('t'))).getSingle();
+      // The target keeps its own entry fix...
+      expect(target.entryLatitude, targetEntry.latitude);
+      expect(target.entryLongitude, targetEntry.longitude);
+      // ...and fills only its missing exit from the secondary.
+      expect(target.exitLatitude, secExit.latitude);
+      expect(target.exitLongitude, secExit.longitude);
+    });
+
+    test(
+      'undo restores the target to its pre-consolidation no-GPS state',
+      () async {
+        await seedDive(
+          't',
+          entry: DateTime.utc(2026, 7, 1, 9),
+          computerId: 'comp-t',
+          serial: 'SER-T',
+        );
+        await seedDive(
+          's',
+          entry: DateTime.utc(2026, 7, 1, 9, 1),
+          computerId: 'comp-s',
+          serial: 'SER-S',
+          entryLocation: secEntry,
+          exitLocation: secExit,
+        );
+
+        final outcome = await service.apply(
+          targetDiveId: 't',
+          secondaryDiveIds: ['s'],
+        );
+        await service.undo(outcome.snapshot);
+
+        final target = await (db.select(
+          db.dives,
+        )..where((t) => t.id.equals('t'))).getSingle();
+        expect(target.entryLatitude, isNull);
+        expect(target.entryLongitude, isNull);
+        expect(target.exitLatitude, isNull);
+        expect(target.exitLongitude, isNull);
       },
     );
   });

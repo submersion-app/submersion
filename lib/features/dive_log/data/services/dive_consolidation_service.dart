@@ -536,9 +536,46 @@ class DiveConsolidationService {
         }
       }
 
+      // Entry/exit GPS fixes live as scalar columns on the dives row, not as
+      // re-parented child rows, so a secondary's coordinates would be lost
+      // when it is tombstoned below. Adopt them onto the target when the
+      // target has none of its own -- target wins, the same "fill the gap"
+      // rule already applied to weights above and to DiveMergeBuilder's
+      // _firstNonNull(entryLocation) on the sequential-combine path. Without
+      // this, consolidating a dive whose only surface fix came from a
+      // secondary computer drops the coordinates and the detail-page map --
+      // gated on entry/exit/site location -- disappears (#542).
+      final entryFill = plan.primary.entryLocation == null
+          ? plan.secondaries
+                .map((s) => s.entryLocation)
+                .firstWhere((l) => l != null, orElse: () => null)
+          : null;
+      final exitFill = plan.primary.exitLocation == null
+          ? plan.secondaries
+                .map((s) => s.exitLocation)
+                .firstWhere((l) => l != null, orElse: () => null)
+          : null;
+
       // Touch the target so sync carries the consolidation.
-      await (_db.update(_db.dives)..where((t) => t.id.equals(targetDiveId)))
-          .write(DivesCompanion(updatedAt: Value(now)));
+      await (_db.update(
+        _db.dives,
+      )..where((t) => t.id.equals(targetDiveId))).write(
+        DivesCompanion(
+          updatedAt: Value(now),
+          entryLatitude: entryFill != null
+              ? Value(entryFill.latitude)
+              : const Value.absent(),
+          entryLongitude: entryFill != null
+              ? Value(entryFill.longitude)
+              : const Value.absent(),
+          exitLatitude: exitFill != null
+              ? Value(exitFill.latitude)
+              : const Value.absent(),
+          exitLongitude: exitFill != null
+              ? Value(exitFill.longitude)
+              : const Value.absent(),
+        ),
+      );
       await _sync.markRecordPending(
         entityType: 'dives',
         recordId: targetDiveId,
