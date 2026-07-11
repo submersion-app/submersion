@@ -78,6 +78,7 @@ import 'package:submersion/features/backup/presentation/pages/backup_settings_pa
 import 'package:submersion/features/settings/presentation/pages/cloud_sync_page.dart';
 import 'package:submersion/features/media_store/presentation/pages/media_storage_page.dart';
 import 'package:submersion/features/media_store/presentation/pages/transfers_page.dart';
+import 'package:submersion/features/settings/presentation/pages/lightroom_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/s3_config_page.dart';
 import 'package:submersion/features/settings/presentation/pages/fix_dive_times_page.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
@@ -917,6 +918,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     builder: (context, state) => const TransfersPage(),
                   ),
                 ],
+              ),
+              GoRoute(
+                path: 'lightroom',
+                name: 'lightroom',
+                builder: (context, state) => const LightroomSettingsPage(),
               ),
               GoRoute(
                 path: 'fix-dive-times',

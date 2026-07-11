@@ -10081,6 +10081,18 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get media_lightroom_openInLightroom => 'Open in Lightroom';
+
+  @override
+  String get media_lightroom_suggestion_accept => 'Add to this dive';
+
+  @override
+  String get media_lightroom_suggestion_dismiss => 'Dismiss';
+
+  @override
+  String get media_lightroom_suggestions_title => 'Suggested from Lightroom';
+
+  @override
   String get media_miniProfile_headerLabel => 'Dive Profile';
 
   @override
@@ -12122,6 +12134,102 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_language_systemDefault => 'System Default';
+
+  @override
+  String get settings_lightroom_albumFilter_all => 'Entire catalog';
+
+  @override
+  String get settings_lightroom_albumFilter_title => 'Albums to scan';
+
+  @override
+  String get settings_lightroom_autoPoll_title =>
+      'Check for new photos automatically';
+
+  @override
+  String settings_lightroom_clientId_help(String redirectUri) {
+    return 'Create an integration in the Adobe Developer Console with the Lightroom Services API and a credential type that supports PKCE. Set the redirect URI to $redirectUri.';
+  }
+
+  @override
+  String get settings_lightroom_clientId_label => 'Adobe client ID';
+
+  @override
+  String get settings_lightroom_clientSecret_label =>
+      'Client secret (optional)';
+
+  @override
+  String get settings_lightroom_connect => 'Connect Lightroom';
+
+  @override
+  String get settings_lightroom_connect_codeLabel => 'Redirected URL or code';
+
+  @override
+  String get settings_lightroom_connect_emptyCode =>
+      'Paste the redirected URL or authorization code';
+
+  @override
+  String settings_lightroom_connect_failed(String error) {
+    return 'Could not connect to Lightroom: $error';
+  }
+
+  @override
+  String get settings_lightroom_connect_instructions =>
+      'Sign in to Adobe in the browser window, then paste the full address of the page you land on (it contains the authorization code).';
+
+  @override
+  String get settings_lightroom_connect_reopenBrowser => 'Reopen browser';
+
+  @override
+  String get settings_lightroom_connect_submit => 'Connect';
+
+  @override
+  String get settings_lightroom_connect_title => 'Connect Lightroom';
+
+  @override
+  String settings_lightroom_connected(String name) {
+    return 'Connected as $name';
+  }
+
+  @override
+  String get settings_lightroom_disconnect => 'Disconnect';
+
+  @override
+  String get settings_lightroom_disconnect_confirmBody =>
+      'Linked photos stay on your dives and keep displaying from the media store. New photos will no longer be matched.';
+
+  @override
+  String get settings_lightroom_disconnect_confirmTitle =>
+      'Disconnect Lightroom?';
+
+  @override
+  String settings_lightroom_lastPoll(String when) {
+    return 'Last checked: $when';
+  }
+
+  @override
+  String get settings_lightroom_needsReauth => 'Reconnect needed';
+
+  @override
+  String get settings_lightroom_scanNow => 'Scan Lightroom';
+
+  @override
+  String get settings_lightroom_scan_running => 'Scanning Lightroom...';
+
+  @override
+  String settings_lightroom_scan_summary(
+    int attached,
+    int suggested,
+    int skipped,
+  ) {
+    return '$attached linked, $suggested suggested, $skipped already linked';
+  }
+
+  @override
+  String get settings_lightroom_subtitle =>
+      'Auto-link photos and videos to dives';
+
+  @override
+  String get settings_lightroom_title => 'Adobe Lightroom';
 
   @override
   String get settings_manage_checklistTemplates => 'Checklist Templates';

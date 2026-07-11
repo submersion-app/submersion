@@ -10214,6 +10214,19 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get media_lightroom_openInLightroom => 'Megnyitás a Lightroomban';
+
+  @override
+  String get media_lightroom_suggestion_accept =>
+      'Hozzáadás ehhez a merüléshez';
+
+  @override
+  String get media_lightroom_suggestion_dismiss => 'Elvetés';
+
+  @override
+  String get media_lightroom_suggestions_title => 'Javaslatok a Lightroomból';
+
+  @override
   String get media_miniProfile_headerLabel => 'Merülesi profil';
 
   @override
@@ -12297,6 +12310,103 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_language_systemDefault => 'Rendszer alapertelmezett';
+
+  @override
+  String get settings_lightroom_albumFilter_all => 'Teljes katalógus';
+
+  @override
+  String get settings_lightroom_albumFilter_title => 'Vizsgálandó albumok';
+
+  @override
+  String get settings_lightroom_autoPoll_title =>
+      'Új fotók automatikus keresése';
+
+  @override
+  String settings_lightroom_clientId_help(String redirectUri) {
+    return 'Hozz létre egy integrációt az Adobe Developer Console-ban a Lightroom Services API-val és egy PKCE-t támogató hitelesítőtípussal. Az átirányítási URI legyen $redirectUri.';
+  }
+
+  @override
+  String get settings_lightroom_clientId_label => 'Adobe kliensazonosító';
+
+  @override
+  String get settings_lightroom_clientSecret_label =>
+      'Klienstitok (nem kötelező)';
+
+  @override
+  String get settings_lightroom_connect => 'Lightroom csatlakoztatása';
+
+  @override
+  String get settings_lightroom_connect_codeLabel =>
+      'Átirányított URL vagy kód';
+
+  @override
+  String get settings_lightroom_connect_emptyCode =>
+      'Illeszd be az átirányított URL-t vagy az engedélyezési kódot';
+
+  @override
+  String settings_lightroom_connect_failed(String error) {
+    return 'Nem sikerült csatlakozni a Lightroomhoz: $error';
+  }
+
+  @override
+  String get settings_lightroom_connect_instructions =>
+      'Jelentkezz be az Adobe-fiókodba a böngészőablakban, majd illeszd be annak az oldalnak a teljes címét, ahová érkezel (ez tartalmazza az engedélyezési kódot).';
+
+  @override
+  String get settings_lightroom_connect_reopenBrowser => 'Böngésző újranyitása';
+
+  @override
+  String get settings_lightroom_connect_submit => 'Csatlakozás';
+
+  @override
+  String get settings_lightroom_connect_title => 'Lightroom csatlakoztatása';
+
+  @override
+  String settings_lightroom_connected(String name) {
+    return 'Csatlakozva mint $name';
+  }
+
+  @override
+  String get settings_lightroom_disconnect => 'Leválasztás';
+
+  @override
+  String get settings_lightroom_disconnect_confirmBody =>
+      'A összekapcsolt fotók a merüléseidnél maradnak, és továbbra is a médiatárolóból jelennek meg. Az új fotók már nem lesznek párosítva.';
+
+  @override
+  String get settings_lightroom_disconnect_confirmTitle =>
+      'Leválasztod a Lightroomot?';
+
+  @override
+  String settings_lightroom_lastPoll(String when) {
+    return 'Utolsó ellenőrzés: $when';
+  }
+
+  @override
+  String get settings_lightroom_needsReauth => 'Újracsatlakozás szükséges';
+
+  @override
+  String get settings_lightroom_scanNow => 'Lightroom átvizsgálása';
+
+  @override
+  String get settings_lightroom_scan_running => 'Lightroom vizsgálata...';
+
+  @override
+  String settings_lightroom_scan_summary(
+    int attached,
+    int suggested,
+    int skipped,
+  ) {
+    return '$attached összekapcsolva, $suggested javasolva, $skipped már összekapcsolva';
+  }
+
+  @override
+  String get settings_lightroom_subtitle =>
+      'Fotók és videók automatikus hozzárendelése a merülésekhez';
+
+  @override
+  String get settings_lightroom_title => 'Adobe Lightroom';
 
   @override
   String get settings_manage_checklistTemplates => 'Ellenőrzőlista-sablonok';

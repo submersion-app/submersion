@@ -10168,6 +10168,18 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get media_lightroom_openInLightroom => 'Openen in Lightroom';
+
+  @override
+  String get media_lightroom_suggestion_accept => 'Toevoegen aan deze duik';
+
+  @override
+  String get media_lightroom_suggestion_dismiss => 'Negeren';
+
+  @override
+  String get media_lightroom_suggestions_title => 'Suggesties uit Lightroom';
+
+  @override
   String get media_miniProfile_headerLabel => 'Duikprofiel';
 
   @override
@@ -12231,6 +12243,104 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_language_systemDefault => 'Systeemstandaard';
+
+  @override
+  String get settings_lightroom_albumFilter_all => 'Volledige catalogus';
+
+  @override
+  String get settings_lightroom_albumFilter_title => 'Te scannen albums';
+
+  @override
+  String get settings_lightroom_autoPoll_title =>
+      'Automatisch controleren op nieuwe foto\'s';
+
+  @override
+  String settings_lightroom_clientId_help(String redirectUri) {
+    return 'Maak in de Adobe Developer Console een integratie met de Lightroom Services API en een referentietype dat PKCE ondersteunt. Stel de redirect-URI in op $redirectUri.';
+  }
+
+  @override
+  String get settings_lightroom_clientId_label => 'Adobe client-ID';
+
+  @override
+  String get settings_lightroom_clientSecret_label =>
+      'Client secret (optioneel)';
+
+  @override
+  String get settings_lightroom_connect => 'Lightroom koppelen';
+
+  @override
+  String get settings_lightroom_connect_codeLabel =>
+      'Doorgestuurde URL of code';
+
+  @override
+  String get settings_lightroom_connect_emptyCode =>
+      'Plak de doorgestuurde URL of autorisatiecode';
+
+  @override
+  String settings_lightroom_connect_failed(String error) {
+    return 'Kan geen verbinding maken met Lightroom: $error';
+  }
+
+  @override
+  String get settings_lightroom_connect_instructions =>
+      'Meld je aan bij Adobe in het browservenster en plak vervolgens het volledige adres van de pagina waarop je terechtkomt (dit bevat de autorisatiecode).';
+
+  @override
+  String get settings_lightroom_connect_reopenBrowser =>
+      'Browser opnieuw openen';
+
+  @override
+  String get settings_lightroom_connect_submit => 'Koppelen';
+
+  @override
+  String get settings_lightroom_connect_title => 'Lightroom koppelen';
+
+  @override
+  String settings_lightroom_connected(String name) {
+    return 'Gekoppeld als $name';
+  }
+
+  @override
+  String get settings_lightroom_disconnect => 'Ontkoppelen';
+
+  @override
+  String get settings_lightroom_disconnect_confirmBody =>
+      'Gekoppelde foto\'s blijven bij je duiken en worden nog steeds weergegeven vanuit de mediaopslag. Nieuwe foto\'s worden niet meer gekoppeld.';
+
+  @override
+  String get settings_lightroom_disconnect_confirmTitle =>
+      'Lightroom ontkoppelen?';
+
+  @override
+  String settings_lightroom_lastPoll(String when) {
+    return 'Laatst gecontroleerd: $when';
+  }
+
+  @override
+  String get settings_lightroom_needsReauth => 'Opnieuw verbinden vereist';
+
+  @override
+  String get settings_lightroom_scanNow => 'Lightroom scannen';
+
+  @override
+  String get settings_lightroom_scan_running => 'Lightroom wordt gescand...';
+
+  @override
+  String settings_lightroom_scan_summary(
+    int attached,
+    int suggested,
+    int skipped,
+  ) {
+    return '$attached gekoppeld, $suggested voorgesteld, $skipped al gekoppeld';
+  }
+
+  @override
+  String get settings_lightroom_subtitle =>
+      'Foto\'s en video\'s automatisch aan duiken koppelen';
+
+  @override
+  String get settings_lightroom_title => 'Adobe Lightroom';
 
   @override
   String get settings_manage_checklistTemplates => 'Checklistsjablonen';

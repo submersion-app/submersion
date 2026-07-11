@@ -10049,6 +10049,18 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get media_lightroom_openInLightroom => 'فتح في Lightroom';
+
+  @override
+  String get media_lightroom_suggestion_accept => 'إضافة إلى هذه الغطسة';
+
+  @override
+  String get media_lightroom_suggestion_dismiss => 'تجاهل';
+
+  @override
+  String get media_lightroom_suggestions_title => 'اقتراحات من Lightroom';
+
+  @override
   String get media_miniProfile_headerLabel => 'ملف الغوصة';
 
   @override
@@ -12095,6 +12107,102 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_language_systemDefault => 'الافتراضي للنظام';
+
+  @override
+  String get settings_lightroom_albumFilter_all => 'الكتالوج بأكمله';
+
+  @override
+  String get settings_lightroom_albumFilter_title => 'الألبومات المراد فحصها';
+
+  @override
+  String get settings_lightroom_autoPoll_title =>
+      'التحقق من الصور الجديدة تلقائيًا';
+
+  @override
+  String settings_lightroom_clientId_help(String redirectUri) {
+    return 'أنشئ تكاملًا في Adobe Developer Console باستخدام واجهة Lightroom Services API ونوع اعتماد يدعم PKCE. عيّن عنوان إعادة التوجيه إلى $redirectUri.';
+  }
+
+  @override
+  String get settings_lightroom_clientId_label => 'معرّف عميل Adobe';
+
+  @override
+  String get settings_lightroom_clientSecret_label => 'سر العميل (اختياري)';
+
+  @override
+  String get settings_lightroom_connect => 'ربط Lightroom';
+
+  @override
+  String get settings_lightroom_connect_codeLabel =>
+      'عنوان URL المُعاد توجيهه أو الرمز';
+
+  @override
+  String get settings_lightroom_connect_emptyCode =>
+      'الصق عنوان URL المُعاد توجيهه أو رمز التفويض';
+
+  @override
+  String settings_lightroom_connect_failed(String error) {
+    return 'تعذّر الاتصال بـ Lightroom: $error';
+  }
+
+  @override
+  String get settings_lightroom_connect_instructions =>
+      'سجّل الدخول إلى Adobe في نافذة المتصفح، ثم الصق العنوان الكامل للصفحة التي تصل إليها (فهو يحتوي على رمز التفويض).';
+
+  @override
+  String get settings_lightroom_connect_reopenBrowser => 'إعادة فتح المتصفح';
+
+  @override
+  String get settings_lightroom_connect_submit => 'ربط';
+
+  @override
+  String get settings_lightroom_connect_title => 'ربط Lightroom';
+
+  @override
+  String settings_lightroom_connected(String name) {
+    return 'متصل باسم $name';
+  }
+
+  @override
+  String get settings_lightroom_disconnect => 'قطع الاتصال';
+
+  @override
+  String get settings_lightroom_disconnect_confirmBody =>
+      'تبقى الصور المرتبطة في غطساتك وتستمر في الظهور من مخزن الوسائط. لن تتم مطابقة الصور الجديدة بعد الآن.';
+
+  @override
+  String get settings_lightroom_disconnect_confirmTitle =>
+      'قطع الاتصال بـ Lightroom؟';
+
+  @override
+  String settings_lightroom_lastPoll(String when) {
+    return 'آخر فحص: $when';
+  }
+
+  @override
+  String get settings_lightroom_needsReauth => 'يلزم إعادة الاتصال';
+
+  @override
+  String get settings_lightroom_scanNow => 'فحص Lightroom';
+
+  @override
+  String get settings_lightroom_scan_running => 'جارٍ فحص Lightroom...';
+
+  @override
+  String settings_lightroom_scan_summary(
+    int attached,
+    int suggested,
+    int skipped,
+  ) {
+    return '$attached مرتبطة، $suggested مقترحة، $skipped مرتبطة بالفعل';
+  }
+
+  @override
+  String get settings_lightroom_subtitle =>
+      'ربط الصور ومقاطع الفيديو بالغطسات تلقائيًا';
+
+  @override
+  String get settings_lightroom_title => 'Adobe Lightroom';
 
   @override
   String get settings_manage_checklistTemplates => 'قوالب قوائم التحقق';
