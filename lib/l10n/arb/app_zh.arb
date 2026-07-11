@@ -333,14 +333,19 @@
   "buddies_message_preparingExport": "正在准备导出...",
   "buddies_message_updated": "潜伴更新成功",
   "buddies_picker_add": "添加",
+  "buddies_picker_addCustomRole": "添加自定义角色...",
   "buddies_picker_addNew": "添加新潜伴",
   "buddies_picker_done": "完成",
+  "buddies_picker_me": "我",
   "buddies_picker_noBuddiesFound": "未找到潜伴",
   "buddies_picker_noBuddiesYet": "暂无潜伴",
+  "buddies_picker_noRole": "无角色",
   "buddies_picker_noneSelected": "未选择潜伴",
   "buddies_picker_searchHint": "搜索潜伴...",
   "buddies_picker_selectBuddies": "选择潜伴",
+  "buddies_picker_selectMyRole": "选择我的角色",
   "buddies_picker_selectRole": "为 {name} 选择角色",
+  "buddies_picker_setMyRole": "设置我的角色",
   "buddies_picker_tapToAdd": "点击「添加」选择潜伴",
   "buddies_roles_addRole": "添加角色",
   "buddies_roles_agency": "机构",
@@ -1660,6 +1665,68 @@
   "diveLog_sighting_decreaseCount": "减少数量",
   "diveLog_sighting_increaseCount": "增加数量",
   "diveLog_speciesPicker_errorLoading": "加载物种时出错：{error}",
+  "diveRole_builtin_buddy": "潜伴",
+  "diveRole_builtin_diveGuide": "潜导",
+  "diveRole_builtin_diveMaster": "潜水长",
+  "diveRole_builtin_instructor": "教练",
+  "diveRole_builtin_rearGuard": "后导",
+  "diveRole_builtin_safetyDiver": "安全员",
+  "diveRole_builtin_solo": "独潜",
+  "diveRole_builtin_student": "学员",
+  "diveRole_builtin_supportDiver": "支援潜水员",
+  "diveRoles_addDialog_addButton": "添加",
+  "diveRoles_addDialog_nameHint": "例如：摄影师",
+  "diveRoles_addDialog_nameLabel": "潜水角色名称",
+  "diveRoles_addDialog_nameValidation": "请输入名称",
+  "diveRoles_addDialog_title": "添加自定义潜水角色",
+  "diveRoles_addTooltip": "添加潜水角色",
+  "diveRoles_appBar_title": "潜水角色",
+  "diveRoles_builtInHeader": "内置潜水角色",
+  "diveRoles_customHeader": "自定义潜水角色",
+  "diveRoles_deleteDialog_content": "确定要删除 \"{name}\"?",
+  "@diveRoles_deleteDialog_content": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_deleteDialog_title": "删除潜水角色?",
+  "diveRoles_deleteTooltip": "删除潜水角色",
+  "diveRoles_renameDialog_title": "重命名潜水角色",
+  "diveRoles_renameTooltip": "重命名潜水角色",
+  "diveRoles_snackbar_added": "已添加潜水角色：{name}",
+  "@diveRoles_snackbar_added": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_snackbar_cannotDelete": "无法删除 \"{name}\" - 已被现有潜水记录使用",
+  "@diveRoles_snackbar_cannotDelete": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_snackbar_deleted": "已删除潜水角色：{name}",
+  "@diveRoles_snackbar_deleted": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_snackbar_errorAdding": "添加潜水角色出错：{error}",
+  "@diveRoles_snackbar_errorAdding": {
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
   "diveSites_edit_depth_heroMax": "最大深度",
   "diveSites_edit_depth_heroMin": "最小深度",
   "diveSites_edit_group_accessSafety": "通行与安全",
@@ -3835,6 +3902,8 @@
   "settings_language_systemDefault": "系统默认",
   "settings_manage_checklistTemplates": "清单模板",
   "settings_manage_checklistTemplates_subtitle": "用于旅行规划的可重复使用待办清单",
+  "settings_manage_diveRoles": "潜水角色",
+  "settings_manage_diveRoles_subtitle": "管理自定义潜水角色",
   "settings_manage_diveTypes": "潜水类型",
   "settings_manage_diveTypes_subtitle": "管理自定义潜水类型",
   "settings_manage_header_manageData": "管理数据",

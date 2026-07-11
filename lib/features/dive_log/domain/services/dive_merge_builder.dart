@@ -325,6 +325,7 @@ class DiveMergeBuilder {
       tanks: mergedTanks,
       buddy: _firstNonNull(sorted, (d) => d.buddy),
       diveMaster: _firstNonNull(sorted, (d) => d.diveMaster),
+      diverRoleId: _firstNonNull(sorted, (d) => d.diverRoleId),
       rating: _firstNonNull(sorted, (d) => d.rating),
       visibility: _firstNonNull(sorted, (d) => d.visibility),
       waterTemp: _firstNonNull(sorted, (d) => d.waterTemp),

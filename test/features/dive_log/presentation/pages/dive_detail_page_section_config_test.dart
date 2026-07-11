@@ -15,6 +15,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive_data_source.da
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
+import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
@@ -568,6 +570,100 @@ void main() {
 
       // All builder closures are exercised with data present
       expect(find.text('#-'), findsOneWidget);
+    });
+
+    testWidgets('buddies section shows the Me row with the localized role '
+        'when diverRoleId is set', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final dive = Dive(
+        id: 'test-dive-role',
+        dateTime: DateTime(2026, 3, 15, 10, 0),
+        diverRoleId: DiveRole.rearGuardId,
+      );
+      final buddy = Buddy(
+        id: 'b1',
+        name: 'Alice',
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+      );
+      final rearGuard = DiveRole(
+        id: DiveRole.rearGuardId,
+        name: 'Rear Guard',
+        isBuiltIn: true,
+        sortOrder: 6,
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+      );
+      final settings = _settingsWithVisibleSections([
+        DiveDetailSectionId.buddies,
+      ]);
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          dive: dive,
+          settings: settings,
+          extraOverrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            buddiesForDiveProvider(dive.id).overrideWith(
+              (ref) async => [
+                BuddyWithRole(buddy: buddy, role: DiveRole.builtInBuddy()),
+              ],
+            ),
+            diveSightingsProvider(
+              dive.id,
+            ).overrideWith((ref) async => <Sighting>[]),
+            buddySignaturesForDiveProvider(
+              dive.id,
+            ).overrideWith((ref) async => <Signature>[]),
+            surfaceIntervalProvider(dive.id).overrideWith((ref) async => null),
+            tankPressuresProvider(
+              dive.id,
+            ).overrideWith((ref) async => <String, List<TankPressurePoint>>{}),
+            allDiveRolesProvider.overrideWith((ref) async => [rearGuard]),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Me row above the buddy row, with the localized role name.
+      expect(find.text('Me'), findsOneWidget);
+      expect(find.text('Rear Guard'), findsOneWidget);
+      expect(find.text('Alice'), findsOneWidget);
+      final meY = tester.getCenter(find.text('Me')).dy;
+      final aliceY = tester.getCenter(find.text('Alice')).dy;
+      expect(meY, lessThan(aliceY));
+    });
+
+    testWidgets('buddies section shows the Me row even with no buddies, '
+        'and an unknown role id falls back to the raw slug', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final dive = Dive(
+        id: 'test-dive-role-2',
+        dateTime: DateTime(2026, 3, 15, 10, 0),
+        diverRoleId: 'mysterySlug',
+      );
+      final settings = _settingsWithVisibleSections([
+        DiveDetailSectionId.buddies,
+      ]);
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          dive: dive,
+          settings: settings,
+          extraOverrides: [
+            ..._alwaysRenderOverrides(dive.id, prefs),
+            allDiveRolesProvider.overrideWith((ref) async => <DiveRole>[]),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Me'), findsOneWidget);
+      expect(find.text('mysterySlug'), findsOneWidget);
     });
   });
 }

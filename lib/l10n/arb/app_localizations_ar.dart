@@ -709,16 +709,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddies_picker_add => 'إضافة';
 
   @override
+  String get buddies_picker_addCustomRole => 'إضافة دور مخصص...';
+
+  @override
   String get buddies_picker_addNew => 'إضافة رفيق جديد';
 
   @override
   String get buddies_picker_done => 'تم';
 
   @override
+  String get buddies_picker_me => 'أنا';
+
+  @override
   String get buddies_picker_noBuddiesFound => 'لم يتم العثور على رفاق';
 
   @override
   String get buddies_picker_noBuddiesYet => 'لا يوجد رفاق بعد';
+
+  @override
+  String get buddies_picker_noRole => 'بدون دور';
 
   @override
   String get buddies_picker_noneSelected => 'لم يتم تحديد رفاق';
@@ -730,9 +739,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddies_picker_selectBuddies => 'اختيار الرفاق';
 
   @override
+  String get buddies_picker_selectMyRole => 'اختيار دوري';
+
+  @override
   String buddies_picker_selectRole(Object name) {
     return 'اختر دور $name';
   }
+
+  @override
+  String get buddies_picker_setMyRole => 'تحديد دوري';
 
   @override
   String get buddies_picker_tapToAdd => 'اضغط على \'إضافة\' لاختيار رفاق الغوص';
@@ -4597,6 +4612,97 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String diveLog_speciesPicker_errorLoading(String error) {
     return 'خطأ في تحميل الأنواع: $error';
+  }
+
+  @override
+  String get diveRole_builtin_buddy => 'رفيق';
+
+  @override
+  String get diveRole_builtin_diveGuide => 'مرشد غوص';
+
+  @override
+  String get diveRole_builtin_diveMaster => 'دايف ماستر';
+
+  @override
+  String get diveRole_builtin_instructor => 'مدرب';
+
+  @override
+  String get diveRole_builtin_rearGuard => 'حارس المؤخرة';
+
+  @override
+  String get diveRole_builtin_safetyDiver => 'غواص السلامة';
+
+  @override
+  String get diveRole_builtin_solo => 'منفرد';
+
+  @override
+  String get diveRole_builtin_student => 'طالب';
+
+  @override
+  String get diveRole_builtin_supportDiver => 'غواص دعم';
+
+  @override
+  String get diveRoles_addDialog_addButton => 'إضافة';
+
+  @override
+  String get diveRoles_addDialog_nameHint => 'مثال: مصور';
+
+  @override
+  String get diveRoles_addDialog_nameLabel => 'اسم دور الغوص';
+
+  @override
+  String get diveRoles_addDialog_nameValidation => 'الرجاء إدخال اسم';
+
+  @override
+  String get diveRoles_addDialog_title => 'إضافة دور غوص مخصص';
+
+  @override
+  String get diveRoles_addTooltip => 'إضافة دور غوص';
+
+  @override
+  String get diveRoles_appBar_title => 'أدوار الغوص';
+
+  @override
+  String get diveRoles_builtInHeader => 'أدوار الغوص المدمجة';
+
+  @override
+  String get diveRoles_customHeader => 'أدوار الغوص المخصصة';
+
+  @override
+  String diveRoles_deleteDialog_content(Object name) {
+    return 'هل أنت متأكد من حذف \"$name\"؟';
+  }
+
+  @override
+  String get diveRoles_deleteDialog_title => 'حذف دور الغوص؟';
+
+  @override
+  String get diveRoles_deleteTooltip => 'حذف دور الغوص';
+
+  @override
+  String get diveRoles_renameDialog_title => 'إعادة تسمية دور الغوص';
+
+  @override
+  String get diveRoles_renameTooltip => 'إعادة تسمية دور الغوص';
+
+  @override
+  String diveRoles_snackbar_added(Object name) {
+    return 'تمت إضافة دور الغوص: $name';
+  }
+
+  @override
+  String diveRoles_snackbar_cannotDelete(Object name) {
+    return 'لا يمكن حذف \"$name\" - مستخدم في غطسات موجودة';
+  }
+
+  @override
+  String diveRoles_snackbar_deleted(Object name) {
+    return 'تم حذف دور الغوص: $name';
+  }
+
+  @override
+  String diveRoles_snackbar_errorAdding(Object error) {
+    return 'خطأ في إضافة دور الغوص: $error';
   }
 
   @override
@@ -11871,6 +11977,12 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_manage_checklistTemplates_subtitle =>
       'قوائم مهام قابلة لإعادة الاستخدام للتخطيط للرحلات';
+
+  @override
+  String get settings_manage_diveRoles => 'أدوار الغوص';
+
+  @override
+  String get settings_manage_diveRoles_subtitle => 'إدارة أدوار الغوص المخصصة';
 
   @override
   String get settings_manage_diveTypes => 'أنواع الغوص';

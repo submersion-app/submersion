@@ -48,6 +48,9 @@ class Dive extends Equatable {
   final DiveTypeEntity? diveType; // Loaded dive type entity (for display)
   final String? buddy;
   final String? diveMaster;
+
+  /// The active diver's own role on this dive (dive_roles id, #547).
+  final String? diverRoleId;
   final int? rating; // 1-5 stars
   // Conditions fields
   final CurrentDirection? currentDirection;
@@ -162,6 +165,7 @@ class Dive extends Equatable {
     this.diveType,
     this.buddy,
     this.diveMaster,
+    this.diverRoleId,
     this.rating,
     this.currentDirection,
     this.currentStrength,
@@ -528,6 +532,7 @@ class Dive extends Equatable {
     DiveTypeEntity? diveType,
     String? buddy,
     String? diveMaster,
+    String? diverRoleId,
     int? rating,
     CurrentDirection? currentDirection,
     CurrentStrength? currentStrength,
@@ -616,6 +621,7 @@ class Dive extends Equatable {
       diveType: diveType ?? this.diveType,
       buddy: buddy ?? this.buddy,
       diveMaster: diveMaster ?? this.diveMaster,
+      diverRoleId: diverRoleId ?? this.diverRoleId,
       rating: rating ?? this.rating,
       currentDirection: currentDirection ?? this.currentDirection,
       currentStrength: currentStrength ?? this.currentStrength,
@@ -707,6 +713,7 @@ class Dive extends Equatable {
     diveType,
     buddy,
     diveMaster,
+    diverRoleId,
     rating,
     currentDirection,
     currentStrength,

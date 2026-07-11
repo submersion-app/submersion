@@ -18,6 +18,7 @@ import 'package:submersion/features/dive_import/domain/services/dive_matcher.dar
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
+import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
@@ -451,6 +452,7 @@ class UniversalAdapter implements ImportSourceAdapter {
       certificationRepository: _ref.read(certificationRepositoryProvider),
       tagRepository: _ref.read(tagRepositoryProvider),
       diveTypeRepository: _ref.read(diveTypeRepositoryProvider),
+      diveRoleRepository: _ref.read(diveRoleRepositoryProvider),
       siteRepository: _ref.read(siteRepositoryProvider),
       diveRepository: _ref.read(diveRepositoryProvider),
       tankPressureRepository: _ref.read(tankPressureRepositoryProvider),

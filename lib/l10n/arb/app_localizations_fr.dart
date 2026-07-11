@@ -720,16 +720,25 @@ class AppLocalizationsFr extends AppLocalizations {
   String get buddies_picker_add => 'Ajouter';
 
   @override
+  String get buddies_picker_addCustomRole => 'Ajouter un rôle personnalisé...';
+
+  @override
   String get buddies_picker_addNew => 'Ajouter un nouveau binôme';
 
   @override
   String get buddies_picker_done => 'Terminé';
 
   @override
+  String get buddies_picker_me => 'Moi';
+
+  @override
   String get buddies_picker_noBuddiesFound => 'Aucun binôme trouvé';
 
   @override
   String get buddies_picker_noBuddiesYet => 'Aucun binôme pour le moment';
+
+  @override
+  String get buddies_picker_noRole => 'Aucun rôle';
 
   @override
   String get buddies_picker_noneSelected => 'Aucun binôme sélectionné';
@@ -741,9 +750,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get buddies_picker_selectBuddies => 'Sélectionner les binômes';
 
   @override
+  String get buddies_picker_selectMyRole => 'Sélectionner mon rôle';
+
+  @override
   String buddies_picker_selectRole(Object name) {
     return 'Sélectionner le rôle pour $name';
   }
+
+  @override
+  String get buddies_picker_setMyRole => 'Définir mon rôle';
 
   @override
   String get buddies_picker_tapToAdd =>
@@ -4726,6 +4741,98 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String diveLog_speciesPicker_errorLoading(String error) {
     return 'Erreur de chargement des espèces : $error';
+  }
+
+  @override
+  String get diveRole_builtin_buddy => 'Binôme';
+
+  @override
+  String get diveRole_builtin_diveGuide => 'Guide de plongée';
+
+  @override
+  String get diveRole_builtin_diveMaster => 'Directeur de plongée';
+
+  @override
+  String get diveRole_builtin_instructor => 'Moniteur';
+
+  @override
+  String get diveRole_builtin_rearGuard => 'Serre-file';
+
+  @override
+  String get diveRole_builtin_safetyDiver => 'Plongeur de sécurité';
+
+  @override
+  String get diveRole_builtin_solo => 'Solo';
+
+  @override
+  String get diveRole_builtin_student => 'Élève';
+
+  @override
+  String get diveRole_builtin_supportDiver => 'Plongeur de soutien';
+
+  @override
+  String get diveRoles_addDialog_addButton => 'Ajouter';
+
+  @override
+  String get diveRoles_addDialog_nameHint => 'ex. Photographe';
+
+  @override
+  String get diveRoles_addDialog_nameLabel => 'Nom du rôle de plongée';
+
+  @override
+  String get diveRoles_addDialog_nameValidation => 'Veuillez entrer un nom';
+
+  @override
+  String get diveRoles_addDialog_title =>
+      'Ajouter un rôle de plongée personnalisé';
+
+  @override
+  String get diveRoles_addTooltip => 'Ajouter un rôle de plongée';
+
+  @override
+  String get diveRoles_appBar_title => 'Rôles de plongée';
+
+  @override
+  String get diveRoles_builtInHeader => 'Rôles de plongée intégrés';
+
+  @override
+  String get diveRoles_customHeader => 'Rôles de plongée personnalisés';
+
+  @override
+  String diveRoles_deleteDialog_content(Object name) {
+    return 'Voulez-vous vraiment supprimer « $name » ?';
+  }
+
+  @override
+  String get diveRoles_deleteDialog_title => 'Supprimer le rôle de plongée ?';
+
+  @override
+  String get diveRoles_deleteTooltip => 'Supprimer le rôle de plongée';
+
+  @override
+  String get diveRoles_renameDialog_title => 'Renommer le rôle de plongée';
+
+  @override
+  String get diveRoles_renameTooltip => 'Renommer le rôle de plongée';
+
+  @override
+  String diveRoles_snackbar_added(Object name) {
+    return 'Rôle de plongée ajouté : $name';
+  }
+
+  @override
+  String diveRoles_snackbar_cannotDelete(Object name) {
+    return 'Impossible de supprimer « $name » - il est utilisé par des plongées existantes';
+  }
+
+  @override
+  String diveRoles_snackbar_deleted(Object name) {
+    return 'Rôle de plongée supprimé : $name';
+  }
+
+  @override
+  String diveRoles_snackbar_errorAdding(Object error) {
+    return 'Erreur lors de l\'ajout du rôle de plongée : $error';
   }
 
   @override
@@ -12143,6 +12250,13 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_manage_checklistTemplates_subtitle =>
       'Listes de tâches réutilisables pour la planification de voyages';
+
+  @override
+  String get settings_manage_diveRoles => 'Rôles de plongée';
+
+  @override
+  String get settings_manage_diveRoles_subtitle =>
+      'Gérer les rôles de plongée personnalisés';
 
   @override
   String get settings_manage_diveTypes => 'Types de plongee';

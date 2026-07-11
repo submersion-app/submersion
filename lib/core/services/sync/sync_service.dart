@@ -926,6 +926,7 @@ class SyncService {
             hasUpdatedAt: false,
           ),
           (type: 'diveTypes', records: data.diveTypes, hasUpdatedAt: true),
+          (type: 'diveRoles', records: data.diveRoles, hasUpdatedAt: true),
           (type: 'tankPresets', records: data.tankPresets, hasUpdatedAt: true),
           (
             type: 'diveComputers',
@@ -1514,6 +1515,7 @@ class SyncService {
     'equipmentSets': true,
     'equipmentSetItems': false,
     'diveTypes': true,
+    'diveRoles': true,
     'tankPresets': true,
     'diveComputers': true,
     'species': false,

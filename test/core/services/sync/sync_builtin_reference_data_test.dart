@@ -18,6 +18,7 @@ import '../../../helpers/test_database.dart';
 /// `beforeOpen`. The clear must not depend on any of them.
 const _entityForTable = {
   'dive_types': 'diveTypes',
+  'dive_roles': 'diveRoles',
   'species': 'species',
   'field_presets': 'fieldPresets',
 };
@@ -30,6 +31,9 @@ String _insert(String table, {required String id, required bool builtIn}) {
   switch (table) {
     case 'dive_types':
       return "INSERT INTO dive_types (id, name, created_at, updated_at, "
+          "is_built_in) VALUES ('$id', '$id', 0, 0, $b)";
+    case 'dive_roles':
+      return "INSERT INTO dive_roles (id, name, created_at, updated_at, "
           "is_built_in) VALUES ('$id', '$id', 0, 0, $b)";
     case 'species':
       return "INSERT INTO species (id, common_name, category, is_built_in) "

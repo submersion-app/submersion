@@ -213,14 +213,19 @@
   "buddies_message_preparingExport": "Preparando exportación...",
   "buddies_message_updated": "Compañero actualizado exitosamente",
   "buddies_picker_add": "Agregar",
+  "buddies_picker_addCustomRole": "Agregar rol personalizado...",
   "buddies_picker_addNew": "Agregar Nuevo Compañero",
   "buddies_picker_done": "Listo",
+  "buddies_picker_me": "Yo",
   "buddies_picker_noBuddiesFound": "No se encontraron compañeros",
   "buddies_picker_noBuddiesYet": "Aún no hay compañeros",
+  "buddies_picker_noRole": "Sin rol",
   "buddies_picker_noneSelected": "Ningún compañero seleccionado",
   "buddies_picker_searchHint": "Buscar compañeros...",
   "buddies_picker_selectBuddies": "Seleccionar Compañeros",
+  "buddies_picker_selectMyRole": "Seleccionar mi rol",
   "buddies_picker_selectRole": "Seleccionar Rol para {name}",
+  "buddies_picker_setMyRole": "Establecer mi rol",
   "buddies_picker_tapToAdd": "Toca 'Agregar' para seleccionar compañeros de buceo",
   "buddies_search_hint": "Buscar por nombre, correo o teléfono",
   "buddies_search_noResults": "No se encontraron compañeros para \"{query}\"",
@@ -1530,6 +1535,68 @@
   "diveLog_sighting_decreaseCount": "Disminuir cantidad",
   "diveLog_sighting_increaseCount": "Aumentar cantidad",
   "diveLog_speciesPicker_errorLoading": "Error al cargar especies: {error}",
+  "diveRole_builtin_buddy": "Compañero",
+  "diveRole_builtin_diveGuide": "Guía de buceo",
+  "diveRole_builtin_diveMaster": "Divemaster",
+  "diveRole_builtin_instructor": "Instructor",
+  "diveRole_builtin_rearGuard": "Guía de cola",
+  "diveRole_builtin_safetyDiver": "Buzo de seguridad",
+  "diveRole_builtin_solo": "Solo",
+  "diveRole_builtin_student": "Estudiante",
+  "diveRole_builtin_supportDiver": "Buzo de apoyo",
+  "diveRoles_addDialog_addButton": "Agregar",
+  "diveRoles_addDialog_nameHint": "ej., Fotógrafo",
+  "diveRoles_addDialog_nameLabel": "Nombre del Rol de Buceo",
+  "diveRoles_addDialog_nameValidation": "Por favor ingresa un nombre",
+  "diveRoles_addDialog_title": "Agregar Rol de Buceo Personalizado",
+  "diveRoles_addTooltip": "Agregar rol de buceo",
+  "diveRoles_appBar_title": "Roles de Buceo",
+  "diveRoles_builtInHeader": "Roles de Buceo Integrados",
+  "diveRoles_customHeader": "Roles de Buceo Personalizados",
+  "diveRoles_deleteDialog_content": "¿Estás seguro de que deseas eliminar \"{name}\"?",
+  "@diveRoles_deleteDialog_content": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_deleteDialog_title": "¿Eliminar Rol de Buceo?",
+  "diveRoles_deleteTooltip": "Eliminar rol de buceo",
+  "diveRoles_renameDialog_title": "Renombrar Rol de Buceo",
+  "diveRoles_renameTooltip": "Renombrar rol de buceo",
+  "diveRoles_snackbar_added": "Rol de buceo agregado: {name}",
+  "@diveRoles_snackbar_added": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_snackbar_cannotDelete": "No se puede eliminar \"{name}\" - está siendo usado por inmersiones existentes",
+  "@diveRoles_snackbar_cannotDelete": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_snackbar_deleted": "Rol de buceo eliminado: {name}",
+  "@diveRoles_snackbar_deleted": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_snackbar_errorAdding": "Error al agregar rol de buceo: {error}",
+  "@diveRoles_snackbar_errorAdding": {
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
   "diveSites_edit_depth_heroMax": "Prof. máx.",
   "diveSites_edit_depth_heroMin": "Prof. mín.",
   "diveSites_edit_group_accessSafety": "Acceso y seguridad",
@@ -3668,6 +3735,8 @@
   "settings_language_systemDefault": "Predeterminado del sistema",
   "settings_manage_checklistTemplates": "Plantillas de listas de verificación",
   "settings_manage_checklistTemplates_subtitle": "Listas de tareas reutilizables para planificar viajes",
+  "settings_manage_diveRoles": "Roles de buceo",
+  "settings_manage_diveRoles_subtitle": "Administrar roles de buceo personalizados",
   "settings_manage_diveTypes": "Tipos de inmersion",
   "settings_manage_diveTypes_subtitle": "Administrar tipos de inmersion personalizados",
   "settings_manage_header_manageData": "Administrar datos",

@@ -27,6 +27,7 @@ import 'package:submersion/features/marine_life/presentation/providers/species_p
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
+import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
@@ -343,6 +344,9 @@ class ExportNotifier extends StateNotifier<ExportState> {
       final trips = await _ref.read(allTripsProvider.future);
       final tags = await _ref.read(tagsProvider.future);
       final customDiveTypes = await _ref.read(diveTypesProvider.future);
+      final customDiveRoles = (await _ref.read(
+        allDiveRolesProvider.future,
+      )).where((r) => !r.isBuiltIn).toList();
       final diveComputers = await _ref.read(allDiveComputersProvider.future);
       final equipmentSets = await _ref.read(equipmentSetsProvider.future);
 
@@ -431,6 +435,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         tags: tags,
         diveTags: diveTags,
         customDiveTypes: customDiveTypes,
+        customDiveRoles: customDiveRoles,
         diveComputers: diveComputers,
         equipmentSets: equipmentSets,
         serviceRecords: allServiceRecords,
@@ -816,6 +821,9 @@ class ExportNotifier extends StateNotifier<ExportState> {
       final trips = await _ref.read(allTripsProvider.future);
       final tags = await _ref.read(tagsProvider.future);
       final customDiveTypes = await _ref.read(diveTypesProvider.future);
+      final customDiveRoles = (await _ref.read(
+        allDiveRolesProvider.future,
+      )).where((r) => !r.isBuiltIn).toList();
       final diveComputers = await _ref.read(allDiveComputersProvider.future);
       final equipmentSets = await _ref.read(equipmentSetsProvider.future);
       final courses = await _ref.read(allCoursesProvider.future);
@@ -899,6 +907,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         tags: tags,
         diveTags: diveTags,
         customDiveTypes: customDiveTypes,
+        customDiveRoles: customDiveRoles,
         diveComputers: diveComputers,
         equipmentSets: equipmentSets,
         serviceRecords: allServiceRecords,

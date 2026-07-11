@@ -701,16 +701,25 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buddies_picker_add => 'הוסף';
 
   @override
+  String get buddies_picker_addCustomRole => 'הוסף תפקיד מותאם...';
+
+  @override
   String get buddies_picker_addNew => 'הוסף חבר צוללים חדש';
 
   @override
   String get buddies_picker_done => 'סיום';
 
   @override
+  String get buddies_picker_me => 'אני';
+
+  @override
   String get buddies_picker_noBuddiesFound => 'לא נמצאו חברי צוללים';
 
   @override
   String get buddies_picker_noBuddiesYet => 'עדיין אין חברי צוללים';
+
+  @override
+  String get buddies_picker_noRole => 'ללא תפקיד';
 
   @override
   String get buddies_picker_noneSelected => 'לא נבחרו חברי צוללים';
@@ -722,9 +731,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buddies_picker_selectBuddies => 'בחר חברי צוללים';
 
   @override
+  String get buddies_picker_selectMyRole => 'בחר את התפקיד שלי';
+
+  @override
   String buddies_picker_selectRole(Object name) {
     return 'בחר תפקיד עבור $name';
   }
+
+  @override
+  String get buddies_picker_setMyRole => 'הגדר את התפקיד שלי';
 
   @override
   String get buddies_picker_tapToAdd => 'לחץ על \'הוסף\' כדי לבחור חברי צוללים';
@@ -4575,6 +4590,97 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String diveLog_speciesPicker_errorLoading(String error) {
     return 'שגיאה בטעינת מינים: $error';
+  }
+
+  @override
+  String get diveRole_builtin_buddy => 'חבר צוללים';
+
+  @override
+  String get diveRole_builtin_diveGuide => 'מוביל צלילה';
+
+  @override
+  String get diveRole_builtin_diveMaster => 'דייבמאסטר';
+
+  @override
+  String get diveRole_builtin_instructor => 'מדריך';
+
+  @override
+  String get diveRole_builtin_rearGuard => 'מאסף';
+
+  @override
+  String get diveRole_builtin_safetyDiver => 'צולל בטיחות';
+
+  @override
+  String get diveRole_builtin_solo => 'סולו';
+
+  @override
+  String get diveRole_builtin_student => 'חניך';
+
+  @override
+  String get diveRole_builtin_supportDiver => 'צולל תמיכה';
+
+  @override
+  String get diveRoles_addDialog_addButton => 'הוסף';
+
+  @override
+  String get diveRoles_addDialog_nameHint => 'לדוגמה: צלם';
+
+  @override
+  String get diveRoles_addDialog_nameLabel => 'שם תפקיד צלילה';
+
+  @override
+  String get diveRoles_addDialog_nameValidation => 'נא להזין שם';
+
+  @override
+  String get diveRoles_addDialog_title => 'הוסף תפקיד צלילה מותאם';
+
+  @override
+  String get diveRoles_addTooltip => 'הוסף תפקיד צלילה';
+
+  @override
+  String get diveRoles_appBar_title => 'תפקידי צלילה';
+
+  @override
+  String get diveRoles_builtInHeader => 'תפקידי צלילה מובנים';
+
+  @override
+  String get diveRoles_customHeader => 'תפקידי צלילה מותאמים';
+
+  @override
+  String diveRoles_deleteDialog_content(Object name) {
+    return 'האם אתה בטוח שברצונך למחוק את \"$name\"?';
+  }
+
+  @override
+  String get diveRoles_deleteDialog_title => 'למחוק תפקיד צלילה?';
+
+  @override
+  String get diveRoles_deleteTooltip => 'מחק תפקיד צלילה';
+
+  @override
+  String get diveRoles_renameDialog_title => 'שנה שם תפקיד צלילה';
+
+  @override
+  String get diveRoles_renameTooltip => 'שנה שם תפקיד צלילה';
+
+  @override
+  String diveRoles_snackbar_added(Object name) {
+    return 'תפקיד צלילה נוסף: $name';
+  }
+
+  @override
+  String diveRoles_snackbar_cannotDelete(Object name) {
+    return 'לא ניתן למחוק את \"$name\" - הוא משמש צלילות קיימות';
+  }
+
+  @override
+  String diveRoles_snackbar_deleted(Object name) {
+    return 'תפקיד צלילה נמחק: $name';
+  }
+
+  @override
+  String diveRoles_snackbar_errorAdding(Object error) {
+    return 'שגיאה בהוספת תפקיד צלילה: $error';
   }
 
   @override
@@ -11784,6 +11890,13 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_manage_checklistTemplates_subtitle =>
       'רשימות משימות לשימוש חוזר לתכנון טיולים';
+
+  @override
+  String get settings_manage_diveRoles => 'תפקידי צלילה';
+
+  @override
+  String get settings_manage_diveRoles_subtitle =>
+      'ניהול תפקידי צלילה מותאמים אישית';
 
   @override
   String get settings_manage_diveTypes => 'סוגי צלילה';

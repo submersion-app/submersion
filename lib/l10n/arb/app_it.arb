@@ -213,14 +213,19 @@
   "buddies_message_preparingExport": "Preparazione esportazione...",
   "buddies_message_updated": "Compagno aggiornato con successo",
   "buddies_picker_add": "Aggiungi",
+  "buddies_picker_addCustomRole": "Aggiungi ruolo personalizzato...",
   "buddies_picker_addNew": "Aggiungi Nuovo Compagno",
   "buddies_picker_done": "Fatto",
+  "buddies_picker_me": "Io",
   "buddies_picker_noBuddiesFound": "Nessun compagno trovato",
   "buddies_picker_noBuddiesYet": "Nessun compagno ancora",
+  "buddies_picker_noRole": "Nessun ruolo",
   "buddies_picker_noneSelected": "Nessun compagno selezionato",
   "buddies_picker_searchHint": "Cerca compagni...",
   "buddies_picker_selectBuddies": "Seleziona Compagni",
+  "buddies_picker_selectMyRole": "Seleziona il mio ruolo",
   "buddies_picker_selectRole": "Seleziona Ruolo per {name}",
+  "buddies_picker_setMyRole": "Imposta il mio ruolo",
   "buddies_picker_tapToAdd": "Tocca 'Aggiungi' per selezionare i compagni di immersione",
   "buddies_search_hint": "Cerca per nome, email o telefono",
   "buddies_search_noResults": "Nessun compagno trovato per \"{query}\"",
@@ -1496,6 +1501,68 @@
   "diveLog_sighting_decreaseCount": "Diminuisci conteggio",
   "diveLog_sighting_increaseCount": "Aumenta conteggio",
   "diveLog_speciesPicker_errorLoading": "Errore nel caricamento delle specie: {error}",
+  "diveRole_builtin_buddy": "Compagno",
+  "diveRole_builtin_diveGuide": "Guida subacquea",
+  "diveRole_builtin_diveMaster": "Divemaster",
+  "diveRole_builtin_instructor": "Istruttore",
+  "diveRole_builtin_rearGuard": "Chiudifila",
+  "diveRole_builtin_safetyDiver": "Subacqueo di sicurezza",
+  "diveRole_builtin_solo": "Solitario",
+  "diveRole_builtin_student": "Allievo",
+  "diveRole_builtin_supportDiver": "Subacqueo di supporto",
+  "diveRoles_addDialog_addButton": "Aggiungi",
+  "diveRoles_addDialog_nameHint": "es., Fotografo",
+  "diveRoles_addDialog_nameLabel": "Nome Ruolo di Immersione",
+  "diveRoles_addDialog_nameValidation": "Inserisci un nome",
+  "diveRoles_addDialog_title": "Aggiungi Ruolo di Immersione Personalizzato",
+  "diveRoles_addTooltip": "Aggiungi ruolo di immersione",
+  "diveRoles_appBar_title": "Ruoli di Immersione",
+  "diveRoles_builtInHeader": "Ruoli di Immersione Predefiniti",
+  "diveRoles_customHeader": "Ruoli di Immersione Personalizzati",
+  "diveRoles_deleteDialog_content": "Sei sicuro di voler eliminare \"{name}\"?",
+  "@diveRoles_deleteDialog_content": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_deleteDialog_title": "Eliminare Ruolo di Immersione?",
+  "diveRoles_deleteTooltip": "Elimina ruolo di immersione",
+  "diveRoles_renameDialog_title": "Rinomina Ruolo di Immersione",
+  "diveRoles_renameTooltip": "Rinomina ruolo di immersione",
+  "diveRoles_snackbar_added": "Ruolo di immersione aggiunto: {name}",
+  "@diveRoles_snackbar_added": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_snackbar_cannotDelete": "Impossibile eliminare \"{name}\" - è usato da immersioni esistenti",
+  "@diveRoles_snackbar_cannotDelete": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_snackbar_deleted": "Ruolo di immersione eliminato: {name}",
+  "@diveRoles_snackbar_deleted": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_snackbar_errorAdding": "Errore durante l'aggiunta del ruolo di immersione: {error}",
+  "@diveRoles_snackbar_errorAdding": {
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
   "diveSites_edit_depth_heroMax": "Prof. max",
   "diveSites_edit_depth_heroMin": "Prof. min",
   "diveSites_edit_group_accessSafety": "Accesso e sicurezza",
@@ -3630,6 +3697,8 @@
   "settings_language_systemDefault": "Predefinito di sistema",
   "settings_manage_checklistTemplates": "Modelli di liste di controllo",
   "settings_manage_checklistTemplates_subtitle": "Liste di controllo riutilizzabili per pianificare i viaggi",
+  "settings_manage_diveRoles": "Ruoli di immersione",
+  "settings_manage_diveRoles_subtitle": "Gestisci ruoli di immersione personalizzati",
   "settings_manage_diveTypes": "Tipi di immersione",
   "settings_manage_diveTypes_subtitle": "Gestisci tipi di immersione personalizzati",
   "settings_manage_header_manageData": "Gestisci dati",

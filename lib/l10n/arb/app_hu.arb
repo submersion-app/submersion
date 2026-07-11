@@ -213,14 +213,19 @@
   "buddies_message_preparingExport": "Exportálás előkészítése...",
   "buddies_message_updated": "Búvártárs sikeresen frissítve",
   "buddies_picker_add": "Hozzáadás",
+  "buddies_picker_addCustomRole": "Egyedi szerep hozzáadása...",
   "buddies_picker_addNew": "Új búvártárs hozzáadása",
   "buddies_picker_done": "Kész",
+  "buddies_picker_me": "Én",
   "buddies_picker_noBuddiesFound": "Nem találhatók búvártársak",
   "buddies_picker_noBuddiesYet": "Még nincsenek búvártársak",
+  "buddies_picker_noRole": "Nincs szerep",
   "buddies_picker_noneSelected": "Nincs kiválasztott búvártárs",
   "buddies_picker_searchHint": "Búvártársak keresése...",
   "buddies_picker_selectBuddies": "Búvártársak kiválasztása",
+  "buddies_picker_selectMyRole": "Saját szerep kiválasztása",
   "buddies_picker_selectRole": "Szerep kiválasztása: {name}",
+  "buddies_picker_setMyRole": "Saját szerep beállítása",
   "buddies_picker_tapToAdd": "Koppints a 'Hozzáadás'-ra a búvártársak kiválasztásához",
   "buddies_search_hint": "Keresés név, e-mail vagy telefon alapján",
   "buddies_search_noResults": "Nincs találat erre: \"{query}\"",
@@ -1496,6 +1501,68 @@
   "diveLog_sighting_decreaseCount": "Darabszám csökkentése",
   "diveLog_sighting_increaseCount": "Darabszám növelése",
   "diveLog_speciesPicker_errorLoading": "Hiba a fajok betöltésekor: {error}",
+  "diveRole_builtin_buddy": "Búvártárs",
+  "diveRole_builtin_diveGuide": "Merülésvezető",
+  "diveRole_builtin_diveMaster": "Divemaster",
+  "diveRole_builtin_instructor": "Oktató",
+  "diveRole_builtin_rearGuard": "Sereghajtó",
+  "diveRole_builtin_safetyDiver": "Biztosító búvár",
+  "diveRole_builtin_solo": "Szóló",
+  "diveRole_builtin_student": "Tanuló",
+  "diveRole_builtin_supportDiver": "Támogató búvár",
+  "diveRoles_addDialog_addButton": "Hozzáadás",
+  "diveRoles_addDialog_nameHint": "pl. Fotós",
+  "diveRoles_addDialog_nameLabel": "Merülési szerep neve",
+  "diveRoles_addDialog_nameValidation": "Adj meg egy nevet",
+  "diveRoles_addDialog_title": "Egyedi merülési szerep hozzáadása",
+  "diveRoles_addTooltip": "Merülési szerep hozzáadása",
+  "diveRoles_appBar_title": "Merülési szerepek",
+  "diveRoles_builtInHeader": "Beépített merülési szerepek",
+  "diveRoles_customHeader": "Egyedi merülési szerepek",
+  "diveRoles_deleteDialog_content": "Biztosan törölni szeretnéd: \"{name}\"?",
+  "@diveRoles_deleteDialog_content": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_deleteDialog_title": "Merülési szerep törlése?",
+  "diveRoles_deleteTooltip": "Merülési szerep törlése",
+  "diveRoles_renameDialog_title": "Merülési szerep átnevezése",
+  "diveRoles_renameTooltip": "Merülési szerep átnevezése",
+  "diveRoles_snackbar_added": "Merülési szerep hozzáadva: {name}",
+  "@diveRoles_snackbar_added": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_snackbar_cannotDelete": "Nem lehet törölni \"{name}\" - meglévő merülések használják",
+  "@diveRoles_snackbar_cannotDelete": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_snackbar_deleted": "Merülési szerep törölve: {name}",
+  "@diveRoles_snackbar_deleted": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_snackbar_errorAdding": "Hiba a merülési szerep hozzáadásakor: {error}",
+  "@diveRoles_snackbar_errorAdding": {
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
   "diveSites_edit_depth_heroMax": "Max. mélység",
   "diveSites_edit_depth_heroMin": "Min. mélység",
   "diveSites_edit_group_accessSafety": "Megközelítés és biztonság",
@@ -3634,6 +3701,8 @@
   "settings_language_systemDefault": "Rendszer alapertelmezett",
   "settings_manage_checklistTemplates": "Ellenőrzőlista-sablonok",
   "settings_manage_checklistTemplates_subtitle": "Újrafelhasználható tennivalólisták az utak tervezéséhez",
+  "settings_manage_diveRoles": "Merülési szerepek",
+  "settings_manage_diveRoles_subtitle": "Egyedi merülési szerepek kezelése",
   "settings_manage_diveTypes": "Merüles tipusok",
   "settings_manage_diveTypes_subtitle": "Egyedi merüles tipusok kezelese",
   "settings_manage_header_manageData": "Adatok kezelese",

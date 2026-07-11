@@ -1,11 +1,11 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart' as db;
 import 'package:submersion/core/performance/perf_timer.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
@@ -88,6 +88,25 @@ void main() {
 
           expect(createdDive.id, isNotEmpty);
           expect(createdDive.diveNumber, equals(1));
+        },
+      );
+
+      test(
+        'diverRoleId round-trips through create, read, and update',
+        () async {
+          final dive = createTestDive(
+            diveNumber: 42,
+          ).copyWith(diverRoleId: 'rearGuard');
+
+          final created = await repository.createDive(dive);
+          var loaded = await repository.getDiveById(created.id);
+          expect(loaded!.diverRoleId, 'rearGuard');
+
+          await repository.updateDive(
+            loaded.copyWith(diverRoleId: 'instructor'),
+          );
+          loaded = await repository.getDiveById(created.id);
+          expect(loaded!.diverRoleId, 'instructor');
         },
       );
 
@@ -631,7 +650,7 @@ void main() {
         final dive = await repository.createDive(
           createTestDive(diveNumber: 13),
         );
-        await buddyRepo.addBuddyToDive(dive.id, buddy.id, BuddyRole.buddy);
+        await buddyRepo.addBuddyToDive(dive.id, buddy.id, DiveRole.buddyId);
 
         final results = await repository.searchDiveSummaries('Cousteau');
 

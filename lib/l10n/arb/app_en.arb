@@ -439,14 +439,19 @@
   "buddies_message_preparingExport": "Preparing export...",
   "buddies_message_updated": "Buddy updated successfully",
   "buddies_picker_add": "Add",
+  "buddies_picker_addCustomRole": "Add custom role...",
   "buddies_picker_addNew": "Add New Buddy",
   "buddies_picker_done": "Done",
+  "buddies_picker_me": "Me",
   "buddies_picker_noBuddiesFound": "No buddies found",
   "buddies_picker_noBuddiesYet": "No buddies yet",
+  "buddies_picker_noRole": "No role",
   "buddies_picker_noneSelected": "No buddies selected",
   "buddies_picker_searchHint": "Search buddies...",
   "buddies_picker_selectBuddies": "Select Buddies",
+  "buddies_picker_selectMyRole": "Select my role",
   "buddies_picker_selectRole": "Select Role for {name}",
+  "buddies_picker_setMyRole": "Set my role",
   "buddies_picker_tapToAdd": "Tap 'Add' to select dive buddies",
   "buddies_search_hint": "Search by name, email, or phone",
   "buddies_search_noResults": "No buddies found for \"{query}\"",
@@ -2406,6 +2411,68 @@
     "placeholders": {
       "error": {
         "type": "String"
+      }
+    }
+  },
+  "diveRole_builtin_buddy": "Buddy",
+  "diveRole_builtin_diveGuide": "Dive Guide",
+  "diveRole_builtin_diveMaster": "Divemaster",
+  "diveRole_builtin_instructor": "Instructor",
+  "diveRole_builtin_rearGuard": "Rear Guard",
+  "diveRole_builtin_safetyDiver": "Safety Diver",
+  "diveRole_builtin_solo": "Solo",
+  "diveRole_builtin_student": "Student",
+  "diveRole_builtin_supportDiver": "Support Diver",
+  "diveRoles_addDialog_addButton": "Add",
+  "diveRoles_addDialog_nameHint": "e.g., Photographer",
+  "diveRoles_addDialog_nameLabel": "Dive Role Name",
+  "diveRoles_addDialog_nameValidation": "Please enter a name",
+  "diveRoles_addDialog_title": "Add Custom Dive Role",
+  "diveRoles_addTooltip": "Add dive role",
+  "diveRoles_appBar_title": "Dive Roles",
+  "diveRoles_builtInHeader": "Built-in Dive Roles",
+  "diveRoles_customHeader": "Custom Dive Roles",
+  "diveRoles_deleteDialog_content": "Are you sure you want to delete \"{name}\"?",
+  "@diveRoles_deleteDialog_content": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_deleteDialog_title": "Delete Dive Role?",
+  "diveRoles_deleteTooltip": "Delete dive role",
+  "diveRoles_renameDialog_title": "Rename Dive Role",
+  "diveRoles_renameTooltip": "Rename dive role",
+  "diveRoles_snackbar_added": "Added dive role: {name}",
+  "@diveRoles_snackbar_added": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_snackbar_cannotDelete": "Cannot delete \"{name}\" - it is used by existing dives",
+  "@diveRoles_snackbar_cannotDelete": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_snackbar_deleted": "Deleted dive role: {name}",
+  "@diveRoles_snackbar_deleted": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_snackbar_errorAdding": "Error adding dive role: {error}",
+  "@diveRoles_snackbar_errorAdding": {
+    "placeholders": {
+      "error": {
+        "type": "Object"
       }
     }
   },
@@ -6620,6 +6687,8 @@
   "settings_language_systemDefault": "System Default",
   "settings_manage_checklistTemplates": "Checklist Templates",
   "settings_manage_checklistTemplates_subtitle": "Reusable to-do lists for trip planning",
+  "settings_manage_diveRoles": "Dive Roles",
+  "settings_manage_diveRoles_subtitle": "Manage custom dive roles",
   "settings_manage_diveTypes": "Dive Types",
   "settings_manage_diveTypes_subtitle": "Manage custom dive types",
   "settings_manage_header_manageData": "Manage Data",

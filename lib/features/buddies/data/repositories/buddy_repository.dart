@@ -12,6 +12,8 @@ import 'package:submersion/features/buddies/domain/entities/buddy.dart'
 import 'package:submersion/features/buddies/data/repositories/buddy_merge_repository.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_role_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy_role_credential.dart';
+import 'package:submersion/features/dive_roles/data/repositories/dive_role_repository.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 
 // Re-export merge types so callers can import from buddy_repository.dart
 export 'package:submersion/features/buddies/data/repositories/buddy_merge_repository.dart'
@@ -338,6 +340,11 @@ class BuddyRepository {
         )
         .get();
 
+    // Resolve role ids against dive_roles; unknown slugs stay visible as
+    // synthetic roles instead of silently coercing to Buddy.
+    final roleRows = await _db.select(_db.diveRoles).get();
+    final rolesById = {for (final r in roleRows) r.id: mapDiveRoleRow(r)};
+
     return results.map((row) {
       final buddy = domain.Buddy(
         id: row.data['id'] as String,
@@ -359,10 +366,8 @@ class BuddyRepository {
           row.data['updated_at'] as int,
         ),
       );
-      final role = BuddyRole.values.firstWhere(
-        (r) => r.name == row.data['role'],
-        orElse: () => BuddyRole.buddy,
-      );
+      final roleId = (row.data['role'] as String?) ?? DiveRole.buddyId;
+      final role = rolesById[roleId] ?? DiveRole.synthetic(roleId);
       return domain.BuddyWithRole(buddy: buddy, role: role);
     }).toList();
   }
@@ -397,7 +402,7 @@ class BuddyRepository {
               id: Value(id),
               diveId: Value(diveId),
               buddyId: Value(buddyWithRole.buddy.id),
-              role: Value(buddyWithRole.role.name),
+              role: Value(buddyWithRole.role.id),
               createdAt: Value(now),
             ),
           );
@@ -418,11 +423,11 @@ class BuddyRepository {
     SyncEventBus.notifyLocalChange();
   }
 
-  /// Add a buddy to a dive
+  /// Add a buddy to a dive. [roleId] is a dive_roles id (see [DiveRole]).
   Future<void> addBuddyToDive(
     String diveId,
     String buddyId,
-    BuddyRole role,
+    String roleId,
   ) async {
     final now = DateTime.now().millisecondsSinceEpoch;
 
@@ -437,7 +442,7 @@ class BuddyRepository {
       // Update role
       await (_db.update(_db.diveBuddies)
             ..where((t) => t.diveId.equals(diveId) & t.buddyId.equals(buddyId)))
-          .write(DiveBuddiesCompanion(role: Value(role.name)));
+          .write(DiveBuddiesCompanion(role: Value(roleId)));
       await _syncRepository.markRecordPending(
         entityType: 'diveBuddies',
         recordId: existing.id,
@@ -453,7 +458,7 @@ class BuddyRepository {
               id: Value(id),
               diveId: Value(diveId),
               buddyId: Value(buddyId),
-              role: Value(role.name),
+              role: Value(roleId),
               createdAt: Value(now),
             ),
           );
@@ -531,7 +536,7 @@ class BuddyRepository {
           await (_db.update(_db.diveBuddies)..where(
                 (t) => t.diveId.equals(diveId) & t.buddyId.equals(bwr.buddy.id),
               ))
-              .write(DiveBuddiesCompanion(role: Value(bwr.role.name)));
+              .write(DiveBuddiesCompanion(role: Value(bwr.role.id)));
           await _syncRepository.markRecordPending(
             entityType: 'diveBuddies',
             recordId: existing.id,
@@ -546,7 +551,7 @@ class BuddyRepository {
                   id: Value(id),
                   diveId: Value(diveId),
                   buddyId: Value(bwr.buddy.id),
-                  role: Value(bwr.role.name),
+                  role: Value(bwr.role.id),
                   createdAt: Value(now),
                 ),
               );
@@ -614,7 +619,7 @@ class BuddyRepository {
                 id: Value(id),
                 diveId: Value(diveId),
                 buddyId: Value(bwr.buddy.id),
-                role: Value(bwr.role.name),
+                role: Value(bwr.role.id),
                 createdAt: Value(now),
               ),
             );

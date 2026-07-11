@@ -682,16 +682,25 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buddies_picker_add => '添加';
 
   @override
+  String get buddies_picker_addCustomRole => '添加自定义角色...';
+
+  @override
   String get buddies_picker_addNew => '添加新潜伴';
 
   @override
   String get buddies_picker_done => '完成';
 
   @override
+  String get buddies_picker_me => '我';
+
+  @override
   String get buddies_picker_noBuddiesFound => '未找到潜伴';
 
   @override
   String get buddies_picker_noBuddiesYet => '暂无潜伴';
+
+  @override
+  String get buddies_picker_noRole => '无角色';
 
   @override
   String get buddies_picker_noneSelected => '未选择潜伴';
@@ -703,9 +712,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buddies_picker_selectBuddies => '选择潜伴';
 
   @override
+  String get buddies_picker_selectMyRole => '选择我的角色';
+
+  @override
   String buddies_picker_selectRole(Object name) {
     return '为 $name 选择角色';
   }
+
+  @override
+  String get buddies_picker_setMyRole => '设置我的角色';
 
   @override
   String get buddies_picker_tapToAdd => '点击「添加」选择潜伴';
@@ -4476,6 +4491,97 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String diveLog_speciesPicker_errorLoading(String error) {
     return '加载物种时出错：$error';
+  }
+
+  @override
+  String get diveRole_builtin_buddy => '潜伴';
+
+  @override
+  String get diveRole_builtin_diveGuide => '潜导';
+
+  @override
+  String get diveRole_builtin_diveMaster => '潜水长';
+
+  @override
+  String get diveRole_builtin_instructor => '教练';
+
+  @override
+  String get diveRole_builtin_rearGuard => '后导';
+
+  @override
+  String get diveRole_builtin_safetyDiver => '安全员';
+
+  @override
+  String get diveRole_builtin_solo => '独潜';
+
+  @override
+  String get diveRole_builtin_student => '学员';
+
+  @override
+  String get diveRole_builtin_supportDiver => '支援潜水员';
+
+  @override
+  String get diveRoles_addDialog_addButton => '添加';
+
+  @override
+  String get diveRoles_addDialog_nameHint => '例如：摄影师';
+
+  @override
+  String get diveRoles_addDialog_nameLabel => '潜水角色名称';
+
+  @override
+  String get diveRoles_addDialog_nameValidation => '请输入名称';
+
+  @override
+  String get diveRoles_addDialog_title => '添加自定义潜水角色';
+
+  @override
+  String get diveRoles_addTooltip => '添加潜水角色';
+
+  @override
+  String get diveRoles_appBar_title => '潜水角色';
+
+  @override
+  String get diveRoles_builtInHeader => '内置潜水角色';
+
+  @override
+  String get diveRoles_customHeader => '自定义潜水角色';
+
+  @override
+  String diveRoles_deleteDialog_content(Object name) {
+    return '确定要删除 \"$name\"?';
+  }
+
+  @override
+  String get diveRoles_deleteDialog_title => '删除潜水角色?';
+
+  @override
+  String get diveRoles_deleteTooltip => '删除潜水角色';
+
+  @override
+  String get diveRoles_renameDialog_title => '重命名潜水角色';
+
+  @override
+  String get diveRoles_renameTooltip => '重命名潜水角色';
+
+  @override
+  String diveRoles_snackbar_added(Object name) {
+    return '已添加潜水角色：$name';
+  }
+
+  @override
+  String diveRoles_snackbar_cannotDelete(Object name) {
+    return '无法删除 \"$name\" - 已被现有潜水记录使用';
+  }
+
+  @override
+  String diveRoles_snackbar_deleted(Object name) {
+    return '已删除潜水角色：$name';
+  }
+
+  @override
+  String diveRoles_snackbar_errorAdding(Object error) {
+    return '添加潜水角色出错：$error';
   }
 
   @override
@@ -11531,6 +11637,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_manage_checklistTemplates_subtitle => '用于旅行规划的可重复使用待办清单';
+
+  @override
+  String get settings_manage_diveRoles => '潜水角色';
+
+  @override
+  String get settings_manage_diveRoles_subtitle => '管理自定义潜水角色';
 
   @override
   String get settings_manage_diveTypes => '潜水类型';

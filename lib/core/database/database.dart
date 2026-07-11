@@ -404,6 +404,9 @@ class Dives extends Table {
       text().withDefault(const Constant('recreational'))();
   TextColumn get buddy => text().nullable()();
   TextColumn get diveMaster => text().nullable()();
+
+  /// The active diver's own role on this dive (dive_roles id, #547).
+  TextColumn get diverRole => text().nullable()();
   // MacDive import fields — common dive metadata
   TextColumn get boatName => text().nullable()();
   TextColumn get boatCaptain => text().nullable()();
@@ -1486,6 +1489,52 @@ const String kSeedBuiltInDiveTypesSql = '''
   CROSS JOIN (SELECT CAST(strftime('%s','now') AS INTEGER) * 1000 AS now_ms) n
 ''';
 
+/// Per-dive role vocabulary: built-in + custom (v103, issues #551/#547).
+/// Built-in ids are the legacy BuddyRole enum names so existing
+/// dive_buddies.role strings resolve without data migration; custom ids
+/// are UUIDs so renames never break references.
+@DataClassName('DiveRoleRow')
+class DiveRoles extends Table {
+  TextColumn get id => text()();
+  TextColumn get diverId =>
+      text().nullable().references(Divers, #id)(); // null for built-in roles
+  TextColumn get name => text()();
+  BoolColumn get isBuiltIn => boolean().withDefault(const Constant(false))();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Seeds the nine built-in dive roles. Mirrors [kSeedBuiltInDiveTypesSql]:
+/// INSERT OR IGNORE keyed on stable slug ids keeps it idempotent, and the
+/// seed is re-asserted in beforeOpen so replace-adopt flows that clear the
+/// table cannot leave built-ins missing. The timestamp is computed once via
+/// the trailing CROSS JOIN.
+const String kSeedBuiltInDiveRolesSql = '''
+  INSERT OR IGNORE INTO dive_roles
+    (id, name, is_built_in, sort_order, created_at, updated_at)
+  SELECT t.id, t.name, 1, t.sort_order, n.now_ms, n.now_ms
+  FROM (
+    SELECT 'buddy' AS id, 'Buddy' AS name, 0 AS sort_order
+    UNION ALL SELECT 'diveGuide', 'Dive Guide', 1
+    UNION ALL SELECT 'instructor', 'Instructor', 2
+    UNION ALL SELECT 'student', 'Student', 3
+    UNION ALL SELECT 'diveMaster', 'Divemaster', 4
+    UNION ALL SELECT 'solo', 'Solo', 5
+    UNION ALL SELECT 'rearGuard', 'Rear Guard', 6
+    UNION ALL SELECT 'supportDiver', 'Support Diver', 7
+    UNION ALL SELECT 'safetyDiver', 'Safety Diver', 8
+  ) t
+  CROSS JOIN (SELECT CAST(strftime('%s','now') AS INTEGER) * 1000 AS now_ms) n
+''';
+
 /// Custom tank presets (user-defined tank configurations)
 class TankPresets extends Table {
   TextColumn get id => text()();
@@ -1978,6 +2027,7 @@ class FieldPresets extends Table {
     DiveTags,
     DiveDiveTypes,
     DiveTypes,
+    DiveRoles,
     TankPresets,
     DiveComputers,
     DiveDataSources,
@@ -2033,7 +2083,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 102;
+  static const int currentSchemaVersion = 103;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -2139,6 +2189,7 @@ class AppDatabase extends _$AppDatabase {
     100,
     101,
     102,
+    103,
   ];
 
   /// Tables that carry a per-row Hybrid Logical Clock for cross-device conflict
@@ -2160,6 +2211,7 @@ class AppDatabase extends _$AppDatabase {
     'equipment',
     'equipment_sets',
     'dive_types',
+    'dive_roles',
     'tank_presets',
     'dive_computers',
     'tags',
@@ -2306,6 +2358,10 @@ class AppDatabase extends _$AppDatabase {
         // Seed built-in dive types (the same set the v93 migration backfills
         // for databases created before this seed existed).
         await customStatement(kSeedBuiltInDiveTypesSql);
+
+        // Seed built-in dive roles (the v103 migration backfills these for
+        // upgraded databases).
+        await customStatement(kSeedBuiltInDiveRolesSql);
       },
       onUpgrade: (Migrator m, int from, int to) async {
         int completedSteps = 0;
@@ -4982,6 +5038,34 @@ class AppDatabase extends _$AppDatabase {
           await _relinkStrandedTankPressures();
         }
         if (from < 102) await reportProgress();
+        if (from < 103) {
+          // Dive roles vocabulary (#551) + the diver's own role (#547).
+          // createTable is IF NOT EXISTS and the seed is INSERT OR IGNORE,
+          // so this block is idempotent; beforeOpen re-asserts the same
+          // objects against schema-version collisions. The existence guards
+          // (divers for the seed's FK parent, dives for the ALTER) only
+          // matter for minimal test-fixture databases.
+          await m.createTable(diveRoles);
+          final diversTable = await customSelect(
+            "SELECT name FROM sqlite_master "
+            "WHERE type='table' AND name='divers'",
+          ).get();
+          if (diversTable.isNotEmpty) {
+            await customStatement(kSeedBuiltInDiveRolesSql);
+          }
+          final diveCols = await customSelect(
+            "PRAGMA table_info('dives')",
+          ).get();
+          final hasDiverRole = diveCols.any(
+            (c) => c.read<String>('name') == 'diver_role',
+          );
+          if (diveCols.isNotEmpty && !hasDiverRole) {
+            await customStatement(
+              'ALTER TABLE dives ADD COLUMN diver_role TEXT',
+            );
+          }
+        }
+        if (from < 103) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
@@ -5032,6 +5116,28 @@ class AppDatabase extends _$AppDatabase {
         await createMigrator().createTable(divePlans);
         await createMigrator().createTable(divePlanTanks);
         await createMigrator().createTable(divePlanSegments);
+
+        // v103 backstop: dive_roles table + built-in seed + dives.diver_role
+        // column (same collision disease; all DDL idempotent). The seed is
+        // guarded on the divers FK parent existing, which only matters for
+        // minimal test-fixture databases.
+        await createMigrator().createTable(diveRoles);
+        final diversParent = await customSelect(
+          "SELECT name FROM sqlite_master "
+          "WHERE type='table' AND name='divers'",
+        ).get();
+        if (diversParent.isNotEmpty) {
+          await customStatement(kSeedBuiltInDiveRolesSql);
+        }
+        final divesCols = await customSelect(
+          "PRAGMA table_info('dives')",
+        ).get();
+        final hasDiverRoleCol = divesCols.any(
+          (c) => c.read<String>('name') == 'diver_role',
+        );
+        if (divesCols.isNotEmpty && !hasDiverRoleCol) {
+          await customStatement('ALTER TABLE dives ADD COLUMN diver_role TEXT');
+        }
 
         // Performance indexes historically existed only in onUpgrade blocks,
         // so a database created fresh at a recent schema version -- or

@@ -206,6 +206,7 @@ class UddfFullImportService {
     final settings = <String, String>{};
     final tags = <Map<String, dynamic>>[];
     final customDiveTypes = <Map<String, dynamic>>[];
+    final customDiveRoles = <Map<String, dynamic>>[];
     final diveComputers = <Map<String, dynamic>>[];
     final equipmentSets = <Map<String, dynamic>>[];
     final courses = <Map<String, dynamic>>[];
@@ -342,6 +343,21 @@ class UddfFullImportService {
           }
         }
 
+        // Parse custom dive roles (#551)
+        final diveRolesSection = submersionElement
+            .findElements('diveroles')
+            .firstOrNull;
+        if (diveRolesSection != null) {
+          for (final roleElement in diveRolesSection.findElements('diverole')) {
+            final roleData = UddfImportParsers.parseDiveRoleElement(
+              roleElement,
+            );
+            if (roleData.isNotEmpty) {
+              customDiveRoles.add(roleData);
+            }
+          }
+        }
+
         // Parse dive computers
         final computersSection = submersionElement
             .findElements('divecomputers')
@@ -426,6 +442,7 @@ class UddfFullImportService {
       trips: trips,
       tags: tags,
       customDiveTypes: customDiveTypes,
+      customDiveRoles: customDiveRoles,
       diveComputers: diveComputers,
       equipmentSets: equipmentSets,
       courses: courses,

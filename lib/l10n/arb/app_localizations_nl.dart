@@ -708,16 +708,25 @@ class AppLocalizationsNl extends AppLocalizations {
   String get buddies_picker_add => 'Toevoegen';
 
   @override
+  String get buddies_picker_addCustomRole => 'Aangepaste rol toevoegen...';
+
+  @override
   String get buddies_picker_addNew => 'Nieuwe buddy toevoegen';
 
   @override
   String get buddies_picker_done => 'Gereed';
 
   @override
+  String get buddies_picker_me => 'Ik';
+
+  @override
   String get buddies_picker_noBuddiesFound => 'Geen buddies gevonden';
 
   @override
   String get buddies_picker_noBuddiesYet => 'Nog geen buddies';
+
+  @override
+  String get buddies_picker_noRole => 'Geen rol';
 
   @override
   String get buddies_picker_noneSelected => 'Geen buddies geselecteerd';
@@ -729,9 +738,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get buddies_picker_selectBuddies => 'Selecteer buddies';
 
   @override
+  String get buddies_picker_selectMyRole => 'Selecteer mijn rol';
+
+  @override
   String buddies_picker_selectRole(Object name) {
     return 'Selecteer rol voor $name';
   }
+
+  @override
+  String get buddies_picker_setMyRole => 'Mijn rol instellen';
 
   @override
   String get buddies_picker_tapToAdd =>
@@ -4669,6 +4684,97 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String diveLog_speciesPicker_errorLoading(String error) {
     return 'Fout bij laden van soorten: $error';
+  }
+
+  @override
+  String get diveRole_builtin_buddy => 'Buddy';
+
+  @override
+  String get diveRole_builtin_diveGuide => 'Duikgids';
+
+  @override
+  String get diveRole_builtin_diveMaster => 'Divemaster';
+
+  @override
+  String get diveRole_builtin_instructor => 'Instructeur';
+
+  @override
+  String get diveRole_builtin_rearGuard => 'Hekkensluiter';
+
+  @override
+  String get diveRole_builtin_safetyDiver => 'Veiligheidsduiker';
+
+  @override
+  String get diveRole_builtin_solo => 'Solo';
+
+  @override
+  String get diveRole_builtin_student => 'Leerling';
+
+  @override
+  String get diveRole_builtin_supportDiver => 'Supportduiker';
+
+  @override
+  String get diveRoles_addDialog_addButton => 'Toevoegen';
+
+  @override
+  String get diveRoles_addDialog_nameHint => 'bijv. Fotograaf';
+
+  @override
+  String get diveRoles_addDialog_nameLabel => 'Duikrol naam';
+
+  @override
+  String get diveRoles_addDialog_nameValidation => 'Voer een naam in';
+
+  @override
+  String get diveRoles_addDialog_title => 'Aangepaste duikrol toevoegen';
+
+  @override
+  String get diveRoles_addTooltip => 'Duikrol toevoegen';
+
+  @override
+  String get diveRoles_appBar_title => 'Duikrollen';
+
+  @override
+  String get diveRoles_builtInHeader => 'Ingebouwde duikrollen';
+
+  @override
+  String get diveRoles_customHeader => 'Aangepaste duikrollen';
+
+  @override
+  String diveRoles_deleteDialog_content(Object name) {
+    return 'Weet je zeker dat je \"$name\" wilt verwijderen?';
+  }
+
+  @override
+  String get diveRoles_deleteDialog_title => 'Duikrol verwijderen?';
+
+  @override
+  String get diveRoles_deleteTooltip => 'Duikrol verwijderen';
+
+  @override
+  String get diveRoles_renameDialog_title => 'Duikrol hernoemen';
+
+  @override
+  String get diveRoles_renameTooltip => 'Duikrol hernoemen';
+
+  @override
+  String diveRoles_snackbar_added(Object name) {
+    return 'Duikrol toegevoegd: $name';
+  }
+
+  @override
+  String diveRoles_snackbar_cannotDelete(Object name) {
+    return 'Kan \"$name\" niet verwijderen - wordt gebruikt door bestaande duiken';
+  }
+
+  @override
+  String diveRoles_snackbar_deleted(Object name) {
+    return 'Duikrol verwijderd: $name';
+  }
+
+  @override
+  String diveRoles_snackbar_errorAdding(Object error) {
+    return 'Fout bij toevoegen duikrol: $error';
   }
 
   @override
@@ -12003,6 +12109,13 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_manage_checklistTemplates_subtitle =>
       'Herbruikbare takenlijsten voor reisplanning';
+
+  @override
+  String get settings_manage_diveRoles => 'Duikrollen';
+
+  @override
+  String get settings_manage_diveRoles_subtitle =>
+      'Aangepaste duikrollen beheren';
 
   @override
   String get settings_manage_diveTypes => 'Duiktypes';

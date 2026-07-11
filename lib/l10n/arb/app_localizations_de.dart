@@ -716,16 +716,26 @@ class AppLocalizationsDe extends AppLocalizations {
   String get buddies_picker_add => 'Hinzufügen';
 
   @override
+  String get buddies_picker_addCustomRole =>
+      'Benutzerdefinierte Rolle hinzufügen...';
+
+  @override
   String get buddies_picker_addNew => 'Neuen Tauchpartner hinzufügen';
 
   @override
   String get buddies_picker_done => 'Fertig';
 
   @override
+  String get buddies_picker_me => 'Ich';
+
+  @override
   String get buddies_picker_noBuddiesFound => 'Keine Tauchpartner gefunden';
 
   @override
   String get buddies_picker_noBuddiesYet => 'Noch keine Tauchpartner';
+
+  @override
+  String get buddies_picker_noRole => 'Keine Rolle';
 
   @override
   String get buddies_picker_noneSelected => 'Keine Tauchpartner ausgewählt';
@@ -737,9 +747,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get buddies_picker_selectBuddies => 'Tauchpartner auswählen';
 
   @override
+  String get buddies_picker_selectMyRole => 'Meine Rolle auswählen';
+
+  @override
   String buddies_picker_selectRole(Object name) {
     return 'Rolle für $name auswählen';
   }
+
+  @override
+  String get buddies_picker_setMyRole => 'Meine Rolle festlegen';
 
   @override
   String get buddies_picker_tapToAdd =>
@@ -4702,6 +4718,99 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String diveLog_speciesPicker_errorLoading(String error) {
     return 'Fehler beim Laden der Arten: $error';
+  }
+
+  @override
+  String get diveRole_builtin_buddy => 'Tauchpartner';
+
+  @override
+  String get diveRole_builtin_diveGuide => 'Tauchguide';
+
+  @override
+  String get diveRole_builtin_diveMaster => 'Divemaster';
+
+  @override
+  String get diveRole_builtin_instructor => 'Tauchlehrer';
+
+  @override
+  String get diveRole_builtin_rearGuard => 'Schlusstaucher';
+
+  @override
+  String get diveRole_builtin_safetyDiver => 'Sicherungstaucher';
+
+  @override
+  String get diveRole_builtin_solo => 'Solo';
+
+  @override
+  String get diveRole_builtin_student => 'Tauchschüler';
+
+  @override
+  String get diveRole_builtin_supportDiver => 'Support-Taucher';
+
+  @override
+  String get diveRoles_addDialog_addButton => 'Hinzufügen';
+
+  @override
+  String get diveRoles_addDialog_nameHint => 'z.B. Fotograf';
+
+  @override
+  String get diveRoles_addDialog_nameLabel => 'Tauchrollen-Name';
+
+  @override
+  String get diveRoles_addDialog_nameValidation =>
+      'Bitte geben Sie einen Namen ein';
+
+  @override
+  String get diveRoles_addDialog_title =>
+      'Benutzerdefinierte Tauchrolle hinzufügen';
+
+  @override
+  String get diveRoles_addTooltip => 'Tauchrolle hinzufügen';
+
+  @override
+  String get diveRoles_appBar_title => 'Tauchrollen';
+
+  @override
+  String get diveRoles_builtInHeader => 'Integrierte Tauchrollen';
+
+  @override
+  String get diveRoles_customHeader => 'Benutzerdefinierte Tauchrollen';
+
+  @override
+  String diveRoles_deleteDialog_content(Object name) {
+    return 'Möchten Sie \"$name\" wirklich löschen?';
+  }
+
+  @override
+  String get diveRoles_deleteDialog_title => 'Tauchrolle löschen?';
+
+  @override
+  String get diveRoles_deleteTooltip => 'Tauchrolle löschen';
+
+  @override
+  String get diveRoles_renameDialog_title => 'Tauchrolle umbenennen';
+
+  @override
+  String get diveRoles_renameTooltip => 'Tauchrolle umbenennen';
+
+  @override
+  String diveRoles_snackbar_added(Object name) {
+    return 'Tauchrolle hinzugefügt: $name';
+  }
+
+  @override
+  String diveRoles_snackbar_cannotDelete(Object name) {
+    return '\"$name\" kann nicht gelöscht werden - wird von vorhandenen Tauchgängen verwendet';
+  }
+
+  @override
+  String diveRoles_snackbar_deleted(Object name) {
+    return 'Tauchrolle gelöscht: $name';
+  }
+
+  @override
+  String diveRoles_snackbar_errorAdding(Object error) {
+    return 'Fehler beim Hinzufügen der Tauchrolle: $error';
   }
 
   @override
@@ -12087,6 +12196,13 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_manage_checklistTemplates_subtitle =>
       'Wiederverwendbare Aufgabenlisten für die Reiseplanung';
+
+  @override
+  String get settings_manage_diveRoles => 'Tauchrollen';
+
+  @override
+  String get settings_manage_diveRoles_subtitle =>
+      'Benutzerdefinierte Tauchrollen verwalten';
 
   @override
   String get settings_manage_diveTypes => 'Taucharten';

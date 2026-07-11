@@ -718,16 +718,25 @@ class AppLocalizationsEs extends AppLocalizations {
   String get buddies_picker_add => 'Agregar';
 
   @override
+  String get buddies_picker_addCustomRole => 'Agregar rol personalizado...';
+
+  @override
   String get buddies_picker_addNew => 'Agregar Nuevo Compañero';
 
   @override
   String get buddies_picker_done => 'Listo';
 
   @override
+  String get buddies_picker_me => 'Yo';
+
+  @override
   String get buddies_picker_noBuddiesFound => 'No se encontraron compañeros';
 
   @override
   String get buddies_picker_noBuddiesYet => 'Aún no hay compañeros';
+
+  @override
+  String get buddies_picker_noRole => 'Sin rol';
 
   @override
   String get buddies_picker_noneSelected => 'Ningún compañero seleccionado';
@@ -739,9 +748,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get buddies_picker_selectBuddies => 'Seleccionar Compañeros';
 
   @override
+  String get buddies_picker_selectMyRole => 'Seleccionar mi rol';
+
+  @override
   String buddies_picker_selectRole(Object name) {
     return 'Seleccionar Rol para $name';
   }
+
+  @override
+  String get buddies_picker_setMyRole => 'Establecer mi rol';
 
   @override
   String get buddies_picker_tapToAdd =>
@@ -4704,6 +4719,98 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String diveLog_speciesPicker_errorLoading(String error) {
     return 'Error al cargar especies: $error';
+  }
+
+  @override
+  String get diveRole_builtin_buddy => 'Compañero';
+
+  @override
+  String get diveRole_builtin_diveGuide => 'Guía de buceo';
+
+  @override
+  String get diveRole_builtin_diveMaster => 'Divemaster';
+
+  @override
+  String get diveRole_builtin_instructor => 'Instructor';
+
+  @override
+  String get diveRole_builtin_rearGuard => 'Guía de cola';
+
+  @override
+  String get diveRole_builtin_safetyDiver => 'Buzo de seguridad';
+
+  @override
+  String get diveRole_builtin_solo => 'Solo';
+
+  @override
+  String get diveRole_builtin_student => 'Estudiante';
+
+  @override
+  String get diveRole_builtin_supportDiver => 'Buzo de apoyo';
+
+  @override
+  String get diveRoles_addDialog_addButton => 'Agregar';
+
+  @override
+  String get diveRoles_addDialog_nameHint => 'ej., Fotógrafo';
+
+  @override
+  String get diveRoles_addDialog_nameLabel => 'Nombre del Rol de Buceo';
+
+  @override
+  String get diveRoles_addDialog_nameValidation =>
+      'Por favor ingresa un nombre';
+
+  @override
+  String get diveRoles_addDialog_title => 'Agregar Rol de Buceo Personalizado';
+
+  @override
+  String get diveRoles_addTooltip => 'Agregar rol de buceo';
+
+  @override
+  String get diveRoles_appBar_title => 'Roles de Buceo';
+
+  @override
+  String get diveRoles_builtInHeader => 'Roles de Buceo Integrados';
+
+  @override
+  String get diveRoles_customHeader => 'Roles de Buceo Personalizados';
+
+  @override
+  String diveRoles_deleteDialog_content(Object name) {
+    return '¿Estás seguro de que deseas eliminar \"$name\"?';
+  }
+
+  @override
+  String get diveRoles_deleteDialog_title => '¿Eliminar Rol de Buceo?';
+
+  @override
+  String get diveRoles_deleteTooltip => 'Eliminar rol de buceo';
+
+  @override
+  String get diveRoles_renameDialog_title => 'Renombrar Rol de Buceo';
+
+  @override
+  String get diveRoles_renameTooltip => 'Renombrar rol de buceo';
+
+  @override
+  String diveRoles_snackbar_added(Object name) {
+    return 'Rol de buceo agregado: $name';
+  }
+
+  @override
+  String diveRoles_snackbar_cannotDelete(Object name) {
+    return 'No se puede eliminar \"$name\" - está siendo usado por inmersiones existentes';
+  }
+
+  @override
+  String diveRoles_snackbar_deleted(Object name) {
+    return 'Rol de buceo eliminado: $name';
+  }
+
+  @override
+  String diveRoles_snackbar_errorAdding(Object error) {
+    return 'Error al agregar rol de buceo: $error';
   }
 
   @override
@@ -12091,6 +12198,13 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_manage_checklistTemplates_subtitle =>
       'Listas de tareas reutilizables para planificar viajes';
+
+  @override
+  String get settings_manage_diveRoles => 'Roles de buceo';
+
+  @override
+  String get settings_manage_diveRoles_subtitle =>
+      'Administrar roles de buceo personalizados';
 
   @override
   String get settings_manage_diveTypes => 'Tipos de inmersion';

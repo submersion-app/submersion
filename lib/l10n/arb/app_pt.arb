@@ -213,14 +213,19 @@
   "buddies_message_preparingExport": "Preparando exportação...",
   "buddies_message_updated": "Companheiro atualizado com sucesso",
   "buddies_picker_add": "Adicionar",
+  "buddies_picker_addCustomRole": "Adicionar função personalizada...",
   "buddies_picker_addNew": "Adicionar Novo Companheiro",
   "buddies_picker_done": "Concluir",
+  "buddies_picker_me": "Eu",
   "buddies_picker_noBuddiesFound": "Nenhum companheiro encontrado",
   "buddies_picker_noBuddiesYet": "Nenhum companheiro ainda",
+  "buddies_picker_noRole": "Sem função",
   "buddies_picker_noneSelected": "Nenhum companheiro selecionado",
   "buddies_picker_searchHint": "Buscar companheiros...",
   "buddies_picker_selectBuddies": "Selecionar Companheiros",
+  "buddies_picker_selectMyRole": "Selecionar minha função",
   "buddies_picker_selectRole": "Selecionar Função para {name}",
+  "buddies_picker_setMyRole": "Definir minha função",
   "buddies_picker_tapToAdd": "Toque em 'Adicionar' para selecionar companheiros de mergulho",
   "buddies_search_hint": "Buscar por nome, e-mail ou telefone",
   "buddies_search_noResults": "Nenhum companheiro encontrado para \"{query}\"",
@@ -1530,6 +1535,68 @@
   "diveLog_sighting_decreaseCount": "Diminuir contagem",
   "diveLog_sighting_increaseCount": "Aumentar contagem",
   "diveLog_speciesPicker_errorLoading": "Erro ao carregar espécies: {error}",
+  "diveRole_builtin_buddy": "Dupla",
+  "diveRole_builtin_diveGuide": "Guia de Mergulho",
+  "diveRole_builtin_diveMaster": "Divemaster",
+  "diveRole_builtin_instructor": "Instrutor",
+  "diveRole_builtin_rearGuard": "Retaguarda",
+  "diveRole_builtin_safetyDiver": "Mergulhador de Segurança",
+  "diveRole_builtin_solo": "Solo",
+  "diveRole_builtin_student": "Aluno",
+  "diveRole_builtin_supportDiver": "Mergulhador de Apoio",
+  "diveRoles_addDialog_addButton": "Adicionar",
+  "diveRoles_addDialog_nameHint": "ex: Fotógrafo",
+  "diveRoles_addDialog_nameLabel": "Nome da Função de Mergulho",
+  "diveRoles_addDialog_nameValidation": "Digite um nome",
+  "diveRoles_addDialog_title": "Adicionar Função de Mergulho Personalizada",
+  "diveRoles_addTooltip": "Adicionar função de mergulho",
+  "diveRoles_appBar_title": "Funções de Mergulho",
+  "diveRoles_builtInHeader": "Funções de Mergulho Integradas",
+  "diveRoles_customHeader": "Funções de Mergulho Personalizadas",
+  "diveRoles_deleteDialog_content": "Tem certeza de que deseja excluir \"{name}\"?",
+  "@diveRoles_deleteDialog_content": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_deleteDialog_title": "Excluir Função de Mergulho?",
+  "diveRoles_deleteTooltip": "Excluir função de mergulho",
+  "diveRoles_renameDialog_title": "Renomear Função de Mergulho",
+  "diveRoles_renameTooltip": "Renomear função de mergulho",
+  "diveRoles_snackbar_added": "Função de mergulho adicionada: {name}",
+  "@diveRoles_snackbar_added": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_snackbar_cannotDelete": "Não é possível excluir \"{name}\" - está sendo usada por mergulhos existentes",
+  "@diveRoles_snackbar_cannotDelete": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_snackbar_deleted": "Função de mergulho excluída: {name}",
+  "@diveRoles_snackbar_deleted": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_snackbar_errorAdding": "Erro ao adicionar função de mergulho: {error}",
+  "@diveRoles_snackbar_errorAdding": {
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
   "diveSites_edit_depth_heroMax": "Prof. máx.",
   "diveSites_edit_depth_heroMin": "Prof. mín.",
   "diveSites_edit_group_accessSafety": "Acesso e segurança",
@@ -3668,6 +3735,8 @@
   "settings_language_systemDefault": "Padrao do Sistema",
   "settings_manage_checklistTemplates": "Modelos de Lista de Verificação",
   "settings_manage_checklistTemplates_subtitle": "Listas de tarefas reutilizáveis para planejamento de viagens",
+  "settings_manage_diveRoles": "Funções de Mergulho",
+  "settings_manage_diveRoles_subtitle": "Gerenciar funções de mergulho personalizadas",
   "settings_manage_diveTypes": "Tipos de Mergulho",
   "settings_manage_diveTypes_subtitle": "Gerenciar tipos de mergulho personalizados",
   "settings_manage_header_manageData": "Gerenciar Dados",

@@ -196,6 +196,16 @@ void main() {
       expect(merged.maxDepth, 30.5);
     });
 
+    test('diverRoleId is adopted from the first dive that has one', () {
+      final a = dive('a', entry: DateTime.utc(2026, 7, 1, 9));
+      final b = dive(
+        'b',
+        entry: DateTime.utc(2026, 7, 1, 10),
+      ).copyWith(diverRoleId: 'rearGuard');
+      final merged = builder.build([a, b]).mergedDive;
+      expect(merged.diverRoleId, 'rearGuard');
+    });
+
     test('avgDepth is weighted by sampled time and excludes the gap', () {
       // a: 600s at a constant 10m; b: 600s at a constant 20m; 30min gap.
       final a = dive(

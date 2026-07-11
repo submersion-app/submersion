@@ -213,14 +213,19 @@
   "buddies_message_preparingExport": "Préparation de l'export...",
   "buddies_message_updated": "Binôme mis à jour avec succès",
   "buddies_picker_add": "Ajouter",
+  "buddies_picker_addCustomRole": "Ajouter un rôle personnalisé...",
   "buddies_picker_addNew": "Ajouter un nouveau binôme",
   "buddies_picker_done": "Terminé",
+  "buddies_picker_me": "Moi",
   "buddies_picker_noBuddiesFound": "Aucun binôme trouvé",
   "buddies_picker_noBuddiesYet": "Aucun binôme pour le moment",
+  "buddies_picker_noRole": "Aucun rôle",
   "buddies_picker_noneSelected": "Aucun binôme sélectionné",
   "buddies_picker_searchHint": "Rechercher des binômes...",
   "buddies_picker_selectBuddies": "Sélectionner les binômes",
+  "buddies_picker_selectMyRole": "Sélectionner mon rôle",
   "buddies_picker_selectRole": "Sélectionner le rôle pour {name}",
+  "buddies_picker_setMyRole": "Définir mon rôle",
   "buddies_picker_tapToAdd": "Appuyez sur « Ajouter » pour sélectionner des binômes de plongée",
   "buddies_search_hint": "Rechercher par nom, e-mail ou téléphone",
   "buddies_search_noResults": "Aucun binôme trouvé pour « {query} »",
@@ -1496,6 +1501,68 @@
   "diveLog_sighting_decreaseCount": "Diminuer le nombre",
   "diveLog_sighting_increaseCount": "Augmenter le nombre",
   "diveLog_speciesPicker_errorLoading": "Erreur de chargement des espèces : {error}",
+  "diveRole_builtin_buddy": "Binôme",
+  "diveRole_builtin_diveGuide": "Guide de plongée",
+  "diveRole_builtin_diveMaster": "Directeur de plongée",
+  "diveRole_builtin_instructor": "Moniteur",
+  "diveRole_builtin_rearGuard": "Serre-file",
+  "diveRole_builtin_safetyDiver": "Plongeur de sécurité",
+  "diveRole_builtin_solo": "Solo",
+  "diveRole_builtin_student": "Élève",
+  "diveRole_builtin_supportDiver": "Plongeur de soutien",
+  "diveRoles_addDialog_addButton": "Ajouter",
+  "diveRoles_addDialog_nameHint": "ex. Photographe",
+  "diveRoles_addDialog_nameLabel": "Nom du rôle de plongée",
+  "diveRoles_addDialog_nameValidation": "Veuillez entrer un nom",
+  "diveRoles_addDialog_title": "Ajouter un rôle de plongée personnalisé",
+  "diveRoles_addTooltip": "Ajouter un rôle de plongée",
+  "diveRoles_appBar_title": "Rôles de plongée",
+  "diveRoles_builtInHeader": "Rôles de plongée intégrés",
+  "diveRoles_customHeader": "Rôles de plongée personnalisés",
+  "diveRoles_deleteDialog_content": "Voulez-vous vraiment supprimer « {name} » ?",
+  "@diveRoles_deleteDialog_content": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_deleteDialog_title": "Supprimer le rôle de plongée ?",
+  "diveRoles_deleteTooltip": "Supprimer le rôle de plongée",
+  "diveRoles_renameDialog_title": "Renommer le rôle de plongée",
+  "diveRoles_renameTooltip": "Renommer le rôle de plongée",
+  "diveRoles_snackbar_added": "Rôle de plongée ajouté : {name}",
+  "@diveRoles_snackbar_added": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_snackbar_cannotDelete": "Impossible de supprimer « {name} » - il est utilisé par des plongées existantes",
+  "@diveRoles_snackbar_cannotDelete": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_snackbar_deleted": "Rôle de plongée supprimé : {name}",
+  "@diveRoles_snackbar_deleted": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_snackbar_errorAdding": "Erreur lors de l'ajout du rôle de plongée : {error}",
+  "@diveRoles_snackbar_errorAdding": {
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
   "diveSites_edit_depth_heroMax": "Prof. max",
   "diveSites_edit_depth_heroMin": "Prof. min",
   "diveSites_edit_group_accessSafety": "Accès et sécurité",
@@ -3634,6 +3701,8 @@
   "settings_language_systemDefault": "Defaut du systeme",
   "settings_manage_checklistTemplates": "Modèles de liste de contrôle",
   "settings_manage_checklistTemplates_subtitle": "Listes de tâches réutilisables pour la planification de voyages",
+  "settings_manage_diveRoles": "Rôles de plongée",
+  "settings_manage_diveRoles_subtitle": "Gérer les rôles de plongée personnalisés",
   "settings_manage_diveTypes": "Types de plongee",
   "settings_manage_diveTypes_subtitle": "Gerer les types de plongee personnalises",
   "settings_manage_header_manageData": "Gestion des donnees",

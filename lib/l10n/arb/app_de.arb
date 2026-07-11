@@ -213,14 +213,19 @@
   "buddies_message_preparingExport": "Export wird vorbereitet...",
   "buddies_message_updated": "Tauchpartner erfolgreich aktualisiert",
   "buddies_picker_add": "Hinzufügen",
+  "buddies_picker_addCustomRole": "Benutzerdefinierte Rolle hinzufügen...",
   "buddies_picker_addNew": "Neuen Tauchpartner hinzufügen",
   "buddies_picker_done": "Fertig",
+  "buddies_picker_me": "Ich",
   "buddies_picker_noBuddiesFound": "Keine Tauchpartner gefunden",
   "buddies_picker_noBuddiesYet": "Noch keine Tauchpartner",
+  "buddies_picker_noRole": "Keine Rolle",
   "buddies_picker_noneSelected": "Keine Tauchpartner ausgewählt",
   "buddies_picker_searchHint": "Tauchpartner suchen...",
   "buddies_picker_selectBuddies": "Tauchpartner auswählen",
+  "buddies_picker_selectMyRole": "Meine Rolle auswählen",
   "buddies_picker_selectRole": "Rolle für {name} auswählen",
+  "buddies_picker_setMyRole": "Meine Rolle festlegen",
   "buddies_picker_tapToAdd": "Tippen Sie auf 'Hinzufügen', um Tauchpartner auszuwählen",
   "buddies_search_hint": "Suche nach Name, E-Mail oder Telefon",
   "buddies_search_noResults": "Keine Tauchpartner für \"{query}\" gefunden",
@@ -1530,6 +1535,68 @@
   "diveLog_sighting_decreaseCount": "Anzahl verringern",
   "diveLog_sighting_increaseCount": "Anzahl erhöhen",
   "diveLog_speciesPicker_errorLoading": "Fehler beim Laden der Arten: {error}",
+  "diveRole_builtin_buddy": "Tauchpartner",
+  "diveRole_builtin_diveGuide": "Tauchguide",
+  "diveRole_builtin_diveMaster": "Divemaster",
+  "diveRole_builtin_instructor": "Tauchlehrer",
+  "diveRole_builtin_rearGuard": "Schlusstaucher",
+  "diveRole_builtin_safetyDiver": "Sicherungstaucher",
+  "diveRole_builtin_solo": "Solo",
+  "diveRole_builtin_student": "Tauchschüler",
+  "diveRole_builtin_supportDiver": "Support-Taucher",
+  "diveRoles_addDialog_addButton": "Hinzufügen",
+  "diveRoles_addDialog_nameHint": "z.B. Fotograf",
+  "diveRoles_addDialog_nameLabel": "Tauchrollen-Name",
+  "diveRoles_addDialog_nameValidation": "Bitte geben Sie einen Namen ein",
+  "diveRoles_addDialog_title": "Benutzerdefinierte Tauchrolle hinzufügen",
+  "diveRoles_addTooltip": "Tauchrolle hinzufügen",
+  "diveRoles_appBar_title": "Tauchrollen",
+  "diveRoles_builtInHeader": "Integrierte Tauchrollen",
+  "diveRoles_customHeader": "Benutzerdefinierte Tauchrollen",
+  "diveRoles_deleteDialog_content": "Möchten Sie \"{name}\" wirklich löschen?",
+  "@diveRoles_deleteDialog_content": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_deleteDialog_title": "Tauchrolle löschen?",
+  "diveRoles_deleteTooltip": "Tauchrolle löschen",
+  "diveRoles_renameDialog_title": "Tauchrolle umbenennen",
+  "diveRoles_renameTooltip": "Tauchrolle umbenennen",
+  "diveRoles_snackbar_added": "Tauchrolle hinzugefügt: {name}",
+  "@diveRoles_snackbar_added": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_snackbar_cannotDelete": "\"{name}\" kann nicht gelöscht werden - wird von vorhandenen Tauchgängen verwendet",
+  "@diveRoles_snackbar_cannotDelete": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_snackbar_deleted": "Tauchrolle gelöscht: {name}",
+  "@diveRoles_snackbar_deleted": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_snackbar_errorAdding": "Fehler beim Hinzufügen der Tauchrolle: {error}",
+  "@diveRoles_snackbar_errorAdding": {
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
   "diveSites_edit_depth_heroMax": "Max. Tiefe",
   "diveSites_edit_depth_heroMin": "Min. Tiefe",
   "diveSites_edit_group_accessSafety": "Zugang & Sicherheit",
@@ -3668,6 +3735,8 @@
   "settings_language_systemDefault": "Systemstandard",
   "settings_manage_checklistTemplates": "Checklistenvorlagen",
   "settings_manage_checklistTemplates_subtitle": "Wiederverwendbare Aufgabenlisten für die Reiseplanung",
+  "settings_manage_diveRoles": "Tauchrollen",
+  "settings_manage_diveRoles_subtitle": "Benutzerdefinierte Tauchrollen verwalten",
   "settings_manage_diveTypes": "Taucharten",
   "settings_manage_diveTypes_subtitle": "Benutzerdefinierte Taucharten verwalten",
   "settings_manage_header_manageData": "Daten verwalten",

@@ -247,6 +247,26 @@ class UddfImportParsers {
     return diveType;
   }
 
+  static Map<String, dynamic> parseDiveRoleElement(XmlElement roleElement) {
+    final diveRole = <String, dynamic>{};
+    final roleId = roleElement.getAttribute('id');
+    if (roleId != null) {
+      diveRole['id'] = roleId;
+    }
+
+    diveRole['name'] = getElementText(roleElement, 'name') ?? '';
+
+    final sortOrder = getElementText(roleElement, 'sortorder');
+    if (sortOrder != null) {
+      diveRole['sortOrder'] = int.tryParse(sortOrder) ?? 0;
+    }
+
+    final isBuiltIn = getElementText(roleElement, 'isbuiltin');
+    diveRole['isBuiltIn'] = isBuiltIn?.toLowerCase() == 'true';
+
+    return diveRole;
+  }
+
   static Map<String, dynamic> parseDiveComputer(XmlElement computerElement) {
     final computer = <String, dynamic>{};
     final computerId = computerElement.getAttribute('id');

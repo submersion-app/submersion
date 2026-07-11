@@ -1334,6 +1334,12 @@ abstract class AppLocalizations {
   /// **'Add'**
   String get buddies_picker_add;
 
+  /// No description provided for @buddies_picker_addCustomRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Add custom role...'**
+  String get buddies_picker_addCustomRole;
+
   /// No description provided for @buddies_picker_addNew.
   ///
   /// In en, this message translates to:
@@ -1346,6 +1352,12 @@ abstract class AppLocalizations {
   /// **'Done'**
   String get buddies_picker_done;
 
+  /// No description provided for @buddies_picker_me.
+  ///
+  /// In en, this message translates to:
+  /// **'Me'**
+  String get buddies_picker_me;
+
   /// No description provided for @buddies_picker_noBuddiesFound.
   ///
   /// In en, this message translates to:
@@ -1357,6 +1369,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No buddies yet'**
   String get buddies_picker_noBuddiesYet;
+
+  /// No description provided for @buddies_picker_noRole.
+  ///
+  /// In en, this message translates to:
+  /// **'No role'**
+  String get buddies_picker_noRole;
 
   /// No description provided for @buddies_picker_noneSelected.
   ///
@@ -1376,11 +1394,23 @@ abstract class AppLocalizations {
   /// **'Select Buddies'**
   String get buddies_picker_selectBuddies;
 
+  /// No description provided for @buddies_picker_selectMyRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Select my role'**
+  String get buddies_picker_selectMyRole;
+
   /// No description provided for @buddies_picker_selectRole.
   ///
   /// In en, this message translates to:
   /// **'Select Role for {name}'**
   String buddies_picker_selectRole(Object name);
+
+  /// No description provided for @buddies_picker_setMyRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Set my role'**
+  String get buddies_picker_setMyRole;
 
   /// No description provided for @buddies_picker_tapToAdd.
   ///
@@ -7933,6 +7963,168 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error loading species: {error}'**
   String diveLog_speciesPicker_errorLoading(String error);
+
+  /// No description provided for @diveRole_builtin_buddy.
+  ///
+  /// In en, this message translates to:
+  /// **'Buddy'**
+  String get diveRole_builtin_buddy;
+
+  /// No description provided for @diveRole_builtin_diveGuide.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive Guide'**
+  String get diveRole_builtin_diveGuide;
+
+  /// No description provided for @diveRole_builtin_diveMaster.
+  ///
+  /// In en, this message translates to:
+  /// **'Divemaster'**
+  String get diveRole_builtin_diveMaster;
+
+  /// No description provided for @diveRole_builtin_instructor.
+  ///
+  /// In en, this message translates to:
+  /// **'Instructor'**
+  String get diveRole_builtin_instructor;
+
+  /// No description provided for @diveRole_builtin_rearGuard.
+  ///
+  /// In en, this message translates to:
+  /// **'Rear Guard'**
+  String get diveRole_builtin_rearGuard;
+
+  /// No description provided for @diveRole_builtin_safetyDiver.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety Diver'**
+  String get diveRole_builtin_safetyDiver;
+
+  /// No description provided for @diveRole_builtin_solo.
+  ///
+  /// In en, this message translates to:
+  /// **'Solo'**
+  String get diveRole_builtin_solo;
+
+  /// No description provided for @diveRole_builtin_student.
+  ///
+  /// In en, this message translates to:
+  /// **'Student'**
+  String get diveRole_builtin_student;
+
+  /// No description provided for @diveRole_builtin_supportDiver.
+  ///
+  /// In en, this message translates to:
+  /// **'Support Diver'**
+  String get diveRole_builtin_supportDiver;
+
+  /// No description provided for @diveRoles_addDialog_addButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get diveRoles_addDialog_addButton;
+
+  /// No description provided for @diveRoles_addDialog_nameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., Photographer'**
+  String get diveRoles_addDialog_nameHint;
+
+  /// No description provided for @diveRoles_addDialog_nameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive Role Name'**
+  String get diveRoles_addDialog_nameLabel;
+
+  /// No description provided for @diveRoles_addDialog_nameValidation.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a name'**
+  String get diveRoles_addDialog_nameValidation;
+
+  /// No description provided for @diveRoles_addDialog_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Custom Dive Role'**
+  String get diveRoles_addDialog_title;
+
+  /// No description provided for @diveRoles_addTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Add dive role'**
+  String get diveRoles_addTooltip;
+
+  /// No description provided for @diveRoles_appBar_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive Roles'**
+  String get diveRoles_appBar_title;
+
+  /// No description provided for @diveRoles_builtInHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in Dive Roles'**
+  String get diveRoles_builtInHeader;
+
+  /// No description provided for @diveRoles_customHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Dive Roles'**
+  String get diveRoles_customHeader;
+
+  /// No description provided for @diveRoles_deleteDialog_content.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete \"{name}\"?'**
+  String diveRoles_deleteDialog_content(Object name);
+
+  /// No description provided for @diveRoles_deleteDialog_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Dive Role?'**
+  String get diveRoles_deleteDialog_title;
+
+  /// No description provided for @diveRoles_deleteTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete dive role'**
+  String get diveRoles_deleteTooltip;
+
+  /// No description provided for @diveRoles_renameDialog_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename Dive Role'**
+  String get diveRoles_renameDialog_title;
+
+  /// No description provided for @diveRoles_renameTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename dive role'**
+  String get diveRoles_renameTooltip;
+
+  /// No description provided for @diveRoles_snackbar_added.
+  ///
+  /// In en, this message translates to:
+  /// **'Added dive role: {name}'**
+  String diveRoles_snackbar_added(Object name);
+
+  /// No description provided for @diveRoles_snackbar_cannotDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot delete \"{name}\" - it is used by existing dives'**
+  String diveRoles_snackbar_cannotDelete(Object name);
+
+  /// No description provided for @diveRoles_snackbar_deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted dive role: {name}'**
+  String diveRoles_snackbar_deleted(Object name);
+
+  /// No description provided for @diveRoles_snackbar_errorAdding.
+  ///
+  /// In en, this message translates to:
+  /// **'Error adding dive role: {error}'**
+  String diveRoles_snackbar_errorAdding(Object error);
 
   /// Hero stat label: maximum site depth
   ///
@@ -20490,6 +20682,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reusable to-do lists for trip planning'**
   String get settings_manage_checklistTemplates_subtitle;
+
+  /// No description provided for @settings_manage_diveRoles.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive Roles'**
+  String get settings_manage_diveRoles;
+
+  /// No description provided for @settings_manage_diveRoles_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage custom dive roles'**
+  String get settings_manage_diveRoles_subtitle;
 
   /// No description provided for @settings_manage_diveTypes.
   ///

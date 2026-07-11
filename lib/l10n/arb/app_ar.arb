@@ -213,14 +213,19 @@
   "buddies_message_preparingExport": "جارٍ تحضير التصدير...",
   "buddies_message_updated": "تم تحديث الرفيق بنجاح",
   "buddies_picker_add": "إضافة",
+  "buddies_picker_addCustomRole": "إضافة دور مخصص...",
   "buddies_picker_addNew": "إضافة رفيق جديد",
   "buddies_picker_done": "تم",
+  "buddies_picker_me": "أنا",
   "buddies_picker_noBuddiesFound": "لم يتم العثور على رفاق",
   "buddies_picker_noBuddiesYet": "لا يوجد رفاق بعد",
+  "buddies_picker_noRole": "بدون دور",
   "buddies_picker_noneSelected": "لم يتم تحديد رفاق",
   "buddies_picker_searchHint": "البحث عن الرفاق...",
   "buddies_picker_selectBuddies": "اختيار الرفاق",
+  "buddies_picker_selectMyRole": "اختيار دوري",
   "buddies_picker_selectRole": "اختر دور {name}",
+  "buddies_picker_setMyRole": "تحديد دوري",
   "buddies_picker_tapToAdd": "اضغط على 'إضافة' لاختيار رفاق الغوص",
   "buddies_search_hint": "البحث بالاسم أو البريد الإلكتروني أو الهاتف",
   "buddies_search_noResults": "لم يتم العثور على رفاق لـ \"{query}\"",
@@ -1530,6 +1535,68 @@
   "diveLog_sighting_decreaseCount": "تقليل العدد",
   "diveLog_sighting_increaseCount": "زيادة العدد",
   "diveLog_speciesPicker_errorLoading": "خطأ في تحميل الأنواع: {error}",
+  "diveRole_builtin_buddy": "رفيق",
+  "diveRole_builtin_diveGuide": "مرشد غوص",
+  "diveRole_builtin_diveMaster": "دايف ماستر",
+  "diveRole_builtin_instructor": "مدرب",
+  "diveRole_builtin_rearGuard": "حارس المؤخرة",
+  "diveRole_builtin_safetyDiver": "غواص السلامة",
+  "diveRole_builtin_solo": "منفرد",
+  "diveRole_builtin_student": "طالب",
+  "diveRole_builtin_supportDiver": "غواص دعم",
+  "diveRoles_addDialog_addButton": "إضافة",
+  "diveRoles_addDialog_nameHint": "مثال: مصور",
+  "diveRoles_addDialog_nameLabel": "اسم دور الغوص",
+  "diveRoles_addDialog_nameValidation": "الرجاء إدخال اسم",
+  "diveRoles_addDialog_title": "إضافة دور غوص مخصص",
+  "diveRoles_addTooltip": "إضافة دور غوص",
+  "diveRoles_appBar_title": "أدوار الغوص",
+  "diveRoles_builtInHeader": "أدوار الغوص المدمجة",
+  "diveRoles_customHeader": "أدوار الغوص المخصصة",
+  "diveRoles_deleteDialog_content": "هل أنت متأكد من حذف \"{name}\"؟",
+  "@diveRoles_deleteDialog_content": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_deleteDialog_title": "حذف دور الغوص؟",
+  "diveRoles_deleteTooltip": "حذف دور الغوص",
+  "diveRoles_renameDialog_title": "إعادة تسمية دور الغوص",
+  "diveRoles_renameTooltip": "إعادة تسمية دور الغوص",
+  "diveRoles_snackbar_added": "تمت إضافة دور الغوص: {name}",
+  "@diveRoles_snackbar_added": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_snackbar_cannotDelete": "لا يمكن حذف \"{name}\" - مستخدم في غطسات موجودة",
+  "@diveRoles_snackbar_cannotDelete": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_snackbar_deleted": "تم حذف دور الغوص: {name}",
+  "@diveRoles_snackbar_deleted": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_snackbar_errorAdding": "خطأ في إضافة دور الغوص: {error}",
+  "@diveRoles_snackbar_errorAdding": {
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
   "diveSites_edit_depth_heroMax": "أقصى عمق",
   "diveSites_edit_depth_heroMin": "أدنى عمق",
   "diveSites_edit_group_accessSafety": "الوصول والسلامة",
@@ -3668,6 +3735,8 @@
   "settings_language_systemDefault": "الافتراضي للنظام",
   "settings_manage_checklistTemplates": "قوالب قوائم التحقق",
   "settings_manage_checklistTemplates_subtitle": "قوائم مهام قابلة لإعادة الاستخدام للتخطيط للرحلات",
+  "settings_manage_diveRoles": "أدوار الغوص",
+  "settings_manage_diveRoles_subtitle": "إدارة أدوار الغوص المخصصة",
   "settings_manage_diveTypes": "أنواع الغوص",
   "settings_manage_diveTypes_subtitle": "إدارة أنواع الغوص المخصصة",
   "settings_manage_header_manageData": "إدارة البيانات",

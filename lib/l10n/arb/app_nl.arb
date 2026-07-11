@@ -213,14 +213,19 @@
   "buddies_message_preparingExport": "Export voorbereiden...",
   "buddies_message_updated": "Buddy succesvol bijgewerkt",
   "buddies_picker_add": "Toevoegen",
+  "buddies_picker_addCustomRole": "Aangepaste rol toevoegen...",
   "buddies_picker_addNew": "Nieuwe buddy toevoegen",
   "buddies_picker_done": "Gereed",
+  "buddies_picker_me": "Ik",
   "buddies_picker_noBuddiesFound": "Geen buddies gevonden",
   "buddies_picker_noBuddiesYet": "Nog geen buddies",
+  "buddies_picker_noRole": "Geen rol",
   "buddies_picker_noneSelected": "Geen buddies geselecteerd",
   "buddies_picker_searchHint": "Zoek buddies...",
   "buddies_picker_selectBuddies": "Selecteer buddies",
+  "buddies_picker_selectMyRole": "Selecteer mijn rol",
   "buddies_picker_selectRole": "Selecteer rol voor {name}",
+  "buddies_picker_setMyRole": "Mijn rol instellen",
   "buddies_picker_tapToAdd": "Tik op 'Toevoegen' om duikbuddies te selecteren",
   "buddies_search_hint": "Zoeken op naam, e-mail of telefoon",
   "buddies_search_noResults": "Geen buddies gevonden voor \"{query}\"",
@@ -1530,6 +1535,68 @@
   "diveLog_sighting_decreaseCount": "Aantal verlagen",
   "diveLog_sighting_increaseCount": "Aantal verhogen",
   "diveLog_speciesPicker_errorLoading": "Fout bij laden van soorten: {error}",
+  "diveRole_builtin_buddy": "Buddy",
+  "diveRole_builtin_diveGuide": "Duikgids",
+  "diveRole_builtin_diveMaster": "Divemaster",
+  "diveRole_builtin_instructor": "Instructeur",
+  "diveRole_builtin_rearGuard": "Hekkensluiter",
+  "diveRole_builtin_safetyDiver": "Veiligheidsduiker",
+  "diveRole_builtin_solo": "Solo",
+  "diveRole_builtin_student": "Leerling",
+  "diveRole_builtin_supportDiver": "Supportduiker",
+  "diveRoles_addDialog_addButton": "Toevoegen",
+  "diveRoles_addDialog_nameHint": "bijv. Fotograaf",
+  "diveRoles_addDialog_nameLabel": "Duikrol naam",
+  "diveRoles_addDialog_nameValidation": "Voer een naam in",
+  "diveRoles_addDialog_title": "Aangepaste duikrol toevoegen",
+  "diveRoles_addTooltip": "Duikrol toevoegen",
+  "diveRoles_appBar_title": "Duikrollen",
+  "diveRoles_builtInHeader": "Ingebouwde duikrollen",
+  "diveRoles_customHeader": "Aangepaste duikrollen",
+  "diveRoles_deleteDialog_content": "Weet je zeker dat je \"{name}\" wilt verwijderen?",
+  "@diveRoles_deleteDialog_content": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_deleteDialog_title": "Duikrol verwijderen?",
+  "diveRoles_deleteTooltip": "Duikrol verwijderen",
+  "diveRoles_renameDialog_title": "Duikrol hernoemen",
+  "diveRoles_renameTooltip": "Duikrol hernoemen",
+  "diveRoles_snackbar_added": "Duikrol toegevoegd: {name}",
+  "@diveRoles_snackbar_added": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_snackbar_cannotDelete": "Kan \"{name}\" niet verwijderen - wordt gebruikt door bestaande duiken",
+  "@diveRoles_snackbar_cannotDelete": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_snackbar_deleted": "Duikrol verwijderd: {name}",
+  "@diveRoles_snackbar_deleted": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_snackbar_errorAdding": "Fout bij toevoegen duikrol: {error}",
+  "@diveRoles_snackbar_errorAdding": {
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
   "diveSites_edit_depth_heroMax": "Max. diepte",
   "diveSites_edit_depth_heroMin": "Min. diepte",
   "diveSites_edit_group_accessSafety": "Toegang & veiligheid",
@@ -3668,6 +3735,8 @@
   "settings_language_systemDefault": "Systeemstandaard",
   "settings_manage_checklistTemplates": "Checklistsjablonen",
   "settings_manage_checklistTemplates_subtitle": "Herbruikbare takenlijsten voor reisplanning",
+  "settings_manage_diveRoles": "Duikrollen",
+  "settings_manage_diveRoles_subtitle": "Aangepaste duikrollen beheren",
   "settings_manage_diveTypes": "Duiktypes",
   "settings_manage_diveTypes_subtitle": "Aangepaste duiktypes beheren",
   "settings_manage_header_manageData": "Gegevens beheren",

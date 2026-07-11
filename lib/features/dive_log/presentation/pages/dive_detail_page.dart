@@ -78,6 +78,9 @@ import 'package:submersion/features/signatures/presentation/widgets/signature_di
 import 'package:submersion/features/signatures/presentation/widgets/buddy_signatures_section.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/dive_roles/presentation/dive_role_display.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
+import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 
 import 'package:submersion/features/dive_computer/presentation/providers/reparse_providers.dart';
 
@@ -345,7 +348,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         ];
       },
       DiveDetailSectionId.buddies: () {
-        return [const SizedBox(height: 24), _buildBuddiesSection(context, ref)];
+        return [
+          const SizedBox(height: 24),
+          _buildBuddiesSection(context, ref, dive),
+        ];
       },
       DiveDetailSectionId.signatures: () {
         return [
@@ -3611,7 +3617,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     );
   }
 
-  Widget _buildBuddiesSection(BuildContext context, WidgetRef ref) {
+  Widget _buildBuddiesSection(BuildContext context, WidgetRef ref, Dive dive) {
     final buddiesAsync = ref.watch(buddiesForDiveProvider(diveId));
 
     return buddiesAsync.when(
@@ -3639,7 +3645,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   ],
                 ),
                 const Divider(),
-                if (buddies.isEmpty)
+                if (dive.diverRoleId != null)
+                  _buildMyRoleTile(context, ref, dive),
+                if (buddies.isEmpty && dive.diverRoleId == null)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     child: Text(
@@ -3681,9 +3689,29 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         ),
       ),
       title: Text(bwr.buddy.name),
-      subtitle: Text(bwr.role.displayName),
+      subtitle: Text(bwr.role.localizedName(context.l10n)),
       trailing: const Icon(Icons.chevron_right, size: 20),
       onTap: () => context.push('/buddies/${bwr.buddy.id}'),
+    );
+  }
+
+  /// The active diver's own role on this dive (#547), shown above buddies.
+  Widget _buildMyRoleTile(BuildContext context, WidgetRef ref, Dive dive) {
+    final rolesById =
+        ref.watch(diveRoleMapProvider).value ?? const <String, DiveRole>{};
+    final role =
+        rolesById[dive.diverRoleId!] ?? DiveRole.synthetic(dive.diverRoleId!);
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: CircleAvatar(
+        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+        child: Icon(
+          Icons.person,
+          color: Theme.of(context).colorScheme.onPrimaryContainer,
+        ),
+      ),
+      title: Text(context.l10n.buddies_picker_me),
+      subtitle: Text(role.localizedName(context.l10n)),
     );
   }
 

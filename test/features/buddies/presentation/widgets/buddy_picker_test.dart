@@ -5,11 +5,25 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
+import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_picker.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 final _now = DateTime(2024, 1, 1);
+
+final _testRoles = [
+  for (final (i, id) in DiveRole.builtInIds.indexed)
+    DiveRole(
+      id: id,
+      name: id,
+      isBuiltIn: true,
+      sortOrder: i,
+      createdAt: _now,
+      updatedAt: _now,
+    ),
+];
 
 final _testBuddies = [
   Buddy(id: '1', name: 'Alice Smith', createdAt: _now, updatedAt: _now),
@@ -29,7 +43,10 @@ Widget _buildPicker({
   List<dynamic>? overrides,
 }) {
   return ProviderScope(
-    overrides: overrides?.cast() ?? [],
+    overrides: [
+      allDiveRolesProvider.overrideWith((ref) async => _testRoles),
+      ...?overrides?.cast(),
+    ],
     child: MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
@@ -204,7 +221,7 @@ void main() {
     ) async {
       final selectedBuddy = BuddyWithRole(
         buddy: _testBuddies[0],
-        role: BuddyRole.buddy,
+        role: DiveRole.builtInBuddy(),
       );
 
       await tester.pumpWidget(
@@ -272,7 +289,7 @@ void main() {
       _useTallScreen(tester);
       final selectedBuddy = BuddyWithRole(
         buddy: _testBuddies[0],
-        role: BuddyRole.buddy,
+        role: DiveRole.builtInBuddy(),
       );
 
       await tester.pumpWidget(
@@ -453,7 +470,7 @@ void main() {
       expect(result, isNotNull);
       expect(result!.length, equals(1));
       expect(result![0].buddy.name, equals('Alice Smith'));
-      expect(result![0].role, equals(BuddyRole.instructor));
+      expect(result![0].role.id, equals(DiveRole.instructorId));
     });
   });
 }

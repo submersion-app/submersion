@@ -213,14 +213,19 @@
   "buddies_message_preparingExport": "מכין ייצוא...",
   "buddies_message_updated": "חבר צוללים עודכן בהצלחה",
   "buddies_picker_add": "הוסף",
+  "buddies_picker_addCustomRole": "הוסף תפקיד מותאם...",
   "buddies_picker_addNew": "הוסף חבר צוללים חדש",
   "buddies_picker_done": "סיום",
+  "buddies_picker_me": "אני",
   "buddies_picker_noBuddiesFound": "לא נמצאו חברי צוללים",
   "buddies_picker_noBuddiesYet": "עדיין אין חברי צוללים",
+  "buddies_picker_noRole": "ללא תפקיד",
   "buddies_picker_noneSelected": "לא נבחרו חברי צוללים",
   "buddies_picker_searchHint": "חפש חברי צוללים...",
   "buddies_picker_selectBuddies": "בחר חברי צוללים",
+  "buddies_picker_selectMyRole": "בחר את התפקיד שלי",
   "buddies_picker_selectRole": "בחר תפקיד עבור {name}",
+  "buddies_picker_setMyRole": "הגדר את התפקיד שלי",
   "buddies_picker_tapToAdd": "לחץ על 'הוסף' כדי לבחור חברי צוללים",
   "buddies_search_hint": "חפש לפי שם, דוא\"ל או טלפון",
   "buddies_search_noResults": "לא נמצאו חברי צוללים עבור \"{query}\"",
@@ -1496,6 +1501,68 @@
   "diveLog_sighting_decreaseCount": "הקטנת הכמות",
   "diveLog_sighting_increaseCount": "הגדלת הכמות",
   "diveLog_speciesPicker_errorLoading": "שגיאה בטעינת מינים: {error}",
+  "diveRole_builtin_buddy": "חבר צוללים",
+  "diveRole_builtin_diveGuide": "מוביל צלילה",
+  "diveRole_builtin_diveMaster": "דייבמאסטר",
+  "diveRole_builtin_instructor": "מדריך",
+  "diveRole_builtin_rearGuard": "מאסף",
+  "diveRole_builtin_safetyDiver": "צולל בטיחות",
+  "diveRole_builtin_solo": "סולו",
+  "diveRole_builtin_student": "חניך",
+  "diveRole_builtin_supportDiver": "צולל תמיכה",
+  "diveRoles_addDialog_addButton": "הוסף",
+  "diveRoles_addDialog_nameHint": "לדוגמה: צלם",
+  "diveRoles_addDialog_nameLabel": "שם תפקיד צלילה",
+  "diveRoles_addDialog_nameValidation": "נא להזין שם",
+  "diveRoles_addDialog_title": "הוסף תפקיד צלילה מותאם",
+  "diveRoles_addTooltip": "הוסף תפקיד צלילה",
+  "diveRoles_appBar_title": "תפקידי צלילה",
+  "diveRoles_builtInHeader": "תפקידי צלילה מובנים",
+  "diveRoles_customHeader": "תפקידי צלילה מותאמים",
+  "diveRoles_deleteDialog_content": "האם אתה בטוח שברצונך למחוק את \"{name}\"?",
+  "@diveRoles_deleteDialog_content": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_deleteDialog_title": "למחוק תפקיד צלילה?",
+  "diveRoles_deleteTooltip": "מחק תפקיד צלילה",
+  "diveRoles_renameDialog_title": "שנה שם תפקיד צלילה",
+  "diveRoles_renameTooltip": "שנה שם תפקיד צלילה",
+  "diveRoles_snackbar_added": "תפקיד צלילה נוסף: {name}",
+  "@diveRoles_snackbar_added": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_snackbar_cannotDelete": "לא ניתן למחוק את \"{name}\" - הוא משמש צלילות קיימות",
+  "@diveRoles_snackbar_cannotDelete": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_snackbar_deleted": "תפקיד צלילה נמחק: {name}",
+  "@diveRoles_snackbar_deleted": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "diveRoles_snackbar_errorAdding": "שגיאה בהוספת תפקיד צלילה: {error}",
+  "@diveRoles_snackbar_errorAdding": {
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
   "diveSites_edit_depth_heroMax": "עומק מקס'",
   "diveSites_edit_depth_heroMin": "עומק מינ'",
   "diveSites_edit_group_accessSafety": "גישה ובטיחות",
@@ -3668,6 +3735,8 @@
   "settings_language_systemDefault": "ברירת מחדל של המערכת",
   "settings_manage_checklistTemplates": "תבניות רשימות משימות",
   "settings_manage_checklistTemplates_subtitle": "רשימות משימות לשימוש חוזר לתכנון טיולים",
+  "settings_manage_diveRoles": "תפקידי צלילה",
+  "settings_manage_diveRoles_subtitle": "ניהול תפקידי צלילה מותאמים אישית",
   "settings_manage_diveTypes": "סוגי צלילה",
   "settings_manage_diveTypes_subtitle": "ניהול סוגי צלילה מותאמים אישית",
   "settings_manage_header_manageData": "ניהול נתונים",

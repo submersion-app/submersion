@@ -11,6 +11,8 @@ import 'package:submersion/features/universal_import/data/models/import_enums.da
 import 'package:submersion/features/universal_import/data/parsers/subsurface_xml_parser.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
+import 'package:submersion/features/dive_roles/data/repositories/dive_role_repository.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/courses/data/repositories/course_repository.dart';
@@ -37,6 +39,7 @@ import 'package:submersion/features/trips/data/repositories/trip_repository.dart
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 
 @GenerateMocks([
+  DiveRoleRepository,
   TripRepository,
   EquipmentRepository,
   EquipmentSetRepository,
@@ -65,6 +68,7 @@ void main() {
   late MockCertificationRepository mockCertificationRepo;
   late MockTagRepository mockTagRepo;
   late MockDiveTypeRepository mockDiveTypeRepo;
+  late MockDiveRoleRepository mockDiveRoleRepo;
   late MockSiteRepository mockSiteRepo;
   late MockDiveRepository mockDiveRepo;
   late MockTankPressureRepository mockTankPressureRepo;
@@ -80,6 +84,7 @@ void main() {
     mockCertificationRepo = MockCertificationRepository();
     mockTagRepo = MockTagRepository();
     mockDiveTypeRepo = MockDiveTypeRepository();
+    mockDiveRoleRepo = MockDiveRoleRepository();
     mockSiteRepo = MockSiteRepository();
     mockDiveRepo = MockDiveRepository();
     mockTankPressureRepo = MockTankPressureRepository();
@@ -104,6 +109,7 @@ void main() {
       certificationRepository: mockCertificationRepo,
       tagRepository: mockTagRepo,
       diveTypeRepository: mockDiveTypeRepo,
+      diveRoleRepository: mockDiveRoleRepo,
       siteRepository: mockSiteRepo,
       diveRepository: mockDiveRepo,
       tankPressureRepository: mockTankPressureRepo,
@@ -204,6 +210,85 @@ void main() {
 
       expect(result.trips, 1);
       verify(mockTripRepo.createTrip(any)).called(1);
+    });
+  });
+
+  group('Import dive roles', () {
+    test('restores custom roles preserving ids, skipping built-ins and '
+        'invalid rows', () async {
+      when(
+        mockDiveRoleRepo.importDiveRole(
+          id: anyNamed('id'),
+          name: anyNamed('name'),
+          diverId: anyNamed('diverId'),
+          sortOrder: anyNamed('sortOrder'),
+        ),
+      ).thenAnswer((_) async => true);
+
+      const data = UddfImportResult(
+        customDiveRoles: [
+          {
+            'id': 'uuid-1',
+            'name': 'Hekkensluiter',
+            'sortOrder': 9,
+            'isBuiltIn': false,
+          },
+          {'id': 'buddy', 'name': 'Buddy', 'sortOrder': 0, 'isBuiltIn': true},
+          {'id': null, 'name': 'No Id'},
+          {'id': 'uuid-2', 'name': ''},
+        ],
+      );
+
+      await importer.import(
+        data: data,
+        selections: const UddfImportSelections(),
+        repositories: repos,
+        diverId: diverId,
+      );
+
+      verify(
+        mockDiveRoleRepo.importDiveRole(
+          id: 'uuid-1',
+          name: 'Hekkensluiter',
+          diverId: diverId,
+          sortOrder: 9,
+        ),
+      ).called(1);
+      verifyNever(
+        mockDiveRoleRepo.importDiveRole(
+          id: 'buddy',
+          name: anyNamed('name'),
+          diverId: anyNamed('diverId'),
+          sortOrder: anyNamed('sortOrder'),
+        ),
+      );
+    });
+
+    test('a failing role import is swallowed, not fatal', () async {
+      when(
+        mockDiveRoleRepo.importDiveRole(
+          id: anyNamed('id'),
+          name: anyNamed('name'),
+          diverId: anyNamed('diverId'),
+          sortOrder: anyNamed('sortOrder'),
+        ),
+      ).thenThrow(Exception('boom'));
+
+      const data = UddfImportResult(
+        customDiveRoles: [
+          {'id': 'uuid-1', 'name': 'Hekkensluiter'},
+        ],
+      );
+
+      await expectLater(
+        importer.import(
+          data: data,
+          selections: const UddfImportSelections(),
+          repositories: repos,
+          diverId: diverId,
+        ),
+        completes,
+      );
     });
   });
 
@@ -729,7 +814,9 @@ void main() {
         diverId: diverId,
       );
 
-      verify(mockBuddyRepo.addBuddyToDive(any, any, BuddyRole.buddy)).called(1);
+      verify(
+        mockBuddyRepo.addBuddyToDive(any, any, DiveRole.buddyId),
+      ).called(1);
     });
 
     test('creates inline buddies for unmatched names', () async {

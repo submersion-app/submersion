@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 
 /// Dive buddy entity
 class Buddy extends Equatable {
@@ -98,10 +99,12 @@ class Buddy extends Equatable {
   ];
 }
 
-/// Buddy with role for a specific dive
+/// Buddy with role for a specific dive. The role is resolved from the
+/// dive_roles table (synthetic for unknown slugs); persistence always uses
+/// [DiveRole.id], never the display name.
 class BuddyWithRole extends Equatable {
   final Buddy buddy;
-  final BuddyRole role;
+  final DiveRole role;
 
   const BuddyWithRole({required this.buddy, required this.role});
 

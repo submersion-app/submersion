@@ -718,16 +718,25 @@ class AppLocalizationsIt extends AppLocalizations {
   String get buddies_picker_add => 'Aggiungi';
 
   @override
+  String get buddies_picker_addCustomRole => 'Aggiungi ruolo personalizzato...';
+
+  @override
   String get buddies_picker_addNew => 'Aggiungi Nuovo Compagno';
 
   @override
   String get buddies_picker_done => 'Fatto';
 
   @override
+  String get buddies_picker_me => 'Io';
+
+  @override
   String get buddies_picker_noBuddiesFound => 'Nessun compagno trovato';
 
   @override
   String get buddies_picker_noBuddiesYet => 'Nessun compagno ancora';
+
+  @override
+  String get buddies_picker_noRole => 'Nessun ruolo';
 
   @override
   String get buddies_picker_noneSelected => 'Nessun compagno selezionato';
@@ -739,9 +748,15 @@ class AppLocalizationsIt extends AppLocalizations {
   String get buddies_picker_selectBuddies => 'Seleziona Compagni';
 
   @override
+  String get buddies_picker_selectMyRole => 'Seleziona il mio ruolo';
+
+  @override
   String buddies_picker_selectRole(Object name) {
     return 'Seleziona Ruolo per $name';
   }
+
+  @override
+  String get buddies_picker_setMyRole => 'Imposta il mio ruolo';
 
   @override
   String get buddies_picker_tapToAdd =>
@@ -4707,6 +4722,98 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String diveLog_speciesPicker_errorLoading(String error) {
     return 'Errore nel caricamento delle specie: $error';
+  }
+
+  @override
+  String get diveRole_builtin_buddy => 'Compagno';
+
+  @override
+  String get diveRole_builtin_diveGuide => 'Guida subacquea';
+
+  @override
+  String get diveRole_builtin_diveMaster => 'Divemaster';
+
+  @override
+  String get diveRole_builtin_instructor => 'Istruttore';
+
+  @override
+  String get diveRole_builtin_rearGuard => 'Chiudifila';
+
+  @override
+  String get diveRole_builtin_safetyDiver => 'Subacqueo di sicurezza';
+
+  @override
+  String get diveRole_builtin_solo => 'Solitario';
+
+  @override
+  String get diveRole_builtin_student => 'Allievo';
+
+  @override
+  String get diveRole_builtin_supportDiver => 'Subacqueo di supporto';
+
+  @override
+  String get diveRoles_addDialog_addButton => 'Aggiungi';
+
+  @override
+  String get diveRoles_addDialog_nameHint => 'es., Fotografo';
+
+  @override
+  String get diveRoles_addDialog_nameLabel => 'Nome Ruolo di Immersione';
+
+  @override
+  String get diveRoles_addDialog_nameValidation => 'Inserisci un nome';
+
+  @override
+  String get diveRoles_addDialog_title =>
+      'Aggiungi Ruolo di Immersione Personalizzato';
+
+  @override
+  String get diveRoles_addTooltip => 'Aggiungi ruolo di immersione';
+
+  @override
+  String get diveRoles_appBar_title => 'Ruoli di Immersione';
+
+  @override
+  String get diveRoles_builtInHeader => 'Ruoli di Immersione Predefiniti';
+
+  @override
+  String get diveRoles_customHeader => 'Ruoli di Immersione Personalizzati';
+
+  @override
+  String diveRoles_deleteDialog_content(Object name) {
+    return 'Sei sicuro di voler eliminare \"$name\"?';
+  }
+
+  @override
+  String get diveRoles_deleteDialog_title => 'Eliminare Ruolo di Immersione?';
+
+  @override
+  String get diveRoles_deleteTooltip => 'Elimina ruolo di immersione';
+
+  @override
+  String get diveRoles_renameDialog_title => 'Rinomina Ruolo di Immersione';
+
+  @override
+  String get diveRoles_renameTooltip => 'Rinomina ruolo di immersione';
+
+  @override
+  String diveRoles_snackbar_added(Object name) {
+    return 'Ruolo di immersione aggiunto: $name';
+  }
+
+  @override
+  String diveRoles_snackbar_cannotDelete(Object name) {
+    return 'Impossibile eliminare \"$name\" - è usato da immersioni esistenti';
+  }
+
+  @override
+  String diveRoles_snackbar_deleted(Object name) {
+    return 'Ruolo di immersione eliminato: $name';
+  }
+
+  @override
+  String diveRoles_snackbar_errorAdding(Object error) {
+    return 'Errore durante l\'aggiunta del ruolo di immersione: $error';
   }
 
   @override
@@ -12101,6 +12208,13 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_manage_checklistTemplates_subtitle =>
       'Liste di controllo riutilizzabili per pianificare i viaggi';
+
+  @override
+  String get settings_manage_diveRoles => 'Ruoli di immersione';
+
+  @override
+  String get settings_manage_diveRoles_subtitle =>
+      'Gestisci ruoli di immersione personalizzati';
 
   @override
   String get settings_manage_diveTypes => 'Tipi di immersione';
