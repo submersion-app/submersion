@@ -779,6 +779,7 @@ class DiveProfilePoint extends Equatable {
   final double depth; // meters
   final double? temperature; // celsius
   final int? heartRate; // bpm
+  final double? heading; // compass heading in degrees (0-359); null if absent
   // CCR/SCR rebreather data (v1.5)
   final double? setpoint; // Current setpoint at this sample (bar)
   final double? ppO2; // Measured/calculated ppO2 (bar)
@@ -805,6 +806,7 @@ class DiveProfilePoint extends Equatable {
     required this.depth,
     this.temperature,
     this.heartRate,
+    this.heading,
     this.setpoint,
     this.ppO2,
     this.o2Sensor1,
@@ -828,6 +830,7 @@ class DiveProfilePoint extends Equatable {
     double? depth,
     double? temperature,
     int? heartRate,
+    double? heading,
     double? setpoint,
     double? ppO2,
     double? o2Sensor1,
@@ -850,6 +853,7 @@ class DiveProfilePoint extends Equatable {
       depth: depth ?? this.depth,
       temperature: temperature ?? this.temperature,
       heartRate: heartRate ?? this.heartRate,
+      heading: heading ?? this.heading,
       setpoint: setpoint ?? this.setpoint,
       ppO2: ppO2 ?? this.ppO2,
       o2Sensor1: o2Sensor1 ?? this.o2Sensor1,
@@ -875,6 +879,7 @@ class DiveProfilePoint extends Equatable {
     depth,
     temperature,
     heartRate,
+    heading,
     setpoint,
     ppO2,
     o2Sensor1,
