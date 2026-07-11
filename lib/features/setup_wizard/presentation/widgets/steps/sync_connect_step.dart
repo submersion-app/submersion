@@ -52,6 +52,21 @@ class _SyncConnectStepState extends ConsumerState<SyncConnectStep> {
         return;
       }
       await ref.read(syncStateProvider.notifier).performSync();
+      final syncState = ref.read(syncStateProvider);
+      if (syncState.status == SyncStatus.error) {
+        // A failed sync must not fall through to the "No library found" UI.
+        if (mounted) {
+          setState(() => _phase = _PullPhase.connect);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                context.l10n.setup_sync_error(syncState.message ?? ''),
+              ),
+            ),
+          );
+        }
+        return;
+      }
       await realignActiveDiverAfterDataReplace(
         ref.read(sharedPreferencesProvider),
       );

@@ -201,6 +201,19 @@ class _BackupSyncStepState extends ConsumerState<BackupSyncStep> {
                 onTap: _connecting
                     ? null
                     : () => _connect(CloudProviderType.icloud),
+              )
+            // Apple platform where iCloud can't be used (signed out or a
+            // build without the entitlement): explain rather than hide.
+            else if (isApple &&
+                iCloudAvailability == ICloudAvailability.unsupported)
+              Card(
+                margin: const EdgeInsets.symmetric(vertical: 4),
+                child: ListTile(
+                  enabled: false,
+                  leading: const Icon(Icons.cloud_off),
+                  title: const Text('iCloud'),
+                  subtitle: Text(l10n.setup_sync_icloudUnavailable),
+                ),
               ),
             if (dropboxConfigured)
               _providerCard(

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/data/repositories/sync_repository.dart'
+    show CloudProviderType;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/icloud_native_service.dart';
@@ -34,10 +35,16 @@ class _FakeSyncInit implements SyncInitializer {
 
 class _FakeSyncNotifier extends StateNotifier<SyncState>
     implements SyncNotifier {
-  _FakeSyncNotifier() : super(const SyncState());
+  _FakeSyncNotifier({this.failSync = false}) : super(const SyncState());
+
+  final bool failSync;
 
   @override
-  Future<void> performSync({bool auto = false}) async {}
+  Future<void> performSync({bool auto = false}) async {
+    if (failSync) {
+      state = const SyncState(status: SyncStatus.error, message: 'sync boom');
+    }
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -53,7 +60,10 @@ void main() {
 
   tearDown(() async => tearDownTestDatabase());
 
-  Future<List<Override>> overrides({bool hasDivers = true}) async {
+  Future<List<Override>> overrides({
+    bool hasDivers = true,
+    bool failSync = false,
+  }) async {
     final base = await getBaseOverrides();
     return [
       ...base,
@@ -63,7 +73,9 @@ void main() {
         (ref) async => ICloudAvailability.unsupported,
       ),
       syncInitializerProvider.overrideWithValue(syncInit),
-      syncStateProvider.overrideWith((ref) => _FakeSyncNotifier()),
+      syncStateProvider.overrideWith(
+        (ref) => _FakeSyncNotifier(failSync: failSync),
+      ),
       hasAnyDiversProvider.overrideWith((ref) async => hasDivers),
     ];
   }
@@ -162,6 +174,45 @@ void main() {
 
     // Error surfaced and the connect UI restored (Continue button present).
     expect(find.textContaining('Could not connect'), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, 'Continue'), findsOneWidget);
+  });
+
+  testWidgets('a failed sync returns to connect instead of "no library"', (
+    tester,
+  ) async {
+    syncInit.peers = [
+      CloudFileInfo(
+        id: 'a',
+        name: 'peer.manifest.json',
+        modifiedTime: DateTime(2026),
+      ),
+    ];
+    late ProviderContainer container;
+    await tester.pumpWidget(
+      testApp(
+        overrides: await overrides(failSync: true),
+        child: Builder(
+          builder: (context) {
+            container = ProviderScope.containerOf(context);
+            return SyncConnectStep(
+              mode: SetupWizardMode.firstRun,
+              onNoLibrary: () {},
+            );
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    container
+        .read(setupWizardProvider(SetupWizardMode.firstRun).notifier)
+        .setConnectedProvider(CloudProviderType.s3);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Could not connect'), findsOneWidget);
+    expect(find.text('No library found'), findsNothing);
     expect(find.widgetWithText(FilledButton, 'Continue'), findsOneWidget);
   });
 

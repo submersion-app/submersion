@@ -162,4 +162,32 @@ void main() {
     expect(find.text('iCloud'), findsOneWidget);
     expect(find.text('S3'), findsOneWidget);
   });
+
+  testWidgets('unsupported iCloud on Apple shows a disabled explanation', (
+    tester,
+  ) async {
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...overrides,
+          isApplePlatformProvider.overrideWithValue(true),
+          iCloudAvailabilityProvider.overrideWith(
+            (ref) async => ICloudAvailability.unsupported,
+          ),
+          dropboxConfiguredProvider.overrideWithValue(false),
+        ],
+        child: const BackupSyncStep(mode: SetupWizardMode.firstRun),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('iCloud'), findsOneWidget);
+    expect(find.text('iCloud is not available on this device'), findsOneWidget);
+    // The disabled tile is not tappable.
+    final tile = tester.widget<ListTile>(
+      find.ancestor(of: find.text('iCloud'), matching: find.byType(ListTile)),
+    );
+    expect(tile.enabled, isFalse);
+  });
 }
