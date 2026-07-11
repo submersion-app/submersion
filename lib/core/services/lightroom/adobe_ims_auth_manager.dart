@@ -124,7 +124,7 @@ class AdobeImsAuthManager {
     final tokens = await _requestToken({
       'grant_type': 'authorization_code',
       'client_id': clientId,
-      if (_pendingClientSecret != null) 'client_secret': _pendingClientSecret!,
+      'client_secret': ?_pendingClientSecret,
       'code': code,
       'code_verifier': verifier,
       'redirect_uri': redirectUri,
@@ -194,7 +194,7 @@ class AdobeImsAuthManager {
       'grant_type': 'refresh_token',
       'refresh_token': auth.refreshToken,
       'client_id': auth.clientId,
-      if (auth.clientSecret != null) 'client_secret': auth.clientSecret!,
+      'client_secret': ?auth.clientSecret,
     });
     final rotated = tokens['refresh_token'];
     if (rotated is String &&
