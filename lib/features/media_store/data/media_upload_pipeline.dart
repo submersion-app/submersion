@@ -49,7 +49,17 @@ class MediaUploadPipeline {
   static const Set<MediaSourceType> _eligibleSources = {
     MediaSourceType.platformGallery,
     MediaSourceType.localFile,
+    MediaSourceType.serviceConnector,
   };
+
+  /// Connector videos never download their original in v1 (Lightroom spec:
+  /// match + thumbnail only). The store carries just the thumb, derived
+  /// from the poster rendition the resolver materializes, and
+  /// remoteUploadedAt stays null so a future playback phase can tell a
+  /// poster frame from a playable original.
+  bool _isThumbOnly(MediaItem item) =>
+      item.sourceType == MediaSourceType.serviceConnector &&
+      item.mediaType == MediaType.video;
 
   Future<UploadOutcome> process(MediaTransferQueueEntry entry) async {
     await _queue.markTransferring(entry.id);
@@ -58,7 +68,9 @@ class MediaUploadPipeline {
       await _queue.markDone(entry.id);
       return UploadOutcome.skippedIneligible;
     }
-    if (item.remoteUploadedAt != null) {
+    if (_isThumbOnly(item)
+        ? item.remoteThumbUploadedAt != null
+        : item.remoteUploadedAt != null) {
       await _queue.markDone(entry.id);
       return UploadOutcome.deduplicated;
     }
@@ -107,6 +119,11 @@ class MediaUploadPipeline {
             await thumb.delete();
           }
         }
+      }
+
+      if (_isThumbOnly(item)) {
+        await _queue.markDone(entry.id);
+        return UploadOutcome.uploaded;
       }
 
       final extension = StoreKeys.extensionFor(item.originalFilename);

@@ -3,7 +3,7 @@ import 'dart:math';
 
 import 'package:crypto/crypto.dart';
 
-/// RFC 7636 PKCE helpers for the Dropbox OAuth flow.
+/// RFC 7636 PKCE helpers, shared by OAuth flows (Dropbox, Adobe IMS).
 
 /// A 43-character code verifier: 32 random bytes, base64url, no padding.
 /// [random] is injectable for tests; defaults to a cryptographic source.

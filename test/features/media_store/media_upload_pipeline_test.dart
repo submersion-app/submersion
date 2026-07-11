@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:io';
+
+import 'package:image/image.dart' as img;
 import 'dart:ui' show Size;
 
 import 'package:drift/native.dart';
@@ -438,4 +440,133 @@ void main() {
     expect(row.errorMessage, isNotNull);
     expect(failingStore.objects, isEmpty);
   });
+
+  group('serviceConnector rows', () {
+    late _FakeLocalFileResolver connectorResolver;
+    late MediaUploadPipeline connectorPipeline;
+
+    setUp(() {
+      // Same fake shape, registered under serviceConnector: the pipeline
+      // only cares that the registry materializes bytes for the type.
+      connectorResolver = _FakeConnectorResolver(
+        const UnavailableData(kind: UnavailableKind.notFound),
+      );
+      final registry = MediaSourceResolverRegistry({
+        MediaSourceType.serviceConnector: connectorResolver,
+      });
+      connectorPipeline = MediaUploadPipeline(
+        mediaRepository: mediaRepository,
+        queue: queue,
+        store: fakeStore,
+        registry: registry,
+        cache: cache,
+        thumbnails: ThumbnailGenerator(registry: registry, cache: cache),
+        now: () => DateTime(2026, 7, 10, 12),
+      );
+    });
+
+    // Connector renditions are JPEG regardless of the original's name.
+    List<int> jpegRendition() => img.encodeJpg(img.Image(width: 2, height: 2));
+
+    Future<String> enqueueConnectorItem({
+      required domain.MediaType mediaType,
+      required String name,
+    }) async {
+      connectorResolver.data = BytesData(
+        bytes: Uint8List.fromList(jpegRendition()),
+      );
+      connectorResolver.thumbnailData = BytesData(
+        bytes: Uint8List.fromList(jpegRendition()),
+      );
+      final created = await mediaRepository.createMedia(
+        domain.MediaItem(
+          id: '',
+          mediaType: mediaType,
+          sourceType: MediaSourceType.serviceConnector,
+          connectorAccountId: 'acct1',
+          remoteAssetId: 'lr-$name',
+          originalFilename: name,
+          takenAt: DateTime(2026, 1, 1),
+          createdAt: DateTime(2026, 1, 1),
+          updatedAt: DateTime(2026, 1, 1),
+        ),
+      );
+      await queue.enqueueUpload(mediaId: created.id);
+      return created.id;
+    }
+
+    test(
+      'connector photo uploads rendition bytes and stamps the row',
+      () async {
+        final id = await enqueueConnectorItem(
+          mediaType: domain.MediaType.photo,
+          name: 'reef.jpg',
+        );
+        final entry = (await queue.nextPending(DateTime.now()))!;
+        expect(await connectorPipeline.process(entry), UploadOutcome.uploaded);
+
+        final item = (await mediaRepository.getMediaById(id))!;
+        expect(item.contentHash, isNotNull);
+        expect(item.remoteUploadedAt, isNotNull);
+        expect(item.remoteThumbUploadedAt, isNotNull);
+        final key =
+            'smv1/objects/${item.contentHash!.substring(0, 2)}/'
+            '${item.contentHash}.jpg';
+        expect(fakeStore.objects[key], jpegRendition());
+      },
+    );
+
+    test(
+      'connector video is thumb-only: thumb stamped, no original object',
+      () async {
+        final id = await enqueueConnectorItem(
+          mediaType: domain.MediaType.video,
+          name: 'clip.mp4',
+        );
+        final entry = (await queue.nextPending(DateTime.now()))!;
+        expect(await connectorPipeline.process(entry), UploadOutcome.uploaded);
+
+        final item = (await mediaRepository.getMediaById(id))!;
+        expect(item.contentHash, isNotNull);
+        expect(item.remoteThumbUploadedAt, isNotNull);
+        expect(
+          item.remoteUploadedAt,
+          isNull,
+          reason: 'no original in the store means no upload confirmation',
+        );
+        expect(
+          fakeStore.objects.keys,
+          everyElement(startsWith('smv1/thumbs/')),
+          reason: 'only the thumb object may exist for a connector video',
+        );
+        expect((await queue.allForTesting()).single.state, 'done');
+      },
+    );
+
+    test('already thumb-stamped connector video short-circuits as '
+        'deduplicated', () async {
+      final id = await enqueueConnectorItem(
+        mediaType: domain.MediaType.video,
+        name: 'clip2.mp4',
+      );
+      final first = (await queue.nextPending(DateTime.now()))!;
+      await connectorPipeline.process(first);
+
+      await queue.enqueueUpload(mediaId: id);
+      final second = (await queue.nextPending(DateTime.now()))!;
+      expect(
+        await connectorPipeline.process(second),
+        UploadOutcome.deduplicated,
+      );
+    });
+  });
+}
+
+/// The connector twin of [_FakeLocalFileResolver]; only the source type
+/// differs.
+class _FakeConnectorResolver extends _FakeLocalFileResolver {
+  _FakeConnectorResolver(super.data);
+
+  @override
+  MediaSourceType get sourceType => MediaSourceType.serviceConnector;
 }

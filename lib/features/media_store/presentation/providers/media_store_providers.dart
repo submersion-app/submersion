@@ -127,80 +127,86 @@ final mediaStoreServiceProvider = Provider<MediaStoreService>(
 /// store attached. Lazy: the first watcher (a media view or the settings
 /// page) triggers construction and a queue drain. Invalidate after connect
 /// or disconnect.
-final mediaStoreRuntimeProvider = FutureProvider<MediaStoreRuntime?>((
-  ref,
-) async {
-  final attachState = ref.watch(mediaStoreAttachStateProvider);
-  final attachedId = await attachState.attachedStoreId();
-  if (attachedId == null) return null;
-  final providerType =
-      await attachState.attachedProviderType() ?? CloudProviderType.s3;
-  final s3Config = providerType == CloudProviderType.s3
-      ? await ref.watch(mediaStoreCredentialsStoreProvider).load()
-      : null;
-  final store = await buildMediaObjectStore(providerType, s3Config: s3Config);
-  if (store == null) return null;
+// Explicit LHS type: this provider sits on an import cycle (resolver
+// registry -> lightroom providers -> this file -> registry), and Dart's
+// top-level inference cannot resolve initializer-inferred declarations
+// that participate in a cycle.
+final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
+    FutureProvider<MediaStoreRuntime?>((ref) async {
+      final attachState = ref.watch(mediaStoreAttachStateProvider);
+      final attachedId = await attachState.attachedStoreId();
+      if (attachedId == null) return null;
+      final providerType =
+          await attachState.attachedProviderType() ?? CloudProviderType.s3;
+      final s3Config = providerType == CloudProviderType.s3
+          ? await ref.watch(mediaStoreCredentialsStoreProvider).load()
+          : null;
+      final store = await buildMediaObjectStore(
+        providerType,
+        s3Config: s3Config,
+      );
+      if (store == null) return null;
 
-  final supportDir = await getApplicationSupportDirectory();
-  final cache = MediaCacheStore(
-    database: LocalCacheDatabaseService.instance.database,
-    root: Directory(p.join(supportDir.path, 'Submersion', 'media_cache')),
-  );
-  final resolver = MediaStoreResolver(store: store, cache: cache);
+      final supportDir = await getApplicationSupportDirectory();
+      final cache = MediaCacheStore(
+        database: LocalCacheDatabaseService.instance.database,
+        root: Directory(p.join(supportDir.path, 'Submersion', 'media_cache')),
+      );
+      final resolver = MediaStoreResolver(store: store, cache: cache);
 
-  final mediaRepository = ref.watch(mediaRepositoryProvider);
-  final policies = ref.watch(mediaStorePoliciesProvider);
-  final network = NetworkStatusService();
-  final pipeline = MediaUploadPipeline(
-    mediaRepository: mediaRepository,
-    queue: MediaTransferQueueRepository(),
-    store: store,
-    registry: ref.watch(mediaSourceResolverRegistryProvider),
-    cache: cache,
-  );
-  final worker = MediaStoreWorker(
-    queue: MediaTransferQueueRepository(),
-    pipeline: pipeline,
-    preflight: () async {
-      // Suspend all transfers when this device detached (attach state
-      // re-read, not captured: disconnect can land while a drain is
-      // running) or when the bucket no longer carries the store this
-      // device attached to (wiped or repointed; spec section 13).
-      final currentId = await attachState.attachedStoreId();
-      if (currentId == null || currentId != attachedId) return false;
-      final marker = await StoreMarkerStore(store: store).read();
-      return marker != null && marker.storeId == currentId;
-    },
-    gate: (entry) async {
-      // Network policies (design spec section 9): offline halts the
-      // drain; cellular defers anything the policy disallows.
-      final kind = await network.current();
-      if (kind == NetworkKind.offline) return WorkerGate.stopDraining;
-      if (kind == NetworkKind.cellular) {
-        final item = await mediaRepository.getMediaById(entry.mediaId);
-        final isVideo = item?.mediaType == MediaType.video;
-        final allowed = isVideo
-            ? await policies.videosOnCellular()
-            : await policies.photosOnCellular();
-        if (!allowed) return WorkerGate.deferEntry;
-      }
-      return WorkerGate.proceed;
-    },
-  );
-  final connectivitySub = network.changes.listen((kind) {
-    if (kind != NetworkKind.offline) unawaited(worker.drain());
-  });
-  ref.onDispose(connectivitySub.cancel);
-  unawaited(worker.drain());
+      final mediaRepository = ref.watch(mediaRepositoryProvider);
+      final policies = ref.watch(mediaStorePoliciesProvider);
+      final network = NetworkStatusService();
+      final pipeline = MediaUploadPipeline(
+        mediaRepository: mediaRepository,
+        queue: MediaTransferQueueRepository(),
+        store: store,
+        registry: ref.watch(mediaSourceResolverRegistryProvider),
+        cache: cache,
+      );
+      final worker = MediaStoreWorker(
+        queue: MediaTransferQueueRepository(),
+        pipeline: pipeline,
+        preflight: () async {
+          // Suspend all transfers when this device detached (attach state
+          // re-read, not captured: disconnect can land while a drain is
+          // running) or when the bucket no longer carries the store this
+          // device attached to (wiped or repointed; spec section 13).
+          final currentId = await attachState.attachedStoreId();
+          if (currentId == null || currentId != attachedId) return false;
+          final marker = await StoreMarkerStore(store: store).read();
+          return marker != null && marker.storeId == currentId;
+        },
+        gate: (entry) async {
+          // Network policies (design spec section 9): offline halts the
+          // drain; cellular defers anything the policy disallows.
+          final kind = await network.current();
+          if (kind == NetworkKind.offline) return WorkerGate.stopDraining;
+          if (kind == NetworkKind.cellular) {
+            final item = await mediaRepository.getMediaById(entry.mediaId);
+            final isVideo = item?.mediaType == MediaType.video;
+            final allowed = isVideo
+                ? await policies.videosOnCellular()
+                : await policies.photosOnCellular();
+            if (!allowed) return WorkerGate.deferEntry;
+          }
+          return WorkerGate.proceed;
+        },
+      );
+      final connectivitySub = network.changes.listen((kind) {
+        if (kind != NetworkKind.offline) unawaited(worker.drain());
+      });
+      ref.onDispose(connectivitySub.cancel);
+      unawaited(worker.drain());
 
-  return MediaStoreRuntime(
-    storeId: attachedId,
-    store: store,
-    cache: cache,
-    resolver: resolver,
-    worker: worker,
-  );
-});
+      return MediaStoreRuntime(
+        storeId: attachedId,
+        store: store,
+        cache: cache,
+        resolver: resolver,
+        worker: worker,
+      );
+    });
 
 /// The store-fallback resolver for display surfaces, or null when no store
 /// runtime exists yet. Synchronous accessor over the async runtime.

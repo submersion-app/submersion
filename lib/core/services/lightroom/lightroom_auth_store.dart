@@ -1,0 +1,94 @@
+import 'dart:convert';
+
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+import 'package:submersion/core/services/secure_storage/fallback_secure_storage.dart';
+
+/// Persisted Lightroom connection credentials. BYO client id: the user's
+/// own Adobe Developer Console credentials live alongside the refresh
+/// token so the whole connection is one atomic blob.
+class LightroomAuthData {
+  const LightroomAuthData({
+    required this.clientId,
+    required this.refreshToken,
+    this.clientSecret,
+    this.email,
+    this.displayName,
+    this.catalogId,
+  });
+
+  final String clientId;
+  final String refreshToken;
+  final String? clientSecret;
+  final String? email;
+  final String? displayName;
+  final String? catalogId;
+
+  LightroomAuthData copyWith({
+    String? refreshToken,
+    String? email,
+    String? displayName,
+    String? catalogId,
+  }) {
+    return LightroomAuthData(
+      clientId: clientId,
+      clientSecret: clientSecret,
+      refreshToken: refreshToken ?? this.refreshToken,
+      email: email ?? this.email,
+      displayName: displayName ?? this.displayName,
+      catalogId: catalogId ?? this.catalogId,
+    );
+  }
+
+  Map<String, Object?> toJson() => {
+    'clientId': clientId,
+    'clientSecret': clientSecret,
+    'refreshToken': refreshToken,
+    'email': email,
+    'displayName': displayName,
+    'catalogId': catalogId,
+  };
+
+  factory LightroomAuthData.fromJson(Map<String, Object?> json) {
+    return LightroomAuthData(
+      clientId: json['clientId'] as String,
+      clientSecret: json['clientSecret'] as String?,
+      refreshToken: json['refreshToken'] as String,
+      email: json['email'] as String?,
+      displayName: json['displayName'] as String?,
+      catalogId: json['catalogId'] as String?,
+    );
+  }
+}
+
+/// Secure-storage persistence for the Lightroom connection. One JSON blob
+/// under a single key so load/save stay atomic (S3/Dropbox precedent).
+class LightroomAuthStore {
+  LightroomAuthStore({FlutterSecureStorage? storage})
+    : _storage = FallbackSecureStorage(storage ?? const FlutterSecureStorage());
+
+  static const String storageKey = 'lightroom_auth';
+
+  final FallbackSecureStorage _storage;
+
+  /// Null when unset or when the stored blob does not decode. A corrupt
+  /// blob is left in place so a decode bug cannot destroy credentials.
+  Future<LightroomAuthData?> load() async {
+    final raw = await _storage.read(key: storageKey);
+    if (raw == null || raw.isEmpty) return null;
+    try {
+      return LightroomAuthData.fromJson(
+        jsonDecode(raw) as Map<String, Object?>,
+      );
+    } on FormatException {
+      return null;
+    } on TypeError {
+      return null;
+    }
+  }
+
+  Future<void> save(LightroomAuthData data) =>
+      _storage.write(key: storageKey, value: jsonEncode(data.toJson()));
+
+  Future<void> clear() => _storage.delete(key: storageKey);
+}

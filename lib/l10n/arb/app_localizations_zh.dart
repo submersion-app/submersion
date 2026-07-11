@@ -10065,6 +10065,18 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get media_lightroom_openInLightroom => '在 Lightroom 中打开';
+
+  @override
+  String get media_lightroom_suggestion_accept => '添加到此潜水';
+
+  @override
+  String get media_lightroom_suggestion_dismiss => '忽略';
+
+  @override
+  String get media_lightroom_suggestions_title => '来自 Lightroom 的建议';
+
+  @override
   String get media_miniProfile_headerLabel => '潜水轮廓';
 
   @override
@@ -11980,6 +11992,97 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_language_systemDefault => '系统默认';
+
+  @override
+  String get settings_lightroom_albumFilter_all => '整个目录';
+
+  @override
+  String get settings_lightroom_albumFilter_title => '要扫描的相册';
+
+  @override
+  String get settings_lightroom_autoPoll_title => '自动检查新照片';
+
+  @override
+  String settings_lightroom_clientId_help(String redirectUri) {
+    return '在 Adobe Developer Console 中使用 Lightroom Services API 创建集成，并选择支持 PKCE 的凭据类型。将重定向 URI 设置为 $redirectUri。';
+  }
+
+  @override
+  String get settings_lightroom_clientId_label => 'Adobe 客户端 ID';
+
+  @override
+  String get settings_lightroom_clientSecret_label => '客户端密钥（可选）';
+
+  @override
+  String get settings_lightroom_connect => '连接 Lightroom';
+
+  @override
+  String get settings_lightroom_connect_codeLabel => '重定向的网址或代码';
+
+  @override
+  String get settings_lightroom_connect_emptyCode => '粘贴重定向的网址或授权码';
+
+  @override
+  String settings_lightroom_connect_failed(String error) {
+    return '无法连接到 Lightroom：$error';
+  }
+
+  @override
+  String get settings_lightroom_connect_instructions =>
+      '在浏览器窗口中登录 Adobe，然后粘贴你到达页面的完整地址（其中包含授权码）。';
+
+  @override
+  String get settings_lightroom_connect_reopenBrowser => '重新打开浏览器';
+
+  @override
+  String get settings_lightroom_connect_submit => '连接';
+
+  @override
+  String get settings_lightroom_connect_title => '连接 Lightroom';
+
+  @override
+  String settings_lightroom_connected(String name) {
+    return '已连接为 $name';
+  }
+
+  @override
+  String get settings_lightroom_disconnect => '断开连接';
+
+  @override
+  String get settings_lightroom_disconnect_confirmBody =>
+      '已关联的照片会保留在你的潜水记录中，并继续从媒体存储中显示。新照片将不再自动匹配。';
+
+  @override
+  String get settings_lightroom_disconnect_confirmTitle => '断开 Lightroom 连接？';
+
+  @override
+  String settings_lightroom_lastPoll(String when) {
+    return '上次检查：$when';
+  }
+
+  @override
+  String get settings_lightroom_needsReauth => '需要重新连接';
+
+  @override
+  String get settings_lightroom_scanNow => '扫描 Lightroom';
+
+  @override
+  String get settings_lightroom_scan_running => '正在扫描 Lightroom...';
+
+  @override
+  String settings_lightroom_scan_summary(
+    int attached,
+    int suggested,
+    int skipped,
+  ) {
+    return '已关联 $attached 张，建议 $suggested 张，$skipped 张已关联';
+  }
+
+  @override
+  String get settings_lightroom_subtitle => '自动将照片和视频关联到潜水记录';
+
+  @override
+  String get settings_lightroom_title => 'Adobe Lightroom';
 
   @override
   String get settings_manage_checklistTemplates => '清单模板';

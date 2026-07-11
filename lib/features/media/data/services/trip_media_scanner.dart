@@ -255,7 +255,7 @@ class TripMediaScanner {
       }
     }
 
-    final matcher = DivePhotoMatcher();
+    const matcher = DivePhotoMatcher();
     final primarySelection = matcher.match(
       files: primaryExtractedById.values.toList(),
       dives: bounds,

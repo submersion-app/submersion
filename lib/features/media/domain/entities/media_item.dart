@@ -432,7 +432,8 @@ class MediaSpeciesTag extends Equatable {
   ];
 }
 
-/// A pending suggestion to link a photo from the gallery to a dive
+/// A pending suggestion to link a photo from the gallery or an external
+/// connector (Lightroom) to a dive
 class PendingPhotoSuggestion extends Equatable {
   final String id;
   final String diveId;
@@ -442,6 +443,11 @@ class PendingPhotoSuggestion extends Equatable {
   final bool dismissed;
   final DateTime createdAt;
 
+  /// Set on connector suggestions: the local ConnectorAccounts row and the
+  /// service-side asset id. Null on device-gallery suggestions.
+  final String? connectorAccountId;
+  final String? remoteAssetId;
+
   const PendingPhotoSuggestion({
     required this.id,
     required this.diveId,
@@ -450,6 +456,8 @@ class PendingPhotoSuggestion extends Equatable {
     this.thumbnailPath,
     this.dismissed = false,
     required this.createdAt,
+    this.connectorAccountId,
+    this.remoteAssetId,
   });
 
   @override
@@ -461,6 +469,8 @@ class PendingPhotoSuggestion extends Equatable {
     thumbnailPath,
     dismissed,
     createdAt,
+    connectorAccountId,
+    remoteAssetId,
   ];
 }
 

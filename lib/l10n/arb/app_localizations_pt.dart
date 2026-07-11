@@ -10538,6 +10538,18 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get media_lightroom_openInLightroom => 'Abrir no Lightroom';
+
+  @override
+  String get media_lightroom_suggestion_accept => 'Adicionar a este mergulho';
+
+  @override
+  String get media_lightroom_suggestion_dismiss => 'Dispensar';
+
+  @override
+  String get media_lightroom_suggestions_title => 'Sugestões do Lightroom';
+
+  @override
   String get media_miniProfile_headerLabel => 'Perfil do Mergulho';
 
   @override
@@ -12591,6 +12603,103 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_language_systemDefault => 'Padrao do Sistema';
+
+  @override
+  String get settings_lightroom_albumFilter_all => 'Catálogo inteiro';
+
+  @override
+  String get settings_lightroom_albumFilter_title => 'Álbuns a analisar';
+
+  @override
+  String get settings_lightroom_autoPoll_title =>
+      'Verificar novas fotos automaticamente';
+
+  @override
+  String settings_lightroom_clientId_help(String redirectUri) {
+    return 'Crie uma integração na Adobe Developer Console com a API Lightroom Services e um tipo de credencial compatível com PKCE. Defina a URI de redirecionamento como $redirectUri.';
+  }
+
+  @override
+  String get settings_lightroom_clientId_label => 'ID de cliente da Adobe';
+
+  @override
+  String get settings_lightroom_clientSecret_label =>
+      'Segredo do cliente (opcional)';
+
+  @override
+  String get settings_lightroom_connect => 'Conectar Lightroom';
+
+  @override
+  String get settings_lightroom_connect_codeLabel =>
+      'URL redirecionada ou código';
+
+  @override
+  String get settings_lightroom_connect_emptyCode =>
+      'Cole a URL redirecionada ou o código de autorização';
+
+  @override
+  String settings_lightroom_connect_failed(String error) {
+    return 'Não foi possível conectar ao Lightroom: $error';
+  }
+
+  @override
+  String get settings_lightroom_connect_instructions =>
+      'Inicie sessão na Adobe na janela do navegador e cole o endereço completo da página em que você chegar (ele contém o código de autorização).';
+
+  @override
+  String get settings_lightroom_connect_reopenBrowser => 'Reabrir navegador';
+
+  @override
+  String get settings_lightroom_connect_submit => 'Conectar';
+
+  @override
+  String get settings_lightroom_connect_title => 'Conectar Lightroom';
+
+  @override
+  String settings_lightroom_connected(String name) {
+    return 'Conectado como $name';
+  }
+
+  @override
+  String get settings_lightroom_disconnect => 'Desconectar';
+
+  @override
+  String get settings_lightroom_disconnect_confirmBody =>
+      'As fotos vinculadas permanecem nos seus mergulhos e continuam sendo exibidas a partir do armazenamento de mídia. Novas fotos não serão mais vinculadas.';
+
+  @override
+  String get settings_lightroom_disconnect_confirmTitle =>
+      'Desconectar o Lightroom?';
+
+  @override
+  String settings_lightroom_lastPoll(String when) {
+    return 'Última verificação: $when';
+  }
+
+  @override
+  String get settings_lightroom_needsReauth => 'Reconexão necessária';
+
+  @override
+  String get settings_lightroom_scanNow => 'Analisar Lightroom';
+
+  @override
+  String get settings_lightroom_scan_running => 'Analisando o Lightroom...';
+
+  @override
+  String settings_lightroom_scan_summary(
+    int attached,
+    int suggested,
+    int skipped,
+  ) {
+    return '$attached vinculadas, $suggested sugeridas, $skipped já vinculadas';
+  }
+
+  @override
+  String get settings_lightroom_subtitle =>
+      'Vincular fotos e vídeos aos mergulhos automaticamente';
+
+  @override
+  String get settings_lightroom_title => 'Adobe Lightroom';
 
   @override
   String get settings_manage_checklistTemplates =>

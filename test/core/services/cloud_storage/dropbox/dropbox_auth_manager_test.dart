@@ -7,7 +7,7 @@ import 'package:http/testing.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_auth_manager.dart';
 import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_auth_store.dart';
-import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_pkce.dart';
+import 'package:submersion/core/services/oauth/oauth_pkce.dart';
 
 import '../../../../support/fake_keychain_storage.dart';
 

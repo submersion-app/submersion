@@ -733,6 +733,113 @@ class MediaRepository {
     }
   }
 
+  /// Remote asset ids of every connector-sourced media row. Media rows sync
+  /// via HLC, so this covers rows created on other devices too: it is the
+  /// scan-time dedup set that keeps a second connected device from
+  /// re-creating the same Lightroom links.
+  Future<Set<String>> getConnectorRemoteAssetIds() async {
+    final remoteAssetId = _db.media.remoteAssetId;
+    final query = _db.selectOnly(_db.media)
+      ..addColumns([remoteAssetId])
+      ..where(
+        _db.media.sourceType.equals(MediaSourceType.serviceConnector.name) &
+            remoteAssetId.isNotNull(),
+      );
+    final rows = await query.get();
+    return rows.map((r) => r.read(remoteAssetId)!).toSet();
+  }
+
+  /// Remote asset ids held by live (non-dismissed) pending suggestions.
+  Future<Set<String>> getPendingSuggestionRemoteAssetIds() async {
+    final remoteAssetId = _db.pendingPhotoSuggestions.remoteAssetId;
+    final query = _db.selectOnly(_db.pendingPhotoSuggestions)
+      ..addColumns([remoteAssetId])
+      ..where(
+        _db.pendingPhotoSuggestions.dismissed.equals(false) &
+            remoteAssetId.isNotNull(),
+      );
+    final rows = await query.get();
+    return rows.map((r) => r.read(remoteAssetId)!).toSet();
+  }
+
+  /// Inserts a pending suggestion; fills the id with a uuid when empty.
+  /// Per-device table: no sync record, no HLC.
+  Future<domain.PendingPhotoSuggestion> createPendingSuggestion(
+    domain.PendingPhotoSuggestion suggestion,
+  ) async {
+    final id = suggestion.id.isEmpty ? _uuid.v4() : suggestion.id;
+    await _db
+        .into(_db.pendingPhotoSuggestions)
+        .insert(
+          PendingPhotoSuggestionsCompanion.insert(
+            id: id,
+            diveId: suggestion.diveId,
+            platformAssetId: suggestion.platformAssetId,
+            takenAt: suggestion.takenAt.millisecondsSinceEpoch,
+            thumbnailPath: Value(suggestion.thumbnailPath),
+            dismissed: Value(suggestion.dismissed),
+            createdAt: suggestion.createdAt.millisecondsSinceEpoch,
+            connectorAccountId: Value(suggestion.connectorAccountId),
+            remoteAssetId: Value(suggestion.remoteAssetId),
+          ),
+        );
+    return domain.PendingPhotoSuggestion(
+      id: id,
+      diveId: suggestion.diveId,
+      platformAssetId: suggestion.platformAssetId,
+      takenAt: suggestion.takenAt,
+      thumbnailPath: suggestion.thumbnailPath,
+      dismissed: suggestion.dismissed,
+      createdAt: suggestion.createdAt,
+      connectorAccountId: suggestion.connectorAccountId,
+      remoteAssetId: suggestion.remoteAssetId,
+    );
+  }
+
+  /// Live (non-dismissed) suggestions for a dive, oldest capture first.
+  Future<List<domain.PendingPhotoSuggestion>> getPendingSuggestionsForDive(
+    String diveId,
+  ) async {
+    final query = _db.select(_db.pendingPhotoSuggestions)
+      ..where((t) => t.diveId.equals(diveId) & t.dismissed.equals(false))
+      ..orderBy([(t) => OrderingTerm.asc(t.takenAt)]);
+    final rows = await query.get();
+    return rows.map(_mapRowToSuggestion).toList();
+  }
+
+  Future<void> dismissPendingSuggestion(String id) async {
+    await (_db.update(_db.pendingPhotoSuggestions)
+          ..where((t) => t.id.equals(id)))
+        .write(const PendingPhotoSuggestionsCompanion(dismissed: Value(true)));
+  }
+
+  /// Removes every candidate row for a confirmed connector asset (an
+  /// ambiguous match creates one suggestion per candidate dive).
+  Future<void> deleteSuggestionsForRemoteAsset(String remoteAssetId) async {
+    await (_db.delete(
+      _db.pendingPhotoSuggestions,
+    )..where((t) => t.remoteAssetId.equals(remoteAssetId))).go();
+  }
+
+  domain.PendingPhotoSuggestion _mapRowToSuggestion(
+    PendingPhotoSuggestion row,
+  ) {
+    return domain.PendingPhotoSuggestion(
+      id: row.id,
+      diveId: row.diveId,
+      platformAssetId: row.platformAssetId,
+      takenAt: DateTime.fromMillisecondsSinceEpoch(row.takenAt, isUtc: true),
+      thumbnailPath: row.thumbnailPath,
+      dismissed: row.dismissed,
+      createdAt: DateTime.fromMillisecondsSinceEpoch(
+        row.createdAt,
+        isUtc: true,
+      ),
+      connectorAccountId: row.connectorAccountId,
+      remoteAssetId: row.remoteAssetId,
+    );
+  }
+
   /// Stamps the content identity computed by the upload pipeline. A synced
   /// row update: peers learn the hash even before upload confirmation.
   Future<void> stampContentIdentity(
@@ -785,9 +892,18 @@ class MediaRepository {
     final query = _db.selectOnly(_db.media)
       ..addColumns([id])
       ..where(
-        _db.media.remoteUploadedAt.isNull() &
-            _db.media.fileType.equals('photo') &
-            _db.media.sourceType.isIn(['platformGallery', 'localFile']),
+        (_db.media.remoteUploadedAt.isNull() &
+                _db.media.fileType.equals('photo') &
+                _db.media.sourceType.isIn([
+                  'platformGallery',
+                  'localFile',
+                  'serviceConnector',
+                ])) |
+            // Connector videos are thumb-only (no original in the store by
+            // design), so their backfill signal is the missing thumb stamp.
+            (_db.media.remoteThumbUploadedAt.isNull() &
+                _db.media.fileType.equals('video') &
+                _db.media.sourceType.equals('serviceConnector')),
       )
       ..orderBy([OrderingTerm.desc(_db.media.takenAt)]);
     final rows = await query.get();
