@@ -119,6 +119,126 @@ void main() {
     expect(find.text('Hekkensluiter'), findsOneWidget); // still listed
   });
 
+  testWidgets('add dialog validates an empty name and can be cancelled', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_buildPage(diverIdNotifier));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+
+    // Submitting an empty name trips the validator instead of closing.
+    await tester.tap(find.text('Add'));
+    await tester.pumpAndSettle();
+    expect(find.text('Please enter a name'), findsOneWidget);
+
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(find.text('Custom Dive Roles'), findsNothing);
+  });
+
+  testWidgets('add failure shows an error snackbar', (tester) async {
+    // No valid diver profile: addDiveRoleByName throws.
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          currentDiverIdProvider.overrideWith((ref) => diverIdNotifier),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+        ],
+        child: const MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: DiveRolesPage(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextFormField), 'Hekkensluiter');
+    await tester.tap(find.text('Add'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Error adding dive role'), findsOneWidget);
+  });
+
+  testWidgets('rename failure shows an error snackbar', (tester) async {
+    final repo = DiveRoleRepository();
+    final created = await repo.createDiveRole(
+      name: 'Hekkensluiter',
+      diverId: 'diver-1',
+    );
+
+    await tester.pumpWidget(_buildPage(diverIdNotifier));
+    await tester.pumpAndSettle();
+
+    // Remove the row behind the page's back (customStatement does not
+    // notify drift table watchers, so the tile stays visible).
+    final db = DatabaseService.instance.database;
+    await db.customStatement(
+      "DELETE FROM dive_roles WHERE id = '${created.id}'",
+    );
+
+    await tester.tap(find.byIcon(Icons.edit_outlined));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextFormField), 'Sweep');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Dive role not found'), findsOneWidget);
+  });
+
+  testWidgets('delete failure after confirmation shows an error snackbar', (
+    tester,
+  ) async {
+    final repo = DiveRoleRepository();
+    final created = await repo.createDiveRole(
+      name: 'Hekkensluiter',
+      diverId: 'diver-1',
+    );
+
+    await tester.pumpWidget(_buildPage(diverIdNotifier));
+    await tester.pumpAndSettle();
+
+    // Flip the row to built-in behind the page's back (customStatement does
+    // not notify drift watchers) so deleteDiveRole throws after confirm.
+    final db = DatabaseService.instance.database;
+    await db.customStatement(
+      "UPDATE dive_roles SET is_built_in = 1 WHERE id = '${created.id}'",
+    );
+
+    await tester.tap(find.byIcon(Icons.delete_outline));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.textContaining('Cannot delete built-in dive roles'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('cancelling the delete confirmation keeps the role', (
+    tester,
+  ) async {
+    final repo = DiveRoleRepository();
+    await repo.createDiveRole(name: 'Hekkensluiter', diverId: 'diver-1');
+
+    await tester.pumpWidget(_buildPage(diverIdNotifier));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.delete_outline));
+    await tester.pumpAndSettle();
+    expect(find.text('Delete Dive Role?'), findsOneWidget);
+
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Hekkensluiter'), findsOneWidget);
+  });
+
   testWidgets('deleting an unused custom role removes it after confirm', (
     tester,
   ) async {
