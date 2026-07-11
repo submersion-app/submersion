@@ -100,6 +100,7 @@ import 'package:submersion/features/media/presentation/pages/network_sources_pag
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
 import 'package:submersion/features/transfer/presentation/pages/transfer_page.dart';
 import 'package:submersion/features/dive_types/presentation/pages/dive_types_page.dart';
+import 'package:submersion/features/dive_roles/presentation/pages/dive_roles_page.dart';
 import 'package:submersion/features/tank_presets/presentation/pages/tank_presets_page.dart';
 import 'package:submersion/features/tank_presets/presentation/pages/tank_preset_edit_page.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_manage_page.dart';
@@ -977,6 +978,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/dive-types',
             name: 'diveTypes',
             builder: (context, state) => const DiveTypesPage(),
+          ),
+
+          // Dive Roles Management
+          GoRoute(
+            path: '/dive-roles',
+            name: 'diveRoles',
+            builder: (context, state) => const DiveRolesPage(),
           ),
 
           // Tank Presets Management
