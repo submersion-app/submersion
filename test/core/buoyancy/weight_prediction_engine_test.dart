@@ -167,9 +167,9 @@ void main() {
       for (var i = 0; i < 20; i++) obs(index: i),
     ], bodyWeightKg: null);
     final prediction = model.predict(
-      RigSpec(
-        gear: const [suit, bcd],
-        tanks: const [al80Spec],
+      const RigSpec(
+        gear: [suit, bcd],
+        tanks: [al80Spec],
         waterType: WaterType.salt,
       ),
     );
@@ -186,9 +186,9 @@ void main() {
       hasUserSpec: true,
     );
     final prediction = fit(const []).predict(
-      RigSpec(
-        gear: const [sinker],
-        tanks: const [al80Spec],
+      const RigSpec(
+        gear: [sinker],
+        tanks: [al80Spec],
         waterType: WaterType.salt,
         bodyWeightKg: 80,
       ),

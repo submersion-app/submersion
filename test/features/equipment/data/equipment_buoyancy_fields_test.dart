@@ -21,7 +21,7 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  EquipmentItem suit() => EquipmentItem(
+  EquipmentItem suit() => const EquipmentItem(
     id: '',
     name: '7mm Wetsuit',
     type: EquipmentType.wetsuit,

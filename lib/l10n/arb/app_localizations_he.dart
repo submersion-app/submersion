@@ -18023,4 +18023,157 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get diveLog_bulkEdit_membership_empty =>
       'אין עדיין פריטים בצלילות שנבחרו';
+
+  @override
+  String get bodyWeight_addEntry => 'הוסף מדידה';
+
+  @override
+  String get bodyWeight_dateLabel => 'תאריך';
+
+  @override
+  String get bodyWeight_deleteTooltip => 'מחק רשומה';
+
+  @override
+  String get bodyWeight_heightLabel => 'גובה (ס״מ)';
+
+  @override
+  String bodyWeight_weightLabel(String unit) {
+    return 'משקל ($unit)';
+  }
+
+  @override
+  String diveLog_edit_weightFeedback_amount(String unit) {
+    return 'בכמה בערך ($unit)';
+  }
+
+  @override
+  String get diveLog_edit_weightFeedback_correct => 'הרגיש נכון';
+
+  @override
+  String get diveLog_edit_weightFeedback_label => 'איך היה המשקול שלך?';
+
+  @override
+  String get diveLog_edit_weightFeedback_over => 'משקל יתר';
+
+  @override
+  String get diveLog_edit_weightFeedback_under => 'תת-משקל';
+
+  @override
+  String get diverProfile_bodyWeight_empty => 'לא נרשם';
+
+  @override
+  String get diverProfile_bodyWeight_title => 'משקל גוף';
+
+  @override
+  String get equipment_edit_advanced_title => 'מתקדם';
+
+  @override
+  String get equipment_edit_buoyancyHint_exposure => 'חיובי: כמה הוא צף';
+
+  @override
+  String get equipment_edit_buoyancyHint_generic => 'שלילי אם הוא שוקע';
+
+  @override
+  String get equipment_edit_buoyancyHint_tank =>
+      'השאר ריק - מכלים משתמשים במפרט משלהם';
+
+  @override
+  String equipment_edit_buoyancyLabel(String unit) {
+    return 'ציפה ($unit)';
+  }
+
+  @override
+  String equipment_edit_dryWeightLabel(String unit) {
+    return 'משקל יבש ($unit)';
+  }
+
+  @override
+  String get planner_gearWeights_accept => 'השתמש כמשקל מתוכנן';
+
+  @override
+  String get planner_gearWeights_addGear => 'הוסף ציוד';
+
+  @override
+  String get planner_gearWeights_empty => 'הוסף ציוד כדי לחזות את המשקול שלך';
+
+  @override
+  String planner_gearWeights_planned(String weight) {
+    return 'מתוכנן: $weight';
+  }
+
+  @override
+  String planner_gearWeights_predicted(String weight) {
+    return 'חזוי: $weight';
+  }
+
+  @override
+  String get planner_gearWeights_title => 'ציוד ומשקולות';
+
+  @override
+  String get planner_gearWeights_useSet => 'השתמש בערכה';
+
+  @override
+  String get tools_weight_addGear => 'הוסף ציוד';
+
+  @override
+  String get tools_weight_addTank => 'הוסף מכל';
+
+  @override
+  String tools_weight_basedOnDives(int count) {
+    return 'מבוסס על $count צלילות מתועדות';
+  }
+
+  @override
+  String get tools_weight_breakdownTitle => 'כיצד זה חושב';
+
+  @override
+  String get tools_weight_confidence_high => 'ודאות גבוהה';
+
+  @override
+  String get tools_weight_confidence_low => 'ודאות נמוכה - הערכה';
+
+  @override
+  String get tools_weight_confidence_medium => 'ודאות בינונית';
+
+  @override
+  String tools_weight_deltaVsPrevious(String delta) {
+    return '$delta לעומת התצורה הקודמת';
+  }
+
+  @override
+  String get tools_weight_noGear =>
+      'הוסף את הציוד שאיתו תצלול כדי להתאים אישית את החיזוי.';
+
+  @override
+  String get tools_weight_personalTerm => 'בסיס אישי';
+
+  @override
+  String get tools_weight_placementTitle => 'מיקום מוצע';
+
+  @override
+  String get tools_weight_predictedWeight => 'משקל חזוי';
+
+  @override
+  String get tools_weight_saveToProfile => 'שמור משקל בפרופיל';
+
+  @override
+  String get tools_weight_source_measured => 'נמדד מהצלילות שלך';
+
+  @override
+  String get tools_weight_source_physics => 'פיזיקה';
+
+  @override
+  String get tools_weight_source_typeDefault => 'הערכת ברירת מחדל';
+
+  @override
+  String get tools_weight_source_userSpec => 'מהמפרט של הציוד שלך';
+
+  @override
+  String get tools_weight_tanks => 'מכלים';
+
+  @override
+  String get tools_weight_useSet => 'השתמש בערכה';
+
+  @override
+  String get tools_weight_waterTerm => 'סוג מים';
 }

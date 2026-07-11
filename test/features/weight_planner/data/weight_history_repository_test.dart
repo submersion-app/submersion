@@ -38,7 +38,11 @@ void main() {
     'assembles observations from weights, equipment, tanks, and feedback',
     () async {
       final suit = await equipmentRepository.createEquipment(
-        EquipmentItem(id: '', name: '5mm Suit', type: EquipmentType.wetsuit),
+        const EquipmentItem(
+          id: '',
+          name: '5mm Suit',
+          type: EquipmentType.wetsuit,
+        ),
       );
 
       // Dive A: typed weights + equipment + tank + feedback.

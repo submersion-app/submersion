@@ -18556,4 +18556,162 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get diveLog_bulkEdit_membership_empty =>
       'Aucun élément sur les plongées sélectionnées pour l\'instant';
+
+  @override
+  String get bodyWeight_addEntry => 'Ajouter une mesure';
+
+  @override
+  String get bodyWeight_dateLabel => 'Date';
+
+  @override
+  String get bodyWeight_deleteTooltip => 'Supprimer l\'entrée';
+
+  @override
+  String get bodyWeight_heightLabel => 'Taille (cm)';
+
+  @override
+  String bodyWeight_weightLabel(String unit) {
+    return 'Poids ($unit)';
+  }
+
+  @override
+  String diveLog_edit_weightFeedback_amount(String unit) {
+    return 'D\'environ combien ($unit)';
+  }
+
+  @override
+  String get diveLog_edit_weightFeedback_correct => 'Correct';
+
+  @override
+  String get diveLog_edit_weightFeedback_label =>
+      'Comment était votre lestage ?';
+
+  @override
+  String get diveLog_edit_weightFeedback_over => 'Trop lesté';
+
+  @override
+  String get diveLog_edit_weightFeedback_under => 'Pas assez lesté';
+
+  @override
+  String get diverProfile_bodyWeight_empty => 'Non enregistré';
+
+  @override
+  String get diverProfile_bodyWeight_title => 'Poids corporel';
+
+  @override
+  String get equipment_edit_advanced_title => 'Avancé';
+
+  @override
+  String get equipment_edit_buoyancyHint_exposure =>
+      'Positif : à quel point il flotte';
+
+  @override
+  String get equipment_edit_buoyancyHint_generic => 'Négatif s\'il coule';
+
+  @override
+  String get equipment_edit_buoyancyHint_tank =>
+      'Laisser vide - les blocs utilisent leurs propres spécifications';
+
+  @override
+  String equipment_edit_buoyancyLabel(String unit) {
+    return 'Flottabilité ($unit)';
+  }
+
+  @override
+  String equipment_edit_dryWeightLabel(String unit) {
+    return 'Poids à sec ($unit)';
+  }
+
+  @override
+  String get planner_gearWeights_accept => 'Utiliser comme lestage prévu';
+
+  @override
+  String get planner_gearWeights_addGear => 'Ajouter équipement';
+
+  @override
+  String get planner_gearWeights_empty =>
+      'Ajoutez de l\'équipement pour prédire votre lestage';
+
+  @override
+  String planner_gearWeights_planned(String weight) {
+    return 'Prévu : $weight';
+  }
+
+  @override
+  String planner_gearWeights_predicted(String weight) {
+    return 'Prédit : $weight';
+  }
+
+  @override
+  String get planner_gearWeights_title => 'Équipement et lestage';
+
+  @override
+  String get planner_gearWeights_useSet => 'Utiliser un kit';
+
+  @override
+  String get tools_weight_addGear => 'Ajouter équipement';
+
+  @override
+  String get tools_weight_addTank => 'Ajouter un bloc';
+
+  @override
+  String tools_weight_basedOnDives(int count) {
+    return 'Basé sur $count plongées enregistrées';
+  }
+
+  @override
+  String get tools_weight_breakdownTitle => 'Comment cela a été calculé';
+
+  @override
+  String get tools_weight_confidence_high => 'Confiance élevée';
+
+  @override
+  String get tools_weight_confidence_low => 'Confiance faible - estimation';
+
+  @override
+  String get tools_weight_confidence_medium => 'Confiance moyenne';
+
+  @override
+  String tools_weight_deltaVsPrevious(String delta) {
+    return '$delta par rapport à la config précédente';
+  }
+
+  @override
+  String get tools_weight_noGear =>
+      'Ajoutez l\'équipement prévu pour personnaliser la prédiction.';
+
+  @override
+  String get tools_weight_personalTerm => 'Base personnelle';
+
+  @override
+  String get tools_weight_placementTitle => 'Répartition suggérée';
+
+  @override
+  String get tools_weight_predictedWeight => 'Lestage prédit';
+
+  @override
+  String get tools_weight_saveToProfile =>
+      'Enregistrer le poids dans le profil';
+
+  @override
+  String get tools_weight_source_measured => 'mesuré à partir de vos plongées';
+
+  @override
+  String get tools_weight_source_physics => 'physique';
+
+  @override
+  String get tools_weight_source_typeDefault => 'estimation par défaut';
+
+  @override
+  String get tools_weight_source_userSpec =>
+      'd\'après les spécifications de votre équipement';
+
+  @override
+  String get tools_weight_tanks => 'Blocs';
+
+  @override
+  String get tools_weight_useSet => 'Utiliser un kit';
+
+  @override
+  String get tools_weight_waterTerm => 'Type d\'eau';
 }

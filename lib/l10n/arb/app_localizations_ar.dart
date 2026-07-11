@@ -18152,4 +18152,157 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveLog_bulkEdit_membership_empty =>
       'لا توجد عناصر في الغطسات المحددة بعد';
+
+  @override
+  String get bodyWeight_addEntry => 'إضافة قياس';
+
+  @override
+  String get bodyWeight_dateLabel => 'التاريخ';
+
+  @override
+  String get bodyWeight_deleteTooltip => 'حذف الإدخال';
+
+  @override
+  String get bodyWeight_heightLabel => 'الطول (سم)';
+
+  @override
+  String bodyWeight_weightLabel(String unit) {
+    return 'الوزن ($unit)';
+  }
+
+  @override
+  String diveLog_edit_weightFeedback_amount(String unit) {
+    return 'بمقدار كم تقريبا ($unit)';
+  }
+
+  @override
+  String get diveLog_edit_weightFeedback_correct => 'مناسب';
+
+  @override
+  String get diveLog_edit_weightFeedback_label => 'كيف كانت أوزانك؟';
+
+  @override
+  String get diveLog_edit_weightFeedback_over => 'وزن زائد';
+
+  @override
+  String get diveLog_edit_weightFeedback_under => 'وزن ناقص';
+
+  @override
+  String get diverProfile_bodyWeight_empty => 'غير مسجل';
+
+  @override
+  String get diverProfile_bodyWeight_title => 'وزن الجسم';
+
+  @override
+  String get equipment_edit_advanced_title => 'متقدم';
+
+  @override
+  String get equipment_edit_buoyancyHint_exposure => 'موجب: مقدار الطفو';
+
+  @override
+  String get equipment_edit_buoyancyHint_generic => 'سالب إذا كان يغرق';
+
+  @override
+  String get equipment_edit_buoyancyHint_tank =>
+      'اتركه فارغا - تستخدم الأسطوانات مواصفاتها الخاصة';
+
+  @override
+  String equipment_edit_buoyancyLabel(String unit) {
+    return 'الطفو ($unit)';
+  }
+
+  @override
+  String equipment_edit_dryWeightLabel(String unit) {
+    return 'الوزن الجاف ($unit)';
+  }
+
+  @override
+  String get planner_gearWeights_accept => 'استخدام كوزن مخطط';
+
+  @override
+  String get planner_gearWeights_addGear => 'إضافة معدات';
+
+  @override
+  String get planner_gearWeights_empty => 'أضف معدات للتنبؤ بأوزانك';
+
+  @override
+  String planner_gearWeights_planned(String weight) {
+    return 'المخطط: $weight';
+  }
+
+  @override
+  String planner_gearWeights_predicted(String weight) {
+    return 'المتوقع: $weight';
+  }
+
+  @override
+  String get planner_gearWeights_title => 'المعدات والأوزان';
+
+  @override
+  String get planner_gearWeights_useSet => 'استخدام مجموعة';
+
+  @override
+  String get tools_weight_addGear => 'إضافة معدات';
+
+  @override
+  String get tools_weight_addTank => 'إضافة أسطوانة';
+
+  @override
+  String tools_weight_basedOnDives(int count) {
+    return 'استنادا إلى $count غوصات مسجلة';
+  }
+
+  @override
+  String get tools_weight_breakdownTitle => 'كيف تم الحساب';
+
+  @override
+  String get tools_weight_confidence_high => 'ثقة عالية';
+
+  @override
+  String get tools_weight_confidence_low => 'ثقة منخفضة - تقدير';
+
+  @override
+  String get tools_weight_confidence_medium => 'ثقة متوسطة';
+
+  @override
+  String tools_weight_deltaVsPrevious(String delta) {
+    return '$delta مقارنة بالتجهيز السابق';
+  }
+
+  @override
+  String get tools_weight_noGear =>
+      'أضف المعدات التي تخطط للغوص بها لتخصيص التنبؤ.';
+
+  @override
+  String get tools_weight_personalTerm => 'الأساس الشخصي';
+
+  @override
+  String get tools_weight_placementTitle => 'التوزيع المقترح';
+
+  @override
+  String get tools_weight_predictedWeight => 'الوزن المتوقع';
+
+  @override
+  String get tools_weight_saveToProfile => 'حفظ الوزن في الملف الشخصي';
+
+  @override
+  String get tools_weight_source_measured => 'مقاس من غوصاتك';
+
+  @override
+  String get tools_weight_source_physics => 'فيزياء';
+
+  @override
+  String get tools_weight_source_typeDefault => 'تقدير افتراضي';
+
+  @override
+  String get tools_weight_source_userSpec => 'من مواصفات معداتك';
+
+  @override
+  String get tools_weight_tanks => 'الأسطوانات';
+
+  @override
+  String get tools_weight_useSet => 'استخدام مجموعة';
+
+  @override
+  String get tools_weight_waterTerm => 'نوع الماء';
 }

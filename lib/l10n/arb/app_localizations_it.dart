@@ -18491,4 +18491,160 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get diveLog_bulkEdit_membership_empty =>
       'Ancora nessun elemento nelle immersioni selezionate';
+
+  @override
+  String get bodyWeight_addEntry => 'Aggiungi misurazione';
+
+  @override
+  String get bodyWeight_dateLabel => 'Data';
+
+  @override
+  String get bodyWeight_deleteTooltip => 'Elimina voce';
+
+  @override
+  String get bodyWeight_heightLabel => 'Altezza (cm)';
+
+  @override
+  String bodyWeight_weightLabel(String unit) {
+    return 'Peso ($unit)';
+  }
+
+  @override
+  String diveLog_edit_weightFeedback_amount(String unit) {
+    return 'Di quanto circa ($unit)';
+  }
+
+  @override
+  String get diveLog_edit_weightFeedback_correct => 'Corretto';
+
+  @override
+  String get diveLog_edit_weightFeedback_label => 'Com\'era la tua zavorra?';
+
+  @override
+  String get diveLog_edit_weightFeedback_over => 'Troppa zavorra';
+
+  @override
+  String get diveLog_edit_weightFeedback_under => 'Poca zavorra';
+
+  @override
+  String get diverProfile_bodyWeight_empty => 'Non registrato';
+
+  @override
+  String get diverProfile_bodyWeight_title => 'Peso corporeo';
+
+  @override
+  String get equipment_edit_advanced_title => 'Avanzate';
+
+  @override
+  String get equipment_edit_buoyancyHint_exposure =>
+      'Positivo: quanto galleggia';
+
+  @override
+  String get equipment_edit_buoyancyHint_generic => 'Negativo se affonda';
+
+  @override
+  String get equipment_edit_buoyancyHint_tank =>
+      'Lasciare vuoto: le bombole usano le proprie specifiche';
+
+  @override
+  String equipment_edit_buoyancyLabel(String unit) {
+    return 'Galleggiabilità ($unit)';
+  }
+
+  @override
+  String equipment_edit_dryWeightLabel(String unit) {
+    return 'Peso a secco ($unit)';
+  }
+
+  @override
+  String get planner_gearWeights_accept => 'Usa come zavorra pianificata';
+
+  @override
+  String get planner_gearWeights_addGear => 'Aggiungi attrezzatura';
+
+  @override
+  String get planner_gearWeights_empty =>
+      'Aggiungi attrezzatura per prevedere la zavorra';
+
+  @override
+  String planner_gearWeights_planned(String weight) {
+    return 'Pianificato: $weight';
+  }
+
+  @override
+  String planner_gearWeights_predicted(String weight) {
+    return 'Previsto: $weight';
+  }
+
+  @override
+  String get planner_gearWeights_title => 'Attrezzatura e zavorra';
+
+  @override
+  String get planner_gearWeights_useSet => 'Usa set';
+
+  @override
+  String get tools_weight_addGear => 'Aggiungi attrezzatura';
+
+  @override
+  String get tools_weight_addTank => 'Aggiungi bombola';
+
+  @override
+  String tools_weight_basedOnDives(int count) {
+    return 'Basato su $count immersioni registrate';
+  }
+
+  @override
+  String get tools_weight_breakdownTitle => 'Come è stato calcolato';
+
+  @override
+  String get tools_weight_confidence_high => 'Affidabilità alta';
+
+  @override
+  String get tools_weight_confidence_low => 'Affidabilità bassa - stima';
+
+  @override
+  String get tools_weight_confidence_medium => 'Affidabilità media';
+
+  @override
+  String tools_weight_deltaVsPrevious(String delta) {
+    return '$delta rispetto alla configurazione precedente';
+  }
+
+  @override
+  String get tools_weight_noGear =>
+      'Aggiungi l\'attrezzatura con cui ti immergerai per personalizzare la previsione.';
+
+  @override
+  String get tools_weight_personalTerm => 'Base personale';
+
+  @override
+  String get tools_weight_placementTitle => 'Posizionamento suggerito';
+
+  @override
+  String get tools_weight_predictedWeight => 'Zavorra prevista';
+
+  @override
+  String get tools_weight_saveToProfile => 'Salva il peso nel profilo';
+
+  @override
+  String get tools_weight_source_measured => 'misurato dalle tue immersioni';
+
+  @override
+  String get tools_weight_source_physics => 'fisica';
+
+  @override
+  String get tools_weight_source_typeDefault => 'stima predefinita';
+
+  @override
+  String get tools_weight_source_userSpec =>
+      'dalle specifiche della tua attrezzatura';
+
+  @override
+  String get tools_weight_tanks => 'Bombole';
+
+  @override
+  String get tools_weight_useSet => 'Usa set';
+
+  @override
+  String get tools_weight_waterTerm => 'Tipo di acqua';
 }

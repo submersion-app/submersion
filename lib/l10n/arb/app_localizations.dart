@@ -30925,6 +30925,276 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No items on the selected dives yet'**
   String get diveLog_bulkEdit_membership_empty;
+
+  /// No description provided for @bodyWeight_addEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Add measurement'**
+  String get bodyWeight_addEntry;
+
+  /// No description provided for @bodyWeight_dateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get bodyWeight_dateLabel;
+
+  /// No description provided for @bodyWeight_deleteTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete entry'**
+  String get bodyWeight_deleteTooltip;
+
+  /// No description provided for @bodyWeight_heightLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Height (cm)'**
+  String get bodyWeight_heightLabel;
+
+  /// No description provided for @bodyWeight_weightLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight ({unit})'**
+  String bodyWeight_weightLabel(String unit);
+
+  /// No description provided for @diveLog_edit_weightFeedback_amount.
+  ///
+  /// In en, this message translates to:
+  /// **'By about how much ({unit})'**
+  String diveLog_edit_weightFeedback_amount(String unit);
+
+  /// No description provided for @diveLog_edit_weightFeedback_correct.
+  ///
+  /// In en, this message translates to:
+  /// **'Felt right'**
+  String get diveLog_edit_weightFeedback_correct;
+
+  /// No description provided for @diveLog_edit_weightFeedback_label.
+  ///
+  /// In en, this message translates to:
+  /// **'How was your weighting?'**
+  String get diveLog_edit_weightFeedback_label;
+
+  /// No description provided for @diveLog_edit_weightFeedback_over.
+  ///
+  /// In en, this message translates to:
+  /// **'Overweighted'**
+  String get diveLog_edit_weightFeedback_over;
+
+  /// No description provided for @diveLog_edit_weightFeedback_under.
+  ///
+  /// In en, this message translates to:
+  /// **'Underweighted'**
+  String get diveLog_edit_weightFeedback_under;
+
+  /// No description provided for @diverProfile_bodyWeight_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Not recorded'**
+  String get diverProfile_bodyWeight_empty;
+
+  /// No description provided for @diverProfile_bodyWeight_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Body Weight'**
+  String get diverProfile_bodyWeight_title;
+
+  /// No description provided for @equipment_edit_advanced_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced'**
+  String get equipment_edit_advanced_title;
+
+  /// No description provided for @equipment_edit_buoyancyHint_exposure.
+  ///
+  /// In en, this message translates to:
+  /// **'Positive: how much it floats'**
+  String get equipment_edit_buoyancyHint_exposure;
+
+  /// No description provided for @equipment_edit_buoyancyHint_generic.
+  ///
+  /// In en, this message translates to:
+  /// **'Negative if it sinks'**
+  String get equipment_edit_buoyancyHint_generic;
+
+  /// No description provided for @equipment_edit_buoyancyHint_tank.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave empty - tanks use their own specifications'**
+  String get equipment_edit_buoyancyHint_tank;
+
+  /// No description provided for @equipment_edit_buoyancyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Buoyancy ({unit})'**
+  String equipment_edit_buoyancyLabel(String unit);
+
+  /// No description provided for @equipment_edit_dryWeightLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Dry weight ({unit})'**
+  String equipment_edit_dryWeightLabel(String unit);
+
+  /// No description provided for @planner_gearWeights_accept.
+  ///
+  /// In en, this message translates to:
+  /// **'Use as planned weight'**
+  String get planner_gearWeights_accept;
+
+  /// No description provided for @planner_gearWeights_addGear.
+  ///
+  /// In en, this message translates to:
+  /// **'Add gear'**
+  String get planner_gearWeights_addGear;
+
+  /// No description provided for @planner_gearWeights_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Add gear to predict your weighting'**
+  String get planner_gearWeights_empty;
+
+  /// No description provided for @planner_gearWeights_planned.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned: {weight}'**
+  String planner_gearWeights_planned(String weight);
+
+  /// No description provided for @planner_gearWeights_predicted.
+  ///
+  /// In en, this message translates to:
+  /// **'Predicted: {weight}'**
+  String planner_gearWeights_predicted(String weight);
+
+  /// No description provided for @planner_gearWeights_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear & Weights'**
+  String get planner_gearWeights_title;
+
+  /// No description provided for @planner_gearWeights_useSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Use set'**
+  String get planner_gearWeights_useSet;
+
+  /// No description provided for @tools_weight_addGear.
+  ///
+  /// In en, this message translates to:
+  /// **'Add gear'**
+  String get tools_weight_addGear;
+
+  /// No description provided for @tools_weight_addTank.
+  ///
+  /// In en, this message translates to:
+  /// **'Add tank'**
+  String get tools_weight_addTank;
+
+  /// No description provided for @tools_weight_basedOnDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Based on {count} logged dives'**
+  String tools_weight_basedOnDives(int count);
+
+  /// No description provided for @tools_weight_breakdownTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How this was calculated'**
+  String get tools_weight_breakdownTitle;
+
+  /// No description provided for @tools_weight_confidence_high.
+  ///
+  /// In en, this message translates to:
+  /// **'High confidence'**
+  String get tools_weight_confidence_high;
+
+  /// No description provided for @tools_weight_confidence_low.
+  ///
+  /// In en, this message translates to:
+  /// **'Low confidence - estimate'**
+  String get tools_weight_confidence_low;
+
+  /// No description provided for @tools_weight_confidence_medium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium confidence'**
+  String get tools_weight_confidence_medium;
+
+  /// No description provided for @tools_weight_deltaVsPrevious.
+  ///
+  /// In en, this message translates to:
+  /// **'{delta} vs previous rig'**
+  String tools_weight_deltaVsPrevious(String delta);
+
+  /// No description provided for @tools_weight_noGear.
+  ///
+  /// In en, this message translates to:
+  /// **'Add the gear you plan to dive to personalize the prediction.'**
+  String get tools_weight_noGear;
+
+  /// No description provided for @tools_weight_personalTerm.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal baseline'**
+  String get tools_weight_personalTerm;
+
+  /// No description provided for @tools_weight_placementTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested placement'**
+  String get tools_weight_placementTitle;
+
+  /// No description provided for @tools_weight_predictedWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Predicted weight'**
+  String get tools_weight_predictedWeight;
+
+  /// No description provided for @tools_weight_saveToProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Save weight to profile'**
+  String get tools_weight_saveToProfile;
+
+  /// No description provided for @tools_weight_source_measured.
+  ///
+  /// In en, this message translates to:
+  /// **'measured from your dives'**
+  String get tools_weight_source_measured;
+
+  /// No description provided for @tools_weight_source_physics.
+  ///
+  /// In en, this message translates to:
+  /// **'physics'**
+  String get tools_weight_source_physics;
+
+  /// No description provided for @tools_weight_source_typeDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'default estimate'**
+  String get tools_weight_source_typeDefault;
+
+  /// No description provided for @tools_weight_source_userSpec.
+  ///
+  /// In en, this message translates to:
+  /// **'from your gear specs'**
+  String get tools_weight_source_userSpec;
+
+  /// No description provided for @tools_weight_tanks.
+  ///
+  /// In en, this message translates to:
+  /// **'Tanks'**
+  String get tools_weight_tanks;
+
+  /// No description provided for @tools_weight_useSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Use set'**
+  String get tools_weight_useSet;
+
+  /// No description provided for @tools_weight_waterTerm.
+  ///
+  /// In en, this message translates to:
+  /// **'Water type'**
+  String get tools_weight_waterTerm;
 }
 
 class _AppLocalizationsDelegate

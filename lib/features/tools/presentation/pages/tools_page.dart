@@ -50,7 +50,7 @@ class ToolsPage extends StatelessWidget {
             title: context.l10n.tools_weight_title,
             subtitle: context.l10n.tools_weight_subtitle,
             description: context.l10n.tools_weight_description,
-            onTap: () => context.go('/tools/weight-calculator'),
+            onTap: () => context.go('/planning/weight-calculator'),
           ),
           const SizedBox(height: 24),
 

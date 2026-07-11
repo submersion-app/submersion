@@ -18460,4 +18460,160 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveLog_bulkEdit_membership_empty =>
       'Noch keine Elemente bei den ausgewählten Tauchgängen';
+
+  @override
+  String get bodyWeight_addEntry => 'Messung hinzufügen';
+
+  @override
+  String get bodyWeight_dateLabel => 'Datum';
+
+  @override
+  String get bodyWeight_deleteTooltip => 'Eintrag löschen';
+
+  @override
+  String get bodyWeight_heightLabel => 'Größe (cm)';
+
+  @override
+  String bodyWeight_weightLabel(String unit) {
+    return 'Gewicht ($unit)';
+  }
+
+  @override
+  String diveLog_edit_weightFeedback_amount(String unit) {
+    return 'Um etwa wie viel ($unit)';
+  }
+
+  @override
+  String get diveLog_edit_weightFeedback_correct => 'Passte gut';
+
+  @override
+  String get diveLog_edit_weightFeedback_label => 'Wie war deine Bleimenge?';
+
+  @override
+  String get diveLog_edit_weightFeedback_over => 'Zu viel Blei';
+
+  @override
+  String get diveLog_edit_weightFeedback_under => 'Zu wenig Blei';
+
+  @override
+  String get diverProfile_bodyWeight_empty => 'Nicht erfasst';
+
+  @override
+  String get diverProfile_bodyWeight_title => 'Körpergewicht';
+
+  @override
+  String get equipment_edit_advanced_title => 'Erweitert';
+
+  @override
+  String get equipment_edit_buoyancyHint_exposure =>
+      'Positiv: wie stark es auftreibt';
+
+  @override
+  String get equipment_edit_buoyancyHint_generic => 'Negativ, wenn es sinkt';
+
+  @override
+  String get equipment_edit_buoyancyHint_tank =>
+      'Leer lassen - Flaschen nutzen eigene Spezifikationen';
+
+  @override
+  String equipment_edit_buoyancyLabel(String unit) {
+    return 'Auftrieb ($unit)';
+  }
+
+  @override
+  String equipment_edit_dryWeightLabel(String unit) {
+    return 'Trockengewicht ($unit)';
+  }
+
+  @override
+  String get planner_gearWeights_accept => 'Als geplantes Blei übernehmen';
+
+  @override
+  String get planner_gearWeights_addGear => 'Ausrüstung hinzufügen';
+
+  @override
+  String get planner_gearWeights_empty =>
+      'Ausrüstung hinzufügen, um dein Blei vorherzusagen';
+
+  @override
+  String planner_gearWeights_planned(String weight) {
+    return 'Geplant: $weight';
+  }
+
+  @override
+  String planner_gearWeights_predicted(String weight) {
+    return 'Vorhergesagt: $weight';
+  }
+
+  @override
+  String get planner_gearWeights_title => 'Ausrüstung & Blei';
+
+  @override
+  String get planner_gearWeights_useSet => 'Set verwenden';
+
+  @override
+  String get tools_weight_addGear => 'Ausrüstung hinzufügen';
+
+  @override
+  String get tools_weight_addTank => 'Flasche hinzufügen';
+
+  @override
+  String tools_weight_basedOnDives(int count) {
+    return 'Basierend auf $count geloggten Tauchgängen';
+  }
+
+  @override
+  String get tools_weight_breakdownTitle => 'So wurde das berechnet';
+
+  @override
+  String get tools_weight_confidence_high => 'Hohe Zuverlässigkeit';
+
+  @override
+  String get tools_weight_confidence_low =>
+      'Geringe Zuverlässigkeit - Schätzung';
+
+  @override
+  String get tools_weight_confidence_medium => 'Mittlere Zuverlässigkeit';
+
+  @override
+  String tools_weight_deltaVsPrevious(String delta) {
+    return '$delta ggü. voriger Ausrüstung';
+  }
+
+  @override
+  String get tools_weight_noGear =>
+      'Füge die geplante Ausrüstung hinzu, um die Vorhersage zu personalisieren.';
+
+  @override
+  String get tools_weight_personalTerm => 'Persönliche Basis';
+
+  @override
+  String get tools_weight_placementTitle => 'Empfohlene Verteilung';
+
+  @override
+  String get tools_weight_predictedWeight => 'Vorhergesagtes Blei';
+
+  @override
+  String get tools_weight_saveToProfile => 'Gewicht im Profil speichern';
+
+  @override
+  String get tools_weight_source_measured => 'aus deinen Tauchgängen gemessen';
+
+  @override
+  String get tools_weight_source_physics => 'Physik';
+
+  @override
+  String get tools_weight_source_typeDefault => 'Standardschätzung';
+
+  @override
+  String get tools_weight_source_userSpec => 'aus deinen Ausrüstungsdaten';
+
+  @override
+  String get tools_weight_tanks => 'Flaschen';
+
+  @override
+  String get tools_weight_useSet => 'Set verwenden';
+
+  @override
+  String get tools_weight_waterTerm => 'Wasserart';
 }

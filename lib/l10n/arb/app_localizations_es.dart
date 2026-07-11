@@ -18501,4 +18501,159 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get diveLog_bulkEdit_membership_empty =>
       'Aún no hay elementos en las inmersiones seleccionadas';
+
+  @override
+  String get bodyWeight_addEntry => 'Añadir medición';
+
+  @override
+  String get bodyWeight_dateLabel => 'Fecha';
+
+  @override
+  String get bodyWeight_deleteTooltip => 'Eliminar entrada';
+
+  @override
+  String get bodyWeight_heightLabel => 'Altura (cm)';
+
+  @override
+  String bodyWeight_weightLabel(String unit) {
+    return 'Peso ($unit)';
+  }
+
+  @override
+  String diveLog_edit_weightFeedback_amount(String unit) {
+    return 'Por cuánto aproximadamente ($unit)';
+  }
+
+  @override
+  String get diveLog_edit_weightFeedback_correct => 'Correcto';
+
+  @override
+  String get diveLog_edit_weightFeedback_label => '¿Cómo fue tu lastre?';
+
+  @override
+  String get diveLog_edit_weightFeedback_over => 'Sobrelastrado';
+
+  @override
+  String get diveLog_edit_weightFeedback_under => 'Infralastrado';
+
+  @override
+  String get diverProfile_bodyWeight_empty => 'Sin registrar';
+
+  @override
+  String get diverProfile_bodyWeight_title => 'Peso corporal';
+
+  @override
+  String get equipment_edit_advanced_title => 'Avanzado';
+
+  @override
+  String get equipment_edit_buoyancyHint_exposure => 'Positivo: cuánto flota';
+
+  @override
+  String get equipment_edit_buoyancyHint_generic => 'Negativo si se hunde';
+
+  @override
+  String get equipment_edit_buoyancyHint_tank =>
+      'Dejar vacío: los tanques usan sus propias especificaciones';
+
+  @override
+  String equipment_edit_buoyancyLabel(String unit) {
+    return 'Flotabilidad ($unit)';
+  }
+
+  @override
+  String equipment_edit_dryWeightLabel(String unit) {
+    return 'Peso en seco ($unit)';
+  }
+
+  @override
+  String get planner_gearWeights_accept => 'Usar como lastre planificado';
+
+  @override
+  String get planner_gearWeights_addGear => 'Añadir equipo';
+
+  @override
+  String get planner_gearWeights_empty =>
+      'Añade equipo para predecir tu lastre';
+
+  @override
+  String planner_gearWeights_planned(String weight) {
+    return 'Planificado: $weight';
+  }
+
+  @override
+  String planner_gearWeights_predicted(String weight) {
+    return 'Predicción: $weight';
+  }
+
+  @override
+  String get planner_gearWeights_title => 'Equipo y lastre';
+
+  @override
+  String get planner_gearWeights_useSet => 'Usar conjunto';
+
+  @override
+  String get tools_weight_addGear => 'Añadir equipo';
+
+  @override
+  String get tools_weight_addTank => 'Añadir tanque';
+
+  @override
+  String tools_weight_basedOnDives(int count) {
+    return 'Basado en $count inmersiones registradas';
+  }
+
+  @override
+  String get tools_weight_breakdownTitle => 'Cómo se calculó';
+
+  @override
+  String get tools_weight_confidence_high => 'Confianza alta';
+
+  @override
+  String get tools_weight_confidence_low => 'Confianza baja: estimación';
+
+  @override
+  String get tools_weight_confidence_medium => 'Confianza media';
+
+  @override
+  String tools_weight_deltaVsPrevious(String delta) {
+    return '$delta respecto al equipo anterior';
+  }
+
+  @override
+  String get tools_weight_noGear =>
+      'Añade el equipo con el que vas a bucear para personalizar la predicción.';
+
+  @override
+  String get tools_weight_personalTerm => 'Base personal';
+
+  @override
+  String get tools_weight_placementTitle => 'Colocación sugerida';
+
+  @override
+  String get tools_weight_predictedWeight => 'Lastre previsto';
+
+  @override
+  String get tools_weight_saveToProfile => 'Guardar peso en el perfil';
+
+  @override
+  String get tools_weight_source_measured => 'medido de tus inmersiones';
+
+  @override
+  String get tools_weight_source_physics => 'física';
+
+  @override
+  String get tools_weight_source_typeDefault => 'estimación por defecto';
+
+  @override
+  String get tools_weight_source_userSpec =>
+      'de las especificaciones de tu equipo';
+
+  @override
+  String get tools_weight_tanks => 'Tanques';
+
+  @override
+  String get tools_weight_useSet => 'Usar conjunto';
+
+  @override
+  String get tools_weight_waterTerm => 'Tipo de agua';
 }

@@ -98,8 +98,7 @@ final planWeightPredictionProvider = Provider<WeightPrediction?>((ref) {
   final itemsById = {for (final item in equipment) item.id: item};
   final gear = <GearFeature>[
     for (final id in state.equipmentIds)
-      if (itemsById[id] != null)
-        if (gearFeatureFor(itemsById[id]!) case final feature?) feature,
+      if (itemsById[id] case final item?) ?gearFeatureFor(item),
   ];
   final tanks = [
     for (final tank in state.tanks)

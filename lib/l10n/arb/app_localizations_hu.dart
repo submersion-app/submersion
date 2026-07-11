@@ -18441,4 +18441,159 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_bulkEdit_membership_empty =>
       'Még nincsenek elemek a kiválasztott merüléseken';
+
+  @override
+  String get bodyWeight_addEntry => 'Mérés hozzáadása';
+
+  @override
+  String get bodyWeight_dateLabel => 'Dátum';
+
+  @override
+  String get bodyWeight_deleteTooltip => 'Bejegyzés törlése';
+
+  @override
+  String get bodyWeight_heightLabel => 'Magasság (cm)';
+
+  @override
+  String bodyWeight_weightLabel(String unit) {
+    return 'Testsúly ($unit)';
+  }
+
+  @override
+  String diveLog_edit_weightFeedback_amount(String unit) {
+    return 'Körülbelül mennyivel ($unit)';
+  }
+
+  @override
+  String get diveLog_edit_weightFeedback_correct => 'Megfelelő volt';
+
+  @override
+  String get diveLog_edit_weightFeedback_label => 'Milyen volt a súlyozásod?';
+
+  @override
+  String get diveLog_edit_weightFeedback_over => 'Túlsúlyozott';
+
+  @override
+  String get diveLog_edit_weightFeedback_under => 'Alulsúlyozott';
+
+  @override
+  String get diverProfile_bodyWeight_empty => 'Nincs rögzítve';
+
+  @override
+  String get diverProfile_bodyWeight_title => 'Testsúly';
+
+  @override
+  String get equipment_edit_advanced_title => 'Speciális';
+
+  @override
+  String get equipment_edit_buoyancyHint_exposure =>
+      'Pozitív: mennyire úszik fel';
+
+  @override
+  String get equipment_edit_buoyancyHint_generic => 'Negatív, ha süllyed';
+
+  @override
+  String get equipment_edit_buoyancyHint_tank =>
+      'Hagyd üresen - a palackok saját adataikat használják';
+
+  @override
+  String equipment_edit_buoyancyLabel(String unit) {
+    return 'Felhajtóerő ($unit)';
+  }
+
+  @override
+  String equipment_edit_dryWeightLabel(String unit) {
+    return 'Száraz tömeg ($unit)';
+  }
+
+  @override
+  String get planner_gearWeights_accept => 'Használat tervezett súlyként';
+
+  @override
+  String get planner_gearWeights_addGear => 'Felszerelés hozzáadása';
+
+  @override
+  String get planner_gearWeights_empty =>
+      'Adj hozzá felszerelést a súlyozás előrejelzéséhez';
+
+  @override
+  String planner_gearWeights_planned(String weight) {
+    return 'Tervezett: $weight';
+  }
+
+  @override
+  String planner_gearWeights_predicted(String weight) {
+    return 'Előrejelzett: $weight';
+  }
+
+  @override
+  String get planner_gearWeights_title => 'Felszerelés és súlyok';
+
+  @override
+  String get planner_gearWeights_useSet => 'Készlet használata';
+
+  @override
+  String get tools_weight_addGear => 'Felszerelés hozzáadása';
+
+  @override
+  String get tools_weight_addTank => 'Palack hozzáadása';
+
+  @override
+  String tools_weight_basedOnDives(int count) {
+    return '$count naplózott merülés alapján';
+  }
+
+  @override
+  String get tools_weight_breakdownTitle => 'Hogyan számoltuk ki';
+
+  @override
+  String get tools_weight_confidence_high => 'Nagy megbízhatóság';
+
+  @override
+  String get tools_weight_confidence_low => 'Alacsony megbízhatóság - becslés';
+
+  @override
+  String get tools_weight_confidence_medium => 'Közepes megbízhatóság';
+
+  @override
+  String tools_weight_deltaVsPrevious(String delta) {
+    return '$delta az előző felszereléshez képest';
+  }
+
+  @override
+  String get tools_weight_noGear =>
+      'Add hozzá a merüléshez tervezett felszerelést az előrejelzés személyre szabásához.';
+
+  @override
+  String get tools_weight_personalTerm => 'Személyes alap';
+
+  @override
+  String get tools_weight_placementTitle => 'Javasolt elosztás';
+
+  @override
+  String get tools_weight_predictedWeight => 'Előrejelzett súly';
+
+  @override
+  String get tools_weight_saveToProfile => 'Súly mentése a profilba';
+
+  @override
+  String get tools_weight_source_measured => 'a merüléseidből mérve';
+
+  @override
+  String get tools_weight_source_physics => 'fizika';
+
+  @override
+  String get tools_weight_source_typeDefault => 'alapértelmezett becslés';
+
+  @override
+  String get tools_weight_source_userSpec => 'a felszerelésed adataiból';
+
+  @override
+  String get tools_weight_tanks => 'Palackok';
+
+  @override
+  String get tools_weight_useSet => 'Készlet használata';
+
+  @override
+  String get tools_weight_waterTerm => 'Víztípus';
 }

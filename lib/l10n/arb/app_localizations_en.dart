@@ -18183,4 +18183,158 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveLog_bulkEdit_membership_empty =>
       'No items on the selected dives yet';
+
+  @override
+  String get bodyWeight_addEntry => 'Add measurement';
+
+  @override
+  String get bodyWeight_dateLabel => 'Date';
+
+  @override
+  String get bodyWeight_deleteTooltip => 'Delete entry';
+
+  @override
+  String get bodyWeight_heightLabel => 'Height (cm)';
+
+  @override
+  String bodyWeight_weightLabel(String unit) {
+    return 'Weight ($unit)';
+  }
+
+  @override
+  String diveLog_edit_weightFeedback_amount(String unit) {
+    return 'By about how much ($unit)';
+  }
+
+  @override
+  String get diveLog_edit_weightFeedback_correct => 'Felt right';
+
+  @override
+  String get diveLog_edit_weightFeedback_label => 'How was your weighting?';
+
+  @override
+  String get diveLog_edit_weightFeedback_over => 'Overweighted';
+
+  @override
+  String get diveLog_edit_weightFeedback_under => 'Underweighted';
+
+  @override
+  String get diverProfile_bodyWeight_empty => 'Not recorded';
+
+  @override
+  String get diverProfile_bodyWeight_title => 'Body Weight';
+
+  @override
+  String get equipment_edit_advanced_title => 'Advanced';
+
+  @override
+  String get equipment_edit_buoyancyHint_exposure =>
+      'Positive: how much it floats';
+
+  @override
+  String get equipment_edit_buoyancyHint_generic => 'Negative if it sinks';
+
+  @override
+  String get equipment_edit_buoyancyHint_tank =>
+      'Leave empty - tanks use their own specifications';
+
+  @override
+  String equipment_edit_buoyancyLabel(String unit) {
+    return 'Buoyancy ($unit)';
+  }
+
+  @override
+  String equipment_edit_dryWeightLabel(String unit) {
+    return 'Dry weight ($unit)';
+  }
+
+  @override
+  String get planner_gearWeights_accept => 'Use as planned weight';
+
+  @override
+  String get planner_gearWeights_addGear => 'Add gear';
+
+  @override
+  String get planner_gearWeights_empty => 'Add gear to predict your weighting';
+
+  @override
+  String planner_gearWeights_planned(String weight) {
+    return 'Planned: $weight';
+  }
+
+  @override
+  String planner_gearWeights_predicted(String weight) {
+    return 'Predicted: $weight';
+  }
+
+  @override
+  String get planner_gearWeights_title => 'Gear & Weights';
+
+  @override
+  String get planner_gearWeights_useSet => 'Use set';
+
+  @override
+  String get tools_weight_addGear => 'Add gear';
+
+  @override
+  String get tools_weight_addTank => 'Add tank';
+
+  @override
+  String tools_weight_basedOnDives(int count) {
+    return 'Based on $count logged dives';
+  }
+
+  @override
+  String get tools_weight_breakdownTitle => 'How this was calculated';
+
+  @override
+  String get tools_weight_confidence_high => 'High confidence';
+
+  @override
+  String get tools_weight_confidence_low => 'Low confidence - estimate';
+
+  @override
+  String get tools_weight_confidence_medium => 'Medium confidence';
+
+  @override
+  String tools_weight_deltaVsPrevious(String delta) {
+    return '$delta vs previous rig';
+  }
+
+  @override
+  String get tools_weight_noGear =>
+      'Add the gear you plan to dive to personalize the prediction.';
+
+  @override
+  String get tools_weight_personalTerm => 'Personal baseline';
+
+  @override
+  String get tools_weight_placementTitle => 'Suggested placement';
+
+  @override
+  String get tools_weight_predictedWeight => 'Predicted weight';
+
+  @override
+  String get tools_weight_saveToProfile => 'Save weight to profile';
+
+  @override
+  String get tools_weight_source_measured => 'measured from your dives';
+
+  @override
+  String get tools_weight_source_physics => 'physics';
+
+  @override
+  String get tools_weight_source_typeDefault => 'default estimate';
+
+  @override
+  String get tools_weight_source_userSpec => 'from your gear specs';
+
+  @override
+  String get tools_weight_tanks => 'Tanks';
+
+  @override
+  String get tools_weight_useSet => 'Use set';
+
+  @override
+  String get tools_weight_waterTerm => 'Water type';
 }

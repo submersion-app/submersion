@@ -18344,4 +18344,159 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveLog_bulkEdit_membership_empty =>
       'Nog geen items bij de geselecteerde duiken';
+
+  @override
+  String get bodyWeight_addEntry => 'Meting toevoegen';
+
+  @override
+  String get bodyWeight_dateLabel => 'Datum';
+
+  @override
+  String get bodyWeight_deleteTooltip => 'Item verwijderen';
+
+  @override
+  String get bodyWeight_heightLabel => 'Lengte (cm)';
+
+  @override
+  String bodyWeight_weightLabel(String unit) {
+    return 'Gewicht ($unit)';
+  }
+
+  @override
+  String diveLog_edit_weightFeedback_amount(String unit) {
+    return 'Met ongeveer hoeveel ($unit)';
+  }
+
+  @override
+  String get diveLog_edit_weightFeedback_correct => 'Voelde goed';
+
+  @override
+  String get diveLog_edit_weightFeedback_label => 'Hoe was je lood?';
+
+  @override
+  String get diveLog_edit_weightFeedback_over => 'Te zwaar';
+
+  @override
+  String get diveLog_edit_weightFeedback_under => 'Te licht';
+
+  @override
+  String get diverProfile_bodyWeight_empty => 'Niet vastgelegd';
+
+  @override
+  String get diverProfile_bodyWeight_title => 'Lichaamsgewicht';
+
+  @override
+  String get equipment_edit_advanced_title => 'Geavanceerd';
+
+  @override
+  String get equipment_edit_buoyancyHint_exposure =>
+      'Positief: hoeveel het drijft';
+
+  @override
+  String get equipment_edit_buoyancyHint_generic => 'Negatief als het zinkt';
+
+  @override
+  String get equipment_edit_buoyancyHint_tank =>
+      'Leeg laten - flessen gebruiken hun eigen specificaties';
+
+  @override
+  String equipment_edit_buoyancyLabel(String unit) {
+    return 'Drijfvermogen ($unit)';
+  }
+
+  @override
+  String equipment_edit_dryWeightLabel(String unit) {
+    return 'Drooggewicht ($unit)';
+  }
+
+  @override
+  String get planner_gearWeights_accept => 'Gebruik als gepland lood';
+
+  @override
+  String get planner_gearWeights_addGear => 'Uitrusting toevoegen';
+
+  @override
+  String get planner_gearWeights_empty =>
+      'Voeg uitrusting toe om je lood te voorspellen';
+
+  @override
+  String planner_gearWeights_planned(String weight) {
+    return 'Gepland: $weight';
+  }
+
+  @override
+  String planner_gearWeights_predicted(String weight) {
+    return 'Voorspeld: $weight';
+  }
+
+  @override
+  String get planner_gearWeights_title => 'Uitrusting en lood';
+
+  @override
+  String get planner_gearWeights_useSet => 'Set gebruiken';
+
+  @override
+  String get tools_weight_addGear => 'Uitrusting toevoegen';
+
+  @override
+  String get tools_weight_addTank => 'Fles toevoegen';
+
+  @override
+  String tools_weight_basedOnDives(int count) {
+    return 'Gebaseerd op $count gelogde duiken';
+  }
+
+  @override
+  String get tools_weight_breakdownTitle => 'Hoe dit is berekend';
+
+  @override
+  String get tools_weight_confidence_high => 'Hoge betrouwbaarheid';
+
+  @override
+  String get tools_weight_confidence_low => 'Lage betrouwbaarheid - schatting';
+
+  @override
+  String get tools_weight_confidence_medium => 'Gemiddelde betrouwbaarheid';
+
+  @override
+  String tools_weight_deltaVsPrevious(String delta) {
+    return '$delta t.o.v. vorige uitrusting';
+  }
+
+  @override
+  String get tools_weight_noGear =>
+      'Voeg de uitrusting toe waarmee je gaat duiken om de voorspelling te personaliseren.';
+
+  @override
+  String get tools_weight_personalTerm => 'Persoonlijke basis';
+
+  @override
+  String get tools_weight_placementTitle => 'Voorgestelde verdeling';
+
+  @override
+  String get tools_weight_predictedWeight => 'Voorspeld lood';
+
+  @override
+  String get tools_weight_saveToProfile => 'Gewicht opslaan in profiel';
+
+  @override
+  String get tools_weight_source_measured => 'gemeten uit je duiken';
+
+  @override
+  String get tools_weight_source_physics => 'fysica';
+
+  @override
+  String get tools_weight_source_typeDefault => 'standaardschatting';
+
+  @override
+  String get tools_weight_source_userSpec => 'uit je uitrustingsspecificaties';
+
+  @override
+  String get tools_weight_tanks => 'Flessen';
+
+  @override
+  String get tools_weight_useSet => 'Set gebruiken';
+
+  @override
+  String get tools_weight_waterTerm => 'Watertype';
 }

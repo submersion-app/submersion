@@ -18500,4 +18500,159 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get diveLog_bulkEdit_membership_empty =>
       'Ainda não há itens nos mergulhos selecionados';
+
+  @override
+  String get bodyWeight_addEntry => 'Adicionar medição';
+
+  @override
+  String get bodyWeight_dateLabel => 'Data';
+
+  @override
+  String get bodyWeight_deleteTooltip => 'Excluir entrada';
+
+  @override
+  String get bodyWeight_heightLabel => 'Altura (cm)';
+
+  @override
+  String bodyWeight_weightLabel(String unit) {
+    return 'Peso ($unit)';
+  }
+
+  @override
+  String diveLog_edit_weightFeedback_amount(String unit) {
+    return 'Por quanto, aproximadamente ($unit)';
+  }
+
+  @override
+  String get diveLog_edit_weightFeedback_correct => 'Adequado';
+
+  @override
+  String get diveLog_edit_weightFeedback_label => 'Como estava sua lastragem?';
+
+  @override
+  String get diveLog_edit_weightFeedback_over => 'Lastro excessivo';
+
+  @override
+  String get diveLog_edit_weightFeedback_under => 'Lastro insuficiente';
+
+  @override
+  String get diverProfile_bodyWeight_empty => 'Não registrado';
+
+  @override
+  String get diverProfile_bodyWeight_title => 'Peso corporal';
+
+  @override
+  String get equipment_edit_advanced_title => 'Avançado';
+
+  @override
+  String get equipment_edit_buoyancyHint_exposure => 'Positivo: quanto flutua';
+
+  @override
+  String get equipment_edit_buoyancyHint_generic => 'Negativo se afunda';
+
+  @override
+  String get equipment_edit_buoyancyHint_tank =>
+      'Deixe vazio - cilindros usam suas próprias especificações';
+
+  @override
+  String equipment_edit_buoyancyLabel(String unit) {
+    return 'Flutuabilidade ($unit)';
+  }
+
+  @override
+  String equipment_edit_dryWeightLabel(String unit) {
+    return 'Peso seco ($unit)';
+  }
+
+  @override
+  String get planner_gearWeights_accept => 'Usar como lastro planejado';
+
+  @override
+  String get planner_gearWeights_addGear => 'Adicionar equipamento';
+
+  @override
+  String get planner_gearWeights_empty =>
+      'Adicione equipamento para prever seu lastro';
+
+  @override
+  String planner_gearWeights_planned(String weight) {
+    return 'Planejado: $weight';
+  }
+
+  @override
+  String planner_gearWeights_predicted(String weight) {
+    return 'Previsto: $weight';
+  }
+
+  @override
+  String get planner_gearWeights_title => 'Equipamento e lastro';
+
+  @override
+  String get planner_gearWeights_useSet => 'Usar conjunto';
+
+  @override
+  String get tools_weight_addGear => 'Adicionar equipamento';
+
+  @override
+  String get tools_weight_addTank => 'Adicionar cilindro';
+
+  @override
+  String tools_weight_basedOnDives(int count) {
+    return 'Com base em $count mergulhos registrados';
+  }
+
+  @override
+  String get tools_weight_breakdownTitle => 'Como isso foi calculado';
+
+  @override
+  String get tools_weight_confidence_high => 'Alta confiança';
+
+  @override
+  String get tools_weight_confidence_low => 'Baixa confiança - estimativa';
+
+  @override
+  String get tools_weight_confidence_medium => 'Confiança média';
+
+  @override
+  String tools_weight_deltaVsPrevious(String delta) {
+    return '$delta em relação ao conjunto anterior';
+  }
+
+  @override
+  String get tools_weight_noGear =>
+      'Adicione o equipamento com que vai mergulhar para personalizar a previsão.';
+
+  @override
+  String get tools_weight_personalTerm => 'Base pessoal';
+
+  @override
+  String get tools_weight_placementTitle => 'Distribuição sugerida';
+
+  @override
+  String get tools_weight_predictedWeight => 'Lastro previsto';
+
+  @override
+  String get tools_weight_saveToProfile => 'Salvar peso no perfil';
+
+  @override
+  String get tools_weight_source_measured => 'medido dos seus mergulhos';
+
+  @override
+  String get tools_weight_source_physics => 'física';
+
+  @override
+  String get tools_weight_source_typeDefault => 'estimativa padrão';
+
+  @override
+  String get tools_weight_source_userSpec =>
+      'das especificações do seu equipamento';
+
+  @override
+  String get tools_weight_tanks => 'Cilindros';
+
+  @override
+  String get tools_weight_useSet => 'Usar conjunto';
+
+  @override
+  String get tools_weight_waterTerm => 'Tipo de água';
 }

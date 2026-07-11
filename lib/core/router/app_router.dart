@@ -111,7 +111,7 @@ import 'package:submersion/features/planning/presentation/pages/planning_page.da
 import 'package:submersion/features/planning/presentation/widgets/planning_shell.dart';
 import 'package:submersion/features/planning/presentation/widgets/planning_welcome.dart';
 import 'package:submersion/features/gps_log/presentation/pages/gps_logger_page.dart';
-import 'package:submersion/features/tools/presentation/pages/weight_calculator_page.dart';
+import 'package:submersion/features/weight_planner/presentation/pages/weight_planner_page.dart';
 import 'package:submersion/features/deco_calculator/presentation/pages/deco_calculator_page.dart';
 import 'package:submersion/features/gas_calculators/presentation/pages/gas_calculators_page.dart';
 import 'package:submersion/features/dive_computer/presentation/pages/device_list_page.dart';
@@ -246,7 +246,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'weight-calculator',
                     name: 'weightCalculator',
-                    builder: (context, state) => const WeightCalculatorPage(),
+                    builder: (context, state) => const WeightPlannerPage(),
                   ),
                   GoRoute(
                     path: 'surface-interval',

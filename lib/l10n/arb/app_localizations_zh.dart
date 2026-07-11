@@ -17576,4 +17576,155 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_bulkEdit_membership_empty => '所选潜水尚无项目';
+
+  @override
+  String get bodyWeight_addEntry => '添加测量';
+
+  @override
+  String get bodyWeight_dateLabel => '日期';
+
+  @override
+  String get bodyWeight_deleteTooltip => '删除条目';
+
+  @override
+  String get bodyWeight_heightLabel => '身高（厘米）';
+
+  @override
+  String bodyWeight_weightLabel(String unit) {
+    return '体重（$unit）';
+  }
+
+  @override
+  String diveLog_edit_weightFeedback_amount(String unit) {
+    return '大约多少（$unit）';
+  }
+
+  @override
+  String get diveLog_edit_weightFeedback_correct => '感觉合适';
+
+  @override
+  String get diveLog_edit_weightFeedback_label => '配重感觉如何？';
+
+  @override
+  String get diveLog_edit_weightFeedback_over => '配重过多';
+
+  @override
+  String get diveLog_edit_weightFeedback_under => '配重不足';
+
+  @override
+  String get diverProfile_bodyWeight_empty => '未记录';
+
+  @override
+  String get diverProfile_bodyWeight_title => '体重';
+
+  @override
+  String get equipment_edit_advanced_title => '高级';
+
+  @override
+  String get equipment_edit_buoyancyHint_exposure => '正值：漂浮程度';
+
+  @override
+  String get equipment_edit_buoyancyHint_generic => '负值表示下沉';
+
+  @override
+  String get equipment_edit_buoyancyHint_tank => '留空——气瓶使用自身规格';
+
+  @override
+  String equipment_edit_buoyancyLabel(String unit) {
+    return '浮力（$unit）';
+  }
+
+  @override
+  String equipment_edit_dryWeightLabel(String unit) {
+    return '干重（$unit）';
+  }
+
+  @override
+  String get planner_gearWeights_accept => '用作计划配重';
+
+  @override
+  String get planner_gearWeights_addGear => '添加装备';
+
+  @override
+  String get planner_gearWeights_empty => '添加装备以预测配重';
+
+  @override
+  String planner_gearWeights_planned(String weight) {
+    return '计划：$weight';
+  }
+
+  @override
+  String planner_gearWeights_predicted(String weight) {
+    return '预测：$weight';
+  }
+
+  @override
+  String get planner_gearWeights_title => '装备与配重';
+
+  @override
+  String get planner_gearWeights_useSet => '使用套装';
+
+  @override
+  String get tools_weight_addGear => '添加装备';
+
+  @override
+  String get tools_weight_addTank => '添加气瓶';
+
+  @override
+  String tools_weight_basedOnDives(int count) {
+    return '基于 $count 次已记录潜水';
+  }
+
+  @override
+  String get tools_weight_breakdownTitle => '计算方式';
+
+  @override
+  String get tools_weight_confidence_high => '置信度高';
+
+  @override
+  String get tools_weight_confidence_low => '置信度低——估计值';
+
+  @override
+  String get tools_weight_confidence_medium => '置信度中等';
+
+  @override
+  String tools_weight_deltaVsPrevious(String delta) {
+    return '较上一套装备 $delta';
+  }
+
+  @override
+  String get tools_weight_noGear => '添加计划使用的装备以获得个性化预测。';
+
+  @override
+  String get tools_weight_personalTerm => '个人基准';
+
+  @override
+  String get tools_weight_placementTitle => '建议分布';
+
+  @override
+  String get tools_weight_predictedWeight => '预测配重';
+
+  @override
+  String get tools_weight_saveToProfile => '将体重保存到个人资料';
+
+  @override
+  String get tools_weight_source_measured => '根据您的潜水测得';
+
+  @override
+  String get tools_weight_source_physics => '物理';
+
+  @override
+  String get tools_weight_source_typeDefault => '默认估计';
+
+  @override
+  String get tools_weight_source_userSpec => '来自您的装备规格';
+
+  @override
+  String get tools_weight_tanks => '气瓶';
+
+  @override
+  String get tools_weight_useSet => '使用套装';
+
+  @override
+  String get tools_weight_waterTerm => '水域类型';
 }
