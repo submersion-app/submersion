@@ -157,6 +157,41 @@ enum CertificationLevel {
   sidemount('Sidemount'),
   rebreather('Rebreather'),
   techDiver('Tech Diver'),
+  // Generic ladder additions (issue #546)
+  masterDiver('Master Diver'),
+  assistantInstructor('Assistant Instructor'),
+  // Technical ladder additions
+  extendedRange('Extended Range'),
+  advancedTrimix('Advanced Trimix'),
+  // CMAS star grades
+  cmas1StarDiver('1★ Diver'),
+  cmas2StarDiver('2★ Diver'),
+  cmas3StarDiver('3★ Diver'),
+  cmas4StarDiver('4★ Diver'),
+  cmas3StarDiverAssistantInstructor('3★ Diver - Assistant Instructor'),
+  cmas4StarDiverAssistantInstructor('4★ Diver - Assistant Instructor'),
+  cmas1StarInstructor('1★ Instructor'),
+  cmas2StarInstructor('2★ Instructor'),
+  cmas3StarInstructor('3★ Instructor'),
+  // BSAC grades
+  bsacOceanDiver('Ocean Diver'),
+  bsacSportsDiver('Sports Diver'),
+  bsacDiveLeader('Dive Leader'),
+  bsacAdvancedDiver('Advanced Diver'),
+  bsacFirstClassDiver('First Class Diver'),
+  bsacOpenWaterInstructor('Open Water Instructor'),
+  bsacAdvancedInstructor('Advanced Instructor'),
+  bsacNationalInstructor('National Instructor'),
+  // GUE ratings
+  gueFundamentals('Fundamentals'),
+  gueRec1('Rec 1'),
+  gueRec2('Rec 2'),
+  gueRec3('Rec 3'),
+  gueTech1('Tech 1'),
+  gueTech2('Tech 2'),
+  gueCave1('Cave 1'),
+  gueCave2('Cave 2'),
+  gueDpv('DPV'),
   other('Other');
 
   final String displayName;
