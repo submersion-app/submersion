@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 import 'dart:ui';
 
-import '../entities/mesh_data.dart';
-import 'scene_bounds.dart';
+import 'package:submersion/features/dive_3d/domain/entities/mesh_data.dart';
+import 'package:submersion/features/dive_3d/domain/geometry/scene_bounds.dart';
 
 /// Renders the per-sample deco ceiling as a translucent strip above the
 /// ribbon: the physical "roof" the diver must stay below. The vertical gap

@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 
-import '../entities/mesh_data.dart';
-import '../metric_palette.dart';
-import 'scene_bounds.dart';
+import 'package:submersion/features/dive_3d/domain/entities/mesh_data.dart';
+import 'package:submersion/features/dive_3d/domain/metric_palette.dart';
+import 'package:submersion/features/dive_3d/domain/geometry/scene_bounds.dart';
 
 /// One thermal band of the water column.
 class StrataBand {

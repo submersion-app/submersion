@@ -1,6 +1,6 @@
-import '../entities/dive_3d_scene_data.dart';
-import '../profile_lookup.dart';
-import 'scene_bounds.dart';
+import 'package:submersion/features/dive_3d/domain/entities/dive_3d_scene_data.dart';
+import 'package:submersion/features/dive_3d/domain/profile_lookup.dart';
+import 'package:submersion/features/dive_3d/domain/geometry/scene_bounds.dart';
 
 enum SceneMarkerKind { gasSwitch, bookmark, photo }
 

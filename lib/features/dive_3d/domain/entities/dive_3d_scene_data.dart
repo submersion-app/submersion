@@ -1,9 +1,9 @@
-import '../../../../core/constants/enums.dart';
-import '../../../dive_log/domain/entities/dive.dart';
-import '../../../dive_log/domain/entities/gas_switch.dart';
-import '../../../dive_log/domain/entities/profile_event.dart';
-import '../../../media/domain/entities/media_item.dart';
-import '../metric_palette.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/dive_3d/domain/metric_palette.dart';
 
 /// Everything the 3D scene needs, extracted from domain objects into
 /// parallel plain-Dart series. Pure data: no Drift, no Riverpod, no
@@ -86,8 +86,7 @@ class Dive3dSceneData {
 
   bool get hasProfile => times.length >= 2;
 
-  bool _any(List<double?> series) =>
-      series.any((v) => v != null && v.isFinite);
+  bool _any(List<double?> series) => series.any((v) => v != null && v.isFinite);
 
   Set<SceneMetric> get availableMetrics => {
     SceneMetric.depth,
@@ -96,7 +95,6 @@ class Dive3dSceneData {
     if (_any(ppO2s)) SceneMetric.ppO2,
     if (_any(cnss)) SceneMetric.cns,
     if (_any(heartRates)) SceneMetric.heartRate,
-    if (tankPressures.values.any((l) => l.isNotEmpty))
-      SceneMetric.tankPressure,
+    if (tankPressures.values.any((l) => l.isNotEmpty)) SceneMetric.tankPressure,
   };
 }

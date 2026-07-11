@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 import 'dart:ui';
 
-import '../entities/mesh_data.dart';
-import 'scene_bounds.dart';
+import 'package:submersion/features/dive_3d/domain/entities/mesh_data.dart';
+import 'package:submersion/features/dive_3d/domain/geometry/scene_bounds.dart';
 
 /// Builds the core dive object: the depth-time curve extruded laterally
 /// into a triangle-strip ribbon, plus the translucent curtain that falls
