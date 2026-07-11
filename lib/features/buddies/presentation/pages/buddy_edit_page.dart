@@ -3,6 +3,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/core/constants/certification_levels.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
@@ -459,12 +460,86 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
             ),
             const SizedBox(height: 12),
 
-            // Certification level dropdown
+            // Certification agency dropdown (agency scopes the level list,
+            // so it comes first - issue #546)
+            Row(
+              children: [
+                Expanded(
+                  child: DropdownButtonFormField<CertificationAgency>(
+                    key: ValueKey(_certAgency),
+                    initialValue: _certAgency,
+                    decoration: InputDecoration(
+                      labelText: context.l10n.buddies_field_certificationAgency,
+                      prefixIcon: const Icon(Icons.business),
+                    ),
+                    items: [
+                      DropdownMenuItem(
+                        value: null,
+                        child: Text(context.l10n.buddies_label_notSpecified),
+                      ),
+                      ...CertificationAgency.values.map((agency) {
+                        return DropdownMenuItem(
+                          value: agency,
+                          child: Text(agency.displayName),
+                        );
+                      }),
+                    ],
+                    onChanged: (value) {
+                      setState(() {
+                        _certAgency = value;
+                        if (_certLevel != null &&
+                            !CertificationLevelCatalog.levelsFor(
+                              value,
+                            ).contains(_certLevel)) {
+                          _certLevel = null;
+                        }
+                        _hasChanges = true;
+                      });
+                    },
+                  ),
+                ),
+                if (widget.isMerging &&
+                    _mergeCtrl != null &&
+                    _mergeCtrl!.certAgencyCandidates.length > 1) ...[
+                  const SizedBox(width: 8),
+                  _buildMergeCycleButton(() {
+                    setState(() {
+                      _certAgency = _mergeCtrl!.cycleCertAgency();
+                      _hasChanges = true;
+                    });
+                  }),
+                ],
+              ],
+            ),
+            if (widget.isMerging &&
+                _mergeCtrl != null &&
+                _mergeCtrl!.certAgencyCandidates.length > 1) ...[
+              const SizedBox(height: 4),
+              Text(
+                context.l10n.buddies_edit_merge_fieldSourceLabel(
+                  _mergeCtrl!
+                      .certAgencyCandidates[_mergeCtrl!
+                              .fieldIndices['certAgency'] ??
+                          0]
+                      .buddyName,
+                  (_mergeCtrl!.fieldIndices['certAgency'] ?? 0) + 1,
+                  _mergeCtrl!.certAgencyCandidates.length,
+                ),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+            const SizedBox(height: 16),
+
+            // Certification level dropdown (options depend on the agency)
             Row(
               children: [
                 Expanded(
                   child: DropdownButtonFormField<CertificationLevel>(
-                    key: ValueKey(_certLevel),
+                    // The key includes the agency so the field remounts (and
+                    // re-reads initialValue) when the agency changes.
+                    key: ValueKey(
+                      'certLevel-${_certAgency?.name}-${_certLevel?.name}',
+                    ),
                     initialValue: _certLevel,
                     decoration: InputDecoration(
                       labelText: context.l10n.buddies_field_certificationLevel,
@@ -475,7 +550,10 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
                         value: null,
                         child: Text(context.l10n.buddies_label_notSpecified),
                       ),
-                      ...CertificationLevel.values.map((level) {
+                      ...CertificationLevelCatalog.levelsFor(
+                        _certAgency,
+                        ensure: _certLevel,
+                      ).map((level) {
                         return DropdownMenuItem(
                           value: level,
                           child: Text(level.displayName),
@@ -516,69 +594,6 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
                       .buddyName,
                   (_mergeCtrl!.fieldIndices['certLevel'] ?? 0) + 1,
                   _mergeCtrl!.certLevelCandidates.length,
-                ),
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
-            const SizedBox(height: 16),
-
-            // Certification agency dropdown
-            Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<CertificationAgency>(
-                    key: ValueKey(_certAgency),
-                    initialValue: _certAgency,
-                    decoration: InputDecoration(
-                      labelText: context.l10n.buddies_field_certificationAgency,
-                      prefixIcon: const Icon(Icons.business),
-                    ),
-                    items: [
-                      DropdownMenuItem(
-                        value: null,
-                        child: Text(context.l10n.buddies_label_notSpecified),
-                      ),
-                      ...CertificationAgency.values.map((agency) {
-                        return DropdownMenuItem(
-                          value: agency,
-                          child: Text(agency.displayName),
-                        );
-                      }),
-                    ],
-                    onChanged: (value) {
-                      setState(() {
-                        _certAgency = value;
-                        _hasChanges = true;
-                      });
-                    },
-                  ),
-                ),
-                if (widget.isMerging &&
-                    _mergeCtrl != null &&
-                    _mergeCtrl!.certAgencyCandidates.length > 1) ...[
-                  const SizedBox(width: 8),
-                  _buildMergeCycleButton(() {
-                    setState(() {
-                      _certAgency = _mergeCtrl!.cycleCertAgency();
-                      _hasChanges = true;
-                    });
-                  }),
-                ],
-              ],
-            ),
-            if (widget.isMerging &&
-                _mergeCtrl != null &&
-                _mergeCtrl!.certAgencyCandidates.length > 1) ...[
-              const SizedBox(height: 4),
-              Text(
-                context.l10n.buddies_edit_merge_fieldSourceLabel(
-                  _mergeCtrl!
-                      .certAgencyCandidates[_mergeCtrl!
-                              .fieldIndices['certAgency'] ??
-                          0]
-                      .buddyName,
-                  (_mergeCtrl!.fieldIndices['certAgency'] ?? 0) + 1,
-                  _mergeCtrl!.certAgencyCandidates.length,
                 ),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
