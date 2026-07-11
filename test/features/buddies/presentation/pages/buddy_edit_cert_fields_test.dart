@@ -132,6 +132,75 @@ void main() {
     expect(find.text('Advanced Open Water'), findsNothing);
   });
 
+  testWidgets('merge mode cycles agency and level through candidates', (
+    tester,
+  ) async {
+    final now = DateTime(2024);
+    // Same name/email/phone/notes so the certification cycle buttons are the
+    // only ones on screen: [agency, level] in tree order (agency renders
+    // first since issue #546).
+    final survivor = Buddy(
+      id: 'b1',
+      name: 'Alice',
+      certificationAgency: CertificationAgency.padi,
+      certificationLevel: CertificationLevel.openWater,
+      createdAt: now,
+      updatedAt: now,
+    );
+    final duplicate = Buddy(
+      id: 'b2',
+      name: 'Alice',
+      certificationAgency: CertificationAgency.cmas,
+      certificationLevel: CertificationLevel.cmas2StarDiver,
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: BuddyEditPage(
+              mergeBuddies: [survivor, duplicate],
+              embedded: true,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Survivor's values are pre-selected.
+    expect(find.text('PADI'), findsOneWidget);
+    expect(find.text('Open Water'), findsOneWidget);
+
+    final cycleButtons = find.byIcon(Icons.sync_alt);
+    expect(cycleButtons, findsNWidgets(2));
+
+    // Cycle the agency to the duplicate's CMAS. The level is deliberately
+    // NOT reset during merge cycling - the out-of-catalog Open Water stays
+    // selectable via the catalog's ensure mechanism.
+    await tester.ensureVisible(cycleButtons.first);
+    await tester.pumpAndSettle();
+    await tester.tap(cycleButtons.first);
+    await tester.pumpAndSettle();
+    expect(find.text('CMAS'), findsOneWidget);
+    expect(find.text('Open Water'), findsOneWidget);
+
+    // Cycle the level to the duplicate's CMAS grade.
+    await tester.ensureVisible(cycleButtons.last);
+    await tester.pumpAndSettle();
+    await tester.tap(cycleButtons.last);
+    await tester.pumpAndSettle();
+    expect(find.text('2★ Diver'), findsOneWidget);
+  });
+
   testWidgets('existing buddy with out-of-catalog level still renders it', (
     tester,
   ) async {

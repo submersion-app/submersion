@@ -6,9 +6,7 @@ import 'package:submersion/core/constants/enums.dart';
 /// [specialties] set. Levels are still persisted as enum-name text, so this
 /// catalog only shapes what the dropdowns offer - it never restricts what
 /// can be stored or parsed.
-class CertificationLevelCatalog {
-  CertificationLevelCatalog._();
-
+abstract final class CertificationLevelCatalog {
   /// Specialty levels offered by essentially every agency.
   static const List<CertificationLevel> specialties = [
     CertificationLevel.nitrox,
