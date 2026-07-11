@@ -12002,5 +12002,19 @@
   "dive3d_overlay_curtain": "Depth curtain",
   "@dive3d_overlay_curtain": {},
   "dive3d_overlay_markers": "Markers",
-  "@dive3d_overlay_markers": {}
+  "@dive3d_overlay_markers": {},
+  "dive3d_metric_depth": "Depth",
+  "@dive3d_metric_depth": {},
+  "dive3d_metric_temperature": "Temp",
+  "@dive3d_metric_temperature": {},
+  "dive3d_metric_ascentRate": "Ascent",
+  "@dive3d_metric_ascentRate": {},
+  "dive3d_metric_ppO2": "ppO2",
+  "@dive3d_metric_ppO2": {},
+  "dive3d_metric_cns": "CNS",
+  "@dive3d_metric_cns": {},
+  "dive3d_metric_heartRate": "HR",
+  "@dive3d_metric_heartRate": {},
+  "dive3d_metric_tankPressure": "Pressure",
+  "@dive3d_metric_tankPressure": {}
 }

@@ -27,6 +27,7 @@ import 'package:submersion/features/dive_log/data/services/gas_usage_segments_se
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/data/services/profile_markers_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
+import 'package:submersion/features/dive_3d/presentation/pages/dive_3d_page.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/dive_3d_preview_card.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
@@ -1289,6 +1290,16 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                       visualDensity: VisualDensity.compact,
                       onPressed: () =>
                           _showFullscreenProfile(context, ref, dive),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.view_in_ar),
+                      tooltip: context.l10n.dive3d_previewTitle,
+                      visualDensity: VisualDensity.compact,
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => Dive3dPage(diveId: dive.id),
+                        ),
+                      ),
                     ),
                   ],
                 ),

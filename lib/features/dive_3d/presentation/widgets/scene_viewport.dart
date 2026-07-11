@@ -229,7 +229,14 @@ class _SceneViewportState extends State<SceneViewport> {
 
   @override
   void dispose() {
-    threeJs.dispose();
+    // ThreeJS.dispose touches late fields that only exist after a
+    // successful setup; when GL init failed (or never ran, as under
+    // flutter_test) disposing the host would throw LateInitializationError.
+    try {
+      threeJs.dispose();
+    } catch (_) {
+      // Engine never initialized; nothing was allocated.
+    }
     super.dispose();
   }
 

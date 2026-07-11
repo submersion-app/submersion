@@ -18682,4 +18682,25 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get dive3d_overlay_markers => 'סמנים';
+
+  @override
+  String get dive3d_metric_depth => 'עומק';
+
+  @override
+  String get dive3d_metric_temperature => 'טמפ';
+
+  @override
+  String get dive3d_metric_ascentRate => 'עלייה';
+
+  @override
+  String get dive3d_metric_ppO2 => 'ppO2';
+
+  @override
+  String get dive3d_metric_cns => 'CNS';
+
+  @override
+  String get dive3d_metric_heartRate => 'דופק';
+
+  @override
+  String get dive3d_metric_tankPressure => 'לחץ';
 }

@@ -19119,4 +19119,25 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get dive3d_overlay_markers => 'Jelölők';
+
+  @override
+  String get dive3d_metric_depth => 'Mélység';
+
+  @override
+  String get dive3d_metric_temperature => 'Hőm';
+
+  @override
+  String get dive3d_metric_ascentRate => 'Emelkedés';
+
+  @override
+  String get dive3d_metric_ppO2 => 'ppO2';
+
+  @override
+  String get dive3d_metric_cns => 'CNS';
+
+  @override
+  String get dive3d_metric_heartRate => 'Pulzus';
+
+  @override
+  String get dive3d_metric_tankPressure => 'Nyomás';
 }

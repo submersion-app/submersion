@@ -5452,5 +5452,19 @@
   "dive3d_overlay_curtain": "Tiefenvorhang",
   "@dive3d_overlay_curtain": {},
   "dive3d_overlay_markers": "Markierungen",
-  "@dive3d_overlay_markers": {}
+  "@dive3d_overlay_markers": {},
+  "dive3d_metric_depth": "Tiefe",
+  "@dive3d_metric_depth": {},
+  "dive3d_metric_temperature": "Temp",
+  "@dive3d_metric_temperature": {},
+  "dive3d_metric_ascentRate": "Aufstieg",
+  "@dive3d_metric_ascentRate": {},
+  "dive3d_metric_ppO2": "ppO2",
+  "@dive3d_metric_ppO2": {},
+  "dive3d_metric_cns": "ZNS",
+  "@dive3d_metric_cns": {},
+  "dive3d_metric_heartRate": "HF",
+  "@dive3d_metric_heartRate": {},
+  "dive3d_metric_tankPressure": "Druck",
+  "@dive3d_metric_tankPressure": {}
 }

@@ -19181,4 +19181,25 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get dive3d_overlay_markers => 'Marcadores';
+
+  @override
+  String get dive3d_metric_depth => 'Profundidad';
+
+  @override
+  String get dive3d_metric_temperature => 'Temp';
+
+  @override
+  String get dive3d_metric_ascentRate => 'Ascenso';
+
+  @override
+  String get dive3d_metric_ppO2 => 'ppO2';
+
+  @override
+  String get dive3d_metric_cns => 'SNC';
+
+  @override
+  String get dive3d_metric_heartRate => 'FC';
+
+  @override
+  String get dive3d_metric_tankPressure => 'Presión';
 }

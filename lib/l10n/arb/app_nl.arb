@@ -5452,5 +5452,19 @@
   "dive3d_overlay_curtain": "Dieptegordijn",
   "@dive3d_overlay_curtain": {},
   "dive3d_overlay_markers": "Markeringen",
-  "@dive3d_overlay_markers": {}
+  "@dive3d_overlay_markers": {},
+  "dive3d_metric_depth": "Diepte",
+  "@dive3d_metric_depth": {},
+  "dive3d_metric_temperature": "Temp",
+  "@dive3d_metric_temperature": {},
+  "dive3d_metric_ascentRate": "Opstijging",
+  "@dive3d_metric_ascentRate": {},
+  "dive3d_metric_ppO2": "ppO2",
+  "@dive3d_metric_ppO2": {},
+  "dive3d_metric_cns": "CZS",
+  "@dive3d_metric_cns": {},
+  "dive3d_metric_heartRate": "HS",
+  "@dive3d_metric_heartRate": {},
+  "dive3d_metric_tankPressure": "Druk",
+  "@dive3d_metric_tankPressure": {}
 }

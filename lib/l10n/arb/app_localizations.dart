@@ -32101,6 +32101,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Markers'**
   String get dive3d_overlay_markers;
+
+  /// No description provided for @dive3d_metric_depth.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth'**
+  String get dive3d_metric_depth;
+
+  /// No description provided for @dive3d_metric_temperature.
+  ///
+  /// In en, this message translates to:
+  /// **'Temp'**
+  String get dive3d_metric_temperature;
+
+  /// No description provided for @dive3d_metric_ascentRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Ascent'**
+  String get dive3d_metric_ascentRate;
+
+  /// No description provided for @dive3d_metric_ppO2.
+  ///
+  /// In en, this message translates to:
+  /// **'ppO2'**
+  String get dive3d_metric_ppO2;
+
+  /// No description provided for @dive3d_metric_cns.
+  ///
+  /// In en, this message translates to:
+  /// **'CNS'**
+  String get dive3d_metric_cns;
+
+  /// No description provided for @dive3d_metric_heartRate.
+  ///
+  /// In en, this message translates to:
+  /// **'HR'**
+  String get dive3d_metric_heartRate;
+
+  /// No description provided for @dive3d_metric_tankPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure'**
+  String get dive3d_metric_tankPressure;
 }
 
 class _AppLocalizationsDelegate

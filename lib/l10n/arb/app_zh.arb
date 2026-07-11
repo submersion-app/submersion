@@ -5452,5 +5452,19 @@
   "dive3d_overlay_curtain": "深度幕布",
   "@dive3d_overlay_curtain": {},
   "dive3d_overlay_markers": "标记",
-  "@dive3d_overlay_markers": {}
+  "@dive3d_overlay_markers": {},
+  "dive3d_metric_depth": "深度",
+  "@dive3d_metric_depth": {},
+  "dive3d_metric_temperature": "温度",
+  "@dive3d_metric_temperature": {},
+  "dive3d_metric_ascentRate": "上升",
+  "@dive3d_metric_ascentRate": {},
+  "dive3d_metric_ppO2": "ppO2",
+  "@dive3d_metric_ppO2": {},
+  "dive3d_metric_cns": "CNS",
+  "@dive3d_metric_cns": {},
+  "dive3d_metric_heartRate": "心率",
+  "@dive3d_metric_heartRate": {},
+  "dive3d_metric_tankPressure": "压力",
+  "@dive3d_metric_tankPressure": {}
 }

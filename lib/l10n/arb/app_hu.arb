@@ -5452,5 +5452,19 @@
   "dive3d_overlay_curtain": "Mélységi függöny",
   "@dive3d_overlay_curtain": {},
   "dive3d_overlay_markers": "Jelölők",
-  "@dive3d_overlay_markers": {}
+  "@dive3d_overlay_markers": {},
+  "dive3d_metric_depth": "Mélység",
+  "@dive3d_metric_depth": {},
+  "dive3d_metric_temperature": "Hőm",
+  "@dive3d_metric_temperature": {},
+  "dive3d_metric_ascentRate": "Emelkedés",
+  "@dive3d_metric_ascentRate": {},
+  "dive3d_metric_ppO2": "ppO2",
+  "@dive3d_metric_ppO2": {},
+  "dive3d_metric_cns": "CNS",
+  "@dive3d_metric_cns": {},
+  "dive3d_metric_heartRate": "Pulzus",
+  "@dive3d_metric_heartRate": {},
+  "dive3d_metric_tankPressure": "Nyomás",
+  "@dive3d_metric_tankPressure": {}
 }

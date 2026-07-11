@@ -18203,4 +18203,25 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get dive3d_overlay_markers => '标记';
+
+  @override
+  String get dive3d_metric_depth => '深度';
+
+  @override
+  String get dive3d_metric_temperature => '温度';
+
+  @override
+  String get dive3d_metric_ascentRate => '上升';
+
+  @override
+  String get dive3d_metric_ppO2 => 'ppO2';
+
+  @override
+  String get dive3d_metric_cns => 'CNS';
+
+  @override
+  String get dive3d_metric_heartRate => '心率';
+
+  @override
+  String get dive3d_metric_tankPressure => '压力';
 }

@@ -18816,4 +18816,25 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get dive3d_overlay_markers => 'علامات';
+
+  @override
+  String get dive3d_metric_depth => 'العمق';
+
+  @override
+  String get dive3d_metric_temperature => 'الحرارة';
+
+  @override
+  String get dive3d_metric_ascentRate => 'الصعود';
+
+  @override
+  String get dive3d_metric_ppO2 => 'ppO2';
+
+  @override
+  String get dive3d_metric_cns => 'CNS';
+
+  @override
+  String get dive3d_metric_heartRate => 'معدل النبض';
+
+  @override
+  String get dive3d_metric_tankPressure => 'الضغط';
 }
