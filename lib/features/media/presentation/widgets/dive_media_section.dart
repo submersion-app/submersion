@@ -6,6 +6,9 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
+import 'package:submersion/features/media/presentation/helpers/lightroom_scan_helper.dart';
+import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/presentation/pages/photo_viewer_page.dart';
@@ -59,6 +62,14 @@ class DiveMediaSection extends ConsumerStatefulWidget {
 class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
   bool _isSelectionMode = false;
   Set<int> _selectedIndices = {};
+
+  Future<void> _scanLightroom(BuildContext context) async {
+    final dive = await ref
+        .read(diveRepositoryProvider)
+        .getDiveById(widget.diveId);
+    if (dive == null || !context.mounted) return;
+    await runLightroomScan(context, ref, [dive]);
+  }
 
   void _exitSelectionMode() {
     setState(() {
@@ -292,6 +303,16 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                       visualDensity: VisualDensity.compact,
                       tooltip: context.l10n.media_diveScan_scanTooltip,
                       onPressed: widget.onScanPressed,
+                    ),
+                  if (ref.watch(lightroomAccountProvider).value != null)
+                    IconButton(
+                      icon: Icon(
+                        Icons.cloud_sync_outlined,
+                        color: colorScheme.primary,
+                      ),
+                      visualDensity: VisualDensity.compact,
+                      tooltip: context.l10n.settings_lightroom_scanNow,
+                      onPressed: () => _scanLightroom(context),
                     ),
                   if (widget.onAddPressed != null)
                     IconButton(

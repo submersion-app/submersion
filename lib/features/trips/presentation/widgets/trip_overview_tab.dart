@@ -16,6 +16,8 @@ import 'package:submersion/features/maps/domain/map_utils.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
+import 'package:submersion/features/media/presentation/helpers/lightroom_scan_helper.dart';
+import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/data/services/trip_media_scanner.dart';
@@ -119,6 +121,10 @@ class _TripOverviewTabState extends ConsumerState<TripOverviewTab> {
           TripPhotoSection(
             tripId: trip.id,
             onScanPressed: () => _showScanDialog(context, ref, trip.id),
+            onLightroomScanPressed:
+                ref.watch(lightroomAccountProvider).value == null
+                ? null
+                : () => _scanLightroom(context, ref, trip.id),
           ),
           const SizedBox(height: 24),
 
@@ -589,6 +595,22 @@ class _TripOverviewTabState extends ConsumerState<TripOverviewTab> {
         ),
       ),
     );
+  }
+
+  Future<void> _scanLightroom(
+    BuildContext context,
+    WidgetRef ref,
+    String tripId,
+  ) async {
+    final dives = await ref.read(divesForTripProvider(tripId).future);
+    if (!context.mounted) return;
+    if (dives.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.trips_detail_scan_addDivesFirst)),
+      );
+      return;
+    }
+    await runLightroomScan(context, ref, dives);
   }
 
   Future<void> _showScanDialog(

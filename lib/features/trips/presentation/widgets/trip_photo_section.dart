@@ -14,8 +14,14 @@ const int _maxVisibleThumbnails = 5;
 class TripPhotoSection extends ConsumerWidget {
   final String tripId;
   final VoidCallback? onScanPressed;
+  final VoidCallback? onLightroomScanPressed;
 
-  const TripPhotoSection({super.key, required this.tripId, this.onScanPressed});
+  const TripPhotoSection({
+    super.key,
+    required this.tripId,
+    this.onScanPressed,
+    this.onLightroomScanPressed,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -72,6 +78,16 @@ class TripPhotoSection extends ConsumerWidget {
                     visualDensity: VisualDensity.compact,
                     tooltip: context.l10n.trips_photos_tooltip_scan,
                     onPressed: onScanPressed,
+                  ),
+                if (onLightroomScanPressed != null)
+                  IconButton(
+                    icon: Icon(
+                      Icons.cloud_sync_outlined,
+                      color: colorScheme.primary,
+                    ),
+                    visualDensity: VisualDensity.compact,
+                    tooltip: context.l10n.settings_lightroom_scanNow,
+                    onPressed: onLightroomScanPressed,
                   ),
               ],
             ),
