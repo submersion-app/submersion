@@ -623,8 +623,15 @@ class ProfileAnalysisService {
     } else {
       _buhlmannAlgorithm.reset();
     }
+    // Gas segments drive the deco integration whenever provided: for OC they
+    // carry the recorded tank/switch schedule; for CCR they carry the diluent
+    // fractions plus the loop setpoint per segment, which the engine turns into
+    // constant-ppO2 loading and a loop-held ascent (issue #455). The OC
+    // gas-aware CNS/OTU/fraction metrics below remain OC-only: rebreather
+    // CNS/OTU come from the resolved loop ppO2 curve instead.
+    final useGasSegmentsForDeco = gasSegments != null;
     final useOcGasSegments = diveMode == DiveMode.oc && gasSegments != null;
-    final decoStatuses = useOcGasSegments
+    final decoStatuses = useGasSegmentsForDeco
         ? _buhlmannAlgorithm.processProfileWithGasSegments(
             depths: depths,
             timestamps: timestamps,

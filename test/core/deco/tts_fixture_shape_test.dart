@@ -2,14 +2,12 @@
 //
 // End-to-end shape tests over the committed SSRF fixtures. These pin the
 // *shape* of the gas-aware calculated TTS curve (monotone, step-free across the
-// recorded gas switch, 0 at the surface) on real recorded data, and assert the
-// CCR fixtures are untouched by the gas-aware machinery (it is gated to OC).
+// recorded gas switch, 0 at the surface) on real recorded data.
 // Absolute TTS numbers are pinned separately by the clean-room cross-check.
 import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
 import 'package:submersion/core/deco/entities/profile_gas_segment.dart';
 import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
@@ -127,40 +125,4 @@ void main() {
       }
     },
   );
-
-  for (final fixture in const [
-    '002_ccr_only_low_sp_no_calculated_po2.ssrf.xml',
-    '003_ccr_with_setpoint_switch_and_calculated_po2.ssrf.xml',
-  ]) {
-    test(
-      'fixture $fixture (CCR): analysis is identical with/without a plan',
-      () async {
-        final dive = await _parseFixture(fixture);
-        expect(dive['diveMode'], DiveMode.ccr);
-
-        final depths = _depths(dive);
-        final timestamps = _timestamps(dive);
-        final service = ProfileAnalysisService(gfLow: 0.50, gfHigh: 0.75);
-
-        ProfileAnalysis run({required bool withPlan}) => service.analyze(
-          diveId: 'ccr',
-          depths: depths,
-          timestamps: timestamps,
-          diveMode: DiveMode.ccr,
-          setpointHigh: (dive['setpointHigh'] as double?) ?? 1.3,
-          gasSegments: _gasSegments(dive),
-          ascentGasPlan: withPlan ? _ascentPlan(dive) : null,
-        );
-
-        final baseline = run(withPlan: false);
-        final withFeature = run(withPlan: true);
-
-        // diveMode != oc => the OC gas-segment path is never taken, so the plan
-        // cannot affect any deco curve.
-        expect(withFeature.ttsCurve, equals(baseline.ttsCurve));
-        expect(withFeature.ceilingCurve, equals(baseline.ceilingCurve));
-        expect(withFeature.ndlCurve, equals(baseline.ndlCurve));
-      },
-    );
-  }
 }

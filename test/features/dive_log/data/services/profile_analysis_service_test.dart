@@ -821,4 +821,66 @@ void main() {
       },
     );
   });
+
+  group('CCR gas segments drive deco (issue #455)', () {
+    // 44 m for ~40 min on an air-diluent loop at setpoint 1.3, first tank EAN40.
+    // Effective loop fN2 at 44 m is ~0.76 vs EAN40's 0.60, so the loop loads
+    // MORE nitrogen than the legacy open-circuit first-tank model.
+    const depths = [0.0, 44.0, 44.0, 44.0, 44.0, 0.0];
+    const timestamps = [0, 180, 900, 1800, 2400, 2700];
+
+    test('setpoint segments change deco output vs legacy first-tank model', () {
+      final service = ProfileAnalysisService(gfLow: 0.45, gfHigh: 0.75);
+
+      final legacy = service.analyze(
+        diveId: 'ccr-legacy',
+        depths: depths,
+        timestamps: timestamps,
+        o2Fraction: 0.40, // first tank EAN40 (the bug's model)
+        diveMode: DiveMode.ccr,
+        setpointHigh: 1.3,
+      );
+      final loop = service.analyze(
+        diveId: 'ccr-loop',
+        depths: depths,
+        timestamps: timestamps,
+        o2Fraction: 0.40,
+        diveMode: DiveMode.ccr,
+        setpointHigh: 1.3,
+        gasSegments: const [
+          ProfileGasSegment(startTimestamp: 0, fN2: 0.79, setpoint: 1.3),
+        ],
+      );
+
+      // In deco at the last bottom sample under both models.
+      expect(loop.ndlCurve[4], -1);
+      // The loop loads more inert gas at 44 m than OC EAN40, so the obligation
+      // is LARGER than the legacy understated value.
+      expect(loop.ttsCurve![4], greaterThan(legacy.ttsCurve![4]));
+      // And the curves genuinely came from the segment path.
+      expect(loop.ttsCurve, isNot(equals(legacy.ttsCurve)));
+    });
+
+    test(
+      'CCR CNS/OTU still come from the resolved ppO2 curve, not OC metrics',
+      () {
+        final service = ProfileAnalysisService(gfLow: 0.45, gfHigh: 0.75);
+        final ppO2Curve = List<double>.filled(depths.length, 1.3);
+        final analysis = service.analyze(
+          diveId: 'ccr-cns',
+          depths: depths,
+          timestamps: timestamps,
+          o2Fraction: 0.40,
+          diveMode: DiveMode.ccr,
+          setpointHigh: 1.3,
+          gasSegments: const [
+            ProfileGasSegment(startTimestamp: 0, fN2: 0.79, setpoint: 1.3),
+          ],
+          rebreatherPpO2Curve: ppO2Curve,
+        );
+        expect(analysis.ppO2Curve, ppO2Curve);
+        expect(analysis.o2Exposure.maxPpO2, closeTo(1.3, 0.001));
+      },
+    );
+  });
 }
