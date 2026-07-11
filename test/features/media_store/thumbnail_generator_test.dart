@@ -44,16 +44,34 @@ void main() {
     await root.delete(recursive: true);
   });
 
-  MediaItem item({MediaSourceType sourceType = MediaSourceType.localFile}) =>
-      MediaItem(
-        id: 'm1',
-        mediaType: MediaType.photo,
-        sourceType: sourceType,
-        originalFilename: 'reef.png',
-        takenAt: DateTime(2026),
-        createdAt: DateTime(2026),
-        updatedAt: DateTime(2026),
-      );
+  MediaItem item({
+    MediaSourceType sourceType = MediaSourceType.localFile,
+    String originalFilename = 'reef.png',
+  }) => MediaItem(
+    id: 'm1',
+    mediaType: MediaType.photo,
+    sourceType: sourceType,
+    originalFilename: originalFilename,
+    takenAt: DateTime(2026),
+    createdAt: DateTime(2026),
+    updatedAt: DateTime(2026),
+  );
+
+  test(
+    'an extension-less filename falls back to the generic decoder',
+    () async {
+      final large = img.Image(width: 700, height: 500);
+      img.fill(large, color: img.ColorRgb8(30, 90, 150));
+      final src = File('${root.path}/noext');
+      await src.writeAsBytes(img.encodePng(large), flush: true);
+      resolver.data = FileData(file: src);
+
+      final file = await generator.generateFor(item(originalFilename: 'noext'));
+      expect(file, isNotNull);
+      final decoded = img.decodeImage(await file!.readAsBytes())!;
+      expect(decoded.width, 512);
+    },
+  );
 
   test('gallery BytesData passes through untouched (photo_manager thumbnails '
       'are already compressed)', () async {

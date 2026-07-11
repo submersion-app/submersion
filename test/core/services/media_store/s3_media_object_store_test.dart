@@ -1,12 +1,51 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/testing.dart';
+import 'package:http/http.dart' as http;
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_api_client.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 import 'package:submersion/core/services/media_store/s3_media_object_store.dart';
 
 import '../../../helpers/fake_s3_server.dart';
+
+/// An S3ApiClient whose every operation throws a fixed CloudStorageException,
+/// so the adapter's error-mapping (_map) can be exercised for each verb.
+class _ThrowingS3Client extends S3ApiClient {
+  _ThrowingS3Client(this.error)
+    : super(
+        S3Config(
+          endpoint: 'http://localhost:9000',
+          bucket: 'test-bucket',
+          accessKeyId: 'AK',
+          secretAccessKey: 'SK',
+        ),
+        httpClient: MockClient((_) async => http.Response('', 200)),
+      );
+
+  final CloudStorageException error;
+
+  @override
+  Future<S3ObjectInfo?> headObject(String key) async => throw error;
+  @override
+  Future<Uint8List> getObject(String key) async => throw error;
+  @override
+  Future<void> putObject(
+    String key,
+    Uint8List bytes, {
+    String? contentType,
+  }) async => throw error;
+  @override
+  Future<void> deleteObject(String key) async => throw error;
+  @override
+  Future<List<S3ObjectInfo>> listObjects({
+    String prefix = '',
+    int? maxKeys,
+  }) async => throw error;
+}
 
 void main() {
   late Directory tmp;
@@ -243,5 +282,70 @@ void main() {
           '"parts":[{"n":1,"etag":"\\"bogus\\""}]}',
     );
     expect(server.objects['submersion-media/smv1/objects/aa/stale.mp4'], bytes);
+  });
+
+  S3MediaObjectStore throwingStore(CloudStorageException e) =>
+      S3MediaObjectStore(
+        client: _ThrowingS3Client(e),
+        keyPrefix: 'submersion-media/',
+      );
+
+  test('client errors map to the retry taxonomy by message', () async {
+    final cases = <String, MediaStoreErrorKind>{
+      'Access denied to bucket': MediaStoreErrorKind.auth,
+      'Could not reach S3 endpoint': MediaStoreErrorKind.transient,
+      'S3 returned an unexpected 500': MediaStoreErrorKind.fatal,
+    };
+    for (final entry in cases.entries) {
+      final store = throwingStore(CloudStorageException(entry.key));
+      await expectLater(
+        store.head('smv1/objects/aa/x.bin'),
+        throwsA(
+          isA<MediaStoreException>().having((e) => e.kind, 'kind', entry.value),
+        ),
+        reason: entry.key,
+      );
+    }
+  });
+
+  test('every verb wraps a client error as a MediaStoreException', () async {
+    final store = throwingStore(
+      const CloudStorageException('Access denied to bucket'),
+    );
+    final src = File('${tmp.path}/e.bin')..writeAsBytesSync([1]);
+    await expectLater(
+      store.putFile('smv1/objects/aa/e.bin', src, contentType: 'x'),
+      throwsA(isA<MediaStoreException>()),
+    );
+    await expectLater(
+      store.getFile('smv1/objects/aa/e.bin', File('${tmp.path}/o')),
+      throwsA(isA<MediaStoreException>()),
+    );
+    await expectLater(
+      store.delete('smv1/objects/aa/e.bin'),
+      throwsA(isA<MediaStoreException>()),
+    );
+    await expectLater(
+      store.list('smv1/objects/').toList(),
+      throwsA(isA<MediaStoreException>()),
+    );
+  });
+
+  test('a missing source file is a fatal MediaStoreException', () async {
+    final store = build();
+    await expectLater(
+      store.putFile(
+        'smv1/objects/aa/gone.bin',
+        File('${tmp.path}/does-not-exist.bin'),
+        contentType: 'application/octet-stream',
+      ),
+      throwsA(
+        isA<MediaStoreException>().having(
+          (e) => e.kind,
+          'kind',
+          MediaStoreErrorKind.fatal,
+        ),
+      ),
+    );
   });
 }

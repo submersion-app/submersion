@@ -33,6 +33,26 @@ void main() {
     expect(await store.load(), isNull);
   });
 
+  test('load returns null for non-JSON keychain contents', () async {
+    final storage = InMemoryKeychain();
+    await storage.write(
+      key: MediaStoreCredentialsStore.storageKey,
+      value: 'this is not json',
+    );
+    final store = MediaStoreCredentialsStore(storage: storage);
+    expect(await store.load(), isNull);
+  });
+
+  test('load returns null for JSON with the wrong field types', () async {
+    final storage = InMemoryKeychain();
+    await storage.write(
+      key: MediaStoreCredentialsStore.storageKey,
+      value: '{"endpoint": 123, "bucket": "b"}',
+    );
+    final store = MediaStoreCredentialsStore(storage: storage);
+    expect(await store.load(), isNull);
+  });
+
   test('attach state round-trips via SharedPreferences', () async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();

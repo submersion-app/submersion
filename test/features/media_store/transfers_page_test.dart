@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -106,5 +108,51 @@ void main() {
       find.byType(LinearProgressIndicator),
     );
     expect(bar.value, 0.25);
+  });
+
+  testWidgets('a completed entry shows Done and Clear removes it', (
+    tester,
+  ) async {
+    late List<MediaTransferQueueEntry> snapshot;
+    await tester.runAsync(() async {
+      final id = await repo.enqueueUpload(mediaId: 'm-done');
+      await repo.markTransferring(id);
+      await repo.markDone(id);
+      snapshot = await repo.watchEntries().first;
+    });
+
+    await tester.pumpWidget(app(snapshot));
+    await tester.pump();
+    expect(find.text('Done'), findsOneWidget);
+
+    await tester.runAsync(() async {
+      await tester.tap(find.byKey(const Key('transfers-clear-done')));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    });
+    final rows = (await tester.runAsync(() => repo.allForTesting()))!;
+    expect(rows.where((r) => r.state == 'done'), isEmpty);
+  });
+
+  testWidgets('shows a spinner while the transfer list is loading', (
+    tester,
+  ) async {
+    final controller = StreamController<List<MediaTransferQueueEntry>>();
+    addTearDown(controller.close);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          mediaTransferQueueRepositoryProvider.overrideWithValue(repo),
+          mediaTransferEntriesProvider.overrideWith((ref) => controller.stream),
+          mediaStoreRuntimeProvider.overrideWith((ref) async => null),
+        ],
+        child: const MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: TransfersPage(),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
   });
 }

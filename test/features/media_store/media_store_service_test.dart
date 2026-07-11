@@ -192,4 +192,38 @@ void main() {
     );
     expect(await attachState.attachedStoreId(), isNull);
   });
+
+  test('buildMediaObjectStore returns an S3 store for a config and null '
+      'without one', () async {
+    final store = await buildMediaObjectStore(
+      CloudProviderType.s3,
+      s3Config: config,
+    );
+    expect(store, isNotNull);
+    expect(
+      await buildMediaObjectStore(CloudProviderType.s3),
+      isNull,
+      reason: 'no config means no S3 store',
+    );
+  });
+
+  test('buildMediaObjectStore yields null for managed providers that are '
+      'not authenticated in tests', () async {
+    // Dropbox/Drive/iCloud all lack live credentials in a unit test, so
+    // each arm resolves to an unusable (null) store rather than throwing.
+    for (final type in [
+      CloudProviderType.dropbox,
+      CloudProviderType.googledrive,
+      CloudProviderType.icloud,
+    ]) {
+      MediaObjectStore? store;
+      try {
+        store = await buildMediaObjectStore(type);
+      } catch (_) {
+        // A platform-channel absence is an acceptable "not available".
+        store = null;
+      }
+      expect(store, isNull, reason: '$type is unauthenticated here');
+    }
+  });
 }

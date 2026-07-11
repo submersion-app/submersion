@@ -17,12 +17,31 @@ import 'package:submersion/features/media/domain/value_objects/media_source_data
 import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
 import 'package:submersion/features/media/domain/value_objects/verify_result.dart';
 import 'package:submersion/features/media_store/data/media_cache_store.dart';
+import 'package:submersion/features/media_store/data/media_store_worker.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/media_store/data/media_upload_pipeline.dart';
 import 'package:submersion/features/media_store/data/thumbnail_generator.dart';
 
+import 'package:submersion/core/services/media_store/media_object_store.dart';
+
 import '../../helpers/in_memory_media_object_store.dart';
 import '../../helpers/test_database.dart';
+
+/// A store whose original-object uploads always fail, to drive the
+/// pipeline's failure branch (thumb uploads are best-effort and swallowed).
+class _PutThrowsStore extends InMemoryMediaObjectStore {
+  @override
+  Future<void> putFile(
+    String key,
+    File source, {
+    required String contentType,
+    TransferProgressCallback? onProgress,
+    String? resumeStateJson,
+    void Function(String resumeStateJson)? onResumeStateChanged,
+  }) async {
+    throw const MediaStoreException('boom', kind: MediaStoreErrorKind.fatal);
+  }
+}
 
 class _FakeLocalFileResolver implements MediaSourceResolver {
   _FakeLocalFileResolver(this.data);
@@ -346,5 +365,77 @@ void main() {
     expect(await pipeline.process(entry), UploadOutcome.skippedIneligible);
     expect(fakeStore.objects, isEmpty);
     expect((await queue.allForTesting()).single.state, 'done');
+  });
+
+  test('a BytesData source is materialized and uploaded', () async {
+    final id = await enqueueLocalFileItem(bytes: [1], name: 'bytes.jpg');
+    // Override the resolved data with in-memory bytes (Android content-URI
+    // style), which the pipeline stages to a temp file before hashing.
+    resolver.data = BytesData(bytes: Uint8List.fromList([9, 8, 7, 6]));
+    final entry = (await queue.nextPending(DateTime.now()))!;
+
+    expect(await pipeline.process(entry), UploadOutcome.uploaded);
+    final item = (await mediaRepository.getMediaById(id))!;
+    expect(item.contentSizeBytes, 4);
+    expect(item.remoteUploadedAt, isNotNull);
+  });
+
+  test('worker.enqueueAndKick enqueues the media and drains it', () async {
+    final file = await fixture([1, 2, 3, 4], 'kick.jpg');
+    resolver.data = FileData(file: file);
+    final created = await mediaRepository.createMedia(
+      domain.MediaItem(
+        id: '',
+        mediaType: domain.MediaType.photo,
+        sourceType: MediaSourceType.localFile,
+        filePath: file.path,
+        localPath: file.path,
+        originalFilename: 'kick.jpg',
+        takenAt: DateTime(2026, 1, 1),
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+      ),
+    );
+    final worker = MediaStoreWorker(queue: queue, pipeline: pipeline);
+
+    await worker.enqueueAndKick(created.id);
+    // enqueueAndKick fires the drain without awaiting; poll for completion.
+    for (var i = 0; i < 100; i++) {
+      if ((await mediaRepository.getMediaById(created.id))!.remoteUploadedAt !=
+          null) {
+        break;
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+    expect(
+      (await mediaRepository.getMediaById(created.id))!.remoteUploadedAt,
+      isNotNull,
+    );
+  });
+
+  test('an upload error marks the row failed with the error message', () async {
+    final failingStore = _PutThrowsStore();
+    final registry = MediaSourceResolverRegistry({
+      MediaSourceType.localFile: resolver,
+    });
+    final failingPipeline = MediaUploadPipeline(
+      mediaRepository: mediaRepository,
+      queue: queue,
+      store: failingStore,
+      registry: registry,
+      cache: cache,
+      thumbnails: ThumbnailGenerator(registry: registry, cache: cache),
+      now: () => DateTime(2026, 7, 10, 12),
+    );
+
+    await enqueueLocalFileItem(bytes: [1, 2, 3], name: 'fail.jpg');
+    final entry = (await queue.nextPending(DateTime.now()))!;
+
+    expect(await failingPipeline.process(entry), UploadOutcome.failed);
+    final row = (await queue.allForTesting()).single;
+    expect(row.state, 'pending', reason: 'first failure retries, not terminal');
+    expect(row.attempts, 1);
+    expect(row.errorMessage, isNotNull);
+    expect(failingStore.objects, isEmpty);
   });
 }

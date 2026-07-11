@@ -2,6 +2,8 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/testing.dart';
+import 'package:http/http.dart' as http;
 import 'package:submersion/core/services/media_store/google_drive_media_object_store.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 
@@ -167,5 +169,54 @@ void main() {
     );
     final info = await store.head('smv1/objects/aa/h.jpg');
     expect(info!.sizeBytes, 2);
+  });
+
+  test('a 5xx from Drive surfaces as MediaStoreException on every '
+      'verb', () async {
+    final store = GoogleDriveMediaObjectStore(
+      client: MockClient(
+        (_) async => http.Response('{"error":{"message":"boom"}}', 500),
+      ),
+      apiBase: 'https://fake.googleapis.test',
+    );
+    final src = File('${tmp.path}/x.bin')..writeAsBytesSync([1]);
+    await expectLater(
+      store.head('smv1/objects/aa/x.bin'),
+      throwsA(isA<MediaStoreException>()),
+    );
+    await expectLater(
+      store.putFile('smv1/objects/aa/x.bin', src, contentType: 'x'),
+      throwsA(isA<MediaStoreException>()),
+    );
+    await expectLater(
+      store.getFile('smv1/objects/aa/x.bin', File('${tmp.path}/o')),
+      throwsA(isA<MediaStoreException>()),
+    );
+    await expectLater(
+      store.delete('smv1/objects/aa/x.bin'),
+      throwsA(isA<MediaStoreException>()),
+    );
+    await expectLater(
+      store.list('smv1/objects/').toList(),
+      throwsA(isA<MediaStoreException>()),
+    );
+  });
+
+  test('a missing source file is a fatal MediaStoreException', () async {
+    final store = build();
+    await expectLater(
+      store.putFile(
+        'smv1/objects/aa/gone.bin',
+        File('${tmp.path}/nope.bin'),
+        contentType: 'x',
+      ),
+      throwsA(
+        isA<MediaStoreException>().having(
+          (e) => e.kind,
+          'kind',
+          MediaStoreErrorKind.fatal,
+        ),
+      ),
+    );
   });
 }

@@ -2,12 +2,43 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/testing.dart';
+import 'package:http/http.dart' as http;
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_api_client.dart';
 import 'package:submersion/core/services/media_store/dropbox_media_object_store.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 
 import '../../../helpers/fake_dropbox_server.dart';
 import 'media_object_store_contract.dart';
+
+/// A DropboxApiClient whose verbs all throw, to drive the adapter's
+/// error mapping.
+class _ThrowingDropboxClient extends DropboxApiClient {
+  _ThrowingDropboxClient(this.error)
+    : super(
+        getAccessToken: () async => 't',
+        onAccessTokenRejected: () {},
+        httpClient: MockClient((_) async => http.Response('', 200)),
+      );
+
+  final CloudStorageException error;
+
+  @override
+  Future<DropboxFileMetadata?> getMetadata(String path) async => throw error;
+  @override
+  Future<DropboxFileMetadata> upload(String path, Uint8List data) async =>
+      throw error;
+  @override
+  Future<Uint8List> download(String path) async => throw error;
+  @override
+  Future<void> delete(String path) async => throw error;
+  @override
+  Future<List<DropboxFileMetadata>> listFolder({
+    String path = '',
+    bool recursive = false,
+  }) async => throw error;
+}
 
 void main() {
   late Directory tmp;
@@ -138,5 +169,51 @@ void main() {
     expect(await dest.readAsBytes(), bytes);
     expect(progress.length, greaterThan(1));
     expect(progress.last, bytes.length);
+  });
+
+  DropboxMediaObjectStore throwingStore(CloudStorageException e) =>
+      DropboxMediaObjectStore(client: _ThrowingDropboxClient(e));
+
+  test('client errors on every verb surface as MediaStoreException', () async {
+    final store = throwingStore(const CloudStorageException('Dropbox 503'));
+    final src = File('${tmp.path}/e.bin')..writeAsBytesSync([1]);
+    await expectLater(
+      store.head('smv1/objects/aa/e.bin'),
+      throwsA(isA<MediaStoreException>()),
+    );
+    await expectLater(
+      store.putFile('smv1/objects/aa/e.bin', src, contentType: 'x'),
+      throwsA(isA<MediaStoreException>()),
+    );
+    await expectLater(
+      store.getFile('smv1/objects/aa/e.bin', File('${tmp.path}/o')),
+      throwsA(isA<MediaStoreException>()),
+    );
+    await expectLater(
+      store.delete('smv1/objects/aa/e.bin'),
+      throwsA(isA<MediaStoreException>()),
+    );
+    await expectLater(
+      store.list('smv1/objects/').toList(),
+      throwsA(isA<MediaStoreException>()),
+    );
+  });
+
+  test('a missing source file is a fatal MediaStoreException', () async {
+    final store = build();
+    await expectLater(
+      store.putFile(
+        'smv1/objects/aa/gone.bin',
+        File('${tmp.path}/nope.bin'),
+        contentType: 'x',
+      ),
+      throwsA(
+        isA<MediaStoreException>().having(
+          (e) => e.kind,
+          'kind',
+          MediaStoreErrorKind.fatal,
+        ),
+      ),
+    );
   });
 }

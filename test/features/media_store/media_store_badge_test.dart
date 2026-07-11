@@ -1,4 +1,5 @@
 import 'package:drift/native.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
@@ -77,5 +78,41 @@ void main() {
     await repo.retry(id);
     await repo.markDone(id);
     await expectBadge(item(), MediaBadgeState.none);
+  });
+
+  Widget badgeApp(MediaItem i, MediaBadgeState state) => ProviderScope(
+    // Keyed by state so each pump builds a fresh element rather than
+    // reusing the prior one's cached async value.
+    key: ValueKey(state),
+    overrides: [
+      mediaBadgeStateProvider(i).overrideWith((ref) => Stream.value(state)),
+    ],
+    child: MaterialApp(
+      home: Scaffold(body: MediaStoreBadge(item: i)),
+    ),
+  );
+
+  testWidgets('the badge renders an avatar for each active state', (
+    tester,
+  ) async {
+    for (final state in [
+      MediaBadgeState.queued,
+      MediaBadgeState.transferring,
+      MediaBadgeState.failed,
+    ]) {
+      await tester.pumpWidget(badgeApp(item(), state));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const Key('media-store-badge')),
+        findsOneWidget,
+        reason: '$state renders a badge',
+      );
+    }
+  });
+
+  testWidgets('the badge renders nothing when quiet', (tester) async {
+    await tester.pumpWidget(badgeApp(item(), MediaBadgeState.none));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('media-store-badge')), findsNothing);
   });
 }
