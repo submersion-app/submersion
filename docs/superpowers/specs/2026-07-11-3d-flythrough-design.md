@@ -161,10 +161,12 @@ rebuilds meshes only when path data or lane toggles change; playback and
 camera updates touch only transforms, never geometry. Profiles are decimated
 via the existing `profile_decimator` (target 1-2k points).
 
-Series sources: depth, temperature, ascent rate, ceiling, and NDL are stored
-per sample in `dive_profiles`. TTS is not stored; `tts_series_calculator`
-replays tissues through `core/deco/buhlmann_algorithm.dart` (same machinery
-as the tissue-loading card) to produce a per-sample TTS series.
+Series sources: depth, temperature, ascent rate, ceiling, NDL, and TTS all
+have per-sample columns in `dive_profiles` (TTS is populated when the dive
+computer reports it). For dives whose computer did not report TTS,
+`tts_series_calculator` replays tissues through
+`core/deco/buhlmann_algorithm.dart` (same machinery as the tissue-loading
+card) to synthesize the series as a fallback.
 
 Gating and fallbacks:
 
