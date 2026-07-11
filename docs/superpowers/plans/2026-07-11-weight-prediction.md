@@ -61,7 +61,7 @@ Heavily modified: `lib/core/database/database.dart`, `lib/core/database/performa
 - Consumes: existing Drift tables `Dives`, `Equipment`, `DivePlans`, `Divers`.
 - Produces: Drift tables `DiverWeightEntries` (data class `DiverWeightEntryRow`), `DivePlanEquipment`; generated columns `dives.weightingFeedback/.weightingFeedbackKg`, `equipment.buoyancyKg/.weightKg`, `divePlans.plannedWeightKg/.plannedWeightPlacement`. Later tasks depend on these generated names exactly.
 
-- [ ] **Step 1: Write the failing migration test**
+- [x] **Step 1: Write the failing migration test**
 
 Mirror `test/core/database/migration_v103_dive_roles_test.dart` (all four shapes). Create `test/core/database/migration_v104_weight_prediction_test.dart`:
 
@@ -152,12 +152,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2: Run it to verify failure**
+- [x] **Step 2: Run it to verify failure**
 
 Run: `flutter test test/core/database/migration_v104_weight_prediction_test.dart`
 Expected: FAIL (`currentSchemaVersion` is 103; tables missing).
 
-- [ ] **Step 3: Add table classes and columns in database.dart**
+- [x] **Step 3: Add table classes and columns in database.dart**
 
 Insert after the `DiveWeights` table class (ends near line 737):
 
@@ -221,7 +221,7 @@ In `DivePlans` (after `turnPressureFraction`):
 
 Register `DiverWeightEntries` and `DivePlanEquipment` in the `@DriftDatabase(tables: [...])` list (lines 2000-2077). Bump `currentSchemaVersion` to `104` (line 2086). Append `104,` to `migrationVersions` (line 2192). Add `'diver_weight_entries'` to `_hlcTables` (lines 2202-2230) — NOT `dive_plan_equipment` (no hlc column).
 
-- [ ] **Step 4: Add the onUpgrade block and beforeOpen backstop**
+- [x] **Step 4: Add the onUpgrade block and beforeOpen backstop**
 
 After the `if (from < 103) await reportProgress();` line (~5068):
 
@@ -259,7 +259,7 @@ After the `if (from < 103) await reportProgress();` line (~5068):
 
 In `beforeOpen`, after the v103 backstop block (ends ~line 5140), add the symmetric v104 backstop (same DDL, using `createMigrator().createTable(...)` and the same PRAGMA-guarded ALTERs — copy the helper closure locally since scope differs).
 
-- [ ] **Step 5: Add performance index entries**
+- [x] **Step 5: Add performance index entries**
 
 Append to `kPerformanceIndexes` in `lib/core/database/performance_indexes.dart` (record typedef `({String name, String ddl})`):
 
@@ -280,13 +280,13 @@ Append to `kPerformanceIndexes` in `lib/core/database/performance_indexes.dart` 
   ),
 ```
 
-- [ ] **Step 6: Regenerate and run tests**
+- [x] **Step 6: Regenerate and run tests**
 
 Run: `dart run build_runner build --delete-conflicting-outputs`
 Run: `flutter test test/core/database/migration_v104_weight_prediction_test.dart test/core/database/performance_indexes_test.dart`
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add lib/core/database/ test/core/database/migration_v104_weight_prediction_test.dart
@@ -307,16 +307,16 @@ git commit -m "feat(db): schema v104 for weight prediction (feedback, buoyancy, 
 - Consumes: Task 1 generated Drift classes (`diverWeightEntries`, `divePlanEquipment` tables; `DiverWeightEntryRow`).
 - Produces: sync entity types `'diverWeightEntries'` (HLC) and `'divePlanEquipment'` (clockless junction, composite record id `'planId|equipmentId'`). Repositories in Tasks 3/6 use these exact entityType strings.
 
-- [ ] **Step 1: Run the structural sync tests to see them fail**
+- [x] **Step 1: Run the structural sync tests to see them fail**
 
 Run: `flutter test test/core/services/sync/sync_base_streaming_parity_test.dart test/core/services/sync/sync_data_serializer_record_ids_test.dart test/core/services/sync/sync_parent_refs_completeness_test.dart`
 Expected: FAIL — these tests enumerate `SyncData().toJson()` keys, `recordIdsFor` cases, and FK parent refs; the new tables from Task 1 make them fail until wired. (If they pass before any edit, they key off the serializer not the schema — proceed; they must still pass after Step 3.)
 
-- [ ] **Step 2: Write the failing round-trip test**
+- [x] **Step 2: Write the failing round-trip test**
 
 Mirror `test/core/services/sync/sync_dive_roles_test.dart`. Cover: export includes rows from both tables; `upsertRecord('diverWeightEntries', ...)` round-trips a full row and an explicit-null `height_cm` clears the local value (`.toCompanion(false)` semantics); `upsertRecord('divePlanEquipment', ...)` inserts a junction row given parents exist; `deleteRecord('divePlanEquipment', 'p1|e1')` removes it; `recordIdsFor` returns composite ids for the junction.
 
-- [ ] **Step 3: Wire the serializer, service, and repository**
+- [x] **Step 3: Wire the serializer, service, and repository**
 
 For `diverWeightEntries`, copy the `diveRoles` template at every listed location; `_baseTables` entry:
 
@@ -355,12 +355,12 @@ No `parentRefs` entry for `diverWeightEntries` (diverId is repointed by DiverMer
     'diverWeightEntries': (table: 'diver_weight_entries', pk: 'id'),
 ```
 
-- [ ] **Step 4: Run all sync tests**
+- [x] **Step 4: Run all sync tests**
 
 Run: `flutter test test/core/services/sync/`
 Expected: PASS (structural + new round-trip + existing suites).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add lib/core/services/sync/ lib/core/data/repositories/sync_repository.dart test/core/services/sync/sync_weight_prediction_test.dart
@@ -405,12 +405,12 @@ final diverWeightEntriesProvider = FutureProvider<List<DiverWeightEntry>>(...); 
 final latestDiverWeightProvider = FutureProvider<DiverWeightEntry?>(...);
 ```
 
-- [ ] **Step 1: Write failing repository tests** — in-memory DB pattern from `test/features/dive_log/data/repositories/view_config_repository_test.dart:17-40` (`AppDatabase(NativeDatabase.memory())`, `DatabaseService.instance.setTestDatabase(db)`, insert a diver row in setUp). Test: create then read back ordered desc; `latestEntry` returns newest by `measuredAt`; `entryNearest` picks the closest-dated entry on both sides; delete removes and (via `SyncRepository`) writes a `deletion_log` tombstone row (assert `SELECT * FROM deletion_log WHERE record_id = ?` non-empty); created row has non-null `hlc` after `markRecordPending`.
-- [ ] **Step 2: Run to verify failure** — `flutter test test/features/divers/data/repositories/diver_weight_entry_repository_test.dart` — FAIL (files missing).
-- [ ] **Step 3: Implement entity + repository** — mirror `DiveRoleRepository` (`lib/features/dive_roles/data/repositories/dive_role_repository.dart`): every mutation writes the row with `updatedAt` then `await _syncRepository.markRecordPending(entityType: 'diverWeightEntries', recordId: id, localUpdatedAt: now)` then `SyncEventBus.notifyLocalChange()`; delete uses `logDeletion(entityType: 'diverWeightEntries', recordId: id)`. `entryNearest`: fetch all for diver, pick min `|measuredAt - at|` in Dart (entry counts are tiny). ID generation: `const Uuid().v4()` when `entry.id` is empty.
-- [ ] **Step 4: Implement providers** — mirror `equipment_providers.dart` scoping: `final diverId = await ref.watch(validatedCurrentDiverIdProvider.future); if (diverId == null) return [];` and self-invalidate via `ref.listen`-free pattern used there (subscribe to `repository.watchChanges()` with `ref.onDispose` cancel + `ref.invalidateSelf()`).
-- [ ] **Step 5: Wire diver deletion** — in `deleteDiverWithReassignment` add `await customStatement('DELETE FROM diver_weight_entries WHERE diver_id = ?', [id]);` alongside the equipment delete block (lines 437-467), matching its style.
-- [ ] **Step 6: Run tests, format, commit**
+- [x] **Step 1: Write failing repository tests** — in-memory DB pattern from `test/features/dive_log/data/repositories/view_config_repository_test.dart:17-40` (`AppDatabase(NativeDatabase.memory())`, `DatabaseService.instance.setTestDatabase(db)`, insert a diver row in setUp). Test: create then read back ordered desc; `latestEntry` returns newest by `measuredAt`; `entryNearest` picks the closest-dated entry on both sides; delete removes and (via `SyncRepository`) writes a `deletion_log` tombstone row (assert `SELECT * FROM deletion_log WHERE record_id = ?` non-empty); created row has non-null `hlc` after `markRecordPending`.
+- [x] **Step 2: Run to verify failure** — `flutter test test/features/divers/data/repositories/diver_weight_entry_repository_test.dart` — FAIL (files missing).
+- [x] **Step 3: Implement entity + repository** — mirror `DiveRoleRepository` (`lib/features/dive_roles/data/repositories/dive_role_repository.dart`): every mutation writes the row with `updatedAt` then `await _syncRepository.markRecordPending(entityType: 'diverWeightEntries', recordId: id, localUpdatedAt: now)` then `SyncEventBus.notifyLocalChange()`; delete uses `logDeletion(entityType: 'diverWeightEntries', recordId: id)`. `entryNearest`: fetch all for diver, pick min `|measuredAt - at|` in Dart (entry counts are tiny). ID generation: `const Uuid().v4()` when `entry.id` is empty.
+- [x] **Step 4: Implement providers** — mirror `equipment_providers.dart` scoping: `final diverId = await ref.watch(validatedCurrentDiverIdProvider.future); if (diverId == null) return [];` and self-invalidate via `ref.listen`-free pattern used there (subscribe to `repository.watchChanges()` with `ref.onDispose` cancel + `ref.invalidateSelf()`).
+- [x] **Step 5: Wire diver deletion** — in `deleteDiverWithReassignment` add `await customStatement('DELETE FROM diver_weight_entries WHERE diver_id = ?', [id]);` alongside the equipment delete block (lines 437-467), matching its style.
+- [x] **Step 6: Run tests, format, commit**
 
 ```bash
 flutter test test/features/divers/
@@ -433,11 +433,11 @@ git commit -m "feat(divers): dated body weight entries with sync + providers"
 **Interfaces:**
 - Produces: `EquipmentItem.buoyancyKg` (`double?`), `EquipmentItem.weightKg` (`double?`) — read by the engine feature layer (Task 12) and the gear edit form (Task 15).
 
-- [ ] **Step 1: Failing test** — round-trip an `EquipmentItem(buoyancyKg: -2.5, weightKg: 3.0)` through `createEquipment`/`getEquipmentById` and through `searchEquipment`; assert the dive batch join (create dive with linked equipment, `getDiveById`) carries the fields.
-- [ ] **Step 2: Run to verify failure.**
-- [ ] **Step 3: Implement** — add both fields everywhere listed. `copyWith` uses the entity's existing plain `value ?? this.value` pattern (clearing happens by rebuilding the entity in the edit form — matches current form behavior). New columns flow through sync automatically (whole-row serialization) — no serializer edits.
-- [ ] **Step 4: CSV export** — add `Buoyancy (kg)` and `Dry Weight (kg)` headers + row values in the equipment section of `csv_export_service.dart`.
-- [ ] **Step 5: Run equipment + dive_log repository tests, format, commit**
+- [x] **Step 1: Failing test** — round-trip an `EquipmentItem(buoyancyKg: -2.5, weightKg: 3.0)` through `createEquipment`/`getEquipmentById` and through `searchEquipment`; assert the dive batch join (create dive with linked equipment, `getDiveById`) carries the fields.
+- [x] **Step 2: Run to verify failure.**
+- [x] **Step 3: Implement** — add both fields everywhere listed. `copyWith` uses the entity's existing plain `value ?? this.value` pattern (clearing happens by rebuilding the entity in the edit form — matches current form behavior). New columns flow through sync automatically (whole-row serialization) — no serializer edits.
+- [x] **Step 4: CSV export** — add `Buoyancy (kg)` and `Dry Weight (kg)` headers + row values in the equipment section of `csv_export_service.dart`.
+- [x] **Step 5: Run equipment + dive_log repository tests, format, commit**
 
 ```bash
 flutter test test/features/equipment/ test/features/dive_log/data/
@@ -472,10 +472,10 @@ enum WeightingFeedback {
 
 Stored as `.name` strings; parsed with `WeightingFeedback.values.firstWhere((f) => f.name == raw, orElse: ...)` guarded by null check (follow the `WeightType` parse idiom in the same mapper).
 
-- [ ] **Step 1: Failing test** — create a dive with `weightingFeedback: WeightingFeedback.overweighted, weightingFeedbackKg: 2.0`, read via `getDiveById`, assert round-trip; update to `correct`/null magnitude, assert; `DiveSummary` list mapping remains unaffected.
-- [ ] **Step 2: Run to verify failure.**
-- [ ] **Step 3: Implement** enum + entity + companions + mappers. Note `Dive.copyWith` in this repo uses plain `??` — to allow clearing feedback the edit page rebuilds the `Dive` from form state (same approach the page already uses for other nullable fields), so no sentinel needed.
-- [ ] **Step 4: Run, format, commit** — `git commit -m "feat(dive-log): weighting feedback fields on dives"`
+- [x] **Step 1: Failing test** — create a dive with `weightingFeedback: WeightingFeedback.overweighted, weightingFeedbackKg: 2.0`, read via `getDiveById`, assert round-trip; update to `correct`/null magnitude, assert; `DiveSummary` list mapping remains unaffected.
+- [x] **Step 2: Run to verify failure.**
+- [x] **Step 3: Implement** enum + entity + companions + mappers. Note `Dive.copyWith` in this repo uses plain `??` — to allow clearing feedback the edit page rebuilds the `Dive` from form state (same approach the page already uses for other nullable fields), so no sentinel needed.
+- [x] **Step 4: Run, format, commit** — `git commit -m "feat(dive-log): weighting feedback fields on dives"`
 
 ---
 
@@ -505,9 +505,9 @@ void setEquipmentIds(List<String> ids);          // copyWith + isDirty
 void setPlannedWeight(double? totalKg, Map<String, double>? placement);
 ```
 
-- [ ] **Step 1: Failing persistence test** — in-memory DB; insert parent divers/equipment rows; `savePlan` a plan with `equipmentIds: ['e1', 'e2']` and `plannedWeightKg: 6.5, plannedWeightPlacement: {'integrated': 4.5, 'trimWeights': 2.0}`; `getPlan` returns them; re-save with `['e1']` and assert the removed junction row is gone AND `deletion_log` has a tombstone with `record_id = '<planId>|e2'`; assert `watchPlanChanges` fires on junction-only changes.
-- [ ] **Step 2: Run to verify failure.**
-- [ ] **Step 3: Implement persistence** — inside `savePlan`'s existing transaction, after the tanks block, mirror the diff pattern:
+- [x] **Step 1: Failing persistence test** — in-memory DB; insert parent divers/equipment rows; `savePlan` a plan with `equipmentIds: ['e1', 'e2']` and `plannedWeightKg: 6.5, plannedWeightPlacement: {'integrated': 4.5, 'trimWeights': 2.0}`; `getPlan` returns them; re-save with `['e1']` and assert the removed junction row is gone AND `deletion_log` has a tombstone with `record_id = '<planId>|e2'`; assert `watchPlanChanges` fires on junction-only changes.
+- [x] **Step 2: Run to verify failure.**
+- [x] **Step 3: Implement persistence** — inside `savePlan`'s existing transaction, after the tanks block, mirror the diff pattern:
 
 ```dart
       final existingEqRows = await (_db.select(_db.divePlanEquipment)
@@ -535,8 +535,8 @@ After the transaction, in the sync bookkeeping section (:129-160), add `markReco
 
 `_planCompanion`: `plannedWeightKg: Value(plan.plannedWeightKg), plannedWeightPlacement: Value(plan.plannedWeightPlacement == null ? null : jsonEncode(plan.plannedWeightPlacement)),`. `_mapPlan`: decode with `(jsonDecode(raw) as Map<String, dynamic>).map((k, v) => MapEntry(k, (v as num).toDouble()))`; hydrate `equipmentIds` from a junction select. Add `divePlanEquipment` to the `watchPlanChanges` table set.
 
-- [ ] **Step 4: Thread through state + mapper + notifier** (fields default to `const []`/null in `newPlan`).
-- [ ] **Step 5: Run planner tests, format, commit** — `flutter test test/features/planner/ test/features/dive_planner/` then `git commit -m "feat(planner): plan equipment junction and planned weight snapshot"`
+- [x] **Step 4: Thread through state + mapper + notifier** (fields default to `const []`/null in `newPlan`).
+- [x] **Step 5: Run planner tests, format, commit** — `flutter test test/features/planner/ test/features/dive_planner/` then `git commit -m "feat(planner): plan equipment junction and planned weight snapshot"`
 
 ---
 
@@ -578,10 +578,10 @@ class WeightHistoryRepository {
 }
 ```
 
-- [ ] **Step 1: Failing test** — seed an in-memory DB with: a diver; dive A (salt, 2 `dive_weights` rows 4.0 integrated + 2.0 trimWeights, 2 equipment links, 1 tank row with material/volume, feedback overweighted 1.5); dive B (legacy `weight_amount` 8.0 only, no dive_weights); dive C (no weights at all). Assert: 2 observations (C excluded); A's `carriedKg == 6.0` with placement map populated; B's `carriedKg == 8.0` with empty placement; equipment ids and tank fields present; ordering oldest-first.
-- [ ] **Step 2: Run to verify failure.**
-- [ ] **Step 3: Implement** with four batch queries (no per-dive N+1): select candidate dives (`diverId` match AND (`weightAmount` not null OR id in dive_weights)), then `dive_weights`, `dive_equipment`, `dive_tanks` each with `.isIn(diveIds)`, assemble maps in Dart. Parse `waterType`/material with the `values.firstWhere(orElse)` idiom.
-- [ ] **Step 4: Run, format, commit** — `git commit -m "feat(weight-planner): batch weight history observations query"`
+- [x] **Step 1: Failing test** — seed an in-memory DB with: a diver; dive A (salt, 2 `dive_weights` rows 4.0 integrated + 2.0 trimWeights, 2 equipment links, 1 tank row with material/volume, feedback overweighted 1.5); dive B (legacy `weight_amount` 8.0 only, no dive_weights); dive C (no weights at all). Assert: 2 observations (C excluded); A's `carriedKg == 6.0` with placement map populated; B's `carriedKg == 8.0` with empty placement; equipment ids and tank fields present; ordering oldest-first.
+- [x] **Step 2: Run to verify failure.**
+- [x] **Step 3: Implement** with four batch queries (no per-dive N+1): select candidate dives (`diverId` match AND (`weightAmount` not null OR id in dive_weights)), then `dive_weights`, `dive_equipment`, `dive_tanks` each with `.isIn(diveIds)`, assemble maps in Dart. Parse `waterType`/material with the `values.firstWhere(orElse)` idiom.
+- [x] **Step 4: Run, format, commit** — `git commit -m "feat(weight-planner): batch weight history observations query"`
 
 ---
 
@@ -659,7 +659,7 @@ const Map<String, ({double emptyBuoyancyKg, double dryMassKg})> kTankCatalog = {
 
 Resolution order in `tankTermKg`: explicit `presetName` in catalog -> `TankPresets.matchBySpecs(volumeL, workingPressureBar)?.name` in catalog -> per-material fallback `emptyBuoyancyKg = volumeL * f` with f: aluminum +0.15, steel -0.12, carbonFiber +0.30 (volume null -> 11.0 default). Then subtract reserve gas mass: `volumeL * reserveBar * airDensityKgPerLBar`. `waterTermKg = totalMassKg * (density(waterType)/densitySaltKgL - 1.0)`; null waterType -> 0.
 
-- [ ] **Step 1: Compute expected vectors with python3** (repo rule: never from recall):
+- [x] **Step 1: Compute expected vectors with python3** (repo rule: never from recall):
 
 ```bash
 python3 - <<'EOF'
@@ -678,9 +678,9 @@ EOF
 
 Record the printed values as `closeTo(value, 0.001)` expectations.
 
-- [ ] **Step 2: Write failing tests** — water term signs/magnitudes from Step 1; tank term for catalog hit (`presetName: 'al80'`), spec-match hit (volume 11.1, wp 207 -> matches al80), material fallback, null-volume fallback; gear priors: `7mm Farmer John` name parses to 7.0 prior, `buoyancyKg: -2.0` metadata wins with strength 8.0, drysuit default 10.0, `EquipmentType.weights` throws.
-- [ ] **Step 3: Run to verify failure, implement, run to green.**
-- [ ] **Step 4: Commit** — `git commit -m "feat(buoyancy): gear feature priors and physics terms"`
+- [x] **Step 2: Write failing tests** — water term signs/magnitudes from Step 1; tank term for catalog hit (`presetName: 'al80'`), spec-match hit (volume 11.1, wp 207 -> matches al80), material fallback, null-volume fallback; gear priors: `7mm Farmer John` name parses to 7.0 prior, `buoyancyKg: -2.0` metadata wins with strength 8.0, drysuit default 10.0, `EquipmentType.weights` throws.
+- [x] **Step 3: Run to verify failure, implement, run to green.**
+- [x] **Step 4: Commit** — `git commit -m "feat(buoyancy): gear feature priors and physics terms"`
 
 ---
 
@@ -708,14 +708,14 @@ class RidgeRegression {
 }
 ```
 
-- [ ] **Step 1: Failing tests** (verify expectations with python3/numpy where nontrivial):
+- [x] **Step 1: Failing tests** (verify expectations with python3/numpy where nontrivial):
   - n=0 -> returns `prior` exactly.
   - Single feature, many consistent observations -> coefficient converges near the data value, far from prior.
   - Two perfectly correlated features (always co-occur): the SUM of their coefficients matches the data-determined sum within 1e-6 even though the split follows priors.
   - Known 2x2 system solved by hand matches to 1e-9.
   - Observation weights: a weight-0 row has no influence.
-- [ ] **Step 2: Implement** — build the p-by-p normal matrix and RHS in doubles, eliminate with partial pivoting; throw `StateError` on a singular pivot below 1e-12 (cannot happen with lambda > 0, guard anyway).
-- [ ] **Step 3: Run to green, commit** — `git commit -m "feat(buoyancy): weighted ridge regression solver"`
+- [x] **Step 2: Implement** — build the p-by-p normal matrix and RHS in doubles, eliminate with partial pivoting; throw `StateError` on a singular pivot below 1e-12 (cannot happen with lambda > 0, guard anyway).
+- [x] **Step 3: Run to green, commit** — `git commit -m "feat(buoyancy): weighted ridge regression solver"`
 
 ---
 
@@ -779,15 +779,15 @@ Fit algorithm (spell out in code comments):
 5. `predict(rig)`: total = personal coef + sum over rig gear (fitted coef if the item was in the fit, else its prior) + physics terms for the rig; clamp >= 0. Terms: one per gear item (source: `measured` if in fit with >= 3 supporting uses, `userSpec` if `hasUserSpec`, else `typeDefault`), one per tank + one water term (source `physics`), one personal term (source `measured` if supportingDives >= 3 else `typeDefault`).
 6. Confidence: `high` if supportingDives >= 10 AND informed-coverage >= 0.75 AND bodyWeightKg != null AND residualStd <= 1.5; `medium` if supportingDives >= 3 AND coverage >= 0.5; else `low`. Informed-coverage = fraction of rig gear features that have metadata OR >= 3 occurrences in observations (1.0 for an empty gear list).
 
-- [ ] **Step 1: Write failing golden-scenario tests** (synthetic observations built by a local helper; `now` injected; assert direction and bounded magnitude, not exact values):
+- [x] **Step 1: Write failing golden-scenario tests** (synthetic observations built by a local helper; `now` injected; assert direction and bounded magnitude, not exact values):
   - Zero history -> prediction equals priors + physics; confidence `low`; total >= 0.
   - 20 identical salt dives (suit S + bcd B, al80, carried 8.0, feedback correct) -> predict same rig salt within +/- 0.5 of 8.0, confidence `high` given bodyWeight set; predict same rig FRESH -> lower by 1.5-3.5 kg (water term at ~90-100 kg total mass).
   - Gear swap never seen: replace suit S with unseen drysuit (prior 10, suit S fitted ~5) -> total increases by 3.0-7.0.
   - Chronic overweighting: 15 dives carried 10.0 all flagged overweighted magnitude 2.0 -> prediction 7.5-8.5.
   - Correlated pair: suit+bcd always together; prediction for the PAIR matches history sum within 0.5 even though individual terms differ from priors.
   - Outlier: one dive at 25 kg among 10 at 8 kg barely moves the prediction (< 0.7 shift vs without it).
-- [ ] **Step 2: Run to verify failure, implement, iterate to green.**
-- [ ] **Step 3: Commit** — `git commit -m "feat(buoyancy): hybrid weight prediction engine with calibration"`
+- [x] **Step 2: Run to verify failure, implement, iterate to green.**
+- [x] **Step 3: Commit** — `git commit -m "feat(buoyancy): hybrid weight prediction engine with calibration"`
 
 ---
 
@@ -816,8 +816,8 @@ class PlacementPredictor {
 
 Filter: observations with non-empty `placement`, containing `exposureItemId` in `equipmentIds` when provided (when null or nothing matches, fall back to all placement-bearing observations); take the `maxObservations` most recent; average each WeightType fraction; multiply by total; round with largest remainder.
 
-- [ ] **Step 1: Failing tests** — fractions averaged correctly; parts sum exactly to the rounded total for awkward splits (e.g. total 6.6, increment 0.5, fractions 2/3-1/3); exposure filter applied then fallback; null when no placement history.
-- [ ] **Step 2: Implement, run to green, commit** — `git commit -m "feat(buoyancy): placement predictor with largest-remainder rounding"`
+- [x] **Step 1: Failing tests** — fractions averaged correctly; parts sum exactly to the rounded total for awkward splits (e.g. total 6.6, increment 0.5, fractions 2/3-1/3); exposure filter applied then fallback; null when no placement history.
+- [x] **Step 2: Implement, run to green, commit** — `git commit -m "feat(buoyancy): placement predictor with largest-remainder rounding"`
 
 ---
 
@@ -851,8 +851,8 @@ final planWeightPredictionProvider = Provider<WeightPrediction?>(...);
 
 `planWeightPredictionProvider` mirrors `planBailoutProvider` (`plan_canvas_providers.dart:231`): watch `divePlanNotifierProvider` state + `weightCalibrationProvider`/`allEquipmentProvider`/`latestDiverWeightProvider` `.valueOrNull` (return null while loading); build `RigSpec` from `state.equipmentIds` resolved to items, `state.tanks` mapped to `TankSpec(presetName: t.presetName, volumeL: t.volume, workingPressureBar: t.workingPressure, material: t.material)`, `state.waterType`, latest body weight; return `model.predict(rig)`.
 
-- [ ] **Step 1: Failing tests** — with a `ProviderContainer` and overridden inputs (synthetic observations via overriding `weightObservationsProvider`, equipment via `allEquipmentProvider`): calibration fits and predicts; `gearFeatureFor` excludes `weights`/`tank` types and passes metadata through; `planWeightPredictionProvider` returns null while calibration loads and a prediction once available.
-- [ ] **Step 2: Implement, run to green, format, commit** — `git commit -m "feat(weight-planner): calibration and prediction providers"`
+- [x] **Step 1: Failing tests** — with a `ProviderContainer` and overridden inputs (synthetic observations via overriding `weightObservationsProvider`, equipment via `allEquipmentProvider`): calibration fits and predicts; `gearFeatureFor` excludes `weights`/`tank` types and passes metadata through; `planWeightPredictionProvider` returns null while calibration loads and a prediction once available.
+- [x] **Step 2: Implement, run to green, format, commit** — `git commit -m "feat(weight-planner): calibration and prediction providers"`
 
 ---
 
@@ -903,11 +903,11 @@ New l10n keys (add to `app_en.arb` + translate in all 10 other locales; reuse ex
 "tools_weight_noGear": "Add the gear you plan to dive to personalize the prediction."
 ```
 
-- [ ] **Step 1: Failing widget test** — pump with `testApp` helper (`test/helpers/test_app.dart`) + overrides: `weightObservationsProvider` -> synthetic list, `allEquipmentProvider` -> two items, `tankPresetsProvider` -> built-ins, `latestDiverWeightProvider` -> entry(80kg). Assert: predicted total renders; removing a gear chip changes the displayed total; confidence line present.
-- [ ] **Step 2: Run to verify failure.**
-- [ ] **Step 3: Implement widgets + page; swap the router import/builder; fix `tools_page.dart:53`; delete the two legacy files; add l10n keys to all 11 arbs; `flutter gen-l10n`.**
-- [ ] **Step 4: Run the widget test + `flutter analyze` (deleting `WeightCalculator` must leave no dangling imports).**
-- [ ] **Step 5: Format + commit** — `git commit -m "feat(weight-planner): data-driven weight planner tool replacing static calculator"`
+- [x] **Step 1: Failing widget test** — pump with `testApp` helper (`test/helpers/test_app.dart`) + overrides: `weightObservationsProvider` -> synthetic list, `allEquipmentProvider` -> two items, `tankPresetsProvider` -> built-ins, `latestDiverWeightProvider` -> entry(80kg). Assert: predicted total renders; removing a gear chip changes the displayed total; confidence line present.
+- [x] **Step 2: Run to verify failure.**
+- [x] **Step 3: Implement widgets + page; swap the router import/builder; fix `tools_page.dart:53`; delete the two legacy files; add l10n keys to all 11 arbs; `flutter gen-l10n`.**
+- [x] **Step 4: Run the widget test + `flutter analyze` (deleting `WeightCalculator` must leave no dangling imports).**
+- [x] **Step 5: Format + commit** — `git commit -m "feat(weight-planner): data-driven weight planner tool replacing static calculator"`
 
 ---
 
@@ -962,9 +962,9 @@ UI appended at the end of `_weightChild` (after the add button):
 
 l10n keys: `diveLog_edit_weightFeedback_label` = "How was your weighting?", `_correct` = "Felt right", `_over` = "Overweighted", `_under` = "Underweighted", `_amount` = "By about how much ({unit})" (placeholder `unit`, type String). All 11 locales.
 
-- [ ] **Step 1: Failing widget test** — mirror `dive_edit_page_test.dart` setup (in-memory DB + `buildOverrides`); create a dive, open editor, `ensureVisible` then tap "Overweighted" segment, enter 2 in the amount field, save; assert repository dive has `weightingFeedback == overweighted` and `weightingFeedbackKg == 2.0` (kg units in test settings). Second test: editing a dive with feedback pre-selects the segment.
-- [ ] **Step 2: Run to verify failure, implement, run to green.**
-- [ ] **Step 3: l10n all locales + gen; format; commit** — `git commit -m "feat(dive-log): weighting feedback capture on dive edit"`
+- [x] **Step 1: Failing widget test** — mirror `dive_edit_page_test.dart` setup (in-memory DB + `buildOverrides`); create a dive, open editor, `ensureVisible` then tap "Overweighted" segment, enter 2 in the amount field, save; assert repository dive has `weightingFeedback == overweighted` and `weightingFeedbackKg == 2.0` (kg units in test settings). Second test: editing a dive with feedback pre-selects the segment.
+- [x] **Step 2: Run to verify failure, implement, run to green.**
+- [x] **Step 3: l10n all locales + gen; format; commit** — `git commit -m "feat(dive-log): weighting feedback capture on dive edit"`
 
 ---
 
@@ -982,8 +982,8 @@ Two `TextFormField`s in a "Advanced" card: buoyancy (suffix `units.weightSymbol`
 
 l10n keys: `equipment_edit_advanced_title` = "Advanced", `equipment_edit_buoyancyLabel` = "Buoyancy ({unit})", `equipment_edit_dryWeightLabel` = "Dry weight ({unit})", `equipment_edit_buoyancyHint_exposure` = "Positive: how much it floats", `equipment_edit_buoyancyHint_generic` = "Negative if it sinks", `equipment_edit_buoyancyHint_tank` = "Leave empty - tanks use their own specifications". All 11 locales.
 
-- [ ] **Step 1: Failing widget test** — pump edit page for an existing item, `ensureVisible` the Advanced card (labels are NOT uppercased in this page's cards — match exact strings), enter buoyancy -2.5 and weight 3, save, assert repository row values (kg test units).
-- [ ] **Step 2: Implement, green, l10n, format, commit** — `git commit -m "feat(equipment): advanced buoyancy and dry weight fields on gear edit"`
+- [x] **Step 1: Failing widget test** — pump edit page for an existing item, `ensureVisible` the Advanced card (labels are NOT uppercased in this page's cards — match exact strings), enter buoyancy -2.5 and weight 3, save, assert repository row values (kg test units).
+- [x] **Step 2: Implement, green, l10n, format, commit** — `git commit -m "feat(equipment): advanced buoyancy and dry weight fields on gear edit"`
 
 ---
 
@@ -1005,8 +1005,8 @@ Hub tile: icon `Icons.monitor_weight`, title `diverProfile_bodyWeight_title`, su
 
 l10n keys: `diverProfile_bodyWeight_title` = "Body Weight", `diverProfile_bodyWeight_empty` = "Not recorded", `bodyWeight_addEntry` = "Add measurement", `bodyWeight_weightLabel` = "Weight ({unit})", `bodyWeight_heightLabel` = "Height (cm)", `bodyWeight_dateLabel` = "Date", `bodyWeight_deleteTooltip` = "Delete entry". All 11 locales.
 
-- [ ] **Step 1: Failing widget test** — pump page with repo-backed in-memory DB; add an entry via dialog; assert list shows it and repository persisted it; delete removes it.
-- [ ] **Step 2: Implement page + tile + route, green, l10n, format, commit** — `git commit -m "feat(settings): dated body weight history in diver profile"`
+- [x] **Step 1: Failing widget test** — pump page with repo-backed in-memory DB; add an entry via dialog; assert list shows it and repository persisted it; delete removes it.
+- [x] **Step 2: Implement page + tile + route, green, l10n, format, commit** — `git commit -m "feat(settings): dated body weight history in diver profile"`
 
 ---
 
@@ -1025,9 +1025,9 @@ l10n keys: `diverProfile_bodyWeight_title` = "Body Weight", `diverProfile_bodyWe
 
 l10n keys: `planner_gearWeights_title` = "Gear & Weights", `planner_gearWeights_predicted` = "Predicted: {weight}" (String placeholder), `planner_gearWeights_accept` = "Use as planned weight", `planner_gearWeights_planned` = "Planned: {weight}" (String placeholder), `planner_gearWeights_addGear` = "Add gear", `planner_gearWeights_useSet` = "Use set", `planner_gearWeights_empty` = "Add gear to predict your weighting". All 11 locales.
 
-- [ ] **Step 1: Failing widget test** — pump `PlanGearWeightsSection` inside `testApp` with overrides (`divePlanNotifierProvider` state containing one tank + equipmentIds, calibration overridden as in Task 12's test); assert prediction text renders; tap accept; assert `state.plannedWeightKg` set.
-- [ ] **Step 2: Implement + insert into both `plan_canvas_page.dart` ListViews** (the phone list is `const` — remove `const` from the list literal since the section is const-constructible anyway, keep `const` if possible).
-- [ ] **Step 3: Green, l10n, format, commit** — `git commit -m "feat(planner): gear and weights section with live weight prediction"`
+- [x] **Step 1: Failing widget test** — pump `PlanGearWeightsSection` inside `testApp` with overrides (`divePlanNotifierProvider` state containing one tank + equipmentIds, calibration overridden as in Task 12's test); assert prediction text renders; tap accept; assert `state.plannedWeightKg` set.
+- [x] **Step 2: Implement + insert into both `plan_canvas_page.dart` ListViews** (the phone list is `const` — remove `const` from the list literal since the section is const-constructible anyway, keep `const` if possible).
+- [x] **Step 3: Green, l10n, format, commit** — `git commit -m "feat(planner): gear and weights section with live weight prediction"`
 
 ---
 
@@ -1035,18 +1035,18 @@ l10n keys: `planner_gearWeights_title` = "Gear & Weights", `planner_gearWeights_
 
 **Files:** none new.
 
-- [ ] **Step 1: Full formatting + analysis**
+- [x] **Step 1: Full formatting + analysis**
 
 Run: `dart format .` (must output "0 changed"). Run: `flutter analyze` (whole project, zero issues).
 
-- [ ] **Step 2: Run the feature test surface**
+- [x] **Step 2: Run the feature test surface**
 
 Run: `flutter test test/core/buoyancy/ test/core/database/migration_v104_weight_prediction_test.dart test/core/services/sync/ test/features/weight_planner/ test/features/divers/ test/features/equipment/ test/features/dive_log/ test/features/planner/ test/features/dive_planner/ test/features/settings/ test/l10n/`
 Expected: all PASS.
 
-- [ ] **Step 3: l10n completeness check** — `flutter gen-l10n` runs clean; grep each new key across all 11 arb files and confirm 11 hits per key.
+- [x] **Step 3: l10n completeness check** — `flutter gen-l10n` runs clean; grep each new key across all 11 arb files and confirm 11 hits per key.
 
-- [ ] **Step 4: Final commit of any stragglers**
+- [x] **Step 4: Final commit of any stragglers**
 
 ```bash
 git add -A
