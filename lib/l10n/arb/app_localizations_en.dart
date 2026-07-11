@@ -18867,4 +18867,31 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dive3d_metric_tankPressure => 'Pressure';
+
+  @override
+  String get dive3d_scene_dive => 'Dive';
+
+  @override
+  String get dive3d_scene_tissue => 'Tissues';
+
+  @override
+  String get dive3d_tissue_gasCombined => 'Combined';
+
+  @override
+  String get dive3d_tissue_gasN2 => 'N2';
+
+  @override
+  String get dive3d_tissue_gasHe => 'He';
+
+  @override
+  String get dive3d_tissue_colorMValue => '% M-value';
+
+  @override
+  String get dive3d_tissue_colorAbsolute => 'Loading';
+
+  @override
+  String get dive3d_tissue_controlling => 'Controlling';
+
+  @override
+  String get dive3d_tissue_surfaceInterval => 'Surface interval';
 }

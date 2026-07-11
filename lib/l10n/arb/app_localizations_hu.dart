@@ -19136,4 +19136,31 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get dive3d_metric_tankPressure => 'Nyomás';
+
+  @override
+  String get dive3d_scene_dive => 'Merülés';
+
+  @override
+  String get dive3d_scene_tissue => 'Szövetek';
+
+  @override
+  String get dive3d_tissue_gasCombined => 'Együtt';
+
+  @override
+  String get dive3d_tissue_gasN2 => 'N2';
+
+  @override
+  String get dive3d_tissue_gasHe => 'He';
+
+  @override
+  String get dive3d_tissue_colorMValue => '% M-érték';
+
+  @override
+  String get dive3d_tissue_colorAbsolute => 'Telítettség';
+
+  @override
+  String get dive3d_tissue_controlling => 'Vezérlő';
+
+  @override
+  String get dive3d_tissue_surfaceInterval => 'Felszíni szünet';
 }

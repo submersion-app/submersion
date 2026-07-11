@@ -1,13 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/features/dive_3d/application/providers.dart';
+import 'package:submersion/features/dive_3d/application/tissue_providers.dart';
+import 'package:submersion/features/dive_3d/domain/tissue/tissue_chain.dart';
+import 'package:submersion/features/dive_3d/domain/tissue/tissue_replay_result.dart';
+import 'package:submersion/features/dive_3d/domain/tissue/tissue_replay_service.dart';
 import 'package:submersion/features/dive_3d/presentation/pages/dive_3d_page.dart';
 import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/time_scrub_bar.dart';
+import 'package:submersion/features/dive_3d/presentation/widgets/tissue_readout_panel.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 import '../widgets/scene_readout_panel_test.dart' show readoutSceneData;
+
+TissueReplayResult tissueResult() {
+  final times = [for (var m = 0; m <= 15; m++) (m * 60).toDouble()];
+  final depths = [for (var m = 0; m <= 15; m++) 30.0];
+  return const TissueReplayService().replay(
+    TissueChainInput(
+      dives: [TissueDiveInput(times: times, depths: depths, gasLegs: [])],
+      surfaceIntervalSeconds: [],
+      gfLow: 0.30,
+      gfHigh: 0.70,
+      environment: DiveEnvironment.standard,
+    ),
+  );
+}
 
 void main() {
   Future<void> pumpPage(WidgetTester tester) async {
@@ -90,6 +110,40 @@ void main() {
     // Let chip selection animations and any host-scheduled timers finish,
     // then unmount so nothing is pending at teardown.
     await tester.pump(const Duration(seconds: 2));
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(seconds: 1));
+  });
+
+  testWidgets('switching to the tissue scene shows the tissue readout', (
+    tester,
+  ) async {
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...overrides,
+          dive3dSceneDataProvider(
+            'd1',
+          ).overrideWith((ref) async => readoutSceneData()),
+          tissueReplayProvider(
+            'd1',
+          ).overrideWith((ref) async => tissueResult()),
+        ],
+        child: const Dive3dPage(diveId: 'd1'),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+
+    // Tap the "Tissues" segment of the scene switcher.
+    await tester.tap(find.text('Tissues'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.byType(TissueReadoutPanel), findsOneWidget);
+    // Tissue color-mode control is present.
+    expect(find.text('% M-value'), findsOneWidget);
+
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump(const Duration(seconds: 1));
   });

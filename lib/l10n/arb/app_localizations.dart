@@ -32137,6 +32137,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pressure'**
   String get dive3d_metric_tankPressure;
+
+  /// No description provided for @dive3d_scene_dive.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive'**
+  String get dive3d_scene_dive;
+
+  /// No description provided for @dive3d_scene_tissue.
+  ///
+  /// In en, this message translates to:
+  /// **'Tissues'**
+  String get dive3d_scene_tissue;
+
+  /// No description provided for @dive3d_tissue_gasCombined.
+  ///
+  /// In en, this message translates to:
+  /// **'Combined'**
+  String get dive3d_tissue_gasCombined;
+
+  /// No description provided for @dive3d_tissue_gasN2.
+  ///
+  /// In en, this message translates to:
+  /// **'N2'**
+  String get dive3d_tissue_gasN2;
+
+  /// No description provided for @dive3d_tissue_gasHe.
+  ///
+  /// In en, this message translates to:
+  /// **'He'**
+  String get dive3d_tissue_gasHe;
+
+  /// No description provided for @dive3d_tissue_colorMValue.
+  ///
+  /// In en, this message translates to:
+  /// **'% M-value'**
+  String get dive3d_tissue_colorMValue;
+
+  /// No description provided for @dive3d_tissue_colorAbsolute.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading'**
+  String get dive3d_tissue_colorAbsolute;
+
+  /// No description provided for @dive3d_tissue_controlling.
+  ///
+  /// In en, this message translates to:
+  /// **'Controlling'**
+  String get dive3d_tissue_controlling;
+
+  /// No description provided for @dive3d_tissue_surfaceInterval.
+  ///
+  /// In en, this message translates to:
+  /// **'Surface interval'**
+  String get dive3d_tissue_surfaceInterval;
 }
 
 class _AppLocalizationsDelegate

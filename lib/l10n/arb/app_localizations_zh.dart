@@ -18221,4 +18221,31 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get dive3d_metric_tankPressure => '压力';
+
+  @override
+  String get dive3d_scene_dive => '潜水';
+
+  @override
+  String get dive3d_scene_tissue => '组织';
+
+  @override
+  String get dive3d_tissue_gasCombined => '合计';
+
+  @override
+  String get dive3d_tissue_gasN2 => '氮';
+
+  @override
+  String get dive3d_tissue_gasHe => '氦';
+
+  @override
+  String get dive3d_tissue_colorMValue => '% M值';
+
+  @override
+  String get dive3d_tissue_colorAbsolute => '负荷';
+
+  @override
+  String get dive3d_tissue_controlling => '主导';
+
+  @override
+  String get dive3d_tissue_surfaceInterval => '水面间隔';
 }

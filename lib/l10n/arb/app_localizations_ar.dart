@@ -18833,4 +18833,31 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get dive3d_metric_tankPressure => 'الضغط';
+
+  @override
+  String get dive3d_scene_dive => 'الغوص';
+
+  @override
+  String get dive3d_scene_tissue => 'الأنسجة';
+
+  @override
+  String get dive3d_tissue_gasCombined => 'مجمّع';
+
+  @override
+  String get dive3d_tissue_gasN2 => 'N2';
+
+  @override
+  String get dive3d_tissue_gasHe => 'He';
+
+  @override
+  String get dive3d_tissue_colorMValue => '% قيمة M';
+
+  @override
+  String get dive3d_tissue_colorAbsolute => 'التحميل';
+
+  @override
+  String get dive3d_tissue_controlling => 'المتحكم';
+
+  @override
+  String get dive3d_tissue_surfaceInterval => 'فترة السطح';
 }

@@ -18700,4 +18700,31 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get dive3d_metric_tankPressure => 'לחץ';
+
+  @override
+  String get dive3d_scene_dive => 'צלילה';
+
+  @override
+  String get dive3d_scene_tissue => 'רקמות';
+
+  @override
+  String get dive3d_tissue_gasCombined => 'משולב';
+
+  @override
+  String get dive3d_tissue_gasN2 => 'N2';
+
+  @override
+  String get dive3d_tissue_gasHe => 'He';
+
+  @override
+  String get dive3d_tissue_colorMValue => '% ערך M';
+
+  @override
+  String get dive3d_tissue_colorAbsolute => 'עומס';
+
+  @override
+  String get dive3d_tissue_controlling => 'מוביל';
+
+  @override
+  String get dive3d_tissue_surfaceInterval => 'מרווח פני השטח';
 }

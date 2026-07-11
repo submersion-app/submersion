@@ -2,20 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/features/dive_3d/application/providers.dart';
+import 'package:submersion/features/dive_3d/application/tissue_providers.dart';
 import 'package:submersion/features/dive_3d/domain/entities/dive_3d_scene_data.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/marker_layout.dart';
 import 'package:submersion/features/dive_3d/domain/metric_palette.dart';
+import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
+import 'package:submersion/features/dive_3d/domain/tissue/tissue_surface_builder.dart';
 import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/dive_3d_interactive_viewport.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/scene_readout_panel.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/time_scrub_bar.dart';
+import 'package:submersion/features/dive_3d/presentation/widgets/tissue_readout_panel.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
+/// Which scene the 3D page is showing.
+enum SceneKind { dive, tissue }
+
 /// Fullscreen interactive 3D scene for one dive. Pushed via a plain
-/// Navigator route from the dive detail page (same pattern as the
-/// fullscreen profile page). Owns the scrub ValueNotifier and the
-/// playback AnimationController; the viewport and readout observe them
-/// without provider round-trips.
+/// Navigator route from the dive detail page. Owns the scrub ValueNotifier
+/// and the playback AnimationController; the viewport and readout observe
+/// them without provider round-trips. Switches between the single-dive
+/// scene and the repetitive-chain tissue landscape.
 class Dive3dPage extends ConsumerStatefulWidget {
   final String diveId;
 
@@ -29,8 +36,11 @@ class _Dive3dPageState extends ConsumerState<Dive3dPage>
     with SingleTickerProviderStateMixin {
   final ValueNotifier<double> _position = ValueNotifier(0);
   late final AnimationController _player;
+  SceneKind _sceneKind = SceneKind.dive;
   SceneMetric _metric = SceneMetric.depth;
   Set<SceneOverlay> _overlays = SceneOverlay.values.toSet();
+  TissueColorMode _colorMode = TissueColorMode.mValue;
+  bool _splitHelium = false;
 
   @override
   void initState() {
@@ -61,63 +71,117 @@ class _Dive3dPageState extends ConsumerState<Dive3dPage>
 
   @override
   Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(context.l10n.dive3d_previewTitle)),
+      body: _sceneKind == SceneKind.dive
+          ? _buildDiveBody()
+          : _buildTissueBody(),
+    );
+  }
+
+  Widget _buildDiveBody() {
     final sceneData = ref.watch(dive3dSceneDataProvider(widget.diveId)).value;
     final scene = ref
         .watch(dive3dGeometryProvider((diveId: widget.diveId, metric: _metric)))
         .value;
-    return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.dive3d_previewTitle)),
-      body: sceneData == null || scene == null
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                Expanded(
-                  child: Stack(
-                    children: [
-                      Positioned.fill(
-                        child: Dive3dInteractiveViewport(
-                          scene: scene,
-                          scrubPosition: _position,
-                          visibleOverlays: _overlays,
-                          onMarkerTap: (marker) =>
-                              _showMarkerSheet(context, marker),
-                        ),
-                      ),
-                      Positioned(
-                        left: 12,
-                        right: 12,
-                        bottom: 12,
-                        child: SceneReadoutPanel(
-                          data: sceneData,
-                          position: _position,
-                        ),
-                      ),
-                      Positioned(
-                        top: 8,
-                        left: 8,
-                        right: 8,
-                        child: _buildControls(sceneData),
-                      ),
-                    ],
-                  ),
-                ),
-                SafeArea(
-                  top: false,
-                  child: TimeScrubBar(
-                    position: _position,
-                    playing: _player.isAnimating,
-                    onPlayPause: _togglePlay,
-                  ),
-                ),
-              ],
-            ),
+    if (sceneData == null || scene == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    return _sceneScaffold(
+      scene: scene,
+      readout: SceneReadoutPanel(data: sceneData, position: _position),
+      controls: _buildDiveControls(sceneData),
+      onMarkerTap: (marker) => _showMarkerSheet(context, marker),
     );
   }
 
-  Widget _buildControls(Dive3dSceneData sceneData) {
+  Widget _buildTissueBody() {
+    final result = ref.watch(tissueReplayProvider(widget.diveId)).value;
+    final scene = ref
+        .watch(
+          tissueGeometryProvider((
+            diveId: widget.diveId,
+            gas: TissueGas.combined,
+            colorMode: _colorMode,
+            splitHelium: _splitHelium,
+          )),
+        )
+        .value;
+    if (result == null || scene == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    return _sceneScaffold(
+      scene: scene,
+      readout: TissueReadoutPanel(
+        result: result,
+        position: _position,
+        splitHelium: _splitHelium && result.hasHelium,
+      ),
+      controls: _buildTissueControls(result.hasHelium),
+      onMarkerTap: null,
+    );
+  }
+
+  Widget _sceneScaffold({
+    required Scene3d scene,
+    required Widget readout,
+    required Widget controls,
+    required void Function(SceneMarker)? onMarkerTap,
+  }) {
+    return Column(
+      children: [
+        Expanded(
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: Dive3dInteractiveViewport(
+                  scene: scene,
+                  scrubPosition: _position,
+                  visibleOverlays: _overlays,
+                  onMarkerTap: onMarkerTap,
+                ),
+              ),
+              Positioned(left: 12, right: 12, bottom: 12, child: readout),
+              Positioned(top: 8, left: 8, right: 8, child: controls),
+            ],
+          ),
+        ),
+        SafeArea(
+          top: false,
+          child: TimeScrubBar(
+            position: _position,
+            playing: _player.isAnimating,
+            onPlayPause: _togglePlay,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _sceneSwitcher() => SegmentedButton<SceneKind>(
+    style: const ButtonStyle(visualDensity: VisualDensity.compact),
+    segments: [
+      ButtonSegment(
+        value: SceneKind.dive,
+        label: Text(context.l10n.dive3d_scene_dive),
+      ),
+      ButtonSegment(
+        value: SceneKind.tissue,
+        label: Text(context.l10n.dive3d_scene_tissue),
+      ),
+    ],
+    selected: {_sceneKind},
+    onSelectionChanged: (s) => setState(() => _sceneKind = s.first),
+    showSelectedIcon: false,
+  );
+
+  Widget _buildDiveControls(Dive3dSceneData sceneData) {
     return Wrap(
       spacing: 6,
+      runSpacing: 6,
+      crossAxisAlignment: WrapCrossAlignment.center,
       children: [
+        _sceneSwitcher(),
         for (final metric in sceneData.availableMetrics)
           ChoiceChip(
             label: Text(_metricLabel(metric)),
@@ -146,6 +210,39 @@ class _Dive3dPageState extends ConsumerState<Dive3dPage>
                 : {..._overlays, overlay};
           }),
         ),
+      ],
+    );
+  }
+
+  Widget _buildTissueControls(bool hasHelium) {
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        _sceneSwitcher(),
+        SegmentedButton<TissueColorMode>(
+          style: const ButtonStyle(visualDensity: VisualDensity.compact),
+          segments: [
+            ButtonSegment(
+              value: TissueColorMode.mValue,
+              label: Text(context.l10n.dive3d_tissue_colorMValue),
+            ),
+            ButtonSegment(
+              value: TissueColorMode.absolute,
+              label: Text(context.l10n.dive3d_tissue_colorAbsolute),
+            ),
+          ],
+          selected: {_colorMode},
+          onSelectionChanged: (s) => setState(() => _colorMode = s.first),
+          showSelectedIcon: false,
+        ),
+        if (hasHelium)
+          FilterChip(
+            label: Text(context.l10n.dive3d_tissue_gasHe),
+            selected: _splitHelium,
+            onSelected: (v) => setState(() => _splitHelium = v),
+          ),
       ],
     );
   }
