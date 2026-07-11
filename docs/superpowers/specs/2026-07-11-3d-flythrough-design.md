@@ -204,6 +204,39 @@ TDD throughout; unit coverage targets the pure layers:
 - The GL viewport gets a thin smoke test only; real rendering verification is
   the platform spike plus a manual pass per platform.
 
+## PR-2 addendum (2026-07-11, after PR 1 and PR #565)
+
+Findings from PR 1 (#563) and the parallel dive-3d-view feature (#565) revise
+this design as follows; where they conflict with sections above, this
+addendum wins:
+
+- Engine: three_js subpackages only (`three_js_core`, `three_js_math`,
+  `three_js_angle_renderer`); the umbrella package and `three_js_controls`
+  are unresolvable against existing dependency pins. flutter_angle rides the
+  `submersion-app/flutter_angle` fork branch `flutter-3.44-linux-embedder`
+  via dependency_overrides (wired by #565). Camera control is hand-rolled.
+- The flythrough builds INSIDE `lib/features/dive_3d/` on #565's
+  engine-agnostic layer (`MeshData`, `Dive3dGeometry`, `ThreeAdapter`,
+  `SceneViewport`, software `SceneProjector` fallback) instead of a parallel
+  `dive_log/presentation/flythrough/` stack. #565's analytical scene
+  (time-extruded axes) stays untouched; spatial geometry is new files.
+- TTS: `tts_series_calculator` is dropped. The existing
+  `profileAnalysisProvider` already replays the profile through Buhlmann and
+  exposes per-sample `decoStatuses[i].ttsSeconds`; the flythrough consumes
+  that (stored `dive_profiles.tts` remains the display-priority source when
+  the computer reported it).
+- Playback: the flythrough page follows `Dive3dPage`'s local
+  `ValueNotifier<double>` scrub pattern (frame-rate updates without Riverpod
+  rebuilds) rather than `profile_playback_provider`; 2D/3D transport sync is
+  dropped as a requirement.
+- Placement: the flythrough opens from the dive_3d page (which is reached
+  from #565's existing dive-detail preview card); a dedicated preview-card
+  surface decision moves to PR 3.
+- Lane scope: all five lane series (temperature, ascent rate, tank
+  pressure, NDL, TTS) plus lane-preference persistence land in PR 2 - the
+  generic lane builder makes the extra series near-free. PR 3 shrinks to
+  the preview-card surface and polish.
+
 ## Delivery plan
 
 Three independently shippable PRs:
