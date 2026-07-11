@@ -101,8 +101,8 @@ Deletes the `ConnectorAccounts` row and secure-storage secrets. Media rows, stor
 
 `DivePhotoMatcher` currently returns the winning dive for a timestamp within `[entry − 30 min, exit + 60 min]`, tie-broken by closeness to entry. It gains a confidence-bearing result:
 
-- **Confident** — the capture time falls inside the *core* window (entry to exit) of exactly one dive, or inside exactly one dive's extended window with no overlap from any other dive's extended window. Auto-attach.
-- **Ambiguous** — the capture time falls inside two or more dives' extended windows (typical repetitive-dive boat day: surface-interval shots), or only in the extended margin (pre-entry / post-exit stretch) of a single dive. Pending suggestion listing candidate dive(s); one-tap confirm or dismiss.
+- **Confident** — the capture time falls inside exactly one dive's extended window, or inside multiple extended windows but exactly one dive's *core* window (entry to exit). Auto-attach.
+- **Ambiguous** — the capture time falls inside two or more dives' extended windows with no unique core-window hit (typical repetitive-dive boat day: surface-interval shots land in dive N's post-margin and dive N+1's pre-margin). Pending suggestion listing candidate dives ordered by closeness to entry; one-tap confirm or dismiss.
 - **No match** — outside every window. Ignored.
 
 The extension is shared: `TripMediaScanner` (device-gallery scanning) can adopt the same ambiguity queue later without new matcher work.
@@ -122,7 +122,7 @@ Enrichment (`EnrichmentService`) runs at attach time (auto or confirmed suggesti
 
 - **Settings → Media Sources → Lightroom**: connect flow, account name, album filter (multi-select of Lightroom albums, default all), auto-poll toggle + interval, last-scan status line, needs-reauth badge, disconnect.
 - **Dive detail / trip overview**: "Scan Lightroom" action alongside existing photo actions (hidden when no connector account exists).
-- **Suggestions queue**: ambiguous matches appear in the same surface as `PendingPhotoSuggestions` today (trip overview tab), extended to render connector suggestions with confirm/dismiss.
+- **Suggestions queue**: the `PendingPhotoSuggestions` table exists but currently has no rendering surface anywhere in the app, so this feature builds one — a suggestions row in the dive detail media section with per-suggestion confirm/dismiss. (The table needs nullable `connectorAccountId`/`remoteAssetId` columns; that is the feature's one schema migration.)
 - **Media items**: store badge behavior from #550 applies unchanged; Lightroom items additionally get "Open in Lightroom".
 - All new strings localized in `app_en.arb` plus the 10 other locales; unit-bearing values respect diver unit settings (enrichment display already does).
 
