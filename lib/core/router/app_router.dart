@@ -95,7 +95,6 @@ import 'package:submersion/features/settings/presentation/pages/insurance_edit_p
 import 'package:submersion/features/settings/presentation/pages/notes_edit_page.dart';
 import 'package:submersion/features/settings/presentation/pages/prior_experience_edit_page.dart';
 import 'package:submersion/features/settings/presentation/pages/debug_log_viewer_page.dart';
-import 'package:submersion/features/settings/presentation/pages/flythrough_spike_page.dart';
 import 'package:submersion/features/media/presentation/pages/media_sources_page.dart';
 import 'package:submersion/features/media/presentation/pages/network_sources_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
@@ -913,11 +912,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'debug-logs',
                 name: 'debugLogs',
                 builder: (context, state) => const DebugLogViewerPage(),
-              ),
-              GoRoute(
-                path: 'flythrough-spike',
-                name: 'flythroughSpike',
-                builder: (context, state) => const FlythroughSpikePage(),
               ),
               GoRoute(
                 path: 'media-sources',

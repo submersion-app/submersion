@@ -50,14 +50,6 @@ dependencies:
   cached_network_image: ^3.4.1
   flutter_cache_manager: ^3.4.1
   photo_view: ^0.15.0
-  # three_js subpackages for the dive flythrough 3D engine. The umbrella
-  # three_js package is avoided: its advanced-loaders subpackage requires
-  # archive ^4 which conflicts with excel 4.x (archive ^3). The polyline
-  # scene only needs core + renderer + geometry; three_js_controls is
-  # also skipped (drags in image/xml conflicts) - camera orbit is hand-rolled.
-  three_js_angle_renderer: ^0.0.1
-  three_js_core: ^0.3.0
-  three_js_math: ^0.3.0
   video_player: ^2.10.1
 
   # Networking

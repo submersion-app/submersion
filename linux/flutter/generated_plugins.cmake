@@ -5,7 +5,6 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   desktop_drop
   file_selector_linux
-  flutter_angle
   flutter_secure_storage_linux
   libdivecomputer_plugin
   objectbox_flutter_libs

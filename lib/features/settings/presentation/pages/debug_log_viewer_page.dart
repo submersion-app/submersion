@@ -48,11 +48,6 @@ class _DebugLogViewerPageState extends ConsumerState<DebugLogViewerPage> {
             : const Text('Debug Logs'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.threed_rotation),
-            tooltip: '3D spike',
-            onPressed: () => context.push('/settings/flythrough-spike'),
-          ),
-          IconButton(
             icon: Icon(_isSearching ? Icons.close : Icons.search),
             onPressed: () {
               setState(() {
