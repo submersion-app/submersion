@@ -56,6 +56,16 @@ void main() {
     expect(await repo.nextPending(t0.add(const Duration(days: 1))), isNull);
   });
 
+  test('markDone clears a stale error message from an earlier '
+      'failure', () async {
+    final id = await repo.enqueueUpload(mediaId: 'm1');
+    await repo.markFailed(id, 'boom');
+    await repo.markDone(id);
+    final row = (await repo.allForTesting()).single;
+    expect(row.state, 'done');
+    expect(row.errorMessage, isNull);
+  });
+
   test('v2 migration creates both tables', () async {
     final cols = await db
         .customSelect("PRAGMA table_info('media_transfer_queue')")

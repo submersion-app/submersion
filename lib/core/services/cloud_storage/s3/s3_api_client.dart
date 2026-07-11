@@ -62,8 +62,19 @@ class S3ApiClient {
   /// and is updated for the client's lifetime when the server corrects it.
   String _region;
 
-  Future<void> putObject(String key, Uint8List bytes) async {
-    final response = await _sendWithRetry('PUT', key, body: bytes);
+  Future<void> putObject(
+    String key,
+    Uint8List bytes, {
+    String? contentType,
+  }) async {
+    final response = await _sendWithRetry(
+      'PUT',
+      key,
+      body: bytes,
+      extraHeaders: contentType == null
+          ? const {}
+          : {'content-type': contentType},
+    );
     if (response.statusCode != 200) _throwFor('upload', key, response);
   }
 
@@ -180,6 +191,7 @@ class S3ApiClient {
       'POST',
       key,
       queryParams: {'uploads': ''},
+      extraHeaders: {'content-type': contentType},
     );
     if (response.statusCode != 200) _throwFor('start upload', key, response);
     final uploadId = _xmlElementText(response.body, 'UploadId');

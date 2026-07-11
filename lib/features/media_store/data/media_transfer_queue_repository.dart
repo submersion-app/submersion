@@ -65,9 +65,10 @@ class MediaTransferQueueRepository {
 
   Future<void> markTransferring(int id) => _setState(id, 'transferring');
 
-  /// Completion also clears resume/progress state: a finished transfer
-  /// must not leak a stale resume point into a future re-enqueue of the
-  /// same media.
+  /// Completion also clears resume/progress state and any error message
+  /// from earlier attempts: a finished transfer must not leak a stale
+  /// resume point into a future re-enqueue of the same media, and a done
+  /// row must not display a failure it recovered from.
   Future<void> markDone(int id) async {
     await (_db.update(
       _db.mediaTransferQueue,
@@ -77,6 +78,7 @@ class MediaTransferQueueRepository {
         resumeStateJson: const Value(null),
         progressBytes: const Value(null),
         totalBytes: const Value(null),
+        errorMessage: const Value(null),
         updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
       ),
     );

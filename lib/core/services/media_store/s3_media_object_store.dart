@@ -81,7 +81,7 @@ class S3MediaObjectStore implements MediaObjectStore {
         );
       }
       try {
-        await _client.putObject(_wire(key), bytes);
+        await _client.putObject(_wire(key), bytes, contentType: contentType);
         onProgress?.call(bytes.length, bytes.length);
       } on CloudStorageException catch (e) {
         throw _map('put', key, e);
@@ -199,9 +199,10 @@ class S3MediaObjectStore implements MediaObjectStore {
         return null;
       }
       return (uploadId: uploadId, parts: recorded);
-    } on Exception {
-      // Malformed JSON, unknown uploadId, or listParts failure: the resume
-      // point is unusable; start over.
+    } catch (_) {
+      // Malformed or wrongly-typed JSON (persisted resume state is
+      // untrusted; bad casts throw TypeError, an Error), unknown uploadId,
+      // or listParts failure: the resume point is unusable; start over.
       await _abortQuietly(wireKey, uploadId);
       return null;
     }

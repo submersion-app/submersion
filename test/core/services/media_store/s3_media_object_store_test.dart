@@ -176,6 +176,58 @@ void main() {
     );
   });
 
+  test('a corrupted resume state (wrong-typed fields) restarts fresh '
+      'instead of crashing', () async {
+    final store = build(partSizeBytes: 64 * 1024);
+    final bytes = List<int>.generate(130 * 1024, (i) => i % 197);
+    final src = File('${tmp.path}/corrupt.mp4')..writeAsBytesSync(bytes);
+
+    // partSizeBytes matches so validation reaches the parts cast; "n"
+    // holding a string throws TypeError, which is an Error, not an
+    // Exception. Persisted resume JSON is untrusted input and must never
+    // escape putFile.
+    await store.putFile(
+      'smv1/objects/aa/corrupt.mp4',
+      src,
+      contentType: 'video/mp4',
+      resumeStateJson:
+          '{"uploadId":"upload-9","partSizeBytes":65536,'
+          '"parts":[{"n":"one","etag":7}]}',
+    );
+    expect(
+      server.objects['submersion-media/smv1/objects/aa/corrupt.mp4'],
+      bytes,
+    );
+  });
+
+  test('putFile forwards the content type on both upload paths', () async {
+    final store = build(partSizeBytes: 64 * 1024);
+
+    final small = File('${tmp.path}/small.jpg')..writeAsBytesSync([1, 2, 3]);
+    await store.putFile(
+      'smv1/objects/aa/small.jpg',
+      small,
+      contentType: 'image/jpeg',
+    );
+    final singleShot = server.captured.lastWhere(
+      (r) =>
+          r.method == 'PUT' && !r.url.queryParameters.containsKey('partNumber'),
+    );
+    expect(singleShot.headers['content-type'], 'image/jpeg');
+
+    final big = File('${tmp.path}/big.mp4')
+      ..writeAsBytesSync(List<int>.generate(130 * 1024, (i) => i % 251));
+    await store.putFile(
+      'smv1/objects/aa/big.mp4',
+      big,
+      contentType: 'video/mp4',
+    );
+    final initiate = server.captured.lastWhere(
+      (r) => r.method == 'POST' && r.url.queryParameters.containsKey('uploads'),
+    );
+    expect(initiate.headers['content-type'], 'video/mp4');
+  });
+
   test('a stale resume state (unknown uploadId) aborts and restarts '
       'fresh', () async {
     final store = build(partSizeBytes: 64 * 1024);

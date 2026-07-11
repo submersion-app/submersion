@@ -41,7 +41,11 @@ class _FakeS3ApiClient extends Fake implements S3ApiClient {
   }
 
   @override
-  Future<void> putObject(String key, Uint8List bytes) async {
+  Future<void> putObject(
+    String key,
+    Uint8List bytes, {
+    String? contentType,
+  }) async {
     _assertOpen();
     calls.add('put:$key');
     objects[key] = bytes;

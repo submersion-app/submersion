@@ -50,7 +50,11 @@ class _FakeS3ApiClient extends Fake implements S3ApiClient {
   void Function(String region)? onRegionCorrected;
 
   @override
-  Future<void> putObject(String key, Uint8List bytes) async {
+  Future<void> putObject(
+    String key,
+    Uint8List bytes, {
+    String? contentType,
+  }) async {
     calls.add('put:$key');
     _objects[key] = bytes;
   }
