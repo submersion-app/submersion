@@ -46,6 +46,24 @@ void main() {
     expect(await cache.totalBytes(MediaCacheKind.original), 3);
   });
 
+  test('put is idempotent when the destination already exists (duplicate '
+      'rows sharing a hash, concurrent resolves)', () async {
+    final hash = 'cd${'1' * 62}';
+    final first = await cache.put(
+      hash,
+      MediaCacheKind.original,
+      await staged([1, 2, 3]),
+    );
+    final second = await cache.put(
+      hash,
+      MediaCacheKind.original,
+      await staged([1, 2, 3]),
+    );
+    expect(second.path, first.path);
+    expect(await second.readAsBytes(), [1, 2, 3]);
+    expect(await cache.totalBytes(MediaCacheKind.original), 3);
+  });
+
   test('eviction removes least-recently-used entries above the cap', () async {
     // put() evicts eagerly after each write, so build the LRU order BEFORE
     // the overflowing put: A, B inserted (80 <= 100), A touched so B is

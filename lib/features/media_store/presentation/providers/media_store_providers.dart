@@ -162,10 +162,14 @@ final mediaStoreRuntimeProvider = FutureProvider<MediaStoreRuntime?>((
     queue: MediaTransferQueueRepository(),
     pipeline: pipeline,
     preflight: () async {
-      // Suspend all transfers when the bucket no longer carries the store
-      // this device attached to (wiped or repointed; spec section 13).
+      // Suspend all transfers when this device detached (attach state
+      // re-read, not captured: disconnect can land while a drain is
+      // running) or when the bucket no longer carries the store this
+      // device attached to (wiped or repointed; spec section 13).
+      final currentId = await attachState.attachedStoreId();
+      if (currentId == null || currentId != attachedId) return false;
       final marker = await StoreMarkerStore(store: store).read();
-      return marker != null && marker.storeId == attachedId;
+      return marker != null && marker.storeId == currentId;
     },
     gate: (entry) async {
       // Network policies (design spec section 9): offline halts the

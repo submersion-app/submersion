@@ -123,19 +123,32 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
   }
 
   Future<void> _copyFromSync() async {
-    final syncConfig = await S3CredentialsStore().load();
+    final S3Config? syncConfig;
+    try {
+      syncConfig = await S3CredentialsStore().load();
+    } catch (_) {
+      // Same guard as _checkSyncConfig/_loadExisting: keychain access can
+      // fail at any time and must not crash the page.
+      if (!mounted) return;
+      _showSnack(
+        context.l10n.settings_s3Config_error_secureStorage,
+        isError: true,
+      );
+      return;
+    }
     if (!mounted || syncConfig == null) return;
+    final config = syncConfig;
     setState(() {
-      _endpointController.text = syncConfig.isAws
-          ? 'https://s3.${syncConfig.region}.amazonaws.com'
-          : syncConfig.endpoint;
-      _regionController.text = syncConfig.region;
-      _bucketController.text = syncConfig.bucket;
+      _endpointController.text = config.isAws
+          ? 'https://s3.${config.region}.amazonaws.com'
+          : config.endpoint;
+      _regionController.text = config.region;
+      _bucketController.text = config.bucket;
       // The media store keeps its own namespace even in a shared bucket.
       _prefixController.text = 'submersion-media/';
-      _accessKeyController.text = syncConfig.accessKeyId;
-      _secretKeyController.text = syncConfig.secretAccessKey;
-      _pathStyle = syncConfig.pathStyle;
+      _accessKeyController.text = config.accessKeyId;
+      _secretKeyController.text = config.secretAccessKey;
+      _pathStyle = config.pathStyle;
       _pathStyleTouched = true;
     });
   }

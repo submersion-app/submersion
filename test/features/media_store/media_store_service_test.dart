@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
@@ -11,6 +13,19 @@ import 'package:submersion/features/media_store/data/media_stores_repository.dar
 import '../../helpers/in_memory_media_object_store.dart';
 import '../../helpers/test_database.dart';
 import '../../support/fake_keychain_storage.dart';
+
+/// Serves corrupted bytes on download: the probe write succeeds but the
+/// read-back does not match what was written.
+class _CorruptingStore extends InMemoryMediaObjectStore {
+  @override
+  Future<void> getFile(
+    String key,
+    File destination, {
+    TransferProgressCallback? onProgress,
+  }) async {
+    await destination.writeAsBytes('garbage'.codeUnits, flush: true);
+  }
+}
 
 void main() {
   late InMemoryMediaObjectStore fakeStore;
@@ -71,6 +86,32 @@ void main() {
   test('testConnection round-trips a probe object and cleans up', () async {
     await service.testConnection(config);
     expect(fakeStore.objects.keys.where((k) => k.contains('probe')), isEmpty);
+  });
+
+  test('testConnection fails when the read-back returns different '
+      'bytes', () async {
+    final corrupting = _CorruptingStore();
+    final svc = MediaStoreService(
+      credentials: credentials,
+      attachState: attachState,
+      storesRepository: storesRepository,
+      storeFactory: (_) => corrupting,
+    );
+    await expectLater(
+      svc.testConnection(config),
+      throwsA(
+        isA<MediaStoreException>().having(
+          (e) => e.message,
+          'message',
+          contains('read-back'),
+        ),
+      ),
+    );
+    expect(
+      corrupting.objects.keys.where((k) => k.contains('probe')),
+      isEmpty,
+      reason: 'probe cleanup still runs on failure',
+    );
   });
 
   test('invalid config throws before touching the store', () async {

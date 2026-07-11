@@ -161,6 +161,59 @@ void main() {
     );
   });
 
+  test('preflight is re-checked between entries, so a mid-drain detach '
+      'suspends the rest of the queue', () async {
+    final mediaRepository = MediaRepository();
+    final cache = MediaCacheStore(database: cacheDbA, root: rootA);
+    final queue = MediaTransferQueueRepository(database: cacheDbA);
+    final resolver = FakeLocalFileResolver();
+    var preflightCalls = 0;
+    final worker = MediaStoreWorker(
+      queue: queue,
+      pipeline: MediaUploadPipeline(
+        mediaRepository: mediaRepository,
+        queue: queue,
+        store: bucket,
+        registry: MediaSourceResolverRegistry({
+          MediaSourceType.localFile: resolver,
+        }),
+        cache: cache,
+      ),
+      // Valid for the first entry, then the store detaches (marker wiped
+      // or the user disconnected) while the drain is still running.
+      preflight: () async => ++preflightCalls <= 1,
+    );
+
+    final photo = File('${rootA.path}/two.jpg')..writeAsBytesSync([3, 4, 5]);
+    resolver.data = FileData(file: photo);
+    for (final name in ['two-a.jpg', 'two-b.jpg']) {
+      final created = await mediaRepository.createMedia(
+        domain.MediaItem(
+          id: '',
+          mediaType: domain.MediaType.photo,
+          sourceType: MediaSourceType.localFile,
+          filePath: photo.path,
+          localPath: photo.path,
+          originalFilename: name,
+          takenAt: DateTime(2026, 7, 1),
+          createdAt: DateTime(2026, 7, 1),
+          updatedAt: DateTime(2026, 7, 1),
+        ),
+      );
+      await queue.enqueueUpload(mediaId: created.id);
+    }
+
+    await worker.drain();
+
+    final rows = await queue.allForTesting();
+    expect(rows.where((r) => r.state == 'done'), hasLength(1));
+    expect(
+      rows.where((r) => r.state == 'pending'),
+      hasLength(1),
+      reason: 'the second entry must stay queued, not process detached',
+    );
+  });
+
   test('gate deferEntry postpones the entry without consuming attempts and '
       'stopDraining halts the queue', () async {
     final mediaRepository = MediaRepository();

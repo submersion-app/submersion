@@ -23,27 +23,35 @@ class MediaTransferQueueRepository {
   LocalCacheDatabase get _db =>
       _database ?? LocalCacheDatabaseService.instance.database;
 
-  Future<int> enqueueUpload({required String mediaId}) async {
-    final existing =
-        await (_db.select(_db.mediaTransferQueue)..where(
-              (t) =>
-                  t.mediaId.equals(mediaId) &
-                  t.direction.equals('upload') &
-                  t.state.isIn(['pending', 'transferring']),
-            ))
-            .getSingleOrNull();
-    if (existing != null) return existing.id;
+  /// Idempotent per mediaId for every live state: pending/transferring
+  /// rows are reused, and a terminally 'failed' row is returned as-is so
+  /// backfill or re-import cannot resurrect it with a fresh attempt
+  /// budget (explicit retry() is the way back in). Only 'done' rows allow
+  /// a new enqueue. Transactional so concurrent enqueues cannot both miss
+  /// the select and insert duplicates.
+  Future<int> enqueueUpload({required String mediaId}) {
+    return _db.transaction(() async {
+      final existing =
+          await (_db.select(_db.mediaTransferQueue)..where(
+                (t) =>
+                    t.mediaId.equals(mediaId) &
+                    t.direction.equals('upload') &
+                    t.state.isIn(['pending', 'transferring', 'failed']),
+              ))
+              .getSingleOrNull();
+      if (existing != null) return existing.id;
 
-    final now = DateTime.now().millisecondsSinceEpoch;
-    return _db
-        .into(_db.mediaTransferQueue)
-        .insert(
-          MediaTransferQueueCompanion.insert(
-            mediaId: mediaId,
-            createdAt: now,
-            updatedAt: now,
-          ),
-        );
+      final now = DateTime.now().millisecondsSinceEpoch;
+      return _db
+          .into(_db.mediaTransferQueue)
+          .insert(
+            MediaTransferQueueCompanion.insert(
+              mediaId: mediaId,
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+    });
   }
 
   Future<MediaTransferQueueEntry?> nextPending(DateTime now) {

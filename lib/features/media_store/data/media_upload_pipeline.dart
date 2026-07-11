@@ -72,7 +72,10 @@ class MediaUploadPipeline {
       }
 
       final digest = await sha256OfFile(staged);
-      if (item.contentHash != digest.hash) {
+      // Size can lag the hash: a row synced from another device arrives
+      // with contentHash set but contentSizeBytes never stamped locally.
+      if (item.contentHash != digest.hash ||
+          item.contentSizeBytes != digest.sizeBytes) {
         await _mediaRepository.stampContentIdentity(
           item.id,
           contentHash: digest.hash,

@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 import 'package:submersion/core/services/media_store/store_keys.dart';
+import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
 
 /// Identity marker at smv1/store.json (design spec sections 7 and 13).
 class StoreMarker {
@@ -43,8 +44,11 @@ class StoreMarkerStore {
   final MediaObjectStore _store;
 
   Future<StoreMarker?> read() async {
+    // App-container temp dir: hardened-runtime macOS denies /tmp
+    // (Directory.systemTemp), same constraint sync hit in issue #509.
+    final tmpDir = await resolveSyncTempDir();
     final tmp = File(
-      '${Directory.systemTemp.path}/'
+      '${tmpDir.path}/'
       'submersion_marker_${DateTime.now().microsecondsSinceEpoch}.json',
     );
     try {
@@ -70,8 +74,9 @@ class StoreMarkerStore {
       formatVersion: 1,
       createdAt: DateTime.now().toUtc().toIso8601String(),
     );
+    final tmpDir = await resolveSyncTempDir();
     final tmp = File(
-      '${Directory.systemTemp.path}/'
+      '${tmpDir.path}/'
       'submersion_marker_w_${DateTime.now().microsecondsSinceEpoch}.json',
     );
     try {

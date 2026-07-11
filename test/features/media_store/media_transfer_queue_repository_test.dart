@@ -56,6 +56,24 @@ void main() {
     expect(await repo.nextPending(t0.add(const Duration(days: 1))), isNull);
   });
 
+  test('re-enqueue after terminal failure returns the existing row and '
+      'preserves its attempt count', () async {
+    final id = await repo.enqueueUpload(mediaId: 'm1');
+    for (var i = 0; i < 5; i++) {
+      await repo.markFailed(id, 'boom');
+    }
+    expect((await repo.allForTesting()).single.state, 'failed');
+
+    // Backfill or a re-import must not resurrect a terminally failed row
+    // with a fresh attempt budget; that is what explicit retry() is for.
+    final again = await repo.enqueueUpload(mediaId: 'm1');
+    expect(again, id);
+    final rows = await repo.allForTesting();
+    expect(rows, hasLength(1));
+    expect(rows.single.attempts, 5);
+    expect(rows.single.state, 'failed');
+  });
+
   test('markDone clears a stale error message from an earlier '
       'failure', () async {
     final id = await repo.enqueueUpload(mediaId: 'm1');

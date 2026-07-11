@@ -41,11 +41,13 @@ class MediaStoreWorker {
     if (_running) return;
     _running = true;
     try {
-      if (_preflight != null && !await _preflight()) {
-        _log.warning('Media store preflight failed; drain suspended');
-        return;
-      }
       while (true) {
+        // Re-checked per entry, not once per drain: a store wipe or user
+        // disconnect mid-drain must suspend the rest of the queue.
+        if (_preflight != null && !await _preflight()) {
+          _log.warning('Media store preflight failed; drain suspended');
+          return;
+        }
         final entry = await _queue.nextPending(DateTime.now());
         if (entry == null) break;
         if (_gate != null) {

@@ -153,6 +153,43 @@ void main() {
     expect((await queue.allForTesting()).single.state, 'done');
   });
 
+  test('a row synced with the right hash but no size still gets its size '
+      'stamped', () async {
+    final bytes = [9, 8, 7, 6, 5];
+    final seed = await fixture(bytes, 'synced.jpg');
+    final digest = await sha256OfFile(seed);
+    resolver.data = FileData(file: seed);
+
+    // Models a row synced from another device: hash already correct,
+    // contentSizeBytes never stamped locally.
+    final created = await mediaRepository.createMedia(
+      domain.MediaItem(
+        id: '',
+        mediaType: domain.MediaType.photo,
+        sourceType: MediaSourceType.localFile,
+        filePath: seed.path,
+        localPath: seed.path,
+        originalFilename: 'synced.jpg',
+        takenAt: DateTime(2026, 1, 1),
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+        contentHash: digest.hash,
+      ),
+    );
+    expect(
+      (await mediaRepository.getMediaById(created.id))!.contentSizeBytes,
+      isNull,
+    );
+
+    await queue.enqueueUpload(mediaId: created.id);
+    final entry = (await queue.nextPending(DateTime.now()))!;
+    await pipeline.process(entry);
+
+    final item = (await mediaRepository.getMediaById(created.id))!;
+    expect(item.contentSizeBytes, bytes.length);
+    expect(item.contentHash, digest.hash);
+  });
+
   test('dedup: existing object skips the put but still confirms', () async {
     final bytes = [4, 5, 6, 7];
     final seed = await fixture(bytes, 'seed.jpg');
