@@ -6,6 +6,7 @@ import 'package:submersion/features/buddies/data/repositories/buddy_repository.d
 import 'package:submersion/features/buddies/data/repositories/buddy_role_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain;
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy_role_credential.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart'
@@ -67,7 +68,7 @@ void main() {
               updatedAt: now,
             ),
           );
-      await repository.addBuddyToDive('dive1', buddyB.id, BuddyRole.buddy);
+      await repository.addBuddyToDive('dive1', buddyB.id, DiveRole.buddyId);
 
       final mergedBuddy = buddyA.copyWith(
         name: 'Alice',
@@ -93,7 +94,7 @@ void main() {
       final diveBuddies = await repository.getBuddiesForDive('dive1');
       expect(diveBuddies.length, 1);
       expect(diveBuddies.first.buddy.id, buddyA.id);
-      expect(diveBuddies.first.role, BuddyRole.buddy);
+      expect(diveBuddies.first.role.id, DiveRole.buddyId);
     });
 
     test('collision: keeps higher-ranked role (instructor > buddy)', () async {
@@ -128,8 +129,12 @@ void main() {
             ),
           );
 
-      await repository.addBuddyToDive('dive1', buddyA.id, BuddyRole.buddy);
-      await repository.addBuddyToDive('dive1', buddyB.id, BuddyRole.instructor);
+      await repository.addBuddyToDive('dive1', buddyA.id, DiveRole.buddyId);
+      await repository.addBuddyToDive(
+        'dive1',
+        buddyB.id,
+        DiveRole.instructorId,
+      );
 
       final result = await repository.mergeBuddies(
         mergedBuddy: buddyA.copyWith(name: 'Alice'),
@@ -139,7 +144,7 @@ void main() {
       final diveBuddies = await repository.getBuddiesForDive('dive1');
       expect(diveBuddies.length, 1);
       expect(diveBuddies.first.buddy.id, buddyA.id);
-      expect(diveBuddies.first.role, BuddyRole.instructor);
+      expect(diveBuddies.first.role.id, DiveRole.instructorId);
 
       expect(result!.snapshot!.modifiedDiveBuddyEntries.length, 1);
       expect(result.snapshot!.modifiedDiveBuddyEntries.first.role, 'buddy');
@@ -186,9 +191,17 @@ void main() {
             ),
           );
 
-      await repository.addBuddyToDive('dive1', buddyA.id, BuddyRole.buddy);
-      await repository.addBuddyToDive('dive1', buddyB.id, BuddyRole.diveMaster);
-      await repository.addBuddyToDive('dive1', buddyC.id, BuddyRole.instructor);
+      await repository.addBuddyToDive('dive1', buddyA.id, DiveRole.buddyId);
+      await repository.addBuddyToDive(
+        'dive1',
+        buddyB.id,
+        DiveRole.diveMasterId,
+      );
+      await repository.addBuddyToDive(
+        'dive1',
+        buddyC.id,
+        DiveRole.instructorId,
+      );
 
       await repository.mergeBuddies(
         mergedBuddy: buddyA.copyWith(name: 'A'),
@@ -198,7 +211,7 @@ void main() {
       final diveBuddies = await repository.getBuddiesForDive('dive1');
       expect(diveBuddies.length, 1);
       expect(diveBuddies.first.buddy.id, buddyA.id);
-      expect(diveBuddies.first.role, BuddyRole.instructor);
+      expect(diveBuddies.first.role.id, DiveRole.instructorId);
     });
 
     test('merges buddy with no dives', () async {
@@ -483,9 +496,13 @@ void main() {
             ),
           );
 
-      await repository.addBuddyToDive('dive1', buddyA.id, BuddyRole.buddy);
-      await repository.addBuddyToDive('dive1', buddyB.id, BuddyRole.instructor);
-      await repository.addBuddyToDive('dive2', buddyB.id, BuddyRole.buddy);
+      await repository.addBuddyToDive('dive1', buddyA.id, DiveRole.buddyId);
+      await repository.addBuddyToDive(
+        'dive1',
+        buddyB.id,
+        DiveRole.instructorId,
+      );
+      await repository.addBuddyToDive('dive2', buddyB.id, DiveRole.buddyId);
 
       final result = await repository.mergeBuddies(
         mergedBuddy: buddyA.copyWith(name: 'Alice', phone: '555-0100'),

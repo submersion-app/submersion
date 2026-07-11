@@ -78,6 +78,7 @@ import 'package:submersion/features/signatures/presentation/widgets/signature_di
 import 'package:submersion/features/signatures/presentation/widgets/buddy_signatures_section.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/dive_roles/presentation/dive_role_display.dart';
 
 import 'package:submersion/features/dive_computer/presentation/providers/reparse_providers.dart';
 
@@ -3681,7 +3682,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         ),
       ),
       title: Text(bwr.buddy.name),
-      subtitle: Text(bwr.role.displayName),
+      subtitle: Text(bwr.role.localizedName(context.l10n)),
       trailing: const Icon(Icons.chevron_right, size: 20),
       onTap: () => context.push('/buddies/${bwr.buddy.id}'),
     );

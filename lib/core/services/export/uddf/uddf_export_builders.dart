@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enums.dart' hide Visibility;
 import 'package:submersion/core/constants/enums.dart' as enums;
 import 'package:submersion/core/services/export/models/export_service_record.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
@@ -102,17 +103,23 @@ class UddfExportBuilders {
     List<GasSwitchWithTank> gasSwitches, {
     Map<String, List<TankPressurePoint>>? tankPressures,
   }) {
-    // Separate buddies by role for UDDF export
+    // Separate buddies by role for UDDF export. Leaders map to UDDF leader
+    // elements; every other role (including custom roles) exports as a plain
+    // buddy. Solo exports as neither.
+    const leaderRoleIds = {
+      DiveRole.diveGuideId,
+      DiveRole.diveMasterId,
+      DiveRole.instructorId,
+    };
     final regularBuddies = diveBuddyList
-        .where((b) => b.role == BuddyRole.buddy || b.role == BuddyRole.student)
-        .toList();
-    final guidesAndDivemasters = diveBuddyList
         .where(
           (b) =>
-              b.role == BuddyRole.diveGuide ||
-              b.role == BuddyRole.diveMaster ||
-              b.role == BuddyRole.instructor,
+              !leaderRoleIds.contains(b.role.id) &&
+              b.role.id != DiveRole.soloId,
         )
+        .toList();
+    final guidesAndDivemasters = diveBuddyList
+        .where((b) => leaderRoleIds.contains(b.role.id))
         .toList();
 
     // Find the trip this dive belongs to

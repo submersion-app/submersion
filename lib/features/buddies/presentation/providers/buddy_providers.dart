@@ -2,7 +2,6 @@ import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/providers/provider.dart';
 
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -12,6 +11,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/constants/buddy_field.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy_role_credential.dart';
 import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
@@ -401,7 +401,7 @@ class DiveBuddiesNotifier extends StateNotifier<List<BuddyWithRole>> {
     }
   }
 
-  void addBuddy(Buddy buddy, BuddyRole role) {
+  void addBuddy(Buddy buddy, DiveRole role) {
     // Check if buddy is already added
     final existing = state.indexWhere((b) => b.buddy.id == buddy.id);
     if (existing >= 0) {
@@ -420,7 +420,7 @@ class DiveBuddiesNotifier extends StateNotifier<List<BuddyWithRole>> {
     state = state.where((b) => b.buddy.id != buddyId).toList();
   }
 
-  void updateRole(String buddyId, BuddyRole role) {
+  void updateRole(String buddyId, DiveRole role) {
     state = state.map((b) {
       if (b.buddy.id == buddyId) {
         return BuddyWithRole(buddy: b.buddy, role: role);

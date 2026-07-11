@@ -5,6 +5,7 @@ import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/dive_centers/data/repositories/dive_center_repository.dart';
@@ -760,7 +761,7 @@ class UddfTestImporter {
           await _buddyRepository.addBuddyToDive(
             diveId,
             newBuddyId,
-            BuddyRole.buddy,
+            DiveRole.buddyId,
           );
         }
       }
@@ -775,7 +776,7 @@ class UddfTestImporter {
         await _buddyRepository.addBuddyToDive(
           diveId,
           buddy.id,
-          BuddyRole.buddy,
+          DiveRole.buddyId,
         );
         buddiesImported++;
       }

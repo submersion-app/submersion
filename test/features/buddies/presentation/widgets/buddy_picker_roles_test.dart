@@ -5,10 +5,24 @@ import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy_role_credential.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_picker.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
+import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 
 import '../../../../helpers/test_app.dart';
 
 final _now = DateTime(2024, 1, 1);
+
+final _testRoles = [
+  for (final (i, id) in DiveRole.builtInIds.indexed)
+    DiveRole(
+      id: id,
+      name: id,
+      isBuiltIn: true,
+      sortOrder: i,
+      createdAt: _now,
+      updatedAt: _now,
+    ),
+];
 
 final _credentialedBuddy = Buddy(
   id: 'buddy-1',
@@ -57,6 +71,7 @@ void main() {
       await tester.pumpWidget(
         testApp(
           overrides: [
+            allDiveRolesProvider.overrideWith((ref) async => _testRoles),
             allBuddiesProvider.overrideWith(
               (ref) async => [_credentialedBuddy, _plainBuddy],
             ),
@@ -86,6 +101,7 @@ void main() {
         await tester.pumpWidget(
           testApp(
             overrides: [
+              allDiveRolesProvider.overrideWith((ref) async => _testRoles),
               allBuddiesProvider.overrideWith(
                 (ref) async => [_credentialedBuddy, _plainBuddy],
               ),
@@ -132,6 +148,7 @@ void main() {
       await tester.pumpWidget(
         testApp(
           overrides: [
+            allDiveRolesProvider.overrideWith((ref) async => _testRoles),
             allBuddiesProvider.overrideWith(
               (ref) async => [_credentialedBuddy, _plainBuddy],
             ),

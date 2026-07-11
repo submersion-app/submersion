@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/dive_roles/presentation/dive_role_display.dart';
 
 /// Bottom sheet for requesting a buddy's signature
 ///
@@ -82,7 +83,7 @@ class _BuddySignatureRequestSheetState
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      widget.buddyWithRole.role.displayName,
+                      widget.buddyWithRole.role.localizedName(context.l10n),
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),

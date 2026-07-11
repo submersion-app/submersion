@@ -11,6 +11,7 @@ import 'package:submersion/features/universal_import/data/models/import_enums.da
 import 'package:submersion/features/universal_import/data/parsers/subsurface_xml_parser.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/courses/data/repositories/course_repository.dart';
@@ -729,7 +730,9 @@ void main() {
         diverId: diverId,
       );
 
-      verify(mockBuddyRepo.addBuddyToDive(any, any, BuddyRole.buddy)).called(1);
+      verify(
+        mockBuddyRepo.addBuddyToDive(any, any, DiveRole.buddyId),
+      ).called(1);
     });
 
     test('creates inline buddies for unmatched names', () async {

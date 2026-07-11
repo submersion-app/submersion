@@ -6,6 +6,7 @@ import 'package:submersion/core/database/database.dart' hide Buddy, Dive;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
@@ -48,7 +49,7 @@ void main() {
         createdAt: DateTime(2026, 1, 1),
         updatedAt: DateTime(2026, 1, 1),
       ),
-      role: BuddyRole.buddy,
+      role: DiveRole.builtInBuddy(),
     );
 
     Future<void> seedTag(String id, String name) => db

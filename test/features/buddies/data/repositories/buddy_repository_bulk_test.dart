@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain;
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -28,7 +28,7 @@ void main() {
       createdAt: DateTime(2026, 1, 1),
       updatedAt: DateTime(2026, 1, 1),
     ),
-    role: BuddyRole.buddy,
+    role: DiveRole.builtInBuddy(),
   );
 
   test('bulkAddBuddies links each buddy to each dive', () async {
@@ -76,7 +76,14 @@ void main() {
         [
           domain.BuddyWithRole(
             buddy: bwr('x').buddy,
-            role: BuddyRole.instructor,
+            role: DiveRole(
+              id: DiveRole.instructorId,
+              name: 'Instructor',
+              isBuiltIn: true,
+              sortOrder: 2,
+              createdAt: DateTime.fromMillisecondsSinceEpoch(0),
+              updatedAt: DateTime.fromMillisecondsSinceEpoch(0),
+            ),
           ),
         ],
       );

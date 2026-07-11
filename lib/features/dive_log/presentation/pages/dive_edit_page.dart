@@ -13,6 +13,7 @@ import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_picker.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -3211,7 +3212,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         ),
-    role: BuddyRole.buddy,
+    role: DiveRole.builtInBuddy(),
   );
 
   void _saveEquipmentAsSet() {

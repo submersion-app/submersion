@@ -1,11 +1,12 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart'
-    show BuddyRole, TankMaterial, WeightType;
+    show TankMaterial, WeightType;
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain;
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/services/bulk_dive_edit_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/bulk_edit_request.dart';
@@ -63,7 +64,7 @@ void main() {
       createdAt: DateTime(2026, 1, 1),
       updatedAt: DateTime(2026, 1, 1),
     ),
-    role: BuddyRole.buddy,
+    role: DiveRole.builtInBuddy(),
   );
   domain.DiveTank tank(String name, {TankMaterial? material}) =>
       domain.DiveTank(id: '', name: name, material: material);

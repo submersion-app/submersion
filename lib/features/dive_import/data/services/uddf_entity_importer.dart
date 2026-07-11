@@ -8,6 +8,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/number_utils.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/courses/data/repositories/course_repository.dart';
@@ -1741,7 +1742,7 @@ class UddfEntityImporter {
     for (final buddyRef in buddyRefs) {
       final newBuddyId = buddyIdMapping[buddyRef];
       if (newBuddyId != null) {
-        await repository.addBuddyToDive(diveId, newBuddyId, BuddyRole.buddy);
+        await repository.addBuddyToDive(diveId, newBuddyId, DiveRole.buddyId);
       }
     }
 
@@ -1756,7 +1757,7 @@ class UddfEntityImporter {
         await repository.addBuddyToDive(
           diveId,
           newGuideId,
-          BuddyRole.diveGuide,
+          DiveRole.diveGuideId,
         );
       }
     }
@@ -1772,7 +1773,7 @@ class UddfEntityImporter {
       if (buddy.diverId == null) {
         await repository.updateBuddy(buddy.copyWith(diverId: diverId));
       }
-      await repository.addBuddyToDive(diveId, buddy.id, BuddyRole.buddy);
+      await repository.addBuddyToDive(diveId, buddy.id, DiveRole.buddyId);
       inlineIds.add(buddy.id);
     }
 
@@ -1786,7 +1787,7 @@ class UddfEntityImporter {
       if (guide.diverId == null) {
         await repository.updateBuddy(guide.copyWith(diverId: diverId));
       }
-      await repository.addBuddyToDive(diveId, guide.id, BuddyRole.diveGuide);
+      await repository.addBuddyToDive(diveId, guide.id, DiveRole.diveGuideId);
       inlineIds.add(guide.id);
     }
 
