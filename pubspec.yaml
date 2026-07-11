@@ -160,6 +160,15 @@ dependency_overrides:
   # platform channel threading requirement.
   auto_updater_windows:
     path: packages/auto_updater_windows
+  # Fork of flutter_angle 0.4.1: upstream's Linux plugin does not compile
+  # against the Flutter 3.44 Linux embedder (FlTextureGL populate gained
+  # width/height out-params; the EGLContext struct member was missing).
+  # Drop once upstream ships the fix.
+  flutter_angle:
+    git:
+      url: https://github.com/submersion-app/flutter_angle.git
+      ref: flutter-3.44-linux-embedder
+      path: flutter_angle
 
 flutter:
   generate: true

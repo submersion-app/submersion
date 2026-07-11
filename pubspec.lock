@@ -566,12 +566,13 @@ packages:
     source: sdk
     version: "0.0.0"
   flutter_angle:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: flutter_angle
-      sha256: "59be0c3b3c0bd5c633cfcec53cc7c24cfc88f4b5d0605e385bfe342945e81c49"
-      url: "https://pub.dev"
-    source: hosted
+      path: flutter_angle
+      ref: "flutter-3.44-linux-embedder"
+      resolved-ref: "3bdad4c66fef3210b1385814410fa2d735a7e76f"
+      url: "https://github.com/submersion-app/flutter_angle.git"
+    source: git
     version: "0.4.1"
   flutter_cache_manager:
     dependency: "direct main"
