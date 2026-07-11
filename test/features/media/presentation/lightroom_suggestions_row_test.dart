@@ -6,9 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/services/lightroom/adobe_ims_auth_manager.dart';
 import 'package:submersion/core/services/lightroom/lightroom_api_client.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
-import 'package:submersion/features/media/data/services/lightroom_connector_state.dart';
 import 'package:submersion/features/media/data/services/lightroom_scan_service.dart';
 import 'package:submersion/features/media/domain/entities/connector_account.dart'
     as domain;
@@ -96,15 +94,15 @@ void main() {
           lightroomScanServiceProvider.overrideWithValue(service),
           mediaRepositoryProvider.overrideWithValue(repository),
         ],
-        child: MaterialApp(
-          localizationsDelegates: const [
+        child: const MaterialApp(
+          localizationsDelegates: [
             AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
           supportedLocales: AppLocalizations.supportedLocales,
-          home: const Scaffold(
+          home: Scaffold(
             body: SingleChildScrollView(
               child: LightroomSuggestionsRow(diveId: 'd1'),
             ),
