@@ -801,8 +801,10 @@ class BuhlmannAlgorithm {
   /// Each segment becomes active from its start timestamp onward until
   /// superseded by the next segment.
   /// [ascentGasPlan] optionally overrides the ascent gas selection for TTS
-  /// and deco-schedule calculations; null reproduces the legacy per-sample
-  /// single-gas behavior.
+  /// and deco-schedule calculations. Null reproduces the legacy per-sample
+  /// single-gas behavior for open-circuit segments; for a segment carrying a
+  /// [ProfileGasSegment.setpoint], null instead derives the loop itself as
+  /// the ascent plan (see [_loopAscentPlanFor]).
   List<DecoStatus> processProfileWithGasSegments({
     required List<double> depths,
     required List<int> timestamps,
