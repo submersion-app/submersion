@@ -465,6 +465,10 @@ class DiverRepository {
           'DELETE FROM dive_computers WHERE diver_id = ?',
           [id],
         );
+        await _db.customStatement(
+          'DELETE FROM diver_weight_entries WHERE diver_id = ?',
+          [id],
+        );
 
         // Delete diver settings (not nullable, so delete instead of nullify).
         final settingsRows = await (_db.select(
