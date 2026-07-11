@@ -244,6 +244,26 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     );
   }
 
+  /// Replace the equipment attached to the plan (Gear & Weights, v104).
+  void setEquipmentIds(List<String> ids) {
+    state = state.copyWith(
+      equipmentIds: ids,
+      isDirty: true,
+      updatedAt: DateTime.now(),
+    );
+  }
+
+  /// Accept (or clear, with both null) a weight prediction snapshot.
+  void setPlannedWeight(double? totalKg, Map<String, double>? placement) {
+    state = state.copyWith(
+      plannedWeightKg: totalKg,
+      plannedWeightPlacement: placement,
+      clearPlannedWeight: totalKg == null,
+      isDirty: true,
+      updatedAt: DateTime.now(),
+    );
+  }
+
   /// Update an existing tank.
   void updateTank(String id, DiveTank tank) {
     final tanks = state.tanks.map((t) {

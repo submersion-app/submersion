@@ -65,6 +65,12 @@ class DivePlan extends Equatable {
   final List<PlanSegment> segments;
   final List<DiveTank> tanks;
 
+  // Gear & Weights (v104): equipment attached to the plan plus the accepted
+  // weight-prediction snapshot (placement keyed by WeightType.name -> kg).
+  final List<String> equipmentIds;
+  final double? plannedWeightKg;
+  final Map<String, double>? plannedWeightPlacement;
+
   const DivePlan({
     required this.id,
     required this.name,
@@ -98,6 +104,9 @@ class DivePlan extends Equatable {
     this.turnPressureFraction,
     this.segments = const [],
     this.tanks = const [],
+    this.equipmentIds = const [],
+    this.plannedWeightKg,
+    this.plannedWeightPlacement,
   });
 
   /// CCR setpoints with the spec defaults (0.7 shallow, 1.3 below 10 m).
@@ -168,6 +177,10 @@ class DivePlan extends Equatable {
     bool clearTurnPressureFraction = false,
     List<PlanSegment>? segments,
     List<DiveTank>? tanks,
+    List<String>? equipmentIds,
+    double? plannedWeightKg,
+    bool clearPlannedWeight = false,
+    Map<String, double>? plannedWeightPlacement,
   }) {
     return DivePlan(
       id: id ?? this.id,
@@ -216,6 +229,13 @@ class DivePlan extends Equatable {
           : (turnPressureFraction ?? this.turnPressureFraction),
       segments: segments ?? this.segments,
       tanks: tanks ?? this.tanks,
+      equipmentIds: equipmentIds ?? this.equipmentIds,
+      plannedWeightKg: clearPlannedWeight
+          ? null
+          : (plannedWeightKg ?? this.plannedWeightKg),
+      plannedWeightPlacement: clearPlannedWeight
+          ? null
+          : (plannedWeightPlacement ?? this.plannedWeightPlacement),
     );
   }
 
@@ -254,6 +274,9 @@ class DivePlan extends Equatable {
     turnPressureFraction,
     segments,
     tanks,
+    equipmentIds,
+    plannedWeightKg,
+    plannedWeightPlacement,
   ];
 }
 

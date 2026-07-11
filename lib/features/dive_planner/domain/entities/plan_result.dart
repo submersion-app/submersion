@@ -526,6 +526,14 @@ class DivePlanState extends Equatable {
   /// Reserve pressure in bar.
   final double reservePressure;
 
+  /// Equipment attached to the plan (Gear & Weights, v104).
+  final List<String> equipmentIds;
+
+  /// Accepted weight-prediction snapshot; placement keyed by
+  /// WeightType.name -> kg.
+  final double? plannedWeightKg;
+  final Map<String, double>? plannedWeightPlacement;
+
   /// Notes for the plan.
   final String notes;
 
@@ -561,6 +569,9 @@ class DivePlanState extends Equatable {
     this.turnPressureRule,
     this.turnPressureFraction,
     this.reservePressure = kDefaultReservePressureBar,
+    this.equipmentIds = const [],
+    this.plannedWeightKg,
+    this.plannedWeightPlacement,
     this.notes = '',
     this.isDirty = false,
     required this.createdAt,
@@ -619,6 +630,10 @@ class DivePlanState extends Equatable {
     double? turnPressureFraction,
     bool clearTurnPressureRule = false,
     double? reservePressure,
+    List<String>? equipmentIds,
+    double? plannedWeightKg,
+    Map<String, double>? plannedWeightPlacement,
+    bool clearPlannedWeight = false,
     String? notes,
     bool? isDirty,
     DateTime? createdAt,
@@ -668,6 +683,13 @@ class DivePlanState extends Equatable {
           ? null
           : (turnPressureFraction ?? this.turnPressureFraction),
       reservePressure: reservePressure ?? this.reservePressure,
+      equipmentIds: equipmentIds ?? this.equipmentIds,
+      plannedWeightKg: clearPlannedWeight
+          ? null
+          : (plannedWeightKg ?? this.plannedWeightKg),
+      plannedWeightPlacement: clearPlannedWeight
+          ? null
+          : (plannedWeightPlacement ?? this.plannedWeightPlacement),
       notes: notes ?? this.notes,
       isDirty: isDirty ?? this.isDirty,
       createdAt: createdAt ?? this.createdAt,
@@ -699,6 +721,9 @@ class DivePlanState extends Equatable {
     turnPressureRule,
     turnPressureFraction,
     reservePressure,
+    equipmentIds,
+    plannedWeightKg,
+    plannedWeightPlacement,
     notes,
     isDirty,
     createdAt,

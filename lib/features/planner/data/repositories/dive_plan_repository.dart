@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
@@ -36,12 +38,13 @@ class DivePlanRepository {
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(DivePlanRepository);
 
-  /// Fires on any change to the three plan tables.
+  /// Fires on any change to the plan tables.
   Stream<void> watchPlanChanges() => _db.tableUpdates(
     TableUpdateQuery.onAllTables([
       _db.divePlans,
       _db.divePlanTanks,
       _db.divePlanSegments,
+      _db.divePlanEquipment,
     ]),
   );
 
@@ -55,6 +58,8 @@ class DivePlanRepository {
     final now = DateTime.now().millisecondsSinceEpoch;
     final removedTankIds = <String>[];
     final removedSegmentIds = <String>[];
+    final addedEquipmentIds = <String>[];
+    final removedEquipmentIds = <String>[];
 
     try {
       await _db.transaction(() async {
@@ -122,6 +127,33 @@ class DivePlanRepository {
             _db.divePlanTanks,
           )..where((t) => t.id.equals(id))).go();
         }
+
+        // Equipment junction: diff-based insert/delete (composite PK, no
+        // per-row timestamps to preserve).
+        final existingEqRows = await (_db.select(
+          _db.divePlanEquipment,
+        )..where((e) => e.planId.equals(plan.id))).get();
+        final existingEqIds = existingEqRows.map((r) => r.equipmentId).toSet();
+        final keptEqIds = plan.equipmentIds.toSet();
+        addedEquipmentIds.addAll(keptEqIds.difference(existingEqIds));
+        removedEquipmentIds.addAll(existingEqIds.difference(keptEqIds));
+        for (final id in addedEquipmentIds) {
+          await _db
+              .into(_db.divePlanEquipment)
+              .insert(
+                db.DivePlanEquipmentCompanion.insert(
+                  planId: plan.id,
+                  equipmentId: id,
+                ),
+                mode: InsertMode.insertOrIgnore,
+              );
+        }
+        for (final id in removedEquipmentIds) {
+          await (_db.delete(_db.divePlanEquipment)..where(
+                (e) => e.planId.equals(plan.id) & e.equipmentId.equals(id),
+              ))
+              .go();
+        }
       });
 
       // Sync bookkeeping AFTER the transaction commits so a rollback leaves
@@ -157,6 +189,19 @@ class DivePlanRepository {
           recordId: id,
         );
       }
+      for (final id in addedEquipmentIds) {
+        await _syncRepository.markRecordPending(
+          entityType: 'divePlanEquipment',
+          recordId: '${plan.id}|$id',
+          localUpdatedAt: now,
+        );
+      }
+      for (final id in removedEquipmentIds) {
+        await _syncRepository.logDeletion(
+          entityType: 'divePlanEquipment',
+          recordId: '${plan.id}|$id',
+        );
+      }
       SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
       _log.error(
@@ -185,8 +230,16 @@ class DivePlanRepository {
                 ..where((t) => t.planId.equals(id))
                 ..orderBy([(t) => OrderingTerm.asc(t.sortOrder)]))
               .get();
+      final equipmentRows = await (_db.select(
+        _db.divePlanEquipment,
+      )..where((e) => e.planId.equals(id))).get();
 
-      return _mapPlan(row, tankRows, segmentRows);
+      return _mapPlan(
+        row,
+        tankRows,
+        segmentRows,
+        equipmentIds: equipmentRows.map((r) => r.equipmentId).toList(),
+      );
     } catch (e, stackTrace) {
       _log.error('Failed to load plan $id', error: e, stackTrace: stackTrace);
       rethrow;
@@ -361,6 +414,12 @@ class DivePlanRepository {
       deviationTimeMinutes: Value(plan.deviationTimeMinutes),
       turnPressureRule: Value(plan.turnPressureRule?.name),
       turnPressureFraction: Value(plan.turnPressureFraction),
+      plannedWeightKg: Value(plan.plannedWeightKg),
+      plannedWeightPlacement: Value(
+        plan.plannedWeightPlacement != null
+            ? jsonEncode(plan.plannedWeightPlacement)
+            : null,
+      ),
       summaryMaxDepth: summary != null
           ? Value(summary.maxDepth)
           : const Value.absent(),
@@ -428,8 +487,9 @@ class DivePlanRepository {
   domain.DivePlan _mapPlan(
     db.DivePlan row,
     List<db.DivePlanTank> tankRows,
-    List<db.DivePlanSegment> segmentRows,
-  ) {
+    List<db.DivePlanSegment> segmentRows, {
+    List<String> equipmentIds = const [],
+  }) {
     return domain.DivePlan(
       id: row.id,
       name: row.name,
@@ -473,6 +533,12 @@ class DivePlanRepository {
           ? domain.TurnPressureRule.values.byName(row.turnPressureRule!)
           : null,
       turnPressureFraction: row.turnPressureFraction,
+      equipmentIds: equipmentIds,
+      plannedWeightKg: row.plannedWeightKg,
+      plannedWeightPlacement: row.plannedWeightPlacement != null
+          ? (jsonDecode(row.plannedWeightPlacement!) as Map<String, dynamic>)
+                .map((k, v) => MapEntry(k, (v as num).toDouble()))
+          : null,
       tanks: tankRows
           .map(
             (t) => DiveTank(
