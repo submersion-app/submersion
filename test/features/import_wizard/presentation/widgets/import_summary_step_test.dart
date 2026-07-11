@@ -11,7 +11,7 @@ import 'package:submersion/features/import_wizard/domain/models/import_cancellat
 import 'package:submersion/features/import_wizard/domain/models/import_file_outcome.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
-import 'package:submersion/features/import_wizard/domain/models/wizard_step_def.dart';
+import 'package:submersion/shared/widgets/wizard/wizard_step_def.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/import_summary_step.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_match_review_notifier.dart';

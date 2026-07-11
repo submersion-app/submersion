@@ -330,7 +330,8 @@ GoRoute(
 
 | Path | Name | Screen |
 |------|------|--------|
-| `/welcome` | welcome | WelcomePage |
+| `/welcome` | welcome | SetupWizardPage (first-run mode) |
+| `/settings/setup-assistant` | setupAssistant | SetupWizardPage (re-entry mode) |
 
 ## Navigation Patterns
 
@@ -394,7 +395,10 @@ This provides instant transitions between main tabs, matching platform conventio
 
 ### First-Run Guard
 
-The router redirects to onboarding if no divers exist:
+The router redirects to the setup wizard if no divers exist. The wizard
+offers a fresh-start path (profile, units, appearance, backup and sync) and
+an existing-data path (restore a backup, connect cloud sync, or open an
+existing storage folder):
 
 ```dart
 redirect: (context, state) async {

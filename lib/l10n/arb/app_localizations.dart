@@ -8450,6 +8450,534 @@ abstract class AppLocalizations {
   /// **'{count, plural, one{1 issue} other{{count} issues}}'**
   String forms_section_issues(int count);
 
+  /// No description provided for @settings_manage_setupAssistant.
+  ///
+  /// In en, this message translates to:
+  /// **'Setup assistant'**
+  String get settings_manage_setupAssistant;
+
+  /// No description provided for @settings_manage_setupAssistant_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Revisit units, appearance, and backup choices'**
+  String get settings_manage_setupAssistant_subtitle;
+
+  /// No description provided for @setup_backup_cloudCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep a backup copy in the cloud'**
+  String get setup_backup_cloudCopy;
+
+  /// No description provided for @setup_backup_frequency.
+  ///
+  /// In en, this message translates to:
+  /// **'Frequency'**
+  String get setup_backup_frequency;
+
+  /// No description provided for @setup_backup_frequency_daily.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily'**
+  String get setup_backup_frequency_daily;
+
+  /// No description provided for @setup_backup_frequency_monthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get setup_backup_frequency_monthly;
+
+  /// No description provided for @setup_backup_frequency_weekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly'**
+  String get setup_backup_frequency_weekly;
+
+  /// No description provided for @setup_backup_scheduleSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up your logbook on a schedule'**
+  String get setup_backup_scheduleSubtitle;
+
+  /// No description provided for @setup_backup_scheduleToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic backups'**
+  String get setup_backup_scheduleToggle;
+
+  /// No description provided for @setup_backup_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Protect your dive log from day one.'**
+  String get setup_backup_subtitle;
+
+  /// No description provided for @setup_backup_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Backups & Sync'**
+  String get setup_backup_title;
+
+  /// No description provided for @setup_common_back.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get setup_common_back;
+
+  /// No description provided for @setup_common_next.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get setup_common_next;
+
+  /// No description provided for @setup_common_skip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get setup_common_skip;
+
+  /// No description provided for @setup_existing_folder_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Point Submersion at a folder that already contains a library'**
+  String get setup_existing_folder_subtitle;
+
+  /// No description provided for @setup_existing_folder_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Open an existing folder'**
+  String get setup_existing_folder_title;
+
+  /// No description provided for @setup_existing_restore_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a backup file exported from Submersion'**
+  String get setup_existing_restore_subtitle;
+
+  /// No description provided for @setup_existing_restore_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore a backup file'**
+  String get setup_existing_restore_title;
+
+  /// No description provided for @setup_existing_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose how to load your existing Submersion library'**
+  String get setup_existing_subtitle;
+
+  /// No description provided for @setup_existing_sync_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pull your library from iCloud, Dropbox, or S3'**
+  String get setup_existing_sync_subtitle;
+
+  /// No description provided for @setup_existing_sync_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect cloud sync'**
+  String get setup_existing_sync_title;
+
+  /// No description provided for @setup_existing_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Bring your data'**
+  String get setup_existing_title;
+
+  /// No description provided for @setup_finish_applying.
+  ///
+  /// In en, this message translates to:
+  /// **'Setting up...'**
+  String get setup_finish_applying;
+
+  /// No description provided for @setup_finish_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not complete setup: {error}'**
+  String setup_finish_error(Object error);
+
+  /// No description provided for @setup_finish_feature_diveComputer.
+  ///
+  /// In en, this message translates to:
+  /// **'Download dives from your dive computer'**
+  String get setup_finish_feature_diveComputer;
+
+  /// No description provided for @setup_finish_feature_gear.
+  ///
+  /// In en, this message translates to:
+  /// **'Track gear and service intervals'**
+  String get setup_finish_feature_gear;
+
+  /// No description provided for @setup_finish_feature_import.
+  ///
+  /// In en, this message translates to:
+  /// **'Import logs from files and other apps'**
+  String get setup_finish_feature_import;
+
+  /// No description provided for @setup_finish_feature_sites.
+  ///
+  /// In en, this message translates to:
+  /// **'Map your dive sites'**
+  String get setup_finish_feature_sites;
+
+  /// No description provided for @setup_finish_feature_statistics.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore statistics about your diving'**
+  String get setup_finish_feature_statistics;
+
+  /// No description provided for @setup_finish_start.
+  ///
+  /// In en, this message translates to:
+  /// **'Start logging'**
+  String get setup_finish_start;
+
+  /// No description provided for @setup_finish_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Submersion can also...'**
+  String get setup_finish_subtitle;
+
+  /// No description provided for @setup_finish_title.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re all set'**
+  String get setup_finish_title;
+
+  /// No description provided for @setup_folder_notFound_message.
+  ///
+  /// In en, this message translates to:
+  /// **'The selected folder does not contain a Submersion database.'**
+  String get setup_folder_notFound_message;
+
+  /// No description provided for @setup_folder_notFound_title.
+  ///
+  /// In en, this message translates to:
+  /// **'No library in that folder'**
+  String get setup_folder_notFound_title;
+
+  /// No description provided for @setup_folder_pick.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose folder'**
+  String get setup_folder_pick;
+
+  /// No description provided for @setup_folder_switching.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening library...'**
+  String get setup_folder_switching;
+
+  /// No description provided for @setup_folder_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Open existing folder'**
+  String get setup_folder_title;
+
+  /// No description provided for @setup_profile_nameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your name'**
+  String get setup_profile_nameHint;
+
+  /// No description provided for @setup_profile_nameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Name'**
+  String get setup_profile_nameLabel;
+
+  /// No description provided for @setup_profile_nameValidation.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your name'**
+  String get setup_profile_nameValidation;
+
+  /// No description provided for @setup_profile_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your name to get started. You can add more details later.'**
+  String get setup_profile_subtitle;
+
+  /// No description provided for @setup_profile_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Your Profile'**
+  String get setup_profile_title;
+
+  /// No description provided for @setup_restore_inProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Restoring...'**
+  String get setup_restore_inProgress;
+
+  /// No description provided for @setup_restore_pick.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose backup file'**
+  String get setup_restore_pick;
+
+  /// No description provided for @setup_restore_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore backup'**
+  String get setup_restore_title;
+
+  /// No description provided for @setup_step_backup.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup'**
+  String get setup_step_backup;
+
+  /// No description provided for @setup_step_finish.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get setup_step_finish;
+
+  /// No description provided for @setup_step_profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get setup_step_profile;
+
+  /// No description provided for @setup_step_units.
+  ///
+  /// In en, this message translates to:
+  /// **'Units'**
+  String get setup_step_units;
+
+  /// No description provided for @setup_syncPull_continue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get setup_syncPull_continue;
+
+  /// No description provided for @setup_syncPull_noLibrary_message.
+  ///
+  /// In en, this message translates to:
+  /// **'No existing Submersion library was found on this account. Start fresh instead? Your connection will be kept.'**
+  String get setup_syncPull_noLibrary_message;
+
+  /// No description provided for @setup_syncPull_noLibrary_title.
+  ///
+  /// In en, this message translates to:
+  /// **'No library found'**
+  String get setup_syncPull_noLibrary_title;
+
+  /// No description provided for @setup_syncPull_success.
+  ///
+  /// In en, this message translates to:
+  /// **'Library adopted'**
+  String get setup_syncPull_success;
+
+  /// No description provided for @setup_syncPull_syncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Pulling your library...'**
+  String get setup_syncPull_syncing;
+
+  /// No description provided for @setup_syncPull_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect and pull'**
+  String get setup_syncPull_title;
+
+  /// No description provided for @setup_sync_changeProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'Change provider'**
+  String get setup_sync_changeProvider;
+
+  /// No description provided for @setup_sync_connectedTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected to {provider}'**
+  String setup_sync_connectedTo(String provider);
+
+  /// No description provided for @setup_sync_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not connect: {error}'**
+  String setup_sync_error(Object error);
+
+  /// No description provided for @setup_sync_header.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud sync'**
+  String get setup_sync_header;
+
+  /// No description provided for @setup_sync_icloudUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'iCloud is not available on this device'**
+  String get setup_sync_icloudUnavailable;
+
+  /// No description provided for @setup_sync_libraryFound_adopt.
+  ///
+  /// In en, this message translates to:
+  /// **'Adopt existing library'**
+  String get setup_sync_libraryFound_adopt;
+
+  /// No description provided for @setup_sync_libraryFound_keepFresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Start fresh'**
+  String get setup_sync_libraryFound_keepFresh;
+
+  /// No description provided for @setup_sync_libraryFound_message.
+  ///
+  /// In en, this message translates to:
+  /// **'This account already contains a Submersion library. Adopt it instead of starting fresh?'**
+  String get setup_sync_libraryFound_message;
+
+  /// No description provided for @setup_sync_libraryFound_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Existing library found'**
+  String get setup_sync_libraryFound_title;
+
+  /// No description provided for @setup_sync_manageInSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage in Settings'**
+  String get setup_sync_manageInSettings;
+
+  /// No description provided for @setup_sync_notConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Not connected'**
+  String get setup_sync_notConnected;
+
+  /// No description provided for @setup_sync_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync your logbook across devices'**
+  String get setup_sync_subtitle;
+
+  /// No description provided for @setup_units_advanced.
+  ///
+  /// In en, this message translates to:
+  /// **'Fine-tune units'**
+  String get setup_units_advanced;
+
+  /// No description provided for @setup_units_altitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Altitude'**
+  String get setup_units_altitude;
+
+  /// No description provided for @setup_units_dateFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Date format'**
+  String get setup_units_dateFormat;
+
+  /// No description provided for @setup_units_depth.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth'**
+  String get setup_units_depth;
+
+  /// No description provided for @setup_units_imperial.
+  ///
+  /// In en, this message translates to:
+  /// **'Imperial'**
+  String get setup_units_imperial;
+
+  /// No description provided for @setup_units_metric.
+  ///
+  /// In en, this message translates to:
+  /// **'Metric'**
+  String get setup_units_metric;
+
+  /// No description provided for @setup_units_pressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure'**
+  String get setup_units_pressure;
+
+  /// No description provided for @setup_units_sac.
+  ///
+  /// In en, this message translates to:
+  /// **'SAC rate'**
+  String get setup_units_sac;
+
+  /// No description provided for @setup_units_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose how measurements are displayed. You can fine-tune each unit.'**
+  String get setup_units_subtitle;
+
+  /// No description provided for @setup_units_temperature.
+  ///
+  /// In en, this message translates to:
+  /// **'Temperature'**
+  String get setup_units_temperature;
+
+  /// No description provided for @setup_units_timeFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Time format'**
+  String get setup_units_timeFormat;
+
+  /// No description provided for @setup_units_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Units'**
+  String get setup_units_title;
+
+  /// No description provided for @setup_units_volume.
+  ///
+  /// In en, this message translates to:
+  /// **'Volume'**
+  String get setup_units_volume;
+
+  /// No description provided for @setup_units_weight.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get setup_units_weight;
+
+  /// No description provided for @setup_welcome_existingData_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore a backup, connect cloud sync, or open an existing folder'**
+  String get setup_welcome_existingData_subtitle;
+
+  /// No description provided for @setup_welcome_existingData_title.
+  ///
+  /// In en, this message translates to:
+  /// **'I have existing Submersion data'**
+  String get setup_welcome_existingData_title;
+
+  /// No description provided for @setup_welcome_skipSetup.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip setup'**
+  String get setup_welcome_skipSetup;
+
+  /// No description provided for @setup_welcome_startFresh_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your diver profile and configure the app'**
+  String get setup_welcome_startFresh_subtitle;
+
+  /// No description provided for @setup_welcome_startFresh_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up a new logbook'**
+  String get setup_welcome_startFresh_title;
+
+  /// No description provided for @setup_welcome_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced dive logging and analytics'**
+  String get setup_welcome_subtitle;
+
+  /// No description provided for @setup_welcome_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to Submersion'**
+  String get setup_welcome_title;
+
   /// No description provided for @siteMatchReview_title.
   ///
   /// In en, this message translates to:
@@ -18067,66 +18595,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Trips'**
   String get nav_trips;
-
-  /// No description provided for @onboarding_welcome_createProfile.
-  ///
-  /// In en, this message translates to:
-  /// **'Create Your Profile'**
-  String get onboarding_welcome_createProfile;
-
-  /// No description provided for @onboarding_welcome_createProfileSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter your name to get started. You can add more details later.'**
-  String get onboarding_welcome_createProfileSubtitle;
-
-  /// No description provided for @onboarding_welcome_creating.
-  ///
-  /// In en, this message translates to:
-  /// **'Creating...'**
-  String get onboarding_welcome_creating;
-
-  /// No description provided for @onboarding_welcome_errorCreatingProfile.
-  ///
-  /// In en, this message translates to:
-  /// **'Error creating profile: {error}'**
-  String onboarding_welcome_errorCreatingProfile(Object error);
-
-  /// No description provided for @onboarding_welcome_getStarted.
-  ///
-  /// In en, this message translates to:
-  /// **'Get Started'**
-  String get onboarding_welcome_getStarted;
-
-  /// No description provided for @onboarding_welcome_nameHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter your name'**
-  String get onboarding_welcome_nameHint;
-
-  /// No description provided for @onboarding_welcome_nameLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Your Name'**
-  String get onboarding_welcome_nameLabel;
-
-  /// No description provided for @onboarding_welcome_nameValidation.
-  ///
-  /// In en, this message translates to:
-  /// **'Please enter your name'**
-  String get onboarding_welcome_nameValidation;
-
-  /// No description provided for @onboarding_welcome_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Advanced dive logging and analytics'**
-  String get onboarding_welcome_subtitle;
-
-  /// No description provided for @onboarding_welcome_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Welcome to Submersion'**
-  String get onboarding_welcome_title;
 
   /// No description provided for @plannerCanvas_bailout_available.
   ///

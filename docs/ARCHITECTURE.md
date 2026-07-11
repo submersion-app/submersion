@@ -237,7 +237,7 @@ submersion/
 │   │   ├── dive_types/              # Custom dive types
 │   │   ├── marine_life/             # Species sightings
 │   │   ├── tools/                   # Calculators
-│   │   └── onboarding/              # First-run experience
+│   │   └── setup_wizard/            # First-run setup wizard + Settings re-entry
 │   │
 │   └── shared/                      # Reusable components
 │       ├── constants/

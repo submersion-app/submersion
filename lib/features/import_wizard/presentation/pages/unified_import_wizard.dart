@@ -17,7 +17,7 @@ import 'package:submersion/features/import_wizard/data/adapters/dive_computer_ad
 import 'package:submersion/features/import_wizard/data/adapters/universal_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
-import 'package:submersion/features/import_wizard/domain/models/wizard_step_def.dart';
+import 'package:submersion/shared/widgets/wizard/wizard_step_def.dart';
 import 'package:submersion/features/import_wizard/domain/services/step_skip_calculator.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
@@ -25,7 +25,7 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:submersion/features/import_wizard/presentation/widgets/import_progress_step.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/import_summary_step.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/review_step.dart';
-import 'package:submersion/features/import_wizard/presentation/widgets/wizard_step_indicator.dart';
+import 'package:submersion/shared/widgets/wizard/wizard_step_indicator.dart';
 
 /// The unified import wizard shell.
 ///

@@ -4879,6 +4879,290 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get settings_manage_setupAssistant => 'אשף ההגדרה';
+
+  @override
+  String get settings_manage_setupAssistant_subtitle =>
+      'עיון מחדש ביחידות, במראה ובאפשרויות הגיבוי';
+
+  @override
+  String get setup_backup_cloudCopy => 'שמירת עותק גיבוי בענן';
+
+  @override
+  String get setup_backup_frequency => 'תדירות';
+
+  @override
+  String get setup_backup_frequency_daily => 'יומי';
+
+  @override
+  String get setup_backup_frequency_monthly => 'חודשי';
+
+  @override
+  String get setup_backup_frequency_weekly => 'שבועי';
+
+  @override
+  String get setup_backup_scheduleSubtitle => 'גיבוי יומן הצלילה לפי לוח זמנים';
+
+  @override
+  String get setup_backup_scheduleToggle => 'גיבויים אוטומטיים';
+
+  @override
+  String get setup_backup_subtitle => 'הגנו על יומן הצלילה שלכם מהיום הראשון.';
+
+  @override
+  String get setup_backup_title => 'גיבויים וסנכרון';
+
+  @override
+  String get setup_common_back => 'חזרה';
+
+  @override
+  String get setup_common_next => 'הבא';
+
+  @override
+  String get setup_common_skip => 'דילוג';
+
+  @override
+  String get setup_existing_folder_subtitle =>
+      'הפנו את Submersion לתיקייה שכבר מכילה ספרייה';
+
+  @override
+  String get setup_existing_folder_title => 'פתיחת תיקייה קיימת';
+
+  @override
+  String get setup_existing_restore_subtitle =>
+      'בחרו קובץ גיבוי שיוצא מ-Submersion';
+
+  @override
+  String get setup_existing_restore_title => 'שחזור קובץ גיבוי';
+
+  @override
+  String get setup_existing_subtitle =>
+      'בחרו כיצד לטעון את ספריית Submersion הקיימת שלכם';
+
+  @override
+  String get setup_existing_sync_subtitle =>
+      'משכו את הספרייה שלכם מ-iCloud, מ-Dropbox או מ-S3';
+
+  @override
+  String get setup_existing_sync_title => 'חיבור סנכרון ענן';
+
+  @override
+  String get setup_existing_title => 'הביאו את הנתונים שלכם';
+
+  @override
+  String get setup_finish_applying => 'מגדיר...';
+
+  @override
+  String setup_finish_error(Object error) {
+    return 'לא ניתן להשלים את ההגדרה: $error';
+  }
+
+  @override
+  String get setup_finish_feature_diveComputer => 'הורדת צלילות ממחשב הצלילה';
+
+  @override
+  String get setup_finish_feature_gear => 'מעקב אחר ציוד ומועדי טיפולים';
+
+  @override
+  String get setup_finish_feature_import =>
+      'ייבוא יומנים מקבצים ומאפליקציות אחרות';
+
+  @override
+  String get setup_finish_feature_sites => 'מיפוי אתרי הצלילה שלכם';
+
+  @override
+  String get setup_finish_feature_statistics =>
+      'חקר סטטיסטיקות על הצלילות שלכם';
+
+  @override
+  String get setup_finish_start => 'התחלת רישום';
+
+  @override
+  String get setup_finish_subtitle => 'Submersion יכול גם...';
+
+  @override
+  String get setup_finish_title => 'הכול מוכן';
+
+  @override
+  String get setup_folder_notFound_message =>
+      'התיקייה שנבחרה אינה מכילה מסד נתונים של Submersion.';
+
+  @override
+  String get setup_folder_notFound_title => 'אין ספרייה בתיקייה זו';
+
+  @override
+  String get setup_folder_pick => 'בחירת תיקייה';
+
+  @override
+  String get setup_folder_switching => 'פותח ספרייה...';
+
+  @override
+  String get setup_folder_title => 'פתיחת תיקייה קיימת';
+
+  @override
+  String get setup_profile_nameHint => 'הזן את שמך';
+
+  @override
+  String get setup_profile_nameLabel => 'השם שלך';
+
+  @override
+  String get setup_profile_nameValidation => 'נא להזין את שמך';
+
+  @override
+  String get setup_profile_subtitle =>
+      'הזן את שמך כדי להתחיל. תוכל להוסיף פרטים נוספים מאוחר יותר.';
+
+  @override
+  String get setup_profile_title => 'צור את הפרופיל שלך';
+
+  @override
+  String get setup_restore_inProgress => 'משחזר...';
+
+  @override
+  String get setup_restore_pick => 'בחירת קובץ גיבוי';
+
+  @override
+  String get setup_restore_title => 'שחזור גיבוי';
+
+  @override
+  String get setup_step_backup => 'גיבוי';
+
+  @override
+  String get setup_step_finish => 'סיום';
+
+  @override
+  String get setup_step_profile => 'פרופיל';
+
+  @override
+  String get setup_step_units => 'יחידות';
+
+  @override
+  String get setup_syncPull_continue => 'המשך';
+
+  @override
+  String get setup_syncPull_noLibrary_message =>
+      'לא נמצאה ספריית Submersion בחשבון זה. להתחיל מחדש? החיבור יישמר.';
+
+  @override
+  String get setup_syncPull_noLibrary_title => 'לא נמצאה ספרייה';
+
+  @override
+  String get setup_syncPull_success => 'הספרייה אומצה';
+
+  @override
+  String get setup_syncPull_syncing => 'מושך את הספרייה...';
+
+  @override
+  String get setup_syncPull_title => 'חיבור ומשיכה';
+
+  @override
+  String get setup_sync_changeProvider => 'החלפת ספק';
+
+  @override
+  String setup_sync_connectedTo(String provider) {
+    return 'מחובר אל $provider';
+  }
+
+  @override
+  String setup_sync_error(Object error) {
+    return 'החיבור נכשל: $error';
+  }
+
+  @override
+  String get setup_sync_header => 'סנכרון ענן';
+
+  @override
+  String get setup_sync_icloudUnavailable => 'iCloud אינו זמין במכשיר זה';
+
+  @override
+  String get setup_sync_libraryFound_adopt => 'אימוץ הספרייה הקיימת';
+
+  @override
+  String get setup_sync_libraryFound_keepFresh => 'התחלה חדשה';
+
+  @override
+  String get setup_sync_libraryFound_message =>
+      'חשבון זה כבר מכיל ספריית Submersion. לאמץ אותה במקום להתחיל מחדש?';
+
+  @override
+  String get setup_sync_libraryFound_title => 'נמצאה ספרייה קיימת';
+
+  @override
+  String get setup_sync_manageInSettings => 'ניהול בהגדרות';
+
+  @override
+  String get setup_sync_notConnected => 'לא מחובר';
+
+  @override
+  String get setup_sync_subtitle => 'סנכרון היומן בין מכשירים';
+
+  @override
+  String get setup_units_advanced => 'כוונון יחידות';
+
+  @override
+  String get setup_units_altitude => 'גובה';
+
+  @override
+  String get setup_units_dateFormat => 'תבנית תאריך';
+
+  @override
+  String get setup_units_depth => 'עומק';
+
+  @override
+  String get setup_units_imperial => 'אימפריאלי';
+
+  @override
+  String get setup_units_metric => 'מטרי';
+
+  @override
+  String get setup_units_pressure => 'לחץ';
+
+  @override
+  String get setup_units_sac => 'קצב SAC';
+
+  @override
+  String get setup_units_subtitle =>
+      'בחרו כיצד יוצגו המדידות. ניתן לכוונן כל יחידה.';
+
+  @override
+  String get setup_units_temperature => 'טמפרטורה';
+
+  @override
+  String get setup_units_timeFormat => 'תבנית שעה';
+
+  @override
+  String get setup_units_title => 'יחידות';
+
+  @override
+  String get setup_units_volume => 'נפח';
+
+  @override
+  String get setup_units_weight => 'משקל';
+
+  @override
+  String get setup_welcome_existingData_subtitle =>
+      'שחזרו גיבוי, חברו סנכרון ענן או פתחו תיקייה קיימת';
+
+  @override
+  String get setup_welcome_existingData_title => 'יש לי כבר נתוני Submersion';
+
+  @override
+  String get setup_welcome_skipSetup => 'דילוג על ההגדרה';
+
+  @override
+  String get setup_welcome_startFresh_subtitle =>
+      'צרו פרופיל צולל והגדירו את האפליקציה';
+
+  @override
+  String get setup_welcome_startFresh_title => 'הגדרת יומן חדש';
+
+  @override
+  String get setup_welcome_subtitle => 'רישום וניתוח צלילה מתקדם';
+
+  @override
+  String get setup_welcome_title => 'ברוכים הבאים ל-Submersion';
+
+  @override
   String get siteMatchReview_title => 'התאמת אתרים';
 
   @override
@@ -10331,39 +10615,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get nav_trips => 'טיולים';
-
-  @override
-  String get onboarding_welcome_createProfile => 'צור את הפרופיל שלך';
-
-  @override
-  String get onboarding_welcome_createProfileSubtitle =>
-      'הזן את שמך כדי להתחיל. תוכל להוסיף פרטים נוספים מאוחר יותר.';
-
-  @override
-  String get onboarding_welcome_creating => 'יוצר...';
-
-  @override
-  String onboarding_welcome_errorCreatingProfile(Object error) {
-    return 'שגיאה ביצירת פרופיל: $error';
-  }
-
-  @override
-  String get onboarding_welcome_getStarted => 'התחל';
-
-  @override
-  String get onboarding_welcome_nameHint => 'הזן את שמך';
-
-  @override
-  String get onboarding_welcome_nameLabel => 'השם שלך';
-
-  @override
-  String get onboarding_welcome_nameValidation => 'נא להזין את שמך';
-
-  @override
-  String get onboarding_welcome_subtitle => 'רישום וניתוח צלילה מתקדם';
-
-  @override
-  String get onboarding_welcome_title => 'ברוכים הבאים ל-Submersion';
 
   @override
   String plannerCanvas_bailout_available(String liters) {

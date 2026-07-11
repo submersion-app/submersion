@@ -1303,6 +1303,13 @@
 
 ---
 
+### Setup Wizard (Completed)
+
+- [x] Setup wizard for new databases (discussion #523): first-run fork
+      (fresh start vs existing data), units with locale-aware preset,
+      appearance, backup schedule and cloud sync connect, restore/adopt
+      paths, feature-discovery finish screen, Settings re-entry
+
 ## 15.2 Multi-User / Family Support
 
 | Feature | Status | Phase | Notes |

@@ -4924,6 +4924,294 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get settings_manage_setupAssistant => 'Setup assistant';
+
+  @override
+  String get settings_manage_setupAssistant_subtitle =>
+      'Revisit units, appearance, and backup choices';
+
+  @override
+  String get setup_backup_cloudCopy => 'Keep a backup copy in the cloud';
+
+  @override
+  String get setup_backup_frequency => 'Frequency';
+
+  @override
+  String get setup_backup_frequency_daily => 'Daily';
+
+  @override
+  String get setup_backup_frequency_monthly => 'Monthly';
+
+  @override
+  String get setup_backup_frequency_weekly => 'Weekly';
+
+  @override
+  String get setup_backup_scheduleSubtitle =>
+      'Back up your logbook on a schedule';
+
+  @override
+  String get setup_backup_scheduleToggle => 'Automatic backups';
+
+  @override
+  String get setup_backup_subtitle => 'Protect your dive log from day one.';
+
+  @override
+  String get setup_backup_title => 'Backups & Sync';
+
+  @override
+  String get setup_common_back => 'Back';
+
+  @override
+  String get setup_common_next => 'Next';
+
+  @override
+  String get setup_common_skip => 'Skip';
+
+  @override
+  String get setup_existing_folder_subtitle =>
+      'Point Submersion at a folder that already contains a library';
+
+  @override
+  String get setup_existing_folder_title => 'Open an existing folder';
+
+  @override
+  String get setup_existing_restore_subtitle =>
+      'Pick a backup file exported from Submersion';
+
+  @override
+  String get setup_existing_restore_title => 'Restore a backup file';
+
+  @override
+  String get setup_existing_subtitle =>
+      'Choose how to load your existing Submersion library';
+
+  @override
+  String get setup_existing_sync_subtitle =>
+      'Pull your library from iCloud, Dropbox, or S3';
+
+  @override
+  String get setup_existing_sync_title => 'Connect cloud sync';
+
+  @override
+  String get setup_existing_title => 'Bring your data';
+
+  @override
+  String get setup_finish_applying => 'Setting up...';
+
+  @override
+  String setup_finish_error(Object error) {
+    return 'Could not complete setup: $error';
+  }
+
+  @override
+  String get setup_finish_feature_diveComputer =>
+      'Download dives from your dive computer';
+
+  @override
+  String get setup_finish_feature_gear => 'Track gear and service intervals';
+
+  @override
+  String get setup_finish_feature_import =>
+      'Import logs from files and other apps';
+
+  @override
+  String get setup_finish_feature_sites => 'Map your dive sites';
+
+  @override
+  String get setup_finish_feature_statistics =>
+      'Explore statistics about your diving';
+
+  @override
+  String get setup_finish_start => 'Start logging';
+
+  @override
+  String get setup_finish_subtitle => 'Submersion can also...';
+
+  @override
+  String get setup_finish_title => 'You\'re all set';
+
+  @override
+  String get setup_folder_notFound_message =>
+      'The selected folder does not contain a Submersion database.';
+
+  @override
+  String get setup_folder_notFound_title => 'No library in that folder';
+
+  @override
+  String get setup_folder_pick => 'Choose folder';
+
+  @override
+  String get setup_folder_switching => 'Opening library...';
+
+  @override
+  String get setup_folder_title => 'Open existing folder';
+
+  @override
+  String get setup_profile_nameHint => 'Enter your name';
+
+  @override
+  String get setup_profile_nameLabel => 'Your Name';
+
+  @override
+  String get setup_profile_nameValidation => 'Please enter your name';
+
+  @override
+  String get setup_profile_subtitle =>
+      'Enter your name to get started. You can add more details later.';
+
+  @override
+  String get setup_profile_title => 'Create Your Profile';
+
+  @override
+  String get setup_restore_inProgress => 'Restoring...';
+
+  @override
+  String get setup_restore_pick => 'Choose backup file';
+
+  @override
+  String get setup_restore_title => 'Restore backup';
+
+  @override
+  String get setup_step_backup => 'Backup';
+
+  @override
+  String get setup_step_finish => 'Done';
+
+  @override
+  String get setup_step_profile => 'Profile';
+
+  @override
+  String get setup_step_units => 'Units';
+
+  @override
+  String get setup_syncPull_continue => 'Continue';
+
+  @override
+  String get setup_syncPull_noLibrary_message =>
+      'No existing Submersion library was found on this account. Start fresh instead? Your connection will be kept.';
+
+  @override
+  String get setup_syncPull_noLibrary_title => 'No library found';
+
+  @override
+  String get setup_syncPull_success => 'Library adopted';
+
+  @override
+  String get setup_syncPull_syncing => 'Pulling your library...';
+
+  @override
+  String get setup_syncPull_title => 'Connect and pull';
+
+  @override
+  String get setup_sync_changeProvider => 'Change provider';
+
+  @override
+  String setup_sync_connectedTo(String provider) {
+    return 'Connected to $provider';
+  }
+
+  @override
+  String setup_sync_error(Object error) {
+    return 'Could not connect: $error';
+  }
+
+  @override
+  String get setup_sync_header => 'Cloud sync';
+
+  @override
+  String get setup_sync_icloudUnavailable =>
+      'iCloud is not available on this device';
+
+  @override
+  String get setup_sync_libraryFound_adopt => 'Adopt existing library';
+
+  @override
+  String get setup_sync_libraryFound_keepFresh => 'Start fresh';
+
+  @override
+  String get setup_sync_libraryFound_message =>
+      'This account already contains a Submersion library. Adopt it instead of starting fresh?';
+
+  @override
+  String get setup_sync_libraryFound_title => 'Existing library found';
+
+  @override
+  String get setup_sync_manageInSettings => 'Manage in Settings';
+
+  @override
+  String get setup_sync_notConnected => 'Not connected';
+
+  @override
+  String get setup_sync_subtitle => 'Sync your logbook across devices';
+
+  @override
+  String get setup_units_advanced => 'Fine-tune units';
+
+  @override
+  String get setup_units_altitude => 'Altitude';
+
+  @override
+  String get setup_units_dateFormat => 'Date format';
+
+  @override
+  String get setup_units_depth => 'Depth';
+
+  @override
+  String get setup_units_imperial => 'Imperial';
+
+  @override
+  String get setup_units_metric => 'Metric';
+
+  @override
+  String get setup_units_pressure => 'Pressure';
+
+  @override
+  String get setup_units_sac => 'SAC rate';
+
+  @override
+  String get setup_units_subtitle =>
+      'Choose how measurements are displayed. You can fine-tune each unit.';
+
+  @override
+  String get setup_units_temperature => 'Temperature';
+
+  @override
+  String get setup_units_timeFormat => 'Time format';
+
+  @override
+  String get setup_units_title => 'Units';
+
+  @override
+  String get setup_units_volume => 'Volume';
+
+  @override
+  String get setup_units_weight => 'Weight';
+
+  @override
+  String get setup_welcome_existingData_subtitle =>
+      'Restore a backup, connect cloud sync, or open an existing folder';
+
+  @override
+  String get setup_welcome_existingData_title =>
+      'I have existing Submersion data';
+
+  @override
+  String get setup_welcome_skipSetup => 'Skip setup';
+
+  @override
+  String get setup_welcome_startFresh_subtitle =>
+      'Create your diver profile and configure the app';
+
+  @override
+  String get setup_welcome_startFresh_title => 'Set up a new logbook';
+
+  @override
+  String get setup_welcome_subtitle => 'Advanced dive logging and analytics';
+
+  @override
+  String get setup_welcome_title => 'Welcome to Submersion';
+
+  @override
   String get siteMatchReview_title => 'Match Sites';
 
   @override
@@ -10431,40 +10719,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get nav_trips => 'Trips';
-
-  @override
-  String get onboarding_welcome_createProfile => 'Create Your Profile';
-
-  @override
-  String get onboarding_welcome_createProfileSubtitle =>
-      'Enter your name to get started. You can add more details later.';
-
-  @override
-  String get onboarding_welcome_creating => 'Creating...';
-
-  @override
-  String onboarding_welcome_errorCreatingProfile(Object error) {
-    return 'Error creating profile: $error';
-  }
-
-  @override
-  String get onboarding_welcome_getStarted => 'Get Started';
-
-  @override
-  String get onboarding_welcome_nameHint => 'Enter your name';
-
-  @override
-  String get onboarding_welcome_nameLabel => 'Your Name';
-
-  @override
-  String get onboarding_welcome_nameValidation => 'Please enter your name';
-
-  @override
-  String get onboarding_welcome_subtitle =>
-      'Advanced dive logging and analytics';
-
-  @override
-  String get onboarding_welcome_title => 'Welcome to Submersion';
 
   @override
   String plannerCanvas_bailout_available(String liters) {

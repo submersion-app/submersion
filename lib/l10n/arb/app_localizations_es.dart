@@ -5015,6 +5015,300 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get settings_manage_setupAssistant => 'Asistente de configuración';
+
+  @override
+  String get settings_manage_setupAssistant_subtitle =>
+      'Revisa unidades, apariencia y opciones de copia de seguridad';
+
+  @override
+  String get setup_backup_cloudCopy =>
+      'Guardar una copia de seguridad en la nube';
+
+  @override
+  String get setup_backup_frequency => 'Frecuencia';
+
+  @override
+  String get setup_backup_frequency_daily => 'Diaria';
+
+  @override
+  String get setup_backup_frequency_monthly => 'Mensual';
+
+  @override
+  String get setup_backup_frequency_weekly => 'Semanal';
+
+  @override
+  String get setup_backup_scheduleSubtitle =>
+      'Haz copias de seguridad de tu diario según una programación';
+
+  @override
+  String get setup_backup_scheduleToggle => 'Copias de seguridad automáticas';
+
+  @override
+  String get setup_backup_subtitle =>
+      'Protege tu registro de buceo desde el primer día.';
+
+  @override
+  String get setup_backup_title => 'Copias de seguridad y sincronización';
+
+  @override
+  String get setup_common_back => 'Atrás';
+
+  @override
+  String get setup_common_next => 'Siguiente';
+
+  @override
+  String get setup_common_skip => 'Omitir';
+
+  @override
+  String get setup_existing_folder_subtitle =>
+      'Apunta Submersion a una carpeta que ya contiene una biblioteca';
+
+  @override
+  String get setup_existing_folder_title => 'Abrir una carpeta existente';
+
+  @override
+  String get setup_existing_restore_subtitle =>
+      'Elige un archivo de copia de seguridad exportado desde Submersion';
+
+  @override
+  String get setup_existing_restore_title =>
+      'Restaurar un archivo de copia de seguridad';
+
+  @override
+  String get setup_existing_subtitle =>
+      'Elige cómo cargar tu biblioteca existente de Submersion';
+
+  @override
+  String get setup_existing_sync_subtitle =>
+      'Descarga tu biblioteca desde iCloud, Dropbox o S3';
+
+  @override
+  String get setup_existing_sync_title => 'Conectar sincronización en la nube';
+
+  @override
+  String get setup_existing_title => 'Trae tus datos';
+
+  @override
+  String get setup_finish_applying => 'Configurando...';
+
+  @override
+  String setup_finish_error(Object error) {
+    return 'No se pudo completar la configuración: $error';
+  }
+
+  @override
+  String get setup_finish_feature_diveComputer =>
+      'Descarga inmersiones desde tu ordenador de buceo';
+
+  @override
+  String get setup_finish_feature_gear =>
+      'Controla tu equipo y los intervalos de mantenimiento';
+
+  @override
+  String get setup_finish_feature_import =>
+      'Importa registros desde archivos y otras aplicaciones';
+
+  @override
+  String get setup_finish_feature_sites =>
+      'Visualiza tus puntos de buceo en el mapa';
+
+  @override
+  String get setup_finish_feature_statistics =>
+      'Explora estadísticas sobre tus inmersiones';
+
+  @override
+  String get setup_finish_start => 'Empezar a registrar';
+
+  @override
+  String get setup_finish_subtitle => 'Submersion también puede...';
+
+  @override
+  String get setup_finish_title => 'Todo listo';
+
+  @override
+  String get setup_folder_notFound_message =>
+      'La carpeta seleccionada no contiene una base de datos de Submersion.';
+
+  @override
+  String get setup_folder_notFound_title => 'No hay biblioteca en esa carpeta';
+
+  @override
+  String get setup_folder_pick => 'Elegir carpeta';
+
+  @override
+  String get setup_folder_switching => 'Abriendo biblioteca...';
+
+  @override
+  String get setup_folder_title => 'Abrir carpeta existente';
+
+  @override
+  String get setup_profile_nameHint => 'Ingresa tu nombre';
+
+  @override
+  String get setup_profile_nameLabel => 'Tu Nombre';
+
+  @override
+  String get setup_profile_nameValidation => 'Por favor ingresa tu nombre';
+
+  @override
+  String get setup_profile_subtitle =>
+      'Ingresa tu nombre para comenzar. Puedes agregar más detalles después.';
+
+  @override
+  String get setup_profile_title => 'Crea Tu Perfil';
+
+  @override
+  String get setup_restore_inProgress => 'Restaurando...';
+
+  @override
+  String get setup_restore_pick => 'Elegir archivo de copia de seguridad';
+
+  @override
+  String get setup_restore_title => 'Restaurar copia de seguridad';
+
+  @override
+  String get setup_step_backup => 'Copia';
+
+  @override
+  String get setup_step_finish => 'Listo';
+
+  @override
+  String get setup_step_profile => 'Perfil';
+
+  @override
+  String get setup_step_units => 'Unidades';
+
+  @override
+  String get setup_syncPull_continue => 'Continuar';
+
+  @override
+  String get setup_syncPull_noLibrary_message =>
+      'No se encontró ninguna biblioteca de Submersion en esta cuenta. ¿Empezar de cero? Tu conexión se mantendrá.';
+
+  @override
+  String get setup_syncPull_noLibrary_title => 'No se encontró biblioteca';
+
+  @override
+  String get setup_syncPull_success => 'Biblioteca adoptada';
+
+  @override
+  String get setup_syncPull_syncing => 'Descargando tu biblioteca...';
+
+  @override
+  String get setup_syncPull_title => 'Conectar y descargar';
+
+  @override
+  String get setup_sync_changeProvider => 'Cambiar proveedor';
+
+  @override
+  String setup_sync_connectedTo(String provider) {
+    return 'Conectado a $provider';
+  }
+
+  @override
+  String setup_sync_error(Object error) {
+    return 'No se pudo conectar: $error';
+  }
+
+  @override
+  String get setup_sync_header => 'Sincronización en la nube';
+
+  @override
+  String get setup_sync_icloudUnavailable =>
+      'iCloud no está disponible en este dispositivo';
+
+  @override
+  String get setup_sync_libraryFound_adopt => 'Adoptar biblioteca existente';
+
+  @override
+  String get setup_sync_libraryFound_keepFresh => 'Empezar de cero';
+
+  @override
+  String get setup_sync_libraryFound_message =>
+      'Esta cuenta ya contiene una biblioteca de Submersion. ¿Adoptarla en lugar de empezar de cero?';
+
+  @override
+  String get setup_sync_libraryFound_title =>
+      'Se encontró una biblioteca existente';
+
+  @override
+  String get setup_sync_manageInSettings => 'Gestionar en Ajustes';
+
+  @override
+  String get setup_sync_notConnected => 'No conectado';
+
+  @override
+  String get setup_sync_subtitle => 'Sincroniza tu diario entre dispositivos';
+
+  @override
+  String get setup_units_advanced => 'Ajustar unidades';
+
+  @override
+  String get setup_units_altitude => 'Altitud';
+
+  @override
+  String get setup_units_dateFormat => 'Formato de fecha';
+
+  @override
+  String get setup_units_depth => 'Profundidad';
+
+  @override
+  String get setup_units_imperial => 'Imperial';
+
+  @override
+  String get setup_units_metric => 'Métrico';
+
+  @override
+  String get setup_units_pressure => 'Presión';
+
+  @override
+  String get setup_units_sac => 'Tasa SAC';
+
+  @override
+  String get setup_units_subtitle =>
+      'Elige cómo se muestran las medidas. Puedes ajustar cada unidad.';
+
+  @override
+  String get setup_units_temperature => 'Temperatura';
+
+  @override
+  String get setup_units_timeFormat => 'Formato de hora';
+
+  @override
+  String get setup_units_title => 'Unidades';
+
+  @override
+  String get setup_units_volume => 'Volumen';
+
+  @override
+  String get setup_units_weight => 'Peso';
+
+  @override
+  String get setup_welcome_existingData_subtitle =>
+      'Restaura una copia de seguridad, conecta la sincronización o abre una carpeta existente';
+
+  @override
+  String get setup_welcome_existingData_title => 'Ya tengo datos de Submersion';
+
+  @override
+  String get setup_welcome_skipSetup => 'Omitir configuración';
+
+  @override
+  String get setup_welcome_startFresh_subtitle =>
+      'Crea tu perfil de buceador y configura la aplicación';
+
+  @override
+  String get setup_welcome_startFresh_title => 'Configurar un diario nuevo';
+
+  @override
+  String get setup_welcome_subtitle =>
+      'Registro y análisis avanzado de inmersiones';
+
+  @override
+  String get setup_welcome_title => 'Bienvenido a Submersion';
+
+  @override
   String get siteMatchReview_title => 'Asociar puntos';
 
   @override
@@ -10587,40 +10881,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get nav_trips => 'Viajes';
-
-  @override
-  String get onboarding_welcome_createProfile => 'Crea Tu Perfil';
-
-  @override
-  String get onboarding_welcome_createProfileSubtitle =>
-      'Ingresa tu nombre para comenzar. Puedes agregar más detalles después.';
-
-  @override
-  String get onboarding_welcome_creating => 'Creando...';
-
-  @override
-  String onboarding_welcome_errorCreatingProfile(Object error) {
-    return 'Error al crear perfil: $error';
-  }
-
-  @override
-  String get onboarding_welcome_getStarted => 'Comenzar';
-
-  @override
-  String get onboarding_welcome_nameHint => 'Ingresa tu nombre';
-
-  @override
-  String get onboarding_welcome_nameLabel => 'Tu Nombre';
-
-  @override
-  String get onboarding_welcome_nameValidation => 'Por favor ingresa tu nombre';
-
-  @override
-  String get onboarding_welcome_subtitle =>
-      'Registro y análisis avanzado de inmersiones';
-
-  @override
-  String get onboarding_welcome_title => 'Bienvenido a Submersion';
 
   @override
   String plannerCanvas_bailout_available(String liters) {

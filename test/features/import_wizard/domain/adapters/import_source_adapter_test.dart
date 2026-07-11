@@ -5,7 +5,7 @@ import 'package:submersion/features/import_wizard/domain/models/import_bundle.da
 import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
-import 'package:submersion/features/import_wizard/domain/models/wizard_step_def.dart';
+import 'package:submersion/shared/widgets/wizard/wizard_step_def.dart';
 
 /// Minimal concrete implementation for testing the abstract class defaults.
 class _TestAdapter extends ImportSourceAdapter {

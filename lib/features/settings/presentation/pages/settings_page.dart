@@ -1654,6 +1654,16 @@ class _ManageSectionContent extends StatelessWidget {
                 ),
                 const Divider(height: 1),
                 ListTile(
+                  leading: const Icon(Icons.auto_fix_high),
+                  title: Text(context.l10n.settings_manage_setupAssistant),
+                  subtitle: Text(
+                    context.l10n.settings_manage_setupAssistant_subtitle,
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/settings/setup-assistant'),
+                ),
+                const Divider(height: 1),
+                ListTile(
                   leading: const Icon(Icons.checklist),
                   title: Text(context.l10n.settings_manage_checklistTemplates),
                   subtitle: Text(

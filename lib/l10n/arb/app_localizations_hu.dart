@@ -4998,6 +4998,298 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get settings_manage_setupAssistant => 'Beállítási varázsló';
+
+  @override
+  String get settings_manage_setupAssistant_subtitle =>
+      'Mértékegységek, megjelenés és biztonsági mentés áttekintése';
+
+  @override
+  String get setup_backup_cloudCopy =>
+      'Biztonsági másolat megőrzése a felhőben';
+
+  @override
+  String get setup_backup_frequency => 'Gyakoriság';
+
+  @override
+  String get setup_backup_frequency_daily => 'Naponta';
+
+  @override
+  String get setup_backup_frequency_monthly => 'Havonta';
+
+  @override
+  String get setup_backup_frequency_weekly => 'Hetente';
+
+  @override
+  String get setup_backup_scheduleSubtitle =>
+      'Naplója rendszeres biztonsági mentése';
+
+  @override
+  String get setup_backup_scheduleToggle => 'Automatikus biztonsági mentés';
+
+  @override
+  String get setup_backup_subtitle =>
+      'Védje merülési naplóját az első naptól kezdve.';
+
+  @override
+  String get setup_backup_title => 'Biztonsági mentés és szinkronizálás';
+
+  @override
+  String get setup_common_back => 'Vissza';
+
+  @override
+  String get setup_common_next => 'Tovább';
+
+  @override
+  String get setup_common_skip => 'Kihagyás';
+
+  @override
+  String get setup_existing_folder_subtitle =>
+      'Irányítsa a Submersiont egy olyan mappára, amely már tartalmaz könyvtárat';
+
+  @override
+  String get setup_existing_folder_title => 'Meglévő mappa megnyitása';
+
+  @override
+  String get setup_existing_restore_subtitle =>
+      'Válasszon egy Submersionból exportált biztonságimentés-fájlt';
+
+  @override
+  String get setup_existing_restore_title => 'Biztonsági mentés visszaállítása';
+
+  @override
+  String get setup_existing_subtitle =>
+      'Válassza ki, hogyan töltse be meglévő Submersion-könyvtárát';
+
+  @override
+  String get setup_existing_sync_subtitle =>
+      'Könyvtár letöltése iCloudból, Dropboxból vagy S3-ból';
+
+  @override
+  String get setup_existing_sync_title => 'Felhőszinkronizálás csatlakoztatása';
+
+  @override
+  String get setup_existing_title => 'Adatok áthozása';
+
+  @override
+  String get setup_finish_applying => 'Beállítás...';
+
+  @override
+  String setup_finish_error(Object error) {
+    return 'A beállítás nem fejeződött be: $error';
+  }
+
+  @override
+  String get setup_finish_feature_diveComputer =>
+      'Merülések letöltése a búvárkomputerről';
+
+  @override
+  String get setup_finish_feature_gear =>
+      'Felszerelés és szervizintervallumok nyomon követése';
+
+  @override
+  String get setup_finish_feature_import =>
+      'Naplók importálása fájlokból és más alkalmazásokból';
+
+  @override
+  String get setup_finish_feature_sites =>
+      'Merülőhelyek megjelenítése térképen';
+
+  @override
+  String get setup_finish_feature_statistics =>
+      'Merülési statisztikák felfedezése';
+
+  @override
+  String get setup_finish_start => 'Naplózás indítása';
+
+  @override
+  String get setup_finish_subtitle => 'A Submersion ezenkívül...';
+
+  @override
+  String get setup_finish_title => 'Minden készen áll';
+
+  @override
+  String get setup_folder_notFound_message =>
+      'A kiválasztott mappa nem tartalmaz Submersion-adatbázist.';
+
+  @override
+  String get setup_folder_notFound_title => 'Nincs könyvtár ebben a mappában';
+
+  @override
+  String get setup_folder_pick => 'Mappa kiválasztása';
+
+  @override
+  String get setup_folder_switching => 'Könyvtár megnyitása...';
+
+  @override
+  String get setup_folder_title => 'Meglévő mappa megnyitása';
+
+  @override
+  String get setup_profile_nameHint => 'Add meg a neved';
+
+  @override
+  String get setup_profile_nameLabel => 'Neved';
+
+  @override
+  String get setup_profile_nameValidation => 'Add meg a neved';
+
+  @override
+  String get setup_profile_subtitle =>
+      'Add meg a neved a kezdéshez. Később további részleteket adhatsz hozzá.';
+
+  @override
+  String get setup_profile_title => 'Profil létrehozása';
+
+  @override
+  String get setup_restore_inProgress => 'Visszaállítás...';
+
+  @override
+  String get setup_restore_pick => 'Biztonságimentés-fájl kiválasztása';
+
+  @override
+  String get setup_restore_title => 'Biztonsági mentés visszaállítása';
+
+  @override
+  String get setup_step_backup => 'Mentés';
+
+  @override
+  String get setup_step_finish => 'Kész';
+
+  @override
+  String get setup_step_profile => 'Profil';
+
+  @override
+  String get setup_step_units => 'Egységek';
+
+  @override
+  String get setup_syncPull_continue => 'Folytatás';
+
+  @override
+  String get setup_syncPull_noLibrary_message =>
+      'Ezen a fiókon nem található Submersion-könyvtár. Új kezdés? A kapcsolat megmarad.';
+
+  @override
+  String get setup_syncPull_noLibrary_title => 'Nem található könyvtár';
+
+  @override
+  String get setup_syncPull_success => 'Könyvtár átvéve';
+
+  @override
+  String get setup_syncPull_syncing => 'Könyvtár letöltése...';
+
+  @override
+  String get setup_syncPull_title => 'Csatlakozás és letöltés';
+
+  @override
+  String get setup_sync_changeProvider => 'Szolgáltató módosítása';
+
+  @override
+  String setup_sync_connectedTo(String provider) {
+    return 'Csatlakoztatva: $provider';
+  }
+
+  @override
+  String setup_sync_error(Object error) {
+    return 'Nem sikerült csatlakozni: $error';
+  }
+
+  @override
+  String get setup_sync_header => 'Felhőszinkronizálás';
+
+  @override
+  String get setup_sync_icloudUnavailable =>
+      'Az iCloud nem érhető el ezen az eszközön';
+
+  @override
+  String get setup_sync_libraryFound_adopt => 'Meglévő könyvtár átvétele';
+
+  @override
+  String get setup_sync_libraryFound_keepFresh => 'Új kezdés';
+
+  @override
+  String get setup_sync_libraryFound_message =>
+      'Ez a fiók már tartalmaz Submersion-könyvtárat. Átveszi ahelyett, hogy újat kezdene?';
+
+  @override
+  String get setup_sync_libraryFound_title => 'Meglévő könyvtár található';
+
+  @override
+  String get setup_sync_manageInSettings => 'Kezelés a beállításokban';
+
+  @override
+  String get setup_sync_notConnected => 'Nincs csatlakoztatva';
+
+  @override
+  String get setup_sync_subtitle => 'Napló szinkronizálása az eszközök között';
+
+  @override
+  String get setup_units_advanced => 'Egységek finomhangolása';
+
+  @override
+  String get setup_units_altitude => 'Magasság';
+
+  @override
+  String get setup_units_dateFormat => 'Dátumformátum';
+
+  @override
+  String get setup_units_depth => 'Mélység';
+
+  @override
+  String get setup_units_imperial => 'Angolszász';
+
+  @override
+  String get setup_units_metric => 'Metrikus';
+
+  @override
+  String get setup_units_pressure => 'Nyomás';
+
+  @override
+  String get setup_units_sac => 'SAC-érték';
+
+  @override
+  String get setup_units_subtitle =>
+      'Válassza ki a mértékegységek megjelenítését. Minden egység külön beállítható.';
+
+  @override
+  String get setup_units_temperature => 'Hőmérséklet';
+
+  @override
+  String get setup_units_timeFormat => 'Időformátum';
+
+  @override
+  String get setup_units_title => 'Egységek';
+
+  @override
+  String get setup_units_volume => 'Térfogat';
+
+  @override
+  String get setup_units_weight => 'Súly';
+
+  @override
+  String get setup_welcome_existingData_subtitle =>
+      'Biztonsági mentés visszaállítása, felhőszinkronizálás vagy meglévő mappa megnyitása';
+
+  @override
+  String get setup_welcome_existingData_title =>
+      'Már vannak Submersion-adataim';
+
+  @override
+  String get setup_welcome_skipSetup => 'Beállítás kihagyása';
+
+  @override
+  String get setup_welcome_startFresh_subtitle =>
+      'Búvárprofil létrehozása és az alkalmazás beállítása';
+
+  @override
+  String get setup_welcome_startFresh_title => 'Új napló beállítása';
+
+  @override
+  String get setup_welcome_subtitle => 'Fejlett merülés napló és elemzés';
+
+  @override
+  String get setup_welcome_title => 'Üdvözöl a Submersion';
+
+  @override
   String get siteMatchReview_title => 'Helyek hozzárendelése';
 
   @override
@@ -10574,39 +10866,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get nav_trips => 'Utak';
-
-  @override
-  String get onboarding_welcome_createProfile => 'Profil létrehozása';
-
-  @override
-  String get onboarding_welcome_createProfileSubtitle =>
-      'Add meg a neved a kezdéshez. Később további részleteket adhatsz hozzá.';
-
-  @override
-  String get onboarding_welcome_creating => 'Létrehozás...';
-
-  @override
-  String onboarding_welcome_errorCreatingProfile(Object error) {
-    return 'Hiba a profil létrehozásakor: $error';
-  }
-
-  @override
-  String get onboarding_welcome_getStarted => 'Kezdés';
-
-  @override
-  String get onboarding_welcome_nameHint => 'Add meg a neved';
-
-  @override
-  String get onboarding_welcome_nameLabel => 'Neved';
-
-  @override
-  String get onboarding_welcome_nameValidation => 'Add meg a neved';
-
-  @override
-  String get onboarding_welcome_subtitle => 'Fejlett merülés napló és elemzés';
-
-  @override
-  String get onboarding_welcome_title => 'Üdvözöl a Submersion';
 
   @override
   String plannerCanvas_bailout_available(String liters) {
