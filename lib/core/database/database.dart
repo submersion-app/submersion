@@ -303,6 +303,11 @@ class DivePlans extends Table {
   TextColumn get turnPressureRule => text().nullable()();
   RealColumn get turnPressureFraction => real().nullable()();
 
+  /// Accepted weight prediction snapshot (v104). Placement is a JSON object
+  /// keyed by WeightType.name -> kg.
+  RealColumn get plannedWeightKg => real().nullable()();
+  TextColumn get plannedWeightPlacement => text().nullable()();
+
   /// Denormalized list-display summary (no engine run per list row).
   RealColumn get summaryMaxDepth => real().nullable()();
   IntColumn get summaryRuntimeSeconds => integer().nullable()();
@@ -448,6 +453,10 @@ class Dives extends Table {
   // Weight system fields
   RealColumn get weightAmount => real().nullable()(); // kg
   TextColumn get weightType => text().nullable()();
+  // Weighting feedback (v104): 'correct' | 'overweighted' | 'underweighted'.
+  TextColumn get weightingFeedback => text().nullable()();
+  // Magnitude in kg; direction implied by weightingFeedback.
+  RealColumn get weightingFeedbackKg => real().nullable()();
   // Favorite flag (v1.1)
   BoolColumn get isFavorite => boolean().withDefault(const Constant(false))();
   // Dive mode for CCR/SCR (v1.5)
@@ -683,6 +692,10 @@ class Equipment extends Table {
   TextColumn get model => text().nullable()();
   TextColumn get serialNumber => text().nullable()();
   TextColumn get size => text().nullable()(); // S, M, L, XL, or specific size
+  // Buoyancy metadata (v104): net in-water buoyancy in kg (positive floats),
+  // and dry weight in kg (feeds displacement scaling).
+  RealColumn get buoyancyKg => real().nullable()();
+  RealColumn get weightKg => real().nullable()();
   TextColumn get status => text().withDefault(
     const Constant('active'),
   )(); // active, needsService, retired, etc.
@@ -734,6 +747,35 @@ class DiveWeights extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+}
+
+/// Dated body-mass measurements per diver (weight prediction, v104).
+@DataClassName('DiverWeightEntryRow')
+class DiverWeightEntries extends Table {
+  TextColumn get id => text()();
+  TextColumn get diverId => text().references(Divers, #id)();
+  IntColumn get measuredAt => integer()(); // Unix ms
+  RealColumn get weightKg => real()();
+  RealColumn get heightCm => real().nullable()();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution.
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Junction: equipment attached to a saved dive plan (v104).
+class DivePlanEquipment extends Table {
+  TextColumn get planId =>
+      text().references(DivePlans, #id, onDelete: KeyAction.cascade)();
+  TextColumn get equipmentId =>
+      text().references(Equipment, #id, onDelete: KeyAction.cascade)();
+
+  @override
+  Set<Column> get primaryKey => {planId, equipmentId};
 }
 
 /// Equipment sets (named collections of equipment items)
@@ -2008,6 +2050,8 @@ class FieldPresets extends Table {
     Equipment,
     DiveEquipment,
     DiveWeights,
+    DiverWeightEntries,
+    DivePlanEquipment,
     EquipmentSets,
     EquipmentSetItems,
     Species,
@@ -2083,7 +2127,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 103;
+  static const int currentSchemaVersion = 104;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -2190,6 +2234,7 @@ class AppDatabase extends _$AppDatabase {
     101,
     102,
     103,
+    104,
   ];
 
   /// Tables that carry a per-row Hybrid Logical Clock for cross-device conflict
@@ -2218,6 +2263,7 @@ class AppDatabase extends _$AppDatabase {
     'courses',
     'dives',
     'dive_sites',
+    'diver_weight_entries',
     'certifications',
     'service_records',
     'settings',
@@ -5066,6 +5112,45 @@ class AppDatabase extends _$AppDatabase {
           }
         }
         if (from < 103) await reportProgress();
+        if (from < 104) {
+          await m.createTable(diverWeightEntries);
+          await m.createTable(divePlanEquipment);
+          Future<void> addColumnIfMissing(
+            String table,
+            String column,
+            String type,
+          ) async {
+            final cols = await customSelect(
+              "PRAGMA table_info('$table')",
+            ).get();
+            final has = cols.any((c) => c.read<String>('name') == column);
+            if (cols.isNotEmpty && !has) {
+              await customStatement(
+                'ALTER TABLE $table ADD COLUMN $column $type',
+              );
+            }
+          }
+
+          await addColumnIfMissing('dives', 'weighting_feedback', 'TEXT');
+          await addColumnIfMissing('dives', 'weighting_feedback_kg', 'REAL');
+          await addColumnIfMissing('equipment', 'buoyancy_kg', 'REAL');
+          await addColumnIfMissing('equipment', 'weight_kg', 'REAL');
+          await addColumnIfMissing('dive_plans', 'planned_weight_kg', 'REAL');
+          await addColumnIfMissing(
+            'dive_plans',
+            'planned_weight_placement',
+            'TEXT',
+          );
+          await customStatement(
+            'CREATE INDEX IF NOT EXISTS idx_diver_weight_entries_diver_id '
+            'ON diver_weight_entries(diver_id)',
+          );
+          await customStatement(
+            'CREATE INDEX IF NOT EXISTS idx_dive_plan_equipment_plan_id '
+            'ON dive_plan_equipment(plan_id)',
+          );
+        }
+        if (from < 104) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
@@ -5138,6 +5223,36 @@ class AppDatabase extends _$AppDatabase {
         if (divesCols.isNotEmpty && !hasDiverRoleCol) {
           await customStatement('ALTER TABLE dives ADD COLUMN diver_role TEXT');
         }
+
+        // v104 backstop: weight prediction tables + columns (same collision
+        // disease; all DDL idempotent). Indexes for the new tables are in the
+        // canonical performance-index set below.
+        await createMigrator().createTable(diverWeightEntries);
+        await createMigrator().createTable(divePlanEquipment);
+        Future<void> addColumnIfMissing(
+          String table,
+          String column,
+          String type,
+        ) async {
+          final cols = await customSelect("PRAGMA table_info('$table')").get();
+          final has = cols.any((c) => c.read<String>('name') == column);
+          if (cols.isNotEmpty && !has) {
+            await customStatement(
+              'ALTER TABLE $table ADD COLUMN $column $type',
+            );
+          }
+        }
+
+        await addColumnIfMissing('dives', 'weighting_feedback', 'TEXT');
+        await addColumnIfMissing('dives', 'weighting_feedback_kg', 'REAL');
+        await addColumnIfMissing('equipment', 'buoyancy_kg', 'REAL');
+        await addColumnIfMissing('equipment', 'weight_kg', 'REAL');
+        await addColumnIfMissing('dive_plans', 'planned_weight_kg', 'REAL');
+        await addColumnIfMissing(
+          'dive_plans',
+          'planned_weight_placement',
+          'TEXT',
+        );
 
         // Performance indexes historically existed only in onUpgrade blocks,
         // so a database created fresh at a recent schema version -- or

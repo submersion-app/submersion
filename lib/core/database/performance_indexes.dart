@@ -263,6 +263,20 @@ const List<PerformanceIndex> kPerformanceIndexes = [
         'CREATE INDEX IF NOT EXISTS idx_gps_track_points_local_track_id '
         'ON gps_track_points_local(track_id)',
   ),
+  // -- diver_weight_entries (v104) ---------------------------------------
+  (
+    name: 'idx_diver_weight_entries_diver_id',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_diver_weight_entries_diver_id '
+        'ON diver_weight_entries(diver_id)',
+  ),
+  // -- dive_plan_equipment (v104) -----------------------------------------
+  (
+    name: 'idx_dive_plan_equipment_plan_id',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_dive_plan_equipment_plan_id '
+        'ON dive_plan_equipment(plan_id)',
+  ),
 ];
 
 /// Creates any canonical index missing from [db], returning the names of
