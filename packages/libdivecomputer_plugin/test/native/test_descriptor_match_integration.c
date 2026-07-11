@@ -90,6 +90,27 @@ static void test_non_uwatec_device_unaffected(void) {
     printf("PASS: test_non_uwatec_device_unaffected\n");
 }
 
+// Issue #483: the Shearwater Perdix 3 advertises the BLE name "Perdix 3",
+// which was absent from both the descriptor table and dc_filter_shearwater's
+// exact-match whitelist, so every descriptor rejected it and the device never
+// appeared during scanning. Model 14 continues Shearwater's sequential model
+// numbering (Petrel 3 = 10, Perdix 2 = 11, Tern = 12, Peregrine TX = 13).
+static void test_perdix_3_resolves(void) {
+    expect_ble_match("Perdix 3", "Perdix 3", 14);
+    expect_ble_match("perdix 3", "Perdix 3", 14);
+    printf("PASS: test_perdix_3_resolves\n");
+}
+
+// Issue #483 regression guard: dc_filter_shearwater passes a whitelisted name
+// for EVERY Shearwater row, so resolution relies on the wrapper preferring the
+// row whose product exactly equals the BLE name. The new "Perdix 3" row must
+// not disturb that for the older Perdix models.
+static void test_other_perdix_models_unchanged(void) {
+    expect_ble_match("Perdix", "Perdix", 5);
+    expect_ble_match("Perdix 2", "Perdix 2", 11);
+    printf("PASS: test_other_perdix_models_unchanged\n");
+}
+
 // Issue #357: a Handset serial (model-code digits [4:6] = "07") must resolve to
 // the "Symbios Handset" descriptor (model 7), not the "Symbios HUD" row
 // (model 1) that previously always won because both rows matched the union
@@ -113,6 +134,8 @@ int main(void) {
     test_alias_match_is_case_insensitive();
     test_exact_product_names_unchanged();
     test_non_uwatec_device_unaffected();
+    test_perdix_3_resolves();
+    test_other_perdix_models_unchanged();
     test_symbios_handset_resolves_to_handset();
     test_symbios_hud_resolves_to_hud();
     printf("\nAll descriptor match integration tests passed.\n");

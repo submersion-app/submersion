@@ -17,12 +17,14 @@ private const val LIBDC_TRANSPORT_BLE = 1 shl 5
 class BleScanner(private val context: Context) {
     private var scanCallback: ScanCallback? = null
     private val seenAddresses = mutableSetOf<String>()
+    private val loggedUnmatched = mutableSetOf<String>()
 
     var onDeviceDiscovered: ((DiscoveredDevice) -> Unit)? = null
     var onComplete: (() -> Unit)? = null
 
     fun start() {
         seenAddresses.clear()
+        loggedUnmatched.clear()
         val bluetoothManager =
             context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager ?: return
         val adapter = bluetoothManager.adapter ?: return
@@ -41,9 +43,24 @@ class BleScanner(private val context: Context) {
                 val matched = LibdcWrapper.nativeDescriptorMatch(
                     name, LIBDC_TRANSPORT_BLE, info
                 )
-                if (!matched) return
+                if (!matched) {
+                    // onScanResult redelivers every advertisement packet, so
+                    // log each unmatched device only once per scan session.
+                    if (loggedUnmatched.add(address)) {
+                        NativeLogger.d(
+                            "BleScanner", "BLE",
+                            "Unmatched device $address ($name)"
+                        )
+                    }
+                    return
+                }
 
                 seenAddresses.add(address)
+                NativeLogger.d(
+                    "BleScanner", "BLE",
+                    "Matched device $address ($name) -> " +
+                        "${info.vendor} ${info.product} (${info.model})"
+                )
 
                 val device = DiscoveredDevice(
                     vendor = info.vendor,

@@ -31,6 +31,15 @@ void main() {
         expect(result.diveNumber, 7);
       });
 
+      test('extracts Perdix 3 with space in name', () {
+        final result = ShearwaterFilenameParser.parse(
+          'Perdix 3[04C2A1B9]#12 2026-7-1 9-15-00.swlogzp',
+        );
+        expect(result.model, 'Perdix 3');
+        expect(result.serial, '04C2A1B9');
+        expect(result.diveNumber, 12);
+      });
+
       test('extracts Peregrine', () {
         final result = ShearwaterFilenameParser.parse(
           'Peregrine[DEADBEEF]#100 2025-1-1 0-0-0.swlogzp',
@@ -67,6 +76,10 @@ void main() {
         expect(ShearwaterFilenameParser.vendorProduct('Petrel 3'), (
           'Shearwater',
           'Petrel 3',
+        ));
+        expect(ShearwaterFilenameParser.vendorProduct('Perdix 3'), (
+          'Shearwater',
+          'Perdix 3',
         ));
       });
 
