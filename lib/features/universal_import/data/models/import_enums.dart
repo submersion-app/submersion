@@ -40,7 +40,8 @@ enum ImportFormat {
     fit ||
     shearwaterDb ||
     macdiveXml ||
-    macdiveSqlite => true,
+    macdiveSqlite ||
+    danDl7 => true,
     _ => false,
   };
 }
@@ -58,6 +59,7 @@ enum SourceApp {
   scubapro,
   ssiMyDiveGuide,
   dan,
+  diverLog,
   generic;
 
   String get displayName => switch (this) {
@@ -72,6 +74,7 @@ enum SourceApp {
     scubapro => 'Scubapro',
     ssiMyDiveGuide => 'SSI MyDiveGuide',
     dan => 'DAN',
+    diverLog => 'DiverLog+',
     generic => 'Unknown App',
   };
 
@@ -85,8 +88,14 @@ enum SourceApp {
     ssiMyDiveGuide =>
       'In the SSI app, go to My Logbook and export your dives as CSV.',
     dan =>
-      'DAN DL7 format support is planned for a future update. '
-          'Please export your dives in UDDF format if possible.',
+      'Export your dives as DAN DL7 (.zxu) files and import them directly '
+          'into Submersion.',
+    diverLog =>
+      'In DiverLog+, sync your dives to DiveCloud. Then sign in at '
+          'divecloud.net in a browser, select your dives, and choose Export '
+          'to download a ZIP of DL7 (.zxu) files with photos. Import that '
+          'ZIP directly into Submersion. Desktop DiverLog Full can also '
+          'export .zxu files via Export Dive Data.',
     _ => null,
   };
 }
@@ -187,6 +196,16 @@ class SourceOverrideOption {
       sourceApp: SourceApp.scubapro,
       format: ImportFormat.uddf,
       displayName: 'Scubapro (UDDF)',
+    ),
+    SourceOverrideOption(
+      sourceApp: SourceApp.diverLog,
+      format: ImportFormat.danDl7,
+      displayName: 'DiverLog+ (DL7)',
+    ),
+    SourceOverrideOption(
+      sourceApp: SourceApp.dan,
+      format: ImportFormat.danDl7,
+      displayName: 'DAN (DL7)',
     ),
   ];
 

@@ -17844,6 +17844,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get universalImport_label_consolidated => 'Consolidated';
 
   @override
+  String get universalImport_label_photosAttached => 'Photos attached';
+
+  @override
+  String get universalImport_label_photosUnmatched =>
+      'Photos not matched to a dive';
+
+  @override
   String get common_label_shareWithAllProfiles =>
       'Share with all dive profiles';
 

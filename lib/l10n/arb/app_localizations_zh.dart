@@ -17245,6 +17245,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get universalImport_label_consolidated => '已合并';
 
   @override
+  String get universalImport_label_photosAttached => '已附加照片';
+
+  @override
+  String get universalImport_label_photosUnmatched => '未匹配到潜水的照片';
+
+  @override
   String get common_label_shareWithAllProfiles => '与所有潜水员资料共享';
 
   @override

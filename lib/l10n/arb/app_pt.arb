@@ -5096,6 +5096,8 @@
   "universalImport_label_allDivesSkipped": "Todos os mergulhos foram ignorados.",
   "universalImport_label_consolidated": "Consolidados",
   "universalImport_label_options": "Opções",
+  "universalImport_label_photosAttached": "Fotos anexadas",
+  "universalImport_label_photosUnmatched": "Fotos sem mergulho correspondente",
   "universalImport_label_replaceSource": "Substituir Fonte",
   "universalImport_label_replaceSourceSubtitle": "Atualizar a partir do mesmo computador",
   "universalImport_label_replacedSourceData": "Dados de origem substituídos",

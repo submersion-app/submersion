@@ -11344,6 +11344,14 @@
   "@universalImport_label_consolidated": {
     "description": "Label for the count of consolidated dives in summary"
   },
+  "universalImport_label_photosAttached": "Photos attached",
+  "@universalImport_label_photosAttached": {
+    "description": "Label for the count of photos attached to imported dives"
+  },
+  "universalImport_label_photosUnmatched": "Photos not matched to a dive",
+  "@universalImport_label_photosUnmatched": {
+    "description": "Label for the count of archive photos that matched no dive file"
+  },
   "common_label_shareWithAllProfiles": "Share with all dive profiles",
   "@common_label_shareWithAllProfiles": {
     "description": "Switch on trip/site edit pages that makes the record visible to all local dive profiles."

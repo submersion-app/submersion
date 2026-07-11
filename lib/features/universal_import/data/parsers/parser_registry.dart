@@ -1,4 +1,5 @@
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
+import 'package:submersion/features/universal_import/data/parsers/dan_dl7_import_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/fit_import_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/import_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/macdive_sqlite_parser.dart';
@@ -16,6 +17,7 @@ ImportParser parserForFormat(ImportFormat format) {
     ImportFormat.macdiveXml => const MacDiveXmlParser(),
     ImportFormat.macdiveSqlite => const MacDiveSqliteParser(),
     ImportFormat.subsurfaceXml => SubsurfaceXmlParser(),
+    ImportFormat.danDl7 => const DanDl7Parser(),
     ImportFormat.fit => const FitImportParser(),
     ImportFormat.shearwaterDb => ShearwaterCloudParser(),
     _ => const PlaceholderParser(),

@@ -3,7 +3,9 @@
 // flow (`confirmSource` -> `_parseBatch`) against a real in-memory database.
 
 import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:archive/archive.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:file_picker/src/platform/file_picker_platform_interface.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -301,6 +303,151 @@ void main() {
       expect(notifier.state.isBatch, isTrue);
       expect(notifier.state.wasLoadedExternally, isTrue);
       expect(notifier.state.currentStep, ImportWizardStep.sourceConfirmation);
+    });
+  });
+
+  group('ZIP intake', () {
+    Uint8List buildZip(Map<String, List<int>> entries) {
+      final archive = Archive();
+      for (final entry in entries.entries) {
+        archive.addFile(
+          ArchiveFile(entry.key, entry.value.length, entry.value),
+        );
+      }
+      return Uint8List.fromList(ZipEncoder().encode(archive)!);
+    }
+
+    List<int> zxuBytes(String start) =>
+        ('FSH|^~<>{}|OCI201^^|ZXU|20240613080000|\n'
+                'ZRH|^~<>{}||98765|MSWG|ThM|C|BAR|L|\n'
+                'ZDH|1|1|I|Q1S|$start|28.0||FO2|\n'
+                'ZDP{\n|0.00|0.0|1.00|\n|1.00|10.0|||||||||\n|2.00|0.5|||||||||\nZDP}\n'
+                'ZDT|1|1|10.0|||\n')
+            .codeUnits;
+
+    test(
+      'a dropped DiveCloud zip fans out into a batch with photos indexed',
+      () async {
+        final zipPath = '${tmp.path}/divecloud_export.zip';
+        await File(zipPath).writeAsBytes(
+          buildZip({
+            'a_20240612093000_1.zxu': zxuBytes('20240612093000'),
+            'a_20240612093000_1_photo.jpg': [1, 2, 3],
+            'b_20240613100000_2.zxu': zxuBytes('20240613100000'),
+          }),
+        );
+
+        await notifier.loadFilesFromPaths([zipPath]);
+
+        final state = notifier.state;
+        expect(state.files, hasLength(2));
+        expect(
+          state.files.every((f) => f.detection.format == ImportFormat.danDl7),
+          isTrue,
+        );
+        expect(state.photoPathsByBaseName['a_20240612093000_1'], hasLength(1));
+        expect(state.wasLoadedExternally, isTrue);
+      },
+    );
+
+    test(
+      'a zip with a single dive file routes to the single-file flow',
+      () async {
+        final zipPath = '${tmp.path}/single.zip';
+        await File(
+          zipPath,
+        ).writeAsBytes(buildZip({'only_dive.zxu': zxuBytes('20240612093000')}));
+
+        await notifier.loadFilesFromPaths([zipPath]);
+
+        final state = notifier.state;
+        expect(state.files, hasLength(1));
+        expect(state.isBatch, isFalse);
+        // Single-file flow keeps bytes in memory for the parse step.
+        expect(state.fileBytes, isNotNull);
+        expect(state.detectionResult?.format, ImportFormat.danDl7);
+      },
+    );
+
+    test('loadFileFromBytes expands zip bytes from a share intent', () async {
+      final bytes = buildZip({
+        'x_1.zxu': zxuBytes('20240612093000'),
+        'y_2.zxu': zxuBytes('20240613100000'),
+      });
+
+      final detection = await notifier.loadFileFromBytes(
+        bytes,
+        'shared_export.zip',
+      );
+
+      final state = notifier.state;
+      expect(state.files, hasLength(2));
+      expect(detection.format, ImportFormat.danDl7);
+      expect(state.wasLoadedExternally, isTrue);
+    });
+
+    test('a zip with nothing importable reports an error', () async {
+      final bytes = buildZip({
+        'readme.txt': [65, 66],
+      });
+      final detection = await notifier.loadFileFromBytes(bytes, 'junk.zip');
+      final state = notifier.state;
+      expect(detection.format, ImportFormat.unknown);
+      expect(state.error, contains('No importable files'));
+    });
+
+    test(
+      'a later non-zip pick clears photos and deletes the prior temp dir',
+      () async {
+        // First import: a DiveCloud zip populates photos + a temp dir.
+        final zipPath = '${tmp.path}/with_photos.zip';
+        await File(zipPath).writeAsBytes(
+          buildZip({
+            'a_1.zxu': zxuBytes('20240612093000'),
+            'a_1_photo.jpg': [1, 2, 3],
+          }),
+        );
+        await notifier.loadFilesFromPaths([zipPath]);
+        expect(notifier.state.photoPathsByBaseName, isNotEmpty);
+        expect(notifier.state.zipTempDirPaths, hasLength(1));
+        final tempDir = notifier.state.zipTempDirPaths.single;
+
+        // Second import: a plain (non-zip) file via the picker. pickFiles
+        // does not fully reset state, so without the fix the stale photo map
+        // would linger and could be misattached to the new dive.
+        final plain = await writeFile('plain.uddf', _uddfA);
+        picker.nextPickPaths = [plain];
+        await notifier.pickFiles();
+
+        expect(
+          notifier.state.photoPathsByBaseName,
+          isEmpty,
+          reason: 'the previous ZIP import\'s photos must not carry over',
+        );
+        expect(notifier.state.unmatchedPhotoCount, 0);
+        expect(notifier.state.zipTempDirPaths, isEmpty);
+
+        // The superseded temp dir is deleted (fire-and-forget). Allow the
+        // microtask/IO to settle before asserting.
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        expect(Directory(tempDir).existsSync(), isFalse);
+      },
+    );
+
+    test('reset() deletes tracked temp dirs', () async {
+      final zipPath = '${tmp.path}/for_reset.zip';
+      await File(
+        zipPath,
+      ).writeAsBytes(buildZip({'d_1.zxu': zxuBytes('20240612093000')}));
+      await notifier.loadFilesFromPaths([zipPath]);
+      final tempDir = notifier.state.zipTempDirPaths.single;
+      expect(Directory(tempDir).existsSync(), isTrue);
+
+      notifier.reset();
+
+      expect(notifier.state.zipTempDirPaths, isEmpty);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(Directory(tempDir).existsSync(), isFalse);
     });
   });
 }

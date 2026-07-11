@@ -17685,6 +17685,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get universalImport_label_consolidated => 'אוחדו';
 
   @override
+  String get universalImport_label_photosAttached => 'תמונות שצורפו';
+
+  @override
+  String get universalImport_label_photosUnmatched => 'תמונות ללא צלילה תואמת';
+
+  @override
   String get common_label_shareWithAllProfiles => 'שיתוף עם כל פרופילי הצלילה';
 
   @override

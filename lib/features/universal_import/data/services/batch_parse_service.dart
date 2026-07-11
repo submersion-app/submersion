@@ -33,6 +33,9 @@ class BatchParseService {
     'ssrf',
     'db',
     'sqlite',
+    'zxu',
+    'zxl',
+    'zip', // DiveCloud export archives, expanded at intake
     'csv', // included so CSVs surface in triage as "import individually"
   };
 

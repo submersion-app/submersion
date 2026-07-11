@@ -5096,6 +5096,8 @@
   "universalImport_label_allDivesSkipped": "تم تخطي جميع الغطسات.",
   "universalImport_label_consolidated": "مدمجة",
   "universalImport_label_options": "خيارات",
+  "universalImport_label_photosAttached": "الصور المرفقة",
+  "universalImport_label_photosUnmatched": "صور لم تطابق أي غوصة",
   "universalImport_label_replaceSource": "استبدال المصدر",
   "universalImport_label_replaceSourceSubtitle": "تحديث من نفس الكمبيوتر",
   "universalImport_label_replacedSourceData": "تم استبدال بيانات المصدر",

@@ -10,6 +10,7 @@ Move your dive data in and out of Submersion using industry-standard formats.
 | **CSV** | Yes | Yes | Spreadsheet format |
 | **Garmin FIT** | Yes | No | Garmin dive activity files |
 | **Subsurface XML** | Yes | No | Subsurface native format |
+| **DAN DL7** | Yes | No | DiverLog+ / DiveCloud exports (.zxu, .zxl, ZIP) |
 | **HealthKit** | Yes | No | Apple Watch dive workouts (iOS only) |
 | **PDF** | No | Yes | Printable logbook |
 | **SQLite** | Yes | Yes | Full database backup |
@@ -182,6 +183,28 @@ Use backups before major changes or when moving between devices.
 
 1. In MacDive: **File** > **Export** > **UDDF**
 2. Import UDDF in Submersion
+
+### From Aqualung DiverLog+ / DiverLog (DAN DL7)
+
+Submersion imports DAN DL7 (`.zxu` / `.zxl`) files, including the extended
+dive data DiverLog+ embeds in them: dive site and GPS, city/state/country,
+tank pressures and gas mixes, ratings, dive stats, and dive computer
+identity.
+
+**Getting your data out of DiverLog+ (mobile):** the mobile app has no file
+export. Sync your dives to DiveCloud from within DiverLog+, then sign in at
+divecloud.net in a browser, select your dives, and choose Export. This
+downloads a ZIP of per-dive `.zxu` files plus any attached photos.
+
+**Importing:** drop the DiveCloud ZIP (or individual `.zxu` files) onto
+Submersion, or use Transfer > File Import. Every dive in the archive is
+imported in one pass, photos are attached to their dives automatically, and
+dives you already downloaded from the same dive computer are flagged as
+duplicates with consolidation offered.
+
+**Desktop DiverLog:** the discontinued Full version can export `.zxu` files
+directly (Export Dive Data > DL7 Standard); the Lite versions cannot export.
+Lite users should Wi-Fi-sync to the mobile app and use the DiveCloud path.
 
 ### From Dive Computer Software
 

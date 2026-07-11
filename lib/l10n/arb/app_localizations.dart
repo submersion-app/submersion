@@ -30398,6 +30398,18 @@ abstract class AppLocalizations {
   /// **'Consolidated'**
   String get universalImport_label_consolidated;
 
+  /// Label for the count of photos attached to imported dives
+  ///
+  /// In en, this message translates to:
+  /// **'Photos attached'**
+  String get universalImport_label_photosAttached;
+
+  /// Label for the count of archive photos that matched no dive file
+  ///
+  /// In en, this message translates to:
+  /// **'Photos not matched to a dive'**
+  String get universalImport_label_photosUnmatched;
+
   /// Switch on trip/site edit pages that makes the record visible to all local dive profiles.
   ///
   /// In en, this message translates to:

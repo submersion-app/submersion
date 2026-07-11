@@ -18148,6 +18148,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get universalImport_label_consolidated => 'Consolidate';
 
   @override
+  String get universalImport_label_photosAttached => 'Foto allegate';
+
+  @override
+  String get universalImport_label_photosUnmatched =>
+      'Foto senza immersione corrispondente';
+
+  @override
   String get common_label_shareWithAllProfiles =>
       'Condividi con tutti i profili subacquei';
 

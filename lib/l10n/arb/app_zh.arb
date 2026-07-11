@@ -5096,6 +5096,8 @@
   "universalImport_label_allDivesSkipped": "所有潜水均已跳过。",
   "universalImport_label_consolidated": "已合并",
   "universalImport_label_options": "选项",
+  "universalImport_label_photosAttached": "已附加照片",
+  "universalImport_label_photosUnmatched": "未匹配到潜水的照片",
   "universalImport_label_replaceSource": "替换源数据",
   "universalImport_label_replaceSourceSubtitle": "从同一台计算机更新",
   "universalImport_label_replacedSourceData": "已替换源数据",

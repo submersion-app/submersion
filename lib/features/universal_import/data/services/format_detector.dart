@@ -55,6 +55,10 @@ class FormatDetector {
     final xmlResult = _detectXml(textContent);
     if (xmlResult != null) return xmlResult;
 
+    // 2b. DAN DL7 pipe-segment detection (plain text, not XML)
+    final dl7Result = _detectDl7(textContent);
+    if (dl7Result != null) return dl7Result;
+
     // 3. CSV detection
     final csvResult = _detectCsv(textContent, bytes);
     if (csvResult != null) return csvResult;
@@ -226,6 +230,28 @@ class FormatDetector {
       if (lowerContent.contains(keyword)) matchCount++;
     }
     return matchCount >= 3;
+  }
+
+  // ======================== DL7 Detection ========================
+
+  /// DAN DL7 (.zxu/.zxl) files are pipe-delimited HL7-style text starting
+  /// with an FSH file-header segment. DiverLog+/DiveCloud exports embed an
+  /// `<AQUALUNG>` block in the ZAR segment, which identifies the source app.
+  ///
+  /// The UTF-8 BOM decodes to U+FEFF, which Dart's trimLeft() does NOT
+  /// remove (it is not Unicode White_Space), so it is stripped explicitly.
+  DetectionResult? _detectDl7(String content) {
+    var trimmed = content.trimLeft();
+    if (trimmed.startsWith('﻿')) {
+      trimmed = trimmed.substring(1).trimLeft();
+    }
+    if (!trimmed.startsWith('FSH|')) return null;
+    final isDiverLog = trimmed.contains('<AQUALUNG>');
+    return DetectionResult(
+      format: ImportFormat.danDl7,
+      sourceApp: isDiverLog ? SourceApp.diverLog : SourceApp.dan,
+      confidence: 0.95,
+    );
   }
 
   // ======================== CSV Detection ========================

@@ -5096,6 +5096,8 @@
   "universalImport_label_allDivesSkipped": "Minden merülés ki lett hagyva.",
   "universalImport_label_consolidated": "Összevont",
   "universalImport_label_options": "Beállítások",
+  "universalImport_label_photosAttached": "Csatolt fényképek",
+  "universalImport_label_photosUnmatched": "Merüléshez nem társított fényképek",
   "universalImport_label_replaceSource": "Forrás cseréje",
   "universalImport_label_replaceSourceSubtitle": "Frissítés ugyanarról a számítógépről",
   "universalImport_label_replacedSourceData": "Forrásadat lecserélve",

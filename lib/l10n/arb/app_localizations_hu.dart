@@ -18100,6 +18100,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get universalImport_label_consolidated => 'Összevont';
 
   @override
+  String get universalImport_label_photosAttached => 'Csatolt fényképek';
+
+  @override
+  String get universalImport_label_photosUnmatched =>
+      'Merüléshez nem társított fényképek';
+
+  @override
   String get common_label_shareWithAllProfiles =>
       'Megosztás az összes búvárprofillal';
 

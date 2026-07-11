@@ -20,6 +20,8 @@ import 'package:submersion/features/dive_centers/data/repositories/dive_center_r
 import 'package:submersion/features/dive_import/data/services/uddf_entity_importer.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    as dive_domain;
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_types/data/repositories/dive_type_repository.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
@@ -263,4 +265,101 @@ void main() {
       reason: 'bulk import must not create orphaned child rows',
     );
   });
+
+  test(
+    'DL7 batch: two .zxu fixtures parse, merge, and dedup by DUID',
+    () async {
+      const fixtureDir =
+          'test/features/universal_import/data/parsers/fixtures/dl7';
+
+      // Both files go through the REAL batch parse path from disk.
+      final parseResult = await const BatchParseService().parseAll([
+        const PickedImportFile(
+          name: 'diverlog_plus_synthetic.zxu',
+          path: '$fixtureDir/diverlog_plus_synthetic.zxu',
+          detection: DetectionResult(
+            format: ImportFormat.danDl7,
+            confidence: 1,
+          ),
+          status: ImportFileStatus.pending,
+        ),
+        const PickedImportFile(
+          name: 'dl7_imperial.zxu',
+          path: '$fixtureDir/dl7_imperial.zxu',
+          detection: DetectionResult(
+            format: ImportFormat.danDl7,
+            confidence: 1,
+          ),
+          status: ImportFileStatus.pending,
+        ),
+      ]);
+
+      expect(parseResult.parsed, hasLength(2));
+      expect(
+        parseResult.files.every((f) => f.status == ImportFileStatus.parsed),
+        isTrue,
+      );
+      expect(parseResult.files.every((f) => f.diveCount == 1), isTrue);
+
+      final merged = const PayloadMerger().merge(parseResult.parsed);
+      expect(merged.metadata['batchFileCount'], 2);
+
+      final mergedDives = merged.entitiesOf(ImportEntityType.dives);
+      expect(mergedDives, hasLength(2));
+      final diverlogDive = mergedDives.firstWhere(
+        (d) => d['_sourceFile'] == 'diverlog_plus_synthetic.zxu',
+      );
+      expect(diverlogDive['sourceUuid'], '4321_98765_20240612093000_42');
+
+      // The DiverLog file's site survives merging with its per-file namespace.
+      final mergedSites = merged.entitiesOf(ImportEntityType.sites);
+      expect(mergedSites, hasLength(1));
+      expect(mergedSites.single['uddfId'], 'f0:dl7_site_molokini crater');
+      expect(mergedSites.single['name'], 'Molokini Crater');
+
+      // Against an empty library: no duplicates (the two dives are distinct).
+      final clean = const ImportDuplicateChecker().check(
+        payload: merged,
+        existingDives: const [],
+        existingSites: const [],
+        existingTrips: const [],
+        existingEquipment: const [],
+        existingBuddies: const [],
+        existingDiveCenters: const [],
+        existingCertifications: const [],
+        existingTags: const [],
+        existingDiveTypes: const [],
+        checkIntraBatch: true,
+      );
+      expect(clean.diveMatches, isEmpty);
+
+      // Re-import scenario: an existing dive already carries the same DUID as
+      // its sourceUuid, so the exact-match pass flags it with score 1.0. The
+      // uuid map is resolved through existingDives, so the dive must be there.
+      final existingDive = dive_domain.Dive(
+        id: 'existing-dive',
+        dateTime: DateTime.utc(2024, 6, 12, 9, 30),
+      );
+      final reimport = const ImportDuplicateChecker().check(
+        payload: merged,
+        existingDives: [existingDive],
+        existingSites: const [],
+        existingTrips: const [],
+        existingEquipment: const [],
+        existingBuddies: const [],
+        existingDiveCenters: const [],
+        existingCertifications: const [],
+        existingTags: const [],
+        existingDiveTypes: const [],
+        existingSourceUuidByDiveId: const {
+          'existing-dive': '4321_98765_20240612093000_42',
+        },
+        checkIntraBatch: true,
+      );
+      final duidIndex = mergedDives.indexOf(diverlogDive);
+      expect(reimport.diveMatches.keys, [duidIndex]);
+      expect(reimport.diveMatches[duidIndex]!.diveId, 'existing-dive');
+      expect(reimport.diveMatches[duidIndex]!.score, 1.0);
+    },
+  );
 }

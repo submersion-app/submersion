@@ -18160,6 +18160,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get universalImport_label_consolidated => 'Consolidadas';
 
   @override
+  String get universalImport_label_photosAttached => 'Fotos adjuntadas';
+
+  @override
+  String get universalImport_label_photosUnmatched =>
+      'Fotos sin coincidencia con una inmersión';
+
+  @override
   String get common_label_shareWithAllProfiles =>
       'Compartir con todos los perfiles de buceo';
 

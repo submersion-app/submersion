@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -33,6 +34,7 @@ import 'package:submersion/features/universal_import/data/services/macdive_db_re
 import 'package:submersion/features/universal_import/data/services/payload_merger.dart';
 import 'package:submersion/features/universal_import/data/services/shearwater_db_reader.dart';
 import 'package:submersion/features/universal_import/data/services/import_duplicate_checker.dart';
+import 'package:submersion/features/universal_import/data/services/zip_expansion_service.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_state.dart';
 
 export 'package:submersion/features/universal_import/presentation/providers/universal_import_state.dart';
@@ -46,7 +48,9 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   UniversalImportNotifier(
     this._ref, {
     BatchParseService batchParseService = const BatchParseService(),
+    ZipExpansionService zipExpansionService = const ZipExpansionService(),
   }) : _batchParseService = batchParseService,
+       _zipExpansion = zipExpansionService,
        super(const UniversalImportState());
 
   final Ref _ref;
@@ -54,6 +58,10 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   /// Injectable so tests can drive deterministic batch-parse outcomes
   /// (progress, cancellation) without real file timing.
   final BatchParseService _batchParseService;
+
+  /// Expands ZIP archives (DiveCloud exports) into their member files at
+  /// intake so members flow through normal detection and batching.
+  final ZipExpansionService _zipExpansion;
 
   /// Build a [PresetRegistry] that includes both built-in and user-saved
   /// presets so auto-detection scores against all of them.
@@ -104,6 +112,62 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     return detection;
   }
 
+  /// Stores photo/temp-dir bookkeeping from a ZIP expansion into state.
+  ///
+  /// Always overwrites, even for a non-ZIP (empty) expansion: otherwise the
+  /// photo map from a previous ZIP import would linger through a subsequent
+  /// non-ZIP import (pickFiles/pickFolder do not fully reset state) and its
+  /// photos could be misattached to the new dives. Temp dirs superseded by
+  /// this expansion are deleted so extracted data does not accumulate.
+  void _applyExpansionExtras(ArchiveExpansion expansion) {
+    final superseded = [
+      for (final dir in state.zipTempDirPaths)
+        if (!expansion.tempDirPaths.contains(dir)) dir,
+    ];
+    state = state.copyWith(
+      photoPathsByBaseName: expansion.photoPathsByBaseName,
+      unmatchedPhotoCount: expansion.unmatchedPhotoPaths.length,
+      zipTempDirPaths: expansion.tempDirPaths,
+    );
+    _deleteTempDirs(superseded);
+  }
+
+  /// Best-effort, fire-and-forget deletion of extracted-ZIP temp directories.
+  void _deleteTempDirs(List<String> paths) {
+    if (paths.isEmpty) return;
+    unawaited(() async {
+      for (final path in paths) {
+        try {
+          final dir = Directory(path);
+          if (dir.existsSync()) await dir.delete(recursive: true);
+        } catch (_) {
+          // Temp cleanup is best-effort; the OS reclaims systemTemp anyway.
+        }
+      }
+    }());
+  }
+
+  /// Single-file load by path (used when a ZIP expands to exactly one
+  /// member and by the classic picker path).
+  Future<void> _loadSingleFromFilePath(String filePath) async {
+    final bytes = await File(filePath).readAsBytes();
+    final detection = await _detectFormat(bytes);
+    state = state.copyWith(
+      isLoading: false,
+      files: [
+        PickedImportFile(
+          name: p.basename(filePath),
+          path: filePath,
+          bytes: bytes,
+          detection: detection,
+          status: ImportFileStatus.pending,
+        ),
+      ],
+      detectionResult: detection,
+      currentStep: ImportWizardStep.sourceConfirmation,
+    );
+  }
+
   // -- External File Loading (drag-and-drop / sharing intents) --
 
   /// Load a file from raw bytes, bypassing the file picker.
@@ -118,9 +182,35 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   ) async {
     // Reset to a clean slate so stale fileBytes/detectionResult from a
     // previous run don't leak through if detection fails or is unsupported.
+    final staleTempDirs = state.zipTempDirPaths;
     state = const UniversalImportState().copyWith(isLoading: true);
+    _deleteTempDirs(staleTempDirs);
 
     try {
+      if (ZipExpansionService.isZipBytes(bytes)) {
+        final expansion = await _zipExpansion.expandZipBytes(bytes, fileName);
+        _applyExpansionExtras(expansion);
+        if (expansion.filePaths.isEmpty) {
+          state = state.copyWith(
+            isLoading: false,
+            error: 'No importable files found in archive',
+          );
+          return const DetectionResult(
+            format: ImportFormat.unknown,
+            confidence: 0.0,
+            warnings: ['No importable files found in archive'],
+          );
+        }
+        if (expansion.filePaths.length == 1) {
+          await _loadSingleFromFilePath(expansion.filePaths.first);
+        } else {
+          await _loadBatchFromPaths(expansion.filePaths);
+        }
+        state = state.copyWith(wasLoadedExternally: true);
+        return state.detectionResult ??
+            const DetectionResult(format: ImportFormat.unknown, confidence: 0);
+      }
+
       final detection = await _detectFormat(bytes);
 
       // Don't advance to sourceConfirmation for unsupported formats so the
@@ -187,49 +277,31 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
         return;
       }
 
-      if (result.files.length == 1) {
-        await _loadSingleFromPath(result.files.first);
-        return;
-      }
-
-      await _loadBatchFromPaths([
+      final pickedPaths = [
         for (final f in result.files)
           if (f.path != null) f.path!,
-      ]);
+      ];
+      final expansion = await _zipExpansion.expandAll(pickedPaths);
+      _applyExpansionExtras(expansion);
+
+      if (expansion.filePaths.isEmpty) {
+        state = state.copyWith(
+          isLoading: false,
+          error: 'No importable files found in archive',
+        );
+        return;
+      }
+      if (expansion.filePaths.length == 1) {
+        await _loadSingleFromFilePath(expansion.filePaths.first);
+        return;
+      }
+      await _loadBatchFromPaths(expansion.filePaths);
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
         error: 'Failed to pick file: $e',
       );
     }
-  }
-
-  /// Classic single-file load: bytes kept in memory for CSV re-parsing.
-  Future<void> _loadSingleFromPath(PlatformFile pickedFile) async {
-    final filePath = pickedFile.path;
-    if (filePath == null) {
-      state = state.copyWith(isLoading: false, error: 'Could not access file');
-      return;
-    }
-
-    final bytes = await File(filePath).readAsBytes();
-    final fileName = pickedFile.name;
-    final detection = await _detectFormat(bytes);
-
-    state = state.copyWith(
-      isLoading: false,
-      files: [
-        PickedImportFile(
-          name: fileName,
-          path: filePath,
-          bytes: bytes,
-          detection: detection,
-          status: ImportFileStatus.pending,
-        ),
-      ],
-      detectionResult: detection,
-      currentStep: ImportWizardStep.sourceConfirmation,
-    );
   }
 
   /// Load many files by path: detect each (bytes read then discarded),
@@ -292,8 +364,23 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   /// enters the triage step. Marks the load as external so the wizard does
   /// not reset it on init.
   Future<void> loadFilesFromPaths(List<String> paths) async {
+    final staleTempDirs = state.zipTempDirPaths;
     state = const UniversalImportState().copyWith(isLoading: true);
-    await _loadBatchFromPaths(paths);
+    _deleteTempDirs(staleTempDirs);
+    final expansion = await _zipExpansion.expandAll(paths);
+    _applyExpansionExtras(expansion);
+    if (expansion.filePaths.isEmpty) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'No importable files found in archive',
+      );
+      return;
+    }
+    if (expansion.filePaths.length == 1) {
+      await _loadSingleFromFilePath(expansion.filePaths.first);
+    } else {
+      await _loadBatchFromPaths(expansion.filePaths);
+    }
     state = state.copyWith(wasLoadedExternally: true);
   }
 
@@ -321,28 +408,27 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
         return;
       }
 
-      if (paths.length == 1) {
-        // Single hit: behave exactly like a single-file pick.
-        final bytes = await File(paths.first).readAsBytes();
-        final detection = await _detectFormat(bytes);
+      // Folder scans surface ZIPs (DiveCloud exports); expand them so
+      // members flow through the batch like directly picked files.
+      final expansion = await _zipExpansion.expandAll(paths);
+      _applyExpansionExtras(expansion);
+      final expandedPaths = expansion.filePaths;
+
+      if (expandedPaths.isEmpty) {
         state = state.copyWith(
           isLoading: false,
-          files: [
-            PickedImportFile(
-              name: p.basename(paths.first),
-              path: paths.first,
-              bytes: bytes,
-              detection: detection,
-              status: ImportFileStatus.pending,
-            ),
-          ],
-          detectionResult: detection,
-          currentStep: ImportWizardStep.sourceConfirmation,
+          error: 'No importable files found in the selected folder',
         );
         return;
       }
 
-      await _loadBatchFromPaths(paths);
+      if (expandedPaths.length == 1) {
+        // Single hit: behave exactly like a single-file pick.
+        await _loadSingleFromFilePath(expandedPaths.first);
+        return;
+      }
+
+      await _loadBatchFromPaths(expandedPaths);
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
@@ -756,7 +842,9 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   }
 
   void reset() {
+    final staleTempDirs = state.zipTempDirPaths;
     state = const UniversalImportState();
+    _deleteTempDirs(staleTempDirs);
   }
 }
 

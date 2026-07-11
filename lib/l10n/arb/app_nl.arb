@@ -5096,6 +5096,8 @@
   "universalImport_label_allDivesSkipped": "Alle duiken zijn overgeslagen.",
   "universalImport_label_consolidated": "Geconsolideerd",
   "universalImport_label_options": "Opties",
+  "universalImport_label_photosAttached": "Foto's bijgevoegd",
+  "universalImport_label_photosUnmatched": "Foto's niet aan een duik gekoppeld",
   "universalImport_label_replaceSource": "Bron vervangen",
   "universalImport_label_replaceSourceSubtitle": "Bijwerken vanaf dezelfde computer",
   "universalImport_label_replacedSourceData": "Brongegevens vervangen",

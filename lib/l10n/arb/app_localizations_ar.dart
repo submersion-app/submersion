@@ -17815,6 +17815,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get universalImport_label_consolidated => 'مدمجة';
 
   @override
+  String get universalImport_label_photosAttached => 'الصور المرفقة';
+
+  @override
+  String get universalImport_label_photosUnmatched => 'صور لم تطابق أي غوصة';
+
+  @override
   String get common_label_shareWithAllProfiles =>
       'المشاركة مع جميع ملفات الغوص';
 

@@ -5096,6 +5096,8 @@
   "universalImport_label_allDivesSkipped": "Alle Tauchgänge wurden übersprungen.",
   "universalImport_label_consolidated": "Konsolidiert",
   "universalImport_label_options": "Optionen",
+  "universalImport_label_photosAttached": "Fotos angehängt",
+  "universalImport_label_photosUnmatched": "Fotos keinem Tauchgang zugeordnet",
   "universalImport_label_replaceSource": "Quelle ersetzen",
   "universalImport_label_replaceSourceSubtitle": "Vom selben Computer aktualisieren",
   "universalImport_label_replacedSourceData": "Quelldaten ersetzt",

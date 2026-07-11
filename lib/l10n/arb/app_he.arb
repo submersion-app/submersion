@@ -5096,6 +5096,8 @@
   "universalImport_label_allDivesSkipped": "כל הצלילות דולגו.",
   "universalImport_label_consolidated": "אוחדו",
   "universalImport_label_options": "אפשרויות",
+  "universalImport_label_photosAttached": "תמונות שצורפו",
+  "universalImport_label_photosUnmatched": "תמונות ללא צלילה תואמת",
   "universalImport_label_replaceSource": "החלף מקור",
   "universalImport_label_replaceSourceSubtitle": "עדכן מאותו מחשב",
   "universalImport_label_replacedSourceData": "נתוני מקור הוחלפו",

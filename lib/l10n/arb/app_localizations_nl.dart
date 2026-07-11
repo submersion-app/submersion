@@ -18004,6 +18004,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get universalImport_label_consolidated => 'Geconsolideerd';
 
   @override
+  String get universalImport_label_photosAttached => 'Foto\'s bijgevoegd';
+
+  @override
+  String get universalImport_label_photosUnmatched =>
+      'Foto\'s niet aan een duik gekoppeld';
+
+  @override
   String get common_label_shareWithAllProfiles =>
       'Delen met alle duikersprofielen';
 

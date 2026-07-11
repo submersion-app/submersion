@@ -1137,4 +1137,82 @@ void main() {
       expect(find.text('Files'), findsNothing);
     });
   });
+
+  group('ImportSummaryStep - photo rows (ZIP imports)', () {
+    testWidgets('shows photos-attached row when attachedPhotoCount > 0', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(800, 600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importResult: const UnifiedImportResult(
+          importedCounts: {ImportEntityType.dives: 2},
+          consolidatedCount: 0,
+          skippedCount: 0,
+          attachedPhotoCount: 3,
+        ),
+      );
+
+      await tester.pumpWidget(_buildWidget(notifier));
+      await tester.pump();
+
+      expect(
+        find.byKey(const Key('import_summary_photos_row')),
+        findsOneWidget,
+      );
+      expect(find.text('Photos attached'), findsOneWidget);
+      expect(find.text('3'), findsOneWidget);
+    });
+
+    testWidgets('shows unmatched-photos row when unmatchedPhotoCount > 0', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(800, 600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importResult: const UnifiedImportResult(
+          importedCounts: {ImportEntityType.dives: 2},
+          consolidatedCount: 0,
+          skippedCount: 0,
+          unmatchedPhotoCount: 1,
+        ),
+      );
+
+      await tester.pumpWidget(_buildWidget(notifier));
+      await tester.pump();
+
+      expect(
+        find.byKey(const Key('import_summary_unmatched_photos_row')),
+        findsOneWidget,
+      );
+      expect(find.text('Photos not matched to a dive'), findsOneWidget);
+    });
+
+    testWidgets('hides both photo rows when counts are 0', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importResult: const UnifiedImportResult(
+          importedCounts: {ImportEntityType.dives: 2},
+          consolidatedCount: 0,
+          skippedCount: 0,
+        ),
+      );
+
+      await tester.pumpWidget(_buildWidget(notifier));
+      await tester.pump();
+
+      expect(find.byKey(const Key('import_summary_photos_row')), findsNothing);
+      expect(
+        find.byKey(const Key('import_summary_unmatched_photos_row')),
+        findsNothing,
+      );
+    });
+  });
 }

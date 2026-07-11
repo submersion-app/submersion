@@ -5096,6 +5096,8 @@
   "universalImport_label_allDivesSkipped": "Tutte le immersioni sono state saltate.",
   "universalImport_label_consolidated": "Consolidate",
   "universalImport_label_options": "Opzioni",
+  "universalImport_label_photosAttached": "Foto allegate",
+  "universalImport_label_photosUnmatched": "Foto senza immersione corrispondente",
   "universalImport_label_replaceSource": "Sostituisci sorgente",
   "universalImport_label_replaceSourceSubtitle": "Aggiorna dallo stesso computer",
   "universalImport_label_replacedSourceData": "Dati sorgente sostituiti",

@@ -43,6 +43,18 @@
 				<string>com.garmin.fit</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>DAN DL7 Dive Log</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>app.submersion.dl7</string>
+			</array>
+		</dict>
 	</array>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
@@ -119,6 +131,24 @@
 				<key>public.filename-extension</key>
 				<array>
 					<string>fit</string>
+				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>DAN DL7 Dive Log</string>
+			<key>UTTypeIdentifier</key>
+			<string>app.submersion.dl7</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>zxu</string>
+					<string>zxl</string>
 				</array>
 			</dict>
 		</dict>

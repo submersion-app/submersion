@@ -51,6 +51,8 @@ class ImportSummaryStep extends ConsumerWidget {
       consolidatedCount: result.consolidatedCount,
       updatedCount: result.updatedCount,
       skippedCount: result.skippedCount,
+      attachedPhotoCount: result.attachedPhotoCount,
+      unmatchedPhotoCount: result.unmatchedPhotoCount,
       importedDiveIds: result.importedDiveIds,
       fileOutcomes: result.fileOutcomes,
       onDone: onDone,
@@ -68,6 +70,8 @@ class _SuccessView extends StatelessWidget {
   final int consolidatedCount;
   final int updatedCount;
   final int skippedCount;
+  final int attachedPhotoCount;
+  final int unmatchedPhotoCount;
   final List<String> importedDiveIds;
   final List<ImportFileOutcome> fileOutcomes;
   final VoidCallback onDone;
@@ -78,6 +82,8 @@ class _SuccessView extends StatelessWidget {
     required this.consolidatedCount,
     this.updatedCount = 0,
     required this.skippedCount,
+    this.attachedPhotoCount = 0,
+    this.unmatchedPhotoCount = 0,
     this.importedDiveIds = const [],
     this.fileOutcomes = const [],
     required this.onDone,
@@ -167,6 +173,20 @@ class _SuccessView extends StatelessWidget {
                 label: l10n.universalImport_label_consolidated,
                 count: consolidatedCount,
                 key: const Key('import_summary_consolidated_row'),
+              ),
+            if (attachedPhotoCount > 0)
+              _CountRow(
+                icon: Icons.photo_library_outlined,
+                label: l10n.universalImport_label_photosAttached,
+                count: attachedPhotoCount,
+                key: const Key('import_summary_photos_row'),
+              ),
+            if (unmatchedPhotoCount > 0)
+              _CountRow(
+                icon: Icons.hide_image_outlined,
+                label: l10n.universalImport_label_photosUnmatched,
+                count: unmatchedPhotoCount,
+                key: const Key('import_summary_unmatched_photos_row'),
               ),
             if (skippedCount > 0)
               _CountRow(
