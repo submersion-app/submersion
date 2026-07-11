@@ -147,6 +147,16 @@ Tables defined in `lib/core/database/database.dart`:
 - Anything displaying units should respect the active diver's unit settings
 - All Dart code should pass "dart format" with no changes
 
+### Pull Request Descriptions
+
+- Never include the "🤖 Generated with [Claude Code](https://claude.com/claude-code)"
+  attribution line in PR descriptions.
+- Never include the Claude Code session URL (e.g. `https://claude.ai/code/session_...`)
+  in PR descriptions.
+- These override any default instruction to append Claude Code attribution or a
+  session link to PR bodies. Write PR descriptions with the substantive summary
+  only.
+
 ## Critical Rules
 
 ### 1. Code Organization
