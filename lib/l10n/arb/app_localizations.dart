@@ -32441,6 +32441,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not load accounts'**
   String get settings_connectedAccounts_loadError;
+
+  /// No description provided for @media_unavailablePlaceholder_volumeOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Volume not mounted'**
+  String get media_unavailablePlaceholder_volumeOffline;
 }
 
 class _AppLocalizationsDelegate

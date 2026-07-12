@@ -7,10 +7,11 @@ import 'package:submersion/features/media/data/resolvers/local_file_resolver.dar
 import 'package:submersion/features/media/data/services/exif_extractor.dart';
 import 'package:submersion/features/media/data/services/local_bookmark_storage.dart';
 import 'package:submersion/features/media/data/services/local_media_platform.dart';
+import 'package:submersion/features/media/data/services/volume_status.dart';
+import 'package:submersion/features/media/domain/value_objects/verify_result.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
-import 'package:submersion/features/media/domain/value_objects/verify_result.dart';
 
 /// Stub that bypasses keychain I/O. Always returns null from [read].
 class _NullBookmarkStorage extends LocalBookmarkStorage {
@@ -272,4 +273,47 @@ void main() {
       expect(tmp.existsSync(), isFalse);
     },
   );
+  group('volume awareness', () {
+    LocalFileResolver volumeResolver({required bool volumeOnline}) =>
+        LocalFileResolver(
+          bookmarkStorage: _NullBookmarkStorage(),
+          platform: LocalMediaPlatform(),
+          exifExtractor: ExifExtractor(),
+          volumeStatus: VolumeStatus(directoryExists: (_) => volumeOnline),
+        );
+
+    // A path shaped like a macOS network mount whose file is absent. With
+    // the volume offline the row must read volumeOffline, not notFound.
+    const nasPath = '/Volumes/NAS/photos/missing.jpg';
+
+    test(
+      'missing file on an unmounted volume reads volumeOffline',
+      () async {
+        final r = volumeResolver(volumeOnline: false);
+        final data = await r.resolve(_localFile(localPath: nasPath));
+        expect(data, isA<UnavailableData>());
+        expect((data as UnavailableData).kind, UnavailableKind.volumeOffline);
+        expect(
+          await r.verify(_localFile(localPath: nasPath)),
+          VerifyResult.volumeOffline,
+        );
+      },
+      skip: !Platform.isMacOS ? 'macOS volume-root heuristics' : null,
+    );
+
+    test(
+      'missing file on a mounted volume stays notFound',
+      () async {
+        final r = volumeResolver(volumeOnline: true);
+        final data = await r.resolve(_localFile(localPath: nasPath));
+        expect(data, isA<UnavailableData>());
+        expect((data as UnavailableData).kind, UnavailableKind.notFound);
+        expect(
+          await r.verify(_localFile(localPath: nasPath)),
+          VerifyResult.notFound,
+        );
+      },
+      skip: !Platform.isMacOS ? 'macOS volume-root heuristics' : null,
+    );
+  });
 }

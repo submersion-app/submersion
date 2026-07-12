@@ -128,6 +128,32 @@ void main() {
       },
     );
 
+    test(
+      'volumeOffline items keep their orphan state (only stamped)',
+      () async {
+        final mounted = item(id: 'a', isOrphaned: false); // share offline
+        final orphan = item(id: 'b', isOrphaned: true); // share offline too
+        when(
+          mockRepo.getAllBySourceType(MediaSourceType.localFile),
+        ).thenAnswer((_) async => [mounted, orphan]);
+        when(
+          mockResolver.verify(any),
+        ).thenAnswer((_) async => VerifyResult.volumeOffline);
+        when(mockRepo.updateMedia(any)).thenAnswer((_) async {});
+
+        final flipped = await subject.reverifyAll();
+
+        expect(flipped, 0, reason: 'an unmounted share never flips anything');
+        final captured = verify(
+          mockRepo.updateMedia(captureAny),
+        ).captured.cast<MediaItem>();
+        final byId = {for (final u in captured) u.id: u};
+        expect(byId['a']!.isOrphaned, isFalse, reason: 'not orphaned');
+        expect(byId['b']!.isOrphaned, isTrue, reason: 'state preserved');
+        expect(byId['a']!.lastVerifiedAt, isNotNull);
+      },
+    );
+
     test('on empty repository returns zero', () async {
       when(
         mockRepo.getAllBySourceType(MediaSourceType.localFile),

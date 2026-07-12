@@ -19382,4 +19382,7 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_connectedAccounts_loadError =>
       'Impossibile caricare gli account';
+
+  @override
+  String get media_unavailablePlaceholder_volumeOffline => 'Volume non montato';
 }

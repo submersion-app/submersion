@@ -5497,5 +5497,6 @@
   "settings_setupGuide_statusDone": "已设置",
   "settings_setupGuide_statusTodo": "未设置",
   "settings_setupGuide_open": "打开",
-  "settings_connectedAccounts_loadError": "无法加载账户"
+  "settings_connectedAccounts_loadError": "无法加载账户",
+  "media_unavailablePlaceholder_volumeOffline": "卷未挂载"
 }

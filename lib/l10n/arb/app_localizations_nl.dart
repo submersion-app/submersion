@@ -19230,4 +19230,8 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_connectedAccounts_loadError =>
       'Accounts konden niet worden geladen';
+
+  @override
+  String get media_unavailablePlaceholder_volumeOffline =>
+      'Volume niet gekoppeld';
 }

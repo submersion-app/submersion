@@ -18394,4 +18394,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_loadError => '无法加载账户';
+
+  @override
+  String get media_unavailablePlaceholder_volumeOffline => '卷未挂载';
 }

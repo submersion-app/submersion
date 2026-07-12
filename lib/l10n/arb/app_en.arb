@@ -12102,5 +12102,6 @@
   "settings_setupGuide_statusDone": "Set up",
   "settings_setupGuide_statusTodo": "Not set up",
   "settings_setupGuide_open": "Open",
-  "settings_connectedAccounts_loadError": "Could not load accounts"
+  "settings_connectedAccounts_loadError": "Could not load accounts",
+  "media_unavailablePlaceholder_volumeOffline": "Volume not mounted"
 }

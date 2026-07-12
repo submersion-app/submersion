@@ -19054,4 +19054,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_loadError => 'Could not load accounts';
+
+  @override
+  String get media_unavailablePlaceholder_volumeOffline => 'Volume not mounted';
 }

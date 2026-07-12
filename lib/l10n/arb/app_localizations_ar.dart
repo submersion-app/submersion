@@ -19019,4 +19019,8 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_loadError => 'تعذر تحميل الحسابات';
+
+  @override
+  String get media_unavailablePlaceholder_volumeOffline =>
+      'وحدة التخزين غير مثبتة';
 }

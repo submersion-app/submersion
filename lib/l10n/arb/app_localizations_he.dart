@@ -18882,4 +18882,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_connectedAccounts_loadError => 'לא ניתן לטעון חשבונות';
+
+  @override
+  String get media_unavailablePlaceholder_volumeOffline => 'הכונן אינו מחובר';
 }
