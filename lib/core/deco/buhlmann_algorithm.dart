@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
+import 'package:submersion/core/deco/ascent/ccr_loop_ascent_gas.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/breathing_config.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
@@ -800,8 +801,10 @@ class BuhlmannAlgorithm {
   /// Each segment becomes active from its start timestamp onward until
   /// superseded by the next segment.
   /// [ascentGasPlan] optionally overrides the ascent gas selection for TTS
-  /// and deco-schedule calculations; null reproduces the legacy per-sample
-  /// single-gas behavior.
+  /// and deco-schedule calculations. Null reproduces the legacy per-sample
+  /// single-gas behavior for open-circuit segments; for a segment carrying a
+  /// [ProfileGasSegment.setpoint], null instead derives the loop itself as
+  /// the ascent plan (see [_loopAscentPlanFor]).
   List<DecoStatus> processProfileWithGasSegments({
     required List<double> depths,
     required List<int> timestamps,
@@ -908,7 +911,7 @@ class BuhlmannAlgorithm {
           fN2: sampleGas.fN2,
           fHe: sampleGas.fHe,
           safetyStopTimeAccumulated: safetyStopTimeAccumulated,
-          ascentGas: ascentGasPlan,
+          ascentGas: ascentGasPlan ?? _loopAscentPlanFor(sampleGas),
           breathing: _breathingFor(sampleGas),
         ),
       );
@@ -945,6 +948,44 @@ class BuhlmannAlgorithm {
       diluentFHe: gas.fHe,
     );
   }
+
+  /// Ascent plan implied by a setpoint-bearing segment: the loop itself, held
+  /// at the segment's setpoint all the way to the surface, so the TTS/schedule
+  /// simulation keeps constant-ppO2 physics (inert fraction changes with depth
+  /// as ppO2 stays fixed). Null for open-circuit segments.
+  ///
+  /// Memoized on (setpoint, fN2, fHe): the plan is requested once per profile
+  /// sample but only changes when the active segment changes, so reusing the
+  /// last instance avoids an allocation per sample on long profiles.
+  CcrLoopAscentGas? _loopAscentPlanFor(ProfileGasSegment gas) {
+    final setpoint = gas.setpoint;
+    if (setpoint == null) return null;
+    final cached = _loopPlanCache;
+    if (cached != null &&
+        _loopPlanSetpoint == setpoint &&
+        _loopPlanFN2 == gas.fN2 &&
+        _loopPlanFHe == gas.fHe) {
+      return cached;
+    }
+    final plan = CcrLoopAscentGas(
+      environment: environment,
+      setpointLow: setpoint,
+      setpointHigh: setpoint,
+      switchDepth: 0.0,
+      diluentFO2: 1.0 - gas.fN2 - gas.fHe,
+      diluentFHe: gas.fHe,
+    );
+    _loopPlanSetpoint = setpoint;
+    _loopPlanFN2 = gas.fN2;
+    _loopPlanFHe = gas.fHe;
+    _loopPlanCache = plan;
+    return plan;
+  }
+
+  CcrLoopAscentGas? _loopPlanCache;
+  double? _loopPlanSetpoint;
+  double? _loopPlanFN2;
+  double? _loopPlanFHe;
 
   ProfileGasSegment _activeGasAtTimestamp(
     int timestamp,

@@ -2,8 +2,7 @@
 //
 // End-to-end shape tests over the committed SSRF fixtures. These pin the
 // *shape* of the gas-aware calculated TTS curve (monotone, step-free across the
-// recorded gas switch, 0 at the surface) on real recorded data, and assert the
-// CCR fixtures are untouched by the gas-aware machinery (it is gated to OC).
+// recorded gas switch, 0 at the surface) on real recorded data.
 // Absolute TTS numbers are pinned separately by the clean-room cross-check.
 import 'dart:convert';
 import 'dart:typed_data';
@@ -15,6 +14,7 @@ import 'package:submersion/core/deco/entities/profile_gas_segment.dart';
 import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/parsers/subsurface_xml_parser.dart';
 
@@ -81,6 +81,25 @@ OptimalOcAscentGas _ascentPlan(Map<String, dynamic> dive, {double ppO2 = 1.6}) {
   return OptimalOcAscentGas(gases: gases, maxPpO2: ppO2);
 }
 
+List<DiveProfilePoint> _profilePoints(Map<String, dynamic> dive) =>
+    (dive['profile'] as List)
+        .map(
+          (p) => DiveProfilePoint(
+            timestamp: (p as Map)['timestamp'] as int,
+            depth: p['depth'] as double,
+            setpoint: p['setpoint'] as double?,
+            ppO2: p['ppO2'] as double?,
+          ),
+        )
+        .toList();
+
+/// Diluent mix straight from the fixture's TankRole.diluent cylinder.
+GasMix _diluentMix(Map<String, dynamic> dive) =>
+    ((dive['tanks'] as List).cast<Map>().firstWhere(
+          (t) => t['role'] == TankRole.diluent,
+        ))['gasMix']
+        as GasMix;
+
 void main() {
   test(
     'fixture 001: gas-aware calculated TTS is monotone, step-free, 0 at surface',
@@ -128,39 +147,88 @@ void main() {
     },
   );
 
-  for (final fixture in const [
-    '002_ccr_only_low_sp_no_calculated_po2.ssrf.xml',
-    '003_ccr_with_setpoint_switch_and_calculated_po2.ssrf.xml',
-  ]) {
+  group('CCR fixtures compute loop deco (issue #455)', () {
     test(
-      'fixture $fixture (CCR): analysis is identical with/without a plan',
+      'fixture 003 @ minute 40 matches Subsurface TTS (24 min +/- 2)',
       () async {
-        final dive = await _parseFixture(fixture);
-        expect(dive['diveMode'], DiveMode.ccr);
-
+        final dive = await _parseFixture(
+          '003_ccr_with_setpoint_switch_and_calculated_po2.ssrf.xml',
+        );
         final depths = _depths(dive);
         final timestamps = _timestamps(dive);
-        final service = ProfileAnalysisService(gfLow: 0.50, gfHigh: 0.75);
+        final points = _profilePoints(dive);
 
-        ProfileAnalysis run({required bool withPlan}) => service.analyze(
-          diveId: 'ccr',
+        final resolved = resolveRebreatherPpO2(points);
+        expect(resolved, isNotNull, reason: 'fixture carries po2 samples');
+
+        final segments = buildCcrProfileGasSegments(
+          timestamps: timestamps,
+          loopPpO2Curve: resolved!.curve,
+          diluentMix: _diluentMix(dive),
+        );
+        expect(segments, isNotNull);
+        expect(segments!.first.setpoint, isNotNull);
+
+        // Issue #455 reference point: GF 45/75, minute 40 (44.1 m, loop ppO2
+        // ~1.26 bar). App used to show ~17 min (OC EAN40 model); Subsurface
+        // shows 24 min.
+        final service = ProfileAnalysisService(gfLow: 0.45, gfHigh: 0.75);
+        final analysis = service.analyze(
+          diveId: 'fixture-003',
           depths: depths,
           timestamps: timestamps,
           diveMode: DiveMode.ccr,
-          setpointHigh: (dive['setpointHigh'] as double?) ?? 1.3,
-          gasSegments: _gasSegments(dive),
-          ascentGasPlan: withPlan ? _ascentPlan(dive) : null,
+          gasSegments: segments,
+          rebreatherPpO2Curve: resolved.curve,
         );
 
-        final baseline = run(withPlan: false);
-        final withFeature = run(withPlan: true);
-
-        // diveMode != oc => the OC gas-segment path is never taken, so the plan
-        // cannot affect any deco curve.
-        expect(withFeature.ttsCurve, equals(baseline.ttsCurve));
-        expect(withFeature.ceilingCurve, equals(baseline.ceilingCurve));
-        expect(withFeature.ndlCurve, equals(baseline.ndlCurve));
+        var idx = timestamps.indexOf(2400);
+        if (idx < 0) {
+          // Nearest sample to minute 40 if 2400 s is not an exact sample.
+          idx = timestamps.indexWhere((t) => t >= 2400);
+        }
+        expect(
+          idx,
+          isNonNegative,
+          reason: 'fixture 003 must span past minute 40 (2400 s)',
+        );
+        final ttsMinutes = analysis.ttsCurve![idx] / 60.0;
+        expect(ttsMinutes, closeTo(24.0, 2.0));
       },
     );
-  }
+
+    test('fixture 002 (setpoint samples only) builds setpoint segments and '
+        'surfaces with TTS 0', () async {
+      final dive = await _parseFixture(
+        '002_ccr_only_low_sp_no_calculated_po2.ssrf.xml',
+      );
+      final timestamps = _timestamps(dive);
+      final points = _profilePoints(dive);
+
+      final resolved = resolveRebreatherPpO2(points);
+      expect(
+        resolved,
+        isNotNull,
+        reason: 'setpoint samples drive the fallback',
+      );
+
+      final segments = buildCcrProfileGasSegments(
+        timestamps: timestamps,
+        loopPpO2Curve: resolved!.curve,
+        diluentMix: _diluentMix(dive),
+      );
+      expect(segments!.every((s) => s.setpoint != null), isTrue);
+
+      final service = ProfileAnalysisService(gfLow: 0.45, gfHigh: 0.75);
+      final analysis = service.analyze(
+        diveId: 'fixture-002',
+        depths: _depths(dive),
+        timestamps: timestamps,
+        diveMode: DiveMode.ccr,
+        gasSegments: segments,
+        rebreatherPpO2Curve: resolved.curve,
+      );
+      expect(analysis.ttsCurve!.last, 0);
+    });
+  });
 }
