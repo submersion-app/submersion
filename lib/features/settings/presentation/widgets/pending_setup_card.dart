@@ -9,16 +9,17 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// This device's pending setup items ("finish setting up this device").
-/// Recomputed on watch; invalidate after connect/attach/dismiss actions.
-final pendingSetupItemsProvider = FutureProvider<List<PendingSetupItem>>((
-  ref,
-) async {
-  final service = PendingSetupService(
-    prefs: ref.watch(sharedPreferencesProvider),
-    registry: ref.watch(accountProviderRegistryProvider),
-  );
-  return service.compute();
-});
+/// autoDispose: recomputed whenever the settings surface rebuilds, so
+/// descriptors arriving via sync are picked up without an explicit
+/// invalidate; dismiss actions still invalidate for an immediate refresh.
+final pendingSetupItemsProvider =
+    FutureProvider.autoDispose<List<PendingSetupItem>>((ref) async {
+      final service = PendingSetupService(
+        prefs: ref.watch(sharedPreferencesProvider),
+        registry: ref.watch(accountProviderRegistryProvider),
+      );
+      return service.compute();
+    });
 
 /// Dismissible "finish setting up this device" card, fed by the synced
 /// descriptors (store announcement, account roster). Renders nothing when
