@@ -41,17 +41,21 @@ class DropboxAuthData {
 /// Keychain access goes through [FallbackSecureStorage], which retries on
 /// the legacy keychain when the ad-hoc no-sandbox build has no access group.
 class DropboxAuthStore {
-  DropboxAuthStore({FlutterSecureStorage? storage})
-    : _storage = FallbackSecureStorage(storage ?? const FlutterSecureStorage());
+  /// [storageKey] overrides the legacy sync-auth key; the Connected
+  /// Accounts layer passes per-account keys (`account_<id>_credentials`).
+  DropboxAuthStore({FlutterSecureStorage? storage, String? storageKey})
+    : _storage = FallbackSecureStorage(storage ?? const FlutterSecureStorage()),
+      _storageKey = storageKey ?? DropboxAuthStore.storageKey;
 
   final FallbackSecureStorage _storage;
+  final String _storageKey;
 
   static const String storageKey = 'sync_dropbox_auth';
 
   /// The stored connection, or null when unset or the stored blob is
   /// corrupt. Keychain errors other than a missing entitlement propagate.
   Future<DropboxAuthData?> load() async {
-    final raw = await _storage.read(key: storageKey);
+    final raw = await _storage.read(key: _storageKey);
     if (raw == null) return null;
     try {
       final decoded = jsonDecode(raw);
@@ -66,7 +70,7 @@ class DropboxAuthStore {
   }
 
   Future<void> save(DropboxAuthData data) =>
-      _storage.write(key: storageKey, value: jsonEncode(data.toJson()));
+      _storage.write(key: _storageKey, value: jsonEncode(data.toJson()));
 
-  Future<void> clear() => _storage.delete(key: storageKey);
+  Future<void> clear() => _storage.delete(key: _storageKey);
 }
