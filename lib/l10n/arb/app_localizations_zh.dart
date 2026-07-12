@@ -3644,6 +3644,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_diveMode_ccrDescription => '密闭循环呼吸器，恒定氧分压';
 
   @override
+  String get diveLog_diveMode_gaugeDescription => '仅记录深度和时间；不追踪气体或减压';
+
+  @override
   String get diveLog_diveMode_ocDescription => '标准开放式气瓶水肺潜水';
 
   @override
@@ -7910,6 +7913,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_diveMode_ccr => '密闭循环呼吸器';
+
+  @override
+  String get enum_diveMode_gauge => '计深表';
 
   @override
   String get enum_diveMode_oc => '开放式';

@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart' as db;
 import 'package:submersion/core/database/database.dart'
@@ -817,6 +818,7 @@ class DiveComputerRepository {
     String? diverId,
     List<TankData>? tanks,
     String? decoAlgorithm,
+    DiveMode diveMode = DiveMode.oc,
     int? gfLow,
     int? gfHigh,
     int? decoConservatism,
@@ -900,6 +902,7 @@ class DiveComputerRepository {
                 gradientFactorHigh: Value(gfHigh),
                 decoAlgorithm: Value(decoAlgorithm),
                 decoConservatism: Value(decoConservatism),
+                diveMode: Value(diveMode.code),
                 createdAt: Value(now),
                 updatedAt: Value(now),
                 entryLatitude: Value(entryLatitude),

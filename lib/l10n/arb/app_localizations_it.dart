@@ -3839,6 +3839,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Rebreather a circuito chiuso con ppO2 costante';
 
   @override
+  String get diveLog_diveMode_gaugeDescription =>
+      'Solo profondità e tempo; nessun tracciamento di gas o decompressione';
+
+  @override
   String get diveLog_diveMode_ocDescription =>
       'Scuba standard a circuito aperto con bombole';
 
@@ -8287,6 +8291,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get enum_diveMode_ccr => 'Rebreather a circuito chiuso';
+
+  @override
+  String get enum_diveMode_gauge => 'Gauge';
 
   @override
   String get enum_diveMode_oc => 'Circuito aperto';

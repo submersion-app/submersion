@@ -789,4 +789,36 @@ void main() {
       });
     });
   });
+
+  group('gauge dive mode', () {
+    test(
+      'gauge returns profile-only analysis: no deco/ppO2/tox, keeps ascent',
+      () {
+        final service = ProfileAnalysisService();
+        // 40 m for 30 min then a fast ascent -- on air this would show deco.
+        final depths = <double>[0, 20, 40, 40, 40, 40, 40, 20, 0];
+        final timestamps = <int>[0, 60, 120, 600, 1200, 1800, 1810, 1850, 1900];
+
+        final gauge = service.analyze(
+          diveId: 'g1',
+          depths: depths,
+          timestamps: timestamps,
+          diveMode: DiveMode.gauge,
+        );
+
+        // No decompression / O2 toxicity / gas curves.
+        expect(gauge.ceilingCurve, isEmpty);
+        expect(gauge.ndlCurve, isEmpty);
+        expect(gauge.decoStatuses, isEmpty);
+        expect(gauge.ppO2Curve, isEmpty);
+        expect(gauge.hasCnsData, isFalse);
+        expect(gauge.hasModData, isFalse);
+        expect(gauge.hasDensityData, isFalse);
+        expect(gauge.o2Exposure.cnsEnd, 0.0);
+        // Still surfaces depth/time-derived data for the profile chart.
+        expect(gauge.maxDepth, 40);
+        expect(gauge.ascentRates, isNotEmpty);
+      },
+    );
+  });
 }

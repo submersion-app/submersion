@@ -77,6 +77,8 @@ class DiveModeSelector extends StatelessWidget {
         return Icons.loop; // Closed circuit - loop symbol
       case DiveMode.scr:
         return Icons.sync_alt; // Semi-closed - partial loop
+      case DiveMode.gauge:
+        return Icons.timer_outlined; // Gauge / bottom timer - depth & time only
     }
   }
 
@@ -88,6 +90,8 @@ class DiveModeSelector extends StatelessWidget {
         return context.l10n.diveLog_diveMode_ccrDescription;
       case DiveMode.scr:
         return context.l10n.diveLog_diveMode_scrDescription;
+      case DiveMode.gauge:
+        return context.l10n.diveLog_diveMode_gaugeDescription;
     }
   }
 }

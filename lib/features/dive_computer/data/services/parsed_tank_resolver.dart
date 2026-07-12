@@ -85,8 +85,15 @@ _ResolvedCylinders _resolveCylinders(pigeon.ParsedDive parsed) {
   final gasMixes = parsed.gasMixes;
   final gasIndexToTankIndex = <int, int>{};
 
-  // No tank records: one pressureless cylinder per gas mix.
+  // No tank records: one pressureless cylinder per gas mix. Gauge (bottom-timer)
+  // dives are the exception -- they log depth+time only, so stay tankless rather
+  // than gain a fabricated air/gas cylinder. Real tank records the computer
+  // reports (handled below) are kept even for gauge, so switching a downloaded
+  // gauge dive back to OC is lossless.
   if (parsed.tanks.isEmpty) {
+    if (parsed.diveMode == 'gauge') {
+      return const _ResolvedCylinders([], {});
+    }
     final tanks = <DownloadedTank>[];
     for (var i = 0; i < gasMixes.length; i++) {
       final g = gasMixes[i];

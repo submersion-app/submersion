@@ -3845,6 +3845,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Geschlossener Kreislauf Rebreather mit konstantem ppO₂';
 
   @override
+  String get diveLog_diveMode_gaugeDescription =>
+      'Nur Tiefe und Zeit; keine Gas- oder Dekompressionsverfolgung';
+
+  @override
   String get diveLog_diveMode_ocDescription =>
       'Standard-Gerätetauchen mit offenem Kreislauf und Flaschen';
 
@@ -8293,6 +8297,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get enum_diveMode_ccr => 'Geschlossener Kreislauf Rebreather';
+
+  @override
+  String get enum_diveMode_gauge => 'Gauge';
 
   @override
   String get enum_diveMode_oc => 'Offener Kreislauf';

@@ -3754,6 +3754,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'جهاز إعادة تنفس دائرة مغلقة بضغط ppO₂ ثابت';
 
   @override
+  String get diveLog_diveMode_gaugeDescription =>
+      'العمق والوقت فقط؛ بدون تتبع الغاز أو تخفيف الضغط';
+
+  @override
   String get diveLog_diveMode_ocDescription =>
       'غوص دائرة مفتوحة قياسي مع أسطوانات';
 
@@ -8129,6 +8133,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get enum_diveMode_ccr => 'جهاز إعادة تنفس دائرة مغلقة';
+
+  @override
+  String get enum_diveMode_gauge => 'مقياس';
 
   @override
   String get enum_diveMode_oc => 'دائرة مفتوحة';

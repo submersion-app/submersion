@@ -3855,6 +3855,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Recycleur a circuit ferme avec ppO₂ constante';
 
   @override
+  String get diveLog_diveMode_gaugeDescription =>
+      'Profondeur et temps uniquement; aucun suivi du gaz ni de la décompression';
+
+  @override
   String get diveLog_diveMode_ocDescription =>
       'Plongee en circuit ouvert standard avec blocs';
 
@@ -8318,6 +8322,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get enum_diveMode_ccr => 'Recycleur a circuit ferme';
+
+  @override
+  String get enum_diveMode_gauge => 'Profondimètre';
 
   @override
   String get enum_diveMode_oc => 'Circuit ouvert';

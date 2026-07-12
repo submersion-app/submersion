@@ -122,6 +122,13 @@ enum DiveDetailSectionId {
       dataSources => l10n.diveDetailSection_dataSources_description,
     };
   }
+
+  /// Whether this section is hidden for gauge (bottom-timer) dives, which log
+  /// depth and time only -- no gas, decompression, or O2-toxicity data.
+  bool get hiddenInGaugeMode =>
+      this == DiveDetailSectionId.decoO2 ||
+      this == DiveDetailSectionId.sacSegments ||
+      this == DiveDetailSectionId.tanks;
 }
 
 /// Visibility and ordering configuration for a single dive detail section.

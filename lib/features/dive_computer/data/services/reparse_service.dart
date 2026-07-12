@@ -3,6 +3,7 @@ import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/dive_computer/data/services/libdc_dive_mode.dart';
 import 'package:submersion/features/dive_computer/data/services/parsed_tank_resolver.dart';
 
 /// Service responsible for applying re-parsed dive computer data back to the
@@ -375,7 +376,7 @@ class ReparseService {
         exitTime: Value(exitTimeMs),
         bottomTime: Value(bottomTimeSeconds ?? parsed.durationSeconds),
         waterTemp: Value(parsed.minTemperatureCelsius),
-        diveMode: Value(_mapDiveMode(parsed.diveMode)),
+        diveMode: Value(mapLibdcDiveModeCode(parsed.diveMode)),
         cnsEnd: Value(_extractMaxCns(parsed.samples)),
         otu: const Value.absent(), // OTU is not directly in ParsedDive
         gradientFactorLow: Value(parsed.gfLow),
@@ -745,20 +746,6 @@ class ReparseService {
     if (ascentStartTimestamp <= descentEndTimestamp) return null;
 
     return ascentStartTimestamp - descentEndTimestamp;
-  }
-
-  /// Map dive mode strings from libdivecomputer to the app's enum values.
-  static String _mapDiveMode(String? mode) {
-    switch (mode) {
-      case 'open_circuit':
-        return 'oc';
-      case 'ccr':
-        return 'ccr';
-      case 'scr':
-        return 'scr';
-      default:
-        return 'oc';
-    }
   }
 
   /// Extract maximum CNS percentage from profile samples.

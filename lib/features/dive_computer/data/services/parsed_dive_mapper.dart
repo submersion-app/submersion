@@ -1,4 +1,6 @@
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_computer/data/services/libdc_dive_mode.dart';
 import 'package:submersion/features/dive_computer/data/services/parsed_tank_resolver.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 
@@ -45,6 +47,7 @@ DownloadedDive parsedDiveToDownloaded(pigeon.ParsedDive parsed) {
     gfLow: parsed.gfLow,
     gfHigh: parsed.gfHigh,
     decoConservatism: parsed.decoConservatism,
+    diveMode: DiveMode.fromCode(mapLibdcDiveModeCode(parsed.diveMode)),
     profile: parsed.samples
         .map(
           (s) => ProfileSample(

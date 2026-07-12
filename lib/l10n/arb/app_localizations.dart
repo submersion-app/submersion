@@ -6434,6 +6434,12 @@ abstract class AppLocalizations {
   /// **'Closed circuit rebreather with constant ppO₂'**
   String get diveLog_diveMode_ccrDescription;
 
+  /// No description provided for @diveLog_diveMode_gaugeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth and time only; no gas or decompression tracking'**
+  String get diveLog_diveMode_gaugeDescription;
+
   /// No description provided for @diveLog_diveMode_ocDescription.
   ///
   /// In en, this message translates to:
@@ -14133,6 +14139,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Closed Circuit Rebreather'**
   String get enum_diveMode_ccr;
+
+  /// No description provided for @enum_diveMode_gauge.
+  ///
+  /// In en, this message translates to:
+  /// **'Gauge'**
+  String get enum_diveMode_gauge;
 
   /// No description provided for @enum_diveMode_oc.
   ///
