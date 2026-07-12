@@ -1370,6 +1370,8 @@
   "diveLog_detail_tooltip_addToFavorites": "Zu Favoriten hinzufügen",
   "diveLog_detail_tooltip_edit": "Bearbeiten",
   "diveLog_detail_tooltip_editDive": "Tauchgang bearbeiten",
+  "diveLog_detail_tooltip_previousDive": "Previous dive",
+  "diveLog_detail_tooltip_nextDive": "Next dive",
   "diveLog_detail_tooltip_exportProfileImage": "Profil als Bild exportieren",
   "diveLog_detail_tooltip_removeFromFavorites": "Aus Favoriten entfernen",
   "diveLog_detail_tooltip_viewFullscreen": "Vollbild anzeigen",

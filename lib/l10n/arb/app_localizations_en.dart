@@ -3745,6 +3745,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_detail_tooltip_editDive => 'Edit dive';
 
   @override
+  String get diveLog_detail_tooltip_previousDive => 'Previous dive';
+
+  @override
+  String get diveLog_detail_tooltip_nextDive => 'Next dive';
+
+  @override
   String get diveLog_detail_tooltip_exportProfileImage =>
       'Export profile as image';
 

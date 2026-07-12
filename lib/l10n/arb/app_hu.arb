@@ -1336,6 +1336,8 @@
   "diveLog_detail_tooltip_addToFavorites": "Hozzaadas a kedvencekhez",
   "diveLog_detail_tooltip_edit": "Szerkesztes",
   "diveLog_detail_tooltip_editDive": "Merules szerkesztese",
+  "diveLog_detail_tooltip_previousDive": "Previous dive",
+  "diveLog_detail_tooltip_nextDive": "Next dive",
   "diveLog_detail_tooltip_exportProfileImage": "Profil exportalasa kepkent",
   "diveLog_detail_tooltip_removeFromFavorites": "Eltavolitas a kedvencekbol",
   "diveLog_detail_tooltip_viewFullscreen": "Teljes kepernyo",

@@ -3789,6 +3789,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_detail_tooltip_editDive => 'Duik bewerken';
 
   @override
+  String get diveLog_detail_tooltip_previousDive => 'Previous dive';
+
+  @override
+  String get diveLog_detail_tooltip_nextDive => 'Next dive';
+
+  @override
   String get diveLog_detail_tooltip_exportProfileImage =>
       'Profiel exporteren als afbeelding';
 

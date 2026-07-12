@@ -1370,6 +1370,8 @@
   "diveLog_detail_tooltip_addToFavorites": "إضافة إلى المفضلة",
   "diveLog_detail_tooltip_edit": "تعديل",
   "diveLog_detail_tooltip_editDive": "تعديل الغوصة",
+  "diveLog_detail_tooltip_previousDive": "Previous dive",
+  "diveLog_detail_tooltip_nextDive": "Next dive",
   "diveLog_detail_tooltip_exportProfileImage": "تصدير الملف كصورة",
   "diveLog_detail_tooltip_removeFromFavorites": "إزالة من المفضلة",
   "diveLog_detail_tooltip_viewFullscreen": "عرض بملء الشاشة",

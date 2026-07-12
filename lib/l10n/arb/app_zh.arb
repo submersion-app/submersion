@@ -1480,6 +1480,8 @@
   "diveLog_detail_tooltip_addToFavorites": "添加到收藏",
   "diveLog_detail_tooltip_edit": "编辑",
   "diveLog_detail_tooltip_editDive": "编辑潜水",
+  "diveLog_detail_tooltip_previousDive": "Previous dive",
+  "diveLog_detail_tooltip_nextDive": "Next dive",
   "diveLog_detail_tooltip_exportProfileImage": "导出轮廓为图片",
   "diveLog_detail_tooltip_removeFromFavorites": "从收藏中移除",
   "diveLog_detail_tooltip_viewFullscreen": "查看全屏",

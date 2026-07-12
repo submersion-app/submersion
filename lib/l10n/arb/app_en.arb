@@ -2011,6 +2011,8 @@
   "diveLog_detail_tooltip_addToFavorites": "Add to favorites",
   "diveLog_detail_tooltip_edit": "Edit",
   "diveLog_detail_tooltip_editDive": "Edit dive",
+  "diveLog_detail_tooltip_previousDive": "Previous dive",
+  "diveLog_detail_tooltip_nextDive": "Next dive",
   "diveLog_detail_tooltip_exportProfileImage": "Export profile as image",
   "diveLog_detail_tooltip_removeFromFavorites": "Remove from favorites",
   "diveLog_detail_tooltip_viewFullscreen": "View fullscreen",

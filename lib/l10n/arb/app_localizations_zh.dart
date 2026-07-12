@@ -3623,6 +3623,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_detail_tooltip_editDive => '编辑潜水';
 
   @override
+  String get diveLog_detail_tooltip_previousDive => 'Previous dive';
+
+  @override
+  String get diveLog_detail_tooltip_nextDive => 'Next dive';
+
+  @override
   String get diveLog_detail_tooltip_exportProfileImage => '导出轮廓为图片';
 
   @override

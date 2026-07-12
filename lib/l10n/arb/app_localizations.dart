@@ -6392,6 +6392,18 @@ abstract class AppLocalizations {
   /// **'Edit dive'**
   String get diveLog_detail_tooltip_editDive;
 
+  /// No description provided for @diveLog_detail_tooltip_previousDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous dive'**
+  String get diveLog_detail_tooltip_previousDive;
+
+  /// No description provided for @diveLog_detail_tooltip_nextDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Next dive'**
+  String get diveLog_detail_tooltip_nextDive;
+
   /// No description provided for @diveLog_detail_tooltip_exportProfileImage.
   ///
   /// In en, this message translates to:

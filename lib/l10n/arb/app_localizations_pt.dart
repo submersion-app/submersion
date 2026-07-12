@@ -3815,6 +3815,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_detail_tooltip_editDive => 'Editar mergulho';
 
   @override
+  String get diveLog_detail_tooltip_previousDive => 'Previous dive';
+
+  @override
+  String get diveLog_detail_tooltip_nextDive => 'Next dive';
+
+  @override
   String get diveLog_detail_tooltip_exportProfileImage =>
       'Exportar perfil como imagem';
 

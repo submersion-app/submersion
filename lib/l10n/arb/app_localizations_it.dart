@@ -3814,6 +3814,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_detail_tooltip_editDive => 'Modifica immersione';
 
   @override
+  String get diveLog_detail_tooltip_previousDive => 'Previous dive';
+
+  @override
+  String get diveLog_detail_tooltip_nextDive => 'Next dive';
+
+  @override
   String get diveLog_detail_tooltip_exportProfileImage =>
       'Esporta profilo come immagine';
 

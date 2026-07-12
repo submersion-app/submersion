@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
@@ -117,6 +118,7 @@ class _BuddyDetailContent extends ConsumerWidget {
     final statsAsync = ref.watch(buddyStatsProvider(buddy.id));
 
     final body = SingleChildScrollView(
+      controller: DetailScrollController.maybeOf(context),
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

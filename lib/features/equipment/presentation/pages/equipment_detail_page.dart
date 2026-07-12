@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
 import 'package:submersion/core/constants/enums.dart';
@@ -127,6 +128,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
     final units = UnitFormatter(settings);
 
     final body = SingleChildScrollView(
+      controller: DetailScrollController.maybeOf(context),
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

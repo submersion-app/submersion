@@ -3710,6 +3710,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_detail_tooltip_editDive => 'עריכת צלילה';
 
   @override
+  String get diveLog_detail_tooltip_previousDive => 'Previous dive';
+
+  @override
+  String get diveLog_detail_tooltip_nextDive => 'Next dive';
+
+  @override
   String get diveLog_detail_tooltip_exportProfileImage => 'ייצוא פרופיל כתמונה';
 
   @override

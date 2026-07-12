@@ -1336,6 +1336,8 @@
   "diveLog_detail_tooltip_addToFavorites": "הוספה למועדפים",
   "diveLog_detail_tooltip_edit": "עריכה",
   "diveLog_detail_tooltip_editDive": "עריכת צלילה",
+  "diveLog_detail_tooltip_previousDive": "Previous dive",
+  "diveLog_detail_tooltip_nextDive": "Next dive",
   "diveLog_detail_tooltip_exportProfileImage": "ייצוא פרופיל כתמונה",
   "diveLog_detail_tooltip_removeFromFavorites": "הסרה מהמועדפים",
   "diveLog_detail_tooltip_viewFullscreen": "הצגה במסך מלא",

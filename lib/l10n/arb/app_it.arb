@@ -1336,6 +1336,8 @@
   "diveLog_detail_tooltip_addToFavorites": "Aggiungi ai preferiti",
   "diveLog_detail_tooltip_edit": "Modifica",
   "diveLog_detail_tooltip_editDive": "Modifica immersione",
+  "diveLog_detail_tooltip_previousDive": "Previous dive",
+  "diveLog_detail_tooltip_nextDive": "Next dive",
   "diveLog_detail_tooltip_exportProfileImage": "Esporta profilo come immagine",
   "diveLog_detail_tooltip_removeFromFavorites": "Rimuovi dai preferiti",
   "diveLog_detail_tooltip_viewFullscreen": "Visualizza a schermo intero",
