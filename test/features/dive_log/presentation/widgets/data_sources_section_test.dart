@@ -136,6 +136,58 @@ void main() {
       },
     );
 
+    testWidgets('Compare in 3D button appears and fires for multi-source', (
+      tester,
+    ) async {
+      final primary = _makeSource(id: 'src-1', isPrimary: true);
+      final secondary = _makeSource(
+        id: 'src-2',
+        isPrimary: false,
+        computerModel: 'Suunto D5',
+      );
+      var tapped = false;
+      await tester.pumpWidget(
+        testApp(
+          child: SingleChildScrollView(
+            child: DataSourcesSection(
+              dataSources: [primary, secondary],
+              diveCreatedAt: DateTime(2026, 3, 20, 10, 0),
+              diveId: 'dive-1',
+              units: _units,
+              onCompareIn3d: () => tapped = true,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final button = find.widgetWithText(TextButton, 'Compare in 3D');
+      expect(button, findsOneWidget);
+      await tester.tap(button);
+      await tester.pump();
+      expect(tapped, isTrue);
+    });
+
+    testWidgets('Compare in 3D button is hidden for a single source', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          child: SingleChildScrollView(
+            child: DataSourcesSection(
+              dataSources: [_makeSource()],
+              diveCreatedAt: DateTime(2026, 3, 20, 10, 0),
+              diveId: 'dive-1',
+              units: _units,
+              onCompareIn3d: () {},
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Compare in 3D'), findsNothing);
+    });
+
     testWidgets('uses singular "Data Source" header for single source', (
       tester,
     ) async {

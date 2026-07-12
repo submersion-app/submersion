@@ -28,6 +28,8 @@ import 'package:submersion/features/dive_log/data/services/gas_usage_segments_se
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/data/services/profile_markers_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
+import 'package:submersion/features/dive_3d/presentation/pages/dive_3d_page.dart';
+import 'package:submersion/features/dive_3d/presentation/pages/spatial_site_page.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_mode_label.dart';
@@ -426,6 +428,15 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   readingId: readingId,
                 ),
                 onSplit: (readingId) => _confirmAndSplit(dive, readingId),
+                onCompareIn3d: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => Dive3dPage(
+                      diveId: dive.id,
+                      initialMode: SceneKind.computers,
+                    ),
+                  ),
+                ),
               );
             },
           ),
@@ -615,9 +626,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             ),
             const SizedBox(height: 24),
             // Fixed: Dive Profile Chart
-            if (dive.profile.isNotEmpty) ...[
+            if (dive.profile.isNotEmpty)
               _buildProfileSection(context, ref, dive),
-            ],
             // Configurable sections in user-defined order, with two adjacent
             // card pairs (Details+Conditions, Buddies+Signatures) laid out
             // side by side when the pane is wide enough. Gauge dives hide
@@ -1433,6 +1443,26 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                       visualDensity: VisualDensity.compact,
                       onPressed: () =>
                           _showFullscreenProfile(context, ref, dive),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.view_in_ar),
+                      tooltip: context.l10n.dive3d_previewTitle,
+                      visualDensity: VisualDensity.compact,
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => Dive3dPage(diveId: dive.id),
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.terrain),
+                      tooltip: context.l10n.dive3d_spatial_title,
+                      visualDensity: VisualDensity.compact,
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => SpatialSitePage(diveId: dive.id),
+                        ),
+                      ),
                     ),
                   ],
                 ),

@@ -18774,4 +18774,158 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get tools_weight_waterTerm => 'סוג מים';
+
+  @override
+  String get dive3d_previewTitle => 'תצוגת תלת־ממד';
+
+  @override
+  String get dive3d_previewHint => 'הקש כדי לחקור בתלת־ממד';
+
+  @override
+  String get dive3d_resetView => 'איפוס תצוגה';
+
+  @override
+  String get dive3d_play => 'הפעלה';
+
+  @override
+  String get dive3d_pause => 'השהיה';
+
+  @override
+  String get dive3d_overlays => 'שכבות';
+
+  @override
+  String get dive3d_overlay_strata => 'שכבות טמפרטורה';
+
+  @override
+  String get dive3d_overlay_ceiling => 'תקרת דקומפרסיה';
+
+  @override
+  String get dive3d_overlay_curtain => 'וילון עומק';
+
+  @override
+  String get dive3d_overlay_markers => 'סמנים';
+
+  @override
+  String get dive3d_metric_depth => 'עומק';
+
+  @override
+  String get dive3d_metric_temperature => 'טמפ';
+
+  @override
+  String get dive3d_metric_ascentRate => 'עלייה';
+
+  @override
+  String get dive3d_metric_ppO2 => 'ppO2';
+
+  @override
+  String get dive3d_metric_cns => 'CNS';
+
+  @override
+  String get dive3d_metric_heartRate => 'דופק';
+
+  @override
+  String get dive3d_metric_tankPressure => 'לחץ';
+
+  @override
+  String get dive3d_scene_dive => 'צלילה';
+
+  @override
+  String get dive3d_scene_tissue => 'רקמות';
+
+  @override
+  String get dive3d_tissue_gasCombined => 'משולב';
+
+  @override
+  String get dive3d_tissue_gasN2 => 'N2';
+
+  @override
+  String get dive3d_tissue_gasHe => 'He';
+
+  @override
+  String get dive3d_tissue_colorMValue => '% ערך M';
+
+  @override
+  String get dive3d_tissue_colorAbsolute => 'עומס';
+
+  @override
+  String get dive3d_tissue_controlling => 'מוביל';
+
+  @override
+  String get dive3d_tissue_surfaceInterval => 'מרווח פני השטח';
+
+  @override
+  String get dive3d_career_title => 'היסטוריה תלת־ממד';
+
+  @override
+  String get dive3d_career_colorRecency => 'עדכניות';
+
+  @override
+  String get dive3d_career_colorDepth => 'עומק';
+
+  @override
+  String get dive3d_career_empty => 'אין צלילות עם פרופילים';
+
+  @override
+  String get dive3d_spatial_title => 'נוף ים תלת־ממדי';
+
+  @override
+  String get dive3d_spatial_estimatedPath => 'נתיב משוער (ניווט משוער)';
+
+  @override
+  String get dive3d_spatial_synthesizedSeafloor => 'קרקעית ים מסונתזת';
+
+  @override
+  String get dive3d_spatial_noPath => 'אין מספיק נתונים לשחזור הנתיב';
+
+  @override
+  String get dive3d_tissue_legendHeight => 'גובה וצבע: ٪ מגבול ערך M';
+
+  @override
+  String get dive3d_tissue_legendLimit => 'מישור אדום = גבול דקו';
+
+  @override
+  String get dive3d_tissue_legendAxes =>
+      'שמאל→ימין: זמן · קדימה→אחורה: רקמות מהירות→איטיות';
+
+  @override
+  String get dive3d_tissue_legendDepth => 'עקומה כחולה: העומק שלך';
+
+  @override
+  String get dive3d_tissue_onGassing => 'ספיגה';
+
+  @override
+  String get dive3d_tissue_offGassing => 'שחרור';
+
+  @override
+  String get dive3d_compare_computers_title => 'השוואת מחשבי צלילה';
+
+  @override
+  String get dive3d_compare_dives_title => 'השוואת צלילות';
+
+  @override
+  String get dive3d_scene_computers => 'מחשבי צלילה';
+
+  @override
+  String get dive3d_compare_layout_sideBySide => 'זה לצד זה';
+
+  @override
+  String get dive3d_compare_layout_overlay => 'חופף';
+
+  @override
+  String get dive3d_compare_empty =>
+      'נדרשים לפחות 2 פרופילים עם נתוני עומק להשוואה';
+
+  @override
+  String dive3d_compare_showing(Object shown, Object total) {
+    return 'מוצג $shown מתוך $total';
+  }
+
+  @override
+  String get dive3d_compare_setReference => 'הגדר כעוגן';
+
+  @override
+  String get diveLog_selection_tooltip_compare3d => 'השוואה בתלת-ממד';
+
+  @override
+  String get diveLog_sources_compareIn3d => 'השוואה בתלת-ממד';
 }

@@ -11961,9 +11961,21 @@
   "bodyWeight_heightFeetLabel": "Height (ft)",
   "bodyWeight_heightInchesLabel": "Inches",
   "bodyWeight_weightLabel": "Weight ({unit})",
-  "@bodyWeight_weightLabel": {"placeholders": {"unit": {"type": "String"}}},
+  "@bodyWeight_weightLabel": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_edit_weightFeedback_amount": "By about how much ({unit})",
-  "@diveLog_edit_weightFeedback_amount": {"placeholders": {"unit": {"type": "String"}}},
+  "@diveLog_edit_weightFeedback_amount": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_edit_weightFeedback_correct": "Felt right",
   "diveLog_edit_weightFeedback_label": "How was your weighting?",
   "diveLog_edit_weightFeedback_over": "Overweighted",
@@ -11975,28 +11987,64 @@
   "equipment_edit_buoyancyHint_generic": "Negative if it sinks",
   "equipment_edit_buoyancyHint_tank": "Leave empty - tanks use their own specifications",
   "equipment_edit_buoyancyLabel": "Buoyancy ({unit})",
-  "@equipment_edit_buoyancyLabel": {"placeholders": {"unit": {"type": "String"}}},
+  "@equipment_edit_buoyancyLabel": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_edit_dryWeightLabel": "Dry weight ({unit})",
-  "@equipment_edit_dryWeightLabel": {"placeholders": {"unit": {"type": "String"}}},
+  "@equipment_edit_dryWeightLabel": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
   "planner_gearWeights_accept": "Use as planned weight",
   "planner_gearWeights_addGear": "Add gear",
   "planner_gearWeights_empty": "Add gear to predict your weighting",
   "planner_gearWeights_planned": "Planned: {weight}",
-  "@planner_gearWeights_planned": {"placeholders": {"weight": {"type": "String"}}},
+  "@planner_gearWeights_planned": {
+    "placeholders": {
+      "weight": {
+        "type": "String"
+      }
+    }
+  },
   "planner_gearWeights_predicted": "Predicted: {weight}",
-  "@planner_gearWeights_predicted": {"placeholders": {"weight": {"type": "String"}}},
+  "@planner_gearWeights_predicted": {
+    "placeholders": {
+      "weight": {
+        "type": "String"
+      }
+    }
+  },
   "planner_gearWeights_title": "Gear & Weights",
   "planner_gearWeights_useSet": "Use set",
   "tools_weight_addGear": "Add gear",
   "tools_weight_addTank": "Add tank",
   "tools_weight_basedOnDives": "Based on {count} logged dives",
-  "@tools_weight_basedOnDives": {"placeholders": {"count": {"type": "int"}}},
+  "@tools_weight_basedOnDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "tools_weight_breakdownTitle": "How this was calculated",
   "tools_weight_confidence_high": "High confidence",
   "tools_weight_confidence_low": "Low confidence - estimate",
   "tools_weight_confidence_medium": "Medium confidence",
   "tools_weight_deltaVsPrevious": "{delta} vs previous rig",
-  "@tools_weight_deltaVsPrevious": {"placeholders": {"delta": {"type": "String"}}},
+  "@tools_weight_deltaVsPrevious": {
+    "placeholders": {
+      "delta": {
+        "type": "String"
+      }
+    }
+  },
   "tools_weight_noGear": "Add the gear you plan to dive to personalize the prediction.",
   "tools_weight_personalTerm": "Personal baseline",
   "tools_weight_placementTitle": "Suggested placement",
@@ -12008,5 +12056,114 @@
   "tools_weight_source_userSpec": "from your gear specs",
   "tools_weight_tanks": "Tanks",
   "tools_weight_useSet": "Use set",
-  "tools_weight_waterTerm": "Water type"
+  "tools_weight_waterTerm": "Water type",
+  "dive3d_previewTitle": "3D View",
+  "@dive3d_previewTitle": {},
+  "dive3d_previewHint": "Tap to explore in 3D",
+  "@dive3d_previewHint": {},
+  "dive3d_resetView": "Reset view",
+  "@dive3d_resetView": {},
+  "dive3d_play": "Play",
+  "@dive3d_play": {},
+  "dive3d_pause": "Pause",
+  "@dive3d_pause": {},
+  "dive3d_overlays": "Overlays",
+  "@dive3d_overlays": {},
+  "dive3d_overlay_strata": "Temperature layers",
+  "@dive3d_overlay_strata": {},
+  "dive3d_overlay_ceiling": "Deco ceiling",
+  "@dive3d_overlay_ceiling": {},
+  "dive3d_overlay_curtain": "Depth curtain",
+  "@dive3d_overlay_curtain": {},
+  "dive3d_overlay_markers": "Markers",
+  "@dive3d_overlay_markers": {},
+  "dive3d_metric_depth": "Depth",
+  "@dive3d_metric_depth": {},
+  "dive3d_metric_temperature": "Temp",
+  "@dive3d_metric_temperature": {},
+  "dive3d_metric_ascentRate": "Ascent",
+  "@dive3d_metric_ascentRate": {},
+  "dive3d_metric_ppO2": "ppO2",
+  "@dive3d_metric_ppO2": {},
+  "dive3d_metric_cns": "CNS",
+  "@dive3d_metric_cns": {},
+  "dive3d_metric_heartRate": "HR",
+  "@dive3d_metric_heartRate": {},
+  "dive3d_metric_tankPressure": "Pressure",
+  "@dive3d_metric_tankPressure": {},
+  "dive3d_scene_dive": "Dive",
+  "@dive3d_scene_dive": {},
+  "dive3d_scene_tissue": "Tissues",
+  "@dive3d_scene_tissue": {},
+  "dive3d_tissue_gasCombined": "Combined",
+  "@dive3d_tissue_gasCombined": {},
+  "dive3d_tissue_gasN2": "N2",
+  "@dive3d_tissue_gasN2": {},
+  "dive3d_tissue_gasHe": "He",
+  "@dive3d_tissue_gasHe": {},
+  "dive3d_tissue_colorMValue": "% M-value",
+  "@dive3d_tissue_colorMValue": {},
+  "dive3d_tissue_colorAbsolute": "Loading",
+  "@dive3d_tissue_colorAbsolute": {},
+  "dive3d_tissue_controlling": "Controlling",
+  "@dive3d_tissue_controlling": {},
+  "dive3d_tissue_surfaceInterval": "Surface interval",
+  "@dive3d_tissue_surfaceInterval": {},
+  "dive3d_career_title": "3D History",
+  "@dive3d_career_title": {},
+  "dive3d_career_colorRecency": "Recency",
+  "@dive3d_career_colorRecency": {},
+  "dive3d_career_colorDepth": "Depth",
+  "@dive3d_career_colorDepth": {},
+  "dive3d_career_empty": "No dives with profiles to show",
+  "@dive3d_career_empty": {},
+  "dive3d_spatial_title": "3D Seascape",
+  "@dive3d_spatial_title": {},
+  "dive3d_spatial_estimatedPath": "Estimated path (dead reckoning)",
+  "@dive3d_spatial_estimatedPath": {},
+  "dive3d_spatial_synthesizedSeafloor": "Synthesized seafloor",
+  "@dive3d_spatial_synthesizedSeafloor": {},
+  "dive3d_spatial_noPath": "Not enough data to reconstruct the dive path",
+  "@dive3d_spatial_noPath": {},
+  "dive3d_tissue_legendHeight": "Height & color: % of the M-value limit",
+  "@dive3d_tissue_legendHeight": {},
+  "dive3d_tissue_legendLimit": "Red plane = deco limit",
+  "@dive3d_tissue_legendLimit": {},
+  "dive3d_tissue_legendAxes": "Left→right: time · Front→back: fast→slow tissues",
+  "@dive3d_tissue_legendAxes": {},
+  "dive3d_tissue_legendDepth": "Blue curve: your depth",
+  "@dive3d_tissue_legendDepth": {},
+  "dive3d_tissue_onGassing": "On-gassing",
+  "@dive3d_tissue_onGassing": {},
+  "dive3d_tissue_offGassing": "Off-gassing",
+  "@dive3d_tissue_offGassing": {},
+  "dive3d_compare_computers_title": "Compare computers",
+  "@dive3d_compare_computers_title": {},
+  "dive3d_compare_dives_title": "Compare dives",
+  "@dive3d_compare_dives_title": {},
+  "dive3d_scene_computers": "Computers",
+  "@dive3d_scene_computers": {},
+  "dive3d_compare_layout_sideBySide": "Side by side",
+  "@dive3d_compare_layout_sideBySide": {},
+  "dive3d_compare_layout_overlay": "Overlay",
+  "@dive3d_compare_layout_overlay": {},
+  "dive3d_compare_empty": "Need at least 2 profiles with depth data to compare",
+  "@dive3d_compare_empty": {},
+  "dive3d_compare_showing": "Showing {shown} of {total}",
+  "@dive3d_compare_showing": {
+    "placeholders": {
+      "shown": {},
+      "total": {}
+    }
+  },
+  "dive3d_compare_setReference": "Set as reference",
+  "@dive3d_compare_setReference": {},
+  "diveLog_selection_tooltip_compare3d": "Compare in 3D",
+  "@diveLog_selection_tooltip_compare3d": {},
+  "diveLog_sources_compareIn3d": "Compare in 3D",
+  "@diveLog_sources_compareIn3d": {},
+  "dive3d_play": "Play",
+  "@dive3d_play": {},
+  "dive3d_pause": "Pause",
+  "@dive3d_pause": {}
 }

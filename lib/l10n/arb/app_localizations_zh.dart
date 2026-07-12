@@ -18291,4 +18291,156 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get tools_weight_waterTerm => '水域类型';
+
+  @override
+  String get dive3d_previewTitle => '3D视图';
+
+  @override
+  String get dive3d_previewHint => '点按以进行3D探索';
+
+  @override
+  String get dive3d_resetView => '重置视图';
+
+  @override
+  String get dive3d_play => '播放';
+
+  @override
+  String get dive3d_pause => '暂停';
+
+  @override
+  String get dive3d_overlays => '叠加层';
+
+  @override
+  String get dive3d_overlay_strata => '温度分层';
+
+  @override
+  String get dive3d_overlay_ceiling => '减压天花板';
+
+  @override
+  String get dive3d_overlay_curtain => '深度幕布';
+
+  @override
+  String get dive3d_overlay_markers => '标记';
+
+  @override
+  String get dive3d_metric_depth => '深度';
+
+  @override
+  String get dive3d_metric_temperature => '温度';
+
+  @override
+  String get dive3d_metric_ascentRate => '上升';
+
+  @override
+  String get dive3d_metric_ppO2 => 'ppO2';
+
+  @override
+  String get dive3d_metric_cns => 'CNS';
+
+  @override
+  String get dive3d_metric_heartRate => '心率';
+
+  @override
+  String get dive3d_metric_tankPressure => '压力';
+
+  @override
+  String get dive3d_scene_dive => '潜水';
+
+  @override
+  String get dive3d_scene_tissue => '组织';
+
+  @override
+  String get dive3d_tissue_gasCombined => '合计';
+
+  @override
+  String get dive3d_tissue_gasN2 => '氮';
+
+  @override
+  String get dive3d_tissue_gasHe => '氦';
+
+  @override
+  String get dive3d_tissue_colorMValue => '% M值';
+
+  @override
+  String get dive3d_tissue_colorAbsolute => '负荷';
+
+  @override
+  String get dive3d_tissue_controlling => '主导';
+
+  @override
+  String get dive3d_tissue_surfaceInterval => '水面间隔';
+
+  @override
+  String get dive3d_career_title => '3D历史';
+
+  @override
+  String get dive3d_career_colorRecency => '时间';
+
+  @override
+  String get dive3d_career_colorDepth => '深度';
+
+  @override
+  String get dive3d_career_empty => '没有可显示的剖面潜水';
+
+  @override
+  String get dive3d_spatial_title => '3D海景';
+
+  @override
+  String get dive3d_spatial_estimatedPath => '估算路径（航位推算）';
+
+  @override
+  String get dive3d_spatial_synthesizedSeafloor => '合成海底';
+
+  @override
+  String get dive3d_spatial_noPath => '数据不足，无法重建潜水路径';
+
+  @override
+  String get dive3d_tissue_legendHeight => '高度和颜色：M值上限的百分比';
+
+  @override
+  String get dive3d_tissue_legendLimit => '红色平面 = 减压极限';
+
+  @override
+  String get dive3d_tissue_legendAxes => '左→右：时间 · 前→后：快→慢组织';
+
+  @override
+  String get dive3d_tissue_legendDepth => '蓝色曲线：你的深度';
+
+  @override
+  String get dive3d_tissue_onGassing => '吸收';
+
+  @override
+  String get dive3d_tissue_offGassing => '释放';
+
+  @override
+  String get dive3d_compare_computers_title => '比较潜水电脑';
+
+  @override
+  String get dive3d_compare_dives_title => '比较潜水';
+
+  @override
+  String get dive3d_scene_computers => '潜水电脑';
+
+  @override
+  String get dive3d_compare_layout_sideBySide => '并排';
+
+  @override
+  String get dive3d_compare_layout_overlay => '叠加';
+
+  @override
+  String get dive3d_compare_empty => '至少需要 2 个包含深度数据的剖面才能比较';
+
+  @override
+  String dive3d_compare_showing(Object shown, Object total) {
+    return '显示 $shown / $total';
+  }
+
+  @override
+  String get dive3d_compare_setReference => '设为参考';
+
+  @override
+  String get diveLog_selection_tooltip_compare3d => '3D 比较';
+
+  @override
+  String get diveLog_sources_compareIn3d => '3D 比较';
 }

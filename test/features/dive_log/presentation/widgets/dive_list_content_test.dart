@@ -1206,5 +1206,32 @@ void main() {
         showAppBar: true,
       );
     });
+
+    testWidgets('Compare in 3D action appears only with 2+ selected', (
+      tester,
+    ) async {
+      final overrides = await _buildPhoneOverrides(
+        dives: fourDives(),
+        viewMode: ListViewMode.detailed,
+        highlightedDiveId: null,
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const DiveListContent(showAppBar: true),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // One dive selected -> no Compare action (needs 2+).
+      await tester.longPress(tileFinder('d1'));
+      await tester.pumpAndSettle();
+      expect(find.byIcon(Icons.view_in_ar), findsNothing);
+
+      // Select a second dive -> the Compare in 3D action appears.
+      await tester.tap(tileFinder('d2'));
+      await tester.pumpAndSettle();
+      expect(find.byIcon(Icons.view_in_ar), findsOneWidget);
+    });
   });
 }

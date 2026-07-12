@@ -32249,6 +32249,306 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Water type'**
   String get tools_weight_waterTerm;
+
+  /// No description provided for @dive3d_previewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'3D View'**
+  String get dive3d_previewTitle;
+
+  /// No description provided for @dive3d_previewHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to explore in 3D'**
+  String get dive3d_previewHint;
+
+  /// No description provided for @dive3d_resetView.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset view'**
+  String get dive3d_resetView;
+
+  /// No description provided for @dive3d_play.
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get dive3d_play;
+
+  /// No description provided for @dive3d_pause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get dive3d_pause;
+
+  /// No description provided for @dive3d_overlays.
+  ///
+  /// In en, this message translates to:
+  /// **'Overlays'**
+  String get dive3d_overlays;
+
+  /// No description provided for @dive3d_overlay_strata.
+  ///
+  /// In en, this message translates to:
+  /// **'Temperature layers'**
+  String get dive3d_overlay_strata;
+
+  /// No description provided for @dive3d_overlay_ceiling.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco ceiling'**
+  String get dive3d_overlay_ceiling;
+
+  /// No description provided for @dive3d_overlay_curtain.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth curtain'**
+  String get dive3d_overlay_curtain;
+
+  /// No description provided for @dive3d_overlay_markers.
+  ///
+  /// In en, this message translates to:
+  /// **'Markers'**
+  String get dive3d_overlay_markers;
+
+  /// No description provided for @dive3d_metric_depth.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth'**
+  String get dive3d_metric_depth;
+
+  /// No description provided for @dive3d_metric_temperature.
+  ///
+  /// In en, this message translates to:
+  /// **'Temp'**
+  String get dive3d_metric_temperature;
+
+  /// No description provided for @dive3d_metric_ascentRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Ascent'**
+  String get dive3d_metric_ascentRate;
+
+  /// No description provided for @dive3d_metric_ppO2.
+  ///
+  /// In en, this message translates to:
+  /// **'ppO2'**
+  String get dive3d_metric_ppO2;
+
+  /// No description provided for @dive3d_metric_cns.
+  ///
+  /// In en, this message translates to:
+  /// **'CNS'**
+  String get dive3d_metric_cns;
+
+  /// No description provided for @dive3d_metric_heartRate.
+  ///
+  /// In en, this message translates to:
+  /// **'HR'**
+  String get dive3d_metric_heartRate;
+
+  /// No description provided for @dive3d_metric_tankPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure'**
+  String get dive3d_metric_tankPressure;
+
+  /// No description provided for @dive3d_scene_dive.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive'**
+  String get dive3d_scene_dive;
+
+  /// No description provided for @dive3d_scene_tissue.
+  ///
+  /// In en, this message translates to:
+  /// **'Tissues'**
+  String get dive3d_scene_tissue;
+
+  /// No description provided for @dive3d_tissue_gasCombined.
+  ///
+  /// In en, this message translates to:
+  /// **'Combined'**
+  String get dive3d_tissue_gasCombined;
+
+  /// No description provided for @dive3d_tissue_gasN2.
+  ///
+  /// In en, this message translates to:
+  /// **'N2'**
+  String get dive3d_tissue_gasN2;
+
+  /// No description provided for @dive3d_tissue_gasHe.
+  ///
+  /// In en, this message translates to:
+  /// **'He'**
+  String get dive3d_tissue_gasHe;
+
+  /// No description provided for @dive3d_tissue_colorMValue.
+  ///
+  /// In en, this message translates to:
+  /// **'% M-value'**
+  String get dive3d_tissue_colorMValue;
+
+  /// No description provided for @dive3d_tissue_colorAbsolute.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading'**
+  String get dive3d_tissue_colorAbsolute;
+
+  /// No description provided for @dive3d_tissue_controlling.
+  ///
+  /// In en, this message translates to:
+  /// **'Controlling'**
+  String get dive3d_tissue_controlling;
+
+  /// No description provided for @dive3d_tissue_surfaceInterval.
+  ///
+  /// In en, this message translates to:
+  /// **'Surface interval'**
+  String get dive3d_tissue_surfaceInterval;
+
+  /// No description provided for @dive3d_career_title.
+  ///
+  /// In en, this message translates to:
+  /// **'3D History'**
+  String get dive3d_career_title;
+
+  /// No description provided for @dive3d_career_colorRecency.
+  ///
+  /// In en, this message translates to:
+  /// **'Recency'**
+  String get dive3d_career_colorRecency;
+
+  /// No description provided for @dive3d_career_colorDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth'**
+  String get dive3d_career_colorDepth;
+
+  /// No description provided for @dive3d_career_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No dives with profiles to show'**
+  String get dive3d_career_empty;
+
+  /// No description provided for @dive3d_spatial_title.
+  ///
+  /// In en, this message translates to:
+  /// **'3D Seascape'**
+  String get dive3d_spatial_title;
+
+  /// No description provided for @dive3d_spatial_estimatedPath.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated path (dead reckoning)'**
+  String get dive3d_spatial_estimatedPath;
+
+  /// No description provided for @dive3d_spatial_synthesizedSeafloor.
+  ///
+  /// In en, this message translates to:
+  /// **'Synthesized seafloor'**
+  String get dive3d_spatial_synthesizedSeafloor;
+
+  /// No description provided for @dive3d_spatial_noPath.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough data to reconstruct the dive path'**
+  String get dive3d_spatial_noPath;
+
+  /// No description provided for @dive3d_tissue_legendHeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Height & color: % of the M-value limit'**
+  String get dive3d_tissue_legendHeight;
+
+  /// No description provided for @dive3d_tissue_legendLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Red plane = deco limit'**
+  String get dive3d_tissue_legendLimit;
+
+  /// No description provided for @dive3d_tissue_legendAxes.
+  ///
+  /// In en, this message translates to:
+  /// **'Left→right: time · Front→back: fast→slow tissues'**
+  String get dive3d_tissue_legendAxes;
+
+  /// No description provided for @dive3d_tissue_legendDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Blue curve: your depth'**
+  String get dive3d_tissue_legendDepth;
+
+  /// No description provided for @dive3d_tissue_onGassing.
+  ///
+  /// In en, this message translates to:
+  /// **'On-gassing'**
+  String get dive3d_tissue_onGassing;
+
+  /// No description provided for @dive3d_tissue_offGassing.
+  ///
+  /// In en, this message translates to:
+  /// **'Off-gassing'**
+  String get dive3d_tissue_offGassing;
+
+  /// No description provided for @dive3d_compare_computers_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare computers'**
+  String get dive3d_compare_computers_title;
+
+  /// No description provided for @dive3d_compare_dives_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare dives'**
+  String get dive3d_compare_dives_title;
+
+  /// No description provided for @dive3d_scene_computers.
+  ///
+  /// In en, this message translates to:
+  /// **'Computers'**
+  String get dive3d_scene_computers;
+
+  /// No description provided for @dive3d_compare_layout_sideBySide.
+  ///
+  /// In en, this message translates to:
+  /// **'Side by side'**
+  String get dive3d_compare_layout_sideBySide;
+
+  /// No description provided for @dive3d_compare_layout_overlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Overlay'**
+  String get dive3d_compare_layout_overlay;
+
+  /// No description provided for @dive3d_compare_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Need at least 2 profiles with depth data to compare'**
+  String get dive3d_compare_empty;
+
+  /// No description provided for @dive3d_compare_showing.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing {shown} of {total}'**
+  String dive3d_compare_showing(Object shown, Object total);
+
+  /// No description provided for @dive3d_compare_setReference.
+  ///
+  /// In en, this message translates to:
+  /// **'Set as reference'**
+  String get dive3d_compare_setReference;
+
+  /// No description provided for @diveLog_selection_tooltip_compare3d.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare in 3D'**
+  String get diveLog_selection_tooltip_compare3d;
+
+  /// No description provided for @diveLog_sources_compareIn3d.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare in 3D'**
+  String get diveLog_sources_compareIn3d;
 }
 
 class _AppLocalizationsDelegate

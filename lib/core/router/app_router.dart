@@ -38,6 +38,7 @@ import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.d
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
 import 'package:submersion/features/ocr_import/presentation/pages/ocr_scan_page.dart';
+import 'package:submersion/features/dive_3d/presentation/pages/compare_dives_3d_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/bulk_dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_search_page.dart';
@@ -324,6 +325,22 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                       (state.extra as List<dynamic>?)?.cast<String>() ??
                       const <String>[];
                   return BulkDiveEditPage(diveIds: ids);
+                },
+              ),
+              GoRoute(
+                path: 'compare-3d',
+                name: 'compareDives3d',
+                redirect: (context, state) {
+                  final ids = (state.extra as List<dynamic>?)?.cast<String>();
+                  // Needs at least two dives; otherwise there is nothing to
+                  // compare, so bounce back to the dive list.
+                  return (ids == null || ids.length < 2) ? '/dives' : null;
+                },
+                builder: (context, state) {
+                  final ids =
+                      (state.extra as List<dynamic>?)?.cast<String>() ??
+                      const <String>[];
+                  return CompareDives3dPage(diveIds: ids);
                 },
               ),
               GoRoute(

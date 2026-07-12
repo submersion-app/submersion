@@ -10,6 +10,8 @@ import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_3d/application/career_providers.dart';
+import 'package:submersion/features/dive_3d/presentation/pages/career_terrain_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -233,6 +235,18 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
       appBar: AppBar(
         title: Text(site.name),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.view_in_ar),
+            tooltip: context.l10n.dive3d_career_title,
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => CareerTerrainPage(
+                  query: careerSiteQuery(siteId),
+                  title: site.name,
+                ),
+              ),
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.edit),
             tooltip: context.l10n.diveSites_detail_editTooltip,

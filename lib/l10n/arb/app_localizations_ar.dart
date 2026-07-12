@@ -18909,4 +18909,158 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get tools_weight_waterTerm => 'نوع الماء';
+
+  @override
+  String get dive3d_previewTitle => 'عرض ثلاثي الأبعاد';
+
+  @override
+  String get dive3d_previewHint => 'انقر للاستكشاف بشكل ثلاثي الأبعاد';
+
+  @override
+  String get dive3d_resetView => 'إعادة تعيين العرض';
+
+  @override
+  String get dive3d_play => 'تشغيل';
+
+  @override
+  String get dive3d_pause => 'إيقاف مؤقت';
+
+  @override
+  String get dive3d_overlays => 'الطبقات';
+
+  @override
+  String get dive3d_overlay_strata => 'طبقات الحرارة';
+
+  @override
+  String get dive3d_overlay_ceiling => 'سقف تخفيف الضغط';
+
+  @override
+  String get dive3d_overlay_curtain => 'ستارة العمق';
+
+  @override
+  String get dive3d_overlay_markers => 'علامات';
+
+  @override
+  String get dive3d_metric_depth => 'العمق';
+
+  @override
+  String get dive3d_metric_temperature => 'الحرارة';
+
+  @override
+  String get dive3d_metric_ascentRate => 'الصعود';
+
+  @override
+  String get dive3d_metric_ppO2 => 'ppO2';
+
+  @override
+  String get dive3d_metric_cns => 'CNS';
+
+  @override
+  String get dive3d_metric_heartRate => 'معدل النبض';
+
+  @override
+  String get dive3d_metric_tankPressure => 'الضغط';
+
+  @override
+  String get dive3d_scene_dive => 'الغوص';
+
+  @override
+  String get dive3d_scene_tissue => 'الأنسجة';
+
+  @override
+  String get dive3d_tissue_gasCombined => 'مجمّع';
+
+  @override
+  String get dive3d_tissue_gasN2 => 'N2';
+
+  @override
+  String get dive3d_tissue_gasHe => 'He';
+
+  @override
+  String get dive3d_tissue_colorMValue => '% قيمة M';
+
+  @override
+  String get dive3d_tissue_colorAbsolute => 'التحميل';
+
+  @override
+  String get dive3d_tissue_controlling => 'المتحكم';
+
+  @override
+  String get dive3d_tissue_surfaceInterval => 'فترة السطح';
+
+  @override
+  String get dive3d_career_title => 'السجل ثلاثي الأبعاد';
+
+  @override
+  String get dive3d_career_colorRecency => 'الحداثة';
+
+  @override
+  String get dive3d_career_colorDepth => 'العمق';
+
+  @override
+  String get dive3d_career_empty => 'لا توجد غطسات بمخططات';
+
+  @override
+  String get dive3d_spatial_title => 'مشهد بحري ثلاثي الأبعاد';
+
+  @override
+  String get dive3d_spatial_estimatedPath => 'مسار مقدّر (الحساب الاستدلالي)';
+
+  @override
+  String get dive3d_spatial_synthesizedSeafloor => 'قاع بحر مُركّب';
+
+  @override
+  String get dive3d_spatial_noPath => 'بيانات غير كافية لإعادة بناء المسار';
+
+  @override
+  String get dive3d_tissue_legendHeight => 'الارتفاع واللون: ٪ من حد قيمة M';
+
+  @override
+  String get dive3d_tissue_legendLimit => 'المستوى الأحمر = حد تخفيف الضغط';
+
+  @override
+  String get dive3d_tissue_legendAxes =>
+      'يسار→يمين: الوقت · أمام→خلف: أنسجة سريعة→بطيئة';
+
+  @override
+  String get dive3d_tissue_legendDepth => 'المنحنى الأزرق: عمقك';
+
+  @override
+  String get dive3d_tissue_onGassing => 'امتصاص';
+
+  @override
+  String get dive3d_tissue_offGassing => 'إطلاق';
+
+  @override
+  String get dive3d_compare_computers_title => 'مقارنة أجهزة الغوص';
+
+  @override
+  String get dive3d_compare_dives_title => 'مقارنة الغطسات';
+
+  @override
+  String get dive3d_scene_computers => 'أجهزة الغوص';
+
+  @override
+  String get dive3d_compare_layout_sideBySide => 'جنبًا إلى جنب';
+
+  @override
+  String get dive3d_compare_layout_overlay => 'متراكب';
+
+  @override
+  String get dive3d_compare_empty =>
+      'يلزم وجود ملفَّي غوص على الأقل يحتويان على بيانات العمق للمقارنة';
+
+  @override
+  String dive3d_compare_showing(Object shown, Object total) {
+    return 'عرض $shown من $total';
+  }
+
+  @override
+  String get dive3d_compare_setReference => 'تعيين كمرجع';
+
+  @override
+  String get diveLog_selection_tooltip_compare3d => 'مقارنة ثلاثية الأبعاد';
+
+  @override
+  String get diveLog_sources_compareIn3d => 'مقارنة ثلاثية الأبعاد';
 }

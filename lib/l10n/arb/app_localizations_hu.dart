@@ -19214,4 +19214,160 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get tools_weight_waterTerm => 'Víztípus';
+
+  @override
+  String get dive3d_previewTitle => '3D nézet';
+
+  @override
+  String get dive3d_previewHint => 'Koppints a 3D felfedezéshez';
+
+  @override
+  String get dive3d_resetView => 'Nézet visszaállítása';
+
+  @override
+  String get dive3d_play => 'Lejátszás';
+
+  @override
+  String get dive3d_pause => 'Szünet';
+
+  @override
+  String get dive3d_overlays => 'Rétegek';
+
+  @override
+  String get dive3d_overlay_strata => 'Hőmérsékleti rétegek';
+
+  @override
+  String get dive3d_overlay_ceiling => 'Dekó plafon';
+
+  @override
+  String get dive3d_overlay_curtain => 'Mélységi függöny';
+
+  @override
+  String get dive3d_overlay_markers => 'Jelölők';
+
+  @override
+  String get dive3d_metric_depth => 'Mélység';
+
+  @override
+  String get dive3d_metric_temperature => 'Hőm';
+
+  @override
+  String get dive3d_metric_ascentRate => 'Emelkedés';
+
+  @override
+  String get dive3d_metric_ppO2 => 'ppO2';
+
+  @override
+  String get dive3d_metric_cns => 'CNS';
+
+  @override
+  String get dive3d_metric_heartRate => 'Pulzus';
+
+  @override
+  String get dive3d_metric_tankPressure => 'Nyomás';
+
+  @override
+  String get dive3d_scene_dive => 'Merülés';
+
+  @override
+  String get dive3d_scene_tissue => 'Szövetek';
+
+  @override
+  String get dive3d_tissue_gasCombined => 'Együtt';
+
+  @override
+  String get dive3d_tissue_gasN2 => 'N2';
+
+  @override
+  String get dive3d_tissue_gasHe => 'He';
+
+  @override
+  String get dive3d_tissue_colorMValue => '% M-érték';
+
+  @override
+  String get dive3d_tissue_colorAbsolute => 'Telítettség';
+
+  @override
+  String get dive3d_tissue_controlling => 'Vezérlő';
+
+  @override
+  String get dive3d_tissue_surfaceInterval => 'Felszíni szünet';
+
+  @override
+  String get dive3d_career_title => '3D előzmények';
+
+  @override
+  String get dive3d_career_colorRecency => 'Frissesség';
+
+  @override
+  String get dive3d_career_colorDepth => 'Mélység';
+
+  @override
+  String get dive3d_career_empty => 'Nincs profillal rendelkező merülés';
+
+  @override
+  String get dive3d_spatial_title => '3D tengeri táj';
+
+  @override
+  String get dive3d_spatial_estimatedPath => 'Becsült útvonal (holtszámítás)';
+
+  @override
+  String get dive3d_spatial_synthesizedSeafloor => 'Szintetizált tengerfenék';
+
+  @override
+  String get dive3d_spatial_noPath =>
+      'Nincs elég adat az útvonal rekonstruálásához';
+
+  @override
+  String get dive3d_tissue_legendHeight =>
+      'Magasság és szín: az M-érték határának %-a';
+
+  @override
+  String get dive3d_tissue_legendLimit => 'Piros sík = dekó határ';
+
+  @override
+  String get dive3d_tissue_legendAxes =>
+      'Balra→jobbra: idő · Elöl→hátul: gyors→lassú szövetek';
+
+  @override
+  String get dive3d_tissue_legendDepth => 'Kék görbe: a mélységed';
+
+  @override
+  String get dive3d_tissue_onGassing => 'Feltöltődés';
+
+  @override
+  String get dive3d_tissue_offGassing => 'Leürülés';
+
+  @override
+  String get dive3d_compare_computers_title => 'Számítógépek összehasonlítása';
+
+  @override
+  String get dive3d_compare_dives_title => 'Merülések összehasonlítása';
+
+  @override
+  String get dive3d_scene_computers => 'Számítógépek';
+
+  @override
+  String get dive3d_compare_layout_sideBySide => 'Egymás mellett';
+
+  @override
+  String get dive3d_compare_layout_overlay => 'Egymásra helyezve';
+
+  @override
+  String get dive3d_compare_empty =>
+      'Az összehasonlításhoz legalább 2, mélységadatokkal rendelkező profil szükséges';
+
+  @override
+  String dive3d_compare_showing(Object shown, Object total) {
+    return 'Megjelenítve: $shown / $total';
+  }
+
+  @override
+  String get dive3d_compare_setReference => 'Beállítás referenciaként';
+
+  @override
+  String get diveLog_selection_tooltip_compare3d => 'Összehasonlítás 3D-ben';
+
+  @override
+  String get diveLog_sources_compareIn3d => 'Összehasonlítás 3D-ben';
 }

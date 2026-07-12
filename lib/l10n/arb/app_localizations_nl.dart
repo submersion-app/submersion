@@ -19114,4 +19114,160 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get tools_weight_waterTerm => 'Watertype';
+
+  @override
+  String get dive3d_previewTitle => '3D-weergave';
+
+  @override
+  String get dive3d_previewHint => 'Tik om in 3D te verkennen';
+
+  @override
+  String get dive3d_resetView => 'Weergave herstellen';
+
+  @override
+  String get dive3d_play => 'Afspelen';
+
+  @override
+  String get dive3d_pause => 'Pauzeren';
+
+  @override
+  String get dive3d_overlays => 'Overlays';
+
+  @override
+  String get dive3d_overlay_strata => 'Temperatuurlagen';
+
+  @override
+  String get dive3d_overlay_ceiling => 'Decoplafond';
+
+  @override
+  String get dive3d_overlay_curtain => 'Dieptegordijn';
+
+  @override
+  String get dive3d_overlay_markers => 'Markeringen';
+
+  @override
+  String get dive3d_metric_depth => 'Diepte';
+
+  @override
+  String get dive3d_metric_temperature => 'Temp';
+
+  @override
+  String get dive3d_metric_ascentRate => 'Opstijging';
+
+  @override
+  String get dive3d_metric_ppO2 => 'ppO2';
+
+  @override
+  String get dive3d_metric_cns => 'CZS';
+
+  @override
+  String get dive3d_metric_heartRate => 'HS';
+
+  @override
+  String get dive3d_metric_tankPressure => 'Druk';
+
+  @override
+  String get dive3d_scene_dive => 'Duik';
+
+  @override
+  String get dive3d_scene_tissue => 'Weefsels';
+
+  @override
+  String get dive3d_tissue_gasCombined => 'Gecombineerd';
+
+  @override
+  String get dive3d_tissue_gasN2 => 'N2';
+
+  @override
+  String get dive3d_tissue_gasHe => 'He';
+
+  @override
+  String get dive3d_tissue_colorMValue => '% M-waarde';
+
+  @override
+  String get dive3d_tissue_colorAbsolute => 'Belasting';
+
+  @override
+  String get dive3d_tissue_controlling => 'Leidend';
+
+  @override
+  String get dive3d_tissue_surfaceInterval => 'Oppervlakte-interval';
+
+  @override
+  String get dive3d_career_title => '3D-geschiedenis';
+
+  @override
+  String get dive3d_career_colorRecency => 'Recentheid';
+
+  @override
+  String get dive3d_career_colorDepth => 'Diepte';
+
+  @override
+  String get dive3d_career_empty => 'Geen duiken met profielen';
+
+  @override
+  String get dive3d_spatial_title => '3D-zeegezicht';
+
+  @override
+  String get dive3d_spatial_estimatedPath => 'Geschat pad (gegist bestek)';
+
+  @override
+  String get dive3d_spatial_synthesizedSeafloor => 'Gesynthetiseerde zeebodem';
+
+  @override
+  String get dive3d_spatial_noPath =>
+      'Onvoldoende gegevens om het pad te reconstrueren';
+
+  @override
+  String get dive3d_tissue_legendHeight =>
+      'Hoogte & kleur: % van de M-waardelimiet';
+
+  @override
+  String get dive3d_tissue_legendLimit => 'Rood vlak = decolimiet';
+
+  @override
+  String get dive3d_tissue_legendAxes =>
+      'Links→rechts: tijd · Voor→achter: snelle→trage weefsels';
+
+  @override
+  String get dive3d_tissue_legendDepth => 'Blauwe curve: je diepte';
+
+  @override
+  String get dive3d_tissue_onGassing => 'Opzadeling';
+
+  @override
+  String get dive3d_tissue_offGassing => 'Ontzadeling';
+
+  @override
+  String get dive3d_compare_computers_title => 'Computers vergelijken';
+
+  @override
+  String get dive3d_compare_dives_title => 'Duiken vergelijken';
+
+  @override
+  String get dive3d_scene_computers => 'Computers';
+
+  @override
+  String get dive3d_compare_layout_sideBySide => 'Naast elkaar';
+
+  @override
+  String get dive3d_compare_layout_overlay => 'Over elkaar';
+
+  @override
+  String get dive3d_compare_empty =>
+      'Minstens 2 profielen met dieptegegevens nodig om te vergelijken';
+
+  @override
+  String dive3d_compare_showing(Object shown, Object total) {
+    return '$shown van $total weergegeven';
+  }
+
+  @override
+  String get dive3d_compare_setReference => 'Als referentie instellen';
+
+  @override
+  String get diveLog_selection_tooltip_compare3d => 'Vergelijken in 3D';
+
+  @override
+  String get diveLog_sources_compareIn3d => 'Vergelijken in 3D';
 }

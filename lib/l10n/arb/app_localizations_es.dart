@@ -19274,4 +19274,161 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get tools_weight_waterTerm => 'Tipo de agua';
+
+  @override
+  String get dive3d_previewTitle => 'Vista 3D';
+
+  @override
+  String get dive3d_previewHint => 'Toca para explorar en 3D';
+
+  @override
+  String get dive3d_resetView => 'Restablecer vista';
+
+  @override
+  String get dive3d_play => 'Reproducir';
+
+  @override
+  String get dive3d_pause => 'Pausar';
+
+  @override
+  String get dive3d_overlays => 'Superposiciones';
+
+  @override
+  String get dive3d_overlay_strata => 'Capas de temperatura';
+
+  @override
+  String get dive3d_overlay_ceiling => 'Techo de deco';
+
+  @override
+  String get dive3d_overlay_curtain => 'Cortina de profundidad';
+
+  @override
+  String get dive3d_overlay_markers => 'Marcadores';
+
+  @override
+  String get dive3d_metric_depth => 'Profundidad';
+
+  @override
+  String get dive3d_metric_temperature => 'Temp';
+
+  @override
+  String get dive3d_metric_ascentRate => 'Ascenso';
+
+  @override
+  String get dive3d_metric_ppO2 => 'ppO2';
+
+  @override
+  String get dive3d_metric_cns => 'SNC';
+
+  @override
+  String get dive3d_metric_heartRate => 'FC';
+
+  @override
+  String get dive3d_metric_tankPressure => 'Presión';
+
+  @override
+  String get dive3d_scene_dive => 'Inmersión';
+
+  @override
+  String get dive3d_scene_tissue => 'Tejidos';
+
+  @override
+  String get dive3d_tissue_gasCombined => 'Combinado';
+
+  @override
+  String get dive3d_tissue_gasN2 => 'N2';
+
+  @override
+  String get dive3d_tissue_gasHe => 'He';
+
+  @override
+  String get dive3d_tissue_colorMValue => '% valor M';
+
+  @override
+  String get dive3d_tissue_colorAbsolute => 'Carga';
+
+  @override
+  String get dive3d_tissue_controlling => 'Controlador';
+
+  @override
+  String get dive3d_tissue_surfaceInterval => 'Intervalo de superficie';
+
+  @override
+  String get dive3d_career_title => 'Historial 3D';
+
+  @override
+  String get dive3d_career_colorRecency => 'Recencia';
+
+  @override
+  String get dive3d_career_colorDepth => 'Profundidad';
+
+  @override
+  String get dive3d_career_empty => 'No hay inmersiones con perfiles';
+
+  @override
+  String get dive3d_spatial_title => 'Paisaje marino 3D';
+
+  @override
+  String get dive3d_spatial_estimatedPath =>
+      'Ruta estimada (navegación a estima)';
+
+  @override
+  String get dive3d_spatial_synthesizedSeafloor => 'Fondo marino sintetizado';
+
+  @override
+  String get dive3d_spatial_noPath =>
+      'Datos insuficientes para reconstruir la ruta';
+
+  @override
+  String get dive3d_tissue_legendHeight =>
+      'Altura y color: % del límite de valor M';
+
+  @override
+  String get dive3d_tissue_legendLimit => 'Plano rojo = límite de deco';
+
+  @override
+  String get dive3d_tissue_legendAxes =>
+      'Izq→der: tiempo · Frente→atrás: tejidos rápidos→lentos';
+
+  @override
+  String get dive3d_tissue_legendDepth => 'Curva azul: tu profundidad';
+
+  @override
+  String get dive3d_tissue_onGassing => 'Absorción';
+
+  @override
+  String get dive3d_tissue_offGassing => 'Liberación';
+
+  @override
+  String get dive3d_compare_computers_title => 'Comparar ordenadores';
+
+  @override
+  String get dive3d_compare_dives_title => 'Comparar inmersiones';
+
+  @override
+  String get dive3d_scene_computers => 'Ordenadores';
+
+  @override
+  String get dive3d_compare_layout_sideBySide => 'Lado a lado';
+
+  @override
+  String get dive3d_compare_layout_overlay => 'Superponer';
+
+  @override
+  String get dive3d_compare_empty =>
+      'Se necesitan al menos 2 perfiles con datos de profundidad para comparar';
+
+  @override
+  String dive3d_compare_showing(Object shown, Object total) {
+    return 'Mostrando $shown de $total';
+  }
+
+  @override
+  String get dive3d_compare_setReference => 'Establecer como referencia';
+
+  @override
+  String get diveLog_selection_tooltip_compare3d => 'Comparar en 3D';
+
+  @override
+  String get diveLog_sources_compareIn3d => 'Comparar en 3D';
 }
