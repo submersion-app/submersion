@@ -278,7 +278,9 @@ class SyncRepository {
     );
   }
 
-  /// Set the cloud provider
+  /// Set the cloud provider. Clearing it (null) also clears the sync
+  /// account selection; setting a bare type leaves any account id in place
+  /// (the account-aware writer is [setSyncAccount]).
   Future<void> setCloudProvider(CloudProviderType? provider) async {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
@@ -288,6 +290,9 @@ class SyncRepository {
       )..where((t) => t.id.equals(_globalMetadataId))).write(
         SyncMetadataCompanion(
           syncProvider: Value(provider?.name),
+          syncAccountId: provider == null
+              ? const Value(null)
+              : const Value.absent(),
           updatedAt: Value(now),
         ),
       );
@@ -301,6 +306,31 @@ class SyncRepository {
       );
       rethrow;
     }
+  }
+
+  /// Selects the connected account driving sync. Writes the provider name
+  /// too so pre-account readers (and a rollback build) keep working.
+  Future<void> setSyncAccount({
+    required String accountId,
+    required CloudProviderType providerType,
+  }) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await (_db.update(
+      _db.syncMetadata,
+    )..where((t) => t.id.equals(_globalMetadataId))).write(
+      SyncMetadataCompanion(
+        syncProvider: Value(providerType.name),
+        syncAccountId: Value(accountId),
+        updatedAt: Value(now),
+      ),
+    );
+  }
+
+  /// The connected account driving sync, or null pre-account-migration or
+  /// when no provider is selected.
+  Future<String?> getSyncAccountId() async {
+    final metadata = await getOrCreateMetadata();
+    return metadata.syncAccountId;
   }
 
   /// Get the current cloud provider
