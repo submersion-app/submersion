@@ -5461,5 +5461,9 @@
   "tools_weight_source_userSpec": "uit je uitrustingsspecificaties",
   "tools_weight_tanks": "Flessen",
   "tools_weight_useSet": "Set gebruiken",
-  "tools_weight_waterTerm": "Watertype"
+  "tools_weight_waterTerm": "Watertype",
+  "settings_setup_pendingTitle": "Voltooi het instellen van dit apparaat",
+  "settings_setup_mediaStoreAttach": "Mediaopslag koppelen ({hint})",
+  "settings_setup_accountSignIn": "Aanmelden bij {label}",
+  "settings_setup_dismiss": "Negeren"
 }

@@ -5461,5 +5461,9 @@
   "tools_weight_source_userSpec": "d'après les spécifications de votre équipement",
   "tools_weight_tanks": "Blocs",
   "tools_weight_useSet": "Utiliser un kit",
-  "tools_weight_waterTerm": "Type d'eau"
+  "tools_weight_waterTerm": "Type d'eau",
+  "settings_setup_pendingTitle": "Terminez la configuration de cet appareil",
+  "settings_setup_mediaStoreAttach": "Connecter le stockage multimédia ({hint})",
+  "settings_setup_accountSignIn": "Se connecter à {label}",
+  "settings_setup_dismiss": "Ignorer"
 }

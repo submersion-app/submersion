@@ -5461,5 +5461,9 @@
   "tools_weight_source_userSpec": "来自您的装备规格",
   "tools_weight_tanks": "气瓶",
   "tools_weight_useSet": "使用套装",
-  "tools_weight_waterTerm": "水域类型"
+  "tools_weight_waterTerm": "水域类型",
+  "settings_setup_pendingTitle": "完成此设备的设置",
+  "settings_setup_mediaStoreAttach": "连接媒体存储（{hint}）",
+  "settings_setup_accountSignIn": "登录 {label}",
+  "settings_setup_dismiss": "忽略"
 }

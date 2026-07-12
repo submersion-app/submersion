@@ -26,6 +26,7 @@ import 'package:submersion/features/settings/presentation/providers/storage_prov
 import 'package:submersion/features/settings/presentation/pages/diver_profile_hub_page.dart';
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
+import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_list_content.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_summary_widget.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
@@ -174,14 +175,21 @@ class SettingsMobileContent extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.settings_appBar_title)),
-      body: ListView.separated(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        itemCount: sections.length,
-        separatorBuilder: (context, index) => const Divider(height: 1),
-        itemBuilder: (context, index) {
-          final section = sections[index];
-          return _MobileSettingsTile(section: section);
-        },
+      body: Column(
+        children: [
+          const PendingSetupCard(),
+          Expanded(
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              itemCount: sections.length,
+              separatorBuilder: (context, index) => const Divider(height: 1),
+              itemBuilder: (context, index) {
+                final section = sections[index];
+                return _MobileSettingsTile(section: section);
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -18279,4 +18279,20 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get tools_weight_waterTerm => '水域类型';
+
+  @override
+  String get settings_setup_pendingTitle => '完成此设备的设置';
+
+  @override
+  String settings_setup_mediaStoreAttach(String hint) {
+    return '连接媒体存储（$hint）';
+  }
+
+  @override
+  String settings_setup_accountSignIn(String label) {
+    return '登录 $label';
+  }
+
+  @override
+  String get settings_setup_dismiss => '忽略';
 }

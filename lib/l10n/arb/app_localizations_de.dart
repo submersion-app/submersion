@@ -19225,4 +19225,21 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get tools_weight_waterTerm => 'Wasserart';
+
+  @override
+  String get settings_setup_pendingTitle =>
+      'Einrichtung dieses Geräts abschließen';
+
+  @override
+  String settings_setup_mediaStoreAttach(String hint) {
+    return 'Medienspeicher verbinden ($hint)';
+  }
+
+  @override
+  String settings_setup_accountSignIn(String label) {
+    return 'Bei $label anmelden';
+  }
+
+  @override
+  String get settings_setup_dismiss => 'Ausblenden';
 }

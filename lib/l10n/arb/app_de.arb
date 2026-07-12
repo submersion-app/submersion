@@ -5461,5 +5461,9 @@
   "tools_weight_source_userSpec": "aus deinen Ausrüstungsdaten",
   "tools_weight_tanks": "Flaschen",
   "tools_weight_useSet": "Set verwenden",
-  "tools_weight_waterTerm": "Wasserart"
+  "tools_weight_waterTerm": "Wasserart",
+  "settings_setup_pendingTitle": "Einrichtung dieses Geräts abschließen",
+  "settings_setup_mediaStoreAttach": "Medienspeicher verbinden ({hint})",
+  "settings_setup_accountSignIn": "Bei {label} anmelden",
+  "settings_setup_dismiss": "Ausblenden"
 }

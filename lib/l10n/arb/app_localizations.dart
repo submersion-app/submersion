@@ -32225,6 +32225,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Water type'**
   String get tools_weight_waterTerm;
+
+  /// No description provided for @settings_setup_pendingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish setting up this device'**
+  String get settings_setup_pendingTitle;
+
+  /// No description provided for @settings_setup_mediaStoreAttach.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect media storage ({hint})'**
+  String settings_setup_mediaStoreAttach(String hint);
+
+  /// No description provided for @settings_setup_accountSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to {label}'**
+  String settings_setup_accountSignIn(String label);
+
+  /// No description provided for @settings_setup_dismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get settings_setup_dismiss;
 }
 
 class _AppLocalizationsDelegate

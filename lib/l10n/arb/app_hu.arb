@@ -5461,5 +5461,9 @@
   "tools_weight_source_userSpec": "a felszerelésed adataiból",
   "tools_weight_tanks": "Palackok",
   "tools_weight_useSet": "Készlet használata",
-  "tools_weight_waterTerm": "Víztípus"
+  "tools_weight_waterTerm": "Víztípus",
+  "settings_setup_pendingTitle": "Fejezze be az eszköz beállítását",
+  "settings_setup_mediaStoreAttach": "Médiatároló csatlakoztatása ({hint})",
+  "settings_setup_accountSignIn": "Bejelentkezés: {label}",
+  "settings_setup_dismiss": "Elvetés"
 }

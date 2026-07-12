@@ -5461,5 +5461,9 @@
   "tools_weight_source_userSpec": "من مواصفات معداتك",
   "tools_weight_tanks": "الأسطوانات",
   "tools_weight_useSet": "استخدام مجموعة",
-  "tools_weight_waterTerm": "نوع الماء"
+  "tools_weight_waterTerm": "نوع الماء",
+  "settings_setup_pendingTitle": "أكمل إعداد هذا الجهاز",
+  "settings_setup_mediaStoreAttach": "الاتصال بتخزين الوسائط ({hint})",
+  "settings_setup_accountSignIn": "تسجيل الدخول إلى {label}",
+  "settings_setup_dismiss": "تجاهل"
 }

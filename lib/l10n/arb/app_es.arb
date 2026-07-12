@@ -5461,5 +5461,9 @@
   "tools_weight_source_userSpec": "de las especificaciones de tu equipo",
   "tools_weight_tanks": "Tanques",
   "tools_weight_useSet": "Usar conjunto",
-  "tools_weight_waterTerm": "Tipo de agua"
+  "tools_weight_waterTerm": "Tipo de agua",
+  "settings_setup_pendingTitle": "Termina de configurar este dispositivo",
+  "settings_setup_mediaStoreAttach": "Conectar almacenamiento de medios ({hint})",
+  "settings_setup_accountSignIn": "Iniciar sesión en {label}",
+  "settings_setup_dismiss": "Descartar"
 }

@@ -11957,9 +11957,21 @@
   "bodyWeight_heightFeetLabel": "Height (ft)",
   "bodyWeight_heightInchesLabel": "Inches",
   "bodyWeight_weightLabel": "Weight ({unit})",
-  "@bodyWeight_weightLabel": {"placeholders": {"unit": {"type": "String"}}},
+  "@bodyWeight_weightLabel": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_edit_weightFeedback_amount": "By about how much ({unit})",
-  "@diveLog_edit_weightFeedback_amount": {"placeholders": {"unit": {"type": "String"}}},
+  "@diveLog_edit_weightFeedback_amount": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_edit_weightFeedback_correct": "Felt right",
   "diveLog_edit_weightFeedback_label": "How was your weighting?",
   "diveLog_edit_weightFeedback_over": "Overweighted",
@@ -11971,28 +11983,64 @@
   "equipment_edit_buoyancyHint_generic": "Negative if it sinks",
   "equipment_edit_buoyancyHint_tank": "Leave empty - tanks use their own specifications",
   "equipment_edit_buoyancyLabel": "Buoyancy ({unit})",
-  "@equipment_edit_buoyancyLabel": {"placeholders": {"unit": {"type": "String"}}},
+  "@equipment_edit_buoyancyLabel": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_edit_dryWeightLabel": "Dry weight ({unit})",
-  "@equipment_edit_dryWeightLabel": {"placeholders": {"unit": {"type": "String"}}},
+  "@equipment_edit_dryWeightLabel": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
   "planner_gearWeights_accept": "Use as planned weight",
   "planner_gearWeights_addGear": "Add gear",
   "planner_gearWeights_empty": "Add gear to predict your weighting",
   "planner_gearWeights_planned": "Planned: {weight}",
-  "@planner_gearWeights_planned": {"placeholders": {"weight": {"type": "String"}}},
+  "@planner_gearWeights_planned": {
+    "placeholders": {
+      "weight": {
+        "type": "String"
+      }
+    }
+  },
   "planner_gearWeights_predicted": "Predicted: {weight}",
-  "@planner_gearWeights_predicted": {"placeholders": {"weight": {"type": "String"}}},
+  "@planner_gearWeights_predicted": {
+    "placeholders": {
+      "weight": {
+        "type": "String"
+      }
+    }
+  },
   "planner_gearWeights_title": "Gear & Weights",
   "planner_gearWeights_useSet": "Use set",
   "tools_weight_addGear": "Add gear",
   "tools_weight_addTank": "Add tank",
   "tools_weight_basedOnDives": "Based on {count} logged dives",
-  "@tools_weight_basedOnDives": {"placeholders": {"count": {"type": "int"}}},
+  "@tools_weight_basedOnDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "tools_weight_breakdownTitle": "How this was calculated",
   "tools_weight_confidence_high": "High confidence",
   "tools_weight_confidence_low": "Low confidence - estimate",
   "tools_weight_confidence_medium": "Medium confidence",
   "tools_weight_deltaVsPrevious": "{delta} vs previous rig",
-  "@tools_weight_deltaVsPrevious": {"placeholders": {"delta": {"type": "String"}}},
+  "@tools_weight_deltaVsPrevious": {
+    "placeholders": {
+      "delta": {
+        "type": "String"
+      }
+    }
+  },
   "tools_weight_noGear": "Add the gear you plan to dive to personalize the prediction.",
   "tools_weight_personalTerm": "Personal baseline",
   "tools_weight_placementTitle": "Suggested placement",
@@ -12004,5 +12052,23 @@
   "tools_weight_source_userSpec": "from your gear specs",
   "tools_weight_tanks": "Tanks",
   "tools_weight_useSet": "Use set",
-  "tools_weight_waterTerm": "Water type"
+  "tools_weight_waterTerm": "Water type",
+  "settings_setup_pendingTitle": "Finish setting up this device",
+  "settings_setup_mediaStoreAttach": "Connect media storage ({hint})",
+  "@settings_setup_mediaStoreAttach": {
+    "placeholders": {
+      "hint": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_setup_accountSignIn": "Sign in to {label}",
+  "@settings_setup_accountSignIn": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_setup_dismiss": "Dismiss"
 }

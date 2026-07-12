@@ -5461,5 +5461,9 @@
   "tools_weight_source_userSpec": "מהמפרט של הציוד שלך",
   "tools_weight_tanks": "מכלים",
   "tools_weight_useSet": "השתמש בערכה",
-  "tools_weight_waterTerm": "סוג מים"
+  "tools_weight_waterTerm": "סוג מים",
+  "settings_setup_pendingTitle": "השלם את הגדרת המכשיר הזה",
+  "settings_setup_mediaStoreAttach": "חיבור אחסון מדיה ({hint})",
+  "settings_setup_accountSignIn": "התחברות אל {label}",
+  "settings_setup_dismiss": "התעלם"
 }

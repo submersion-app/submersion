@@ -19101,4 +19101,21 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get tools_weight_waterTerm => 'Watertype';
+
+  @override
+  String get settings_setup_pendingTitle =>
+      'Voltooi het instellen van dit apparaat';
+
+  @override
+  String settings_setup_mediaStoreAttach(String hint) {
+    return 'Mediaopslag koppelen ($hint)';
+  }
+
+  @override
+  String settings_setup_accountSignIn(String label) {
+    return 'Aanmelden bij $label';
+  }
+
+  @override
+  String get settings_setup_dismiss => 'Negeren';
 }

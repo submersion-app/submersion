@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_mode_provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -161,6 +162,7 @@ class SettingsListContent extends ConsumerWidget {
       return Column(
         children: [
           _buildCompactAppBar(context),
+          const PendingSetupCard(),
           Expanded(child: listContent),
         ],
       );
@@ -168,7 +170,12 @@ class SettingsListContent extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.settings_appBar_title)),
-      body: listContent,
+      body: Column(
+        children: [
+          const PendingSetupCard(),
+          Expanded(child: listContent),
+        ],
+      ),
     );
   }
 

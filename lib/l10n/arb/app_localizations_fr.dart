@@ -19324,4 +19324,21 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get tools_weight_waterTerm => 'Type d\'eau';
+
+  @override
+  String get settings_setup_pendingTitle =>
+      'Terminez la configuration de cet appareil';
+
+  @override
+  String settings_setup_mediaStoreAttach(String hint) {
+    return 'Connecter le stockage multimédia ($hint)';
+  }
+
+  @override
+  String settings_setup_accountSignIn(String label) {
+    return 'Se connecter à $label';
+  }
+
+  @override
+  String get settings_setup_dismiss => 'Ignorer';
 }

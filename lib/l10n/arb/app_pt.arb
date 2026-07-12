@@ -5461,5 +5461,9 @@
   "tools_weight_source_userSpec": "das especificações do seu equipamento",
   "tools_weight_tanks": "Cilindros",
   "tools_weight_useSet": "Usar conjunto",
-  "tools_weight_waterTerm": "Tipo de água"
+  "tools_weight_waterTerm": "Tipo de água",
+  "settings_setup_pendingTitle": "Conclua a configuração deste dispositivo",
+  "settings_setup_mediaStoreAttach": "Conectar armazenamento de mídia ({hint})",
+  "settings_setup_accountSignIn": "Entrar em {label}",
+  "settings_setup_dismiss": "Dispensar"
 }

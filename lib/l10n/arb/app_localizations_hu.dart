@@ -19201,4 +19201,20 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get tools_weight_waterTerm => 'Víztípus';
+
+  @override
+  String get settings_setup_pendingTitle => 'Fejezze be az eszköz beállítását';
+
+  @override
+  String settings_setup_mediaStoreAttach(String hint) {
+    return 'Médiatároló csatlakoztatása ($hint)';
+  }
+
+  @override
+  String settings_setup_accountSignIn(String label) {
+    return 'Bejelentkezés: $label';
+  }
+
+  @override
+  String get settings_setup_dismiss => 'Elvetés';
 }
