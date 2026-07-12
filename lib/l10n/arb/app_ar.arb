@@ -5496,5 +5496,6 @@
   "settings_setupGuide_stepSync_desc": "زامن بيانات الغوص بين الأجهزة.",
   "settings_setupGuide_statusDone": "تم الإعداد",
   "settings_setupGuide_statusTodo": "لم يتم الإعداد",
-  "settings_setupGuide_open": "فتح"
+  "settings_setupGuide_open": "فتح",
+  "media_unavailablePlaceholder_volumeOffline": "وحدة التخزين غير مثبتة"
 }

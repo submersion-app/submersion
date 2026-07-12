@@ -19382,4 +19382,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_setupGuide_open => 'Abrir';
+
+  @override
+  String get media_unavailablePlaceholder_volumeOffline => 'Volume não montado';
 }

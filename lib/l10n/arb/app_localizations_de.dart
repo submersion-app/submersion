@@ -19350,4 +19350,8 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_setupGuide_open => 'Öffnen';
+
+  @override
+  String get media_unavailablePlaceholder_volumeOffline =>
+      'Volume nicht eingebunden';
 }

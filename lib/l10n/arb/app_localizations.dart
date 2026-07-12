@@ -32435,6 +32435,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open'**
   String get settings_setupGuide_open;
+
+  /// No description provided for @media_unavailablePlaceholder_volumeOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Volume not mounted'**
+  String get media_unavailablePlaceholder_volumeOffline;
 }
 
 class _AppLocalizationsDelegate

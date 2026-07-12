@@ -19051,4 +19051,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_setupGuide_open => 'Open';
+
+  @override
+  String get media_unavailablePlaceholder_volumeOffline => 'Volume not mounted';
 }

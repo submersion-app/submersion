@@ -19226,4 +19226,8 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_setupGuide_open => 'Openen';
+
+  @override
+  String get media_unavailablePlaceholder_volumeOffline =>
+      'Volume niet gekoppeld';
 }

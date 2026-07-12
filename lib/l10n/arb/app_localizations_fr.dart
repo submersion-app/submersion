@@ -19450,4 +19450,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_setupGuide_open => 'Ouvrir';
+
+  @override
+  String get media_unavailablePlaceholder_volumeOffline => 'Volume non monté';
 }

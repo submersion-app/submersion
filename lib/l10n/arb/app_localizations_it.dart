@@ -19378,4 +19378,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_setupGuide_open => 'Apri';
+
+  @override
+  String get media_unavailablePlaceholder_volumeOffline => 'Volume non montato';
 }

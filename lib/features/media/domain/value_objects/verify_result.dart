@@ -11,4 +11,8 @@ enum VerifyResult {
   unauthenticated,
   transientError,
   fromOtherDevice,
+
+  /// The volume holding the file is not mounted; the file may well still
+  /// exist. Treated as transient by cleanup sweeps (never orphans).
+  volumeOffline,
 }
