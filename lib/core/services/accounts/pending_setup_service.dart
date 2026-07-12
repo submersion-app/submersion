@@ -61,8 +61,9 @@ class PendingSetupService {
   bool _isDismissed(String key) =>
       _prefs.getBool('$_dismissedPrefix$key') ?? false;
 
-  Future<void> dismiss(String key) =>
-      _prefs.setBool('$_dismissedPrefix$key', true).then((_) {});
+  Future<void> dismiss(String key) async {
+    await _prefs.setBool('$_dismissedPrefix$key', true);
+  }
 
   Future<List<PendingSetupItem>> compute() async {
     final items = <PendingSetupItem>[];
