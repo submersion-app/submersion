@@ -1053,6 +1053,11 @@ class SyncService {
           (type: 'settings', records: data.settings, hasUpdatedAt: true),
           (type: 'media', records: data.media, hasUpdatedAt: false),
           (type: 'mediaStores', records: data.mediaStores, hasUpdatedAt: false),
+          (
+            type: 'connectedAccounts',
+            records: data.connectedAccounts,
+            hasUpdatedAt: false,
+          ),
         ];
 
     // Precompute the locally-tombstoned parents this payload will REVIVE (a
@@ -1592,6 +1597,7 @@ class SyncService {
     'settings': true,
     'media': false,
     'mediaStores': false,
+    'connectedAccounts': false,
   };
 
   /// Every synced child -> parent FK whose parent can be deleted (and thus

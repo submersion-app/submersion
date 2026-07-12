@@ -226,6 +226,7 @@ class SyncData {
   final List<Map<String, dynamic>> buddies;
   final List<Map<String, dynamic>> buddyRoles;
   final List<Map<String, dynamic>> mediaStores;
+  final List<Map<String, dynamic>> connectedAccounts;
   final List<Map<String, dynamic>> diveBuddies;
   final List<Map<String, dynamic>> certifications;
   final List<Map<String, dynamic>> courses;
@@ -280,6 +281,7 @@ class SyncData {
     this.buddies = const [],
     this.buddyRoles = const [],
     this.mediaStores = const [],
+    this.connectedAccounts = const [],
     this.diveBuddies = const [],
     this.certifications = const [],
     this.courses = const [],
@@ -335,6 +337,7 @@ class SyncData {
     'buddies': buddies,
     'buddyRoles': buddyRoles,
     'mediaStores': mediaStores,
+    'connectedAccounts': connectedAccounts,
     'diveBuddies': diveBuddies,
     'certifications': certifications,
     'courses': courses,
@@ -391,6 +394,7 @@ class SyncData {
       buddies: _parseList(json['buddies']),
       buddyRoles: _parseList(json['buddyRoles']),
       mediaStores: _parseList(json['mediaStores']),
+      connectedAccounts: _parseList(json['connectedAccounts']),
       diveBuddies: _parseList(json['diveBuddies']),
       certifications: _parseList(json['certifications']),
       courses: _parseList(json['courses']),
@@ -579,6 +583,12 @@ class SyncDataSerializer {
     (key: 'buddies', table: _db.buddies, blob: false, full: null),
     (key: 'buddyRoles', table: _db.buddyRoles, blob: false, full: null),
     (key: 'mediaStores', table: _db.mediaStores, blob: false, full: null),
+    (
+      key: 'connectedAccounts',
+      table: _db.connectedAccounts,
+      blob: false,
+      full: null,
+    ),
     (key: 'diveBuddies', table: _db.diveBuddies, blob: false, full: null),
     (key: 'certifications', table: _db.certifications, blob: true, full: null),
     (key: 'courses', table: _db.courses, blob: false, full: null),
@@ -977,6 +987,10 @@ class SyncDataSerializer {
         'mediaStores',
         () => _exportMediaStores(hlcSince),
       ),
+      connectedAccounts: await _safeExport(
+        'connectedAccounts',
+        () => _exportConnectedAccounts(hlcSince),
+      ),
       diveBuddies: await _safeExport(
         'diveBuddies',
         () => _exportDiveBuddies(hlcSince),
@@ -1311,6 +1325,11 @@ class SyncDataSerializer {
           _db.mediaStores,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
+      case 'connectedAccounts':
+        final row = await (_db.select(
+          _db.connectedAccounts,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
       case 'diveBuddies':
         final row = await (_db.select(
           _db.diveBuddies,
@@ -1577,6 +1596,11 @@ class SyncDataSerializer {
           _db.mediaStores,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
+      case 'connectedAccounts':
+        final rows = await (_db.select(
+          _db.connectedAccounts,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
       case 'diveCenters':
         final rows = await (_db.select(
           _db.diveCenters,
@@ -1816,6 +1840,13 @@ class SyncDataSerializer {
             .into(_db.mediaStores)
             .insertOnConflictUpdate(
               MediaStore.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'connectedAccounts':
+        await _db
+            .into(_db.connectedAccounts)
+            .insertOnConflictUpdate(
+              ConnectedAccount.fromJson(data).toCompanion(false),
             );
         return;
       case 'diveBuddies':
@@ -2211,6 +2242,16 @@ class SyncDataSerializer {
             _db.mediaStores,
             records
                 .map((r) => MediaStore.fromJson(r).toCompanion(false))
+                .toList(),
+          ),
+        );
+        return;
+      case 'connectedAccounts':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.connectedAccounts,
+            records
+                .map((r) => ConnectedAccount.fromJson(r).toCompanion(false))
                 .toList(),
           ),
         );
@@ -2677,6 +2718,8 @@ class SyncDataSerializer {
         return plain(_db.buddyRoles, _db.buddyRoles.id);
       case 'mediaStores':
         return plain(_db.mediaStores, _db.mediaStores.id);
+      case 'connectedAccounts':
+        return plain(_db.connectedAccounts, _db.connectedAccounts.id);
       case 'diveCenters':
         return plain(_db.diveCenters, _db.diveCenters.id);
       case 'trips':
@@ -2845,6 +2888,8 @@ class SyncDataSerializer {
         return _db.buddyRoles;
       case 'mediaStores':
         return _db.mediaStores;
+      case 'connectedAccounts':
+        return _db.connectedAccounts;
       case 'diveCenters':
         return _db.diveCenters;
       case 'trips':
@@ -3026,6 +3071,11 @@ class SyncDataSerializer {
       case 'mediaStores':
         await (_db.delete(
           _db.mediaStores,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'connectedAccounts':
+        await (_db.delete(
+          _db.connectedAccounts,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'buddyRoles':
@@ -3439,6 +3489,17 @@ class SyncDataSerializer {
     String? hlcSince,
   ) async {
     final query = _db.select(_db.mediaStores);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportConnectedAccounts(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.connectedAccounts);
     if (hlcSince != null) {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
