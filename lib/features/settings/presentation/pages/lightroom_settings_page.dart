@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
-import 'package:submersion/core/services/accounts/adapters/lightroom_account_adapter.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
@@ -127,13 +126,13 @@ class _LightroomSettingsPageState extends ConsumerState<LightroomSettingsPage> {
     if (confirmed != true || !mounted) return;
 
     // Clear both credential locations: the account's own key (runtime) and
-    // the legacy connect-time key (scratch from the OAuth dance).
-    final adapter =
-        ref
-                .read(accountProviderRegistryProvider)
-                .adapterFor(AccountKind.adobeLightroom)
-            as LightroomAccountAdapter;
-    await adapter.authManagerFor(account).disconnect();
+    // the legacy connect-time key (scratch from the OAuth dance). Through
+    // the adapter, not its manager directly: disconnect(account) also
+    // evicts the cached manager so no stale token cache outlives this.
+    final adapter = ref
+        .read(accountProviderRegistryProvider)
+        .adapterFor(AccountKind.adobeLightroom);
+    await adapter.disconnect(account);
     await ref.read(lightroomAuthManagerProvider).disconnect();
     await ref.read(lightroomConnectorStateProvider(account.id)).clear();
     await ref.read(connectedAccountsRepositoryProvider).delete(account.id);
