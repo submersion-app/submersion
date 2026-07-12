@@ -483,9 +483,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             if (dive.profile.isNotEmpty) ...[
               _buildProfileSection(context, ref, dive),
             ],
-            // Configurable sections in user-defined order
+            // Configurable sections in user-defined order. Gauge dives hide
+            // gas/deco sections (deco/O2 tox, SAC segments, cylinders).
             for (final section in settings.diveDetailSections)
-              if (section.visible) ...builders[section.id]?.call() ?? [],
+              if (section.visible &&
+                  !(dive.isGauge && section.id.hiddenInGaugeMode))
+                ...builders[section.id]?.call() ?? [],
             const SizedBox(height: 32),
           ],
         ),

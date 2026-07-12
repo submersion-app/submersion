@@ -634,4 +634,24 @@ void main() {
       expect(names.toSet().length, names.length);
     });
   });
+
+  group('hiddenInGaugeMode', () {
+    test('gauge hides deco, SAC segments, and cylinders sections only', () {
+      final hidden = DiveDetailSectionId.values
+          .where((s) => s.hiddenInGaugeMode)
+          .toSet();
+      expect(hidden, {
+        DiveDetailSectionId.decoO2,
+        DiveDetailSectionId.sacSegments,
+        DiveDetailSectionId.tanks,
+      });
+    });
+
+    test('sections a gauge diver still wants remain visible', () {
+      expect(DiveDetailSectionId.environment.hiddenInGaugeMode, isFalse);
+      expect(DiveDetailSectionId.weights.hiddenInGaugeMode, isFalse);
+      expect(DiveDetailSectionId.equipment.hiddenInGaugeMode, isFalse);
+      expect(DiveDetailSectionId.notes.hiddenInGaugeMode, isFalse);
+    });
+  });
 }
