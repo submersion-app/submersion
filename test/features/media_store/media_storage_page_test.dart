@@ -46,7 +46,10 @@ class _RecordingService extends MediaStoreService {
   );
 
   @override
-  Future<MediaStoreConnectResult> connectS3(S3Config config) async {
+  Future<MediaStoreConnectResult> connectS3(
+    S3Config config, {
+    String? accountId,
+  }) async {
     connectCalls++;
     if (throwOnConnect != null) throw throwOnConnect!;
     return _result;
