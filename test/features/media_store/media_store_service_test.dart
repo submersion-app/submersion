@@ -3,7 +3,10 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
+import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/services/accounts/account_credentials_store.dart';
+import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
 import 'package:submersion/core/services/media_store/media_store_credentials_store.dart';
@@ -32,6 +35,9 @@ void main() {
   late MediaStoreCredentialsStore credentials;
   late MediaStoreAttachState attachState;
   late MediaStoresRepository storesRepository;
+  late InMemoryKeychain accountKeychain;
+  late AccountCredentialsStore accountCredentials;
+  late ConnectedAccountsRepository accountsRepository;
   late MediaStoreService service;
 
   final config = S3Config(
@@ -51,10 +57,15 @@ void main() {
       prefs: await SharedPreferences.getInstance(),
     );
     storesRepository = MediaStoresRepository();
+    accountKeychain = InMemoryKeychain();
+    accountCredentials = AccountCredentialsStore(storage: accountKeychain);
+    accountsRepository = ConnectedAccountsRepository();
     service = MediaStoreService(
       credentials: credentials,
       attachState: attachState,
       storesRepository: storesRepository,
+      accountsRepository: accountsRepository,
+      accountCredentials: accountCredentials,
       storeFactory: (_) => fakeStore,
     );
   });
@@ -142,6 +153,8 @@ void main() {
       credentials: credentials,
       attachState: attachState,
       storesRepository: storesRepository,
+      accountsRepository: accountsRepository,
+      accountCredentials: accountCredentials,
       dropboxStoreFactory: () async => dropboxFake,
     );
     final result = await svc.connectDropbox();
@@ -164,6 +177,8 @@ void main() {
       credentials: credentials,
       attachState: attachState,
       storesRepository: storesRepository,
+      accountsRepository: accountsRepository,
+      accountCredentials: accountCredentials,
       icloudStoreFactory: () async => icloudFake,
     );
     final result = await svc.connectICloud();
@@ -178,6 +193,8 @@ void main() {
       credentials: credentials,
       attachState: attachState,
       storesRepository: storesRepository,
+      accountsRepository: accountsRepository,
+      accountCredentials: accountCredentials,
       googleDriveStoreFactory: () async => null,
     );
     await expectLater(
@@ -226,4 +243,64 @@ void main() {
       expect(store, isNull, reason: '$type is unauthenticated here');
     }
   });
+
+  test('connectS3 creates a fresh S3 account with per-account and legacy '
+      'credentials', () async {
+    final result = await service.connectS3(config);
+    final account = await accountsRepository.getByKind(AccountKind.s3);
+    expect(account, isNotNull);
+    expect(account!.label, contains('dive-media'));
+    expect(
+      accountKeychain.values[AccountCredentialsStore.keyFor(account.id)],
+      isNotNull,
+      reason: 'config JSON goes to the per-account key',
+    );
+    expect(
+      await credentials.load(),
+      isNotNull,
+      reason: 'legacy blob still written for rollback',
+    );
+    expect(await attachState.attachedAccountId(), account.id);
+    expect(await attachState.attachedStoreId(), result.storeId);
+  });
+
+  test(
+    'connectDropbox creates the account and re-keys the sync auth blob',
+    () async {
+      accountKeychain.values['sync_dropbox_auth'] = '{"refreshToken":"rt"}';
+      final dropboxFake = InMemoryMediaObjectStore();
+      final svc = MediaStoreService(
+        credentials: credentials,
+        attachState: attachState,
+        storesRepository: storesRepository,
+        accountsRepository: accountsRepository,
+        accountCredentials: accountCredentials,
+        dropboxStoreFactory: () async => dropboxFake,
+      );
+      await svc.connectDropbox();
+      final account = await accountsRepository.getByKind(AccountKind.dropbox);
+      expect(account, isNotNull);
+      expect(
+        accountKeychain.values[AccountCredentialsStore.keyFor(account!.id)],
+        '{"refreshToken":"rt"}',
+      );
+      expect(await attachState.attachedAccountId(), account.id);
+    },
+  );
+
+  test(
+    'disconnect detaches but keeps the account row and its credentials',
+    () async {
+      await service.connectS3(config);
+      final account = (await accountsRepository.getByKind(AccountKind.s3))!;
+      await service.disconnect();
+      expect(await attachState.attachedAccountId(), isNull);
+      expect(await accountsRepository.getById(account.id), isNotNull);
+      expect(
+        accountKeychain.values[AccountCredentialsStore.keyFor(account.id)],
+        isNotNull,
+        reason: 'the account may still drive sync',
+      );
+    },
+  );
 }

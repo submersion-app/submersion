@@ -1,12 +1,17 @@
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/services/accounts/account_credentials_store.dart';
+import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/account_provider_registry.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
 import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_api_client.dart';
 import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_auth_manager.dart';
+import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_auth_store.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/icloud_native_service.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_api_client.dart';
@@ -91,6 +96,8 @@ class MediaStoreService {
     required MediaStoreCredentialsStore credentials,
     required MediaStoreAttachState attachState,
     required MediaStoresRepository storesRepository,
+    ConnectedAccountsRepository? accountsRepository,
+    AccountCredentialsStore? accountCredentials,
     MediaObjectStore Function(S3Config config)? storeFactory,
     Future<MediaObjectStore?> Function()? dropboxStoreFactory,
     Future<MediaObjectStore?> Function()? googleDriveStoreFactory,
@@ -98,6 +105,8 @@ class MediaStoreService {
   }) : _credentials = credentials,
        _attachState = attachState,
        _storesRepository = storesRepository,
+       _accounts = accountsRepository ?? ConnectedAccountsRepository(),
+       _accountCredentials = accountCredentials ?? AccountCredentialsStore(),
        _storeFactory = storeFactory,
        _dropboxStoreFactory =
            dropboxStoreFactory ??
@@ -112,6 +121,8 @@ class MediaStoreService {
   final MediaStoreCredentialsStore _credentials;
   final MediaStoreAttachState _attachState;
   final MediaStoresRepository _storesRepository;
+  final ConnectedAccountsRepository _accounts;
+  final AccountCredentialsStore _accountCredentials;
 
   /// Test seam; when null the service builds (and owns) a real S3 client
   /// per operation.
@@ -179,15 +190,30 @@ class MediaStoreService {
   /// Ensures the bucket carries a store marker (adopting an existing one),
   /// persists credentials and attach state, and announces the store in the
   /// synced descriptor table.
-  Future<MediaStoreConnectResult> connectS3(S3Config config) async {
+  Future<MediaStoreConnectResult> connectS3(
+    S3Config config, {
+    String? accountId,
+  }) async {
     _validate(config);
     final built = _buildS3Store(config);
     try {
       final ensured = await StoreMarkerStore(store: built.store).ensure();
+      // Reuse the given account or create a fresh S3 account: the media
+      // store S3 config is independent from sync's by design, so a bare
+      // connect never adopts the sync S3 account.
+      final account =
+          (accountId == null ? null : await _accounts.getById(accountId)) ??
+          await _accounts.create(
+            kind: AccountKind.s3,
+            label: '${config.bucket} @ ${config.displayHost}',
+          );
+      await _accountCredentials.write(account.id, jsonEncode(config.toJson()));
+      // Legacy blob still written so a rollback build keeps working.
       await _credentials.save(config);
       await _attachState.setAttached(
         ensured.marker.storeId,
         providerType: CloudProviderType.s3,
+        accountId: account.id,
       );
       await _storesRepository.upsertActive(
         storeId: ensured.marker.storeId,
@@ -238,7 +264,25 @@ class MediaStoreService {
       );
     }
     final ensured = await StoreMarkerStore(store: store).ensure();
-    await _attachState.setAttached(ensured.marker.storeId, providerType: type);
+    // Ensure an account row for the kind (single-instance for managed
+    // providers). Dropbox adopts the sync-era auth blob when the
+    // per-account key is still empty: a user who linked Dropbox sync
+    // before the accounts layer existed connects without re-auth.
+    final kind = AccountKind.fromCloudProviderType(type);
+    final account =
+        await _accounts.getByKind(kind) ??
+        await _accounts.create(kind: kind, label: displayHint);
+    if (type == CloudProviderType.dropbox) {
+      await _accountCredentials.rekeyFromLegacy(
+        legacyKey: DropboxAuthStore.storageKey,
+        accountId: account.id,
+      );
+    }
+    await _attachState.setAttached(
+      ensured.marker.storeId,
+      providerType: type,
+      accountId: account.id,
+    );
     await _storesRepository.upsertActive(
       storeId: ensured.marker.storeId,
       providerType: type.name,
