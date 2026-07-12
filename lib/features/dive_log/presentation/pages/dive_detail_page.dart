@@ -2,6 +2,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -32,6 +33,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_detail_ui_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_nav_buttons.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
@@ -144,6 +146,37 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   String? _lastSacSegmentsAnalysisDiveId;
 
   String get diveId => widget.diveId;
+
+  /// Navigate to an adjacent dive. Embedded (master-detail) swaps the selected
+  /// query param -- the DetailScrollRetainer then keeps the scroll offset, so
+  /// the same section stays in view. Standalone replaces the route so stepping
+  /// through dives does not pile up the back stack.
+  void _navigateToDive(String neighborId) {
+    if (widget.embedded) {
+      context.go('/dives?selected=$neighborId');
+    } else {
+      context.replace('/dives/$neighborId');
+    }
+  }
+
+  /// Wraps [child] with Left/Right arrow-key bindings for previous/next dive.
+  /// Up/Down are left untouched so vertical scrolling still works.
+  Widget _wrapWithDiveShortcuts(Dive dive, Widget child) {
+    final neighbors = ref.watch(diveNeighborsProvider(dive.id));
+    return CallbackShortcuts(
+      bindings: {
+        const SingleActivator(LogicalKeyboardKey.arrowLeft): () {
+          final id = neighbors.previousId;
+          if (id != null) _navigateToDive(id);
+        },
+        const SingleActivator(LogicalKeyboardKey.arrowRight): () {
+          final id = neighbors.nextId;
+          if (id != null) _navigateToDive(id);
+        },
+      },
+      child: Focus(child: child),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -496,88 +529,95 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
     // Embedded mode: Return content with a compact header bar (no Scaffold)
     if (widget.embedded) {
-      return Column(
-        children: [
-          _buildEmbeddedHeader(context, ref, dive, hasRawData: hasRawData),
-          Expanded(child: body),
-        ],
+      return _wrapWithDiveShortcuts(
+        dive,
+        Column(
+          children: [
+            _buildEmbeddedHeader(context, ref, dive, hasRawData: hasRawData),
+            Expanded(child: body),
+          ],
+        ),
       );
     }
 
     // Standalone mode: Full Scaffold with AppBar
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(context.l10n.diveLog_detail_appBar),
-        actions: [
-          IconButton(
-            icon: Icon(
-              dive.isFavorite ? Icons.favorite : Icons.favorite_border,
-              color: dive.isFavorite ? Colors.red : null,
-            ),
-            tooltip: dive.isFavorite
-                ? context.l10n.diveLog_detail_tooltip_removeFromFavorites
-                : context.l10n.diveLog_detail_tooltip_addToFavorites,
-            onPressed: () {
-              ref
-                  .read(paginatedDiveListProvider.notifier)
-                  .toggleFavorite(diveId);
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.edit),
-            tooltip: context.l10n.diveLog_detail_tooltip_editDive,
-            onPressed: () => context.push('/dives/$diveId/edit'),
-          ),
-          PopupMenuButton<String>(
-            onSelected: (value) {
-              switch (value) {
-                case 'export':
-                  _showExportOptions(context, ref, dive);
-                  break;
-                case 'reparse':
-                  _reparseDive(context, ref, dive);
-                  break;
-                case 'delete':
-                  _showDeleteConfirmation(context, ref);
-                  break;
-              }
-            },
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'export',
-                child: ListTile(
-                  leading: const Icon(Icons.download),
-                  title: Text(context.l10n.diveLog_detail_menu_export),
-                  contentPadding: EdgeInsets.zero,
-                ),
+    return _wrapWithDiveShortcuts(
+      dive,
+      Scaffold(
+        appBar: AppBar(
+          title: Text(context.l10n.diveLog_detail_appBar),
+          actions: [
+            DiveNavButtons(diveId: diveId, onNavigate: _navigateToDive),
+            IconButton(
+              icon: Icon(
+                dive.isFavorite ? Icons.favorite : Icons.favorite_border,
+                color: dive.isFavorite ? Colors.red : null,
               ),
-              if (hasRawData)
+              tooltip: dive.isFavorite
+                  ? context.l10n.diveLog_detail_tooltip_removeFromFavorites
+                  : context.l10n.diveLog_detail_tooltip_addToFavorites,
+              onPressed: () {
+                ref
+                    .read(paginatedDiveListProvider.notifier)
+                    .toggleFavorite(diveId);
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.edit),
+              tooltip: context.l10n.diveLog_detail_tooltip_editDive,
+              onPressed: () => context.push('/dives/$diveId/edit'),
+            ),
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                switch (value) {
+                  case 'export':
+                    _showExportOptions(context, ref, dive);
+                    break;
+                  case 'reparse':
+                    _reparseDive(context, ref, dive);
+                    break;
+                  case 'delete':
+                    _showDeleteConfirmation(context, ref);
+                    break;
+                }
+              },
+              itemBuilder: (context) => [
                 PopupMenuItem(
-                  value: 'reparse',
+                  value: 'export',
                   child: ListTile(
-                    leading: const Icon(Icons.refresh),
+                    leading: const Icon(Icons.download),
+                    title: Text(context.l10n.diveLog_detail_menu_export),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                if (hasRawData)
+                  PopupMenuItem(
+                    value: 'reparse',
+                    child: ListTile(
+                      leading: const Icon(Icons.refresh),
+                      title: Text(
+                        context.l10n.diveLog_detail_menu_reparseRawData,
+                      ),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                PopupMenuItem(
+                  value: 'delete',
+                  child: ListTile(
+                    leading: const Icon(Icons.delete, color: Colors.red),
                     title: Text(
-                      context.l10n.diveLog_detail_menu_reparseRawData,
+                      context.l10n.diveLog_detail_menu_delete,
+                      style: const TextStyle(color: Colors.red),
                     ),
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
-              PopupMenuItem(
-                value: 'delete',
-                child: ListTile(
-                  leading: const Icon(Icons.delete, color: Colors.red),
-                  title: Text(
-                    context.l10n.diveLog_detail_menu_delete,
-                    style: const TextStyle(color: Colors.red),
-                  ),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
+        body: body,
       ),
-      body: body,
     );
   }
 
@@ -648,6 +688,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               ],
             ),
           ),
+          DiveNavButtons(diveId: dive.id, onNavigate: _navigateToDive),
           // Favorite toggle
           IconButton(
             icon: Icon(
