@@ -317,7 +317,8 @@ enum TankMaterial {
 enum DiveMode {
   oc('Open Circuit'),
   ccr('Closed Circuit Rebreather'),
-  scr('Semi-Closed Rebreather');
+  scr('Semi-Closed Rebreather'),
+  gauge('Gauge');
 
   final String displayName;
   const DiveMode(this.displayName);

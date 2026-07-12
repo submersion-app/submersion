@@ -142,7 +142,10 @@ class FilesTab extends ConsumerWidget {
           ),
         )
         .toList();
-    final result = DivePhotoMatcher().match(files: extracted, dives: bounds);
+    final result = const DivePhotoMatcher().match(
+      files: extracted,
+      dives: bounds,
+    );
     notifier.setFiles(extracted, match: result);
   }
   // coverage:ignore-end

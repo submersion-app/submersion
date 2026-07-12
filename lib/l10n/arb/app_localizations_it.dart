@@ -3814,6 +3814,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_detail_tooltip_editDive => 'Modifica immersione';
 
   @override
+  String get diveLog_detail_tooltip_previousDive => 'Previous dive';
+
+  @override
+  String get diveLog_detail_tooltip_nextDive => 'Next dive';
+
+  @override
   String get diveLog_detail_tooltip_exportProfileImage =>
       'Esporta profilo come immagine';
 
@@ -3831,6 +3837,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get diveLog_diveMode_ccrDescription =>
       'Rebreather a circuito chiuso con ppO2 costante';
+
+  @override
+  String get diveLog_diveMode_gaugeDescription =>
+      'Solo profondità e tempo; nessun tracciamento di gas o decompressione';
 
   @override
   String get diveLog_diveMode_ocDescription =>
@@ -8283,6 +8293,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_diveMode_ccr => 'Rebreather a circuito chiuso';
 
   @override
+  String get enum_diveMode_gauge => 'Gauge';
+
+  @override
   String get enum_diveMode_oc => 'Circuito aperto';
 
   @override
@@ -10532,6 +10545,19 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get media_lightroom_openInLightroom => 'Apri in Lightroom';
+
+  @override
+  String get media_lightroom_suggestion_accept =>
+      'Aggiungi a questa immersione';
+
+  @override
+  String get media_lightroom_suggestion_dismiss => 'Ignora';
+
+  @override
+  String get media_lightroom_suggestions_title => 'Suggerimenti da Lightroom';
+
+  @override
   String get media_miniProfile_headerLabel => 'Profilo immersione';
 
   @override
@@ -12587,6 +12613,103 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_language_systemDefault => 'Predefinito di sistema';
+
+  @override
+  String get settings_lightroom_albumFilter_all => 'Intero catalogo';
+
+  @override
+  String get settings_lightroom_albumFilter_title => 'Album da scansionare';
+
+  @override
+  String get settings_lightroom_autoPoll_title =>
+      'Cerca automaticamente nuove foto';
+
+  @override
+  String settings_lightroom_clientId_help(String redirectUri) {
+    return 'Crea un\'integrazione nella Adobe Developer Console con l\'API Lightroom Services e un tipo di credenziale che supporti PKCE. Imposta l\'URI di reindirizzamento su $redirectUri.';
+  }
+
+  @override
+  String get settings_lightroom_clientId_label => 'ID client Adobe';
+
+  @override
+  String get settings_lightroom_clientSecret_label =>
+      'Segreto client (facoltativo)';
+
+  @override
+  String get settings_lightroom_connect => 'Collega Lightroom';
+
+  @override
+  String get settings_lightroom_connect_codeLabel =>
+      'URL reindirizzato o codice';
+
+  @override
+  String get settings_lightroom_connect_emptyCode =>
+      'Incolla l\'URL reindirizzato o il codice di autorizzazione';
+
+  @override
+  String settings_lightroom_connect_failed(String error) {
+    return 'Impossibile connettersi a Lightroom: $error';
+  }
+
+  @override
+  String get settings_lightroom_connect_instructions =>
+      'Accedi ad Adobe nella finestra del browser, poi incolla l\'indirizzo completo della pagina su cui arrivi (contiene il codice di autorizzazione).';
+
+  @override
+  String get settings_lightroom_connect_reopenBrowser => 'Riapri il browser';
+
+  @override
+  String get settings_lightroom_connect_submit => 'Collega';
+
+  @override
+  String get settings_lightroom_connect_title => 'Collega Lightroom';
+
+  @override
+  String settings_lightroom_connected(String name) {
+    return 'Collegato come $name';
+  }
+
+  @override
+  String get settings_lightroom_disconnect => 'Disconnetti';
+
+  @override
+  String get settings_lightroom_disconnect_confirmBody =>
+      'Le foto collegate restano nelle tue immersioni e continuano a essere mostrate dall\'archivio multimediale. Le nuove foto non verranno più abbinate.';
+
+  @override
+  String get settings_lightroom_disconnect_confirmTitle =>
+      'Disconnettere Lightroom?';
+
+  @override
+  String settings_lightroom_lastPoll(String when) {
+    return 'Ultimo controllo: $when';
+  }
+
+  @override
+  String get settings_lightroom_needsReauth => 'Riconnessione necessaria';
+
+  @override
+  String get settings_lightroom_scanNow => 'Scansiona Lightroom';
+
+  @override
+  String get settings_lightroom_scan_running => 'Scansione di Lightroom...';
+
+  @override
+  String settings_lightroom_scan_summary(
+    int attached,
+    int suggested,
+    int skipped,
+  ) {
+    return '$attached collegate, $suggested suggerite, $skipped già collegate';
+  }
+
+  @override
+  String get settings_lightroom_subtitle =>
+      'Collega automaticamente foto e video alle immersioni';
+
+  @override
+  String get settings_lightroom_title => 'Adobe Lightroom';
 
   @override
   String get settings_manage_checklistTemplates =>
@@ -18993,6 +19116,12 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get bodyWeight_heightLabel => 'Altezza (cm)';
+
+  @override
+  String get bodyWeight_heightFeetLabel => 'Altezza (ft)';
+
+  @override
+  String get bodyWeight_heightInchesLabel => 'Pollici';
 
   @override
   String bodyWeight_weightLabel(String unit) {

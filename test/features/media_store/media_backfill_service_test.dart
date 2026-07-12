@@ -85,4 +85,33 @@ void main() {
     expect(await service.enqueueAll(), 2);
     expect((await queue.allForTesting()).length, 2);
   });
+
+  test('connector photos are candidates; connector videos key on the thumb '
+      'stamp', () async {
+    final photo = await mediaRow(
+      name: 'lr.jpg',
+      sourceType: MediaSourceType.serviceConnector,
+    );
+    final videoNoThumb = await mediaRow(
+      name: 'lr1.mp4',
+      mediaType: domain.MediaType.video,
+      sourceType: MediaSourceType.serviceConnector,
+      takenAt: DateTime(2025, 12),
+    );
+    final videoWithThumb = await mediaRow(
+      name: 'lr2.mp4',
+      mediaType: domain.MediaType.video,
+      sourceType: MediaSourceType.serviceConnector,
+    );
+    await mediaRepository.stampRemoteThumbUploaded(
+      videoWithThumb.id,
+      uploadedAt: DateTime(2026, 7),
+    );
+    // A gallery video stays excluded even though connector videos now
+    // qualify.
+    await mediaRow(name: 'gal.mp4', mediaType: domain.MediaType.video);
+
+    final ids = await mediaRepository.getBackfillCandidateIds();
+    expect(ids, [photo.id, videoNoThumb.id]);
+  });
 }

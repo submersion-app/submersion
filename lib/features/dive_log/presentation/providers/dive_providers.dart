@@ -62,6 +62,41 @@ final sortedFilteredDivesProvider = Provider<AsyncValue<List<domain.Dive>>>((
   return divesAsync.whenData((dives) => _applySorting(dives, sort));
 });
 
+/// A dive's adjacent ids in the current filter+sort order.
+typedef DiveNeighbors = ({String? previousId, String? nextId});
+
+/// All dive ids in the active filter+sort order -- the source for previous/next
+/// navigation from the detail page. IDs only (not full dives), so it stays
+/// cheap even on large libraries. Recomputes when filter/sort/diver change.
+final orderedDiveIdsProvider = FutureProvider.autoDispose<List<String>>((
+  ref,
+) async {
+  final diverId = ref.watch(currentDiverIdProvider);
+  final filter = ref.watch(diveFilterProvider);
+  final sort = ref.watch(diveSortProvider);
+  final repository = ref.watch(diveRepositoryProvider);
+  return repository.getOrderedDiveIds(
+    diverId: diverId,
+    filter: filter,
+    sort: sort,
+  );
+});
+
+/// The previous/next dive ids adjacent to [diveId] in the current list order.
+/// Both are null when the dive is not in the current filtered list.
+final diveNeighborsProvider = Provider.family<DiveNeighbors, String>((
+  ref,
+  diveId,
+) {
+  final ids = ref.watch(orderedDiveIdsProvider).valueOrNull ?? const <String>[];
+  final index = ids.indexOf(diveId);
+  if (index < 0) return (previousId: null, nextId: null);
+  return (
+    previousId: index > 0 ? ids[index - 1] : null,
+    nextId: index < ids.length - 1 ? ids[index + 1] : null,
+  );
+});
+
 /// Apply sorting to a list of dives
 List<domain.Dive> _applySorting(
   List<domain.Dive> dives,

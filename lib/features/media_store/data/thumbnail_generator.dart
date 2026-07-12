@@ -45,6 +45,13 @@ class ThumbnailGenerator {
           final staged = await _cache.stagingFile();
           await staged.writeAsBytes(b, flush: true);
           return staged;
+        case BytesData(bytes: final b)
+            when item.sourceType == MediaSourceType.serviceConnector:
+          // Connector renditions are always JPEG regardless of the
+          // original's filename: a video row carries a .mp4 name but its
+          // rendition is a JPEG poster frame, and decoding by that name
+          // would always fail.
+          return _resizeToJpeg(b, 'rendition.jpg');
         case BytesData(bytes: final b):
           // Non-gallery BytesData is the original (e.g. a bookmark read on
           // iOS/macOS): resize and re-encode so full-size bytes and their

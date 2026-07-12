@@ -1593,7 +1593,7 @@ void main() {
         isPrimary: true,
       );
 
-      final parsed = makeParsedDive(diveMode: 'gauge');
+      final parsed = makeParsedDive(diveMode: 'unrecognized_mode');
 
       await service.applyParsedUpdate(
         diveId: 'dive-1',
@@ -1607,6 +1607,32 @@ void main() {
 
       final dive = await getDive('dive-1');
       expect(dive.diveMode, 'oc');
+    });
+
+    test('gauge diveMode maps to gauge', () async {
+      await insertDive('dive-1', diveMode: 'oc');
+      await insertComputer('comp-1');
+      await insertSource(
+        id: 'src-1',
+        diveId: 'dive-1',
+        computerId: 'comp-1',
+        isPrimary: true,
+      );
+
+      final parsed = makeParsedDive(diveMode: 'gauge');
+
+      await service.applyParsedUpdate(
+        diveId: 'dive-1',
+        sourceRowId: 'src-1',
+        parsed: parsed,
+        descriptorVendor: null,
+        descriptorProduct: null,
+        descriptorModel: null,
+        libdivecomputerVersion: null,
+      );
+
+      final dive = await getDive('dive-1');
+      expect(dive.diveMode, 'gauge');
     });
 
     test('null diveMode maps to oc', () async {

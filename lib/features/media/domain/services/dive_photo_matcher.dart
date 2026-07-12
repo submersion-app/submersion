@@ -31,6 +31,8 @@ class DiveBounds {
 ///
 /// Files with no [takenAt] or no matching dive go to [MatchedSelection.unmatched].
 class DivePhotoMatcher {
+  const DivePhotoMatcher();
+
   /// Pre-dive buffer applied before [DiveBounds.entryTime] when computing
   /// the match window. Catches photos taken at the boat / dock / on the
   /// surface before the descent.
@@ -79,4 +81,74 @@ class DivePhotoMatcher {
 
     return MatchedSelection(matched: matched, unmatched: unmatched);
   }
+
+  /// Confidence-bearing match of a single timestamp against dive windows
+  /// (Lightroom auto-linking; adoptable by the gallery scanner later).
+  ///
+  /// Extended window = `[entry - preBuffer, exit + postBuffer]`, core
+  /// window = `[entry, exit]`, boundaries inclusive.
+  /// - No extended hit: [TimestampMatchKind.none].
+  /// - Exactly one extended hit: confident.
+  /// - Several extended hits with exactly one core hit: confident for the
+  ///   core dive (a photo taken during dive B also lands in dive A's
+  ///   post-margin; the core hit is unambiguous).
+  /// - Otherwise ambiguous, candidates ordered by |takenAt - entry|.
+  TimestampMatch matchTimestamp({
+    required DateTime takenAt,
+    required List<DiveBounds> dives,
+  }) {
+    bool inExtended(DiveBounds d) =>
+        !takenAt.isBefore(d.entryTime.subtract(preBuffer)) &&
+        !takenAt.isAfter(d.exitTime.add(postBuffer));
+    bool inCore(DiveBounds d) =>
+        !takenAt.isBefore(d.entryTime) && !takenAt.isAfter(d.exitTime);
+
+    final extended = dives.where(inExtended).toList();
+    if (extended.isEmpty) {
+      return const TimestampMatch(kind: TimestampMatchKind.none);
+    }
+    if (extended.length == 1) {
+      return TimestampMatch(
+        kind: TimestampMatchKind.confident,
+        diveId: extended.single.diveId,
+      );
+    }
+    final core = extended.where(inCore).toList();
+    if (core.length == 1) {
+      return TimestampMatch(
+        kind: TimestampMatchKind.confident,
+        diveId: core.single.diveId,
+      );
+    }
+    extended.sort(
+      (a, b) => takenAt
+          .difference(a.entryTime)
+          .abs()
+          .compareTo(takenAt.difference(b.entryTime).abs()),
+    );
+    return TimestampMatch(
+      kind: TimestampMatchKind.ambiguous,
+      candidateDiveIds: [for (final d in extended) d.diveId],
+    );
+  }
+}
+
+/// Outcome kinds for [DivePhotoMatcher.matchTimestamp].
+enum TimestampMatchKind { confident, ambiguous, none }
+
+/// Result of matching one timestamp against dive windows.
+class TimestampMatch {
+  const TimestampMatch({
+    required this.kind,
+    this.diveId,
+    this.candidateDiveIds = const [],
+  });
+
+  final TimestampMatchKind kind;
+
+  /// The matched dive when [kind] is confident.
+  final String? diveId;
+
+  /// Candidate dives when [kind] is ambiguous, closest entry first.
+  final List<String> candidateDiveIds;
 }

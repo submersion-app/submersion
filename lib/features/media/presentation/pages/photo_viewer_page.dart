@@ -7,13 +7,17 @@ import 'package:path_provider/path_provider.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/lightroom/lightroom_api_client.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/media/data/services/metadata_write_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/media_source_type.dart';
+import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
@@ -156,6 +160,12 @@ class _PhotoViewerPageState extends ConsumerState<PhotoViewerPage> {
                     onShare: () => _shareCurrentPhoto(currentItem),
                     onWriteMetadata: () => _writeMetadataToPhoto(currentItem),
                     hasEnrichment: enrichment?.depthMeters != null,
+                    onOpenInLightroom: _lightroomWebUrl(currentItem) == null
+                        ? null
+                        : () => launchUrl(
+                            Uri.parse(_lightroomWebUrl(currentItem)!),
+                            mode: LaunchMode.externalApplication,
+                          ),
                   ),
 
                   // Mini dive profile overlay (lower right)
@@ -193,6 +203,22 @@ class _PhotoViewerPageState extends ConsumerState<PhotoViewerPage> {
         ),
       ),
     );
+  }
+
+  /// The lightroom.adobe.com URL for a connector item, or null when the
+  /// item is not Lightroom-linked or this device has no connected account
+  /// (the catalog id lives only on the connected device).
+  String? _lightroomWebUrl(MediaItem item) {
+    if (item.sourceType != MediaSourceType.serviceConnector ||
+        item.remoteAssetId == null) {
+      return null;
+    }
+    final catalogId = ref
+        .watch(lightroomAccountProvider)
+        .value
+        ?.accountIdentifier;
+    if (catalogId == null) return null;
+    return LightroomApiClient.assetWebUrl(catalogId, item.remoteAssetId!);
   }
 
   Future<void> _shareCurrentPhoto(MediaItem item) async {
@@ -788,6 +814,9 @@ class _TopOverlay extends StatelessWidget {
   final VoidCallback onWriteMetadata;
   final bool hasEnrichment;
 
+  /// Non-null only for Lightroom-linked items on the connected device.
+  final VoidCallback? onOpenInLightroom;
+
   const _TopOverlay({
     required this.currentIndex,
     required this.totalCount,
@@ -795,6 +824,7 @@ class _TopOverlay extends StatelessWidget {
     required this.onShare,
     required this.onWriteMetadata,
     required this.hasEnrichment,
+    this.onOpenInLightroom,
   });
 
   @override
@@ -844,6 +874,12 @@ class _TopOverlay extends StatelessWidget {
                     tooltip:
                         context.l10n.media_photoViewer_writeDiveDataTooltip,
                     onPressed: onWriteMetadata,
+                  ),
+                if (onOpenInLightroom != null)
+                  IconButton(
+                    icon: const Icon(Icons.open_in_new, color: Colors.white),
+                    tooltip: context.l10n.media_lightroom_openInLightroom,
+                    onPressed: onOpenInLightroom,
                   ),
                 IconButton(
                   icon: const Icon(Icons.share, color: Colors.white),

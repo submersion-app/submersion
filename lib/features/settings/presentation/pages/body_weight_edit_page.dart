@@ -17,7 +17,9 @@ class BodyWeightEditPage extends ConsumerWidget {
   Future<void> _showAddDialog(BuildContext context, WidgetRef ref) async {
     final units = UnitFormatter(ref.read(settingsProvider));
     final weightController = TextEditingController();
-    final heightController = TextEditingController();
+    final heightCmController = TextEditingController();
+    final heightFeetController = TextEditingController();
+    final heightInchesController = TextEditingController();
     var measuredAt = DateTime.now();
 
     final saved = await showDialog<bool>(
@@ -40,15 +42,46 @@ class BodyWeightEditPage extends ConsumerWidget {
                   decimal: true,
                 ),
               ),
-              TextField(
-                controller: heightController,
-                decoration: InputDecoration(
-                  labelText: dialogContext.l10n.bodyWeight_heightLabel,
+              if (units.heightIsMetric)
+                TextField(
+                  controller: heightCmController,
+                  decoration: InputDecoration(
+                    labelText: dialogContext.l10n.bodyWeight_heightLabel,
+                  ),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                )
+              else
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: heightFeetController,
+                        decoration: InputDecoration(
+                          labelText:
+                              dialogContext.l10n.bodyWeight_heightFeetLabel,
+                        ),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: false,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: TextField(
+                        controller: heightInchesController,
+                        decoration: InputDecoration(
+                          labelText:
+                              dialogContext.l10n.bodyWeight_heightInchesLabel,
+                        ),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-              ),
               const SizedBox(height: 8),
               Row(
                 children: [
@@ -96,6 +129,17 @@ class BodyWeightEditPage extends ConsumerWidget {
     final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
     if (diverId == null) return;
 
+    final double? heightCm;
+    if (units.heightIsMetric) {
+      heightCm = double.tryParse(heightCmController.text);
+    } else {
+      final feet = double.tryParse(heightFeetController.text);
+      final inches = double.tryParse(heightInchesController.text);
+      heightCm = (feet == null && inches == null)
+          ? null
+          : units.feetInchesToCm(feet ?? 0, inches ?? 0);
+    }
+
     await ref
         .read(diverWeightEntryRepositoryProvider)
         .createEntry(
@@ -104,7 +148,7 @@ class BodyWeightEditPage extends ConsumerWidget {
             diverId: diverId,
             measuredAt: measuredAt,
             weightKg: units.weightToKg(parsedWeight),
-            heightCm: double.tryParse(heightController.text),
+            heightCm: heightCm,
             createdAt: measuredAt,
             updatedAt: measuredAt,
           ),
@@ -144,7 +188,7 @@ class BodyWeightEditPage extends ConsumerWidget {
                 subtitle: Text(
                   entry.heightCm != null
                       ? '${DateFormat.yMMMd().format(entry.measuredAt)} · '
-                            '${entry.heightCm!.toStringAsFixed(0)} cm'
+                            '${units.formatHeight(entry.heightCm)}'
                       : DateFormat.yMMMd().format(entry.measuredAt),
                 ),
                 trailing: IconButton(

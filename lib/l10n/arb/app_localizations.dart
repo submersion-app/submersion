@@ -6392,6 +6392,18 @@ abstract class AppLocalizations {
   /// **'Edit dive'**
   String get diveLog_detail_tooltip_editDive;
 
+  /// No description provided for @diveLog_detail_tooltip_previousDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous dive'**
+  String get diveLog_detail_tooltip_previousDive;
+
+  /// No description provided for @diveLog_detail_tooltip_nextDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Next dive'**
+  String get diveLog_detail_tooltip_nextDive;
+
   /// No description provided for @diveLog_detail_tooltip_exportProfileImage.
   ///
   /// In en, this message translates to:
@@ -6421,6 +6433,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Closed circuit rebreather with constant ppO₂'**
   String get diveLog_diveMode_ccrDescription;
+
+  /// No description provided for @diveLog_diveMode_gaugeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth and time only; no gas or decompression tracking'**
+  String get diveLog_diveMode_gaugeDescription;
 
   /// No description provided for @diveLog_diveMode_ocDescription.
   ///
@@ -14122,6 +14140,12 @@ abstract class AppLocalizations {
   /// **'Closed Circuit Rebreather'**
   String get enum_diveMode_ccr;
 
+  /// No description provided for @enum_diveMode_gauge.
+  ///
+  /// In en, this message translates to:
+  /// **'Gauge'**
+  String get enum_diveMode_gauge;
+
   /// No description provided for @enum_diveMode_oc.
   ///
   /// In en, this message translates to:
@@ -17991,6 +18015,30 @@ abstract class AppLocalizations {
   /// **'Importing {count} {count, plural, =1{photo} other{photos}}...'**
   String media_import_importingPhotos(int count);
 
+  /// No description provided for @media_lightroom_openInLightroom.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in Lightroom'**
+  String get media_lightroom_openInLightroom;
+
+  /// No description provided for @media_lightroom_suggestion_accept.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to this dive'**
+  String get media_lightroom_suggestion_accept;
+
+  /// No description provided for @media_lightroom_suggestion_dismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get media_lightroom_suggestion_dismiss;
+
+  /// No description provided for @media_lightroom_suggestions_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested from Lightroom'**
+  String get media_lightroom_suggestions_title;
+
   /// No description provided for @media_miniProfile_headerLabel.
   ///
   /// In en, this message translates to:
@@ -21342,6 +21390,160 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'System Default'**
   String get settings_language_systemDefault;
+
+  /// No description provided for @settings_lightroom_albumFilter_all.
+  ///
+  /// In en, this message translates to:
+  /// **'Entire catalog'**
+  String get settings_lightroom_albumFilter_all;
+
+  /// No description provided for @settings_lightroom_albumFilter_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Albums to scan'**
+  String get settings_lightroom_albumFilter_title;
+
+  /// No description provided for @settings_lightroom_autoPoll_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Check for new photos automatically'**
+  String get settings_lightroom_autoPoll_title;
+
+  /// No description provided for @settings_lightroom_clientId_help.
+  ///
+  /// In en, this message translates to:
+  /// **'Create an integration in the Adobe Developer Console with the Lightroom Services API and a credential type that supports PKCE. Set the redirect URI to {redirectUri}.'**
+  String settings_lightroom_clientId_help(String redirectUri);
+
+  /// No description provided for @settings_lightroom_clientId_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Adobe client ID'**
+  String get settings_lightroom_clientId_label;
+
+  /// No description provided for @settings_lightroom_clientSecret_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Client secret (optional)'**
+  String get settings_lightroom_clientSecret_label;
+
+  /// No description provided for @settings_lightroom_connect.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect Lightroom'**
+  String get settings_lightroom_connect;
+
+  /// No description provided for @settings_lightroom_connect_codeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Redirected URL or code'**
+  String get settings_lightroom_connect_codeLabel;
+
+  /// No description provided for @settings_lightroom_connect_emptyCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste the redirected URL or authorization code'**
+  String get settings_lightroom_connect_emptyCode;
+
+  /// No description provided for @settings_lightroom_connect_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not connect to Lightroom: {error}'**
+  String settings_lightroom_connect_failed(String error);
+
+  /// No description provided for @settings_lightroom_connect_instructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to Adobe in the browser window, then paste the full address of the page you land on (it contains the authorization code).'**
+  String get settings_lightroom_connect_instructions;
+
+  /// No description provided for @settings_lightroom_connect_reopenBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Reopen browser'**
+  String get settings_lightroom_connect_reopenBrowser;
+
+  /// No description provided for @settings_lightroom_connect_submit.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect'**
+  String get settings_lightroom_connect_submit;
+
+  /// No description provided for @settings_lightroom_connect_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect Lightroom'**
+  String get settings_lightroom_connect_title;
+
+  /// No description provided for @settings_lightroom_connected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected as {name}'**
+  String settings_lightroom_connected(String name);
+
+  /// No description provided for @settings_lightroom_disconnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnect'**
+  String get settings_lightroom_disconnect;
+
+  /// No description provided for @settings_lightroom_disconnect_confirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked photos stay on your dives and keep displaying from the media store. New photos will no longer be matched.'**
+  String get settings_lightroom_disconnect_confirmBody;
+
+  /// No description provided for @settings_lightroom_disconnect_confirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnect Lightroom?'**
+  String get settings_lightroom_disconnect_confirmTitle;
+
+  /// No description provided for @settings_lightroom_lastPoll.
+  ///
+  /// In en, this message translates to:
+  /// **'Last checked: {when}'**
+  String settings_lightroom_lastPoll(String when);
+
+  /// No description provided for @settings_lightroom_needsReauth.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnect needed'**
+  String get settings_lightroom_needsReauth;
+
+  /// No description provided for @settings_lightroom_scanNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan Lightroom'**
+  String get settings_lightroom_scanNow;
+
+  /// No description provided for @settings_lightroom_scan_running.
+  ///
+  /// In en, this message translates to:
+  /// **'Scanning Lightroom...'**
+  String get settings_lightroom_scan_running;
+
+  /// No description provided for @settings_lightroom_scan_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'{attached} linked, {suggested} suggested, {skipped} already linked'**
+  String settings_lightroom_scan_summary(
+    int attached,
+    int suggested,
+    int skipped,
+  );
+
+  /// No description provided for @settings_lightroom_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-link photos and videos to dives'**
+  String get settings_lightroom_subtitle;
+
+  /// No description provided for @settings_lightroom_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Adobe Lightroom'**
+  String get settings_lightroom_title;
 
   /// No description provided for @settings_manage_checklistTemplates.
   ///
@@ -31789,6 +31991,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Height (cm)'**
   String get bodyWeight_heightLabel;
+
+  /// No description provided for @bodyWeight_heightFeetLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Height (ft)'**
+  String get bodyWeight_heightFeetLabel;
+
+  /// No description provided for @bodyWeight_heightInchesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Inches'**
+  String get bodyWeight_heightInchesLabel;
 
   /// No description provided for @bodyWeight_weightLabel.
   ///

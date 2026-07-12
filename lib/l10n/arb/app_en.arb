@@ -2011,11 +2011,14 @@
   "diveLog_detail_tooltip_addToFavorites": "Add to favorites",
   "diveLog_detail_tooltip_edit": "Edit",
   "diveLog_detail_tooltip_editDive": "Edit dive",
+  "diveLog_detail_tooltip_previousDive": "Previous dive",
+  "diveLog_detail_tooltip_nextDive": "Next dive",
   "diveLog_detail_tooltip_exportProfileImage": "Export profile as image",
   "diveLog_detail_tooltip_removeFromFavorites": "Remove from favorites",
   "diveLog_detail_tooltip_viewFullscreen": "View fullscreen",
   "diveLog_detail_viewSite": "View Site",
   "diveLog_diveMode_ccrDescription": "Closed circuit rebreather with constant ppO₂",
+  "diveLog_diveMode_gaugeDescription": "Depth and time only; no gas or decompression tracking",
   "diveLog_diveMode_ocDescription": "Standard open circuit scuba with tanks",
   "diveLog_diveMode_scrDescription": "Semi-closed rebreather with variable ppO₂",
   "diveLog_diveMode_title": "Dive Mode",
@@ -4649,6 +4652,7 @@
   "enum_currentStrength_none": "None",
   "enum_currentStrength_strong": "Strong",
   "enum_diveMode_ccr": "Closed Circuit Rebreather",
+  "enum_diveMode_gauge": "Gauge",
   "enum_diveMode_oc": "Open Circuit",
   "enum_diveMode_scr": "Semi-Closed Rebreather",
   "enum_diveType_altitude": "Altitude",
@@ -5715,6 +5719,10 @@
   "media_import_importedAndSkipped": "{imported, plural, =1{Imported 1 photo} other{Imported {imported} photos}} ({skipped} already linked)",
   "media_import_importedPhotos": "Imported {count} {count, plural, =1{photo} other{photos}}",
   "media_import_importingPhotos": "Importing {count} {count, plural, =1{photo} other{photos}}...",
+  "media_lightroom_openInLightroom": "Open in Lightroom",
+  "media_lightroom_suggestion_accept": "Add to this dive",
+  "media_lightroom_suggestion_dismiss": "Dismiss",
+  "media_lightroom_suggestions_title": "Suggested from Lightroom",
   "media_miniProfile_headerLabel": "Dive Profile",
   "media_miniProfile_semanticLabel": "Mini dive profile chart",
   "media_photoPicker_appBarTitle": "Select Photos",
@@ -6814,6 +6822,72 @@
   "settings_language_appBar_title": "Language",
   "settings_language_selected": "Selected",
   "settings_language_systemDefault": "System Default",
+  "settings_lightroom_albumFilter_all": "Entire catalog",
+  "settings_lightroom_albumFilter_title": "Albums to scan",
+  "settings_lightroom_autoPoll_title": "Check for new photos automatically",
+  "settings_lightroom_clientId_help": "Create an integration in the Adobe Developer Console with the Lightroom Services API and a credential type that supports PKCE. Set the redirect URI to {redirectUri}.",
+  "@settings_lightroom_clientId_help": {
+    "placeholders": {
+      "redirectUri": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_lightroom_clientId_label": "Adobe client ID",
+  "settings_lightroom_clientSecret_label": "Client secret (optional)",
+  "settings_lightroom_connect": "Connect Lightroom",
+  "settings_lightroom_connect_codeLabel": "Redirected URL or code",
+  "settings_lightroom_connect_emptyCode": "Paste the redirected URL or authorization code",
+  "settings_lightroom_connect_failed": "Could not connect to Lightroom: {error}",
+  "@settings_lightroom_connect_failed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_lightroom_connect_instructions": "Sign in to Adobe in the browser window, then paste the full address of the page you land on (it contains the authorization code).",
+  "settings_lightroom_connect_reopenBrowser": "Reopen browser",
+  "settings_lightroom_connect_submit": "Connect",
+  "settings_lightroom_connect_title": "Connect Lightroom",
+  "settings_lightroom_connected": "Connected as {name}",
+  "@settings_lightroom_connected": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_lightroom_disconnect": "Disconnect",
+  "settings_lightroom_disconnect_confirmBody": "Linked photos stay on your dives and keep displaying from the media store. New photos will no longer be matched.",
+  "settings_lightroom_disconnect_confirmTitle": "Disconnect Lightroom?",
+  "settings_lightroom_lastPoll": "Last checked: {when}",
+  "@settings_lightroom_lastPoll": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_lightroom_needsReauth": "Reconnect needed",
+  "settings_lightroom_scanNow": "Scan Lightroom",
+  "settings_lightroom_scan_running": "Scanning Lightroom...",
+  "settings_lightroom_scan_summary": "{attached} linked, {suggested} suggested, {skipped} already linked",
+  "@settings_lightroom_scan_summary": {
+    "placeholders": {
+      "attached": {
+        "type": "int"
+      },
+      "suggested": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_lightroom_subtitle": "Auto-link photos and videos to dives",
+  "settings_lightroom_title": "Adobe Lightroom",
   "settings_manage_checklistTemplates": "Checklist Templates",
   "settings_manage_checklistTemplates_subtitle": "Reusable to-do lists for trip planning",
   "settings_manage_diveRoles": "Dive Roles",
@@ -11884,6 +11958,8 @@
   "bodyWeight_dateLabel": "Date",
   "bodyWeight_deleteTooltip": "Delete entry",
   "bodyWeight_heightLabel": "Height (cm)",
+  "bodyWeight_heightFeetLabel": "Height (ft)",
+  "bodyWeight_heightInchesLabel": "Inches",
   "bodyWeight_weightLabel": "Weight ({unit})",
   "@bodyWeight_weightLabel": {
     "placeholders": {

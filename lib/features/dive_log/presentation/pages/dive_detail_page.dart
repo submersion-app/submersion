@@ -2,6 +2,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -31,15 +32,18 @@ import 'package:submersion/features/dive_3d/presentation/pages/dive_3d_page.dart
 import 'package:submersion/features/dive_3d/presentation/pages/spatial_site_page.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
+import 'package:submersion/features/dive_log/presentation/formatters/dive_mode_label.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_detail_ui_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_nav_buttons.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/pages/fullscreen_profile_page.dart';
 import 'package:submersion/features/dive_log/presentation/utils/sac_normalization.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_overlay_provider.dart';
+import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_playback_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
@@ -146,6 +150,37 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
   String get diveId => widget.diveId;
 
+  /// Navigate to an adjacent dive. Embedded (master-detail) swaps the selected
+  /// query param -- the DetailScrollRetainer then keeps the scroll offset, so
+  /// the same section stays in view. Standalone replaces the route so stepping
+  /// through dives does not pile up the back stack.
+  void _navigateToDive(String neighborId) {
+    if (widget.embedded) {
+      context.go('/dives?selected=$neighborId');
+    } else {
+      context.replace('/dives/$neighborId');
+    }
+  }
+
+  /// Wraps [child] with Left/Right arrow-key bindings for previous/next dive.
+  /// Up/Down are left untouched so vertical scrolling still works.
+  Widget _wrapWithDiveShortcuts(Dive dive, Widget child) {
+    final neighbors = ref.watch(diveNeighborsProvider(dive.id));
+    return CallbackShortcuts(
+      bindings: {
+        const SingleActivator(LogicalKeyboardKey.arrowLeft): () {
+          final id = neighbors.previousId;
+          if (id != null) _navigateToDive(id);
+        },
+        const SingleActivator(LogicalKeyboardKey.arrowRight): () {
+          final id = neighbors.nextId;
+          if (id != null) _navigateToDive(id);
+        },
+      },
+      child: Focus(child: child),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // On desktop, redirect standalone detail pages to master-detail view.
@@ -174,7 +209,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             body: Center(child: Text(context.l10n.diveLog_detail_notFound)),
           );
         }
-        return _buildContent(context, ref, dive);
+        return _wrapWithDiveShortcuts(dive, _buildContent(context, ref, dive));
       },
       loading: () => Scaffold(
         appBar: AppBar(title: Text(context.l10n.diveLog_detail_appBar)),
@@ -458,6 +493,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     );
 
     final body = SingleChildScrollView(
+      controller: DetailScrollController.maybeOf(context),
       padding: const EdgeInsets.all(16),
       child: RepaintBoundary(
         key: _pageExportKey,
@@ -493,9 +529,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             // Fixed: Dive Profile Chart
             if (dive.profile.isNotEmpty)
               _buildProfileSection(context, ref, dive),
-            // Configurable sections in user-defined order
+            // Configurable sections in user-defined order. Gauge dives hide
+            // gas/deco sections (deco/O2 tox, SAC segments, cylinders).
             for (final section in settings.diveDetailSections)
-              if (section.visible) ...builders[section.id]?.call() ?? [],
+              if (section.visible &&
+                  !(dive.isGauge && section.id.hiddenInGaugeMode))
+                ...builders[section.id]?.call() ?? [],
             const SizedBox(height: 32),
           ],
         ),
@@ -517,6 +556,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       appBar: AppBar(
         title: Text(context.l10n.diveLog_detail_appBar),
         actions: [
+          DiveNavButtons(diveId: diveId, onNavigate: _navigateToDive),
           IconButton(
             icon: Icon(
               dive.isFavorite ? Icons.favorite : Icons.favorite_border,
@@ -656,6 +696,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               ],
             ),
           ),
+          DiveNavButtons(diveId: dive.id, onNavigate: _navigateToDive),
           // Favorite toggle
           IconButton(
             icon: Icon(
@@ -2521,6 +2562,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               context,
               context.l10n.diveLog_detail_label_diveType,
               dive.diveTypeNames.join(', '),
+            ),
+            _buildDetailRow(
+              context,
+              context.l10n.diveLog_diveMode_title,
+              diveModeLabel(context.l10n, dive.diveMode),
             ),
             if (dive.trip != null) _buildTripRow(context, dive),
             if (dive.diveCenter != null) _buildDiveCenterRow(context, dive),

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_computer/data/services/parsed_dive_mapper.dart';
 
 void main() {
@@ -26,6 +27,7 @@ void main() {
       int? gfLow,
       int? gfHigh,
       int? decoConservatism,
+      String? diveMode,
       double? entryLatitude,
       double? entryLongitude,
       double? exitLatitude,
@@ -53,12 +55,37 @@ void main() {
         gfLow: gfLow,
         gfHigh: gfHigh,
         decoConservatism: decoConservatism,
+        diveMode: diveMode,
         entryLatitude: entryLatitude,
         entryLongitude: entryLongitude,
         exitLatitude: exitLatitude,
         exitLongitude: exitLongitude,
       );
     }
+
+    // --- Dive mode ---
+
+    test('maps gauge mode and imports no tanks', () {
+      final parsed = makeParsedDive(
+        diveMode: 'gauge',
+        tanks: [],
+        gasMixes: [pigeon.GasMix(index: 0, o2Percent: 21.0, hePercent: 0.0)],
+      );
+      final downloaded = parsedDiveToDownloaded(parsed);
+      expect(downloaded.diveMode, DiveMode.gauge);
+      expect(downloaded.tanks, isEmpty);
+    });
+
+    test('maps ccr mode and defaults null mode to oc', () {
+      expect(
+        parsedDiveToDownloaded(makeParsedDive(diveMode: 'ccr')).diveMode,
+        DiveMode.ccr,
+      );
+      expect(
+        parsedDiveToDownloaded(makeParsedDive(diveMode: null)).diveMode,
+        DiveMode.oc,
+      );
+    });
 
     // --- DateTime construction ---
 

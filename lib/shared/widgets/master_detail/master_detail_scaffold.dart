@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
 /// Mode for the detail pane in master-detail layout.
@@ -162,6 +163,12 @@ class MasterDetailScaffold extends ConsumerStatefulWidget {
 }
 
 class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
+  /// Last known scroll offset of the detail pane, preserved across item
+  /// selections so switching between items keeps the same section in view.
+  /// Mutated on scroll without setState (it must not trigger a rebuild); read
+  /// when a new detail is built. See [DetailScrollRetainer].
+  double _detailScrollOffset = 0;
+
   /// Get the currently selected item ID from URL query params
   String? get _selectedId {
     final state = GoRouterState.of(context);
@@ -333,6 +340,9 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
                     onClose: () => _onItemSelected(null),
                     onSaved: _onSaved,
                     onCancel: _onCancel,
+                    detailScrollOffset: _detailScrollOffset,
+                    onDetailScrollOffsetChanged: (offset) =>
+                        _detailScrollOffset = offset,
                   ),
           ),
         ],
@@ -408,6 +418,12 @@ class _DetailPane extends StatelessWidget {
   final void Function(String savedId) onSaved;
   final VoidCallback onCancel;
 
+  /// Offset to restore into a newly-built detail (see [DetailScrollRetainer]).
+  final double detailScrollOffset;
+
+  /// Records the detail pane's latest user-driven scroll offset.
+  final ValueChanged<double> onDetailScrollOffsetChanged;
+
   const _DetailPane({
     required this.selectedId,
     required this.mode,
@@ -416,6 +432,8 @@ class _DetailPane extends StatelessWidget {
     required this.onClose,
     required this.onSaved,
     required this.onCancel,
+    required this.detailScrollOffset,
+    required this.onDetailScrollOffsetChanged,
     this.editBuilder,
     this.createBuilder,
   });
@@ -449,11 +467,23 @@ class _DetailPane extends StatelessWidget {
       );
     }
 
-    // View mode with selected item
+    // View mode with selected item.
+    //
+    // The ValueKey deliberately rebuilds the detail subtree per item so each
+    // item gets fresh local state. The DetailScrollRetainer sits inside that
+    // per-item subtree and re-applies the pane's scroll offset once the new
+    // content has laid out, so switching items keeps the same section in view
+    // (compare a section across items without re-scrolling). A detail page
+    // opts in by attaching DetailScrollController.maybeOf(context) to its
+    // primary scroll view.
     if (selectedId != null) {
       return KeyedSubtree(
         key: ValueKey('detail_$selectedId'),
-        child: detailBuilder(context, selectedId!),
+        child: DetailScrollRetainer(
+          initialOffset: detailScrollOffset,
+          onOffsetChanged: onDetailScrollOffsetChanged,
+          child: detailBuilder(context, selectedId!),
+        ),
       );
     }
 

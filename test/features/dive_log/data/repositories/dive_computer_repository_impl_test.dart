@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 
@@ -337,6 +338,29 @@ void main() {
         expect(allDives.length, equals(2));
       },
     );
+
+    test('importProfile persists the computer dive mode (gauge)', () async {
+      final computerId = await insertComputer();
+      final entryTime = DateTime(2026, 3, 15, 12, 0);
+
+      final diveId = await repository.importProfile(
+        computerId: computerId,
+        profileStartTime: entryTime,
+        points: const [
+          ProfilePointData(timestamp: 0, depth: 0.0),
+          ProfilePointData(timestamp: 60, depth: 10.0),
+        ],
+        durationSeconds: 20 * 60,
+        maxDepth: 10.0,
+        diveMode: DiveMode.gauge,
+        forceNew: true,
+      );
+
+      final dive = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals(diveId))).getSingle();
+      expect(dive.diveMode, 'gauge');
+    });
 
     test(
       'forceNew=false (default) matches existing dive by timestamp',

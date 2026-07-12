@@ -114,9 +114,9 @@ void main() {
   });
 
   test('version ladder includes 105', () {
-    // v105 is the newest migration: this test holds the exact-latest
-    // tripwire until the next migration lands and relaxes it.
-    expect(AppDatabase.currentSchemaVersion, 105);
+    // Exact-latest tripwire handed off to the newest migration's test
+    // (v106, Lightroom connector suggestions).
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(105));
     expect(AppDatabase.migrationVersions, contains(105));
   });
 }

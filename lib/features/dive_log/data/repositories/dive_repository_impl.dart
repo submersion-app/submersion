@@ -1567,6 +1567,63 @@ class DiveRepository {
     }
   }
 
+  /// Returns every dive id matching [filter] in [sort] order -- the same order
+  /// as [getDiveSummaries] but without pagination and selecting only the id.
+  ///
+  /// Used to compute previous/next navigation from the detail page. Distinct
+  /// from [getPreviousDive], which is the chronological surface-interval query.
+  Future<List<String>> getOrderedDiveIds({
+    String? diverId,
+    DiveFilterState filter = const DiveFilterState(),
+    SortState<DiveSortField>? sort,
+  }) async {
+    try {
+      return await PerfTimer.measure('getOrderedDiveIds', () async {
+        final whereClauses = <String>[];
+        final args = <Variable<Object>>[];
+
+        if (diverId != null) {
+          whereClauses.add('d.diver_id = ?');
+          args.add(Variable(diverId));
+        }
+
+        _buildFilterWhereClauses(filter, whereClauses, args);
+
+        final whereClause = whereClauses.isNotEmpty
+            ? 'WHERE ${whereClauses.join(' AND ')}'
+            : '';
+        final orderByClause = _buildSortOrderBy(sort);
+
+        // sort_timestamp / s.name aliases are referenced by _buildSortOrderBy,
+        // so they must appear here even though only id is read back.
+        final sql =
+            'SELECT d.id, '
+            'COALESCE(d.entry_time, d.dive_date_time) AS sort_timestamp '
+            'FROM dives d '
+            'LEFT JOIN dive_sites s ON d.site_id = s.id '
+            '$whereClause '
+            'ORDER BY $orderByClause';
+
+        final rows = await _db
+            .customSelect(
+              sql,
+              variables: args,
+              readsFrom: {_db.dives, _db.diveSites},
+            )
+            .get();
+
+        return rows.map((r) => r.read<String>('id')).toList();
+      });
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get ordered dive ids',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Get total count of dives matching the given filters.
   ///
   /// Used to display "X dives" in the UI header without loading all data.

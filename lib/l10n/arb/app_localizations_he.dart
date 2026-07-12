@@ -3710,6 +3710,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_detail_tooltip_editDive => 'עריכת צלילה';
 
   @override
+  String get diveLog_detail_tooltip_previousDive => 'Previous dive';
+
+  @override
+  String get diveLog_detail_tooltip_nextDive => 'Next dive';
+
+  @override
   String get diveLog_detail_tooltip_exportProfileImage => 'ייצוא פרופיל כתמונה';
 
   @override
@@ -3724,6 +3730,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get diveLog_diveMode_ccrDescription =>
       'ריברידר מעגל סגור עם ppO₂ קבוע';
+
+  @override
+  String get diveLog_diveMode_gaugeDescription =>
+      'עומק וזמן בלבד; ללא מעקב גז או דקומפרסיה';
 
   @override
   String get diveLog_diveMode_ocDescription =>
@@ -8077,6 +8087,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_diveMode_ccr => 'ריברידר מעגל סגור';
 
   @override
+  String get enum_diveMode_gauge => 'מד עומק';
+
+  @override
   String get enum_diveMode_oc => 'מעגל פתוח';
 
   @override
@@ -10266,6 +10279,18 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get media_lightroom_openInLightroom => 'פתיחה ב-Lightroom';
+
+  @override
+  String get media_lightroom_suggestion_accept => 'הוספה לצלילה זו';
+
+  @override
+  String get media_lightroom_suggestion_dismiss => 'התעלמות';
+
+  @override
+  String get media_lightroom_suggestions_title => 'הצעות מ-Lightroom';
+
+  @override
   String get media_miniProfile_headerLabel => 'פרופיל צלילה';
 
   @override
@@ -12257,6 +12282,100 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_language_systemDefault => 'ברירת מחדל של המערכת';
+
+  @override
+  String get settings_lightroom_albumFilter_all => 'כל הקטלוג';
+
+  @override
+  String get settings_lightroom_albumFilter_title => 'אלבומים לסריקה';
+
+  @override
+  String get settings_lightroom_autoPoll_title =>
+      'בדיקה אוטומטית של תמונות חדשות';
+
+  @override
+  String settings_lightroom_clientId_help(String redirectUri) {
+    return 'צרו אינטגרציה ב-Adobe Developer Console עם Lightroom Services API וסוג אישור התומך ב-PKCE. הגדירו את כתובת ההפניה ל-$redirectUri.';
+  }
+
+  @override
+  String get settings_lightroom_clientId_label => 'מזהה לקוח של Adobe';
+
+  @override
+  String get settings_lightroom_clientSecret_label => 'סוד לקוח (אופציונלי)';
+
+  @override
+  String get settings_lightroom_connect => 'חיבור Lightroom';
+
+  @override
+  String get settings_lightroom_connect_codeLabel => 'כתובת URL מופנית או קוד';
+
+  @override
+  String get settings_lightroom_connect_emptyCode =>
+      'הדביקו את כתובת ה-URL המופנית או את קוד ההרשאה';
+
+  @override
+  String settings_lightroom_connect_failed(String error) {
+    return 'לא ניתן להתחבר ל-Lightroom: $error';
+  }
+
+  @override
+  String get settings_lightroom_connect_instructions =>
+      'התחברו ל-Adobe בחלון הדפדפן, ואז הדביקו את הכתובת המלאה של הדף שאליו הגעתם (היא מכילה את קוד ההרשאה).';
+
+  @override
+  String get settings_lightroom_connect_reopenBrowser => 'פתיחת הדפדפן מחדש';
+
+  @override
+  String get settings_lightroom_connect_submit => 'חיבור';
+
+  @override
+  String get settings_lightroom_connect_title => 'חיבור Lightroom';
+
+  @override
+  String settings_lightroom_connected(String name) {
+    return 'מחובר בתור $name';
+  }
+
+  @override
+  String get settings_lightroom_disconnect => 'ניתוק';
+
+  @override
+  String get settings_lightroom_disconnect_confirmBody =>
+      'תמונות מקושרות נשארות בצלילות שלכם וממשיכות להיות מוצגות מאחסון המדיה. תמונות חדשות לא יותאמו יותר.';
+
+  @override
+  String get settings_lightroom_disconnect_confirmTitle => 'לנתק את Lightroom?';
+
+  @override
+  String settings_lightroom_lastPoll(String when) {
+    return 'בדיקה אחרונה: $when';
+  }
+
+  @override
+  String get settings_lightroom_needsReauth => 'נדרש חיבור מחדש';
+
+  @override
+  String get settings_lightroom_scanNow => 'סריקת Lightroom';
+
+  @override
+  String get settings_lightroom_scan_running => 'סורק את Lightroom...';
+
+  @override
+  String settings_lightroom_scan_summary(
+    int attached,
+    int suggested,
+    int skipped,
+  ) {
+    return '$attached קושרו, $suggested הוצעו, $skipped כבר מקושרות';
+  }
+
+  @override
+  String get settings_lightroom_subtitle =>
+      'קישור אוטומטי של תמונות וסרטונים לצלילות';
+
+  @override
+  String get settings_lightroom_title => 'Adobe Lightroom';
 
   @override
   String get settings_manage_checklistTemplates => 'תבניות רשימות משימות';
@@ -18508,6 +18627,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get bodyWeight_heightLabel => 'גובה (ס״מ)';
+
+  @override
+  String get bodyWeight_heightFeetLabel => 'גובה (רגל)';
+
+  @override
+  String get bodyWeight_heightInchesLabel => 'אינץ\'';
 
   @override
   String bodyWeight_weightLabel(String unit) {

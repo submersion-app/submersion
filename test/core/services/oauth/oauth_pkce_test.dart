@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_pkce.dart';
+import 'package:submersion/core/services/oauth/oauth_pkce.dart';
 
 void main() {
   group('codeChallengeS256', () {

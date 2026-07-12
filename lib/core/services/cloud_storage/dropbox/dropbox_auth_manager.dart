@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_app.dart';
 import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_auth_store.dart';
-import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_pkce.dart';
+import 'package:submersion/core/services/oauth/oauth_pkce.dart';
 import 'package:submersion/core/services/logger_service.dart';
 
 /// OAuth 2 PKCE lifecycle for Dropbox: authorize-URL construction, the

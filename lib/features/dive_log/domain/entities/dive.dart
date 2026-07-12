@@ -290,6 +290,10 @@ class Dive extends Equatable {
   /// Whether this is an SCR dive
   bool get isSCR => diveMode == DiveMode.scr;
 
+  /// Whether this is a gauge (bottom-timer) dive: depth+time only, no gas
+  /// or decompression modeling.
+  bool get isGauge => diveMode == DiveMode.gauge;
+
   /// Whether this is any type of rebreather dive
   bool get isRebreather => isCCR || isSCR;
 

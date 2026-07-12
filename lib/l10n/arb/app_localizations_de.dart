@@ -3821,6 +3821,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_detail_tooltip_editDive => 'Tauchgang bearbeiten';
 
   @override
+  String get diveLog_detail_tooltip_previousDive => 'Previous dive';
+
+  @override
+  String get diveLog_detail_tooltip_nextDive => 'Next dive';
+
+  @override
   String get diveLog_detail_tooltip_exportProfileImage =>
       'Profil als Bild exportieren';
 
@@ -3837,6 +3843,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveLog_diveMode_ccrDescription =>
       'Geschlossener Kreislauf Rebreather mit konstantem ppO₂';
+
+  @override
+  String get diveLog_diveMode_gaugeDescription =>
+      'Nur Tiefe und Zeit; keine Gas- oder Dekompressionsverfolgung';
 
   @override
   String get diveLog_diveMode_ocDescription =>
@@ -8289,6 +8299,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_diveMode_ccr => 'Geschlossener Kreislauf Rebreather';
 
   @override
+  String get enum_diveMode_gauge => 'Gauge';
+
+  @override
   String get enum_diveMode_oc => 'Offener Kreislauf';
 
   @override
@@ -10535,6 +10548,19 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get media_lightroom_openInLightroom => 'In Lightroom öffnen';
+
+  @override
+  String get media_lightroom_suggestion_accept =>
+      'Zu diesem Tauchgang hinzufügen';
+
+  @override
+  String get media_lightroom_suggestion_dismiss => 'Verwerfen';
+
+  @override
+  String get media_lightroom_suggestions_title => 'Vorschläge aus Lightroom';
+
+  @override
   String get media_miniProfile_headerLabel => 'Tauchprofil';
 
   @override
@@ -12578,6 +12604,104 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_language_systemDefault => 'Systemstandard';
+
+  @override
+  String get settings_lightroom_albumFilter_all => 'Gesamter Katalog';
+
+  @override
+  String get settings_lightroom_albumFilter_title => 'Zu durchsuchende Alben';
+
+  @override
+  String get settings_lightroom_autoPoll_title =>
+      'Automatisch nach neuen Fotos suchen';
+
+  @override
+  String settings_lightroom_clientId_help(String redirectUri) {
+    return 'Erstelle in der Adobe Developer Console eine Integration mit der Lightroom Services API und einem Anmeldetyp, der PKCE unterstützt. Lege als Redirect-URI $redirectUri fest.';
+  }
+
+  @override
+  String get settings_lightroom_clientId_label => 'Adobe Client-ID';
+
+  @override
+  String get settings_lightroom_clientSecret_label =>
+      'Client-Secret (optional)';
+
+  @override
+  String get settings_lightroom_connect => 'Lightroom verbinden';
+
+  @override
+  String get settings_lightroom_connect_codeLabel =>
+      'Weitergeleitete URL oder Code';
+
+  @override
+  String get settings_lightroom_connect_emptyCode =>
+      'Weitergeleitete URL oder Autorisierungscode einfügen';
+
+  @override
+  String settings_lightroom_connect_failed(String error) {
+    return 'Verbindung zu Lightroom fehlgeschlagen: $error';
+  }
+
+  @override
+  String get settings_lightroom_connect_instructions =>
+      'Melde dich im Browserfenster bei Adobe an und füge dann die vollständige Adresse der Seite ein, auf der du landest (sie enthält den Autorisierungscode).';
+
+  @override
+  String get settings_lightroom_connect_reopenBrowser =>
+      'Browser erneut öffnen';
+
+  @override
+  String get settings_lightroom_connect_submit => 'Verbinden';
+
+  @override
+  String get settings_lightroom_connect_title => 'Lightroom verbinden';
+
+  @override
+  String settings_lightroom_connected(String name) {
+    return 'Verbunden als $name';
+  }
+
+  @override
+  String get settings_lightroom_disconnect => 'Trennen';
+
+  @override
+  String get settings_lightroom_disconnect_confirmBody =>
+      'Verknüpfte Fotos bleiben bei deinen Tauchgängen und werden weiterhin aus dem Medienspeicher angezeigt. Neue Fotos werden nicht mehr zugeordnet.';
+
+  @override
+  String get settings_lightroom_disconnect_confirmTitle => 'Lightroom trennen?';
+
+  @override
+  String settings_lightroom_lastPoll(String when) {
+    return 'Zuletzt geprüft: $when';
+  }
+
+  @override
+  String get settings_lightroom_needsReauth =>
+      'Erneute Verbindung erforderlich';
+
+  @override
+  String get settings_lightroom_scanNow => 'Lightroom durchsuchen';
+
+  @override
+  String get settings_lightroom_scan_running => 'Lightroom wird durchsucht...';
+
+  @override
+  String settings_lightroom_scan_summary(
+    int attached,
+    int suggested,
+    int skipped,
+  ) {
+    return '$attached verknüpft, $suggested vorgeschlagen, $skipped bereits verknüpft';
+  }
+
+  @override
+  String get settings_lightroom_subtitle =>
+      'Fotos und Videos automatisch mit Tauchgängen verknüpfen';
+
+  @override
+  String get settings_lightroom_title => 'Adobe Lightroom';
 
   @override
   String get settings_manage_checklistTemplates => 'Checklistenvorlagen';
@@ -18964,6 +19088,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get bodyWeight_heightLabel => 'Größe (cm)';
+
+  @override
+  String get bodyWeight_heightFeetLabel => 'Größe (ft)';
+
+  @override
+  String get bodyWeight_heightInchesLabel => 'Zoll';
 
   @override
   String bodyWeight_weightLabel(String unit) {

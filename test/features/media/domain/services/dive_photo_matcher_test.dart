@@ -15,7 +15,7 @@ DiveBounds _dive(String id, DateTime start, Duration runtime) =>
     DiveBounds(diveId: id, entryTime: start, exitTime: start.add(runtime));
 
 void main() {
-  final matcher = DivePhotoMatcher();
+  const matcher = DivePhotoMatcher();
 
   test('routes file taken during dive window to that dive', () {
     final dive = _dive(

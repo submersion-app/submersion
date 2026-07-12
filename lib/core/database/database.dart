@@ -952,7 +952,11 @@ class MediaSpecies extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-/// Pending photo suggestions for background scan feature
+/// Pending photo suggestions for background scan feature.
+///
+/// v106: connector suggestions (Lightroom) reuse this table. For those
+/// rows `connectorAccountId`/`remoteAssetId` are set and the remote asset
+/// id is mirrored into the NOT NULL `platformAssetId` key column.
 class PendingPhotoSuggestions extends Table {
   TextColumn get id => text()();
   TextColumn get diveId =>
@@ -962,6 +966,8 @@ class PendingPhotoSuggestions extends Table {
   TextColumn get thumbnailPath => text().nullable()();
   BoolColumn get dismissed => boolean().withDefault(const Constant(false))();
   IntColumn get createdAt => integer()();
+  TextColumn get connectorAccountId => text().nullable()();
+  TextColumn get remoteAssetId => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -2153,7 +2159,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 105;
+  static const int currentSchemaVersion = 106;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -2262,7 +2268,34 @@ class AppDatabase extends _$AppDatabase {
     103,
     104,
     105,
+    106,
   ];
+
+  /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
+  /// auto-linking). Called from the v106 onUpgrade block and from the
+  /// beforeOpen backstop so a parallel-branch schema-version collision
+  /// cannot strand a database without them.
+  Future<void> _assertConnectorSuggestionColumns() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('pending_photo_suggestions')",
+    ).get();
+    // An empty PRAGMA result means the table itself is absent (only
+    // possible in minimal test fixtures); skip the ALTERs rather than fail.
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('connector_account_id')) {
+      await customStatement(
+        'ALTER TABLE pending_photo_suggestions '
+        'ADD COLUMN connector_account_id TEXT',
+      );
+    }
+    if (!names.contains('remote_asset_id')) {
+      await customStatement(
+        'ALTER TABLE pending_photo_suggestions '
+        'ADD COLUMN remote_asset_id TEXT',
+      );
+    }
+  }
 
   /// Idempotent DDL for the v103 media store objects. Called from the v103
   /// onUpgrade block and from the beforeOpen backstop so a parallel-branch
@@ -5238,6 +5271,16 @@ class AppDatabase extends _$AppDatabase {
           }
         }
         if (from < 105) await reportProgress();
+        if (from < 106) {
+          // Lightroom auto-linking: connector identity on pending photo
+          // suggestions. PRAGMA-guarded ALTERs keep this idempotent; the
+          // beforeOpen backstop re-asserts it against parallel-branch
+          // schema-version collisions (v104 weight planner and v105
+          // heading both renumbered this block already, the same disease
+          // the v103 comment documents).
+          await _assertConnectorSuggestionColumns();
+        }
+        if (from < 106) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
@@ -5246,6 +5289,10 @@ class AppDatabase extends _$AppDatabase {
         // v103 backstop: re-assert media store schema (the helper is
         // self-guarding when the media table is absent).
         await _assertMediaStoreSchema();
+
+        // v106 backstop: re-assert connector-suggestion columns (the helper
+        // is self-guarding when the suggestions table is absent).
+        await _assertConnectorSuggestionColumns();
 
         // Built-in dive types are reference data: identical on every device and
         // undeletable through DiveTypeRepository. Nothing else restores them --

@@ -241,6 +241,35 @@ class UnitFormatter {
   }
 
   // ============================================================================
+  // Height
+  // ============================================================================
+
+  /// Centimeters per inch.
+  static const double _cmPerInch = 2.54;
+
+  /// Whether body height should be shown in metric (cm) rather than imperial
+  /// (feet/inches). There is no dedicated height unit, so this is derived from
+  /// the depth unit, consistent with [formatGeoDistance].
+  bool get heightIsMetric => settings.depthUnit == DepthUnit.meters;
+
+  /// Format a stored height (centimeters) in the diver's preferred units:
+  /// metric renders whole centimeters ("175 cm"); imperial renders feet and
+  /// inches ("5' 9\""), rounding to the nearest whole inch and carrying 12
+  /// inches into the next foot.
+  String formatHeight(double? cm) {
+    if (cm == null) return '--';
+    if (heightIsMetric) return '${cm.round()} cm';
+    final totalInches = (cm / _cmPerInch).round();
+    final feet = totalInches ~/ 12;
+    final inches = totalInches % 12;
+    return '$feet\' $inches"';
+  }
+
+  /// Build a stored height (centimeters) from imperial feet and inches.
+  double feetInchesToCm(double feet, double inches) =>
+      (feet * 12 + inches) * _cmPerInch;
+
+  // ============================================================================
   // Altitude
   // ============================================================================
 

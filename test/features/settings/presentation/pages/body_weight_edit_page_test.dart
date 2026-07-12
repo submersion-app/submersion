@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/divers/data/repositories/diver_weight_entry_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver_weight_entry.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/pages/body_weight_edit_page.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -90,6 +93,42 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(await repository.getEntriesForDiver(diverId), hasLength(1));
+  });
+
+  testWidgets('imperial units enter and render height as feet and inches', (
+    tester,
+  ) async {
+    await pumpPage(tester);
+
+    // Switch to imperial (depth unit feet drives height units) before opening
+    // the dialog, which reads the unit preference when it builds.
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(BodyWeightEditPage)),
+    );
+    await container
+        .read(settingsProvider.notifier)
+        .setDepthUnit(DepthUnit.feet);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Add measurement'));
+    await tester.pumpAndSettle();
+
+    // Metric single field is gone; imperial shows two fields.
+    expect(find.widgetWithText(TextField, 'Height (cm)'), findsNothing);
+    expect(find.widgetWithText(TextField, 'Height (ft)'), findsOneWidget);
+    expect(find.widgetWithText(TextField, 'Inches'), findsOneWidget);
+
+    await tester.enterText(find.widgetWithText(TextField, 'Weight (kg)'), '80');
+    await tester.enterText(find.widgetWithText(TextField, 'Height (ft)'), '5');
+    await tester.enterText(find.widgetWithText(TextField, 'Inches'), '9');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('5\' 9"'), findsOneWidget);
+    final entries = await DiverWeightEntryRepository().getEntriesForDiver(
+      diverId,
+    );
+    expect(entries.single.heightCm, closeTo(175.26, 1e-9));
   });
 
   testWidgets('deletes a measurement from the list', (tester) async {

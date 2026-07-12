@@ -10,6 +10,7 @@ import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/constants/map_tile_config.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -69,6 +70,17 @@ class DiveListPage extends ConsumerStatefulWidget {
 class _DiveListPageState extends ConsumerState<DiveListPage> {
   /// Tracks the selected dive ID for mobile map view info card
   String? _mobileMapSelectedDiveId;
+
+  @override
+  void initState() {
+    super.initState();
+    // Home-tab startup hook for the Lightroom auto-poll: the provider
+    // itself gates on account, toggle, and a 6-hour interval, and catches
+    // every failure, so this read is fire-and-forget.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) ref.read(lightroomAutoPollProvider);
+    });
+  }
 
   bool get _isMapView {
     final state = GoRouterState.of(context);

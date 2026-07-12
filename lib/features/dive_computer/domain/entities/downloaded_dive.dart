@@ -1,5 +1,7 @@
 import 'dart:typed_data';
 
+import 'package:submersion/core/constants/enums.dart';
+
 /// Phases of the download process.
 enum DownloadPhase {
   initializing,
@@ -146,6 +148,9 @@ class DownloadedDive {
   /// Raw fingerprint bytes from libdivecomputer
   final Uint8List? rawFingerprint;
 
+  /// Breathing/logging mode reported by the computer (oc/ccr/scr/gauge).
+  final DiveMode diveMode;
+
   const DownloadedDive({
     this.diveNumber,
     required this.startTime,
@@ -166,6 +171,7 @@ class DownloadedDive {
     this.gfLow,
     this.gfHigh,
     this.decoConservatism,
+    this.diveMode = DiveMode.oc,
     this.events = const [],
     this.rawData,
     this.rawFingerprint,

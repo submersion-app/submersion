@@ -10,6 +10,7 @@ import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
+import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
@@ -92,6 +93,7 @@ class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage> {
         }
 
         final body = SingleChildScrollView(
+          controller: DetailScrollController.maybeOf(context),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
