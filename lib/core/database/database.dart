@@ -994,6 +994,10 @@ class MediaSubscriptions extends Table {
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
+  /// Hybrid Logical Clock for cross-device conflict resolution (v108;
+  /// nullable: rows written before the rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -2164,7 +2168,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 107;
+  static const int currentSchemaVersion = 108;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -2275,6 +2279,7 @@ class AppDatabase extends _$AppDatabase {
     105,
     106,
     107,
+    108,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -2323,6 +2328,22 @@ class AppDatabase extends _$AppDatabase {
         !metaCols.any((c) => c.read<String>('name') == 'sync_account_id')) {
       await customStatement(
         'ALTER TABLE sync_metadata ADD COLUMN sync_account_id TEXT',
+      );
+    }
+  }
+
+  /// v108: HLC on media_subscriptions so the table can sync. Idempotent;
+  /// also run from beforeOpen as a parallel-branch collision backstop.
+  Future<void> _assertMediaSubscriptionsHlc() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('media_subscriptions')",
+    ).get();
+    // An empty PRAGMA result means the table itself is absent (only
+    // possible in minimal test fixtures); skip the ALTER rather than fail.
+    if (cols.isEmpty) return;
+    if (!cols.any((c) => c.read<String>('name') == 'hlc')) {
+      await customStatement(
+        'ALTER TABLE media_subscriptions ADD COLUMN hlc TEXT',
       );
     }
   }
@@ -5334,6 +5355,11 @@ class AppDatabase extends _$AppDatabase {
           }
         }
         if (from < 107) await reportProgress();
+        if (from < 108) {
+          // Manifest subscriptions become synced (program spec section 6).
+          await _assertMediaSubscriptionsHlc();
+        }
+        if (from < 108) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
@@ -5349,6 +5375,9 @@ class AppDatabase extends _$AppDatabase {
 
         // v107 backstop: re-assert connected accounts schema.
         await _assertConnectedAccountsSchema();
+
+        // v108 backstop: re-assert media_subscriptions.hlc.
+        await _assertMediaSubscriptionsHlc();
 
         // Built-in dive types are reference data: identical on every device and
         // undeletable through DiveTypeRepository. Nothing else restores them --

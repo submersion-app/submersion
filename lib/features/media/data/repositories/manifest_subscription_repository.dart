@@ -7,8 +7,10 @@ import 'package:drift/drift.dart';
 import 'package:equatable/equatable.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/data/parsers/manifest_format.dart';
 
@@ -72,6 +74,7 @@ class ManifestSubscription extends Equatable {
 
 class ManifestSubscriptionRepository {
   AppDatabase get _db => DatabaseService.instance.database;
+  final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(ManifestSubscriptionRepository);
 
@@ -107,6 +110,7 @@ class ManifestSubscriptionRepository {
             .into(_db.mediaSubscriptionState)
             .insert(MediaSubscriptionStateCompanion(subscriptionId: Value(id)));
       });
+      await _markPending(id, nowMs);
       final fetched = await getById(id);
       return fetched!;
     } catch (e, st) {
@@ -289,6 +293,7 @@ class ManifestSubscriptionRepository {
           updatedAt: Value(nowMs),
         ),
       );
+      await _markPending(id, nowMs);
     } catch (e, st) {
       _log.error('setActive failed: $id', error: e, stackTrace: st);
       rethrow;
@@ -319,6 +324,7 @@ class ManifestSubscriptionRepository {
           updatedAt: Value(nowMs),
         ),
       );
+      await _markPending(id, nowMs);
     } catch (e, st) {
       _log.error(
         'updateUrlAndDisplayName failed: $id',
@@ -341,10 +347,25 @@ class ManifestSubscriptionRepository {
           _db.mediaSubscriptions,
         )..where((t) => t.id.equals(id))).go();
       });
+      // Deletions propagate via tombstones so peers drop the row too.
+      await _syncRepository.logDeletion(
+        entityType: 'mediaSubscriptions',
+        recordId: id,
+      );
+      SyncEventBus.notifyLocalChange();
     } catch (e, st) {
       _log.error('deleteById failed: $id', error: e, stackTrace: st);
       rethrow;
     }
+  }
+
+  Future<void> _markPending(String recordId, int now) async {
+    await _syncRepository.markRecordPending(
+      entityType: 'mediaSubscriptions',
+      recordId: recordId,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
   }
 
   ManifestSubscription _toEntity(

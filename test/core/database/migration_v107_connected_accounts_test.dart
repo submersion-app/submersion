@@ -119,9 +119,8 @@ void main() {
   });
 
   test('version ladder includes 107', () {
-    // v107 is the newest migration: this test holds the exact-latest
-    // tripwire until the next migration lands and relaxes it.
-    expect(AppDatabase.currentSchemaVersion, 107);
+    // The exact-latest tripwire moved to the v108 media-subscriptions test.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(107));
     expect(AppDatabase.migrationVersions, contains(107));
   });
 

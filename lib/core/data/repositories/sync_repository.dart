@@ -33,6 +33,7 @@ class SyncRepository {
     'buddyRoles': (table: 'buddy_roles', pk: 'id'),
     'mediaStores': (table: 'media_stores', pk: 'id'),
     'connectedAccounts': (table: 'connected_accounts', pk: 'id'),
+    'mediaSubscriptions': (table: 'media_subscriptions', pk: 'id'),
     'diveCenters': (table: 'dive_centers', pk: 'id'),
     'trips': (table: 'trips', pk: 'id'),
     'liveaboardDetails': (table: 'liveaboard_detail_records', pk: 'id'),
