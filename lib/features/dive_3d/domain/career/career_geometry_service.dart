@@ -55,9 +55,17 @@ class CareerGeometryService {
         ),
     ];
 
-    return const CompareGeometryService().build(
+    final scene = const CompareGeometryService().build(
       profiles,
       layout: CompareLayout.sideBySide,
+    );
+    // Career terrain is a static, explorable object with no timeline, so drop
+    // the scrub path CompareGeometryService rides on the reference profile --
+    // otherwise the viewport would draw a stray cursor dot.
+    return Scene3d(
+      layers: scene.layers,
+      markers: scene.markers,
+      bounds: scene.bounds,
     );
   }
 

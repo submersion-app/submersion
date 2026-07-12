@@ -77,4 +77,9 @@ void main() {
       closeTo(-SceneBounds.zHalfWidth, 1e-6),
     );
   });
+
+  test('career scene has no scrub path (static, no timeline)', () {
+    final scene = service.build(CareerSceneData(dives: [dive(0), dive(1)]));
+    expect(scene.scrubPath, isNull);
+  });
 }
