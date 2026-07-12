@@ -86,4 +86,42 @@ void main() {
     );
     expect(await state.attachedProviderType(), CloudProviderType.s3);
   });
+
+  test('setAttached persists and clear removes the account id', () async {
+    SharedPreferences.setMockInitialValues({});
+    final state = MediaStoreAttachState(
+      prefs: await SharedPreferences.getInstance(),
+    );
+    await state.setAttached(
+      'store-1',
+      providerType: CloudProviderType.s3,
+      accountId: 'acc-9',
+    );
+    expect(await state.attachedAccountId(), 'acc-9');
+    await state.clear();
+    expect(await state.attachedAccountId(), isNull);
+  });
+
+  test('legacy attachments read a null account id', () async {
+    SharedPreferences.setMockInitialValues({});
+    final state = MediaStoreAttachState(
+      prefs: await SharedPreferences.getInstance(),
+    );
+    await state.setAttached('store-1', providerType: CloudProviderType.s3);
+    expect(await state.attachedAccountId(), isNull);
+  });
+
+  test('re-attaching without an account id clears a stale one', () async {
+    SharedPreferences.setMockInitialValues({});
+    final state = MediaStoreAttachState(
+      prefs: await SharedPreferences.getInstance(),
+    );
+    await state.setAttached(
+      'store-1',
+      providerType: CloudProviderType.s3,
+      accountId: 'acc-9',
+    );
+    await state.setAttached('store-2', providerType: CloudProviderType.s3);
+    expect(await state.attachedAccountId(), isNull);
+  });
 }

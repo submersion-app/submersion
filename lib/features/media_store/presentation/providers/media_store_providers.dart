@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
@@ -136,15 +137,33 @@ final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
       final attachState = ref.watch(mediaStoreAttachStateProvider);
       final attachedId = await attachState.attachedStoreId();
       if (attachedId == null) return null;
-      final providerType =
-          await attachState.attachedProviderType() ?? CloudProviderType.s3;
-      final s3Config = providerType == CloudProviderType.s3
-          ? await ref.watch(mediaStoreCredentialsStoreProvider).load()
-          : null;
-      final store = await buildMediaObjectStore(
-        providerType,
-        s3Config: s3Config,
-      );
+
+      // Account-first: attachments made through the Connected Accounts
+      // layer resolve their store via the account's adapter. Legacy
+      // attachments (no account id) keep the pre-account path unchanged.
+      MediaObjectStore? builtStore;
+      final accountId = await attachState.attachedAccountId();
+      if (accountId != null) {
+        final account = await ref
+            .watch(connectedAccountsRepositoryProvider)
+            .getById(accountId);
+        if (account == null) return null;
+        builtStore = await buildMediaObjectStoreForAccount(
+          account,
+          ref.watch(accountProviderRegistryProvider),
+        );
+      } else {
+        final providerType =
+            await attachState.attachedProviderType() ?? CloudProviderType.s3;
+        final s3Config = providerType == CloudProviderType.s3
+            ? await ref.watch(mediaStoreCredentialsStoreProvider).load()
+            : null;
+        builtStore = await buildMediaObjectStore(
+          providerType,
+          s3Config: s3Config,
+        );
+      }
+      final store = builtStore;
       if (store == null) return null;
 
       final supportDir = await getApplicationSupportDirectory();

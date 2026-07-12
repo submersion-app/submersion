@@ -1,6 +1,10 @@
 import 'dart:io';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
+import 'package:submersion/core/services/accounts/account_provider_registry.dart';
+import 'package:submersion/core/services/accounts/connected_account.dart'
+    as domain;
 import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_api_client.dart';
 import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_auth_manager.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive_storage_provider.dart';
@@ -55,6 +59,18 @@ Future<MediaObjectStore?> buildMediaObjectStore(
       if (availability != ICloudAvailability.available) return null;
       return ICloudMediaObjectStore(platform: NativeICloudMediaPlatform());
   }
+}
+
+/// Account-first store construction: resolve the account's
+/// MediaStoreCapable adapter. Null when the kind lacks the capability or
+/// this device has no working credentials for the account.
+Future<MediaObjectStore?> buildMediaObjectStoreForAccount(
+  domain.ConnectedAccount account,
+  AccountProviderRegistry registry,
+) async {
+  final capable = registry.capabilityFor<MediaStoreCapable>(account.kind);
+  if (capable == null) return null;
+  return capable.mediaObjectStore(account);
 }
 
 class MediaStoreConnectResult {

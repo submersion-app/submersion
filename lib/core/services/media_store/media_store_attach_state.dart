@@ -15,12 +15,19 @@ class MediaStoreAttachState {
 
   static const String storeIdKey = 'media_store_attached_store_id';
   static const String providerTypeKey = 'media_store_provider_type';
+  static const String accountIdKey = 'media_store_account_id';
 
   Future<SharedPreferences> get _resolved async =>
       _prefs ?? await SharedPreferences.getInstance();
 
   Future<String?> attachedStoreId() async =>
       (await _resolved).getString(storeIdKey);
+
+  /// The connected account driving this attachment, or null for a legacy
+  /// attachment made before the accounts layer (resolved via the
+  /// provider-type path instead).
+  Future<String?> attachedAccountId() async =>
+      (await _resolved).getString(accountIdKey);
 
   /// The attached provider, or null when no store is attached. Attachments
   /// persisted before the provider type existed read as S3 (the only
@@ -36,15 +43,22 @@ class MediaStoreAttachState {
   Future<void> setAttached(
     String storeId, {
     required CloudProviderType providerType,
+    String? accountId,
   }) async {
     final prefs = await _resolved;
     await prefs.setString(storeIdKey, storeId);
     await prefs.setString(providerTypeKey, providerType.name);
+    if (accountId != null) {
+      await prefs.setString(accountIdKey, accountId);
+    } else {
+      await prefs.remove(accountIdKey);
+    }
   }
 
   Future<void> clear() async {
     final prefs = await _resolved;
     await prefs.remove(storeIdKey);
     await prefs.remove(providerTypeKey);
+    await prefs.remove(accountIdKey);
   }
 }
