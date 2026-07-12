@@ -56,6 +56,29 @@ void main() {
       expect(resolveGasSwitches(parsed), isEmpty);
     });
 
+    test('gauge-mode parsed dive keeps real reported tank records', () {
+      // Some computers still emit tank/pressure records in gauge mode. Those are
+      // kept (hidden and excluded from gas stats by mode) so switching a
+      // downloaded gauge dive back to OC is lossless -- only fabricated
+      // cylinders are skipped for gauge.
+      final parsed = makeParsedDive(
+        diveMode: 'gauge',
+        gasMixes: [pigeon.GasMix(index: 0, o2Percent: 21.0, hePercent: 0.0)],
+        tanks: [
+          pigeon.TankInfo(
+            index: 0,
+            gasMixIndex: unknownGasMixIndex,
+            startPressureBar: 200.0,
+            endPressureBar: 60.0,
+          ),
+        ],
+      );
+      final tanks = resolveParsedTanks(parsed);
+      expect(tanks, hasLength(1));
+      expect(tanks.single.startPressure, 200.0);
+      expect(tanks.single.endPressure, 60.0);
+    });
+
     test('multi-gas dive with one transmitter keeps both gases and labels the '
         'transmitter tank with the gas actually breathed on it', () {
       // Real Teric dive: gas[0]=99% deco (no transmitter), gas[1]=32% back gas
