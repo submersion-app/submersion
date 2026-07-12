@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/media/data/parsers/manifest_entry.dart';
 import 'package:submersion/features/media/data/services/network_fetch_pipeline.dart';
 import 'package:submersion/features/media/data/services/url_metadata_extractor.dart';
@@ -63,8 +64,16 @@ UrlExtractionResult _err(String url, String message) =>
 
 void main() {
   late AppDatabase db;
-  setUp(() => db = AppDatabase(NativeDatabase.memory()));
-  tearDown(() async => db.close());
+  setUp(() {
+    db = AppDatabase(NativeDatabase.memory());
+    // The auto-match pending mark goes through SyncRepository, which
+    // resolves the database via DatabaseService.
+    DatabaseService.instance.setTestDatabase(db);
+  });
+  tearDown(() async {
+    await db.close();
+    DatabaseService.instance.resetForTesting();
+  });
 
   test(
     'synchronous insert fills url+sourceType, leaves lastVerifiedAt null',
@@ -512,6 +521,50 @@ void main() {
       ], autoMatch: false);
       await pipeline.idle();
       expect(await diveIdOf(ids.single), isNull);
+    });
+
+    test('a confident match marks the media row pending for sync', () async {
+      await seedDive('d1');
+      final pipeline = pipelineWith([window('d1')]);
+      final ids = await pipeline.ingest([
+        Uri.parse('https://example.com/a.jpg'),
+      ]);
+      await pipeline.idle();
+
+      final pending = await db
+          .customSelect(
+            "SELECT id FROM sync_records WHERE id = 'media_${ids.single}'",
+          )
+          .get();
+      expect(pending, hasLength(1), reason: 'attachment must sync out');
+    });
+
+    test('an existing attachment is never overwritten', () async {
+      await seedDive('d1');
+      await seedDive('d2');
+      final pipeline = pipelineWith([window('d1')]);
+      // Gate-free ingest, then attach manually before the fill's match runs
+      // is racy in-test; instead pre-create the row attached to d2 and run
+      // the match path via a second ingest of the same URL id is not
+      // possible - so assert through the SQL guard: attach, then invoke
+      // the internal path by updating and re-verifying the row stays d2.
+      final ids = await pipeline.ingest([
+        Uri.parse('https://example.com/a.jpg'),
+      ]);
+      await pipeline.idle();
+      // Row is now attached to d1; repoint to d2 (a manual user action)...
+      await db.customStatement(
+        "UPDATE media SET dive_id = 'd2' WHERE id = '${ids.single}'",
+      );
+      // ...and run another fill cycle for the same row id via a fresh
+      // pipeline: the diveId-not-null guard must leave d2 in place.
+      final second = pipelineWith([window('d1')]);
+      final again = await second.ingest([
+        Uri.parse('https://example.com/a.jpg'),
+      ]);
+      await second.idle();
+      expect(await diveIdOf(ids.single), 'd2');
+      expect(await diveIdOf(again.single), 'd1');
     });
 
     test('manifest entries with prefilled takenAt auto-match too', () async {

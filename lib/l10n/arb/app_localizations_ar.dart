@@ -19018,6 +19018,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_setupGuide_open => 'فتح';
 
   @override
+  String get settings_connectedAccounts_loadError => 'تعذر تحميل الحسابات';
+
+  @override
   String get media_unavailablePlaceholder_volumeOffline =>
       'وحدة التخزين غير مثبتة';
 }

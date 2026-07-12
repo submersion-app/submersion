@@ -19452,5 +19452,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_setupGuide_open => 'Ouvrir';
 
   @override
+  String get settings_connectedAccounts_loadError =>
+      'Impossible de charger les comptes';
+
+  @override
   String get media_unavailablePlaceholder_volumeOffline => 'Volume non monté';
 }

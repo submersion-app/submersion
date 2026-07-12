@@ -19326,6 +19326,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_setupGuide_open => 'Megnyitás';
 
   @override
+  String get settings_connectedAccounts_loadError =>
+      'A fiókok nem tölthetők be';
+
+  @override
   String get media_unavailablePlaceholder_volumeOffline =>
       'A kötet nincs csatlakoztatva';
 }

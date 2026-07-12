@@ -303,4 +303,24 @@ void main() {
       );
     },
   );
+
+  test(
+    'connectS3 ignores a non-S3 accountId and creates a fresh account',
+    () async {
+      final wrongKind = await accountsRepository.create(
+        kind: AccountKind.dropbox,
+        label: 'DB',
+      );
+      await service.connectS3(config, accountId: wrongKind.id);
+
+      final s3Account = await accountsRepository.getByKind(AccountKind.s3);
+      expect(s3Account, isNotNull, reason: 'a fresh S3 account is created');
+      expect(await attachState.attachedAccountId(), s3Account!.id);
+      expect(
+        accountKeychain.values[AccountCredentialsStore.keyFor(wrongKind.id)],
+        isNull,
+        reason: 'S3 credentials never land under another kind key',
+      );
+    },
+  );
 }

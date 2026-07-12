@@ -5497,5 +5497,6 @@
   "settings_setupGuide_statusDone": "Configurato",
   "settings_setupGuide_statusTodo": "Non configurato",
   "settings_setupGuide_open": "Apri",
+  "settings_connectedAccounts_loadError": "Impossibile caricare gli account",
   "media_unavailablePlaceholder_volumeOffline": "Volume non montato"
 }

@@ -153,6 +153,14 @@ void main() {
         id: 'lr-1',
       );
 
+      // Simulate the v107 SQL adoption: no HLC, no pending mark.
+      await db.customStatement(
+        "UPDATE connected_accounts SET hlc = NULL WHERE id = 'lr-1'",
+      );
+      await db.customStatement(
+        "DELETE FROM sync_records WHERE id = 'connectedAccounts_lr-1'",
+      );
+
       await (await migration(prefs)).run();
 
       expect(
@@ -164,6 +172,22 @@ void main() {
         '{"clientId":"c","refreshToken":"r"}',
         reason: 'legacy blob preserved',
       );
+
+      final pending = await db
+          .customSelect(
+            "SELECT id FROM sync_records "
+            "WHERE id = 'connectedAccounts_lr-1'",
+          )
+          .get();
+      expect(
+        pending,
+        hasLength(1),
+        reason: 'SQL-adopted rows must be marked pending so they sync out',
+      );
+      final hlc = await db
+          .customSelect("SELECT hlc FROM connected_accounts WHERE id = 'lr-1'")
+          .getSingle();
+      expect(hlc.data['hlc'], isNotNull, reason: 'HLC stamped');
     },
   );
 

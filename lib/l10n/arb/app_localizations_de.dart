@@ -19352,6 +19352,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_setupGuide_open => 'Öffnen';
 
   @override
+  String get settings_connectedAccounts_loadError =>
+      'Konten konnten nicht geladen werden';
+
+  @override
   String get media_unavailablePlaceholder_volumeOffline =>
       'Volume nicht eingebunden';
 }

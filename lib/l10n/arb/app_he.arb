@@ -5497,5 +5497,6 @@
   "settings_setupGuide_statusDone": "מוגדר",
   "settings_setupGuide_statusTodo": "לא מוגדר",
   "settings_setupGuide_open": "פתח",
+  "settings_connectedAccounts_loadError": "לא ניתן לטעון חשבונות",
   "media_unavailablePlaceholder_volumeOffline": "הכונן אינו מחובר"
 }

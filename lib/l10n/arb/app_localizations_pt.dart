@@ -19384,5 +19384,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_setupGuide_open => 'Abrir';
 
   @override
+  String get settings_connectedAccounts_loadError =>
+      'Não foi possível carregar as contas';
+
+  @override
   String get media_unavailablePlaceholder_volumeOffline => 'Volume não montado';
 }

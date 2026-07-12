@@ -1056,7 +1056,7 @@ class SyncService {
           (
             type: 'connectedAccounts',
             records: data.connectedAccounts,
-            hasUpdatedAt: false,
+            hasUpdatedAt: true,
           ),
           (
             type: 'mediaSubscriptions',
@@ -1602,7 +1602,7 @@ class SyncService {
     'settings': true,
     'media': false,
     'mediaStores': false,
-    'connectedAccounts': false,
+    'connectedAccounts': true,
     'mediaSubscriptions': true,
   };
 

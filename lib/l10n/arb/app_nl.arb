@@ -5497,5 +5497,6 @@
   "settings_setupGuide_statusDone": "Ingesteld",
   "settings_setupGuide_statusTodo": "Niet ingesteld",
   "settings_setupGuide_open": "Openen",
+  "settings_connectedAccounts_loadError": "Accounts konden niet worden geladen",
   "media_unavailablePlaceholder_volumeOffline": "Volume niet gekoppeld"
 }

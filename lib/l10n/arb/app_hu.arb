@@ -5497,5 +5497,6 @@
   "settings_setupGuide_statusDone": "Beállítva",
   "settings_setupGuide_statusTodo": "Nincs beállítva",
   "settings_setupGuide_open": "Megnyitás",
+  "settings_connectedAccounts_loadError": "A fiókok nem tölthetők be",
   "media_unavailablePlaceholder_volumeOffline": "A kötet nincs csatlakoztatva"
 }
