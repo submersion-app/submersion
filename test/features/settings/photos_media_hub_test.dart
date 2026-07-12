@@ -87,10 +87,10 @@ void main() {
   testWidgets('connected accounts page lists an account with status', (
     tester,
   ) async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
     await tester.runAsync(() async {
-      final repo = ProviderContainer().read(
-        connectedAccountsRepositoryProvider,
-      );
+      final repo = container.read(connectedAccountsRepositoryProvider);
       await repo.create(kind: AccountKind.s3, label: 'My MinIO');
     });
 

@@ -398,13 +398,27 @@ class NetworkFetchPipeline {
             ),
           );
       if (updated == 0) return;
-      // The attachment must propagate cross-device like any media edit.
-      await _syncRepository.markRecordPending(
-        entityType: 'media',
-        recordId: id,
-        localUpdatedAt: nowMillis,
-      );
-      SyncEventBus.notifyLocalChange();
+      // The attachment must propagate cross-device like any media edit. If
+      // the pending mark cannot be written, revert the attach: a row that
+      // is attached only on this device would contradict the guarantee
+      // that failures leave the row exactly as the fill wrote it.
+      try {
+        await _syncRepository.markRecordPending(
+          entityType: 'media',
+          recordId: id,
+          localUpdatedAt: nowMillis,
+        );
+        SyncEventBus.notifyLocalChange();
+      } catch (_) {
+        await (_db.update(_db.media)
+              ..where((t) => t.id.equals(id) & t.diveId.equals(match.diveId!)))
+            .write(
+              MediaCompanion(
+                diveId: const Value(null),
+                updatedAt: Value(nowMillis),
+              ),
+            );
+      }
     } catch (_) {
       // Auto-match is additive; the imported row stays library-level.
     }

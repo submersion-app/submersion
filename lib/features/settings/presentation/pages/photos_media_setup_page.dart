@@ -7,8 +7,8 @@ import 'package:submersion/features/media_store/presentation/providers/media_sto
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Live status for the guided setup steps. Recomputed on watch;
-/// invalidated by pulling to refresh or re-entering the page.
+/// Live status for the guided setup steps. Invalidated after returning
+/// from a step so the checklist reflects what the user just configured.
 final setupGuideStatusProvider =
     FutureProvider<({bool sources, bool storage, bool sync})>((ref) async {
       final lightroom = await ref.watch(lightroomAccountProvider.future);
