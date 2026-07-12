@@ -489,7 +489,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        BuddySignaturesSection(diveId: diveId),
+        BuddySignaturesSection(diveId: dive.id),
         if (dive.courseId != null) ...[
           const SizedBox(height: 24),
           _buildSignatureSection(context, ref, dive),
@@ -523,13 +523,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           section.id,
     ];
 
-    // Presence gates for the two pairs. Conditions self-suppresses when empty;
-    // Signatures self-erases unless the dive has buddies or a course.
+    // Conditions self-suppresses when empty (cheap, no provider). The
+    // Signatures presence gate needs buddiesForDiveProvider, so it is read
+    // lazily inside the Buddies+Signatures branch below -- only when that pair
+    // is actually adjacent -- to avoid coupling the whole page to buddy
+    // changes when the pair can never form.
     final hasConditions = _hasEnvironmentData(dive);
-    final buddies =
-        ref.watch(buddiesForDiveProvider(dive.id)).valueOrNull ??
-        const <BuddyWithRole>[];
-    final hasSignatures = buddies.isNotEmpty || dive.courseId != null;
 
     final children = <Widget>[];
     for (var i = 0; i < visible.length; i++) {
@@ -557,17 +556,22 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       }
 
       if (id == DiveDetailSectionId.buddies &&
-          next == DiveDetailSectionId.signatures &&
-          hasSignatures) {
-        children.add(const SizedBox(height: 24)); // Buddies' leading gap.
-        children.add(
-          ResponsiveSectionPair(
-            first: _buildBuddiesSection(context, ref, dive),
-            second: _signaturesColumn(context, ref, dive),
-          ),
-        );
-        i++;
-        continue;
+          next == DiveDetailSectionId.signatures) {
+        // Signatures self-erases unless the dive has buddies or a course.
+        final buddies =
+            ref.watch(buddiesForDiveProvider(dive.id)).valueOrNull ??
+            const <BuddyWithRole>[];
+        if (buddies.isNotEmpty || dive.courseId != null) {
+          children.add(const SizedBox(height: 24)); // Buddies' leading gap.
+          children.add(
+            ResponsiveSectionPair(
+              first: _buildBuddiesSection(context, ref, dive),
+              second: _signaturesColumn(context, ref, dive),
+            ),
+          );
+          i++;
+          continue;
+        }
       }
 
       children.addAll(builders[id]?.call() ?? const []);
