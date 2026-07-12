@@ -104,7 +104,7 @@ class StatisticsRepository {
           t.he_percent
         FROM dives d
         JOIN dive_tanks t ON t.dive_id = d.id
-        WHERE d.dive_date_time >= ? $diverFilter ${df.clause}
+        WHERE d.dive_date_time >= ? AND d.dive_mode <> 'gauge' $diverFilter ${df.clause}
           AND COALESCE(d.runtime, d.bottom_time) > 0
           AND d.avg_depth > 0
           AND t.start_pressure > t.end_pressure
@@ -244,7 +244,7 @@ class StatisticsRepository {
           ORDER BY t2.tank_order, t2.rowid
           LIMIT 1
         )
-        WHERE d.dive_date_time >= ? $diverFilter ${df.clause}
+        WHERE d.dive_date_time >= ? AND d.dive_mode <> 'gauge' $diverFilter ${df.clause}
           AND COALESCE(d.runtime, d.bottom_time) > 0
           AND d.avg_depth > 0
         GROUP BY year, month
@@ -291,7 +291,7 @@ class StatisticsRepository {
           COUNT(DISTINCT d.id) AS dive_count
         FROM dives d
         JOIN dive_tanks t ON t.dive_id = d.id
-        WHERE 1=1 $diverFilter ${df.clause}
+        WHERE 1=1 AND d.dive_mode <> 'gauge' $diverFilter ${df.clause}
         GROUP BY gas_type
         ORDER BY dive_count DESC
         ''', variables: params.map((p) => Variable(p)).toList()).get();
@@ -351,6 +351,7 @@ class StatisticsRepository {
           AND d.avg_depth > 0
           AND t.start_pressure > t.end_pressure
           AND t.volume > 0
+          AND d.dive_mode <> 'gauge'
           $diverFilter ${df.clause}
         ORDER BY d.dive_date_time
         ''', variables: params.map((p) => Variable(p)).toList()).get();
@@ -480,6 +481,7 @@ class StatisticsRepository {
         LEFT JOIN dive_sites ds ON ds.id = d.site_id
         WHERE COALESCE(d.runtime, d.bottom_time) > 0
           AND d.avg_depth > 0
+          AND d.dive_mode <> 'gauge'
           $diverFilter ${df.clause}
         ORDER BY sac ASC
         ''', variables: params.map((p) => Variable(p)).toList()).get();
@@ -542,6 +544,7 @@ class StatisticsRepository {
           AND COALESCE(d.runtime, d.bottom_time) > 0
           AND d.avg_depth > 0
           AND t.volume > 0
+          AND d.dive_mode <> 'gauge'
           $diverFilter ${df.clause}
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
@@ -620,6 +623,7 @@ class StatisticsRepository {
           AND t.end_pressure IS NOT NULL
           AND COALESCE(d.runtime, d.bottom_time) > 0
           AND d.avg_depth > 0
+          AND d.dive_mode <> 'gauge'
           $diverFilter ${df.clause}
         GROUP BY t.tank_role
         HAVING avg_sac IS NOT NULL

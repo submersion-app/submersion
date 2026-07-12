@@ -654,7 +654,7 @@ git commit -m "feat(dive-log): hide gas/deco detail sections for gauge dives (#5
 A gauge dive keeps its (hidden) tank rows for reversibility, so gas statistics must exclude it explicitly. Add `AND d.dive_mode <> 'gauge'` to each gas-derived query (NOT the shared `_diveFilter` — gauge dives still count toward dive-count/depth stats).
 
 **Files:**
-- Modify: `lib/features/statistics/data/repositories/statistics_repository.dart` — `getGasMixDistribution` (~275), `getSacVolumeTrend` (~78), `getSacPressureTrend` (~209), `getSacVolumeRecords` (~325), `getSacPressureRecords` (~454), `getSacPressureByTankRole` (~598)
+- Modify: `lib/features/statistics/data/repositories/statistics_repository.dart` — `getGasMixDistribution` (~275), `getSacVolumeTrend` (~78), `getSacPressureTrend` (~209), `getSacVolumeRecords` (~325), `getSacPressureRecords` (~454), `getSacVolumeByTankRole` (~518), `getSacPressureByTankRole` (~598) [as-built: 7 queries total incl. `getSacVolumeByTankRole`, which the original list missed; all use alias `d`]
 - Test: `test/features/statistics/data/repositories/statistics_repository_gauge_test.dart` (create)
 
 **Interfaces:**
