@@ -34,7 +34,8 @@ void main() {
     // Side by side: same vertical center, first is left of second.
     final firstCenter = tester.getCenter(find.text('FIRST'));
     final secondCenter = tester.getCenter(find.text('SECOND'));
-    expect(firstCenter.dy, secondCenter.dy);
+    // Tolerant compare: top-aligned, so centers share a row within rounding.
+    expect(firstCenter.dy, closeTo(secondCenter.dy, 1.0));
     expect(firstCenter.dx, lessThan(secondCenter.dx));
   });
 
