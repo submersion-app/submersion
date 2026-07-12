@@ -19335,35 +19335,35 @@ class AppLocalizationsFr extends AppLocalizations {
   String get dive3d_tissue_offGassing => 'Élimination';
 
   @override
-  String get dive3d_compare_computers_title => 'Compare computers';
+  String get dive3d_compare_computers_title => 'Comparer les ordinateurs';
 
   @override
-  String get dive3d_compare_dives_title => 'Compare dives';
+  String get dive3d_compare_dives_title => 'Comparer les plongées';
 
   @override
-  String get dive3d_scene_computers => 'Computers';
+  String get dive3d_scene_computers => 'Ordinateurs';
 
   @override
-  String get dive3d_compare_layout_sideBySide => 'Side by side';
+  String get dive3d_compare_layout_sideBySide => 'Côte à côte';
 
   @override
-  String get dive3d_compare_layout_overlay => 'Overlay';
+  String get dive3d_compare_layout_overlay => 'Superposer';
 
   @override
   String get dive3d_compare_empty =>
-      'Need at least 2 profiles with depth data to compare';
+      'Au moins 2 profils avec données de profondeur sont nécessaires pour comparer';
 
   @override
   String dive3d_compare_showing(Object shown, Object total) {
-    return 'Showing $shown of $total';
+    return 'Affichage de $shown sur $total';
   }
 
   @override
-  String get dive3d_compare_setReference => 'Set as reference';
+  String get dive3d_compare_setReference => 'Définir comme référence';
 
   @override
-  String get diveLog_selection_tooltip_compare3d => 'Compare in 3D';
+  String get diveLog_selection_tooltip_compare3d => 'Comparer en 3D';
 
   @override
-  String get diveLog_sources_compareIn3d => 'Compare in 3D';
+  String get diveLog_sources_compareIn3d => 'Comparer en 3D';
 }

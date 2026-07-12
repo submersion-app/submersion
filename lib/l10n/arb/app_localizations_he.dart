@@ -18772,35 +18772,35 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dive3d_tissue_offGassing => 'שחרור';
 
   @override
-  String get dive3d_compare_computers_title => 'Compare computers';
+  String get dive3d_compare_computers_title => 'השוואת מחשבי צלילה';
 
   @override
-  String get dive3d_compare_dives_title => 'Compare dives';
+  String get dive3d_compare_dives_title => 'השוואת צלילות';
 
   @override
-  String get dive3d_scene_computers => 'Computers';
+  String get dive3d_scene_computers => 'מחשבי צלילה';
 
   @override
-  String get dive3d_compare_layout_sideBySide => 'Side by side';
+  String get dive3d_compare_layout_sideBySide => 'זה לצד זה';
 
   @override
-  String get dive3d_compare_layout_overlay => 'Overlay';
+  String get dive3d_compare_layout_overlay => 'חופף';
 
   @override
   String get dive3d_compare_empty =>
-      'Need at least 2 profiles with depth data to compare';
+      'נדרשים לפחות 2 פרופילים עם נתוני עומק להשוואה';
 
   @override
   String dive3d_compare_showing(Object shown, Object total) {
-    return 'Showing $shown of $total';
+    return 'מוצג $shown מתוך $total';
   }
 
   @override
-  String get dive3d_compare_setReference => 'Set as reference';
+  String get dive3d_compare_setReference => 'הגדר כעוגן';
 
   @override
-  String get diveLog_selection_tooltip_compare3d => 'Compare in 3D';
+  String get diveLog_selection_tooltip_compare3d => 'השוואה בתלת-ממד';
 
   @override
-  String get diveLog_sources_compareIn3d => 'Compare in 3D';
+  String get diveLog_sources_compareIn3d => 'השוואה בתלת-ממד';
 }

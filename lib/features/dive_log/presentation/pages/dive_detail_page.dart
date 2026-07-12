@@ -425,6 +425,15 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   readingId: readingId,
                 ),
                 onSplit: (readingId) => _confirmAndSplit(dive, readingId),
+                onCompareIn3d: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => Dive3dPage(
+                      diveId: dive.id,
+                      initialMode: SceneKind.computers,
+                    ),
+                  ),
+                ),
               );
             },
           ),

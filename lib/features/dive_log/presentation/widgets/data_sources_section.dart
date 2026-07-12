@@ -49,6 +49,10 @@ class DataSourcesSection extends StatefulWidget {
   /// Called when the user taps a source card to temporarily view it.
   final void Function(String sourceId)? onTapSource;
 
+  /// Called when the user taps "Compare in 3D" (shown only for multi-source
+  /// dives). Null hides the button.
+  final VoidCallback? onCompareIn3d;
+
   const DataSourcesSection({
     super.key,
     required this.dataSources,
@@ -59,6 +63,7 @@ class DataSourcesSection extends StatefulWidget {
     this.onSetPrimary,
     this.onSplit,
     this.onTapSource,
+    this.onCompareIn3d,
   });
 
   @override
@@ -97,6 +102,19 @@ class _DataSourcesSectionState extends State<DataSourcesSection> {
         _SourceComparisonGrid(sources: widget.dataSources, units: widget.units),
       );
       children.add(const SizedBox(height: 8));
+      if (widget.onCompareIn3d != null) {
+        children.add(
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              icon: const Icon(Icons.view_in_ar, size: 18),
+              label: Text(context.l10n.diveLog_sources_compareIn3d),
+              onPressed: widget.onCompareIn3d,
+            ),
+          ),
+        );
+        children.add(const SizedBox(height: 8));
+      }
     }
     for (var i = 0; i < widget.dataSources.length; i++) {
       final source = widget.dataSources[i];
