@@ -16,17 +16,21 @@ import 'package:submersion/core/services/secure_storage/fallback_secure_storage.
 /// Keychain access goes through [FallbackSecureStorage], which retries on the
 /// legacy keychain when the ad-hoc no-sandbox build has no access group.
 class S3CredentialsStore {
-  S3CredentialsStore({FlutterSecureStorage? storage})
-    : _storage = FallbackSecureStorage(storage ?? const FlutterSecureStorage());
+  /// [storageKey] overrides the legacy sync-config key; the Connected
+  /// Accounts layer passes per-account keys (`account_<id>_credentials`).
+  S3CredentialsStore({FlutterSecureStorage? storage, String? storageKey})
+    : _storage = FallbackSecureStorage(storage ?? const FlutterSecureStorage()),
+      _storageKey = storageKey ?? S3CredentialsStore.storageKey;
 
   final FallbackSecureStorage _storage;
+  final String _storageKey;
 
   static const String storageKey = 'sync_s3_config';
 
   /// The stored config, or null when unset or the stored blob is corrupt.
   /// Keychain errors other than a missing entitlement propagate.
   Future<S3Config?> load() async {
-    final raw = await _storage.read(key: storageKey);
+    final raw = await _storage.read(key: _storageKey);
     if (raw == null) return null;
     try {
       final decoded = jsonDecode(raw);
@@ -40,7 +44,7 @@ class S3CredentialsStore {
   }
 
   Future<void> save(S3Config config) =>
-      _storage.write(key: storageKey, value: jsonEncode(config.toJson()));
+      _storage.write(key: _storageKey, value: jsonEncode(config.toJson()));
 
-  Future<void> clear() => _storage.delete(key: storageKey);
+  Future<void> clear() => _storage.delete(key: _storageKey);
 }
