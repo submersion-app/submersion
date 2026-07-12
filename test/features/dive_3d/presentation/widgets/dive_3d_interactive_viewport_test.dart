@@ -63,6 +63,7 @@ void main() {
     required Scene3d scene,
     ValueListenable<double>? scrub,
     void Function(SceneMarker)? onMarkerTap,
+    ScrubCursorStyle scrubCursor = ScrubCursorStyle.dot,
   }) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -72,6 +73,7 @@ void main() {
             scrubPosition: scrub ?? ValueNotifier(0.0),
             visibleOverlays: SceneOverlay.values.toSet(),
             onMarkerTap: onMarkerTap,
+            scrubCursor: scrubCursor,
           ),
         ),
       ),
@@ -135,6 +137,21 @@ void main() {
     await pumpViewport(tester, scene: buildScene(), scrub: scrub);
     scrub.value = 0.5;
     await tester.pump();
+    final paints = tester.widgetList<CustomPaint>(
+      find.descendant(
+        of: find.byType(Dive3dInteractiveViewport),
+        matching: find.byType(CustomPaint),
+      ),
+    );
+    expect(paints.any((p) => p.foregroundPainter != null), isTrue);
+  });
+
+  testWidgets('time-plane cursor style renders without error', (tester) async {
+    await pumpViewport(
+      tester,
+      scene: buildScene(),
+      scrubCursor: ScrubCursorStyle.timePlane,
+    );
     final paints = tester.widgetList<CustomPaint>(
       find.descendant(
         of: find.byType(Dive3dInteractiveViewport),

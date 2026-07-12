@@ -8,6 +8,11 @@ import 'package:submersion/features/dive_3d/presentation/renderer/preview_painte
 import 'package:submersion/features/dive_3d/presentation/renderer/scene_projector.dart';
 import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 
+/// How the scrub cursor is drawn: a dot riding the path (depth/tissue/career/
+/// spatial scenes), or a vertical time-plane sweeping every ribbon at once
+/// (the comparison scene).
+enum ScrubCursorStyle { dot, timePlane }
+
 /// Interactive 3D viewport rendered entirely with CustomPaint: the scene
 /// paints via [Dive3dScenePainter] (Canvas.drawVertices, GPU-rasterized by
 /// Flutter itself) and gestures drive the orthographic camera. No external
@@ -19,6 +24,7 @@ class Dive3dInteractiveViewport extends StatefulWidget {
   final ValueListenable<double> scrubPosition;
   final Set<SceneOverlay> visibleOverlays;
   final void Function(SceneMarker marker)? onMarkerTap;
+  final ScrubCursorStyle scrubCursor;
 
   const Dive3dInteractiveViewport({
     super.key,
@@ -26,6 +32,7 @@ class Dive3dInteractiveViewport extends StatefulWidget {
     required this.scrubPosition,
     required this.visibleOverlays,
     this.onMarkerTap,
+    this.scrubCursor = ScrubCursorStyle.dot,
   });
 
   @override
@@ -119,6 +126,7 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
                 pitchDegrees: _pitch,
                 zoom: _zoom,
                 scrubPosition: widget.scrubPosition,
+                style: widget.scrubCursor,
               ),
               child: const SizedBox.expand(),
             ),
@@ -138,6 +146,7 @@ class _ScrubCursorPainter extends CustomPainter {
   final double pitchDegrees;
   final double zoom;
   final ValueListenable<double> scrubPosition;
+  final ScrubCursorStyle style;
 
   _ScrubCursorPainter({
     required this.scene,
@@ -145,6 +154,7 @@ class _ScrubCursorPainter extends CustomPainter {
     required this.pitchDegrees,
     required this.zoom,
     required this.scrubPosition,
+    required this.style,
   }) : super(repaint: scrubPosition);
 
   @override
@@ -160,6 +170,27 @@ class _ScrubCursorPainter extends CustomPainter {
       pitchDegrees: pitchDegrees,
       zoom: zoom,
     );
+    if (style == ScrubCursorStyle.timePlane) {
+      final b = scene.bounds;
+      final corners = <Offset>[
+        projector.project(scenePoint.x, b.sceneMaxY, b.sceneMinZ),
+        projector.project(scenePoint.x, b.sceneMaxY, b.sceneMaxZ),
+        projector.project(scenePoint.x, b.sceneMinY, b.sceneMaxZ),
+        projector.project(scenePoint.x, b.sceneMinY, b.sceneMinZ),
+      ];
+      final plane = Path()..addPolygon(corners, true);
+      canvas.drawPath(
+        plane,
+        Paint()..color = Colors.white.withValues(alpha: 0.10),
+      );
+      canvas.drawPath(
+        plane,
+        Paint()
+          ..color = Colors.white.withValues(alpha: 0.5)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.0,
+      );
+    }
     final center = projector.project(scenePoint.x, scenePoint.y, scenePoint.z);
     canvas.drawCircle(
       center,
@@ -183,5 +214,6 @@ class _ScrubCursorPainter extends CustomPainter {
       !identical(oldDelegate.scene, scene) ||
       oldDelegate.yawDegrees != yawDegrees ||
       oldDelegate.pitchDegrees != pitchDegrees ||
-      oldDelegate.zoom != zoom;
+      oldDelegate.zoom != zoom ||
+      oldDelegate.style != style;
 }
