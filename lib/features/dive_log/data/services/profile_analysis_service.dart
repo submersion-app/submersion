@@ -564,6 +564,53 @@ class ProfileAnalysisService {
       ascentRates,
     );
 
+    // Gauge (bottom-timer) dives record depth and time only. No gas is known,
+    // so decompression, ppO2, CNS/OTU, MOD, and gas-density analysis are not
+    // meaningful and must never be fabricated from an assumed air mix. Surface
+    // the depth/time-derived data (ascent rates, depth stats, events) and leave
+    // every gas/deco curve empty so panels and chart overlays report "no data".
+    if (diveMode == DiveMode.gauge) {
+      double maxDepth = 0;
+      int maxDepthTimestamp = 0;
+      double depthSum = 0;
+      for (int i = 0; i < depths.length; i++) {
+        if (depths[i] > maxDepth) {
+          maxDepth = depths[i];
+          maxDepthTimestamp = timestamps[i];
+        }
+        depthSum += depths[i];
+      }
+      final gaugeEvents = _detectEvents(
+        diveId: diveId,
+        depths: depths,
+        timestamps: timestamps,
+        ascentRates: ascentRates,
+        ascentRateViolations: ascentRateViolations,
+        ndlCurve: const [],
+        ppO2Curve: const [],
+        maxDepth: maxDepth,
+        maxDepthTimestamp: maxDepthTimestamp,
+      );
+      return ProfileAnalysis(
+        ascentRates: ascentRates,
+        ascentRateStats: ascentRateStats,
+        ascentRateViolations: ascentRateViolations,
+        events: gaugeEvents,
+        ceilingCurve: const [],
+        ndlCurve: const [],
+        decoStatuses: const [],
+        o2Exposure: const O2Exposure(),
+        ppO2Curve: const [],
+        meanDepthCurve: _calculateMeanDepthCurve(depths),
+        maxDepth: maxDepth,
+        averageDepth: depths.isNotEmpty ? depthSum / depths.length : 0,
+        maxDepthTimestamp: maxDepthTimestamp,
+        durationSeconds: timestamps.isNotEmpty
+            ? timestamps.last - timestamps.first
+            : 0,
+      );
+    }
+
     // Calculate decompression data
     if (startCompartments != null) {
       if (startCompartments.length != zhl16CompartmentCount) {
@@ -664,6 +711,10 @@ class ProfileAnalysisService {
         ppO2Curve =
             ocGasMetrics?.ppO2Curve ??
             _o2ToxicityCalculator.calculatePpO2Curve(depths, o2Fraction);
+      case DiveMode.gauge:
+        // Unreachable: gauge returns early above. Present only so the switch
+        // stays exhaustive over DiveMode.
+        ppO2Curve = List<double>.filled(depths.length, 0.0);
     }
 
     // Calculate O2 exposure using the ppO2 curve
