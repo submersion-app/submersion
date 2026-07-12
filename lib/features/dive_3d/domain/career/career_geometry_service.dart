@@ -1,8 +1,8 @@
-import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:submersion/features/dive_3d/domain/career/career_scene_data.dart';
-import 'package:submersion/features/dive_3d/domain/geometry/ribbon_builder.dart';
+import 'package:submersion/features/dive_3d/domain/compare/compare_geometry_service.dart';
+import 'package:submersion/features/dive_3d/domain/compare/comparison_profile.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/scene_bounds.dart';
 import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
 
@@ -11,10 +11,10 @@ enum CareerColorMode { recency, depth }
 
 /// Builds the career "terrain": one depth ribbon per dive, stacked along Z
 /// under a single shared time and depth scale so the profiles are directly
-/// comparable. Pure and isolate-friendly; renders through Scene3d.
+/// comparable. The multi-ribbon stacking is delegated to
+/// [CompareGeometryService]; this class owns only the across-set color ramps.
+/// Pure and isolate-friendly; renders through Scene3d.
 class CareerGeometryService {
-  static const double _zGap = 0.6;
-
   // Recency ramp: older (faded slate) -> newer (bright cyan).
   static const Color _oldColor = Color(0xFF64748B);
   static const Color _newColor = Color(0xFF22D3EE);
@@ -37,41 +37,28 @@ class CareerGeometryService {
       );
     }
 
-    var maxDuration = 1.0;
     var maxDepth = 1.0;
     for (final d in dives) {
-      if (d.times.isNotEmpty && d.times.last > maxDuration) {
-        maxDuration = d.times.last;
-      }
       if (d.maxDepthMeters > maxDepth) maxDepth = d.maxDepthMeters;
     }
-
     final count = dives.length;
-    final halfZ = count <= 1 ? 0.0 : (count - 1) * 0.5 * _zGap;
-    final bounds = SceneBounds(
-      durationSeconds: maxDuration,
-      maxDepthMeters: maxDepth,
-      sceneMinZ: -halfZ - SceneBounds.zHalfWidth,
-      sceneMaxZ: halfZ + SceneBounds.zHalfWidth,
-    );
 
-    final layers = <SceneLayer>[
+    final profiles = [
       for (final dive in dives)
-        SceneLayer(
-          RibbonBuilder.build(
-            times: dive.times,
-            depths: dive.depths,
-            sampleColors: _uniformColor(
-              _colorFor(dive, count, maxDepth, colorMode),
-              dive.times.length,
-            ),
-            bounds: bounds,
-            zCenter: count <= 1 ? 0.0 : -halfZ + dive.index * _zGap,
-          ),
+        ComparisonProfile(
+          id: '${dive.index}',
+          label: '',
+          color: _colorFor(dive, count, maxDepth, colorMode),
+          times: dive.times,
+          depths: dive.depths,
+          maxDepthMeters: dive.maxDepthMeters,
         ),
     ];
 
-    return Scene3d(layers: layers, markers: const [], bounds: bounds);
+    return const CompareGeometryService().build(
+      profiles,
+      layout: CompareLayout.sideBySide,
+    );
   }
 
   Color _colorFor(
@@ -88,15 +75,5 @@ class CareerGeometryService {
         final t = maxDepth <= 0 ? 0.0 : (dive.maxDepthMeters / maxDepth);
         return Color.lerp(_shallowColor, _deepColor, t.clamp(0.0, 1.0))!;
     }
-  }
-
-  Float32List _uniformColor(Color color, int sampleCount) {
-    final out = Float32List(sampleCount * 3);
-    for (var i = 0; i < sampleCount; i++) {
-      out[i * 3] = color.r;
-      out[i * 3 + 1] = color.g;
-      out[i * 3 + 2] = color.b;
-    }
-    return out;
   }
 }
