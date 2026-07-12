@@ -49,6 +49,7 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/media/data/parsers/manifest_entry.dart';
 import 'package:submersion/features/media/data/services/url_metadata_extractor.dart';
+import 'package:submersion/features/media/domain/services/dive_photo_matcher.dart';
 
 /// Background-fetch pipeline for ad-hoc HTTP(S) media URLs.
 ///
@@ -66,11 +67,20 @@ class NetworkFetchPipeline {
     int maxConcurrent = 4,
     Duration perHostMinInterval = const Duration(milliseconds: 250),
     DateTime Function() now = _defaultNow,
+    Future<List<DiveBounds>> Function(DateTime takenAt)? diveBoundsLoader,
+    DivePhotoMatcher? matcher,
   }) : _db = db,
        _extractor = extractor,
        _maxConcurrent = maxConcurrent,
        _perHostMinInterval = perHostMinInterval,
-       _now = now;
+       _now = now,
+       _diveBoundsLoader = diveBoundsLoader,
+       _matcher = matcher ?? const DivePhotoMatcher();
+
+  /// Loads candidate dives around a photo timestamp for auto-matching.
+  /// Null disables auto-match entirely (tests, headless imports).
+  final Future<List<DiveBounds>> Function(DateTime takenAt)? _diveBoundsLoader;
+  final DivePhotoMatcher _matcher;
 
   final AppDatabase _db;
   final UrlMetadataExtractor _extractor;
@@ -103,14 +113,12 @@ class NetworkFetchPipeline {
   /// Synchronously inserts one `media` row per URL and kicks off background
   /// metadata extraction. Returns the new row IDs in input order.
   ///
-  /// The `autoMatch` flag is reserved for the URL-tab Phase 3 work that
-  /// auto-attaches imported media to dives by date; it does not affect the
-  /// fetch pipeline itself.
-  Future<List<String>> ingest(
-    List<Uri> urls, {
-    // ignore: avoid_unused_constructor_parameters
-    bool autoMatch = true,
-  }) async {
+  /// With `autoMatch` (the default), rows whose extracted or
+  /// manifest-supplied `takenAt` lands confidently inside exactly one
+  /// dive's time window are attached to that dive after the background
+  /// fill completes (same DivePhotoMatcher semantics as the gallery scan
+  /// and Lightroom auto-linking).
+  Future<List<String>> ingest(List<Uri> urls, {bool autoMatch = true}) async {
     final ids = <String>[];
     final specs = <_FillSpec>[];
     final nowMillis = _now().millisecondsSinceEpoch;
@@ -130,7 +138,7 @@ class NetworkFetchPipeline {
             ),
           );
       ids.add(id);
-      specs.add(_FillSpec(id: id, uri: uri));
+      specs.add(_FillSpec(id: id, uri: uri, autoMatch: autoMatch));
     }
     _scheduleFill(specs);
     return ids;
@@ -155,8 +163,9 @@ class NetworkFetchPipeline {
   /// but manifest-supplied fields take precedence over extracted ones.
   Future<List<String>> ingestManifestEntries(
     List<ManifestEntry> entries,
-    String subscriptionId,
-  ) async {
+    String subscriptionId, {
+    bool autoMatch = true,
+  }) async {
     final ids = <String>[];
     final specs = <_FillSpec>[];
     final nowMillis = _now().millisecondsSinceEpoch;
@@ -188,7 +197,14 @@ class NetworkFetchPipeline {
           );
       ids.add(id);
       final uri = Uri.parse(entry.url);
-      specs.add(_FillSpec.fromManifest(id: id, uri: uri, entry: entry));
+      specs.add(
+        _FillSpec.fromManifest(
+          id: id,
+          uri: uri,
+          entry: entry,
+          autoMatch: autoMatch,
+        ),
+      );
     }
     _scheduleFill(specs);
     return ids;
@@ -228,6 +244,9 @@ class NetworkFetchPipeline {
     if (spec.skipExtract) {
       try {
         await _markVerifiedNoExtract(spec.id);
+        if (spec.autoMatch && spec.manifestTakenAt != null) {
+          await _tryAutoMatch(spec.id, spec.manifestTakenAt!);
+        }
       } catch (e) {
         await _markFailed(spec.id, 'pipeline: $e');
       }
@@ -259,6 +278,10 @@ class NetworkFetchPipeline {
         await _markFailed(spec.id, result.failure!);
       } else {
         await _patchSuccess(spec, result);
+        final takenAt = spec.manifestTakenAt ?? result.takenAt;
+        if (spec.autoMatch && takenAt != null) {
+          await _tryAutoMatch(spec.id, takenAt);
+        }
       }
     } catch (e) {
       await _markFailed(spec.id, 'pipeline: $e');
@@ -340,6 +363,34 @@ class NetworkFetchPipeline {
     );
   }
 
+  /// Attach the row to a dive when its timestamp lands confidently inside
+  /// exactly one dive window. Best-effort: never attaches over an existing
+  /// diveId, ambiguous matches are left for the suggestions flow, and any
+  /// failure leaves the row exactly as the fill wrote it.
+  Future<void> _tryAutoMatch(String id, DateTime takenAt) async {
+    final loader = _diveBoundsLoader;
+    if (loader == null) return;
+    try {
+      final row = await (_db.select(
+        _db.media,
+      )..where((t) => t.id.equals(id))).getSingleOrNull();
+      if (row == null || row.diveId != null) return;
+      final match = _matcher.matchTimestamp(
+        takenAt: takenAt,
+        dives: await loader(takenAt),
+      );
+      if (match.kind != TimestampMatchKind.confident) return;
+      await (_db.update(_db.media)..where((t) => t.id.equals(id))).write(
+        MediaCompanion(
+          diveId: Value(match.diveId),
+          updatedAt: Value(_now().millisecondsSinceEpoch),
+        ),
+      );
+    } catch (_) {
+      // Auto-match is additive; the imported row stays library-level.
+    }
+  }
+
   Future<void> _markFailed(String id, String message) async {
     final nowMillis = _now().millisecondsSinceEpoch;
     await (_db.update(_db.media)..where((t) => t.id.equals(id))).write(
@@ -383,7 +434,7 @@ String _fileTypeFromMediaType(String? mediaType) {
 class _FillSpec {
   /// Builds a spec for the URL `ingest` path. No manifest fields are
   /// set, and extraction is always required.
-  _FillSpec({required this.id, required this.uri})
+  _FillSpec({required this.id, required this.uri, this.autoMatch = false})
     : skipExtract = false,
       manifestTakenAt = null,
       manifestLatitude = null,
@@ -399,6 +450,7 @@ class _FillSpec {
     required this.id,
     required this.uri,
     required ManifestEntry entry,
+    this.autoMatch = false,
   }) : manifestTakenAt = entry.takenAt,
        manifestLatitude = entry.latitude,
        manifestLongitude = entry.longitude,
@@ -418,6 +470,7 @@ class _FillSpec {
   final String id;
   final Uri uri;
   final bool skipExtract;
+  final bool autoMatch;
   final DateTime? manifestTakenAt;
   final double? manifestLatitude;
   final double? manifestLongitude;
