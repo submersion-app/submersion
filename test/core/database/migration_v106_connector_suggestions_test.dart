@@ -64,9 +64,8 @@ void main() {
   });
 
   test('version ladder includes 106', () {
-    // v106 is the newest migration: this test holds the exact-latest
-    // tripwire until the next migration lands and relaxes it.
-    expect(AppDatabase.currentSchemaVersion, 106);
+    // The exact-latest tripwire moved to the v107 connected-accounts test.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(106));
     expect(AppDatabase.migrationVersions, contains(106));
   });
 

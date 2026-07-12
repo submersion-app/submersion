@@ -1077,6 +1077,23 @@ class MediaStores extends Table {
   @override
   Set<Column> get primaryKey => {id};
 }
+
+/// Linked credentialed endpoints (secret-free). Synced roster: other
+/// devices see which accounts exist and prompt for sign-in (program spec
+/// section 5). Credentials live in the keychain under
+/// `account_<id>_credentials`, never here.
+class ConnectedAccounts extends Table {
+  TextColumn get id => text()();
+  TextColumn get kind => text()(); // AccountKind.name
+  TextColumn get label => text()();
+  TextColumn get accountIdentifier => text().nullable()();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
 // coverage:ignore-end
 
 /// Application settings key-value store (legacy - kept for backward compatibility)
@@ -1836,6 +1853,10 @@ class SyncMetadata extends Table {
   TextColumn get deviceId => text()(); // This device's unique UUID
   TextColumn get syncProvider =>
       text().nullable()(); // 'icloud', 'googledrive', or 's3'
+
+  /// The connected account driving sync, or null pre-account-migration.
+  /// syncProvider stays populated (kind name) for backward compatibility.
+  TextColumn get syncAccountId => text().nullable()();
   TextColumn get remoteFileId =>
       text().nullable()(); // Provider-specific file reference
   IntColumn get syncVersion =>
@@ -2150,6 +2171,7 @@ class FieldPresets extends Table {
     NetworkCredentialHosts,
     MediaFetchDiagnostics,
     MediaStores,
+    ConnectedAccounts,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -2159,7 +2181,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 106;
+  static const int currentSchemaVersion = 107;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -2269,6 +2291,7 @@ class AppDatabase extends _$AppDatabase {
     104,
     105,
     106,
+    107,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -2293,6 +2316,30 @@ class AppDatabase extends _$AppDatabase {
       await customStatement(
         'ALTER TABLE pending_photo_suggestions '
         'ADD COLUMN remote_asset_id TEXT',
+      );
+    }
+  }
+
+  /// v107: connected accounts roster + sync account selection. Idempotent;
+  /// also run from beforeOpen as a parallel-branch collision backstop.
+  Future<void> _assertConnectedAccountsSchema() async {
+    await customStatement(
+      'CREATE TABLE IF NOT EXISTS connected_accounts ('
+      'id TEXT NOT NULL PRIMARY KEY, '
+      'kind TEXT NOT NULL, '
+      'label TEXT NOT NULL, '
+      'account_identifier TEXT, '
+      'created_at INTEGER NOT NULL, '
+      'updated_at INTEGER NOT NULL, '
+      'hlc TEXT)',
+    );
+    final metaCols = await customSelect(
+      "PRAGMA table_info('sync_metadata')",
+    ).get();
+    if (metaCols.isNotEmpty &&
+        !metaCols.any((c) => c.read<String>('name') == 'sync_account_id')) {
+      await customStatement(
+        'ALTER TABLE sync_metadata ADD COLUMN sync_account_id TEXT',
       );
     }
   }
@@ -5281,6 +5328,12 @@ class AppDatabase extends _$AppDatabase {
           await _assertConnectorSuggestionColumns();
         }
         if (from < 106) await reportProgress();
+        if (from < 107) {
+          // Connected accounts (program spec section 5). Idempotent DDL;
+          // beforeOpen re-asserts against parallel-branch version collisions.
+          await _assertConnectedAccountsSchema();
+        }
+        if (from < 107) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
@@ -5293,6 +5346,9 @@ class AppDatabase extends _$AppDatabase {
         // v106 backstop: re-assert connector-suggestion columns (the helper
         // is self-guarding when the suggestions table is absent).
         await _assertConnectorSuggestionColumns();
+
+        // v107 backstop: re-assert connected accounts schema.
+        await _assertConnectedAccountsSchema();
 
         // Built-in dive types are reference data: identical on every device and
         // undeletable through DiveTypeRepository. Nothing else restores them --
