@@ -36,30 +36,37 @@ scroll retention *without* removing that key.
 Flutter's `Scrollable` automatically saves and restores its scroll offset to the
 nearest ancestor `PageStorageBucket`, keyed by the chain of `PageStorageKey`s
 between the bucket and the scrollable. Crucially, a plain `ValueKey` is **not** a
-`PageStorageKey` and does not participate in that path. So if:
+`PageStorageKey` and does not participate in that path. So when a detail page's
+scroll view carries a **stable** `PageStorageKey`, every item reads and writes
+the **same** storage slot — exactly the cross-item retention we want — while
+each item still gets a fresh element (no state leakage) and its own
+`ScrollController` (so the `AnimatedSwitcher` cross-fade, which briefly mounts
+both panes, causes no controller conflict).
 
-1. a `PageStorageBucket` lives **above** the per-id `KeyedSubtree`, and
-2. each detail page's scroll view carries a **stable** `PageStorageKey`,
+### Why the fix is *only* adding keys (spike finding, 2026-07-11)
 
-then every item reads and writes the **same** storage slot — exactly the
-cross-item retention we want — while each item still gets a fresh element (no
-state leakage) and its own `ScrollController` (so the `AnimatedSwitcher`
-cross-fade, which briefly mounts both panes, causes no controller conflict).
+The real reason the app resets today is that Flutter's
+`PageStorageBucket._computeIdentifier` returns `null` when there is **no
+`PageStorageKey`** in the scrollable's ancestry, making `writeState` /
+`readState` silent no-ops. The current detail scroll views have no key, so their
+offset is never persisted.
 
-### Part 1 — Scaffold provides a persistent, isolated bucket
+A spike (`MasterDetailScaffold` in a `GoRouter` at desktop width, dummy detail
+items) confirmed the mechanism end-to-end:
 
-In `_MasterDetailScaffoldState`:
+- **Tagged** scroll view (`PageStorageKey` present) → offset **retained** across
+  selection, using the ambient route-provided `PageStorageBucket` — *with no
+  scaffold change at all*.
+- **Untagged** scroll view → resets to 0.
 
-- Add `final PageStorageBucket _detailBucket = PageStorageBucket();`. Because the
-  `State` object outlives the per-id `KeyedSubtree` teardown, the bucket (and
-  thus the saved offset) persists across selections.
-- Wrap the detail-pane subtree (the `_DetailPane` / map-view `Expanded` child)
-  in `PageStorage(bucket: _detailBucket, child: ...)`. Owning the bucket at the
-  scaffold guarantees a bucket exists and isolates it per section, so
-  `PageStorageKey` strings cannot collide across sections (defensive; sections
-  are already separate routes today).
+Every routed page in Flutter already exposes a `PageStorageBucket` (via
+`ModalRoute`), and each section is its own route with a unique key string, so
+there is **nothing to isolate** and **no bucket to add** at the scaffold level.
+An earlier draft of this design added a scaffold-owned `PageStorageBucket`; the
+spike showed it to be redundant, so it was dropped (YAGNI). The scaffold change
+is reduced to a single explanatory comment.
 
-### Part 2 — Each in-scope detail page tags its scroll view
+### Each in-scope detail page tags its scroll view
 
 Add a constant `PageStorageKey` to the top-level vertical scroll view of each
 in-scope detail page. The key string is descriptive and unique per page:
@@ -93,9 +100,9 @@ Notes:
   comparable entity records), and species (reference data). These use
   `MasterDetailScaffold` too but are explicitly excluded.
 
-The scaffold change (Part 1) is global, but it is inert for the excluded
-sections because their detail panes carry no `PageStorageKey`, so nothing is
-saved or restored for them.
+No opt-out logic is needed for the excluded sections: their detail scroll views
+carry no `PageStorageKey`, so `PageStorageBucket` treats them as no-ops and
+nothing is saved or restored.
 
 ## Semantics & edge cases
 
@@ -147,8 +154,13 @@ section (e.g. sites) and confirm an excluded section (settings) still resets.
 
 ## Files touched
 
-- `lib/shared/widgets/master_detail/master_detail_scaffold.dart` — bucket +
-  `PageStorage` wrapper (Part 1).
-- 8 detail pages — one `PageStorageKey` each (trips: one per tab) (Part 2).
+- 7 single-scroll detail pages (dive, site, course, certification, dive center,
+  equipment, buddy) — one `PageStorageKey` each on `body`.
+- Trips (3 files) — `trip_overview_tab.dart`, `trip_itinerary_tab.dart`, and the
+  three in-page tab builders in `trip_detail_page.dart` (photos, dives,
+  checklist) — one `PageStorageKey` per scroll view.
+- `lib/shared/widgets/master_detail/master_detail_scaffold.dart` — a single
+  explanatory comment near the `ValueKey('detail_$id')` noting that scroll
+  retention rides on per-page `PageStorageKey`s (no behavior change).
 - `test/shared/widgets/master_detail/master_detail_scaffold_scroll_test.dart` —
   new widget test.
