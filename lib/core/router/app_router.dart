@@ -79,7 +79,10 @@ import 'package:submersion/features/backup/presentation/pages/backup_settings_pa
 import 'package:submersion/features/settings/presentation/pages/cloud_sync_page.dart';
 import 'package:submersion/features/media_store/presentation/pages/media_storage_page.dart';
 import 'package:submersion/features/media_store/presentation/pages/transfers_page.dart';
+import 'package:submersion/features/settings/presentation/pages/connected_accounts_page.dart';
 import 'package:submersion/features/settings/presentation/pages/lightroom_settings_page.dart';
+import 'package:submersion/features/settings/presentation/pages/photos_media_hub_page.dart';
+import 'package:submersion/features/settings/presentation/pages/photos_media_setup_page.dart';
 import 'package:submersion/features/settings/presentation/pages/s3_config_page.dart';
 import 'package:submersion/features/settings/presentation/pages/fix_dive_times_page.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
@@ -931,6 +934,23 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'lightroom',
                 name: 'lightroom',
                 builder: (context, state) => const LightroomSettingsPage(),
+              ),
+              GoRoute(
+                path: 'photos-media',
+                name: 'photosMedia',
+                builder: (context, state) => const PhotosMediaHubPage(),
+                routes: [
+                  GoRoute(
+                    path: 'setup',
+                    name: 'photosMediaSetup',
+                    builder: (context, state) => const PhotosMediaSetupPage(),
+                  ),
+                ],
+              ),
+              GoRoute(
+                path: 'connected-accounts',
+                name: 'connectedAccounts',
+                builder: (context, state) => const ConnectedAccountsPage(),
               ),
               GoRoute(
                 path: 'fix-dive-times',

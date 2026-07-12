@@ -19118,4 +19118,112 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_setup_dismiss => 'Negeren';
+
+  @override
+  String get settings_photosMedia_title => 'Foto\'s en media';
+
+  @override
+  String get settings_photosMedia_subtitle => 'Bronnen, opslag en accounts';
+
+  @override
+  String get settings_photosMedia_sourcesHeader => 'Waar foto\'s vandaan komen';
+
+  @override
+  String get settings_photosMedia_storageHeader =>
+      'Waar kopieën worden bewaard';
+
+  @override
+  String get settings_photosMedia_accountsHeader => 'Accounts';
+
+  @override
+  String get settings_photosMedia_guidedSetup => 'Begeleide installatie';
+
+  @override
+  String get settings_photosMedia_photoSources_title =>
+      'Fotobibliotheek en bronnen';
+
+  @override
+  String get settings_photosMedia_photoSources_subtitle =>
+      'Galerij, bestanden en importopties';
+
+  @override
+  String get settings_photosMedia_networkSources_title => 'Netwerkbronnen';
+
+  @override
+  String get settings_photosMedia_networkSources_subtitle =>
+      'URL’s en manifest-feeds (geavanceerd)';
+
+  @override
+  String get settings_connectedAccounts_title => 'Gekoppelde accounts';
+
+  @override
+  String get settings_connectedAccounts_subtitle =>
+      'Cloud- en service-aanmeldingen';
+
+  @override
+  String get settings_connectedAccounts_empty => 'Nog geen accounts gekoppeld';
+
+  @override
+  String get settings_connectedAccounts_status_signedIn => 'Aangemeld';
+
+  @override
+  String get settings_connectedAccounts_status_needsSignIn =>
+      'Aanmelden vereist';
+
+  @override
+  String get settings_connectedAccounts_status_unavailable =>
+      'Niet beschikbaar op dit apparaat';
+
+  @override
+  String get settings_connectedAccounts_disconnectDevice =>
+      'Afmelden op dit apparaat';
+
+  @override
+  String get settings_connectedAccounts_removeFromLibrary =>
+      'Uit bibliotheek verwijderen';
+
+  @override
+  String get settings_connectedAccounts_removeConfirmTitle =>
+      'Account verwijderen?';
+
+  @override
+  String get settings_connectedAccounts_removeConfirmBody =>
+      'Het account wordt van elk gesynchroniseerd apparaat verwijderd. Op andere apparaten opgeslagen inloggegevens worden niet gewist.';
+
+  @override
+  String get settings_setupGuide_title => 'Foto\'s en media instellen';
+
+  @override
+  String get settings_setupGuide_intro =>
+      'Koppel waar je foto\'s vandaan komen en waar kopieën worden bewaard. Je kunt dit altijd opnieuw uitvoeren.';
+
+  @override
+  String get settings_setupGuide_stepSources => 'Fotobronnen';
+
+  @override
+  String get settings_setupGuide_stepSources_desc =>
+      'Voeg foto\'s toe uit je fotobibliotheek, bestanden of Lightroom.';
+
+  @override
+  String get settings_setupGuide_stepStorage => 'Mediaopslag';
+
+  @override
+  String get settings_setupGuide_stepStorage_desc =>
+      'Bewaar kopieën van je foto\'s in je eigen cloud zodat elk apparaat ze kan tonen.';
+
+  @override
+  String get settings_setupGuide_stepSync => 'Cloudsynchronisatie';
+
+  @override
+  String get settings_setupGuide_stepSync_desc =>
+      'Synchroniseer duikgegevens tussen apparaten.';
+
+  @override
+  String get settings_setupGuide_statusDone => 'Ingesteld';
+
+  @override
+  String get settings_setupGuide_statusTodo => 'Niet ingesteld';
+
+  @override
+  String get settings_setupGuide_open => 'Openen';
 }

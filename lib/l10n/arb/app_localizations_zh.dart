@@ -18295,4 +18295,100 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_setup_dismiss => '忽略';
+
+  @override
+  String get settings_photosMedia_title => '照片与媒体';
+
+  @override
+  String get settings_photosMedia_subtitle => '来源、存储与账户';
+
+  @override
+  String get settings_photosMedia_sourcesHeader => '照片来源';
+
+  @override
+  String get settings_photosMedia_storageHeader => '副本保存位置';
+
+  @override
+  String get settings_photosMedia_accountsHeader => '账户';
+
+  @override
+  String get settings_photosMedia_guidedSetup => '引导设置';
+
+  @override
+  String get settings_photosMedia_photoSources_title => '照片图库与来源';
+
+  @override
+  String get settings_photosMedia_photoSources_subtitle => '图库、文件与导入选项';
+
+  @override
+  String get settings_photosMedia_networkSources_title => '网络来源';
+
+  @override
+  String get settings_photosMedia_networkSources_subtitle => 'URL 与清单订阅（高级）';
+
+  @override
+  String get settings_connectedAccounts_title => '已连接账户';
+
+  @override
+  String get settings_connectedAccounts_subtitle => '云与服务登录';
+
+  @override
+  String get settings_connectedAccounts_empty => '尚未连接任何账户';
+
+  @override
+  String get settings_connectedAccounts_status_signedIn => '已登录';
+
+  @override
+  String get settings_connectedAccounts_status_needsSignIn => '需要登录';
+
+  @override
+  String get settings_connectedAccounts_status_unavailable => '此设备上不可用';
+
+  @override
+  String get settings_connectedAccounts_disconnectDevice => '在此设备上退出登录';
+
+  @override
+  String get settings_connectedAccounts_removeFromLibrary => '从库中移除';
+
+  @override
+  String get settings_connectedAccounts_removeConfirmTitle => '移除账户？';
+
+  @override
+  String get settings_connectedAccounts_removeConfirmBody =>
+      '该账户将从所有同步设备中移除。存储在其他设备上的凭据不会被删除。';
+
+  @override
+  String get settings_setupGuide_title => '设置照片与媒体';
+
+  @override
+  String get settings_setupGuide_intro => '连接照片来源以及副本保存位置。你可以随时重新运行。';
+
+  @override
+  String get settings_setupGuide_stepSources => '照片来源';
+
+  @override
+  String get settings_setupGuide_stepSources_desc =>
+      '从照片图库、文件或 Lightroom 附加照片。';
+
+  @override
+  String get settings_setupGuide_stepStorage => '媒体存储';
+
+  @override
+  String get settings_setupGuide_stepStorage_desc =>
+      '将照片副本保存在你自己的云端，让每台设备都能显示。';
+
+  @override
+  String get settings_setupGuide_stepSync => '云同步';
+
+  @override
+  String get settings_setupGuide_stepSync_desc => '在设备之间同步潜水数据。';
+
+  @override
+  String get settings_setupGuide_statusDone => '已设置';
+
+  @override
+  String get settings_setupGuide_statusTodo => '未设置';
+
+  @override
+  String get settings_setupGuide_open => '打开';
 }
