@@ -136,30 +136,36 @@ void main() {
     },
   );
 
-  test('lightroom connector rows are adopted with preserved ids', () async {
-    SharedPreferences.setMockInitialValues({});
-    final prefs = await SharedPreferences.getInstance();
-    keychain.values['lightroom_auth'] = '{"clientId":"c","refreshToken":"r"}';
-    await db.customStatement(
-      "INSERT INTO connector_accounts "
-      "(id, connector_type, display_name, credentials_ref, "
-      "account_identifier, added_at) "
-      "VALUES ('lr-1', 'lightroom', 'My Lightroom', 'lightroom_auth', "
-      "'catalog-9', 5)",
-    );
+  test(
+    'adopted lightroom accounts get the legacy auth blob re-keyed',
+    () async {
+      // The v107 DB migration copies connector_accounts rows into
+      // connected_accounts (ids preserved); the startup migration only owns
+      // the keychain copy. Simulate the post-v107 state: an adopted row
+      // without per-account credentials.
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      keychain.values['lightroom_auth'] = '{"clientId":"c","refreshToken":"r"}';
+      await accounts.create(
+        kind: AccountKind.adobeLightroom,
+        label: 'My Lightroom',
+        accountIdentifier: 'catalog-9',
+        id: 'lr-1',
+      );
 
-    await (await migration(prefs)).run();
+      await (await migration(prefs)).run();
 
-    final adopted = await accounts.getById('lr-1');
-    expect(adopted, isNotNull);
-    expect(adopted!.kind, AccountKind.adobeLightroom);
-    expect(adopted.label, 'My Lightroom');
-    expect(adopted.accountIdentifier, 'catalog-9');
-    expect(
-      keychain.values[AccountCredentialsStore.keyFor('lr-1')],
-      '{"clientId":"c","refreshToken":"r"}',
-    );
-  });
+      expect(
+        keychain.values[AccountCredentialsStore.keyFor('lr-1')],
+        '{"clientId":"c","refreshToken":"r"}',
+      );
+      expect(
+        keychain.values['lightroom_auth'],
+        '{"clientId":"c","refreshToken":"r"}',
+        reason: 'legacy blob preserved',
+      );
+    },
+  );
 
   test('run is idempotent', () async {
     SharedPreferences.setMockInitialValues({});

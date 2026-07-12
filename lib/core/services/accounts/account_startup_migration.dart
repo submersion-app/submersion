@@ -133,34 +133,17 @@ class AccountStartupMigration {
   }
 
   Future<void> _adoptLightroomConnectors() async {
-    // Raw SQL (not the Drift class): connector_accounts is retired and the
-    // table dropped at v107, so this must tolerate its absence.
-    final tableExists = await _db
-        .customSelect(
-          "SELECT name FROM sqlite_master WHERE type='table' "
-          "AND name='connector_accounts'",
-        )
-        .get();
-    if (tableExists.isEmpty) return;
-
-    final rows = await _db
-        .customSelect(
-          "SELECT id, display_name, account_identifier "
-          "FROM connector_accounts WHERE connector_type = 'lightroom'",
-        )
-        .get();
-    for (final row in rows) {
-      final id = row.read<String>('id');
-      if (await _accounts.getById(id) != null) continue;
-      await _accounts.create(
-        kind: AccountKind.adobeLightroom,
-        label: row.read<String>('display_name'),
-        accountIdentifier: row.readNullable<String>('account_identifier'),
-        id: id,
-      );
+    // The v107 DB migration already copied connector_accounts rows into
+    // connected_accounts (ids preserved) and dropped the old table. The
+    // database cannot touch the keychain, so the credential copy happens
+    // here: every adopted Lightroom account gets the legacy blob under its
+    // own key (copy-if-absent, so re-runs and fresh sign-ins are safe).
+    final all = await _accounts.getAll();
+    for (final account in all) {
+      if (account.kind != AccountKind.adobeLightroom) continue;
       await _credentials.rekeyFromLegacy(
         legacyKey: 'lightroom_auth',
-        accountId: id,
+        accountId: account.id,
       );
     }
   }

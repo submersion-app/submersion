@@ -266,11 +266,18 @@ final selectedSyncAccountProvider = FutureProvider<domain.ConnectedAccount?>((
   final type = ref.watch(selectedCloudProviderTypeProvider);
   if (type == null) return null;
   final repo = ref.watch(connectedAccountsRepositoryProvider);
-  final account = await ensureAccountForProviderType(type, repo);
-  await ref
-      .read(syncRepositoryProvider)
-      .setSyncAccount(accountId: account.id, providerType: type);
-  return account;
+  try {
+    final account = await ensureAccountForProviderType(type, repo);
+    await ref
+        .read(syncRepositoryProvider)
+        .setSyncAccount(accountId: account.id, providerType: type);
+    return account;
+  } catch (_) {
+    // Best-effort bookkeeping: the selection is re-derived on every launch,
+    // so a failed write (e.g. teardown racing this future) must not surface
+    // as a sync error.
+    return null;
+  }
 });
 
 /// Cloud storage provider singletons
