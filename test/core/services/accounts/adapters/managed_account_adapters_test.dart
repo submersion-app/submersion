@@ -26,10 +26,10 @@ domain.ConnectedAccount _account(String id, AccountKind kind) =>
     );
 
 class _FakeDriveProvider extends Fake implements GoogleDriveStorageProvider {
-  _FakeDriveProvider({required this.authenticated, this.client});
+  _FakeDriveProvider({required this.authenticated});
 
   final bool authenticated;
-  final http.Client? client;
+  final http.Client? client = null;
   bool signedOut = false;
 
   @override

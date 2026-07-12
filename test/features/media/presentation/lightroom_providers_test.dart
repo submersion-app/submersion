@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/providers/account_providers.dart';
+import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/lightroom/adobe_ims_auth_manager.dart';
 import 'package:submersion/core/services/lightroom/lightroom_api_client.dart';
 import 'package:submersion/core/services/lightroom/lightroom_auth_store.dart';
@@ -81,11 +83,10 @@ void main() {
   test('account creation flips the resolver after invalidation', () async {
     await container.read(lightroomAccountProvider.future);
     await container
-        .read(connectorAccountsRepositoryProvider)
+        .read(connectedAccountsRepositoryProvider)
         .create(
-          connectorType: lightroomConnectorType,
-          displayName: 'Eric',
-          credentialsRef: 'lightroom_auth',
+          kind: AccountKind.adobeLightroom,
+          label: 'Eric',
           accountIdentifier: 'cat1',
         );
     container.invalidate(lightroomAccountProvider);
@@ -104,11 +105,10 @@ void main() {
   test('with an account, resolve exercises the api/catalog/cache getters '
       'and degrades to networkError when the network is unavailable', () async {
     await container
-        .read(connectorAccountsRepositoryProvider)
+        .read(connectedAccountsRepositoryProvider)
         .create(
-          connectorType: lightroomConnectorType,
-          displayName: 'Eric',
-          credentialsRef: 'lightroom_auth',
+          kind: AccountKind.adobeLightroom,
+          label: 'Eric',
           accountIdentifier: 'cat1',
         );
     container.invalidate(lightroomAccountProvider);

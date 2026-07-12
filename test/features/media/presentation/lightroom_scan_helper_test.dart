@@ -11,7 +11,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/lightroom_connector_state.dart';
 import 'package:submersion/features/media/data/services/lightroom_scan_service.dart';
-import 'package:submersion/features/media/domain/entities/connector_account.dart'
+import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
 import 'package:submersion/features/media/presentation/helpers/lightroom_scan_helper.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
@@ -32,7 +33,7 @@ class _FakeScanService extends LightroomScanService {
 
   @override
   Future<LightroomScanSummary> scanDives({
-    required domain.ConnectorAccount account,
+    required domain.ConnectedAccount account,
     required List<Dive> dives,
     required LightroomConnectorState state,
   }) async {
@@ -46,18 +47,18 @@ class _FakeScanService extends LightroomScanService {
 }
 
 void main() {
-  final account = domain.ConnectorAccount(
+  final account = domain.ConnectedAccount(
     id: 'acct1',
-    connectorType: 'lightroom',
-    displayName: 'Eric',
-    credentialsRef: 'lightroom_auth',
+    kind: AccountKind.adobeLightroom,
+    label: 'Eric',
     accountIdentifier: 'cat1',
-    addedAt: DateTime.utc(2026, 7, 1),
+    createdAt: DateTime.utc(2026, 7, 1),
+    updatedAt: DateTime.utc(2026, 7, 1),
   );
 
   Future<(_FakeScanService, WidgetTester)> pump(
     WidgetTester tester, {
-    domain.ConnectorAccount? withAccount,
+    domain.ConnectedAccount? withAccount,
   }) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();

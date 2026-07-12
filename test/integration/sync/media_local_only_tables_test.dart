@@ -3,7 +3,6 @@
 // The four tables below are per-device and must never be uploaded to the
 // cloud sync file:
 //   - media_subscription_state   (per-device polling state)
-//   - connector_accounts         (per-device service connector accounts)
 //   - network_credential_hosts   (per-device network credentials)
 //   - media_fetch_diagnostics    (per-device fetch error tracking)
 //
@@ -55,14 +54,6 @@ void main() {
           VALUES ('sub-1', 0)
         ''');
 
-        // connector_accounts — per-device connector credentials (NOT synced).
-        await db.customStatement('''
-          INSERT INTO connector_accounts
-            (id, connector_type, display_name, credentials_ref, added_at)
-          VALUES
-            ('acc-1', 'immich', 'My Immich', 'cred-ref-1', 0)
-        ''');
-
         // network_credential_hosts — per-device network credentials (NOT synced).
         await db.customStatement('''
           INSERT INTO network_credential_hosts
@@ -101,7 +92,6 @@ void main() {
         // non-empty list.
         final pendingTypes = pending.map((r) => r.entityType).toSet();
         expect(pendingTypes, isNot(contains('media_subscription_state')));
-        expect(pendingTypes, isNot(contains('connector_accounts')));
         expect(pendingTypes, isNot(contains('network_credential_hosts')));
         expect(pendingTypes, isNot(contains('media_fetch_diagnostics')));
       },

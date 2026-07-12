@@ -1,15 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/providers/account_providers.dart';
+import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/accounts/adapters/lightroom_account_adapter.dart';
+import 'package:submersion/core/services/accounts/connected_account.dart'
+    as domain;
 import 'package:submersion/core/services/lightroom/adobe_ims_auth_manager.dart';
 import 'package:submersion/core/services/lightroom/lightroom_api_client.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
-import 'package:submersion/features/media/data/repositories/connector_accounts_repository.dart';
 import 'package:submersion/features/media/data/resolvers/connector_media_resolver.dart';
 import 'package:submersion/features/media/data/services/lightroom_connector_state.dart';
 import 'package:submersion/features/media/data/services/lightroom_scan_service.dart';
-import 'package:submersion/features/media/domain/entities/connector_account.dart'
-    as domain;
 import 'package:submersion/features/media/domain/entities/media_item.dart'
     as domain;
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
@@ -18,31 +20,35 @@ import 'package:submersion/features/media_store/presentation/providers/media_sto
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
-/// Connector type key for Lightroom rows in `connector_accounts`.
-const String lightroomConnectorType = 'lightroom';
-
-/// Singleton IMS auth manager (mirrors the Dropbox provider singleton:
-/// access-token cache and single-flight refresh must be process-wide).
+/// Connect-time IMS auth manager on the legacy single-connection key: the
+/// OAuth dance runs before any account row exists, so its tokens land here
+/// and are copied to the per-account key once the account is created.
 final lightroomAuthManagerProvider = Provider<AdobeImsAuthManager>(
   (ref) => AdobeImsAuthManager(),
 );
 
-final connectorAccountsRepositoryProvider =
-    Provider<ConnectorAccountsRepository>(
-      (ref) => ConnectorAccountsRepository(),
-    );
-
-/// The device's Lightroom connection, or null when not connected.
-/// Invalidate after connect/disconnect.
-final lightroomAccountProvider = FutureProvider<domain.ConnectorAccount?>(
+/// The library's Lightroom account (synced roster row), or null when none
+/// exists. Invalidate after connect/disconnect.
+final lightroomAccountProvider = FutureProvider<domain.ConnectedAccount?>(
   (ref) => ref
-      .watch(connectorAccountsRepositoryProvider)
-      .getByType(lightroomConnectorType),
+      .watch(connectedAccountsRepositoryProvider)
+      .getByKind(AccountKind.adobeLightroom),
 );
 
-final lightroomApiClientProvider = Provider<LightroomApiClient>(
-  (ref) => LightroomApiClient(auth: ref.watch(lightroomAuthManagerProvider)),
-);
+/// API client on the account's own auth manager once an account exists;
+/// the legacy connect-time manager before that (the connect flow fetches
+/// identity/catalog before the account row is created).
+final lightroomApiClientProvider = Provider<LightroomApiClient>((ref) {
+  final account = ref.watch(lightroomAccountProvider).value;
+  final auth = account == null
+      ? ref.watch(lightroomAuthManagerProvider)
+      : (ref
+                    .watch(accountProviderRegistryProvider)
+                    .adapterFor(AccountKind.adobeLightroom)
+                as LightroomAccountAdapter)
+            .authManagerFor(account);
+  return LightroomApiClient(auth: auth);
+});
 
 /// Per-account scan state (poll cursor, album filter, auto-poll, last
 /// error), keyed by connector account id.

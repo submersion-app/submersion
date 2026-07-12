@@ -69,6 +69,55 @@ void main() {
     expect(row.data['sync_account_id'], isNull);
   });
 
+  test('v107 adopts lightroom connector rows (ids preserved) and drops '
+      'connector_accounts', () async {
+    final nativeDb = NativeDatabase.memory(
+      setup: (rawDb) {
+        rawDb.execute('PRAGMA user_version = 106');
+        rawDb.execute('''
+          CREATE TABLE connector_accounts (
+            id TEXT NOT NULL PRIMARY KEY,
+            connector_type TEXT NOT NULL,
+            display_name TEXT NOT NULL,
+            base_url TEXT,
+            account_identifier TEXT,
+            credentials_ref TEXT NOT NULL,
+            added_at INTEGER NOT NULL,
+            last_used_at INTEGER
+          )
+        ''');
+        rawDb.execute(
+          "INSERT INTO connector_accounts "
+          "(id, connector_type, display_name, credentials_ref, "
+          "account_identifier, added_at) "
+          "VALUES ('lr-1', 'lightroom', 'My Lightroom', 'lightroom_auth', "
+          "'catalog-9', 5)",
+        );
+      },
+    );
+
+    final db = AppDatabase(nativeDb);
+    addTearDown(() => db.close());
+
+    final adopted = await db
+        .customSelect(
+          "SELECT kind, label, account_identifier "
+          "FROM connected_accounts WHERE id = 'lr-1'",
+        )
+        .getSingle();
+    expect(adopted.data['kind'], 'adobeLightroom');
+    expect(adopted.data['label'], 'My Lightroom');
+    expect(adopted.data['account_identifier'], 'catalog-9');
+
+    final oldTable = await db
+        .customSelect(
+          "SELECT name FROM sqlite_master WHERE type='table' "
+          "AND name='connector_accounts'",
+        )
+        .get();
+    expect(oldTable, isEmpty, reason: 'connector_accounts is retired');
+  });
+
   test('version ladder includes 107', () {
     // v107 is the newest migration: this test holds the exact-latest
     // tripwire until the next migration lands and relaxes it.

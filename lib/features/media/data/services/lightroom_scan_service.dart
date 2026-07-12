@@ -6,7 +6,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/enrichment_service.dart';
 import 'package:submersion/features/media/data/services/lightroom_connector_state.dart';
-import 'package:submersion/features/media/domain/entities/connector_account.dart';
+import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart'
     as domain;
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
@@ -96,7 +96,7 @@ class LightroomScanService {
   /// suggests them. Assets already linked or suggested (on any device;
   /// media rows sync) are skipped.
   Future<LightroomScanSummary> scanDives({
-    required ConnectorAccount account,
+    required ConnectedAccount account,
     required List<Dive> dives,
     required LightroomConnectorState state,
   }) async {
@@ -167,7 +167,7 @@ class LightroomScanService {
   /// Runs the same pipeline as a manual scan, so a failure mid-way leaves
   /// no partial state that a re-run would not reconcile (dedup).
   Future<LightroomScanSummary> poll({
-    required ConnectorAccount account,
+    required ConnectedAccount account,
     required LightroomConnectorState state,
   }) async {
     final until = _now();
@@ -189,7 +189,7 @@ class LightroomScanService {
   /// Filename/GPS/duration are not stored on suggestions; the row carries
   /// the identity fields, and the store pipeline supplies display bytes.
   Future<void> confirmSuggestion({
-    required ConnectorAccount account,
+    required ConnectedAccount account,
     required domain.PendingPhotoSuggestion suggestion,
   }) async {
     final remoteAssetId = suggestion.remoteAssetId;
@@ -250,7 +250,7 @@ class LightroomScanService {
   Future<void> _attach(
     LightroomAsset asset, {
     required String diveId,
-    required ConnectorAccount account,
+    required ConnectedAccount account,
   }) async {
     final now = _now();
     final saved = await _mediaRepository.createMedia(

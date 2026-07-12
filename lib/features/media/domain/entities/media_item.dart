@@ -443,7 +443,7 @@ class PendingPhotoSuggestion extends Equatable {
   final bool dismissed;
   final DateTime createdAt;
 
-  /// Set on connector suggestions: the local ConnectorAccounts row and the
+  /// Set on connector suggestions: the ConnectedAccounts roster row and the
   /// service-side asset id. Null on device-gallery suggestions.
   final String? connectorAccountId;
   final String? remoteAssetId;

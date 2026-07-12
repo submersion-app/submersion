@@ -12,7 +12,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/lightroom_connector_state.dart';
 import 'package:submersion/features/media/data/services/lightroom_scan_service.dart';
-import 'package:submersion/features/media/domain/entities/connector_account.dart';
+import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart'
     as domain;
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
@@ -67,13 +68,13 @@ void main() {
   late LightroomConnectorState state;
   late List<String> enqueued;
 
-  final account = ConnectorAccount(
+  final account = ConnectedAccount(
     id: 'acct1',
-    connectorType: 'lightroom',
-    displayName: 'Eric',
-    credentialsRef: 'lightroom_auth',
+    kind: AccountKind.adobeLightroom,
+    label: 'Eric',
     accountIdentifier: 'cat1',
-    addedAt: DateTime.utc(2026, 7, 1),
+    createdAt: DateTime.utc(2026, 7, 1),
+    updatedAt: DateTime.utc(2026, 7, 1),
   );
 
   setUp(() async {

@@ -80,28 +80,6 @@ void main() {
     },
   );
 
-  test('connector_accounts accepts insert + select via typed API', () async {
-    await db
-        .into(db.connectorAccounts)
-        .insert(
-          ConnectorAccountsCompanion.insert(
-            id: 'acc-1',
-            connectorType: 'immich',
-            displayName: 'My Immich',
-            baseUrl: const Value('https://photos.example.com'),
-            accountIdentifier: const Value('user@example.com'),
-            credentialsRef: 'cred-ref-1',
-            addedAt: 0,
-            lastUsedAt: const Value(100),
-          ),
-        );
-
-    final rows = await db.select(db.connectorAccounts).get();
-    expect(rows, hasLength(1));
-    expect(rows.first.connectorType, 'immich');
-    expect(rows.first.baseUrl, 'https://photos.example.com');
-  });
-
   test(
     'network_credential_hosts accepts insert + select via typed API',
     () async {

@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/providers/account_providers.dart';
+import 'package:submersion/core/services/accounts/account_credentials_store.dart';
+import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/accounts/adapters/lightroom_account_adapter.dart';
+import 'package:submersion/core/services/accounts/connected_account.dart'
+    as domain;
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/lightroom/adobe_ims_auth_manager.dart';
 import 'package:submersion/core/services/lightroom/lightroom_auth_store.dart';
 import 'package:submersion/core/services/lightroom/lightroom_models.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
-import 'package:submersion/features/media/domain/entities/connector_account.dart'
-    as domain;
 import 'package:submersion/features/media/presentation/helpers/lightroom_scan_helper.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/lightroom_connect_dialog.dart';
@@ -70,13 +74,20 @@ class _LightroomSettingsPageState extends ConsumerState<LightroomSettingsPage> {
           ),
         );
       }
-      await ref
-          .read(connectorAccountsRepositoryProvider)
+      final created = await ref
+          .read(connectedAccountsRepositoryProvider)
           .create(
-            connectorType: lightroomConnectorType,
-            displayName: account.fullName ?? account.email ?? 'Adobe account',
-            credentialsRef: LightroomAuthStore.storageKey,
+            kind: AccountKind.adobeLightroom,
+            label: account.fullName ?? account.email ?? 'Adobe account',
             accountIdentifier: catalogId,
+          );
+      // The OAuth dance above wrote tokens to the legacy connect-time key;
+      // copy them to the account's own key (runtime reads only that one).
+      await ref
+          .read(accountCredentialsStoreProvider)
+          .rekeyFromLegacy(
+            legacyKey: LightroomAuthStore.storageKey,
+            accountId: created.id,
           );
       ref.invalidate(lightroomAccountProvider);
     } on Exception catch (e) {
@@ -95,7 +106,7 @@ class _LightroomSettingsPageState extends ConsumerState<LightroomSettingsPage> {
     }
   }
 
-  Future<void> _disconnect(domain.ConnectorAccount account) async {
+  Future<void> _disconnect(domain.ConnectedAccount account) async {
     final l10n = context.l10n;
     final confirmed = await showDialog<bool>(
       context: context,
@@ -116,13 +127,21 @@ class _LightroomSettingsPageState extends ConsumerState<LightroomSettingsPage> {
     );
     if (confirmed != true || !mounted) return;
 
+    // Clear both credential locations: the account's own key (runtime) and
+    // the legacy connect-time key (scratch from the OAuth dance).
+    final adapter =
+        ref
+                .read(accountProviderRegistryProvider)
+                .adapterFor(AccountKind.adobeLightroom)
+            as LightroomAccountAdapter;
+    await adapter.authManagerFor(account).disconnect();
     await ref.read(lightroomAuthManagerProvider).disconnect();
     await ref.read(lightroomConnectorStateProvider(account.id)).clear();
-    await ref.read(connectorAccountsRepositoryProvider).delete(account.id);
+    await ref.read(connectedAccountsRepositoryProvider).delete(account.id);
     ref.invalidate(lightroomAccountProvider);
   }
 
-  Future<void> _editAlbumFilter(domain.ConnectorAccount account) async {
+  Future<void> _editAlbumFilter(domain.ConnectedAccount account) async {
     final l10n = context.l10n;
     final catalogId = account.accountIdentifier;
     if (catalogId == null) return;
@@ -261,14 +280,14 @@ class _LightroomSettingsPageState extends ConsumerState<LightroomSettingsPage> {
 
   Widget _connectedBody(
     AppLocalizations l10n,
-    domain.ConnectorAccount account,
+    domain.ConnectedAccount account,
   ) {
     final state = ref.read(lightroomConnectorStateProvider(account.id));
     return ListView(
       children: [
         ListTile(
           leading: const Icon(Icons.account_circle_outlined),
-          title: Text(l10n.settings_lightroom_connected(account.displayName)),
+          title: Text(l10n.settings_lightroom_connected(account.label)),
           subtitle: FutureBuilder<DateTime?>(
             future: state.lastPollAt(),
             builder: (_, snapshot) {

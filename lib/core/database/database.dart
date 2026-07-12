@@ -1013,22 +1013,6 @@ class MediaSubscriptionState extends Table {
   Set<Column> get primaryKey => {subscriptionId};
 }
 
-/// Configured service-connector accounts (Immich, Dropbox, etc.). Not synced —
-/// each device signs in independently.
-class ConnectorAccounts extends Table {
-  TextColumn get id => text()();
-  TextColumn get connectorType => text()();
-  TextColumn get displayName => text()();
-  TextColumn get baseUrl => text().nullable()();
-  TextColumn get accountIdentifier => text().nullable()();
-  TextColumn get credentialsRef => text()();
-  IntColumn get addedAt => integer()();
-  IntColumn get lastUsedAt => integer().nullable()();
-
-  @override
-  Set<Column> get primaryKey => {id};
-}
-
 /// Per-host credentials for ad-hoc HTTP(S) media URLs. Not synced.
 class NetworkCredentialHosts extends Table {
   TextColumn get id => text()();
@@ -2167,7 +2151,6 @@ class FieldPresets extends Table {
     FieldPresets,
     MediaSubscriptions,
     MediaSubscriptionState,
-    ConnectorAccounts,
     NetworkCredentialHosts,
     MediaFetchDiagnostics,
     MediaStores,
@@ -5332,6 +5315,23 @@ class AppDatabase extends _$AppDatabase {
           // Connected accounts (program spec section 5). Idempotent DDL;
           // beforeOpen re-asserts against parallel-branch version collisions.
           await _assertConnectedAccountsSchema();
+          // Adopt Lightroom connector accounts (ids preserved: scan state
+          // and suggestion rows key on them), then retire the table. Guarded
+          // on table existence for fresh installs and minimal test fixtures.
+          final connectorTable = await customSelect(
+            "SELECT name FROM sqlite_master WHERE type='table' "
+            "AND name='connector_accounts'",
+          ).get();
+          if (connectorTable.isNotEmpty) {
+            await customStatement(
+              "INSERT OR IGNORE INTO connected_accounts "
+              "(id, kind, label, account_identifier, created_at, updated_at) "
+              "SELECT id, 'adobeLightroom', display_name, account_identifier, "
+              "added_at, added_at FROM connector_accounts "
+              "WHERE connector_type = 'lightroom'",
+            );
+            await customStatement('DROP TABLE IF EXISTS connector_accounts');
+          }
         }
         if (from < 107) await reportProgress();
       },

@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:submersion/features/media/domain/entities/connector_account.dart'
+import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
@@ -27,13 +28,13 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  final account = domain.ConnectorAccount(
+  final account = domain.ConnectedAccount(
     id: 'acct1',
-    connectorType: 'lightroom',
-    displayName: 'Eric',
-    credentialsRef: 'lightroom_auth',
+    kind: AccountKind.adobeLightroom,
+    label: 'Eric',
     accountIdentifier: 'cat1',
-    addedAt: DateTime.utc(2026, 7, 1),
+    createdAt: DateTime.utc(2026, 7, 1),
+    updatedAt: DateTime.utc(2026, 7, 1),
   );
 
   MediaItem item({
@@ -57,7 +58,7 @@ void main() {
   Future<void> pump(
     WidgetTester tester, {
     required MediaItem media,
-    domain.ConnectorAccount? withAccount,
+    domain.ConnectedAccount? withAccount,
   }) async {
     await tester.runAsync(() async {
       await tester.pumpWidget(

@@ -6,10 +6,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/providers/account_providers.dart';
+import 'package:submersion/core/services/accounts/account_credentials_store.dart';
+import 'package:submersion/core/services/accounts/account_provider_registry.dart';
+import 'package:submersion/core/services/accounts/adapters/lightroom_account_adapter.dart';
 import 'package:submersion/core/services/lightroom/adobe_ims_auth_manager.dart';
 import 'package:submersion/core/services/lightroom/lightroom_api_client.dart';
 import 'package:submersion/core/services/lightroom/lightroom_auth_store.dart';
-import 'package:submersion/features/media/data/repositories/connector_accounts_repository.dart';
+import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
+import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/features/media/data/services/lightroom_connector_state.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/settings/presentation/pages/lightroom_settings_page.dart';
@@ -24,6 +29,7 @@ const _guard = 'while (1) {}';
 void main() {
   late SharedPreferences prefs;
   late AdobeImsAuthManager authManager;
+  late InMemoryKeychain keychain;
 
   MockClient apiMock() => MockClient((request) async {
     if (request.url.host == 'ims-na1.adobelogin.com') {
@@ -70,8 +76,9 @@ void main() {
     await setUpTestDatabase();
     SharedPreferences.setMockInitialValues({});
     prefs = await SharedPreferences.getInstance();
+    keychain = InMemoryKeychain();
     authManager = AdobeImsAuthManager(
-      store: LightroomAuthStore(storage: InMemoryKeychain()),
+      store: LightroomAuthStore(storage: keychain),
       httpClient: apiMock(),
     );
   });
@@ -86,6 +93,17 @@ void main() {
       lightroomAuthManagerProvider.overrideWithValue(authManager),
       lightroomApiClientProvider.overrideWithValue(
         LightroomApiClient(auth: authManager, httpClient: apiMock()),
+      ),
+      accountCredentialsStoreProvider.overrideWithValue(
+        AccountCredentialsStore(storage: keychain),
+      ),
+      accountProviderRegistryProvider.overrideWithValue(
+        AccountProviderRegistry([
+          LightroomAccountAdapter(
+            authStoreFactory: (key) =>
+                LightroomAuthStore(storage: keychain, storageKey: key),
+          ),
+        ]),
       ),
     ],
     child: const MaterialApp(
@@ -255,10 +273,9 @@ void main() {
       await authManager.updateAuth(
         const LightroomAuthData(clientId: 'cid', refreshToken: 'rt'),
       );
-      final account = await ConnectorAccountsRepository().create(
-        connectorType: lightroomConnectorType,
-        displayName: 'Eric G',
-        credentialsRef: LightroomAuthStore.storageKey,
+      final account = await ConnectedAccountsRepository().create(
+        kind: AccountKind.adobeLightroom,
+        label: 'Eric G',
         accountIdentifier: 'cat9',
       );
       accountId = account.id;
@@ -391,7 +408,8 @@ void main() {
 
       expect(find.text('Adobe client ID'), findsOneWidget);
       final account = await tester.runAsync(
-        () => ConnectorAccountsRepository().getByType(lightroomConnectorType),
+        () =>
+            ConnectedAccountsRepository().getByKind(AccountKind.adobeLightroom),
       );
       expect(account, isNull);
     });
