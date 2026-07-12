@@ -67,6 +67,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/playback_contr
 import 'package:submersion/features/dive_log/presentation/widgets/playback_stats_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/range_selection_overlay.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/range_stats_panel.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/responsive_section_pair.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_saturation_panel.dart';
 import 'package:submersion/core/tide/entities/tide_extremes.dart';
 import 'package:submersion/features/tides/domain/entities/tide_record.dart';
@@ -291,35 +292,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       },
       DiveDetailSectionId.details: () {
         return [
-          Consumer(
-            builder: (context, ref, _) {
-              final viewedSourceId = ref.watch(
-                activeDiveSourceProvider(dive.id),
-              );
-              final dataSources = computerReadingsAsync.valueOrNull ?? [];
-              final attribution = FieldAttributionService.computeAttribution(
-                dataSources,
-                viewedSourceId: viewedSourceId,
-                nameOf: (s) => resolveSourceName(s, _sourceNameLabels(context)),
-              );
-              final showBadges =
-                  settings.showDataSourceBadges && attribution.isNotEmpty;
-              // The Dive Computer row follows the active source.
-              final activeSource = viewedSourceId == null
-                  ? dataSources.where((s) => s.isPrimary).firstOrNull
-                  : dataSources
-                        .where((s) => s.id == viewedSourceId)
-                        .firstOrNull;
-              return _buildDetailsSection(
-                context,
-                ref,
-                dive,
-                units,
-                attribution: showBadges ? attribution : null,
-                activeComputerId: activeSource?.computerId,
-              );
-            },
-          ),
+          _detailsCard(context, dive, units, computerReadingsAsync, settings),
         ];
       },
       DiveDetailSectionId.environment: () {
@@ -393,11 +366,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       DiveDetailSectionId.signatures: () {
         return [
           const SizedBox(height: 24),
-          BuddySignaturesSection(diveId: diveId),
-          if (dive.courseId != null) ...[
-            const SizedBox(height: 24),
-            _buildSignatureSection(context, ref, dive),
-          ],
+          _signaturesColumn(context, ref, dive),
         ];
       },
       DiveDetailSectionId.equipment: () {
@@ -476,6 +445,140 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     };
   }
 
+  /// The Details card, including its data-source attribution [Consumer].
+  /// Extracted so both the normal section flow and the side-by-side pairing
+  /// (with Conditions) render identical content.
+  Widget _detailsCard(
+    BuildContext context,
+    Dive dive,
+    UnitFormatter units,
+    AsyncValue<List<DiveDataSource>> computerReadingsAsync,
+    AppSettings settings,
+  ) {
+    return Consumer(
+      builder: (context, ref, _) {
+        final viewedSourceId = ref.watch(activeDiveSourceProvider(dive.id));
+        final dataSources = computerReadingsAsync.valueOrNull ?? [];
+        final attribution = FieldAttributionService.computeAttribution(
+          dataSources,
+          viewedSourceId: viewedSourceId,
+          nameOf: (s) => resolveSourceName(s, _sourceNameLabels(context)),
+        );
+        final showBadges =
+            settings.showDataSourceBadges && attribution.isNotEmpty;
+        // The Dive Computer row follows the active source.
+        final activeSource = viewedSourceId == null
+            ? dataSources.where((s) => s.isPrimary).firstOrNull
+            : dataSources.where((s) => s.id == viewedSourceId).firstOrNull;
+        return _buildDetailsSection(
+          context,
+          ref,
+          dive,
+          units,
+          attribution: showBadges ? attribution : null,
+          activeComputerId: activeSource?.computerId,
+        );
+      },
+    );
+  }
+
+  /// The Signatures content: buddy signatures plus the optional
+  /// course-instructor signature card. Extracted so both the normal section
+  /// flow and the side-by-side pairing (with Buddies) render identical content.
+  Widget _signaturesColumn(BuildContext context, WidgetRef ref, Dive dive) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        BuddySignaturesSection(diveId: dive.id),
+        if (dive.courseId != null) ...[
+          const SizedBox(height: 24),
+          _buildSignatureSection(context, ref, dive),
+        ],
+      ],
+    );
+  }
+
+  /// Builds the ordered configurable-section widgets, pairing two specific
+  /// adjacent card pairs side by side when the pane is wide enough:
+  /// Details + Conditions, and Buddies + Signatures.
+  ///
+  /// Pairing is fixed-pairs and adjacency-gated: the two must be immediately
+  /// adjacent in the configured (visible) order and the second must have
+  /// content, otherwise each section renders full-width exactly as before.
+  /// [ResponsiveSectionPair] then decides row-vs-stacked from its own measured
+  /// width, so narrow panes stay stacked and unchanged.
+  List<Widget> _buildOrderedSections({
+    required BuildContext context,
+    required WidgetRef ref,
+    required Dive dive,
+    required UnitFormatter units,
+    required AsyncValue<List<DiveDataSource>> computerReadingsAsync,
+    required AppSettings settings,
+    required Map<DiveDetailSectionId, List<Widget> Function()> builders,
+  }) {
+    // Visible sections in configured order, minus gauge-hidden ones.
+    final visible = [
+      for (final section in settings.diveDetailSections)
+        if (section.visible && !(dive.isGauge && section.id.hiddenInGaugeMode))
+          section.id,
+    ];
+
+    // Conditions self-suppresses when empty (cheap, no provider). The
+    // Signatures presence gate needs buddiesForDiveProvider, so it is read
+    // lazily inside the Buddies+Signatures branch below -- only when that pair
+    // is actually adjacent -- to avoid coupling the whole page to buddy
+    // changes when the pair can never form.
+    final hasConditions = _hasEnvironmentData(dive);
+
+    final children = <Widget>[];
+    for (var i = 0; i < visible.length; i++) {
+      final id = visible[i];
+      final next = i + 1 < visible.length ? visible[i + 1] : null;
+
+      if (id == DiveDetailSectionId.details &&
+          next == DiveDetailSectionId.environment &&
+          hasConditions) {
+        // Details has no leading spacer today; the pair keeps that.
+        children.add(
+          ResponsiveSectionPair(
+            first: _detailsCard(
+              context,
+              dive,
+              units,
+              computerReadingsAsync,
+              settings,
+            ),
+            second: _buildEnvironmentSection(context, dive, units),
+          ),
+        );
+        i++;
+        continue;
+      }
+
+      if (id == DiveDetailSectionId.buddies &&
+          next == DiveDetailSectionId.signatures) {
+        // Signatures self-erases unless the dive has buddies or a course.
+        final buddies =
+            ref.watch(buddiesForDiveProvider(dive.id)).valueOrNull ??
+            const <BuddyWithRole>[];
+        if (buddies.isNotEmpty || dive.courseId != null) {
+          children.add(const SizedBox(height: 24)); // Buddies' leading gap.
+          children.add(
+            ResponsiveSectionPair(
+              first: _buildBuddiesSection(context, ref, dive),
+              second: _signaturesColumn(context, ref, dive),
+            ),
+          );
+          i++;
+          continue;
+        }
+      }
+
+      children.addAll(builders[id]?.call() ?? const []);
+    }
+    return children;
+  }
+
   Widget _buildContent(BuildContext context, WidgetRef ref, Dive dive) {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
@@ -529,12 +632,19 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             // Fixed: Dive Profile Chart
             if (dive.profile.isNotEmpty)
               _buildProfileSection(context, ref, dive),
-            // Configurable sections in user-defined order. Gauge dives hide
+            // Configurable sections in user-defined order, with two adjacent
+            // card pairs (Details+Conditions, Buddies+Signatures) laid out
+            // side by side when the pane is wide enough. Gauge dives hide
             // gas/deco sections (deco/O2 tox, SAC segments, cylinders).
-            for (final section in settings.diveDetailSections)
-              if (section.visible &&
-                  !(dive.isGauge && section.id.hiddenInGaugeMode))
-                ...builders[section.id]?.call() ?? [],
+            ..._buildOrderedSections(
+              context: context,
+              ref: ref,
+              dive: dive,
+              units: units,
+              computerReadingsAsync: computerReadingsAsync,
+              settings: settings,
+              builders: builders,
+            ),
             const SizedBox(height: 32),
           ],
         ),
