@@ -13,6 +13,8 @@ import 'package:submersion/core/services/accounts/connected_account.dart'
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../../helpers/test_database.dart';
+
 class _CountingScanService extends LightroomScanService {
   _CountingScanService()
     : super(
@@ -63,10 +65,14 @@ void main() {
   }
 
   setUp(() async {
+    // Auto-poll config is backed by the synced settings table.
+    await setUpTestDatabase();
     SharedPreferences.setMockInitialValues({});
     prefs = await SharedPreferences.getInstance();
     service = _CountingScanService();
   });
+
+  tearDown(() => tearDownTestDatabase());
 
   test('polls when enabled and never polled before', () async {
     final c = container(withAccount: account);

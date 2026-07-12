@@ -2,14 +2,22 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/features/media/data/services/lightroom_connector_state.dart';
 
+import '../../../helpers/test_database.dart';
+
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   late LightroomConnectorState state;
 
   setUp(() async {
+    // Album filter and auto-poll are backed by the synced settings table.
+    await setUpTestDatabase();
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     state = LightroomConnectorState(prefs: prefs, accountId: 'acct1');
   });
+
+  tearDown(() => tearDownTestDatabase());
 
   test(
     'defaults: no poll time, empty albums, auto-poll on, no error',
