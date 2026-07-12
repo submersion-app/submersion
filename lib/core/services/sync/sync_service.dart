@@ -1056,7 +1056,7 @@ class SyncService {
           (
             type: 'connectedAccounts',
             records: data.connectedAccounts,
-            hasUpdatedAt: false,
+            hasUpdatedAt: true,
           ),
         ];
 
@@ -1597,7 +1597,7 @@ class SyncService {
     'settings': true,
     'media': false,
     'mediaStores': false,
-    'connectedAccounts': false,
+    'connectedAccounts': true,
   };
 
   /// Every synced child -> parent FK whose parent can be deleted (and thus
