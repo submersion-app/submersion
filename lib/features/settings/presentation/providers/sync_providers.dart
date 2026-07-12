@@ -237,15 +237,33 @@ final selectedCloudProviderTypeProvider = StateProvider<CloudProviderType?>(
   (ref) => null,
 );
 
-/// The connected account of [type]'s kind, created if the roster has none.
-/// The pre-account selection UI picks provider TYPES; this shim maps a type
-/// onto the accounts model so selection state stays consistent until the
-/// Phase 3 UI selects accounts directly.
+/// The sync account for [type]. The pre-account selection UI picks provider
+/// TYPES; this shim maps a type onto the accounts model so selection state
+/// stays consistent until the Phase 3 UI selects accounts directly.
+///
+/// Preference order: the persisted sync account (when it still matches the
+/// kind), then for single-instance kinds the kind's account, else a fresh
+/// row. S3 never adopts an arbitrary existing account: S3 accounts are
+/// instances (sync-S3 vs media-S3), so grabbing the newest could silently
+/// select the media-storage endpoint for sync.
 Future<domain.ConnectedAccount> ensureAccountForProviderType(
   CloudProviderType type,
-  ConnectedAccountsRepository repo,
-) async {
+  ConnectedAccountsRepository repo, {
+  SyncRepository? syncRepository,
+}) async {
   final kind = AccountKind.fromCloudProviderType(type);
+  final persistedId = await (syncRepository ?? SyncRepository())
+      .getSyncAccountId();
+  if (persistedId != null) {
+    final persisted = await repo.getById(persistedId);
+    if (persisted != null && persisted.kind == kind) return persisted;
+  }
+  if (kind == AccountKind.s3) {
+    return repo.create(
+      kind: kind,
+      label: cloudProviderInstanceFor(type).providerName,
+    );
+  }
   return await repo.getByKind(kind) ??
       await repo.create(
         kind: kind,
@@ -267,7 +285,11 @@ final selectedSyncAccountProvider = FutureProvider<domain.ConnectedAccount?>((
   if (type == null) return null;
   final repo = ref.watch(connectedAccountsRepositoryProvider);
   try {
-    final account = await ensureAccountForProviderType(type, repo);
+    final account = await ensureAccountForProviderType(
+      type,
+      repo,
+      syncRepository: ref.read(syncRepositoryProvider),
+    );
     await ref
         .read(syncRepositoryProvider)
         .setSyncAccount(accountId: account.id, providerType: type);

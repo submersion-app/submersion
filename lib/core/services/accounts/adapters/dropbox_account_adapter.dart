@@ -46,8 +46,14 @@ class DropboxAccountAdapter extends AccountProviderAdapter
       : AccountStatus.signedIn;
 
   @override
-  Future<void> disconnect(domain.ConnectedAccount account) =>
-      _storeFor(account).clear();
+  Future<void> disconnect(domain.ConnectedAccount account) async {
+    // Through the manager, not the bare store: revokes the refresh token
+    // (best-effort), invalidates the in-memory access-token cache, and
+    // clears the per-account blob. Drop the cached manager so a later
+    // reconnect starts clean.
+    await authManagerFor(account).disconnect();
+    _managers.remove(account.id);
+  }
 
   @override
   CloudStorageProvider syncProvider(domain.ConnectedAccount account) =>

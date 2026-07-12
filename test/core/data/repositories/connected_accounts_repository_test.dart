@@ -80,9 +80,21 @@ void main() {
     expect(loaded.kind, AccountKind.s3);
   });
 
-  test('delete removes the row', () async {
-    final created = await repo.create(kind: AccountKind.s3, label: 'X');
-    await repo.delete(created.id);
-    expect(await repo.getById(created.id), isNull);
-  });
+  test(
+    'delete removes the row and logs a tombstone (not a pending mark)',
+    () async {
+      final created = await repo.create(kind: AccountKind.s3, label: 'X');
+      await repo.delete(created.id);
+      expect(await repo.getById(created.id), isNull);
+
+      final tombstones = await db
+          .customSelect(
+            "SELECT record_id FROM deletion_log "
+            "WHERE entity_type = 'connectedAccounts' "
+            "AND record_id = '${created.id}'",
+          )
+          .get();
+      expect(tombstones, hasLength(1), reason: 'deletions sync via tombstones');
+    },
+  );
 }

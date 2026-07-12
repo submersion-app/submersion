@@ -108,8 +108,13 @@ class ConnectedAccountsRepository {
     await (_db.delete(
       _db.connectedAccounts,
     )..where((t) => t.id.equals(id))).go();
-    final now = DateTime.now().millisecondsSinceEpoch;
-    await _markPending(id, now);
+    // Deletions propagate via tombstones, not pending marks: there is no
+    // row left to HLC-stamp, and peers act on the deletion log.
+    await _syncRepository.logDeletion(
+      entityType: 'connectedAccounts',
+      recordId: id,
+    );
+    SyncEventBus.notifyLocalChange();
   }
 
   Future<void> _markPending(String recordId, int now) async {
