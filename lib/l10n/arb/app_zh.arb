@@ -5496,5 +5496,6 @@
   "settings_setupGuide_stepSync_desc": "在设备之间同步潜水数据。",
   "settings_setupGuide_statusDone": "已设置",
   "settings_setupGuide_statusTodo": "未设置",
-  "settings_setupGuide_open": "打开"
+  "settings_setupGuide_open": "打开",
+  "settings_connectedAccounts_loadError": "无法加载账户"
 }

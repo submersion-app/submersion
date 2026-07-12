@@ -5496,5 +5496,6 @@
   "settings_setupGuide_stepSync_desc": "Sincroniza los datos de buceo entre dispositivos.",
   "settings_setupGuide_statusDone": "Configurado",
   "settings_setupGuide_statusTodo": "Sin configurar",
-  "settings_setupGuide_open": "Abrir"
+  "settings_setupGuide_open": "Abrir",
+  "settings_connectedAccounts_loadError": "No se pudieron cargar las cuentas"
 }

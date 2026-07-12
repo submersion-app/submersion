@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:submersion/core/data/repositories/sync_repository.dart';
-import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
+import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Live status for the guided setup steps. Recomputed on watch;
@@ -12,8 +12,12 @@ import 'package:submersion/l10n/l10n_extension.dart';
 final setupGuideStatusProvider =
     FutureProvider<({bool sources, bool storage, bool sync})>((ref) async {
       final lightroom = await ref.watch(lightroomAccountProvider.future);
-      final attached = await MediaStoreAttachState().attachedStoreId();
-      final syncProvider = await SyncRepository().getCloudProvider();
+      final attached = await ref
+          .watch(mediaStoreAttachStateProvider)
+          .attachedStoreId();
+      final syncProvider = await ref
+          .watch(syncRepositoryProvider)
+          .getCloudProvider();
       return (
         sources: lightroom != null,
         storage: attached != null,

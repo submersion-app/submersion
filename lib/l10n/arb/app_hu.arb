@@ -5496,5 +5496,6 @@
   "settings_setupGuide_stepSync_desc": "Merülési adatok szinkronizálása eszközök között.",
   "settings_setupGuide_statusDone": "Beállítva",
   "settings_setupGuide_statusTodo": "Nincs beállítva",
-  "settings_setupGuide_open": "Megnyitás"
+  "settings_setupGuide_open": "Megnyitás",
+  "settings_connectedAccounts_loadError": "A fiókok nem tölthetők be"
 }

@@ -46,7 +46,9 @@ import 'dart:async';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/media/data/parsers/manifest_entry.dart';
 import 'package:submersion/features/media/data/services/url_metadata_extractor.dart';
 import 'package:submersion/features/media/domain/services/dive_photo_matcher.dart';
@@ -69,18 +71,21 @@ class NetworkFetchPipeline {
     DateTime Function() now = _defaultNow,
     Future<List<DiveBounds>> Function(DateTime takenAt)? diveBoundsLoader,
     DivePhotoMatcher? matcher,
+    SyncRepository? syncRepository,
   }) : _db = db,
        _extractor = extractor,
        _maxConcurrent = maxConcurrent,
        _perHostMinInterval = perHostMinInterval,
        _now = now,
        _diveBoundsLoader = diveBoundsLoader,
-       _matcher = matcher ?? const DivePhotoMatcher();
+       _matcher = matcher ?? const DivePhotoMatcher(),
+       _syncRepository = syncRepository ?? SyncRepository();
 
   /// Loads candidate dives around a photo timestamp for auto-matching.
   /// Null disables auto-match entirely (tests, headless imports).
   final Future<List<DiveBounds>> Function(DateTime takenAt)? _diveBoundsLoader;
   final DivePhotoMatcher _matcher;
+  final SyncRepository _syncRepository;
 
   final AppDatabase _db;
   final UrlMetadataExtractor _extractor;
@@ -380,12 +385,26 @@ class NetworkFetchPipeline {
         dives: await loader(takenAt),
       );
       if (match.kind != TimestampMatchKind.confident) return;
-      await (_db.update(_db.media)..where((t) => t.id.equals(id))).write(
-        MediaCompanion(
-          diveId: Value(match.diveId),
-          updatedAt: Value(_now().millisecondsSinceEpoch),
-        ),
+      final nowMillis = _now().millisecondsSinceEpoch;
+      // Conditional on diveId still being NULL: a user/manual attachment
+      // landing between the read above and this write must win.
+      final updated =
+          await (_db.update(
+            _db.media,
+          )..where((t) => t.id.equals(id) & t.diveId.isNull())).write(
+            MediaCompanion(
+              diveId: Value(match.diveId),
+              updatedAt: Value(nowMillis),
+            ),
+          );
+      if (updated == 0) return;
+      // The attachment must propagate cross-device like any media edit.
+      await _syncRepository.markRecordPending(
+        entityType: 'media',
+        recordId: id,
+        localUpdatedAt: nowMillis,
       );
+      SyncEventBus.notifyLocalChange();
     } catch (_) {
       // Auto-match is additive; the imported row stays library-level.
     }

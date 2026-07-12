@@ -32435,6 +32435,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open'**
   String get settings_setupGuide_open;
+
+  /// No description provided for @settings_connectedAccounts_loadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load accounts'**
+  String get settings_connectedAccounts_loadError;
 }
 
 class _AppLocalizationsDelegate

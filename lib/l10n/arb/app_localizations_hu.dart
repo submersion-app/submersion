@@ -19324,4 +19324,8 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_setupGuide_open => 'Megnyitás';
+
+  @override
+  String get settings_connectedAccounts_loadError =>
+      'A fiókok nem tölthetők be';
 }

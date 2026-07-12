@@ -5496,5 +5496,6 @@
   "settings_setupGuide_stepSync_desc": "סנכרן נתוני צלילה בין מכשירים.",
   "settings_setupGuide_statusDone": "מוגדר",
   "settings_setupGuide_statusTodo": "לא מוגדר",
-  "settings_setupGuide_open": "פתח"
+  "settings_setupGuide_open": "פתח",
+  "settings_connectedAccounts_loadError": "לא ניתן לטעון חשבונות"
 }

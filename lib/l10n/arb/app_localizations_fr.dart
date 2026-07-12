@@ -19450,4 +19450,8 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_setupGuide_open => 'Ouvrir';
+
+  @override
+  String get settings_connectedAccounts_loadError =>
+      'Impossible de charger les comptes';
 }

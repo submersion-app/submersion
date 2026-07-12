@@ -18879,4 +18879,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_setupGuide_open => 'פתח';
+
+  @override
+  String get settings_connectedAccounts_loadError => 'לא ניתן לטעון חשבונות';
 }

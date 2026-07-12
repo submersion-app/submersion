@@ -19016,4 +19016,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_setupGuide_open => 'فتح';
+
+  @override
+  String get settings_connectedAccounts_loadError => 'تعذر تحميل الحسابات';
 }

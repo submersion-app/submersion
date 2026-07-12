@@ -47,7 +47,8 @@ class ConnectedAccountsPage extends ConsumerWidget {
       appBar: AppBar(title: Text(l10n.settings_connectedAccounts_title)),
       body: accountsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('$e')),
+        error: (e, _) =>
+            Center(child: Text(l10n.settings_connectedAccounts_loadError)),
         data: (accounts) => accounts.isEmpty
             ? Center(child: Text(l10n.settings_connectedAccounts_empty))
             : ListView(

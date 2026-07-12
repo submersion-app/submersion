@@ -19378,4 +19378,8 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_setupGuide_open => 'Apri';
+
+  @override
+  String get settings_connectedAccounts_loadError =>
+      'Impossibile caricare gli account';
 }

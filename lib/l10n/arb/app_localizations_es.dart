@@ -19388,4 +19388,8 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_setupGuide_open => 'Abrir';
+
+  @override
+  String get settings_connectedAccounts_loadError =>
+      'No se pudieron cargar las cuentas';
 }

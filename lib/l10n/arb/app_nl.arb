@@ -5496,5 +5496,6 @@
   "settings_setupGuide_stepSync_desc": "Synchroniseer duikgegevens tussen apparaten.",
   "settings_setupGuide_statusDone": "Ingesteld",
   "settings_setupGuide_statusTodo": "Niet ingesteld",
-  "settings_setupGuide_open": "Openen"
+  "settings_setupGuide_open": "Openen",
+  "settings_connectedAccounts_loadError": "Accounts konden niet worden geladen"
 }

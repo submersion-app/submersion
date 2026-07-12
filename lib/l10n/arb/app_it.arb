@@ -5496,5 +5496,6 @@
   "settings_setupGuide_stepSync_desc": "Sincronizza i dati delle immersioni tra dispositivi.",
   "settings_setupGuide_statusDone": "Configurato",
   "settings_setupGuide_statusTodo": "Non configurato",
-  "settings_setupGuide_open": "Apri"
+  "settings_setupGuide_open": "Apri",
+  "settings_connectedAccounts_loadError": "Impossibile caricare gli account"
 }

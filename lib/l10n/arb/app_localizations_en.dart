@@ -19051,4 +19051,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_setupGuide_open => 'Open';
+
+  @override
+  String get settings_connectedAccounts_loadError => 'Could not load accounts';
 }

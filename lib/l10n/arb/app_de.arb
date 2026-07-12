@@ -5496,5 +5496,6 @@
   "settings_setupGuide_stepSync_desc": "Tauchdaten zwischen Geräten synchronisieren.",
   "settings_setupGuide_statusDone": "Eingerichtet",
   "settings_setupGuide_statusTodo": "Nicht eingerichtet",
-  "settings_setupGuide_open": "Öffnen"
+  "settings_setupGuide_open": "Öffnen",
+  "settings_connectedAccounts_loadError": "Konten konnten nicht geladen werden"
 }

@@ -18391,4 +18391,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_setupGuide_open => '打开';
+
+  @override
+  String get settings_connectedAccounts_loadError => '无法加载账户';
 }
