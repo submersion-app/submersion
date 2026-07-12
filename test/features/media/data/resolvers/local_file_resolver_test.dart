@@ -12,7 +12,6 @@ import 'package:submersion/features/media/domain/value_objects/verify_result.dar
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
-import 'package:submersion/features/media/domain/value_objects/verify_result.dart';
 
 /// Stub that bypasses keychain I/O. Always returns null from [read].
 class _NullBookmarkStorage extends LocalBookmarkStorage {
