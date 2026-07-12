@@ -76,6 +76,7 @@ class TripItineraryTab extends ConsumerWidget {
     );
 
     return ListView.builder(
+      key: const PageStorageKey('tripItineraryScroll'),
       padding: const EdgeInsets.all(16),
       itemCount: days.length,
       itemBuilder: (context, index) {
