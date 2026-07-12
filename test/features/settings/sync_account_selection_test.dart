@@ -57,4 +57,41 @@ void main() {
     addTearDown(container.dispose);
     expect(await container.read(selectedSyncAccountProvider.future), isNull);
   });
+
+  test(
+    'an S3 sync selection never adopts an existing (media) S3 account',
+    () async {
+      final mediaS3 = await repo.create(
+        kind: AccountKind.s3,
+        label: 'S3 media storage',
+      );
+
+      final syncAccount = await ensureAccountForProviderType(
+        CloudProviderType.s3,
+        repo,
+      );
+      expect(
+        syncAccount.id,
+        isNot(mediaS3.id),
+        reason: 'sync-S3 and media-S3 are distinct accounts by design',
+      );
+    },
+  );
+
+  test('a persisted sync account of the same kind is preferred', () async {
+    final first = await ensureAccountForProviderType(
+      CloudProviderType.s3,
+      repo,
+    );
+    await SyncRepository().setSyncAccount(
+      accountId: first.id,
+      providerType: CloudProviderType.s3,
+    );
+
+    final second = await ensureAccountForProviderType(
+      CloudProviderType.s3,
+      repo,
+    );
+    expect(second.id, first.id, reason: 'no duplicate account per re-derive');
+  });
 }

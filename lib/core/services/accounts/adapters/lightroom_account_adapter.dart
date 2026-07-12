@@ -41,6 +41,11 @@ class LightroomAccountAdapter extends AccountProviderAdapter
       : AccountStatus.signedIn;
 
   @override
-  Future<void> disconnect(domain.ConnectedAccount account) =>
-      _storeFor(account).clear();
+  Future<void> disconnect(domain.ConnectedAccount account) async {
+    // Through the manager, not the bare store: invalidates the in-memory
+    // access-token cache alongside clearing the blob. Drop the cached
+    // manager so a later reconnect starts clean.
+    await authManagerFor(account).disconnect();
+    _managers.remove(account.id);
+  }
 }
