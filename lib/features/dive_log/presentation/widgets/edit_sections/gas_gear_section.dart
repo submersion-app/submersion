@@ -19,6 +19,7 @@ class GasGearSection extends StatelessWidget {
     required this.equipmentChild,
     required this.weightChild,
     this.rebreatherPanel,
+    this.showTankControls = true,
     this.errorCount = 0,
   });
 
@@ -34,6 +35,11 @@ class GasGearSection extends StatelessWidget {
 
   /// CcrSettingsPanel / ScrSettingsPanel when the mode requires one.
   final Widget? rebreatherPanel;
+
+  /// Whether to show the tank cards + add-tank affordance. False for gauge
+  /// dives, which log depth and time only.
+  final bool showTankControls;
+
   final int errorCount;
 
   @override
@@ -53,22 +59,24 @@ class GasGearSection extends StatelessWidget {
           child: modeSelector,
         ),
         ?rebreatherPanel,
-        Column(children: tankCards),
-        InkWell(
-          onTap: onAddTank,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            child: Center(
-              child: Text(
-                '+ $addTankLabel',
-                style: theme.textTheme.bodyMedium!.copyWith(
-                  color: theme.colorScheme.primary,
-                  fontWeight: FontWeight.w600,
+        if (showTankControls) ...[
+          Column(children: tankCards),
+          InkWell(
+            onTap: onAddTank,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              child: Center(
+                child: Text(
+                  '+ $addTankLabel',
+                  style: theme.textTheme.bodyMedium!.copyWith(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),
           ),
-        ),
+        ],
         equipmentChild,
         weightChild,
       ],

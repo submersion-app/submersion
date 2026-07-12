@@ -2419,6 +2419,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       addTankLabel: context.l10n.diveLog_edit_addTank,
       equipmentChild: _equipmentChild(),
       weightChild: _weightChild(units),
+      showTankControls: _diveMode != DiveMode.gauge,
     );
   }
 
