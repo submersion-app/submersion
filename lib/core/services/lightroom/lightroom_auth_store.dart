@@ -64,17 +64,22 @@ class LightroomAuthData {
 /// Secure-storage persistence for the Lightroom connection. One JSON blob
 /// under a single key so load/save stay atomic (S3/Dropbox precedent).
 class LightroomAuthStore {
-  LightroomAuthStore({FlutterSecureStorage? storage})
-    : _storage = FallbackSecureStorage(storage ?? const FlutterSecureStorage());
+  /// [storageKey] overrides the legacy single-connection key; the Connected
+  /// Accounts layer passes per-account keys (`account_<id>_credentials`).
+  LightroomAuthStore({FlutterSecureStorage? storage, String? storageKey})
+    : _storage = FallbackSecureStorage(storage ?? const FlutterSecureStorage()),
+      _storageKey = storageKey ?? LightroomAuthStore.storageKey;
 
   static const String storageKey = 'lightroom_auth';
+
+  final String _storageKey;
 
   final FallbackSecureStorage _storage;
 
   /// Null when unset or when the stored blob does not decode. A corrupt
   /// blob is left in place so a decode bug cannot destroy credentials.
   Future<LightroomAuthData?> load() async {
-    final raw = await _storage.read(key: storageKey);
+    final raw = await _storage.read(key: _storageKey);
     if (raw == null || raw.isEmpty) return null;
     try {
       return LightroomAuthData.fromJson(
@@ -88,7 +93,7 @@ class LightroomAuthStore {
   }
 
   Future<void> save(LightroomAuthData data) =>
-      _storage.write(key: storageKey, value: jsonEncode(data.toJson()));
+      _storage.write(key: _storageKey, value: jsonEncode(data.toJson()));
 
-  Future<void> clear() => _storage.delete(key: storageKey);
+  Future<void> clear() => _storage.delete(key: _storageKey);
 }
