@@ -86,6 +86,25 @@ void main() {
   });
 
   test(
+    'a device attached to a different store still gets the attach item',
+    () async {
+      await stores.upsertActive(
+        storeId: 'store-NEW',
+        providerType: 's3',
+        displayHint: 'new store',
+      );
+      await MediaStoreAttachState(
+        prefs: prefs,
+      ).setAttached('store-OLD', providerType: CloudProviderType.s3);
+
+      final items = await service().compute();
+      expect(items, hasLength(1));
+      expect(items.single.kind, SetupItemKind.mediaStoreAttach);
+      expect(items.single.key, 'store_store-NEW');
+    },
+  );
+
+  test(
     'accounts needing sign-in yield items; unavailable kinds are skipped',
     () async {
       await accounts.create(kind: AccountKind.s3, label: 'MinIO');

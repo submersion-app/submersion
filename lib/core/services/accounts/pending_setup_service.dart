@@ -45,7 +45,9 @@ class PendingSetupService {
   }) : _prefs = prefs,
        _accounts = accounts ?? ConnectedAccountsRepository(),
        _stores = stores ?? MediaStoresRepository(),
-       _attachState = attachState ?? MediaStoreAttachState(),
+       // Same prefs instance as the dismissal store: one source of truth,
+       // and overridden prefs in tests govern the attach state too.
+       _attachState = attachState ?? MediaStoreAttachState(prefs: prefs),
        _registry = registry;
 
   static const String _dismissedPrefix = 'setup_item_dismissed_';
@@ -66,9 +68,11 @@ class PendingSetupService {
     final items = <PendingSetupItem>[];
 
     // The library announces a media store (synced descriptor), but this
-    // device is not attached to it.
+    // device is not attached to it - or is still attached to a DIFFERENT
+    // store (switched on another device), which needs the same action.
     final store = await _stores.getActive();
-    if (store != null && await _attachState.attachedStoreId() == null) {
+    final attachedId = await _attachState.attachedStoreId();
+    if (store != null && attachedId != store.id) {
       final key = 'store_${store.id}';
       if (!_isDismissed(key)) {
         items.add(
