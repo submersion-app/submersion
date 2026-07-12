@@ -1,23 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/features/dive_3d/application/compare_providers.dart';
 import 'package:submersion/features/dive_3d/application/providers.dart';
 import 'package:submersion/features/dive_3d/application/tissue_providers.dart';
+import 'package:submersion/features/dive_3d/domain/compare/comparison_profile.dart';
 import 'package:submersion/features/dive_3d/domain/entities/dive_3d_scene_data.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/marker_layout.dart';
 import 'package:submersion/features/dive_3d/domain/metric_palette.dart';
 import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
 import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
+import 'package:submersion/features/dive_3d/presentation/widgets/compare_profile_3d_view.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/dive_3d_interactive_viewport.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/scene_readout_panel.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/time_scrub_bar.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/tissue_legend.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/tissue_readout_panel.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Which scene the 3D page is showing.
-enum SceneKind { dive, tissue }
+enum SceneKind { dive, tissue, computers }
 
 /// Fullscreen interactive 3D scene for one dive. Pushed via a plain
 /// Navigator route from the dive detail page. Owns the scrub ValueNotifier
@@ -26,8 +30,13 @@ enum SceneKind { dive, tissue }
 /// scene and the repetitive-chain tissue landscape.
 class Dive3dPage extends ConsumerStatefulWidget {
   final String diveId;
+  final SceneKind initialMode;
 
-  const Dive3dPage({super.key, required this.diveId});
+  const Dive3dPage({
+    super.key,
+    required this.diveId,
+    this.initialMode = SceneKind.dive,
+  });
 
   @override
   ConsumerState<Dive3dPage> createState() => _Dive3dPageState();
@@ -37,13 +46,14 @@ class _Dive3dPageState extends ConsumerState<Dive3dPage>
     with SingleTickerProviderStateMixin {
   final ValueNotifier<double> _position = ValueNotifier(0);
   late final AnimationController _player;
-  SceneKind _sceneKind = SceneKind.dive;
+  late SceneKind _sceneKind;
   SceneMetric _metric = SceneMetric.depth;
   Set<SceneOverlay> _overlays = SceneOverlay.values.toSet();
 
   @override
   void initState() {
     super.initState();
+    _sceneKind = widget.initialMode;
     _player = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 45),
@@ -72,9 +82,11 @@ class _Dive3dPageState extends ConsumerState<Dive3dPage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.dive3d_previewTitle)),
-      body: _sceneKind == SceneKind.dive
-          ? _buildDiveBody()
-          : _buildTissueBody(),
+      body: switch (_sceneKind) {
+        SceneKind.dive => _buildDiveBody(),
+        SceneKind.tissue => _buildTissueBody(),
+        SceneKind.computers => _buildComputersBody(),
+      },
     );
   }
 
@@ -107,6 +119,15 @@ class _Dive3dPageState extends ConsumerState<Dive3dPage>
       controls: _buildTissueControls(),
       onMarkerTap: null,
       cornerOverlay: TissueLegend(colorFn: colorFn),
+    );
+  }
+
+  Widget _buildComputersBody() {
+    return CompareProfile3dView(
+      profiles: ref.watch(computerComparisonProfilesProvider(widget.diveId)),
+      title: context.l10n.dive3d_compare_computers_title,
+      initialLayout: CompareLayout.overlay,
+      leading: _sceneSwitcher(),
     );
   }
 
@@ -149,22 +170,31 @@ class _Dive3dPageState extends ConsumerState<Dive3dPage>
     );
   }
 
-  Widget _sceneSwitcher() => SegmentedButton<SceneKind>(
-    style: const ButtonStyle(visualDensity: VisualDensity.compact),
-    segments: [
-      ButtonSegment(
-        value: SceneKind.dive,
-        label: Text(context.l10n.dive3d_scene_dive),
-      ),
-      ButtonSegment(
-        value: SceneKind.tissue,
-        label: Text(context.l10n.dive3d_scene_tissue),
-      ),
-    ],
-    selected: {_sceneKind},
-    onSelectionChanged: (s) => setState(() => _sceneKind = s.first),
-    showSelectedIcon: false,
-  );
+  Widget _sceneSwitcher() {
+    final multiSource =
+        ref.watch(isMultiDataSourceDiveProvider(widget.diveId)).value ?? false;
+    return SegmentedButton<SceneKind>(
+      style: const ButtonStyle(visualDensity: VisualDensity.compact),
+      segments: [
+        ButtonSegment(
+          value: SceneKind.dive,
+          label: Text(context.l10n.dive3d_scene_dive),
+        ),
+        ButtonSegment(
+          value: SceneKind.tissue,
+          label: Text(context.l10n.dive3d_scene_tissue),
+        ),
+        if (multiSource)
+          ButtonSegment(
+            value: SceneKind.computers,
+            label: Text(context.l10n.dive3d_scene_computers),
+          ),
+      ],
+      selected: {_sceneKind},
+      onSelectionChanged: (s) => setState(() => _sceneKind = s.first),
+      showSelectedIcon: false,
+    );
+  }
 
   Widget _buildDiveControls(Dive3dSceneData sceneData) {
     return Wrap(

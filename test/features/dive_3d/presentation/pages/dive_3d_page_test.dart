@@ -2,14 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
+import 'package:submersion/features/dive_3d/application/compare_providers.dart';
 import 'package:submersion/features/dive_3d/application/providers.dart';
 import 'package:submersion/features/dive_3d/application/tissue_providers.dart';
+import 'package:submersion/features/dive_3d/domain/compare/comparison_profile.dart';
 import 'package:submersion/features/dive_3d/domain/tissue/subsurface_tissue_builder.dart';
 import 'package:submersion/features/dive_3d/presentation/pages/dive_3d_page.dart';
 import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
+import 'package:submersion/features/dive_3d/presentation/widgets/compare_profile_3d_view.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/time_scrub_bar.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/tissue_legend.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/tissue_readout_panel.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -23,6 +27,25 @@ List<DecoStatus> tissueStatuses() {
     timestamps: const [0, 120, 600, 1200, 1400],
   );
 }
+
+List<ComparisonProfile> compareProfiles() => const [
+  ComparisonProfile(
+    id: 'a',
+    label: 'Perdix',
+    color: Color(0xFF00D4FF),
+    times: [0, 60, 120],
+    depths: [0, 30, 0],
+    maxDepthMeters: 30,
+  ),
+  ComparisonProfile(
+    id: 'b',
+    label: 'Teric',
+    color: Color(0xFFFF9500),
+    times: [0, 60, 120],
+    depths: [0, 31, 0],
+    maxDepthMeters: 31,
+  ),
+];
 
 void main() {
   Future<void> pumpPage(WidgetTester tester) async {
@@ -144,6 +167,85 @@ void main() {
     // The legend that explains how to read the graph is shown.
     expect(find.byType(TissueLegend), findsOneWidget);
     expect(find.text('On-gassing'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(seconds: 1));
+  });
+
+  testWidgets('Computers segment is hidden for a single-source dive', (
+    tester,
+  ) async {
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...overrides,
+          dive3dSceneDataProvider(
+            'd1',
+          ).overrideWith((ref) async => readoutSceneData()),
+          isMultiDataSourceDiveProvider(
+            'd1',
+          ).overrideWith((ref) async => false),
+        ],
+        child: const Dive3dPage(diveId: 'd1'),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(find.text('Computers'), findsNothing);
+  });
+
+  testWidgets('Computers segment opens the compare view for multi-source', (
+    tester,
+  ) async {
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...overrides,
+          dive3dSceneDataProvider(
+            'd1',
+          ).overrideWith((ref) async => readoutSceneData()),
+          isMultiDataSourceDiveProvider('d1').overrideWith((ref) async => true),
+          computerComparisonProfilesProvider(
+            'd1',
+          ).overrideWith((ref) async => compareProfiles()),
+        ],
+        child: const Dive3dPage(diveId: 'd1'),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+
+    expect(find.text('Computers'), findsOneWidget);
+    await tester.tap(find.text('Computers'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(find.byType(CompareProfile3dView), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(seconds: 1));
+  });
+
+  testWidgets('initialMode computers starts on the compare view', (
+    tester,
+  ) async {
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...overrides,
+          isMultiDataSourceDiveProvider('d1').overrideWith((ref) async => true),
+          computerComparisonProfilesProvider(
+            'd1',
+          ).overrideWith((ref) async => compareProfiles()),
+        ],
+        child: const Dive3dPage(diveId: 'd1', initialMode: SceneKind.computers),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(find.byType(CompareProfile3dView), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump(const Duration(seconds: 1));
