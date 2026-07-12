@@ -12,6 +12,7 @@ import 'package:submersion/core/database/database_version_exception.dart';
 import 'package:submersion/core/domain/entities/migration_progress.dart';
 import 'package:submersion/core/presentation/widgets/backup_status_views.dart';
 import 'package:submersion/core/presentation/widgets/ocean_background.dart';
+import 'package:submersion/core/services/accounts/account_startup_migration.dart';
 import 'package:submersion/core/services/background_service.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -345,6 +346,10 @@ class _StartupWrapperState extends State<StartupWrapper>
       'localCache',
       LocalCacheDatabaseService.instance.initialize,
     );
+    await timeStartupStep('accountMigration', () async {
+      final prefs = await SharedPreferences.getInstance();
+      await AccountStartupMigration(prefs: prefs).run();
+    });
     await timeStartupStep(
       'notifications',
       NotificationService.instance.initialize,
