@@ -449,7 +449,14 @@ class _DetailPane extends StatelessWidget {
       );
     }
 
-    // View mode with selected item
+    // View mode with selected item.
+    //
+    // This ValueKey deliberately rebuilds the detail subtree per item so each
+    // item gets fresh local state. It is NOT a PageStorageKey, so it does not
+    // participate in PageStorage's storage path: a detail page whose scroll
+    // view carries a stable PageStorageKey therefore retains its scroll offset
+    // across selections (compare a section across items without re-scrolling).
+    // See docs/superpowers/specs/2026-07-11-detail-pane-scroll-retention-design.md.
     if (selectedId != null) {
       return KeyedSubtree(
         key: ValueKey('detail_$selectedId'),
