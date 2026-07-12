@@ -953,10 +953,21 @@ class BuhlmannAlgorithm {
   /// at the segment's setpoint all the way to the surface, so the TTS/schedule
   /// simulation keeps constant-ppO2 physics (inert fraction changes with depth
   /// as ppO2 stays fixed). Null for open-circuit segments.
+  ///
+  /// Memoized on (setpoint, fN2, fHe): the plan is requested once per profile
+  /// sample but only changes when the active segment changes, so reusing the
+  /// last instance avoids an allocation per sample on long profiles.
   CcrLoopAscentGas? _loopAscentPlanFor(ProfileGasSegment gas) {
     final setpoint = gas.setpoint;
     if (setpoint == null) return null;
-    return CcrLoopAscentGas(
+    final cached = _loopPlanCache;
+    if (cached != null &&
+        _loopPlanSetpoint == setpoint &&
+        _loopPlanFN2 == gas.fN2 &&
+        _loopPlanFHe == gas.fHe) {
+      return cached;
+    }
+    final plan = CcrLoopAscentGas(
       environment: environment,
       setpointLow: setpoint,
       setpointHigh: setpoint,
@@ -964,7 +975,17 @@ class BuhlmannAlgorithm {
       diluentFO2: 1.0 - gas.fN2 - gas.fHe,
       diluentFHe: gas.fHe,
     );
+    _loopPlanSetpoint = setpoint;
+    _loopPlanFN2 = gas.fN2;
+    _loopPlanFHe = gas.fHe;
+    _loopPlanCache = plan;
+    return plan;
   }
+
+  CcrLoopAscentGas? _loopPlanCache;
+  double? _loopPlanSetpoint;
+  double? _loopPlanFN2;
+  double? _loopPlanFHe;
 
   ProfileGasSegment _activeGasAtTimestamp(
     int timestamp,

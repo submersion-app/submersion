@@ -187,6 +187,11 @@ void main() {
           // Nearest sample to minute 40 if 2400 s is not an exact sample.
           idx = timestamps.indexWhere((t) => t >= 2400);
         }
+        expect(
+          idx,
+          isNonNegative,
+          reason: 'fixture 003 must span past minute 40 (2400 s)',
+        );
         final ttsMinutes = analysis.ttsCurve![idx] / 60.0;
         expect(ttsMinutes, closeTo(24.0, 2.0));
       },
