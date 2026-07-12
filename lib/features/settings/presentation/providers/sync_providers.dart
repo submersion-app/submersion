@@ -4,7 +4,12 @@ import 'dart:io' show Platform;
 import 'package:cryptography/cryptography.dart' show SecretKey;
 import 'package:package_info_plus/package_info_plus.dart';
 
+import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
+import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/accounts/connected_account.dart'
+    as domain;
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/domain/entities/storage_config.dart';
@@ -232,6 +237,42 @@ final selectedCloudProviderTypeProvider = StateProvider<CloudProviderType?>(
   (ref) => null,
 );
 
+/// The connected account of [type]'s kind, created if the roster has none.
+/// The pre-account selection UI picks provider TYPES; this shim maps a type
+/// onto the accounts model so selection state stays consistent until the
+/// Phase 3 UI selects accounts directly.
+Future<domain.ConnectedAccount> ensureAccountForProviderType(
+  CloudProviderType type,
+  ConnectedAccountsRepository repo,
+) async {
+  final kind = AccountKind.fromCloudProviderType(type);
+  return await repo.getByKind(kind) ??
+      await repo.create(
+        kind: kind,
+        label: cloudProviderInstanceFor(type).providerName,
+      );
+}
+
+/// The connected account driving sync, derived from the selected provider
+/// type and persisted to sync metadata. Resolution of the raw
+/// [CloudStorageProvider] stays on the legacy provider singletons in
+/// Phase 1: the connect UIs still write credentials to the legacy keychain
+/// keys, so account-keyed credential copies would go stale on the next
+/// config edit. Phase 3 rewires the connect UIs to per-account keys and
+/// flips [cloudStorageProviderProvider] to account-first resolution.
+final selectedSyncAccountProvider = FutureProvider<domain.ConnectedAccount?>((
+  ref,
+) async {
+  final type = ref.watch(selectedCloudProviderTypeProvider);
+  if (type == null) return null;
+  final repo = ref.watch(connectedAccountsRepositoryProvider);
+  final account = await ensureAccountForProviderType(type, repo);
+  await ref
+      .read(syncRepositoryProvider)
+      .setSyncAccount(accountId: account.id, providerType: type);
+  return account;
+});
+
 /// Cloud storage provider singletons
 final _googleDriveProvider = GoogleDriveStorageProvider();
 final _icloudProvider = ICloudStorageProvider();
@@ -268,6 +309,11 @@ final cloudStorageProviderProvider = Provider<CloudStorageProvider?>((ref) {
 
   final providerType = ref.watch(selectedCloudProviderTypeProvider);
   if (providerType == null) return null;
+
+  // Keep the account bookkeeping alive: derives (and persists) the sync
+  // account row for the selected type. Raw-provider resolution stays on the
+  // legacy singletons in Phase 1 (see selectedSyncAccountProvider).
+  ref.watch(selectedSyncAccountProvider);
 
   final raw = cloudProviderInstanceFor(providerType);
   // End-to-end encryption: with an unlocked session, every byte through this
