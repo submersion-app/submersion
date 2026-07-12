@@ -79,6 +79,45 @@ void main() {
   });
 
   group('Linux', () {
+    test('a file directly under a single-segment media mount resolves to '
+        'the directory root, never the file itself', () {
+      final s = statusWith({'/media/usb'});
+      expect(
+        s.volumeRootOf('/media/usb/a.jpg', platformOverride: 'linux'),
+        '/media/usb',
+        reason: 'the optional second segment must not swallow the filename',
+      );
+      expect(
+        s.isVolumeOnline('/media/usb/a.jpg', platformOverride: 'linux'),
+        isTrue,
+      );
+    });
+
+    test('run/media mount roots are probed', () {
+      final s = statusWith({'/run/media/eric/nas'});
+      expect(
+        s.volumeRootOf(
+          '/run/media/eric/nas/photos/a.jpg',
+          platformOverride: 'linux',
+        ),
+        '/run/media/eric/nas',
+      );
+      expect(
+        s.isVolumeOnline(
+          '/run/media/eric/nas/photos/a.jpg',
+          platformOverride: 'linux',
+        ),
+        isTrue,
+      );
+      expect(
+        s.isVolumeOnline(
+          '/run/media/eric/gone/a.jpg',
+          platformOverride: 'linux',
+        ),
+        isFalse,
+      );
+    });
+
     test('mnt and media mount roots are probed', () {
       final s = statusWith({'/mnt/nas', '/media/eric/usb'});
       expect(

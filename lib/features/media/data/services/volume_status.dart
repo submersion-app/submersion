@@ -47,10 +47,20 @@ class VolumeStatus {
         }
         return null;
       case 'linux':
-        final match = RegExp(
-          r'^(/mnt/[^/]+|/media/[^/]+(?:/[^/]+)?|/run/media/[^/]+/[^/]+)(/|$)',
-        ).firstMatch(path);
-        return match?.group(1);
+        // Candidate roots, most specific first. A root must be a PROPER
+        // prefix of the path (followed by '/'): otherwise the optional
+        // second segment would swallow the file name itself (e.g.
+        // /media/usb/a.jpg must resolve to /media/usb, not the file).
+        for (final pattern in [
+          r'^(/run/media/[^/]+/[^/]+)/',
+          r'^(/media/[^/]+/[^/]+)/',
+          r'^(/media/[^/]+)/',
+          r'^(/mnt/[^/]+)/',
+        ]) {
+          final match = RegExp(pattern).firstMatch(path);
+          if (match != null) return match.group(1);
+        }
+        return null;
       default:
         return null;
     }
