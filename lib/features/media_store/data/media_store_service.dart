@@ -198,15 +198,20 @@ class MediaStoreService {
     final built = _buildS3Store(config);
     try {
       final ensured = await StoreMarkerStore(store: built.store).ensure();
-      // Reuse the given account or create a fresh S3 account: the media
-      // store S3 config is independent from sync's by design, so a bare
-      // connect never adopts the sync S3 account.
-      final account =
-          (accountId == null ? null : await _accounts.getById(accountId)) ??
-          await _accounts.create(
-            kind: AccountKind.s3,
-            label: '${config.bucket} @ ${config.displayHost}',
-          );
+      // Reuse the given account (only when it really is an S3 account:
+      // attaching S3 credentials under another kind's keychain key would
+      // corrupt that account) or create a fresh S3 account. A bare connect
+      // never adopts the sync S3 account: the media store S3 config is
+      // independent from sync's by design.
+      final requested = accountId == null
+          ? null
+          : await _accounts.getById(accountId);
+      final account = (requested != null && requested.kind == AccountKind.s3)
+          ? requested
+          : await _accounts.create(
+              kind: AccountKind.s3,
+              label: '${config.bucket} @ ${config.displayHost}',
+            );
       await _accountCredentials.write(account.id, jsonEncode(config.toJson()));
       // Legacy blob still written so a rollback build keeps working.
       await _credentials.save(config);

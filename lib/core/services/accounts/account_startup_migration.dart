@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
@@ -145,6 +146,22 @@ class AccountStartupMigration {
         legacyKey: 'lightroom_auth',
         accountId: account.id,
       );
+      // Rows adopted by the v107 SQL migration carry no HLC and were never
+      // marked pending, so incremental changesets would skip them. Stamp
+      // them here (idempotent: markRecordPending reuses the pending row).
+      final hlcRow = await _db
+          .customSelect(
+            'SELECT hlc FROM connected_accounts WHERE id = ?',
+            variables: [Variable.withString(account.id)],
+          )
+          .getSingleOrNull();
+      if (hlcRow != null && hlcRow.data['hlc'] == null) {
+        await _syncRepository.markRecordPending(
+          entityType: 'connectedAccounts',
+          recordId: account.id,
+          localUpdatedAt: DateTime.now().millisecondsSinceEpoch,
+        );
+      }
     }
   }
 
