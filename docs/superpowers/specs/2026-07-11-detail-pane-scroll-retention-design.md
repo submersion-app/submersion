@@ -1,7 +1,11 @@
 # Detail Pane Scroll Retention
 
 **Date:** 2026-07-11
-**Status:** Approved (design)
+**Status:** Superseded by the 2026-07-12 revision below — the `PageStorageKey`
+approach in the body of this doc shipped, then failed manual testing (offset
+degraded to 0 after ~3 selections). See "Revision" at the end for the mechanism
+that replaced it. The Problem / Root cause / Scope / Semantics sections still
+hold; only the mechanism changed.
 **Branch/worktree:** `worktree-detail-scroll-retention`
 
 ## Problem
@@ -164,3 +168,66 @@ section (e.g. sites) and confirm an excluded section (settings) still resets.
   retention rides on per-page `PageStorageKey`s (no behavior change).
 - `test/shared/widgets/master_detail/master_detail_scaffold_scroll_test.dart` —
   new widget test.
+
+---
+
+## Revision (2026-07-12): PageStorageKey approach replaced with a retainer
+
+The `PageStorageKey` mechanism above shipped but **failed manual testing**: the
+detail offset held for a couple of selections, then reset to the top. Root cause
+(confirmed against the Flutter SDK and reproduced in a widget test):
+
+- `ScrollPosition.saveScrollOffset()` writes to the shared `PageStorage` slot
+  from `didEndScroll()` — i.e. on the end of *any* scroll activity, including the
+  involuntary settle when a just-restored offset is **clamped** because the
+  detail's content has not finished loading its height yet (real pages are
+  `async.when(loading: spinner, data: scrollview)` and their sections — profile
+  chart, photos, marine life — keep growing after the scroll view mounts).
+- So each restore-into-still-loading content clamped the offset and **saved the
+  clamped (smaller) value back** into the shared slot, ratcheting it toward 0
+  over successive selections. PageStorage offers no hook to distinguish a user
+  scroll from a transient clamp. The original synchronous, single-selection
+  widget test never exercised this.
+
+### New mechanism: `DetailScrollRetainer`
+
+`lib/shared/widgets/master_detail/detail_scroll_retainer.dart`:
+
+- The scaffold owns the retained offset (`_detailScrollOffset`, mutated on scroll
+  without `setState`) and wraps each view-mode detail in a `DetailScrollRetainer`
+  inside the per-id `KeyedSubtree`.
+- The retainer creates a **per-detail** `ScrollController(keepScrollOffset:
+  false)` — so `PageStorage` never runs and cannot be corrupted — and exposes it
+  via a `DetailScrollController` `InheritedWidget`. A per-detail controller means
+  the `AnimatedSwitcher` cross-fade (two details briefly mounted) causes no
+  controller conflict.
+- Each detail page attaches that controller to its primary scroll view with
+  `controller: DetailScrollController.maybeOf(context)` (replacing the
+  `PageStorageKey`). `InheritedWidget` injection is used rather than
+  `PrimaryScrollController` because the latter auto-inherits only on mobile and
+  would also be adopted by *nested* vertical scrollables (→ "attached to multiple
+  positions" crash); the explicit `controller:` targets exactly one scroll view.
+- **Capture:** a `NotificationListener` records the offset from user scrolls only
+  (it is inert during the retainer's own restore jumps; content growth does not
+  move `pixels`, so it emits no spurious capture).
+- **Restore:** a deferred, extent-guarded post-frame loop jumps to
+  `min(target, maxScrollExtent)` and re-checks while the content is still growing
+  (tolerating brief pauses, hard-capped), so a still-short viewport can never
+  clamp-and-corrupt the value.
+
+### Scope change
+
+- **In (retainer):** dives, sites, courses, certifications, dive centers,
+  equipment, buddies — each `body` scroll view swaps its `PageStorageKey` for
+  `controller: DetailScrollController.maybeOf(context)`.
+- **Trips dropped:** its liveaboard layout is a 5-tab `TabBarView` (multiple
+  scroll views per detail), which a single injected controller cannot serve
+  without per-tab wiring. Trips reverts to no retention (its `PageStorageKey`s
+  were removed). A future change could give each trip tab its own retainer.
+
+### Testing (revised)
+
+The widget test now uses content that **grows after the scroll view mounts** and
+drives **five sequential selections**, asserting the offset survives — the exact
+scenario the shipped approach failed. Plus the clamp case and an opt-out
+(no-controller → resets) guard.
