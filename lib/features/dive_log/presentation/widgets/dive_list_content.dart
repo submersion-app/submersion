@@ -613,6 +613,14 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     if (mounted) _exitSelectionMode();
   }
 
+  /// Open the 3D comparison view for the selected dives, then exit selection.
+  Future<void> _compareIn3d() async {
+    final ids = _selectedIds.toList();
+    if (ids.length < 2) return;
+    await context.pushNamed('compareDives3d', extra: ids);
+    if (mounted) _exitSelectionMode();
+  }
+
   void _handleItemTap(DiveSummary dive) {
     if (_isSelectionMode) {
       _toggleSelection(dive.id);
@@ -1000,6 +1008,12 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             tooltip: context.l10n.diveLog_selection_tooltip_combine,
             onPressed: _combineSelected,
           ),
+        if (_selectedIds.length >= 2)
+          IconButton(
+            icon: const Icon(Icons.view_in_ar),
+            tooltip: context.l10n.diveLog_selection_tooltip_compare3d,
+            onPressed: _compareIn3d,
+          ),
         if (_selectedIds.isNotEmpty)
           IconButton(
             icon: const Icon(Icons.upload),
@@ -1074,6 +1088,12 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               icon: const Icon(Icons.call_merge, size: 20),
               tooltip: context.l10n.diveLog_selection_tooltip_combine,
               onPressed: _combineSelected,
+            ),
+          if (_selectedIds.length >= 2)
+            IconButton(
+              icon: const Icon(Icons.view_in_ar, size: 20),
+              tooltip: context.l10n.diveLog_selection_tooltip_compare3d,
+              onPressed: _compareIn3d,
             ),
           if (_selectedIds.isNotEmpty)
             IconButton(
