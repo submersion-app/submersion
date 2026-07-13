@@ -9,6 +9,102 @@ class AppLocalizationsDe extends AppLocalizations {
   AppLocalizationsDe([String locale = 'de']) : super(locale);
 
   @override
+  String trips_story_dayLabel(int number) {
+    return 'Tag $number';
+  }
+
+  @override
+  String get trips_story_surfaceDay => 'Oberflächentag';
+
+  @override
+  String get trips_story_today => 'Heute';
+
+  @override
+  String trips_story_dayOfTrip(int current, int total) {
+    return 'Tag $current von $total';
+  }
+
+  @override
+  String trips_story_daysUntil(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Noch $days Tage bis zur Abreise',
+      one: 'Noch 1 Tag bis zur Abreise',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_story_checklistProgress(int done, int total) {
+    return '$done von $total erledigt';
+  }
+
+  @override
+  String get trips_story_generateItinerary => 'Reiseplan erstellen';
+
+  @override
+  String get trips_story_openGallery => 'Reisefotos öffnen';
+
+  @override
+  String trips_story_generateItineraryError(String error) {
+    return 'Reiseplan konnte nicht erstellt werden: $error';
+  }
+
+  @override
+  String get trips_dayType_diveDay => 'Tauchtag';
+
+  @override
+  String get trips_dayType_seaDay => 'Seetag';
+
+  @override
+  String get trips_dayType_portDay => 'Hafentag';
+
+  @override
+  String get trips_dayType_embark => 'Einschiffung';
+
+  @override
+  String get trips_dayType_disembark => 'Ausschiffung';
+
+  @override
+  String get trips_story_planned => 'Geplant';
+
+  @override
+  String get trips_story_empty_title => 'Noch keine Tauchgänge oder Reiseplan';
+
+  @override
+  String get trips_story_empty_subtitle =>
+      'Füge Tauchgänge hinzu oder plane die Tage, um die Story zu sehen.';
+
+  @override
+  String trips_story_history_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count frühere Tauchgänge hier',
+      one: '1 früherer Tauchgang hier',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_story_history_avgTemp(String value) {
+    return 'Ø $value';
+  }
+
+  @override
+  String trips_story_history_avgDepth(String value) {
+    return 'Ø Tiefe $value';
+  }
+
+  @override
+  String get trips_story_rhythm_semantics => 'Tauchzeiten an diesem Tag';
+
+  @override
+  String get trips_story_map_semantics =>
+      'Reisekarte. Die Tauchplätze des sichtbaren Tages sind hervorgehoben.';
+
+  @override
   String get diveLog_bulkEdit_groupRebreather => 'Tauchmodus & Kreislaufgerät';
 
   @override
@@ -15626,6 +15722,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get trips_diveScan_noMatches => 'Keine passenden Tauchgänge gefunden';
+
+  @override
+  String get trips_diveScan_noDiver =>
+      'Weise dieser Reise einen Taucher zu, um nach Tauchgängen zu suchen';
 
   @override
   String get trips_diveScan_selectAll => 'Alle auswählen';

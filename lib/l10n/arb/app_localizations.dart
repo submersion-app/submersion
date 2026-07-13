@@ -116,6 +116,138 @@ abstract class AppLocalizations {
     Locale('zh'),
   ];
 
+  /// No description provided for @trips_story_dayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Day {number}'**
+  String trips_story_dayLabel(int number);
+
+  /// No description provided for @trips_story_surfaceDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Surface day'**
+  String get trips_story_surfaceDay;
+
+  /// No description provided for @trips_story_today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get trips_story_today;
+
+  /// No description provided for @trips_story_dayOfTrip.
+  ///
+  /// In en, this message translates to:
+  /// **'Day {current} of {total}'**
+  String trips_story_dayOfTrip(int current, int total);
+
+  /// No description provided for @trips_story_daysUntil.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{1 day until departure} other{{days} days until departure}}'**
+  String trips_story_daysUntil(int days);
+
+  /// No description provided for @trips_story_checklistProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} done'**
+  String trips_story_checklistProgress(int done, int total);
+
+  /// No description provided for @trips_story_generateItinerary.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate itinerary'**
+  String get trips_story_generateItinerary;
+
+  /// No description provided for @trips_story_openGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Open trip photos'**
+  String get trips_story_openGallery;
+
+  /// No description provided for @trips_story_generateItineraryError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t generate itinerary: {error}'**
+  String trips_story_generateItineraryError(String error);
+
+  /// No description provided for @trips_dayType_diveDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive Day'**
+  String get trips_dayType_diveDay;
+
+  /// No description provided for @trips_dayType_seaDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Sea Day'**
+  String get trips_dayType_seaDay;
+
+  /// No description provided for @trips_dayType_portDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Port Day'**
+  String get trips_dayType_portDay;
+
+  /// No description provided for @trips_dayType_embark.
+  ///
+  /// In en, this message translates to:
+  /// **'Embark'**
+  String get trips_dayType_embark;
+
+  /// No description provided for @trips_dayType_disembark.
+  ///
+  /// In en, this message translates to:
+  /// **'Disembark'**
+  String get trips_dayType_disembark;
+
+  /// No description provided for @trips_story_planned.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned'**
+  String get trips_story_planned;
+
+  /// No description provided for @trips_story_empty_title.
+  ///
+  /// In en, this message translates to:
+  /// **'No dives or itinerary yet'**
+  String get trips_story_empty_title;
+
+  /// No description provided for @trips_story_empty_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add dives to this trip or plan its days to see the story.'**
+  String get trips_story_empty_subtitle;
+
+  /// No description provided for @trips_story_history_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 past dive here} other{{count} past dives here}}'**
+  String trips_story_history_dives(int count);
+
+  /// No description provided for @trips_story_history_avgTemp.
+  ///
+  /// In en, this message translates to:
+  /// **'avg {value}'**
+  String trips_story_history_avgTemp(String value);
+
+  /// No description provided for @trips_story_history_avgDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'avg depth {value}'**
+  String trips_story_history_avgDepth(String value);
+
+  /// No description provided for @trips_story_rhythm_semantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive times during this day'**
+  String get trips_story_rhythm_semantics;
+
+  /// No description provided for @trips_story_map_semantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip map. Sites for the day in view are highlighted.'**
+  String get trips_story_map_semantics;
+
   /// No description provided for @diveLog_bulkEdit_groupRebreather.
   ///
   /// In en, this message translates to:
@@ -26404,6 +26536,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No matching dives found'**
   String get trips_diveScan_noMatches;
+
+  /// No description provided for @trips_diveScan_noDiver.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign a diver to this trip to scan for dives'**
+  String get trips_diveScan_noDiver;
 
   /// No description provided for @trips_diveScan_selectAll.
   ///

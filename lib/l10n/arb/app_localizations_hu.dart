@@ -9,6 +9,102 @@ class AppLocalizationsHu extends AppLocalizations {
   AppLocalizationsHu([String locale = 'hu']) : super(locale);
 
   @override
+  String trips_story_dayLabel(int number) {
+    return '$number. nap';
+  }
+
+  @override
+  String get trips_story_surfaceDay => 'Felszíni nap';
+
+  @override
+  String get trips_story_today => 'Ma';
+
+  @override
+  String trips_story_dayOfTrip(int current, int total) {
+    return '$current. nap a(z) $total napból';
+  }
+
+  @override
+  String trips_story_daysUntil(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days nap az indulásig',
+      one: '1 nap az indulásig',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_story_checklistProgress(int done, int total) {
+    return '$done/$total kész';
+  }
+
+  @override
+  String get trips_story_generateItinerary => 'Útiterv létrehozása';
+
+  @override
+  String get trips_story_openGallery => 'Utazási fotók megnyitása';
+
+  @override
+  String trips_story_generateItineraryError(String error) {
+    return 'Nem sikerült létrehozni az útitervet: $error';
+  }
+
+  @override
+  String get trips_dayType_diveDay => 'Merülőnap';
+
+  @override
+  String get trips_dayType_seaDay => 'Tengeri nap';
+
+  @override
+  String get trips_dayType_portDay => 'Kikötői nap';
+
+  @override
+  String get trips_dayType_embark => 'Beszállás';
+
+  @override
+  String get trips_dayType_disembark => 'Kiszállás';
+
+  @override
+  String get trips_story_planned => 'Tervezett';
+
+  @override
+  String get trips_story_empty_title => 'Még nincs merülés vagy útiterv';
+
+  @override
+  String get trips_story_empty_subtitle =>
+      'Adj hozzá merüléseket vagy tervezd meg a napokat a történethez.';
+
+  @override
+  String trips_story_history_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count korábbi merülés itt',
+      one: '1 korábbi merülés itt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_story_history_avgTemp(String value) {
+    return 'átlag $value';
+  }
+
+  @override
+  String trips_story_history_avgDepth(String value) {
+    return 'átl. mélység $value';
+  }
+
+  @override
+  String get trips_story_rhythm_semantics => 'A nap merülési idői';
+
+  @override
+  String get trips_story_map_semantics =>
+      'Úti térkép. A látható nap helyszínei kiemelve.';
+
+  @override
   String get diveLog_bulkEdit_groupRebreather => 'Merülési mód és rebreather';
 
   @override
@@ -15608,6 +15704,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get trips_diveScan_noMatches => 'Nem talalhatok egyezo merulesek';
+
+  @override
+  String get trips_diveScan_noDiver =>
+      'Rendelj egy búvárt ehhez az úthoz a merülések kereséséhez';
 
   @override
   String get trips_diveScan_selectAll => 'Osszes kivalasztasa';

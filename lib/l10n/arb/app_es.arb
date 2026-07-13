@@ -1,4 +1,33 @@
 {
+  "trips_story_dayLabel": "Día {number}",
+  "trips_story_surfaceDay": "Día de superficie",
+  "trips_story_today": "Hoy",
+  "trips_story_dayOfTrip": "Día {current} de {total}",
+  "trips_story_daysUntil": "{days, plural, =1{1 día para la salida} other{{days} días para la salida}}",
+  "trips_story_checklistProgress": "{done} de {total} completado",
+  "trips_story_generateItinerary": "Generar itinerario",
+  "trips_story_openGallery": "Abrir fotos del viaje",
+  "trips_story_generateItineraryError": "No se pudo generar el itinerario: {error}",
+  "@trips_story_generateItineraryError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_dayType_diveDay": "Día de buceo",
+  "trips_dayType_seaDay": "Día de mar",
+  "trips_dayType_portDay": "Día de puerto",
+  "trips_dayType_embark": "Embarque",
+  "trips_dayType_disembark": "Desembarque",
+  "trips_story_planned": "Planificado",
+  "trips_story_empty_title": "Aún no hay inmersiones ni itinerario",
+  "trips_story_empty_subtitle": "Añade inmersiones o planifica los días para ver la historia.",
+  "trips_story_history_dives": "{count, plural, =1{1 inmersión previa aquí} other{{count} inmersiones previas aquí}}",
+  "trips_story_history_avgTemp": "media {value}",
+  "trips_story_history_avgDepth": "prof. media {value}",
+  "trips_story_rhythm_semantics": "Horarios de inmersión de este día",
+  "trips_story_map_semantics": "Mapa del viaje. Los puntos del día visible están resaltados.",
   "diveLog_bulkEdit_groupRebreather": "Modo de buceo y rebreather",
   "diveLog_bulkEdit_fieldSetpointLow": "Setpoint bajo",
   "diveLog_bulkEdit_fieldSetpointHigh": "Setpoint alto",
@@ -5131,6 +5160,7 @@
     }
   },
   "trips_diveScan_noMatches": "No se encontraron inmersiones coincidentes",
+  "trips_diveScan_noDiver": "Asigna un buceador a este viaje para buscar inmersiones",
   "trips_diveScan_selectAll": "Seleccionar todo",
   "trips_diveScan_subtitle": "{count} inmersiones encontradas en el rango de fechas",
   "@trips_diveScan_subtitle": {

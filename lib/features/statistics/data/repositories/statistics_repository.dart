@@ -1953,6 +1953,35 @@ class StatisticsRepository {
     }
   }
 
+  /// Aggregates of one diver's history at a site, matched by exact
+  /// case-insensitive name (itinerary days have no site FK, so planned-day
+  /// context pills resolve the site by its port name).
+  Future<({int diveCount, double? avgWaterTemp, double? avgMaxDepth})>
+  getSiteHistoryByName(String siteName, {required String diverId}) async {
+    final row = await _db
+        .customSelect(
+          '''
+      SELECT COUNT(d.id) AS dive_count,
+             AVG(d.water_temp) AS avg_water_temp,
+             AVG(d.max_depth) AS avg_max_depth
+      FROM dives d
+      JOIN dive_sites ds ON d.site_id = ds.id
+      WHERE LOWER(ds.name) = LOWER(?) AND d.diver_id = ?
+    ''',
+          variables: [
+            Variable.withString(siteName),
+            Variable.withString(diverId),
+          ],
+        )
+        .getSingle();
+
+    return (
+      diveCount: row.read<int>('dive_count'),
+      avgWaterTemp: row.read<double?>('avg_water_temp'),
+      avgMaxDepth: row.read<double?>('avg_max_depth'),
+    );
+  }
+
   // ============================================================================
   // Helpers
   // ============================================================================

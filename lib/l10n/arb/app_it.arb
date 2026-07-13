@@ -1,4 +1,33 @@
 {
+  "trips_story_dayLabel": "Giorno {number}",
+  "trips_story_surfaceDay": "Giorno di superficie",
+  "trips_story_today": "Oggi",
+  "trips_story_dayOfTrip": "Giorno {current} di {total}",
+  "trips_story_daysUntil": "{days, plural, =1{1 giorno alla partenza} other{{days} giorni alla partenza}}",
+  "trips_story_checklistProgress": "{done} di {total} completati",
+  "trips_story_generateItinerary": "Genera itinerario",
+  "trips_story_openGallery": "Apri le foto del viaggio",
+  "trips_story_generateItineraryError": "Impossibile generare l'itinerario: {error}",
+  "@trips_story_generateItineraryError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_dayType_diveDay": "Giorno di immersione",
+  "trips_dayType_seaDay": "Giorno in mare",
+  "trips_dayType_portDay": "Giorno in porto",
+  "trips_dayType_embark": "Imbarco",
+  "trips_dayType_disembark": "Sbarco",
+  "trips_story_planned": "Pianificato",
+  "trips_story_empty_title": "Nessuna immersione o itinerario",
+  "trips_story_empty_subtitle": "Aggiungi immersioni o pianifica i giorni per vedere la storia.",
+  "trips_story_history_dives": "{count, plural, =1{1 immersione passata qui} other{{count} immersioni passate qui}}",
+  "trips_story_history_avgTemp": "media {value}",
+  "trips_story_history_avgDepth": "prof. media {value}",
+  "trips_story_rhythm_semantics": "Orari delle immersioni del giorno",
+  "trips_story_map_semantics": "Mappa del viaggio. I siti del giorno visibile sono evidenziati.",
   "diveLog_bulkEdit_groupRebreather": "Modalità e rebreather",
   "diveLog_bulkEdit_fieldSetpointLow": "Setpoint basso",
   "diveLog_bulkEdit_fieldSetpointHigh": "Setpoint alto",
@@ -5093,6 +5122,7 @@
     }
   },
   "trips_diveScan_noMatches": "Nessuna immersione corrispondente trovata",
+  "trips_diveScan_noDiver": "Assegna un subacqueo a questo viaggio per cercare le immersioni",
   "trips_diveScan_selectAll": "Seleziona tutto",
   "trips_diveScan_subtitle": "{count} immersioni trovate nell'intervallo di date",
   "@trips_diveScan_subtitle": {

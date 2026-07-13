@@ -204,6 +204,57 @@ class SpeciesRepository {
     }).toList();
   }
 
+  /// Batched variant of [getSightingsForDive]: one query for many dives.
+  /// Returns a map keyed by dive id; dives without sightings are absent.
+  ///
+  /// The dive ids are queried in chunks so the bound-variable count never
+  /// exceeds SQLite's default limit (999) on very large trips.
+  Future<Map<String, List<domain.Sighting>>> getSightingsForDives(
+    List<String> diveIds,
+  ) async {
+    if (diveIds.isEmpty) return {};
+
+    const chunkSize = 900; // safely under SQLite's 999 bound-variable limit
+    final byDive = <String, List<domain.Sighting>>{};
+
+    for (var start = 0; start < diveIds.length; start += chunkSize) {
+      final end = (start + chunkSize < diveIds.length)
+          ? start + chunkSize
+          : diveIds.length;
+      final chunk = diveIds.sublist(start, end);
+      final placeholders = List.filled(chunk.length, '?').join(', ');
+      final results = await _db
+          .customSelect(
+            '''
+      SELECT s.*, sp.common_name, sp.category
+      FROM sightings s
+      JOIN species sp ON s.species_id = sp.id
+      WHERE s.dive_id IN ($placeholders)
+      ORDER BY sp.category ASC, sp.common_name ASC
+    ''',
+            variables: [for (final id in chunk) Variable.withString(id)],
+          )
+          .get();
+
+      for (final row in results) {
+        final sighting = domain.Sighting(
+          id: row.data['id'] as String,
+          diveId: row.data['dive_id'] as String,
+          speciesId: row.data['species_id'] as String,
+          speciesName: row.data['common_name'] as String,
+          speciesCategory: SpeciesCategory.values.firstWhere(
+            (c) => c.name == row.data['category'],
+            orElse: () => SpeciesCategory.other,
+          ),
+          count: row.data['count'] as int,
+          notes: (row.data['notes'] as String?) ?? '',
+        );
+        byDive.putIfAbsent(sighting.diveId, () => []).add(sighting);
+      }
+    }
+    return byDive;
+  }
+
   /// Update sighting
   Future<void> updateSighting(domain.Sighting sighting) async {
     await (_db.update(

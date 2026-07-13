@@ -9,6 +9,104 @@ class AppLocalizationsFr extends AppLocalizations {
   AppLocalizationsFr([String locale = 'fr']) : super(locale);
 
   @override
+  String trips_story_dayLabel(int number) {
+    return 'Jour $number';
+  }
+
+  @override
+  String get trips_story_surfaceDay => 'Journée en surface';
+
+  @override
+  String get trips_story_today => 'Aujourd\'hui';
+
+  @override
+  String trips_story_dayOfTrip(int current, int total) {
+    return 'Jour $current sur $total';
+  }
+
+  @override
+  String trips_story_daysUntil(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days jours avant le départ',
+      one: '1 jour avant le départ',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_story_checklistProgress(int done, int total) {
+    return '$done sur $total fait';
+  }
+
+  @override
+  String get trips_story_generateItinerary => 'Générer l\'itinéraire';
+
+  @override
+  String get trips_story_openGallery => 'Ouvrir les photos du voyage';
+
+  @override
+  String trips_story_generateItineraryError(String error) {
+    return 'Impossible de générer l\'itinéraire : $error';
+  }
+
+  @override
+  String get trips_dayType_diveDay => 'Jour de plongée';
+
+  @override
+  String get trips_dayType_seaDay => 'Jour en mer';
+
+  @override
+  String get trips_dayType_portDay => 'Jour au port';
+
+  @override
+  String get trips_dayType_embark => 'Embarquement';
+
+  @override
+  String get trips_dayType_disembark => 'Débarquement';
+
+  @override
+  String get trips_story_planned => 'Prévu';
+
+  @override
+  String get trips_story_empty_title =>
+      'Pas encore de plongées ni d\'itinéraire';
+
+  @override
+  String get trips_story_empty_subtitle =>
+      'Ajoutez des plongées ou planifiez les jours pour voir le récit.';
+
+  @override
+  String trips_story_history_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plongées passées ici',
+      one: '1 plongée passée ici',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_story_history_avgTemp(String value) {
+    return 'moy. $value';
+  }
+
+  @override
+  String trips_story_history_avgDepth(String value) {
+    return 'prof. moy. $value';
+  }
+
+  @override
+  String get trips_story_rhythm_semantics =>
+      'Heures de plongée de cette journée';
+
+  @override
+  String get trips_story_map_semantics =>
+      'Carte du voyage. Les sites du jour affiché sont mis en évidence.';
+
+  @override
   String get diveLog_bulkEdit_groupRebreather => 'Mode de plongée et recycleur';
 
   @override
@@ -15718,6 +15816,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get trips_diveScan_noMatches =>
       'Aucune plongee correspondante trouvee';
+
+  @override
+  String get trips_diveScan_noDiver =>
+      'Attribuez un plongeur à ce voyage pour rechercher des plongées';
 
   @override
   String get trips_diveScan_selectAll => 'Tout selectionner';

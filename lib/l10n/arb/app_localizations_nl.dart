@@ -9,6 +9,102 @@ class AppLocalizationsNl extends AppLocalizations {
   AppLocalizationsNl([String locale = 'nl']) : super(locale);
 
   @override
+  String trips_story_dayLabel(int number) {
+    return 'Dag $number';
+  }
+
+  @override
+  String get trips_story_surfaceDay => 'Oppervlaktedag';
+
+  @override
+  String get trips_story_today => 'Vandaag';
+
+  @override
+  String trips_story_dayOfTrip(int current, int total) {
+    return 'Dag $current van $total';
+  }
+
+  @override
+  String trips_story_daysUntil(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Nog $days dagen tot vertrek',
+      one: 'Nog 1 dag tot vertrek',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_story_checklistProgress(int done, int total) {
+    return '$done van $total klaar';
+  }
+
+  @override
+  String get trips_story_generateItinerary => 'Reisplan genereren';
+
+  @override
+  String get trips_story_openGallery => 'Reisfoto\'s openen';
+
+  @override
+  String trips_story_generateItineraryError(String error) {
+    return 'Kan reisschema niet genereren: $error';
+  }
+
+  @override
+  String get trips_dayType_diveDay => 'Duikdag';
+
+  @override
+  String get trips_dayType_seaDay => 'Zeedag';
+
+  @override
+  String get trips_dayType_portDay => 'Havendag';
+
+  @override
+  String get trips_dayType_embark => 'Inschepen';
+
+  @override
+  String get trips_dayType_disembark => 'Ontschepen';
+
+  @override
+  String get trips_story_planned => 'Gepland';
+
+  @override
+  String get trips_story_empty_title => 'Nog geen duiken of reisplan';
+
+  @override
+  String get trips_story_empty_subtitle =>
+      'Voeg duiken toe of plan de dagen om het verhaal te zien.';
+
+  @override
+  String trips_story_history_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count eerdere duiken hier',
+      one: '1 eerdere duik hier',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_story_history_avgTemp(String value) {
+    return 'gem. $value';
+  }
+
+  @override
+  String trips_story_history_avgDepth(String value) {
+    return 'gem. diepte $value';
+  }
+
+  @override
+  String get trips_story_rhythm_semantics => 'Duiktijden van deze dag';
+
+  @override
+  String get trips_story_map_semantics =>
+      'Reiskaart. De stekken van de zichtbare dag zijn gemarkeerd.';
+
+  @override
   String get diveLog_bulkEdit_groupRebreather => 'Duikmodus & rebreather';
 
   @override
@@ -15519,6 +15615,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get trips_diveScan_noMatches => 'Geen overeenkomende duiken gevonden';
+
+  @override
+  String get trips_diveScan_noDiver =>
+      'Wijs een duiker toe aan deze reis om naar duiken te zoeken';
 
   @override
   String get trips_diveScan_selectAll => 'Alles selecteren';

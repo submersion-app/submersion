@@ -9,6 +9,102 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String trips_story_dayLabel(int number) {
+    return 'Day $number';
+  }
+
+  @override
+  String get trips_story_surfaceDay => 'Surface day';
+
+  @override
+  String get trips_story_today => 'Today';
+
+  @override
+  String trips_story_dayOfTrip(int current, int total) {
+    return 'Day $current of $total';
+  }
+
+  @override
+  String trips_story_daysUntil(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days until departure',
+      one: '1 day until departure',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_story_checklistProgress(int done, int total) {
+    return '$done of $total done';
+  }
+
+  @override
+  String get trips_story_generateItinerary => 'Generate itinerary';
+
+  @override
+  String get trips_story_openGallery => 'Open trip photos';
+
+  @override
+  String trips_story_generateItineraryError(String error) {
+    return 'Couldn\'t generate itinerary: $error';
+  }
+
+  @override
+  String get trips_dayType_diveDay => 'Dive Day';
+
+  @override
+  String get trips_dayType_seaDay => 'Sea Day';
+
+  @override
+  String get trips_dayType_portDay => 'Port Day';
+
+  @override
+  String get trips_dayType_embark => 'Embark';
+
+  @override
+  String get trips_dayType_disembark => 'Disembark';
+
+  @override
+  String get trips_story_planned => 'Planned';
+
+  @override
+  String get trips_story_empty_title => 'No dives or itinerary yet';
+
+  @override
+  String get trips_story_empty_subtitle =>
+      'Add dives to this trip or plan its days to see the story.';
+
+  @override
+  String trips_story_history_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count past dives here',
+      one: '1 past dive here',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_story_history_avgTemp(String value) {
+    return 'avg $value';
+  }
+
+  @override
+  String trips_story_history_avgDepth(String value) {
+    return 'avg depth $value';
+  }
+
+  @override
+  String get trips_story_rhythm_semantics => 'Dive times during this day';
+
+  @override
+  String get trips_story_map_semantics =>
+      'Trip map. Sites for the day in view are highlighted.';
+
+  @override
   String get diveLog_bulkEdit_groupRebreather => 'Dive Mode & Rebreather';
 
   @override
@@ -15376,6 +15472,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trips_diveScan_noMatches => 'No matching dives found';
+
+  @override
+  String get trips_diveScan_noDiver =>
+      'Assign a diver to this trip to scan for dives';
 
   @override
   String get trips_diveScan_selectAll => 'Select all';

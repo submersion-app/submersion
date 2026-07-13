@@ -1,4 +1,33 @@
 {
+  "trips_story_dayLabel": "第 {number} 天",
+  "trips_story_surfaceDay": "水面日",
+  "trips_story_today": "今天",
+  "trips_story_dayOfTrip": "第 {current} 天，共 {total} 天",
+  "trips_story_daysUntil": "{days, plural, other{距出发还有 {days} 天}}",
+  "trips_story_checklistProgress": "已完成 {done}/{total}",
+  "trips_story_generateItinerary": "生成行程",
+  "trips_story_openGallery": "打开行程照片",
+  "trips_story_generateItineraryError": "无法生成行程：{error}",
+  "@trips_story_generateItineraryError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_dayType_diveDay": "潜水日",
+  "trips_dayType_seaDay": "海上日",
+  "trips_dayType_portDay": "港口日",
+  "trips_dayType_embark": "登船",
+  "trips_dayType_disembark": "离船",
+  "trips_story_planned": "已计划",
+  "trips_story_empty_title": "还没有潜水或行程",
+  "trips_story_empty_subtitle": "为此旅行添加潜水或规划行程以查看故事。",
+  "trips_story_history_dives": "{count, plural, other{此处有 {count} 次过往潜水}}",
+  "trips_story_history_avgTemp": "平均 {value}",
+  "trips_story_history_avgDepth": "平均深度 {value}",
+  "trips_story_rhythm_semantics": "当天的潜水时间",
+  "trips_story_map_semantics": "旅行地图。当前日期的潜点已高亮。",
   "diveLog_bulkEdit_groupRebreather": "潜水模式与循环呼吸器",
   "diveLog_bulkEdit_fieldSetpointLow": "低设定点",
   "diveLog_bulkEdit_fieldSetpointHigh": "高设定点",
@@ -4980,6 +5009,7 @@
   "trips_diveScan_groupOtherTrips": "在其他旅行中（{count}）",
   "trips_diveScan_groupUnassigned": "未分配（{count}）",
   "trips_diveScan_noMatches": "未找到匹配的潜水",
+  "trips_diveScan_noDiver": "为此行程指定潜水员以扫描潜水记录",
   "trips_diveScan_selectAll": "全选",
   "trips_diveScan_subtitle": "在日期范围内找到 {count} 次潜水",
   "trips_diveScan_title": "将潜水添加到旅行",

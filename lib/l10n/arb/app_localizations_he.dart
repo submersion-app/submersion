@@ -9,6 +9,101 @@ class AppLocalizationsHe extends AppLocalizations {
   AppLocalizationsHe([String locale = 'he']) : super(locale);
 
   @override
+  String trips_story_dayLabel(int number) {
+    return 'יום $number';
+  }
+
+  @override
+  String get trips_story_surfaceDay => 'יום פני השטח';
+
+  @override
+  String get trips_story_today => 'היום';
+
+  @override
+  String trips_story_dayOfTrip(int current, int total) {
+    return 'יום $current מתוך $total';
+  }
+
+  @override
+  String trips_story_daysUntil(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days ימים עד היציאה',
+      one: 'יום אחד עד היציאה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_story_checklistProgress(int done, int total) {
+    return '$done מתוך $total הושלמו';
+  }
+
+  @override
+  String get trips_story_generateItinerary => 'צור מסלול';
+
+  @override
+  String get trips_story_openGallery => 'פתיחת תמונות הטיול';
+
+  @override
+  String trips_story_generateItineraryError(String error) {
+    return 'לא ניתן ליצור מסלול: $error';
+  }
+
+  @override
+  String get trips_dayType_diveDay => 'יום צלילה';
+
+  @override
+  String get trips_dayType_seaDay => 'יום ים';
+
+  @override
+  String get trips_dayType_portDay => 'יום נמל';
+
+  @override
+  String get trips_dayType_embark => 'עלייה לסיפון';
+
+  @override
+  String get trips_dayType_disembark => 'ירידה מהסיפון';
+
+  @override
+  String get trips_story_planned => 'מתוכנן';
+
+  @override
+  String get trips_story_empty_title => 'אין עדיין צלילות או מסלול';
+
+  @override
+  String get trips_story_empty_subtitle =>
+      'הוסף צלילות לטיול או תכנן את הימים כדי לראות את הסיפור.';
+
+  @override
+  String trips_story_history_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות קודמות כאן',
+      one: 'צלילה קודמת אחת כאן',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_story_history_avgTemp(String value) {
+    return 'ממוצע $value';
+  }
+
+  @override
+  String trips_story_history_avgDepth(String value) {
+    return 'עומק ממוצע $value';
+  }
+
+  @override
+  String get trips_story_rhythm_semantics => 'זמני הצלילה ביום זה';
+
+  @override
+  String get trips_story_map_semantics => 'מפת הטיול. אתרי היום המוצג מודגשים.';
+
+  @override
   String get diveLog_bulkEdit_groupRebreather => 'מצב צלילה וריבריא\'תר';
 
   @override
@@ -15229,6 +15324,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get trips_diveScan_noMatches => 'לא נמצאו צלילות תואמות';
+
+  @override
+  String get trips_diveScan_noDiver =>
+      'שייך צולל לטיול זה כדי לסרוק אחר צלילות';
 
   @override
   String get trips_diveScan_selectAll => 'בחר הכל';

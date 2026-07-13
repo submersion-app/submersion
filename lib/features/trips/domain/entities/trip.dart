@@ -33,8 +33,13 @@ class Trip extends Equatable {
     required this.updatedAt,
   });
 
-  /// Duration of the trip in days
-  int get durationDays => endDate.difference(startDate).inDays + 1;
+  /// Duration of the trip in days.
+  ///
+  /// Counted in calendar days (UTC date-only) so a trip spanning a local DST
+  /// spring-forward isn't undercounted: `Duration.inDays` floors elapsed hours,
+  /// and a 23-hour calendar day would otherwise drop a day (e.g. Mar 7-10 is
+  /// 71 local hours -> 3 instead of 4).
+  int get durationDays => _calendarDaysBetween(startDate, endDate) + 1;
 
   /// Check if this is a liveaboard trip
   bool get isLiveaboard => tripType == TripType.liveaboard;
@@ -76,11 +81,12 @@ class Trip extends Equatable {
   }
 
   /// Calendar days until the trip starts (0 when started or starting today).
+  ///
+  /// Counted in UTC date-only so a DST spring-forward between today and the
+  /// start date can't shave a day off the countdown (a local 23-hour day would
+  /// make `Duration.inDays` truncate 47 hours to 1 day instead of 2).
   int get daysUntilStart {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final start = DateTime(startDate.year, startDate.month, startDate.day);
-    final diff = start.difference(today).inDays;
+    final diff = _calendarDaysBetween(DateTime.now(), startDate);
     return diff < 0 ? 0 : diff;
   }
 
@@ -140,6 +146,15 @@ class Trip extends Equatable {
 
 // Sentinel value for distinguishing null from undefined in copyWith
 const _undefined = Object();
+
+/// Whole calendar days from [from] to [to], computed in UTC date-only so the
+/// result is DST-immune (UTC has no daylight-saving transitions, so every day
+/// is exactly 24 hours). Negative when [to] is before [from].
+int _calendarDaysBetween(DateTime from, DateTime to) {
+  final a = DateTime.utc(from.year, from.month, from.day);
+  final b = DateTime.utc(to.year, to.month, to.day);
+  return b.difference(a).inDays;
+}
 
 /// Trip with computed statistics
 class TripWithStats extends Equatable {

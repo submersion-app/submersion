@@ -1,4 +1,33 @@
 {
+  "trips_story_dayLabel": "اليوم {number}",
+  "trips_story_surfaceDay": "يوم سطح",
+  "trips_story_today": "اليوم",
+  "trips_story_dayOfTrip": "اليوم {current} من {total}",
+  "trips_story_daysUntil": "{days, plural, =1{يوم واحد حتى المغادرة} other{{days} أيام حتى المغادرة}}",
+  "trips_story_checklistProgress": "اكتمل {done} من {total}",
+  "trips_story_generateItinerary": "إنشاء خط سير",
+  "trips_story_openGallery": "فتح صور الرحلة",
+  "trips_story_generateItineraryError": "تعذّر إنشاء برنامج الرحلة: {error}",
+  "@trips_story_generateItineraryError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_dayType_diveDay": "يوم غوص",
+  "trips_dayType_seaDay": "يوم بحري",
+  "trips_dayType_portDay": "يوم في الميناء",
+  "trips_dayType_embark": "الصعود",
+  "trips_dayType_disembark": "النزول",
+  "trips_story_planned": "مخطط",
+  "trips_story_empty_title": "لا توجد غطسات أو خط سير بعد",
+  "trips_story_empty_subtitle": "أضف غطسات إلى هذه الرحلة أو خطط أيامها لرؤية القصة.",
+  "trips_story_history_dives": "{count, plural, =1{غطسة سابقة واحدة هنا} other{{count} غطسات سابقة هنا}}",
+  "trips_story_history_avgTemp": "متوسط {value}",
+  "trips_story_history_avgDepth": "متوسط العمق {value}",
+  "trips_story_rhythm_semantics": "أوقات الغطس في هذا اليوم",
+  "trips_story_map_semantics": "خريطة الرحلة. مواقع اليوم المعروض مميزة.",
   "diveLog_bulkEdit_groupRebreather": "وضع الغوص وجهاز التنفس",
   "diveLog_bulkEdit_fieldSetpointLow": "النقطة المحددة المنخفضة",
   "diveLog_bulkEdit_fieldSetpointHigh": "النقطة المحددة العالية",
@@ -5131,6 +5160,7 @@
     }
   },
   "trips_diveScan_noMatches": "لم يتم العثور على غوصات مطابقة",
+  "trips_diveScan_noDiver": "عيّن غوّاصًا لهذه الرحلة للبحث عن الغطسات",
   "trips_diveScan_selectAll": "تحديد الكل",
   "trips_diveScan_subtitle": "تم العثور على {count} غوصات في نطاق التاريخ",
   "@trips_diveScan_subtitle": {
