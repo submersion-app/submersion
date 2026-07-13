@@ -10,8 +10,11 @@ void main() {
     );
     final points = sparklinePoints(profile, targetCount: 40);
     expect(points.length, lessThanOrEqualTo(40));
-    // The 30m spike must survive downsampling (bucket max).
-    expect(points.map((p) => p.depth).reduce((a, b) => a > b ? a : b), 1.0);
+    // The 30m spike must survive downsampling (bucket max, normalized to 1).
+    expect(
+      points.map((p) => p.depth).reduce((a, b) => a > b ? a : b),
+      closeTo(1.0, 1e-9),
+    );
     expect(points.first.t, 0.0);
     expect(points.last.t, 1.0);
   });

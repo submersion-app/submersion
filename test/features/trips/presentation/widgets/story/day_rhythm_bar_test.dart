@@ -8,12 +8,12 @@ void main() {
   testWidgets('renders with a semantics label', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: DayRhythmBar(
             dives: [Dive(id: 'd1', dateTime: DateTime(2026, 3, 8, 9))],
-            dayDate: DateTime(2026, 3, 8),
           ),
         ),
       ),

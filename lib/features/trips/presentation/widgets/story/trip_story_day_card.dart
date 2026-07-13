@@ -57,7 +57,7 @@ class TripStoryDayCard extends ConsumerWidget {
                 const SizedBox(height: 12),
                 _DayStatStrip(day: day, units: units),
                 const SizedBox(height: 12),
-                DayRhythmBar(dives: day.dives, dayDate: day.date),
+                DayRhythmBar(dives: day.dives),
                 const SizedBox(height: 8),
                 ...day.dives.mapIndexed(
                   (index, dive) => Row(

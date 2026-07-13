@@ -8,19 +8,13 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// with the tertiary color; surface intervals appear as gaps.
 class DayRhythmBar extends StatelessWidget {
   final List<Dive> dives;
-  final DateTime dayDate;
   final double height;
 
-  const DayRhythmBar({
-    super.key,
-    required this.dives,
-    required this.dayDate,
-    this.height = 28,
-  });
+  const DayRhythmBar({super.key, required this.dives, this.height = 28});
 
   @override
   Widget build(BuildContext context) {
-    final blocks = computeRhythmBlocks(dives, dayDate);
+    final blocks = computeRhythmBlocks(dives);
     if (blocks.isEmpty) return const SizedBox.shrink();
     final colorScheme = Theme.of(context).colorScheme;
     final labelStyle = Theme.of(

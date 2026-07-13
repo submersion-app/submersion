@@ -28,6 +28,7 @@ Future<void> pumpCard(WidgetTester tester, TripStoryDay day) async {
     ProviderScope(
       overrides: overrides.cast(),
       child: MaterialApp.router(
+        locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         routerConfig: router,

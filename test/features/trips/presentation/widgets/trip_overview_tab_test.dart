@@ -54,6 +54,7 @@ Future<void> pumpTab(
     ProviderScope(
       overrides: [...overrides, ...extra].cast(),
       child: MaterialApp.router(
+        locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         routerConfig: router,

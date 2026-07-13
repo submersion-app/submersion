@@ -26,11 +26,13 @@ class RhythmBlock extends Equatable {
 
 /// Lay out one day's dives on a 24h axis as fractions of the day.
 ///
-/// Position is derived from the entry's wall-clock time of day (hour/minute/
+/// Position is derived from each dive's wall-clock time of day (hour/minute/
 /// second), not `difference()` from midnight: the latter measures elapsed
 /// physical time and would shift by an hour across a DST boundary. Dive times
 /// are wall-clock-as-UTC in this codebase, so the components are the truth.
-List<RhythmBlock> computeRhythmBlocks(List<Dive> dives, DateTime dayDate) {
+/// This is why the day's date isn't needed — dives are already grouped into
+/// their calendar day upstream, and only the time-of-day matters here.
+List<RhythmBlock> computeRhythmBlocks(List<Dive> dives) {
   const daySeconds = 24 * 3600;
 
   return dives.map((dive) {

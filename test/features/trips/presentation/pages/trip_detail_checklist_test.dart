@@ -113,6 +113,7 @@ void main() {
             }),
           ],
           child: MaterialApp(
+            locale: const Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripDetailPage(tripId: liveaboardTrip.id),
@@ -192,6 +193,7 @@ void main() {
               }),
             ],
             child: MaterialApp(
+              locale: const Locale('en'),
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
               home: TripDetailPage(tripId: trip.id),

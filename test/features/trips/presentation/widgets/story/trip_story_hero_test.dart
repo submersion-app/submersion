@@ -56,6 +56,7 @@ Future<void> pumpHero(
     ProviderScope(
       overrides: overrides.cast(),
       child: MaterialApp(
+        locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
