@@ -17,6 +17,7 @@ import 'package:submersion/features/dive_3d/presentation/renderer/tissue_chrome_
 import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/dive_3d_interactive_viewport.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 
 Scene3d buildScene() {
@@ -74,6 +75,8 @@ void main() {
   }) async {
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: Dive3dInteractiveViewport(
             scene: scene,
@@ -168,6 +171,49 @@ void main() {
     expect(paints.any((p) => p.foregroundPainter != null), isTrue);
   });
 
+  testWidgets('zoom buttons change zoom and reset restores it', (tester) async {
+    await pumpViewport(tester, scene: buildScene());
+    expect(scenePainterOf(tester).zoom, 1.0);
+    await tester.tap(find.byIcon(Icons.add));
+    await tester.pump();
+    expect(scenePainterOf(tester).zoom, greaterThan(1.0));
+    await tester.tap(find.byIcon(Icons.remove));
+    await tester.tap(find.byIcon(Icons.remove));
+    await tester.pump();
+    expect(scenePainterOf(tester).zoom, lessThan(1.0));
+    await tester.tap(find.byIcon(Icons.center_focus_strong));
+    await tester.pump();
+    expect(scenePainterOf(tester).zoom, 1.0);
+  });
+
+  testWidgets('trackpad pan translates the view and pinch zooms', (
+    tester,
+  ) async {
+    await pumpViewport(tester, scene: buildScene());
+    Offset panOffset() {
+      final t = tester
+          .widget<Transform>(find.byKey(const ValueKey('dive3dViewportPan')))
+          .transform
+          .getTranslation();
+      return Offset(t.x, t.y);
+    }
+
+    expect(panOffset(), Offset.zero);
+    final center = tester.getCenter(find.byType(Dive3dInteractiveViewport));
+    final g = await tester.createGesture(kind: PointerDeviceKind.trackpad);
+    await g.panZoomStart(center);
+    await g.panZoomUpdate(center, pan: const Offset(40, 20), scale: 1.5);
+    await tester.pump();
+    expect(panOffset(), const Offset(40, 20)); // two-finger pan translated
+    expect(scenePainterOf(tester).zoom, greaterThan(1.0)); // pinch zoomed
+    await g.panZoomEnd();
+
+    await tester.tap(find.byIcon(Icons.center_focus_strong));
+    await tester.pump();
+    expect(panOffset(), Offset.zero); // reset recenters
+    expect(scenePainterOf(tester).zoom, 1.0);
+  });
+
   testWidgets('hover over a surface vertex publishes a pick', (tester) async {
     const size = Size(400, 300);
     final result = SubsurfaceTissueBuilder.buildResult(
@@ -192,6 +238,8 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: Align(
             alignment: Alignment.topLeft,

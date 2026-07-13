@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_3d/presentation/renderer/scene_projecto
 import 'package:submersion/features/dive_3d/presentation/renderer/scrub_cursor.dart';
 import 'package:submersion/features/dive_3d/presentation/renderer/tissue_chrome_painters.dart';
 import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// How the scrub cursor is drawn: a dot riding the path (depth/tissue/career/
 /// spatial scenes), or a vertical time-plane sweeping every ribbon at once
@@ -65,6 +66,10 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
   double _yaw = _initialYaw;
   double _pitch = _initialPitch;
   double _zoom = 1.0;
+  // Screen-space translation from panning (two-finger trackpad drag). Applied
+  // as a Transform on the painted output; picks subtract it from the cursor.
+  Offset _pan = Offset.zero;
+  double _panZoomBaseZoom = 1.0;
 
   void _onPanUpdate(DragUpdateDetails details) {
     setState(() {
@@ -81,11 +86,25 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
     });
   }
 
+  // Trackpad two-finger pan + pinch-zoom (desktop). Rotation via one-finger
+  // drag stays on the pan gesture; the mouse wheel stays on pointer signals.
+  void _onPanZoomStart(PointerPanZoomStartEvent _) {
+    _panZoomBaseZoom = _zoom;
+  }
+
+  void _onPanZoomUpdate(PointerPanZoomUpdateEvent event) {
+    setState(() {
+      _pan += event.panDelta;
+      _zoom = (_panZoomBaseZoom * event.scale).clamp(0.4, 8.0);
+    });
+  }
+
   void _resetCamera() {
     setState(() {
       _yaw = _initialYaw;
       _pitch = _initialPitch;
       _zoom = 1.0;
+      _pan = Offset.zero;
     });
   }
 
@@ -149,7 +168,9 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
     if (notifier == null || grid == null || grid.isEmpty) return;
     _ensureProjection(size);
     notifier.value = pickNearestTissueVertex(
-      cursor: local,
+      // Projections are computed without pan; the painted output is translated
+      // by _pan, so map the cursor back into untranslated projection space.
+      cursor: local - _pan,
       projected: _projected!,
       viewDepths: _viewDepths!,
       columns: grid.columns,
@@ -164,12 +185,11 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
       return;
     }
     final projector = _projectorFor(size);
+    final cursor = details.localPosition - _pan; // undo pan translation
     SceneMarker? best;
     var bestDistance = 24.0;
     for (final marker in widget.scene.markers) {
-      final d =
-          (projector.project(marker.x, marker.y, 0) - details.localPosition)
-              .distance;
+      final d = (projector.project(marker.x, marker.y, 0) - cursor).distance;
       if (d < bestDistance) {
         bestDistance = d;
         best = marker;
@@ -238,21 +258,30 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
             : scenePaint;
 
         final gestures = GestureDetector(
+          behavior: HitTestBehavior.opaque,
           onPanUpdate: _onPanUpdate,
           onDoubleTap: _resetCamera,
           onTapUp: (details) {
             _handleTapUp(size, details);
             _pickAt(size, details.localPosition);
           },
-          child: painted,
+          child: ClipRect(
+            child: Transform.translate(
+              key: const ValueKey('dive3dViewportPan'),
+              offset: _pan,
+              child: painted,
+            ),
+          ),
         );
 
-        return Listener(
+        final interactive = Listener(
           onPointerSignal: (signal) {
             if (signal is PointerScrollEvent) {
               _zoomBy(signal.scrollDelta.dy < 0 ? 1.1 : 1 / 1.1);
             }
           },
+          onPointerPanZoomStart: _onPanZoomStart,
+          onPointerPanZoomUpdate: _onPanZoomUpdate,
           child: hasChrome
               ? MouseRegion(
                   onHover: (e) => _pickAt(size, e.localPosition),
@@ -261,7 +290,59 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
                 )
               : gestures,
         );
+
+        return Stack(
+          children: [
+            Positioned.fill(child: interactive),
+            Positioned(
+              top: 0,
+              bottom: 0,
+              right: 8,
+              child: Center(child: _zoomControls(context)),
+            ),
+          ],
+        );
       },
+    );
+  }
+
+  Widget _zoomControls(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _zoomButton(context, Icons.add, () => _zoomBy(1.2)),
+        const SizedBox(height: 6),
+        _zoomButton(context, Icons.remove, () => _zoomBy(1 / 1.2)),
+        const SizedBox(height: 6),
+        _zoomButton(
+          context,
+          Icons.center_focus_strong,
+          _resetCamera,
+          tooltip: context.l10n.dive3d_resetView,
+        ),
+      ],
+    );
+  }
+
+  Widget _zoomButton(
+    BuildContext context,
+    IconData icon,
+    VoidCallback onPressed, {
+    String? tooltip,
+  }) {
+    final scheme = Theme.of(context).colorScheme;
+    return Material(
+      color: scheme.surface.withValues(alpha: 0.7),
+      shape: const CircleBorder(),
+      clipBehavior: Clip.antiAlias,
+      child: IconButton(
+        icon: Icon(icon, size: 20),
+        onPressed: onPressed,
+        tooltip: tooltip,
+        visualDensity: VisualDensity.compact,
+        constraints: const BoxConstraints.tightFor(width: 36, height: 36),
+        padding: EdgeInsets.zero,
+      ),
     );
   }
 }
