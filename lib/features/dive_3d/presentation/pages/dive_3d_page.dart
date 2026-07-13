@@ -22,6 +22,7 @@ import 'package:submersion/features/dive_3d/presentation/widgets/scene_readout_p
 import 'package:submersion/features/dive_3d/presentation/widgets/time_scrub_bar.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/tissue_hover_tooltip.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/tissue_legend.dart';
+import 'package:submersion/features/dive_3d/presentation/widgets/tissue_tooltip_layout.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/tissue_readout_panel.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
@@ -177,38 +178,23 @@ class _Dive3dPageState extends ConsumerState<Dive3dPage>
     );
   }
 
-  /// Places the tooltip near the pick, clamped inside the viewport.
+  /// Places the tooltip near the pick, clamped inside the viewport using the
+  /// tooltip's real measured size (so localization / text scaling can't push it
+  /// off-screen -- see [TissueTooltipLayoutDelegate]).
   Widget _positionedTooltip(
     TissuePick pick,
     TissueSurfaceGrid grid,
     int? runtimeSeconds,
     TissueColorFn colorFn,
   ) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        const w = 220.0;
-        // Guard the upper bound: on a pane narrower/shorter than the tooltip,
-        // maxWidth - w would go negative and clamp(0, negative) throws.
-        final maxLeft = (constraints.maxWidth - w).clamp(0.0, double.infinity);
-        final maxTop = (constraints.maxHeight - 60).clamp(0.0, double.infinity);
-        final left = (pick.screenPos.dx + 14).clamp(0.0, maxLeft);
-        final top = (pick.screenPos.dy + 14).clamp(0.0, maxTop);
-        return Stack(
-          children: [
-            Positioned(
-              left: left,
-              top: top,
-              width: w,
-              child: TissueHoverTooltip(
-                pick: pick,
-                grid: grid,
-                runtimeSeconds: runtimeSeconds,
-                colorFn: colorFn,
-              ),
-            ),
-          ],
-        );
-      },
+    return CustomSingleChildLayout(
+      delegate: TissueTooltipLayoutDelegate(pick.screenPos),
+      child: TissueHoverTooltip(
+        pick: pick,
+        grid: grid,
+        runtimeSeconds: runtimeSeconds,
+        colorFn: colorFn,
+      ),
     );
   }
 
