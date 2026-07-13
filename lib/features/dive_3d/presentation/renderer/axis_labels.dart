@@ -45,9 +45,12 @@ AxisLabelSet buildTissueAxisLabels({
     AxisLabel(AxisLabelKind.title, x0, y0, z1, compartmentTitle),
   ];
 
-  // Saturation axis: 0 / 50 / 100 (%). 100 sits on the M-value plane.
+  // Saturation axis: 0 / 50 / 100 (%). 100 sits on the M-value plane. The axis
+  // runs from the floor (y0) up to referenceY, so interpolate from y0 -- the
+  // same geometry AxisFrame uses for the tick marks -- rather than from world
+  // 0, which would drift the labels off the ticks when y0 != 0.
   for (final pct in const [0, 50, 100]) {
-    final y = (pct / 100.0) * referenceY;
+    final y = y0 + (referenceY - y0) * (pct / 100.0);
     labels.add(AxisLabel(AxisLabelKind.tick, x0, y, z0, '$pct'));
   }
 

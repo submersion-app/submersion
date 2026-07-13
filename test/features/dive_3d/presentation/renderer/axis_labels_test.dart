@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/deco/buhlmann_algorithm.dart';
+import 'package:submersion/features/dive_3d/domain/geometry/scene_bounds.dart';
 import 'package:submersion/features/dive_3d/domain/tissue/subsurface_tissue_builder.dart';
 import 'package:submersion/features/dive_3d/presentation/renderer/axis_labels.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
@@ -38,6 +39,34 @@ void main() {
     expect(y100.y, SubsurfaceTissueBuilder.referenceHeight);
     expect(y50.y, SubsurfaceTissueBuilder.referenceHeight * 0.5);
     expect(ticks.any((l) => l.text == '0'), isTrue);
+  });
+
+  test('Y tick anchors interpolate from sceneMinY (not world 0), matching '
+      'the AxisFrame tick geometry', () {
+    // A tissue scene whose floor is offset from the world origin. AxisFrame
+    // runs the saturation axis from y0=sceneMinY up to referenceY, so the
+    // labels must anchor the same way or they float off their tick marks.
+    const referenceY = 3.0;
+    const y0 = 2.0; // nonzero floor
+    const bounds = SceneBounds(
+      durationSeconds: 1,
+      maxDepthMeters: 1,
+      sceneMinY: y0,
+      sceneMaxY: referenceY,
+    );
+    final ticks = buildTissueAxisLabels(
+      bounds: bounds,
+      grid: result.grid,
+      referenceY: referenceY,
+      timeTitle: 'Time',
+      saturationTitle: 'Saturation %',
+      compartmentTitle: 'Compartment',
+    ).labels.where((l) => l.kind == AxisLabelKind.tick);
+
+    double tickY(String text) => ticks.firstWhere((l) => l.text == text).y;
+    expect(tickY('0'), y0);
+    expect(tickY('50'), y0 + (referenceY - y0) * 0.5);
+    expect(tickY('100'), referenceY);
   });
 
   test('labels the fast, middle, and slow compartment numbers', () {
