@@ -1,5 +1,6 @@
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
@@ -19,11 +20,19 @@ typedef SiteHistory = ({
 });
 
 /// Sightings for every dive in a trip, keyed by dive id (batched query).
+///
+/// [divesForTripProvider] does not hydrate `Dive.sightings`, so this provider
+/// self-invalidates on sightings/species writes (same signal the per-dive
+/// [diveSightingsProvider] uses) to keep the story's species badges fresh
+/// after edits or sync.
 final tripSightingsByDiveProvider =
     FutureProvider.family<Map<String, List<Sighting>>, String>((
       ref,
       tripId,
     ) async {
+      ref.invalidateSelfWhen(
+        ref.watch(diveRepositoryProvider).watchDiveDetailChanges(),
+      );
       final diveIds = await ref.watch(diveIdsForTripProvider(tripId).future);
       if (diveIds.isEmpty) return {};
       final repository = ref.watch(speciesRepositoryProvider);

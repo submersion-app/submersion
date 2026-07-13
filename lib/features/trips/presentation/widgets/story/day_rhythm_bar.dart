@@ -107,5 +107,7 @@ class _RhythmPainter extends CustomPainter {
       oldDelegate.blocks != blocks ||
       oldDelegate.dayColor != dayColor ||
       oldDelegate.nightColor != nightColor ||
-      oldDelegate.trackColor != trackColor;
+      oldDelegate.trackColor != trackColor ||
+      oldDelegate.tickTextStyle != tickTextStyle ||
+      oldDelegate.textDirection != textDirection;
 }

@@ -87,7 +87,11 @@ class TripStoryMapHeaderDelegate extends SliverPersistentHeaderDelegate {
   bool shouldRebuild(TripStoryMapHeaderDelegate oldDelegate) =>
       oldDelegate.geometry != geometry ||
       oldDelegate.stats != stats ||
-      oldDelegate.activeDayIndex != activeDayIndex;
+      oldDelegate.activeDayIndex != activeDayIndex ||
+      oldDelegate.mapController != mapController ||
+      oldDelegate.onDaySelected != onDaySelected ||
+      oldDelegate.maxExtentValue != maxExtentValue ||
+      oldDelegate.minExtentValue != minExtentValue;
 
   @override
   Widget build(
