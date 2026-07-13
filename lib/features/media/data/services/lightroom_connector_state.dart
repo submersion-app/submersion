@@ -53,6 +53,20 @@ class LightroomConnectorState {
     return row?.value;
   }
 
+  /// Whether a synced deletion tombstone exists for [key]. A tombstoned
+  /// key means another device cleared this configuration: the legacy
+  /// prefs fallback must NOT resurrect the old local value.
+  Future<bool> _isTombstoned(String key) async {
+    final rows = await _db
+        .customSelect(
+          "SELECT 1 FROM deletion_log "
+          "WHERE entity_type = 'settings' AND record_id = ? LIMIT 1",
+          variables: [Variable.withString(key)],
+        )
+        .get();
+    return rows.isNotEmpty;
+  }
+
   Future<void> _writeSetting(String key, String value) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     await _db
@@ -95,6 +109,9 @@ class LightroomConnectorState {
         // Corrupt synced value: fall through to the local fallback.
       }
     }
+    // A tombstoned key was cleared on another device: honor the deletion
+    // instead of resurrecting the pre-sync local value.
+    if (await _isTombstoned(_albumIdsSettingKey)) return const [];
     return _prefs.getStringList(_albumIdsKey) ?? const [];
   }
 
@@ -104,7 +121,11 @@ class LightroomConnectorState {
   /// Whether the startup auto-poll runs for this account. Synced.
   Future<bool> autoPollEnabled() async {
     final raw = await _readSetting(_autoPollSettingKey);
-    if (raw != null) return raw == 'true';
+    // Strict parse: only the two values this class writes are meaningful;
+    // anything else is corrupt and falls through like a missing row.
+    if (raw == 'true') return true;
+    if (raw == 'false') return false;
+    if (await _isTombstoned(_autoPollSettingKey)) return true;
     return _prefs.getBool(_autoPollKey) ?? true;
   }
 

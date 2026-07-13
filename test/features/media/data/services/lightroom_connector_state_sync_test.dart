@@ -81,6 +81,43 @@ void main() {
     expect(await s.albumIds(), ['remote']);
   });
 
+  test('a tombstoned key is honored over the legacy prefs fallback', () async {
+    SharedPreferences.setMockInitialValues({
+      'lightroom_acc-1_album_ids': ['legacy'],
+      'lightroom_acc-1_auto_poll': false,
+    });
+    final s = LightroomConnectorState(
+      prefs: await SharedPreferences.getInstance(),
+      accountId: 'acc-1',
+    );
+    // Another device cleared the config: tombstones synced in, no row.
+    for (final key in [
+      'lightroom_acc-1_album_ids',
+      'lightroom_acc-1_auto_poll',
+    ]) {
+      await db.customStatement(
+        "INSERT INTO deletion_log (id, entity_type, record_id, deleted_at) "
+        "VALUES ('tomb-$key', 'settings', '$key', 1)",
+      );
+    }
+
+    expect(await s.albumIds(), isEmpty, reason: 'deletion wins over prefs');
+    expect(
+      await s.autoPollEnabled(),
+      isTrue,
+      reason: 'deletion restores the default, not the stale local false',
+    );
+  });
+
+  test('a corrupt synced auto-poll value falls back instead of reading '
+      'as false', () async {
+    await db.customStatement(
+      "INSERT INTO settings (key, value, updated_at) "
+      "VALUES ('lightroom_acc-1_auto_poll', 'garbage', 1)",
+    );
+    expect(await state.autoPollEnabled(), isTrue);
+  });
+
   test('clear removes the synced rows and tombstones them', () async {
     await state.setAlbumIds(['a1']);
     await state.setAutoPollEnabled(false);
