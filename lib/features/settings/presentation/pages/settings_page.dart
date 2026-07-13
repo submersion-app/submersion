@@ -1989,20 +1989,10 @@ class _DataSectionContent extends ConsumerWidget {
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.perm_media_outlined),
-                  title: Text(context.l10n.settings_mediaStorage_entry_title),
-                  subtitle: Text(
-                    context.l10n.settings_mediaStorage_entry_subtitle,
-                  ),
+                  title: Text(context.l10n.settings_photosMedia_title),
+                  subtitle: Text(context.l10n.settings_photosMedia_subtitle),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/settings/media-storage'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.photo_library_outlined),
-                  title: Text(context.l10n.settings_lightroom_title),
-                  subtitle: Text(context.l10n.settings_lightroom_subtitle),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/settings/lightroom'),
+                  onTap: () => context.push('/settings/photos-media'),
                 ),
               ],
             ),
@@ -2052,22 +2042,6 @@ class _DataSectionContent extends ConsumerWidget {
                   subtitle: const Text('Adjust times for imported dives'),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/settings/fix-dive-times'),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildSectionHeader(context, 'Media'),
-          const SizedBox(height: 8),
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.photo_library_outlined),
-                  title: const Text('Media Sources'),
-                  subtitle: const Text('Photo library, files, URLs, services'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/settings/media-sources'),
                 ),
               ],
             ),

@@ -18946,4 +18946,115 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_setup_dismiss => 'Dismiss';
+
+  @override
+  String get settings_photosMedia_title => 'Photos & Media';
+
+  @override
+  String get settings_photosMedia_subtitle => 'Sources, storage & accounts';
+
+  @override
+  String get settings_photosMedia_sourcesHeader => 'Where photos come from';
+
+  @override
+  String get settings_photosMedia_storageHeader => 'Where copies are kept';
+
+  @override
+  String get settings_photosMedia_accountsHeader => 'Accounts';
+
+  @override
+  String get settings_photosMedia_guidedSetup => 'Guided setup';
+
+  @override
+  String get settings_photosMedia_photoSources_title =>
+      'Photo library & sources';
+
+  @override
+  String get settings_photosMedia_photoSources_subtitle =>
+      'Gallery, files and import options';
+
+  @override
+  String get settings_photosMedia_networkSources_title => 'Network sources';
+
+  @override
+  String get settings_photosMedia_networkSources_subtitle =>
+      'URLs and manifest feeds (advanced)';
+
+  @override
+  String get settings_connectedAccounts_title => 'Connected Accounts';
+
+  @override
+  String get settings_connectedAccounts_subtitle =>
+      'Cloud and service sign-ins';
+
+  @override
+  String get settings_connectedAccounts_empty => 'No accounts connected yet';
+
+  @override
+  String get settings_connectedAccounts_status_signedIn => 'Signed in';
+
+  @override
+  String get settings_connectedAccounts_status_needsSignIn => 'Needs sign-in';
+
+  @override
+  String get settings_connectedAccounts_status_unavailable =>
+      'Unavailable on this device';
+
+  @override
+  String get settings_connectedAccounts_disconnectDevice =>
+      'Sign out on this device';
+
+  @override
+  String get settings_connectedAccounts_removeFromLibrary =>
+      'Remove from library';
+
+  @override
+  String get settings_connectedAccounts_removeConfirmTitle => 'Remove account?';
+
+  @override
+  String get settings_connectedAccounts_removeConfirmBody =>
+      'The account is removed from every synced device. Credentials stored on other devices are not deleted.';
+
+  @override
+  String get settings_setupGuide_title => 'Set up photos & media';
+
+  @override
+  String get settings_setupGuide_intro =>
+      'Connect where your photos come from and where copies are kept. You can re-run this any time.';
+
+  @override
+  String get settings_setupGuide_stepSources => 'Photo sources';
+
+  @override
+  String get settings_setupGuide_stepSources_desc =>
+      'Attach photos from your photo library, files, or Lightroom.';
+
+  @override
+  String get settings_setupGuide_stepStorage => 'Media storage';
+
+  @override
+  String get settings_setupGuide_stepStorage_desc =>
+      'Keep copies of your photos in your own cloud so every device can show them.';
+
+  @override
+  String get settings_setupGuide_stepSync => 'Cloud sync';
+
+  @override
+  String get settings_setupGuide_stepSync_desc =>
+      'Sync dive data between devices.';
+
+  @override
+  String get settings_setupGuide_statusDone => 'Set up';
+
+  @override
+  String get settings_setupGuide_statusTodo => 'Not set up';
+
+  @override
+  String get settings_setupGuide_open => 'Open';
+
+  @override
+  String get settings_connectedAccounts_loadError => 'Could not load accounts';
+
+  @override
+  String get media_unavailablePlaceholder_volumeOffline => 'Volume not mounted';
 }

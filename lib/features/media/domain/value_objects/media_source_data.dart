@@ -19,6 +19,10 @@ enum UnavailableKind {
 
   /// Service connector account needs to be (re-)authenticated.
   signInRequired,
+
+  /// The file's volume (network share, external disk) is not mounted right
+  /// now. Recovers by itself when the volume comes back; never orphaned.
+  volumeOffline,
 }
 
 /// A handle to displayable media bytes — or, when unavailable, a structured

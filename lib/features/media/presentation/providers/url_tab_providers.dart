@@ -25,6 +25,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
+import 'package:submersion/features/media/domain/services/dive_photo_matcher.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/media/data/repositories/network_credentials_repository.dart';
 import 'package:submersion/features/media/data/services/network_credentials_service.dart';
@@ -267,6 +269,32 @@ final networkFetchPipelineProvider = Provider<NetworkFetchPipeline>((ref) {
   return NetworkFetchPipeline(
     db: DatabaseService.instance.database,
     extractor: ref.watch(urlMetadataExtractorProvider),
+    // Auto-match candidates: dives within two days of the photo timestamp
+    // (same entry/exit fallbacks the Lightroom scanner applies).
+    diveBoundsLoader: (takenAt) async {
+      final dives = await ref
+          .read(diveRepositoryProvider)
+          .getDivesInRange(
+            takenAt.subtract(const Duration(days: 2)),
+            takenAt.add(const Duration(days: 2)),
+          );
+      return [
+        for (final dive in dives)
+          () {
+            final entry = dive.entryTime ?? dive.dateTime;
+            final exit =
+                dive.exitTime ??
+                (dive.effectiveRuntime != null
+                    ? entry.add(dive.effectiveRuntime!)
+                    : entry.add(const Duration(minutes: 60)));
+            return DiveBounds(
+              diveId: dive.id,
+              entryTime: entry,
+              exitTime: exit,
+            );
+          }(),
+      ];
+    },
   );
 });
 

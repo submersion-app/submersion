@@ -19341,4 +19341,120 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_setup_dismiss => 'Ignorer';
+
+  @override
+  String get settings_photosMedia_title => 'Photos et médias';
+
+  @override
+  String get settings_photosMedia_subtitle => 'Sources, stockage et comptes';
+
+  @override
+  String get settings_photosMedia_sourcesHeader => 'D\'où viennent les photos';
+
+  @override
+  String get settings_photosMedia_storageHeader =>
+      'Où sont conservées les copies';
+
+  @override
+  String get settings_photosMedia_accountsHeader => 'Comptes';
+
+  @override
+  String get settings_photosMedia_guidedSetup => 'Configuration guidée';
+
+  @override
+  String get settings_photosMedia_photoSources_title =>
+      'Photothèque et sources';
+
+  @override
+  String get settings_photosMedia_photoSources_subtitle =>
+      'Galerie, fichiers et options d\'import';
+
+  @override
+  String get settings_photosMedia_networkSources_title => 'Sources réseau';
+
+  @override
+  String get settings_photosMedia_networkSources_subtitle =>
+      'URL et flux de manifeste (avancé)';
+
+  @override
+  String get settings_connectedAccounts_title => 'Comptes connectés';
+
+  @override
+  String get settings_connectedAccounts_subtitle =>
+      'Connexions cloud et services';
+
+  @override
+  String get settings_connectedAccounts_empty =>
+      'Aucun compte connecté pour le moment';
+
+  @override
+  String get settings_connectedAccounts_status_signedIn => 'Connecté';
+
+  @override
+  String get settings_connectedAccounts_status_needsSignIn =>
+      'Connexion requise';
+
+  @override
+  String get settings_connectedAccounts_status_unavailable =>
+      'Indisponible sur cet appareil';
+
+  @override
+  String get settings_connectedAccounts_disconnectDevice =>
+      'Se déconnecter sur cet appareil';
+
+  @override
+  String get settings_connectedAccounts_removeFromLibrary =>
+      'Retirer de la bibliothèque';
+
+  @override
+  String get settings_connectedAccounts_removeConfirmTitle =>
+      'Retirer le compte ?';
+
+  @override
+  String get settings_connectedAccounts_removeConfirmBody =>
+      'Le compte est retiré de tous les appareils synchronisés. Les identifiants stockés sur les autres appareils ne sont pas supprimés.';
+
+  @override
+  String get settings_setupGuide_title => 'Configurer photos et médias';
+
+  @override
+  String get settings_setupGuide_intro =>
+      'Connectez la provenance de vos photos et l\'emplacement des copies. Vous pouvez relancer cet assistant à tout moment.';
+
+  @override
+  String get settings_setupGuide_stepSources => 'Sources de photos';
+
+  @override
+  String get settings_setupGuide_stepSources_desc =>
+      'Joignez des photos depuis votre photothèque, vos fichiers ou Lightroom.';
+
+  @override
+  String get settings_setupGuide_stepStorage => 'Stockage multimédia';
+
+  @override
+  String get settings_setupGuide_stepStorage_desc =>
+      'Conservez des copies de vos photos dans votre propre cloud pour que chaque appareil puisse les afficher.';
+
+  @override
+  String get settings_setupGuide_stepSync => 'Synchronisation cloud';
+
+  @override
+  String get settings_setupGuide_stepSync_desc =>
+      'Synchronisez les données de plongée entre appareils.';
+
+  @override
+  String get settings_setupGuide_statusDone => 'Configuré';
+
+  @override
+  String get settings_setupGuide_statusTodo => 'Non configuré';
+
+  @override
+  String get settings_setupGuide_open => 'Ouvrir';
+
+  @override
+  String get settings_connectedAccounts_loadError =>
+      'Impossible de charger les comptes';
+
+  @override
+  String get media_unavailablePlaceholder_volumeOffline => 'Volume non monté';
 }
