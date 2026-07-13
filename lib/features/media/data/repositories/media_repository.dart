@@ -343,12 +343,6 @@ class MediaRepository {
     }
   }
 
-  /// Get all media items with the given [sourceType].
-  /// Includes enrichment data (depth, temperature) if available.
-  ///
-  /// Used by Settings → Media Sources subsections to enumerate items per
-  /// source type (e.g., the Local files diagnostics view counts orphaned
-  /// vs. available items here).
   /// Whether any attachable media exists (signatures excluded). Cheap
   /// EXISTS probe for setup/status surfaces.
   Future<bool> hasAnyMedia() async {
@@ -361,6 +355,12 @@ class MediaRepository {
     return row.read<int>('present') == 1;
   }
 
+  /// Get all media items with the given [sourceType].
+  /// Includes enrichment data (depth, temperature) if available.
+  ///
+  /// Used by Settings → Media Sources subsections to enumerate items per
+  /// source type (e.g., the Local files diagnostics view counts orphaned
+  /// vs. available items here).
   Future<List<domain.MediaItem>> getAllBySourceType(
     MediaSourceType sourceType,
   ) async {

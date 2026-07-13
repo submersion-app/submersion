@@ -539,33 +539,37 @@ void main() {
       expect(pending, hasLength(1), reason: 'attachment must sync out');
     });
 
-    test('an existing attachment is never overwritten', () async {
-      await seedDive('d1');
-      await seedDive('d2');
-      final pipeline = pipelineWith([window('d1')]);
-      // Gate-free ingest, then attach manually before the fill's match runs
-      // is racy in-test; instead pre-create the row attached to d2 and run
-      // the match path via a second ingest of the same URL id is not
-      // possible - so assert through the SQL guard: attach, then invoke
-      // the internal path by updating and re-verifying the row stays d2.
-      final ids = await pipeline.ingest([
-        Uri.parse('https://example.com/a.jpg'),
-      ]);
-      await pipeline.idle();
-      // Row is now attached to d1; repoint to d2 (a manual user action)...
-      await db.customStatement(
-        "UPDATE media SET dive_id = 'd2' WHERE id = '${ids.single}'",
-      );
-      // ...and run another fill cycle for the same row id via a fresh
-      // pipeline: the diveId-not-null guard must leave d2 in place.
-      final second = pipelineWith([window('d1')]);
-      final again = await second.ingest([
-        Uri.parse('https://example.com/a.jpg'),
-      ]);
-      await second.idle();
-      expect(await diveIdOf(ids.single), 'd2');
-      expect(await diveIdOf(again.single), 'd1');
-    });
+    test(
+      'a manual attachment landing mid-match is never overwritten',
+      () async {
+        await seedDive('d1');
+        await seedDive('d2');
+        const url = 'https://example.com/a.jpg';
+        // The bounds loader runs BETWEEN _tryAutoMatch's row read and its
+        // conditional write - exactly the race window the dive_id IS NULL
+        // guard protects. Attaching the row from inside the loader simulates
+        // a user attachment landing mid-match.
+        final ingested = <String>[];
+        final pipeline = NetworkFetchPipeline(
+          db: db,
+          extractor: _StubExtractor(results: {url: _ok(url)}),
+          diveBoundsLoader: (_) async {
+            await db.customStatement(
+              "UPDATE media SET dive_id = 'd2' WHERE id = '${ingested.single}'",
+            );
+            return [window('d1')];
+          },
+        );
+        ingested.addAll(await pipeline.ingest([Uri.parse(url)]));
+        await pipeline.idle();
+
+        expect(
+          await diveIdOf(ingested.single),
+          'd2',
+          reason: 'the conditional UPDATE must lose to the manual attachment',
+        );
+      },
+    );
 
     test('manifest entries with prefilled takenAt auto-match too', () async {
       await seedDive('d1');
