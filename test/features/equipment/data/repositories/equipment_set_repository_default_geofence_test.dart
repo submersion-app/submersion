@@ -62,6 +62,15 @@ void main() {
     expect((await repo.getSetById('z'))!.isDefault, isTrue);
   });
 
+  test('clearDefault leaves the diver with no default', () async {
+    await repo.createSet(newSet('a', 'A', diverId: 'd1'));
+    await repo.setAsDefault('a', diverId: 'd1');
+    expect((await repo.getSetById('a'))!.isDefault, isTrue);
+
+    await repo.clearDefault('a');
+    expect((await repo.getSetById('a'))!.isDefault, isFalse);
+  });
+
   test('geofence CRUD round-trips through the set', () async {
     await repo.createSet(newSet('a', 'A', diverId: 'd1'));
     final fence = EquipmentSetGeofence(

@@ -409,8 +409,12 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
       }
 
       // Default flag (per-diver mutual exclusion handled in the repository).
+      // Turning the switch off clears the flag, leaving the diver with no
+      // default so nothing auto-applies until one is set again.
       if (_isDefault) {
         await notifier.setAsDefault(savedId);
+      } else if (existingSet?.isDefault ?? false) {
+        await notifier.clearDefault(savedId);
       }
 
       // Reconcile geofences: remove dropped, add/update the rest.

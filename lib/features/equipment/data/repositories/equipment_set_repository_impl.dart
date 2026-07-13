@@ -271,6 +271,24 @@ class EquipmentSetRepository {
     SyncEventBus.notifyLocalChange();
   }
 
+  /// Clear the default flag from a single set, leaving the diver with no
+  /// default (nothing auto-applies until a default is set again).
+  Future<void> clearDefault(String id) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await (_db.update(_db.equipmentSets)..where((t) => t.id.equals(id))).write(
+      EquipmentSetsCompanion(
+        isDefault: const Value(false),
+        updatedAt: Value(now),
+      ),
+    );
+    await _syncRepository.markRecordPending(
+      entityType: 'equipmentSets',
+      recordId: id,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
+  }
+
   /// All geofences for a set.
   Future<List<domain.EquipmentSetGeofence>> getGeofencesForSet(
     String setId,

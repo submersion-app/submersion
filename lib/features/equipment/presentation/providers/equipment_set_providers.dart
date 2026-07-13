@@ -173,6 +173,13 @@ class EquipmentSetListNotifier
     _ref.invalidate(equipmentSetSelectionInputsProvider);
   }
 
+  Future<void> clearDefault(String id) async {
+    await _repository.clearDefault(id);
+    await refresh();
+    _ref.invalidate(defaultEquipmentSetProvider);
+    _ref.invalidate(equipmentSetSelectionInputsProvider);
+  }
+
   Future<void> addGeofence(EquipmentSetGeofence fence) async {
     await _repository.addGeofence(fence);
     _ref.invalidate(equipmentSetGeofencesProvider(fence.setId));
