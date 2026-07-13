@@ -30,7 +30,9 @@ class PhotosMediaHubPage extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          const PendingSetupCard(),
+          // Vertical-only margin: this ListView already pads 16 on all
+          // sides, so the default horizontal margin would double-inset.
+          const PendingSetupCard(margin: EdgeInsets.only(bottom: 16)),
           _header(context, l10n.settings_photosMedia_sourcesHeader),
           Card(
             child: Column(

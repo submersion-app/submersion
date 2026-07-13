@@ -35,7 +35,12 @@ final pendingSetupItemsProvider =
 /// there is nothing to do, so it can sit permanently at the top of the
 /// settings list.
 class PendingSetupCard extends ConsumerWidget {
-  const PendingSetupCard({super.key});
+  const PendingSetupCard({super.key, this.margin});
+
+  /// Overrides the default margin. Host surfaces that already pad their
+  /// content horizontally (e.g. the Photos & Media hub) pass a
+  /// vertical-only margin so the card aligns with their other cards.
+  final EdgeInsetsGeometry? margin;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -44,7 +49,7 @@ class PendingSetupCard extends ConsumerWidget {
 
     final l10n = context.l10n;
     return Card(
-      margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      margin: margin ?? const EdgeInsets.fromLTRB(16, 8, 16, 8),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Column(
