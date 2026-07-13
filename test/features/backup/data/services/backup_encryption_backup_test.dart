@@ -200,4 +200,31 @@ void main() {
       );
     },
   );
+
+  test(
+    'reencrypt: plaintext local history entries become .sbe, .sbe skipped',
+    () async {
+      // One plaintext local backup exists first.
+      final plainRecord = await buildService().performBackup();
+      expect(plainRecord.filename, endsWith('.db'));
+
+      await enableBackupEncryption();
+      final result = await buildService().reencryptExistingBackups();
+
+      expect(result.reencrypted, 1);
+      final history = preferences.getHistory();
+      expect(history.single.filename, endsWith('.sbe'));
+      expect(
+        SyncEnvelope.hasMagic(
+          await File(history.single.localPath!).readAsBytes(),
+        ),
+        isTrue,
+      );
+
+      // Idempotent: a second run re-encrypts nothing.
+      final again = await buildService().reencryptExistingBackups();
+      expect(again.reencrypted, 0);
+      expect(again.skipped, 1);
+    },
+  );
 }

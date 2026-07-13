@@ -361,6 +361,90 @@ class BackupService {
     return File(sbePath);
   }
 
+  /// Rewrite every plaintext local backup in history as an encrypted `.sbe`,
+  /// re-uploading its cloud copy when present. Idempotent: already-encrypted
+  /// artifacts are skipped by magic, so an interrupted run is safe to resume.
+  /// SAF (`content://`) and cloud-only records are skipped (logged).
+  /// Best-effort per record. Requires backup encryption to be enabled.
+  Future<({int reencrypted, int skipped, int failed})>
+  reencryptExistingBackups() async {
+    final encKey = await _activeBackupKey();
+    if (encKey == null) {
+      throw const BackupException('Backup encryption must be enabled first');
+    }
+    var reencrypted = 0;
+    var skipped = 0;
+    var failed = 0;
+    for (final record in _preferences.getHistory()) {
+      final localPath = record.localPath;
+      if (localPath == null || isSafRef(localPath)) {
+        _log.info(
+          'Re-encrypt skip (no local filesystem path): ${record.filename}',
+        );
+        skipped++;
+        continue;
+      }
+      try {
+        final file = File(localPath);
+        if (!await file.exists()) {
+          skipped++;
+          continue;
+        }
+        if (await BackupCrypto.isEncryptedBackup(localPath)) {
+          skipped++;
+          continue;
+        }
+        final dir = p.dirname(localPath);
+        final newName =
+            p.basenameWithoutExtension(localPath) + BackupCrypto.fileExtension;
+        final newPath = p.join(dir, newName);
+        final tempDir = await getTemporaryDirectory();
+        final tempSbe = p.join(tempDir.path, 'reenc_${_uuid.v4()}.sbe');
+        await BackupCrypto.encryptFile(
+          inPath: localPath,
+          outPath: tempSbe,
+          mlk: encKey.mlk,
+          libraryKeyId: encKey.libraryKeyId,
+          keyslotBytes: encKey.keyslotBytes,
+        );
+        await File(tempSbe).copy(newPath);
+        await File(tempSbe).delete();
+        if (newPath != localPath) await file.delete();
+
+        String? cloudFileId = record.cloudFileId;
+        if (record.cloudFileId != null && _cloudProvider != null) {
+          cloudFileId = await _uploadToCloud(newPath, newName);
+          try {
+            await _cloudProvider.deleteFile(record.cloudFileId!);
+          } catch (_) {
+            // best-effort old-object cleanup
+          }
+        }
+
+        await _preferences.updateRecord(
+          record.copyWith(
+            filename: newName,
+            localPath: newPath,
+            sizeBytes: await File(newPath).length(),
+            cloudFileId: cloudFileId,
+          ),
+        );
+        reencrypted++;
+      } catch (e, stack) {
+        _log.error(
+          'Re-encrypt failed for ${record.filename}',
+          error: e,
+          stackTrace: stack,
+        );
+        failed++;
+      }
+    }
+    _log.info(
+      'Re-encrypt done: $reencrypted rewritten, $skipped skipped, $failed failed',
+    );
+    return (reencrypted: reencrypted, skipped: skipped, failed: failed);
+  }
+
   /// Validate whether a file is a valid Submersion backup.
   ///
   /// Checks: file exists, has correct extension, is a valid SQLite database,
