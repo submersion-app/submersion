@@ -1,5 +1,6 @@
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
@@ -51,11 +52,19 @@ final tripStoryProvider = FutureProvider.family<TripStory, String>((
   }
   final dives = await ref.watch(divesForTripProvider(tripId).future);
   final itineraryDays = await ref.watch(itineraryDaysProvider(tripId).future);
-  final mediaByDive = await ref.watch(mediaForTripProvider(tripId).future);
   final checklistItems = await ref.watch(tripChecklistProvider(tripId).future);
-  final sightingsByDiveId = await ref.watch(
-    tripSightingsByDiveProvider(tripId).future,
-  );
+
+  // Media and sightings are best-effort enrichments: read their current value
+  // synchronously rather than awaiting (an errored provider future never
+  // resolves, which would hang the Overview). While loading or on error this
+  // yields empty, so the story renders without photo strips / species badges;
+  // the watch re-composes the story once the source resolves or recovers.
+  final mediaByDive =
+      ref.watch(mediaForTripProvider(tripId)).asData?.value ??
+      const <Dive, List<MediaItem>>{};
+  final sightingsByDiveId =
+      ref.watch(tripSightingsByDiveProvider(tripId)).asData?.value ??
+      const <String, List<Sighting>>{};
 
   final mediaByDiveId = <String, List<MediaItem>>{
     for (final entry in mediaByDive.entries) entry.key.id: entry.value,

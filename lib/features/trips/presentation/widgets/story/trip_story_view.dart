@@ -83,7 +83,9 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
   // A named method (not an inline closure) so the delegate's onDaySelected has
   // a stable identity across builds; otherwise shouldRebuild always sees a new
   // closure and rebuilds the pinned FlutterMap on every parent rebuild.
-  void _onPinSelected(int index) => _selectDay(index, animateMap: false);
+  // Animates the camera (like scroll-driven selection) so tapping a pin for an
+  // off-screen day actually brings its points into view.
+  void _onPinSelected(int index) => _selectDay(index);
 
   bool _onScroll(ScrollUpdateNotification notification) {
     final now = DateTime.now();

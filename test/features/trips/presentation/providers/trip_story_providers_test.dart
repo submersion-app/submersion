@@ -59,6 +59,44 @@ void main() {
   });
 
   test(
+    'tripStoryProvider still renders when media/sightings sources fail',
+    () async {
+      final trip = Trip(
+        id: 'trip-1',
+        name: 'Bonaire',
+        startDate: DateTime(2026, 3, 28),
+        endDate: DateTime(2026, 3, 28),
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+      );
+      final dive = createTestDiveWithBottomTime(id: 'd1', diveNumber: 1);
+
+      final container = ProviderContainer(
+        overrides: [
+          ...await getBaseOverrides(),
+          tripByIdProvider('trip-1').overrideWith((ref) async => trip),
+          divesForTripProvider('trip-1').overrideWith((ref) async => [dive]),
+          itineraryDaysProvider('trip-1').overrideWith((ref) async => []),
+          tripChecklistProvider('trip-1').overrideWith((ref) async => []),
+          // Both enrichment sources error; the story should still compose.
+          mediaForTripProvider(
+            'trip-1',
+          ).overrideWith((ref) => Future.error(Exception('media down'))),
+          tripSightingsByDiveProvider(
+            'trip-1',
+          ).overrideWith((ref) => Future.error(Exception('sightings down'))),
+        ].cast(),
+      );
+      addTearDown(container.dispose);
+
+      final story = await container.read(tripStoryProvider('trip-1').future);
+      expect(story.days.expand((d) => d.dives).single.id, 'd1');
+      expect(story.days.expand((d) => d.media), isEmpty);
+      expect(story.days.expand((d) => d.sightings), isEmpty);
+    },
+  );
+
+  test(
     'tripSightingsByDiveProvider is empty when the trip has no dives',
     () async {
       final container = ProviderContainer(
