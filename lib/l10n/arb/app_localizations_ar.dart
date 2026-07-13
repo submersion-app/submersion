@@ -19032,6 +19032,32 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dive3d_tissue_offGassing => 'إطلاق';
 
   @override
+  String dive3d_tissue_tooltipCompartment(int number) {
+    return 'المقصورة $number';
+  }
+
+  @override
+  String dive3d_tissue_tooltipHalfTime(int minutes) {
+    return '$minutes دقيقة N2';
+  }
+
+  @override
+  String dive3d_tissue_tooltipSaturation(int percent) {
+    return 'التشبع $percent%';
+  }
+
+  @override
+  String dive3d_tissue_tooltipProgress(int percent) {
+    return '$percent% من الغوص';
+  }
+
+  @override
+  String get dive3d_tissue_stateEquilibrium => 'توازن';
+
+  @override
+  String get dive3d_tissue_statePastMValue => 'تجاوز قيمة M';
+
+  @override
   String get dive3d_compare_computers_title => 'مقارنة أجهزة الغوص';
 
   @override

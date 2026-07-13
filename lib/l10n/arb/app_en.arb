@@ -12137,6 +12137,42 @@
   "@dive3d_tissue_onGassing": {},
   "dive3d_tissue_offGassing": "Off-gassing",
   "@dive3d_tissue_offGassing": {},
+  "dive3d_tissue_tooltipCompartment": "Comp {number}",
+  "@dive3d_tissue_tooltipCompartment": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "dive3d_tissue_tooltipHalfTime": "{minutes} min N2",
+  "@dive3d_tissue_tooltipHalfTime": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "dive3d_tissue_tooltipSaturation": "Saturation {percent}%",
+  "@dive3d_tissue_tooltipSaturation": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "dive3d_tissue_tooltipProgress": "{percent}% of dive",
+  "@dive3d_tissue_tooltipProgress": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "dive3d_tissue_stateEquilibrium": "Equilibrium",
+  "@dive3d_tissue_stateEquilibrium": {},
+  "dive3d_tissue_statePastMValue": "Past M-value",
+  "@dive3d_tissue_statePastMValue": {},
   "dive3d_compare_computers_title": "Compare computers",
   "@dive3d_compare_computers_title": {},
   "dive3d_compare_dives_title": "Compare dives",

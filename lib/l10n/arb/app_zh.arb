@@ -5546,6 +5546,42 @@
   "@dive3d_tissue_onGassing": {},
   "dive3d_tissue_offGassing": "释放",
   "@dive3d_tissue_offGassing": {},
+  "dive3d_tissue_tooltipCompartment": "隔室 {number}",
+  "@dive3d_tissue_tooltipCompartment": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "dive3d_tissue_tooltipHalfTime": "{minutes} 分钟 N2",
+  "@dive3d_tissue_tooltipHalfTime": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "dive3d_tissue_tooltipSaturation": "饱和度 {percent}%",
+  "@dive3d_tissue_tooltipSaturation": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "dive3d_tissue_tooltipProgress": "潜水的 {percent}%",
+  "@dive3d_tissue_tooltipProgress": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "dive3d_tissue_stateEquilibrium": "平衡",
+  "@dive3d_tissue_stateEquilibrium": {},
+  "dive3d_tissue_statePastMValue": "超过 M 值",
+  "@dive3d_tissue_statePastMValue": {},
   "dive3d_compare_computers_title": "比较潜水电脑",
   "@dive3d_compare_computers_title": {},
   "dive3d_compare_dives_title": "比较潜水",

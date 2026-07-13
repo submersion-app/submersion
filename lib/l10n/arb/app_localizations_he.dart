@@ -18897,6 +18897,32 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dive3d_tissue_offGassing => 'שחרור';
 
   @override
+  String dive3d_tissue_tooltipCompartment(int number) {
+    return 'תא $number';
+  }
+
+  @override
+  String dive3d_tissue_tooltipHalfTime(int minutes) {
+    return '$minutes דק׳ N2';
+  }
+
+  @override
+  String dive3d_tissue_tooltipSaturation(int percent) {
+    return 'רוויה $percent%';
+  }
+
+  @override
+  String dive3d_tissue_tooltipProgress(int percent) {
+    return '$percent% מהצלילה';
+  }
+
+  @override
+  String get dive3d_tissue_stateEquilibrium => 'שיווי משקל';
+
+  @override
+  String get dive3d_tissue_statePastMValue => 'מעל ערך M';
+
+  @override
   String get dive3d_compare_computers_title => 'השוואת מחשבי צלילה';
 
   @override

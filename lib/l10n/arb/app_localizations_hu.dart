@@ -19339,6 +19339,32 @@ class AppLocalizationsHu extends AppLocalizations {
   String get dive3d_tissue_offGassing => 'Leürülés';
 
   @override
+  String dive3d_tissue_tooltipCompartment(int number) {
+    return '$number. komp.';
+  }
+
+  @override
+  String dive3d_tissue_tooltipHalfTime(int minutes) {
+    return '$minutes perc N2';
+  }
+
+  @override
+  String dive3d_tissue_tooltipSaturation(int percent) {
+    return 'Telítettség $percent%';
+  }
+
+  @override
+  String dive3d_tissue_tooltipProgress(int percent) {
+    return 'A merülés $percent%-a';
+  }
+
+  @override
+  String get dive3d_tissue_stateEquilibrium => 'Egyensúly';
+
+  @override
+  String get dive3d_tissue_statePastMValue => 'M-érték felett';
+
+  @override
   String get dive3d_compare_computers_title => 'Számítógépek összehasonlítása';
 
   @override

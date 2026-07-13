@@ -32490,6 +32490,42 @@ abstract class AppLocalizations {
   /// **'Off-gassing'**
   String get dive3d_tissue_offGassing;
 
+  /// No description provided for @dive3d_tissue_tooltipCompartment.
+  ///
+  /// In en, this message translates to:
+  /// **'Comp {number}'**
+  String dive3d_tissue_tooltipCompartment(int number);
+
+  /// No description provided for @dive3d_tissue_tooltipHalfTime.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min N2'**
+  String dive3d_tissue_tooltipHalfTime(int minutes);
+
+  /// No description provided for @dive3d_tissue_tooltipSaturation.
+  ///
+  /// In en, this message translates to:
+  /// **'Saturation {percent}%'**
+  String dive3d_tissue_tooltipSaturation(int percent);
+
+  /// No description provided for @dive3d_tissue_tooltipProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% of dive'**
+  String dive3d_tissue_tooltipProgress(int percent);
+
+  /// No description provided for @dive3d_tissue_stateEquilibrium.
+  ///
+  /// In en, this message translates to:
+  /// **'Equilibrium'**
+  String get dive3d_tissue_stateEquilibrium;
+
+  /// No description provided for @dive3d_tissue_statePastMValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Past M-value'**
+  String get dive3d_tissue_statePastMValue;
+
   /// No description provided for @dive3d_compare_computers_title.
   ///
   /// In en, this message translates to:

@@ -19239,6 +19239,32 @@ class AppLocalizationsNl extends AppLocalizations {
   String get dive3d_tissue_offGassing => 'Ontzadeling';
 
   @override
+  String dive3d_tissue_tooltipCompartment(int number) {
+    return 'Comp. $number';
+  }
+
+  @override
+  String dive3d_tissue_tooltipHalfTime(int minutes) {
+    return '$minutes min N2';
+  }
+
+  @override
+  String dive3d_tissue_tooltipSaturation(int percent) {
+    return 'Verzadiging $percent%';
+  }
+
+  @override
+  String dive3d_tissue_tooltipProgress(int percent) {
+    return '$percent% van de duik';
+  }
+
+  @override
+  String get dive3d_tissue_stateEquilibrium => 'Evenwicht';
+
+  @override
+  String get dive3d_tissue_statePastMValue => 'Boven M-waarde';
+
+  @override
   String get dive3d_compare_computers_title => 'Computers vergelijken';
 
   @override

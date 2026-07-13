@@ -5546,6 +5546,42 @@
   "@dive3d_tissue_onGassing": {},
   "dive3d_tissue_offGassing": "Liberación",
   "@dive3d_tissue_offGassing": {},
+  "dive3d_tissue_tooltipCompartment": "Comp. {number}",
+  "@dive3d_tissue_tooltipCompartment": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "dive3d_tissue_tooltipHalfTime": "{minutes} min N2",
+  "@dive3d_tissue_tooltipHalfTime": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "dive3d_tissue_tooltipSaturation": "Saturación {percent}%",
+  "@dive3d_tissue_tooltipSaturation": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "dive3d_tissue_tooltipProgress": "{percent}% de la inmersión",
+  "@dive3d_tissue_tooltipProgress": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "dive3d_tissue_stateEquilibrium": "Equilibrio",
+  "@dive3d_tissue_stateEquilibrium": {},
+  "dive3d_tissue_statePastMValue": "Sobre el valor M",
+  "@dive3d_tissue_statePastMValue": {},
   "dive3d_compare_computers_title": "Comparar ordenadores",
   "@dive3d_compare_computers_title": {},
   "dive3d_compare_dives_title": "Comparar inmersiones",
