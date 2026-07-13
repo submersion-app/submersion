@@ -105,6 +105,27 @@ void main() {
     expect(now.any((c) => c.id == drop.id), isFalse);
   });
 
+  test('getExpiringCertifications hydrates buddyId (shared query-row '
+      'mapper)', () async {
+    await makeBuddy('b1');
+    await repository.createCertification(
+      Certification(
+        id: '',
+        buddyId: 'b1',
+        name: 'Nitrox',
+        agency: CertificationAgency.padi,
+        expiryDate: DateTime.now().add(const Duration(days: 10)),
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+    );
+    // The raw customSelect paths (search/expiring/expired) used to drop
+    // buddyId; they now go through _mapQueryRowToCertification (issue #553).
+    final expiring = await repository.getExpiringCertifications(30);
+    expect(expiring.length, 1);
+    expect(expiring.single.buddyId, 'b1');
+  });
+
   test(
     'replaceBuddyCertifications skips unchanged certs (no updatedAt churn)',
     () async {

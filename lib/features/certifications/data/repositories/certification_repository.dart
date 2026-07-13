@@ -90,30 +90,7 @@ class CertificationRepository {
       ORDER BY issue_date DESC, name ASC
     ''', variables: variables).get();
 
-    return results.map((row) {
-      return domain.Certification(
-        id: row.data['id'] as String,
-        diverId: row.data['diver_id'] as String?,
-        name: row.data['name'] as String,
-        agency: _parseCertificationAgency(row.data['agency'] as String),
-        level: _parseCertificationLevel(row.data['level'] as String?),
-        cardNumber: row.data['card_number'] as String?,
-        issueDate: _parseDateTime(row.data['issue_date'] as int?),
-        expiryDate: _parseDateTime(row.data['expiry_date'] as int?),
-        instructorName: row.data['instructor_name'] as String?,
-        instructorNumber: row.data['instructor_number'] as String?,
-        instructorId: row.data['instructor_id'] as String?,
-        photoFront: row.data['photo_front'] as Uint8List?,
-        photoBack: row.data['photo_back'] as Uint8List?,
-        notes: (row.data['notes'] as String?) ?? '',
-        createdAt: DateTime.fromMillisecondsSinceEpoch(
-          row.data['created_at'] as int,
-        ),
-        updatedAt: DateTime.fromMillisecondsSinceEpoch(
-          row.data['updated_at'] as int,
-        ),
-      );
-    }).toList();
+    return results.map(_mapQueryRowToCertification).toList();
   }
 
   /// All certifications owned by a buddy (newest issue date first). Issue #553.
@@ -350,30 +327,7 @@ class CertificationRepository {
       ORDER BY expiry_date ASC
     ''', variables: variables).get();
 
-    return results.map((row) {
-      return domain.Certification(
-        id: row.data['id'] as String,
-        diverId: row.data['diver_id'] as String?,
-        name: row.data['name'] as String,
-        agency: _parseCertificationAgency(row.data['agency'] as String),
-        level: _parseCertificationLevel(row.data['level'] as String?),
-        cardNumber: row.data['card_number'] as String?,
-        issueDate: _parseDateTime(row.data['issue_date'] as int?),
-        expiryDate: _parseDateTime(row.data['expiry_date'] as int?),
-        instructorName: row.data['instructor_name'] as String?,
-        instructorNumber: row.data['instructor_number'] as String?,
-        instructorId: row.data['instructor_id'] as String?,
-        photoFront: row.data['photo_front'] as Uint8List?,
-        photoBack: row.data['photo_back'] as Uint8List?,
-        notes: (row.data['notes'] as String?) ?? '',
-        createdAt: DateTime.fromMillisecondsSinceEpoch(
-          row.data['created_at'] as int,
-        ),
-        updatedAt: DateTime.fromMillisecondsSinceEpoch(
-          row.data['updated_at'] as int,
-        ),
-      );
-    }).toList();
+    return results.map(_mapQueryRowToCertification).toList();
   }
 
   /// Get expired certifications
@@ -396,30 +350,7 @@ class CertificationRepository {
       ORDER BY expiry_date DESC
     ''', variables: variables).get();
 
-    return results.map((row) {
-      return domain.Certification(
-        id: row.data['id'] as String,
-        diverId: row.data['diver_id'] as String?,
-        name: row.data['name'] as String,
-        agency: _parseCertificationAgency(row.data['agency'] as String),
-        level: _parseCertificationLevel(row.data['level'] as String?),
-        cardNumber: row.data['card_number'] as String?,
-        issueDate: _parseDateTime(row.data['issue_date'] as int?),
-        expiryDate: _parseDateTime(row.data['expiry_date'] as int?),
-        instructorName: row.data['instructor_name'] as String?,
-        instructorNumber: row.data['instructor_number'] as String?,
-        instructorId: row.data['instructor_id'] as String?,
-        photoFront: row.data['photo_front'] as Uint8List?,
-        photoBack: row.data['photo_back'] as Uint8List?,
-        notes: (row.data['notes'] as String?) ?? '',
-        createdAt: DateTime.fromMillisecondsSinceEpoch(
-          row.data['created_at'] as int,
-        ),
-        updatedAt: DateTime.fromMillisecondsSinceEpoch(
-          row.data['updated_at'] as int,
-        ),
-      );
-    }).toList();
+    return results.map(_mapQueryRowToCertification).toList();
   }
 
   /// Get certifications by agency
@@ -432,6 +363,35 @@ class CertificationRepository {
 
     final rows = await query.get();
     return rows.map(_mapRowToCertification).toList();
+  }
+
+  /// Maps a raw certifications row (from a customSelect query) to a domain
+  /// entity. Kept in step with [_mapRowToCertification] -- notably it hydrates
+  /// buddyId (issue #553), which the per-query hand-mapping used to drop.
+  domain.Certification _mapQueryRowToCertification(QueryRow row) {
+    return domain.Certification(
+      id: row.data['id'] as String,
+      diverId: row.data['diver_id'] as String?,
+      buddyId: row.data['buddy_id'] as String?,
+      name: row.data['name'] as String,
+      agency: _parseCertificationAgency(row.data['agency'] as String),
+      level: _parseCertificationLevel(row.data['level'] as String?),
+      cardNumber: row.data['card_number'] as String?,
+      issueDate: _parseDateTime(row.data['issue_date'] as int?),
+      expiryDate: _parseDateTime(row.data['expiry_date'] as int?),
+      instructorName: row.data['instructor_name'] as String?,
+      instructorNumber: row.data['instructor_number'] as String?,
+      instructorId: row.data['instructor_id'] as String?,
+      photoFront: row.data['photo_front'] as Uint8List?,
+      photoBack: row.data['photo_back'] as Uint8List?,
+      notes: (row.data['notes'] as String?) ?? '',
+      createdAt: DateTime.fromMillisecondsSinceEpoch(
+        row.data['created_at'] as int,
+      ),
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(
+        row.data['updated_at'] as int,
+      ),
+    );
   }
 
   domain.Certification _mapRowToCertification(Certification row) {
