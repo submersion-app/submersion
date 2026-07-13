@@ -70,6 +70,13 @@ final tripStoryProvider = FutureProvider.family<TripStory, String>((
     for (final entry in mediaByDive.entries) entry.key.id: entry.value,
   };
 
+  // Liveaboard endpoints are best-effort geometry: read synchronously so a
+  // failing/loading details source degrades to no port markers rather than
+  // failing the whole Overview (only present for liveaboard trips anyway).
+  final liveaboardDetails = trip.isLiveaboard
+      ? ref.watch(liveaboardDetailsProvider(tripId)).asData?.value
+      : null;
+
   return buildTripStory(
     trip: trip,
     dives: dives,
@@ -78,13 +85,21 @@ final tripStoryProvider = FutureProvider.family<TripStory, String>((
     sightingsByDiveId: sightingsByDiveId,
     checklistItems: checklistItems,
     today: DateTime.now(),
+    liveaboardDetails: liveaboardDetails,
   );
 });
 
 /// Diver history at a site, matched by name (for planned-day context pills).
 /// Returns zero history when there is no active diver.
+///
+/// Self-invalidates on dive/site writes (same signal the sightings provider
+/// uses) so the history count and averages don't go stale while a planned-day
+/// card stays mounted (e.g. after adding a dive or renaming a site).
 final siteHistoryByNameProvider = FutureProvider.autoDispose
     .family<SiteHistory, String>((ref, siteName) async {
+      ref.invalidateSelfWhen(
+        ref.watch(diveRepositoryProvider).watchDiveDetailChanges(),
+      );
       final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
       if (diverId == null) {
         return (diveCount: 0, avgWaterTemp: null, avgMaxDepth: null);

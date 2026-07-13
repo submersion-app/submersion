@@ -3,6 +3,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
+import 'package:submersion/features/trips/domain/entities/liveaboard_details.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
@@ -22,6 +23,7 @@ TripStory buildTripStory({
   required Map<String, List<Sighting>> sightingsByDiveId,
   required List<TripChecklistItem> checklistItems,
   required DateTime today,
+  LiveaboardDetails? liveaboardDetails,
 }) {
   // Order, bucket, and span by effectiveEntryTime (entryTime ?? dateTime) so a
   // dive with a corrected/explicit entry time lands in the same day and order
@@ -65,6 +67,21 @@ TripStory buildTripStory({
   final todayDate = _dateOnly(today);
   final days = <TripStoryDay>[];
   final mapPoints = <TripStoryMapPoint>[];
+
+  // Liveaboard voyage endpoints anchor the route: embark opens the first day.
+  // TripVoyageMap used these coordinates directly, so a liveaboard whose ports
+  // aren't duplicated onto itinerary days would otherwise lose its endpoint
+  // markers and that leg of the route.
+  if (liveaboardDetails != null && liveaboardDetails.hasEmbarkCoordinates) {
+    mapPoints.add(
+      TripStoryMapPoint(
+        latitude: liveaboardDetails.embarkLatitude!,
+        longitude: liveaboardDetails.embarkLongitude!,
+        dayIndex: 0,
+        label: liveaboardDetails.embarkPort ?? '',
+      ),
+    );
+  }
 
   for (var i = 0; i < totalDays; i++) {
     final date = DateTime(start.year, start.month, start.day + i);
@@ -127,6 +144,18 @@ TripStory buildTripStory({
         ),
       );
     }
+  }
+
+  // ...and disembark closes the last day, so the route ends at the port.
+  if (liveaboardDetails != null && liveaboardDetails.hasDisembarkCoordinates) {
+    mapPoints.add(
+      TripStoryMapPoint(
+        latitude: liveaboardDetails.disembarkLatitude!,
+        longitude: liveaboardDetails.disembarkLongitude!,
+        dayIndex: totalDays - 1,
+        label: liveaboardDetails.disembarkPort ?? '',
+      ),
+    );
   }
 
   final done = checklistItems.where((i) => i.isDone).length;

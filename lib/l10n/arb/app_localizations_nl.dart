@@ -44,6 +44,26 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_story_generateItinerary => 'Reisplan genereren';
 
   @override
+  String trips_story_generateItineraryError(String error) {
+    return 'Kan reisschema niet genereren: $error';
+  }
+
+  @override
+  String get trips_dayType_diveDay => 'Duikdag';
+
+  @override
+  String get trips_dayType_seaDay => 'Zeedag';
+
+  @override
+  String get trips_dayType_portDay => 'Havendag';
+
+  @override
+  String get trips_dayType_embark => 'Inschepen';
+
+  @override
+  String get trips_dayType_disembark => 'Ontschepen';
+
+  @override
   String get trips_story_planned => 'Gepland';
 
   @override
@@ -15457,6 +15477,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get trips_diveScan_noMatches => 'Geen overeenkomende duiken gevonden';
+
+  @override
+  String get trips_diveScan_noDiver =>
+      'Wijs een duiker toe aan deze reis om naar duiken te zoeken';
 
   @override
   String get trips_diveScan_selectAll => 'Alles selecteren';

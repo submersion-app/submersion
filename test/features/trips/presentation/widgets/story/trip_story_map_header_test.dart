@@ -68,8 +68,9 @@ Trip _trip() => Trip(
 Future<void> pumpHeader(
   WidgetTester tester,
   TripStoryMapGeometry geometry,
-  TripWithStats stats,
-) async {
+  TripWithStats stats, {
+  int siteCount = 0,
+}) async {
   final overrides = await getBaseOverrides();
   final controller = MapController();
   addTearDown(controller.dispose);
@@ -77,6 +78,7 @@ Future<void> pumpHeader(
     ProviderScope(
       overrides: overrides.cast(),
       child: MaterialApp(
+        locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
@@ -87,6 +89,7 @@ Future<void> pumpHeader(
                 delegate: TripStoryMapHeaderDelegate(
                   geometry: geometry,
                   stats: stats,
+                  siteCount: siteCount,
                   activeDayIndex: 0,
                   mapController: controller,
                   onDaySelected: (_) {},
@@ -166,6 +169,56 @@ void main() {
     expect(find.text('14'), findsOneWidget);
   });
 
+  testWidgets('stat strip shows sites visited when siteCount > 0', (
+    tester,
+  ) async {
+    const geometry = TripStoryMapGeometry(points: []);
+    final stats = TripWithStats(trip: _trip(), diveCount: 14);
+    await pumpHeader(tester, geometry, stats, siteCount: 5);
+
+    expect(find.text('Sites visited'), findsOneWidget);
+    expect(find.text('5'), findsOneWidget);
+  });
+
+  testWidgets('stat strip hides sites visited when siteCount is 0', (
+    tester,
+  ) async {
+    const geometry = TripStoryMapGeometry(points: []);
+    final stats = TripWithStats(trip: _trip(), diveCount: 14);
+    await pumpHeader(tester, geometry, stats);
+
+    expect(find.text('Sites visited'), findsNothing);
+  });
+
+  testWidgets('map markers expose a 48x48 button with a semantics label', (
+    tester,
+  ) async {
+    const geometry = TripStoryMapGeometry(
+      points: [
+        TripStoryMapPoint(
+          latitude: 12.1,
+          longitude: -68.2,
+          dayIndex: 0,
+          label: 'Klein Bonaire',
+        ),
+      ],
+    );
+    final stats = TripWithStats(trip: _trip(), diveCount: 1);
+    await pumpHeader(tester, geometry, stats);
+
+    // The tappable marker meets the minimum touch target and is labeled for
+    // screen readers with the point's name.
+    final marker = find.byWidgetPredicate(
+      (w) => w is Semantics && w.properties.label == 'Klein Bonaire',
+    );
+    expect(marker, findsOneWidget);
+    final size = tester.getSize(
+      find.descendant(of: marker, matching: find.byType(GestureDetector)),
+    );
+    expect(size.width, greaterThanOrEqualTo(48));
+    expect(size.height, greaterThanOrEqualTo(48));
+  });
+
   testWidgets('MapCameraAnimator eases the camera then disposes cleanly', (
     tester,
   ) async {
@@ -193,20 +246,25 @@ void main() {
       const geometry = TripStoryMapGeometry(points: []);
       final stats = TripWithStats(trip: _trip(), diveCount: 3);
 
-      TripStoryMapHeaderDelegate make({int activeDayIndex = 0}) =>
-          TripStoryMapHeaderDelegate(
-            geometry: geometry,
-            stats: stats,
-            activeDayIndex: activeDayIndex,
-            mapController: controller,
-            onDaySelected: onDay, // same callback identity across instances
-            maxExtentValue: 260,
-          );
+      TripStoryMapHeaderDelegate make({
+        int activeDayIndex = 0,
+        int siteCount = 0,
+      }) => TripStoryMapHeaderDelegate(
+        geometry: geometry,
+        stats: stats,
+        siteCount: siteCount,
+        activeDayIndex: activeDayIndex,
+        mapController: controller,
+        onDaySelected: onDay, // same callback identity across instances
+        maxExtentValue: 260,
+      );
 
       // Same inputs (including the shared callback) => no rebuild.
       expect(make().shouldRebuild(make()), isFalse);
       // A changed input => rebuild.
       expect(make(activeDayIndex: 1).shouldRebuild(make()), isTrue);
+      // siteCount is part of the rebuild contract.
+      expect(make(siteCount: 3).shouldRebuild(make()), isTrue);
     },
   );
 }

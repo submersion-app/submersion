@@ -6,6 +6,19 @@
   "trips_story_daysUntil": "{days, plural, =1{1 nap az indulásig} other{{days} nap az indulásig}}",
   "trips_story_checklistProgress": "{done}/{total} kész",
   "trips_story_generateItinerary": "Útiterv létrehozása",
+  "trips_story_generateItineraryError": "Nem sikerült létrehozni az útitervet: {error}",
+  "@trips_story_generateItineraryError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_dayType_diveDay": "Merülőnap",
+  "trips_dayType_seaDay": "Tengeri nap",
+  "trips_dayType_portDay": "Kikötői nap",
+  "trips_dayType_embark": "Beszállás",
+  "trips_dayType_disembark": "Kiszállás",
   "trips_story_planned": "Tervezett",
   "trips_story_empty_title": "Még nincs merülés vagy útiterv",
   "trips_story_empty_subtitle": "Adj hozzá merüléseket vagy tervezd meg a napokat a történethez.",
@@ -5058,6 +5071,7 @@
     }
   },
   "trips_diveScan_noMatches": "Nem talalhatok egyezo merulesek",
+  "trips_diveScan_noDiver": "Rendelj egy búvárt ehhez az úthoz a merülések kereséséhez",
   "trips_diveScan_selectAll": "Osszes kivalasztasa",
   "trips_diveScan_subtitle": "{count} merules talalhato a datumtartomanyban",
   "@trips_diveScan_subtitle": {

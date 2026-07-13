@@ -4,6 +4,7 @@ import 'package:submersion/features/checklists/domain/entities/trip_checklist_it
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
+import 'package:submersion/features/trips/domain/entities/liveaboard_details.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
 import 'package:submersion/features/trips/domain/services/trip_story_builder.dart';
@@ -249,6 +250,40 @@ void main() {
       expect(story.mapGeometry.points[0].dayIndex, 0);
       expect(story.mapGeometry.points[1].siteId, 'site-a');
       expect(story.mapGeometry.points[1].dayIndex, 1);
+    });
+
+    test('includes liveaboard embark/disembark ports as route endpoints', () {
+      // A liveaboard whose ports aren't duplicated onto itinerary days should
+      // still contribute its embark (first day) and disembark (last day)
+      // markers, the way the retired TripVoyageMap did.
+      final story = buildTripStory(
+        trip: _trip(), // Mar 7 - Mar 10, four days
+        dives: [],
+        itineraryDays: [],
+        mediaByDiveId: {},
+        sightingsByDiveId: {},
+        checklistItems: [],
+        today: DateTime(2026, 6, 1),
+        liveaboardDetails: LiveaboardDetails(
+          id: 'la-1',
+          tripId: 'trip-1',
+          vesselName: 'MV Explorer',
+          embarkPort: 'Kralendijk',
+          embarkLatitude: 12.15,
+          embarkLongitude: -68.27,
+          disembarkPort: 'Rincon',
+          disembarkLatitude: 12.32,
+          disembarkLongitude: -68.31,
+          createdAt: DateTime(2026, 1, 1),
+          updatedAt: DateTime(2026, 1, 1),
+        ),
+      );
+      final points = story.mapGeometry.points;
+      expect(points, hasLength(2));
+      expect(points.first.label, 'Kralendijk');
+      expect(points.first.dayIndex, 0); // embark opens the first day
+      expect(points.last.label, 'Rincon');
+      expect(points.last.dayIndex, 3); // disembark closes the last day
     });
   });
 }

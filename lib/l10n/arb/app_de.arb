@@ -6,6 +6,19 @@
   "trips_story_daysUntil": "{days, plural, =1{Noch 1 Tag bis zur Abreise} other{Noch {days} Tage bis zur Abreise}}",
   "trips_story_checklistProgress": "{done} von {total} erledigt",
   "trips_story_generateItinerary": "Reiseplan erstellen",
+  "trips_story_generateItineraryError": "Reiseplan konnte nicht erstellt werden: {error}",
+  "@trips_story_generateItineraryError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_dayType_diveDay": "Tauchtag",
+  "trips_dayType_seaDay": "Seetag",
+  "trips_dayType_portDay": "Hafentag",
+  "trips_dayType_embark": "Einschiffung",
+  "trips_dayType_disembark": "Ausschiffung",
   "trips_story_planned": "Geplant",
   "trips_story_empty_title": "Noch keine Tauchgänge oder Reiseplan",
   "trips_story_empty_subtitle": "Füge Tauchgänge hinzu oder plane die Tage, um die Story zu sehen.",
@@ -5092,6 +5105,7 @@
     }
   },
   "trips_diveScan_noMatches": "Keine passenden Tauchgänge gefunden",
+  "trips_diveScan_noDiver": "Weise dieser Reise einen Taucher zu, um nach Tauchgängen zu suchen",
   "trips_diveScan_selectAll": "Alle auswählen",
   "trips_diveScan_subtitle": "{count} Tauchgänge im Datumsbereich gefunden",
   "@trips_diveScan_subtitle": {

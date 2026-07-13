@@ -158,6 +158,42 @@ abstract class AppLocalizations {
   /// **'Generate itinerary'**
   String get trips_story_generateItinerary;
 
+  /// No description provided for @trips_story_generateItineraryError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t generate itinerary: {error}'**
+  String trips_story_generateItineraryError(String error);
+
+  /// No description provided for @trips_dayType_diveDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive Day'**
+  String get trips_dayType_diveDay;
+
+  /// No description provided for @trips_dayType_seaDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Sea Day'**
+  String get trips_dayType_seaDay;
+
+  /// No description provided for @trips_dayType_portDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Port Day'**
+  String get trips_dayType_portDay;
+
+  /// No description provided for @trips_dayType_embark.
+  ///
+  /// In en, this message translates to:
+  /// **'Embark'**
+  String get trips_dayType_embark;
+
+  /// No description provided for @trips_dayType_disembark.
+  ///
+  /// In en, this message translates to:
+  /// **'Disembark'**
+  String get trips_dayType_disembark;
+
   /// No description provided for @trips_story_planned.
   ///
   /// In en, this message translates to:
@@ -26272,6 +26308,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No matching dives found'**
   String get trips_diveScan_noMatches;
+
+  /// No description provided for @trips_diveScan_noDiver.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign a diver to this trip to scan for dives'**
+  String get trips_diveScan_noDiver;
 
   /// No description provided for @trips_diveScan_selectAll.
   ///

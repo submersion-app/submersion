@@ -30,6 +30,15 @@ class TripVesselSection extends ConsumerWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
+                const SizedBox(height: 4),
+                // vesselName is the one required detail; surface it so a record
+                // with no optional fields still shows more than the heading.
+                Text(
+                  details.vesselName,
+                  style: Theme.of(context).textTheme.bodyLarge,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
                 const SizedBox(height: 12),
                 if (details.operatorName != null)
                   _VesselDetailRow(

@@ -79,7 +79,11 @@ class TripStoryHero extends ConsumerWidget {
           const SizedBox(height: 12),
           _ChecklistCard(story: story),
         ],
-        if (trip.isUpcoming && !hasItinerary) ...[
+        // Only liveaboards get itinerary generation: generateForTrip emits
+        // embark/disembark day types, and only the liveaboard layout exposes an
+        // itinerary editor, so a shore/resort trip could otherwise mint
+        // maritime days it can never edit.
+        if (trip.isLiveaboard && trip.isUpcoming && !hasItinerary) ...[
           const SizedBox(height: 8),
           _GenerateItineraryButton(story: story),
         ],
@@ -162,26 +166,63 @@ class _ChecklistCard extends StatelessWidget {
   }
 }
 
-class _GenerateItineraryButton extends ConsumerWidget {
+class _GenerateItineraryButton extends ConsumerStatefulWidget {
   final TripStory story;
 
   const _GenerateItineraryButton({required this.story});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return OutlinedButton.icon(
-      icon: const Icon(Icons.event_note, size: 18),
-      label: Text(context.l10n.trips_story_generateItinerary),
-      onPressed: () async {
-        final days = ItineraryDay.generateForTrip(
-          tripId: story.trip.id,
-          startDate: story.trip.startDate,
-          endDate: story.trip.endDate,
+  ConsumerState<_GenerateItineraryButton> createState() =>
+      _GenerateItineraryButtonState();
+}
+
+class _GenerateItineraryButtonState
+    extends ConsumerState<_GenerateItineraryButton> {
+  bool _saving = false;
+
+  Future<void> _generate() async {
+    // Guard against a second tap while the first save is in flight: the
+    // itinerary table has no (trip_id, day_number) uniqueness constraint, so a
+    // double tap would insert two full batches and duplicate every chapter.
+    if (_saving) return;
+    setState(() => _saving = true);
+    final trip = widget.story.trip;
+    try {
+      final days = ItineraryDay.generateForTrip(
+        tripId: trip.id,
+        startDate: trip.startDate,
+        endDate: trip.endDate,
+      );
+      await ref.read(itineraryDayRepositoryProvider).saveAll(days);
+      ref.invalidate(itineraryDaysProvider(trip.id));
+      ref.invalidate(tripStoryProvider(trip.id));
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              context.l10n.trips_story_generateItineraryError('$e'),
+            ),
+          ),
         );
-        await ref.read(itineraryDayRepositoryProvider).saveAll(days);
-        ref.invalidate(itineraryDaysProvider(story.trip.id));
-        ref.invalidate(tripStoryProvider(story.trip.id));
-      },
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton.icon(
+      icon: _saving
+          ? const SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : const Icon(Icons.event_note, size: 18),
+      label: Text(context.l10n.trips_story_generateItinerary),
+      onPressed: _saving ? null : _generate,
     );
   }
 }

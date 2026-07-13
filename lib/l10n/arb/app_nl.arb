@@ -6,6 +6,19 @@
   "trips_story_daysUntil": "{days, plural, =1{Nog 1 dag tot vertrek} other{Nog {days} dagen tot vertrek}}",
   "trips_story_checklistProgress": "{done} van {total} klaar",
   "trips_story_generateItinerary": "Reisplan genereren",
+  "trips_story_generateItineraryError": "Kan reisschema niet genereren: {error}",
+  "@trips_story_generateItineraryError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_dayType_diveDay": "Duikdag",
+  "trips_dayType_seaDay": "Zeedag",
+  "trips_dayType_portDay": "Havendag",
+  "trips_dayType_embark": "Inschepen",
+  "trips_dayType_disembark": "Ontschepen",
   "trips_story_planned": "Gepland",
   "trips_story_empty_title": "Nog geen duiken of reisplan",
   "trips_story_empty_subtitle": "Voeg duiken toe of plan de dagen om het verhaal te zien.",
@@ -5092,6 +5105,7 @@
     }
   },
   "trips_diveScan_noMatches": "Geen overeenkomende duiken gevonden",
+  "trips_diveScan_noDiver": "Wijs een duiker toe aan deze reis om naar duiken te zoeken",
   "trips_diveScan_selectAll": "Alles selecteren",
   "trips_diveScan_subtitle": "{count} duiken gevonden in het datumbereik",
   "@trips_diveScan_subtitle": {

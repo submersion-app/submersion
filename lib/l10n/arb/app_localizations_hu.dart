@@ -44,6 +44,26 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_story_generateItinerary => 'Útiterv létrehozása';
 
   @override
+  String trips_story_generateItineraryError(String error) {
+    return 'Nem sikerült létrehozni az útitervet: $error';
+  }
+
+  @override
+  String get trips_dayType_diveDay => 'Merülőnap';
+
+  @override
+  String get trips_dayType_seaDay => 'Tengeri nap';
+
+  @override
+  String get trips_dayType_portDay => 'Kikötői nap';
+
+  @override
+  String get trips_dayType_embark => 'Beszállás';
+
+  @override
+  String get trips_dayType_disembark => 'Kiszállás';
+
+  @override
   String get trips_story_planned => 'Tervezett';
 
   @override
@@ -15546,6 +15566,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get trips_diveScan_noMatches => 'Nem talalhatok egyezo merulesek';
+
+  @override
+  String get trips_diveScan_noDiver =>
+      'Rendelj egy búvárt ehhez az úthoz a merülések kereséséhez';
 
   @override
   String get trips_diveScan_selectAll => 'Osszes kivalasztasa';

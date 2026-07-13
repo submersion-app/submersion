@@ -44,7 +44,13 @@ Future<void> scanGalleryForTripPhotos(
   showDialog(
     context: context,
     barrierDismissible: false,
-    builder: (_) => const Center(child: CircularProgressIndicator()),
+    // canPop:false so a system back can't pop this dialog (barrierDismissible
+    // only blocks barrier taps); otherwise a later dismiss() could pop the
+    // underlying page instead.
+    builder: (_) => const PopScope(
+      canPop: false,
+      child: Center(child: CircularProgressIndicator()),
+    ),
   );
 
   try {
@@ -121,13 +127,16 @@ Future<void> _importPhotos(
   showDialog(
     context: context,
     barrierDismissible: false,
-    builder: (_) => AlertDialog(
-      content: Row(
-        children: [
-          const CircularProgressIndicator(),
-          const SizedBox(width: 16),
-          Text(context.l10n.trips_detail_scan_linkingPhotos),
-        ],
+    builder: (_) => PopScope(
+      canPop: false,
+      child: AlertDialog(
+        content: Row(
+          children: [
+            const CircularProgressIndicator(),
+            const SizedBox(width: 16),
+            Text(context.l10n.trips_detail_scan_linkingPhotos),
+          ],
+        ),
       ),
     ),
   );
@@ -201,13 +210,24 @@ Future<void> scanForTripDives(
   WidgetRef ref,
   Trip trip,
 ) async {
-  if (trip.diverId == null) return;
+  if (trip.diverId == null) {
+    // Both the hero CTA and the overflow item can reach this action; without a
+    // diver there's nothing to scan, so tell the user instead of returning
+    // silently (an unresponsive-looking tap).
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(context.l10n.trips_diveScan_noDiver)),
+    );
+    return;
+  }
 
   final loading = _LoadingDialog(Navigator.of(context, rootNavigator: true));
   showDialog(
     context: context,
     barrierDismissible: false,
-    builder: (_) => const Center(child: CircularProgressIndicator()),
+    builder: (_) => const PopScope(
+      canPop: false,
+      child: Center(child: CircularProgressIndicator()),
+    ),
   );
 
   try {

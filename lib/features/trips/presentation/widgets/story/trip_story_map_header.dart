@@ -61,6 +61,7 @@ class MapCameraAnimator {
 class TripStoryMapHeaderDelegate extends SliverPersistentHeaderDelegate {
   final TripStoryMapGeometry geometry;
   final TripWithStats stats;
+  final int siteCount;
   final int activeDayIndex;
   final MapController mapController;
   final ValueChanged<int> onDaySelected;
@@ -70,6 +71,7 @@ class TripStoryMapHeaderDelegate extends SliverPersistentHeaderDelegate {
   const TripStoryMapHeaderDelegate({
     required this.geometry,
     required this.stats,
+    required this.siteCount,
     required this.activeDayIndex,
     required this.mapController,
     required this.onDaySelected,
@@ -87,6 +89,7 @@ class TripStoryMapHeaderDelegate extends SliverPersistentHeaderDelegate {
   bool shouldRebuild(TripStoryMapHeaderDelegate oldDelegate) =>
       oldDelegate.geometry != geometry ||
       oldDelegate.stats != stats ||
+      oldDelegate.siteCount != siteCount ||
       oldDelegate.activeDayIndex != activeDayIndex ||
       oldDelegate.mapController != mapController ||
       oldDelegate.onDaySelected != onDaySelected ||
@@ -113,7 +116,7 @@ class TripStoryMapHeaderDelegate extends SliverPersistentHeaderDelegate {
                   )
                 : const _MapFallback(),
           ),
-          TripStatStrip(stats: stats),
+          TripStatStrip(stats: stats, siteCount: siteCount),
         ],
       ),
     );
@@ -181,25 +184,42 @@ class _StoryMap extends ConsumerWidget {
                 for (final point in geometry.points)
                   Marker(
                     point: LatLng(point.latitude, point.longitude),
-                    width: 28,
-                    height: 28,
-                    child: GestureDetector(
-                      onTap: () => onDaySelected(point.dayIndex),
-                      child: Opacity(
-                        opacity: point.dayIndex == activeDayIndex ? 1 : 0.45,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: colorScheme.primary,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: colorScheme.onPrimary,
-                              width: 2,
+                    // 48x48 meets the minimum touch-target guideline even though
+                    // the visible dot stays 28x28 (centered inside the hit area).
+                    width: 48,
+                    height: 48,
+                    child: Semantics(
+                      button: true,
+                      label: point.label.isNotEmpty
+                          ? point.label
+                          : context.l10n.trips_story_dayLabel(
+                              point.dayIndex + 1,
                             ),
-                          ),
-                          child: Icon(
-                            Icons.scuba_diving,
-                            size: 14,
-                            color: colorScheme.onPrimary,
+                      child: GestureDetector(
+                        onTap: () => onDaySelected(point.dayIndex),
+                        behavior: HitTestBehavior.opaque,
+                        child: Center(
+                          child: Opacity(
+                            opacity: point.dayIndex == activeDayIndex
+                                ? 1
+                                : 0.45,
+                            child: Container(
+                              width: 28,
+                              height: 28,
+                              decoration: BoxDecoration(
+                                color: colorScheme.primary,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: colorScheme.onPrimary,
+                                  width: 2,
+                                ),
+                              ),
+                              child: Icon(
+                                Icons.scuba_diving,
+                                size: 14,
+                                color: colorScheme.onPrimary,
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -244,7 +264,10 @@ class _MapFallback extends StatelessWidget {
 class TripStatStrip extends ConsumerWidget {
   final TripWithStats stats;
 
-  const TripStatStrip({super.key, required this.stats});
+  /// Distinct dive sites visited across the trip (0 hides the tile).
+  final int siteCount;
+
+  const TripStatStrip({super.key, required this.stats, this.siteCount = 0});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -258,6 +281,7 @@ class TripStatStrip extends ConsumerWidget {
       (l10n.trips_detail_stat_totalBottomTime, stats.formattedBottomTime),
       if (stats.maxDepth != null)
         (l10n.trips_detail_stat_maxDepth, units.formatDepth(stats.maxDepth)),
+      if (siteCount > 0) (l10n.trips_detail_stat_sitesVisited, '$siteCount'),
     ];
 
     return Container(

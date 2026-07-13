@@ -44,6 +44,26 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trips_story_generateItinerary => 'Reiseplan erstellen';
 
   @override
+  String trips_story_generateItineraryError(String error) {
+    return 'Reiseplan konnte nicht erstellt werden: $error';
+  }
+
+  @override
+  String get trips_dayType_diveDay => 'Tauchtag';
+
+  @override
+  String get trips_dayType_seaDay => 'Seetag';
+
+  @override
+  String get trips_dayType_portDay => 'Hafentag';
+
+  @override
+  String get trips_dayType_embark => 'Einschiffung';
+
+  @override
+  String get trips_dayType_disembark => 'Ausschiffung';
+
+  @override
   String get trips_story_planned => 'Geplant';
 
   @override
@@ -15563,6 +15583,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get trips_diveScan_noMatches => 'Keine passenden Tauchgänge gefunden';
+
+  @override
+  String get trips_diveScan_noDiver =>
+      'Weise dieser Reise einen Taucher zu, um nach Tauchgängen zu suchen';
 
   @override
   String get trips_diveScan_selectAll => 'Alle auswählen';

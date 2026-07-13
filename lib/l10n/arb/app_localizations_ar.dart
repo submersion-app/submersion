@@ -44,6 +44,26 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_story_generateItinerary => 'إنشاء خط سير';
 
   @override
+  String trips_story_generateItineraryError(String error) {
+    return 'تعذّر إنشاء برنامج الرحلة: $error';
+  }
+
+  @override
+  String get trips_dayType_diveDay => 'يوم غوص';
+
+  @override
+  String get trips_dayType_seaDay => 'يوم بحري';
+
+  @override
+  String get trips_dayType_portDay => 'يوم في الميناء';
+
+  @override
+  String get trips_dayType_embark => 'الصعود';
+
+  @override
+  String get trips_dayType_disembark => 'النزول';
+
+  @override
   String get trips_story_planned => 'مخطط';
 
   @override
@@ -15287,6 +15307,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get trips_diveScan_noMatches => 'لم يتم العثور على غوصات مطابقة';
+
+  @override
+  String get trips_diveScan_noDiver =>
+      'عيّن غوّاصًا لهذه الرحلة للبحث عن الغطسات';
 
   @override
   String get trips_diveScan_selectAll => 'تحديد الكل';

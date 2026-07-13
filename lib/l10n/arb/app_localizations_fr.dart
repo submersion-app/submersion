@@ -44,6 +44,26 @@ class AppLocalizationsFr extends AppLocalizations {
   String get trips_story_generateItinerary => 'Générer l\'itinéraire';
 
   @override
+  String trips_story_generateItineraryError(String error) {
+    return 'Impossible de générer l\'itinéraire : $error';
+  }
+
+  @override
+  String get trips_dayType_diveDay => 'Jour de plongée';
+
+  @override
+  String get trips_dayType_seaDay => 'Jour en mer';
+
+  @override
+  String get trips_dayType_portDay => 'Jour au port';
+
+  @override
+  String get trips_dayType_embark => 'Embarquement';
+
+  @override
+  String get trips_dayType_disembark => 'Débarquement';
+
+  @override
   String get trips_story_planned => 'Prévu';
 
   @override
@@ -15657,6 +15677,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get trips_diveScan_noMatches =>
       'Aucune plongee correspondante trouvee';
+
+  @override
+  String get trips_diveScan_noDiver =>
+      'Attribuez un plongeur à ce voyage pour rechercher des plongées';
 
   @override
   String get trips_diveScan_selectAll => 'Tout selectionner';

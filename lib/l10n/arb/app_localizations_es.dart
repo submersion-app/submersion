@@ -44,6 +44,26 @@ class AppLocalizationsEs extends AppLocalizations {
   String get trips_story_generateItinerary => 'Generar itinerario';
 
   @override
+  String trips_story_generateItineraryError(String error) {
+    return 'No se pudo generar el itinerario: $error';
+  }
+
+  @override
+  String get trips_dayType_diveDay => 'Día de buceo';
+
+  @override
+  String get trips_dayType_seaDay => 'Día de mar';
+
+  @override
+  String get trips_dayType_portDay => 'Día de puerto';
+
+  @override
+  String get trips_dayType_embark => 'Embarque';
+
+  @override
+  String get trips_dayType_disembark => 'Desembarque';
+
+  @override
   String get trips_story_planned => 'Planificado';
 
   @override
@@ -15595,6 +15615,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get trips_diveScan_noMatches =>
       'No se encontraron inmersiones coincidentes';
+
+  @override
+  String get trips_diveScan_noDiver =>
+      'Asigna un buceador a este viaje para buscar inmersiones';
 
   @override
   String get trips_diveScan_selectAll => 'Seleccionar todo';

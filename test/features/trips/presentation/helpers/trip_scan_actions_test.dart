@@ -89,7 +89,7 @@ Future<void> pumpActionButton(
 }
 
 void main() {
-  testWidgets('scanForTripDives returns immediately when diverId is null', (
+  testWidgets('scanForTripDives explains when there is no diver', (
     tester,
   ) async {
     await pumpActionButton(
@@ -99,9 +99,12 @@ void main() {
     );
     await tester.tap(find.text('go'));
     await tester.pumpAndSettle();
-    // No dialog or snackbar: the guard short-circuits.
+    // No scan runs, but the user gets feedback instead of a silent no-op.
     expect(find.byType(CircularProgressIndicator), findsNothing);
-    expect(find.byType(SnackBar), findsNothing);
+    expect(
+      find.text('Assign a diver to this trip to scan for dives'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('scanForTripDives shows a no-matches snackbar', (tester) async {

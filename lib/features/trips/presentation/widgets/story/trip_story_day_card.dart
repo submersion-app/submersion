@@ -12,6 +12,7 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
+import 'package:submersion/features/trips/presentation/helpers/day_type_l10n.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/day_rhythm_bar.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/dive_sparkline.dart';
@@ -65,6 +66,10 @@ class TripStoryDayCard extends ConsumerWidget {
                       Expanded(
                         child: DiveListItem(
                           summary: DiveSummary.fromDive(dive),
+                          // The story already holds the full Dive; pass it so the
+                          // configurable card can resolve fields absent from the
+                          // summary (tanks, SAC, buddies, weights).
+                          fullDive: dive,
                           diveNumber: dive.diveNumber ?? index + 1,
                           onTap: () => context.push('/dives/${dive.id}'),
                         ),
@@ -97,7 +102,7 @@ class TripStoryDayCard extends ConsumerWidget {
     final dateFormat = DateFormat.MMMEd();
     final itinerary = day.itineraryDay;
     final subtitleParts = <String>[
-      if (itinerary != null) itinerary.dayType.displayName,
+      if (itinerary != null) itinerary.dayType.localizedName(context),
       if (itinerary?.portName != null) itinerary!.portName!,
       ...day.siteNames,
     ];

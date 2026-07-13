@@ -6,6 +6,19 @@
   "trips_story_daysUntil": "{days, plural, other{距出发还有 {days} 天}}",
   "trips_story_checklistProgress": "已完成 {done}/{total}",
   "trips_story_generateItinerary": "生成行程",
+  "trips_story_generateItineraryError": "无法生成行程：{error}",
+  "@trips_story_generateItineraryError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_dayType_diveDay": "潜水日",
+  "trips_dayType_seaDay": "海上日",
+  "trips_dayType_portDay": "港口日",
+  "trips_dayType_embark": "登船",
+  "trips_dayType_disembark": "离船",
   "trips_story_planned": "已计划",
   "trips_story_empty_title": "还没有潜水或行程",
   "trips_story_empty_subtitle": "为此旅行添加潜水或规划行程以查看故事。",
@@ -4941,6 +4954,7 @@
   "trips_diveScan_groupOtherTrips": "在其他旅行中（{count}）",
   "trips_diveScan_groupUnassigned": "未分配（{count}）",
   "trips_diveScan_noMatches": "未找到匹配的潜水",
+  "trips_diveScan_noDiver": "为此行程指定潜水员以扫描潜水记录",
   "trips_diveScan_selectAll": "全选",
   "trips_diveScan_subtitle": "在日期范围内找到 {count} 次潜水",
   "trips_diveScan_title": "将潜水添加到旅行",

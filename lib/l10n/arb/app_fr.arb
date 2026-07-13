@@ -6,6 +6,19 @@
   "trips_story_daysUntil": "{days, plural, =1{1 jour avant le départ} other{{days} jours avant le départ}}",
   "trips_story_checklistProgress": "{done} sur {total} fait",
   "trips_story_generateItinerary": "Générer l'itinéraire",
+  "trips_story_generateItineraryError": "Impossible de générer l'itinéraire : {error}",
+  "@trips_story_generateItineraryError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_dayType_diveDay": "Jour de plongée",
+  "trips_dayType_seaDay": "Jour en mer",
+  "trips_dayType_portDay": "Jour au port",
+  "trips_dayType_embark": "Embarquement",
+  "trips_dayType_disembark": "Débarquement",
   "trips_story_planned": "Prévu",
   "trips_story_empty_title": "Pas encore de plongées ni d'itinéraire",
   "trips_story_empty_subtitle": "Ajoutez des plongées ou planifiez les jours pour voir le récit.",
@@ -5058,6 +5071,7 @@
     }
   },
   "trips_diveScan_noMatches": "Aucune plongee correspondante trouvee",
+  "trips_diveScan_noDiver": "Attribuez un plongeur à ce voyage pour rechercher des plongées",
   "trips_diveScan_selectAll": "Tout selectionner",
   "trips_diveScan_subtitle": "{count} plongees trouvees dans la plage de dates",
   "@trips_diveScan_subtitle": {

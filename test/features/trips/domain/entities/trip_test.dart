@@ -214,6 +214,21 @@ void main() {
       );
       expect(trip.durationDays, equals(7));
     });
+
+    test('counts calendar days across a spring-forward DST boundary', () {
+      // Mar 8 2026 is a US spring-forward (a 23-hour local day). Counting
+      // elapsed hours (the old Duration.inDays) would report 71h -> 3 days;
+      // calendar counting keeps it at the correct inclusive 4.
+      final trip = Trip(
+        id: 't1',
+        name: 'DST Trip',
+        startDate: DateTime(2026, 3, 7),
+        endDate: DateTime(2026, 3, 10),
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      );
+      expect(trip.durationDays, equals(4));
+    });
   });
 
   group('Trip.isResort', () {

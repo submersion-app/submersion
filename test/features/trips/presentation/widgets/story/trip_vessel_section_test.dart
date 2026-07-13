@@ -48,11 +48,29 @@ void main() {
     );
     await pumpVessel(tester, details);
 
+    expect(find.text('MV Explorer'), findsOneWidget);
     expect(find.text('Blue Water Divers'), findsOneWidget);
     expect(find.text('Motor yacht'), findsOneWidget);
     expect(find.text('Twin ensuite'), findsOneWidget);
     expect(find.text('22'), findsOneWidget);
     expect(find.text('Sorong'), findsNWidgets(2)); // embark + disembark
+  });
+
+  testWidgets('shows the vessel name even with no optional fields', (
+    tester,
+  ) async {
+    // vesselName is the one required detail; a record with nothing else set
+    // must still render more than the section heading.
+    final details = LiveaboardDetails(
+      id: 'lad-2',
+      tripId: 'trip-1',
+      vesselName: 'MV Explorer',
+      createdAt: DateTime(2026, 1, 1),
+      updatedAt: DateTime(2026, 1, 1),
+    );
+    await pumpVessel(tester, details);
+
+    expect(find.text('MV Explorer'), findsOneWidget);
   });
 
   testWidgets('renders nothing when there are no liveaboard details', (

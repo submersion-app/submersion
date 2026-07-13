@@ -43,6 +43,26 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_story_generateItinerary => '生成行程';
 
   @override
+  String trips_story_generateItineraryError(String error) {
+    return '无法生成行程：$error';
+  }
+
+  @override
+  String get trips_dayType_diveDay => '潜水日';
+
+  @override
+  String get trips_dayType_seaDay => '海上日';
+
+  @override
+  String get trips_dayType_portDay => '港口日';
+
+  @override
+  String get trips_dayType_embark => '登船';
+
+  @override
+  String get trips_dayType_disembark => '离船';
+
+  @override
   String get trips_story_planned => '已计划';
 
   @override
@@ -14784,6 +14804,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get trips_diveScan_noMatches => '未找到匹配的潜水';
+
+  @override
+  String get trips_diveScan_noDiver => '为此行程指定潜水员以扫描潜水记录';
 
   @override
   String get trips_diveScan_selectAll => '全选';

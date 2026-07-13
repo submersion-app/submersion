@@ -44,6 +44,26 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_story_generateItinerary => 'צור מסלול';
 
   @override
+  String trips_story_generateItineraryError(String error) {
+    return 'לא ניתן ליצור מסלול: $error';
+  }
+
+  @override
+  String get trips_dayType_diveDay => 'יום צלילה';
+
+  @override
+  String get trips_dayType_seaDay => 'יום ים';
+
+  @override
+  String get trips_dayType_portDay => 'יום נמל';
+
+  @override
+  String get trips_dayType_embark => 'עלייה לסיפון';
+
+  @override
+  String get trips_dayType_disembark => 'ירידה מהסיפון';
+
+  @override
   String get trips_story_planned => 'מתוכנן';
 
   @override
@@ -15170,6 +15190,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get trips_diveScan_noMatches => 'לא נמצאו צלילות תואמות';
+
+  @override
+  String get trips_diveScan_noDiver =>
+      'שייך צולל לטיול זה כדי לסרוק אחר צלילות';
 
   @override
   String get trips_diveScan_selectAll => 'בחר הכל';

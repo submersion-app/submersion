@@ -54,7 +54,14 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
   @override
   void didUpdateWidget(TripStoryView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.story.days.length != widget.story.days.length) _buildKeys();
+    if (oldWidget.story.days.length != widget.story.days.length) {
+      _buildKeys();
+      // A refresh can shorten the story (e.g. a day's dives were reassigned).
+      // Clamp the active index so the header still highlights a real day and
+      // pointsForDay doesn't return empty until the next scroll resolves.
+      final lastIndex = widget.story.days.length - 1;
+      _activeDayIndex = _activeDayIndex.clamp(0, lastIndex < 0 ? 0 : lastIndex);
+    }
   }
 
   void _buildKeys() {
@@ -83,11 +90,31 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
   // A named method (not an inline closure) so the delegate's onDaySelected has
   // a stable identity across builds; otherwise shouldRebuild always sees a new
   // closure and rebuilds the pinned FlutterMap on every parent rebuild.
-  // Animates the camera (like scroll-driven selection) so tapping a pin for an
-  // off-screen day actually brings its points into view.
-  void _onPinSelected(int index) => _selectDay(index);
+  // Selects the day (easing the camera to its points) and scrolls the story to
+  // that chapter, the reverse linkage the design spec calls for so tapping a
+  // pin for an off-screen day brings both the map and the chapter into view.
+  void _onPinSelected(int index) {
+    _selectDay(index);
+    _scrollToDay(index);
+  }
+
+  void _scrollToDay(int index) {
+    if (index < 0 || index >= _dayKeys.length) return;
+    final keyContext = _dayKeys[index].currentContext;
+    if (keyContext == null) return;
+    Scrollable.ensureVisible(
+      keyContext,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeInOut,
+      alignment: 0.1,
+    );
+  }
 
   bool _onScroll(ScrollUpdateNotification notification) {
+    // Horizontal photo strips inside the chapters bubble up their own scroll
+    // notifications; ignore them so swiping photos doesn't move the map/active
+    // day or consume the throttle window meant for the vertical story scroll.
+    if (notification.metrics.axis != Axis.vertical) return false;
     final now = DateTime.now();
     if (now.difference(_lastResolve) < _scrollThrottle) return false;
     _lastResolve = now;
@@ -157,10 +184,23 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
     );
   }
 
+  /// Distinct dive sites visited across the whole trip (for the stat strip).
+  int get _siteCount {
+    final ids = <String>{};
+    for (final day in widget.story.days) {
+      for (final dive in day.dives) {
+        final id = dive.site?.id;
+        if (id != null) ids.add(id);
+      }
+    }
+    return ids.length;
+  }
+
   TripStoryMapHeaderDelegate _mapHeaderDelegate() {
     return TripStoryMapHeaderDelegate(
       geometry: widget.story.mapGeometry,
       stats: widget.stats,
+      siteCount: _siteCount,
       activeDayIndex: _activeDayIndex,
       mapController: _mapController,
       onDaySelected: _onPinSelected,

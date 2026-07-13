@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
 import 'package:submersion/features/trips/data/repositories/itinerary_day_repository.dart';
@@ -25,12 +26,17 @@ class _FakeItineraryRepo extends ItineraryDayRepository {
 
 DateTime _dayOnly(DateTime dt) => DateTime(dt.year, dt.month, dt.day);
 
-Trip _trip({required DateTime start, required DateTime end}) {
+Trip _trip({
+  required DateTime start,
+  required DateTime end,
+  TripType tripType = TripType.shore,
+}) {
   return Trip(
     id: 'trip-1',
     name: 'Bonaire',
     startDate: start,
     endDate: end,
+    tripType: tripType,
     createdAt: DateTime(2026, 1, 1),
     updatedAt: DateTime(2026, 1, 1),
   );
@@ -90,13 +96,14 @@ Future<void> pumpHero(
 }
 
 void main() {
-  testWidgets('planned trip shows countdown, checklist, generate itinerary', (
+  testWidgets('planned liveaboard shows countdown, checklist, generate CTA', (
     tester,
   ) async {
     final today = _dayOnly(DateTime.now());
     final trip = _trip(
       start: today.add(const Duration(days: 40)),
       end: today.add(const Duration(days: 47)),
+      tripType: TripType.liveaboard,
     );
     final story = _story(
       trip,
@@ -110,6 +117,22 @@ void main() {
     expect(find.textContaining('until departure'), findsOneWidget);
     expect(find.text('1 of 2 done'), findsOneWidget);
     expect(find.text('Generate itinerary'), findsOneWidget);
+  });
+
+  testWidgets('planned shore trip hides the generate itinerary CTA', (
+    tester,
+  ) async {
+    // generateForTrip emits embark/disembark days and only the liveaboard
+    // layout has an itinerary editor, so a shore trip must not expose the CTA.
+    final today = _dayOnly(DateTime.now());
+    final trip = _trip(
+      start: today.add(const Duration(days: 40)),
+      end: today.add(const Duration(days: 47)),
+    );
+    await pumpHero(tester, _story(trip));
+
+    expect(find.textContaining('until departure'), findsOneWidget);
+    expect(find.text('Generate itinerary'), findsNothing);
   });
 
   testWidgets('in-progress trip shows day-of-trip line', (tester) async {
@@ -152,6 +175,7 @@ void main() {
     final trip = _trip(
       start: today.add(const Duration(days: 40)),
       end: today.add(const Duration(days: 43)),
+      tripType: TripType.liveaboard,
     );
     final story = _story(trip, today: now);
     final fakeRepo = _FakeItineraryRepo();
