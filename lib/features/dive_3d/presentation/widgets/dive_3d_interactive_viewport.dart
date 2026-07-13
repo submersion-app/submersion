@@ -133,18 +133,18 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
         pick == null) {
       return;
     }
-    _ensureProjection(size);
-    final proj = _projected;
-    if (proj == null) return;
-    final i = pick.col * grid.compartments + pick.comp;
-    if (i < 0 || i >= proj.length) {
-      notifier.value = null;
+    if (pick.col >= grid.columns || pick.comp >= grid.compartments) {
+      notifier.value = null; // pick went stale against a smaller grid
       return;
     }
+    // Only the picked vertex needs re-projecting -- reprojecting the whole grid
+    // (220x16) every drag/zoom tick is wasted work here; the marker ring and the
+    // next real pick reproject the full grid independently when they need it.
+    final (x, y, z) = grid.positionAt(pick.col, pick.comp);
     notifier.value = TissuePick(
       col: pick.col,
       comp: pick.comp,
-      screenPos: proj[i] + _pan,
+      screenPos: _projectorFor(size).project(x, y, z) + _pan,
     );
   }
 
