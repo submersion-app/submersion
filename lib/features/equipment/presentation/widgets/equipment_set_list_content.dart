@@ -177,7 +177,19 @@ class EquipmentSetListContent extends ConsumerWidget {
                     color: Theme.of(context).colorScheme.onPrimaryContainer,
                   ),
                 ),
-                title: Text(set.name),
+                title: Row(
+                  children: [
+                    Flexible(child: Text(set.name)),
+                    if (set.isDefault) ...[
+                      const SizedBox(width: 8),
+                      Chip(
+                        label: Text(context.l10n.equipment_sets_defaultBadge),
+                        visualDensity: VisualDensity.compact,
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                    ],
+                  ],
+                ),
                 subtitle: Text(
                   set.description.isNotEmpty ? set.description : itemCountText,
                   maxLines: 1,

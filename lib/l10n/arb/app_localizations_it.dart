@@ -9,6 +9,82 @@ class AppLocalizationsIt extends AppLocalizations {
   AppLocalizationsIt([String locale = 'it']) : super(locale);
 
   @override
+  String diveLog_edit_geofenceSuggestion_near(String location) {
+    return 'Near $location';
+  }
+
+  @override
+  String get diveLog_edit_geofenceSuggestion_title => 'Equipment suggestion';
+
+  @override
+  String diveLog_edit_geofenceSuggestion_body(String setName) {
+    return 'Apply your \"$setName\" set?';
+  }
+
+  @override
+  String get diveLog_edit_geofenceSuggestion_apply => 'Apply';
+
+  @override
+  String get common_action_dismiss => 'Dismiss';
+
+  @override
+  String get equipment_setEdit_defaultSwitch_title => 'Default set';
+
+  @override
+  String get equipment_setEdit_defaultSwitch_subtitle =>
+      'Auto-applied to new dives that have no equipment yet';
+
+  @override
+  String get equipment_setEdit_geofencesTitle => 'Geofences';
+
+  @override
+  String get equipment_setEdit_geofencesSubtitle =>
+      'Auto-suggest this set for dives near these locations';
+
+  @override
+  String get equipment_setEdit_addGeofence => 'Add geofence';
+
+  @override
+  String equipment_setEdit_geofenceRadius(String distance) {
+    return 'Radius: $distance';
+  }
+
+  @override
+  String get equipment_geofenceEditor_title => 'Geofence';
+
+  @override
+  String get equipment_geofenceEditor_fromSite => 'From dive site';
+
+  @override
+  String get equipment_geofenceEditor_dropPin => 'Drop a pin';
+
+  @override
+  String get equipment_geofenceEditor_labelLabel => 'Label';
+
+  @override
+  String get equipment_geofenceEditor_noCenter => 'Choose a center point';
+
+  @override
+  String get equipment_geofenceEditor_save => 'Save geofence';
+
+  @override
+  String get equipment_sets_defaultBadge => 'Default';
+
+  @override
+  String get equipment_setDetail_setAsDefault => 'Set as default';
+
+  @override
+  String equipment_setDetail_setAsDefaultSnackbar(String name) {
+    return '\"$name\" is now your default set';
+  }
+
+  @override
+  String get equipment_setDetail_geofencesTitle => 'Geofences';
+
+  @override
+  String get equipment_setDetail_noGeofences => 'No geofences';
+
+  @override
   String get diveLog_bulkEdit_groupRebreather => 'Modalità e rebreather';
 
   @override

@@ -116,6 +116,138 @@ abstract class AppLocalizations {
     Locale('zh'),
   ];
 
+  /// No description provided for @diveLog_edit_geofenceSuggestion_near.
+  ///
+  /// In en, this message translates to:
+  /// **'Near {location}'**
+  String diveLog_edit_geofenceSuggestion_near(String location);
+
+  /// No description provided for @diveLog_edit_geofenceSuggestion_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment suggestion'**
+  String get diveLog_edit_geofenceSuggestion_title;
+
+  /// No description provided for @diveLog_edit_geofenceSuggestion_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply your \"{setName}\" set?'**
+  String diveLog_edit_geofenceSuggestion_body(String setName);
+
+  /// No description provided for @diveLog_edit_geofenceSuggestion_apply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get diveLog_edit_geofenceSuggestion_apply;
+
+  /// No description provided for @common_action_dismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get common_action_dismiss;
+
+  /// No description provided for @equipment_setEdit_defaultSwitch_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Default set'**
+  String get equipment_setEdit_defaultSwitch_title;
+
+  /// No description provided for @equipment_setEdit_defaultSwitch_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-applied to new dives that have no equipment yet'**
+  String get equipment_setEdit_defaultSwitch_subtitle;
+
+  /// No description provided for @equipment_setEdit_geofencesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Geofences'**
+  String get equipment_setEdit_geofencesTitle;
+
+  /// No description provided for @equipment_setEdit_geofencesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-suggest this set for dives near these locations'**
+  String get equipment_setEdit_geofencesSubtitle;
+
+  /// No description provided for @equipment_setEdit_addGeofence.
+  ///
+  /// In en, this message translates to:
+  /// **'Add geofence'**
+  String get equipment_setEdit_addGeofence;
+
+  /// No description provided for @equipment_setEdit_geofenceRadius.
+  ///
+  /// In en, this message translates to:
+  /// **'Radius: {distance}'**
+  String equipment_setEdit_geofenceRadius(String distance);
+
+  /// No description provided for @equipment_geofenceEditor_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Geofence'**
+  String get equipment_geofenceEditor_title;
+
+  /// No description provided for @equipment_geofenceEditor_fromSite.
+  ///
+  /// In en, this message translates to:
+  /// **'From dive site'**
+  String get equipment_geofenceEditor_fromSite;
+
+  /// No description provided for @equipment_geofenceEditor_dropPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop a pin'**
+  String get equipment_geofenceEditor_dropPin;
+
+  /// No description provided for @equipment_geofenceEditor_labelLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Label'**
+  String get equipment_geofenceEditor_labelLabel;
+
+  /// No description provided for @equipment_geofenceEditor_noCenter.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a center point'**
+  String get equipment_geofenceEditor_noCenter;
+
+  /// No description provided for @equipment_geofenceEditor_save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save geofence'**
+  String get equipment_geofenceEditor_save;
+
+  /// No description provided for @equipment_sets_defaultBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get equipment_sets_defaultBadge;
+
+  /// No description provided for @equipment_setDetail_setAsDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Set as default'**
+  String get equipment_setDetail_setAsDefault;
+
+  /// No description provided for @equipment_setDetail_setAsDefaultSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{name}\" is now your default set'**
+  String equipment_setDetail_setAsDefaultSnackbar(String name);
+
+  /// No description provided for @equipment_setDetail_geofencesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Geofences'**
+  String get equipment_setDetail_geofencesTitle;
+
+  /// No description provided for @equipment_setDetail_noGeofences.
+  ///
+  /// In en, this message translates to:
+  /// **'No geofences'**
+  String get equipment_setDetail_noGeofences;
+
   /// No description provided for @diveLog_bulkEdit_groupRebreather.
   ///
   /// In en, this message translates to:

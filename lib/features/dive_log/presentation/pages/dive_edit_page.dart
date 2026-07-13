@@ -22,6 +22,8 @@ import 'package:submersion/features/equipment/data/repositories/equipment_reposi
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
+import 'package:submersion/features/equipment/domain/services/equipment_set_selector.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/geofence_suggestion_banner.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
@@ -167,6 +169,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   Set<String> _originalBuddyIds = {};
   String? _diverRoleId;
 
+  EquipmentSet? _geofenceSuggestion;
+  final Set<String> _dismissedSuggestionSetIds = {};
+
   // Conditions fields
   CurrentDirection? _currentDirection;
   CurrentStrength? _currentStrength;
@@ -292,6 +297,14 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
     // Eagerly resolve built-in presets (sync), async for custom
     _loadDefaultPreset();
+
+    // New single dive: auto-apply the diver's default/geofenced equipment set
+    // once the form is up, only when no gear is present.
+    if (!widget.isEditing && widget.bulkDiveIds == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _applyEquipmentDefaultsOnEmpty();
+      });
+    }
 
     final settings = ref.read(settingsProvider);
     _tanks = [
@@ -1959,6 +1972,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           onSiteSelected: (site) {
             _markDirty();
             setState(() => _selectedSite = site);
+            _reevaluateGeofenceForSite();
             Navigator.of(sheetContext).pop();
           },
           onCreateNewSite: () {
@@ -1976,6 +1990,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         if (site != null && mounted) {
           _markDirty();
           setState(() => _selectedSite = site);
+          _reevaluateGeofenceForSite();
         }
       }
     }
@@ -2719,6 +2734,57 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     });
   }
 
+  List<GeoPoint> _currentDivePoints() => [
+    if (_selectedSite?.location != null) _selectedSite!.location!,
+    if (_existingDive?.entryLocation != null) _existingDive!.entryLocation!,
+    if (_existingDive?.exitLocation != null) _existingDive!.exitLocation!,
+  ];
+
+  /// New-dive path: fill empty equipment with the best set (geofence/default).
+  Future<void> _applyEquipmentDefaultsOnEmpty() async {
+    if (_selectedEquipment.isNotEmpty) return;
+    final inputs = await ref.read(equipmentSetSelectionInputsProvider.future);
+    final best = EquipmentSetSelector.bestSetFor(
+      divePoints: _currentDivePoints(),
+      sets: inputs.sets,
+      geofences: inputs.geofences,
+    );
+    final items = best?.items ?? const [];
+    if (items.isEmpty || !mounted) return;
+    setState(() => _selectedEquipment = [...items]);
+  }
+
+  /// Site-change path: apply on empty, else suggest a differing geofence set.
+  Future<void> _reevaluateGeofenceForSite() async {
+    final inputs = await ref.read(equipmentSetSelectionInputsProvider.future);
+    final points = _currentDivePoints();
+    if (_selectedEquipment.isEmpty) {
+      final best = EquipmentSetSelector.bestSetFor(
+        divePoints: points,
+        sets: inputs.sets,
+        geofences: inputs.geofences,
+      );
+      final items = best?.items ?? const [];
+      if (items.isNotEmpty && mounted) {
+        setState(() => _selectedEquipment = [...items]);
+      }
+      return;
+    }
+    final geofenceSet = EquipmentSetSelector.matchingGeofenceSet(
+      divePoints: points,
+      sets: inputs.sets,
+      geofences: inputs.geofences,
+    );
+    if (geofenceSet == null || !mounted) return;
+    if (_dismissedSuggestionSetIds.contains(geofenceSet.id)) return;
+    final currentIds = _selectedEquipment.map((e) => e.id).toSet();
+    final hasNewItem = (geofenceSet.items ?? const []).any(
+      (e) => !currentIds.contains(e.id),
+    );
+    if (!hasNewItem) return;
+    setState(() => _geofenceSuggestion = geofenceSet);
+  }
+
   Widget _equipmentChild() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
@@ -2749,6 +2815,25 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               ),
             ],
           ),
+          if (_geofenceSuggestion != null)
+            GeofenceSuggestionBanner(
+              setName: _geofenceSuggestion!.name,
+              locationLabel: _selectedSite?.name,
+              onApply: () {
+                setState(() {
+                  _markDirty();
+                  final ids = _selectedEquipment.map((e) => e.id).toSet();
+                  for (final item in _geofenceSuggestion!.items ?? const []) {
+                    if (!ids.contains(item.id)) _selectedEquipment.add(item);
+                  }
+                  _geofenceSuggestion = null;
+                });
+              },
+              onDismiss: () => setState(() {
+                _dismissedSuggestionSetIds.add(_geofenceSuggestion!.id);
+                _geofenceSuggestion = null;
+              }),
+            ),
           if (_selectedEquipment.isEmpty) ...[
             const SizedBox(height: 8),
             Center(

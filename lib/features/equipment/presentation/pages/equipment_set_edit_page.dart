@@ -10,6 +10,11 @@ import 'package:submersion/features/equipment/domain/entities/equipment_set.dart
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_set_geofence.dart';
+import 'package:submersion/features/equipment/presentation/widgets/geofence_editor_sheet.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:uuid/uuid.dart';
 
 class EquipmentSetEditPage extends ConsumerStatefulWidget {
   final String? setId;
@@ -31,6 +36,8 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
   final Set<String> _selectedEquipmentIds = {};
   bool _isLoading = false;
   bool _isInitialized = false;
+  bool _isDefault = false;
+  List<EquipmentSetGeofence> _geofences = [];
 
   @override
   void dispose() {
@@ -46,6 +53,8 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
     _nameController.text = set.name;
     _descriptionController.text = set.description;
     _selectedEquipmentIds.addAll(set.equipmentIds);
+    _isDefault = set.isDefault;
+    _geofences = List.of(set.geofences);
   }
 
   @override
@@ -133,6 +142,60 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
                 hintText: context.l10n.equipment_setEdit_descriptionHint,
               ),
               maxLines: 2,
+            ),
+            const SizedBox(height: 24),
+
+            // Default set
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(context.l10n.equipment_setEdit_defaultSwitch_title),
+              subtitle: Text(
+                context.l10n.equipment_setEdit_defaultSwitch_subtitle,
+              ),
+              value: _isDefault,
+              onChanged: (v) => setState(() => _isDefault = v),
+            ),
+            const SizedBox(height: 16),
+
+            // Geofences
+            Text(
+              context.l10n.equipment_setEdit_geofencesTitle,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              context.l10n.equipment_setEdit_geofencesSubtitle,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 8),
+            ..._geofences.asMap().entries.map((entry) {
+              final i = entry.key;
+              final g = entry.value;
+              final formatter = UnitFormatter(ref.watch(settingsProvider));
+              return ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.place_outlined),
+                title: Text(
+                  g.label ?? context.l10n.equipment_geofenceEditor_title,
+                ),
+                subtitle: Text(
+                  context.l10n.equipment_setEdit_geofenceRadius(
+                    formatter.formatGeoDistance(g.radiusMeters),
+                  ),
+                ),
+                trailing: IconButton(
+                  icon: const Icon(Icons.close),
+                  tooltip: context.l10n.common_action_dismiss,
+                  onPressed: () => setState(() => _geofences.removeAt(i)),
+                ),
+              );
+            }),
+            OutlinedButton.icon(
+              onPressed: _addGeofence,
+              icon: const Icon(Icons.add_location_alt_outlined),
+              label: Text(context.l10n.equipment_setEdit_addGeofence),
             ),
             const SizedBox(height: 24),
 
@@ -293,6 +356,26 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
     );
   }
 
+  Future<void> _addGeofence() async {
+    final draft = await showGeofenceEditor(context);
+    if (draft == null || !mounted) return;
+    setState(() {
+      _geofences = [
+        ..._geofences,
+        EquipmentSetGeofence(
+          id: const Uuid().v4(),
+          setId: widget.setId ?? '',
+          label: draft.label,
+          latitude: draft.latitude,
+          longitude: draft.longitude,
+          radiusMeters: draft.radiusMeters,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      ];
+    });
+  }
+
   Future<void> _saveSet(EquipmentSet? existingSet) async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -316,10 +399,36 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
 
       final notifier = ref.read(equipmentSetListNotifierProvider.notifier);
 
+      final String savedId;
       if (widget.isEditing) {
         await notifier.updateSet(set);
+        savedId = set.id;
       } else {
-        await notifier.addSet(set);
+        final created = await notifier.addSet(set);
+        savedId = created.id;
+      }
+
+      // Default flag (per-diver mutual exclusion handled in the repository).
+      if (_isDefault) {
+        await notifier.setAsDefault(savedId);
+      }
+
+      // Reconcile geofences: remove dropped, add/update the rest.
+      final repo = ref.read(equipmentSetRepositoryProvider);
+      final existingGeofences = await repo.getGeofencesForSet(savedId);
+      final keptIds = _geofences.map((g) => g.id).toSet();
+      for (final old in existingGeofences) {
+        if (!keptIds.contains(old.id)) {
+          await notifier.removeGeofence(savedId, old.id);
+        }
+      }
+      for (final g in _geofences) {
+        final fence = g.copyWith(setId: savedId);
+        if (existingGeofences.any((e) => e.id == g.id)) {
+          await notifier.updateGeofence(fence);
+        } else {
+          await notifier.addGeofence(fence);
+        }
       }
 
       if (mounted) {

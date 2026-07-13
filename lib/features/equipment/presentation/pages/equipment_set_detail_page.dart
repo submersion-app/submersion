@@ -62,6 +62,15 @@ class EquipmentSetDetailPage extends ConsumerWidget {
           PopupMenuButton<String>(
             onSelected: (value) => _handleMenuAction(context, ref, value, set),
             itemBuilder: (context) => [
+              if (!set.isDefault)
+                PopupMenuItem(
+                  value: 'setAsDefault',
+                  child: ListTile(
+                    leading: const Icon(Icons.star_outline),
+                    title: Text(context.l10n.equipment_setDetail_setAsDefault),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
               PopupMenuItem(
                 value: 'delete',
                 child: ListTile(
@@ -104,9 +113,24 @@ class EquipmentSetDetailPage extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            set.name,
-                            style: Theme.of(context).textTheme.titleLarge,
+                          Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  set.name,
+                                  style: Theme.of(context).textTheme.titleLarge,
+                                ),
+                              ),
+                              if (set.isDefault) ...[
+                                const SizedBox(width: 8),
+                                Chip(
+                                  label: Text(
+                                    context.l10n.equipment_sets_defaultBadge,
+                                  ),
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                              ],
+                            ],
                           ),
                           if (set.description.isNotEmpty) ...[
                             const SizedBox(height: 4),
@@ -189,6 +213,39 @@ class EquipmentSetDetailPage extends ConsumerWidget {
               )
             else
               ...set.items!.map((item) => _buildEquipmentTile(context, item)),
+            const SizedBox(height: 24),
+            Text(
+              context.l10n.equipment_setDetail_geofencesTitle,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            Consumer(
+              builder: (context, ref, _) {
+                final fencesAsync = ref.watch(
+                  equipmentSetGeofencesProvider(setId),
+                );
+                return fencesAsync.maybeWhen(
+                  data: (fences) => fences.isEmpty
+                      ? Text(context.l10n.equipment_setDetail_noGeofences)
+                      : Column(
+                          children: [
+                            for (final g in fences)
+                              ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                leading: const Icon(Icons.place_outlined),
+                                title: Text(
+                                  g.label ??
+                                      context
+                                          .l10n
+                                          .equipment_geofenceEditor_title,
+                                ),
+                              ),
+                          ],
+                        ),
+                  orElse: () => const SizedBox.shrink(),
+                );
+              },
+            ),
           ],
         ),
       ),
@@ -222,6 +279,21 @@ class EquipmentSetDetailPage extends ConsumerWidget {
     String action,
     EquipmentSet set,
   ) async {
+    if (action == 'setAsDefault') {
+      await ref
+          .read(equipmentSetListNotifierProvider.notifier)
+          .setAsDefault(setId);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              context.l10n.equipment_setDetail_setAsDefaultSnackbar(set.name),
+            ),
+          ),
+        );
+      }
+      return;
+    }
     if (action == 'delete') {
       final confirmed = await showDialog<bool>(
         context: context,
