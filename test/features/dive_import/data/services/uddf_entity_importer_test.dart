@@ -1998,9 +1998,16 @@ void main() {
     // _parseEnum is also used for buddy certificationLevel and
     // certificationAgency, providing another indirect test path.
 
+    // issue #553: a buddy's parsed cert now lands on a buddy-owned row in the
+    // certifications table (the inline Buddy cert fields were dropped), so
+    // these assert on the created Certification. _parseEnum is still exercised.
     test('parses certificationLevel string on buddy', () async {
       when(mockBuddyRepo.createBuddy(any)).thenAnswer(
         (invocation) async => invocation.positionalArguments[0] as Buddy,
+      );
+      when(mockCertificationRepo.createCertification(any)).thenAnswer(
+        (invocation) async =>
+            invocation.positionalArguments[0] as Certification,
       );
 
       const data = UddfImportResult(
@@ -2020,14 +2027,21 @@ void main() {
         diverId: diverId,
       );
 
-      final captured = verify(mockBuddyRepo.createBuddy(captureAny)).captured;
-      final buddy = captured[0] as Buddy;
-      expect(buddy.certificationLevel, CertificationLevel.advancedOpenWater);
+      final captured = verify(
+        mockCertificationRepo.createCertification(captureAny),
+      ).captured;
+      final cert = captured[0] as Certification;
+      expect(cert.level, CertificationLevel.advancedOpenWater);
+      expect(cert.buddyId, isNotNull);
     });
 
     test('parses certificationAgency enum on buddy', () async {
       when(mockBuddyRepo.createBuddy(any)).thenAnswer(
         (invocation) async => invocation.positionalArguments[0] as Buddy,
+      );
+      when(mockCertificationRepo.createCertification(any)).thenAnswer(
+        (invocation) async =>
+            invocation.positionalArguments[0] as Certification,
       );
 
       const data = UddfImportResult(
@@ -2047,9 +2061,11 @@ void main() {
         diverId: diverId,
       );
 
-      final captured = verify(mockBuddyRepo.createBuddy(captureAny)).captured;
-      final buddy = captured[0] as Buddy;
-      expect(buddy.certificationAgency, CertificationAgency.ssi);
+      final captured = verify(
+        mockCertificationRepo.createCertification(captureAny),
+      ).captured;
+      final cert = captured[0] as Certification;
+      expect(cert.agency, CertificationAgency.ssi);
     });
 
     test('returns null for unrecognized certificationLevel', () async {
