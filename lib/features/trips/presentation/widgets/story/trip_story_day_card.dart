@@ -300,20 +300,24 @@ class _SightingChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Merge duplicate species across the day's dives.
-    final counts = <String, int>{};
+    // Merge the same species across the day's dives, keyed by the stable
+    // speciesId so distinct species that share a common name stay separate.
+    final merged = <String, ({String name, int count})>{};
     for (final sighting in day.sightings) {
-      counts[sighting.speciesName] =
-          (counts[sighting.speciesName] ?? 0) + sighting.count;
+      final existing = merged[sighting.speciesId];
+      merged[sighting.speciesId] = (
+        name: sighting.speciesName,
+        count: (existing?.count ?? 0) + sighting.count,
+      );
     }
     return Wrap(
       spacing: 6,
       runSpacing: 4,
       children: [
-        for (final entry in counts.entries)
+        for (final entry in merged.values)
           Chip(
             label: Text(
-              entry.value > 1 ? '${entry.key} x${entry.value}' : entry.key,
+              entry.count > 1 ? '${entry.name} x${entry.count}' : entry.name,
             ),
             visualDensity: VisualDensity.compact,
           ),

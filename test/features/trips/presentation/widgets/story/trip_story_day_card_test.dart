@@ -24,10 +24,15 @@ MediaItem _media(String id) => MediaItem(
   updatedAt: DateTime(2026, 3, 8, 10),
 );
 
-Sighting _sighting(String id, String species, {int count = 1}) => Sighting(
+Sighting _sighting(
+  String id,
+  String species, {
+  int count = 1,
+  String? speciesId,
+}) => Sighting(
   id: id,
   diveId: 'd1',
-  speciesId: 'sp-$species',
+  speciesId: speciesId ?? 'sp-$species',
   speciesName: species,
   count: count,
 );
@@ -156,6 +161,26 @@ void main() {
     // Two "Reef shark" sightings merge into a single "x2" chip.
     expect(find.text('Reef shark x2'), findsOneWidget);
     expect(find.text('Turtle'), findsOneWidget);
+  });
+
+  testWidgets('distinct species sharing a common name are not merged', (
+    tester,
+  ) async {
+    final day = TripStoryDay(
+      date: DateTime(2026, 3, 8),
+      dayNumber: 2,
+      kind: TripStoryDayKind.past,
+      dives: [Dive(id: 'd1', dateTime: DateTime(2026, 3, 8, 9))],
+      sightings: [
+        _sighting('s1', 'Goby', speciesId: 'sp-a'),
+        _sighting('s2', 'Goby', speciesId: 'sp-b'),
+      ],
+    );
+    await pumpCard(tester, day);
+
+    // Same display name but different speciesId: two separate chips, no "x2".
+    expect(find.text('Goby'), findsNWidgets(2));
+    expect(find.text('Goby x2'), findsNothing);
   });
 
   testWidgets('planned day shows itinerary notes and site-history pills', (

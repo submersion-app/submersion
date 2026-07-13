@@ -98,6 +98,9 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
         return false;
       }
     }
+    // Scrolled above the first chapter's threshold (near the top): fall back to
+    // day 0 so the map doesn't stay stuck on a later day.
+    if (_dayKeys.isNotEmpty) _selectDay(0);
     return false;
   }
 
