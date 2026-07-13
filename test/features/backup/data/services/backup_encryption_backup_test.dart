@@ -124,4 +124,29 @@ void main() {
       );
     },
   );
+
+  test('exportBackupToTemp encrypts to .sbe when enabled', () async {
+    await enableBackupEncryption();
+    final file = await buildService().exportBackupToTemp();
+    expect(file.path, endsWith('.sbe'));
+    expect(SyncEnvelope.hasMagic(await file.readAsBytes()), isTrue);
+  });
+
+  test(
+    'exportBackupToPath encrypts the chosen destination when enabled',
+    () async {
+      await enableBackupEncryption();
+      final dest =
+          '${Directory.systemTemp.path}/exp_${DateTime.now().microsecondsSinceEpoch}.sbe';
+      addTearDown(() async {
+        final f = File(dest);
+        if (await f.exists()) await f.delete();
+      });
+      final record = await buildService().exportBackupToPath(dest);
+      expect(
+        SyncEnvelope.hasMagic(await File(record.localPath!).readAsBytes()),
+        isTrue,
+      );
+    },
+  );
 }

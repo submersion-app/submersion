@@ -263,7 +263,32 @@ class BackupService {
   Future<BackupRecord> exportBackupToPath(String destinationPath) async {
     _log.info('Exporting backup to: $destinationPath');
 
-    await _dbAdapter.backup(destinationPath);
+    final encKey = await _activeBackupKey();
+    if (encKey == null) {
+      await _dbAdapter.backup(destinationPath);
+    } else {
+      final tempDir = await getTemporaryDirectory();
+      final plainPath = p.join(tempDir.path, 'export_${_uuid.v4()}.db');
+      await _dbAdapter.backup(plainPath);
+      try {
+        await BackupCrypto.encryptFile(
+          inPath: plainPath,
+          outPath: destinationPath,
+          mlk: encKey.mlk,
+          libraryKeyId: encKey.libraryKeyId,
+          keyslotBytes: encKey.keyslotBytes,
+        );
+      } finally {
+        final plain = File(plainPath);
+        if (await plain.exists()) {
+          try {
+            await plain.delete();
+          } catch (_) {
+            // best-effort temp cleanup
+          }
+        }
+      }
+    }
 
     final filename = p.basename(destinationPath);
     final counts = await _getDiveSiteCounts();
@@ -298,14 +323,42 @@ class BackupService {
   Future<File> exportBackupToTemp() async {
     _log.info('Exporting backup to temp for sharing');
 
+    final encKey = await _activeBackupKey();
     final filename = _generateFilename();
     final tempDir = await getTemporaryDirectory();
-    final tempPath = p.join(tempDir.path, filename);
 
-    await _dbAdapter.backup(tempPath);
+    if (encKey == null) {
+      final tempPath = p.join(tempDir.path, filename);
+      await _dbAdapter.backup(tempPath);
+      _log.info('Temp export completed: $filename');
+      return File(tempPath);
+    }
 
-    _log.info('Temp export completed: $filename');
-    return File(tempPath);
+    final plainPath = p.join(tempDir.path, filename);
+    final sbeName =
+        p.basenameWithoutExtension(filename) + BackupCrypto.fileExtension;
+    final sbePath = p.join(tempDir.path, sbeName);
+    await _dbAdapter.backup(plainPath);
+    try {
+      await BackupCrypto.encryptFile(
+        inPath: plainPath,
+        outPath: sbePath,
+        mlk: encKey.mlk,
+        libraryKeyId: encKey.libraryKeyId,
+        keyslotBytes: encKey.keyslotBytes,
+      );
+    } finally {
+      final plain = File(plainPath);
+      if (await plain.exists()) {
+        try {
+          await plain.delete();
+        } catch (_) {
+          // best-effort temp cleanup
+        }
+      }
+    }
+    _log.info('Encrypted temp export completed: $sbeName');
+    return File(sbePath);
   }
 
   /// Validate whether a file is a valid Submersion backup.
