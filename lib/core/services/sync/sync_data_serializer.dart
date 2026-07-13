@@ -3562,7 +3562,11 @@ class SyncDataSerializer {
   ) async {
     final query = _db.select(_db.mediaSubscriptions);
     if (hlcSince != null) {
-      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+      // NULL-hlc rows are pre-v108 subscriptions the migration left
+      // unstamped; a pure hlc > since filter would never export them.
+      // Including them in every incremental changeset is safe (few rows,
+      // idempotent upsert on apply) and stops once an edit stamps them.
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince) | t.hlc.isNull());
     }
     final rows = await query.get();
     return rows.map((r) => r.toJson()).toList();
