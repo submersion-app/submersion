@@ -85,6 +85,14 @@ class NetworkFetchPipeline {
   /// Null disables auto-match entirely (tests, headless imports).
   final Future<List<DiveBounds>> Function(DateTime takenAt)? _diveBoundsLoader;
   final DivePhotoMatcher _matcher;
+
+  /// Marks auto-matched rows pending for sync. COUPLING NOTE: the default
+  /// SyncRepository resolves its database via DatabaseService, while this
+  /// pipeline writes through the injected [_db]. Callers constructing the
+  /// pipeline with a standalone database (tests, headless imports) must
+  /// either register it with DatabaseService or inject a SyncRepository
+  /// bound to the same database - otherwise the pending mark fails and the
+  /// auto-attach is rolled back.
   final SyncRepository _syncRepository;
 
   final AppDatabase _db;
