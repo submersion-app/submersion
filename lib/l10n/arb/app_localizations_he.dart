@@ -18785,6 +18785,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dive3d_resetView => 'איפוס תצוגה';
 
   @override
+  String get dive3d_zoomIn => 'התקרבות';
+
+  @override
+  String get dive3d_zoomOut => 'התרחקות';
+
+  @override
   String get dive3d_play => 'הפעלה';
 
   @override

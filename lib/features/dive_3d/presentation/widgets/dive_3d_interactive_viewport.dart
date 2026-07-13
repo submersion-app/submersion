@@ -346,9 +346,19 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _zoomButton(context, Icons.add, () => _zoomBy(1.2)),
+        _zoomButton(
+          context,
+          Icons.add,
+          () => _zoomBy(1.2),
+          tooltip: context.l10n.dive3d_zoomIn,
+        ),
         const SizedBox(height: 6),
-        _zoomButton(context, Icons.remove, () => _zoomBy(1 / 1.2)),
+        _zoomButton(
+          context,
+          Icons.remove,
+          () => _zoomBy(1 / 1.2),
+          tooltip: context.l10n.dive3d_zoomOut,
+        ),
         const SizedBox(height: 6),
         _zoomButton(
           context,

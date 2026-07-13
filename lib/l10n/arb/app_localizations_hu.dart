@@ -19225,6 +19225,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get dive3d_resetView => 'Nézet visszaállítása';
 
   @override
+  String get dive3d_zoomIn => 'Nagyítás';
+
+  @override
+  String get dive3d_zoomOut => 'Kicsinyítés';
+
+  @override
   String get dive3d_play => 'Lejátszás';
 
   @override

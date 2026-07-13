@@ -32268,6 +32268,18 @@ abstract class AppLocalizations {
   /// **'Reset view'**
   String get dive3d_resetView;
 
+  /// No description provided for @dive3d_zoomIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom in'**
+  String get dive3d_zoomIn;
+
+  /// No description provided for @dive3d_zoomOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom out'**
+  String get dive3d_zoomOut;
+
   /// No description provided for @dive3d_play.
   ///
   /// In en, this message translates to:

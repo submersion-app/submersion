@@ -18302,6 +18302,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dive3d_resetView => '重置视图';
 
   @override
+  String get dive3d_zoomIn => '放大';
+
+  @override
+  String get dive3d_zoomOut => '缩小';
+
+  @override
   String get dive3d_play => '播放';
 
   @override

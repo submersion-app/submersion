@@ -19285,6 +19285,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get dive3d_resetView => 'Restablecer vista';
 
   @override
+  String get dive3d_zoomIn => 'Acercar';
+
+  @override
+  String get dive3d_zoomOut => 'Alejar';
+
+  @override
   String get dive3d_play => 'Reproducir';
 
   @override

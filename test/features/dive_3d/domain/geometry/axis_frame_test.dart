@@ -28,11 +28,18 @@ void main() {
 
   test('has a Y tick at the reference (100%) height', () {
     final frame = AxisFrame.build(bounds, referenceY: 3.0);
-    final ticks = frame.segments.where((s) => s.role == AxisRole.tick);
+    final ticks = frame.segments.where((s) => s.role == AxisRole.tickY);
     expect(ticks.any((t) => (t.y1 - 3.0).abs() < 1e-9), isTrue);
     // 0% and 50% ticks too.
     expect(ticks.any((t) => t.y1.abs() < 1e-9), isTrue);
     expect(ticks.any((t) => (t.y1 - 1.5).abs() < 1e-9), isTrue);
+  });
+
+  test('ticks are tagged per axis (X/Y/Z)', () {
+    final frame = AxisFrame.build(bounds, referenceY: 3.0);
+    expect(frame.segments.any((s) => s.role == AxisRole.tickX), isTrue);
+    expect(frame.segments.any((s) => s.role == AxisRole.tickY), isTrue);
+    expect(frame.segments.any((s) => s.role == AxisRole.tickZ), isTrue);
   });
 
   test('emits floor and wall grid segments', () {

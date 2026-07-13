@@ -19249,6 +19249,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get dive3d_resetView => 'Ansicht zurücksetzen';
 
   @override
+  String get dive3d_zoomIn => 'Vergrößern';
+
+  @override
+  String get dive3d_zoomOut => 'Verkleinern';
+
+  @override
   String get dive3d_play => 'Wiedergabe';
 
   @override

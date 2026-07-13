@@ -217,11 +217,23 @@ class TissueChromePainter extends CustomPainter {
           canvas.drawLine(a, b, stroke(style.axisY, 2));
         case AxisRole.axisZ:
           canvas.drawLine(a, b, stroke(style.axisZ, 2));
-        case AxisRole.tick:
+        case AxisRole.tickX:
+          canvas.drawLine(
+            a,
+            b,
+            stroke(style.axisX.withValues(alpha: 0.9), 1.5),
+          );
+        case AxisRole.tickY:
           canvas.drawLine(
             a,
             b,
             stroke(style.axisY.withValues(alpha: 0.9), 1.5),
+          );
+        case AxisRole.tickZ:
+          canvas.drawLine(
+            a,
+            b,
+            stroke(style.axisZ.withValues(alpha: 0.9), 1.5),
           );
         case AxisRole.frameGrid:
           break; // drawn by TissueFramePainter

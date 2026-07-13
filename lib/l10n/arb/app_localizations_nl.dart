@@ -19125,6 +19125,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get dive3d_resetView => 'Weergave herstellen';
 
   @override
+  String get dive3d_zoomIn => 'Inzoomen';
+
+  @override
+  String get dive3d_zoomOut => 'Uitzoomen';
+
+  @override
   String get dive3d_play => 'Afspelen';
 
   @override

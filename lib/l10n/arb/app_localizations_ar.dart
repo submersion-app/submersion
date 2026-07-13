@@ -18920,6 +18920,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dive3d_resetView => 'إعادة تعيين العرض';
 
   @override
+  String get dive3d_zoomIn => 'تكبير';
+
+  @override
+  String get dive3d_zoomOut => 'تصغير';
+
+  @override
   String get dive3d_play => 'تشغيل';
 
   @override

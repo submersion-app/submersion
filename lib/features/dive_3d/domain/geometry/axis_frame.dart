@@ -1,8 +1,9 @@
 import 'package:submersion/features/dive_3d/domain/geometry/scene_bounds.dart';
 
 /// The role of a line segment so the renderer can color axes, ticks, and the
-/// reference grid distinctly.
-enum AxisRole { axisX, axisY, axisZ, tick, frameGrid }
+/// reference grid distinctly. Ticks are tagged by axis so each can be drawn in
+/// its axis's color.
+enum AxisRole { axisX, axisY, axisZ, tickX, tickY, tickZ, frameGrid }
 
 /// A line segment in world (scene) coordinates.
 class AxisSegment {
@@ -55,19 +56,19 @@ class AxisFrame {
     // --- X ticks (into +z on the floor). ---
     for (var i = 1; i <= timeDivs; i++) {
       final x = x0 + (x1 - x0) * i / timeDivs;
-      segments.add(AxisSegment(AxisRole.tick, x, y0, z0, x, y0, z0 + tick));
+      segments.add(AxisSegment(AxisRole.tickX, x, y0, z0, x, y0, z0 + tick));
     }
 
     // --- Y ticks at 0 / 50 / 100% (into +x on the back wall). ---
     for (final y in yTicks) {
-      segments.add(AxisSegment(AxisRole.tick, x0, y, z0, x0 + tick, y, z0));
+      segments.add(AxisSegment(AxisRole.tickY, x0, y, z0, x0 + tick, y, z0));
     }
 
     // --- Z ticks per compartment (into +x on the floor). ---
     for (var c = 0; c < compartments; c++) {
       final t = compartments <= 1 ? 0.0 : c / (compartments - 1);
       final z = z0 + (z1 - z0) * t;
-      segments.add(AxisSegment(AxisRole.tick, x0, y0, z, x0 + tick, y0, z));
+      segments.add(AxisSegment(AxisRole.tickZ, x0, y0, z, x0 + tick, y0, z));
     }
 
     // --- Floor grid (y = y0): lines along X at each z-div, along Z at each x-div. ---

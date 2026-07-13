@@ -19282,6 +19282,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get dive3d_resetView => 'Redefinir visualização';
 
   @override
+  String get dive3d_zoomIn => 'Ampliar';
+
+  @override
+  String get dive3d_zoomOut => 'Reduzir';
+
+  @override
   String get dive3d_play => 'Reproduzir';
 
   @override
