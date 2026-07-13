@@ -5472,6 +5472,10 @@
   "@dive3d_previewHint": {},
   "dive3d_resetView": "איפוס תצוגה",
   "@dive3d_resetView": {},
+  "dive3d_zoomIn": "התקרבות",
+  "@dive3d_zoomIn": {},
+  "dive3d_zoomOut": "התרחקות",
+  "@dive3d_zoomOut": {},
   "dive3d_play": "הפעלה",
   "@dive3d_play": {},
   "dive3d_pause": "השהיה",
@@ -5546,6 +5550,48 @@
   "@dive3d_tissue_onGassing": {},
   "dive3d_tissue_offGassing": "שחרור",
   "@dive3d_tissue_offGassing": {},
+  "dive3d_tissue_tooltipCompartment": "תא {number}",
+  "@dive3d_tissue_tooltipCompartment": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "dive3d_tissue_tooltipHalfTime": "{minutes} דק׳ N2",
+  "@dive3d_tissue_tooltipHalfTime": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "dive3d_tissue_tooltipSaturation": "רוויה {percent}%",
+  "@dive3d_tissue_tooltipSaturation": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "dive3d_tissue_tooltipProgress": "{percent}% מהצלילה",
+  "@dive3d_tissue_tooltipProgress": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "dive3d_tissue_stateEquilibrium": "שיווי משקל",
+  "@dive3d_tissue_stateEquilibrium": {},
+  "dive3d_tissue_statePastMValue": "מעל ערך M",
+  "@dive3d_tissue_statePastMValue": {},
+  "dive3d_tissue_axisTime": "זמן",
+  "@dive3d_tissue_axisTime": {},
+  "dive3d_tissue_axisSaturation": "רוויה %",
+  "@dive3d_tissue_axisSaturation": {},
+  "dive3d_tissue_axisCompartment": "תא",
+  "@dive3d_tissue_axisCompartment": {},
   "dive3d_compare_computers_title": "השוואת מחשבי צלילה",
   "@dive3d_compare_computers_title": {},
   "dive3d_compare_dives_title": "השוואת צלילות",

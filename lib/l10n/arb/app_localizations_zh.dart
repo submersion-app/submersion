@@ -18302,6 +18302,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dive3d_resetView => '重置视图';
 
   @override
+  String get dive3d_zoomIn => '放大';
+
+  @override
+  String get dive3d_zoomOut => '缩小';
+
+  @override
   String get dive3d_play => '播放';
 
   @override
@@ -18411,6 +18417,41 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get dive3d_tissue_offGassing => '释放';
+
+  @override
+  String dive3d_tissue_tooltipCompartment(int number) {
+    return '隔室 $number';
+  }
+
+  @override
+  String dive3d_tissue_tooltipHalfTime(int minutes) {
+    return '$minutes 分钟 N2';
+  }
+
+  @override
+  String dive3d_tissue_tooltipSaturation(int percent) {
+    return '饱和度 $percent%';
+  }
+
+  @override
+  String dive3d_tissue_tooltipProgress(int percent) {
+    return '潜水的 $percent%';
+  }
+
+  @override
+  String get dive3d_tissue_stateEquilibrium => '平衡';
+
+  @override
+  String get dive3d_tissue_statePastMValue => '超过 M 值';
+
+  @override
+  String get dive3d_tissue_axisTime => '时间';
+
+  @override
+  String get dive3d_tissue_axisSaturation => '饱和度 %';
+
+  @override
+  String get dive3d_tissue_axisCompartment => '隔室';
 
   @override
   String get dive3d_compare_computers_title => '比较潜水电脑';

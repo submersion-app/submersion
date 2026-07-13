@@ -32268,6 +32268,18 @@ abstract class AppLocalizations {
   /// **'Reset view'**
   String get dive3d_resetView;
 
+  /// No description provided for @dive3d_zoomIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom in'**
+  String get dive3d_zoomIn;
+
+  /// No description provided for @dive3d_zoomOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom out'**
+  String get dive3d_zoomOut;
+
   /// No description provided for @dive3d_play.
   ///
   /// In en, this message translates to:
@@ -32489,6 +32501,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Off-gassing'**
   String get dive3d_tissue_offGassing;
+
+  /// No description provided for @dive3d_tissue_tooltipCompartment.
+  ///
+  /// In en, this message translates to:
+  /// **'Comp {number}'**
+  String dive3d_tissue_tooltipCompartment(int number);
+
+  /// No description provided for @dive3d_tissue_tooltipHalfTime.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min N2'**
+  String dive3d_tissue_tooltipHalfTime(int minutes);
+
+  /// No description provided for @dive3d_tissue_tooltipSaturation.
+  ///
+  /// In en, this message translates to:
+  /// **'Saturation {percent}%'**
+  String dive3d_tissue_tooltipSaturation(int percent);
+
+  /// No description provided for @dive3d_tissue_tooltipProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% of dive'**
+  String dive3d_tissue_tooltipProgress(int percent);
+
+  /// No description provided for @dive3d_tissue_stateEquilibrium.
+  ///
+  /// In en, this message translates to:
+  /// **'Equilibrium'**
+  String get dive3d_tissue_stateEquilibrium;
+
+  /// No description provided for @dive3d_tissue_statePastMValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Past M-value'**
+  String get dive3d_tissue_statePastMValue;
+
+  /// No description provided for @dive3d_tissue_axisTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get dive3d_tissue_axisTime;
+
+  /// No description provided for @dive3d_tissue_axisSaturation.
+  ///
+  /// In en, this message translates to:
+  /// **'Saturation %'**
+  String get dive3d_tissue_axisSaturation;
+
+  /// No description provided for @dive3d_tissue_axisCompartment.
+  ///
+  /// In en, this message translates to:
+  /// **'Compartment'**
+  String get dive3d_tissue_axisCompartment;
 
   /// No description provided for @dive3d_compare_computers_title.
   ///

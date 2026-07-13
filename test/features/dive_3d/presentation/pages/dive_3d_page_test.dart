@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/deco/buhlmann_algorithm.dart';
@@ -8,9 +9,12 @@ import 'package:submersion/features/dive_3d/application/tissue_providers.dart';
 import 'package:submersion/features/dive_3d/domain/compare/comparison_profile.dart';
 import 'package:submersion/features/dive_3d/domain/tissue/subsurface_tissue_builder.dart';
 import 'package:submersion/features/dive_3d/presentation/pages/dive_3d_page.dart';
+import 'package:submersion/features/dive_3d/presentation/renderer/scene_projector.dart';
 import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/compare_profile_3d_view.dart';
+import 'package:submersion/features/dive_3d/presentation/widgets/dive_3d_interactive_viewport.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/time_scrub_bar.dart';
+import 'package:submersion/features/dive_3d/presentation/widgets/tissue_hover_tooltip.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/tissue_legend.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/tissue_readout_panel.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -147,10 +151,13 @@ void main() {
           tissueDecoStatusesProvider(
             'd1',
           ).overrideWith((ref) async => statuses),
-          tissue3dSceneProvider('d1').overrideWith(
-            (ref) async =>
-                SubsurfaceTissueBuilder.build(statuses, colorFn: thermalColor),
+          tissueSurfaceProvider('d1').overrideWith(
+            (ref) async => SubsurfaceTissueBuilder.buildResult(
+              statuses,
+              colorFn: thermalColor,
+            ),
           ),
+          tissueRuntimeSecondsProvider('d1').overrideWith((ref) async => 1400),
         ],
         child: const Dive3dPage(diveId: 'd1'),
       ),
@@ -167,6 +174,57 @@ void main() {
     // The legend that explains how to read the graph is shown.
     expect(find.byType(TissueLegend), findsOneWidget);
     expect(find.text('On-gassing'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(seconds: 1));
+  });
+
+  testWidgets('hovering the tissue surface shows the value tooltip', (
+    tester,
+  ) async {
+    final overrides = await getBaseOverrides();
+    final statuses = tissueStatuses();
+    final result = SubsurfaceTissueBuilder.buildResult(
+      statuses,
+      colorFn: thermalColor,
+    );
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...overrides,
+          dive3dSceneDataProvider(
+            'd1',
+          ).overrideWith((ref) async => readoutSceneData()),
+          tissueDecoStatusesProvider(
+            'd1',
+          ).overrideWith((ref) async => statuses),
+          tissueSurfaceProvider('d1').overrideWith((ref) async => result),
+          tissueRuntimeSecondsProvider('d1').overrideWith((ref) async => 1400),
+        ],
+        child: const Dive3dPage(diveId: 'd1'),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.tap(find.text('Tissues'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    // Hover a real surface vertex: project it at the default camera.
+    final vp = find.byType(Dive3dInteractiveViewport);
+    final size = tester.getSize(vp);
+    final origin = tester.getTopLeft(vp);
+    final projector = SceneProjector(size: size, bounds: result.scene.bounds);
+    final (x, y, z) = result.grid.positionAt(result.grid.columns ~/ 2, 8);
+    final target = origin + projector.project(x, y, z);
+
+    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    await mouse.addPointer(location: Offset.zero);
+    addTearDown(mouse.removePointer);
+    await mouse.moveTo(target);
+    await tester.pump();
+
+    expect(find.byType(TissueHoverTooltip), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump(const Duration(seconds: 1));

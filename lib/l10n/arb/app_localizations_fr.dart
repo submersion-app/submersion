@@ -19348,6 +19348,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get dive3d_resetView => 'Réinitialiser la vue';
 
   @override
+  String get dive3d_zoomIn => 'Zoom avant';
+
+  @override
+  String get dive3d_zoomOut => 'Zoom arrière';
+
+  @override
   String get dive3d_play => 'Lire';
 
   @override
@@ -19461,6 +19467,41 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get dive3d_tissue_offGassing => 'Élimination';
+
+  @override
+  String dive3d_tissue_tooltipCompartment(int number) {
+    return 'Comp. $number';
+  }
+
+  @override
+  String dive3d_tissue_tooltipHalfTime(int minutes) {
+    return '$minutes min N2';
+  }
+
+  @override
+  String dive3d_tissue_tooltipSaturation(int percent) {
+    return 'Saturation $percent%';
+  }
+
+  @override
+  String dive3d_tissue_tooltipProgress(int percent) {
+    return '$percent% de la plongée';
+  }
+
+  @override
+  String get dive3d_tissue_stateEquilibrium => 'Équilibre';
+
+  @override
+  String get dive3d_tissue_statePastMValue => 'Au-delà de la valeur M';
+
+  @override
+  String get dive3d_tissue_axisTime => 'Temps';
+
+  @override
+  String get dive3d_tissue_axisSaturation => 'Saturation %';
+
+  @override
+  String get dive3d_tissue_axisCompartment => 'Compartiment';
 
   @override
   String get dive3d_compare_computers_title => 'Comparer les ordinateurs';

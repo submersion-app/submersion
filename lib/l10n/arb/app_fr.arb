@@ -5472,6 +5472,10 @@
   "@dive3d_previewHint": {},
   "dive3d_resetView": "Réinitialiser la vue",
   "@dive3d_resetView": {},
+  "dive3d_zoomIn": "Zoom avant",
+  "@dive3d_zoomIn": {},
+  "dive3d_zoomOut": "Zoom arrière",
+  "@dive3d_zoomOut": {},
   "dive3d_play": "Lire",
   "@dive3d_play": {},
   "dive3d_pause": "Pause",
@@ -5546,6 +5550,48 @@
   "@dive3d_tissue_onGassing": {},
   "dive3d_tissue_offGassing": "Élimination",
   "@dive3d_tissue_offGassing": {},
+  "dive3d_tissue_tooltipCompartment": "Comp. {number}",
+  "@dive3d_tissue_tooltipCompartment": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "dive3d_tissue_tooltipHalfTime": "{minutes} min N2",
+  "@dive3d_tissue_tooltipHalfTime": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "dive3d_tissue_tooltipSaturation": "Saturation {percent}%",
+  "@dive3d_tissue_tooltipSaturation": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "dive3d_tissue_tooltipProgress": "{percent}% de la plongée",
+  "@dive3d_tissue_tooltipProgress": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "dive3d_tissue_stateEquilibrium": "Équilibre",
+  "@dive3d_tissue_stateEquilibrium": {},
+  "dive3d_tissue_statePastMValue": "Au-delà de la valeur M",
+  "@dive3d_tissue_statePastMValue": {},
+  "dive3d_tissue_axisTime": "Temps",
+  "@dive3d_tissue_axisTime": {},
+  "dive3d_tissue_axisSaturation": "Saturation %",
+  "@dive3d_tissue_axisSaturation": {},
+  "dive3d_tissue_axisCompartment": "Compartiment",
+  "@dive3d_tissue_axisCompartment": {},
   "dive3d_compare_computers_title": "Comparer les ordinateurs",
   "@dive3d_compare_computers_title": {},
   "dive3d_compare_dives_title": "Comparer les plongées",

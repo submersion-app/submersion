@@ -5472,6 +5472,10 @@
   "@dive3d_previewHint": {},
   "dive3d_resetView": "Nézet visszaállítása",
   "@dive3d_resetView": {},
+  "dive3d_zoomIn": "Nagyítás",
+  "@dive3d_zoomIn": {},
+  "dive3d_zoomOut": "Kicsinyítés",
+  "@dive3d_zoomOut": {},
   "dive3d_play": "Lejátszás",
   "@dive3d_play": {},
   "dive3d_pause": "Szünet",
@@ -5546,6 +5550,48 @@
   "@dive3d_tissue_onGassing": {},
   "dive3d_tissue_offGassing": "Leürülés",
   "@dive3d_tissue_offGassing": {},
+  "dive3d_tissue_tooltipCompartment": "{number}. komp.",
+  "@dive3d_tissue_tooltipCompartment": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "dive3d_tissue_tooltipHalfTime": "{minutes} perc N2",
+  "@dive3d_tissue_tooltipHalfTime": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "dive3d_tissue_tooltipSaturation": "Telítettség {percent}%",
+  "@dive3d_tissue_tooltipSaturation": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "dive3d_tissue_tooltipProgress": "A merülés {percent}%-a",
+  "@dive3d_tissue_tooltipProgress": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "dive3d_tissue_stateEquilibrium": "Egyensúly",
+  "@dive3d_tissue_stateEquilibrium": {},
+  "dive3d_tissue_statePastMValue": "M-érték felett",
+  "@dive3d_tissue_statePastMValue": {},
+  "dive3d_tissue_axisTime": "Idő",
+  "@dive3d_tissue_axisTime": {},
+  "dive3d_tissue_axisSaturation": "Telítettség %",
+  "@dive3d_tissue_axisSaturation": {},
+  "dive3d_tissue_axisCompartment": "Kompartiment",
+  "@dive3d_tissue_axisCompartment": {},
   "dive3d_compare_computers_title": "Számítógépek összehasonlítása",
   "@dive3d_compare_computers_title": {},
   "dive3d_compare_dives_title": "Merülések összehasonlítása",

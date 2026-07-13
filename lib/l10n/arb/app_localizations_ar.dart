@@ -18920,6 +18920,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dive3d_resetView => 'إعادة تعيين العرض';
 
   @override
+  String get dive3d_zoomIn => 'تكبير';
+
+  @override
+  String get dive3d_zoomOut => 'تصغير';
+
+  @override
   String get dive3d_play => 'تشغيل';
 
   @override
@@ -19030,6 +19036,41 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get dive3d_tissue_offGassing => 'إطلاق';
+
+  @override
+  String dive3d_tissue_tooltipCompartment(int number) {
+    return 'المقصورة $number';
+  }
+
+  @override
+  String dive3d_tissue_tooltipHalfTime(int minutes) {
+    return '$minutes دقيقة N2';
+  }
+
+  @override
+  String dive3d_tissue_tooltipSaturation(int percent) {
+    return 'التشبع $percent%';
+  }
+
+  @override
+  String dive3d_tissue_tooltipProgress(int percent) {
+    return '$percent% من الغوص';
+  }
+
+  @override
+  String get dive3d_tissue_stateEquilibrium => 'توازن';
+
+  @override
+  String get dive3d_tissue_statePastMValue => 'تجاوز قيمة M';
+
+  @override
+  String get dive3d_tissue_axisTime => 'الوقت';
+
+  @override
+  String get dive3d_tissue_axisSaturation => 'التشبع %';
+
+  @override
+  String get dive3d_tissue_axisCompartment => 'المقصورة';
 
   @override
   String get dive3d_compare_computers_title => 'مقارنة أجهزة الغوص';
