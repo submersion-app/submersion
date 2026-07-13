@@ -379,8 +379,8 @@ class DiveImportNotifier extends StateNotifier<DiveImportState> {
           diveNumber: diveNumber,
         );
 
-        final createdDive = await repository.createDive(dive);
-        await DiveEquipmentDefaulter().applyForImportedDive(createdDive);
+        await repository.createDive(dive);
+        await DiveEquipmentDefaulter().applyForImportedDive(dive);
         imported++;
       }
 

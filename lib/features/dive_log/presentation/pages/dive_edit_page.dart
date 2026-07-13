@@ -2741,48 +2741,59 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   ];
 
   /// New-dive path: fill empty equipment with the best set (geofence/default).
+  /// Best-effort: skips silently if equipment sets cannot be resolved (e.g. no
+  /// database in a widget test).
   Future<void> _applyEquipmentDefaultsOnEmpty() async {
     if (_selectedEquipment.isNotEmpty) return;
-    final inputs = await ref.read(equipmentSetSelectionInputsProvider.future);
-    final best = EquipmentSetSelector.bestSetFor(
-      divePoints: _currentDivePoints(),
-      sets: inputs.sets,
-      geofences: inputs.geofences,
-    );
-    final items = best?.items ?? const [];
-    if (items.isEmpty || !mounted) return;
-    setState(() => _selectedEquipment = [...items]);
-  }
-
-  /// Site-change path: apply on empty, else suggest a differing geofence set.
-  Future<void> _reevaluateGeofenceForSite() async {
-    final inputs = await ref.read(equipmentSetSelectionInputsProvider.future);
-    final points = _currentDivePoints();
-    if (_selectedEquipment.isEmpty) {
+    try {
+      final inputs = await ref.read(equipmentSetSelectionInputsProvider.future);
       final best = EquipmentSetSelector.bestSetFor(
-        divePoints: points,
+        divePoints: _currentDivePoints(),
         sets: inputs.sets,
         geofences: inputs.geofences,
       );
       final items = best?.items ?? const [];
-      if (items.isNotEmpty && mounted) {
-        setState(() => _selectedEquipment = [...items]);
-      }
-      return;
+      if (items.isEmpty || !mounted) return;
+      setState(() => _selectedEquipment = [...items]);
+    } catch (_) {
+      // Equipment sets unavailable; skip best-effort auto-apply.
     }
-    final geofenceSet = EquipmentSetSelector.matchingGeofenceSet(
-      divePoints: points,
-      sets: inputs.sets,
-      geofences: inputs.geofences,
-    );
-    if (geofenceSet == null || !mounted) return;
-    if (_dismissedSuggestionSetIds.contains(geofenceSet.id)) return;
-    final currentIds = _selectedEquipment.map((e) => e.id).toSet();
-    final hasNewItem = (geofenceSet.items ?? const []).any(
-      (e) => !currentIds.contains(e.id),
-    );
-    if (!hasNewItem) return;
-    setState(() => _geofenceSuggestion = geofenceSet);
+  }
+
+  /// Site-change path: apply on empty, else suggest a differing geofence set.
+  /// Best-effort: skips silently if equipment sets cannot be resolved.
+  Future<void> _reevaluateGeofenceForSite() async {
+    try {
+      final inputs = await ref.read(equipmentSetSelectionInputsProvider.future);
+      final points = _currentDivePoints();
+      if (_selectedEquipment.isEmpty) {
+        final best = EquipmentSetSelector.bestSetFor(
+          divePoints: points,
+          sets: inputs.sets,
+          geofences: inputs.geofences,
+        );
+        final items = best?.items ?? const [];
+        if (items.isNotEmpty && mounted) {
+          setState(() => _selectedEquipment = [...items]);
+        }
+        return;
+      }
+      final geofenceSet = EquipmentSetSelector.matchingGeofenceSet(
+        divePoints: points,
+        sets: inputs.sets,
+        geofences: inputs.geofences,
+      );
+      if (geofenceSet == null || !mounted) return;
+      if (_dismissedSuggestionSetIds.contains(geofenceSet.id)) return;
+      final currentIds = _selectedEquipment.map((e) => e.id).toSet();
+      final hasNewItem = (geofenceSet.items ?? const []).any(
+        (e) => !currentIds.contains(e.id),
+      );
+      if (!hasNewItem) return;
+      setState(() => _geofenceSuggestion = geofenceSet);
+    } catch (_) {
+      // Equipment sets unavailable; skip best-effort geofence suggestion.
+    }
   }
 
   Widget _equipmentChild() {

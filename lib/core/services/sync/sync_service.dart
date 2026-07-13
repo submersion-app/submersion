@@ -1568,6 +1568,7 @@ class SyncService {
     'equipment': true,
     'equipmentSets': true,
     'equipmentSetItems': false,
+    'equipmentSetGeofences': true,
     'divePlanEquipment': false,
     'diverWeightEntries': true,
     'diveTypes': true,

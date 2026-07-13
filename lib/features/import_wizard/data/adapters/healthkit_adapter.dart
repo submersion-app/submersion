@@ -267,8 +267,8 @@ class HealthKitAdapter implements ImportSourceAdapter {
 
       final importedDive = _parsedDives[index];
       final dive = _converter.convert(importedDive, diverId: _diverId);
-      final createdDive = await _diveRepository.createDive(dive);
-      await DiveEquipmentDefaulter().applyForImportedDive(createdDive);
+      await _diveRepository.createDive(dive);
+      await DiveEquipmentDefaulter().applyForImportedDive(dive);
 
       imported++;
       importedDiveIds.add(dive.id);

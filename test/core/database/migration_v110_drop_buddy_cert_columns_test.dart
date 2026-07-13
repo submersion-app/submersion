@@ -95,9 +95,10 @@ void main() {
     expect(cert.data['id'], 'buddycert-b9');
   });
 
-  test('version ladder: v110 is the exact-latest tripwire', () {
-    // Newest migration holds the exact pin; the next migration relaxes this.
-    expect(AppDatabase.currentSchemaVersion, 110);
+  test('version ladder includes 110', () {
+    // Relaxed when v111 (#583) landed; the exact-latest tripwire moved to the
+    // newest migration's test.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(110));
     expect(AppDatabase.migrationVersions, contains(110));
   });
 }

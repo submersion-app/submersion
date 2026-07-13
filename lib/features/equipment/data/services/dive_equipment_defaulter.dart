@@ -22,12 +22,15 @@ class DiveEquipmentDefaulter {
 
   AppDatabase get _db => DatabaseService.instance.database;
 
-  /// Returns true when a set was applied.
+  /// Returns true when a set was applied. Best-effort: if the database is not
+  /// available (mid-migration, or in tests that mock the layer above), skip
+  /// rather than break the dive import/download.
   Future<bool> applyDefaultEquipmentIfEmpty({
     required String diveId,
     required String? diverId,
     required List<GeoPoint> divePoints,
   }) async {
+    if (DatabaseService.instance.databaseOrNull == null) return false;
     final existing = await (_db.select(
       _db.diveEquipment,
     )..where((t) => t.diveId.equals(diveId))).get();

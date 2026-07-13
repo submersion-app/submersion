@@ -52,8 +52,8 @@ void main() {
   });
 
   test('version ladder includes 108', () {
-    // Relaxed when v109/v110 landed (issue #553). The exact-latest tripwire
-    // now lives in the newest migration's test (v110).
+    // Relaxed when v109/v110/v111 landed. The exact-latest tripwire lives in
+    // the newest migration's test.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(108));
     expect(AppDatabase.migrationVersions, contains(108));
   });

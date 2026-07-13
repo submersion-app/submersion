@@ -582,16 +582,16 @@ class SyncDataSerializer {
     (key: 'equipment', table: _db.equipment, blob: false, full: null),
     (key: 'equipmentSets', table: _db.equipmentSets, blob: false, full: null),
     (
-      key: 'equipmentSetGeofences',
-      table: _db.equipmentSetGeofences,
-      blob: false,
-      full: null,
-    ),
-    (
       key: 'equipmentSetItems',
       table: null,
       blob: false,
       full: () => _exportEquipmentSetItems(null),
+    ),
+    (
+      key: 'equipmentSetGeofences',
+      table: _db.equipmentSetGeofences,
+      blob: false,
+      full: null,
     ),
     (key: 'media', table: _db.media, blob: true, full: null),
     (key: 'buddies', table: _db.buddies, blob: false, full: null),

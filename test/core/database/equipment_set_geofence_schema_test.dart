@@ -1,4 +1,3 @@
-import 'package:drift/drift.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
@@ -74,4 +73,9 @@ void main() {
       );
     },
   );
+
+  test('v111 is the current schema version (exact-latest tripwire)', () {
+    expect(AppDatabase.currentSchemaVersion, 111);
+    expect(AppDatabase.migrationVersions, contains(111));
+  });
 }

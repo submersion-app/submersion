@@ -1296,8 +1296,8 @@ class UddfEntityImporter {
         }
       }
 
-      final createdDive = await repos.diveRepository.createDive(dive);
-      await DiveEquipmentDefaulter().applyForImportedDive(createdDive);
+      await repos.diveRepository.createDive(dive);
+      await DiveEquipmentDefaulter().applyForImportedDive(dive);
       importedDiveIds.add(diveId);
       diveIdByIndex[i] = diveId;
 

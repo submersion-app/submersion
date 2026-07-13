@@ -56,6 +56,7 @@ void main() {
         'id': 'set-1',
         'name': 'Travel kit',
         'description': '',
+        'isDefault': false,
         'createdAt': 1000,
         'updatedAt': 1000,
       });

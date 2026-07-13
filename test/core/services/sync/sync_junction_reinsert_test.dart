@@ -93,6 +93,7 @@ void main() {
           'id': 'set-1',
           'name': 'Warm Weather',
           'description': 'six items',
+          'isDefault': false,
           'createdAt': 1000,
           'updatedAt': 1000,
         });
@@ -184,6 +185,7 @@ void main() {
         'id': 'set-2',
         'name': 'Cold Weather',
         'description': '',
+        'isDefault': false,
         'createdAt': 1000,
         'updatedAt': 1000,
       });
@@ -229,6 +231,7 @@ void main() {
         'id': 'set-3',
         'name': 'Travel',
         'description': '',
+        'isDefault': false,
         'createdAt': 1000,
         'updatedAt': 1000,
       });
@@ -290,6 +293,7 @@ void main() {
           'id': 'set-4',
           'name': 'Mixed',
           'description': '',
+          'isDefault': false,
           'createdAt': 1000,
           'updatedAt': 1000,
         });
