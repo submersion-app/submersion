@@ -134,6 +134,7 @@ class BackupEncryptionSection extends ConsumerWidget {
     final service = ref.read(backupEncryptionServiceProvider);
     await showDialog<bool>(
       context: context,
+      barrierDismissible: false,
       builder: (_) => BackupChangePasswordDialog(
         onSubmit: (current, next) => service.changePassphrase(
           currentSecret: current,

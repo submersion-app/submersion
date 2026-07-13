@@ -70,68 +70,74 @@ class _BackupChangePasswordDialogState
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    return AlertDialog(
-      title: Text(l10n.settings_backupEncryption_changePassword),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: _current,
-              obscureText: true,
-              autofocus: true,
-              decoration: InputDecoration(
-                labelText: l10n.settings_backupEncryption_currentPassword,
-                errorText: _currentError,
-              ),
-            ),
-            TextField(
-              controller: _next,
-              obscureText: true,
-              decoration: InputDecoration(
-                labelText: l10n.settings_backupEncryption_newPassword,
-                errorText: _nextError,
-              ),
-            ),
-            TextField(
-              controller: _confirm,
-              obscureText: true,
-              decoration: InputDecoration(
-                labelText: l10n.settings_backupEncryption_passwordConfirm,
-                errorText: _confirmError,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(
-                  Icons.info_outline,
-                  size: 18,
-                  color: Theme.of(context).colorScheme.tertiary,
+    // While the KDF/keyslot rewrap is running, a barrier tap or Back must not
+    // pop the route: the service would finish changing the password after the
+    // dialog vanished, so the user could believe it was cancelled.
+    return PopScope(
+      canPop: !_busy,
+      child: AlertDialog(
+        title: Text(l10n.settings_backupEncryption_changePassword),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _current,
+                obscureText: true,
+                autofocus: true,
+                decoration: InputDecoration(
+                  labelText: l10n.settings_backupEncryption_currentPassword,
+                  errorText: _currentError,
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    l10n.settings_backupEncryption_changePasswordWarn,
-                    style: Theme.of(context).textTheme.bodySmall,
+              ),
+              TextField(
+                controller: _next,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: l10n.settings_backupEncryption_newPassword,
+                  errorText: _nextError,
+                ),
+              ),
+              TextField(
+                controller: _confirm,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: l10n.settings_backupEncryption_passwordConfirm,
+                  errorText: _confirmError,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    size: 18,
+                    color: Theme.of(context).colorScheme.tertiary,
                   ),
-                ),
-              ],
-            ),
-          ],
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      l10n.settings_backupEncryption_changePasswordWarn,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
+        actions: [
+          TextButton(
+            onPressed: _busy ? null : () => Navigator.of(context).pop(false),
+            child: Text(l10n.settings_backupEncryption_cancel),
+          ),
+          FilledButton(
+            onPressed: _busy ? null : _submit,
+            child: Text(l10n.settings_backupEncryption_done),
+          ),
+        ],
       ),
-      actions: [
-        TextButton(
-          onPressed: _busy ? null : () => Navigator.of(context).pop(false),
-          child: Text(l10n.settings_backupEncryption_cancel),
-        ),
-        FilledButton(
-          onPressed: _busy ? null : _submit,
-          child: Text(l10n.settings_backupEncryption_done),
-        ),
-      ],
     );
   }
 }

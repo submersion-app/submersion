@@ -418,15 +418,28 @@ class BackupService {
         final newPath = p.join(dir, newName);
         final tempDir = await getTemporaryDirectory();
         final tempSbe = p.join(tempDir.path, 'reenc_${_uuid.v4()}.sbe');
-        await BackupCrypto.encryptFile(
-          inPath: localPath,
-          outPath: tempSbe,
-          mlk: encKey.mlk,
-          libraryKeyId: encKey.libraryKeyId,
-          keyslotBytes: encKey.keyslotBytes,
-        );
-        await File(tempSbe).copy(newPath);
-        await File(tempSbe).delete();
+        try {
+          await BackupCrypto.encryptFile(
+            inPath: localPath,
+            outPath: tempSbe,
+            mlk: encKey.mlk,
+            libraryKeyId: encKey.libraryKeyId,
+            keyslotBytes: encKey.keyslotBytes,
+          );
+          await File(tempSbe).copy(newPath);
+        } finally {
+          // Always remove the per-record temp .sbe, even on an encrypt/copy
+          // failure, so repeated retries (e.g. after a disk-full error) don't
+          // accumulate large files in the shared temp dir.
+          final t = File(tempSbe);
+          if (await t.exists()) {
+            try {
+              await t.delete();
+            } catch (_) {
+              // best-effort temp cleanup
+            }
+          }
+        }
 
         // Upload the new .sbe BEFORE committing history. If the upload throws,
         // the record still points at the intact plaintext .db and its old cloud
@@ -469,11 +482,22 @@ class BackupService {
           ),
         );
 
+        // The new .sbe is committed and protected. If an OLD plaintext/cloud
+        // copy cannot be removed it is a residual exposure, so count the record
+        // as a failure (disclosed to the user) rather than a clean success --
+        // without rolling back the committed encrypted record.
+        var residualExposure = false;
         if (newPath != localPath) {
           try {
             await file.delete();
-          } catch (_) {
-            // best-effort old plaintext cleanup
+          } catch (e, stack) {
+            residualExposure = true;
+            _log.error(
+              'Re-encrypt: old plaintext .db could not be deleted, still on '
+              'disk: ${record.filename}',
+              error: e,
+              stackTrace: stack,
+            );
           }
         }
         // Delete the old cloud object only when the upload produced a DIFFERENT
@@ -485,11 +509,21 @@ class BackupService {
             newCloudFileId != record.cloudFileId) {
           try {
             await _cloudProvider.deleteFile(record.cloudFileId!);
-          } catch (_) {
-            // best-effort old-object cleanup
+          } catch (e, stack) {
+            residualExposure = true;
+            _log.error(
+              'Re-encrypt: old cloud object could not be deleted, still '
+              'present: ${record.filename}',
+              error: e,
+              stackTrace: stack,
+            );
           }
         }
-        reencrypted++;
+        if (residualExposure) {
+          failed++;
+        } else {
+          reencrypted++;
+        }
       } catch (e, stack) {
         _log.error(
           'Re-encrypt failed for ${record.filename}',
@@ -1227,28 +1261,43 @@ class BackupService {
     final syncKey = await _encryptionKeyStore?.loadKey();
     final backupKey = await _backupEncryptionKeyStore?.loadKey();
     final artifactKeyId = await BackupCrypto.libraryKeyIdOf(sourcePath);
-    if (syncKey != null && syncKey.libraryKeyId == artifactKeyId) {
-      await BackupCrypto.decryptFileWithKey(
-        inPath: sourcePath,
-        outPath: decrypted,
-        mlk: syncKey.mlk,
-        expectedLibraryKeyId: syncKey.libraryKeyId,
-      );
-    } else if (backupKey != null && backupKey.libraryKeyId == artifactKeyId) {
-      await BackupCrypto.decryptFileWithKey(
-        inPath: sourcePath,
-        outPath: decrypted,
-        mlk: backupKey.mlk,
-        expectedLibraryKeyId: backupKey.libraryKeyId,
-      );
-    } else if (encryptionSecret != null) {
-      await BackupCrypto.decryptFile(
-        inPath: sourcePath,
-        outPath: decrypted,
-        secret: encryptionSecret,
-      );
-    } else {
-      throw const BackupEncryptedException();
+    try {
+      if (syncKey != null && syncKey.libraryKeyId == artifactKeyId) {
+        await BackupCrypto.decryptFileWithKey(
+          inPath: sourcePath,
+          outPath: decrypted,
+          mlk: syncKey.mlk,
+          expectedLibraryKeyId: syncKey.libraryKeyId,
+        );
+      } else if (backupKey != null && backupKey.libraryKeyId == artifactKeyId) {
+        await BackupCrypto.decryptFileWithKey(
+          inPath: sourcePath,
+          outPath: decrypted,
+          mlk: backupKey.mlk,
+          expectedLibraryKeyId: backupKey.libraryKeyId,
+        );
+      } else if (encryptionSecret != null) {
+        await BackupCrypto.decryptFile(
+          inPath: sourcePath,
+          outPath: decrypted,
+          secret: encryptionSecret,
+        );
+      } else {
+        throw const BackupEncryptedException();
+      }
+    } catch (_) {
+      // A failed auth/framing check may have already written partial plaintext
+      // to `decrypted`; remove it before rethrowing so no readable DB fragment
+      // is left in the temp directory.
+      final partial = File(decrypted);
+      if (await partial.exists()) {
+        try {
+          await partial.delete();
+        } catch (_) {
+          // best-effort cleanup
+        }
+      }
+      rethrow;
     }
     return _MaterializedBackup(decrypted, isTemp: true);
   }

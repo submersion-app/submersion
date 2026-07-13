@@ -35,6 +35,7 @@ class _BackupEnableEncryptionDialogState
   String? _confirmError;
   String? _recoveryCode;
   String? _enableError;
+  String? _finishError;
 
   @override
   void dispose() {
@@ -73,9 +74,23 @@ class _BackupEnableEncryptionDialogState
   }
 
   Future<void> _finish() async {
-    setState(() => _phase = _Phase.busy);
-    await widget.onFinished();
-    if (mounted) Navigator.of(context).pop(true);
+    setState(() {
+      _phase = _Phase.busy;
+      _finishError = null;
+    });
+    try {
+      await widget.onFinished();
+      if (mounted) Navigator.of(context).pop(true);
+    } catch (e) {
+      if (!mounted) return;
+      // Don't strand the user on the non-poppable spinner with the recovery
+      // code hidden. Return to the recovery gate with an error so they can
+      // retry -- the code is still shown and the saved checkbox stays ticked.
+      setState(() {
+        _phase = _Phase.recovery;
+        _finishError = e.toString();
+      });
+    }
   }
 
   @override
@@ -187,6 +202,16 @@ class _BackupEnableEncryptionDialogState
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ),
+              if (_finishError != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    _finishError!,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                ),
             ],
           ),
           actions: [

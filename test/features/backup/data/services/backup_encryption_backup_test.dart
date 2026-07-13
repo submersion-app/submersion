@@ -434,6 +434,32 @@ void main() {
     expect(rec.filename, endsWith('.db'));
     expect(rec.cloudFileId, 'Submersion Backups/noprov.sbe');
   });
+
+  test('reencrypt: a failed old-cloud-object delete is disclosed as a failure '
+      '(record still committed to .sbe)', () async {
+    await preferences.setCloudBackupEnabled(true);
+    await buildService().performBackup(); // plaintext local + cloud .db
+
+    await enableBackupEncryption();
+    final deleteFails = BackupService(
+      dbAdapter: _FakeBackupDatabaseAdapter(),
+      preferences: preferences,
+      cloudProvider: _DeleteFailsCloud(),
+      backupEncryptionKeyStore: backupKeyStore,
+    );
+    final result = await deleteFails.reencryptExistingBackups();
+
+    // The new .sbe was uploaded and committed, but the old plaintext cloud
+    // object could not be deleted -> disclosed as a failure, not a clean pass.
+    expect(result.failed, 1);
+    expect(result.reencrypted, 0);
+    final rec = preferences.getHistory().single;
+    expect(rec.filename, endsWith('.sbe'));
+    expect(
+      SyncEnvelope.hasMagic(await File(rec.localPath!).readAsBytes()),
+      isTrue,
+    );
+  });
 }
 
 /// A cloud provider that fails every upload (all other calls delegate to a
@@ -457,4 +483,13 @@ class _FolderCreateFailsCloud extends FakeCloudStorageProvider {
     String folderName, {
     String? parentFolderId,
   }) async => throw const CloudStorageException('Fake: cannot create folder');
+}
+
+/// A cloud provider that uploads normally but fails to delete. Proves a failed
+/// cleanup of the OLD cloud object is disclosed as a residual-exposure failure
+/// even though the new encrypted record is committed.
+class _DeleteFailsCloud extends FakeCloudStorageProvider {
+  @override
+  Future<void> deleteFile(String fileId) async =>
+      throw const CloudStorageException('Fake: delete failed');
 }
