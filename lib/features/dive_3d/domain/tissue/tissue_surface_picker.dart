@@ -28,7 +28,9 @@ class TissuePick {
 /// same point (a front face in front of a back face) does the greater
 /// [viewDepths] value break the tie, so the cursor picks the visible front
 /// surface rather than a vertex hidden behind it. Returns null if nothing
-/// qualifies. [projected]/[viewDepths] are indexed col*compartments + comp.
+/// qualifies. [projected]/[viewDepths] are indexed col*compartments + comp and
+/// must both be exactly [columns] * [compartments] long; a mismatch yields null
+/// rather than risk an out-of-range col from the index math below.
 TissuePick? pickNearestTissueVertex({
   required Offset cursor,
   required List<Offset> projected,
@@ -38,6 +40,10 @@ TissuePick? pickNearestTissueVertex({
   double thresholdPx = 20,
 }) {
   if (compartments <= 0 || projected.isEmpty) return null;
+  if (projected.length != columns * compartments ||
+      viewDepths.length != projected.length) {
+    return null;
+  }
   // Compare squared distances so hovers (which fire often on desktop) avoid a
   // sqrt per vertex; squaring preserves ordering and exact ties.
   final thresholdSq = thresholdPx * thresholdPx;

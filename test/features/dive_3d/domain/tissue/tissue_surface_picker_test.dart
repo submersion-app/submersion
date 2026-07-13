@@ -78,6 +78,28 @@ void main() {
       );
     });
 
+    test(
+      'returns null when array lengths do not match columns * compartments',
+      () {
+        // Caller claims a 3x2 grid (6 vertices) but only supplies 4 points.
+        expect(
+          pickNearestTissueVertex(
+            cursor: Offset.zero,
+            projected: const [
+              Offset.zero,
+              Offset.zero,
+              Offset.zero,
+              Offset.zero,
+            ],
+            viewDepths: const [0, 0, 0, 0],
+            columns: 3,
+            compartments: 2,
+          ),
+          isNull,
+        );
+      },
+    );
+
     test('guards against zero compartments (no division by zero)', () {
       expect(
         pickNearestTissueVertex(

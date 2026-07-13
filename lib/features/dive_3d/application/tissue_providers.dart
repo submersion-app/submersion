@@ -32,13 +32,17 @@ final tissueColorSchemeProvider = Provider<TissueColorScheme>(
 /// mesh, the draped wireframe, and the hover picker never drift apart. Uses the
 /// same DecoStatus series, the same subsurfacePercentage value, and the diver's
 /// selected tissue color scheme, so it reads as the 2D graph in three
-/// dimensions. Null when no analysis exists (< 2 statuses).
+/// dimensions. Null when there is nothing to render - mirroring
+/// [SubsurfaceTissueBuilder.buildResult]'s bail-out - i.e. fewer than 2
+/// statuses, or statuses that carry no tissue compartments.
 final tissueSurfaceProvider =
     FutureProvider.family<TissueSurfaceResult?, String>((ref, diveId) async {
       final statuses = await ref.watch(
         tissueDecoStatusesProvider(diveId).future,
       );
-      if (statuses.length < 2) return null;
+      if (statuses.length < 2 || statuses.first.compartments.isEmpty) {
+        return null;
+      }
       final colorFn = colorFnForScheme(ref.watch(tissueColorSchemeProvider));
       return SubsurfaceTissueBuilder.buildResult(statuses, colorFn: colorFn);
     });
