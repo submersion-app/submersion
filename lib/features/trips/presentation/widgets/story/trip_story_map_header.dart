@@ -164,16 +164,18 @@ class _StoryMap extends ConsumerWidget {
                   ? TileCacheService.instance.getTileProvider()
                   : null,
             ),
-            PolylineLayer(
-              polylines: [
-                Polyline(
-                  points: points,
-                  strokeWidth: 2,
-                  color: colorScheme.primary.withValues(alpha: 0.5),
-                  pattern: const StrokePattern.dotted(),
-                ),
-              ],
-            ),
+            // A route only makes sense with at least two points.
+            if (points.length > 1)
+              PolylineLayer(
+                polylines: [
+                  Polyline(
+                    points: points,
+                    strokeWidth: 2,
+                    color: colorScheme.primary.withValues(alpha: 0.5),
+                    pattern: const StrokePattern.dotted(),
+                  ),
+                ],
+              ),
             MarkerLayer(
               markers: [
                 for (final point in geometry.points)

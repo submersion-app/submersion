@@ -129,6 +129,24 @@ void main() {
     expect(find.byType(TripStatStrip), findsOneWidget);
   });
 
+  testWidgets('draws a route polyline only with 2+ points', (tester) async {
+    const onef = TripStoryMapGeometry(
+      points: [
+        TripStoryMapPoint(
+          latitude: 12.1,
+          longitude: -68.2,
+          dayIndex: 0,
+          label: 'A',
+        ),
+      ],
+    );
+    final stats = TripWithStats(trip: _trip(), diveCount: 1);
+    await pumpHeader(tester, onef, stats);
+    // Single point: map renders, but no route polyline.
+    expect(find.byType(FlutterMap), findsWidgets);
+    expect(find.byType(PolylineLayer), findsNothing);
+  });
+
   testWidgets('renders fallback (no map) when geometry is empty', (
     tester,
   ) async {
