@@ -279,7 +279,9 @@ void main() {
           bookmarkStorage: _NullBookmarkStorage(),
           platform: LocalMediaPlatform(),
           exifExtractor: ExifExtractor(),
-          volumeStatus: VolumeStatus(directoryExists: (_) => volumeOnline),
+          volumeStatus: VolumeStatus(
+            directoryExists: (_) async => volumeOnline,
+          ),
         );
 
     // A path shaped like a macOS network mount whose file is absent. With

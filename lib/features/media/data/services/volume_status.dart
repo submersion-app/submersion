@@ -15,11 +15,13 @@ import 'dart:io';
 /// filesystem. Only the volume ROOT is probed - a missing file on a
 /// mounted volume stays "deleted".
 class VolumeStatus {
-  VolumeStatus({bool Function(String path)? directoryExists})
+  VolumeStatus({Future<bool> Function(String path)? directoryExists})
     : _directoryExists =
-          directoryExists ?? ((path) => Directory(path).existsSync());
+          directoryExists ?? ((path) => Directory(path).exists());
 
-  final bool Function(String path) _directoryExists;
+  /// Async so an offline network mount cannot block the UI isolate while
+  /// the probe waits on the filesystem.
+  final Future<bool> Function(String path) _directoryExists;
 
   /// The mount root governing [path], or null when the path lives on the
   /// system volume (always considered mounted).
@@ -69,8 +71,9 @@ class VolumeStatus {
 
   /// True when [path]'s volume is currently reachable. Paths on the system
   /// volume are always online; paths under a mount root are online iff the
-  /// root directory exists.
-  bool isVolumeOnline(String path, {String? platformOverride}) {
+  /// root directory exists. Async: the existence probe is a filesystem
+  /// call that can hang on an unreachable share.
+  Future<bool> isVolumeOnline(String path, {String? platformOverride}) async {
     final root = volumeRootOf(path, platformOverride: platformOverride);
     if (root == null) return true;
     return _directoryExists(root);

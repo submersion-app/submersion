@@ -67,7 +67,7 @@ class LocalFileResolver implements MediaSourceResolver {
         // Missing file on an unmounted volume (network share, external
         // disk) is a temporary condition, not a dead pointer: report it
         // as such so nothing orphans the row while the share is offline.
-        if (!_volumeStatus.isVolumeOnline(localPath)) {
+        if (!await _volumeStatus.isVolumeOnline(localPath)) {
           return const UnavailableData(kind: UnavailableKind.volumeOffline);
         }
       }
@@ -80,7 +80,7 @@ class LocalFileResolver implements MediaSourceResolver {
         // Offline network mounts commonly THROW here rather than return
         // false; an offline volume must still read volumeOffline, not
         // fall through to a hard notFound (which cleanup could orphan).
-        if (!_volumeStatus.isVolumeOnline(localPath)) {
+        if (!await _volumeStatus.isVolumeOnline(localPath)) {
           return const UnavailableData(kind: UnavailableKind.volumeOffline);
         }
         // Otherwise fall through to bookmark path or unavailable.
