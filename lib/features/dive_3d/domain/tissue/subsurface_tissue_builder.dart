@@ -31,12 +31,18 @@ class SubsurfaceTissueBuilder {
   /// Target time columns after decimation.
   static const int targetColumns = 220;
 
+  /// Half-width of the compartment (Z) axis for the tissue scene. Wider than
+  /// the shared [SceneBounds.zSlabHalfWidth] so the 16 compartments spread out
+  /// enough to read and to carry axis labels; tissue-only, so the dive scene's
+  /// reference planes are unaffected.
+  static const double zHalfWidth = 3.5;
+
   static const Color _mLimitPlane = Color(0xFFEF5350);
 
   static double _zOf(int compartment, int count) {
     if (count <= 1) return 0;
     final t = compartment / (count - 1);
-    return -SceneBounds.zSlabHalfWidth + t * 2 * SceneBounds.zSlabHalfWidth;
+    return -zHalfWidth + t * 2 * zHalfWidth;
   }
 
   static double _height(double percent) =>
@@ -130,6 +136,8 @@ class SubsurfaceTissueBuilder {
       maxDepthMeters: 1,
       sceneMinY: 0,
       sceneMaxY: referenceHeight * (maxPercent / 100.0),
+      sceneMinZ: -zHalfWidth,
+      sceneMaxZ: zHalfWidth,
     );
 
     final firstComps = statuses.first.compartments;
@@ -161,7 +169,7 @@ class SubsurfaceTissueBuilder {
 
   /// Translucent plane at 100% = the M-value (deco) limit.
   static MeshData _mValuePlane() {
-    const z = SceneBounds.zSlabHalfWidth;
+    const z = zHalfWidth;
     final positions = Float32List.fromList([
       0,
       referenceHeight,
