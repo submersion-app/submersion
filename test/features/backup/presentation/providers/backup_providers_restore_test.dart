@@ -307,4 +307,13 @@ void main() {
         .restoreFromBackup(record, encryptionSecret: 'pw');
     expect(service.lastSecret, 'pw');
   });
+
+  test('backup encryption providers wire their real dependencies', () async {
+    final container = makeContainer(overrideService: false);
+    // Reading the real provider bodies constructs each service with its
+    // injected key store (issue #580 wiring).
+    expect(container.read(backupEncryptionKeyStoreProvider), isNotNull);
+    expect(container.read(backupEncryptionServiceProvider), isNotNull);
+    expect(container.read(backupServiceProvider), isNotNull);
+  });
 }

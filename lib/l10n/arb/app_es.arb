@@ -23,6 +23,35 @@
   "equipment_setDetail_setAsDefaultSnackbar": "\"{name}\" es ahora tu conjunto predeterminado",
   "equipment_setDetail_geofencesTitle": "Geocercas",
   "equipment_setDetail_noGeofences": "Sin geocercas",
+  "trips_story_dayLabel": "Día {number}",
+  "trips_story_surfaceDay": "Día de superficie",
+  "trips_story_today": "Hoy",
+  "trips_story_dayOfTrip": "Día {current} de {total}",
+  "trips_story_daysUntil": "{days, plural, =1{1 día para la salida} other{{days} días para la salida}}",
+  "trips_story_checklistProgress": "{done} de {total} completado",
+  "trips_story_generateItinerary": "Generar itinerario",
+  "trips_story_openGallery": "Abrir fotos del viaje",
+  "trips_story_generateItineraryError": "No se pudo generar el itinerario: {error}",
+  "@trips_story_generateItineraryError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_dayType_diveDay": "Día de buceo",
+  "trips_dayType_seaDay": "Día de mar",
+  "trips_dayType_portDay": "Día de puerto",
+  "trips_dayType_embark": "Embarque",
+  "trips_dayType_disembark": "Desembarque",
+  "trips_story_planned": "Planificado",
+  "trips_story_empty_title": "Aún no hay inmersiones ni itinerario",
+  "trips_story_empty_subtitle": "Añade inmersiones o planifica los días para ver la historia.",
+  "trips_story_history_dives": "{count, plural, =1{1 inmersión previa aquí} other{{count} inmersiones previas aquí}}",
+  "trips_story_history_avgTemp": "media {value}",
+  "trips_story_history_avgDepth": "prof. media {value}",
+  "trips_story_rhythm_semantics": "Horarios de inmersión de este día",
+  "trips_story_map_semantics": "Mapa del viaje. Los puntos del día visible están resaltados.",
   "diveLog_bulkEdit_groupRebreather": "Modo de buceo y rebreather",
   "diveLog_bulkEdit_fieldSetpointLow": "Setpoint bajo",
   "diveLog_bulkEdit_fieldSetpointHigh": "Setpoint alto",
@@ -86,6 +115,57 @@
   "settings_cloudSync_encryption_continue": "Continuar",
   "settings_cloudSync_encryption_done": "Hecho",
   "settings_cloudSync_encryption_cancel": "Cancelar",
+  "settings_backupEncryption_title": "Cifrado de copias de seguridad",
+  "settings_backupEncryption_subtitleOff": "Protege tus copias de seguridad con una contraseña",
+  "settings_backupEncryption_subtitleOn": "Las copias de seguridad se cifran con tu contraseña",
+  "settings_backupEncryption_enable": "Cifrar copias de seguridad",
+  "settings_backupEncryption_turnOff": "Desactivar el cifrado",
+  "settings_backupEncryption_turnOffTitle": "¿Desactivar el cifrado de copias de seguridad?",
+  "settings_backupEncryption_turnOffBody": "Las nuevas copias de seguridad ya no se cifrarán. Las copias de seguridad cifradas existentes seguirán necesitando tu contraseña para restaurarse.",
+  "settings_backupEncryption_changePassword": "Cambiar contraseña",
+  "settings_backupEncryption_regenerateRecovery": "Regenerar código de recuperación",
+  "settings_backupEncryption_password": "Contraseña",
+  "settings_backupEncryption_passwordConfirm": "Confirmar contraseña",
+  "settings_backupEncryption_passwordTooShort": "Usa al menos 8 caracteres",
+  "settings_backupEncryption_passwordMismatch": "Las contraseñas no coinciden",
+  "settings_backupEncryption_currentPassword": "Contraseña actual",
+  "settings_backupEncryption_newPassword": "Nueva contraseña",
+  "settings_backupEncryption_changePasswordWarn": "En otro dispositivo, cada copia de seguridad se abre con la contraseña o el código de recuperación que estaba activo cuando se creó.",
+  "settings_backupEncryption_warnLoss": "Si olvidas tu contraseña y pierdes el código de recuperación, las copias de seguridad cifradas no se podrán recuperar.",
+  "settings_backupEncryption_recoveryTitle": "Tu código de recuperación",
+  "settings_backupEncryption_recoveryExplain": "Guarda este código en un lugar seguro. Puede desbloquear tus copias de seguridad si olvidas tu contraseña.",
+  "settings_backupEncryption_recoverySavedConfirm": "He guardado mi código de recuperación",
+  "settings_backupEncryption_unlockTitle": "Introduce la contraseña de la copia de seguridad",
+  "settings_backupEncryption_unlockHint": "Introduce tu contraseña de copia de seguridad o el código de recuperación",
+  "settings_backupEncryption_restoreUnlockTitle": "Desbloquear copia de seguridad cifrada",
+  "settings_backupEncryption_restoreUnlockHint": "Introduce la contraseña o el código de recuperación de esta copia de seguridad",
+  "settings_backupEncryption_continue": "Continuar",
+  "settings_backupEncryption_cancel": "Cancelar",
+  "settings_backupEncryption_done": "Hecho",
+  "settings_backupEncryption_reencryptTitle": "¿Cifrar las copias de seguridad existentes?",
+  "settings_backupEncryption_reencryptBody": "Tus copias de seguridad existentes aún no están cifradas. ¿Volver a cifrarlas ahora con tu nueva contraseña?",
+  "settings_backupEncryption_reencryptNow": "Volver a cifrar ahora",
+  "settings_backupEncryption_reencryptNotNow": "Ahora no",
+  "settings_backupEncryption_reencryptPartial": "Se volvieron a cifrar {done} copias de seguridad; {failed} no se pudieron cifrar y siguen sin protección",
+  "@settings_backupEncryption_reencryptPartial": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_backupEncryption_reencryptDone": "Se volvieron a cifrar {count} copias de seguridad",
+  "@settings_backupEncryption_reencryptDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_backupEncryption_wrongPassword": "Contraseña o código de recuperación incorrectos",
   "@@locale": "es",
   "settings_cloudSync_replace_globalBanner": "Sincronización en pausa: la biblioteca se reemplazó desde una copia de seguridad en \"{deviceName}\".",
   "settings_cloudSync_postRestore_syncing": "Sincronizando tu biblioteca restaurada con la nube…",
@@ -5104,6 +5184,7 @@
     }
   },
   "trips_diveScan_noMatches": "No se encontraron inmersiones coincidentes",
+  "trips_diveScan_noDiver": "Asigna un buceador a este viaje para buscar inmersiones",
   "trips_diveScan_selectAll": "Seleccionar todo",
   "trips_diveScan_subtitle": "{count} inmersiones encontradas en el rango de fechas",
   "@trips_diveScan_subtitle": {

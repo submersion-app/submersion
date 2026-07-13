@@ -23,6 +23,35 @@
   "equipment_setDetail_setAsDefaultSnackbar": "أصبحت \"{name}\" الآن مجموعتك الافتراضية",
   "equipment_setDetail_geofencesTitle": "الأسوار الجغرافية",
   "equipment_setDetail_noGeofences": "لا توجد أسوار جغرافية",
+  "trips_story_dayLabel": "اليوم {number}",
+  "trips_story_surfaceDay": "يوم سطح",
+  "trips_story_today": "اليوم",
+  "trips_story_dayOfTrip": "اليوم {current} من {total}",
+  "trips_story_daysUntil": "{days, plural, =1{يوم واحد حتى المغادرة} other{{days} أيام حتى المغادرة}}",
+  "trips_story_checklistProgress": "اكتمل {done} من {total}",
+  "trips_story_generateItinerary": "إنشاء خط سير",
+  "trips_story_openGallery": "فتح صور الرحلة",
+  "trips_story_generateItineraryError": "تعذّر إنشاء برنامج الرحلة: {error}",
+  "@trips_story_generateItineraryError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_dayType_diveDay": "يوم غوص",
+  "trips_dayType_seaDay": "يوم بحري",
+  "trips_dayType_portDay": "يوم في الميناء",
+  "trips_dayType_embark": "الصعود",
+  "trips_dayType_disembark": "النزول",
+  "trips_story_planned": "مخطط",
+  "trips_story_empty_title": "لا توجد غطسات أو خط سير بعد",
+  "trips_story_empty_subtitle": "أضف غطسات إلى هذه الرحلة أو خطط أيامها لرؤية القصة.",
+  "trips_story_history_dives": "{count, plural, =1{غطسة سابقة واحدة هنا} other{{count} غطسات سابقة هنا}}",
+  "trips_story_history_avgTemp": "متوسط {value}",
+  "trips_story_history_avgDepth": "متوسط العمق {value}",
+  "trips_story_rhythm_semantics": "أوقات الغطس في هذا اليوم",
+  "trips_story_map_semantics": "خريطة الرحلة. مواقع اليوم المعروض مميزة.",
   "diveLog_bulkEdit_groupRebreather": "وضع الغوص وجهاز التنفس",
   "diveLog_bulkEdit_fieldSetpointLow": "النقطة المحددة المنخفضة",
   "diveLog_bulkEdit_fieldSetpointHigh": "النقطة المحددة العالية",
@@ -86,6 +115,57 @@
   "settings_cloudSync_encryption_continue": "متابعة",
   "settings_cloudSync_encryption_done": "تم",
   "settings_cloudSync_encryption_cancel": "إلغاء",
+  "settings_backupEncryption_title": "تشفير النسخ الاحتياطي",
+  "settings_backupEncryption_subtitleOff": "احمِ نسخك الاحتياطية بكلمة مرور",
+  "settings_backupEncryption_subtitleOn": "النسخ الاحتياطية مشفّرة بكلمة مرورك",
+  "settings_backupEncryption_enable": "تشفير النسخ الاحتياطية",
+  "settings_backupEncryption_turnOff": "إيقاف التشفير",
+  "settings_backupEncryption_turnOffTitle": "إيقاف تشفير النسخ الاحتياطي؟",
+  "settings_backupEncryption_turnOffBody": "لن يتم تشفير النسخ الاحتياطية الجديدة بعد الآن. لا تزال النسخ الاحتياطية المشفّرة الحالية بحاجة إلى كلمة مرورك للاستعادة.",
+  "settings_backupEncryption_changePassword": "تغيير كلمة المرور",
+  "settings_backupEncryption_regenerateRecovery": "إعادة إنشاء رمز الاسترداد",
+  "settings_backupEncryption_password": "كلمة المرور",
+  "settings_backupEncryption_passwordConfirm": "تأكيد كلمة المرور",
+  "settings_backupEncryption_passwordTooShort": "استخدم 8 أحرف على الأقل",
+  "settings_backupEncryption_passwordMismatch": "كلمتا المرور غير متطابقتين",
+  "settings_backupEncryption_currentPassword": "كلمة المرور الحالية",
+  "settings_backupEncryption_newPassword": "كلمة المرور الجديدة",
+  "settings_backupEncryption_changePasswordWarn": "على جهاز آخر، تُفتح كل نسخة احتياطية باستخدام كلمة المرور أو رمز الاسترداد الذي كان نشطًا عند إنشائها.",
+  "settings_backupEncryption_warnLoss": "إذا نسيت كلمة المرور وفقدت رمز الاسترداد، فلن يمكن استعادة النسخ الاحتياطية المشفّرة.",
+  "settings_backupEncryption_recoveryTitle": "رمز الاسترداد الخاص بك",
+  "settings_backupEncryption_recoveryExplain": "احفظ هذا الرمز في مكان آمن. يمكنه فتح نسخك الاحتياطية إذا نسيت كلمة مرورك.",
+  "settings_backupEncryption_recoverySavedConfirm": "لقد حفظت رمز الاسترداد الخاص بي",
+  "settings_backupEncryption_unlockTitle": "أدخل كلمة مرور النسخ الاحتياطي",
+  "settings_backupEncryption_unlockHint": "أدخل كلمة مرور النسخ الاحتياطي أو رمز الاسترداد",
+  "settings_backupEncryption_restoreUnlockTitle": "فتح النسخة الاحتياطية المشفّرة",
+  "settings_backupEncryption_restoreUnlockHint": "أدخل كلمة المرور أو رمز الاسترداد لهذه النسخة الاحتياطية",
+  "settings_backupEncryption_continue": "متابعة",
+  "settings_backupEncryption_cancel": "إلغاء",
+  "settings_backupEncryption_done": "تم",
+  "settings_backupEncryption_reencryptTitle": "تشفير النسخ الاحتياطية الحالية؟",
+  "settings_backupEncryption_reencryptBody": "لا تزال نسخك الاحتياطية الحالية غير مشفّرة. هل تريد إعادة تشفيرها الآن بكلمة مرورك الجديدة؟",
+  "settings_backupEncryption_reencryptNow": "إعادة التشفير الآن",
+  "settings_backupEncryption_reencryptNotNow": "ليس الآن",
+  "settings_backupEncryption_reencryptPartial": "تمت إعادة تشفير {done} نسخة احتياطية؛ تعذّر تشفير {failed} وما زالت غير محمية",
+  "@settings_backupEncryption_reencryptPartial": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_backupEncryption_reencryptDone": "تمت إعادة تشفير {count} نسخة احتياطية",
+  "@settings_backupEncryption_reencryptDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_backupEncryption_wrongPassword": "كلمة المرور أو رمز الاسترداد غير صحيح",
   "@@locale": "ar",
   "settings_cloudSync_replace_globalBanner": "المزامنة متوقفة مؤقتًا — تم استبدال المكتبة من نسخة احتياطية على \"{deviceName}\".",
   "settings_cloudSync_postRestore_syncing": "تتم مزامنة مكتبتك المستعادة مع السحابة…",
@@ -5104,6 +5184,7 @@
     }
   },
   "trips_diveScan_noMatches": "لم يتم العثور على غوصات مطابقة",
+  "trips_diveScan_noDiver": "عيّن غوّاصًا لهذه الرحلة للبحث عن الغطسات",
   "trips_diveScan_selectAll": "تحديد الكل",
   "trips_diveScan_subtitle": "تم العثور على {count} غوصات في نطاق التاريخ",
   "@trips_diveScan_subtitle": {

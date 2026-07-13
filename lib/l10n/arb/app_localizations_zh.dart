@@ -89,6 +89,98 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_setDetail_noGeofences => '无地理围栏';
 
   @override
+  String trips_story_dayLabel(int number) {
+    return '第 $number 天';
+  }
+
+  @override
+  String get trips_story_surfaceDay => '水面日';
+
+  @override
+  String get trips_story_today => '今天';
+
+  @override
+  String trips_story_dayOfTrip(int current, int total) {
+    return '第 $current 天，共 $total 天';
+  }
+
+  @override
+  String trips_story_daysUntil(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '距出发还有 $days 天',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_story_checklistProgress(int done, int total) {
+    return '已完成 $done/$total';
+  }
+
+  @override
+  String get trips_story_generateItinerary => '生成行程';
+
+  @override
+  String get trips_story_openGallery => '打开行程照片';
+
+  @override
+  String trips_story_generateItineraryError(String error) {
+    return '无法生成行程：$error';
+  }
+
+  @override
+  String get trips_dayType_diveDay => '潜水日';
+
+  @override
+  String get trips_dayType_seaDay => '海上日';
+
+  @override
+  String get trips_dayType_portDay => '港口日';
+
+  @override
+  String get trips_dayType_embark => '登船';
+
+  @override
+  String get trips_dayType_disembark => '离船';
+
+  @override
+  String get trips_story_planned => '已计划';
+
+  @override
+  String get trips_story_empty_title => '还没有潜水或行程';
+
+  @override
+  String get trips_story_empty_subtitle => '为此旅行添加潜水或规划行程以查看故事。';
+
+  @override
+  String trips_story_history_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '此处有 $count 次过往潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_story_history_avgTemp(String value) {
+    return '平均 $value';
+  }
+
+  @override
+  String trips_story_history_avgDepth(String value) {
+    return '平均深度 $value';
+  }
+
+  @override
+  String get trips_story_rhythm_semantics => '当天的潜水时间';
+
+  @override
+  String get trips_story_map_semantics => '旅行地图。当前日期的潜点已高亮。';
+
+  @override
   String get diveLog_bulkEdit_groupRebreather => '潜水模式与循环呼吸器';
 
   @override
@@ -288,6 +380,116 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_cloudSync_encryption_cancel => '取消';
+
+  @override
+  String get settings_backupEncryption_title => '备份加密';
+
+  @override
+  String get settings_backupEncryption_subtitleOff => '使用密码保护您的备份';
+
+  @override
+  String get settings_backupEncryption_subtitleOn => '备份已使用您的密码加密';
+
+  @override
+  String get settings_backupEncryption_enable => '加密备份';
+
+  @override
+  String get settings_backupEncryption_turnOff => '关闭加密';
+
+  @override
+  String get settings_backupEncryption_turnOffTitle => '关闭备份加密？';
+
+  @override
+  String get settings_backupEncryption_turnOffBody =>
+      '新的备份将不再加密。现有的加密备份仍需使用您的密码才能恢复。';
+
+  @override
+  String get settings_backupEncryption_changePassword => '更改密码';
+
+  @override
+  String get settings_backupEncryption_regenerateRecovery => '重新生成恢复代码';
+
+  @override
+  String get settings_backupEncryption_password => '密码';
+
+  @override
+  String get settings_backupEncryption_passwordConfirm => '确认密码';
+
+  @override
+  String get settings_backupEncryption_passwordTooShort => '请至少使用 8 个字符';
+
+  @override
+  String get settings_backupEncryption_passwordMismatch => '两次输入的密码不一致';
+
+  @override
+  String get settings_backupEncryption_currentPassword => '当前密码';
+
+  @override
+  String get settings_backupEncryption_newPassword => '新密码';
+
+  @override
+  String get settings_backupEncryption_changePasswordWarn =>
+      '在其他设备上，每个备份都使用其创建时处于活动状态的密码或恢复代码打开。';
+
+  @override
+  String get settings_backupEncryption_warnLoss => '如果您忘记密码并丢失恢复代码，加密备份将无法恢复。';
+
+  @override
+  String get settings_backupEncryption_recoveryTitle => '您的恢复代码';
+
+  @override
+  String get settings_backupEncryption_recoveryExplain =>
+      '请将此代码保存在安全的地方。如果您忘记密码，它可以解锁您的备份。';
+
+  @override
+  String get settings_backupEncryption_recoverySavedConfirm => '我已保存我的恢复代码';
+
+  @override
+  String get settings_backupEncryption_unlockTitle => '输入备份密码';
+
+  @override
+  String get settings_backupEncryption_unlockHint => '输入您的备份密码或恢复代码';
+
+  @override
+  String get settings_backupEncryption_restoreUnlockTitle => '解锁加密备份';
+
+  @override
+  String get settings_backupEncryption_restoreUnlockHint => '输入此备份的密码或恢复代码';
+
+  @override
+  String get settings_backupEncryption_continue => '继续';
+
+  @override
+  String get settings_backupEncryption_cancel => '取消';
+
+  @override
+  String get settings_backupEncryption_done => '完成';
+
+  @override
+  String get settings_backupEncryption_reencryptTitle => '加密现有备份？';
+
+  @override
+  String get settings_backupEncryption_reencryptBody =>
+      '您现有的备份仍未加密。现在使用您的新密码重新加密它们吗？';
+
+  @override
+  String get settings_backupEncryption_reencryptNow => '立即重新加密';
+
+  @override
+  String get settings_backupEncryption_reencryptNotNow => '暂不';
+
+  @override
+  String settings_backupEncryption_reencryptPartial(int done, int failed) {
+    return '已重新加密 $done 个备份；$failed 个无法加密，仍未受保护';
+  }
+
+  @override
+  String settings_backupEncryption_reencryptDone(int count) {
+    return '已重新加密 $count 个备份';
+  }
+
+  @override
+  String get settings_backupEncryption_wrongPassword => '密码或恢复代码不正确';
 
   @override
   String settings_cloudSync_replace_globalBanner(String deviceName) {
@@ -14804,6 +15006,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get trips_diveScan_noMatches => '未找到匹配的潜水';
+
+  @override
+  String get trips_diveScan_noDiver => '为此行程指定潜水员以扫描潜水记录';
 
   @override
   String get trips_diveScan_selectAll => '全选';

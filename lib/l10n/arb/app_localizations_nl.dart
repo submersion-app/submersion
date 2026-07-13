@@ -91,6 +91,102 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_setDetail_noGeofences => 'Geen geofences';
 
   @override
+  String trips_story_dayLabel(int number) {
+    return 'Dag $number';
+  }
+
+  @override
+  String get trips_story_surfaceDay => 'Oppervlaktedag';
+
+  @override
+  String get trips_story_today => 'Vandaag';
+
+  @override
+  String trips_story_dayOfTrip(int current, int total) {
+    return 'Dag $current van $total';
+  }
+
+  @override
+  String trips_story_daysUntil(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Nog $days dagen tot vertrek',
+      one: 'Nog 1 dag tot vertrek',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_story_checklistProgress(int done, int total) {
+    return '$done van $total klaar';
+  }
+
+  @override
+  String get trips_story_generateItinerary => 'Reisplan genereren';
+
+  @override
+  String get trips_story_openGallery => 'Reisfoto\'s openen';
+
+  @override
+  String trips_story_generateItineraryError(String error) {
+    return 'Kan reisschema niet genereren: $error';
+  }
+
+  @override
+  String get trips_dayType_diveDay => 'Duikdag';
+
+  @override
+  String get trips_dayType_seaDay => 'Zeedag';
+
+  @override
+  String get trips_dayType_portDay => 'Havendag';
+
+  @override
+  String get trips_dayType_embark => 'Inschepen';
+
+  @override
+  String get trips_dayType_disembark => 'Ontschepen';
+
+  @override
+  String get trips_story_planned => 'Gepland';
+
+  @override
+  String get trips_story_empty_title => 'Nog geen duiken of reisplan';
+
+  @override
+  String get trips_story_empty_subtitle =>
+      'Voeg duiken toe of plan de dagen om het verhaal te zien.';
+
+  @override
+  String trips_story_history_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count eerdere duiken hier',
+      one: '1 eerdere duik hier',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_story_history_avgTemp(String value) {
+    return 'gem. $value';
+  }
+
+  @override
+  String trips_story_history_avgDepth(String value) {
+    return 'gem. diepte $value';
+  }
+
+  @override
+  String get trips_story_rhythm_semantics => 'Duiktijden van deze dag';
+
+  @override
+  String get trips_story_map_semantics =>
+      'Reiskaart. De stekken van de zichtbare dag zijn gemarkeerd.';
+
+  @override
   String get diveLog_bulkEdit_groupRebreather => 'Duikmodus & rebreather';
 
   @override
@@ -313,6 +409,132 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_cloudSync_encryption_cancel => 'Annuleren';
+
+  @override
+  String get settings_backupEncryption_title => 'Back-upversleuteling';
+
+  @override
+  String get settings_backupEncryption_subtitleOff =>
+      'Bescherm uw back-ups met een wachtwoord';
+
+  @override
+  String get settings_backupEncryption_subtitleOn =>
+      'Back-ups worden versleuteld met uw wachtwoord';
+
+  @override
+  String get settings_backupEncryption_enable => 'Back-ups versleutelen';
+
+  @override
+  String get settings_backupEncryption_turnOff => 'Versleuteling uitschakelen';
+
+  @override
+  String get settings_backupEncryption_turnOffTitle =>
+      'Back-upversleuteling uitschakelen?';
+
+  @override
+  String get settings_backupEncryption_turnOffBody =>
+      'Nieuwe back-ups worden niet meer versleuteld. Bestaande versleutelde back-ups hebben nog steeds uw wachtwoord nodig om te herstellen.';
+
+  @override
+  String get settings_backupEncryption_changePassword => 'Wachtwoord wijzigen';
+
+  @override
+  String get settings_backupEncryption_regenerateRecovery =>
+      'Nieuwe herstelcode genereren';
+
+  @override
+  String get settings_backupEncryption_password => 'Wachtwoord';
+
+  @override
+  String get settings_backupEncryption_passwordConfirm =>
+      'Wachtwoord bevestigen';
+
+  @override
+  String get settings_backupEncryption_passwordTooShort =>
+      'Gebruik minstens 8 tekens';
+
+  @override
+  String get settings_backupEncryption_passwordMismatch =>
+      'Wachtwoorden komen niet overeen';
+
+  @override
+  String get settings_backupEncryption_currentPassword => 'Huidig wachtwoord';
+
+  @override
+  String get settings_backupEncryption_newPassword => 'Nieuw wachtwoord';
+
+  @override
+  String get settings_backupEncryption_changePasswordWarn =>
+      'Op een ander apparaat wordt elke back-up geopend met het wachtwoord of de herstelcode die actief was toen deze werd gemaakt.';
+
+  @override
+  String get settings_backupEncryption_warnLoss =>
+      'Als u uw wachtwoord vergeet en de herstelcode verliest, kunnen versleutelde back-ups niet worden hersteld.';
+
+  @override
+  String get settings_backupEncryption_recoveryTitle => 'Uw herstelcode';
+
+  @override
+  String get settings_backupEncryption_recoveryExplain =>
+      'Bewaar deze code op een veilige plek. Hij kan uw back-ups ontgrendelen als u uw wachtwoord vergeet.';
+
+  @override
+  String get settings_backupEncryption_recoverySavedConfirm =>
+      'Ik heb mijn herstelcode opgeslagen';
+
+  @override
+  String get settings_backupEncryption_unlockTitle =>
+      'Voer uw back-upwachtwoord in';
+
+  @override
+  String get settings_backupEncryption_unlockHint =>
+      'Voer uw back-upwachtwoord of herstelcode in';
+
+  @override
+  String get settings_backupEncryption_restoreUnlockTitle =>
+      'Versleutelde back-up ontgrendelen';
+
+  @override
+  String get settings_backupEncryption_restoreUnlockHint =>
+      'Voer het wachtwoord of de herstelcode voor deze back-up in';
+
+  @override
+  String get settings_backupEncryption_continue => 'Doorgaan';
+
+  @override
+  String get settings_backupEncryption_cancel => 'Annuleren';
+
+  @override
+  String get settings_backupEncryption_done => 'Klaar';
+
+  @override
+  String get settings_backupEncryption_reencryptTitle =>
+      'Bestaande back-ups versleutelen?';
+
+  @override
+  String get settings_backupEncryption_reencryptBody =>
+      'Uw bestaande back-ups zijn nog onversleuteld. Wilt u ze nu opnieuw versleutelen met uw nieuwe wachtwoord?';
+
+  @override
+  String get settings_backupEncryption_reencryptNow =>
+      'Nu opnieuw versleutelen';
+
+  @override
+  String get settings_backupEncryption_reencryptNotNow => 'Niet nu';
+
+  @override
+  String settings_backupEncryption_reencryptPartial(int done, int failed) {
+    return '$done back-ups opnieuw versleuteld; $failed konden niet worden versleuteld en zijn nog onbeschermd';
+  }
+
+  @override
+  String settings_backupEncryption_reencryptDone(int count) {
+    return '$count back-ups opnieuw versleuteld';
+  }
+
+  @override
+  String get settings_backupEncryption_wrongPassword =>
+      'Onjuist wachtwoord of herstelcode';
 
   @override
   String settings_cloudSync_replace_globalBanner(String deviceName) {
@@ -15475,6 +15697,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get trips_diveScan_noMatches => 'Geen overeenkomende duiken gevonden';
+
+  @override
+  String get trips_diveScan_noDiver =>
+      'Wijs een duiker toe aan deze reis om naar duiken te zoeken';
 
   @override
   String get trips_diveScan_selectAll => 'Alles selecteren';

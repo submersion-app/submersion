@@ -23,6 +23,35 @@
   "equipment_setDetail_setAsDefaultSnackbar": "\"{name}\" est désormais votre ensemble par défaut",
   "equipment_setDetail_geofencesTitle": "Géorepères",
   "equipment_setDetail_noGeofences": "Aucun géorepère",
+  "trips_story_dayLabel": "Jour {number}",
+  "trips_story_surfaceDay": "Journée en surface",
+  "trips_story_today": "Aujourd'hui",
+  "trips_story_dayOfTrip": "Jour {current} sur {total}",
+  "trips_story_daysUntil": "{days, plural, =1{1 jour avant le départ} other{{days} jours avant le départ}}",
+  "trips_story_checklistProgress": "{done} sur {total} fait",
+  "trips_story_generateItinerary": "Générer l'itinéraire",
+  "trips_story_openGallery": "Ouvrir les photos du voyage",
+  "trips_story_generateItineraryError": "Impossible de générer l'itinéraire : {error}",
+  "@trips_story_generateItineraryError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_dayType_diveDay": "Jour de plongée",
+  "trips_dayType_seaDay": "Jour en mer",
+  "trips_dayType_portDay": "Jour au port",
+  "trips_dayType_embark": "Embarquement",
+  "trips_dayType_disembark": "Débarquement",
+  "trips_story_planned": "Prévu",
+  "trips_story_empty_title": "Pas encore de plongées ni d'itinéraire",
+  "trips_story_empty_subtitle": "Ajoutez des plongées ou planifiez les jours pour voir le récit.",
+  "trips_story_history_dives": "{count, plural, =1{1 plongée passée ici} other{{count} plongées passées ici}}",
+  "trips_story_history_avgTemp": "moy. {value}",
+  "trips_story_history_avgDepth": "prof. moy. {value}",
+  "trips_story_rhythm_semantics": "Heures de plongée de cette journée",
+  "trips_story_map_semantics": "Carte du voyage. Les sites du jour affiché sont mis en évidence.",
   "diveLog_bulkEdit_groupRebreather": "Mode de plongée et recycleur",
   "diveLog_bulkEdit_fieldSetpointLow": "Consigne basse",
   "diveLog_bulkEdit_fieldSetpointHigh": "Consigne haute",
@@ -86,6 +115,57 @@
   "settings_cloudSync_encryption_continue": "Continuer",
   "settings_cloudSync_encryption_done": "Terminé",
   "settings_cloudSync_encryption_cancel": "Annuler",
+  "settings_backupEncryption_title": "Chiffrement des sauvegardes",
+  "settings_backupEncryption_subtitleOff": "Protégez vos sauvegardes avec un mot de passe",
+  "settings_backupEncryption_subtitleOn": "Les sauvegardes sont chiffrées avec votre mot de passe",
+  "settings_backupEncryption_enable": "Chiffrer les sauvegardes",
+  "settings_backupEncryption_turnOff": "Désactiver le chiffrement",
+  "settings_backupEncryption_turnOffTitle": "Désactiver le chiffrement des sauvegardes ?",
+  "settings_backupEncryption_turnOffBody": "Les nouvelles sauvegardes ne seront plus chiffrées. Les sauvegardes chiffrées existantes nécessitent toujours votre mot de passe pour être restaurées.",
+  "settings_backupEncryption_changePassword": "Changer le mot de passe",
+  "settings_backupEncryption_regenerateRecovery": "Générer un nouveau code de récupération",
+  "settings_backupEncryption_password": "Mot de passe",
+  "settings_backupEncryption_passwordConfirm": "Confirmer le mot de passe",
+  "settings_backupEncryption_passwordTooShort": "Utilisez au moins 8 caractères",
+  "settings_backupEncryption_passwordMismatch": "Les mots de passe ne correspondent pas",
+  "settings_backupEncryption_currentPassword": "Mot de passe actuel",
+  "settings_backupEncryption_newPassword": "Nouveau mot de passe",
+  "settings_backupEncryption_changePasswordWarn": "Sur un autre appareil, chaque sauvegarde s'ouvre avec le mot de passe ou le code de récupération actif au moment de sa création.",
+  "settings_backupEncryption_warnLoss": "Si vous oubliez votre mot de passe et perdez le code de récupération, les sauvegardes chiffrées ne pourront pas être récupérées.",
+  "settings_backupEncryption_recoveryTitle": "Votre code de récupération",
+  "settings_backupEncryption_recoveryExplain": "Conservez ce code en lieu sûr. Il peut déverrouiller vos sauvegardes si vous oubliez votre mot de passe.",
+  "settings_backupEncryption_recoverySavedConfirm": "J'ai enregistré mon code de récupération",
+  "settings_backupEncryption_unlockTitle": "Saisissez le mot de passe de sauvegarde",
+  "settings_backupEncryption_unlockHint": "Saisissez votre mot de passe de sauvegarde ou code de récupération",
+  "settings_backupEncryption_restoreUnlockTitle": "Déverrouiller la sauvegarde chiffrée",
+  "settings_backupEncryption_restoreUnlockHint": "Saisissez le mot de passe ou le code de récupération de cette sauvegarde",
+  "settings_backupEncryption_continue": "Continuer",
+  "settings_backupEncryption_cancel": "Annuler",
+  "settings_backupEncryption_done": "Terminé",
+  "settings_backupEncryption_reencryptTitle": "Chiffrer les sauvegardes existantes ?",
+  "settings_backupEncryption_reencryptBody": "Vos sauvegardes existantes ne sont toujours pas chiffrées. Les rechiffrer maintenant avec votre nouveau mot de passe ?",
+  "settings_backupEncryption_reencryptNow": "Rechiffrer maintenant",
+  "settings_backupEncryption_reencryptNotNow": "Pas maintenant",
+  "settings_backupEncryption_reencryptPartial": "{done} sauvegardes rechiffrées ; {failed} n'ont pas pu être chiffrées et restent non protégées",
+  "@settings_backupEncryption_reencryptPartial": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_backupEncryption_reencryptDone": "{count} sauvegardes rechiffrées",
+  "@settings_backupEncryption_reencryptDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_backupEncryption_wrongPassword": "Mot de passe ou code de récupération incorrect",
   "@@locale": "fr",
   "settings_cloudSync_replace_globalBanner": "Synchronisation en pause — la bibliothèque a été remplacée depuis une sauvegarde sur \"{deviceName}\".",
   "settings_cloudSync_postRestore_syncing": "Synchronisation de votre bibliothèque restaurée avec le cloud…",
@@ -5070,6 +5150,7 @@
     }
   },
   "trips_diveScan_noMatches": "Aucune plongee correspondante trouvee",
+  "trips_diveScan_noDiver": "Attribuez un plongeur à ce voyage pour rechercher des plongées",
   "trips_diveScan_selectAll": "Tout selectionner",
   "trips_diveScan_subtitle": "{count} plongees trouvees dans la plage de dates",
   "@trips_diveScan_subtitle": {

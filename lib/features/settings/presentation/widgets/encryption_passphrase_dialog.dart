@@ -74,36 +74,43 @@ class _PassphraseDialogState extends State<_PassphraseDialog> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    return AlertDialog(
-      title: Text(widget.title),
-      content: TextField(
-        controller: _controller,
-        obscureText: true,
-        autofocus: true,
-        enabled: !_busy,
-        decoration: InputDecoration(
-          labelText:
-              widget.hint ?? l10n.settings_cloudSync_encryption_passphrase,
-          errorText: _error,
+    // While onSubmit is running (KDF), a Back gesture must not pop the route:
+    // the caller may already have replaced a keyslot (e.g. regenerate rotates
+    // the recovery slot before returning), and popping here would discard the
+    // result the caller needs to show.
+    return PopScope(
+      canPop: !_busy,
+      child: AlertDialog(
+        title: Text(widget.title),
+        content: TextField(
+          controller: _controller,
+          obscureText: true,
+          autofocus: true,
+          enabled: !_busy,
+          decoration: InputDecoration(
+            labelText:
+                widget.hint ?? l10n.settings_cloudSync_encryption_passphrase,
+            errorText: _error,
+          ),
+          onSubmitted: (_) => _submit(),
         ),
-        onSubmitted: (_) => _submit(),
+        actions: [
+          TextButton(
+            onPressed: _busy ? null : () => Navigator.of(context).pop(),
+            child: Text(l10n.settings_cloudSync_encryption_cancel),
+          ),
+          FilledButton(
+            onPressed: _busy ? null : _submit,
+            child: _busy
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Text(l10n.settings_cloudSync_encryption_unlock),
+          ),
+        ],
       ),
-      actions: [
-        TextButton(
-          onPressed: _busy ? null : () => Navigator.of(context).pop(),
-          child: Text(l10n.settings_cloudSync_encryption_cancel),
-        ),
-        FilledButton(
-          onPressed: _busy ? null : _submit,
-          child: _busy
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : Text(l10n.settings_cloudSync_encryption_unlock),
-        ),
-      ],
     );
   }
 }

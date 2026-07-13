@@ -92,6 +92,103 @@ class AppLocalizationsIt extends AppLocalizations {
   String get equipment_setDetail_noGeofences => 'Nessun geofence';
 
   @override
+  String trips_story_dayLabel(int number) {
+    return 'Giorno $number';
+  }
+
+  @override
+  String get trips_story_surfaceDay => 'Giorno di superficie';
+
+  @override
+  String get trips_story_today => 'Oggi';
+
+  @override
+  String trips_story_dayOfTrip(int current, int total) {
+    return 'Giorno $current di $total';
+  }
+
+  @override
+  String trips_story_daysUntil(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days giorni alla partenza',
+      one: '1 giorno alla partenza',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_story_checklistProgress(int done, int total) {
+    return '$done di $total completati';
+  }
+
+  @override
+  String get trips_story_generateItinerary => 'Genera itinerario';
+
+  @override
+  String get trips_story_openGallery => 'Apri le foto del viaggio';
+
+  @override
+  String trips_story_generateItineraryError(String error) {
+    return 'Impossibile generare l\'itinerario: $error';
+  }
+
+  @override
+  String get trips_dayType_diveDay => 'Giorno di immersione';
+
+  @override
+  String get trips_dayType_seaDay => 'Giorno in mare';
+
+  @override
+  String get trips_dayType_portDay => 'Giorno in porto';
+
+  @override
+  String get trips_dayType_embark => 'Imbarco';
+
+  @override
+  String get trips_dayType_disembark => 'Sbarco';
+
+  @override
+  String get trips_story_planned => 'Pianificato';
+
+  @override
+  String get trips_story_empty_title => 'Nessuna immersione o itinerario';
+
+  @override
+  String get trips_story_empty_subtitle =>
+      'Aggiungi immersioni o pianifica i giorni per vedere la storia.';
+
+  @override
+  String trips_story_history_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count immersioni passate qui',
+      one: '1 immersione passata qui',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_story_history_avgTemp(String value) {
+    return 'media $value';
+  }
+
+  @override
+  String trips_story_history_avgDepth(String value) {
+    return 'prof. media $value';
+  }
+
+  @override
+  String get trips_story_rhythm_semantics =>
+      'Orari delle immersioni del giorno';
+
+  @override
+  String get trips_story_map_semantics =>
+      'Mappa del viaggio. I siti del giorno visibile sono evidenziati.';
+
+  @override
   String get diveLog_bulkEdit_groupRebreather => 'Modalità e rebreather';
 
   @override
@@ -313,6 +410,131 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_cloudSync_encryption_cancel => 'Annulla';
+
+  @override
+  String get settings_backupEncryption_title => 'Crittografia dei backup';
+
+  @override
+  String get settings_backupEncryption_subtitleOff =>
+      'Proteggi i tuoi backup con una password';
+
+  @override
+  String get settings_backupEncryption_subtitleOn =>
+      'I backup sono crittografati con la tua password';
+
+  @override
+  String get settings_backupEncryption_enable => 'Crittografa i backup';
+
+  @override
+  String get settings_backupEncryption_turnOff => 'Disattiva la crittografia';
+
+  @override
+  String get settings_backupEncryption_turnOffTitle =>
+      'Disattivare la crittografia dei backup?';
+
+  @override
+  String get settings_backupEncryption_turnOffBody =>
+      'I nuovi backup non saranno più crittografati. Per ripristinare i backup già crittografati sarà comunque necessaria la tua password.';
+
+  @override
+  String get settings_backupEncryption_changePassword => 'Cambia password';
+
+  @override
+  String get settings_backupEncryption_regenerateRecovery =>
+      'Rigenera il codice di recupero';
+
+  @override
+  String get settings_backupEncryption_password => 'Password';
+
+  @override
+  String get settings_backupEncryption_passwordConfirm => 'Conferma password';
+
+  @override
+  String get settings_backupEncryption_passwordTooShort =>
+      'Usa almeno 8 caratteri';
+
+  @override
+  String get settings_backupEncryption_passwordMismatch =>
+      'Le password non corrispondono';
+
+  @override
+  String get settings_backupEncryption_currentPassword => 'Password attuale';
+
+  @override
+  String get settings_backupEncryption_newPassword => 'Nuova password';
+
+  @override
+  String get settings_backupEncryption_changePasswordWarn =>
+      'Su un altro dispositivo, ogni backup si apre con la password o il codice di recupero attivo al momento della sua creazione.';
+
+  @override
+  String get settings_backupEncryption_warnLoss =>
+      'Se dimentichi la password e perdi il codice di recupero, i backup crittografati non potranno essere recuperati.';
+
+  @override
+  String get settings_backupEncryption_recoveryTitle =>
+      'Il tuo codice di recupero';
+
+  @override
+  String get settings_backupEncryption_recoveryExplain =>
+      'Conserva questo codice in un luogo sicuro. Può sbloccare i tuoi backup se dimentichi la password.';
+
+  @override
+  String get settings_backupEncryption_recoverySavedConfirm =>
+      'Ho salvato il mio codice di recupero';
+
+  @override
+  String get settings_backupEncryption_unlockTitle =>
+      'Inserisci la password del backup';
+
+  @override
+  String get settings_backupEncryption_unlockHint =>
+      'Inserisci la password del backup o il codice di recupero';
+
+  @override
+  String get settings_backupEncryption_restoreUnlockTitle =>
+      'Sblocca il backup crittografato';
+
+  @override
+  String get settings_backupEncryption_restoreUnlockHint =>
+      'Inserisci la password o il codice di recupero di questo backup';
+
+  @override
+  String get settings_backupEncryption_continue => 'Continua';
+
+  @override
+  String get settings_backupEncryption_cancel => 'Annulla';
+
+  @override
+  String get settings_backupEncryption_done => 'Fatto';
+
+  @override
+  String get settings_backupEncryption_reencryptTitle =>
+      'Crittografare i backup esistenti?';
+
+  @override
+  String get settings_backupEncryption_reencryptBody =>
+      'I tuoi backup esistenti non sono ancora crittografati. Vuoi crittografarli ora con la tua nuova password?';
+
+  @override
+  String get settings_backupEncryption_reencryptNow => 'Crittografa ora';
+
+  @override
+  String get settings_backupEncryption_reencryptNotNow => 'Non ora';
+
+  @override
+  String settings_backupEncryption_reencryptPartial(int done, int failed) {
+    return '$done backup crittografati di nuovo; $failed non è stato possibile crittografarli e restano non protetti';
+  }
+
+  @override
+  String settings_backupEncryption_reencryptDone(int count) {
+    return '$count backup crittografati di nuovo';
+  }
+
+  @override
+  String get settings_backupEncryption_wrongPassword =>
+      'Password o codice di recupero non corretti';
 
   @override
   String settings_cloudSync_replace_globalBanner(String deviceName) {
@@ -15608,6 +15830,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get trips_diveScan_noMatches =>
       'Nessuna immersione corrispondente trovata';
+
+  @override
+  String get trips_diveScan_noDiver =>
+      'Assegna un subacqueo a questo viaggio per cercare le immersioni';
 
   @override
   String get trips_diveScan_selectAll => 'Seleziona tutto';

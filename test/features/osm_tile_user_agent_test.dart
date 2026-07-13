@@ -22,11 +22,9 @@ import 'package:submersion/features/dive_sites/presentation/widgets/site_map_con
 import 'package:submersion/features/maps/domain/entities/heat_map_point.dart';
 import 'package:submersion/features/maps/presentation/providers/heat_map_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/trips/domain/entities/liveaboard_details.dart';
-import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
-import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/features/trips/domain/services/trip_story_builder.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_overview_tab.dart';
-import 'package:submersion/features/trips/presentation/widgets/trip_voyage_map.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -235,53 +233,11 @@ void main() {
     });
   });
 
-  // -- TripVoyageMap (covers 1 patch line: trip_voyage_map.dart:67) --
-  group('TripVoyageMap TileLayer', () {
-    testWidgets('renders TileLayer when trip has locations', (tester) async {
-      final overrides = await getBaseOverrides();
-      final now = DateTime.now();
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            ...overrides,
-            liveaboardDetailsProvider('trip-1').overrideWith(
-              (ref) async => LiveaboardDetails(
-                id: 'lb-1',
-                tripId: 'trip-1',
-                vesselName: 'Test Vessel',
-                embarkLatitude: 17.0,
-                embarkLongitude: -87.0,
-                createdAt: now,
-                updatedAt: now,
-              ),
-            ),
-            tripSitesWithLocationsProvider('trip-1').overrideWith(
-              (ref) async => <DiveSite>[
-                const DiveSite(
-                  id: 'site-1',
-                  name: 'Test Site',
-                  location: GeoPoint(17.5, -87.5),
-                ),
-              ],
-            ),
-          ].cast(),
-          child: const MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(body: TripVoyageMap(tripId: 'trip-1')),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.byType(TileLayer), findsOneWidget);
-    });
-  });
-
-  // -- TripOverviewTab (covers 1 patch line: trip_overview_tab.dart:200) --
+  // -- TripOverviewTab / story map header (covers the tile user agent on the
+  // trip story's pinned map, which replaced TripVoyageMap and the old overview
+  // map background) --
   group('TripOverviewTab TileLayer', () {
-    testWidgets('renders TileLayer when trip has site locations', (
+    testWidgets('renders TileLayer when the trip has site locations', (
       tester,
     ) async {
       final overrides = await getBaseOverrides();
@@ -299,33 +255,38 @@ void main() {
 
       final tripWithStats = TripWithStats(
         trip: trip,
-        diveCount: 2,
-        totalBottomTime: 75 * 60,
-        maxDepth: 30.0,
+        diveCount: 1,
+        totalBottomTime: 45 * 60,
+        maxDepth: 25.0,
       );
 
-      final dives = [
-        createTestDiveWithBottomTime(
-          id: 'trip-dive-1',
-          diveNumber: 1,
-          maxDepth: 25.0,
-        ),
-      ];
+      // A dive at a located site gives the story map a point to render.
+      final story = buildTripStory(
+        trip: trip,
+        dives: [
+          Dive(
+            id: 'trip-dive-1',
+            dateTime: DateTime(2026, 3, 25, 10),
+            maxDepth: 25.0,
+            site: const DiveSite(
+              id: 'site-1',
+              name: 'Test Site',
+              location: GeoPoint(17.5, -87.5),
+            ),
+          ),
+        ],
+        itineraryDays: [],
+        mediaByDiveId: {},
+        sightingsByDiveId: {},
+        checklistItems: [],
+        today: DateTime(2026, 6, 1),
+      );
 
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
             ...overrides,
-            divesForTripProvider(trip.id).overrideWith((ref) async => dives),
-            tripSitesWithLocationsProvider(trip.id).overrideWith(
-              (ref) async => <DiveSite>[
-                const DiveSite(
-                  id: 'site-1',
-                  name: 'Test Site',
-                  location: GeoPoint(17.5, -87.5),
-                ),
-              ],
-            ),
+            tripStoryProvider(trip.id).overrideWith((ref) async => story),
           ].cast(),
           child: MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -334,9 +295,10 @@ void main() {
           ),
         ),
       );
-      await tester.pumpAndSettle();
+      // Avoid pumpAndSettle: the FlutterMap tile layer animates indefinitely.
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
 
-      // The header should render a FlutterMap with TileLayer
       expect(find.byType(TileLayer), findsWidgets);
     });
   });

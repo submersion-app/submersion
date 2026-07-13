@@ -7,6 +7,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/notification_service.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
+import 'package:submersion/features/backup/data/services/backup_encryption_key_store.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/notifications/data/repositories/scheduled_notification_repository.dart';
@@ -92,9 +93,17 @@ Future<void> _performScheduledBackup(LoggerService log) async {
 
   log.info('Backup is due, starting automatic backup');
 
-  // Background isolate cannot access cloud auth, so backup is local-only
+  // Background isolate cannot access cloud auth, so backup is local-only.
+  // The backup-encryption key store IS injected: when the user has enabled
+  // backup encryption, the scheduled backup must still be written as an
+  // encrypted .sbe (otherwise _activeBackupKey fails closed and the whole
+  // scheduled backup fails). Secure storage is reachable from this isolate.
   final dbAdapter = DefaultBackupDatabaseAdapter(DatabaseService.instance);
-  final service = BackupService(dbAdapter: dbAdapter, preferences: preferences);
+  final service = BackupService(
+    dbAdapter: dbAdapter,
+    preferences: preferences,
+    backupEncryptionKeyStore: BackupEncryptionKeyStore(),
+  );
 
   try {
     final record = await service.performBackup(isAutomatic: true);

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:cryptography/cryptography.dart';
 import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as p;
@@ -18,6 +19,7 @@ import 'package:submersion/core/services/sync/library_epoch_store.dart';
 import 'package:submersion/core/services/sync/post_restore_sync_store.dart';
 import 'package:submersion/core/services/sync/sync_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_crypto.dart';
+import 'package:submersion/features/backup/data/services/backup_encryption_key_store.dart';
 import 'package:submersion/features/backup/domain/exceptions/backup_encrypted_exception.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_database_adapter.dart';
@@ -93,6 +95,14 @@ class BackupService {
   final EncryptionKeyStore? _encryptionKeyStore;
   final SyncPreferences? _syncPreferences;
 
+  /// Backup-encryption key (issue #580). When the backupEncryptionEnabled flag
+  /// is on and this + a mirror are present, every backup write is a framed
+  /// `.sbe`. Nullable so existing constructions keep working (plaintext). Every
+  /// real construction path that can run with backup encryption enabled must
+  /// inject one (the providers do; the mobile background isolate does too) --
+  /// `_activeBackupKey` fails closed when the flag is on but the store is null.
+  final BackupEncryptionKeyStore? _backupEncryptionKeyStore;
+
   /// SAF write/read/delete seam for Android custom (`content://`) backup
   /// locations. Defaults to the real platform channel; injectable for tests.
   final BackupSafPort _safPort;
@@ -112,6 +122,7 @@ class BackupService {
     BackupSafPort? safPort,
     EncryptionKeyStore? encryptionKeyStore,
     SyncPreferences? syncPreferences,
+    BackupEncryptionKeyStore? backupEncryptionKeyStore,
   }) : _dbAdapter = dbAdapter,
        _preferences = preferences,
        _cloudProvider = cloudProvider,
@@ -120,7 +131,8 @@ class BackupService {
        _postRestoreSyncStore = postRestoreSyncStore,
        _safPort = safPort ?? const MethodChannelBackupSafPort(),
        _encryptionKeyStore = encryptionKeyStore,
-       _syncPreferences = syncPreferences;
+       _syncPreferences = syncPreferences,
+       _backupEncryptionKeyStore = backupEncryptionKeyStore;
 
   // ===========================================================================
   // Backup
@@ -151,16 +163,59 @@ class BackupService {
     required bool isAutomatic,
   }) async {
     final filename = _generateFilename();
+    final encKey = await _activeBackupKey();
 
-    // Write the backup; ref is a filesystem path or a content:// document URI.
-    final ref = await target.write(_dbAdapter, filename);
+    final String ref;
+    final int sizeBytes;
+    final String storedName;
+    if (encKey == null) {
+      storedName = filename;
+      // Write the backup; ref is a filesystem path or a content:// document URI.
+      ref = await target.write(_dbAdapter, filename);
 
-    // SAF refs are content URIs (no File length). The backup is a byte copy of
-    // the live DB, so its size equals the source's. Filesystem refs keep the
-    // existing File(ref).length() behavior.
-    final sizeBytes = isSafRef(ref)
-        ? await File(await _dbAdapter.databasePath).length()
-        : await File(ref).length();
+      // SAF refs are content URIs (no File length). The backup is a byte copy
+      // of the live DB, so its size equals the source's. Filesystem refs keep
+      // the existing File(ref).length() behavior.
+      sizeBytes = isSafRef(ref)
+          ? await File(await _dbAdapter.databasePath).length()
+          : await File(ref).length();
+    } else {
+      // Backup encryption on: encrypt to a temp .sbe off to the side, then
+      // write that into the target (filesystem copy or SAF stream).
+      storedName =
+          p.basenameWithoutExtension(filename) + BackupCrypto.fileExtension;
+      final tempDir = await getTemporaryDirectory();
+      // Per-invocation prefix so a foreground backup/share and the scheduled
+      // background backup cannot collide on the shared temp dir within the same
+      // second (the filename has only second precision). The final stored name
+      // stays `storedName`.
+      final tempPrefix = _uuid.v4();
+      final tempPlain = p.join(tempDir.path, '$tempPrefix-$filename');
+      final tempSbe = p.join(tempDir.path, '$tempPrefix-$storedName');
+      try {
+        await _dbAdapter.backup(tempPlain);
+        await BackupCrypto.encryptFile(
+          inPath: tempPlain,
+          outPath: tempSbe,
+          mlk: encKey.mlk,
+          libraryKeyId: encKey.libraryKeyId,
+          keyslotBytes: encKey.keyslotBytes,
+        );
+        ref = await target.writeSource(tempSbe, storedName);
+        sizeBytes = await File(tempSbe).length();
+      } finally {
+        for (final t in [tempPlain, tempSbe]) {
+          final f = File(t);
+          if (await f.exists()) {
+            try {
+              await f.delete();
+            } catch (_) {
+              // best-effort temp cleanup
+            }
+          }
+        }
+      }
+    }
 
     // Get dive and site counts
     final counts = await _getDiveSiteCounts();
@@ -173,7 +228,7 @@ class BackupService {
     final settings = _preferences.getSettings();
     if (settings.cloudBackupEnabled && _cloudProvider != null) {
       try {
-        cloudFileId = await _uploadToCloud(ref, filename);
+        cloudFileId = await _uploadToCloud(ref, storedName);
         location = BackupLocation.both;
         _log.info('Backup uploaded to cloud: $cloudFileId');
       } catch (e, stack) {
@@ -188,7 +243,7 @@ class BackupService {
 
     final record = BackupRecord(
       id: _uuid.v4(),
-      filename: filename,
+      filename: storedName,
       timestamp: DateTime.now(),
       sizeBytes: sizeBytes,
       location: location,
@@ -216,7 +271,35 @@ class BackupService {
   Future<BackupRecord> exportBackupToPath(String destinationPath) async {
     _log.info('Exporting backup to: $destinationPath');
 
-    await _dbAdapter.backup(destinationPath);
+    final encKey = await _activeBackupKey();
+    if (encKey == null) {
+      await _dbAdapter.backup(destinationPath);
+    } else {
+      final tempDir = await getTemporaryDirectory();
+      final plainPath = p.join(tempDir.path, 'export_${_uuid.v4()}.db');
+      try {
+        // Inside the try so a failed/partial backup still gets its plaintext
+        // temp cleaned up in the finally -- never leave an unencrypted DB behind
+        // when encryption is enabled.
+        await _dbAdapter.backup(plainPath);
+        await BackupCrypto.encryptFile(
+          inPath: plainPath,
+          outPath: destinationPath,
+          mlk: encKey.mlk,
+          libraryKeyId: encKey.libraryKeyId,
+          keyslotBytes: encKey.keyslotBytes,
+        );
+      } finally {
+        final plain = File(plainPath);
+        if (await plain.exists()) {
+          try {
+            await plain.delete();
+          } catch (_) {
+            // best-effort temp cleanup
+          }
+        }
+      }
+    }
 
     final filename = p.basename(destinationPath);
     final counts = await _getDiveSiteCounts();
@@ -251,14 +334,209 @@ class BackupService {
   Future<File> exportBackupToTemp() async {
     _log.info('Exporting backup to temp for sharing');
 
+    final encKey = await _activeBackupKey();
     final filename = _generateFilename();
     final tempDir = await getTemporaryDirectory();
-    final tempPath = p.join(tempDir.path, filename);
 
-    await _dbAdapter.backup(tempPath);
+    if (encKey == null) {
+      final tempPath = p.join(tempDir.path, filename);
+      await _dbAdapter.backup(tempPath);
+      _log.info('Temp export completed: $filename');
+      return File(tempPath);
+    }
 
-    _log.info('Temp export completed: $filename');
-    return File(tempPath);
+    final plainPath = p.join(tempDir.path, filename);
+    final sbeName =
+        p.basenameWithoutExtension(filename) + BackupCrypto.fileExtension;
+    final sbePath = p.join(tempDir.path, sbeName);
+    try {
+      // Inside the try so a failed/partial backup still gets its plaintext temp
+      // cleaned up in the finally -- never leave an unencrypted DB behind when
+      // encryption is enabled.
+      await _dbAdapter.backup(plainPath);
+      await BackupCrypto.encryptFile(
+        inPath: plainPath,
+        outPath: sbePath,
+        mlk: encKey.mlk,
+        libraryKeyId: encKey.libraryKeyId,
+        keyslotBytes: encKey.keyslotBytes,
+      );
+    } finally {
+      final plain = File(plainPath);
+      if (await plain.exists()) {
+        try {
+          await plain.delete();
+        } catch (_) {
+          // best-effort temp cleanup
+        }
+      }
+    }
+    _log.info('Encrypted temp export completed: $sbeName');
+    return File(sbePath);
+  }
+
+  /// Rewrite every plaintext local backup in history as an encrypted `.sbe`,
+  /// re-uploading its cloud copy when present. Idempotent: already-encrypted
+  /// artifacts are skipped by magic, so an interrupted run is safe to resume.
+  /// SAF (`content://`) and cloud-only records are skipped (logged).
+  /// Best-effort per record. Requires backup encryption to be enabled.
+  Future<({int reencrypted, int skipped, int failed})>
+  reencryptExistingBackups() async {
+    final encKey = await _activeBackupKey();
+    if (encKey == null) {
+      throw const BackupException('Backup encryption must be enabled first');
+    }
+    var reencrypted = 0;
+    var skipped = 0;
+    var failed = 0;
+    for (final record in _preferences.getHistory()) {
+      final localPath = record.localPath;
+      if (localPath == null || isSafRef(localPath)) {
+        // SAF (content://) and path-less records cannot be re-encrypted in
+        // place here, so they stay plaintext. Count them as FAILURES (not
+        // silent skips) so the migration summary discloses the remaining
+        // exposure to the user instead of implying everything is protected.
+        _log.info(
+          'Re-encrypt unsupported for non-filesystem backup: ${record.filename}',
+        );
+        failed++;
+        continue;
+      }
+      try {
+        final file = File(localPath);
+        if (!await file.exists()) {
+          skipped++;
+          continue;
+        }
+        if (await BackupCrypto.isEncryptedBackup(localPath)) {
+          skipped++;
+          continue;
+        }
+        final dir = p.dirname(localPath);
+        final newName =
+            p.basenameWithoutExtension(localPath) + BackupCrypto.fileExtension;
+        final newPath = p.join(dir, newName);
+        final tempDir = await getTemporaryDirectory();
+        final tempSbe = p.join(tempDir.path, 'reenc_${_uuid.v4()}.sbe');
+        try {
+          await BackupCrypto.encryptFile(
+            inPath: localPath,
+            outPath: tempSbe,
+            mlk: encKey.mlk,
+            libraryKeyId: encKey.libraryKeyId,
+            keyslotBytes: encKey.keyslotBytes,
+          );
+          await File(tempSbe).copy(newPath);
+        } finally {
+          // Always remove the per-record temp .sbe, even on an encrypt/copy
+          // failure, so repeated retries (e.g. after a disk-full error) don't
+          // accumulate large files in the shared temp dir.
+          final t = File(tempSbe);
+          if (await t.exists()) {
+            try {
+              await t.delete();
+            } catch (_) {
+              // best-effort temp cleanup
+            }
+          }
+        }
+
+        // Upload the new .sbe BEFORE committing history. If the upload throws,
+        // the record still points at the intact plaintext .db and its old cloud
+        // object, so the next run re-encrypts it -- resumability is preserved.
+        String? newCloudFileId = record.cloudFileId;
+        if (record.cloudFileId != null) {
+          // The record has a cloud copy that must be re-encrypted too. If the
+          // provider is unavailable (signed out, or a custom local folder makes
+          // it null), fail THIS record rather than commit a local .sbe while the
+          // cloud copy stays plaintext -- otherwise the success tally would
+          // falsely imply that copy is protected.
+          if (_cloudProvider == null) {
+            throw const BackupException(
+              'Cloud copy cannot be re-encrypted: no cloud provider available',
+            );
+          }
+          newCloudFileId = await _uploadToCloud(newPath, newName);
+          // A null result means the folder could not be created; treat it as a
+          // failed migration. Committing here would (via copyWith's null-keeps-
+          // old semantics) leave history on the OLD id while the delete branch
+          // removes that object -- a dangling pointer. Bail so the record stays
+          // fully intact and resumable.
+          if (newCloudFileId == null) {
+            throw const BackupException(
+              'Cloud re-upload returned no file id during re-encrypt',
+            );
+          }
+        }
+
+        // Commit the record to the on-disk .sbe (which now exists) BEFORE
+        // deleting the old plaintext/cloud artifacts. A failed delete below is
+        // then a best-effort leak, never a dangling history pointer or data
+        // loss.
+        await _preferences.updateRecord(
+          record.copyWith(
+            filename: newName,
+            localPath: newPath,
+            sizeBytes: await File(newPath).length(),
+            cloudFileId: newCloudFileId,
+          ),
+        );
+
+        // The new .sbe is committed and protected. If an OLD plaintext/cloud
+        // copy cannot be removed it is a residual exposure, so count the record
+        // as a failure (disclosed to the user) rather than a clean success --
+        // without rolling back the committed encrypted record.
+        var residualExposure = false;
+        if (newPath != localPath) {
+          try {
+            await file.delete();
+          } catch (e, stack) {
+            residualExposure = true;
+            _log.error(
+              'Re-encrypt: old plaintext .db could not be deleted, still on '
+              'disk: ${record.filename}',
+              error: e,
+              stackTrace: stack,
+            );
+          }
+        }
+        // Delete the old cloud object only when the upload produced a DIFFERENT
+        // id. Path-based providers (S3/Dropbox/iCloud) reuse the id for the same
+        // name, so an unconditional delete would remove the object we just
+        // uploaded.
+        if (record.cloudFileId != null &&
+            _cloudProvider != null &&
+            newCloudFileId != record.cloudFileId) {
+          try {
+            await _cloudProvider.deleteFile(record.cloudFileId!);
+          } catch (e, stack) {
+            residualExposure = true;
+            _log.error(
+              'Re-encrypt: old cloud object could not be deleted, still '
+              'present: ${record.filename}',
+              error: e,
+              stackTrace: stack,
+            );
+          }
+        }
+        if (residualExposure) {
+          failed++;
+        } else {
+          reencrypted++;
+        }
+      } catch (e, stack) {
+        _log.error(
+          'Re-encrypt failed for ${record.filename}',
+          error: e,
+          stackTrace: stack,
+        );
+        failed++;
+      }
+    }
+    _log.info(
+      'Re-encrypt done: $reencrypted rewritten, $skipped skipped, $failed failed',
+    );
+    return (reencrypted: reencrypted, skipped: skipped, failed: failed);
   }
 
   /// Validate whether a file is a valid Submersion backup.
@@ -890,20 +1168,40 @@ class BackupService {
     }
   }
 
+  /// The active backup-encryption key, or null when backup encryption is off.
+  /// Throws [BackupException] when the flag is on but the key is unavailable
+  /// (fail-closed: never silently write plaintext the user asked to protect).
+  Future<({SecretKey mlk, String libraryKeyId, Uint8List keyslotBytes})?>
+  _activeBackupKey() async {
+    if (!_preferences.getSettings().backupEncryptionEnabled) return null;
+    final key = await _backupEncryptionKeyStore?.loadKey();
+    final mirror = await _backupEncryptionKeyStore?.loadKeyslotMirror();
+    if (key == null || mirror == null) {
+      throw const BackupException(
+        'Backup encryption is enabled but the key is unavailable on this device',
+      );
+    }
+    return (mlk: key.mlk, libraryKeyId: key.libraryKeyId, keyslotBytes: mirror);
+  }
+
   Future<String?> _uploadToCloud(String localPath, String filename) async {
     if (_cloudProvider == null) return null;
 
     final folderId = await _getOrCreateCloudBackupFolder();
     if (folderId == null) return null;
 
-    // End-to-end encryption: the CLOUD copy becomes a framed .sbe artifact
-    // (local artifacts stay plaintext by design -- disaster recovery must
-    // never sit behind a passphrase). File-to-file crypto keeps memory
-    // bounded regardless of database size.
     var uploadPath = localPath;
     var uploadName = filename;
     File? encryptedTemp;
-    if (_syncPreferences?.syncEncryptionEnabled ?? false) {
+
+    // When backup encryption (issue #580) already produced a framed .sbe, the
+    // local artifact IS the encrypted upload -- send it verbatim. Otherwise, if
+    // sync encryption is on, the CLOUD copy becomes a framed .sbe here (local
+    // artifacts stay plaintext by design). The cloud decorator exempts
+    // submersion_backup_*.sbe, so a pass-through .sbe is never double-encrypted.
+    final alreadyEncrypted = await BackupCrypto.isEncryptedBackup(localPath);
+    if (!alreadyEncrypted &&
+        (_syncPreferences?.syncEncryptionEnabled ?? false)) {
       final key = await _encryptionKeyStore?.loadKey();
       final mirror = await _encryptionKeyStore?.loadKeyslotMirror();
       if (key == null || mirror == null) {
@@ -960,23 +1258,46 @@ class BackupService {
     }
     final tempDir = await getTemporaryDirectory();
     final decrypted = p.join(tempDir.path, 'restore_${_uuid.v4()}.db');
-    final key = await _encryptionKeyStore?.loadKey();
+    final syncKey = await _encryptionKeyStore?.loadKey();
+    final backupKey = await _backupEncryptionKeyStore?.loadKey();
     final artifactKeyId = await BackupCrypto.libraryKeyIdOf(sourcePath);
-    if (key != null && key.libraryKeyId == artifactKeyId) {
-      await BackupCrypto.decryptFileWithKey(
-        inPath: sourcePath,
-        outPath: decrypted,
-        mlk: key.mlk,
-        expectedLibraryKeyId: key.libraryKeyId,
-      );
-    } else if (encryptionSecret != null) {
-      await BackupCrypto.decryptFile(
-        inPath: sourcePath,
-        outPath: decrypted,
-        secret: encryptionSecret,
-      );
-    } else {
-      throw const BackupEncryptedException();
+    try {
+      if (syncKey != null && syncKey.libraryKeyId == artifactKeyId) {
+        await BackupCrypto.decryptFileWithKey(
+          inPath: sourcePath,
+          outPath: decrypted,
+          mlk: syncKey.mlk,
+          expectedLibraryKeyId: syncKey.libraryKeyId,
+        );
+      } else if (backupKey != null && backupKey.libraryKeyId == artifactKeyId) {
+        await BackupCrypto.decryptFileWithKey(
+          inPath: sourcePath,
+          outPath: decrypted,
+          mlk: backupKey.mlk,
+          expectedLibraryKeyId: backupKey.libraryKeyId,
+        );
+      } else if (encryptionSecret != null) {
+        await BackupCrypto.decryptFile(
+          inPath: sourcePath,
+          outPath: decrypted,
+          secret: encryptionSecret,
+        );
+      } else {
+        throw const BackupEncryptedException();
+      }
+    } catch (_) {
+      // A failed auth/framing check may have already written partial plaintext
+      // to `decrypted`; remove it before rethrowing so no readable DB fragment
+      // is left in the temp directory.
+      final partial = File(decrypted);
+      if (await partial.exists()) {
+        try {
+          await partial.delete();
+        } catch (_) {
+          // best-effort cleanup
+        }
+      }
+      rethrow;
     }
     return _MaterializedBackup(decrypted, isTemp: true);
   }

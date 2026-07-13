@@ -101,4 +101,37 @@ void main() {
       expect(port.wroteName, 'out.db');
     },
   );
+
+  test(
+    'FilesystemBackupTarget.writeSource copies a pre-made file into the dir',
+    () async {
+      final tmp = await Directory.systemTemp.createTemp('fbt_ws_');
+      addTearDown(() => tmp.delete(recursive: true));
+      final src = File(p.join(tmp.path, 'src.sbe'));
+      await src.writeAsString('ENCRYPTED');
+
+      final ref = await FilesystemBackupTarget(
+        tmp.path,
+      ).writeSource(src.path, 'backup.sbe');
+
+      expect(ref, p.join(tmp.path, 'backup.sbe'));
+      expect(File(ref).readAsStringSync(), 'ENCRYPTED');
+    },
+  );
+
+  test(
+    'SafBackupTarget.writeSource streams the given source via the port',
+    () async {
+      final port = _FakeSafPort();
+
+      final ref = await SafBackupTarget(
+        'content://tree/1',
+        port,
+      ).writeSource('/tmp/enc.sbe', 'backup.sbe');
+
+      expect(ref, 'content://tree/1/doc/backup.sbe');
+      expect(port.wroteSource, '/tmp/enc.sbe');
+      expect(port.wroteName, 'backup.sbe');
+    },
+  );
 }

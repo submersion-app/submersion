@@ -23,6 +23,35 @@
   "equipment_setDetail_setAsDefaultSnackbar": "A(z) \"{name}\" mostantól az alapértelmezett készleted",
   "equipment_setDetail_geofencesTitle": "Geokerítések",
   "equipment_setDetail_noGeofences": "Nincsenek geokerítések",
+  "trips_story_dayLabel": "{number}. nap",
+  "trips_story_surfaceDay": "Felszíni nap",
+  "trips_story_today": "Ma",
+  "trips_story_dayOfTrip": "{current}. nap a(z) {total} napból",
+  "trips_story_daysUntil": "{days, plural, =1{1 nap az indulásig} other{{days} nap az indulásig}}",
+  "trips_story_checklistProgress": "{done}/{total} kész",
+  "trips_story_generateItinerary": "Útiterv létrehozása",
+  "trips_story_openGallery": "Utazási fotók megnyitása",
+  "trips_story_generateItineraryError": "Nem sikerült létrehozni az útitervet: {error}",
+  "@trips_story_generateItineraryError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_dayType_diveDay": "Merülőnap",
+  "trips_dayType_seaDay": "Tengeri nap",
+  "trips_dayType_portDay": "Kikötői nap",
+  "trips_dayType_embark": "Beszállás",
+  "trips_dayType_disembark": "Kiszállás",
+  "trips_story_planned": "Tervezett",
+  "trips_story_empty_title": "Még nincs merülés vagy útiterv",
+  "trips_story_empty_subtitle": "Adj hozzá merüléseket vagy tervezd meg a napokat a történethez.",
+  "trips_story_history_dives": "{count, plural, =1{1 korábbi merülés itt} other{{count} korábbi merülés itt}}",
+  "trips_story_history_avgTemp": "átlag {value}",
+  "trips_story_history_avgDepth": "átl. mélység {value}",
+  "trips_story_rhythm_semantics": "A nap merülési idői",
+  "trips_story_map_semantics": "Úti térkép. A látható nap helyszínei kiemelve.",
   "diveLog_bulkEdit_groupRebreather": "Merülési mód és rebreather",
   "diveLog_bulkEdit_fieldSetpointLow": "Alacsony alapérték",
   "diveLog_bulkEdit_fieldSetpointHigh": "Magas alapérték",
@@ -86,6 +115,57 @@
   "settings_cloudSync_encryption_continue": "Folytatás",
   "settings_cloudSync_encryption_done": "Kész",
   "settings_cloudSync_encryption_cancel": "Mégse",
+  "settings_backupEncryption_title": "Biztonsági mentés titkosítása",
+  "settings_backupEncryption_subtitleOff": "Védje a biztonsági mentéseit jelszóval",
+  "settings_backupEncryption_subtitleOn": "A biztonsági mentések a jelszavával vannak titkosítva",
+  "settings_backupEncryption_enable": "Biztonsági mentések titkosítása",
+  "settings_backupEncryption_turnOff": "Titkosítás kikapcsolása",
+  "settings_backupEncryption_turnOffTitle": "Kikapcsolja a biztonsági mentés titkosítását?",
+  "settings_backupEncryption_turnOffBody": "Az új biztonsági mentések többé nem lesznek titkosítva. A meglévő titkosított mentések visszaállításához továbbra is szükség van a jelszavára.",
+  "settings_backupEncryption_changePassword": "Jelszó módosítása",
+  "settings_backupEncryption_regenerateRecovery": "Új helyreállítási kód létrehozása",
+  "settings_backupEncryption_password": "Jelszó",
+  "settings_backupEncryption_passwordConfirm": "Jelszó megerősítése",
+  "settings_backupEncryption_passwordTooShort": "Legalább 8 karaktert használjon",
+  "settings_backupEncryption_passwordMismatch": "A jelszavak nem egyeznek",
+  "settings_backupEncryption_currentPassword": "Jelenlegi jelszó",
+  "settings_backupEncryption_newPassword": "Új jelszó",
+  "settings_backupEncryption_changePasswordWarn": "Másik eszközön minden biztonsági mentés azzal a jelszóval vagy helyreállítási kóddal nyílik meg, amely a létrehozásakor aktív volt.",
+  "settings_backupEncryption_warnLoss": "Ha elfelejti a jelszavát és elveszíti a helyreállítási kódot, a titkosított biztonsági mentések nem állíthatók helyre.",
+  "settings_backupEncryption_recoveryTitle": "A helyreállítási kódja",
+  "settings_backupEncryption_recoveryExplain": "Mentse el ezt a kódot biztonságos helyre. Feloldhatja vele a biztonsági mentéseit, ha elfelejti a jelszavát.",
+  "settings_backupEncryption_recoverySavedConfirm": "Elmentettem a helyreállítási kódomat",
+  "settings_backupEncryption_unlockTitle": "Adja meg a biztonsági mentés jelszavát",
+  "settings_backupEncryption_unlockHint": "Adja meg a biztonsági mentés jelszavát vagy a helyreállítási kódot",
+  "settings_backupEncryption_restoreUnlockTitle": "Titkosított biztonsági mentés feloldása",
+  "settings_backupEncryption_restoreUnlockHint": "Add meg a biztonsági mentés jelszavát vagy helyreállítási kódját",
+  "settings_backupEncryption_continue": "Folytatás",
+  "settings_backupEncryption_cancel": "Mégse",
+  "settings_backupEncryption_done": "Kész",
+  "settings_backupEncryption_reencryptTitle": "Titkosítja a meglévő biztonsági mentéseket?",
+  "settings_backupEncryption_reencryptBody": "A meglévő biztonsági mentései még titkosítatlanok. Titkosítja őket most az új jelszavával?",
+  "settings_backupEncryption_reencryptNow": "Titkosítás most",
+  "settings_backupEncryption_reencryptNotNow": "Most nem",
+  "settings_backupEncryption_reencryptPartial": "{done} biztonsági mentés újratitkosítva; {failed} nem sikerült titkosítani, ezek továbbra is védtelenek",
+  "@settings_backupEncryption_reencryptPartial": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_backupEncryption_reencryptDone": "{count} biztonsági mentés újratitkosítva",
+  "@settings_backupEncryption_reencryptDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_backupEncryption_wrongPassword": "Hibás jelszó vagy helyreállítási kód",
   "@@locale": "hu",
   "settings_cloudSync_replace_globalBanner": "A szinkronizálás szünetel — a könyvtárat egy biztonsági másolatból cserélték itt: \"{deviceName}\".",
   "settings_cloudSync_postRestore_syncing": "A visszaállított könyvtár szinkronizálása a felhővel…",
@@ -5070,6 +5150,7 @@
     }
   },
   "trips_diveScan_noMatches": "Nem talalhatok egyezo merulesek",
+  "trips_diveScan_noDiver": "Rendelj egy búvárt ehhez az úthoz a merülések kereséséhez",
   "trips_diveScan_selectAll": "Osszes kivalasztasa",
   "trips_diveScan_subtitle": "{count} merules talalhato a datumtartomanyban",
   "@trips_diveScan_subtitle": {

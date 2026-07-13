@@ -23,6 +23,35 @@
   "equipment_setDetail_setAsDefaultSnackbar": "\"{name}\" è ora il tuo set predefinito",
   "equipment_setDetail_geofencesTitle": "Geofence",
   "equipment_setDetail_noGeofences": "Nessun geofence",
+  "trips_story_dayLabel": "Giorno {number}",
+  "trips_story_surfaceDay": "Giorno di superficie",
+  "trips_story_today": "Oggi",
+  "trips_story_dayOfTrip": "Giorno {current} di {total}",
+  "trips_story_daysUntil": "{days, plural, =1{1 giorno alla partenza} other{{days} giorni alla partenza}}",
+  "trips_story_checklistProgress": "{done} di {total} completati",
+  "trips_story_generateItinerary": "Genera itinerario",
+  "trips_story_openGallery": "Apri le foto del viaggio",
+  "trips_story_generateItineraryError": "Impossibile generare l'itinerario: {error}",
+  "@trips_story_generateItineraryError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_dayType_diveDay": "Giorno di immersione",
+  "trips_dayType_seaDay": "Giorno in mare",
+  "trips_dayType_portDay": "Giorno in porto",
+  "trips_dayType_embark": "Imbarco",
+  "trips_dayType_disembark": "Sbarco",
+  "trips_story_planned": "Pianificato",
+  "trips_story_empty_title": "Nessuna immersione o itinerario",
+  "trips_story_empty_subtitle": "Aggiungi immersioni o pianifica i giorni per vedere la storia.",
+  "trips_story_history_dives": "{count, plural, =1{1 immersione passata qui} other{{count} immersioni passate qui}}",
+  "trips_story_history_avgTemp": "media {value}",
+  "trips_story_history_avgDepth": "prof. media {value}",
+  "trips_story_rhythm_semantics": "Orari delle immersioni del giorno",
+  "trips_story_map_semantics": "Mappa del viaggio. I siti del giorno visibile sono evidenziati.",
   "diveLog_bulkEdit_groupRebreather": "Modalità e rebreather",
   "diveLog_bulkEdit_fieldSetpointLow": "Setpoint basso",
   "diveLog_bulkEdit_fieldSetpointHigh": "Setpoint alto",
@@ -86,6 +115,57 @@
   "settings_cloudSync_encryption_continue": "Continua",
   "settings_cloudSync_encryption_done": "Fatto",
   "settings_cloudSync_encryption_cancel": "Annulla",
+  "settings_backupEncryption_title": "Crittografia dei backup",
+  "settings_backupEncryption_subtitleOff": "Proteggi i tuoi backup con una password",
+  "settings_backupEncryption_subtitleOn": "I backup sono crittografati con la tua password",
+  "settings_backupEncryption_enable": "Crittografa i backup",
+  "settings_backupEncryption_turnOff": "Disattiva la crittografia",
+  "settings_backupEncryption_turnOffTitle": "Disattivare la crittografia dei backup?",
+  "settings_backupEncryption_turnOffBody": "I nuovi backup non saranno più crittografati. Per ripristinare i backup già crittografati sarà comunque necessaria la tua password.",
+  "settings_backupEncryption_changePassword": "Cambia password",
+  "settings_backupEncryption_regenerateRecovery": "Rigenera il codice di recupero",
+  "settings_backupEncryption_password": "Password",
+  "settings_backupEncryption_passwordConfirm": "Conferma password",
+  "settings_backupEncryption_passwordTooShort": "Usa almeno 8 caratteri",
+  "settings_backupEncryption_passwordMismatch": "Le password non corrispondono",
+  "settings_backupEncryption_currentPassword": "Password attuale",
+  "settings_backupEncryption_newPassword": "Nuova password",
+  "settings_backupEncryption_changePasswordWarn": "Su un altro dispositivo, ogni backup si apre con la password o il codice di recupero attivo al momento della sua creazione.",
+  "settings_backupEncryption_warnLoss": "Se dimentichi la password e perdi il codice di recupero, i backup crittografati non potranno essere recuperati.",
+  "settings_backupEncryption_recoveryTitle": "Il tuo codice di recupero",
+  "settings_backupEncryption_recoveryExplain": "Conserva questo codice in un luogo sicuro. Può sbloccare i tuoi backup se dimentichi la password.",
+  "settings_backupEncryption_recoverySavedConfirm": "Ho salvato il mio codice di recupero",
+  "settings_backupEncryption_unlockTitle": "Inserisci la password del backup",
+  "settings_backupEncryption_unlockHint": "Inserisci la password del backup o il codice di recupero",
+  "settings_backupEncryption_restoreUnlockTitle": "Sblocca il backup crittografato",
+  "settings_backupEncryption_restoreUnlockHint": "Inserisci la password o il codice di recupero di questo backup",
+  "settings_backupEncryption_continue": "Continua",
+  "settings_backupEncryption_cancel": "Annulla",
+  "settings_backupEncryption_done": "Fatto",
+  "settings_backupEncryption_reencryptTitle": "Crittografare i backup esistenti?",
+  "settings_backupEncryption_reencryptBody": "I tuoi backup esistenti non sono ancora crittografati. Vuoi crittografarli ora con la tua nuova password?",
+  "settings_backupEncryption_reencryptNow": "Crittografa ora",
+  "settings_backupEncryption_reencryptNotNow": "Non ora",
+  "settings_backupEncryption_reencryptPartial": "{done} backup crittografati di nuovo; {failed} non è stato possibile crittografarli e restano non protetti",
+  "@settings_backupEncryption_reencryptPartial": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_backupEncryption_reencryptDone": "{count} backup crittografati di nuovo",
+  "@settings_backupEncryption_reencryptDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_backupEncryption_wrongPassword": "Password o codice di recupero non corretti",
   "@@locale": "it",
   "settings_cloudSync_replace_globalBanner": "Sincronizzazione in pausa: la libreria è stata sostituita da un backup su \"{deviceName}\".",
   "settings_cloudSync_postRestore_syncing": "Sincronizzazione della libreria ripristinata con il cloud…",
@@ -5066,6 +5146,7 @@
     }
   },
   "trips_diveScan_noMatches": "Nessuna immersione corrispondente trovata",
+  "trips_diveScan_noDiver": "Assegna un subacqueo a questo viaggio per cercare le immersioni",
   "trips_diveScan_selectAll": "Seleziona tutto",
   "trips_diveScan_subtitle": "{count} immersioni trovate nell'intervallo di date",
   "@trips_diveScan_subtitle": {

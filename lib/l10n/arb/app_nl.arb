@@ -23,6 +23,35 @@
   "equipment_setDetail_setAsDefaultSnackbar": "\"{name}\" is nu je standaardset",
   "equipment_setDetail_geofencesTitle": "Geofences",
   "equipment_setDetail_noGeofences": "Geen geofences",
+  "trips_story_dayLabel": "Dag {number}",
+  "trips_story_surfaceDay": "Oppervlaktedag",
+  "trips_story_today": "Vandaag",
+  "trips_story_dayOfTrip": "Dag {current} van {total}",
+  "trips_story_daysUntil": "{days, plural, =1{Nog 1 dag tot vertrek} other{Nog {days} dagen tot vertrek}}",
+  "trips_story_checklistProgress": "{done} van {total} klaar",
+  "trips_story_generateItinerary": "Reisplan genereren",
+  "trips_story_openGallery": "Reisfoto's openen",
+  "trips_story_generateItineraryError": "Kan reisschema niet genereren: {error}",
+  "@trips_story_generateItineraryError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_dayType_diveDay": "Duikdag",
+  "trips_dayType_seaDay": "Zeedag",
+  "trips_dayType_portDay": "Havendag",
+  "trips_dayType_embark": "Inschepen",
+  "trips_dayType_disembark": "Ontschepen",
+  "trips_story_planned": "Gepland",
+  "trips_story_empty_title": "Nog geen duiken of reisplan",
+  "trips_story_empty_subtitle": "Voeg duiken toe of plan de dagen om het verhaal te zien.",
+  "trips_story_history_dives": "{count, plural, =1{1 eerdere duik hier} other{{count} eerdere duiken hier}}",
+  "trips_story_history_avgTemp": "gem. {value}",
+  "trips_story_history_avgDepth": "gem. diepte {value}",
+  "trips_story_rhythm_semantics": "Duiktijden van deze dag",
+  "trips_story_map_semantics": "Reiskaart. De stekken van de zichtbare dag zijn gemarkeerd.",
   "diveLog_bulkEdit_groupRebreather": "Duikmodus & rebreather",
   "diveLog_bulkEdit_fieldSetpointLow": "Setpoint laag",
   "diveLog_bulkEdit_fieldSetpointHigh": "Setpoint hoog",
@@ -86,6 +115,57 @@
   "settings_cloudSync_encryption_continue": "Doorgaan",
   "settings_cloudSync_encryption_done": "Klaar",
   "settings_cloudSync_encryption_cancel": "Annuleren",
+  "settings_backupEncryption_title": "Back-upversleuteling",
+  "settings_backupEncryption_subtitleOff": "Bescherm uw back-ups met een wachtwoord",
+  "settings_backupEncryption_subtitleOn": "Back-ups worden versleuteld met uw wachtwoord",
+  "settings_backupEncryption_enable": "Back-ups versleutelen",
+  "settings_backupEncryption_turnOff": "Versleuteling uitschakelen",
+  "settings_backupEncryption_turnOffTitle": "Back-upversleuteling uitschakelen?",
+  "settings_backupEncryption_turnOffBody": "Nieuwe back-ups worden niet meer versleuteld. Bestaande versleutelde back-ups hebben nog steeds uw wachtwoord nodig om te herstellen.",
+  "settings_backupEncryption_changePassword": "Wachtwoord wijzigen",
+  "settings_backupEncryption_regenerateRecovery": "Nieuwe herstelcode genereren",
+  "settings_backupEncryption_password": "Wachtwoord",
+  "settings_backupEncryption_passwordConfirm": "Wachtwoord bevestigen",
+  "settings_backupEncryption_passwordTooShort": "Gebruik minstens 8 tekens",
+  "settings_backupEncryption_passwordMismatch": "Wachtwoorden komen niet overeen",
+  "settings_backupEncryption_currentPassword": "Huidig wachtwoord",
+  "settings_backupEncryption_newPassword": "Nieuw wachtwoord",
+  "settings_backupEncryption_changePasswordWarn": "Op een ander apparaat wordt elke back-up geopend met het wachtwoord of de herstelcode die actief was toen deze werd gemaakt.",
+  "settings_backupEncryption_warnLoss": "Als u uw wachtwoord vergeet en de herstelcode verliest, kunnen versleutelde back-ups niet worden hersteld.",
+  "settings_backupEncryption_recoveryTitle": "Uw herstelcode",
+  "settings_backupEncryption_recoveryExplain": "Bewaar deze code op een veilige plek. Hij kan uw back-ups ontgrendelen als u uw wachtwoord vergeet.",
+  "settings_backupEncryption_recoverySavedConfirm": "Ik heb mijn herstelcode opgeslagen",
+  "settings_backupEncryption_unlockTitle": "Voer uw back-upwachtwoord in",
+  "settings_backupEncryption_unlockHint": "Voer uw back-upwachtwoord of herstelcode in",
+  "settings_backupEncryption_restoreUnlockTitle": "Versleutelde back-up ontgrendelen",
+  "settings_backupEncryption_restoreUnlockHint": "Voer het wachtwoord of de herstelcode voor deze back-up in",
+  "settings_backupEncryption_continue": "Doorgaan",
+  "settings_backupEncryption_cancel": "Annuleren",
+  "settings_backupEncryption_done": "Klaar",
+  "settings_backupEncryption_reencryptTitle": "Bestaande back-ups versleutelen?",
+  "settings_backupEncryption_reencryptBody": "Uw bestaande back-ups zijn nog onversleuteld. Wilt u ze nu opnieuw versleutelen met uw nieuwe wachtwoord?",
+  "settings_backupEncryption_reencryptNow": "Nu opnieuw versleutelen",
+  "settings_backupEncryption_reencryptNotNow": "Niet nu",
+  "settings_backupEncryption_reencryptPartial": "{done} back-ups opnieuw versleuteld; {failed} konden niet worden versleuteld en zijn nog onbeschermd",
+  "@settings_backupEncryption_reencryptPartial": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_backupEncryption_reencryptDone": "{count} back-ups opnieuw versleuteld",
+  "@settings_backupEncryption_reencryptDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_backupEncryption_wrongPassword": "Onjuist wachtwoord of herstelcode",
   "@@locale": "nl",
   "settings_cloudSync_replace_globalBanner": "Synchronisatie onderbroken — de bibliotheek is vervangen vanaf een back-up op \"{deviceName}\".",
   "settings_cloudSync_postRestore_syncing": "Je herstelde bibliotheek wordt met de cloud gesynchroniseerd…",
@@ -5104,6 +5184,7 @@
     }
   },
   "trips_diveScan_noMatches": "Geen overeenkomende duiken gevonden",
+  "trips_diveScan_noDiver": "Wijs een duiker toe aan deze reis om naar duiken te zoeken",
   "trips_diveScan_selectAll": "Alles selecteren",
   "trips_diveScan_subtitle": "{count} duiken gevonden in het datumbereik",
   "@trips_diveScan_subtitle": {

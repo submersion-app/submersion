@@ -35,6 +35,90 @@
   },
   "equipment_setDetail_geofencesTitle": "Geofences",
   "equipment_setDetail_noGeofences": "No geofences",
+  "trips_story_dayLabel": "Day {number}",
+  "@trips_story_dayLabel": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_story_surfaceDay": "Surface day",
+  "trips_story_today": "Today",
+  "trips_story_dayOfTrip": "Day {current} of {total}",
+  "@trips_story_dayOfTrip": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_story_daysUntil": "{days, plural, =1{1 day until departure} other{{days} days until departure}}",
+  "@trips_story_daysUntil": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_story_checklistProgress": "{done} of {total} done",
+  "@trips_story_checklistProgress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_story_generateItinerary": "Generate itinerary",
+  "trips_story_openGallery": "Open trip photos",
+  "trips_story_generateItineraryError": "Couldn't generate itinerary: {error}",
+  "@trips_story_generateItineraryError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_dayType_diveDay": "Dive Day",
+  "trips_dayType_seaDay": "Sea Day",
+  "trips_dayType_portDay": "Port Day",
+  "trips_dayType_embark": "Embark",
+  "trips_dayType_disembark": "Disembark",
+  "trips_story_planned": "Planned",
+  "trips_story_empty_title": "No dives or itinerary yet",
+  "trips_story_empty_subtitle": "Add dives to this trip or plan its days to see the story.",
+  "trips_story_history_dives": "{count, plural, =1{1 past dive here} other{{count} past dives here}}",
+  "@trips_story_history_dives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_story_history_avgTemp": "avg {value}",
+  "@trips_story_history_avgTemp": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_history_avgDepth": "avg depth {value}",
+  "@trips_story_history_avgDepth": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semantics": "Dive times during this day",
+  "trips_story_map_semantics": "Trip map. Sites for the day in view are highlighted.",
   "diveLog_bulkEdit_groupRebreather": "Dive Mode & Rebreather",
   "diveLog_bulkEdit_fieldSetpointLow": "Setpoint low",
   "diveLog_bulkEdit_fieldSetpointHigh": "Setpoint high",
@@ -111,6 +195,57 @@
   "settings_cloudSync_encryption_continue": "Continue",
   "settings_cloudSync_encryption_done": "Done",
   "settings_cloudSync_encryption_cancel": "Cancel",
+  "settings_backupEncryption_title": "Backup encryption",
+  "settings_backupEncryption_subtitleOff": "Protect your backups with a password",
+  "settings_backupEncryption_subtitleOn": "Backups are encrypted with your password",
+  "settings_backupEncryption_enable": "Encrypt backups",
+  "settings_backupEncryption_turnOff": "Turn off encryption",
+  "settings_backupEncryption_turnOffTitle": "Turn off backup encryption?",
+  "settings_backupEncryption_turnOffBody": "New backups will no longer be encrypted. Existing encrypted backups still need your password to restore.",
+  "settings_backupEncryption_changePassword": "Change password",
+  "settings_backupEncryption_regenerateRecovery": "Regenerate recovery code",
+  "settings_backupEncryption_password": "Password",
+  "settings_backupEncryption_passwordConfirm": "Confirm password",
+  "settings_backupEncryption_passwordTooShort": "Use at least 8 characters",
+  "settings_backupEncryption_passwordMismatch": "Passwords do not match",
+  "settings_backupEncryption_currentPassword": "Current password",
+  "settings_backupEncryption_newPassword": "New password",
+  "settings_backupEncryption_changePasswordWarn": "On another device, each backup opens with the password or recovery code that was active when it was created.",
+  "settings_backupEncryption_warnLoss": "If you forget your password and lose the recovery code, encrypted backups cannot be recovered.",
+  "settings_backupEncryption_recoveryTitle": "Your recovery code",
+  "settings_backupEncryption_recoveryExplain": "Save this code somewhere safe. It can unlock your backups if you forget your password.",
+  "settings_backupEncryption_recoverySavedConfirm": "I have saved my recovery code",
+  "settings_backupEncryption_unlockTitle": "Enter backup password",
+  "settings_backupEncryption_unlockHint": "Enter your backup password or recovery code",
+  "settings_backupEncryption_restoreUnlockTitle": "Unlock encrypted backup",
+  "settings_backupEncryption_restoreUnlockHint": "Enter the password or recovery code for this backup",
+  "settings_backupEncryption_continue": "Continue",
+  "settings_backupEncryption_cancel": "Cancel",
+  "settings_backupEncryption_done": "Done",
+  "settings_backupEncryption_reencryptTitle": "Encrypt existing backups?",
+  "settings_backupEncryption_reencryptBody": "Your existing backups are still unencrypted. Re-encrypt them now with your new password?",
+  "settings_backupEncryption_reencryptNow": "Re-encrypt now",
+  "settings_backupEncryption_reencryptNotNow": "Not now",
+  "settings_backupEncryption_reencryptPartial": "Re-encrypted {done} backups; {failed} could not be encrypted and are still unprotected",
+  "@settings_backupEncryption_reencryptPartial": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_backupEncryption_reencryptDone": "Re-encrypted {count} backups",
+  "@settings_backupEncryption_reencryptDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_backupEncryption_wrongPassword": "Incorrect password or recovery code",
   "@@locale": "en",
   "settings_cloudSync_replace_globalBanner": "Sync is paused — the library was replaced from a backup on \"{deviceName}\".",
   "@settings_cloudSync_replace_globalBanner": {
@@ -8766,6 +8901,7 @@
     }
   },
   "trips_diveScan_noMatches": "No matching dives found",
+  "trips_diveScan_noDiver": "Assign a diver to this trip to scan for dives",
   "trips_diveScan_selectAll": "Select all",
   "trips_diveScan_subtitle": "{count} dives found in date range",
   "@trips_diveScan_subtitle": {

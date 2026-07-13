@@ -44,6 +44,7 @@ packages/libdivecomputer_plugin/ios/build/
 *.log
 .env
 .claude/
+.agents/
 coverage/
 devtools_options.yaml
 .worktrees/

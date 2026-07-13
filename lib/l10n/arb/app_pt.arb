@@ -23,6 +23,35 @@
   "equipment_setDetail_setAsDefaultSnackbar": "\"{name}\" agora é o seu conjunto padrão",
   "equipment_setDetail_geofencesTitle": "Geocercas",
   "equipment_setDetail_noGeofences": "Sem geocercas",
+  "trips_story_dayLabel": "Dia {number}",
+  "trips_story_surfaceDay": "Dia de superfície",
+  "trips_story_today": "Hoje",
+  "trips_story_dayOfTrip": "Dia {current} de {total}",
+  "trips_story_daysUntil": "{days, plural, =1{1 dia até a partida} other{{days} dias até a partida}}",
+  "trips_story_checklistProgress": "{done} de {total} concluído",
+  "trips_story_generateItinerary": "Gerar itinerário",
+  "trips_story_openGallery": "Abrir fotos da viagem",
+  "trips_story_generateItineraryError": "Não foi possível gerar o itinerário: {error}",
+  "@trips_story_generateItineraryError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_dayType_diveDay": "Dia de mergulho",
+  "trips_dayType_seaDay": "Dia no mar",
+  "trips_dayType_portDay": "Dia no porto",
+  "trips_dayType_embark": "Embarque",
+  "trips_dayType_disembark": "Desembarque",
+  "trips_story_planned": "Planejado",
+  "trips_story_empty_title": "Ainda sem mergulhos ou itinerário",
+  "trips_story_empty_subtitle": "Adicione mergulhos ou planeje os dias para ver a história.",
+  "trips_story_history_dives": "{count, plural, =1{1 mergulho anterior aqui} other{{count} mergulhos anteriores aqui}}",
+  "trips_story_history_avgTemp": "média {value}",
+  "trips_story_history_avgDepth": "prof. média {value}",
+  "trips_story_rhythm_semantics": "Horários de mergulho deste dia",
+  "trips_story_map_semantics": "Mapa da viagem. Os pontos do dia visível estão destacados.",
   "diveLog_bulkEdit_groupRebreather": "Modo de mergulho e rebreather",
   "diveLog_bulkEdit_fieldSetpointLow": "Setpoint baixo",
   "diveLog_bulkEdit_fieldSetpointHigh": "Setpoint alto",
@@ -86,6 +115,57 @@
   "settings_cloudSync_encryption_continue": "Continuar",
   "settings_cloudSync_encryption_done": "Concluído",
   "settings_cloudSync_encryption_cancel": "Cancelar",
+  "settings_backupEncryption_title": "Criptografia de backup",
+  "settings_backupEncryption_subtitleOff": "Proteja seus backups com uma senha",
+  "settings_backupEncryption_subtitleOn": "Os backups são criptografados com sua senha",
+  "settings_backupEncryption_enable": "Criptografar backups",
+  "settings_backupEncryption_turnOff": "Desativar criptografia",
+  "settings_backupEncryption_turnOffTitle": "Desativar criptografia de backup?",
+  "settings_backupEncryption_turnOffBody": "Os novos backups deixarão de ser criptografados. Os backups criptografados existentes ainda precisam da sua senha para serem restaurados.",
+  "settings_backupEncryption_changePassword": "Alterar senha",
+  "settings_backupEncryption_regenerateRecovery": "Gerar novo código de recuperação",
+  "settings_backupEncryption_password": "Senha",
+  "settings_backupEncryption_passwordConfirm": "Confirmar senha",
+  "settings_backupEncryption_passwordTooShort": "Use pelo menos 8 caracteres",
+  "settings_backupEncryption_passwordMismatch": "As senhas não coincidem",
+  "settings_backupEncryption_currentPassword": "Senha atual",
+  "settings_backupEncryption_newPassword": "Nova senha",
+  "settings_backupEncryption_changePasswordWarn": "Em outro dispositivo, cada backup é aberto com a senha ou o código de recuperação que estava ativo quando foi criado.",
+  "settings_backupEncryption_warnLoss": "Se você esquecer a senha e perder o código de recuperação, os backups criptografados não poderão ser recuperados.",
+  "settings_backupEncryption_recoveryTitle": "Seu código de recuperação",
+  "settings_backupEncryption_recoveryExplain": "Guarde este código em local seguro. Ele pode desbloquear seus backups se você esquecer a senha.",
+  "settings_backupEncryption_recoverySavedConfirm": "Salvei meu código de recuperação",
+  "settings_backupEncryption_unlockTitle": "Digite a senha do backup",
+  "settings_backupEncryption_unlockHint": "Digite a senha do backup ou o código de recuperação",
+  "settings_backupEncryption_restoreUnlockTitle": "Desbloquear backup criptografado",
+  "settings_backupEncryption_restoreUnlockHint": "Insira a senha ou o código de recuperação deste backup",
+  "settings_backupEncryption_continue": "Continuar",
+  "settings_backupEncryption_cancel": "Cancelar",
+  "settings_backupEncryption_done": "Concluído",
+  "settings_backupEncryption_reencryptTitle": "Criptografar backups existentes?",
+  "settings_backupEncryption_reencryptBody": "Seus backups existentes ainda não estão criptografados. Recriptografá-los agora com sua nova senha?",
+  "settings_backupEncryption_reencryptNow": "Recriptografar agora",
+  "settings_backupEncryption_reencryptNotNow": "Agora não",
+  "settings_backupEncryption_reencryptPartial": "{done} backups recriptografados; {failed} não puderam ser criptografados e continuam desprotegidos",
+  "@settings_backupEncryption_reencryptPartial": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_backupEncryption_reencryptDone": "{count} backups recriptografados",
+  "@settings_backupEncryption_reencryptDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_backupEncryption_wrongPassword": "Senha ou código de recuperação incorretos",
   "@@locale": "pt",
   "settings_cloudSync_replace_globalBanner": "Sincronização em pausa — a biblioteca foi substituída a partir de uma cópia de segurança em \"{deviceName}\".",
   "settings_cloudSync_postRestore_syncing": "A sincronizar a sua biblioteca restaurada com a nuvem…",
@@ -5104,6 +5184,7 @@
     }
   },
   "trips_diveScan_noMatches": "Nenhum mergulho correspondente encontrado",
+  "trips_diveScan_noDiver": "Atribua um mergulhador a esta viagem para procurar mergulhos",
   "trips_diveScan_selectAll": "Selecionar tudo",
   "trips_diveScan_subtitle": "{count} mergulhos encontrados no intervalo de datas",
   "@trips_diveScan_subtitle": {

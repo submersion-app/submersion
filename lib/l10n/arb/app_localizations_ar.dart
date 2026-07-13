@@ -91,6 +91,102 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_setDetail_noGeofences => 'لا توجد أسوار جغرافية';
 
   @override
+  String trips_story_dayLabel(int number) {
+    return 'اليوم $number';
+  }
+
+  @override
+  String get trips_story_surfaceDay => 'يوم سطح';
+
+  @override
+  String get trips_story_today => 'اليوم';
+
+  @override
+  String trips_story_dayOfTrip(int current, int total) {
+    return 'اليوم $current من $total';
+  }
+
+  @override
+  String trips_story_daysUntil(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days أيام حتى المغادرة',
+      one: 'يوم واحد حتى المغادرة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_story_checklistProgress(int done, int total) {
+    return 'اكتمل $done من $total';
+  }
+
+  @override
+  String get trips_story_generateItinerary => 'إنشاء خط سير';
+
+  @override
+  String get trips_story_openGallery => 'فتح صور الرحلة';
+
+  @override
+  String trips_story_generateItineraryError(String error) {
+    return 'تعذّر إنشاء برنامج الرحلة: $error';
+  }
+
+  @override
+  String get trips_dayType_diveDay => 'يوم غوص';
+
+  @override
+  String get trips_dayType_seaDay => 'يوم بحري';
+
+  @override
+  String get trips_dayType_portDay => 'يوم في الميناء';
+
+  @override
+  String get trips_dayType_embark => 'الصعود';
+
+  @override
+  String get trips_dayType_disembark => 'النزول';
+
+  @override
+  String get trips_story_planned => 'مخطط';
+
+  @override
+  String get trips_story_empty_title => 'لا توجد غطسات أو خط سير بعد';
+
+  @override
+  String get trips_story_empty_subtitle =>
+      'أضف غطسات إلى هذه الرحلة أو خطط أيامها لرؤية القصة.';
+
+  @override
+  String trips_story_history_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غطسات سابقة هنا',
+      one: 'غطسة سابقة واحدة هنا',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_story_history_avgTemp(String value) {
+    return 'متوسط $value';
+  }
+
+  @override
+  String trips_story_history_avgDepth(String value) {
+    return 'متوسط العمق $value';
+  }
+
+  @override
+  String get trips_story_rhythm_semantics => 'أوقات الغطس في هذا اليوم';
+
+  @override
+  String get trips_story_map_semantics =>
+      'خريطة الرحلة. مواقع اليوم المعروض مميزة.';
+
+  @override
   String get diveLog_bulkEdit_groupRebreather => 'وضع الغوص وجهاز التنفس';
 
   @override
@@ -310,6 +406,131 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_cloudSync_encryption_cancel => 'إلغاء';
+
+  @override
+  String get settings_backupEncryption_title => 'تشفير النسخ الاحتياطي';
+
+  @override
+  String get settings_backupEncryption_subtitleOff =>
+      'احمِ نسخك الاحتياطية بكلمة مرور';
+
+  @override
+  String get settings_backupEncryption_subtitleOn =>
+      'النسخ الاحتياطية مشفّرة بكلمة مرورك';
+
+  @override
+  String get settings_backupEncryption_enable => 'تشفير النسخ الاحتياطية';
+
+  @override
+  String get settings_backupEncryption_turnOff => 'إيقاف التشفير';
+
+  @override
+  String get settings_backupEncryption_turnOffTitle =>
+      'إيقاف تشفير النسخ الاحتياطي؟';
+
+  @override
+  String get settings_backupEncryption_turnOffBody =>
+      'لن يتم تشفير النسخ الاحتياطية الجديدة بعد الآن. لا تزال النسخ الاحتياطية المشفّرة الحالية بحاجة إلى كلمة مرورك للاستعادة.';
+
+  @override
+  String get settings_backupEncryption_changePassword => 'تغيير كلمة المرور';
+
+  @override
+  String get settings_backupEncryption_regenerateRecovery =>
+      'إعادة إنشاء رمز الاسترداد';
+
+  @override
+  String get settings_backupEncryption_password => 'كلمة المرور';
+
+  @override
+  String get settings_backupEncryption_passwordConfirm => 'تأكيد كلمة المرور';
+
+  @override
+  String get settings_backupEncryption_passwordTooShort =>
+      'استخدم 8 أحرف على الأقل';
+
+  @override
+  String get settings_backupEncryption_passwordMismatch =>
+      'كلمتا المرور غير متطابقتين';
+
+  @override
+  String get settings_backupEncryption_currentPassword => 'كلمة المرور الحالية';
+
+  @override
+  String get settings_backupEncryption_newPassword => 'كلمة المرور الجديدة';
+
+  @override
+  String get settings_backupEncryption_changePasswordWarn =>
+      'على جهاز آخر، تُفتح كل نسخة احتياطية باستخدام كلمة المرور أو رمز الاسترداد الذي كان نشطًا عند إنشائها.';
+
+  @override
+  String get settings_backupEncryption_warnLoss =>
+      'إذا نسيت كلمة المرور وفقدت رمز الاسترداد، فلن يمكن استعادة النسخ الاحتياطية المشفّرة.';
+
+  @override
+  String get settings_backupEncryption_recoveryTitle =>
+      'رمز الاسترداد الخاص بك';
+
+  @override
+  String get settings_backupEncryption_recoveryExplain =>
+      'احفظ هذا الرمز في مكان آمن. يمكنه فتح نسخك الاحتياطية إذا نسيت كلمة مرورك.';
+
+  @override
+  String get settings_backupEncryption_recoverySavedConfirm =>
+      'لقد حفظت رمز الاسترداد الخاص بي';
+
+  @override
+  String get settings_backupEncryption_unlockTitle =>
+      'أدخل كلمة مرور النسخ الاحتياطي';
+
+  @override
+  String get settings_backupEncryption_unlockHint =>
+      'أدخل كلمة مرور النسخ الاحتياطي أو رمز الاسترداد';
+
+  @override
+  String get settings_backupEncryption_restoreUnlockTitle =>
+      'فتح النسخة الاحتياطية المشفّرة';
+
+  @override
+  String get settings_backupEncryption_restoreUnlockHint =>
+      'أدخل كلمة المرور أو رمز الاسترداد لهذه النسخة الاحتياطية';
+
+  @override
+  String get settings_backupEncryption_continue => 'متابعة';
+
+  @override
+  String get settings_backupEncryption_cancel => 'إلغاء';
+
+  @override
+  String get settings_backupEncryption_done => 'تم';
+
+  @override
+  String get settings_backupEncryption_reencryptTitle =>
+      'تشفير النسخ الاحتياطية الحالية؟';
+
+  @override
+  String get settings_backupEncryption_reencryptBody =>
+      'لا تزال نسخك الاحتياطية الحالية غير مشفّرة. هل تريد إعادة تشفيرها الآن بكلمة مرورك الجديدة؟';
+
+  @override
+  String get settings_backupEncryption_reencryptNow => 'إعادة التشفير الآن';
+
+  @override
+  String get settings_backupEncryption_reencryptNotNow => 'ليس الآن';
+
+  @override
+  String settings_backupEncryption_reencryptPartial(int done, int failed) {
+    return 'تمت إعادة تشفير $done نسخة احتياطية؛ تعذّر تشفير $failed وما زالت غير محمية';
+  }
+
+  @override
+  String settings_backupEncryption_reencryptDone(int count) {
+    return 'تمت إعادة تشفير $count نسخة احتياطية';
+  }
+
+  @override
+  String get settings_backupEncryption_wrongPassword =>
+      'كلمة المرور أو رمز الاسترداد غير صحيح';
 
   @override
   String settings_cloudSync_replace_globalBanner(String deviceName) {
@@ -15305,6 +15526,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get trips_diveScan_noMatches => 'لم يتم العثور على غوصات مطابقة';
+
+  @override
+  String get trips_diveScan_noDiver =>
+      'عيّن غوّاصًا لهذه الرحلة للبحث عن الغطسات';
 
   @override
   String get trips_diveScan_selectAll => 'تحديد الكل';

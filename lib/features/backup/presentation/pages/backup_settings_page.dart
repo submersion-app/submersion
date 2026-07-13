@@ -14,6 +14,7 @@ import 'package:submersion/features/backup/domain/entities/backup_settings.dart'
 import 'package:submersion/features/backup/presentation/pages/restore_complete_page.dart';
 import 'package:submersion/features/backup/domain/exceptions/backup_encrypted_exception.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
+import 'package:submersion/features/backup/presentation/widgets/backup_encryption_section.dart';
 import 'package:submersion/features/backup/presentation/widgets/backup_history_tile.dart';
 import 'package:submersion/features/backup/presentation/widgets/export_bottom_sheet.dart';
 import 'package:submersion/features/backup/presentation/widgets/restore_confirmation_dialog.dart';
@@ -70,6 +71,9 @@ class BackupSettingsPage extends ConsumerWidget {
           const Divider(),
           // Auto-backup section
           _buildAutoBackupSection(context, ref, settings, cloudProvider),
+          const Divider(),
+          // Backup encryption section (issue #580)
+          const BackupEncryptionSection(),
           const Divider(),
           // History section
           _buildHistorySection(context, ref, historyAsync),
@@ -170,13 +174,14 @@ class BackupSettingsPage extends ConsumerWidget {
   // ===========================================================================
 
   void _handleExport(BuildContext context, WidgetRef ref) {
+    final encrypted = ref.read(backupSettingsProvider).backupEncryptionEnabled;
     ExportBottomSheet.show(
       context,
       onSaveToFile: () async {
         final result = await FilePicker.saveFile(
           dialogTitle: context.l10n.backup_export_title,
-          fileName: _generateDefaultFilename(),
-          allowedExtensions: ['db', 'sqlite'],
+          fileName: _generateDefaultFilename(encrypted),
+          allowedExtensions: encrypted ? ['sbe'] : ['db', 'sqlite'],
           type: FileType.custom,
         );
         if (result != null && context.mounted) {
@@ -196,11 +201,11 @@ class BackupSettingsPage extends ConsumerWidget {
     );
   }
 
-  String _generateDefaultFilename() {
+  String _generateDefaultFilename(bool encrypted) {
     final now = DateTime.now();
     final formatted =
         '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
-    return 'submersion_backup_$formatted.db';
+    return 'submersion_backup_$formatted.${encrypted ? 'sbe' : 'db'}';
   }
 
   // ===========================================================================
@@ -257,8 +262,8 @@ class BackupSettingsPage extends ConsumerWidget {
         if (!context.mounted) return;
         await showEncryptionPassphraseDialog(
           context,
-          title: context.l10n.settings_cloudSync_encryption_unlockTitle,
-          hint: context.l10n.settings_cloudSync_encryption_unlockHint,
+          title: context.l10n.settings_backupEncryption_restoreUnlockTitle,
+          hint: context.l10n.settings_backupEncryption_restoreUnlockHint,
           onSubmit: (secret) => ref
               .read(backupOperationProvider.notifier)
               .restoreFromFilePath(
@@ -392,8 +397,8 @@ class BackupSettingsPage extends ConsumerWidget {
             if (!context.mounted) return;
             await showEncryptionPassphraseDialog(
               context,
-              title: context.l10n.settings_cloudSync_encryption_unlockTitle,
-              hint: context.l10n.settings_cloudSync_encryption_unlockHint,
+              title: context.l10n.settings_backupEncryption_restoreUnlockTitle,
+              hint: context.l10n.settings_backupEncryption_restoreUnlockHint,
               onSubmit: (secret) => ref
                   .read(backupOperationProvider.notifier)
                   .restoreFromBackup(

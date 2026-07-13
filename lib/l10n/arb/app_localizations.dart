@@ -260,6 +260,138 @@ abstract class AppLocalizations {
   /// **'No geofences'**
   String get equipment_setDetail_noGeofences;
 
+  /// No description provided for @trips_story_dayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Day {number}'**
+  String trips_story_dayLabel(int number);
+
+  /// No description provided for @trips_story_surfaceDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Surface day'**
+  String get trips_story_surfaceDay;
+
+  /// No description provided for @trips_story_today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get trips_story_today;
+
+  /// No description provided for @trips_story_dayOfTrip.
+  ///
+  /// In en, this message translates to:
+  /// **'Day {current} of {total}'**
+  String trips_story_dayOfTrip(int current, int total);
+
+  /// No description provided for @trips_story_daysUntil.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{1 day until departure} other{{days} days until departure}}'**
+  String trips_story_daysUntil(int days);
+
+  /// No description provided for @trips_story_checklistProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} done'**
+  String trips_story_checklistProgress(int done, int total);
+
+  /// No description provided for @trips_story_generateItinerary.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate itinerary'**
+  String get trips_story_generateItinerary;
+
+  /// No description provided for @trips_story_openGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Open trip photos'**
+  String get trips_story_openGallery;
+
+  /// No description provided for @trips_story_generateItineraryError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t generate itinerary: {error}'**
+  String trips_story_generateItineraryError(String error);
+
+  /// No description provided for @trips_dayType_diveDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive Day'**
+  String get trips_dayType_diveDay;
+
+  /// No description provided for @trips_dayType_seaDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Sea Day'**
+  String get trips_dayType_seaDay;
+
+  /// No description provided for @trips_dayType_portDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Port Day'**
+  String get trips_dayType_portDay;
+
+  /// No description provided for @trips_dayType_embark.
+  ///
+  /// In en, this message translates to:
+  /// **'Embark'**
+  String get trips_dayType_embark;
+
+  /// No description provided for @trips_dayType_disembark.
+  ///
+  /// In en, this message translates to:
+  /// **'Disembark'**
+  String get trips_dayType_disembark;
+
+  /// No description provided for @trips_story_planned.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned'**
+  String get trips_story_planned;
+
+  /// No description provided for @trips_story_empty_title.
+  ///
+  /// In en, this message translates to:
+  /// **'No dives or itinerary yet'**
+  String get trips_story_empty_title;
+
+  /// No description provided for @trips_story_empty_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add dives to this trip or plan its days to see the story.'**
+  String get trips_story_empty_subtitle;
+
+  /// No description provided for @trips_story_history_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 past dive here} other{{count} past dives here}}'**
+  String trips_story_history_dives(int count);
+
+  /// No description provided for @trips_story_history_avgTemp.
+  ///
+  /// In en, this message translates to:
+  /// **'avg {value}'**
+  String trips_story_history_avgTemp(String value);
+
+  /// No description provided for @trips_story_history_avgDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'avg depth {value}'**
+  String trips_story_history_avgDepth(String value);
+
+  /// No description provided for @trips_story_rhythm_semantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive times during this day'**
+  String get trips_story_rhythm_semantics;
+
+  /// No description provided for @trips_story_map_semantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip map. Sites for the day in view are highlighted.'**
+  String get trips_story_map_semantics;
+
   /// No description provided for @diveLog_bulkEdit_groupRebreather.
   ///
   /// In en, this message translates to:
@@ -631,6 +763,210 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cancel'**
   String get settings_cloudSync_encryption_cancel;
+
+  /// No description provided for @settings_backupEncryption_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup encryption'**
+  String get settings_backupEncryption_title;
+
+  /// No description provided for @settings_backupEncryption_subtitleOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Protect your backups with a password'**
+  String get settings_backupEncryption_subtitleOff;
+
+  /// No description provided for @settings_backupEncryption_subtitleOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Backups are encrypted with your password'**
+  String get settings_backupEncryption_subtitleOn;
+
+  /// No description provided for @settings_backupEncryption_enable.
+  ///
+  /// In en, this message translates to:
+  /// **'Encrypt backups'**
+  String get settings_backupEncryption_enable;
+
+  /// No description provided for @settings_backupEncryption_turnOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn off encryption'**
+  String get settings_backupEncryption_turnOff;
+
+  /// No description provided for @settings_backupEncryption_turnOffTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn off backup encryption?'**
+  String get settings_backupEncryption_turnOffTitle;
+
+  /// No description provided for @settings_backupEncryption_turnOffBody.
+  ///
+  /// In en, this message translates to:
+  /// **'New backups will no longer be encrypted. Existing encrypted backups still need your password to restore.'**
+  String get settings_backupEncryption_turnOffBody;
+
+  /// No description provided for @settings_backupEncryption_changePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Change password'**
+  String get settings_backupEncryption_changePassword;
+
+  /// No description provided for @settings_backupEncryption_regenerateRecovery.
+  ///
+  /// In en, this message translates to:
+  /// **'Regenerate recovery code'**
+  String get settings_backupEncryption_regenerateRecovery;
+
+  /// No description provided for @settings_backupEncryption_password.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get settings_backupEncryption_password;
+
+  /// No description provided for @settings_backupEncryption_passwordConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm password'**
+  String get settings_backupEncryption_passwordConfirm;
+
+  /// No description provided for @settings_backupEncryption_passwordTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Use at least 8 characters'**
+  String get settings_backupEncryption_passwordTooShort;
+
+  /// No description provided for @settings_backupEncryption_passwordMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match'**
+  String get settings_backupEncryption_passwordMismatch;
+
+  /// No description provided for @settings_backupEncryption_currentPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Current password'**
+  String get settings_backupEncryption_currentPassword;
+
+  /// No description provided for @settings_backupEncryption_newPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'New password'**
+  String get settings_backupEncryption_newPassword;
+
+  /// No description provided for @settings_backupEncryption_changePasswordWarn.
+  ///
+  /// In en, this message translates to:
+  /// **'On another device, each backup opens with the password or recovery code that was active when it was created.'**
+  String get settings_backupEncryption_changePasswordWarn;
+
+  /// No description provided for @settings_backupEncryption_warnLoss.
+  ///
+  /// In en, this message translates to:
+  /// **'If you forget your password and lose the recovery code, encrypted backups cannot be recovered.'**
+  String get settings_backupEncryption_warnLoss;
+
+  /// No description provided for @settings_backupEncryption_recoveryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your recovery code'**
+  String get settings_backupEncryption_recoveryTitle;
+
+  /// No description provided for @settings_backupEncryption_recoveryExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'Save this code somewhere safe. It can unlock your backups if you forget your password.'**
+  String get settings_backupEncryption_recoveryExplain;
+
+  /// No description provided for @settings_backupEncryption_recoverySavedConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'I have saved my recovery code'**
+  String get settings_backupEncryption_recoverySavedConfirm;
+
+  /// No description provided for @settings_backupEncryption_unlockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter backup password'**
+  String get settings_backupEncryption_unlockTitle;
+
+  /// No description provided for @settings_backupEncryption_unlockHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your backup password or recovery code'**
+  String get settings_backupEncryption_unlockHint;
+
+  /// No description provided for @settings_backupEncryption_restoreUnlockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock encrypted backup'**
+  String get settings_backupEncryption_restoreUnlockTitle;
+
+  /// No description provided for @settings_backupEncryption_restoreUnlockHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the password or recovery code for this backup'**
+  String get settings_backupEncryption_restoreUnlockHint;
+
+  /// No description provided for @settings_backupEncryption_continue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get settings_backupEncryption_continue;
+
+  /// No description provided for @settings_backupEncryption_cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get settings_backupEncryption_cancel;
+
+  /// No description provided for @settings_backupEncryption_done.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get settings_backupEncryption_done;
+
+  /// No description provided for @settings_backupEncryption_reencryptTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Encrypt existing backups?'**
+  String get settings_backupEncryption_reencryptTitle;
+
+  /// No description provided for @settings_backupEncryption_reencryptBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your existing backups are still unencrypted. Re-encrypt them now with your new password?'**
+  String get settings_backupEncryption_reencryptBody;
+
+  /// No description provided for @settings_backupEncryption_reencryptNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-encrypt now'**
+  String get settings_backupEncryption_reencryptNow;
+
+  /// No description provided for @settings_backupEncryption_reencryptNotNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get settings_backupEncryption_reencryptNotNow;
+
+  /// No description provided for @settings_backupEncryption_reencryptPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-encrypted {done} backups; {failed} could not be encrypted and are still unprotected'**
+  String settings_backupEncryption_reencryptPartial(int done, int failed);
+
+  /// No description provided for @settings_backupEncryption_reencryptDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-encrypted {count} backups'**
+  String settings_backupEncryption_reencryptDone(int count);
+
+  /// No description provided for @settings_backupEncryption_wrongPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Incorrect password or recovery code'**
+  String get settings_backupEncryption_wrongPassword;
 
   /// No description provided for @settings_cloudSync_replace_globalBanner.
   ///
@@ -26344,6 +26680,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No matching dives found'**
   String get trips_diveScan_noMatches;
+
+  /// No description provided for @trips_diveScan_noDiver.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign a diver to this trip to scan for dives'**
+  String get trips_diveScan_noDiver;
 
   /// No description provided for @trips_diveScan_selectAll.
   ///

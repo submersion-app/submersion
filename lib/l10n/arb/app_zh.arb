@@ -23,6 +23,35 @@
   "equipment_setDetail_setAsDefaultSnackbar": "\"{name}\"现在是您的默认套装",
   "equipment_setDetail_geofencesTitle": "地理围栏",
   "equipment_setDetail_noGeofences": "无地理围栏",
+  "trips_story_dayLabel": "第 {number} 天",
+  "trips_story_surfaceDay": "水面日",
+  "trips_story_today": "今天",
+  "trips_story_dayOfTrip": "第 {current} 天，共 {total} 天",
+  "trips_story_daysUntil": "{days, plural, other{距出发还有 {days} 天}}",
+  "trips_story_checklistProgress": "已完成 {done}/{total}",
+  "trips_story_generateItinerary": "生成行程",
+  "trips_story_openGallery": "打开行程照片",
+  "trips_story_generateItineraryError": "无法生成行程：{error}",
+  "@trips_story_generateItineraryError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_dayType_diveDay": "潜水日",
+  "trips_dayType_seaDay": "海上日",
+  "trips_dayType_portDay": "港口日",
+  "trips_dayType_embark": "登船",
+  "trips_dayType_disembark": "离船",
+  "trips_story_planned": "已计划",
+  "trips_story_empty_title": "还没有潜水或行程",
+  "trips_story_empty_subtitle": "为此旅行添加潜水或规划行程以查看故事。",
+  "trips_story_history_dives": "{count, plural, other{此处有 {count} 次过往潜水}}",
+  "trips_story_history_avgTemp": "平均 {value}",
+  "trips_story_history_avgDepth": "平均深度 {value}",
+  "trips_story_rhythm_semantics": "当天的潜水时间",
+  "trips_story_map_semantics": "旅行地图。当前日期的潜点已高亮。",
   "diveLog_bulkEdit_groupRebreather": "潜水模式与循环呼吸器",
   "diveLog_bulkEdit_fieldSetpointLow": "低设定点",
   "diveLog_bulkEdit_fieldSetpointHigh": "高设定点",
@@ -85,6 +114,57 @@
   "settings_cloudSync_encryption_continue": "继续",
   "settings_cloudSync_encryption_done": "完成",
   "settings_cloudSync_encryption_cancel": "取消",
+  "settings_backupEncryption_title": "备份加密",
+  "settings_backupEncryption_subtitleOff": "使用密码保护您的备份",
+  "settings_backupEncryption_subtitleOn": "备份已使用您的密码加密",
+  "settings_backupEncryption_enable": "加密备份",
+  "settings_backupEncryption_turnOff": "关闭加密",
+  "settings_backupEncryption_turnOffTitle": "关闭备份加密？",
+  "settings_backupEncryption_turnOffBody": "新的备份将不再加密。现有的加密备份仍需使用您的密码才能恢复。",
+  "settings_backupEncryption_changePassword": "更改密码",
+  "settings_backupEncryption_regenerateRecovery": "重新生成恢复代码",
+  "settings_backupEncryption_password": "密码",
+  "settings_backupEncryption_passwordConfirm": "确认密码",
+  "settings_backupEncryption_passwordTooShort": "请至少使用 8 个字符",
+  "settings_backupEncryption_passwordMismatch": "两次输入的密码不一致",
+  "settings_backupEncryption_currentPassword": "当前密码",
+  "settings_backupEncryption_newPassword": "新密码",
+  "settings_backupEncryption_changePasswordWarn": "在其他设备上，每个备份都使用其创建时处于活动状态的密码或恢复代码打开。",
+  "settings_backupEncryption_warnLoss": "如果您忘记密码并丢失恢复代码，加密备份将无法恢复。",
+  "settings_backupEncryption_recoveryTitle": "您的恢复代码",
+  "settings_backupEncryption_recoveryExplain": "请将此代码保存在安全的地方。如果您忘记密码，它可以解锁您的备份。",
+  "settings_backupEncryption_recoverySavedConfirm": "我已保存我的恢复代码",
+  "settings_backupEncryption_unlockTitle": "输入备份密码",
+  "settings_backupEncryption_unlockHint": "输入您的备份密码或恢复代码",
+  "settings_backupEncryption_restoreUnlockTitle": "解锁加密备份",
+  "settings_backupEncryption_restoreUnlockHint": "输入此备份的密码或恢复代码",
+  "settings_backupEncryption_continue": "继续",
+  "settings_backupEncryption_cancel": "取消",
+  "settings_backupEncryption_done": "完成",
+  "settings_backupEncryption_reencryptTitle": "加密现有备份？",
+  "settings_backupEncryption_reencryptBody": "您现有的备份仍未加密。现在使用您的新密码重新加密它们吗？",
+  "settings_backupEncryption_reencryptNow": "立即重新加密",
+  "settings_backupEncryption_reencryptNotNow": "暂不",
+  "settings_backupEncryption_reencryptPartial": "已重新加密 {done} 个备份；{failed} 个无法加密，仍未受保护",
+  "@settings_backupEncryption_reencryptPartial": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_backupEncryption_reencryptDone": "已重新加密 {count} 个备份",
+  "@settings_backupEncryption_reencryptDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_backupEncryption_wrongPassword": "密码或恢复代码不正确",
   "@@locale": "zh",
   "settings_cloudSync_replace_globalBanner": "同步已暂停 — 资料库已从 \"{deviceName}\" 上的备份替换。",
   "settings_cloudSync_postRestore_syncing": "正在将恢复的资料库与云同步…",
@@ -4953,6 +5033,7 @@
   "trips_diveScan_groupOtherTrips": "在其他旅行中（{count}）",
   "trips_diveScan_groupUnassigned": "未分配（{count}）",
   "trips_diveScan_noMatches": "未找到匹配的潜水",
+  "trips_diveScan_noDiver": "为此行程指定潜水员以扫描潜水记录",
   "trips_diveScan_selectAll": "全选",
   "trips_diveScan_subtitle": "在日期范围内找到 {count} 次潜水",
   "trips_diveScan_title": "将潜水添加到旅行",

@@ -6,6 +6,8 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/library_epoch_store.dart';
 import 'package:submersion/core/services/sync/post_restore_sync_store.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
+import 'package:submersion/features/backup/data/services/backup_encryption_key_store.dart';
+import 'package:submersion/features/backup/data/services/backup_encryption_service.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/core/services/sync/crypto/sync_encryption_service.dart'
@@ -38,6 +40,23 @@ final backupServiceProvider = Provider<BackupService>((ref) {
     ),
     encryptionKeyStore: ref.watch(encryptionKeyStoreProvider),
     syncPreferences: ref.watch(syncPreferencesProvider),
+    backupEncryptionKeyStore: ref.watch(backupEncryptionKeyStoreProvider),
+  );
+});
+
+/// Backup-encryption key custody (issue #580), independent of sync encryption.
+final backupEncryptionKeyStoreProvider = Provider<BackupEncryptionKeyStore>((
+  ref,
+) {
+  return BackupEncryptionKeyStore();
+});
+
+/// Backup-encryption key lifecycle (enable / change / regenerate).
+final backupEncryptionServiceProvider = Provider<BackupEncryptionService>((
+  ref,
+) {
+  return BackupEncryptionService(
+    keyStore: ref.watch(backupEncryptionKeyStoreProvider),
   );
 });
 
@@ -54,6 +73,11 @@ class BackupSettingsNotifier extends StateNotifier<BackupSettings> {
   Future<void> setEnabled(bool value) async {
     await _prefs.setEnabled(value);
     state = state.copyWith(enabled: value);
+  }
+
+  Future<void> setBackupEncryptionEnabled(bool value) async {
+    await _prefs.setBackupEncryptionEnabled(value);
+    state = state.copyWith(backupEncryptionEnabled: value);
   }
 
   Future<void> setFrequency(BackupFrequency frequency) async {

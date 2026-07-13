@@ -92,6 +92,104 @@ class AppLocalizationsFr extends AppLocalizations {
   String get equipment_setDetail_noGeofences => 'Aucun géorepère';
 
   @override
+  String trips_story_dayLabel(int number) {
+    return 'Jour $number';
+  }
+
+  @override
+  String get trips_story_surfaceDay => 'Journée en surface';
+
+  @override
+  String get trips_story_today => 'Aujourd\'hui';
+
+  @override
+  String trips_story_dayOfTrip(int current, int total) {
+    return 'Jour $current sur $total';
+  }
+
+  @override
+  String trips_story_daysUntil(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days jours avant le départ',
+      one: '1 jour avant le départ',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_story_checklistProgress(int done, int total) {
+    return '$done sur $total fait';
+  }
+
+  @override
+  String get trips_story_generateItinerary => 'Générer l\'itinéraire';
+
+  @override
+  String get trips_story_openGallery => 'Ouvrir les photos du voyage';
+
+  @override
+  String trips_story_generateItineraryError(String error) {
+    return 'Impossible de générer l\'itinéraire : $error';
+  }
+
+  @override
+  String get trips_dayType_diveDay => 'Jour de plongée';
+
+  @override
+  String get trips_dayType_seaDay => 'Jour en mer';
+
+  @override
+  String get trips_dayType_portDay => 'Jour au port';
+
+  @override
+  String get trips_dayType_embark => 'Embarquement';
+
+  @override
+  String get trips_dayType_disembark => 'Débarquement';
+
+  @override
+  String get trips_story_planned => 'Prévu';
+
+  @override
+  String get trips_story_empty_title =>
+      'Pas encore de plongées ni d\'itinéraire';
+
+  @override
+  String get trips_story_empty_subtitle =>
+      'Ajoutez des plongées ou planifiez les jours pour voir le récit.';
+
+  @override
+  String trips_story_history_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plongées passées ici',
+      one: '1 plongée passée ici',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_story_history_avgTemp(String value) {
+    return 'moy. $value';
+  }
+
+  @override
+  String trips_story_history_avgDepth(String value) {
+    return 'prof. moy. $value';
+  }
+
+  @override
+  String get trips_story_rhythm_semantics =>
+      'Heures de plongée de cette journée';
+
+  @override
+  String get trips_story_map_semantics =>
+      'Carte du voyage. Les sites du jour affiché sont mis en évidence.';
+
+  @override
   String get diveLog_bulkEdit_groupRebreather => 'Mode de plongée et recycleur';
 
   @override
@@ -315,6 +413,133 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_cloudSync_encryption_cancel => 'Annuler';
+
+  @override
+  String get settings_backupEncryption_title => 'Chiffrement des sauvegardes';
+
+  @override
+  String get settings_backupEncryption_subtitleOff =>
+      'Protégez vos sauvegardes avec un mot de passe';
+
+  @override
+  String get settings_backupEncryption_subtitleOn =>
+      'Les sauvegardes sont chiffrées avec votre mot de passe';
+
+  @override
+  String get settings_backupEncryption_enable => 'Chiffrer les sauvegardes';
+
+  @override
+  String get settings_backupEncryption_turnOff => 'Désactiver le chiffrement';
+
+  @override
+  String get settings_backupEncryption_turnOffTitle =>
+      'Désactiver le chiffrement des sauvegardes ?';
+
+  @override
+  String get settings_backupEncryption_turnOffBody =>
+      'Les nouvelles sauvegardes ne seront plus chiffrées. Les sauvegardes chiffrées existantes nécessitent toujours votre mot de passe pour être restaurées.';
+
+  @override
+  String get settings_backupEncryption_changePassword =>
+      'Changer le mot de passe';
+
+  @override
+  String get settings_backupEncryption_regenerateRecovery =>
+      'Générer un nouveau code de récupération';
+
+  @override
+  String get settings_backupEncryption_password => 'Mot de passe';
+
+  @override
+  String get settings_backupEncryption_passwordConfirm =>
+      'Confirmer le mot de passe';
+
+  @override
+  String get settings_backupEncryption_passwordTooShort =>
+      'Utilisez au moins 8 caractères';
+
+  @override
+  String get settings_backupEncryption_passwordMismatch =>
+      'Les mots de passe ne correspondent pas';
+
+  @override
+  String get settings_backupEncryption_currentPassword => 'Mot de passe actuel';
+
+  @override
+  String get settings_backupEncryption_newPassword => 'Nouveau mot de passe';
+
+  @override
+  String get settings_backupEncryption_changePasswordWarn =>
+      'Sur un autre appareil, chaque sauvegarde s\'ouvre avec le mot de passe ou le code de récupération actif au moment de sa création.';
+
+  @override
+  String get settings_backupEncryption_warnLoss =>
+      'Si vous oubliez votre mot de passe et perdez le code de récupération, les sauvegardes chiffrées ne pourront pas être récupérées.';
+
+  @override
+  String get settings_backupEncryption_recoveryTitle =>
+      'Votre code de récupération';
+
+  @override
+  String get settings_backupEncryption_recoveryExplain =>
+      'Conservez ce code en lieu sûr. Il peut déverrouiller vos sauvegardes si vous oubliez votre mot de passe.';
+
+  @override
+  String get settings_backupEncryption_recoverySavedConfirm =>
+      'J\'ai enregistré mon code de récupération';
+
+  @override
+  String get settings_backupEncryption_unlockTitle =>
+      'Saisissez le mot de passe de sauvegarde';
+
+  @override
+  String get settings_backupEncryption_unlockHint =>
+      'Saisissez votre mot de passe de sauvegarde ou code de récupération';
+
+  @override
+  String get settings_backupEncryption_restoreUnlockTitle =>
+      'Déverrouiller la sauvegarde chiffrée';
+
+  @override
+  String get settings_backupEncryption_restoreUnlockHint =>
+      'Saisissez le mot de passe ou le code de récupération de cette sauvegarde';
+
+  @override
+  String get settings_backupEncryption_continue => 'Continuer';
+
+  @override
+  String get settings_backupEncryption_cancel => 'Annuler';
+
+  @override
+  String get settings_backupEncryption_done => 'Terminé';
+
+  @override
+  String get settings_backupEncryption_reencryptTitle =>
+      'Chiffrer les sauvegardes existantes ?';
+
+  @override
+  String get settings_backupEncryption_reencryptBody =>
+      'Vos sauvegardes existantes ne sont toujours pas chiffrées. Les rechiffrer maintenant avec votre nouveau mot de passe ?';
+
+  @override
+  String get settings_backupEncryption_reencryptNow => 'Rechiffrer maintenant';
+
+  @override
+  String get settings_backupEncryption_reencryptNotNow => 'Pas maintenant';
+
+  @override
+  String settings_backupEncryption_reencryptPartial(int done, int failed) {
+    return '$done sauvegardes rechiffrées ; $failed n\'ont pas pu être chiffrées et restent non protégées';
+  }
+
+  @override
+  String settings_backupEncryption_reencryptDone(int count) {
+    return '$count sauvegardes rechiffrées';
+  }
+
+  @override
+  String get settings_backupEncryption_wrongPassword =>
+      'Mot de passe ou code de récupération incorrect';
 
   @override
   String settings_cloudSync_replace_globalBanner(String deviceName) {
@@ -15674,6 +15899,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get trips_diveScan_noMatches =>
       'Aucune plongee correspondante trouvee';
+
+  @override
+  String get trips_diveScan_noDiver =>
+      'Attribuez un plongeur à ce voyage pour rechercher des plongées';
 
   @override
   String get trips_diveScan_selectAll => 'Tout selectionner';
