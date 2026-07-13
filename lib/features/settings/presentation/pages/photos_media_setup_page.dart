@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
+import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -12,6 +13,10 @@ import 'package:submersion/l10n/l10n_extension.dart';
 final setupGuideStatusProvider =
     FutureProvider<({bool sources, bool storage, bool sync})>((ref) async {
       final lightroom = await ref.watch(lightroomAccountProvider.future);
+      // Aligned with the step's route (/settings/media-sources): ANY
+      // attached media - gallery, files, URLs, or Lightroom - counts as
+      // "photo sources set up", not just a Lightroom connection.
+      final hasMedia = await ref.watch(mediaRepositoryProvider).hasAnyMedia();
       final attached = await ref
           .watch(mediaStoreAttachStateProvider)
           .attachedStoreId();
@@ -19,7 +24,7 @@ final setupGuideStatusProvider =
           .watch(syncRepositoryProvider)
           .getCloudProvider();
       return (
-        sources: lightroom != null,
+        sources: lightroom != null || hasMedia,
         storage: attached != null,
         sync: syncProvider != null,
       );

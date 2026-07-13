@@ -17,19 +17,22 @@ final connectedAccountsWithStatusProvider =
           .watch(connectedAccountsRepositoryProvider)
           .getAll();
       final registry = ref.watch(accountProviderRegistryProvider);
-      final result = <(domain.ConnectedAccount, AccountStatus)>[];
-      for (final account in accounts) {
-        final adapter = registry.capabilityFor<AccountProviderAdapter>(
-          account.kind,
-        );
-        result.add((
-          account,
-          adapter == null
-              ? AccountStatus.unavailable
-              : await adapter.status(account),
-        ));
-      }
-      return result;
+      // Status probes hit the keychain / provider sessions: run them
+      // concurrently so one slow probe cannot serialize the page load.
+      return Future.wait([
+        for (final account in accounts)
+          () async {
+            final adapter = registry.capabilityFor<AccountProviderAdapter>(
+              account.kind,
+            );
+            return (
+              account,
+              adapter == null
+                  ? AccountStatus.unavailable
+                  : await adapter.status(account),
+            );
+          }(),
+      ]);
     });
 
 /// Top-level roster of linked endpoints (program spec section 5): one place

@@ -410,12 +410,14 @@ class NetworkFetchPipeline {
         );
         SyncEventBus.notifyLocalChange();
       } catch (_) {
+        // True restore: the pre-attach updatedAt comes back too, so the
+        // row is byte-for-byte what the fill wrote (no unsynced edit).
         await (_db.update(_db.media)
               ..where((t) => t.id.equals(id) & t.diveId.equals(match.diveId!)))
             .write(
               MediaCompanion(
                 diveId: const Value(null),
-                updatedAt: Value(nowMillis),
+                updatedAt: Value(row.updatedAt),
               ),
             );
       }
