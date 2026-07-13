@@ -54,6 +54,13 @@ TripStory buildTripStory({
   // ItineraryDay.generateForTrip).
   final totalDays = (end.difference(start).inHours / 24).round() + 1;
 
+  // Calendar-day offset of a date from the (possibly extended) span start, using
+  // the same DST-safe rounding as totalDays. `start` is final here, so this maps
+  // a date onto its day-loop index even when the span was extended earlier/later
+  // than the nominal trip dates.
+  int dayIndexOf(DateTime date) =>
+      (_dateOnly(date).difference(start).inHours / 24).round();
+
   final divesByDate = <DateTime, List<Dive>>{};
   for (final dive in sortedDives) {
     divesByDate
@@ -77,7 +84,9 @@ TripStory buildTripStory({
       TripStoryMapPoint(
         latitude: liveaboardDetails.embarkLatitude!,
         longitude: liveaboardDetails.embarkLongitude!,
-        dayIndex: 0,
+        // Anchor to the trip's start day, not day 0: a pre-trip dive can push
+        // the span start earlier than trip.startDate.
+        dayIndex: dayIndexOf(trip.startDate),
         label: liveaboardDetails.embarkPort ?? '',
       ),
     );
@@ -152,7 +161,9 @@ TripStory buildTripStory({
       TripStoryMapPoint(
         latitude: liveaboardDetails.disembarkLatitude!,
         longitude: liveaboardDetails.disembarkLongitude!,
-        dayIndex: totalDays - 1,
+        // Anchor to the trip's end day, not the last span day: a late itinerary
+        // day can push the span end past trip.endDate.
+        dayIndex: dayIndexOf(trip.endDate),
         label: liveaboardDetails.disembarkPort ?? '',
       ),
     );

@@ -285,5 +285,45 @@ void main() {
       expect(points.last.label, 'Rincon');
       expect(points.last.dayIndex, 3); // disembark closes the last day
     });
+
+    test('anchors liveaboard ports to trip start/end when the span extends', () {
+      // A pre-trip dive pushes the span start (Mar 5) earlier than
+      // trip.startDate (Mar 7). The embark/disembark pins must still land on the
+      // trip's start/end days, not on day 0 / the last span day.
+      final story = buildTripStory(
+        trip: _trip(), // Mar 7 - Mar 10
+        dives: [
+          _dive('early', DateTime(2026, 3, 5, 9)),
+        ], // no site, extends span
+        itineraryDays: [],
+        mediaByDiveId: {},
+        sightingsByDiveId: {},
+        checklistItems: [],
+        today: DateTime(2026, 6, 1),
+        liveaboardDetails: LiveaboardDetails(
+          id: 'la-1',
+          tripId: 'trip-1',
+          vesselName: 'MV Explorer',
+          embarkPort: 'Kralendijk',
+          embarkLatitude: 12.15,
+          embarkLongitude: -68.27,
+          disembarkPort: 'Rincon',
+          disembarkLatitude: 12.32,
+          disembarkLongitude: -68.31,
+          createdAt: DateTime(2026, 1, 1),
+          updatedAt: DateTime(2026, 1, 1),
+        ),
+      );
+      // Span is Mar 5..Mar 10 (six days): embark (Mar 7) -> index 2,
+      // disembark (Mar 10) -> index 5.
+      final embark = story.mapGeometry.points.firstWhere(
+        (p) => p.label == 'Kralendijk',
+      );
+      final disembark = story.mapGeometry.points.firstWhere(
+        (p) => p.label == 'Rincon',
+      );
+      expect(embark.dayIndex, 2);
+      expect(disembark.dayIndex, 5);
+    });
   });
 }
