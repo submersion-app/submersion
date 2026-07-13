@@ -8,7 +8,8 @@ import 'dart:io';
 /// - macOS: `/Volumes/<name>/...` (external and network mounts); anything
 ///   else is the always-mounted system volume.
 /// - Windows: `X:\...` drive roots and `\\server\share\...` UNC roots.
-/// - Linux: `/mnt/<name>`, `/media/<user>/<name>`, `/run/media/<user>/<name>`.
+/// - Linux: `/mnt/<name>`, `/media/<name>` (legacy single-segment mounts),
+///   `/media/<user>/<name>`, `/run/media/<user>/<name>`.
 ///
 /// The existence probe is injectable so tests never touch the real
 /// filesystem. Only the volume ROOT is probed - a missing file on a

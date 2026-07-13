@@ -1,6 +1,9 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
+import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/services/accounts/connected_account.dart'
+    as domain;
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/account_provider_registry.dart';
@@ -21,13 +24,19 @@ class PendingSetupItem {
   /// the account label for [SetupItemKind.accountSignIn].
   final String label;
 
-  /// For accountSignIn: the account's kind (drives navigation).
+  /// For accountSignIn: the account's kind.
   final AccountKind? accountKind;
+
+  /// The settings page that actually resolves this item. Computed by the
+  /// service, which knows what the account drives (sync selection, media
+  /// store descriptor, connector) - the card just navigates.
+  final String route;
 
   const PendingSetupItem({
     required this.kind,
     required this.key,
     required this.label,
+    required this.route,
     this.accountKind,
   });
 }
@@ -41,6 +50,7 @@ class PendingSetupService {
     ConnectedAccountsRepository? accounts,
     MediaStoresRepository? stores,
     MediaStoreAttachState? attachState,
+    SyncRepository? syncRepository,
     required AccountProviderRegistry registry,
   }) : _prefs = prefs,
        _accounts = accounts ?? ConnectedAccountsRepository(),
@@ -48,6 +58,7 @@ class PendingSetupService {
        // Same prefs instance as the dismissal store: one source of truth,
        // and overridden prefs in tests govern the attach state too.
        _attachState = attachState ?? MediaStoreAttachState(prefs: prefs),
+       _syncRepository = syncRepository ?? SyncRepository(),
        _registry = registry;
 
   static const String _dismissedPrefix = 'setup_item_dismissed_';
@@ -56,6 +67,7 @@ class PendingSetupService {
   final ConnectedAccountsRepository _accounts;
   final MediaStoresRepository _stores;
   final MediaStoreAttachState _attachState;
+  final SyncRepository _syncRepository;
   final AccountProviderRegistry _registry;
 
   bool _isDismissed(String key) =>
@@ -81,6 +93,7 @@ class PendingSetupService {
             kind: SetupItemKind.mediaStoreAttach,
             key: key,
             label: store.displayHint,
+            route: '/settings/media-storage',
           ),
         );
       }
@@ -89,6 +102,7 @@ class PendingSetupService {
     // Roster accounts this device holds no working credentials for.
     // `unavailable` kinds (e.g. iCloud off-platform) are not actionable
     // here and are skipped.
+    final syncAccountId = await _syncRepository.getSyncAccountId();
     for (final account in await _accounts.getAll()) {
       final adapter = _registry.capabilityFor<AccountProviderAdapter>(
         account.kind,
@@ -105,9 +119,30 @@ class PendingSetupService {
           key: key,
           label: account.label,
           accountKind: account.kind,
+          route: _routeFor(account, syncAccountId: syncAccountId, store: store),
         ),
       );
     }
     return items;
+  }
+
+  /// The settings page that can actually sign this account in. Connectors
+  /// have their own pages; the selected sync account belongs to Cloud
+  /// Sync; an account matching the announced store's provider belongs to
+  /// Media Storage; anything else defaults to Cloud Sync.
+  String _routeFor(
+    domain.ConnectedAccount account, {
+    required String? syncAccountId,
+    required MediaStoreDescriptor? store,
+  }) {
+    if (account.kind == AccountKind.adobeLightroom) {
+      return '/settings/lightroom';
+    }
+    if (account.id == syncAccountId) return '/settings/cloud-sync';
+    if (store != null &&
+        account.kind.cloudProviderType?.name == store.providerType) {
+      return '/settings/media-storage';
+    }
+    return '/settings/cloud-sync';
   }
 }

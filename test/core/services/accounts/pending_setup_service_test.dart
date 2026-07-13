@@ -114,6 +114,11 @@ void main() {
       expect(items.single.kind, SetupItemKind.accountSignIn);
       expect(items.single.label, 'MinIO');
       expect(items.single.accountKind, AccountKind.s3);
+      expect(
+        items.single.route,
+        '/settings/cloud-sync',
+        reason: 'no store announced and not the sync account: default route',
+      );
     },
   );
 
@@ -121,6 +126,47 @@ void main() {
     await accounts.create(kind: AccountKind.s3, label: 'MinIO');
     final items = await service(s3Status: AccountStatus.signedIn).compute();
     expect(items, isEmpty);
+  });
+
+  test('an account matching the announced store provider routes to '
+      'media storage; the sync account routes to cloud sync', () async {
+    final mediaAccount = await accounts.create(
+      kind: AccountKind.s3,
+      label: 'S3 media storage',
+    );
+    final syncAccount = await accounts.create(
+      kind: AccountKind.dropbox,
+      label: 'Dropbox',
+    );
+    await SyncRepository().setSyncAccount(
+      accountId: syncAccount.id,
+      providerType: CloudProviderType.dropbox,
+    );
+    await stores.upsertActive(
+      storeId: 'store-1',
+      providerType: 's3',
+      displayHint: 'hint',
+    );
+    // Attach so only the sign-in items remain.
+    await MediaStoreAttachState(
+      prefs: prefs,
+    ).setAttached('store-1', providerType: CloudProviderType.s3);
+
+    final svc = PendingSetupService(
+      prefs: prefs,
+      accounts: accounts,
+      stores: stores,
+      attachState: MediaStoreAttachState(prefs: prefs),
+      registry: AccountProviderRegistry([
+        _StatusAdapter(AccountKind.s3, AccountStatus.needsSignIn),
+        _StatusAdapter(AccountKind.dropbox, AccountStatus.needsSignIn),
+      ]),
+    );
+    final routes = {
+      for (final item in await svc.compute()) item.key: item.route,
+    };
+    expect(routes['account_${mediaAccount.id}'], '/settings/media-storage');
+    expect(routes['account_${syncAccount.id}'], '/settings/cloud-sync');
   });
 
   test('dismissal is per key and sticks', () async {

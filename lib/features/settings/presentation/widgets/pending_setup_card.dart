@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/account_providers.dart';
-import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/pending_setup_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -88,13 +87,7 @@ class PendingSetupCard extends ConsumerWidget {
                     ref.invalidate(pendingSetupItemsProvider);
                   },
                 ),
-                onTap: () => context.push(switch (item.kind) {
-                  SetupItemKind.mediaStoreAttach => '/settings/media-storage',
-                  SetupItemKind.accountSignIn =>
-                    item.accountKind == AccountKind.adobeLightroom
-                        ? '/settings/lightroom'
-                        : '/settings/cloud-sync',
-                }),
+                onTap: () => context.push(item.route),
               ),
           ],
         ),
