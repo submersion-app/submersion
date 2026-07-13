@@ -202,9 +202,11 @@ class _S3ConfigPageState extends ConsumerState<S3ConfigPage> {
       // while already on S3 doesn't re-fire the provider-type change.
       ref.invalidate(selectedSyncAccountProvider);
       await ref.read(selectedSyncAccountProvider.future);
+      // The page may have been popped while the derivation was in flight;
+      // using ref after disposal throws.
+      if (!mounted) return;
       ref.read(syncStateProvider.notifier).refreshState();
       ref.invalidate(s3ConfigProvider);
-      if (!mounted) return;
       _showSnack(context.l10n.settings_s3Config_saved);
       // Root-safe in widget tests; pops the pushed route in the app.
       await Navigator.maybePop(context);

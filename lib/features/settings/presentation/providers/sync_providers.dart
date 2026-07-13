@@ -304,9 +304,11 @@ final selectedSyncAccountProvider = FutureProvider<domain.ConnectedAccount?>((
     await _mirrorLegacyCredentials(ref, account);
     return account;
   } catch (_) {
-    // Best-effort bookkeeping: the selection is re-derived on every launch,
-    // so a failed write (e.g. teardown racing this future) must not surface
-    // as a sync error.
+    // Returning null degrades resolution to the legacy singleton, which is
+    // the correct fallback: the selection is re-derived on every launch, so
+    // a failed write (teardown race) must not surface as a sync error, and
+    // a failed credential mirror must NOT leave account-first resolution
+    // reading a stale/missing per-account key.
     return null;
   }
 });
@@ -316,8 +318,13 @@ final selectedSyncAccountProvider = FutureProvider<domain.ConnectedAccount?>((
 /// stale copy — and a cleared legacy credential (sign-out / remove) can
 /// neither be read from nor resurrected into the per-account key. Copies
 /// when the legacy key is present, deletes the per-account key when absent.
-/// Best-effort: a keychain failure must not null the derived account
-/// (resolution falls back to the legacy singleton, which is still valid).
+///
+/// Deliberately NOT swallowed: if the mirror fails (keychain error), the
+/// per-account key is in an unknown state, so this rethrows to
+/// [selectedSyncAccountProvider], whose catch returns a null account —
+/// which makes [cloudStorageProviderProvider] fall back to the legacy
+/// singleton (still valid) rather than resolve from a stale/missing
+/// per-account key. The next derivation retries the mirror.
 Future<void> _mirrorLegacyCredentials(
   Ref ref,
   domain.ConnectedAccount account,
@@ -331,13 +338,9 @@ Future<void> _mirrorLegacyCredentials(
     AccountKind.adobeLightroom => null,
   };
   if (legacyKey == null) return;
-  try {
-    await ref
-        .read(accountCredentialsStoreProvider)
-        .mirrorLegacy(legacyKey: legacyKey, accountId: account.id);
-  } catch (_) {
-    // Ignored: legacy singleton remains a valid resolution fallback.
-  }
+  await ref
+      .read(accountCredentialsStoreProvider)
+      .mirrorLegacy(legacyKey: legacyKey, accountId: account.id);
 }
 
 /// Cloud storage provider instance (null if none selected or custom folder mode)

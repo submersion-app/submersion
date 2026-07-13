@@ -47,7 +47,16 @@ void main() {
 
   test('selectedSyncAccountProvider derives the account and persists the '
       'selection to sync metadata', () async {
-    final container = ProviderContainer();
+    // In-memory keychain so the credential mirror succeeds; without it the
+    // real keychain (unavailable under flutter_test) fails the mirror and
+    // the derivation intentionally returns null (legacy fallback).
+    final container = ProviderContainer(
+      overrides: [
+        accountCredentialsStoreProvider.overrideWithValue(
+          AccountCredentialsStore(storage: InMemoryKeychain()),
+        ),
+      ],
+    );
     addTearDown(container.dispose);
 
     container.read(selectedCloudProviderTypeProvider.notifier).state =
@@ -136,6 +145,31 @@ void main() {
       keychain.values[AccountCredentialsStore.keyFor(account.id)],
       isNull,
       reason: 'per-account mirror deleted to match the cleared legacy key',
+    );
+  });
+
+  test('a failing credential mirror nulls the account so resolution falls '
+      'back to the legacy singleton', () async {
+    final container = ProviderContainer(
+      overrides: [
+        accountCredentialsStoreProvider.overrideWithValue(
+          // Non-entitlement keychain error: FallbackSecureStorage rethrows,
+          // so mirrorLegacy throws and the derivation returns null.
+          AccountCredentialsStore(storage: FailingKeychain(-25308)),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    container.read(selectedCloudProviderTypeProvider.notifier).state =
+        CloudProviderType.s3;
+
+    expect(
+      await container.read(selectedSyncAccountProvider.future),
+      isNull,
+      reason:
+          'a mirror failure must not leave account-first reading a '
+          'stale/missing per-account key',
     );
   });
 

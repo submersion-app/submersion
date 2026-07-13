@@ -632,6 +632,9 @@ class CloudSyncPage extends ConsumerWidget {
           ref.invalidate(dropboxAuthDataProvider);
           if (connected == true) {
             await _selectProvider(context, ref, CloudProviderType.dropbox);
+            // Guard: the tile may be disposed while _selectProvider is in
+            // flight; using ref after disposal throws.
+            if (!context.mounted) return;
             // Refresh the per-account credential mirror for account-first
             // resolution; a re-connect while already on Dropbox wouldn't
             // re-fire the provider-type change.
