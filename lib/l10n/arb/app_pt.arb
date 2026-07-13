@@ -9,6 +9,8 @@
   "equipment_setEdit_geofencesTitle": "Geocercas",
   "equipment_setEdit_geofencesSubtitle": "Sugerir automaticamente este conjunto para mergulhos perto destes locais",
   "equipment_setEdit_addGeofence": "Adicionar geocerca",
+  "equipment_setEdit_editGeofence": "Edit geofence",
+  "equipment_setEdit_removeGeofence": "Remove geofence",
   "equipment_setEdit_geofenceRadius": "Raio: {distance}",
   "equipment_geofenceEditor_title": "Geocerca",
   "equipment_geofenceEditor_fromSite": "Do local de mergulho",

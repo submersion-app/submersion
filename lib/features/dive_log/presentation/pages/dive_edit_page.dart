@@ -2753,7 +2753,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         geofences: inputs.geofences,
       );
       final items = best?.items ?? const [];
-      if (items.isEmpty || !mounted) return;
+      // Re-check emptiness after the await: the diver may have manually added
+      // gear while the provider resolved, and auto-apply must never overwrite.
+      if (items.isEmpty || !mounted || _selectedEquipment.isNotEmpty) return;
       setState(() => _selectedEquipment = [...items]);
     } catch (_) {
       // Equipment sets unavailable; skip best-effort auto-apply.
@@ -2763,8 +2765,18 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// Site-change path: apply on empty, else suggest a differing geofence set.
   /// Best-effort: skips silently if equipment sets cannot be resolved.
   Future<void> _reevaluateGeofenceForSite() async {
+    // A site change invalidates any prior suggestion. Clear it up front so a
+    // location with no match (or a dismissed / already-present set) cannot
+    // leave a stale banner actionable under the new location label.
+    if (_geofenceSuggestion != null && mounted) {
+      setState(() => _geofenceSuggestion = null);
+    }
+    // Guard against stale async completions: if the diver picks another site
+    // while this evaluation is in flight, its result no longer applies.
+    final siteAtStart = _selectedSite;
     try {
       final inputs = await ref.read(equipmentSetSelectionInputsProvider.future);
+      if (!mounted || _selectedSite != siteAtStart) return;
       final points = _currentDivePoints();
       if (_selectedEquipment.isEmpty) {
         final best = EquipmentSetSelector.bestSetFor(
@@ -2773,7 +2785,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           geofences: inputs.geofences,
         );
         final items = best?.items ?? const [];
-        if (items.isNotEmpty && mounted) {
+        if (items.isNotEmpty && _selectedEquipment.isEmpty) {
           setState(() => _selectedEquipment = [...items]);
         }
         return;
@@ -2783,7 +2795,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         sets: inputs.sets,
         geofences: inputs.geofences,
       );
-      if (geofenceSet == null || !mounted) return;
+      if (geofenceSet == null) return;
       if (_dismissedSuggestionSetIds.contains(geofenceSet.id)) return;
       final currentIds = _selectedEquipment.map((e) => e.id).toSet();
       final hasNewItem = (geofenceSet.items ?? const []).any(

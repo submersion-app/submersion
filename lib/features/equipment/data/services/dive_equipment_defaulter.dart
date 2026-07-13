@@ -22,34 +22,44 @@ class DiveEquipmentDefaulter {
 
   AppDatabase get _db => DatabaseService.instance.database;
 
-  /// Returns true when a set was applied. Best-effort: if the database is not
-  /// available (mid-migration, or in tests that mock the layer above), skip
-  /// rather than break the dive import/download.
+  /// Returns true when a set was applied. Best-effort: any failure (missing
+  /// database mid-migration, a transient query/write error, or a mocked layer
+  /// in tests) is swallowed so equipment defaulting can never abort a dive
+  /// import/download that has already persisted the dive.
   Future<bool> applyDefaultEquipmentIfEmpty({
     required String diveId,
     required String? diverId,
     required List<GeoPoint> divePoints,
   }) async {
+    // An owner-less dive must not inherit another diver's default: the
+    // repository treats a null diverId as "no filter" and would return every
+    // diver's sets. Skip defaulting entirely rather than cross diver scopes.
+    if (diverId == null) return false;
     if (DatabaseService.instance.databaseOrNull == null) return false;
-    final existing = await (_db.select(
-      _db.diveEquipment,
-    )..where((t) => t.diveId.equals(diveId))).get();
-    if (existing.isNotEmpty) return false;
+    try {
+      final existing = await (_db.select(
+        _db.diveEquipment,
+      )..where((t) => t.diveId.equals(diveId))).get();
+      if (existing.isNotEmpty) return false;
 
-    final candidateSets = await _sets.getAllSets(diverId: diverId);
-    if (candidateSets.isEmpty) return false;
-    final geofences = await _sets.getAllGeofences(diverId: diverId);
+      final candidateSets = await _sets.getAllSets(diverId: diverId);
+      if (candidateSets.isEmpty) return false;
+      final geofences = await _sets.getAllGeofences(diverId: diverId);
 
-    final best = EquipmentSetSelector.bestSetFor(
-      divePoints: divePoints,
-      sets: candidateSets,
-      geofences: geofences,
-    );
-    if (best == null || best.equipmentIds.isEmpty) return false;
+      final best = EquipmentSetSelector.bestSetFor(
+        divePoints: divePoints,
+        sets: candidateSets,
+        geofences: geofences,
+      );
+      if (best == null || best.equipmentIds.isEmpty) return false;
 
-    await _dives.bulkAddEquipment([diveId], best.equipmentIds);
-    SyncEventBus.notifyLocalChange();
-    return true;
+      await _dives.bulkAddEquipment([diveId], best.equipmentIds);
+      SyncEventBus.notifyLocalChange();
+      return true;
+    } catch (_) {
+      // Best-effort: never let equipment defaulting fail the dive operation.
+      return false;
+    }
   }
 
   /// Convenience for imported domain dives: assembles the dive's known points

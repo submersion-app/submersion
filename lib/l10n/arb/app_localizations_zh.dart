@@ -43,6 +43,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_setEdit_addGeofence => '添加地理围栏';
 
   @override
+  String get equipment_setEdit_editGeofence => 'Edit geofence';
+
+  @override
+  String get equipment_setEdit_removeGeofence => 'Remove geofence';
+
+  @override
   String equipment_setEdit_geofenceRadius(String distance) {
     return '半径：$distance';
   }

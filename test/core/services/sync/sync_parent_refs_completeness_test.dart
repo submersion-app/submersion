@@ -31,6 +31,7 @@ void main() {
     'equipment': 'equipment',
     'equipment_sets': 'equipmentSets',
     'equipment_set_items': 'equipmentSetItems',
+    'equipment_set_geofences': 'equipmentSetGeofences',
     'dive_types': 'diveTypes',
     'tank_presets': 'tankPresets',
     'dive_computers': 'diveComputers',

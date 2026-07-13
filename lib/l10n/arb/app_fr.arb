@@ -9,6 +9,8 @@
   "equipment_setEdit_geofencesTitle": "Géorepères",
   "equipment_setEdit_geofencesSubtitle": "Suggérer automatiquement cet ensemble pour les plongées près de ces lieux",
   "equipment_setEdit_addGeofence": "Ajouter un géorepère",
+  "equipment_setEdit_editGeofence": "Edit geofence",
+  "equipment_setEdit_removeGeofence": "Remove geofence",
   "equipment_setEdit_geofenceRadius": "Rayon : {distance}",
   "equipment_geofenceEditor_title": "Géorepère",
   "equipment_geofenceEditor_fromSite": "Depuis le site de plongée",

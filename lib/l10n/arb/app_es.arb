@@ -9,6 +9,8 @@
   "equipment_setEdit_geofencesTitle": "Geocercas",
   "equipment_setEdit_geofencesSubtitle": "Sugerir automáticamente este conjunto para inmersiones cerca de estas ubicaciones",
   "equipment_setEdit_addGeofence": "Añadir geocerca",
+  "equipment_setEdit_editGeofence": "Edit geofence",
+  "equipment_setEdit_removeGeofence": "Remove geofence",
   "equipment_setEdit_geofenceRadius": "Radio: {distance}",
   "equipment_geofenceEditor_title": "Geocerca",
   "equipment_geofenceEditor_fromSite": "Desde el sitio de buceo",

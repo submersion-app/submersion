@@ -176,6 +176,18 @@ abstract class AppLocalizations {
   /// **'Add geofence'**
   String get equipment_setEdit_addGeofence;
 
+  /// No description provided for @equipment_setEdit_editGeofence.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit geofence'**
+  String get equipment_setEdit_editGeofence;
+
+  /// No description provided for @equipment_setEdit_removeGeofence.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove geofence'**
+  String get equipment_setEdit_removeGeofence;
+
   /// No description provided for @equipment_setEdit_geofenceRadius.
   ///
   /// In en, this message translates to:

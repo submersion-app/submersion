@@ -9,6 +9,8 @@
   "equipment_setEdit_geofencesTitle": "الأسوار الجغرافية",
   "equipment_setEdit_geofencesSubtitle": "اقترح هذه المجموعة تلقائيًا للغطسات القريبة من هذه المواقع",
   "equipment_setEdit_addGeofence": "إضافة سياج جغرافي",
+  "equipment_setEdit_editGeofence": "Edit geofence",
+  "equipment_setEdit_removeGeofence": "Remove geofence",
   "equipment_setEdit_geofenceRadius": "نصف القطر: {distance}",
   "equipment_geofenceEditor_title": "سياج جغرافي",
   "equipment_geofenceEditor_fromSite": "من موقع الغوص",

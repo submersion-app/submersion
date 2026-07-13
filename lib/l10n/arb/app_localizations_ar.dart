@@ -45,6 +45,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_setEdit_addGeofence => 'إضافة سياج جغرافي';
 
   @override
+  String get equipment_setEdit_editGeofence => 'Edit geofence';
+
+  @override
+  String get equipment_setEdit_removeGeofence => 'Remove geofence';
+
+  @override
   String equipment_setEdit_geofenceRadius(String distance) {
     return 'نصف القطر: $distance';
   }

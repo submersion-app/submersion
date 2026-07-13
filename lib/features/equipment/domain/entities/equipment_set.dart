@@ -71,6 +71,7 @@ class EquipmentSet extends Equatable {
     description,
     equipmentIds,
     isDefault,
+    geofences,
     createdAt,
     updatedAt,
   ];

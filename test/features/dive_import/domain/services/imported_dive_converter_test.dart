@@ -106,6 +106,40 @@ void main() {
         expect(dive.importSource, equals('garmin'));
       });
 
+      test('maps latitude/longitude into entryLocation', () {
+        final importedDive = ImportedDive(
+          sourceId: 'hk-gps',
+          source: ImportSource.appleWatch,
+          startTime: DateTime(2024, 6, 15, 10, 0),
+          endTime: DateTime(2024, 6, 15, 10, 45),
+          maxDepth: 25.3,
+          latitude: 36.62,
+          longitude: -121.90,
+          profile: const [],
+        );
+
+        final dive = converter.convert(importedDive);
+
+        // Geofenced equipment defaulting relies on this fix being carried
+        // through from the source file.
+        expect(dive.entryLocation, isNotNull);
+        expect(dive.entryLocation!.latitude, 36.62);
+        expect(dive.entryLocation!.longitude, -121.90);
+      });
+
+      test('leaves entryLocation null when coordinates are absent', () {
+        final importedDive = ImportedDive(
+          sourceId: 'hk-no-gps',
+          source: ImportSource.uddf,
+          startTime: DateTime(2024, 6, 15, 10, 0),
+          endTime: DateTime(2024, 6, 15, 10, 30),
+          maxDepth: 12.0,
+          profile: const [],
+        );
+
+        expect(converter.convert(importedDive).entryLocation, isNull);
+      });
+
       test('converts profile samples to DiveProfilePoints', () {
         final importedDive = ImportedDive(
           sourceId: 'hk-uuid-789',

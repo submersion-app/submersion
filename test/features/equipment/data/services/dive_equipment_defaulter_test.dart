@@ -109,6 +109,40 @@ void main() {
     expect(await equipmentOn('dive3'), {'drysuit'});
   });
 
+  test('skips an owner-less dive rather than crossing diver scopes', () async {
+    // A default set belongs to d1; a dive with no diver must NOT inherit it.
+    await sets.createSet(setWith('def', ['e1'], isDefault: true));
+    await sets.setAsDefault('def', diverId: 'd1');
+
+    final applied = await defaulter.applyDefaultEquipmentIfEmpty(
+      diveId: 'orphan',
+      diverId: null,
+      divePoints: const [],
+    );
+
+    expect(applied, isFalse);
+    expect(await equipmentOn('orphan'), isEmpty);
+  });
+
+  test('returns false when the diver has no sets', () async {
+    final applied = await defaulter.applyDefaultEquipmentIfEmpty(
+      diveId: 'dive-none',
+      diverId: 'd1',
+      divePoints: const [],
+    );
+    expect(applied, isFalse);
+  });
+
+  test('applyForImportedDive skips a dive with no diver', () async {
+    await sets.createSet(setWith('def', ['e1'], isDefault: true));
+    await sets.setAsDefault('def', diverId: 'd1');
+    final dive = createTestDiveWithBottomTime(
+      id: 'orphan-import',
+    ).copyWith(entryLocation: const GeoPoint(36.62, -121.90));
+
+    expect(await defaulter.applyForImportedDive(dive), isFalse);
+  });
+
   test('applyForImportedDive uses the entry GPS fix', () async {
     await sets.createSet(setWith('cold', ['drysuit']));
     await sets.addGeofence(geofence('g1', 'cold'));

@@ -15,6 +15,8 @@
   "equipment_setEdit_geofencesTitle": "Geofences",
   "equipment_setEdit_geofencesSubtitle": "Auto-suggest this set for dives near these locations",
   "equipment_setEdit_addGeofence": "Add geofence",
+  "equipment_setEdit_editGeofence": "Edit geofence",
+  "equipment_setEdit_removeGeofence": "Remove geofence",
   "equipment_setEdit_geofenceRadius": "Radius: {distance}",
   "@equipment_setEdit_geofenceRadius": {
     "placeholders": { "distance": { "type": "String" } }

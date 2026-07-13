@@ -9,6 +9,8 @@
   "equipment_setEdit_geofencesTitle": "地理围栏",
   "equipment_setEdit_geofencesSubtitle": "自动为这些位置附近的潜水推荐此套装",
   "equipment_setEdit_addGeofence": "添加地理围栏",
+  "equipment_setEdit_editGeofence": "Edit geofence",
+  "equipment_setEdit_removeGeofence": "Remove geofence",
   "equipment_setEdit_geofenceRadius": "半径：{distance}",
   "equipment_geofenceEditor_title": "地理围栏",
   "equipment_geofenceEditor_fromSite": "从潜点",

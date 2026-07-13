@@ -9,6 +9,8 @@
   "equipment_setEdit_geofencesTitle": "Geokerítések",
   "equipment_setEdit_geofencesSubtitle": "Automatikusan javasolja ezt a készletet az e helyek közelében végzett merülésekhez",
   "equipment_setEdit_addGeofence": "Geokerítés hozzáadása",
+  "equipment_setEdit_editGeofence": "Edit geofence",
+  "equipment_setEdit_removeGeofence": "Remove geofence",
   "equipment_setEdit_geofenceRadius": "Sugár: {distance}",
   "equipment_geofenceEditor_title": "Geokerítés",
   "equipment_geofenceEditor_fromSite": "Merülőhelyről",

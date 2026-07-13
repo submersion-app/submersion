@@ -9,6 +9,8 @@
   "equipment_setEdit_geofencesTitle": "גדרות גאוגרפיות",
   "equipment_setEdit_geofencesSubtitle": "הצע ערכה זו אוטומטית לצלילות ליד מיקומים אלה",
   "equipment_setEdit_addGeofence": "הוסף גדר גאוגרפית",
+  "equipment_setEdit_editGeofence": "Edit geofence",
+  "equipment_setEdit_removeGeofence": "Remove geofence",
   "equipment_setEdit_geofenceRadius": "רדיוס: {distance}",
   "equipment_geofenceEditor_title": "גדר גאוגרפית",
   "equipment_geofenceEditor_fromSite": "מאתר הצלילה",

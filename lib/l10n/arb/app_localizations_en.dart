@@ -45,6 +45,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_setEdit_addGeofence => 'Add geofence';
 
   @override
+  String get equipment_setEdit_editGeofence => 'Edit geofence';
+
+  @override
+  String get equipment_setEdit_removeGeofence => 'Remove geofence';
+
+  @override
   String equipment_setEdit_geofenceRadius(String distance) {
     return 'Radius: $distance';
   }

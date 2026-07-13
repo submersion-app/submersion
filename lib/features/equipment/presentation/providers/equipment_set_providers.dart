@@ -171,6 +171,10 @@ class EquipmentSetListNotifier
     await refresh();
     _ref.invalidate(defaultEquipmentSetProvider);
     _ref.invalidate(equipmentSetSelectionInputsProvider);
+    // Promoting one set demotes the previous default, so the hydrated
+    // isDefault flag on more than one family instance is now stale. Invalidate
+    // the whole family so open detail/edit pages re-read the correct badge.
+    _ref.invalidate(equipmentSetProvider);
   }
 
   Future<void> clearDefault(String id) async {
@@ -178,24 +182,29 @@ class EquipmentSetListNotifier
     await refresh();
     _ref.invalidate(defaultEquipmentSetProvider);
     _ref.invalidate(equipmentSetSelectionInputsProvider);
+    _ref.invalidate(equipmentSetProvider(id));
   }
 
   Future<void> addGeofence(EquipmentSetGeofence fence) async {
     await _repository.addGeofence(fence);
     _ref.invalidate(equipmentSetGeofencesProvider(fence.setId));
     _ref.invalidate(equipmentSetSelectionInputsProvider);
+    // equipmentSetProvider hydrates geofences, so its cache is now stale.
+    _ref.invalidate(equipmentSetProvider(fence.setId));
   }
 
   Future<void> updateGeofence(EquipmentSetGeofence fence) async {
     await _repository.updateGeofence(fence);
     _ref.invalidate(equipmentSetGeofencesProvider(fence.setId));
     _ref.invalidate(equipmentSetSelectionInputsProvider);
+    _ref.invalidate(equipmentSetProvider(fence.setId));
   }
 
   Future<void> removeGeofence(String setId, String geofenceId) async {
     await _repository.removeGeofence(geofenceId);
     _ref.invalidate(equipmentSetGeofencesProvider(setId));
     _ref.invalidate(equipmentSetSelectionInputsProvider);
+    _ref.invalidate(equipmentSetProvider(setId));
   }
 }
 

@@ -9,6 +9,8 @@
   "equipment_setEdit_geofencesTitle": "Geofence",
   "equipment_setEdit_geofencesSubtitle": "Suggerisci automaticamente questo set per le immersioni vicino a queste posizioni",
   "equipment_setEdit_addGeofence": "Aggiungi geofence",
+  "equipment_setEdit_editGeofence": "Edit geofence",
+  "equipment_setEdit_removeGeofence": "Remove geofence",
   "equipment_setEdit_geofenceRadius": "Raggio: {distance}",
   "equipment_geofenceEditor_title": "Geofence",
   "equipment_geofenceEditor_fromSite": "Da sito di immersione",

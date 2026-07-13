@@ -109,4 +109,41 @@ void main() {
       );
     },
   );
+
+  test('equidistant fences tie-break to the smaller (more specific) radius', () {
+    // Both centered on the dive point (distance 0), so the tighter radius wins.
+    final result = EquipmentSetSelector.matchingGeofenceSet(
+      divePoints: const [monterey],
+      sets: [cold, warm],
+      geofences: [
+        fence('gw', 'warm', 36.62, -121.90, 40000),
+        fence('gc', 'cold', 36.62, -121.90, 10000),
+      ],
+    );
+    expect(result, cold);
+  });
+
+  test('equidistant equal-radius fences tie-break by lexicographic setId', () {
+    // Identical center and radius: deterministic winner is the smaller setId
+    // ("cold" < "warm").
+    final result = EquipmentSetSelector.matchingGeofenceSet(
+      divePoints: const [monterey],
+      sets: [cold, warm],
+      geofences: [
+        fence('gw', 'warm', 36.62, -121.90, 20000),
+        fence('gc', 'cold', 36.62, -121.90, 20000),
+      ],
+    );
+    expect(result, cold);
+  });
+
+  test('returns null when the matched fence has no set in the list', () {
+    // Fence points at "ghost" but that set was not supplied.
+    final result = EquipmentSetSelector.matchingGeofenceSet(
+      divePoints: const [monterey],
+      sets: [warm],
+      geofences: [fence('g', 'ghost', 36.62, -121.90, 25000)],
+    );
+    expect(result, isNull);
+  });
 }

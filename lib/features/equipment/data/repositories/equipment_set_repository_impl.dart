@@ -232,42 +232,59 @@ class EquipmentSetRepository {
   }
 
   /// Set [id] as the diver's default equipment set, clearing the flag from the
-  /// diver's other sets. Scoped per diver; each touched row is marked pending.
+  /// diver's other sets. The scope is derived from the target set's own owner
+  /// so the clear/promote/mark-pending steps always cover the same diver, even
+  /// if a caller passes a mismatched [diverId] (the parameter is retained for
+  /// API compatibility but the target row is authoritative). Runs in a single
+  /// transaction so a partial write cannot leave two defaults.
   Future<void> setAsDefault(String id, {String? diverId}) async {
-    final now = DateTime.now().millisecondsSinceEpoch;
+    await _db.transaction(() async {
+      final now = DateTime.now().millisecondsSinceEpoch;
 
-    final clear = _db.update(_db.equipmentSets)
-      ..where(
-        (t) => diverId == null ? t.diverId.isNull() : t.diverId.equals(diverId),
+      final target = await (_db.select(
+        _db.equipmentSets,
+      )..where((t) => t.id.equals(id))).getSingleOrNull();
+      if (target == null) return;
+      final ownerId = target.diverId;
+
+      await (_db.update(_db.equipmentSets)..where(
+            (t) => ownerId == null
+                ? t.diverId.isNull()
+                : t.diverId.equals(ownerId),
+          ))
+          .write(
+            EquipmentSetsCompanion(
+              isDefault: const Value(false),
+              updatedAt: Value(now),
+            ),
+          );
+
+      await (_db.update(
+        _db.equipmentSets,
+      )..where((t) => t.id.equals(id))).write(
+        EquipmentSetsCompanion(
+          isDefault: const Value(true),
+          updatedAt: Value(now),
+        ),
       );
-    await clear.write(
-      EquipmentSetsCompanion(
-        isDefault: const Value(false),
-        updatedAt: Value(now),
-      ),
-    );
 
-    await (_db.update(_db.equipmentSets)..where((t) => t.id.equals(id))).write(
-      EquipmentSetsCompanion(
-        isDefault: const Value(true),
-        updatedAt: Value(now),
-      ),
-    );
-
-    final affected =
-        await (_db.select(_db.equipmentSets)..where(
-              (t) => diverId == null
-                  ? t.diverId.isNull()
-                  : t.diverId.equals(diverId),
-            ))
-            .get();
-    for (final row in affected) {
-      await _syncRepository.markRecordPending(
-        entityType: 'equipmentSets',
-        recordId: row.id,
-        localUpdatedAt: now,
-      );
-    }
+      // The promoted row is in scope by construction (its owner defines the
+      // scope), so this sweep marks it and every demoted sibling pending.
+      final affected =
+          await (_db.select(_db.equipmentSets)..where(
+                (t) => ownerId == null
+                    ? t.diverId.isNull()
+                    : t.diverId.equals(ownerId),
+              ))
+              .get();
+      for (final row in affected) {
+        await _syncRepository.markRecordPending(
+          entityType: 'equipmentSets',
+          recordId: row.id,
+          localUpdatedAt: now,
+        );
+      }
+    });
     SyncEventBus.notifyLocalChange();
   }
 

@@ -26,4 +26,23 @@ void main() {
     await tester.tap(find.text('Dismiss'));
     expect(dismissed, isTrue);
   });
+
+  testWidgets('falls back to the generic title when location is null', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      testApp(
+        child: GeofenceSuggestionBanner(
+          setName: 'Cold Water',
+          locationLabel: null,
+          onApply: () {},
+          onDismiss: () {},
+        ),
+      ),
+    );
+
+    // The "near {location}" headline is replaced by the generic title.
+    expect(find.textContaining('Cold Water'), findsOneWidget);
+    expect(find.text('Apply'), findsOneWidget);
+  });
 }

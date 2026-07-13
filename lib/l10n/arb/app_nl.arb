@@ -9,6 +9,8 @@
   "equipment_setEdit_geofencesTitle": "Geofences",
   "equipment_setEdit_geofencesSubtitle": "Deze set automatisch voorstellen voor duiken bij deze locaties",
   "equipment_setEdit_addGeofence": "Geofence toevoegen",
+  "equipment_setEdit_editGeofence": "Edit geofence",
+  "equipment_setEdit_removeGeofence": "Remove geofence",
   "equipment_setEdit_geofenceRadius": "Straal: {distance}",
   "equipment_geofenceEditor_title": "Geofence",
   "equipment_geofenceEditor_fromSite": "Van duikstek",

@@ -185,10 +185,16 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
                     formatter.formatGeoDistance(g.radiusMeters),
                   ),
                 ),
+                onTap: () => _editGeofence(i, g),
                 trailing: IconButton(
                   icon: const Icon(Icons.close),
-                  tooltip: context.l10n.common_action_dismiss,
-                  onPressed: () => setState(() => _geofences.removeAt(i)),
+                  tooltip: context.l10n.equipment_setEdit_removeGeofence,
+                  onPressed: () => setState(() {
+                    _geofences = [
+                      for (var idx = 0; idx < _geofences.length; idx++)
+                        if (idx != i) _geofences[idx],
+                    ];
+                  }),
                 ),
               );
             }),
@@ -372,6 +378,42 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         ),
+      ];
+    });
+  }
+
+  /// Opens the editor seeded from an existing staged geofence and replaces it
+  /// in place with the returned draft (preserving id / setId / createdAt so the
+  /// reconcile step in [_saveSet] treats it as an update, not a new fence).
+  Future<void> _editGeofence(int index, EquipmentSetGeofence existing) async {
+    final draft = await showGeofenceEditor(
+      context,
+      initial: GeofenceDraft(
+        latitude: existing.latitude,
+        longitude: existing.longitude,
+        label: existing.label,
+        radiusMeters: existing.radiusMeters,
+      ),
+    );
+    if (draft == null || !mounted) return;
+    setState(() {
+      _geofences = [
+        for (var i = 0; i < _geofences.length; i++)
+          if (i == index)
+            EquipmentSetGeofence(
+              id: existing.id,
+              setId: existing.setId,
+              // Rebuild rather than copyWith so clearing the label (draft.label
+              // == null) is honored instead of retaining the old value.
+              label: draft.label,
+              latitude: draft.latitude,
+              longitude: draft.longitude,
+              radiusMeters: draft.radiusMeters,
+              createdAt: existing.createdAt,
+              updatedAt: DateTime.now(),
+            )
+          else
+            _geofences[i],
       ];
     });
   }
