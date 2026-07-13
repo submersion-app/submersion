@@ -22,8 +22,8 @@ class AxisSegment {
 
 /// Axis lines (X = time, Y = saturation %, Z = compartment), tick marks, and a
 /// floor + back-wall reference grid for a tissue [SceneBounds]. Pure geometry;
-/// no Canvas dependency. Values are read out by the hover tooltip, so ticks
-/// carry no text (the 3D subsystem paints no on-canvas numbers).
+/// no Canvas dependency and no text -- the axis titles and tick values are a
+/// separate concern (see `buildTissueAxisLabels`), rendered by the painter.
 class AxisFrame {
   final List<AxisSegment> segments;
   const AxisFrame(this.segments);

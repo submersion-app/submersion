@@ -12,8 +12,8 @@
 
 ## Global Constraints
 
-- Scope is the `SceneKind.tissue` scene only; dive/computers scenes must behave identically to today.
-- No on-canvas text in the 3D subsystem: axes carry ticks, never painted numbers; values come from the tooltip.
+- Tissue *chrome* (axes/grid/labels/tooltip) is scoped to the `SceneKind.tissue` scene via nullable opt-in params. (Revised post-review: camera controls — rotate/pan/zoom + on-screen buttons — were later made a general viewport capability shared by the dive scene; the computers scene uses a different widget. See the spec's "Post-review revisions".)
+- ~~No on-canvas text in the 3D subsystem~~ (Revised post-review, per user request): the tissue scene now draws on-canvas axis titles + tick values via `TextPainter`; the hover tooltip carries the exact per-point value. The dive/computers scenes remain text-free.
 - All new colors derived from the active `Theme`/`ColorScheme`, legible in light and dark. Axis colors avoid red (reserved for the M-value plane).
 - New user-facing strings: add to `lib/l10n/arb/app_en.arb` AND all 10 non-en ARBs (`ar, de, es, fr, he, hu, it, nl, pt, zh`) with real translations, then regenerate localizations. No English placeholders in non-en ARBs.
 - Immutability; no emojis in code/comments; files stay focused (200-400 lines typical).
