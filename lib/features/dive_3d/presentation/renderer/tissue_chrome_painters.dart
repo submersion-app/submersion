@@ -96,17 +96,18 @@ class TissueFramePainter extends CustomPainter {
       old.style != style;
 }
 
-/// Foreground layer: draped wireframe on the surface, then the axis lines +
-/// ticks, then the hover marker, then the scrub cursor. Repaints on camera
-/// changes and on the scrub/hover listenables.
+/// Static chrome layer: the draped wireframe on the surface, then the axis
+/// lines + ticks + labels. Deliberately has NO scrub/hover listenable, so it
+/// repaints only when the camera, grid, frame, labels, or style change -- it
+/// stays put during playback and hover. The moving parts (hover marker + scrub
+/// cursor) live in the lightweight [TissueOverlayPainter] on top, so a scrub
+/// tick no longer re-lays-out every axis label or redraws the whole wireframe.
 class TissueChromePainter extends CustomPainter {
   final Scene3d scene;
   final TissueSurfaceGrid grid;
   final AxisFrame frame;
   final TissueChromeStyle style;
   final double yawDegrees, pitchDegrees, zoom;
-  final ValueListenable<double> scrubPosition;
-  final ValueListenable<TissuePick?> hoverPick;
   final AxisLabelSet? labels;
   final TextDirection textDirection;
 
@@ -121,11 +122,9 @@ class TissueChromePainter extends CustomPainter {
     required this.yawDegrees,
     required this.pitchDegrees,
     required this.zoom,
-    required this.scrubPosition,
-    required this.hoverPick,
     this.labels,
     this.textDirection = TextDirection.ltr,
-  }) : super(repaint: Listenable.merge([scrubPosition, hoverPick]));
+  });
 
   SceneProjector _projector(Size size) => SceneProjector(
     size: size,
@@ -146,8 +145,6 @@ class TissueChromePainter extends CustomPainter {
     if (!grid.isEmpty) _paintWireframe(canvas, p);
     _paintAxes(canvas, p);
     _paintLabels(canvas, p);
-    _paintMarker(canvas, p);
-    _paintCursor(canvas, p);
   }
 
   void _paintLabels(Canvas canvas, SceneProjector p) {
@@ -246,11 +243,65 @@ class TissueChromePainter extends CustomPainter {
     }
   }
 
+  @override
+  bool shouldRepaint(covariant TissueChromePainter old) =>
+      old.yawDegrees != yawDegrees ||
+      old.pitchDegrees != pitchDegrees ||
+      old.zoom != zoom ||
+      !identical(old.scene, scene) ||
+      !identical(old.grid, grid) ||
+      !identical(old.frame, frame) ||
+      !identical(old.labels, labels) ||
+      old.style != style ||
+      old.textDirection != textDirection;
+}
+
+/// Dynamic overlay layer: the hover marker and the scrub cursor -- the only
+/// pieces that move on hover/playback. Repaints on [scrubPosition]/[hoverPick]
+/// (via the merged listenable), and [shouldRepaint] additionally catches
+/// camera/scene/grid/style changes so a widget rebuild re-projects them for the
+/// new camera. Split out of [TissueChromePainter] so these frequent repaints no
+/// longer drag the wireframe/axes/labels along.
+class TissueOverlayPainter extends CustomPainter {
+  final Scene3d scene;
+  final TissueSurfaceGrid grid;
+  final TissueChromeStyle style;
+  final double yawDegrees, pitchDegrees, zoom;
+  final ValueListenable<double> scrubPosition;
+  final ValueListenable<TissuePick?> hoverPick;
+
+  TissueOverlayPainter({
+    required this.scene,
+    required this.grid,
+    required this.style,
+    required this.yawDegrees,
+    required this.pitchDegrees,
+    required this.zoom,
+    required this.scrubPosition,
+    required this.hoverPick,
+  }) : super(repaint: Listenable.merge([scrubPosition, hoverPick]));
+
+  SceneProjector _projector(Size size) => SceneProjector(
+    size: size,
+    bounds: scene.bounds,
+    yawDegrees: yawDegrees,
+    pitchDegrees: pitchDegrees,
+    zoom: zoom,
+  );
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final p = _projector(size);
+    _paintMarker(canvas, p);
+    _paintCursor(canvas, p);
+  }
+
   void _paintMarker(Canvas canvas, SceneProjector p) {
     final pick = hoverPick.value;
     if (pick == null || grid.isEmpty) return;
     if (pick.col >= grid.columns || pick.comp >= grid.compartments) return;
-    final center = _projectVertex(p, pick.col, pick.comp);
+    final (x, y, z) = grid.positionAt(pick.col, pick.comp);
+    final center = p.project(x, y, z);
     canvas.drawCircle(
       center,
       6,
@@ -278,14 +329,11 @@ class TissueChromePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant TissueChromePainter old) =>
+  bool shouldRepaint(covariant TissueOverlayPainter old) =>
       old.yawDegrees != yawDegrees ||
       old.pitchDegrees != pitchDegrees ||
       old.zoom != zoom ||
       !identical(old.scene, scene) ||
       !identical(old.grid, grid) ||
-      !identical(old.frame, frame) ||
-      !identical(old.labels, labels) ||
-      old.style != style ||
-      old.textDirection != textDirection;
+      old.style != style;
 }

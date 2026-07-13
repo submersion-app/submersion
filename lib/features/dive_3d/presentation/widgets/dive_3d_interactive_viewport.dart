@@ -276,8 +276,6 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
                   yawDegrees: _yaw,
                   pitchDegrees: _pitch,
                   zoom: _zoom,
-                  scrubPosition: widget.scrubPosition,
-                  hoverPick: widget.hoverPick!,
                   labels: widget.axisLabels,
                   textDirection: Directionality.of(context),
                 )
@@ -292,7 +290,8 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
           child: const SizedBox.expand(),
         );
 
-        // Frame grid draws behind the surface (paint order gives occlusion).
+        // Frame grid draws behind the surface (paint order gives occlusion);
+        // the moving marker + cursor draw on top via the overlay foreground.
         final painted = hasChrome
             ? CustomPaint(
                 painter: TissueFramePainter(
@@ -302,6 +301,16 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
                   yawDegrees: _yaw,
                   pitchDegrees: _pitch,
                   zoom: _zoom,
+                ),
+                foregroundPainter: TissueOverlayPainter(
+                  scene: widget.scene,
+                  grid: widget.surfaceGrid!,
+                  style: widget.chromeStyle!,
+                  yawDegrees: _yaw,
+                  pitchDegrees: _pitch,
+                  zoom: _zoom,
+                  scrubPosition: widget.scrubPosition,
+                  hoverPick: widget.hoverPick!,
                 ),
                 child: scenePaint,
               )
