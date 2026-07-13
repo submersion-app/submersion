@@ -278,4 +278,94 @@ void main() {
     expect(hoverPick.value!.col, col);
     expect(hoverPick.value!.comp, comp);
   });
+
+  testWidgets('published pick screenPos tracks the vertex after panning', (
+    tester,
+  ) async {
+    const size = Size(400, 300);
+    final result = SubsurfaceTissueBuilder.buildResult(
+      BuhlmannAlgorithm().processProfile(
+        depths: const [0, 30, 30, 30, 0],
+        timestamps: const [0, 120, 600, 1200, 1400],
+      ),
+      colorFn: thermalColor,
+    );
+    final frame = AxisFrame.build(result.scene.bounds, referenceY: 3.0);
+    final hoverPick = ValueNotifier<TissuePick?>(null);
+    const style = TissueChromeStyle(
+      axisX: Color(0xFFFFB300),
+      axisY: Color(0xFF66BB6A),
+      axisZ: Color(0xFF42A5F5),
+      grid: Color(0x33FFFFFF),
+      wireframe: Color(0x33FFFFFF),
+      marker: Color(0xFFFFFFFF),
+      markerOutline: Color(0xFF000000),
+      label: Color(0xFFFFFFFF),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: Align(
+            alignment: Alignment.topLeft,
+            child: SizedBox.fromSize(
+              size: size,
+              child: Dive3dInteractiveViewport(
+                scene: result.scene,
+                scrubPosition: ValueNotifier<double>(0),
+                visibleOverlays: const {},
+                surfaceGrid: result.grid,
+                axisFrame: frame,
+                chromeStyle: style,
+                hoverPick: hoverPick,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final origin = tester.getTopLeft(find.byType(Dive3dInteractiveViewport));
+    // Pan the view with the trackpad.
+    final center = tester.getCenter(find.byType(Dive3dInteractiveViewport));
+    final pan = await tester.createGesture(kind: PointerDeviceKind.trackpad);
+    await pan.panZoomStart(center);
+    await pan.panZoomUpdate(center, pan: const Offset(30, 20));
+    await tester.pump();
+    await pan.panZoomEnd();
+
+    // Read the viewport's actual camera so the check doesn't assume a zoom.
+    final actualPan = tester
+        .widget<Transform>(find.byKey(const ValueKey('dive3dViewportPan')))
+        .transform
+        .getTranslation();
+    final panVec = Offset(actualPan.x, actualPan.y);
+    final actualZoom = scenePainterOf(tester).zoom;
+
+    // The vertex appears at project(...) + pan; hover that visual point.
+    final projector = SceneProjector(
+      size: size,
+      bounds: result.scene.bounds,
+      zoom: actualZoom,
+    );
+    const col = 1, comp = 5;
+    final (x, y, z) = result.grid.positionAt(col, comp);
+    final visualLocal = projector.project(x, y, z) + panVec;
+
+    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    await mouse.addPointer(location: Offset.zero);
+    addTearDown(mouse.removePointer);
+    await mouse.moveTo(origin + visualLocal);
+    await tester.pump();
+
+    expect(hoverPick.value, isNotNull);
+    expect(hoverPick.value!.col, col);
+    expect(hoverPick.value!.comp, comp);
+    // screenPos is in viewport-local space, i.e. on the visual vertex, not the
+    // untranslated projection (this is the pan-drift fix).
+    expect((hoverPick.value!.screenPos - visualLocal).distance, lessThan(1.0));
+    expect(panVec, isNot(Offset.zero)); // sanity: the pan actually applied
+  });
 }

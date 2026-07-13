@@ -6,8 +6,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_s
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Compact readout for a hovered/tapped surface cell: time, compartment (with
-/// N2 half-time), and saturation % with its state word. The values that the
-/// tick-only axes deliberately omit live here.
+/// N2 half-time), and saturation % with its state word -- the exact value at
+/// the hovered point, complementing the coarser tick values on the axes.
 class TissueHoverTooltip extends StatelessWidget {
   final TissuePick pick;
   final TissueSurfaceGrid grid;

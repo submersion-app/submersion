@@ -167,7 +167,7 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
     final grid = widget.surfaceGrid;
     if (notifier == null || grid == null || grid.isEmpty) return;
     _ensureProjection(size);
-    notifier.value = pickNearestTissueVertex(
+    final pick = pickNearestTissueVertex(
       // Projections are computed without pan; the painted output is translated
       // by _pan, so map the cursor back into untranslated projection space.
       cursor: local - _pan,
@@ -176,6 +176,15 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
       columns: grid.columns,
       compartments: grid.compartments,
     );
+    // Republish screenPos in viewport-local (painted) space so the tooltip
+    // overlay -- which lives OUTSIDE the pan Transform -- sits on the vertex.
+    notifier.value = pick == null
+        ? null
+        : TissuePick(
+            col: pick.col,
+            comp: pick.comp,
+            screenPos: pick.screenPos + _pan,
+          );
   }
 
   void _handleTapUp(Size size, TapUpDetails details) {
@@ -257,13 +266,40 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
               )
             : scenePaint;
 
-        final gestures = GestureDetector(
+        final gestures = RawGestureDetector(
           behavior: HitTestBehavior.opaque,
-          onPanUpdate: _onPanUpdate,
-          onDoubleTap: _resetCamera,
-          onTapUp: (details) {
-            _handleTapUp(size, details);
-            _pickAt(size, details.localPosition);
+          gestures: <Type, GestureRecognizerFactory>{
+            // Rotate: one-finger drag from mouse/touch/stylus. Trackpad
+            // two-finger pans are handled as pan by the Listener below, so we
+            // exclude trackpad here to avoid rotating while panning.
+            PanGestureRecognizer:
+                GestureRecognizerFactoryWithHandlers<PanGestureRecognizer>(
+                  () => PanGestureRecognizer(
+                    supportedDevices: const {
+                      PointerDeviceKind.touch,
+                      PointerDeviceKind.mouse,
+                      PointerDeviceKind.stylus,
+                      PointerDeviceKind.invertedStylus,
+                      PointerDeviceKind.unknown,
+                    },
+                  ),
+                  (r) => r.onUpdate = _onPanUpdate,
+                ),
+            TapGestureRecognizer:
+                GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(
+                  () => TapGestureRecognizer(),
+                  (r) => r.onTapUp = (details) {
+                    _handleTapUp(size, details);
+                    _pickAt(size, details.localPosition);
+                  },
+                ),
+            DoubleTapGestureRecognizer:
+                GestureRecognizerFactoryWithHandlers<
+                  DoubleTapGestureRecognizer
+                >(
+                  () => DoubleTapGestureRecognizer(),
+                  (r) => r.onDoubleTap = _resetCamera,
+                ),
           },
           child: ClipRect(
             child: Transform.translate(

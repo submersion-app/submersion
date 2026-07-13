@@ -352,8 +352,16 @@ the PR review:
   The dive scene's reference planes are unaffected.
 - **Pan + discoverable zoom.** The viewport gained two-finger trackpad pan
   (`PointerPanZoom` -> screen-space `Transform.translate`, cursor un-translated
-  for picking), trackpad pinch-zoom, and an on-screen +/-/reset control column.
-  One-finger drag still rotates; the mouse wheel still zooms.
+  for picking; the published pick's `screenPos` adds `_pan` back so the tooltip
+  overlay, which sits outside the Transform, stays on the vertex), trackpad
+  pinch-zoom, and an on-screen +/-/reset control column. One-finger drag still
+  rotates; the mouse wheel still zooms. **Scope note:** unlike the tissue chrome
+  (axes/grid/labels/tooltip), which stays gated behind the nullable tissue-only
+  params, this camera interaction (rotate/pan/zoom + controls) is a general
+  viewport capability and applies to every scene the viewport renders (the dive
+  scene as well as tissue); the computers scene uses a different widget and is
+  unaffected. The earlier "zero blast radius" note therefore covers the chrome,
+  not the camera controls.
 - **Review fixes.** Projection cache keyed by grid identity; `shouldRepaint`
   covers style/bounds; tooltip guards out-of-range picks; picker uses squared
   distance and guards zero compartments.
