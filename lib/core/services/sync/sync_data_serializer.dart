@@ -222,6 +222,7 @@ class SyncData {
   final List<Map<String, dynamic>> equipment;
   final List<Map<String, dynamic>> equipmentSets;
   final List<Map<String, dynamic>> equipmentSetItems;
+  final List<Map<String, dynamic>> equipmentSetGeofences;
   final List<Map<String, dynamic>> media;
   final List<Map<String, dynamic>> buddies;
   final List<Map<String, dynamic>> buddyRoles;
@@ -278,6 +279,7 @@ class SyncData {
     this.equipment = const [],
     this.equipmentSets = const [],
     this.equipmentSetItems = const [],
+    this.equipmentSetGeofences = const [],
     this.media = const [],
     this.buddies = const [],
     this.buddyRoles = const [],
@@ -335,6 +337,7 @@ class SyncData {
     'equipment': equipment,
     'equipmentSets': equipmentSets,
     'equipmentSetItems': equipmentSetItems,
+    'equipmentSetGeofences': equipmentSetGeofences,
     'media': media,
     'buddies': buddies,
     'buddyRoles': buddyRoles,
@@ -393,6 +396,7 @@ class SyncData {
       equipment: _parseList(json['equipment']),
       equipmentSets: _parseList(json['equipmentSets']),
       equipmentSetItems: _parseList(json['equipmentSetItems']),
+      equipmentSetGeofences: _parseList(json['equipmentSetGeofences']),
       media: _parseList(json['media']),
       buddies: _parseList(json['buddies']),
       buddyRoles: _parseList(json['buddyRoles']),
@@ -577,6 +581,12 @@ class SyncDataSerializer {
     (key: 'diveSites', table: _db.diveSites, blob: false, full: null),
     (key: 'equipment', table: _db.equipment, blob: false, full: null),
     (key: 'equipmentSets', table: _db.equipmentSets, blob: false, full: null),
+    (
+      key: 'equipmentSetGeofences',
+      table: _db.equipmentSetGeofences,
+      blob: false,
+      full: null,
+    ),
     (
       key: 'equipmentSetItems',
       table: null,
@@ -987,6 +997,10 @@ class SyncDataSerializer {
         'equipmentSetItems',
         () => _exportEquipmentSetItems(hlcSince),
       ),
+      equipmentSetGeofences: await _safeExport(
+        'equipmentSetGeofences',
+        () => _exportEquipmentSetGeofences(hlcSince),
+      ),
       media: await _safeExport('media', () => _exportMedia(hlcSince)),
       buddies: await _safeExport('buddies', () => _exportBuddies(hlcSince)),
       buddyRoles: await _safeExport(
@@ -1308,6 +1322,11 @@ class SyncDataSerializer {
           _db.equipmentSets,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
+      case 'equipmentSetGeofences':
+        final row = await (_db.select(
+          _db.equipmentSetGeofences,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
       case 'equipmentSetItems':
         final parts = _splitCompositeId(recordId);
         if (parts.length != 2) return null;
@@ -1600,6 +1619,11 @@ class SyncDataSerializer {
           _db.equipmentSets,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
+      case 'equipmentSetGeofences':
+        final rows = await (_db.select(
+          _db.equipmentSetGeofences,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
       case 'buddies':
         final rows = await (_db.select(
           _db.buddies,
@@ -1833,6 +1857,13 @@ class SyncDataSerializer {
             .into(_db.equipmentSets)
             .insertOnConflictUpdate(
               EquipmentSet.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'equipmentSetGeofences':
+        await _db
+            .into(_db.equipmentSetGeofences)
+            .insertOnConflictUpdate(
+              EquipmentSetGeofence.fromJson(data).toCompanion(false),
             );
         return;
       case 'equipmentSetItems':
@@ -2235,6 +2266,16 @@ class SyncDataSerializer {
             _db.equipmentSets,
             records
                 .map((r) => EquipmentSet.fromJson(r).toCompanion(false))
+                .toList(),
+          ),
+        );
+        return;
+      case 'equipmentSetGeofences':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.equipmentSetGeofences,
+            records
+                .map((r) => EquipmentSetGeofence.fromJson(r).toCompanion(false))
                 .toList(),
           ),
         );
@@ -2792,6 +2833,8 @@ class SyncDataSerializer {
         return plain(_db.equipment, _db.equipment.id);
       case 'equipmentSets':
         return plain(_db.equipmentSets, _db.equipmentSets.id);
+      case 'equipmentSetGeofences':
+        return plain(_db.equipmentSetGeofences, _db.equipmentSetGeofences.id);
       case 'diveTypes':
         return plain(_db.diveTypes, _db.diveTypes.id);
       case 'diveRoles':
@@ -2961,6 +3004,8 @@ class SyncDataSerializer {
         return _db.equipment;
       case 'equipmentSets':
         return _db.equipmentSets;
+      case 'equipmentSetGeofences':
+        return _db.equipmentSetGeofences;
       case 'diveTypes':
         return _db.diveTypes;
       case 'diveRoles':
@@ -3094,6 +3139,11 @@ class SyncDataSerializer {
       case 'equipmentSets':
         await (_db.delete(
           _db.equipmentSets,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'equipmentSetGeofences':
+        await (_db.delete(
+          _db.equipmentSetGeofences,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'equipmentSetItems':
@@ -3477,6 +3527,17 @@ class SyncDataSerializer {
     String? hlcSince,
   ) async {
     final query = _db.select(_db.equipmentSets);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportEquipmentSetGeofences(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.equipmentSetGeofences);
     if (hlcSince != null) {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }

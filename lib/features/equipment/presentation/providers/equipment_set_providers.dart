@@ -3,6 +3,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_set_geofence.dart';
 
 /// Repository provider
 final equipmentSetRepositoryProvider = Provider<EquipmentSetRepository>((ref) {
@@ -24,7 +25,7 @@ final equipmentSetProvider = FutureProvider.family<EquipmentSet?, String>((
   id,
 ) async {
   final repository = ref.watch(equipmentSetRepositoryProvider);
-  return repository.getSetById(id, includeItems: true);
+  return repository.getSetById(id, includeItems: true, includeGeofences: true);
 });
 
 /// Equipment set with items provider (alias for equipmentSetProvider)
@@ -32,6 +33,51 @@ final equipmentSetWithItemsProvider =
     FutureProvider.family<EquipmentSet?, String>((ref, id) async {
       final repository = ref.watch(equipmentSetRepositoryProvider);
       return repository.getSetById(id, includeItems: true);
+    });
+
+/// The active diver's default equipment set, or null.
+final defaultEquipmentSetProvider = FutureProvider<EquipmentSet?>((ref) async {
+  final sets = await ref.watch(equipmentSetsProvider.future);
+  for (final s in sets) {
+    if (s.isDefault) {
+      return ref.watch(equipmentSetWithItemsProvider(s.id).future);
+    }
+  }
+  return null;
+});
+
+/// Geofences for a single set.
+final equipmentSetGeofencesProvider =
+    FutureProvider.family<List<EquipmentSetGeofence>, String>((
+      ref,
+      setId,
+    ) async {
+      final repo = ref.watch(equipmentSetRepositoryProvider);
+      return repo.getGeofencesForSet(setId);
+    });
+
+/// Immutable bundle the selector needs for the active diver.
+class EquipmentSetSelectionInputs {
+  final List<EquipmentSet> sets;
+  final List<EquipmentSetGeofence> geofences;
+  const EquipmentSetSelectionInputs({
+    required this.sets,
+    required this.geofences,
+  });
+}
+
+/// The active diver's sets (with items) + all their geofences, ready for the
+/// selector.
+final equipmentSetSelectionInputsProvider =
+    FutureProvider<EquipmentSetSelectionInputs>((ref) async {
+      final repo = ref.watch(equipmentSetRepositoryProvider);
+      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+      final sets = <EquipmentSet>[];
+      for (final base in await repo.getAllSets(diverId: diverId)) {
+        sets.add((await repo.getSetById(base.id, includeItems: true)) ?? base);
+      }
+      final geofences = await repo.getAllGeofences(diverId: diverId);
+      return EquipmentSetSelectionInputs(sets: sets, geofences: geofences);
     });
 
 /// Equipment set list notifier for mutations
@@ -117,6 +163,32 @@ class EquipmentSetListNotifier
     await _repository.removeItemFromSet(setId, equipmentId);
     await refresh();
     _ref.invalidate(equipmentSetProvider(setId));
+  }
+
+  Future<void> setAsDefault(String id) async {
+    final diverId = await _ref.read(validatedCurrentDiverIdProvider.future);
+    await _repository.setAsDefault(id, diverId: diverId);
+    await refresh();
+    _ref.invalidate(defaultEquipmentSetProvider);
+    _ref.invalidate(equipmentSetSelectionInputsProvider);
+  }
+
+  Future<void> addGeofence(EquipmentSetGeofence fence) async {
+    await _repository.addGeofence(fence);
+    _ref.invalidate(equipmentSetGeofencesProvider(fence.setId));
+    _ref.invalidate(equipmentSetSelectionInputsProvider);
+  }
+
+  Future<void> updateGeofence(EquipmentSetGeofence fence) async {
+    await _repository.updateGeofence(fence);
+    _ref.invalidate(equipmentSetGeofencesProvider(fence.setId));
+    _ref.invalidate(equipmentSetSelectionInputsProvider);
+  }
+
+  Future<void> removeGeofence(String setId, String geofenceId) async {
+    await _repository.removeGeofence(geofenceId);
+    _ref.invalidate(equipmentSetGeofencesProvider(setId));
+    _ref.invalidate(equipmentSetSelectionInputsProvider);
   }
 }
 
