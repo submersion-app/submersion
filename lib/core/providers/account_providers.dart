@@ -22,9 +22,15 @@ final accountCredentialsStoreProvider = Provider<AccountCredentialsStore>(
 
 /// One adapter instance per kind for the process lifetime (token caches and
 /// single-flight refresh live inside adapters).
+///
+/// S3AccountAdapter is wired to [accountCredentialsStoreProvider] so a test
+/// override of that provider (in-memory keychain) reaches the adapter's
+/// credential reads/writes. Dropbox and Lightroom adapters use their own
+/// auth stores (DropboxAuthStore / LightroomAuthStore), overridden
+/// separately via their store factories when a test needs to.
 final accountProviderRegistryProvider = Provider<AccountProviderRegistry>(
   (ref) => AccountProviderRegistry([
-    S3AccountAdapter(),
+    S3AccountAdapter(credentials: ref.watch(accountCredentialsStoreProvider)),
     DropboxAccountAdapter(),
     GoogleDriveAccountAdapter(),
     ICloudAccountAdapter(),
