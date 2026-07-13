@@ -138,12 +138,16 @@ class SettingsListContent extends ConsumerWidget {
       );
     }
 
+    // The setup card is row 0 of the list itself: it scrolls with the
+    // sections and cannot overflow the viewport in either variant.
     final listContent = ListView.separated(
       padding: const EdgeInsets.symmetric(vertical: 8),
-      itemCount: sections.length,
-      separatorBuilder: (context, index) => const Divider(height: 1),
+      itemCount: sections.length + 1,
+      separatorBuilder: (context, index) =>
+          index == 0 ? const SizedBox.shrink() : const Divider(height: 1),
       itemBuilder: (context, index) {
-        final section = sections[index];
+        if (index == 0) return const PendingSetupCard();
+        final section = sections[index - 1];
         final isSelected = selectedId == section.id;
 
         return _SettingsSectionTile(
@@ -162,7 +166,6 @@ class SettingsListContent extends ConsumerWidget {
       return Column(
         children: [
           _buildCompactAppBar(context),
-          const PendingSetupCard(),
           Expanded(child: listContent),
         ],
       );
@@ -170,12 +173,7 @@ class SettingsListContent extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.settings_appBar_title)),
-      body: Column(
-        children: [
-          const PendingSetupCard(),
-          Expanded(child: listContent),
-        ],
-      ),
+      body: listContent,
     );
   }
 

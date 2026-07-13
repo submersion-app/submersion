@@ -12,7 +12,9 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// live (keychain probe / session check); invalidate after any
 /// connect/disconnect elsewhere.
 final connectedAccountsWithStatusProvider =
-    FutureProvider<List<(domain.ConnectedAccount, AccountStatus)>>((ref) async {
+    FutureProvider.autoDispose<List<(domain.ConnectedAccount, AccountStatus)>>((
+      ref,
+    ) async {
       final accounts = await ref
           .watch(connectedAccountsRepositoryProvider)
           .getAll();

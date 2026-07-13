@@ -77,7 +77,13 @@ class LocalFileResolver implements MediaSourceResolver {
       // produce. Fallback path to bookmark / Unavailable is exercised by
       // tests above.
       on FileSystemException {
-        // Fall through to bookmark path or unavailable.
+        // Offline network mounts commonly THROW here rather than return
+        // false; an offline volume must still read volumeOffline, not
+        // fall through to a hard notFound (which cleanup could orphan).
+        if (!_volumeStatus.isVolumeOnline(localPath)) {
+          return const UnavailableData(kind: UnavailableKind.volumeOffline);
+        }
+        // Otherwise fall through to bookmark path or unavailable.
       }
       // coverage:ignore-end
     }

@@ -173,23 +173,20 @@ class SettingsMobileContent extends ConsumerWidget {
       );
     }
 
+    // The setup card rides inside the list (row 0) so it scrolls away and
+    // can never overflow the viewport when it carries many items.
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.settings_appBar_title)),
-      body: Column(
-        children: [
-          const PendingSetupCard(),
-          Expanded(
-            child: ListView.separated(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              itemCount: sections.length,
-              separatorBuilder: (context, index) => const Divider(height: 1),
-              itemBuilder: (context, index) {
-                final section = sections[index];
-                return _MobileSettingsTile(section: section);
-              },
-            ),
-          ),
-        ],
+      body: ListView.separated(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        itemCount: sections.length + 1,
+        separatorBuilder: (context, index) =>
+            index == 0 ? const SizedBox.shrink() : const Divider(height: 1),
+        itemBuilder: (context, index) {
+          if (index == 0) return const PendingSetupCard();
+          final section = sections[index - 1];
+          return _MobileSettingsTile(section: section);
+        },
       ),
     );
   }

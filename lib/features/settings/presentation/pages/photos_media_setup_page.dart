@@ -11,7 +11,9 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Live status for the guided setup steps. Invalidated after returning
 /// from a step so the checklist reflects what the user just configured.
 final setupGuideStatusProvider =
-    FutureProvider<({bool sources, bool storage, bool sync})>((ref) async {
+    FutureProvider.autoDispose<({bool sources, bool storage, bool sync})>((
+      ref,
+    ) async {
       final lightroom = await ref.watch(lightroomAccountProvider.future);
       // Aligned with the step's route (/settings/media-sources): ANY
       // attached media - gallery, files, URLs, or Lightroom - counts as
