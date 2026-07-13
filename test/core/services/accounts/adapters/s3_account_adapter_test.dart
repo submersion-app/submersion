@@ -8,6 +8,7 @@ import 'package:submersion/core/services/accounts/adapters/s3_account_adapter.da
 import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
+import 'package:submersion/core/services/cloud_storage/s3_storage_provider.dart';
 import 'package:submersion/core/services/media_store/s3_media_object_store.dart';
 
 import '../../../../support/fake_keychain_storage.dart';
@@ -78,5 +79,10 @@ void main() {
     await adapter.disconnect(account);
     expect(await adapter.loadConfig(account), isNull);
     expect(keychain.values['other'], 'keep');
+  });
+
+  test('syncProvider returns an S3StorageProvider (account-first raw '
+      'provider for sync resolution)', () {
+    expect(adapter.syncProvider(account), isA<S3StorageProvider>());
   });
 }

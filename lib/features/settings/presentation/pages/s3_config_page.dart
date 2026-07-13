@@ -196,6 +196,12 @@ class _S3ConfigPageState extends ConsumerState<S3ConfigPage> {
       await ref
           .read(syncInitializerProvider)
           .saveProvider(CloudProviderType.s3);
+      // Re-derive the sync account so its per-account credential mirror
+      // picks up this (possibly in-place) config edit; account-first
+      // resolution reads that mirror. Invalidate + await because editing
+      // while already on S3 doesn't re-fire the provider-type change.
+      ref.invalidate(selectedSyncAccountProvider);
+      await ref.read(selectedSyncAccountProvider.future);
       ref.read(syncStateProvider.notifier).refreshState();
       ref.invalidate(s3ConfigProvider);
       if (!mounted) return;

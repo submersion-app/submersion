@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/accounts/account_credentials_store.dart';
+import 'package:submersion/core/services/cloud_storage/dropbox_storage_provider.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/adapters/dropbox_account_adapter.dart';
@@ -65,5 +66,10 @@ void main() {
 
   test('mediaObjectStore returns null without credentials', () async {
     expect(await adapter.mediaObjectStore(account), isNull);
+  });
+
+  test('syncProvider returns a DropboxStorageProvider (account-first raw '
+      'provider for sync resolution)', () {
+    expect(adapter.syncProvider(account), isA<DropboxStorageProvider>());
   });
 }

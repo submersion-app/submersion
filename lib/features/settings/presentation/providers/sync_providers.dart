@@ -8,6 +8,7 @@ import 'package:submersion/core/data/repositories/connected_accounts_repository.
 import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
 
@@ -24,6 +25,7 @@ import 'package:submersion/core/services/cloud_storage/dropbox_storage_provider.
 import 'package:submersion/core/services/cloud_storage/encrypting_cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/icloud_native_service.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
+import 'package:submersion/core/services/cloud_storage/s3/s3_credentials_store.dart';
 import 'package:submersion/core/services/cloud_storage/s3_storage_provider.dart';
 import 'package:submersion/core/services/sync/crypto/encryption_key_store.dart';
 import 'package:submersion/core/services/sync/crypto/keyslots.dart';
@@ -273,12 +275,17 @@ Future<domain.ConnectedAccount> ensureAccountForProviderType(
 }
 
 /// The connected account driving sync, derived from the selected provider
-/// type and persisted to sync metadata. Resolution of the raw
-/// [CloudStorageProvider] stays on the legacy provider singletons in
-/// Phase 1: the connect UIs still write credentials to the legacy keychain
-/// keys, so account-keyed credential copies would go stale on the next
-/// config edit. Phase 3 rewires the connect UIs to per-account keys and
-/// flips [cloudStorageProviderProvider] to account-first resolution.
+/// type and persisted to sync metadata.
+///
+/// The connect UIs (S3 config page, Dropbox dialog) still write credentials
+/// to the LEGACY keychain keys, which remain the source of truth. Here we
+/// mirror those legacy blobs into the account's per-account key
+/// (overwrite), so account-first resolution in [cloudStorageProviderProvider]
+/// always reads current credentials. This runs on every derivation (launch,
+/// provider selection, and explicit invalidation after a config edit), and
+/// covers every connect path — settings pages and the setup wizard alike —
+/// without each having to re-key. iCloud/Google Drive are session-managed
+/// (no keychain blob) and skip the mirror.
 final selectedSyncAccountProvider = FutureProvider<domain.ConnectedAccount?>((
   ref,
 ) async {
@@ -294,6 +301,7 @@ final selectedSyncAccountProvider = FutureProvider<domain.ConnectedAccount?>((
     await ref
         .read(syncRepositoryProvider)
         .setSyncAccount(accountId: account.id, providerType: type);
+    await _mirrorLegacyCredentials(ref, account);
     return account;
   } catch (_) {
     // Best-effort bookkeeping: the selection is re-derived on every launch,
@@ -302,6 +310,36 @@ final selectedSyncAccountProvider = FutureProvider<domain.ConnectedAccount?>((
     return null;
   }
 });
+
+/// Refresh the account's per-account credential blob from the legacy key so
+/// account-first resolution never reads a stale copy. Best-effort: a
+/// keychain failure here must not null the derived account (resolution
+/// falls back to the legacy singleton, which is still valid).
+Future<void> _mirrorLegacyCredentials(
+  Ref ref,
+  domain.ConnectedAccount account,
+) async {
+  final legacyKey = switch (account.kind) {
+    AccountKind.s3 => S3CredentialsStore.storageKey,
+    AccountKind.dropbox => DropboxAuthStore.storageKey,
+    // Session-managed / not a sync kind: no keychain blob to mirror.
+    AccountKind.googledrive ||
+    AccountKind.icloud ||
+    AccountKind.adobeLightroom => null,
+  };
+  if (legacyKey == null) return;
+  try {
+    await ref
+        .read(accountCredentialsStoreProvider)
+        .rekeyFromLegacy(
+          legacyKey: legacyKey,
+          accountId: account.id,
+          overwrite: true,
+        );
+  } catch (_) {
+    // Ignored: legacy singleton remains a valid resolution fallback.
+  }
+}
 
 /// Cloud storage provider instance (null if none selected or custom folder mode)
 ///
@@ -317,12 +355,24 @@ final cloudStorageProviderProvider = Provider<CloudStorageProvider?>((ref) {
   final providerType = ref.watch(selectedCloudProviderTypeProvider);
   if (providerType == null) return null;
 
-  // Keep the account bookkeeping alive: derives (and persists) the sync
-  // account row for the selected type. Raw-provider resolution stays on the
-  // legacy singletons in Phase 1 (see selectedSyncAccountProvider).
-  ref.watch(selectedSyncAccountProvider);
-
-  final raw = cloudProviderInstanceFor(providerType);
+  // Account-first resolution: build the raw provider from the selected
+  // account's adapter, which reads per-account credentials (kept current by
+  // selectedSyncAccountProvider's legacy mirror). While the account is still
+  // deriving (its future not yet resolved on the first frame), fall back to
+  // the legacy singleton — legacy keys are still written by the connect UIs,
+  // so that fallback is always valid and sync can never resolve to nothing.
+  final account = ref.watch(selectedSyncAccountProvider).value;
+  CloudStorageProvider raw;
+  if (account != null) {
+    final capable = ref
+        .watch(accountProviderRegistryProvider)
+        .capabilityFor<SyncCapable>(account.kind);
+    raw =
+        capable?.syncProvider(account) ??
+        cloudProviderInstanceFor(providerType);
+  } else {
+    raw = cloudProviderInstanceFor(providerType);
+  }
   // End-to-end encryption: with an unlocked session, every byte through this
   // provider is sealed/opened at the byte boundary (spec 4.1). No session
   // (disabled, or enabled-but-locked) resolves to the raw provider; a locked

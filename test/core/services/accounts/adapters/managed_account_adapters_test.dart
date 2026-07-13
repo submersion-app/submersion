@@ -104,6 +104,21 @@ void main() {
         expect(await adapter.mediaObjectStore(account), isNull);
       },
     );
+
+    test('syncProvider defaults to the shared iCloud singleton so '
+        'account-first resolution matches the legacy path', () {
+      final a = ICloudAccountAdapter(
+        availability: () async => ICloudAvailability.available,
+      );
+      final b = ICloudAccountAdapter(
+        availability: () async => ICloudAvailability.available,
+      );
+      expect(
+        identical(a.syncProvider(account), b.syncProvider(account)),
+        isTrue,
+        reason: 'both resolve to the one process singleton',
+      );
+    });
   });
 
   group('LightroomAccountAdapter', () {
