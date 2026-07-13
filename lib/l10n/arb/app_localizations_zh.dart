@@ -43,6 +43,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_story_generateItinerary => '生成行程';
 
   @override
+  String get trips_story_openGallery => '打开行程照片';
+
+  @override
   String trips_story_generateItineraryError(String error) {
     return '无法生成行程：$error';
   }

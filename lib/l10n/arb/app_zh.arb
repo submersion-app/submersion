@@ -6,6 +6,7 @@
   "trips_story_daysUntil": "{days, plural, other{距出发还有 {days} 天}}",
   "trips_story_checklistProgress": "已完成 {done}/{total}",
   "trips_story_generateItinerary": "生成行程",
+  "trips_story_openGallery": "打开行程照片",
   "trips_story_generateItineraryError": "无法生成行程：{error}",
   "@trips_story_generateItineraryError": {
     "placeholders": {

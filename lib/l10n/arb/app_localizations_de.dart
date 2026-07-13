@@ -44,6 +44,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trips_story_generateItinerary => 'Reiseplan erstellen';
 
   @override
+  String get trips_story_openGallery => 'Reisefotos öffnen';
+
+  @override
   String trips_story_generateItineraryError(String error) {
     return 'Reiseplan konnte nicht erstellt werden: $error';
   }

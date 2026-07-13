@@ -44,6 +44,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_story_generateItinerary => 'צור מסלול';
 
   @override
+  String get trips_story_openGallery => 'פתיחת תמונות הטיול';
+
+  @override
   String trips_story_generateItineraryError(String error) {
     return 'לא ניתן ליצור מסלול: $error';
   }

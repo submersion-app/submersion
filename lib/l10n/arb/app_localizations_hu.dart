@@ -44,6 +44,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_story_generateItinerary => 'Útiterv létrehozása';
 
   @override
+  String get trips_story_openGallery => 'Utazási fotók megnyitása';
+
+  @override
   String trips_story_generateItineraryError(String error) {
     return 'Nem sikerült létrehozni az útitervet: $error';
   }

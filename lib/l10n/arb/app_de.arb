@@ -6,6 +6,7 @@
   "trips_story_daysUntil": "{days, plural, =1{Noch 1 Tag bis zur Abreise} other{Noch {days} Tage bis zur Abreise}}",
   "trips_story_checklistProgress": "{done} von {total} erledigt",
   "trips_story_generateItinerary": "Reiseplan erstellen",
+  "trips_story_openGallery": "Reisefotos öffnen",
   "trips_story_generateItineraryError": "Reiseplan konnte nicht erstellt werden: {error}",
   "@trips_story_generateItineraryError": {
     "placeholders": {

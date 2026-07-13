@@ -76,7 +76,7 @@ class TripStoryDayCard extends ConsumerWidget {
                       ),
                       Padding(
                         padding: const EdgeInsetsDirectional.only(start: 8),
-                        child: DiveSparkline(profile: dive.profile),
+                        child: DiveSparkline(diveId: dive.id),
                       ),
                     ],
                   ),
@@ -197,7 +197,10 @@ class _DayStatStrip extends StatelessWidget {
       (l10n.trips_detail_stat_totalBottomTime, bottomLabel),
       if (day.maxDepth != null)
         (l10n.trips_detail_stat_maxDepth, units.formatDepth(day.maxDepth)),
-      (l10n.trips_breakdown_column_sites, '${day.siteNames.length}'),
+      // siteCount dedupes by site id (siteNames dedupes by display name), so two
+      // distinct same-named sites count as two here, matching the map and the
+      // trip-level stat strip.
+      (l10n.trips_breakdown_column_sites, '${day.siteCount}'),
     ];
 
     return Row(
@@ -252,18 +255,25 @@ class _PhotoStrip extends StatelessWidget {
           if (index >= visible.length) {
             return _MoreThumbnail(count: remaining, tripId: tripId);
           }
-          return GestureDetector(
-            onTap: () => context.push('/trips/$tripId/gallery'),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(6),
-              child: SizedBox(
-                width: 64,
-                height: 64,
-                child: MediaItemView(
-                  item: visible[index],
-                  thumbnail: true,
-                  targetSize: const Size(128, 128),
-                  fit: BoxFit.cover,
+          // MediaItemView renders the image without a semantic label, so label
+          // the tap target as a button that opens the trip gallery.
+          return Semantics(
+            button: true,
+            label: context.l10n.trips_story_openGallery,
+            excludeSemantics: true,
+            child: GestureDetector(
+              onTap: () => context.push('/trips/$tripId/gallery'),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: SizedBox(
+                  width: 64,
+                  height: 64,
+                  child: MediaItemView(
+                    item: visible[index],
+                    thumbnail: true,
+                    targetSize: const Size(128, 128),
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
             ),
@@ -282,17 +292,24 @@ class _MoreThumbnail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => context.push('/trips/$tripId/gallery'),
-      child: Container(
-        width: 64,
-        height: 64,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(6),
+    // The bare "+N" is a context-free accessible name; label it as a button
+    // that opens the trip gallery.
+    return Semantics(
+      button: true,
+      label: context.l10n.trips_story_openGallery,
+      excludeSemantics: true,
+      child: GestureDetector(
+        onTap: () => context.push('/trips/$tripId/gallery'),
+        child: Container(
+          width: 64,
+          height: 64,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(6),
+          ),
+          alignment: Alignment.center,
+          child: Text('+$count', style: Theme.of(context).textTheme.labelLarge),
         ),
-        alignment: Alignment.center,
-        child: Text('+$count', style: Theme.of(context).textTheme.labelLarge),
       ),
     );
   }

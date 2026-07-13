@@ -6,6 +6,7 @@
   "trips_story_daysUntil": "{days, plural, =1{יום אחד עד היציאה} other{{days} ימים עד היציאה}}",
   "trips_story_checklistProgress": "{done} מתוך {total} הושלמו",
   "trips_story_generateItinerary": "צור מסלול",
+  "trips_story_openGallery": "פתיחת תמונות הטיול",
   "trips_story_generateItineraryError": "לא ניתן ליצור מסלול: {error}",
   "@trips_story_generateItineraryError": {
     "placeholders": {

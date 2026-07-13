@@ -44,6 +44,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_story_generateItinerary => 'Reisplan genereren';
 
   @override
+  String get trips_story_openGallery => 'Reisfoto\'s openen';
+
+  @override
   String trips_story_generateItineraryError(String error) {
     return 'Kan reisschema niet genereren: $error';
   }

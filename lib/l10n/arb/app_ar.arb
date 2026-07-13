@@ -6,6 +6,7 @@
   "trips_story_daysUntil": "{days, plural, =1{يوم واحد حتى المغادرة} other{{days} أيام حتى المغادرة}}",
   "trips_story_checklistProgress": "اكتمل {done} من {total}",
   "trips_story_generateItinerary": "إنشاء خط سير",
+  "trips_story_openGallery": "فتح صور الرحلة",
   "trips_story_generateItineraryError": "تعذّر إنشاء برنامج الرحلة: {error}",
   "@trips_story_generateItineraryError": {
     "placeholders": {

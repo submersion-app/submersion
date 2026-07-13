@@ -402,6 +402,11 @@ class _TripDetailContent extends ConsumerWidget {
   }
 
   Widget _buildMoreMenu(BuildContext context, WidgetRef ref, Trip trip) {
+    // Read this during build, not inside itemBuilder: itemBuilder runs when the
+    // menu opens (outside this consumer's build phase), where ref.watch would
+    // register a dependency outside Riverpod's build lifecycle.
+    final hasLightroomAccount =
+        ref.watch(lightroomAccountProvider).value != null;
     return PopupMenuButton<String>(
       tooltip: context.l10n.trips_detail_tooltip_moreOptions,
       onSelected: (value) async {
@@ -455,7 +460,7 @@ class _TripDetailContent extends ConsumerWidget {
             ],
           ),
         ),
-        if (ref.watch(lightroomAccountProvider).value != null)
+        if (hasLightroomAccount)
           PopupMenuItem(
             value: 'scan-lightroom',
             child: Row(

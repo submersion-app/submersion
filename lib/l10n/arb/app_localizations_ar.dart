@@ -44,6 +44,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_story_generateItinerary => 'إنشاء خط سير';
 
   @override
+  String get trips_story_openGallery => 'فتح صور الرحلة';
+
+  @override
   String trips_story_generateItineraryError(String error) {
     return 'تعذّر إنشاء برنامج الرحلة: $error';
   }

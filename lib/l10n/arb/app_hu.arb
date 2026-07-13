@@ -6,6 +6,7 @@
   "trips_story_daysUntil": "{days, plural, =1{1 nap az indulásig} other{{days} nap az indulásig}}",
   "trips_story_checklistProgress": "{done}/{total} kész",
   "trips_story_generateItinerary": "Útiterv létrehozása",
+  "trips_story_openGallery": "Utazási fotók megnyitása",
   "trips_story_generateItineraryError": "Nem sikerült létrehozni az útitervet: {error}",
   "@trips_story_generateItineraryError": {
     "placeholders": {

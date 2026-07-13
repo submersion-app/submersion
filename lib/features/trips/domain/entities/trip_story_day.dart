@@ -45,7 +45,7 @@ class TripStoryDay extends Equatable {
     return max;
   }
 
-  /// Unique site names in dive order.
+  /// Unique site names in dive order (deduped by display name, for subtitles).
   List<String> get siteNames {
     final seen = <String>{};
     final names = <String>[];
@@ -54,6 +54,18 @@ class TripStoryDay extends Equatable {
       if (name != null && seen.add(name)) names.add(name);
     }
     return names;
+  }
+
+  /// Distinct dive sites deduped by stable id (not display name), so two
+  /// different sites that share a name still count as two -- matching the map
+  /// geometry and the trip-level stat strip, which key on site id.
+  int get siteCount {
+    final ids = <String>{};
+    for (final dive in dives) {
+      final id = dive.site?.id;
+      if (id != null) ids.add(id);
+    }
+    return ids.length;
   }
 
   bool get hasContent =>

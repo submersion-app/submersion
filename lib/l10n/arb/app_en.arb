@@ -40,6 +40,7 @@
     }
   },
   "trips_story_generateItinerary": "Generate itinerary",
+  "trips_story_openGallery": "Open trip photos",
   "trips_story_generateItineraryError": "Couldn't generate itinerary: {error}",
   "@trips_story_generateItineraryError": {
     "placeholders": {

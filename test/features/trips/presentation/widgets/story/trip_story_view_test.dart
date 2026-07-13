@@ -185,14 +185,23 @@ void main() {
   ) async {
     final trip = _trip(
       start: DateTime(2026, 3, 25),
-      end: DateTime(2026, 3, 27),
+      end: DateTime(2026, 3, 30),
     );
+    // One dive/site per day over six days, so there's enough scrollable content
+    // for later chapters to cross the active-day resolution threshold.
+    final labels = ['a', 'b', 'c', 'd', 'e', 'f'];
     final story = buildTripStory(
       trip: trip,
       dives: [
-        _diveAt('a', DateTime(2026, 3, 25, 9), 12.1, -68.2),
-        _diveAt('b', DateTime(2026, 3, 26, 9), 12.2, -68.3),
-        _diveAt('c', DateTime(2026, 3, 27, 9), 12.3, -68.4),
+        // Cluster the sites tightly so every marker stays within the small
+        // pinned map and can be found by its Semantics label.
+        for (var i = 0; i < labels.length; i++)
+          _diveAt(
+            labels[i],
+            DateTime(2026, 3, 25 + i, 9),
+            12.10 + i * 0.002,
+            -68.20 + i * 0.002,
+          ),
       ],
       itineraryDays: [],
       mediaByDiveId: {},
@@ -201,18 +210,45 @@ void main() {
       today: DateTime(2026, 6, 1),
     );
     // A short viewport so day chapters scroll through the resolution threshold.
-    await pumpView(tester, story, viewSize: const Size(500, 900));
+    await pumpView(tester, story, viewSize: const Size(500, 700));
 
-    final scrollable = find.byType(Scrollable).first;
-    // Drag up in steps, advancing past the 100ms scroll throttle each time so
-    // the listener resolves a later active day and eases the map camera.
-    for (var i = 0; i < 3; i++) {
+    // The active marker is drawn at full opacity; inactive ones are dimmed.
+    // Correlate a marker to its day via the Semantics label the map sets, and
+    // read back which day the header currently treats as active.
+    double markerOpacity(String label) {
+      final opacity = find.descendant(
+        of: find.byWidgetPredicate(
+          (w) => w is Semantics && w.properties.label == label,
+        ),
+        matching: find.byType(Opacity),
+      );
+      return tester.widget<Opacity>(opacity).opacity;
+    }
+
+    int activeDayIndex() {
+      for (var i = 0; i < labels.length; i++) {
+        if (markerOpacity('Site ${labels[i]}') == 1.0) return i;
+      }
+      return -1;
+    }
+
+    // Day 0 starts active.
+    expect(activeDayIndex(), 0);
+
+    // Drag the story's vertical scroll view (targeting the CustomScrollView, not
+    // a nested/map scrollable) up in steps, pumping 150ms between drags so the
+    // frame-timestamp resolve throttle (100ms) lets each drag resolve a day.
+    final scrollable = find.byType(CustomScrollView);
+    for (var i = 0; i < 6; i++) {
       await tester.drag(scrollable, const Offset(0, -400));
       await tester.pump(const Duration(milliseconds: 150));
     }
     await tester.pump(const Duration(milliseconds: 500));
 
-    // The story is still intact after the scroll-linked updates.
-    expect(find.byType(TripStoryDayCard), findsWidgets);
+    // Scrolling down must actually advance the active day: the highlighted
+    // marker moves to a later day. (A no-op _onScroll would leave day 0 active
+    // and fail here.)
+    expect(activeDayIndex(), greaterThan(0));
+    expect(markerOpacity('Site a'), lessThan(1.0));
   });
 }

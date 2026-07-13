@@ -158,6 +158,12 @@ abstract class AppLocalizations {
   /// **'Generate itinerary'**
   String get trips_story_generateItinerary;
 
+  /// No description provided for @trips_story_openGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Open trip photos'**
+  String get trips_story_openGallery;
+
   /// No description provided for @trips_story_generateItineraryError.
   ///
   /// In en, this message translates to:

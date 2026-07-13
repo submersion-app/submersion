@@ -44,6 +44,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get trips_story_generateItinerary => 'Gerar itinerário';
 
   @override
+  String get trips_story_openGallery => 'Abrir fotos da viagem';
+
+  @override
   String trips_story_generateItineraryError(String error) {
     return 'Não foi possível gerar o itinerário: $error';
   }

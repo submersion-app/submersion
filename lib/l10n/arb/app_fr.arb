@@ -6,6 +6,7 @@
   "trips_story_daysUntil": "{days, plural, =1{1 jour avant le départ} other{{days} jours avant le départ}}",
   "trips_story_checklistProgress": "{done} sur {total} fait",
   "trips_story_generateItinerary": "Générer l'itinéraire",
+  "trips_story_openGallery": "Ouvrir les photos du voyage",
   "trips_story_generateItineraryError": "Impossible de générer l'itinéraire : {error}",
   "@trips_story_generateItineraryError": {
     "placeholders": {

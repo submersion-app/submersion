@@ -140,6 +140,15 @@ void main() {
     expect(find.text('+2'), findsOneWidget);
     // Itinerary header contributes the port name to the subtitle.
     expect(find.textContaining('Kralendijk'), findsOneWidget);
+    // Every tappable thumbnail (6 photos + the "+2" tile) is a labeled button
+    // for screen readers, not an unlabeled image / bare "+2".
+    final galleryButtons = find.byWidgetPredicate(
+      (w) =>
+          w is Semantics &&
+          w.properties.button == true &&
+          w.properties.label == 'Open trip photos',
+    );
+    expect(galleryButtons, findsNWidgets(7));
   });
 
   testWidgets('past day merges duplicate species into one badge', (

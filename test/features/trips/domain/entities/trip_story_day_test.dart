@@ -53,8 +53,30 @@ void main() {
       expect(day.totalBottomTime, const Duration(minutes: 98));
       expect(day.maxDepth, 28);
       expect(day.siteNames, ['Blue Corner', 'Jetty']);
+      expect(day.siteCount, 2);
       expect(day.hasContent, isTrue);
     });
+
+    test(
+      'siteCount dedupes by id, so same-named distinct sites count twice',
+      () {
+        const twinA = DiveSite(id: 'site-1', name: 'Coral Garden');
+        const twinB = DiveSite(id: 'site-2', name: 'Coral Garden'); // same name
+        final day = TripStoryDay(
+          date: date,
+          dayNumber: 2,
+          kind: TripStoryDayKind.past,
+          dives: [
+            _dive(id: 'd1', dateTime: DateTime(2026, 3, 8, 9), site: twinA),
+            _dive(id: 'd2', dateTime: DateTime(2026, 3, 8, 11), site: twinB),
+          ],
+        );
+        // Deduped by display name this collapses to one; by id it stays two,
+        // matching the map geometry and the trip-level stat strip.
+        expect(day.siteNames, ['Coral Garden']);
+        expect(day.siteCount, 2);
+      },
+    );
 
     test('empty day has no content and null maxDepth', () {
       final day = TripStoryDay(

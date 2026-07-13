@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
@@ -39,7 +40,10 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
   late MapCameraAnimator _cameraAnimator;
   late List<GlobalKey> _dayKeys;
   int _activeDayIndex = 0;
-  DateTime _lastResolve = DateTime.fromMillisecondsSinceEpoch(0);
+  // Throttle keyed off the scheduler's frame timestamp (not DateTime.now) so it
+  // advances with rendered frames -- real time on device, fake time in tests --
+  // rather than wall-clock, which widget tests never advance.
+  Duration _lastResolve = const Duration(days: -1);
 
   @override
   void initState() {
@@ -115,8 +119,8 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
     // notifications; ignore them so swiping photos doesn't move the map/active
     // day or consume the throttle window meant for the vertical story scroll.
     if (notification.metrics.axis != Axis.vertical) return false;
-    final now = DateTime.now();
-    if (now.difference(_lastResolve) < _scrollThrottle) return false;
+    final now = SchedulerBinding.instance.currentSystemFrameTimeStamp;
+    if (now - _lastResolve < _scrollThrottle) return false;
     _lastResolve = now;
 
     final viewportHeight = notification.metrics.viewportDimension;

@@ -1,24 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_sparkline.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 
 /// Tiny depth-vs-time curve for a dive row. Renders nothing when the dive
 /// has no usable profile.
-class DiveSparkline extends StatelessWidget {
-  final List<DiveProfilePoint> profile;
+///
+/// Loads the dive's primary-source profile lazily via [diveProfileProvider]
+/// (per visible row) rather than reading `Dive.profile`: the trip dive query
+/// hydrates profiles unfiltered (all sources, including demoted rows), so a
+/// multi-source dive would otherwise render an interleaved, inaccurate curve.
+/// Lazy per-row loading also avoids materializing every dive's profile up front.
+class DiveSparkline extends ConsumerWidget {
+  final String diveId;
   final double width;
   final double height;
 
   const DiveSparkline({
     super.key,
-    required this.profile,
+    required this.diveId,
     this.width = 60,
     this.height = 20,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profile = ref.watch(diveProfileProvider(diveId)).value ?? const [];
     final points = sparklinePoints(profile);
     if (points.isEmpty) return const SizedBox.shrink();
     return ExcludeSemantics(

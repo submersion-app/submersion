@@ -6,6 +6,7 @@
   "trips_story_daysUntil": "{days, plural, =1{Nog 1 dag tot vertrek} other{Nog {days} dagen tot vertrek}}",
   "trips_story_checklistProgress": "{done} van {total} klaar",
   "trips_story_generateItinerary": "Reisplan genereren",
+  "trips_story_openGallery": "Reisfoto's openen",
   "trips_story_generateItineraryError": "Kan reisschema niet genereren: {error}",
   "@trips_story_generateItineraryError": {
     "placeholders": {
