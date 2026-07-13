@@ -204,6 +204,45 @@ class SpeciesRepository {
     }).toList();
   }
 
+  /// Batched variant of [getSightingsForDive]: one query for many dives.
+  /// Returns a map keyed by dive id; dives without sightings are absent.
+  Future<Map<String, List<domain.Sighting>>> getSightingsForDives(
+    List<String> diveIds,
+  ) async {
+    if (diveIds.isEmpty) return {};
+    final placeholders = List.filled(diveIds.length, '?').join(', ');
+    final results = await _db
+        .customSelect(
+          '''
+      SELECT s.*, sp.common_name, sp.category
+      FROM sightings s
+      JOIN species sp ON s.species_id = sp.id
+      WHERE s.dive_id IN ($placeholders)
+      ORDER BY sp.category ASC, sp.common_name ASC
+    ''',
+          variables: [for (final id in diveIds) Variable.withString(id)],
+        )
+        .get();
+
+    final byDive = <String, List<domain.Sighting>>{};
+    for (final row in results) {
+      final sighting = domain.Sighting(
+        id: row.data['id'] as String,
+        diveId: row.data['dive_id'] as String,
+        speciesId: row.data['species_id'] as String,
+        speciesName: row.data['common_name'] as String,
+        speciesCategory: SpeciesCategory.values.firstWhere(
+          (c) => c.name == row.data['category'],
+          orElse: () => SpeciesCategory.other,
+        ),
+        count: row.data['count'] as int,
+        notes: (row.data['notes'] as String?) ?? '',
+      );
+      byDive.putIfAbsent(sighting.diveId, () => []).add(sighting);
+    }
+    return byDive;
+  }
+
   /// Update sighting
   Future<void> updateSighting(domain.Sighting sighting) async {
     await (_db.update(
