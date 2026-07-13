@@ -73,4 +73,27 @@ void main() {
     // Staging bypasses the repository: nothing was persisted.
     expect(await repository.getCertificationById('staged-1'), isNull);
   });
+
+  test('constructor asserts against mixing staging and by-id modes', () {
+    // Staging (onStaged) prefills from initialCertification and never loads by
+    // id, so certificationId + onStaged is contradictory.
+    expect(
+      () => CertificationEditPage(certificationId: 'c1', onStaged: (_) {}),
+      throwsA(isA<AssertionError>()),
+    );
+    // initialCertification is only read in staging mode; without onStaged it
+    // would prefill the form but still run the persistent save path.
+    expect(
+      () => CertificationEditPage(
+        initialCertification: Certification(
+          id: 'c1',
+          name: 'Nitrox',
+          agency: CertificationAgency.padi,
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
+        ),
+      ),
+      throwsA(isA<AssertionError>()),
+    );
+  });
 }

@@ -37,7 +37,16 @@ class CertificationEditPage extends ConsumerStatefulWidget {
     this.onCancel,
     this.initialCertification,
     this.onStaged,
-  });
+  }) : assert(
+         onStaged == null || certificationId == null,
+         'Staging mode (onStaged) prefills from initialCertification and never '
+         'loads by id -- do not also pass certificationId.',
+       ),
+       assert(
+         initialCertification == null || onStaged != null,
+         'initialCertification is only read in staging mode; pass onStaged too, '
+         'or the persistent save path would run on the prefilled data.',
+       );
 
   @override
   ConsumerState<CertificationEditPage> createState() =>
