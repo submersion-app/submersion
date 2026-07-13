@@ -34,6 +34,7 @@ class DayRhythmBar extends StatelessWidget {
             nightColor: colorScheme.tertiary,
             tickTextStyle: labelStyle,
             textDirection: Directionality.of(context),
+            textScaler: MediaQuery.textScalerOf(context),
           ),
         ),
       ),
@@ -48,6 +49,7 @@ class _RhythmPainter extends CustomPainter {
   final Color nightColor;
   final TextStyle? tickTextStyle;
   final TextDirection textDirection;
+  final TextScaler textScaler;
 
   const _RhythmPainter({
     required this.blocks,
@@ -56,13 +58,16 @@ class _RhythmPainter extends CustomPainter {
     required this.nightColor,
     required this.tickTextStyle,
     required this.textDirection,
+    required this.textScaler,
   });
 
   static const _tickHours = [6, 12, 18];
 
   @override
   void paint(Canvas canvas, Size size) {
-    const labelHeight = 12.0;
+    // Reserve scaled label height so ticks aren't clipped at larger text sizes.
+    final fontSize = tickTextStyle?.fontSize ?? 11.0;
+    final labelHeight = textScaler.scale(fontSize) + 2;
     final trackHeight = size.height - labelHeight;
     final trackRect = RRect.fromRectAndRadius(
       Rect.fromLTWH(0, 0, size.width, trackHeight),
@@ -91,6 +96,7 @@ class _RhythmPainter extends CustomPainter {
       final painter = TextPainter(
         text: TextSpan(text: '$hour:00', style: tickTextStyle),
         textDirection: textDirection,
+        textScaler: textScaler,
       )..layout();
       painter.paint(
         canvas,
@@ -109,5 +115,6 @@ class _RhythmPainter extends CustomPainter {
       oldDelegate.nightColor != nightColor ||
       oldDelegate.trackColor != trackColor ||
       oldDelegate.tickTextStyle != tickTextStyle ||
-      oldDelegate.textDirection != textDirection;
+      oldDelegate.textDirection != textDirection ||
+      oldDelegate.textScaler != textScaler;
 }

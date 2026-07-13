@@ -18,13 +18,17 @@ final mediaForTripProvider =
         return {};
       }
 
-      // Fetch media for each dive
-      final Map<Dive, List<MediaItem>> result = {};
+      // Fetch each dive's media concurrently. This provider feeds the trip
+      // story (the primary Overview), so a sequential per-dive await would make
+      // first paint grow linearly with dive count.
+      final mediaLists = await Future.wait(
+        dives.map((dive) => ref.watch(mediaForDiveProvider(dive.id).future)),
+      );
 
-      for (final dive in dives) {
-        final media = await ref.watch(mediaForDiveProvider(dive.id).future);
-        if (media.isNotEmpty) {
-          result[dive] = media;
+      final Map<Dive, List<MediaItem>> result = {};
+      for (var i = 0; i < dives.length; i++) {
+        if (mediaLists[i].isNotEmpty) {
+          result[dives[i]] = mediaLists[i];
         }
       }
 
