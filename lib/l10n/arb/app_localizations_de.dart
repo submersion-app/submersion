@@ -10,39 +10,39 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String diveLog_edit_geofenceSuggestion_near(String location) {
-    return 'Near $location';
+    return 'In der Nähe von $location';
   }
 
   @override
-  String get diveLog_edit_geofenceSuggestion_title => 'Equipment suggestion';
+  String get diveLog_edit_geofenceSuggestion_title => 'Ausrüstungsvorschlag';
 
   @override
   String diveLog_edit_geofenceSuggestion_body(String setName) {
-    return 'Apply your \"$setName\" set?';
+    return 'Set \"$setName\" übernehmen?';
   }
 
   @override
-  String get diveLog_edit_geofenceSuggestion_apply => 'Apply';
+  String get diveLog_edit_geofenceSuggestion_apply => 'Übernehmen';
 
   @override
-  String get common_action_dismiss => 'Dismiss';
+  String get common_action_dismiss => 'Verwerfen';
 
   @override
-  String get equipment_setEdit_defaultSwitch_title => 'Default set';
+  String get equipment_setEdit_defaultSwitch_title => 'Standard-Set';
 
   @override
   String get equipment_setEdit_defaultSwitch_subtitle =>
-      'Auto-applied to new dives that have no equipment yet';
+      'Wird automatisch auf neue Tauchgänge ohne Ausrüstung angewendet';
 
   @override
   String get equipment_setEdit_geofencesTitle => 'Geofences';
 
   @override
   String get equipment_setEdit_geofencesSubtitle =>
-      'Auto-suggest this set for dives near these locations';
+      'Dieses Set automatisch für Tauchgänge in der Nähe dieser Orte vorschlagen';
 
   @override
-  String get equipment_setEdit_addGeofence => 'Add geofence';
+  String get equipment_setEdit_addGeofence => 'Geofence hinzufügen';
 
   @override
   String equipment_setEdit_geofenceRadius(String distance) {
@@ -53,36 +53,36 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_geofenceEditor_title => 'Geofence';
 
   @override
-  String get equipment_geofenceEditor_fromSite => 'From dive site';
+  String get equipment_geofenceEditor_fromSite => 'Vom Tauchplatz';
 
   @override
-  String get equipment_geofenceEditor_dropPin => 'Drop a pin';
+  String get equipment_geofenceEditor_dropPin => 'Pin setzen';
 
   @override
-  String get equipment_geofenceEditor_labelLabel => 'Label';
+  String get equipment_geofenceEditor_labelLabel => 'Bezeichnung';
 
   @override
-  String get equipment_geofenceEditor_noCenter => 'Choose a center point';
+  String get equipment_geofenceEditor_noCenter => 'Mittelpunkt wählen';
 
   @override
-  String get equipment_geofenceEditor_save => 'Save geofence';
+  String get equipment_geofenceEditor_save => 'Geofence speichern';
 
   @override
-  String get equipment_sets_defaultBadge => 'Default';
+  String get equipment_sets_defaultBadge => 'Standard';
 
   @override
-  String get equipment_setDetail_setAsDefault => 'Set as default';
+  String get equipment_setDetail_setAsDefault => 'Als Standard festlegen';
 
   @override
   String equipment_setDetail_setAsDefaultSnackbar(String name) {
-    return '\"$name\" is now your default set';
+    return '\"$name\" ist jetzt dein Standard-Set';
   }
 
   @override
   String get equipment_setDetail_geofencesTitle => 'Geofences';
 
   @override
-  String get equipment_setDetail_noGeofences => 'No geofences';
+  String get equipment_setDetail_noGeofences => 'Keine Geofences';
 
   @override
   String get diveLog_bulkEdit_groupRebreather => 'Tauchmodus & Kreislaufgerät';

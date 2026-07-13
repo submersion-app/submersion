@@ -10,79 +10,80 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String diveLog_edit_geofenceSuggestion_near(String location) {
-    return 'Near $location';
+    return '$location közelében';
   }
 
   @override
-  String get diveLog_edit_geofenceSuggestion_title => 'Equipment suggestion';
+  String get diveLog_edit_geofenceSuggestion_title => 'Felszerelési javaslat';
 
   @override
   String diveLog_edit_geofenceSuggestion_body(String setName) {
-    return 'Apply your \"$setName\" set?';
+    return 'Alkalmazza a(z) \"$setName\" készletet?';
   }
 
   @override
-  String get diveLog_edit_geofenceSuggestion_apply => 'Apply';
+  String get diveLog_edit_geofenceSuggestion_apply => 'Alkalmaz';
 
   @override
-  String get common_action_dismiss => 'Dismiss';
+  String get common_action_dismiss => 'Elvetés';
 
   @override
-  String get equipment_setEdit_defaultSwitch_title => 'Default set';
+  String get equipment_setEdit_defaultSwitch_title => 'Alapértelmezett készlet';
 
   @override
   String get equipment_setEdit_defaultSwitch_subtitle =>
-      'Auto-applied to new dives that have no equipment yet';
+      'Automatikusan alkalmazza az új, még felszerelés nélküli merülésekre';
 
   @override
-  String get equipment_setEdit_geofencesTitle => 'Geofences';
+  String get equipment_setEdit_geofencesTitle => 'Geokerítések';
 
   @override
   String get equipment_setEdit_geofencesSubtitle =>
-      'Auto-suggest this set for dives near these locations';
+      'Automatikusan javasolja ezt a készletet az e helyek közelében végzett merülésekhez';
 
   @override
-  String get equipment_setEdit_addGeofence => 'Add geofence';
+  String get equipment_setEdit_addGeofence => 'Geokerítés hozzáadása';
 
   @override
   String equipment_setEdit_geofenceRadius(String distance) {
-    return 'Radius: $distance';
+    return 'Sugár: $distance';
   }
 
   @override
-  String get equipment_geofenceEditor_title => 'Geofence';
+  String get equipment_geofenceEditor_title => 'Geokerítés';
 
   @override
-  String get equipment_geofenceEditor_fromSite => 'From dive site';
+  String get equipment_geofenceEditor_fromSite => 'Merülőhelyről';
 
   @override
-  String get equipment_geofenceEditor_dropPin => 'Drop a pin';
+  String get equipment_geofenceEditor_dropPin => 'Gombostű elhelyezése';
 
   @override
-  String get equipment_geofenceEditor_labelLabel => 'Label';
+  String get equipment_geofenceEditor_labelLabel => 'Címke';
 
   @override
-  String get equipment_geofenceEditor_noCenter => 'Choose a center point';
+  String get equipment_geofenceEditor_noCenter => 'Válasszon középpontot';
 
   @override
-  String get equipment_geofenceEditor_save => 'Save geofence';
+  String get equipment_geofenceEditor_save => 'Geokerítés mentése';
 
   @override
-  String get equipment_sets_defaultBadge => 'Default';
+  String get equipment_sets_defaultBadge => 'Alapértelmezett';
 
   @override
-  String get equipment_setDetail_setAsDefault => 'Set as default';
+  String get equipment_setDetail_setAsDefault =>
+      'Beállítás alapértelmezettként';
 
   @override
   String equipment_setDetail_setAsDefaultSnackbar(String name) {
-    return '\"$name\" is now your default set';
+    return 'A(z) \"$name\" mostantól az alapértelmezett készleted';
   }
 
   @override
-  String get equipment_setDetail_geofencesTitle => 'Geofences';
+  String get equipment_setDetail_geofencesTitle => 'Geokerítések';
 
   @override
-  String get equipment_setDetail_noGeofences => 'No geofences';
+  String get equipment_setDetail_noGeofences => 'Nincsenek geokerítések';
 
   @override
   String get diveLog_bulkEdit_groupRebreather => 'Merülési mód és rebreather';

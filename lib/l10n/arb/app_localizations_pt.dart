@@ -10,79 +10,79 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String diveLog_edit_geofenceSuggestion_near(String location) {
-    return 'Near $location';
+    return 'Perto de $location';
   }
 
   @override
-  String get diveLog_edit_geofenceSuggestion_title => 'Equipment suggestion';
+  String get diveLog_edit_geofenceSuggestion_title => 'Sugestão de equipamento';
 
   @override
   String diveLog_edit_geofenceSuggestion_body(String setName) {
-    return 'Apply your \"$setName\" set?';
+    return 'Aplicar o conjunto \"$setName\"?';
   }
 
   @override
-  String get diveLog_edit_geofenceSuggestion_apply => 'Apply';
+  String get diveLog_edit_geofenceSuggestion_apply => 'Aplicar';
 
   @override
-  String get common_action_dismiss => 'Dismiss';
+  String get common_action_dismiss => 'Dispensar';
 
   @override
-  String get equipment_setEdit_defaultSwitch_title => 'Default set';
+  String get equipment_setEdit_defaultSwitch_title => 'Conjunto padrão';
 
   @override
   String get equipment_setEdit_defaultSwitch_subtitle =>
-      'Auto-applied to new dives that have no equipment yet';
+      'Aplicado automaticamente a novos mergulhos que ainda não têm equipamento';
 
   @override
-  String get equipment_setEdit_geofencesTitle => 'Geofences';
+  String get equipment_setEdit_geofencesTitle => 'Geocercas';
 
   @override
   String get equipment_setEdit_geofencesSubtitle =>
-      'Auto-suggest this set for dives near these locations';
+      'Sugerir automaticamente este conjunto para mergulhos perto destes locais';
 
   @override
-  String get equipment_setEdit_addGeofence => 'Add geofence';
+  String get equipment_setEdit_addGeofence => 'Adicionar geocerca';
 
   @override
   String equipment_setEdit_geofenceRadius(String distance) {
-    return 'Radius: $distance';
+    return 'Raio: $distance';
   }
 
   @override
-  String get equipment_geofenceEditor_title => 'Geofence';
+  String get equipment_geofenceEditor_title => 'Geocerca';
 
   @override
-  String get equipment_geofenceEditor_fromSite => 'From dive site';
+  String get equipment_geofenceEditor_fromSite => 'Do local de mergulho';
 
   @override
-  String get equipment_geofenceEditor_dropPin => 'Drop a pin';
+  String get equipment_geofenceEditor_dropPin => 'Colocar um alfinete';
 
   @override
-  String get equipment_geofenceEditor_labelLabel => 'Label';
+  String get equipment_geofenceEditor_labelLabel => 'Rótulo';
 
   @override
-  String get equipment_geofenceEditor_noCenter => 'Choose a center point';
+  String get equipment_geofenceEditor_noCenter => 'Escolha um ponto central';
 
   @override
-  String get equipment_geofenceEditor_save => 'Save geofence';
+  String get equipment_geofenceEditor_save => 'Salvar geocerca';
 
   @override
-  String get equipment_sets_defaultBadge => 'Default';
+  String get equipment_sets_defaultBadge => 'Padrão';
 
   @override
-  String get equipment_setDetail_setAsDefault => 'Set as default';
+  String get equipment_setDetail_setAsDefault => 'Definir como padrão';
 
   @override
   String equipment_setDetail_setAsDefaultSnackbar(String name) {
-    return '\"$name\" is now your default set';
+    return '\"$name\" agora é o seu conjunto padrão';
   }
 
   @override
-  String get equipment_setDetail_geofencesTitle => 'Geofences';
+  String get equipment_setDetail_geofencesTitle => 'Geocercas';
 
   @override
-  String get equipment_setDetail_noGeofences => 'No geofences';
+  String get equipment_setDetail_noGeofences => 'Sem geocercas';
 
   @override
   String get diveLog_bulkEdit_groupRebreather =>

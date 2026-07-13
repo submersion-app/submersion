@@ -10,79 +10,80 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String diveLog_edit_geofenceSuggestion_near(String location) {
-    return 'Near $location';
+    return 'Près de $location';
   }
 
   @override
-  String get diveLog_edit_geofenceSuggestion_title => 'Equipment suggestion';
+  String get diveLog_edit_geofenceSuggestion_title =>
+      'Suggestion d\'équipement';
 
   @override
   String diveLog_edit_geofenceSuggestion_body(String setName) {
-    return 'Apply your \"$setName\" set?';
+    return 'Appliquer l\'ensemble \"$setName\" ?';
   }
 
   @override
-  String get diveLog_edit_geofenceSuggestion_apply => 'Apply';
+  String get diveLog_edit_geofenceSuggestion_apply => 'Appliquer';
 
   @override
-  String get common_action_dismiss => 'Dismiss';
+  String get common_action_dismiss => 'Ignorer';
 
   @override
-  String get equipment_setEdit_defaultSwitch_title => 'Default set';
+  String get equipment_setEdit_defaultSwitch_title => 'Ensemble par défaut';
 
   @override
   String get equipment_setEdit_defaultSwitch_subtitle =>
-      'Auto-applied to new dives that have no equipment yet';
+      'Appliqué automatiquement aux nouvelles plongées sans équipement';
 
   @override
-  String get equipment_setEdit_geofencesTitle => 'Geofences';
+  String get equipment_setEdit_geofencesTitle => 'Géorepères';
 
   @override
   String get equipment_setEdit_geofencesSubtitle =>
-      'Auto-suggest this set for dives near these locations';
+      'Suggérer automatiquement cet ensemble pour les plongées près de ces lieux';
 
   @override
-  String get equipment_setEdit_addGeofence => 'Add geofence';
+  String get equipment_setEdit_addGeofence => 'Ajouter un géorepère';
 
   @override
   String equipment_setEdit_geofenceRadius(String distance) {
-    return 'Radius: $distance';
+    return 'Rayon : $distance';
   }
 
   @override
-  String get equipment_geofenceEditor_title => 'Geofence';
+  String get equipment_geofenceEditor_title => 'Géorepère';
 
   @override
-  String get equipment_geofenceEditor_fromSite => 'From dive site';
+  String get equipment_geofenceEditor_fromSite => 'Depuis le site de plongée';
 
   @override
-  String get equipment_geofenceEditor_dropPin => 'Drop a pin';
+  String get equipment_geofenceEditor_dropPin => 'Placer un repère';
 
   @override
-  String get equipment_geofenceEditor_labelLabel => 'Label';
+  String get equipment_geofenceEditor_labelLabel => 'Étiquette';
 
   @override
-  String get equipment_geofenceEditor_noCenter => 'Choose a center point';
+  String get equipment_geofenceEditor_noCenter => 'Choisir un point central';
 
   @override
-  String get equipment_geofenceEditor_save => 'Save geofence';
+  String get equipment_geofenceEditor_save => 'Enregistrer le géorepère';
 
   @override
-  String get equipment_sets_defaultBadge => 'Default';
+  String get equipment_sets_defaultBadge => 'Par défaut';
 
   @override
-  String get equipment_setDetail_setAsDefault => 'Set as default';
+  String get equipment_setDetail_setAsDefault => 'Définir par défaut';
 
   @override
   String equipment_setDetail_setAsDefaultSnackbar(String name) {
-    return '\"$name\" is now your default set';
+    return '\"$name\" est désormais votre ensemble par défaut';
   }
 
   @override
-  String get equipment_setDetail_geofencesTitle => 'Geofences';
+  String get equipment_setDetail_geofencesTitle => 'Géorepères';
 
   @override
-  String get equipment_setDetail_noGeofences => 'No geofences';
+  String get equipment_setDetail_noGeofences => 'Aucun géorepère';
 
   @override
   String get diveLog_bulkEdit_groupRebreather => 'Mode de plongée et recycleur';

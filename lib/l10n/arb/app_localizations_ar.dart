@@ -10,79 +10,79 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String diveLog_edit_geofenceSuggestion_near(String location) {
-    return 'Near $location';
+    return 'بالقرب من $location';
   }
 
   @override
-  String get diveLog_edit_geofenceSuggestion_title => 'Equipment suggestion';
+  String get diveLog_edit_geofenceSuggestion_title => 'اقتراح المعدات';
 
   @override
   String diveLog_edit_geofenceSuggestion_body(String setName) {
-    return 'Apply your \"$setName\" set?';
+    return 'تطبيق مجموعة \"$setName\"؟';
   }
 
   @override
-  String get diveLog_edit_geofenceSuggestion_apply => 'Apply';
+  String get diveLog_edit_geofenceSuggestion_apply => 'تطبيق';
 
   @override
-  String get common_action_dismiss => 'Dismiss';
+  String get common_action_dismiss => 'تجاهل';
 
   @override
-  String get equipment_setEdit_defaultSwitch_title => 'Default set';
+  String get equipment_setEdit_defaultSwitch_title => 'المجموعة الافتراضية';
 
   @override
   String get equipment_setEdit_defaultSwitch_subtitle =>
-      'Auto-applied to new dives that have no equipment yet';
+      'تُطبَّق تلقائيًا على الغطسات الجديدة التي لا تحتوي على معدات بعد';
 
   @override
-  String get equipment_setEdit_geofencesTitle => 'Geofences';
+  String get equipment_setEdit_geofencesTitle => 'الأسوار الجغرافية';
 
   @override
   String get equipment_setEdit_geofencesSubtitle =>
-      'Auto-suggest this set for dives near these locations';
+      'اقترح هذه المجموعة تلقائيًا للغطسات القريبة من هذه المواقع';
 
   @override
-  String get equipment_setEdit_addGeofence => 'Add geofence';
+  String get equipment_setEdit_addGeofence => 'إضافة سياج جغرافي';
 
   @override
   String equipment_setEdit_geofenceRadius(String distance) {
-    return 'Radius: $distance';
+    return 'نصف القطر: $distance';
   }
 
   @override
-  String get equipment_geofenceEditor_title => 'Geofence';
+  String get equipment_geofenceEditor_title => 'سياج جغرافي';
 
   @override
-  String get equipment_geofenceEditor_fromSite => 'From dive site';
+  String get equipment_geofenceEditor_fromSite => 'من موقع الغوص';
 
   @override
-  String get equipment_geofenceEditor_dropPin => 'Drop a pin';
+  String get equipment_geofenceEditor_dropPin => 'إسقاط دبوس';
 
   @override
-  String get equipment_geofenceEditor_labelLabel => 'Label';
+  String get equipment_geofenceEditor_labelLabel => 'التسمية';
 
   @override
-  String get equipment_geofenceEditor_noCenter => 'Choose a center point';
+  String get equipment_geofenceEditor_noCenter => 'اختر نقطة مركزية';
 
   @override
-  String get equipment_geofenceEditor_save => 'Save geofence';
+  String get equipment_geofenceEditor_save => 'حفظ السياج الجغرافي';
 
   @override
-  String get equipment_sets_defaultBadge => 'Default';
+  String get equipment_sets_defaultBadge => 'افتراضي';
 
   @override
-  String get equipment_setDetail_setAsDefault => 'Set as default';
+  String get equipment_setDetail_setAsDefault => 'تعيين كافتراضي';
 
   @override
   String equipment_setDetail_setAsDefaultSnackbar(String name) {
-    return '\"$name\" is now your default set';
+    return 'أصبحت \"$name\" الآن مجموعتك الافتراضية';
   }
 
   @override
-  String get equipment_setDetail_geofencesTitle => 'Geofences';
+  String get equipment_setDetail_geofencesTitle => 'الأسوار الجغرافية';
 
   @override
-  String get equipment_setDetail_noGeofences => 'No geofences';
+  String get equipment_setDetail_noGeofences => 'لا توجد أسوار جغرافية';
 
   @override
   String get diveLog_bulkEdit_groupRebreather => 'وضع الغوص وجهاز التنفس';
