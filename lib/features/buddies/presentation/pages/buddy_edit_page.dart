@@ -62,6 +62,12 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
   final _notesController = TextEditingController();
 
   List<Certification> _certifications = [];
+  // True only when the user added/edited/removed a cert on this screen. The
+  // commit is gated on this so saving unrelated edits (name/notes/roles) never
+  // calls replaceBuddyCertifications with a stale snapshot -- which would
+  // delete certs added concurrently (e.g. by sync) since _loadBuddy, and would
+  // clobber the merge-time cert union (issue #553 review).
+  bool _certificationsDirty = false;
   List<BuddyRoleCredential> _roles = [];
 
   /// True once [_loadMergeRoles] has seeded [_roles] with the post-merge
@@ -141,6 +147,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
           _roles = roles;
           _isLoading = false;
           _hasChanges = false;
+          _certificationsDirty = false;
         });
       }
     } catch (e) {
@@ -481,6 +488,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
                           _certifications = [..._certifications]
                             ..removeAt(index);
                           _hasChanges = true;
+                          _certificationsDirty = true;
                         }),
                       ),
                     ],
@@ -717,6 +725,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
                 }
                 _certifications = next;
                 _hasChanges = true;
+                _certificationsDirty = true;
               });
             },
             onSaved: (_) => Navigator.of(ctx).pop(),
@@ -804,10 +813,14 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
       await ref
           .read(buddyRepositoryProvider)
           .setRolesForBuddy(savedBuddy.id, _roles);
-      // issue #553: commit the staged certifications onto the saved buddy.
-      await ref
-          .read(certificationRepositoryProvider)
-          .replaceBuddyCertifications(savedBuddy.id, _certifications);
+      // issue #553: commit the staged certifications onto the saved buddy --
+      // only when the user actually changed them here, so an unrelated save
+      // doesn't clobber certs added concurrently (sync) or the merge-time union.
+      if (_certificationsDirty) {
+        await ref
+            .read(certificationRepositoryProvider)
+            .replaceBuddyCertifications(savedBuddy.id, _certifications);
+      }
 
       if (mounted) {
         if (widget.embedded) {

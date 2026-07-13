@@ -50,7 +50,11 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  Widget harness({String? buddyId, List<Buddy>? mergeBuddies}) {
+  Widget harness({
+    String? buddyId,
+    List<Buddy>? mergeBuddies,
+    void Function(String)? onSaved,
+  }) {
     return ProviderScope(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
@@ -65,6 +69,7 @@ void main() {
             buddyId: buddyId,
             mergeBuddies: mergeBuddies,
             embedded: true,
+            onSaved: onSaved,
           ),
         ),
       ),
@@ -100,6 +105,61 @@ void main() {
       find.byType(DropdownButtonFormField<CertificationAgency>),
       findsNothing,
     );
+  });
+
+  testWidgets('saving unrelated edits does not clobber certs added after the '
+      'form loaded (dirty-flag gate)', (tester) async {
+    final now = DateTime(2024);
+    final buddy = await buddyRepo.createBuddy(
+      Buddy(id: '', name: 'Sarah', createdAt: now, updatedAt: now),
+    );
+    await certRepo.createCertification(
+      Certification(
+        id: '',
+        buddyId: buddy.id,
+        name: 'Nitrox',
+        agency: CertificationAgency.padi,
+        level: CertificationLevel.nitrox,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+
+    String? savedId;
+    await tester.pumpWidget(
+      harness(buddyId: buddy.id, onSaved: (id) => savedId = id),
+    );
+    await tester.pumpAndSettle();
+
+    // Simulate a concurrent add (e.g. sync applying a cert) AFTER the edit form
+    // snapshotted the buddy's certs in _loadBuddy.
+    await certRepo.createCertification(
+      Certification(
+        id: '',
+        buddyId: buddy.id,
+        name: 'Deep',
+        agency: CertificationAgency.padi,
+        level: CertificationLevel.advancedOpenWater,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+
+    // Edit only the name (not the certs), then save.
+    await tester.enterText(find.byType(TextFormField).first, 'Sarah Updated');
+    await tester.tap(find.text('Save'));
+    // Bounded pump (not pumpAndSettle -- the SnackBar timer + list-notifier
+    // stream keep it busy) until onSaved reports completion.
+    for (var i = 0; i < 30 && savedId == null; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    expect(savedId, buddy.id);
+
+    // The cert commit is skipped (certs weren't touched here), so the
+    // concurrently-added cert survives instead of being tombstoned by the
+    // stale snapshot.
+    final certs = await certRepo.getCertificationsByBuddy(buddy.id);
+    expect(certs.map((c) => c.name), containsAll(['Nitrox', 'Deep']));
   });
 
   testWidgets('new buddy shows an empty Certifications section with an Add '

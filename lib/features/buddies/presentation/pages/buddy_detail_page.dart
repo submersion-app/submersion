@@ -481,7 +481,8 @@ class _BuddyDetailContent extends ConsumerWidget {
                 padding: EdgeInsets.symmetric(vertical: 8),
                 child: Center(child: CircularProgressIndicator()),
               ),
-              error: (error, _) => Text('$error'),
+              error: (error, _) =>
+                  Text('${context.l10n.common_label_error}: $error'),
               data: (certs) => certs.isEmpty
                   ? Text(
                       context.l10n.buddies_certifications_empty,
