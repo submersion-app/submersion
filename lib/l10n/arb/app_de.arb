@@ -77,7 +77,7 @@
   "settings_backupEncryption_passwordMismatch": "Passwörter stimmen nicht überein",
   "settings_backupEncryption_currentPassword": "Aktuelles Passwort",
   "settings_backupEncryption_newPassword": "Neues Passwort",
-  "settings_backupEncryption_changePasswordWarn": "Auf einem anderen Gerät benötigen vor dieser Änderung erstellte Backups weiterhin ihr ursprüngliches Passwort. Dein Wiederherstellungscode öffnet alle Backups.",
+  "settings_backupEncryption_changePasswordWarn": "Auf einem anderen Gerät lässt sich jedes Backup mit dem Passwort oder Wiederherstellungscode öffnen, das bei seiner Erstellung aktiv war.",
   "settings_backupEncryption_warnLoss": "Wenn Sie Ihr Passwort vergessen und den Wiederherstellungscode verlieren, können verschlüsselte Backups nicht wiederhergestellt werden.",
   "settings_backupEncryption_recoveryTitle": "Ihr Wiederherstellungscode",
   "settings_backupEncryption_recoveryExplain": "Bewahren Sie diesen Code an einem sicheren Ort auf. Er kann Ihre Backups entsperren, falls Sie Ihr Passwort vergessen.",

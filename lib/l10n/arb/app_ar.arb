@@ -77,7 +77,7 @@
   "settings_backupEncryption_passwordMismatch": "كلمتا المرور غير متطابقتين",
   "settings_backupEncryption_currentPassword": "كلمة المرور الحالية",
   "settings_backupEncryption_newPassword": "كلمة المرور الجديدة",
-  "settings_backupEncryption_changePasswordWarn": "على جهاز آخر، ستظل النسخ الاحتياطية التي أُنشئت قبل هذا التغيير بحاجة إلى كلمة المرور الأصلية. رمز الاسترداد يفتح جميع النسخ الاحتياطية.",
+  "settings_backupEncryption_changePasswordWarn": "على جهاز آخر، تُفتح كل نسخة احتياطية باستخدام كلمة المرور أو رمز الاسترداد الذي كان نشطًا عند إنشائها.",
   "settings_backupEncryption_warnLoss": "إذا نسيت كلمة المرور وفقدت رمز الاسترداد، فلن يمكن استعادة النسخ الاحتياطية المشفّرة.",
   "settings_backupEncryption_recoveryTitle": "رمز الاسترداد الخاص بك",
   "settings_backupEncryption_recoveryExplain": "احفظ هذا الرمز في مكان آمن. يمكنه فتح نسخك الاحتياطية إذا نسيت كلمة مرورك.",

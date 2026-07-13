@@ -77,7 +77,7 @@
   "settings_backupEncryption_passwordMismatch": "As senhas não coincidem",
   "settings_backupEncryption_currentPassword": "Senha atual",
   "settings_backupEncryption_newPassword": "Nova senha",
-  "settings_backupEncryption_changePasswordWarn": "Em outro dispositivo, os backups criados antes desta alteração ainda precisam da senha original. Seu código de recuperação abre todos os backups.",
+  "settings_backupEncryption_changePasswordWarn": "Em outro dispositivo, cada backup é aberto com a senha ou o código de recuperação que estava ativo quando foi criado.",
   "settings_backupEncryption_warnLoss": "Se você esquecer a senha e perder o código de recuperação, os backups criptografados não poderão ser recuperados.",
   "settings_backupEncryption_recoveryTitle": "Seu código de recuperação",
   "settings_backupEncryption_recoveryExplain": "Guarde este código em local seguro. Ele pode desbloquear seus backups se você esquecer a senha.",

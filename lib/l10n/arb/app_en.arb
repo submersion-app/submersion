@@ -90,7 +90,7 @@
   "settings_backupEncryption_passwordMismatch": "Passwords do not match",
   "settings_backupEncryption_currentPassword": "Current password",
   "settings_backupEncryption_newPassword": "New password",
-  "settings_backupEncryption_changePasswordWarn": "On another device, backups made before this change still need their original password. Your recovery code opens all backups.",
+  "settings_backupEncryption_changePasswordWarn": "On another device, each backup opens with the password or recovery code that was active when it was created.",
   "settings_backupEncryption_warnLoss": "If you forget your password and lose the recovery code, encrypted backups cannot be recovered.",
   "settings_backupEncryption_recoveryTitle": "Your recovery code",
   "settings_backupEncryption_recoveryExplain": "Save this code somewhere safe. It can unlock your backups if you forget your password.",

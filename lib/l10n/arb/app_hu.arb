@@ -77,7 +77,7 @@
   "settings_backupEncryption_passwordMismatch": "A jelszavak nem egyeznek",
   "settings_backupEncryption_currentPassword": "Jelenlegi jelszó",
   "settings_backupEncryption_newPassword": "Új jelszó",
-  "settings_backupEncryption_changePasswordWarn": "Másik eszközön a változtatás előtt készült biztonsági mentésekhez továbbra is az eredeti jelszavuk kell. A helyreállítási kód minden mentést megnyit.",
+  "settings_backupEncryption_changePasswordWarn": "Másik eszközön minden biztonsági mentés azzal a jelszóval vagy helyreállítási kóddal nyílik meg, amely a létrehozásakor aktív volt.",
   "settings_backupEncryption_warnLoss": "Ha elfelejti a jelszavát és elveszíti a helyreállítási kódot, a titkosított biztonsági mentések nem állíthatók helyre.",
   "settings_backupEncryption_recoveryTitle": "A helyreállítási kódja",
   "settings_backupEncryption_recoveryExplain": "Mentse el ezt a kódot biztonságos helyre. Feloldhatja vele a biztonsági mentéseit, ha elfelejti a jelszavát.",

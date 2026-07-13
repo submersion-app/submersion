@@ -77,7 +77,7 @@
   "settings_backupEncryption_passwordMismatch": "Las contraseñas no coinciden",
   "settings_backupEncryption_currentPassword": "Contraseña actual",
   "settings_backupEncryption_newPassword": "Nueva contraseña",
-  "settings_backupEncryption_changePasswordWarn": "En otro dispositivo, las copias de seguridad creadas antes de este cambio seguirán necesitando su contraseña original. Tu código de recuperación abre todas las copias de seguridad.",
+  "settings_backupEncryption_changePasswordWarn": "En otro dispositivo, cada copia de seguridad se abre con la contraseña o el código de recuperación que estaba activo cuando se creó.",
   "settings_backupEncryption_warnLoss": "Si olvidas tu contraseña y pierdes el código de recuperación, las copias de seguridad cifradas no se podrán recuperar.",
   "settings_backupEncryption_recoveryTitle": "Tu código de recuperación",
   "settings_backupEncryption_recoveryExplain": "Guarda este código en un lugar seguro. Puede desbloquear tus copias de seguridad si olvidas tu contraseña.",

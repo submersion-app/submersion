@@ -278,7 +278,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_backupEncryption_changePasswordWarn =>
-      'במכשיר אחר, גיבויים שנוצרו לפני השינוי הזה עדיין דורשים את הסיסמה המקורית שלהם. קוד השחזור שלך פותח את כל הגיבויים.';
+      'במכשיר אחר, כל גיבוי נפתח באמצעות הסיסמה או קוד השחזור שהיו פעילים בעת יצירתו.';
 
   @override
   String get settings_backupEncryption_warnLoss =>

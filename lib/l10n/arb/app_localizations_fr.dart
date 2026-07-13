@@ -289,7 +289,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_backupEncryption_changePasswordWarn =>
-      'Sur un autre appareil, les sauvegardes créées avant cette modification nécessitent toujours leur mot de passe d\'origine. Votre code de récupération ouvre toutes les sauvegardes.';
+      'Sur un autre appareil, chaque sauvegarde s\'ouvre avec le mot de passe ou le code de récupération actif au moment de sa création.';
 
   @override
   String get settings_backupEncryption_warnLoss =>

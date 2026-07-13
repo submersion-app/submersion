@@ -392,10 +392,14 @@ class BackupService {
     for (final record in _preferences.getHistory()) {
       final localPath = record.localPath;
       if (localPath == null || isSafRef(localPath)) {
+        // SAF (content://) and path-less records cannot be re-encrypted in
+        // place here, so they stay plaintext. Count them as FAILURES (not
+        // silent skips) so the migration summary discloses the remaining
+        // exposure to the user instead of implying everything is protected.
         _log.info(
-          'Re-encrypt skip (no local filesystem path): ${record.filename}',
+          'Re-encrypt unsupported for non-filesystem backup: ${record.filename}',
         );
-        skipped++;
+        failed++;
         continue;
       }
       try {

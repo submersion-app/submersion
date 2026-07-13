@@ -77,7 +77,7 @@
   "settings_backupEncryption_passwordMismatch": "Les mots de passe ne correspondent pas",
   "settings_backupEncryption_currentPassword": "Mot de passe actuel",
   "settings_backupEncryption_newPassword": "Nouveau mot de passe",
-  "settings_backupEncryption_changePasswordWarn": "Sur un autre appareil, les sauvegardes créées avant cette modification nécessitent toujours leur mot de passe d'origine. Votre code de récupération ouvre toutes les sauvegardes.",
+  "settings_backupEncryption_changePasswordWarn": "Sur un autre appareil, chaque sauvegarde s'ouvre avec le mot de passe ou le code de récupération actif au moment de sa création.",
   "settings_backupEncryption_warnLoss": "Si vous oubliez votre mot de passe et perdez le code de récupération, les sauvegardes chiffrées ne pourront pas être récupérées.",
   "settings_backupEncryption_recoveryTitle": "Votre code de récupération",
   "settings_backupEncryption_recoveryExplain": "Conservez ce code en lieu sûr. Il peut déverrouiller vos sauvegardes si vous oubliez votre mot de passe.",

@@ -287,7 +287,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_backupEncryption_changePasswordWarn =>
-      'Másik eszközön a változtatás előtt készült biztonsági mentésekhez továbbra is az eredeti jelszavuk kell. A helyreállítási kód minden mentést megnyit.';
+      'Másik eszközön minden biztonsági mentés azzal a jelszóval vagy helyreállítási kóddal nyílik meg, amely a létrehozásakor aktív volt.';
 
   @override
   String get settings_backupEncryption_warnLoss =>

@@ -77,7 +77,7 @@
   "settings_backupEncryption_passwordMismatch": "הסיסמאות אינן תואמות",
   "settings_backupEncryption_currentPassword": "סיסמה נוכחית",
   "settings_backupEncryption_newPassword": "סיסמה חדשה",
-  "settings_backupEncryption_changePasswordWarn": "במכשיר אחר, גיבויים שנוצרו לפני השינוי הזה עדיין דורשים את הסיסמה המקורית שלהם. קוד השחזור שלך פותח את כל הגיבויים.",
+  "settings_backupEncryption_changePasswordWarn": "במכשיר אחר, כל גיבוי נפתח באמצעות הסיסמה או קוד השחזור שהיו פעילים בעת יצירתו.",
   "settings_backupEncryption_warnLoss": "אם תשכח את הסיסמה שלך ותאבד את קוד השחזור, לא ניתן יהיה לשחזר גיבויים מוצפנים.",
   "settings_backupEncryption_recoveryTitle": "קוד השחזור שלך",
   "settings_backupEncryption_recoveryExplain": "שמור קוד זה במקום בטוח. הוא יכול לבטל את נעילת הגיבויים שלך אם תשכח את הסיסמה.",

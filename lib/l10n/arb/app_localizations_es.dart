@@ -288,7 +288,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_backupEncryption_changePasswordWarn =>
-      'En otro dispositivo, las copias de seguridad creadas antes de este cambio seguirán necesitando su contraseña original. Tu código de recuperación abre todas las copias de seguridad.';
+      'En otro dispositivo, cada copia de seguridad se abre con la contraseña o el código de recuperación que estaba activo cuando se creó.';
 
   @override
   String get settings_backupEncryption_warnLoss =>

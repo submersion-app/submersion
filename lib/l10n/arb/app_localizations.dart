@@ -581,7 +581,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_backupEncryption_changePasswordWarn.
   ///
   /// In en, this message translates to:
-  /// **'On another device, backups made before this change still need their original password. Your recovery code opens all backups.'**
+  /// **'On another device, each backup opens with the password or recovery code that was active when it was created.'**
   String get settings_backupEncryption_changePasswordWarn;
 
   /// No description provided for @settings_backupEncryption_warnLoss.

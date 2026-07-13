@@ -245,13 +245,13 @@ retains the key for old artifacts.)
 
 ## UI surface
 
-In `backup_settings_page.dart`, a new **Backup encryption** section mirroring #520's
-`EncryptionSettingsSection`, with three states:
+In `backup_settings_page.dart`, a new **Backup encryption** section. Unlike #520's
+`EncryptionSettingsSection` it has **only two states** — the MLK lives unwrapped in
+secure storage (local-only), so there is never a "locked" state to unlock:
 
 - **Off** → *Enable* (two-phase dialog: password + confirm → recovery-code reveal
   behind "I've saved it" gate) → post-enable cleanup dialog.
-- **On / unlocked** → *Change password*, *Regenerate recovery code*, *Turn off*.
-- **On / locked** (key present but session not loaded) → *Unlock*.
+- **On** → *Change password*, *Regenerate recovery code*, *Turn off*.
 
 Reuses `showEncryptionPassphraseDialog` and the recovery-confirm gate. Export bottom
 sheet: default filename `submersion_backup_YYYY-MM-DD.sbe` when enabled; FilePicker
@@ -280,7 +280,7 @@ Added to EN and all 10 non-en locales, then regenerated (whole-locale rule).
   history records updated (filename/size), cloud old-object deletion.
 - **Restore precedence:** silent via backup key; falls through to prompt when key
   absent; recovery code accepted at the prompt.
-- **Widget:** section three states, enable + recovery gate, post-enable dialog,
+- **Widget:** section two states (Off / On), enable + recovery gate, post-enable dialog,
   restore prompt. Reuse #520 widget-test gotchas: mock `PackageInfo`, override
   `syncRepositoryProvider` + SharedPreferences, and fake the service to avoid running
   64 MiB Argon2id through the UI (the real service is covered by service +
@@ -297,10 +297,10 @@ Added to EN and all 10 non-en locales, then regenerated (whole-locale rule).
 - **Forgotten password + lost recovery code:** unrecoverable by design; surfaced
   with a stern warning at enable and at the recovery-code gate.
 - **Re-encrypt interrupted:** safe; idempotent re-run resumes.
-- **Background auto-backup while locked:** if the flag is on but the session key is
-  not loaded (e.g. right after launch), the notifier awaits `ensureLoaded()`; the
-  key store holds the MLK unwrapped-at-rest in secure storage (no password needed at
-  backup time), so background backups encrypt without a prompt.
+- **Background auto-backup:** the key store holds the MLK unwrapped-at-rest in secure
+  storage (no password needed at backup time), so background/scheduled backups encrypt
+  without a prompt. There is no "locked" state to wait on — the mobile scheduled path
+  injects `BackupEncryptionKeyStore()` so it can read the key directly.
 
 ## Out of scope / future
 

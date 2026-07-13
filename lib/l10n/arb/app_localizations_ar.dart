@@ -283,7 +283,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_backupEncryption_changePasswordWarn =>
-      'على جهاز آخر، ستظل النسخ الاحتياطية التي أُنشئت قبل هذا التغيير بحاجة إلى كلمة المرور الأصلية. رمز الاسترداد يفتح جميع النسخ الاحتياطية.';
+      'على جهاز آخر، تُفتح كل نسخة احتياطية باستخدام كلمة المرور أو رمز الاسترداد الذي كان نشطًا عند إنشائها.';
 
   @override
   String get settings_backupEncryption_warnLoss =>

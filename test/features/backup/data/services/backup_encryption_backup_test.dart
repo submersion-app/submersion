@@ -234,7 +234,7 @@ void main() {
   );
 
   test(
-    'reencrypt: skips records with no usable local filesystem path',
+    'reencrypt: non-filesystem records fail (disclosed); missing file skips',
     () async {
       await enableBackupEncryption();
       BackupRecord seed(String id, String? localPath) => BackupRecord(
@@ -255,8 +255,10 @@ void main() {
 
       final result = await buildService().reencryptExistingBackups();
       expect(result.reencrypted, 0);
-      expect(result.skipped, 3);
-      expect(result.failed, 0);
+      // null path + SAF ref can't be re-encrypted in place -> failures
+      // (surfaced to the user); a genuinely missing file is a harmless skip.
+      expect(result.failed, 2);
+      expect(result.skipped, 1);
     },
   );
 

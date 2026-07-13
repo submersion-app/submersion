@@ -76,7 +76,7 @@
   "settings_backupEncryption_passwordMismatch": "两次输入的密码不一致",
   "settings_backupEncryption_currentPassword": "当前密码",
   "settings_backupEncryption_newPassword": "新密码",
-  "settings_backupEncryption_changePasswordWarn": "在其他设备上，此次更改之前创建的备份仍需使用其原始密码。你的恢复代码可以打开所有备份。",
+  "settings_backupEncryption_changePasswordWarn": "在其他设备上，每个备份都使用其创建时处于活动状态的密码或恢复代码打开。",
   "settings_backupEncryption_warnLoss": "如果您忘记密码并丢失恢复代码，加密备份将无法恢复。",
   "settings_backupEncryption_recoveryTitle": "您的恢复代码",
   "settings_backupEncryption_recoveryExplain": "请将此代码保存在安全的地方。如果您忘记密码，它可以解锁您的备份。",

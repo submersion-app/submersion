@@ -77,7 +77,7 @@
   "settings_backupEncryption_passwordMismatch": "Wachtwoorden komen niet overeen",
   "settings_backupEncryption_currentPassword": "Huidig wachtwoord",
   "settings_backupEncryption_newPassword": "Nieuw wachtwoord",
-  "settings_backupEncryption_changePasswordWarn": "Op een ander apparaat hebben back-ups die vóór deze wijziging zijn gemaakt nog steeds hun oorspronkelijke wachtwoord nodig. Je herstelcode opent alle back-ups.",
+  "settings_backupEncryption_changePasswordWarn": "Op een ander apparaat wordt elke back-up geopend met het wachtwoord of de herstelcode die actief was toen deze werd gemaakt.",
   "settings_backupEncryption_warnLoss": "Als u uw wachtwoord vergeet en de herstelcode verliest, kunnen versleutelde back-ups niet worden hersteld.",
   "settings_backupEncryption_recoveryTitle": "Uw herstelcode",
   "settings_backupEncryption_recoveryExplain": "Bewaar deze code op een veilige plek. Hij kan uw back-ups ontgrendelen als u uw wachtwoord vergeet.",
