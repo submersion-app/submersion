@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/trips/domain/entities/liveaboard_details.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story.dart';
@@ -21,6 +22,17 @@ import '../../../../../helpers/mock_providers.dart';
 DateTime _dayOnly(DateTime dt) => DateTime(dt.year, dt.month, dt.day);
 
 Dive _dive(String id, DateTime dt) => Dive(id: id, dateTime: dt);
+
+Dive _diveAt(String id, DateTime dt, double lat, double lng) => Dive(
+  id: id,
+  dateTime: dt,
+  maxDepth: 20,
+  site: DiveSite(
+    id: 'site-$id',
+    name: 'Site $id',
+    location: GeoPoint(lat, lng),
+  ),
+);
 
 Trip _trip({
   required DateTime start,
@@ -116,12 +128,15 @@ void main() {
   });
 
   testWidgets('in-progress trip shows a Today divider', (tester) async {
-    final today = _dayOnly(DateTime.now());
+    // Capture now once so the trip range and the injected story `today` can't
+    // straddle a midnight boundary and shift todayIndex.
+    final now = DateTime.now();
+    final today = _dayOnly(now);
     final trip = _trip(
       start: today.subtract(const Duration(days: 1)),
       end: today.add(const Duration(days: 2)),
     );
-    final story = _story(trip, today: DateTime.now());
+    final story = _story(trip, today: now);
     await pumpView(tester, story);
 
     expect(find.text('Today'), findsOneWidget);
@@ -163,5 +178,41 @@ void main() {
     await pumpView(tester, story, viewSize: const Size(1400, 900));
 
     expect(find.byKey(const Key('trip-story-wide-layout')), findsOneWidget);
+  });
+
+  testWidgets('scrolling resolves the active day and animates the map', (
+    tester,
+  ) async {
+    final trip = _trip(
+      start: DateTime(2026, 3, 25),
+      end: DateTime(2026, 3, 27),
+    );
+    final story = buildTripStory(
+      trip: trip,
+      dives: [
+        _diveAt('a', DateTime(2026, 3, 25, 9), 12.1, -68.2),
+        _diveAt('b', DateTime(2026, 3, 26, 9), 12.2, -68.3),
+        _diveAt('c', DateTime(2026, 3, 27, 9), 12.3, -68.4),
+      ],
+      itineraryDays: [],
+      mediaByDiveId: {},
+      sightingsByDiveId: {},
+      checklistItems: [],
+      today: DateTime(2026, 6, 1),
+    );
+    // A short viewport so day chapters scroll through the resolution threshold.
+    await pumpView(tester, story, viewSize: const Size(500, 900));
+
+    final scrollable = find.byType(Scrollable).first;
+    // Drag up in steps, advancing past the 100ms scroll throttle each time so
+    // the listener resolves a later active day and eases the map camera.
+    for (var i = 0; i < 3; i++) {
+      await tester.drag(scrollable, const Offset(0, -400));
+      await tester.pump(const Duration(milliseconds: 150));
+    }
+    await tester.pump(const Duration(milliseconds: 500));
+
+    // The story is still intact after the scroll-linked updates.
+    expect(find.byType(TripStoryDayCard), findsWidgets);
   });
 }

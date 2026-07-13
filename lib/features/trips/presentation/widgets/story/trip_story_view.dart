@@ -64,6 +64,7 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
   @override
   void dispose() {
     _cameraAnimator.dispose();
+    _mapController.dispose();
     super.dispose();
   }
 

@@ -82,5 +82,64 @@ void main() {
       expect(geometry.pointsForDay(1).single.label, 'B');
       expect(geometry.pointsForDay(9), isEmpty);
     });
+
+    test('empty geometry has no points', () {
+      const geometry = TripStoryMapGeometry(points: []);
+      expect(geometry.hasPoints, isFalse);
+    });
+  });
+
+  group('value equality', () {
+    test('TripStoryDay compares by value', () {
+      final a = TripStoryDay(
+        date: date,
+        dayNumber: 1,
+        kind: TripStoryDayKind.past,
+      );
+      final b = TripStoryDay(
+        date: date,
+        dayNumber: 1,
+        kind: TripStoryDayKind.past,
+      );
+      final c = TripStoryDay(
+        date: date,
+        dayNumber: 2,
+        kind: TripStoryDayKind.past,
+      );
+      expect(a, equals(b));
+      expect(a, isNot(equals(c)));
+    });
+
+    test('TripStoryMapPoint compares by value', () {
+      // Non-const so equality falls through to props (const instances are
+      // canonicalized and short-circuit via identical()).
+      final lat = 1.0 + DateTime(2026).day - 1; // runtime value = 1.0
+      final a = TripStoryMapPoint(
+        latitude: lat,
+        longitude: 2,
+        dayIndex: 0,
+        label: 'A',
+      );
+      final b = TripStoryMapPoint(
+        latitude: lat,
+        longitude: 2,
+        dayIndex: 0,
+        label: 'A',
+      );
+      expect(a, equals(b));
+      expect(a.hashCode, b.hashCode);
+    });
+
+    test('TripStoryMapGeometry compares by value', () {
+      TripStoryMapPoint pt() => TripStoryMapPoint(
+        latitude: 1.0 + DateTime(2026).day - 1,
+        longitude: 2,
+        dayIndex: 0,
+        label: 'A',
+      );
+      final a = TripStoryMapGeometry(points: [pt()]);
+      final b = TripStoryMapGeometry(points: [pt()]);
+      expect(a, equals(b));
+    });
   });
 }

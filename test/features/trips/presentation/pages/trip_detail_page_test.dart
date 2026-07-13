@@ -9,6 +9,8 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/media/domain/entities/connector_account.dart';
+import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/services/trip_story_builder.dart';
@@ -131,6 +133,104 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
       expect(find.byType(TripStoryDayCard), findsWidgets);
+    });
+
+    // Exercises the overflow-menu scan actions and the Lightroom item, which
+    // only shows when a Lightroom account is connected.
+    testWidgets('overflow menu runs scan actions', (tester) async {
+      _setMobileTestSurfaceSize(tester);
+      final story = buildTripStory(
+        trip: testTrip,
+        dives: [],
+        itineraryDays: [],
+        mediaByDiveId: {},
+        sightingsByDiveId: {},
+        checklistItems: [],
+        today: DateTime(2026, 6, 1),
+      );
+      final account = ConnectorAccount(
+        id: 'acc-1',
+        connectorType: 'lightroom',
+        displayName: 'Adobe',
+        credentialsRef: 'ref',
+        addedAt: DateTime(2026, 1, 1),
+      );
+
+      Future<void> pumpPage() async {
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              tripWithStatsProvider(
+                testTrip.id,
+              ).overrideWith((ref) => Future.value(testTripWithStats)),
+              diveIdsForTripProvider(
+                testTrip.id,
+              ).overrideWith((ref) async => <String>[]),
+              tripStoryProvider(testTrip.id).overrideWith((ref) async => story),
+              divesForTripProvider(
+                testTrip.id,
+              ).overrideWith((ref) async => <Dive>[]),
+              // Sync return so the AsyncValue resolves to data immediately and
+              // the conditional Lightroom menu item renders when the menu opens.
+              lightroomAccountProvider.overrideWith((ref) => account),
+              tripListNotifierProvider.overrideWith(
+                (ref) => _MockTripListNotifier([]),
+              ),
+              settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+            ],
+            child: MaterialApp(
+              locale: const Locale('en'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: TripDetailPage(tripId: testTrip.id),
+            ),
+          ),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(seconds: 1));
+      }
+
+      Future<void> openMenu() async {
+        await tester.tap(find.byType(PopupMenuButton<String>).first);
+        await tester.pumpAndSettle();
+      }
+
+      await pumpPage();
+
+      // Lightroom account connected, so all three scan menu items are present.
+      // ('Find matching dives' also appears as the empty-state button, so scope
+      // menu assertions/taps to PopupMenuItem.)
+      await openMenu();
+      expect(
+        find.widgetWithText(PopupMenuItem<String>, 'Find matching dives'),
+        findsOneWidget,
+      );
+      expect(
+        find.widgetWithText(PopupMenuItem<String>, 'Scan device gallery'),
+        findsOneWidget,
+      );
+      expect(
+        find.widgetWithText(PopupMenuItem<String>, 'Scan Lightroom'),
+        findsOneWidget,
+      );
+
+      // scan-lightroom with no dives shows the "add dives first" snackbar.
+      await tester.tap(find.text('Scan Lightroom'));
+      await tester.pumpAndSettle();
+      expect(find.text('Add dives first to link photos'), findsOneWidget);
+
+      // scan-photos with no dives shows the same guidance.
+      await openMenu();
+      await tester.tap(find.text('Scan device gallery'));
+      await tester.pumpAndSettle();
+      expect(find.text('Add dives first to link photos'), findsWidgets);
+
+      // scan-dives with no diverId short-circuits without error.
+      await openMenu();
+      await tester.tap(
+        find.widgetWithText(PopupMenuItem<String>, 'Find matching dives'),
+      );
+      await tester.pumpAndSettle();
     });
 
     testWidgets('should display edit icon button', (tester) async {
