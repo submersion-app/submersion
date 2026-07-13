@@ -81,10 +81,12 @@ class TissueHoverTooltip extends StatelessWidget {
               children: [
                 Container(width: 10, height: 10, color: swatch),
                 const SizedBox(width: 6),
-                Text(
-                  '${l10n.dive3d_tissue_tooltipSaturation(percent.round())}'
-                  '  —  ${_stateLabel(context, state)}',
-                  style: text,
+                Flexible(
+                  child: Text(
+                    '${l10n.dive3d_tissue_tooltipSaturation(percent.round())}'
+                    '  —  ${_stateLabel(context, state)}',
+                    style: text,
+                  ),
                 ),
               ],
             ),

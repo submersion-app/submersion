@@ -6,14 +6,20 @@ import 'package:submersion/features/dive_3d/application/providers.dart';
 import 'package:submersion/features/dive_3d/application/tissue_providers.dart';
 import 'package:submersion/features/dive_3d/domain/compare/comparison_profile.dart';
 import 'package:submersion/features/dive_3d/domain/entities/dive_3d_scene_data.dart';
+import 'package:submersion/features/dive_3d/domain/geometry/axis_frame.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/marker_layout.dart';
 import 'package:submersion/features/dive_3d/domain/metric_palette.dart';
 import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
+import 'package:submersion/features/dive_3d/domain/tissue/subsurface_tissue_builder.dart';
+import 'package:submersion/features/dive_3d/domain/tissue/tissue_surface_grid.dart';
+import 'package:submersion/features/dive_3d/domain/tissue/tissue_surface_picker.dart';
+import 'package:submersion/features/dive_3d/presentation/renderer/tissue_chrome_painters.dart';
 import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/compare_profile_3d_view.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/dive_3d_interactive_viewport.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/scene_readout_panel.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/time_scrub_bar.dart';
+import 'package:submersion/features/dive_3d/presentation/widgets/tissue_hover_tooltip.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/tissue_legend.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/tissue_readout_panel.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -45,6 +51,7 @@ class Dive3dPage extends ConsumerStatefulWidget {
 class _Dive3dPageState extends ConsumerState<Dive3dPage>
     with SingleTickerProviderStateMixin {
   final ValueNotifier<double> _position = ValueNotifier(0);
+  final ValueNotifier<TissuePick?> _hoverPick = ValueNotifier(null);
   late final AnimationController _player;
   late SceneKind _sceneKind;
   SceneMetric _metric = SceneMetric.depth;
@@ -64,6 +71,7 @@ class _Dive3dPageState extends ConsumerState<Dive3dPage>
   void dispose() {
     _player.dispose();
     _position.dispose();
+    _hoverPick.dispose();
     super.dispose();
   }
 
@@ -107,18 +115,88 @@ class _Dive3dPageState extends ConsumerState<Dive3dPage>
   }
 
   Widget _buildTissueBody() {
-    final scene = ref.watch(tissue3dSceneProvider(widget.diveId)).value;
+    final surface = ref.watch(tissueSurfaceProvider(widget.diveId)).value;
     final statuses = ref.watch(tissueDecoStatusesProvider(widget.diveId)).value;
-    if (scene == null || statuses == null || statuses.isEmpty) {
+    if (surface == null || statuses == null || statuses.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
+    final runtime = ref
+        .watch(tissueRuntimeSecondsProvider(widget.diveId))
+        .value;
     final colorFn = colorFnForScheme(ref.watch(tissueColorSchemeProvider));
+    final frame = AxisFrame.build(
+      surface.scene.bounds,
+      referenceY: SubsurfaceTissueBuilder.referenceHeight,
+      compartments: surface.grid.compartments == 0
+          ? 16
+          : surface.grid.compartments,
+    );
     return _sceneScaffold(
-      scene: scene,
+      scene: surface.scene,
       readout: TissueReadoutPanel(statuses: statuses, position: _position),
       controls: _buildTissueControls(),
       onMarkerTap: null,
       cornerOverlay: TissueLegend(colorFn: colorFn),
+      surfaceGrid: surface.grid,
+      axisFrame: frame,
+      tooltip: ValueListenableBuilder<TissuePick?>(
+        valueListenable: _hoverPick,
+        builder: (context, pick, _) {
+          if (pick == null) return const SizedBox.shrink();
+          return _positionedTooltip(pick, surface.grid, runtime, colorFn);
+        },
+      ),
+    );
+  }
+
+  /// Theme-resolved colors for the tissue chrome. Axis colors avoid red so the
+  /// red M-value plane stays unambiguous; grid/wireframe/marker follow the
+  /// theme so they read in light and dark.
+  TissueChromeStyle _chromeStyle(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return TissueChromeStyle(
+      axisX: const Color(0xFFFFB300), // time (amber)
+      axisY: const Color(0xFF66BB6A), // saturation % (green)
+      axisZ: const Color(0xFF42A5F5), // compartment (blue)
+      grid: scheme.outline.withValues(alpha: 0.18),
+      wireframe: scheme.onSurface.withValues(alpha: 0.16),
+      marker: scheme.onSurface,
+      markerOutline: scheme.surface,
+    );
+  }
+
+  /// Places the tooltip near the pick, clamped inside the viewport.
+  Widget _positionedTooltip(
+    TissuePick pick,
+    TissueSurfaceGrid grid,
+    int? runtimeSeconds,
+    TissueColorFn colorFn,
+  ) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const w = 220.0;
+        // Guard the upper bound: on a pane narrower/shorter than the tooltip,
+        // maxWidth - w would go negative and clamp(0, negative) throws.
+        final maxLeft = (constraints.maxWidth - w).clamp(0.0, double.infinity);
+        final maxTop = (constraints.maxHeight - 60).clamp(0.0, double.infinity);
+        final left = (pick.screenPos.dx + 14).clamp(0.0, maxLeft);
+        final top = (pick.screenPos.dy + 14).clamp(0.0, maxTop);
+        return Stack(
+          children: [
+            Positioned(
+              left: left,
+              top: top,
+              width: w,
+              child: TissueHoverTooltip(
+                pick: pick,
+                grid: grid,
+                runtimeSeconds: runtimeSeconds,
+                colorFn: colorFn,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -136,6 +214,9 @@ class _Dive3dPageState extends ConsumerState<Dive3dPage>
     required Widget controls,
     required void Function(SceneMarker)? onMarkerTap,
     Widget? cornerOverlay,
+    TissueSurfaceGrid? surfaceGrid,
+    AxisFrame? axisFrame,
+    Widget? tooltip,
   }) {
     return Column(
       children: [
@@ -148,8 +229,14 @@ class _Dive3dPageState extends ConsumerState<Dive3dPage>
                   scrubPosition: _position,
                   visibleOverlays: _overlays,
                   onMarkerTap: onMarkerTap,
+                  surfaceGrid: surfaceGrid,
+                  axisFrame: axisFrame,
+                  chromeStyle: axisFrame == null ? null : _chromeStyle(context),
+                  hoverPick: axisFrame == null ? null : _hoverPick,
                 ),
               ),
+              if (tooltip != null)
+                Positioned.fill(child: IgnorePointer(child: tooltip)),
               if (cornerOverlay != null)
                 Positioned(top: 56, left: 8, child: cornerOverlay),
               Positioned(left: 12, right: 12, bottom: 12, child: readout),
