@@ -4,6 +4,36 @@
 **Issue:** #166 (Daily breakdown view for non-liveaboard trips)
 **Branch:** feature/trip-story
 
+## Implementation deviations (recorded 2026-07-13, post-build)
+
+Notes discovered while implementing; the design above stands, these refine it:
+
+- **DST day-span math:** `buildTripStory` counts days with
+  `(inHours / 24).round() + 1`, not integer division, because a spring-forward
+  boundary inside the range makes the hour delta 71 not 72 (mirrors
+  `ItineraryDay.generateForTrip`). Caught by TDD on a March-8 fixture.
+- **DST rhythm placement:** the day-rhythm bar positions dives by wall-clock
+  `hour/minute/second`, not `difference()` from midnight, which measures
+  elapsed physical time and shifts an hour across DST. Dive times are
+  wall-clock-as-UTC here, so the components are the truth.
+- **Sparkline source:** no `diveProfileSparklineProvider`; `divesForTripProvider`
+  already hydrates `dive.profile`, so `DiveSparkline` downsamples it directly.
+- **Checklist placement:** planned/in-progress trips show the checklist in the
+  hero; past non-liveaboard trips show it as a collapsed progress tile
+  (`"N of M done"`) at the story's end (liveaboards keep their dedicated tab).
+- **Test-surface gotchas:** lazy `SliverList` only builds on-screen day cards,
+  so story-view widget tests use a tall (2600px) viewport; a null
+  `liveaboardDetails` renders the vessel section as a zero-size `shrink` that
+  `find.byType` skips by default, so that test supplies real details.
+- **OSM tile user-agent test (#132):** the retired `TripVoyageMap` and old
+  overview-map groups were consolidated into one group covering the new story
+  map header's tile user agent.
+- **Detail-page tests:** 13 page-level tests asserting the old overview body
+  (Statistics/Dives/Notes section titles, empty-dives message) were removed;
+  that content moved to the story and is covered by `trip_overview_tab_test.dart`
+  and the story widget tests. A single page-level test verifies the page wires
+  the story in.
+
 ## Summary
 
 Rebuild the trip detail Overview tab as an interactive, scroll-driven "trip
