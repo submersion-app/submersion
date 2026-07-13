@@ -420,8 +420,15 @@ class NetworkFetchPipeline {
       } catch (_) {
         // True restore: the pre-attach updatedAt comes back too, so the
         // row is byte-for-byte what the fill wrote (no unsynced edit).
-        await (_db.update(_db.media)
-              ..where((t) => t.id.equals(id) & t.diveId.equals(match.diveId!)))
+        // The updatedAt == nowMillis guard pins the rollback to the exact
+        // write made above: a newer edit (even one attaching the same
+        // dive) carries a different stamp and is left untouched.
+        await (_db.update(_db.media)..where(
+              (t) =>
+                  t.id.equals(id) &
+                  t.diveId.equals(match.diveId!) &
+                  t.updatedAt.equals(nowMillis),
+            ))
             .write(
               MediaCompanion(
                 diveId: const Value(null),
