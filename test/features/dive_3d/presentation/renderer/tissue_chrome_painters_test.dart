@@ -96,4 +96,56 @@ void main() {
     );
     expect(make(-32).shouldRepaint(make(10)), isTrue);
   });
+
+  test('chrome painter repaints when the style (theme) changes', () {
+    final frame = AxisFrame.build(result.scene.bounds, referenceY: 3.0);
+    final scrub = ValueNotifier<double>(0);
+    final pick = ValueNotifier<TissuePick?>(null);
+    TissueChromePainter make(TissueChromeStyle s) => TissueChromePainter(
+      scene: result.scene,
+      grid: result.grid,
+      frame: frame,
+      style: s,
+      yawDegrees: -32,
+      pitchDegrees: 22,
+      zoom: 1,
+      scrubPosition: scrub,
+      hoverPick: pick,
+    );
+    const other = TissueChromeStyle(
+      axisX: Colors.red, // differs from `style`
+      axisY: Colors.green,
+      axisZ: Colors.blue,
+      grid: Colors.white24,
+      wireframe: Colors.white24,
+      marker: Colors.white,
+      markerOutline: Colors.black,
+      label: Colors.white,
+    );
+    expect(make(style).shouldRepaint(make(style)), isFalse);
+    expect(make(style).shouldRepaint(make(other)), isTrue);
+  });
+
+  test('frame painter repaints when the style (theme) changes', () {
+    final frame = AxisFrame.build(result.scene.bounds, referenceY: 3.0);
+    TissueFramePainter make(Color grid) => TissueFramePainter(
+      bounds: result.scene.bounds,
+      frame: frame,
+      style: TissueChromeStyle(
+        axisX: Colors.amber,
+        axisY: Colors.green,
+        axisZ: Colors.blue,
+        grid: grid,
+        wireframe: Colors.white24,
+        marker: Colors.white,
+        markerOutline: Colors.black,
+        label: Colors.white,
+      ),
+      yawDegrees: -32,
+      pitchDegrees: 22,
+      zoom: 1,
+    );
+    expect(make(Colors.white24).shouldRepaint(make(Colors.white24)), isFalse);
+    expect(make(Colors.white24).shouldRepaint(make(Colors.white70)), isTrue);
+  });
 }

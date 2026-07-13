@@ -48,6 +48,13 @@ class TissueHoverTooltip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // A pick can go stale if the surface refreshes to a smaller grid before the
+    // overlay rebuilds; never index out of range.
+    if (grid.isEmpty ||
+        pick.col >= grid.columns ||
+        pick.comp >= grid.compartments) {
+      return const SizedBox.shrink();
+    }
     final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme.labelSmall;
     final progress = grid.normalizedTimes[pick.col];

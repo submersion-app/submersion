@@ -37,19 +37,23 @@ TissuePick? pickNearestTissueVertex({
   required int compartments,
   double thresholdPx = 20,
 }) {
+  if (compartments <= 0 || projected.isEmpty) return null;
+  // Compare squared distances so hovers (which fire often on desktop) avoid a
+  // sqrt per vertex; squaring preserves ordering and exact ties.
+  final thresholdSq = thresholdPx * thresholdPx;
   var bestIndex = -1;
-  var bestDist = thresholdPx;
+  var bestDistSq = thresholdSq;
   var bestDepth = double.negativeInfinity;
   for (var i = 0; i < projected.length; i++) {
-    final d = (projected[i] - cursor).distance;
-    if (d > thresholdPx) continue;
+    final dSq = (projected[i] - cursor).distanceSquared;
+    if (dSq > thresholdSq) continue;
     final better =
         bestIndex < 0 ||
-        d < bestDist ||
-        (d == bestDist && viewDepths[i] > bestDepth);
+        dSq < bestDistSq ||
+        (dSq == bestDistSq && viewDepths[i] > bestDepth);
     if (better) {
       bestIndex = i;
-      bestDist = d;
+      bestDistSq = dSq;
       bestDepth = viewDepths[i];
     }
   }

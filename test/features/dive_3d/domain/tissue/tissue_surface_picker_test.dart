@@ -60,6 +60,19 @@ void main() {
         isNull,
       );
     });
+
+    test('guards against zero compartments (no division by zero)', () {
+      expect(
+        pickNearestTissueVertex(
+          cursor: Offset.zero,
+          projected: const [Offset.zero],
+          viewDepths: const [0],
+          columns: 1,
+          compartments: 0,
+        ),
+        isNull,
+      );
+    });
   });
 
   group('tissueSaturationStateForPercent', () {

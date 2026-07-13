@@ -1,3 +1,4 @@
+import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -12,7 +13,7 @@ import 'package:submersion/features/dive_3d/presentation/renderer/scrub_cursor.d
 
 /// Theme-resolved colors for the tissue chrome (built by the viewport, which
 /// owns the BuildContext; painters never read Theme directly).
-class TissueChromeStyle {
+class TissueChromeStyle extends Equatable {
   final Color axisX,
       axisY,
       axisZ,
@@ -31,6 +32,18 @@ class TissueChromeStyle {
     required this.markerOutline,
     required this.label,
   });
+
+  @override
+  List<Object?> get props => [
+    axisX,
+    axisY,
+    axisZ,
+    grid,
+    wireframe,
+    marker,
+    markerOutline,
+    label,
+  ];
 }
 
 /// Background layer: the floor + back-wall reference grid, drawn BEHIND the
@@ -78,7 +91,9 @@ class TissueFramePainter extends CustomPainter {
       old.yawDegrees != yawDegrees ||
       old.pitchDegrees != pitchDegrees ||
       old.zoom != zoom ||
-      !identical(old.frame, frame);
+      !identical(old.frame, frame) ||
+      !identical(old.bounds, bounds) ||
+      old.style != style;
 }
 
 /// Foreground layer: draped wireframe on the surface, then the axis lines +
@@ -93,6 +108,7 @@ class TissueChromePainter extends CustomPainter {
   final ValueListenable<double> scrubPosition;
   final ValueListenable<TissuePick?> hoverPick;
   final AxisLabelSet? labels;
+  final TextDirection textDirection;
 
   /// ~12 iso-time lines is enough to read structure without clutter.
   static const int _maxWireColumns = 12;
@@ -108,6 +124,7 @@ class TissueChromePainter extends CustomPainter {
     required this.scrubPosition,
     required this.hoverPick,
     this.labels,
+    this.textDirection = TextDirection.ltr,
   }) : super(repaint: Listenable.merge([scrubPosition, hoverPick]));
 
   SceneProjector _projector(Size size) => SceneProjector(
@@ -148,7 +165,7 @@ class TissueChromePainter extends CustomPainter {
             fontWeight: isTitle ? FontWeight.w600 : FontWeight.w400,
           ),
         ),
-        textDirection: TextDirection.ltr,
+        textDirection: textDirection,
       )..layout();
       // Titles sit above-right of the axis end; tick values below-left of the
       // tick, so neither overlaps the axis line.
@@ -251,5 +268,7 @@ class TissueChromePainter extends CustomPainter {
       !identical(old.scene, scene) ||
       !identical(old.grid, grid) ||
       !identical(old.frame, frame) ||
-      !identical(old.labels, labels);
+      !identical(old.labels, labels) ||
+      old.style != style ||
+      old.textDirection != textDirection;
 }

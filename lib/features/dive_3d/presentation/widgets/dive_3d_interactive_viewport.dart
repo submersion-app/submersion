@@ -97,21 +97,25 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
     zoom: _zoom,
   );
 
-  // Cached screen projections of the surface grid, recomputed only when the
-  // camera or size changes (not on every hover event).
+  // Cached screen projections of the surface grid, recomputed when the camera,
+  // size, OR the grid itself changes (a new surface reuses stale projections
+  // otherwise, so hover picks would point at the wrong vertex).
   List<Offset>? _projected;
   List<double>? _viewDepths;
   double? _cacheYaw, _cachePitch, _cacheZoom;
   Size? _cacheSize;
+  TissueSurfaceGrid? _cacheGrid;
 
   void _ensureProjection(Size size) {
     final grid = widget.surfaceGrid;
     if (grid == null || grid.isEmpty) {
       _projected = null;
       _viewDepths = null;
+      _cacheGrid = null;
       return;
     }
     if (_projected != null &&
+        identical(_cacheGrid, grid) &&
         _cacheYaw == _yaw &&
         _cachePitch == _pitch &&
         _cacheZoom == _zoom &&
@@ -132,6 +136,7 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
     }
     _projected = proj;
     _viewDepths = depths;
+    _cacheGrid = grid;
     _cacheYaw = _yaw;
     _cachePitch = _pitch;
     _cacheZoom = _zoom;
@@ -204,6 +209,7 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
                   scrubPosition: widget.scrubPosition,
                   hoverPick: widget.hoverPick!,
                   labels: widget.axisLabels,
+                  textDirection: Directionality.of(context),
                 )
               : _ScrubCursorPainter(
                   scene: widget.scene,

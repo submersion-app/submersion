@@ -44,6 +44,26 @@ void main() {
     expect(find.textContaining('25:00'), findsOneWidget);
   });
 
+  testWidgets('renders nothing for an out-of-range (stale) pick', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        child: TissueHoverTooltip(
+          // grid has 2 columns x 1 compartment; this pick is out of range.
+          pick: const TissuePick(col: 9, comp: 3, screenPos: Offset.zero),
+          grid: gridFixture(),
+          runtimeSeconds: 1500,
+          colorFn: thermalColor,
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.textContaining('Comp'), findsNothing);
+    expect(find.textContaining('Saturation'), findsNothing);
+  });
+
   testWidgets('falls back to percent-of-dive when runtime is null', (
     tester,
   ) async {
