@@ -32,6 +32,12 @@ void main() {
       expect(settings.enabled, true);
     });
 
+    test('backupEncryptionEnabled defaults false and round-trips', () async {
+      expect(backupPreferences.getSettings().backupEncryptionEnabled, isFalse);
+      await backupPreferences.setBackupEncryptionEnabled(true);
+      expect(backupPreferences.getSettings().backupEncryptionEnabled, isTrue);
+    });
+
     test('setFrequency persists value', () async {
       await backupPreferences.setFrequency(BackupFrequency.daily);
 

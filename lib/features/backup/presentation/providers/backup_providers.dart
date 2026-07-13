@@ -56,6 +56,11 @@ class BackupSettingsNotifier extends StateNotifier<BackupSettings> {
     state = state.copyWith(enabled: value);
   }
 
+  Future<void> setBackupEncryptionEnabled(bool value) async {
+    await _prefs.setBackupEncryptionEnabled(value);
+    state = state.copyWith(backupEncryptionEnabled: value);
+  }
+
   Future<void> setFrequency(BackupFrequency frequency) async {
     await _prefs.setFrequency(frequency);
     state = state.copyWith(frequency: frequency);

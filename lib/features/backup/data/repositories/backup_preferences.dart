@@ -21,6 +21,7 @@ class BackupPreferences {
   static const String _backupLocationBookmarkKey = 'backup_location_bookmark';
   static const String _backupLocationLabelKey = 'backup_location_label';
   static const String _historyKey = 'backup_history';
+  static const String _backupEncryptionEnabledKey = 'backup_encryption_enabled';
 
   final SharedPreferences _prefs;
 
@@ -41,11 +42,17 @@ class BackupPreferences {
           : null,
       cloudBackupEnabled: _prefs.getBool(_cloudBackupEnabledKey) ?? false,
       backupLocation: _prefs.getString(_backupLocationKey),
+      backupEncryptionEnabled:
+          _prefs.getBool(_backupEncryptionEnabledKey) ?? false,
     );
   }
 
   Future<void> setEnabled(bool value) async {
     await _prefs.setBool(_enabledKey, value);
+  }
+
+  Future<void> setBackupEncryptionEnabled(bool value) async {
+    await _prefs.setBool(_backupEncryptionEnabledKey, value);
   }
 
   Future<void> setFrequency(BackupFrequency frequency) async {
