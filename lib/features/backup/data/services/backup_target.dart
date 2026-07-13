@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:path/path.dart' as p;
 
 import 'package:submersion/features/backup/data/services/backup_database_adapter.dart';
@@ -14,6 +16,11 @@ abstract class BackupTarget {
   /// Writes a backup named [fileName] using [adapter] to produce the bytes.
   /// Returns the stored ref: a filesystem path or a `content://` document URI.
   Future<String> write(BackupDatabaseAdapter adapter, String fileName);
+
+  /// Writes an already-materialized file at [sourcePath] into the target as
+  /// [fileName] (e.g. an encrypted `.sbe` produced off to the side). Returns
+  /// the stored ref: a filesystem path or a `content://` document URI.
+  Future<String> writeSource(String sourcePath, String fileName);
 }
 
 /// Filesystem target. Delegates to [BackupDatabaseAdapter.backup] verbatim so
@@ -27,6 +34,13 @@ class FilesystemBackupTarget implements BackupTarget {
   Future<String> write(BackupDatabaseAdapter adapter, String fileName) async {
     final dest = p.join(dir, fileName);
     await adapter.backup(dest);
+    return dest;
+  }
+
+  @override
+  Future<String> writeSource(String sourcePath, String fileName) async {
+    final dest = p.join(dir, fileName);
+    await File(sourcePath).copy(dest);
     return dest;
   }
 }
@@ -47,6 +61,14 @@ class SafBackupTarget implements BackupTarget {
       sourcePath: source,
     );
   }
+
+  @override
+  Future<String> writeSource(String sourcePath, String fileName) =>
+      port.writeBackup(
+        treeUri: treeUri,
+        fileName: fileName,
+        sourcePath: sourcePath,
+      );
 }
 
 /// A resolved target plus a release callback. The callback arms/releases Apple
