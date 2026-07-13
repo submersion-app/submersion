@@ -18912,4 +18912,115 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_setup_dismiss => 'تجاهل';
+
+  @override
+  String get settings_photosMedia_title => 'الصور والوسائط';
+
+  @override
+  String get settings_photosMedia_subtitle => 'المصادر والتخزين والحسابات';
+
+  @override
+  String get settings_photosMedia_sourcesHeader => 'من أين تأتي الصور';
+
+  @override
+  String get settings_photosMedia_storageHeader => 'أين تُحفظ النسخ';
+
+  @override
+  String get settings_photosMedia_accountsHeader => 'الحسابات';
+
+  @override
+  String get settings_photosMedia_guidedSetup => 'إعداد موجه';
+
+  @override
+  String get settings_photosMedia_photoSources_title => 'مكتبة الصور والمصادر';
+
+  @override
+  String get settings_photosMedia_photoSources_subtitle =>
+      'المعرض والملفات وخيارات الاستيراد';
+
+  @override
+  String get settings_photosMedia_networkSources_title => 'مصادر الشبكة';
+
+  @override
+  String get settings_photosMedia_networkSources_subtitle =>
+      'عناوين URL وتغذيات القوائم (متقدم)';
+
+  @override
+  String get settings_connectedAccounts_title => 'الحسابات المتصلة';
+
+  @override
+  String get settings_connectedAccounts_subtitle =>
+      'تسجيلات الدخول للسحابة والخدمات';
+
+  @override
+  String get settings_connectedAccounts_empty => 'لا توجد حسابات متصلة بعد';
+
+  @override
+  String get settings_connectedAccounts_status_signedIn => 'تم تسجيل الدخول';
+
+  @override
+  String get settings_connectedAccounts_status_needsSignIn =>
+      'يتطلب تسجيل الدخول';
+
+  @override
+  String get settings_connectedAccounts_status_unavailable =>
+      'غير متاح على هذا الجهاز';
+
+  @override
+  String get settings_connectedAccounts_disconnectDevice =>
+      'تسجيل الخروج على هذا الجهاز';
+
+  @override
+  String get settings_connectedAccounts_removeFromLibrary => 'إزالة من المكتبة';
+
+  @override
+  String get settings_connectedAccounts_removeConfirmTitle => 'إزالة الحساب؟';
+
+  @override
+  String get settings_connectedAccounts_removeConfirmBody =>
+      'تتم إزالة الحساب من جميع الأجهزة المتزامنة. لا تُحذف بيانات الاعتماد المخزنة على الأجهزة الأخرى.';
+
+  @override
+  String get settings_setupGuide_title => 'إعداد الصور والوسائط';
+
+  @override
+  String get settings_setupGuide_intro =>
+      'اربط مصادر صورك وأماكن حفظ النسخ. يمكنك إعادة تشغيل هذا في أي وقت.';
+
+  @override
+  String get settings_setupGuide_stepSources => 'مصادر الصور';
+
+  @override
+  String get settings_setupGuide_stepSources_desc =>
+      'أرفق الصور من مكتبة الصور أو الملفات أو Lightroom.';
+
+  @override
+  String get settings_setupGuide_stepStorage => 'تخزين الوسائط';
+
+  @override
+  String get settings_setupGuide_stepStorage_desc =>
+      'احفظ نسخًا من صورك في سحابتك الخاصة حتى تعرضها جميع أجهزتك.';
+
+  @override
+  String get settings_setupGuide_stepSync => 'مزامنة سحابية';
+
+  @override
+  String get settings_setupGuide_stepSync_desc =>
+      'زامن بيانات الغوص بين الأجهزة.';
+
+  @override
+  String get settings_setupGuide_statusDone => 'تم الإعداد';
+
+  @override
+  String get settings_setupGuide_statusTodo => 'لم يتم الإعداد';
+
+  @override
+  String get settings_setupGuide_open => 'فتح';
+
+  @override
+  String get settings_connectedAccounts_loadError => 'تعذر تحميل الحسابات';
+
+  @override
+  String get media_unavailablePlaceholder_volumeOffline =>
+      'وحدة التخزين غير مثبتة';
 }

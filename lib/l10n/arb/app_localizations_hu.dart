@@ -19217,4 +19217,119 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_setup_dismiss => 'Elvetés';
+
+  @override
+  String get settings_photosMedia_title => 'Fotók és média';
+
+  @override
+  String get settings_photosMedia_subtitle => 'Források, tárolás és fiókok';
+
+  @override
+  String get settings_photosMedia_sourcesHeader => 'Honnan érkeznek a fotók';
+
+  @override
+  String get settings_photosMedia_storageHeader => 'Hol tároljuk a másolatokat';
+
+  @override
+  String get settings_photosMedia_accountsHeader => 'Fiókok';
+
+  @override
+  String get settings_photosMedia_guidedSetup => 'Vezetett beállítás';
+
+  @override
+  String get settings_photosMedia_photoSources_title => 'Fotótár és források';
+
+  @override
+  String get settings_photosMedia_photoSources_subtitle =>
+      'Galéria, fájlok és importálási beállítások';
+
+  @override
+  String get settings_photosMedia_networkSources_title => 'Hálózati források';
+
+  @override
+  String get settings_photosMedia_networkSources_subtitle =>
+      'URL-ek és manifeszt-hírcsatornák (haladó)';
+
+  @override
+  String get settings_connectedAccounts_title => 'Csatlakoztatott fiókok';
+
+  @override
+  String get settings_connectedAccounts_subtitle =>
+      'Felhő- és szolgáltatásfiókok';
+
+  @override
+  String get settings_connectedAccounts_empty =>
+      'Még nincs csatlakoztatott fiók';
+
+  @override
+  String get settings_connectedAccounts_status_signedIn => 'Bejelentkezve';
+
+  @override
+  String get settings_connectedAccounts_status_needsSignIn =>
+      'Bejelentkezés szükséges';
+
+  @override
+  String get settings_connectedAccounts_status_unavailable =>
+      'Ezen az eszközön nem érhető el';
+
+  @override
+  String get settings_connectedAccounts_disconnectDevice =>
+      'Kijelentkezés ezen az eszközön';
+
+  @override
+  String get settings_connectedAccounts_removeFromLibrary =>
+      'Eltávolítás a könyvtárból';
+
+  @override
+  String get settings_connectedAccounts_removeConfirmTitle =>
+      'Eltávolítja a fiókot?';
+
+  @override
+  String get settings_connectedAccounts_removeConfirmBody =>
+      'A fiók minden szinkronizált eszközről eltávolításra kerül. A más eszközökön tárolt hitelesítő adatok nem törlődnek.';
+
+  @override
+  String get settings_setupGuide_title => 'Fotók és média beállítása';
+
+  @override
+  String get settings_setupGuide_intro =>
+      'Kapcsold össze, honnan érkeznek a fotóid és hol tárolod a másolatokat. Bármikor újrafuttathatod.';
+
+  @override
+  String get settings_setupGuide_stepSources => 'Fotóforrások';
+
+  @override
+  String get settings_setupGuide_stepSources_desc =>
+      'Csatolj fotókat a fotótáradból, fájlokból vagy a Lightroomból.';
+
+  @override
+  String get settings_setupGuide_stepStorage => 'Médiatároló';
+
+  @override
+  String get settings_setupGuide_stepStorage_desc =>
+      'Tárold fotóid másolatait a saját felhődben, hogy minden eszköz megjeleníthesse őket.';
+
+  @override
+  String get settings_setupGuide_stepSync => 'Felhőszinkronizálás';
+
+  @override
+  String get settings_setupGuide_stepSync_desc =>
+      'Merülési adatok szinkronizálása eszközök között.';
+
+  @override
+  String get settings_setupGuide_statusDone => 'Beállítva';
+
+  @override
+  String get settings_setupGuide_statusTodo => 'Nincs beállítva';
+
+  @override
+  String get settings_setupGuide_open => 'Megnyitás';
+
+  @override
+  String get settings_connectedAccounts_loadError =>
+      'A fiókok nem tölthetők be';
+
+  @override
+  String get media_unavailablePlaceholder_volumeOffline =>
+      'A kötet nincs csatlakoztatva';
 }

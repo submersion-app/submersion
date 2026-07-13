@@ -95,6 +95,12 @@ class LocalFilesDiagnosticsService {
     for (final item in all) {
       try {
         final result = await _resolver.verify(item);
+        // An unmounted volume is transient: keep the row's current orphan
+        // state rather than flagging files that will reappear on remount.
+        if (result == VerifyResult.volumeOffline) {
+          await _repository.updateMedia(item.copyWith(lastVerifiedAt: now));
+          continue;
+        }
         final isOrphan = result != VerifyResult.available;
         if (item.isOrphaned != isOrphan) flipped++;
         await _repository.updateMedia(

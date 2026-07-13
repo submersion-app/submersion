@@ -3,9 +3,11 @@ import 'dart:async';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/media/data/parsers/manifest_entry.dart';
 import 'package:submersion/features/media/data/services/network_fetch_pipeline.dart';
 import 'package:submersion/features/media/data/services/url_metadata_extractor.dart';
+import 'package:submersion/features/media/domain/services/dive_photo_matcher.dart';
 
 /// Stub `UrlMetadataExtractor` that lets each test script per-call results
 /// (success / failure) and per-call gating (block/release) so the test can
@@ -62,8 +64,16 @@ UrlExtractionResult _err(String url, String message) =>
 
 void main() {
   late AppDatabase db;
-  setUp(() => db = AppDatabase(NativeDatabase.memory()));
-  tearDown(() async => db.close());
+  setUp(() {
+    db = AppDatabase(NativeDatabase.memory());
+    // The auto-match pending mark goes through SyncRepository, which
+    // resolves the database via DatabaseService.
+    DatabaseService.instance.setTestDatabase(db);
+  });
+  tearDown(() async {
+    await db.close();
+    DatabaseService.instance.resetForTesting();
+  });
 
   test(
     'synchronous insert fills url+sourceType, leaves lastVerifiedAt null',
@@ -447,6 +457,143 @@ void main() {
       expect(extractor.calls, isEmpty);
     },
   );
+
+  group('auto-match', () {
+    // _ok() stamps takenAt = 2024-06-01 12:00 UTC. One dive window
+    // containing it makes the match confident; two make it ambiguous.
+    final taken = DateTime.utc(2024, 6, 1, 12, 0, 0);
+
+    Future<void> seedDive(String id) async {
+      await db.customStatement(
+        "INSERT INTO dives (id, dive_number, dive_date_time, created_at, "
+        "updated_at) VALUES ('$id', 1, ${taken.millisecondsSinceEpoch}, 0, 0)",
+      );
+    }
+
+    NetworkFetchPipeline pipelineWith(List<DiveBounds> bounds) {
+      const url = 'https://example.com/a.jpg';
+      return NetworkFetchPipeline(
+        db: db,
+        extractor: _StubExtractor(results: {url: _ok(url)}),
+        diveBoundsLoader: (_) async => bounds,
+      );
+    }
+
+    DiveBounds window(String diveId) => DiveBounds(
+      diveId: diveId,
+      entryTime: taken.subtract(const Duration(minutes: 10)),
+      exitTime: taken.add(const Duration(minutes: 30)),
+    );
+
+    Future<String?> diveIdOf(String mediaId) async {
+      final row = await db
+          .customSelect("SELECT dive_id FROM media WHERE id = '$mediaId'")
+          .getSingle();
+      return row.data['dive_id'] as String?;
+    }
+
+    test('a confident timestamp match attaches the row to the dive', () async {
+      await seedDive('d1');
+      final pipeline = pipelineWith([window('d1')]);
+      final ids = await pipeline.ingest([
+        Uri.parse('https://example.com/a.jpg'),
+      ]);
+      await pipeline.idle();
+      expect(await diveIdOf(ids.single), 'd1');
+    });
+
+    test('an ambiguous match leaves the row library-level', () async {
+      await seedDive('d1');
+      await seedDive('d2');
+      final pipeline = pipelineWith([window('d1'), window('d2')]);
+      final ids = await pipeline.ingest([
+        Uri.parse('https://example.com/a.jpg'),
+      ]);
+      await pipeline.idle();
+      expect(await diveIdOf(ids.single), isNull);
+    });
+
+    test('autoMatch: false skips matching entirely', () async {
+      await seedDive('d1');
+      final pipeline = pipelineWith([window('d1')]);
+      final ids = await pipeline.ingest([
+        Uri.parse('https://example.com/a.jpg'),
+      ], autoMatch: false);
+      await pipeline.idle();
+      expect(await diveIdOf(ids.single), isNull);
+    });
+
+    test('a confident match marks the media row pending for sync', () async {
+      await seedDive('d1');
+      final pipeline = pipelineWith([window('d1')]);
+      final ids = await pipeline.ingest([
+        Uri.parse('https://example.com/a.jpg'),
+      ]);
+      await pipeline.idle();
+
+      final pending = await db
+          .customSelect(
+            "SELECT id FROM sync_records WHERE id = 'media_${ids.single}'",
+          )
+          .get();
+      expect(pending, hasLength(1), reason: 'attachment must sync out');
+    });
+
+    test(
+      'a manual attachment landing mid-match is never overwritten',
+      () async {
+        await seedDive('d1');
+        await seedDive('d2');
+        const url = 'https://example.com/a.jpg';
+        // The bounds loader runs BETWEEN _tryAutoMatch's row read and its
+        // conditional write - exactly the race window the dive_id IS NULL
+        // guard protects. Attaching the row from inside the loader simulates
+        // a user attachment landing mid-match.
+        final ingested = <String>[];
+        final pipeline = NetworkFetchPipeline(
+          db: db,
+          extractor: _StubExtractor(results: {url: _ok(url)}),
+          diveBoundsLoader: (_) async {
+            await db.customStatement(
+              "UPDATE media SET dive_id = 'd2' WHERE id = '${ingested.single}'",
+            );
+            return [window('d1')];
+          },
+        );
+        ingested.addAll(await pipeline.ingest([Uri.parse(url)]));
+        await pipeline.idle();
+
+        expect(
+          await diveIdOf(ingested.single),
+          'd2',
+          reason: 'the conditional UPDATE must lose to the manual attachment',
+        );
+      },
+    );
+
+    test('manifest entries with prefilled takenAt auto-match too', () async {
+      await seedDive('d1');
+      final pipeline = pipelineWith([window('d1')]);
+      await db.customStatement(
+        "INSERT INTO media_subscriptions (id, manifest_url, format, "
+        "created_at, updated_at) VALUES ('sub-1', 'https://x/f', 'atom', "
+        "0, 0)",
+      );
+      final ids = await pipeline.ingestManifestEntries([
+        ManifestEntry(
+          entryKey: 'e1',
+          url: 'https://example.com/m.jpg',
+          takenAt: taken,
+          width: 100,
+          height: 100,
+          latitude: 1,
+          longitude: 2,
+        ),
+      ], 'sub-1');
+      await pipeline.idle();
+      expect(await diveIdOf(ids.single), 'd1');
+    });
+  });
 }
 
 /// Wraps a `_StubExtractor` to record the synthetic clock value at the

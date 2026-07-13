@@ -19242,4 +19242,120 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_setup_dismiss => 'Ausblenden';
+
+  @override
+  String get settings_photosMedia_title => 'Fotos & Medien';
+
+  @override
+  String get settings_photosMedia_subtitle => 'Quellen, Speicher & Konten';
+
+  @override
+  String get settings_photosMedia_sourcesHeader => 'Woher Fotos kommen';
+
+  @override
+  String get settings_photosMedia_storageHeader =>
+      'Wo Kopien aufbewahrt werden';
+
+  @override
+  String get settings_photosMedia_accountsHeader => 'Konten';
+
+  @override
+  String get settings_photosMedia_guidedSetup => 'Geführte Einrichtung';
+
+  @override
+  String get settings_photosMedia_photoSources_title =>
+      'Fotobibliothek & Quellen';
+
+  @override
+  String get settings_photosMedia_photoSources_subtitle =>
+      'Galerie, Dateien und Importoptionen';
+
+  @override
+  String get settings_photosMedia_networkSources_title => 'Netzwerkquellen';
+
+  @override
+  String get settings_photosMedia_networkSources_subtitle =>
+      'URLs und Manifest-Feeds (erweitert)';
+
+  @override
+  String get settings_connectedAccounts_title => 'Verbundene Konten';
+
+  @override
+  String get settings_connectedAccounts_subtitle =>
+      'Cloud- und Dienst-Anmeldungen';
+
+  @override
+  String get settings_connectedAccounts_empty => 'Noch keine Konten verbunden';
+
+  @override
+  String get settings_connectedAccounts_status_signedIn => 'Angemeldet';
+
+  @override
+  String get settings_connectedAccounts_status_needsSignIn =>
+      'Anmeldung erforderlich';
+
+  @override
+  String get settings_connectedAccounts_status_unavailable =>
+      'Auf diesem Gerät nicht verfügbar';
+
+  @override
+  String get settings_connectedAccounts_disconnectDevice =>
+      'Auf diesem Gerät abmelden';
+
+  @override
+  String get settings_connectedAccounts_removeFromLibrary =>
+      'Aus der Bibliothek entfernen';
+
+  @override
+  String get settings_connectedAccounts_removeConfirmTitle =>
+      'Konto entfernen?';
+
+  @override
+  String get settings_connectedAccounts_removeConfirmBody =>
+      'Das Konto wird von allen synchronisierten Geräten entfernt. Auf anderen Geräten gespeicherte Zugangsdaten werden nicht gelöscht.';
+
+  @override
+  String get settings_setupGuide_title => 'Fotos & Medien einrichten';
+
+  @override
+  String get settings_setupGuide_intro =>
+      'Verbinde die Quellen deiner Fotos und wo Kopien aufbewahrt werden. Du kannst dies jederzeit erneut ausführen.';
+
+  @override
+  String get settings_setupGuide_stepSources => 'Fotoquellen';
+
+  @override
+  String get settings_setupGuide_stepSources_desc =>
+      'Fotos aus deiner Fotobibliothek, Dateien oder Lightroom anhängen.';
+
+  @override
+  String get settings_setupGuide_stepStorage => 'Medienspeicher';
+
+  @override
+  String get settings_setupGuide_stepStorage_desc =>
+      'Bewahre Kopien deiner Fotos in deiner eigenen Cloud auf, damit jedes Gerät sie anzeigen kann.';
+
+  @override
+  String get settings_setupGuide_stepSync => 'Cloud-Synchronisierung';
+
+  @override
+  String get settings_setupGuide_stepSync_desc =>
+      'Tauchdaten zwischen Geräten synchronisieren.';
+
+  @override
+  String get settings_setupGuide_statusDone => 'Eingerichtet';
+
+  @override
+  String get settings_setupGuide_statusTodo => 'Nicht eingerichtet';
+
+  @override
+  String get settings_setupGuide_open => 'Öffnen';
+
+  @override
+  String get settings_connectedAccounts_loadError =>
+      'Konten konnten nicht geladen werden';
+
+  @override
+  String get media_unavailablePlaceholder_volumeOffline =>
+      'Volume nicht eingebunden';
 }

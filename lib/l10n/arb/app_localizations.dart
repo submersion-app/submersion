@@ -32249,6 +32249,204 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dismiss'**
   String get settings_setup_dismiss;
+
+  /// No description provided for @settings_photosMedia_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos & Media'**
+  String get settings_photosMedia_title;
+
+  /// No description provided for @settings_photosMedia_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sources, storage & accounts'**
+  String get settings_photosMedia_subtitle;
+
+  /// No description provided for @settings_photosMedia_sourcesHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Where photos come from'**
+  String get settings_photosMedia_sourcesHeader;
+
+  /// No description provided for @settings_photosMedia_storageHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Where copies are kept'**
+  String get settings_photosMedia_storageHeader;
+
+  /// No description provided for @settings_photosMedia_accountsHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Accounts'**
+  String get settings_photosMedia_accountsHeader;
+
+  /// No description provided for @settings_photosMedia_guidedSetup.
+  ///
+  /// In en, this message translates to:
+  /// **'Guided setup'**
+  String get settings_photosMedia_guidedSetup;
+
+  /// No description provided for @settings_photosMedia_photoSources_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo library & sources'**
+  String get settings_photosMedia_photoSources_title;
+
+  /// No description provided for @settings_photosMedia_photoSources_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gallery, files and import options'**
+  String get settings_photosMedia_photoSources_subtitle;
+
+  /// No description provided for @settings_photosMedia_networkSources_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Network sources'**
+  String get settings_photosMedia_networkSources_title;
+
+  /// No description provided for @settings_photosMedia_networkSources_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'URLs and manifest feeds (advanced)'**
+  String get settings_photosMedia_networkSources_subtitle;
+
+  /// No description provided for @settings_connectedAccounts_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected Accounts'**
+  String get settings_connectedAccounts_title;
+
+  /// No description provided for @settings_connectedAccounts_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud and service sign-ins'**
+  String get settings_connectedAccounts_subtitle;
+
+  /// No description provided for @settings_connectedAccounts_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No accounts connected yet'**
+  String get settings_connectedAccounts_empty;
+
+  /// No description provided for @settings_connectedAccounts_status_signedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed in'**
+  String get settings_connectedAccounts_status_signedIn;
+
+  /// No description provided for @settings_connectedAccounts_status_needsSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs sign-in'**
+  String get settings_connectedAccounts_status_needsSignIn;
+
+  /// No description provided for @settings_connectedAccounts_status_unavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Unavailable on this device'**
+  String get settings_connectedAccounts_status_unavailable;
+
+  /// No description provided for @settings_connectedAccounts_disconnectDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out on this device'**
+  String get settings_connectedAccounts_disconnectDevice;
+
+  /// No description provided for @settings_connectedAccounts_removeFromLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from library'**
+  String get settings_connectedAccounts_removeFromLibrary;
+
+  /// No description provided for @settings_connectedAccounts_removeConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove account?'**
+  String get settings_connectedAccounts_removeConfirmTitle;
+
+  /// No description provided for @settings_connectedAccounts_removeConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The account is removed from every synced device. Credentials stored on other devices are not deleted.'**
+  String get settings_connectedAccounts_removeConfirmBody;
+
+  /// No description provided for @settings_setupGuide_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up photos & media'**
+  String get settings_setupGuide_title;
+
+  /// No description provided for @settings_setupGuide_intro.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect where your photos come from and where copies are kept. You can re-run this any time.'**
+  String get settings_setupGuide_intro;
+
+  /// No description provided for @settings_setupGuide_stepSources.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo sources'**
+  String get settings_setupGuide_stepSources;
+
+  /// No description provided for @settings_setupGuide_stepSources_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Attach photos from your photo library, files, or Lightroom.'**
+  String get settings_setupGuide_stepSources_desc;
+
+  /// No description provided for @settings_setupGuide_stepStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'Media storage'**
+  String get settings_setupGuide_stepStorage;
+
+  /// No description provided for @settings_setupGuide_stepStorage_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep copies of your photos in your own cloud so every device can show them.'**
+  String get settings_setupGuide_stepStorage_desc;
+
+  /// No description provided for @settings_setupGuide_stepSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud sync'**
+  String get settings_setupGuide_stepSync;
+
+  /// No description provided for @settings_setupGuide_stepSync_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync dive data between devices.'**
+  String get settings_setupGuide_stepSync_desc;
+
+  /// No description provided for @settings_setupGuide_statusDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up'**
+  String get settings_setupGuide_statusDone;
+
+  /// No description provided for @settings_setupGuide_statusTodo.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set up'**
+  String get settings_setupGuide_statusTodo;
+
+  /// No description provided for @settings_setupGuide_open.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get settings_setupGuide_open;
+
+  /// No description provided for @settings_connectedAccounts_loadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load accounts'**
+  String get settings_connectedAccounts_loadError;
+
+  /// No description provided for @media_unavailablePlaceholder_volumeOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Volume not mounted'**
+  String get media_unavailablePlaceholder_volumeOffline;
 }
 
 class _AppLocalizationsDelegate

@@ -343,6 +343,18 @@ class MediaRepository {
     }
   }
 
+  /// Whether any attachable media exists (signatures excluded). Cheap
+  /// EXISTS probe for setup/status surfaces.
+  Future<bool> hasAnyMedia() async {
+    final row = await _db
+        .customSelect(
+          "SELECT EXISTS(SELECT 1 FROM media "
+          "WHERE file_type != 'instructor_signature') AS present",
+        )
+        .getSingle();
+    return row.read<int>('present') == 1;
+  }
+
   /// Get all media items with the given [sourceType].
   /// Includes enrichment data (depth, temperature) if available.
   ///
