@@ -368,4 +368,88 @@ void main() {
     expect((hoverPick.value!.screenPos - visualLocal).distance, lessThan(1.0));
     expect(panVec, isNot(Offset.zero)); // sanity: the pan actually applied
   });
+
+  testWidgets('hover pick screenPos re-tracks the vertex after a zoom with no '
+      'cursor move (tooltip stays on the marker ring)', (tester) async {
+    const size = Size(400, 300);
+    final result = SubsurfaceTissueBuilder.buildResult(
+      BuhlmannAlgorithm().processProfile(
+        depths: const [0, 30, 30, 30, 0],
+        timestamps: const [0, 120, 600, 1200, 1400],
+      ),
+      colorFn: thermalColor,
+    );
+    final frame = AxisFrame.build(result.scene.bounds, referenceY: 3.0);
+    final hoverPick = ValueNotifier<TissuePick?>(null);
+    const style = TissueChromeStyle(
+      axisX: Color(0xFFFFB300),
+      axisY: Color(0xFF66BB6A),
+      axisZ: Color(0xFF42A5F5),
+      grid: Color(0x33FFFFFF),
+      wireframe: Color(0x33FFFFFF),
+      marker: Color(0xFFFFFFFF),
+      markerOutline: Color(0xFF000000),
+      label: Color(0xFFFFFFFF),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: Align(
+            alignment: Alignment.topLeft,
+            child: SizedBox.fromSize(
+              size: size,
+              child: Dive3dInteractiveViewport(
+                scene: result.scene,
+                scrubPosition: ValueNotifier<double>(0),
+                visibleOverlays: const {},
+                surfaceGrid: result.grid,
+                axisFrame: frame,
+                chromeStyle: style,
+                hoverPick: hoverPick,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    // Hover a vertex at the default camera to establish a pick.
+    final origin = tester.getTopLeft(find.byType(Dive3dInteractiveViewport));
+    final projDefault = SceneProjector(size: size, bounds: result.scene.bounds);
+    const col = 1, comp = 5;
+    final (x, y, z) = result.grid.positionAt(col, comp);
+    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    await mouse.addPointer(location: Offset.zero);
+    addTearDown(mouse.removePointer);
+    await mouse.moveTo(origin + projDefault.project(x, y, z));
+    await tester.pump();
+    expect(hoverPick.value, isNotNull);
+    final screenPosBefore = hoverPick.value!.screenPos;
+
+    // Zoom in with the on-screen button; the mouse pointer does NOT move.
+    await tester.tap(find.byIcon(Icons.add));
+    await tester.pump();
+    final newZoom = scenePainterOf(tester).zoom;
+    expect(newZoom, greaterThan(1.0)); // sanity: the zoom applied
+
+    // The pick must now sit on the vertex's NEW projected position, matching
+    // the re-projected marker ring - not the stale pre-zoom screenPos.
+    final projZoomed = SceneProjector(
+      size: size,
+      bounds: result.scene.bounds,
+      zoom: newZoom,
+    );
+    final expected = projZoomed.project(x, y, z); // pan is zero here
+    expect(hoverPick.value!.col, col);
+    expect(hoverPick.value!.comp, comp);
+    expect((hoverPick.value!.screenPos - expected).distance, lessThan(1.0));
+    // And it genuinely moved (an off-center vertex re-projects under zoom).
+    expect(
+      (hoverPick.value!.screenPos - screenPosBefore).distance,
+      greaterThan(1.0),
+    );
+  });
 }

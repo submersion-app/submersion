@@ -70,6 +70,9 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
   // as a Transform on the painted output; picks subtract it from the cursor.
   Offset _pan = Offset.zero;
   double _panZoomBaseZoom = 1.0;
+  // Last laid-out size, captured in build so camera-change handlers (which lack
+  // the LayoutBuilder constraints) can re-project the hover pick.
+  Size? _lastLayoutSize;
 
   void _onPanUpdate(DragUpdateDetails details) {
     setState(() {
@@ -78,12 +81,14 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
       _yaw += details.delta.dx * 0.4;
       _pitch = (_pitch + details.delta.dy * 0.4).clamp(-80.0, 80.0);
     });
+    _refreshHoverAfterCameraChange();
   }
 
   void _zoomBy(double factor) {
     setState(() {
       _zoom = (_zoom * factor).clamp(0.4, 8.0);
     });
+    _refreshHoverAfterCameraChange();
   }
 
   // Trackpad two-finger pan + pinch-zoom (desktop). Rotation via one-finger
@@ -97,6 +102,7 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
       _pan += event.panDelta;
       _zoom = (_panZoomBaseZoom * event.scale).clamp(0.4, 8.0);
     });
+    _refreshHoverAfterCameraChange();
   }
 
   void _resetCamera() {
@@ -106,6 +112,40 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
       _zoom = 1.0;
       _pan = Offset.zero;
     });
+    _refreshHoverAfterCameraChange();
+  }
+
+  // The marker ring re-projects the hovered vertex from its (col, comp) every
+  // paint, so it tracks the camera. The tooltip overlay lives outside the paint
+  // transform and is placed from the pick's cached screenPos, so a camera change
+  // with a stationary cursor (wheel/button zoom, trackpad pan-pinch, rotate)
+  // would strand it. Re-derive screenPos for the current camera so both stay
+  // locked to the vertex.
+  void _refreshHoverAfterCameraChange() {
+    final size = _lastLayoutSize;
+    final notifier = widget.hoverPick;
+    final grid = widget.surfaceGrid;
+    final pick = notifier?.value;
+    if (size == null ||
+        notifier == null ||
+        grid == null ||
+        grid.isEmpty ||
+        pick == null) {
+      return;
+    }
+    _ensureProjection(size);
+    final proj = _projected;
+    if (proj == null) return;
+    final i = pick.col * grid.compartments + pick.comp;
+    if (i < 0 || i >= proj.length) {
+      notifier.value = null;
+      return;
+    }
+    notifier.value = TissuePick(
+      col: pick.col,
+      comp: pick.comp,
+      screenPos: proj[i] + _pan,
+    );
   }
 
   SceneProjector _projectorFor(Size size) => SceneProjector(
@@ -212,6 +252,7 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final size = constraints.biggest;
+        _lastLayoutSize = size;
         final hasChrome =
             widget.surfaceGrid != null &&
             widget.axisFrame != null &&

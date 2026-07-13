@@ -128,9 +128,9 @@ class _Dive3dPageState extends ConsumerState<Dive3dPage>
     final frame = AxisFrame.build(
       surface.scene.bounds,
       referenceY: SubsurfaceTissueBuilder.referenceHeight,
-      compartments: surface.grid.compartments == 0
-          ? 16
-          : surface.grid.compartments,
+      // surface != null guarantees a non-empty grid (tissueSurfaceProvider
+      // returns null on empty compartments), so compartments is always > 0.
+      compartments: surface.grid.compartments,
     );
     final labels = buildTissueAxisLabels(
       bounds: surface.scene.bounds,
