@@ -6,6 +6,8 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/accounts/account_credentials_store.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/accounts/connected_account.dart'
+    as domain;
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/established_provider_store.dart';
@@ -72,7 +74,16 @@ class AccountStartupMigration {
     if (type == null) return;
     final kind = AccountKind.fromCloudProviderType(type);
 
-    var account = await _accounts.getByKind(kind);
+    // Retry safety: a failed prior run may already have persisted the sync
+    // account id AND created the (newer) media-S3 account, making
+    // getByKind's newest-first pick wrong. The persisted id wins.
+    domain.ConnectedAccount? account;
+    final persistedId = await _syncRepository.getSyncAccountId();
+    if (persistedId != null) {
+      final persisted = await _accounts.getById(persistedId);
+      if (persisted != null && persisted.kind == kind) account = persisted;
+    }
+    account ??= await _accounts.getByKind(kind);
     account ??= await _accounts.create(kind: kind, label: _labelFor(kind));
 
     switch (kind) {
@@ -112,10 +123,17 @@ class AccountStartupMigration {
         : CloudProviderType.values.byName(storedType);
     final kind = AccountKind.fromCloudProviderType(type);
 
+    // Retry safety: a failed prior run may already have created the media
+    // account and written the pref; reuse it instead of duplicating rows.
+    final existingId = _prefs.getString(_mediaAccountIdKey);
+    if (existingId != null && await _accounts.getById(existingId) != null) {
+      return;
+    }
+
     final String accountId;
     if (kind == AccountKind.s3) {
       // The media store S3 config is independent from sync's by design:
-      // always a separate account, never a reuse.
+      // always a separate account, never a reuse of the sync S3 account.
       final account = await _accounts.create(
         kind: AccountKind.s3,
         label: 'S3 media storage',

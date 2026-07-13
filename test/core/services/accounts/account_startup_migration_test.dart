@@ -191,6 +191,54 @@ void main() {
     },
   );
 
+  test('a retry after partial failure reuses the persisted sync account '
+      'even when a newer S3 account exists', () async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    keychain.values['sync_s3_config'] = '{"sync":true}';
+    await SyncRepository().setCloudProvider(CloudProviderType.s3);
+
+    // Simulate the partial prior run: sync account created + persisted,
+    // then a NEWER media-S3 account created before the failure.
+    final syncAccount = await accounts.create(
+      kind: AccountKind.s3,
+      label: 'S3',
+    );
+    await SyncRepository().setSyncAccount(
+      accountId: syncAccount.id,
+      providerType: CloudProviderType.s3,
+    );
+    await accounts.create(kind: AccountKind.s3, label: 'S3 media storage');
+
+    await (await migration(prefs)).run();
+
+    expect(await SyncRepository().getSyncAccountId(), syncAccount.id);
+  });
+
+  test(
+    'a retry after partial failure reuses the recorded media account',
+    () async {
+      final prior = await accounts.create(
+        kind: AccountKind.s3,
+        label: 'S3 media storage',
+      );
+      SharedPreferences.setMockInitialValues({
+        'media_store_attached_store_id': 'store-1',
+        'media_store_provider_type': 's3',
+        'media_store_account_id': prior.id,
+      });
+      final prefs = await SharedPreferences.getInstance();
+
+      await (await migration(prefs)).run();
+
+      final s3Accounts = (await accounts.getAll())
+          .where((a) => a.kind == AccountKind.s3)
+          .toList();
+      expect(s3Accounts, hasLength(1), reason: 'no duplicate media account');
+      expect(prefs.getString('media_store_account_id'), prior.id);
+    },
+  );
+
   test('run is idempotent', () async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
