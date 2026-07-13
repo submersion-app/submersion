@@ -5,15 +5,24 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/pending_setup_service.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
+/// Ticks on every SyncEventBus event (repository writes that mark records
+/// pending: store attach, account create/delete, subscription edits).
+final _syncBusTickProvider = StreamProvider.autoDispose<void>(
+  (ref) => SyncEventBus.changes,
+);
+
 /// This device's pending setup items ("finish setting up this device").
-/// autoDispose: recomputed whenever the settings surface rebuilds, so
-/// descriptors arriving via sync are picked up without an explicit
-/// invalidate; dismiss actions still invalidate for an immediate refresh.
+/// Recomputes on every local data write (SyncEventBus watch) and on each
+/// fresh listen (autoDispose), so reopening Settings after a sync always
+/// reflects newly arrived descriptors; dismiss actions invalidate
+/// explicitly for an immediate refresh.
 final pendingSetupItemsProvider =
     FutureProvider.autoDispose<List<PendingSetupItem>>((ref) async {
+      ref.watch(_syncBusTickProvider);
       final service = PendingSetupService(
         prefs: ref.watch(sharedPreferencesProvider),
         registry: ref.watch(accountProviderRegistryProvider),
@@ -74,7 +83,7 @@ class PendingSetupCard extends ConsumerWidget {
                     ref.invalidate(pendingSetupItemsProvider);
                   },
                 ),
-                onTap: () => context.go(switch (item.kind) {
+                onTap: () => context.push(switch (item.kind) {
                   SetupItemKind.mediaStoreAttach => '/settings/media-storage',
                   SetupItemKind.accountSignIn =>
                     item.accountKind == AccountKind.adobeLightroom
