@@ -18,9 +18,10 @@ class ImportedDiveConverter {
   /// - A new UUID as its [Dive.id]
   /// - [ImportedDive.startTime] mapped to both [Dive.dateTime] and [Dive.entryTime]
   /// - [ImportedDive.endTime] mapped to [Dive.exitTime]
-  /// - [ImportedDive.latitude]/[ImportedDive.longitude] mapped to
-  ///   [Dive.entryLocation] when present (used by geofenced equipment
-  ///   defaulting and site matching)
+  /// - [ImportedDive.latitude]/[ImportedDive.longitude] and
+  ///   [ImportedDive.exitLatitude]/[ImportedDive.exitLongitude] mapped to
+  ///   [Dive.entryLocation]/[Dive.exitLocation] when present (used by
+  ///   geofenced equipment defaulting and site matching)
   /// - Profile samples converted to [DiveProfilePoint] list
   /// - [importSource] and [importId] set for dedup tracking
   Dive convert(ImportedDive importedDive, {String? diverId, int? diveNumber}) {
@@ -29,6 +30,10 @@ class ImportedDiveConverter {
     final entryLocation =
         importedDive.latitude != null && importedDive.longitude != null
         ? GeoPoint(importedDive.latitude!, importedDive.longitude!)
+        : null;
+    final exitLocation =
+        importedDive.exitLatitude != null && importedDive.exitLongitude != null
+        ? GeoPoint(importedDive.exitLatitude!, importedDive.exitLongitude!)
         : null;
 
     // importedDive.duration is endTime - startTime (total runtime),
@@ -45,6 +50,7 @@ class ImportedDiveConverter {
       avgDepth: importedDive.avgDepth,
       waterTemp: importedDive.minTemperature,
       entryLocation: entryLocation,
+      exitLocation: exitLocation,
       profile: profile,
       importSource: sourceName,
       importId: importedDive.sourceId,
