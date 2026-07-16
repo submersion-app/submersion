@@ -9177,6 +9177,27 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String trips_serviceAlert_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items need service before this trip',
+      one: '1 item needs service before this trip',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_serviceAlert_dueBefore(String kind, String date) {
+    return '$kind due $date';
+  }
+
+  @override
+  String trips_serviceAlert_overdue(String kind) {
+    return '$kind overdue';
+  }
+
+  @override
   String get equipment_detail_serviceIntervalLabel => '维护间隔';
 
   @override

@@ -16450,6 +16450,24 @@ abstract class AppLocalizations {
   /// **'{kind} overdue'**
   String equipment_list_worstClock(String kind);
 
+  /// No description provided for @trips_serviceAlert_count.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 item needs service before this trip} other{{count} items need service before this trip}}'**
+  String trips_serviceAlert_count(int count);
+
+  /// No description provided for @trips_serviceAlert_dueBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'{kind} due {date}'**
+  String trips_serviceAlert_dueBefore(String kind, String date);
+
+  /// No description provided for @trips_serviceAlert_overdue.
+  ///
+  /// In en, this message translates to:
+  /// **'{kind} overdue'**
+  String trips_serviceAlert_overdue(String kind);
+
   /// No description provided for @equipment_detail_serviceIntervalLabel.
   ///
   /// In en, this message translates to:

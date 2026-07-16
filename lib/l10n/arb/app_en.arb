@@ -5229,6 +5229,33 @@
       }
     }
   },
+  "trips_serviceAlert_count": "{count, plural, =1{1 item needs service before this trip} other{{count} items need service before this trip}}",
+  "@trips_serviceAlert_count": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_serviceAlert_dueBefore": "{kind} due {date}",
+  "@trips_serviceAlert_dueBefore": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_serviceAlert_overdue": "{kind} overdue",
+  "@trips_serviceAlert_overdue": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_detail_serviceIntervalLabel": "Service Interval",
   "equipment_detail_serviceIntervalValue": "{days} days",
   "equipment_detail_serviceOverdue": "Service is overdue!",
