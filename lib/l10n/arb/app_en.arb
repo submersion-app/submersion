@@ -5076,6 +5076,73 @@
   "equipment_detail_retiredChip": "Retired",
   "equipment_detail_serialNumberLabel": "Serial Number",
   "equipment_detail_serviceInfoTitle": "Service Information",
+  "equipment_serviceClocks_title": "Service clocks",
+  "equipment_serviceClocks_addClock": "Add clock",
+  "equipment_serviceClocks_logService": "Log service",
+  "equipment_serviceClocks_edit": "Edit intervals",
+  "equipment_serviceClocks_pause": "Pause",
+  "equipment_serviceClocks_resume": "Resume",
+  "equipment_serviceClocks_remove": "Remove",
+  "equipment_serviceClocks_paused": "Paused",
+  "equipment_serviceClocks_empty": "No service clocks",
+  "equipment_serviceClocks_dueOn": "Due {date}",
+  "@equipment_serviceClocks_dueOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_overdueSince": "Overdue since {date}",
+  "@equipment_serviceClocks_overdueSince": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_divesLeft": "{remaining} of {total} dives left",
+  "@equipment_serviceClocks_divesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_serviceClocks_hoursLeft": "{remaining} of {total} hours left",
+  "@equipment_serviceClocks_hoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_manageKinds": "Manage service types",
+  "equipment_serviceClocks_appliesToClock": "Applies to clock",
+  "equipment_serviceClocks_noClockOption": "Not tied to a clock",
+  "equipment_scheduleDialog_title": "Edit clock",
+  "equipment_scheduleDialog_intervalDays": "Interval (days)",
+  "equipment_scheduleDialog_intervalDives": "Interval (dives)",
+  "equipment_scheduleDialog_intervalHours": "Interval (hours)",
+  "equipment_scheduleDialog_inheritHint": "Default: {value}",
+  "@equipment_scheduleDialog_inheritHint": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_scheduleDialog_anchorDate": "Baseline date",
+  "equipment_scheduleDialog_anchorHint": "Used when no service record of this kind exists yet",
+  "equipment_scheduleDialog_clearAnchor": "Clear baseline date",
+  "equipment_scheduleDialog_save": "Save",
+  "equipment_scheduleDialog_cancel": "Cancel",
   "equipment_detail_serviceIntervalLabel": "Service Interval",
   "equipment_detail_serviceIntervalValue": "{days} days",
   "equipment_detail_serviceOverdue": "Service is overdue!",

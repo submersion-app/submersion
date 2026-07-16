@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 
-import 'service_kind.dart';
-import 'service_schedule.dart';
+import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
+import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 
 enum ServiceClockSeverity { ok, dueSoon, overdue }
 

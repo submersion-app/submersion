@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-import '../../../../core/constants/enums.dart';
+import 'package:submersion/core/constants/enums.dart';
 
 /// A type of maintenance a piece of equipment can need (hydro, VIP, ...).
 class ServiceKind extends Equatable {

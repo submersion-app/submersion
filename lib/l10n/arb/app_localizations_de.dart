@@ -9415,6 +9415,95 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_detail_serviceInfoTitle => 'Wartungsinformationen';
 
   @override
+  String get equipment_serviceClocks_title => 'Service clocks';
+
+  @override
+  String get equipment_serviceClocks_addClock => 'Add clock';
+
+  @override
+  String get equipment_serviceClocks_logService => 'Log service';
+
+  @override
+  String get equipment_serviceClocks_edit => 'Edit intervals';
+
+  @override
+  String get equipment_serviceClocks_pause => 'Pause';
+
+  @override
+  String get equipment_serviceClocks_resume => 'Resume';
+
+  @override
+  String get equipment_serviceClocks_remove => 'Remove';
+
+  @override
+  String get equipment_serviceClocks_paused => 'Paused';
+
+  @override
+  String get equipment_serviceClocks_empty => 'No service clocks';
+
+  @override
+  String equipment_serviceClocks_dueOn(String date) {
+    return 'Due $date';
+  }
+
+  @override
+  String equipment_serviceClocks_overdueSince(String date) {
+    return 'Overdue since $date';
+  }
+
+  @override
+  String equipment_serviceClocks_divesLeft(int remaining, int total) {
+    return '$remaining of $total dives left';
+  }
+
+  @override
+  String equipment_serviceClocks_hoursLeft(String remaining, String total) {
+    return '$remaining of $total hours left';
+  }
+
+  @override
+  String get equipment_serviceClocks_manageKinds => 'Manage service types';
+
+  @override
+  String get equipment_serviceClocks_appliesToClock => 'Applies to clock';
+
+  @override
+  String get equipment_serviceClocks_noClockOption => 'Not tied to a clock';
+
+  @override
+  String get equipment_scheduleDialog_title => 'Edit clock';
+
+  @override
+  String get equipment_scheduleDialog_intervalDays => 'Interval (days)';
+
+  @override
+  String get equipment_scheduleDialog_intervalDives => 'Interval (dives)';
+
+  @override
+  String get equipment_scheduleDialog_intervalHours => 'Interval (hours)';
+
+  @override
+  String equipment_scheduleDialog_inheritHint(String value) {
+    return 'Default: $value';
+  }
+
+  @override
+  String get equipment_scheduleDialog_anchorDate => 'Baseline date';
+
+  @override
+  String get equipment_scheduleDialog_anchorHint =>
+      'Used when no service record of this kind exists yet';
+
+  @override
+  String get equipment_scheduleDialog_clearAnchor => 'Clear baseline date';
+
+  @override
+  String get equipment_scheduleDialog_save => 'Save';
+
+  @override
+  String get equipment_scheduleDialog_cancel => 'Cancel';
+
+  @override
   String get equipment_detail_serviceIntervalLabel => 'Wartungsintervall';
 
   @override

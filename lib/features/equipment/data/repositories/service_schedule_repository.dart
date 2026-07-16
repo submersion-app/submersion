@@ -10,7 +10,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart'
     as domain;
-import 'service_kind_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/service_kind_repository.dart';
 
 /// CRUD for service clocks plus the auto-attach hook that seeds clocks on
 /// newly created equipment.

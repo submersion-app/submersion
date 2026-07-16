@@ -1,7 +1,7 @@
-import '../entities/service_clock_status.dart';
-import '../entities/service_kind.dart';
-import '../entities/service_record.dart';
-import '../entities/service_schedule.dart';
+import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
+import 'package:submersion/features/equipment/domain/entities/service_record.dart';
+import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 
 /// Evaluates an equipment item's service clocks. Pure: no database, no
 /// DateTime.now() -- callers supply `now` so results are testable and
