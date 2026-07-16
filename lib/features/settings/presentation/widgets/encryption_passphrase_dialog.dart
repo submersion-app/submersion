@@ -53,9 +53,18 @@ class _PassphraseDialogState extends State<_PassphraseDialog> {
       _busy = true;
       _error = null;
     });
+    // Capture the navigator before the await so we neither touch a
+    // possibly-defunct context afterward nor pop the wrong navigator.
+    final navigator = Navigator.of(context);
     try {
       await widget.onSubmit(secret);
-      if (mounted) Navigator.of(context).pop(secret);
+      // A successful onSubmit can trigger a screen takeover that clears the
+      // whole stack (e.g. restore -> RestoreCompletePage.show(), which does
+      // pushAndRemoveUntil(..., (_) => false)). Popping here would then remove
+      // the last remaining route and empty the navigator history, tripping
+      // NavigatorState.build's `_history.isNotEmpty` assertion. Only self-pop
+      // when the dialog route is still on the stack to pop.
+      if (mounted && navigator.canPop()) navigator.pop(secret);
     } on WrongPassphraseException {
       if (!mounted) return;
       setState(() {
