@@ -9,6 +9,44 @@ class AppLocalizationsHe extends AppLocalizations {
   AppLocalizationsHe([String locale = 'he']) : super(locale);
 
   @override
+  String get divelogs_signIn_title => 'התחברות ל-divelogs.de';
+
+  @override
+  String get divelogs_signIn_username => 'שם משתמש';
+
+  @override
+  String get divelogs_signIn_password => 'סיסמה';
+
+  @override
+  String get divelogs_signIn_diver => 'ייבוא לפרופיל צוללן';
+
+  @override
+  String get divelogs_signIn_connect => 'התחבר';
+
+  @override
+  String get divelogs_fetch_inProgress => 'מוריד צלילות מ-divelogs.de...';
+
+  @override
+  String get divelogs_fetch_done => 'הצלילות הורדו.';
+
+  @override
+  String get divelogs_fetch_retry => 'נסה שוב';
+
+  @override
+  String get divelogs_fetch_error => 'לא ניתן להוריד צלילות מ-divelogs.de.';
+
+  @override
+  String get divelogs_fetch_wrongDiver =>
+      'חשבון divelogs.de זה מקושר לפרופיל צוללן אחר. החלף צוללן כדי לייבא.';
+
+  @override
+  String get transfer_import_divelogs_title => 'ייבוא מ-divelogs.de';
+
+  @override
+  String get transfer_import_divelogs_subtitle =>
+      'משוך את יומן הצלילה מחשבון divelogs.de שלך';
+
+  @override
   String diveLog_edit_geofenceSuggestion_near(String location) {
     return 'ליד $location';
   }

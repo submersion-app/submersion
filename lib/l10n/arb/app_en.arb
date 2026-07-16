@@ -1,4 +1,16 @@
 {
+  "divelogs_signIn_title": "Sign in to divelogs.de",
+  "divelogs_signIn_username": "Username",
+  "divelogs_signIn_password": "Password",
+  "divelogs_signIn_diver": "Import into diver",
+  "divelogs_signIn_connect": "Connect",
+  "divelogs_fetch_inProgress": "Fetching dives from divelogs.de...",
+  "divelogs_fetch_done": "Dives fetched.",
+  "divelogs_fetch_retry": "Retry",
+  "divelogs_fetch_error": "Could not fetch dives from divelogs.de.",
+  "divelogs_fetch_wrongDiver": "This divelogs.de account is linked to a different diver profile. Switch divers to import.",
+  "transfer_import_divelogs_title": "Import from divelogs.de",
+  "transfer_import_divelogs_subtitle": "Pull your logbook from your divelogs.de account",
   "diveLog_edit_geofenceSuggestion_near": "Near {location}",
   "@diveLog_edit_geofenceSuggestion_near": {
     "placeholders": { "location": { "type": "String" } }

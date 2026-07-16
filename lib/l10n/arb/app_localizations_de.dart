@@ -9,6 +9,46 @@ class AppLocalizationsDe extends AppLocalizations {
   AppLocalizationsDe([String locale = 'de']) : super(locale);
 
   @override
+  String get divelogs_signIn_title => 'Bei divelogs.de anmelden';
+
+  @override
+  String get divelogs_signIn_username => 'Benutzername';
+
+  @override
+  String get divelogs_signIn_password => 'Passwort';
+
+  @override
+  String get divelogs_signIn_diver => 'In Taucherprofil importieren';
+
+  @override
+  String get divelogs_signIn_connect => 'Verbinden';
+
+  @override
+  String get divelogs_fetch_inProgress =>
+      'Tauchgänge werden von divelogs.de geladen...';
+
+  @override
+  String get divelogs_fetch_done => 'Tauchgänge geladen.';
+
+  @override
+  String get divelogs_fetch_retry => 'Erneut versuchen';
+
+  @override
+  String get divelogs_fetch_error =>
+      'Tauchgänge konnten nicht von divelogs.de geladen werden.';
+
+  @override
+  String get divelogs_fetch_wrongDiver =>
+      'Dieses divelogs.de-Konto ist mit einem anderen Taucherprofil verknüpft. Wechseln Sie das Taucherprofil, um zu importieren.';
+
+  @override
+  String get transfer_import_divelogs_title => 'Von divelogs.de importieren';
+
+  @override
+  String get transfer_import_divelogs_subtitle =>
+      'Logbuch aus Ihrem divelogs.de-Konto laden';
+
+  @override
   String diveLog_edit_geofenceSuggestion_near(String location) {
     return 'In der Nähe von $location';
   }

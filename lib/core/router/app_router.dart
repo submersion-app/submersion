@@ -133,6 +133,7 @@ import 'package:submersion/features/dashboard/presentation/pages/dashboard_page.
 import 'package:submersion/features/planner/presentation/pages/plan_canvas_page.dart';
 import 'package:submersion/features/planner/presentation/pages/plan_compare_page.dart';
 import 'package:submersion/features/surface_interval_tool/presentation/pages/surface_interval_tool_page.dart';
+import 'package:submersion/features/import_wizard/data/adapters/divelogs_adapter.dart';
 import 'package:submersion/features/import_wizard/data/adapters/universal_adapter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/main_scaffold.dart';
@@ -786,6 +787,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) =>
                     const _UniversalImportWizardRoute(),
               ),
+              GoRoute(
+                path: 'divelogs-import',
+                name: 'divelogsImport',
+                builder: (context, state) => const _DivelogsImportWizardRoute(),
+              ),
             ],
           ),
 
@@ -1344,6 +1350,16 @@ class _UniversalImportWizardRoute extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return UnifiedImportWizard(adapter: UniversalAdapter(ref: ref));
+  }
+}
+
+/// Wrapper that creates a [DivelogsImportAdapter] with Ref from Riverpod.
+class _DivelogsImportWizardRoute extends ConsumerWidget {
+  const _DivelogsImportWizardRoute();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return UnifiedImportWizard(adapter: DivelogsImportAdapter(ref: ref));
   }
 }
 

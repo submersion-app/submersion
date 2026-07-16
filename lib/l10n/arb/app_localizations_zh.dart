@@ -9,6 +9,43 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
+  String get divelogs_signIn_title => '登录 divelogs.de';
+
+  @override
+  String get divelogs_signIn_username => '用户名';
+
+  @override
+  String get divelogs_signIn_password => '密码';
+
+  @override
+  String get divelogs_signIn_diver => '导入到潜水员';
+
+  @override
+  String get divelogs_signIn_connect => '连接';
+
+  @override
+  String get divelogs_fetch_inProgress => '正在从 divelogs.de 获取潜水记录...';
+
+  @override
+  String get divelogs_fetch_done => '潜水记录已获取。';
+
+  @override
+  String get divelogs_fetch_retry => '重试';
+
+  @override
+  String get divelogs_fetch_error => '无法从 divelogs.de 获取潜水记录。';
+
+  @override
+  String get divelogs_fetch_wrongDiver =>
+      '此 divelogs.de 账户已关联其他潜水员档案。请切换潜水员后再导入。';
+
+  @override
+  String get transfer_import_divelogs_title => '从 divelogs.de 导入';
+
+  @override
+  String get transfer_import_divelogs_subtitle => '从您的 divelogs.de 账户拉取潜水日志';
+
+  @override
   String diveLog_edit_geofenceSuggestion_near(String location) {
     return '靠近 $location';
   }

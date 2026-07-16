@@ -116,6 +116,78 @@ abstract class AppLocalizations {
     Locale('zh'),
   ];
 
+  /// No description provided for @divelogs_signIn_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to divelogs.de'**
+  String get divelogs_signIn_title;
+
+  /// No description provided for @divelogs_signIn_username.
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get divelogs_signIn_username;
+
+  /// No description provided for @divelogs_signIn_password.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get divelogs_signIn_password;
+
+  /// No description provided for @divelogs_signIn_diver.
+  ///
+  /// In en, this message translates to:
+  /// **'Import into diver'**
+  String get divelogs_signIn_diver;
+
+  /// No description provided for @divelogs_signIn_connect.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect'**
+  String get divelogs_signIn_connect;
+
+  /// No description provided for @divelogs_fetch_inProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetching dives from divelogs.de...'**
+  String get divelogs_fetch_inProgress;
+
+  /// No description provided for @divelogs_fetch_done.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives fetched.'**
+  String get divelogs_fetch_done;
+
+  /// No description provided for @divelogs_fetch_retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get divelogs_fetch_retry;
+
+  /// No description provided for @divelogs_fetch_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not fetch dives from divelogs.de.'**
+  String get divelogs_fetch_error;
+
+  /// No description provided for @divelogs_fetch_wrongDiver.
+  ///
+  /// In en, this message translates to:
+  /// **'This divelogs.de account is linked to a different diver profile. Switch divers to import.'**
+  String get divelogs_fetch_wrongDiver;
+
+  /// No description provided for @transfer_import_divelogs_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Import from divelogs.de'**
+  String get transfer_import_divelogs_title;
+
+  /// No description provided for @transfer_import_divelogs_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pull your logbook from your divelogs.de account'**
+  String get transfer_import_divelogs_subtitle;
+
   /// No description provided for @diveLog_edit_geofenceSuggestion_near.
   ///
   /// In en, this message translates to:

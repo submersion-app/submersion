@@ -9,6 +9,46 @@ class AppLocalizationsPt extends AppLocalizations {
   AppLocalizationsPt([String locale = 'pt']) : super(locale);
 
   @override
+  String get divelogs_signIn_title => 'Iniciar sessão em divelogs.de';
+
+  @override
+  String get divelogs_signIn_username => 'Nome de usuário';
+
+  @override
+  String get divelogs_signIn_password => 'Senha';
+
+  @override
+  String get divelogs_signIn_diver => 'Importar para o mergulhador';
+
+  @override
+  String get divelogs_signIn_connect => 'Conectar';
+
+  @override
+  String get divelogs_fetch_inProgress =>
+      'Buscando mergulhos de divelogs.de...';
+
+  @override
+  String get divelogs_fetch_done => 'Mergulhos obtidos.';
+
+  @override
+  String get divelogs_fetch_retry => 'Tentar novamente';
+
+  @override
+  String get divelogs_fetch_error =>
+      'Não foi possível obter os mergulhos de divelogs.de.';
+
+  @override
+  String get divelogs_fetch_wrongDiver =>
+      'Esta conta divelogs.de está vinculada a outro perfil de mergulhador. Troque de mergulhador para importar.';
+
+  @override
+  String get transfer_import_divelogs_title => 'Importar de divelogs.de';
+
+  @override
+  String get transfer_import_divelogs_subtitle =>
+      'Busque seu livro de registro da sua conta divelogs.de';
+
+  @override
   String diveLog_edit_geofenceSuggestion_near(String location) {
     return 'Perto de $location';
   }

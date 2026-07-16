@@ -9,6 +9,44 @@ class AppLocalizationsNl extends AppLocalizations {
   AppLocalizationsNl([String locale = 'nl']) : super(locale);
 
   @override
+  String get divelogs_signIn_title => 'Aanmelden bij divelogs.de';
+
+  @override
+  String get divelogs_signIn_username => 'Gebruikersnaam';
+
+  @override
+  String get divelogs_signIn_password => 'Wachtwoord';
+
+  @override
+  String get divelogs_signIn_diver => 'Importeren naar duiker';
+
+  @override
+  String get divelogs_signIn_connect => 'Verbinden';
+
+  @override
+  String get divelogs_fetch_inProgress => 'Duiken ophalen van divelogs.de...';
+
+  @override
+  String get divelogs_fetch_done => 'Duiken opgehaald.';
+
+  @override
+  String get divelogs_fetch_retry => 'Opnieuw proberen';
+
+  @override
+  String get divelogs_fetch_error => 'Kon geen duiken ophalen van divelogs.de.';
+
+  @override
+  String get divelogs_fetch_wrongDiver =>
+      'Dit divelogs.de-account is gekoppeld aan een ander duikersprofiel. Wissel van duiker om te importeren.';
+
+  @override
+  String get transfer_import_divelogs_title => 'Importeren van divelogs.de';
+
+  @override
+  String get transfer_import_divelogs_subtitle =>
+      'Haal je logboek op uit je divelogs.de-account';
+
+  @override
   String diveLog_edit_geofenceSuggestion_near(String location) {
     return 'Bij $location';
   }

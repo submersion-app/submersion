@@ -9,6 +9,46 @@ class AppLocalizationsIt extends AppLocalizations {
   AppLocalizationsIt([String locale = 'it']) : super(locale);
 
   @override
+  String get divelogs_signIn_title => 'Accedi a divelogs.de';
+
+  @override
+  String get divelogs_signIn_username => 'Nome utente';
+
+  @override
+  String get divelogs_signIn_password => 'Password';
+
+  @override
+  String get divelogs_signIn_diver => 'Importa nel subacqueo';
+
+  @override
+  String get divelogs_signIn_connect => 'Connetti';
+
+  @override
+  String get divelogs_fetch_inProgress =>
+      'Recupero delle immersioni da divelogs.de...';
+
+  @override
+  String get divelogs_fetch_done => 'Immersioni recuperate.';
+
+  @override
+  String get divelogs_fetch_retry => 'Riprova';
+
+  @override
+  String get divelogs_fetch_error =>
+      'Impossibile recuperare le immersioni da divelogs.de.';
+
+  @override
+  String get divelogs_fetch_wrongDiver =>
+      'Questo account divelogs.de è collegato a un altro profilo subacqueo. Cambia subacqueo per importare.';
+
+  @override
+  String get transfer_import_divelogs_title => 'Importa da divelogs.de';
+
+  @override
+  String get transfer_import_divelogs_subtitle =>
+      'Recupera il tuo logbook dal tuo account divelogs.de';
+
+  @override
   String diveLog_edit_geofenceSuggestion_near(String location) {
     return 'Vicino a $location';
   }

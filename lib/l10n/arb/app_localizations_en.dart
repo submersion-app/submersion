@@ -9,6 +9,44 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get divelogs_signIn_title => 'Sign in to divelogs.de';
+
+  @override
+  String get divelogs_signIn_username => 'Username';
+
+  @override
+  String get divelogs_signIn_password => 'Password';
+
+  @override
+  String get divelogs_signIn_diver => 'Import into diver';
+
+  @override
+  String get divelogs_signIn_connect => 'Connect';
+
+  @override
+  String get divelogs_fetch_inProgress => 'Fetching dives from divelogs.de...';
+
+  @override
+  String get divelogs_fetch_done => 'Dives fetched.';
+
+  @override
+  String get divelogs_fetch_retry => 'Retry';
+
+  @override
+  String get divelogs_fetch_error => 'Could not fetch dives from divelogs.de.';
+
+  @override
+  String get divelogs_fetch_wrongDiver =>
+      'This divelogs.de account is linked to a different diver profile. Switch divers to import.';
+
+  @override
+  String get transfer_import_divelogs_title => 'Import from divelogs.de';
+
+  @override
+  String get transfer_import_divelogs_subtitle =>
+      'Pull your logbook from your divelogs.de account';
+
+  @override
   String diveLog_edit_geofenceSuggestion_near(String location) {
     return 'Near $location';
   }

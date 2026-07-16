@@ -9,6 +9,46 @@ class AppLocalizationsHu extends AppLocalizations {
   AppLocalizationsHu([String locale = 'hu']) : super(locale);
 
   @override
+  String get divelogs_signIn_title => 'Bejelentkezés a divelogs.de-re';
+
+  @override
+  String get divelogs_signIn_username => 'Felhasználónév';
+
+  @override
+  String get divelogs_signIn_password => 'Jelszó';
+
+  @override
+  String get divelogs_signIn_diver => 'Importálás ebbe a búvárprofilba';
+
+  @override
+  String get divelogs_signIn_connect => 'Csatlakozás';
+
+  @override
+  String get divelogs_fetch_inProgress =>
+      'Merülések letöltése a divelogs.de-ről...';
+
+  @override
+  String get divelogs_fetch_done => 'Merülések letöltve.';
+
+  @override
+  String get divelogs_fetch_retry => 'Újra';
+
+  @override
+  String get divelogs_fetch_error =>
+      'Nem sikerült letölteni a merüléseket a divelogs.de-ről.';
+
+  @override
+  String get divelogs_fetch_wrongDiver =>
+      'Ez a divelogs.de-fiók másik búvárprofilhoz van kötve. Válts búvárprofilt az importáláshoz.';
+
+  @override
+  String get transfer_import_divelogs_title => 'Importálás a divelogs.de-ről';
+
+  @override
+  String get transfer_import_divelogs_subtitle =>
+      'Töltsd le a naplódat a divelogs.de-fiókodból';
+
+  @override
   String diveLog_edit_geofenceSuggestion_near(String location) {
     return '$location közelében';
   }

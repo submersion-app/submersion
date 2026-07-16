@@ -14,6 +14,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/import_wizard/data/adapters/divelogs_adapter.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/divelogs_fetch_step.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -51,6 +52,8 @@ void main() {
     ],
     child: const MaterialApp(
       themeAnimationDuration: Duration.zero,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(body: DivelogsFetchStep()),
     ),
   );

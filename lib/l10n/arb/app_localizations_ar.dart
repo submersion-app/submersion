@@ -9,6 +9,44 @@ class AppLocalizationsAr extends AppLocalizations {
   AppLocalizationsAr([String locale = 'ar']) : super(locale);
 
   @override
+  String get divelogs_signIn_title => 'تسجيل الدخول إلى divelogs.de';
+
+  @override
+  String get divelogs_signIn_username => 'اسم المستخدم';
+
+  @override
+  String get divelogs_signIn_password => 'كلمة المرور';
+
+  @override
+  String get divelogs_signIn_diver => 'الاستيراد إلى الغواص';
+
+  @override
+  String get divelogs_signIn_connect => 'اتصال';
+
+  @override
+  String get divelogs_fetch_inProgress => 'جارٍ جلب الغطسات من divelogs.de...';
+
+  @override
+  String get divelogs_fetch_done => 'تم جلب الغطسات.';
+
+  @override
+  String get divelogs_fetch_retry => 'إعادة المحاولة';
+
+  @override
+  String get divelogs_fetch_error => 'تعذر جلب الغطسات من divelogs.de.';
+
+  @override
+  String get divelogs_fetch_wrongDiver =>
+      'حساب divelogs.de هذا مرتبط بملف غواص آخر. بدّل الغواص للاستيراد.';
+
+  @override
+  String get transfer_import_divelogs_title => 'استيراد من divelogs.de';
+
+  @override
+  String get transfer_import_divelogs_subtitle =>
+      'اجلب سجل غطساتك من حسابك على divelogs.de';
+
+  @override
   String diveLog_edit_geofenceSuggestion_near(String location) {
     return 'بالقرب من $location';
   }

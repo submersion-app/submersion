@@ -12,6 +12,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/import_wizard/data/adapters/divelogs_adapter.dart';
 import 'package:submersion/features/universal_import/data/services/divelogs_import_service.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 enum _StepPhase { loading, signIn, fetching, wrongDiver, error, done }
 
@@ -174,11 +175,13 @@ class _DivelogsFetchStepState extends ConsumerState<DivelogsFetchStep> {
       _StepPhase.loading => const Center(child: CircularProgressIndicator()),
       _StepPhase.signIn => _buildSignInForm(context),
       _StepPhase.fetching => _buildProgress(context),
-      _StepPhase.done => _buildMessage(context, 'Dives fetched.'),
+      _StepPhase.done => _buildMessage(
+        context,
+        context.l10n.divelogs_fetch_done,
+      ),
       _StepPhase.wrongDiver => _buildMessage(
         context,
-        'This divelogs.de account is linked to a different diver profile. '
-        'Switch divers to import.',
+        context.l10n.divelogs_fetch_wrongDiver,
       ),
       _StepPhase.error => _buildError(context),
     };
@@ -192,20 +195,24 @@ class _DivelogsFetchStepState extends ConsumerState<DivelogsFetchStep> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Sign in to divelogs.de',
+            context.l10n.divelogs_signIn_title,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 16),
           TextField(
             controller: _usernameController,
-            decoration: const InputDecoration(labelText: 'Username'),
+            decoration: InputDecoration(
+              labelText: context.l10n.divelogs_signIn_username,
+            ),
             autocorrect: false,
             enabled: !_connecting,
           ),
           const SizedBox(height: 12),
           TextField(
             controller: _passwordController,
-            decoration: const InputDecoration(labelText: 'Password'),
+            decoration: InputDecoration(
+              labelText: context.l10n.divelogs_signIn_password,
+            ),
             obscureText: true,
             enabled: !_connecting,
             onSubmitted: (_) => _connect(),
@@ -214,7 +221,9 @@ class _DivelogsFetchStepState extends ConsumerState<DivelogsFetchStep> {
           divers.when(
             data: (list) => DropdownButtonFormField<String>(
               initialValue: _selectedDiverId,
-              decoration: const InputDecoration(labelText: 'Import into diver'),
+              decoration: InputDecoration(
+                labelText: context.l10n.divelogs_signIn_diver,
+              ),
               items: [
                 for (final diver in list)
                   DropdownMenuItem(value: diver.id, child: Text(diver.name)),
@@ -242,7 +251,7 @@ class _DivelogsFetchStepState extends ConsumerState<DivelogsFetchStep> {
                     height: 18,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Text('Connect'),
+                : Text(context.l10n.divelogs_signIn_connect),
           ),
         ],
       ),
@@ -250,13 +259,13 @@ class _DivelogsFetchStepState extends ConsumerState<DivelogsFetchStep> {
   }
 
   Widget _buildProgress(BuildContext context) {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          CircularProgressIndicator(),
-          SizedBox(height: 16),
-          Text('Fetching dives from divelogs.de...'),
+          const CircularProgressIndicator(),
+          const SizedBox(height: 16),
+          Text(context.l10n.divelogs_fetch_inProgress),
         ],
       ),
     );
@@ -279,7 +288,7 @@ class _DivelogsFetchStepState extends ConsumerState<DivelogsFetchStep> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              _errorMessage ?? 'Could not fetch dives from divelogs.de.',
+              _errorMessage ?? context.l10n.divelogs_fetch_error,
               textAlign: TextAlign.center,
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
@@ -293,7 +302,7 @@ class _DivelogsFetchStepState extends ConsumerState<DivelogsFetchStep> {
                   setState(() => _phase = _StepPhase.signIn);
                 }
               },
-              child: const Text('Retry'),
+              child: Text(context.l10n.divelogs_fetch_retry),
             ),
           ],
         ),
