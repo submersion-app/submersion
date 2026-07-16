@@ -7,12 +7,13 @@ import 'package:submersion/features/import_wizard/domain/models/import_bundle.da
 void main() {
   group('ImportSourceType', () {
     test('has all expected values', () {
-      expect(ImportSourceType.values, hasLength(5));
+      expect(ImportSourceType.values, hasLength(6));
       expect(ImportSourceType.values, contains(ImportSourceType.uddf));
       expect(ImportSourceType.values, contains(ImportSourceType.fit));
       expect(ImportSourceType.values, contains(ImportSourceType.healthKit));
       expect(ImportSourceType.values, contains(ImportSourceType.universal));
       expect(ImportSourceType.values, contains(ImportSourceType.diveComputer));
+      expect(ImportSourceType.values, contains(ImportSourceType.divelogs));
     });
   });
 
