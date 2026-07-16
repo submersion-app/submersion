@@ -105,11 +105,7 @@ class _DiveRequirementTile extends ConsumerWidget {
     final number = dive.diveNumber != null ? '#${dive.diveNumber}' : '';
     final date = DateFormat.MMMd().format(dive.dateTime);
     final site = dive.siteName;
-    return [
-      number,
-      date,
-      if (site != null) site,
-    ].where((part) => part.isNotEmpty).join(' · ');
+    return [number, date, ?site].where((part) => part.isNotEmpty).join(' · ');
   }
 
   @override
