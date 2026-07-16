@@ -79,6 +79,7 @@ class _AccountTile extends ConsumerWidget {
     AccountKind.googledrive => Icons.add_to_drive_outlined,
     AccountKind.icloud => Icons.cloud_circle_outlined,
     AccountKind.adobeLightroom => Icons.photo_library_outlined,
+    AccountKind.divelogs => Icons.travel_explore_outlined,
   };
 
   @override

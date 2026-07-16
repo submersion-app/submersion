@@ -100,6 +100,7 @@ class AccountStartupMigration {
       case AccountKind.googledrive:
       case AccountKind.icloud:
       case AccountKind.adobeLightroom:
+      case AccountKind.divelogs:
         break; // Session-managed or not a sync kind: nothing to re-key.
     }
 
@@ -189,5 +190,6 @@ class AccountStartupMigration {
     AccountKind.icloud => 'iCloud',
     AccountKind.s3 => 'S3',
     AccountKind.adobeLightroom => 'Lightroom',
+    AccountKind.divelogs => 'divelogs.de',
   };
 }

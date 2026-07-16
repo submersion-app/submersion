@@ -345,7 +345,8 @@ Future<void> _mirrorLegacyCredentials(
     // Session-managed / not a sync kind: no keychain blob to mirror.
     AccountKind.googledrive ||
     AccountKind.icloud ||
-    AccountKind.adobeLightroom => null,
+    AccountKind.adobeLightroom ||
+    AccountKind.divelogs => null,
   };
   if (legacyKey == null) return;
   await ref
