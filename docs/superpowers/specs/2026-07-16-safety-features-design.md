@@ -70,16 +70,24 @@ plain-language description, profile time range (startTs/endTs), numeric value
 | High surface GF | `DecoStatus.gf99` at surfacing | above diver's configured GF-high = info |
 
 The sawtooth detector is the only genuinely new algorithm; everything else is a
-thin classification over data the replay already produces. Rules deduplicate
-against computer-reported events (reuse the `mergeEvents()` dedup approach in
-`profile_event_mapper.dart`).
+thin classification over data the replay already produces. The safety review
+section displays engine findings only; computer-reported violation events keep
+appearing on the profile chart as today, so no cross-source dedup is needed.
 
 ### Storage
 
-New table `dive_safety_findings`: id, diveId, sourceId, type, severity,
-startTs/endTs, value, engineVersion, dismissedAt, plus standard HLC/sync
-columns. Findings are computed at import and on profile edit/re-import (where
-`ProfileAnalysis` is already produced), so list badges never require a replay.
+Two new child-of-dive tables: `dive_safety_reviews` (diveId PK, engineVersion,
+reviewedAt — the "analyzed" marker, so clean dives are distinguishable from
+never-analyzed dives without a replay) and `dive_safety_findings` (id, diveId,
+ruleId, severity, startTimestamp/endTimestamp, value, engineVersion,
+dismissedAt, createdAt). Both follow the write-once child-table sync
+conventions (`DiveProfileEvents` pattern: no HLC columns; `markRecordPending`
+on writes, per-row `logDeletion` on deletes). Reviews run against the dive's
+active/merged profile, so no per-source column is needed. Findings are
+computed lazily when a dive is viewed (compute-through-cache) and invalidated
+at the profile-write choke points (`importProfile` replace path,
+`saveEditedProfile`); a settings action backfills all dives on demand, so list
+badges never require a replay.
 `engineVersion` allows honest re-grading of history when rules improve: bump
 the version, recompute lazily, never silently change what a finding said.
 
@@ -201,8 +209,10 @@ shared/printable logbook output.)
   of this writing: main is at v112, PR #600 renumbers to v113, v114 is claimed
   by the equipment-attributes spec → phase 1 starts at **v115**; re-verify the
   ladder when each phase lands.
-- All new tables follow existing conventions: HLC columns for synced entities,
-  idempotent `createTable` in `onUpgrade`, `beforeOpen` backstop.
+- All new tables follow existing conventions: HLC columns for parent/aggregate
+  entities, write-once child conventions (no HLC; `markRecordPending` +
+  per-row `logDeletion`) for children of dives, idempotent `createTable` in
+  `onUpgrade`, `beforeOpen` backstop.
 - `dive_safety_findings`: derived but synced (cheap, avoids recompute on every
   device).
 - `incidents` and chamber overrides: user data — synced and in backups.
