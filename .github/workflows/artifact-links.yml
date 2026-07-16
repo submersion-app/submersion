@@ -1,0 +1,138 @@
+name: PR artifact links
+
+on:
+  workflow_run:
+    workflows: ["CI/CD"]
+    types: [completed]
+
+permissions:
+  contents: read
+
+jobs:
+  artifact-links:
+    name: Post artifact links to PR
+    runs-on: ubuntu-latest
+    # PR runs only; a run cancelled by cancel-in-progress leaves the last-good
+    # comment untouched (the newer run will update it).
+    if: >
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion != 'cancelled'
+    permissions:
+      contents: read
+      pull-requests: write
+      actions: read
+    steps:
+      # First-party download of the pr-number artifact from the CI run onto disk.
+      # github-script has no bundled unzip, so we do not decode the artifact zip
+      # inline. continue-on-error so a CI run that died before emitting pr-number
+      # does not fail this workflow.
+      - name: Download pr-number artifact
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: pr-number
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+          path: ./pr-meta
+
+      - name: Upsert artifact-links comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const run = context.payload.workflow_run;
+            const { owner, repo } = context.repo;
+
+            // 1. Resolve the PR number from the downloaded artifact.
+            const prPath = './pr-meta/pr-number.txt';
+            if (!fs.existsSync(prPath)) {
+              core.info('No pr-number artifact; nothing to comment on.');
+              return;
+            }
+            const prNumber = parseInt(fs.readFileSync(prPath, 'utf8').trim(), 10);
+            if (!Number.isInteger(prNumber)) {
+              core.info('pr-number artifact did not contain a valid integer.');
+              return;
+            }
+
+            // 2. Platform -> job name + artifact name + display label.
+            const PLATFORMS = [
+              { label: 'Android (APK)', job: 'Build Android', artifact: 'android-apk' },
+              { label: 'macOS',         job: 'Build macOS',   artifact: 'macos-build' },
+              { label: 'Windows',       job: 'Build Windows', artifact: 'windows-build' },
+              { label: 'Linux',         job: 'Build Linux',   artifact: 'linux-build' },
+            ];
+
+            // 3. List this run's artifacts and jobs.
+            const artifacts = await github.paginate(
+              github.rest.actions.listWorkflowRunArtifacts,
+              { owner, repo, run_id: run.id, per_page: 100 },
+            );
+            const artifactByName = new Map(artifacts.map(a => [a.name, a]));
+
+            const jobs = await github.paginate(
+              github.rest.actions.listJobsForWorkflowRun,
+              { owner, repo, run_id: run.id, per_page: 100 },
+            );
+            const jobByName = new Map(jobs.map(j => [j.name, j]));
+
+            // 4. Render one row per platform.
+            const runUrl = `https://github.com/${owner}/${repo}/actions/runs/${run.id}`;
+            const rows = PLATFORMS.map(p => {
+              const artifact = artifactByName.get(p.artifact);
+              const job = jobByName.get(p.job);
+              let cell;
+              if (artifact) {
+                cell = `[${p.artifact}](${runUrl}/artifacts/${artifact.id})`;
+              } else if (job && job.conclusion === 'failure') {
+                cell = `❌ [build failed](${job.html_url})`;
+              } else if (job && (job.conclusion === 'cancelled' || job.conclusion === 'skipped')) {
+                cell = '⚠️ skipped';
+              } else {
+                cell = '⚠️ unavailable';
+              }
+              return `| ${p.label} | ${cell} |`;
+            }).join('\n');
+
+            // Skip entirely if there is nothing useful to report.
+            const anyArtifact = PLATFORMS.some(p => artifactByName.has(p.artifact));
+            const anyFailure = PLATFORMS.some(p => {
+              const j = jobByName.get(p.job);
+              return j && j.conclusion === 'failure';
+            });
+            if (!anyArtifact && !anyFailure) {
+              core.info('No build artifacts and no build failures; skipping comment.');
+              return;
+            }
+
+            // 5. Build the comment body with the hidden sticky marker.
+            const MARKER = '<!-- submersion-artifact-links -->';
+            const shortSha = run.head_sha.substring(0, 7);
+            const body = [
+              `**📦 Build artifacts for this PR** · commit \`${shortSha}\``,
+              '',
+              '| Platform | Download |',
+              '| --- | --- |',
+              rows,
+              '',
+              'Artifacts expire in 7 days. Downloading requires being signed in to GitHub. ' +
+              'The macOS build is ad-hoc signed — right-click → Open on first launch.',
+              '',
+              '<sub>Updated automatically on each push.</sub>',
+              '',
+              MARKER,
+            ].join('\n');
+
+            // 6. Upsert: update the existing marked comment, else create one.
+            const comments = await github.paginate(
+              github.rest.issues.listComments,
+              { owner, repo, issue_number: prNumber, per_page: 100 },
+            );
+            const existing = comments.find(c => c.body && c.body.includes(MARKER));
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+              core.info(`Updated comment ${existing.id} on PR #${prNumber}.`);
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number: prNumber, body });
+              core.info(`Created comment on PR #${prNumber}.`);
+            }
