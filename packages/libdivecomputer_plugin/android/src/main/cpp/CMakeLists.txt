@@ -62,7 +62,7 @@ set(LIBDC_SOURCES
     ${LIBDC_DIR}/src/ihex.c
     ${LIBDC_DIR}/src/hw_ostc.c
     ${LIBDC_DIR}/src/hw_ostc_parser.c
-    ${LIBDC_DIR}/src/hw_frog.c
+    # hw_frog.c was merged into hw_ostc3.c upstream (frog/ostc3 integration).
     ${LIBDC_DIR}/src/hw_ostc3.c
     ${LIBDC_DIR}/src/aes.c
     ${LIBDC_DIR}/src/cressi_edy.c
