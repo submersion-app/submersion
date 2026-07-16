@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
 import 'package:submersion/core/services/accounts/account_credentials_store.dart';
 import 'package:submersion/core/services/accounts/account_provider_registry.dart';
+import 'package:submersion/core/services/accounts/adapters/divelogs_account_adapter.dart';
 import 'package:submersion/core/services/accounts/adapters/dropbox_account_adapter.dart';
 import 'package:submersion/core/services/accounts/adapters/google_drive_account_adapter.dart';
 import 'package:submersion/core/services/accounts/adapters/icloud_account_adapter.dart';
@@ -35,5 +36,8 @@ final accountProviderRegistryProvider = Provider<AccountProviderRegistry>(
     GoogleDriveAccountAdapter(),
     ICloudAccountAdapter(),
     LightroomAccountAdapter(),
+    DivelogsAccountAdapter(
+      credentials: ref.watch(accountCredentialsStoreProvider),
+    ),
   ]),
 );

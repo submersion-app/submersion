@@ -6,14 +6,14 @@
 library;
 
 double? _asDouble(Object? v) => switch (v) {
-  num n => n.toDouble(),
-  String s => double.tryParse(s),
+  final num n => n.toDouble(),
+  final String s => double.tryParse(s),
   _ => null,
 };
 
 int? _asInt(Object? v) => switch (v) {
-  num n => n.toInt(),
-  String s => int.tryParse(s),
+  final num n => n.toInt(),
+  final String s => int.tryParse(s),
   _ => null,
 };
 
