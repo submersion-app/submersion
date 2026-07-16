@@ -72,6 +72,9 @@ add_executable(test_hw_ostc3_read
     ${LIBDC_DIR}/src/packet.c
     ${LIBDC_DIR}/src/common.c
     ${LIBDC_DIR}/src/platform.c
+    # ringbuffer.c: hw_ostc3.c gained a ringbuffer_distance() dependency in the
+    # upstream frog/ostc3 integration merged for Perdix 3 V2 support.
+    ${LIBDC_DIR}/src/ringbuffer.c
 )
 target_include_directories(test_hw_ostc3_read PRIVATE
     ${WRAPPER_DIR}

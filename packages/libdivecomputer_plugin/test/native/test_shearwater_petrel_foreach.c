@@ -132,10 +132,12 @@ static void set_record(int page, int slot, int deleted, unsigned char id) {
 
 dc_status_t shearwater_common_setup(shearwater_common_device_t *device,
                                     dc_context_t *context,
-                                    dc_iostream_t *iostream) {
+                                    dc_iostream_t *iostream,
+                                    unsigned int model) {
   (void)device;
   (void)context;
   (void)iostream;
+  (void)model;
   return DC_STATUS_SUCCESS;
 }
 

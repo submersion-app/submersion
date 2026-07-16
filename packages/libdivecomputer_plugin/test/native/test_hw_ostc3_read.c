@@ -30,6 +30,13 @@
 
 #include "hw_ostc3.c"  // for the static hw_ostc3_read + hw_ostc3_device_t
 
+// hw_ostc3.c replaced its HDR_FULL_* offset macros with a struct-based layout
+// table (upstream frog/ostc3 integration). build_dive() below still constructs
+// a "full" DIVE header, whose pointer field remains at byte offset 2 (see the
+// full-header layout entry, pointers = 2). Define the offset locally now that
+// the driver no longer exposes it as a macro.
+#define HDR_FULL_POINTERS 2
+
 #include "ostc_nano_dive_394.h"  // real OSTC nano DIVE capture from issue #394
 
 // Stubs for the device-private symbols that the #included hw_ostc3.c

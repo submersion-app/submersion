@@ -85,7 +85,7 @@ SOURCES=(
     mares_iconhd.c mares_iconhd_parser.c
     ihex.c
     hw_ostc.c hw_ostc_parser.c
-    hw_frog.c
+    # hw_frog.c was merged into hw_ostc3.c upstream (frog/ostc3 integration).
     hw_ostc3.c
     aes.c
     cressi_edy.c cressi_edy_parser.c

@@ -1,33 +1,34 @@
 diff --git a/src/shearwater_predator_parser.c b/src/shearwater_predator_parser.c
-index 80de939..1a0469f 100644
+index f0bd891..81f6826 100644
 --- a/src/shearwater_predator_parser.c
 +++ b/src/shearwater_predator_parser.c
-@@ -880,18 +880,24 @@ shearwater_predator_parser_get_field (dc_parser_t *abstract, dc_field_type_t typ
+@@ -883,6 +883,30 @@ shearwater_predator_parser_get_field (dc_parser_t *abstract, dc_field_type_t typ
  				return DC_STATUS_DATAFORMAT;
  			}
  			break;
--		case DC_FIELD_LOCATION:
--			if (parser->opening[9] == UNDEFINED || parser->logversion < 17)
 +		case DC_FIELD_LOCATION: {
 +			// flags: 0 = entry (opening record 9), 1 = exit (closing record 9).
-+			// Submersion patch (Swift GPS exit) layered on top of upstream's
-+			// GNSS-status detection. See
++			// Submersion patch (Swift GPS exit): the app reads entry/exit GPS as
++			// scalar dive-row fields via dc_parser_get_field(..., DC_FIELD_LOCATION,
++			// 0/1) in libdc_download.c. Upstream replaced this static field with
++			// DC_SAMPLE_LOCATION samples (emitted in samples_foreach below); we
++			// re-layer the field API on top so both remain available. Locals are
++			// declared in-block because upstream removed the function-scope
++			// declarations along with the original case. See
 +			// packages/libdivecomputer_plugin/patches/0001-shearwater-swift-exit-gps.patch.
++			dc_location_t *location = (dc_location_t *) value;
 +			unsigned int gps_rec = (flags == 1) ? parser->closing[9] : parser->opening[9];
 +			if (gps_rec == UNDEFINED || parser->logversion < 17)
- 				return DC_STATUS_UNSUPPORTED;
--			gnss = data[parser->opening[9] + 16];
--			latitude  = (signed int) array_uint32_be (data + parser->opening[9] + 21);
--			longitude = (signed int) array_uint32_be (data + parser->opening[9] + 25);
-+			gnss = data[gps_rec + 16];
-+			latitude  = (signed int) array_uint32_be (data + gps_rec + 21);
-+			longitude = (signed int) array_uint32_be (data + gps_rec + 25);
- 			if (gnss != GNSS_FIX_2D && gnss != GNSS_FIX_3D)
- 				return DC_STATUS_UNSUPPORTED;
- 			location->latitude  = latitude  / 100000.0;
- 			location->longitude = longitude / 100000.0;
- 			location->altitude  = 0.0;
- 			break;
++				return DC_STATUS_UNSUPPORTED;
++			unsigned int gnss = data[gps_rec + 16];
++			int latitude  = (signed int) array_uint32_be (data + gps_rec + 21);
++			int longitude = (signed int) array_uint32_be (data + gps_rec + 25);
++			if (gnss != GNSS_FIX_2D && gnss != GNSS_FIX_3D)
++				return DC_STATUS_UNSUPPORTED;
++			location->latitude  = latitude  / 100000.0;
++			location->longitude = longitude / 100000.0;
++			location->altitude  = 0.0;
++			break;
 +		}
  		default:
  			return DC_STATUS_UNSUPPORTED;
