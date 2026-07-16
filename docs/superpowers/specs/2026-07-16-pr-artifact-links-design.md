@@ -167,6 +167,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
+      issues: write
       actions: read
       contents: read
     # PR-only; superseded/cancelled runs leave the last-good comment untouched.
@@ -201,6 +202,10 @@ Given `const run = context.payload.workflow_run;`
    - Read `./pr-meta/pr-number.txt` (downloaded by the prior step) with
      `fs.readFileSync` and parse the integer. If the file is missing (the
      download step was skipped/failed), exit quietly — nothing to comment on.
+   - **Verify the PR belongs to this run.** The `pr-number` artifact is produced
+     by the untrusted PR run, so a fork could forge a different number to make
+     this trusted job comment on an unrelated PR. Fetch the PR (`pulls.get`) and
+     confirm `pr.head.sha === run.head_sha`; otherwise exit without commenting.
 2. **Gather per-platform status.**
    - `actions.listJobsForWorkflowRun(run.id)` → map job `name` → `{conclusion,
      html_url}` for `Build Android`, `Build macOS`, `Build Windows`,
@@ -218,8 +223,9 @@ Given `const run = context.payload.workflow_run;`
 
 4. **Upsert the sticky comment.**
    - Marker: `<!-- submersion-artifact-links -->` (hidden HTML comment).
-   - `issues.listComments(pr)` → find the comment authored by the bot whose body
-     contains the marker.
+   - `issues.listComments(pr)` → find the comment **authored by
+     `github-actions[bot]`** whose body contains the marker (author-restricted so
+     a human quoting the marker cannot be overwritten).
    - If found → `issues.updateComment`; else → `issues.createComment`.
 
 ### Rendered comment (approximate)
@@ -268,7 +274,15 @@ new URLs, so the whole comment body must be regenerated to keep the links live.
   context, which uses the base repo's trusted token and never checks out or
   executes PR code.
 - **Least privilege:** the `workflow_run` job requests only
-  `pull-requests: write`, `actions: read`, `contents: read`.
+  `pull-requests: write`, `issues: write`, `actions: read`, `contents: read`.
+  (`issues: write` is included because PR comments go through the issues-comment
+  API; it prevents a 403 on this post-merge-only path.)
+- **PR-target binding:** before commenting, the job fetches the PR and requires
+  `pr.head.sha === run.head_sha`. This defeats a forged `pr-number` from an
+  untrusted PR run trying to redirect the comment to an unrelated PR.
+- **Author-restricted upsert:** only a comment authored by `github-actions[bot]`
+  and carrying the marker is updated, so a human comment quoting the marker is
+  never overwritten.
 - **First-party only:** commenting uses `actions/github-script@v7` (GitHub-
   maintained) — no third-party action in the write-capable context. This matches
   the repo convention of referencing actions by version tag and satisfies the

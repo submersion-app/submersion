@@ -20,6 +20,10 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
+      # issues: write — PR conversation comments go through the issues-comment
+      # API; pull-requests: write covers PR targets, but issues: write guarantees
+      # no 403 on this post-merge-only path.
+      issues: write
       actions: read
     steps:
       # First-party download of the pr-number artifact from the CI run onto disk.
@@ -52,6 +56,26 @@ jobs:
             const prNumber = parseInt(fs.readFileSync(prPath, 'utf8').trim(), 10);
             if (!Number.isInteger(prNumber)) {
               core.info('pr-number artifact did not contain a valid integer.');
+              return;
+            }
+
+            // 1b. Verify the PR corresponds to this run. The pr-number artifact
+            // is produced by the untrusted PR run, so a malicious PR could forge
+            // a different number to make this trusted job comment on an unrelated
+            // PR. Confirm the PR's head SHA matches the run's before trusting it.
+            let pr;
+            try {
+              pr = await github.rest.pulls.get({ owner, repo, pull_number: prNumber });
+            } catch (e) {
+              core.info(`Could not fetch PR #${prNumber}: ${e.message}`);
+              return;
+            }
+            if (pr.data.head.sha !== run.head_sha) {
+              core.info(
+                `PR #${prNumber} head ${pr.data.head.sha} does not match run head ` +
+                `${run.head_sha}; refusing to comment (forged pr-number or ` +
+                `superseded run).`,
+              );
               return;
             }
 
@@ -136,7 +160,12 @@ jobs:
               github.rest.issues.listComments,
               { owner, repo, issue_number: prNumber, per_page: 100 },
             );
-            const existing = comments.find(c => c.body && c.body.includes(MARKER));
+            // Match only our own bot's marked comment so a human quoting the
+            // marker can never be overwritten.
+            const existing = comments.find(c =>
+              c.user && c.user.login === 'github-actions[bot]' &&
+              c.body && c.body.includes(MARKER),
+            );
             if (existing) {
               await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
               core.info(`Updated comment ${existing.id} on PR #${prNumber}.`);
