@@ -205,7 +205,9 @@ Given `const run = context.payload.workflow_run;`
    - **Verify the PR belongs to this run.** The `pr-number` artifact is produced
      by the untrusted PR run, so a fork could forge a different number to make
      this trusted job comment on an unrelated PR. Fetch the PR (`pulls.get`) and
-     confirm `pr.head.sha === run.head_sha`; otherwise exit without commenting.
+     confirm `run.head_sha` matches `pr.head.sha` **or** `pr.merge_commit_sha`
+     (accepting either avoids refusing legitimate runs where the run SHA is the
+     test-merge commit); otherwise exit without commenting.
 2. **Gather per-platform status.**
    - `actions.listJobsForWorkflowRun(run.id)` → map job `name` → `{conclusion,
      html_url}` for `Build Android`, `Build macOS`, `Build Windows`,
@@ -278,8 +280,11 @@ new URLs, so the whole comment body must be regenerated to keep the links live.
   (`issues: write` is included because PR comments go through the issues-comment
   API; it prevents a 403 on this post-merge-only path.)
 - **PR-target binding:** before commenting, the job fetches the PR and requires
-  `pr.head.sha === run.head_sha`. This defeats a forged `pr-number` from an
-  untrusted PR run trying to redirect the comment to an unrelated PR.
+  `run.head_sha` to equal `pr.head.sha` or `pr.merge_commit_sha`. This defeats a
+  forged `pr-number` from an untrusted PR run trying to redirect the comment to
+  an unrelated PR (an attacker cannot make their run's SHA equal an unrelated
+  PR's head or merge SHA), while accepting the test-merge SHA that some
+  `pull_request` runs report.
 - **Author-restricted upsert:** only a comment authored by `github-actions[bot]`
   and carrying the marker is updated, so a human comment quoting the marker is
   never overwritten.

@@ -210,11 +210,15 @@ jobs:
               core.info(`Could not fetch PR #${prNumber}: ${e.message}`);
               return;
             }
-            if (pr.data.head.sha !== run.head_sha) {
+            // Accept head.sha OR merge_commit_sha: pull_request runs may report
+            // the test-merge commit as run.head_sha, and refusing those would
+            // suppress the comment on every legitimate run.
+            const runSha = run.head_sha;
+            if (runSha !== pr.data.head.sha && runSha !== pr.data.merge_commit_sha) {
               core.info(
-                `PR #${prNumber} head ${pr.data.head.sha} does not match run head ` +
-                `${run.head_sha}; refusing to comment (forged pr-number or ` +
-                `superseded run).`,
+                `PR #${prNumber} (head ${pr.data.head.sha}, merge ` +
+                `${pr.data.merge_commit_sha}) does not match run head ${runSha}; ` +
+                `refusing to comment (forged pr-number or superseded run).`,
               );
               return;
             }
@@ -244,7 +248,8 @@ jobs:
             const jobByName = new Map(jobsResp.data.jobs.map(j => [j.name, j]));
 
             // 4. Render one row per platform.
-            const runUrl = `https://github.com/${owner}/${repo}/actions/runs/${run.id}`;
+            const serverUrl = process.env.GITHUB_SERVER_URL || 'https://github.com';
+            const runUrl = `${serverUrl}/${owner}/${repo}/actions/runs/${run.id}`;
             const rows = PLATFORMS.map(p => {
               const artifact = artifactByName.get(p.artifact);
               const job = jobByName.get(p.job);
