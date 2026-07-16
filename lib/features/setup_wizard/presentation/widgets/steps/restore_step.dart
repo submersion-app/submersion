@@ -6,9 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
+import 'package:submersion/features/backup/domain/exceptions/backup_encrypted_exception.dart';
 import 'package:submersion/features/backup/presentation/pages/restore_complete_page.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/backup/presentation/widgets/restore_confirmation_dialog.dart';
+import 'package:submersion/features/settings/presentation/widgets/encryption_passphrase_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A chosen backup file: its absolute path and display name.
@@ -62,10 +64,26 @@ class RestoreStep extends ConsumerWidget {
       record,
       currentSchemaVersion: AppDatabase.currentSchemaVersion,
     );
-    if (mode != null) {
+    if (mode == null) return;
+
+    final path = picked.path;
+    try {
       await ref
           .read(backupOperationProvider.notifier)
-          .restoreFromFilePath(picked.path, mode: mode);
+          .restoreFromFilePath(path, mode: mode);
+    } on BackupEncryptedException {
+      // Encrypted (.sbe) backups need a passphrase or recovery code. Without
+      // this the exception escaped as an unhandled async error and the restore
+      // silently did nothing. Prompt, then retry with the secret.
+      if (!context.mounted) return;
+      await showEncryptionPassphraseDialog(
+        context,
+        title: context.l10n.settings_backupEncryption_restoreUnlockTitle,
+        hint: context.l10n.settings_backupEncryption_restoreUnlockHint,
+        onSubmit: (secret) => ref
+            .read(backupOperationProvider.notifier)
+            .restoreFromFilePath(path, mode: mode, encryptionSecret: secret),
+      );
     }
   }
 

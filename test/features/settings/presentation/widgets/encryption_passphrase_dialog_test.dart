@@ -51,6 +51,51 @@ void main() {
       expect(results.single, 'my secret');
     });
 
+    testWidgets(
+      'success navigation that clears the stack does not over-pop the navigator',
+      (tester) async {
+        // Reproduces the encrypted-restore crash: on a successful restore the
+        // page listener runs RestoreCompletePage.show(), which does
+        // pushAndRemoveUntil(..., (_) => false) -- wiping every route including
+        // this dialog and leaving exactly one route. The dialog's own success
+        // pop then removed that last route, emptying the navigator history and
+        // tripping `NavigatorState.build`'s `_history.isNotEmpty` assertion.
+        await tester.pumpWidget(
+          testApp(
+            child: Builder(
+              builder: (context) => TextButton(
+                onPressed: () => showEncryptionPassphraseDialog(
+                  context,
+                  title: 'Enter key',
+                  onSubmit: (_) async {
+                    Navigator.of(
+                      context,
+                      rootNavigator: true,
+                    ).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                        builder: (_) => const Scaffold(body: Text('restored')),
+                      ),
+                      (_) => false,
+                    );
+                  },
+                ),
+                child: const Text('open'),
+              ),
+            ),
+          ),
+        );
+
+        await tester.tap(find.text('open'));
+        await tester.pumpAndSettle();
+        await tester.enterText(find.byType(TextField), 'correct');
+        await tester.tap(find.widgetWithText(FilledButton, 'Unlock'));
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+        expect(find.text('restored'), findsOneWidget);
+      },
+    );
+
     testWidgets('empty input does not call onSubmit', (tester) async {
       var calls = 0;
       await pumpOpener(
