@@ -2325,6 +2325,7 @@ class AppDatabase extends _$AppDatabase {
     110,
     111,
     112,
+    115,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
