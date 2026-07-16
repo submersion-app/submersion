@@ -63,6 +63,23 @@ void main() {
     expect(hlc.data['hlc'], isNotNull, reason: 'HLC must be stamped');
   });
 
+  test('create persists and round-trips diverId', () async {
+    final created = await repo.create(
+      kind: AccountKind.divelogs,
+      label: 'divelogs.de',
+      accountIdentifier: 'rainer',
+      diverId: 'diver-1',
+    );
+    expect(created.diverId, 'diver-1');
+    final loaded = await repo.getById(created.id);
+    expect(loaded!.diverId, 'diver-1');
+  });
+
+  test('diverId defaults to null for kinds that do not bind one', () async {
+    final created = await repo.create(kind: AccountKind.s3, label: 'S3');
+    expect((await repo.getById(created.id))!.diverId, isNull);
+  });
+
   test('getAll returns newest first; getByKind filters', () async {
     await repo.create(kind: AccountKind.s3, label: 'A');
     await repo.create(kind: AccountKind.dropbox, label: 'B');

@@ -32,6 +32,7 @@ class ConnectedAccountsRepository {
     required String label,
     String? accountIdentifier,
     String? id,
+    String? diverId,
   }) async {
     final accountId = id ?? _uuid.v4();
     final now = DateTime.now().millisecondsSinceEpoch;
@@ -45,6 +46,7 @@ class ConnectedAccountsRepository {
             accountIdentifier: Value(accountIdentifier),
             createdAt: now,
             updatedAt: now,
+            diverId: Value(diverId),
           ),
         );
     await _markPending(accountId, now);
@@ -55,6 +57,7 @@ class ConnectedAccountsRepository {
       accountIdentifier: accountIdentifier,
       createdAt: DateTime.fromMillisecondsSinceEpoch(now, isUtc: true),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(now, isUtc: true),
+      diverId: diverId,
     );
   }
 
@@ -140,6 +143,7 @@ class ConnectedAccountsRepository {
         row.updatedAt,
         isUtc: true,
       ),
+      diverId: row.diverId,
     );
   }
 }
