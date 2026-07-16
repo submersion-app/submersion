@@ -335,6 +335,14 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
         fullscreenReadoutCardX: x,
         fullscreenReadoutCardY: y,
       );
+
+  @override
+  Future<void> setPerdixOverlayEnabled(bool value) async =>
+      state = state.copyWith(perdixOverlayEnabled: value);
+
+  @override
+  Future<void> setPerdixOverlayPosition(double x, double y) async =>
+      state = state.copyWith(perdixOverlayX: x, perdixOverlayY: y);
 }
 
 /// Mock CurrentDiverIdNotifier that doesn't access the database

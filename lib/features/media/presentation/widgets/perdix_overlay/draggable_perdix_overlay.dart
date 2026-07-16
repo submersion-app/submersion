@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../../../settings/presentation/providers/settings_providers.dart';
-import 'perdix_face.dart';
-import 'perdix_face_resolver.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/perdix_overlay/perdix_face.dart';
+import 'package:submersion/features/media/presentation/widgets/perdix_overlay/perdix_face_resolver.dart';
 
 /// Draggable host for [PerdixFace]. In video mode ([playback] non-null) the
 /// face re-resolves on every playback tick via an [AnimatedBuilder], so only

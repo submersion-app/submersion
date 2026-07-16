@@ -1,9 +1,9 @@
-import '../../../../dive_log/data/services/gas_usage_segments_service.dart';
-import '../../../../dive_log/data/services/profile_analysis_service.dart';
-import '../../../../dive_log/domain/entities/dive.dart';
-import '../../../../dive_log/domain/entities/gas_switch.dart';
-import '../../../../dive_log/domain/services/profile_position.dart';
-import '../../../../dive_log/presentation/widgets/instrument_tiles.dart';
+import 'package:submersion/features/dive_log/data/services/gas_usage_segments_service.dart';
+import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/domain/services/profile_position.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/instrument_tiles.dart';
 
 /// Snapshot of dive computer readings at one moment of the dive, shaped for
 /// the Perdix-style media overlay. Values are metric; formatting happens in

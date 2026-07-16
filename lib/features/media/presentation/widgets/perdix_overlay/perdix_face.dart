@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../core/constants/units.dart';
-import '../../../../../core/utils/unit_formatter.dart';
-import '../../../../../l10n/l10n_extension.dart';
-import '../../../../settings/presentation/providers/settings_providers.dart';
-import 'perdix_face_resolver.dart';
+import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/perdix_overlay/perdix_face_resolver.dart';
 
 /// Perdix-style dive computer face. Pure presentation: renders one
 /// [PerdixFaceData] snapshot with real-device layout and color conventions

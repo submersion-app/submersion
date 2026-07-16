@@ -139,7 +139,7 @@ void main() {
       temperatureUnit: TemperatureUnit.fahrenheit,
       pressureUnit: PressureUnit.psi,
     );
-    final units = UnitFormatter(imperial);
+    const units = UnitFormatter(imperial);
     const data = PerdixFaceData(
       diveTimeSeconds: 60,
       depthMeters: 18.4,
