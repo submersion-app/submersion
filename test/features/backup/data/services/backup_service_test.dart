@@ -1407,6 +1407,22 @@ void main() {
       late SecretKey mlk;
 
       setUp(() async {
+        // Assign `sandbox` before any awaited work so a throw from the crypto
+        // setup below cannot leave it uninitialized -- `tearDown` always runs
+        // and reads it, and an uninitialized `late` read would throw a
+        // LateInitializationError that masks the real setUp failure.
+        sandbox = Directory.systemTemp.createTempSync('backup_fresh_');
+        // path_provider hands back this path but has NOT created it -- the
+        // macOS Library/Caches situation on a fresh install.
+        missingTemp = Directory(
+          '${sandbox.path}/Library/Caches/app.submersion',
+        );
+        expect(
+          missingTemp.existsSync(),
+          isFalse,
+          reason: 'precondition: the temp dir does not exist yet',
+        );
+
         mlk = SecretKey(List<int>.generate(32, (i) => (i * 13 + 5) % 256));
         keyslotBytes = KeyslotFile(
           version: 1,
@@ -1420,18 +1436,6 @@ void main() {
             ),
           ],
         ).toJsonBytes();
-
-        sandbox = await Directory.systemTemp.createTemp('backup_fresh_');
-        // path_provider hands back this path but has NOT created it -- the
-        // macOS Library/Caches situation on a fresh install.
-        missingTemp = Directory(
-          '${sandbox.path}/Library/Caches/app.submersion',
-        );
-        expect(
-          missingTemp.existsSync(),
-          isFalse,
-          reason: 'precondition: the temp dir does not exist yet',
-        );
 
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
             .setMockMethodCallHandler(

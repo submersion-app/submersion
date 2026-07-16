@@ -13,6 +13,8 @@ import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/restore_mode.dart';
 
+import '../../../../support/fake_cloud_storage_provider.dart';
+
 /// Fake database adapter (mirror of backup_service_test.dart's).
 class _FakeBackupDatabaseAdapter implements BackupDatabaseAdapter {
   @override
@@ -232,6 +234,45 @@ void main() {
         preferences: preferences,
         syncRepository: spy,
         epochStore: epochStore,
+      );
+
+      await service.restoreFromBackup(record);
+
+      expect(spy.preservedDeviceId, 'live-device-id');
+    });
+
+    test('restoreFromBackup downloads a cloud-only backup into the temp '
+        'dir and restores it', () async {
+      // A record with only a cloudFileId (no local copy) is pulled down to a
+      // temp file first. This exercises _downloadFromCloud, whose
+      // resolveSyncTempDir() creates the temp dir on a fresh install.
+      final dbFile = File('${tempDir.path}/cloud_source.db');
+      final db = sqlite3.sqlite3.open(dbFile.path);
+      db.execute('CREATE TABLE dives (id TEXT PRIMARY KEY)');
+      db.execute('CREATE TABLE dive_sites (id TEXT PRIMARY KEY)');
+      db.dispose();
+
+      final cloud = FakeCloudStorageProvider();
+      final upload = await cloud.uploadFile(
+        await dbFile.readAsBytes(),
+        'valid_cloud.db',
+      );
+      final record = BackupRecord(
+        id: 'r-cloud',
+        filename: 'valid_cloud.db',
+        timestamp: DateTime(2026),
+        sizeBytes: 10,
+        location: BackupLocation.cloud,
+        cloudFileId: upload.fileId,
+      );
+
+      final spy = _EpochSpySyncRepository();
+      final service = BackupService(
+        dbAdapter: fakeDb,
+        preferences: preferences,
+        syncRepository: spy,
+        epochStore: epochStore,
+        cloudProvider: cloud,
       );
 
       await service.restoreFromBackup(record);
