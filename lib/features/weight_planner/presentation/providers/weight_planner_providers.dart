@@ -24,6 +24,7 @@ GearFeature? gearFeatureFor(EquipmentItem item) {
     type: item.type,
     name: item.name,
     size: item.size,
+    thickness: item.thickness,
     buoyancyKg: item.buoyancyKg,
     weightKg: item.weightKg,
   );
