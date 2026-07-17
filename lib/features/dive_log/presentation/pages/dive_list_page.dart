@@ -212,18 +212,6 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
           ),
           IconButton(
             icon: Badge(
-              isLabelVisible:
-                  (ref.watch(openQualityFindingsCountProvider).value ?? 0) > 0,
-              label: Text(
-                '${ref.watch(openQualityFindingsCountProvider).value ?? 0}',
-              ),
-              child: const Icon(Icons.rule, size: 20),
-            ),
-            tooltip: context.l10n.dataQuality_badge_tooltip,
-            onPressed: () => context.push('/dives/quality'),
-          ),
-          IconButton(
-            icon: Badge(
               isLabelVisible: ref.watch(diveFilterProvider).hasActiveFilters,
               child: const Icon(Icons.filter_list, size: 20),
             ),
@@ -245,6 +233,8 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
                 context.push('/dives/match-sites');
               } else if (value == 'numbering') {
                 showDiveNumberingDialog(context);
+              } else if (value == 'data_quality') {
+                context.push('/dives/quality');
               } else if (value.startsWith('view_')) {
                 final mode = ListViewMode.fromName(
                   value.replaceFirst('view_', ''),
@@ -295,6 +285,32 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
                         child: Text(
                           context.l10n.diveLog_listPage_menuMatchSites,
                         ),
+                      ),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'data_quality',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.rule, size: 20),
+                      const SizedBox(width: 12),
+                      Flexible(
+                        child: Text(context.l10n.dataQuality_badge_tooltip),
+                      ),
+                      Builder(
+                        builder: (context) {
+                          final count =
+                              ref
+                                  .watch(openQualityFindingsCountProvider)
+                                  .value ??
+                              0;
+                          if (count == 0) return const SizedBox.shrink();
+                          return Padding(
+                            padding: const EdgeInsets.only(left: 8),
+                            child: Badge(label: Text('$count')),
+                          );
+                        },
                       ),
                     ],
                   ),
