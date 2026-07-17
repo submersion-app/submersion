@@ -52,10 +52,19 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  testWidgets('hidden when no in-progress course has requirements', (
-    tester,
-  ) async {
+  testWidgets('hidden when there are no in-progress courses', (tester) async {
     await tester.runAsync(() => _seedCourse(completed: true));
+    await tester.pumpWidget(_wrap(const ActiveCourseProgressCard(), prefs));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 100)),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(Card), findsNothing);
+  });
+
+  testWidgets('hidden when an in-progress course has zero requirements '
+      '(totalCount filter)', (tester) async {
+    await tester.runAsync(() => _seedCourse(completed: false));
     await tester.pumpWidget(_wrap(const ActiveCourseProgressCard(), prefs));
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(milliseconds: 100)),
