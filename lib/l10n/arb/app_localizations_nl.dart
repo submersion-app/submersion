@@ -19771,4 +19771,290 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get media_unavailablePlaceholder_volumeOffline =>
       'Volume niet gekoppeld';
+
+  @override
+  String get attrLabel_size => 'Maat';
+
+  @override
+  String get attrLabel_thickness_mm => 'Dikte (mm)';
+
+  @override
+  String get attrLabel_suit_style => 'Type pak';
+
+  @override
+  String get attrLabel_shell_material => 'Buitenmateriaal';
+
+  @override
+  String get attrLabel_seal_type => 'Type seals';
+
+  @override
+  String get attrLabel_volume_l => 'Volume';
+
+  @override
+  String get attrLabel_working_pressure_bar => 'Werkdruk';
+
+  @override
+  String get attrLabel_tank_material => 'Materiaal';
+
+  @override
+  String get attrLabel_valve_type => 'Kraan';
+
+  @override
+  String get attrLabel_tank_identifier => 'Identificatie';
+
+  @override
+  String get attrLabel_last_visual_inspection => 'Laatste visuele inspectie';
+
+  @override
+  String get attrLabel_last_hydro_test => 'Laatste hydrostatische test';
+
+  @override
+  String get attrLabel_connection => 'Aansluiting';
+
+  @override
+  String get attrLabel_cold_water_rated => 'Geschikt voor koud water';
+
+  @override
+  String get attrLabel_bcd_style => 'Stijl';
+
+  @override
+  String get attrLabel_lift_capacity_kg => 'Liftcapaciteit';
+
+  @override
+  String get attrLabel_heel_type => 'Hiel';
+
+  @override
+  String get attrLabel_blade_style => 'Blad';
+
+  @override
+  String get attrLabel_mount => 'Bevestiging';
+
+  @override
+  String get attrLabel_connectivity => 'Connectiviteit';
+
+  @override
+  String get attrLabel_lens_config => 'Lens';
+
+  @override
+  String get attrLabel_prescription => 'Lenzen op sterkte';
+
+  @override
+  String get attrLabel_weight_style => 'Stijl';
+
+  @override
+  String get attrLabel_lumens => 'Lumen';
+
+  @override
+  String get attrLabel_beam_type => 'Bundel';
+
+  @override
+  String get attrLabel_depth_rating_m => 'Dieptewaardering';
+
+  @override
+  String get attrLabel_smb_type => 'Type';
+
+  @override
+  String get attrLabel_length_m => 'Lengte';
+
+  @override
+  String get attrLabel_reel_type => 'Type';
+
+  @override
+  String get attrLabel_line_length_m => 'Lijnlengte';
+
+  @override
+  String get attrLabel_blade_material => 'Lemmetmateriaal';
+
+  @override
+  String get attrLabel_tip_type => 'Punt';
+
+  @override
+  String get attrLabel_glove_type => 'Type';
+
+  @override
+  String get attrLabel_sole_type => 'Zool';
+
+  @override
+  String get attrLabel_buoyancy_kg => 'Drijfvermogen';
+
+  @override
+  String get attrLabel_dry_weight_kg => 'Drooggewicht';
+
+  @override
+  String get attrChoice_suit_style_full => 'Volledig pak';
+
+  @override
+  String get attrChoice_suit_style_shorty => 'Shorty';
+
+  @override
+  String get attrChoice_suit_style_two_piece => 'Tweedelig';
+
+  @override
+  String get attrChoice_suit_style_semi_dry => 'Semi-dry';
+
+  @override
+  String get attrChoice_shell_material_trilaminate => 'Trilaminaat';
+
+  @override
+  String get attrChoice_shell_material_neoprene => 'Neopreen';
+
+  @override
+  String get attrChoice_shell_material_crushed_neoprene => 'Geperst neopreen';
+
+  @override
+  String get attrChoice_shell_material_vulcanized_rubber =>
+      'Gevulkaniseerd rubber';
+
+  @override
+  String get attrChoice_seal_type_latex => 'Latex';
+
+  @override
+  String get attrChoice_seal_type_silicone => 'Siliconen';
+
+  @override
+  String get attrChoice_seal_type_neoprene => 'Neopreen';
+
+  @override
+  String get attrChoice_tank_material_aluminum => 'Aluminium';
+
+  @override
+  String get attrChoice_tank_material_steel => 'Staal';
+
+  @override
+  String get attrChoice_tank_material_carbon_composite => 'Carboncomposiet';
+
+  @override
+  String get attrChoice_valve_type_din => 'DIN';
+
+  @override
+  String get attrChoice_valve_type_yoke => 'Beugel (INT)';
+
+  @override
+  String get attrChoice_valve_type_convertible => 'Ombouwbaar';
+
+  @override
+  String get attrChoice_connection_din => 'DIN';
+
+  @override
+  String get attrChoice_connection_yoke => 'Beugel (INT)';
+
+  @override
+  String get attrChoice_bcd_style_jacket => 'Jacket';
+
+  @override
+  String get attrChoice_bcd_style_back_inflate => 'Back-inflate';
+
+  @override
+  String get attrChoice_bcd_style_wing => 'Wing';
+
+  @override
+  String get attrChoice_bcd_style_sidemount => 'Sidemount';
+
+  @override
+  String get attrChoice_heel_type_open_heel => 'Open hiel';
+
+  @override
+  String get attrChoice_heel_type_full_foot => 'Gesloten voet';
+
+  @override
+  String get attrChoice_blade_style_paddle => 'Paddle';
+
+  @override
+  String get attrChoice_blade_style_split => 'Split';
+
+  @override
+  String get attrChoice_blade_style_vented => 'Geventileerd';
+
+  @override
+  String get attrChoice_mount_wrist => 'Pols';
+
+  @override
+  String get attrChoice_mount_console => 'Console';
+
+  @override
+  String get attrChoice_mount_hud => 'HUD';
+
+  @override
+  String get attrChoice_connectivity_ble => 'Bluetooth (BLE)';
+
+  @override
+  String get attrChoice_connectivity_usb => 'USB';
+
+  @override
+  String get attrChoice_connectivity_infrared => 'Infrarood';
+
+  @override
+  String get attrChoice_connectivity_none => 'Geen';
+
+  @override
+  String get attrChoice_lens_config_single => 'Enkel glas';
+
+  @override
+  String get attrChoice_lens_config_twin => 'Dubbel glas';
+
+  @override
+  String get attrChoice_lens_config_frameless => 'Frameloos';
+
+  @override
+  String get attrChoice_weight_style_belt => 'Riem';
+
+  @override
+  String get attrChoice_weight_style_integrated => 'Geïntegreerd';
+
+  @override
+  String get attrChoice_weight_style_trim => 'Trim';
+
+  @override
+  String get attrChoice_weight_style_ankle => 'Enkel';
+
+  @override
+  String get attrChoice_beam_type_spot => 'Spot';
+
+  @override
+  String get attrChoice_beam_type_flood => 'Flood';
+
+  @override
+  String get attrChoice_beam_type_adjustable => 'Verstelbaar';
+
+  @override
+  String get attrChoice_smb_type_open => 'Open';
+
+  @override
+  String get attrChoice_smb_type_closed => 'Gesloten';
+
+  @override
+  String get attrChoice_reel_type_spool => 'Spool';
+
+  @override
+  String get attrChoice_reel_type_ratchet => 'Ratelreel';
+
+  @override
+  String get attrChoice_blade_material_stainless => 'Roestvrij staal';
+
+  @override
+  String get attrChoice_blade_material_titanium => 'Titanium';
+
+  @override
+  String get attrChoice_tip_type_pointed => 'Puntig';
+
+  @override
+  String get attrChoice_tip_type_blunt => 'Stomp';
+
+  @override
+  String get attrChoice_tip_type_line_cutter => 'Lijnsnijder';
+
+  @override
+  String get attrChoice_glove_type_five_finger => 'Vijfvinger';
+
+  @override
+  String get attrChoice_glove_type_mitt => 'Want';
+
+  @override
+  String get attrChoice_glove_type_dry => 'Droog';
+
+  @override
+  String get attrChoice_sole_type_hard => 'Harde zool';
+
+  @override
+  String get attrChoice_sole_type_soft => 'Zachte zool';
 }

@@ -18905,4 +18905,289 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get media_unavailablePlaceholder_volumeOffline => '卷未挂载';
+
+  @override
+  String get attrLabel_size => '尺码';
+
+  @override
+  String get attrLabel_thickness_mm => '厚度（毫米）';
+
+  @override
+  String get attrLabel_suit_style => '潜水服款式';
+
+  @override
+  String get attrLabel_shell_material => '外壳材质';
+
+  @override
+  String get attrLabel_seal_type => '密封类型';
+
+  @override
+  String get attrLabel_volume_l => '容积';
+
+  @override
+  String get attrLabel_working_pressure_bar => '工作压力';
+
+  @override
+  String get attrLabel_tank_material => '材质';
+
+  @override
+  String get attrLabel_valve_type => '阀门';
+
+  @override
+  String get attrLabel_tank_identifier => '标识';
+
+  @override
+  String get attrLabel_last_visual_inspection => '上次目视检查';
+
+  @override
+  String get attrLabel_last_hydro_test => '上次水压测试';
+
+  @override
+  String get attrLabel_connection => '接口';
+
+  @override
+  String get attrLabel_cold_water_rated => '适用于冷水';
+
+  @override
+  String get attrLabel_bcd_style => '款式';
+
+  @override
+  String get attrLabel_lift_capacity_kg => '浮力提升量';
+
+  @override
+  String get attrLabel_heel_type => '脚跟类型';
+
+  @override
+  String get attrLabel_blade_style => '蹼叶';
+
+  @override
+  String get attrLabel_mount => '佩戴方式';
+
+  @override
+  String get attrLabel_connectivity => '连接方式';
+
+  @override
+  String get attrLabel_lens_config => '镜片';
+
+  @override
+  String get attrLabel_prescription => '度数镜片';
+
+  @override
+  String get attrLabel_weight_style => '款式';
+
+  @override
+  String get attrLabel_lumens => '流明';
+
+  @override
+  String get attrLabel_beam_type => '光束';
+
+  @override
+  String get attrLabel_depth_rating_m => '防水深度';
+
+  @override
+  String get attrLabel_smb_type => '类型';
+
+  @override
+  String get attrLabel_length_m => '长度';
+
+  @override
+  String get attrLabel_reel_type => '类型';
+
+  @override
+  String get attrLabel_line_length_m => '线长';
+
+  @override
+  String get attrLabel_blade_material => '刀刃材质';
+
+  @override
+  String get attrLabel_tip_type => '刀尖';
+
+  @override
+  String get attrLabel_glove_type => '类型';
+
+  @override
+  String get attrLabel_sole_type => '鞋底';
+
+  @override
+  String get attrLabel_buoyancy_kg => '浮力';
+
+  @override
+  String get attrLabel_dry_weight_kg => '干重';
+
+  @override
+  String get attrChoice_suit_style_full => '全身湿衣';
+
+  @override
+  String get attrChoice_suit_style_shorty => '短款湿衣';
+
+  @override
+  String get attrChoice_suit_style_two_piece => '两件式';
+
+  @override
+  String get attrChoice_suit_style_semi_dry => '半干式';
+
+  @override
+  String get attrChoice_shell_material_trilaminate => '三层复合';
+
+  @override
+  String get attrChoice_shell_material_neoprene => '氯丁橡胶';
+
+  @override
+  String get attrChoice_shell_material_crushed_neoprene => '压缩氯丁橡胶';
+
+  @override
+  String get attrChoice_shell_material_vulcanized_rubber => '硫化橡胶';
+
+  @override
+  String get attrChoice_seal_type_latex => '乳胶';
+
+  @override
+  String get attrChoice_seal_type_silicone => '硅胶';
+
+  @override
+  String get attrChoice_seal_type_neoprene => '氯丁橡胶';
+
+  @override
+  String get attrChoice_tank_material_aluminum => '铝';
+
+  @override
+  String get attrChoice_tank_material_steel => '钢';
+
+  @override
+  String get attrChoice_tank_material_carbon_composite => '碳纤维复合';
+
+  @override
+  String get attrChoice_valve_type_din => 'DIN';
+
+  @override
+  String get attrChoice_valve_type_yoke => '卡箍式 (INT)';
+
+  @override
+  String get attrChoice_valve_type_convertible => '两用式';
+
+  @override
+  String get attrChoice_connection_din => 'DIN';
+
+  @override
+  String get attrChoice_connection_yoke => '卡箍式 (INT)';
+
+  @override
+  String get attrChoice_bcd_style_jacket => '夹克式';
+
+  @override
+  String get attrChoice_bcd_style_back_inflate => '背囊式';
+
+  @override
+  String get attrChoice_bcd_style_wing => '翼式';
+
+  @override
+  String get attrChoice_bcd_style_sidemount => '侧挂式';
+
+  @override
+  String get attrChoice_heel_type_open_heel => '开放式脚跟';
+
+  @override
+  String get attrChoice_heel_type_full_foot => '全包脚';
+
+  @override
+  String get attrChoice_blade_style_paddle => '桨式';
+
+  @override
+  String get attrChoice_blade_style_split => '分叉式';
+
+  @override
+  String get attrChoice_blade_style_vented => '导流式';
+
+  @override
+  String get attrChoice_mount_wrist => '腕戴式';
+
+  @override
+  String get attrChoice_mount_console => '表盘式';
+
+  @override
+  String get attrChoice_mount_hud => 'HUD';
+
+  @override
+  String get attrChoice_connectivity_ble => '蓝牙 (BLE)';
+
+  @override
+  String get attrChoice_connectivity_usb => 'USB';
+
+  @override
+  String get attrChoice_connectivity_infrared => '红外';
+
+  @override
+  String get attrChoice_connectivity_none => '无';
+
+  @override
+  String get attrChoice_lens_config_single => '单镜片';
+
+  @override
+  String get attrChoice_lens_config_twin => '双镜片';
+
+  @override
+  String get attrChoice_lens_config_frameless => '无框';
+
+  @override
+  String get attrChoice_weight_style_belt => '配重带';
+
+  @override
+  String get attrChoice_weight_style_integrated => '集成式';
+
+  @override
+  String get attrChoice_weight_style_trim => '配平';
+
+  @override
+  String get attrChoice_weight_style_ankle => '脚踝';
+
+  @override
+  String get attrChoice_beam_type_spot => '聚光';
+
+  @override
+  String get attrChoice_beam_type_flood => '泛光';
+
+  @override
+  String get attrChoice_beam_type_adjustable => '可调';
+
+  @override
+  String get attrChoice_smb_type_open => '开放式';
+
+  @override
+  String get attrChoice_smb_type_closed => '封闭式';
+
+  @override
+  String get attrChoice_reel_type_spool => '线轴';
+
+  @override
+  String get attrChoice_reel_type_ratchet => '棘轮卷线器';
+
+  @override
+  String get attrChoice_blade_material_stainless => '不锈钢';
+
+  @override
+  String get attrChoice_blade_material_titanium => '钛';
+
+  @override
+  String get attrChoice_tip_type_pointed => '尖头';
+
+  @override
+  String get attrChoice_tip_type_blunt => '钝头';
+
+  @override
+  String get attrChoice_tip_type_line_cutter => '割线器';
+
+  @override
+  String get attrChoice_glove_type_five_finger => '五指';
+
+  @override
+  String get attrChoice_glove_type_mitt => '连指';
+
+  @override
+  String get attrChoice_glove_type_dry => '干式';
+
+  @override
+  String get attrChoice_sole_type_hard => '硬底';
+
+  @override
+  String get attrChoice_sole_type_soft => '软底';
 }
