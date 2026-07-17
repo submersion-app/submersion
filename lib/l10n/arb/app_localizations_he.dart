@@ -19699,4 +19699,19 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get attrChoice_sole_type_soft => 'סוליה רכה';
+
+  @override
+  String get equipment_edit_customFieldsTitle => 'שדות מותאמים אישית';
+
+  @override
+  String get equipment_edit_addCustomField => 'הוספת שדה מותאם אישית';
+
+  @override
+  String get attr_flagYes => 'כן';
+
+  @override
+  String get attr_flagNo => 'לא';
+
+  @override
+  String get equipment_edit_invalidThickness => 'השתמשו ב-5, 5/4 או 7/5/3';
 }

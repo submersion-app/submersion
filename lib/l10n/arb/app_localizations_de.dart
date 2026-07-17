@@ -20182,4 +20182,20 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get attrChoice_sole_type_soft => 'Weiche Sohle';
+
+  @override
+  String get equipment_edit_customFieldsTitle => 'Benutzerdefinierte Felder';
+
+  @override
+  String get equipment_edit_addCustomField =>
+      'Benutzerdefiniertes Feld hinzufügen';
+
+  @override
+  String get attr_flagYes => 'Ja';
+
+  @override
+  String get attr_flagNo => 'Nein';
+
+  @override
+  String get equipment_edit_invalidThickness => 'Format: 5, 5/4 oder 7/5/3';
 }

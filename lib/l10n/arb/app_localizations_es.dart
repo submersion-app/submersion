@@ -20222,4 +20222,19 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get attrChoice_sole_type_soft => 'Suela blanda';
+
+  @override
+  String get equipment_edit_customFieldsTitle => 'Campos personalizados';
+
+  @override
+  String get equipment_edit_addCustomField => 'Añadir campo personalizado';
+
+  @override
+  String get attr_flagYes => 'Sí';
+
+  @override
+  String get attr_flagNo => 'No';
+
+  @override
+  String get equipment_edit_invalidThickness => 'Usa 5, 5/4 o 7/5/3';
 }

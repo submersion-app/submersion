@@ -11,6 +11,8 @@ import 'package:submersion/features/equipment/domain/constants/equipment_attribu
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_attribute_form_section.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_custom_fields_section.dart';
 
 class EquipmentEditPage extends ConsumerStatefulWidget {
   final String? equipmentId;
@@ -38,14 +40,10 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
   final _brandController = TextEditingController();
   final _modelController = TextEditingController();
   final _serialController = TextEditingController();
-  final _sizeController = TextEditingController();
-  final _thicknessController = TextEditingController();
   final _purchasePriceController = TextEditingController();
   final _purchaseCurrencyController = TextEditingController(text: 'USD');
   final _serviceIntervalController = TextEditingController();
   final _notesController = TextEditingController();
-  final _buoyancyController = TextEditingController();
-  final _dryWeightController = TextEditingController();
 
   EquipmentType _selectedType = EquipmentType.regulator;
   EquipmentStatus _selectedStatus = EquipmentStatus.active;
@@ -64,14 +62,10 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     _brandController.addListener(_onFieldChanged);
     _modelController.addListener(_onFieldChanged);
     _serialController.addListener(_onFieldChanged);
-    _sizeController.addListener(_onFieldChanged);
-    _thicknessController.addListener(_onFieldChanged);
     _purchasePriceController.addListener(_onFieldChanged);
     _purchaseCurrencyController.addListener(_onFieldChanged);
     _serviceIntervalController.addListener(_onFieldChanged);
     _notesController.addListener(_onFieldChanged);
-    _buoyancyController.addListener(_onFieldChanged);
-    _dryWeightController.addListener(_onFieldChanged);
   }
 
   void _onFieldChanged() {
@@ -86,43 +80,34 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     _brandController.dispose();
     _modelController.dispose();
     _serialController.dispose();
-    _sizeController.dispose();
-    _thicknessController.dispose();
     _purchasePriceController.dispose();
     _purchaseCurrencyController.dispose();
     _serviceIntervalController.dispose();
     _notesController.dispose();
-    _buoyancyController.dispose();
-    _dryWeightController.dispose();
     super.dispose();
   }
 
-  /// Attributes beyond the four legacy-controller-backed keys (custom fields
-  /// and any curated values set elsewhere), preserved verbatim on save until
-  /// the type-driven attribute form replaces the legacy controllers.
-  List<EquipmentAttribute>? _existingExtraAttributes;
-
-  static const _legacyControllerKeys = {
-    EquipmentAttrKeys.size,
-    EquipmentAttrKeys.thicknessMm,
-    EquipmentAttrKeys.buoyancyKg,
-    EquipmentAttrKeys.dryWeightKg,
-  };
+  /// Curated attribute values keyed by attrKey, plus user custom fields.
+  final Map<String, EquipmentAttribute> _attrValues = {};
+  List<EquipmentAttribute> _customFields = [];
 
   void _initializeFromEquipment(EquipmentItem equipment) {
     if (_isInitialized) return;
     _isInitialized = true;
 
-    _existingExtraAttributes = equipment.attributes
-        .where((a) => a.isCustom || !_legacyControllerKeys.contains(a.key))
-        .toList();
+    for (final attr in equipment.attributes) {
+      if (attr.isCustom) {
+        _customFields.add(attr);
+      } else {
+        _attrValues[attr.key] = attr;
+      }
+    }
+    _customFields.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
 
     _nameController.text = equipment.name;
     _brandController.text = equipment.brand ?? '';
     _modelController.text = equipment.model ?? '';
     _serialController.text = equipment.serialNumber ?? '';
-    _sizeController.text = equipment.size ?? '';
-    _thicknessController.text = equipment.thickness ?? '';
     _purchasePriceController.text = equipment.purchasePrice?.toString() ?? '';
     _purchaseCurrencyController.text = equipment.purchaseCurrency;
     _serviceIntervalController.text =
@@ -134,19 +119,6 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     _lastServiceDate = equipment.lastServiceDate;
     _customReminderEnabled = equipment.customReminderEnabled;
     _customReminderDays = equipment.customReminderDays ?? const [7, 14, 30];
-    final units = UnitFormatter(ref.read(settingsProvider));
-    _buoyancyController.text = equipment.buoyancyKg != null
-        ? units.convertWeight(equipment.buoyancyKg!).toStringAsFixed(1)
-        : '';
-    _dryWeightController.text = equipment.weightKg != null
-        ? units.convertWeight(equipment.weightKg!).toStringAsFixed(1)
-        : '';
-  }
-
-  double? _parseWeightToKg(String text) {
-    final parsed = double.tryParse(text);
-    if (parsed == null) return null;
-    return UnitFormatter(ref.read(settingsProvider)).weightToKg(parsed);
   }
 
   void _handleCancel() {
@@ -314,33 +286,21 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
             ],
           ),
           const SizedBox(height: 16),
-          // Size & Thickness
-          Row(
-            children: [
-              Expanded(
-                child: TextFormField(
-                  controller: _sizeController,
-                  decoration: InputDecoration(
-                    labelText: context.l10n.equipment_edit_sizeLabel,
-                    prefixIcon: const Icon(Icons.straighten),
-                    hintText: context.l10n.equipment_edit_sizeHint,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: TextFormField(
-                  controller: _thicknessController,
-                  decoration: InputDecoration(
-                    labelText: context.l10n.equipment_edit_thicknessLabel,
-                    prefixIcon: const Icon(Icons.straighten),
-                    hintText: context.l10n.equipment_edit_thicknessHint,
-                  ),
-                ),
-              ),
-            ],
+          // Type-specific attributes (catalog-driven; rebuilds on type change)
+          EquipmentAttributeFormSection(
+            key: ValueKey('attrs-${_selectedType.name}'),
+            type: _selectedType,
+            values: _attrValues,
+            units: UnitFormatter(ref.watch(settingsProvider)),
+            onChanged: (attr) => setState(() {
+              _attrValues[attr.key] = attr;
+              _hasChanges = true;
+            }),
+            onCleared: (key) => setState(() {
+              _attrValues.remove(key);
+              _hasChanges = true;
+            }),
           ),
-          const SizedBox(height: 16),
           // Serial #
           TextFormField(
             controller: _serialController,
@@ -700,20 +660,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     );
   }
 
-  String _buoyancyHint(BuildContext context) {
-    switch (_selectedType) {
-      case EquipmentType.wetsuit:
-      case EquipmentType.drysuit:
-        return context.l10n.equipment_edit_buoyancyHint_exposure;
-      case EquipmentType.tank:
-        return context.l10n.equipment_edit_buoyancyHint_tank;
-      default:
-        return context.l10n.equipment_edit_buoyancyHint_generic;
-    }
-  }
-
   Widget _buildAdvancedSection(BuildContext context) {
-    final units = UnitFormatter(ref.watch(settingsProvider));
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -731,32 +678,12 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
               ],
             ),
             const SizedBox(height: 16),
-            TextFormField(
-              controller: _buoyancyController,
-              decoration: InputDecoration(
-                labelText: context.l10n.equipment_edit_buoyancyLabel(
-                  units.weightSymbol,
-                ),
-                prefixIcon: const Icon(Icons.water),
-                hintText: _buoyancyHint(context),
-              ),
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-                signed: true,
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _dryWeightController,
-              decoration: InputDecoration(
-                labelText: context.l10n.equipment_edit_dryWeightLabel(
-                  units.weightSymbol,
-                ),
-                prefixIcon: const Icon(Icons.scale),
-              ),
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
+            EquipmentCustomFieldsSection(
+              fields: _customFields,
+              onChanged: (fields) => setState(() {
+                _customFields = fields;
+                _hasChanges = true;
+              }),
             ),
           ],
         ),
@@ -927,35 +854,18 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
             : null,
         notes: _notesController.text.trim(),
         isActive: existingEquipment?.isActive ?? true,
+        // Only attributes in the SELECTED type's catalog are kept: switching
+        // type drops out-of-catalog values at save time (form = source of
+        // truth), plus non-empty custom fields with re-packed sort order.
         attributes: [
-          if (_sizeController.text.trim().isNotEmpty)
-            EquipmentAttribute.curated(
-              equipmentId: widget.equipmentId ?? '',
-              key: EquipmentAttrKeys.size,
-              valueText: _sizeController.text.trim(),
-            ),
-          if (_thicknessController.text.trim().isNotEmpty)
-            EquipmentAttribute.curated(
-              equipmentId: widget.equipmentId ?? '',
-              key: EquipmentAttrKeys.thicknessMm,
-              valueText: _thicknessController.text.trim(),
-              valueNum: parsePrimaryThickness(_thicknessController.text),
-            ),
-          if (_buoyancyController.text.isNotEmpty &&
-              _parseWeightToKg(_buoyancyController.text) != null)
-            EquipmentAttribute.curated(
-              equipmentId: widget.equipmentId ?? '',
-              key: EquipmentAttrKeys.buoyancyKg,
-              valueNum: _parseWeightToKg(_buoyancyController.text),
-            ),
-          if (_dryWeightController.text.isNotEmpty &&
-              _parseWeightToKg(_dryWeightController.text) != null)
-            EquipmentAttribute.curated(
-              equipmentId: widget.equipmentId ?? '',
-              key: EquipmentAttrKeys.dryWeightKg,
-              valueNum: _parseWeightToKg(_dryWeightController.text),
-            ),
-          ...?_existingExtraAttributes,
+          for (final def in EquipmentAttributeCatalog.attributesFor(
+            _selectedType,
+          ))
+            if (_attrValues[def.key] case final attr? when attr.hasValue) attr,
+          for (var i = 0; i < _customFields.length; i++)
+            if (_customFields[i].key.trim().isNotEmpty &&
+                _customFields[i].hasValue)
+              _customFields[i].copyWith(sortOrder: i),
         ],
         customReminderEnabled: _customReminderEnabled,
         customReminderDays: _customReminderEnabled == true

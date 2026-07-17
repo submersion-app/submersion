@@ -20153,4 +20153,19 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get attrChoice_sole_type_soft => 'Puha talp';
+
+  @override
+  String get equipment_edit_customFieldsTitle => 'Egyéni mezők';
+
+  @override
+  String get equipment_edit_addCustomField => 'Egyéni mező hozzáadása';
+
+  @override
+  String get attr_flagYes => 'Igen';
+
+  @override
+  String get attr_flagNo => 'Nem';
+
+  @override
+  String get equipment_edit_invalidThickness => 'Formátum: 5, 5/4 vagy 7/5/3';
 }

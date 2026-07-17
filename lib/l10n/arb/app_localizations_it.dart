@@ -20210,4 +20210,19 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get attrChoice_sole_type_soft => 'Suola morbida';
+
+  @override
+  String get equipment_edit_customFieldsTitle => 'Campi personalizzati';
+
+  @override
+  String get equipment_edit_addCustomField => 'Aggiungi campo personalizzato';
+
+  @override
+  String get attr_flagYes => 'Sì';
+
+  @override
+  String get attr_flagNo => 'No';
+
+  @override
+  String get equipment_edit_invalidThickness => 'Usa 5, 5/4 o 7/5/3';
 }

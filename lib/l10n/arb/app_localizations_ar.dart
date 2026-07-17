@@ -19841,4 +19841,19 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get attrChoice_sole_type_soft => 'نعل لين';
+
+  @override
+  String get equipment_edit_customFieldsTitle => 'حقول مخصصة';
+
+  @override
+  String get equipment_edit_addCustomField => 'إضافة حقل مخصص';
+
+  @override
+  String get attr_flagYes => 'نعم';
+
+  @override
+  String get attr_flagNo => 'لا';
+
+  @override
+  String get equipment_edit_invalidThickness => 'استخدم 5 أو 5/4 أو 7/5/3';
 }

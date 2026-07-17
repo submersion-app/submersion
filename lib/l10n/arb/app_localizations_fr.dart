@@ -20283,4 +20283,19 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get attrChoice_sole_type_soft => 'Semelle souple';
+
+  @override
+  String get equipment_edit_customFieldsTitle => 'Champs personnalisés';
+
+  @override
+  String get equipment_edit_addCustomField => 'Ajouter un champ personnalisé';
+
+  @override
+  String get attr_flagYes => 'Oui';
+
+  @override
+  String get attr_flagNo => 'Non';
+
+  @override
+  String get equipment_edit_invalidThickness => 'Utilisez 5, 5/4 ou 7/5/3';
 }

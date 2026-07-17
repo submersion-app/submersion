@@ -33929,6 +33929,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Soft sole'**
   String get attrChoice_sole_type_soft;
+
+  /// No description provided for @equipment_edit_customFieldsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom fields'**
+  String get equipment_edit_customFieldsTitle;
+
+  /// No description provided for @equipment_edit_addCustomField.
+  ///
+  /// In en, this message translates to:
+  /// **'Add custom field'**
+  String get equipment_edit_addCustomField;
+
+  /// No description provided for @attr_flagYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get attr_flagYes;
+
+  /// No description provided for @attr_flagNo.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get attr_flagNo;
+
+  /// No description provided for @equipment_edit_invalidThickness.
+  ///
+  /// In en, this message translates to:
+  /// **'Use 5, 5/4 or 7/5/3'**
+  String get equipment_edit_invalidThickness;
 }
 
 class _AppLocalizationsDelegate

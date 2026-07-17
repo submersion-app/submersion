@@ -19874,4 +19874,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attrChoice_sole_type_soft => 'Soft sole';
+
+  @override
+  String get equipment_edit_customFieldsTitle => 'Custom fields';
+
+  @override
+  String get equipment_edit_addCustomField => 'Add custom field';
+
+  @override
+  String get attr_flagYes => 'Yes';
+
+  @override
+  String get attr_flagNo => 'No';
+
+  @override
+  String get equipment_edit_invalidThickness => 'Use 5, 5/4 or 7/5/3';
 }

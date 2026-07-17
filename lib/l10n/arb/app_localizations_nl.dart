@@ -20057,4 +20057,19 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get attrChoice_sole_type_soft => 'Zachte zool';
+
+  @override
+  String get equipment_edit_customFieldsTitle => 'Aangepaste velden';
+
+  @override
+  String get equipment_edit_addCustomField => 'Aangepast veld toevoegen';
+
+  @override
+  String get attr_flagYes => 'Ja';
+
+  @override
+  String get attr_flagNo => 'Nee';
+
+  @override
+  String get equipment_edit_invalidThickness => 'Gebruik 5, 5/4 of 7/5/3';
 }

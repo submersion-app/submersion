@@ -19190,4 +19190,19 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attrChoice_sole_type_soft => '软底';
+
+  @override
+  String get equipment_edit_customFieldsTitle => '自定义字段';
+
+  @override
+  String get equipment_edit_addCustomField => '添加自定义字段';
+
+  @override
+  String get attr_flagYes => '是';
+
+  @override
+  String get attr_flagNo => '否';
+
+  @override
+  String get equipment_edit_invalidThickness => '请输入 5、5/4 或 7/5/3';
 }

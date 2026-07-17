@@ -69,17 +69,20 @@ void main() {
       );
       await pumpEditor(tester, created.id);
 
-      await tester.scrollUntilVisible(
-        find.text('Advanced'),
-        300,
-        scrollable: find.byType(Scrollable).first,
+      final buoyancyField = find.byKey(
+        const ValueKey('attr-field-buoyancy_kg'),
       );
+      final dryWeightField = find.byKey(
+        const ValueKey('attr-field-dry_weight_kg'),
+      );
+      await tester.ensureVisible(buoyancyField);
       await tester.pumpAndSettle();
       expect(find.text('5.0'), findsOneWidget);
       expect(find.text('2.5'), findsOneWidget);
 
-      await tester.enterText(find.text('5.0'), '-2.5');
-      await tester.enterText(find.text('2.5'), '3');
+      await tester.enterText(buoyancyField, '-2.5');
+      await tester.ensureVisible(dryWeightField);
+      await tester.enterText(dryWeightField, '3');
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
 
@@ -105,13 +108,12 @@ void main() {
       );
       await pumpEditor(tester, created.id);
 
-      await tester.scrollUntilVisible(
-        find.text('Advanced'),
-        300,
-        scrollable: find.byType(Scrollable).first,
+      final buoyancyField = find.byKey(
+        const ValueKey('attr-field-buoyancy_kg'),
       );
+      await tester.ensureVisible(buoyancyField);
       await tester.pumpAndSettle();
-      await tester.enterText(find.text('0.2'), '');
+      await tester.enterText(buoyancyField, '');
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
 
