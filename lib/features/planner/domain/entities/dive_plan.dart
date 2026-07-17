@@ -6,7 +6,10 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 
 /// Breathing mode of a saved dive plan.
-enum PlanMode { oc, ccr, scr }
+///
+/// [scr] is a constant-mass-flow semi-closed rebreather; [pscr] is a
+/// passive-addition semi-closed rebreather (ventilation-coupled fresh gas).
+enum PlanMode { oc, ccr, scr, pscr }
 
 /// Gas turn-pressure rule for penetration planning (Phase 5).
 enum TurnPressureRule { allUsable, halves, thirds, custom }

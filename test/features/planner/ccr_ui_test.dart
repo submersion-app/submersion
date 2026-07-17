@@ -41,7 +41,7 @@ void main() {
     settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
   ];
 
-  testWidgets('badge cycles OC -> CCR -> SCR -> OC', (tester) async {
+  testWidgets('badge cycles OC -> CCR -> SCR -> PSCR -> OC', (tester) async {
     tester.view.physicalSize = const Size(420, 900);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
@@ -68,6 +68,14 @@ void main() {
     expect(find.text('SCR'), findsOneWidget);
 
     await tester.tap(find.text('SCR'));
+    await tester.pumpAndSettle();
+    expect(
+      container.read(divePlanNotifierProvider).mode,
+      domain.PlanMode.pscr,
+    );
+    expect(find.text('PSCR'), findsOneWidget);
+
+    await tester.tap(find.text('PSCR'));
     await tester.pumpAndSettle();
     expect(container.read(divePlanNotifierProvider).mode, domain.PlanMode.oc);
     expect(find.text('OC'), findsOneWidget);

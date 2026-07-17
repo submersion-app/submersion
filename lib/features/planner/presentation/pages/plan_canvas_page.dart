@@ -185,7 +185,8 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
   static domain.PlanMode _nextMode(domain.PlanMode mode) => switch (mode) {
     domain.PlanMode.oc => domain.PlanMode.ccr,
     domain.PlanMode.ccr => domain.PlanMode.scr,
-    domain.PlanMode.scr => domain.PlanMode.oc,
+    domain.PlanMode.scr => domain.PlanMode.pscr,
+    domain.PlanMode.pscr => domain.PlanMode.oc,
   };
 
   PopupMenuItem<String> _menuItem(String value, IconData icon, String label) {

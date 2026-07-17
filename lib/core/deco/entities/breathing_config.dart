@@ -121,3 +121,105 @@ class Scr extends BreathingConfig {
   InspiredGas inspiredAt(double ambientPressureBar) =>
       _loop.inspiredAt(ambientPressureBar);
 }
+
+/// Passive-addition semi-closed rebreather (pSCR) at steady state.
+///
+/// Where CMF [Scr] injects a constant mass flow, a passive SCR vents a fixed
+/// fraction of each breath and replaces it with fresh supply gas, so the
+/// fresh-gas flow is coupled to ventilation: `fresh = rmv * dumpFraction`
+/// (a 1:10 unit dumps 1/10 of each breath, dumpFraction = 0.1). At steady
+/// state the loop then behaves like open circuit on a mix whose O2 is depleted
+/// from the supply by metabolism relative to that fresh-gas flow — the same
+/// well-mixed-loop balance the CMF calculation uses, only with the effective
+/// injection rate derived from breathing rate.
+///
+/// This is the physically-rigorous mass-balance model (constant loop fraction,
+/// so inspired ppO2 scales with depth). It differs from Subsurface's `pscr_o2`,
+/// which uses a depth-independent absolute ppO2-drop approximation; the pSCR
+/// *mode* is the parity feature, not that specific numeric approximation.
+///
+/// The supply He:N2 ratio is preserved (metabolism removes only O2). If the
+/// fresh-gas flow cannot outpace metabolic consumption ([hypoxicLoop] true),
+/// the model falls back to the supply mix and [loopFO2] equals [supplyFO2];
+/// callers should surface the hypoxia risk.
+class PassiveScr extends BreathingConfig {
+  PassiveScr({
+    required this.supplyFO2,
+    this.supplyFHe = 0.0,
+    required this.dumpFraction,
+    this.rmvLpm = 15.0,
+    this.vo2 = ScrCalculator.defaultVo2,
+  }) : loopFO2 =
+           ScrCalculator.calculatePascrSteadyStateFo2(
+             supplyO2Percent: supplyFO2 * 100.0,
+             additionRatio: dumpFraction,
+             vo2: vo2,
+             rmv: rmvLpm,
+           ) ??
+           supplyFO2,
+       _loop = _steadyStateLoop(
+         supplyFO2,
+         supplyFHe,
+         dumpFraction,
+         rmvLpm,
+         vo2,
+       );
+
+  /// Supply gas O2 fraction (0-1).
+  final double supplyFO2;
+
+  /// Supply gas He fraction (0-1).
+  final double supplyFHe;
+
+  /// Fraction of each breath vented and replaced with fresh gas (e.g. 0.1 for
+  /// a 1:10 unit). Fresh-gas flow = [rmvLpm] * dumpFraction.
+  final double dumpFraction;
+
+  /// Respiratory minute volume (surface L/min); sets the fresh-gas flow.
+  final double rmvLpm;
+
+  /// Metabolic O2 consumption (surface L/min).
+  final double vo2;
+
+  /// Steady-state loop O2 fraction the diver actually breathes. Equals
+  /// [supplyFO2] when the loop is hypoxic (fallback); see [hypoxicLoop].
+  final double loopFO2;
+
+  final OpenCircuit _loop;
+
+  /// True when the fresh-gas flow cannot sustain the loop (metabolic O2
+  /// consumption outpaces addition), so [loopFO2] fell back to [supplyFO2].
+  bool get hypoxicLoop =>
+      ScrCalculator.calculatePascrSteadyStateFo2(
+        supplyO2Percent: supplyFO2 * 100.0,
+        additionRatio: dumpFraction,
+        vo2: vo2,
+        rmv: rmvLpm,
+      ) ==
+      null;
+
+  static OpenCircuit _steadyStateLoop(
+    double supplyFO2,
+    double supplyFHe,
+    double dumpFraction,
+    double rmvLpm,
+    double vo2,
+  ) {
+    final loopFO2 =
+        ScrCalculator.calculatePascrSteadyStateFo2(
+          supplyO2Percent: supplyFO2 * 100.0,
+          additionRatio: dumpFraction,
+          vo2: vo2,
+          rmv: rmvLpm,
+        ) ??
+        supplyFO2;
+    final supplyInert = 1.0 - supplyFO2;
+    final heShare = supplyInert > 0 ? supplyFHe / supplyInert : 0.0;
+    final loopInert = 1.0 - loopFO2;
+    return OpenCircuit(fO2: loopFO2, fHe: loopInert * heShare);
+  }
+
+  @override
+  InspiredGas inspiredAt(double ambientPressureBar) =>
+      _loop.inspiredAt(ambientPressureBar);
+}
