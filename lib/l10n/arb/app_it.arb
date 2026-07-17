@@ -5550,6 +5550,8 @@
   "equipment_edit_buoyancyHint_tank": "Lasciare vuoto: le bombole usano le proprie specifiche",
   "equipment_edit_buoyancyLabel": "Galleggiabilità ({unit})",
   "equipment_edit_dryWeightLabel": "Peso a secco ({unit})",
+  "equipment_edit_liftCapacityLabel": "Capacità di sollevamento ({unit})",
+  "equipment_edit_liftCapacityHint": "Portanza nominale di GAV o sacco",
   "planner_gearWeights_accept": "Usa come zavorra pianificata",
   "planner_gearWeights_addGear": "Aggiungi attrezzatura",
   "planner_gearWeights_empty": "Aggiungi attrezzatura per prevedere la zavorra",

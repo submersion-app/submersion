@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart' show compute;
 
 import 'package:submersion/core/buoyancy/buoyancy_twin.dart';
 import 'package:submersion/core/buoyancy/twin_analyzer.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/services/buoyancy_twin_assembler.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -36,10 +37,12 @@ final buoyancyTwinProvider =
       if (input == null) return null;
 
       final result = await compute(runBuoyancyTwin, input);
+      final wing = dive.equipment
+          .where((e) => e.type == EquipmentType.bcd && e.liftCapacityKg != null)
+          .firstOrNull;
       return BuoyancyTwinOutcome(
         result: result,
         outputs: TwinAnalyzer.analyze(result),
-        // Wired to EquipmentItem.liftCapacityKg once that field lands.
-        wingLiftCapacityKg: null,
+        wingLiftCapacityKg: wing?.liftCapacityKg,
       );
     });

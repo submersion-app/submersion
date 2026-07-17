@@ -19146,6 +19146,14 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String equipment_edit_liftCapacityLabel(String unit) {
+    return 'سعة الرفع ($unit)';
+  }
+
+  @override
+  String get equipment_edit_liftCapacityHint => 'قوة رفع الجناح أو منظم الطفو';
+
+  @override
   String get planner_gearWeights_accept => 'استخدام كوزن مخطط';
 
   @override

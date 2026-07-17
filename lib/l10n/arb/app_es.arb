@@ -5550,6 +5550,8 @@
   "equipment_edit_buoyancyHint_tank": "Dejar vacío: los tanques usan sus propias especificaciones",
   "equipment_edit_buoyancyLabel": "Flotabilidad ({unit})",
   "equipment_edit_dryWeightLabel": "Peso en seco ({unit})",
+  "equipment_edit_liftCapacityLabel": "Capacidad de flotación ({unit})",
+  "equipment_edit_liftCapacityHint": "Sustentación nominal del wing o jacket",
   "planner_gearWeights_accept": "Usar como lastre planificado",
   "planner_gearWeights_addGear": "Añadir equipo",
   "planner_gearWeights_empty": "Añade equipo para predecir tu lastre",

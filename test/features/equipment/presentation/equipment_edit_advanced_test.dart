@@ -77,6 +77,56 @@ void main() {
       expect(saved.weightKg, 3.0);
     });
 
+    testWidgets('lift capacity field shows for a BCD and saves', (
+      tester,
+    ) async {
+      final created = await repository.createEquipment(
+        const EquipmentItem(
+          id: '',
+          name: 'Wing 18',
+          type: EquipmentType.bcd,
+          liftCapacityKg: 15.0,
+        ),
+      );
+      await pumpEditor(tester, created.id);
+
+      await tester.scrollUntilVisible(
+        find.text('Advanced'),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Lift capacity (kg)'), findsOneWidget);
+      expect(find.text('15.0'), findsOneWidget);
+
+      await tester.enterText(find.text('15.0'), '18');
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      final saved = await repository.getEquipmentById(created.id);
+      expect(saved!.liftCapacityKg, 18.0);
+    });
+
+    testWidgets('lift capacity field is hidden for a wetsuit', (tester) async {
+      final created = await repository.createEquipment(
+        const EquipmentItem(
+          id: '',
+          name: '5mm Wetsuit',
+          type: EquipmentType.wetsuit,
+          buoyancyKg: 3.0,
+        ),
+      );
+      await pumpEditor(tester, created.id);
+
+      await tester.scrollUntilVisible(
+        find.text('Advanced'),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Lift capacity (kg)'), findsNothing);
+    });
+
     testWidgets('empty fields save as null', (tester) async {
       final created = await repository.createEquipment(
         const EquipmentItem(

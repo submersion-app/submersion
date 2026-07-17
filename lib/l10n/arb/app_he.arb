@@ -5550,6 +5550,8 @@
   "equipment_edit_buoyancyHint_tank": "השאר ריק - מכלים משתמשים במפרט משלהם",
   "equipment_edit_buoyancyLabel": "ציפה ({unit})",
   "equipment_edit_dryWeightLabel": "משקל יבש ({unit})",
+  "equipment_edit_liftCapacityLabel": "כושר ציפה ({unit})",
+  "equipment_edit_liftCapacityHint": "כוח הציפה הנקוב של האגף או המצוף",
   "planner_gearWeights_accept": "השתמש כמשקל מתוכנן",
   "planner_gearWeights_addGear": "הוסף ציוד",
   "planner_gearWeights_empty": "הוסף ציוד כדי לחזות את המשקול שלך",

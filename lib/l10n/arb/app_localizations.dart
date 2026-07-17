@@ -32610,6 +32610,18 @@ abstract class AppLocalizations {
   /// **'Dry weight ({unit})'**
   String equipment_edit_dryWeightLabel(String unit);
 
+  /// No description provided for @equipment_edit_liftCapacityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Lift capacity ({unit})'**
+  String equipment_edit_liftCapacityLabel(String unit);
+
+  /// No description provided for @equipment_edit_liftCapacityHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Wing or BCD rated lift'**
+  String get equipment_edit_liftCapacityHint;
+
   /// No description provided for @planner_gearWeights_accept.
   ///
   /// In en, this message translates to:

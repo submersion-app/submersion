@@ -240,6 +240,7 @@ class DiveRepository {
                   isActive: e.isActive,
                   buoyancyKg: e.buoyancyKg,
                   weightKg: e.weightKg,
+                  liftCapacityKg: e.liftCapacityKg,
                 ),
               );
         }
@@ -2908,6 +2909,7 @@ class DiveRepository {
         isActive: e.isActive,
         buoyancyKg: e.buoyancyKg,
         weightKg: e.weightKg,
+        liftCapacityKg: e.liftCapacityKg,
       );
     }).toList();
 

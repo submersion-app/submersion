@@ -19177,6 +19177,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String equipment_edit_liftCapacityLabel(String unit) {
+    return 'Lift capacity ($unit)';
+  }
+
+  @override
+  String get equipment_edit_liftCapacityHint => 'Wing or BCD rated lift';
+
+  @override
   String get planner_gearWeights_accept => 'Use as planned weight';
 
   @override

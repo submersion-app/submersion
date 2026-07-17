@@ -19451,6 +19451,15 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String equipment_edit_liftCapacityLabel(String unit) {
+    return 'Emelőkapacitás ($unit)';
+  }
+
+  @override
+  String get equipment_edit_liftCapacityHint =>
+      'A szárny vagy BCD névleges felhajtóereje';
+
+  @override
   String get planner_gearWeights_accept => 'Használat tervezett súlyként';
 
   @override

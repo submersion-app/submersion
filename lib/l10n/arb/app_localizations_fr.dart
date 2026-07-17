@@ -19575,6 +19575,15 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String equipment_edit_liftCapacityLabel(String unit) {
+    return 'Capacité de portance ($unit)';
+  }
+
+  @override
+  String get equipment_edit_liftCapacityHint =>
+      'Portance nominale du wing ou gilet';
+
+  @override
   String get planner_gearWeights_accept => 'Utiliser comme lestage prévu';
 
   @override

@@ -19007,6 +19007,15 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String equipment_edit_liftCapacityLabel(String unit) {
+    return 'כושר ציפה ($unit)';
+  }
+
+  @override
+  String get equipment_edit_liftCapacityHint =>
+      'כוח הציפה הנקוב של האגף או המצוף';
+
+  @override
   String get planner_gearWeights_accept => 'השתמש כמשקל מתוכנן';
 
   @override

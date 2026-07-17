@@ -19503,6 +19503,15 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String equipment_edit_liftCapacityLabel(String unit) {
+    return 'Capacità di sollevamento ($unit)';
+  }
+
+  @override
+  String get equipment_edit_liftCapacityHint =>
+      'Portanza nominale di GAV o sacco';
+
+  @override
   String get planner_gearWeights_accept => 'Usa come zavorra pianificata';
 
   @override

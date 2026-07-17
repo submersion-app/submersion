@@ -5550,6 +5550,8 @@
   "equipment_edit_buoyancyHint_tank": "اتركه فارغا - تستخدم الأسطوانات مواصفاتها الخاصة",
   "equipment_edit_buoyancyLabel": "الطفو ({unit})",
   "equipment_edit_dryWeightLabel": "الوزن الجاف ({unit})",
+  "equipment_edit_liftCapacityLabel": "سعة الرفع ({unit})",
+  "equipment_edit_liftCapacityHint": "قوة رفع الجناح أو منظم الطفو",
   "planner_gearWeights_accept": "استخدام كوزن مخطط",
   "planner_gearWeights_addGear": "إضافة معدات",
   "planner_gearWeights_empty": "أضف معدات للتنبؤ بأوزانك",

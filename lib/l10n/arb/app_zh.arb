@@ -5550,6 +5550,8 @@
   "equipment_edit_buoyancyHint_tank": "留空——气瓶使用自身规格",
   "equipment_edit_buoyancyLabel": "浮力（{unit}）",
   "equipment_edit_dryWeightLabel": "干重（{unit}）",
+  "equipment_edit_liftCapacityLabel": "浮力容量（{unit}）",
+  "equipment_edit_liftCapacityHint": "浮力背心或 BCD 的额定浮力",
   "planner_gearWeights_accept": "用作计划配重",
   "planner_gearWeights_addGear": "添加装备",
   "planner_gearWeights_empty": "添加装备以预测配重",

@@ -5550,6 +5550,8 @@
   "equipment_edit_buoyancyHint_tank": "Leeg laten - flessen gebruiken hun eigen specificaties",
   "equipment_edit_buoyancyLabel": "Drijfvermogen ({unit})",
   "equipment_edit_dryWeightLabel": "Drooggewicht ({unit})",
+  "equipment_edit_liftCapacityLabel": "Liftcapaciteit ({unit})",
+  "equipment_edit_liftCapacityHint": "Nominale liftkracht van wing of trimvest",
   "planner_gearWeights_accept": "Gebruik als gepland lood",
   "planner_gearWeights_addGear": "Uitrusting toevoegen",
   "planner_gearWeights_empty": "Voeg uitrusting toe om je lood te voorspellen",

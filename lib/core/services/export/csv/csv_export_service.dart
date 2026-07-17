@@ -248,6 +248,7 @@ class CsvExportService {
       'Next Service Due',
       'Buoyancy (kg)',
       'Dry Weight (kg)',
+      'Lift Capacity (kg)',
       'Active',
       'Notes',
     ];
@@ -270,6 +271,7 @@ class CsvExportService {
             : '',
         item.buoyancyKg?.toString() ?? '',
         item.weightKg?.toString() ?? '',
+        item.liftCapacityKg?.toString() ?? '',
         item.isActive ? 'Yes' : 'No',
         item.notes.replaceAll('\n', ' '),
       ]);

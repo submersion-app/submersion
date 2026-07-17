@@ -19505,6 +19505,15 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String equipment_edit_liftCapacityLabel(String unit) {
+    return 'Capacidade de sustentação ($unit)';
+  }
+
+  @override
+  String get equipment_edit_liftCapacityHint =>
+      'Sustentação nominal do wing ou colete';
+
+  @override
   String get planner_gearWeights_accept => 'Usar como lastro planejado';
 
   @override

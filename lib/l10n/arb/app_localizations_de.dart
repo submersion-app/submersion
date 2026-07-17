@@ -19474,6 +19474,15 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String equipment_edit_liftCapacityLabel(String unit) {
+    return 'Auftriebskapazität ($unit)';
+  }
+
+  @override
+  String get equipment_edit_liftCapacityHint =>
+      'Nennauftrieb von Wing oder Jacket';
+
+  @override
   String get planner_gearWeights_accept => 'Als geplantes Blei übernehmen';
 
   @override

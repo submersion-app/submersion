@@ -28,6 +28,10 @@ class EquipmentItem extends Equatable {
   final double? buoyancyKg;
   final double? weightKg;
 
+  // Wing/BCD rated lift capacity in kg-equivalent (v119); feeds the buoyancy
+  // twin's peak-lift-demand check. Null when unspecified.
+  final double? liftCapacityKg;
+
   // Notification overrides
   final bool? customReminderEnabled; // NULL = use global
   final List<int>? customReminderDays; // Override reminder days
@@ -52,6 +56,7 @@ class EquipmentItem extends Equatable {
     this.isActive = true,
     this.buoyancyKg,
     this.weightKg,
+    this.liftCapacityKg,
     this.customReminderEnabled,
     this.customReminderDays,
   });
@@ -110,6 +115,7 @@ class EquipmentItem extends Equatable {
     bool? isActive,
     double? buoyancyKg,
     double? weightKg,
+    double? liftCapacityKg,
     bool? customReminderEnabled,
     List<int>? customReminderDays,
   }) {
@@ -133,6 +139,7 @@ class EquipmentItem extends Equatable {
       isActive: isActive ?? this.isActive,
       buoyancyKg: buoyancyKg ?? this.buoyancyKg,
       weightKg: weightKg ?? this.weightKg,
+      liftCapacityKg: liftCapacityKg ?? this.liftCapacityKg,
       customReminderEnabled:
           customReminderEnabled ?? this.customReminderEnabled,
       customReminderDays: customReminderDays ?? this.customReminderDays,
@@ -160,6 +167,7 @@ class EquipmentItem extends Equatable {
     isActive,
     buoyancyKg,
     weightKg,
+    liftCapacityKg,
     customReminderEnabled,
     customReminderDays,
   ];

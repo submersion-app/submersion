@@ -5550,6 +5550,8 @@
   "equipment_edit_buoyancyHint_tank": "Leer lassen - Flaschen nutzen eigene Spezifikationen",
   "equipment_edit_buoyancyLabel": "Auftrieb ({unit})",
   "equipment_edit_dryWeightLabel": "Trockengewicht ({unit})",
+  "equipment_edit_liftCapacityLabel": "Auftriebskapazität ({unit})",
+  "equipment_edit_liftCapacityHint": "Nennauftrieb von Wing oder Jacket",
   "planner_gearWeights_accept": "Als geplantes Blei übernehmen",
   "planner_gearWeights_addGear": "Ausrüstung hinzufügen",
   "planner_gearWeights_empty": "Ausrüstung hinzufügen, um dein Blei vorherzusagen",

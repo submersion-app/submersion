@@ -18507,6 +18507,14 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String equipment_edit_liftCapacityLabel(String unit) {
+    return '浮力容量（$unit）';
+  }
+
+  @override
+  String get equipment_edit_liftCapacityHint => '浮力背心或 BCD 的额定浮力';
+
+  @override
   String get planner_gearWeights_accept => '用作计划配重';
 
   @override

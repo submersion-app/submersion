@@ -5550,6 +5550,8 @@
   "equipment_edit_buoyancyHint_tank": "Hagyd üresen - a palackok saját adataikat használják",
   "equipment_edit_buoyancyLabel": "Felhajtóerő ({unit})",
   "equipment_edit_dryWeightLabel": "Száraz tömeg ({unit})",
+  "equipment_edit_liftCapacityLabel": "Emelőkapacitás ({unit})",
+  "equipment_edit_liftCapacityHint": "A szárny vagy BCD névleges felhajtóereje",
   "planner_gearWeights_accept": "Használat tervezett súlyként",
   "planner_gearWeights_addGear": "Felszerelés hozzáadása",
   "planner_gearWeights_empty": "Adj hozzá felszerelést a súlyozás előrejelzéséhez",

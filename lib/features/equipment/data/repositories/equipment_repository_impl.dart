@@ -195,6 +195,7 @@ class EquipmentRepository {
               isActive: Value(equipment.isActive),
               buoyancyKg: Value(equipment.buoyancyKg),
               weightKg: Value(equipment.weightKg),
+              liftCapacityKg: Value(equipment.liftCapacityKg),
               customReminderEnabled: Value(equipment.customReminderEnabled),
               customReminderDays: Value(
                 equipment.customReminderDays != null
@@ -254,6 +255,7 @@ class EquipmentRepository {
           isActive: Value(equipment.isActive),
           buoyancyKg: Value(equipment.buoyancyKg),
           weightKg: Value(equipment.weightKg),
+          liftCapacityKg: Value(equipment.liftCapacityKg),
           customReminderEnabled: Value(equipment.customReminderEnabled),
           customReminderDays: Value(
             equipment.customReminderDays != null
@@ -445,6 +447,7 @@ class EquipmentRepository {
           isActive: row.data['is_active'] == 1,
           buoyancyKg: (row.data['buoyancy_kg'] as num?)?.toDouble(),
           weightKg: (row.data['weight_kg'] as num?)?.toDouble(),
+          liftCapacityKg: (row.data['lift_capacity_kg'] as num?)?.toDouble(),
           customReminderEnabled: row.data['custom_reminder_enabled'] == 1
               ? true
               : row.data['custom_reminder_enabled'] == 0
@@ -576,6 +579,7 @@ class EquipmentRepository {
       isActive: row.isActive,
       buoyancyKg: row.buoyancyKg,
       weightKg: row.weightKg,
+      liftCapacityKg: row.liftCapacityKg,
       customReminderEnabled: row.customReminderEnabled,
       customReminderDays: row.customReminderDays != null
           ? (jsonDecode(row.customReminderDays!) as List<dynamic>).cast<int>()

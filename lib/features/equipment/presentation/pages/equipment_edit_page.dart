@@ -44,6 +44,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
   final _notesController = TextEditingController();
   final _buoyancyController = TextEditingController();
   final _dryWeightController = TextEditingController();
+  final _liftCapacityController = TextEditingController();
 
   EquipmentType _selectedType = EquipmentType.regulator;
   EquipmentStatus _selectedStatus = EquipmentStatus.active;
@@ -69,6 +70,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     _serviceIntervalController.addListener(_onFieldChanged);
     _notesController.addListener(_onFieldChanged);
     _buoyancyController.addListener(_onFieldChanged);
+    _liftCapacityController.addListener(_onFieldChanged);
     _dryWeightController.addListener(_onFieldChanged);
   }
 
@@ -92,6 +94,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     _notesController.dispose();
     _buoyancyController.dispose();
     _dryWeightController.dispose();
+    _liftCapacityController.dispose();
     super.dispose();
   }
 
@@ -122,6 +125,9 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
         : '';
     _dryWeightController.text = equipment.weightKg != null
         ? units.convertWeight(equipment.weightKg!).toStringAsFixed(1)
+        : '';
+    _liftCapacityController.text = equipment.liftCapacityKg != null
+        ? units.convertWeight(equipment.liftCapacityKg!).toStringAsFixed(1)
         : '';
   }
 
@@ -740,6 +746,22 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
                 decimal: true,
               ),
             ),
+            if (_selectedType == EquipmentType.bcd) ...[
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _liftCapacityController,
+                decoration: InputDecoration(
+                  labelText: context.l10n.equipment_edit_liftCapacityLabel(
+                    units.weightSymbol,
+                  ),
+                  prefixIcon: const Icon(Icons.expand),
+                  hintText: context.l10n.equipment_edit_liftCapacityHint,
+                ),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -920,6 +942,11 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
             : null,
         weightKg: _dryWeightController.text.isNotEmpty
             ? _parseWeightToKg(_dryWeightController.text)
+            : null,
+        liftCapacityKg:
+            (_selectedType == EquipmentType.bcd &&
+                _liftCapacityController.text.isNotEmpty)
+            ? _parseWeightToKg(_liftCapacityController.text)
             : null,
         customReminderEnabled: _customReminderEnabled,
         customReminderDays: _customReminderEnabled == true

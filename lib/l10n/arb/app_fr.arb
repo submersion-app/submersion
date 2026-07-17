@@ -5550,6 +5550,8 @@
   "equipment_edit_buoyancyHint_tank": "Laisser vide - les blocs utilisent leurs propres spécifications",
   "equipment_edit_buoyancyLabel": "Flottabilité ({unit})",
   "equipment_edit_dryWeightLabel": "Poids à sec ({unit})",
+  "equipment_edit_liftCapacityLabel": "Capacité de portance ({unit})",
+  "equipment_edit_liftCapacityHint": "Portance nominale du wing ou gilet",
   "planner_gearWeights_accept": "Utiliser comme lestage prévu",
   "planner_gearWeights_addGear": "Ajouter équipement",
   "planner_gearWeights_empty": "Ajoutez de l'équipement pour prédire votre lestage",

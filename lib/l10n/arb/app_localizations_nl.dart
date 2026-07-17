@@ -19352,6 +19352,15 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String equipment_edit_liftCapacityLabel(String unit) {
+    return 'Liftcapaciteit ($unit)';
+  }
+
+  @override
+  String get equipment_edit_liftCapacityHint =>
+      'Nominale liftkracht van wing of trimvest';
+
+  @override
   String get planner_gearWeights_accept => 'Gebruik als gepland lood';
 
   @override

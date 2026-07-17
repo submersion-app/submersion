@@ -27,6 +27,7 @@ void main() {
     type: EquipmentType.wetsuit,
     buoyancyKg: -2.5,
     weightKg: 3.0,
+    liftCapacityKg: 16.0,
   );
 
   test('buoyancyKg and weightKg round-trip through create/getById', () async {
@@ -34,16 +35,18 @@ void main() {
     final loaded = await repository.getEquipmentById(created.id);
     expect(loaded!.buoyancyKg, -2.5);
     expect(loaded.weightKg, 3.0);
+    expect(loaded.liftCapacityKg, 16.0);
   });
 
   test('fields survive updateEquipment', () async {
     final created = await repository.createEquipment(suit());
     await repository.updateEquipment(
-      created.copyWith(buoyancyKg: 4.0, weightKg: 2.0),
+      created.copyWith(buoyancyKg: 4.0, weightKg: 2.0, liftCapacityKg: 20.0),
     );
     final loaded = await repository.getEquipmentById(created.id);
     expect(loaded!.buoyancyKg, 4.0);
     expect(loaded.weightKg, 2.0);
+    expect(loaded.liftCapacityKg, 20.0);
   });
 
   test('searchEquipment mapping carries the fields', () async {
@@ -51,6 +54,7 @@ void main() {
     final results = await repository.searchEquipment('7mm');
     expect(results.single.buoyancyKg, -2.5);
     expect(results.single.weightKg, 3.0);
+    expect(results.single.liftCapacityKg, 16.0);
   });
 
   test('dive batch equipment join carries the fields', () async {
@@ -67,5 +71,6 @@ void main() {
     final loaded = await diveRepository.getDiveById(dive.id);
     expect(loaded!.equipment.single.buoyancyKg, -2.5);
     expect(loaded.equipment.single.weightKg, 3.0);
+    expect(loaded.equipment.single.liftCapacityKg, 16.0);
   });
 }

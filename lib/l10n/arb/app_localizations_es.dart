@@ -19512,6 +19512,15 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String equipment_edit_liftCapacityLabel(String unit) {
+    return 'Capacidad de flotación ($unit)';
+  }
+
+  @override
+  String get equipment_edit_liftCapacityHint =>
+      'Sustentación nominal del wing o jacket';
+
+  @override
   String get planner_gearWeights_accept => 'Usar como lastre planificado';
 
   @override
