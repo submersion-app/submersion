@@ -216,13 +216,26 @@ class LightroomScanService {
       // endpoint, so query the upper bound only and page `next` (older). The
       // listing is newest-first, so once assets cross below the window start
       // every later page is older too -- stop then.
+      _log.info(
+        '[LR-SCAN] span ${span.start.toIso8601String()} .. '
+        '${span.end.toIso8601String()} '
+        '(query captured_before=${span.end.toIso8601String()})',
+      );
       String? next;
       var reachedStart = false;
+      var pageNum = 0;
       do {
         final page = await _api.listAssets(
           catalogId,
           capturedBefore: span.end,
           nextUrl: next,
+        );
+        pageNum++;
+        _log.info(
+          '[LR-SCAN] page $pageNum: got=${page.assets.length} '
+          'firstDates=[${page.assets.take(4).map((a) => a.captureDate?.toIso8601String() ?? 'null').join(' | ')}] '
+          'lastDate=${page.assets.isEmpty ? 'n/a' : page.assets.last.captureDate?.toIso8601String()} '
+          'hasNext=${page.nextUrl != null}',
         );
         for (final asset in page.assets) {
           final captureDate = asset.captureDate;
@@ -234,7 +247,11 @@ class LightroomScanService {
         }
         next = reachedStart ? null : page.nextUrl;
       } while (next != null);
+      if (reachedStart) {
+        _log.info('[LR-SCAN] early-stop fired (asset older than window start)');
+      }
     }
+    _log.info('[LR-SCAN] total collected within windows=${assets.length}');
     return assets;
   }
 
