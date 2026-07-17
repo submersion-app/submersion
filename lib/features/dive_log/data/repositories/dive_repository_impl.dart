@@ -1540,9 +1540,15 @@ class DiveRepository {
             'COALESCE(d.entry_time, d.dive_date_time) AS sort_timestamp, '
             's.name AS site_name, s.country AS site_country, '
             's.region AS site_region, s.latitude AS site_latitude, '
-            's.longitude AS site_longitude '
+            's.longitude AS site_longitude, '
+            'COALESCE(sf.safety_finding_count, 0) AS safety_finding_count '
             'FROM dives d '
             'LEFT JOIN dive_sites s ON d.site_id = s.id '
+            'LEFT JOIN ('
+            'SELECT dive_id, COUNT(*) AS safety_finding_count '
+            'FROM dive_safety_findings WHERE dismissed_at IS NULL '
+            'GROUP BY dive_id'
+            ') sf ON sf.dive_id = d.id '
             '$whereClause '
             'ORDER BY $orderByClause '
             'LIMIT ? $offsetClause';
@@ -1552,7 +1558,7 @@ class DiveRepository {
             .customSelect(
               sql,
               variables: args,
-              readsFrom: {_db.dives, _db.diveSites},
+              readsFrom: {_db.dives, _db.diveSites, _db.diveSafetyFindings},
             )
             .get();
 
@@ -2077,14 +2083,20 @@ class DiveRepository {
           'COALESCE(d.entry_time, d.dive_date_time) AS sort_timestamp, '
           's.name AS site_name, s.country AS site_country, '
           's.region AS site_region, s.latitude AS site_latitude, '
-          's.longitude AS site_longitude '
+          's.longitude AS site_longitude, '
+          'COALESCE(sf.safety_finding_count, 0) AS safety_finding_count '
           'FROM dives d '
           'LEFT JOIN dive_sites s ON d.site_id = s.id '
+          'LEFT JOIN ('
+          'SELECT dive_id, COUNT(*) AS safety_finding_count '
+          'FROM dive_safety_findings WHERE dismissed_at IS NULL '
+          'GROUP BY dive_id'
+          ') sf ON sf.dive_id = d.id '
           'WHERE d.id IN ($placeholders) '
           'ORDER BY sort_timestamp DESC, '
           'COALESCE(d.dive_number, 0) DESC, d.id DESC',
           variables: [for (final id in ids) Variable<String>(id)],
-          readsFrom: {_db.dives, _db.diveSites},
+          readsFrom: {_db.dives, _db.diveSites, _db.diveSafetyFindings},
         )
         .get();
 
@@ -2134,6 +2146,7 @@ class DiveRepository {
         siteLatitude: row.readNullable<double>('site_latitude'),
         siteLongitude: row.readNullable<double>('site_longitude'),
         sortTimestamp: row.read<int>('sort_timestamp'),
+        safetyFindingCount: row.readNullable<int>('safety_finding_count') ?? 0,
       );
     }).toList();
   }

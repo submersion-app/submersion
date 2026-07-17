@@ -797,6 +797,23 @@ class DiveListTile extends ConsumerWidget {
                                   ),
                                 ),
                               ],
+                              if ((summary?.safetyFindingCount ?? 0) > 0 &&
+                                  ref.watch(safetyReviewEnabledProvider)) ...[
+                                const SizedBox(width: 6),
+                                Tooltip(
+                                  message: context.l10n
+                                      .safetyReview_findingCount(
+                                        summary!.safetyFindingCount,
+                                      ),
+                                  child: Icon(
+                                    Icons.circle,
+                                    size: 8,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
                               if (rating != null) ...[
                                 const SizedBox(width: 8),
                                 ExcludeSemantics(
