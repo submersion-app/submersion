@@ -55,7 +55,7 @@ class PlanResultsPane extends ConsumerWidget {
             physics: const NeverScrollableScrollPhysics(),
             mainAxisSpacing: 8,
             crossAxisSpacing: 8,
-            childAspectRatio: 2.6,
+            childAspectRatio: 2.2,
             children: tiles,
           ),
         ),

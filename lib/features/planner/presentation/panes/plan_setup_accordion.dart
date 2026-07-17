@@ -25,23 +25,40 @@ class PlanSetupAccordion extends ConsumerStatefulWidget {
 }
 
 class _PlanSetupAccordionState extends ConsumerState<PlanSetupAccordion> {
-  final _controllers = <String, ExpansionTileController>{};
+  final _controllers = <String, ExpansibleController>{};
+  final _tileKeys = <String, GlobalKey>{};
 
-  ExpansionTileController _controllerFor(String key) =>
-      _controllers.putIfAbsent(key, ExpansionTileController.new);
+  ExpansibleController _controllerFor(String key) =>
+      _controllers.putIfAbsent(key, ExpansibleController.new);
+
+  GlobalKey _keyFor(String key) => _tileKeys.putIfAbsent(key, GlobalKey.new);
 
   @override
   Widget build(BuildContext context) {
     final mode = ref.watch(divePlanNotifierProvider.select((s) => s.mode));
 
-    // Header-chip deep link: expand the requested section, then clear.
-    ref.listen(setupFocusSectionProvider, (previous, next) {
-      if (next == null) return;
+    // Header-chip deep link. Watched (not just listened) so a pending focus
+    // is consumed even when this accordion builds lazily AFTER the request
+    // was made - e.g. it sat below the fold of a narrow editor pane and the
+    // pane scrolled it into existence.
+    final pending = ref.watch(setupFocusSectionProvider);
+    if (pending != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _controllers[next]?.expand();
+        if (!mounted) return;
+        final controller = _controllers[pending];
+        if (controller == null) return;
+        controller.expand();
+        final tileContext = _tileKeys[pending]?.currentContext;
+        if (tileContext != null) {
+          Scrollable.ensureVisible(
+            tileContext,
+            duration: const Duration(milliseconds: 250),
+            alignment: 0.1,
+          );
+        }
         ref.read(setupFocusSectionProvider.notifier).state = null;
       });
-    });
+    }
 
     final sections = <(String, String, Widget)>[
       (
@@ -72,13 +89,16 @@ class _PlanSetupAccordionState extends ConsumerState<PlanSetupAccordion> {
     return Column(
       children: [
         for (final (key, title, child) in sections)
-          ExpansionTile(
-            key: PageStorageKey('planSetup_$key'),
-            controller: _controllerFor(key),
-            title: Text(title, style: Theme.of(context).textTheme.titleSmall),
-            tilePadding: const EdgeInsets.symmetric(horizontal: 12),
-            childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-            children: [child],
+          KeyedSubtree(
+            key: _keyFor(key),
+            child: ExpansionTile(
+              key: PageStorageKey('planSetup_$key'),
+              controller: _controllerFor(key),
+              title: Text(title, style: Theme.of(context).textTheme.titleSmall),
+              tilePadding: const EdgeInsets.symmetric(horizontal: 12),
+              childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              children: [child],
+            ),
           ),
       ],
     );

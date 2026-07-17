@@ -55,6 +55,8 @@ class PlanStatTile extends StatelessWidget {
         children: [
           Text(
             label.toUpperCase(),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: theme.textTheme.labelSmall?.copyWith(
               color: tint ?? scheme.onSurfaceVariant,
               letterSpacing: 0.6,
@@ -63,6 +65,8 @@ class PlanStatTile extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w700,
               color: tint ?? scheme.onSurface,

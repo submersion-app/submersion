@@ -115,6 +115,7 @@ import 'package:submersion/features/marine_life/presentation/pages/species_manag
 import 'package:submersion/features/tags/presentation/pages/tag_manage_page.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_edit_page.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_detail_page.dart';
+import 'package:submersion/features/planner/presentation/pages/plan_chart_fullscreen_page.dart';
 import 'package:submersion/features/planning/presentation/pages/planning_page.dart';
 import 'package:submersion/features/planning/presentation/widgets/planning_shell.dart';
 import 'package:submersion/features/gps_log/presentation/pages/gps_logger_page.dart';
@@ -229,6 +230,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                               .where((id) => id.isNotEmpty)
                               .toList(),
                         ),
+                      ),
+                      GoRoute(
+                        path: 'chart',
+                        name: 'planChart',
+                        builder: (context, state) =>
+                            const PlanChartFullscreenPage(),
                       ),
                       GoRoute(
                         path: ':planId',

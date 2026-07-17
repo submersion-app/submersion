@@ -54,9 +54,6 @@ final loggedAverageSacProvider = FutureProvider<double?>((ref) async {
 /// Scrub cursor position along the plan, in seconds (null = not scrubbing).
 final scrubTimeProvider = StateProvider<double?>((_) => null);
 
-/// Which results-sheet section the last chip tap targeted (0 = top).
-final planResultsSheetSectionProvider = StateProvider<int>((_) => 0);
-
 /// One vertex of a canvas polyline (raw metric values; widgets convert).
 class CanvasPoint {
   final double timeSeconds;
