@@ -1,4 +1,12 @@
 {
+  "divelogsSync_gearCertHeader": "装备与证书",
+  "divelogsSync_gearCertMatched": "{gear} 件装备和 {certs} 张证书已同步",
+  "divelogsSync_gearCertPush": "推送:{gear} 件装备,{certs} 张证书",
+  "divelogsSync_gearCertPushButton": "同步装备与证书",
+  "divelogsSync_gearCertPushDone": "已推送 {gear} 件装备和 {certs} 张证书。",
+  "divelogsSync_gearCertPushFailed": "装备/证书推送已停止:{error}",
+  "divelogsSync_certsMissingDate": "{count} 张证书需要签发日期后才能推送。",
+  "divelogsSync_gearCertUnavailable": "无法比较装备与证书:{error}",
   "divelogsSync_title": "divelogs.de 同步",
   "divelogsSync_notConnected": "尚未连接 divelogs.de 账户。请开始导入以登录。",
   "divelogsSync_openImport": "打开 divelogs.de 导入",

@@ -116,6 +116,54 @@ abstract class AppLocalizations {
     Locale('zh'),
   ];
 
+  /// No description provided for @divelogsSync_gearCertHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear & certifications'**
+  String get divelogsSync_gearCertHeader;
+
+  /// No description provided for @divelogsSync_gearCertMatched.
+  ///
+  /// In en, this message translates to:
+  /// **'{gear} gear items and {certs} certifications already in sync'**
+  String divelogsSync_gearCertMatched(int gear, int certs);
+
+  /// No description provided for @divelogsSync_gearCertPush.
+  ///
+  /// In en, this message translates to:
+  /// **'Push: {gear} gear items, {certs} certifications'**
+  String divelogsSync_gearCertPush(int gear, int certs);
+
+  /// No description provided for @divelogsSync_gearCertPushButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync gear & certifications'**
+  String get divelogsSync_gearCertPushButton;
+
+  /// No description provided for @divelogsSync_gearCertPushDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Pushed {gear} gear items and {certs} certifications.'**
+  String divelogsSync_gearCertPushDone(int gear, int certs);
+
+  /// No description provided for @divelogsSync_gearCertPushFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear/certification push stopped: {error}'**
+  String divelogsSync_gearCertPushFailed(String error);
+
+  /// No description provided for @divelogsSync_certsMissingDate.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} certifications need an issue date before they can be pushed.'**
+  String divelogsSync_certsMissingDate(int count);
+
+  /// No description provided for @divelogsSync_gearCertUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear and certifications could not be compared: {error}'**
+  String divelogsSync_gearCertUnavailable(String error);
+
   /// No description provided for @divelogsSync_title.
   ///
   /// In en, this message translates to:

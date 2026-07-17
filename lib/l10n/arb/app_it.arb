@@ -1,4 +1,12 @@
 {
+  "divelogsSync_gearCertHeader": "Attrezzatura e certificazioni",
+  "divelogsSync_gearCertMatched": "{gear} attrezzature e {certs} certificazioni già sincronizzate",
+  "divelogsSync_gearCertPush": "Carica: {gear} attrezzature, {certs} certificazioni",
+  "divelogsSync_gearCertPushButton": "Sincronizza attrezzatura e certificazioni",
+  "divelogsSync_gearCertPushDone": "Caricate {gear} attrezzature e {certs} certificazioni.",
+  "divelogsSync_gearCertPushFailed": "Caricamento attrezzatura/certificazioni interrotto: {error}",
+  "divelogsSync_certsMissingDate": "{count} certificazioni richiedono una data di rilascio prima di poter essere caricate.",
+  "divelogsSync_gearCertUnavailable": "Impossibile confrontare attrezzatura e certificazioni: {error}",
   "divelogsSync_title": "Sincronizzazione divelogs.de",
   "divelogsSync_notConnected": "Nessun account divelogs.de collegato. Avvia un'importazione per accedere.",
   "divelogsSync_openImport": "Apri importazione divelogs.de",

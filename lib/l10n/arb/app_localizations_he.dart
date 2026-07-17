@@ -9,6 +9,42 @@ class AppLocalizationsHe extends AppLocalizations {
   AppLocalizationsHe([String locale = 'he']) : super(locale);
 
   @override
+  String get divelogsSync_gearCertHeader => 'ציוד והסמכות';
+
+  @override
+  String divelogsSync_gearCertMatched(int gear, int certs) {
+    return '$gear פריטי ציוד ו-$certs הסמכות כבר מסונכרנים';
+  }
+
+  @override
+  String divelogsSync_gearCertPush(int gear, int certs) {
+    return 'דחיפה: $gear פריטי ציוד, $certs הסמכות';
+  }
+
+  @override
+  String get divelogsSync_gearCertPushButton => 'סנכרן ציוד והסמכות';
+
+  @override
+  String divelogsSync_gearCertPushDone(int gear, int certs) {
+    return 'נדחפו $gear פריטי ציוד ו-$certs הסמכות.';
+  }
+
+  @override
+  String divelogsSync_gearCertPushFailed(String error) {
+    return 'דחיפת ציוד/הסמכות נעצרה: $error';
+  }
+
+  @override
+  String divelogsSync_certsMissingDate(int count) {
+    return '$count הסמכות זקוקות לתאריך הנפקה לפני שניתן לדחוף אותן.';
+  }
+
+  @override
+  String divelogsSync_gearCertUnavailable(String error) {
+    return 'לא ניתן להשוות ציוד והסמכות: $error';
+  }
+
+  @override
   String get divelogsSync_title => 'סנכרון divelogs.de';
 
   @override

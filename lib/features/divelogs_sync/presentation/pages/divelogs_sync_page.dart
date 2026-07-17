@@ -8,10 +8,14 @@ import 'package:submersion/core/services/accounts/adapters/divelogs_account_adap
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/services/divelogs/divelogs_api_client.dart';
 import 'package:submersion/core/services/divelogs/divelogs_auth_manager.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
+import 'package:submersion/features/divelogs_sync/domain/services/divelogs_gear_cert_push_service.dart';
 import 'package:submersion/features/divelogs_sync/domain/services/divelogs_push_service.dart';
 import 'package:submersion/features/divelogs_sync/domain/services/divelogs_sync_planner.dart';
+import 'package:submersion/features/divelogs_sync/domain/services/gear_cert_sync_planner.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/import_wizard/data/adapters/divelogs_adapter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -46,6 +50,12 @@ class _DivelogsSyncPageState extends ConsumerState<DivelogsSyncPage> {
   int _pushDone = 0;
   int _pushTotal = 0;
   DivelogsPushResult? _lastPushResult;
+  GearCertSyncPlan? _gearCertPlan;
+  Map<int, String> _geartypes = const {};
+  Map<String, String> _remoteGearIdByName = const {};
+  String? _gearCertError;
+  GearCertPushResult? _lastGearCertResult;
+  bool _pushingGearCerts = false;
 
   @override
   void initState() {
@@ -102,7 +112,8 @@ class _DivelogsSyncPageState extends ConsumerState<DivelogsSyncPage> {
       _errorMessage = null;
     });
     try {
-      final remote = await _api(account).getDivelist();
+      final api = _api(account);
+      final remote = await api.getDivelist();
       final currentDiver = await ref.read(currentDiverProvider.future);
       final diverId = account.diverId ?? currentDiver?.id;
       final local = await ref
@@ -113,9 +124,46 @@ class _DivelogsSyncPageState extends ConsumerState<DivelogsSyncPage> {
         remote: remote.entries,
         local: local,
       );
+      // Gear/certs compare independently: a failure here renders an inline
+      // error line in that section and never breaks the dive compare.
+      GearCertSyncPlan? gearCertPlan;
+      String? gearCertError;
+      var geartypes = const <int, String>{};
+      var remoteGearIdByName = const <String, String>{};
+      try {
+        final remoteGear = await api.getGear();
+        final remoteCerts = await api.getCertifications();
+        try {
+          geartypes = await api.getGeartypes();
+        } on DivelogsApiException {
+          // Geartype names only refine push mapping; ignore.
+        }
+        final localGear = await ref
+            .read(equipmentRepositoryProvider)
+            .getAllEquipment(diverId: diverId);
+        final localCerts = await ref
+            .read(certificationRepositoryProvider)
+            .getAllCertifications(diverId: diverId);
+        gearCertPlan = const GearCertSyncPlanner().plan(
+          remoteGear: remoteGear,
+          remoteCerts: remoteCerts,
+          localGear: localGear,
+          localCerts: localCerts,
+        );
+        remoteGearIdByName = {
+          for (final g in remoteGear) g.name.trim().toLowerCase(): g.id,
+        };
+      } on DivelogsApiException catch (e) {
+        gearCertError = e.message;
+      }
+      if (!mounted) return;
       setState(() {
         _plan = plan;
         _selectedPushIds = plan.pushCandidates.map((s) => s.id).toSet();
+        _gearCertPlan = gearCertPlan;
+        _gearCertError = gearCertError;
+        _geartypes = geartypes;
+        _remoteGearIdByName = remoteGearIdByName;
         _phase = _PagePhase.plan;
       });
     } on DivelogsApiException catch (e) {
@@ -148,6 +196,7 @@ class _DivelogsSyncPageState extends ConsumerState<DivelogsSyncPage> {
     if (!mounted) return;
     final result = await DivelogsPushService(api: _api(account)).push(
       dives,
+      remoteGearIdByName: _remoteGearIdByName,
       onProgress: (done, total) {
         if (!mounted) return;
         setState(() {
@@ -159,6 +208,24 @@ class _DivelogsSyncPageState extends ConsumerState<DivelogsSyncPage> {
     if (!mounted) return;
     _lastPushResult = result;
     // Stateless model: re-compare so pushed dives show up as matched.
+    await _compare();
+  }
+
+  Future<void> _pushGearCerts() async {
+    final account = _account;
+    final gearCertPlan = _gearCertPlan;
+    if (account == null || gearCertPlan == null || !gearCertPlan.hasPush) {
+      return;
+    }
+    setState(() => _pushingGearCerts = true);
+    final result = await DivelogsGearCertPushService(api: _api(account)).push(
+      gear: gearCertPlan.pushGear,
+      certs: gearCertPlan.pushCerts,
+      geartypes: _geartypes,
+    );
+    if (!mounted) return;
+    _lastGearCertResult = result;
+    _pushingGearCerts = false;
     await _compare();
   }
 
@@ -362,8 +429,68 @@ class _DivelogsSyncPageState extends ConsumerState<DivelogsSyncPage> {
             child: Text(l10n.divelogsSync_pushSelected),
           ),
         ],
+        const SizedBox(height: 16),
+        ..._buildGearCertSection(context),
       ],
     );
+  }
+
+  List<Widget> _buildGearCertSection(BuildContext context) {
+    final l10n = context.l10n;
+    final plan = _gearCertPlan;
+    final error = _gearCertError;
+    final pushResult = _lastGearCertResult;
+    return [
+      Text(
+        l10n.divelogsSync_gearCertHeader,
+        style: Theme.of(context).textTheme.titleMedium,
+      ),
+      const SizedBox(height: 8),
+      if (error != null)
+        Text(
+          l10n.divelogsSync_gearCertUnavailable(error),
+          style: TextStyle(color: Theme.of(context).colorScheme.error),
+        )
+      else if (plan != null) ...[
+        if (pushResult != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(
+              pushResult.failed
+                  ? l10n.divelogsSync_gearCertPushFailed(pushResult.error!)
+                  : l10n.divelogsSync_gearCertPushDone(
+                      pushResult.gearPushed,
+                      pushResult.certsPushed,
+                    ),
+            ),
+          ),
+        Text(
+          l10n.divelogsSync_gearCertMatched(
+            plan.matchedGear,
+            plan.matchedCerts,
+          ),
+        ),
+        if (plan.certsMissingDate > 0)
+          Text(
+            l10n.divelogsSync_certsMissingDate(plan.certsMissingDate),
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        if (plan.hasPush) ...[
+          const SizedBox(height: 8),
+          Text(
+            l10n.divelogsSync_gearCertPush(
+              plan.pushGear.length,
+              plan.pushCerts.length,
+            ),
+          ),
+          const SizedBox(height: 8),
+          FilledButton.tonal(
+            onPressed: _pushingGearCerts ? null : _pushGearCerts,
+            child: Text(l10n.divelogsSync_gearCertPushButton),
+          ),
+        ],
+      ],
+    ];
   }
 
   String _summaryTitle(DiveSummary summary) {

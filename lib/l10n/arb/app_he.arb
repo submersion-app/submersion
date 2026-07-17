@@ -1,4 +1,12 @@
 {
+  "divelogsSync_gearCertHeader": "ציוד והסמכות",
+  "divelogsSync_gearCertMatched": "{gear} פריטי ציוד ו-{certs} הסמכות כבר מסונכרנים",
+  "divelogsSync_gearCertPush": "דחיפה: {gear} פריטי ציוד, {certs} הסמכות",
+  "divelogsSync_gearCertPushButton": "סנכרן ציוד והסמכות",
+  "divelogsSync_gearCertPushDone": "נדחפו {gear} פריטי ציוד ו-{certs} הסמכות.",
+  "divelogsSync_gearCertPushFailed": "דחיפת ציוד/הסמכות נעצרה: {error}",
+  "divelogsSync_certsMissingDate": "{count} הסמכות זקוקות לתאריך הנפקה לפני שניתן לדחוף אותן.",
+  "divelogsSync_gearCertUnavailable": "לא ניתן להשוות ציוד והסמכות: {error}",
   "divelogsSync_title": "סנכרון divelogs.de",
   "divelogsSync_notConnected": "עדיין לא מחובר חשבון divelogs.de. התחל ייבוא כדי להתחבר.",
   "divelogsSync_openImport": "פתח ייבוא divelogs.de",

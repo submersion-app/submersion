@@ -9,6 +9,42 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
+  String get divelogsSync_gearCertHeader => '装备与证书';
+
+  @override
+  String divelogsSync_gearCertMatched(int gear, int certs) {
+    return '$gear 件装备和 $certs 张证书已同步';
+  }
+
+  @override
+  String divelogsSync_gearCertPush(int gear, int certs) {
+    return '推送:$gear 件装备,$certs 张证书';
+  }
+
+  @override
+  String get divelogsSync_gearCertPushButton => '同步装备与证书';
+
+  @override
+  String divelogsSync_gearCertPushDone(int gear, int certs) {
+    return '已推送 $gear 件装备和 $certs 张证书。';
+  }
+
+  @override
+  String divelogsSync_gearCertPushFailed(String error) {
+    return '装备/证书推送已停止:$error';
+  }
+
+  @override
+  String divelogsSync_certsMissingDate(int count) {
+    return '$count 张证书需要签发日期后才能推送。';
+  }
+
+  @override
+  String divelogsSync_gearCertUnavailable(String error) {
+    return '无法比较装备与证书:$error';
+  }
+
+  @override
   String get divelogsSync_title => 'divelogs.de 同步';
 
   @override

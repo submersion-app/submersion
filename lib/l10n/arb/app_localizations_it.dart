@@ -9,6 +9,43 @@ class AppLocalizationsIt extends AppLocalizations {
   AppLocalizationsIt([String locale = 'it']) : super(locale);
 
   @override
+  String get divelogsSync_gearCertHeader => 'Attrezzatura e certificazioni';
+
+  @override
+  String divelogsSync_gearCertMatched(int gear, int certs) {
+    return '$gear attrezzature e $certs certificazioni già sincronizzate';
+  }
+
+  @override
+  String divelogsSync_gearCertPush(int gear, int certs) {
+    return 'Carica: $gear attrezzature, $certs certificazioni';
+  }
+
+  @override
+  String get divelogsSync_gearCertPushButton =>
+      'Sincronizza attrezzatura e certificazioni';
+
+  @override
+  String divelogsSync_gearCertPushDone(int gear, int certs) {
+    return 'Caricate $gear attrezzature e $certs certificazioni.';
+  }
+
+  @override
+  String divelogsSync_gearCertPushFailed(String error) {
+    return 'Caricamento attrezzatura/certificazioni interrotto: $error';
+  }
+
+  @override
+  String divelogsSync_certsMissingDate(int count) {
+    return '$count certificazioni richiedono una data di rilascio prima di poter essere caricate.';
+  }
+
+  @override
+  String divelogsSync_gearCertUnavailable(String error) {
+    return 'Impossibile confrontare attrezzatura e certificazioni: $error';
+  }
+
+  @override
   String get divelogsSync_title => 'Sincronizzazione divelogs.de';
 
   @override

@@ -1,4 +1,12 @@
 {
+  "divelogsSync_gearCertHeader": "Equipo y certificaciones",
+  "divelogsSync_gearCertMatched": "{gear} equipos y {certs} certificaciones ya sincronizados",
+  "divelogsSync_gearCertPush": "Subir: {gear} equipos, {certs} certificaciones",
+  "divelogsSync_gearCertPushButton": "Sincronizar equipo y certificaciones",
+  "divelogsSync_gearCertPushDone": "Se subieron {gear} equipos y {certs} certificaciones.",
+  "divelogsSync_gearCertPushFailed": "La subida de equipo/certificaciones se detuvo: {error}",
+  "divelogsSync_certsMissingDate": "{count} certificaciones necesitan una fecha de emisión antes de poder subirse.",
+  "divelogsSync_gearCertUnavailable": "No se pudieron comparar el equipo y las certificaciones: {error}",
   "divelogsSync_title": "Sincronización con divelogs.de",
   "divelogsSync_notConnected": "Aún no hay una cuenta de divelogs.de conectada. Inicia una importación para iniciar sesión.",
   "divelogsSync_openImport": "Abrir importación de divelogs.de",

@@ -5,8 +5,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
 import 'package:submersion/core/providers/account_providers.dart';
+import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
+import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_credentials_store.dart';
 import 'package:submersion/core/services/divelogs/divelogs_credentials.dart';
@@ -111,6 +116,18 @@ void main() {
     );
   }
 
+  /// Wraps a per-path handler with empty defaults for the gear/cert
+  /// endpoints the compare step now always queries.
+  Future<http.Response>? gearCertDefaults(http.Request req) {
+    switch (req.url.path) {
+      case '/api/gear':
+      case '/api/geartypes':
+      case '/api/certifications':
+        return Future.value(http.Response(jsonEncode([]), 200));
+    }
+    return null;
+  }
+
   testWidgets('shows connect prompt when no account exists', (tester) async {
     await tester.runAsync(() async {
       await tester.pumpWidget(
@@ -130,6 +147,8 @@ void main() {
 
   testWidgets('compare renders pull/push/matched sections', (tester) async {
     final client = MockClient((req) async {
+      final fallback = gearCertDefaults(req);
+      if (fallback != null) return fallback;
       if (req.url.path == '/api/divelist') {
         return http.Response(
           jsonEncode([
@@ -171,6 +190,8 @@ void main() {
     var divelistCalls = 0;
     List<dynamic>? postedBody;
     final client = MockClient((req) async {
+      final fallback = gearCertDefaults(req);
+      if (fallback != null) return fallback;
       if (req.url.path == '/api/divelist') {
         divelistCalls++;
         if (divelistCalls >= 2) {
@@ -213,5 +234,115 @@ void main() {
     expect(postedBody, hasLength(1));
     expect(divelistCalls, 2, reason: 'push triggers an automatic re-compare');
     expect(find.textContaining('Pushed 1 dives'), findsOneWidget);
+  });
+
+  testWidgets('compare shows gear/cert push counts', (tester) async {
+    final client = MockClient((req) async {
+      switch (req.url.path) {
+        case '/api/divelist':
+        case '/api/gear':
+        case '/api/geartypes':
+        case '/api/certifications':
+          return http.Response(jsonEncode([]), 200);
+      }
+      fail('unexpected request ${req.url}');
+    });
+
+    await tester.runAsync(() async {
+      await seedAccount();
+      await EquipmentRepository().createEquipment(
+        const EquipmentItem(
+          id: 'e1',
+          diverId: 'diver-1',
+          name: 'Apex XTX50',
+          type: EquipmentType.regulator,
+        ),
+      );
+      await CertificationRepository().createCertification(
+        Certification(
+          id: 'c1',
+          diverId: 'diver-1',
+          name: 'Open Water',
+          agency: CertificationAgency.padi,
+          issueDate: DateTime.utc(2022, 6, 15),
+          createdAt: DateTime.utc(2024),
+          updatedAt: DateTime.utc(2024),
+        ),
+      );
+      await tester.pumpWidget(host(client));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Compare'));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      await tester.pumpAndSettle();
+    });
+
+    expect(find.text('Gear & certifications'), findsOneWidget);
+    expect(find.text('Push: 1 gear items, 1 certifications'), findsOneWidget);
+    expect(find.text('Sync gear & certifications'), findsOneWidget);
+  });
+
+  testWidgets('gear/cert push posts both and re-compares', (tester) async {
+    var gearPosts = 0;
+    var certPosts = 0;
+    var divelistCalls = 0;
+    final client = MockClient((req) async {
+      switch ((req.method, req.url.path)) {
+        case ('GET', '/api/divelist'):
+          divelistCalls++;
+          return http.Response(jsonEncode([]), 200);
+        case ('GET', '/api/gear'):
+        case ('GET', '/api/geartypes'):
+        case ('GET', '/api/certifications'):
+          return http.Response(jsonEncode([]), 200);
+        case ('POST', '/api/gear'):
+          gearPosts++;
+          return http.Response('{}', 200);
+        case ('POST', '/api/certifications'):
+          certPosts++;
+          return http.Response('{}', 200);
+      }
+      fail('unexpected request ${req.method} ${req.url}');
+    });
+
+    await tester.runAsync(() async {
+      await seedAccount();
+      await EquipmentRepository().createEquipment(
+        const EquipmentItem(
+          id: 'e1',
+          diverId: 'diver-1',
+          name: 'Apex XTX50',
+          type: EquipmentType.regulator,
+        ),
+      );
+      await CertificationRepository().createCertification(
+        Certification(
+          id: 'c1',
+          diverId: 'diver-1',
+          name: 'Open Water',
+          agency: CertificationAgency.padi,
+          issueDate: DateTime.utc(2022, 6, 15),
+          createdAt: DateTime.utc(2024),
+          updatedAt: DateTime.utc(2024),
+        ),
+      );
+      await tester.pumpWidget(host(client));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Compare'));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Sync gear & certifications'));
+      await tester.tap(find.text('Sync gear & certifications'));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+      await tester.pumpAndSettle();
+    });
+
+    expect(gearPosts, 1);
+    expect(certPosts, 1);
+    expect(divelistCalls, 2, reason: 'gear/cert push re-compares');
+    expect(
+      find.text('Pushed 1 gear items and 1 certifications.'),
+      findsOneWidget,
+    );
   });
 }

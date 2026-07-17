@@ -9,6 +9,42 @@ class AppLocalizationsAr extends AppLocalizations {
   AppLocalizationsAr([String locale = 'ar']) : super(locale);
 
   @override
+  String get divelogsSync_gearCertHeader => 'المعدات والشهادات';
+
+  @override
+  String divelogsSync_gearCertMatched(int gear, int certs) {
+    return '$gear قطع معدات و$certs شهادات متزامنة بالفعل';
+  }
+
+  @override
+  String divelogsSync_gearCertPush(int gear, int certs) {
+    return 'دفع: $gear قطع معدات، $certs شهادات';
+  }
+
+  @override
+  String get divelogsSync_gearCertPushButton => 'مزامنة المعدات والشهادات';
+
+  @override
+  String divelogsSync_gearCertPushDone(int gear, int certs) {
+    return 'تم دفع $gear قطع معدات و$certs شهادات.';
+  }
+
+  @override
+  String divelogsSync_gearCertPushFailed(String error) {
+    return 'توقف دفع المعدات/الشهادات: $error';
+  }
+
+  @override
+  String divelogsSync_certsMissingDate(int count) {
+    return '$count شهادات تحتاج إلى تاريخ إصدار قبل إمكانية دفعها.';
+  }
+
+  @override
+  String divelogsSync_gearCertUnavailable(String error) {
+    return 'تعذرت مقارنة المعدات والشهادات: $error';
+  }
+
+  @override
   String get divelogsSync_title => 'مزامنة divelogs.de';
 
   @override

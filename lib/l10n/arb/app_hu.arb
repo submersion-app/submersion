@@ -1,4 +1,12 @@
 {
+  "divelogsSync_gearCertHeader": "Felszerelés és minősítések",
+  "divelogsSync_gearCertMatched": "{gear} felszerelés és {certs} minősítés már szinkronban",
+  "divelogsSync_gearCertPush": "Feltöltés: {gear} felszerelés, {certs} minősítés",
+  "divelogsSync_gearCertPushButton": "Felszerelés és minősítések szinkronizálása",
+  "divelogsSync_gearCertPushDone": "{gear} felszerelés és {certs} minősítés feltöltve.",
+  "divelogsSync_gearCertPushFailed": "A felszerelés/minősítés feltöltése leállt: {error}",
+  "divelogsSync_certsMissingDate": "{count} minősítéshez kiállítási dátum szükséges a feltöltés előtt.",
+  "divelogsSync_gearCertUnavailable": "A felszerelés és a minősítések összehasonlítása nem sikerült: {error}",
   "divelogsSync_title": "divelogs.de szinkronizálás",
   "divelogsSync_notConnected": "Még nincs csatlakoztatott divelogs.de-fiók. Indíts egy importot a bejelentkezéshez.",
   "divelogsSync_openImport": "divelogs.de-import megnyitása",

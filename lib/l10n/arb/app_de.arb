@@ -1,4 +1,12 @@
 {
+  "divelogsSync_gearCertHeader": "Ausrüstung & Zertifizierungen",
+  "divelogsSync_gearCertMatched": "{gear} Ausrüstungsteile und {certs} Zertifizierungen bereits synchron",
+  "divelogsSync_gearCertPush": "Senden: {gear} Ausrüstungsteile, {certs} Zertifizierungen",
+  "divelogsSync_gearCertPushButton": "Ausrüstung & Zertifizierungen synchronisieren",
+  "divelogsSync_gearCertPushDone": "{gear} Ausrüstungsteile und {certs} Zertifizierungen gesendet.",
+  "divelogsSync_gearCertPushFailed": "Senden der Ausrüstung/Zertifizierungen gestoppt: {error}",
+  "divelogsSync_certsMissingDate": "{count} Zertifizierungen benötigen ein Ausstellungsdatum, bevor sie gesendet werden können.",
+  "divelogsSync_gearCertUnavailable": "Ausrüstung und Zertifizierungen konnten nicht verglichen werden: {error}",
   "divelogsSync_title": "divelogs.de-Synchronisierung",
   "divelogsSync_notConnected": "Es ist noch kein divelogs.de-Konto verbunden. Starten Sie einen Import, um sich anzumelden.",
   "divelogsSync_openImport": "divelogs.de-Import öffnen",

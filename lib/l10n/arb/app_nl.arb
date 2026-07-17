@@ -1,4 +1,12 @@
 {
+  "divelogsSync_gearCertHeader": "Uitrusting & brevetten",
+  "divelogsSync_gearCertMatched": "{gear} uitrustingsstukken en {certs} brevetten al gesynchroniseerd",
+  "divelogsSync_gearCertPush": "Versturen: {gear} uitrustingsstukken, {certs} brevetten",
+  "divelogsSync_gearCertPushButton": "Uitrusting & brevetten synchroniseren",
+  "divelogsSync_gearCertPushDone": "{gear} uitrustingsstukken en {certs} brevetten verstuurd.",
+  "divelogsSync_gearCertPushFailed": "Versturen van uitrusting/brevetten gestopt: {error}",
+  "divelogsSync_certsMissingDate": "{count} brevetten hebben een uitgiftedatum nodig voordat ze verstuurd kunnen worden.",
+  "divelogsSync_gearCertUnavailable": "Uitrusting en brevetten konden niet worden vergeleken: {error}",
   "divelogsSync_title": "divelogs.de-synchronisatie",
   "divelogsSync_notConnected": "Er is nog geen divelogs.de-account gekoppeld. Start een import om aan te melden.",
   "divelogsSync_openImport": "divelogs.de-import openen",

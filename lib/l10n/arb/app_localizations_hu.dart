@@ -9,6 +9,43 @@ class AppLocalizationsHu extends AppLocalizations {
   AppLocalizationsHu([String locale = 'hu']) : super(locale);
 
   @override
+  String get divelogsSync_gearCertHeader => 'Felszerelés és minősítések';
+
+  @override
+  String divelogsSync_gearCertMatched(int gear, int certs) {
+    return '$gear felszerelés és $certs minősítés már szinkronban';
+  }
+
+  @override
+  String divelogsSync_gearCertPush(int gear, int certs) {
+    return 'Feltöltés: $gear felszerelés, $certs minősítés';
+  }
+
+  @override
+  String get divelogsSync_gearCertPushButton =>
+      'Felszerelés és minősítések szinkronizálása';
+
+  @override
+  String divelogsSync_gearCertPushDone(int gear, int certs) {
+    return '$gear felszerelés és $certs minősítés feltöltve.';
+  }
+
+  @override
+  String divelogsSync_gearCertPushFailed(String error) {
+    return 'A felszerelés/minősítés feltöltése leállt: $error';
+  }
+
+  @override
+  String divelogsSync_certsMissingDate(int count) {
+    return '$count minősítéshez kiállítási dátum szükséges a feltöltés előtt.';
+  }
+
+  @override
+  String divelogsSync_gearCertUnavailable(String error) {
+    return 'A felszerelés és a minősítések összehasonlítása nem sikerült: $error';
+  }
+
+  @override
   String get divelogsSync_title => 'divelogs.de szinkronizálás';
 
   @override

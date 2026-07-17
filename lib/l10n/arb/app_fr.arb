@@ -1,4 +1,12 @@
 {
+  "divelogsSync_gearCertHeader": "Équipement et certifications",
+  "divelogsSync_gearCertMatched": "{gear} équipements et {certs} certifications déjà synchronisés",
+  "divelogsSync_gearCertPush": "Envoyer : {gear} équipements, {certs} certifications",
+  "divelogsSync_gearCertPushButton": "Synchroniser équipement et certifications",
+  "divelogsSync_gearCertPushDone": "{gear} équipements et {certs} certifications envoyés.",
+  "divelogsSync_gearCertPushFailed": "Envoi équipement/certifications arrêté : {error}",
+  "divelogsSync_certsMissingDate": "{count} certifications nécessitent une date de délivrance avant de pouvoir être envoyées.",
+  "divelogsSync_gearCertUnavailable": "Impossible de comparer l'équipement et les certifications : {error}",
   "divelogsSync_title": "Synchronisation divelogs.de",
   "divelogsSync_notConnected": "Aucun compte divelogs.de n'est encore connecté. Lancez une importation pour vous connecter.",
   "divelogsSync_openImport": "Ouvrir l'importation divelogs.de",

@@ -1,4 +1,12 @@
 {
+  "divelogsSync_gearCertHeader": "المعدات والشهادات",
+  "divelogsSync_gearCertMatched": "{gear} قطع معدات و{certs} شهادات متزامنة بالفعل",
+  "divelogsSync_gearCertPush": "دفع: {gear} قطع معدات، {certs} شهادات",
+  "divelogsSync_gearCertPushButton": "مزامنة المعدات والشهادات",
+  "divelogsSync_gearCertPushDone": "تم دفع {gear} قطع معدات و{certs} شهادات.",
+  "divelogsSync_gearCertPushFailed": "توقف دفع المعدات/الشهادات: {error}",
+  "divelogsSync_certsMissingDate": "{count} شهادات تحتاج إلى تاريخ إصدار قبل إمكانية دفعها.",
+  "divelogsSync_gearCertUnavailable": "تعذرت مقارنة المعدات والشهادات: {error}",
   "divelogsSync_title": "مزامنة divelogs.de",
   "divelogsSync_notConnected": "لا يوجد حساب divelogs.de متصل بعد. ابدأ استيرادا لتسجيل الدخول.",
   "divelogsSync_openImport": "فتح استيراد divelogs.de",
