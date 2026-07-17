@@ -224,4 +224,33 @@ void main() {
     );
     expect(entries.single.weightKg, 85.0);
   });
+
+  testWidgets('through-the-dive panel renders swing and ditchable rows', (
+    tester,
+  ) async {
+    await pumpPage(tester);
+    // The default rig seeds a tank, so the panel is present.
+    await tester.scrollUntilVisible(
+      find.text('Through the dive'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('Buoyancy swing'), findsOneWidget);
+    expect(find.text('Min ditchable weight'), findsOneWidget);
+  });
+
+  testWidgets('adjusting max depth keeps the panel live', (tester) async {
+    await pumpPage(tester);
+    await tester.scrollUntilVisible(
+      find.text('Through the dive'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.textContaining('Max Depth'), findsOneWidget);
+    final slider = find.byType(Slider).first;
+    await tester.drag(slider, const Offset(80, 0));
+    await tester.pumpAndSettle();
+    // Panel still renders its summary after the depth change.
+    expect(find.text('Buoyancy swing'), findsOneWidget);
+  });
 }

@@ -14,12 +14,18 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/divers/presentation/providers/diver_weight_entry_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/core/buoyancy/buoyancy_physics.dart';
+import 'package:submersion/core/buoyancy/buoyancy_twin.dart';
+import 'package:submersion/core/buoyancy/twin_analyzer.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
+import 'package:submersion/features/dive_log/data/services/buoyancy_twin_assembler.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/features/weight_planner/presentation/providers/weight_planner_providers.dart';
 import 'package:submersion/features/weight_planner/presentation/widgets/rig_composer.dart';
 import 'package:submersion/features/weight_planner/presentation/widgets/weight_prediction_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/twin_summary_rows.dart';
 
 /// The Weight Planner tool: compose a rig, get a personalized weight
 /// prediction from the diver's history, and swap gear to see the change.
@@ -34,6 +40,8 @@ class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
   final List<EquipmentItem> _gear = [];
   final List<TankPresetEntity> _tanks = [];
   WaterType _water = WaterType.salt;
+  double _maxDepthM = 18;
+  int _bottomMinutes = 45;
   final _bodyWeightController = TextEditingController();
   bool _bodyWeightSeeded = false;
   bool _tanksSeeded = false;
@@ -70,6 +78,151 @@ class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
         tanks: tanks,
         waterType: _water,
         bodyWeightKg: _bodyWeightKg(units),
+      ),
+    );
+  }
+
+  /// Square synthetic profile: descent at 18 m/min, bottom, ascent at
+  /// 9 m/min with a 3 min stop at 5 m.
+  List<TwinProfileSample> _squareProfile() {
+    final samples = <TwinProfileSample>[
+      const TwinProfileSample(timestamp: 0, depthM: 0),
+    ];
+    var t = (_maxDepthM / 18.0 * 60).round();
+    samples.add(TwinProfileSample(timestamp: t, depthM: _maxDepthM));
+    final bottomS = _bottomMinutes * 60;
+    for (var s = 30; s < bottomS; s += 30) {
+      samples.add(TwinProfileSample(timestamp: t + s, depthM: _maxDepthM));
+    }
+    t += bottomS;
+    samples.add(TwinProfileSample(timestamp: t, depthM: _maxDepthM));
+    t += ((_maxDepthM - 5).clamp(0, 100) / 9.0 * 60).round();
+    samples.add(TwinProfileSample(timestamp: t, depthM: 5));
+    for (var s = 30; s < 180; s += 30) {
+      samples.add(TwinProfileSample(timestamp: t + s, depthM: 5));
+    }
+    t += 180;
+    samples.add(TwinProfileSample(timestamp: t, depthM: 5));
+    samples.add(TwinProfileSample(timestamp: t + 33, depthM: 0));
+    return samples;
+  }
+
+  BuoyancyTwinOutcome? _buoyancyOutcome(
+    FittedWeightModel? model,
+    UnitFormatter units,
+  ) {
+    if (model == null || _tanks.isEmpty) return null;
+    final lead = _predict(model, units)?.totalKg ?? 0.0;
+    if (lead <= 0) return null;
+    final tanks = <TwinTankInput>[
+      for (final p in _tanks)
+        TwinTankInput(
+          id: p.name,
+          label: p.name,
+          presetName: p.name,
+          volumeL: p.volumeLiters,
+          workingPressureBar: p.workingPressureBar,
+          material: p.material,
+          o2Percent: 21,
+          startPressureBar: p.workingPressureBar,
+          endPressureBar: BuoyancyPhysics.defaultReserveBar,
+        ),
+    ];
+    final rig = BuoyancyTwinAssembler.composeRigTerms(
+      items: _gear,
+      tanks: tanks,
+      model: model,
+      waterType: _water,
+      bodyWeightKg: _bodyWeightKg(units),
+    );
+    final input = TwinInput(
+      profile: _squareProfile(),
+      tanks: tanks,
+      suit: rig.suit,
+      staticTerms: rig.staticTerms,
+      leadKg: lead,
+      droppableLeadKg: lead,
+      environment: DiveEnvironment.forConditions(waterType: _water),
+      totalMassKg: rig.totalMassKg,
+    );
+    final wing = _gear
+        .where((e) => e.type == EquipmentType.bcd && e.liftCapacityKg != null)
+        .map((e) => e.liftCapacityKg)
+        .firstOrNull;
+    final result = runBuoyancyTwin(input);
+    return BuoyancyTwinOutcome(
+      result: result,
+      outputs: TwinAnalyzer.analyze(result),
+      wingLiftCapacityKg: wing,
+    );
+  }
+
+  Widget _throughDivePanel(
+    BuildContext context,
+    UnitFormatter units,
+    BuoyancyTwinOutcome outcome,
+  ) {
+    final theme = Theme.of(context);
+    final net = outcome.outputs.verdict.netKg;
+    final String verdict;
+    if (net.abs() <= 0.5) {
+      verdict = context.l10n.buoyancy_verdictNeutral;
+    } else if (net > 0) {
+      verdict = context.l10n.buoyancy_verdictBuoyant(
+        units.formatDepth(outcome.outputs.verdict.anchor.depthM),
+        units.formatWeight(net.abs()),
+      );
+    } else {
+      verdict = context.l10n.buoyancy_verdictHeavy(
+        units.formatDepth(outcome.outputs.verdict.anchor.depthM),
+        units.formatWeight(net.abs()),
+      );
+    }
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              context.l10n.buoyancy_throughDive,
+              style: theme.textTheme.titleSmall,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '${context.l10n.diveLog_detail_stat_maxDepth}: '
+              '${units.formatDepth(_maxDepthM)}',
+              style: theme.textTheme.bodySmall,
+            ),
+            Slider(
+              value: _maxDepthM.clamp(5, 60),
+              min: 5,
+              max: 60,
+              divisions: 55,
+              onChanged: (v) => setState(() => _maxDepthM = v),
+            ),
+            Text(
+              '${context.l10n.diveLog_detail_stat_bottomTime}: '
+              '$_bottomMinutes min',
+              style: theme.textTheme.bodySmall,
+            ),
+            Slider(
+              value: _bottomMinutes.toDouble().clamp(5, 90),
+              min: 5,
+              max: 90,
+              divisions: 85,
+              onChanged: (v) => setState(() => _bottomMinutes = v.round()),
+            ),
+            const SizedBox(height: 8),
+            Text(verdict, style: theme.textTheme.bodyMedium),
+            const SizedBox(height: 12),
+            TwinSummaryRows(
+              outputs: outcome.outputs,
+              units: units,
+              wingLiftCapacityKg: outcome.wingLiftCapacityKg,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -144,6 +297,7 @@ class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
 
     final model = ref.watch(weightCalibrationProvider).valueOrNull;
     final prediction = _predict(model, units);
+    final buoyancy = _buoyancyOutcome(model, units);
     final observations =
         ref.watch(weightObservationsProvider).valueOrNull ?? const [];
     final placement = prediction != null
@@ -213,6 +367,10 @@ class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
               onSaveBodyWeight: () => _saveBodyWeightToProfile(units),
               onChanged: () => setState(() {}),
             ),
+            if (buoyancy != null) ...[
+              const SizedBox(height: 16),
+              _throughDivePanel(context, units, buoyancy),
+            ],
             const SizedBox(height: 16),
             Card(
               color: Theme.of(context).colorScheme.surfaceContainerHighest,
