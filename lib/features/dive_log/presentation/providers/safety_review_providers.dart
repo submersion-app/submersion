@@ -3,6 +3,7 @@ import 'package:submersion/features/dive_log/data/repositories/safety_findings_r
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/dive_log/domain/services/safety_review_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 final safetyFindingsRepositoryProvider = Provider<SafetyFindingsRepository>((
   ref,
@@ -25,6 +26,9 @@ final safetyReviewProvider = FutureProvider.family<SafetyReview?, String>((
       stored.engineVersion >= SafetyReviewService.engineVersion) {
     return stored;
   }
+
+  // Master toggle off: surface whatever is stored but never compute.
+  if (!ref.watch(safetyReviewEnabledProvider)) return stored;
 
   final analysis = await ref.watch(profileAnalysisProvider(diveId).future);
   if (analysis == null || analysis.ascentRates.isEmpty) return stored;

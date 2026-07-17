@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_sites/domain/matching/site_match_sensitivity.dart';
@@ -409,6 +410,66 @@ void main() {
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getDouble('fullscreen_readout_card_x'), 1.0);
       expect(prefs.getDouble('fullscreen_readout_card_y'), 0.0);
+    });
+  });
+
+  group('Real SettingsNotifier safety review settings', () {
+    late ProviderContainer container;
+
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+
+      container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          diverSettingsRepositoryProvider.overrideWithValue(
+            _InMemorySettingsRepository(),
+          ),
+          diverRepositoryProvider.overrideWithValue(_EmptyDiverRepository()),
+          currentDiverIdProvider.overrideWith((ref) => _NullDiverIdNotifier()),
+        ],
+      );
+      await Future.delayed(const Duration(milliseconds: 50));
+    });
+
+    tearDown(() {
+      container.dispose();
+    });
+
+    Future<void> waitForInit() async {
+      for (var i = 0; i < 10; i++) {
+        await Future.delayed(Duration.zero);
+      }
+    }
+
+    test('setSafetyReviewEnabled persists', () async {
+      final notifier = container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(container.read(settingsProvider).safetyReviewEnabled, isTrue);
+      await notifier.setSafetyReviewEnabled(false);
+      expect(container.read(settingsProvider).safetyReviewEnabled, isFalse);
+    });
+
+    test('setSafetyRuleEnabled toggles the disabled-rules set', () async {
+      final notifier = container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(
+        container.read(settingsProvider).safetyReviewDisabledRules,
+        isEmpty,
+      );
+      await notifier.setSafetyRuleEnabled(SafetyRuleId.sawtoothProfile, false);
+      expect(
+        container.read(settingsProvider).safetyReviewDisabledRules,
+        contains('sawtoothProfile'),
+      );
+      await notifier.setSafetyRuleEnabled(SafetyRuleId.sawtoothProfile, true);
+      expect(
+        container.read(settingsProvider).safetyReviewDisabledRules,
+        isEmpty,
+      );
     });
   });
 }

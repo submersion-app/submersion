@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
@@ -82,6 +84,10 @@ class DiverSettingsRepository {
               ascentRateWarning: Value(s.ascentRateWarning),
               ascentRateCritical: Value(s.ascentRateCritical),
               showCeilingOnProfile: Value(s.showCeilingOnProfile),
+              safetyReviewEnabled: Value(s.safetyReviewEnabled),
+              safetyReviewDisabledRules: Value(
+                _encodeDisabledRules(s.safetyReviewDisabledRules),
+              ),
               showAscentRateColors: Value(s.showAscentRateColors),
               showNdlOnProfile: Value(s.showNdlOnProfile),
               lastStopDepth: Value(s.lastStopDepth),
@@ -219,6 +225,10 @@ class DiverSettingsRepository {
           ascentRateWarning: Value(settings.ascentRateWarning),
           ascentRateCritical: Value(settings.ascentRateCritical),
           showCeilingOnProfile: Value(settings.showCeilingOnProfile),
+          safetyReviewEnabled: Value(settings.safetyReviewEnabled),
+          safetyReviewDisabledRules: Value(
+            _encodeDisabledRules(settings.safetyReviewDisabledRules),
+          ),
           showAscentRateColors: Value(settings.showAscentRateColors),
           showNdlOnProfile: Value(settings.showNdlOnProfile),
           lastStopDepth: Value(settings.lastStopDepth),
@@ -396,6 +406,10 @@ class DiverSettingsRepository {
       ascentRateWarning: row.ascentRateWarning,
       ascentRateCritical: row.ascentRateCritical,
       showCeilingOnProfile: row.showCeilingOnProfile,
+      safetyReviewEnabled: row.safetyReviewEnabled,
+      safetyReviewDisabledRules: _decodeDisabledRules(
+        row.safetyReviewDisabledRules,
+      ),
       showAscentRateColors: row.showAscentRateColors,
       showNdlOnProfile: row.showNdlOnProfile,
       lastStopDepth: row.lastStopDepth,
@@ -588,4 +602,21 @@ class DiverSettingsRepository {
 
   String _formatReminderTime(TimeOfDay time) =>
       '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+}
+
+/// JSON-encodes the disabled safety rules set (sorted for deterministic
+/// storage); null when empty so the column stays compact.
+String? _encodeDisabledRules(Set<String> rules) {
+  if (rules.isEmpty) return null;
+  final sorted = rules.toList()..sort();
+  return jsonEncode(sorted);
+}
+
+Set<String> _decodeDisabledRules(String? raw) {
+  if (raw == null || raw.isEmpty) return const {};
+  try {
+    return (jsonDecode(raw) as List).cast<String>().toSet();
+  } on FormatException {
+    return const {};
+  }
 }
