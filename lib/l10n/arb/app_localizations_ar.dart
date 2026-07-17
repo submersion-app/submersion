@@ -9,6 +9,64 @@ class AppLocalizationsAr extends AppLocalizations {
   AppLocalizationsAr([String locale = 'ar']) : super(locale);
 
   @override
+  String get divelogsSync_title => 'مزامنة divelogs.de';
+
+  @override
+  String get divelogsSync_notConnected =>
+      'لا يوجد حساب divelogs.de متصل بعد. ابدأ استيرادا لتسجيل الدخول.';
+
+  @override
+  String get divelogsSync_openImport => 'فتح استيراد divelogs.de';
+
+  @override
+  String get divelogsSync_compare => 'مقارنة';
+
+  @override
+  String get divelogsSync_comparing => 'جارٍ المقارنة مع divelogs.de...';
+
+  @override
+  String divelogsSync_matched(int count) {
+    return '$count غطسات متزامنة بالفعل';
+  }
+
+  @override
+  String divelogsSync_pullHeader(int count) {
+    return 'سحب: $count جديدة على divelogs.de';
+  }
+
+  @override
+  String get divelogsSync_pullReview => 'راجع واسحب في معالج الاستيراد';
+
+  @override
+  String divelogsSync_pushHeader(int count) {
+    return 'دفع: $count غطسات غير موجودة على divelogs.de';
+  }
+
+  @override
+  String get divelogsSync_pushSelected => 'دفع المحدد';
+
+  @override
+  String get divelogsSync_pushing => 'جارٍ دفع الغطسات إلى divelogs.de...';
+
+  @override
+  String divelogsSync_pushDone(int count) {
+    return 'تم دفع $count غطسات إلى divelogs.de.';
+  }
+
+  @override
+  String divelogsSync_pushSkipped(int count) {
+    return 'تعذر تحويل $count غطسات وتم تخطيها.';
+  }
+
+  @override
+  String divelogsSync_pushFailedPartial(int count, String error) {
+    return 'توقف الدفع بعد $count غطسات: $error';
+  }
+
+  @override
+  String get divelogsSync_nothingToSync => 'كل شيء متزامن.';
+
+  @override
   String get divelogs_signIn_title => 'تسجيل الدخول إلى divelogs.de';
 
   @override

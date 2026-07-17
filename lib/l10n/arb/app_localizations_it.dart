@@ -9,6 +9,65 @@ class AppLocalizationsIt extends AppLocalizations {
   AppLocalizationsIt([String locale = 'it']) : super(locale);
 
   @override
+  String get divelogsSync_title => 'Sincronizzazione divelogs.de';
+
+  @override
+  String get divelogsSync_notConnected =>
+      'Nessun account divelogs.de collegato. Avvia un\'importazione per accedere.';
+
+  @override
+  String get divelogsSync_openImport => 'Apri importazione divelogs.de';
+
+  @override
+  String get divelogsSync_compare => 'Confronta';
+
+  @override
+  String get divelogsSync_comparing => 'Confronto con divelogs.de...';
+
+  @override
+  String divelogsSync_matched(int count) {
+    return '$count immersioni già sincronizzate';
+  }
+
+  @override
+  String divelogsSync_pullHeader(int count) {
+    return 'Scarica: $count nuove su divelogs.de';
+  }
+
+  @override
+  String get divelogsSync_pullReview =>
+      'Rivedi e scarica nella procedura di importazione';
+
+  @override
+  String divelogsSync_pushHeader(int count) {
+    return 'Carica: $count immersioni non presenti su divelogs.de';
+  }
+
+  @override
+  String get divelogsSync_pushSelected => 'Carica selezionate';
+
+  @override
+  String get divelogsSync_pushing => 'Caricamento immersioni su divelogs.de...';
+
+  @override
+  String divelogsSync_pushDone(int count) {
+    return '$count immersioni caricate su divelogs.de.';
+  }
+
+  @override
+  String divelogsSync_pushSkipped(int count) {
+    return '$count immersioni non convertibili sono state ignorate.';
+  }
+
+  @override
+  String divelogsSync_pushFailedPartial(int count, String error) {
+    return 'Caricamento interrotto dopo $count immersioni: $error';
+  }
+
+  @override
+  String get divelogsSync_nothingToSync => 'Tutto è sincronizzato.';
+
+  @override
   String get divelogs_signIn_title => 'Accedi a divelogs.de';
 
   @override

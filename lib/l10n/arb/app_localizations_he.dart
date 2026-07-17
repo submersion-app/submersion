@@ -9,6 +9,64 @@ class AppLocalizationsHe extends AppLocalizations {
   AppLocalizationsHe([String locale = 'he']) : super(locale);
 
   @override
+  String get divelogsSync_title => 'סנכרון divelogs.de';
+
+  @override
+  String get divelogsSync_notConnected =>
+      'עדיין לא מחובר חשבון divelogs.de. התחל ייבוא כדי להתחבר.';
+
+  @override
+  String get divelogsSync_openImport => 'פתח ייבוא divelogs.de';
+
+  @override
+  String get divelogsSync_compare => 'השווה';
+
+  @override
+  String get divelogsSync_comparing => 'משווה מול divelogs.de...';
+
+  @override
+  String divelogsSync_matched(int count) {
+    return '$count צלילות כבר מסונכרנות';
+  }
+
+  @override
+  String divelogsSync_pullHeader(int count) {
+    return 'משיכה: $count חדשות ב-divelogs.de';
+  }
+
+  @override
+  String get divelogsSync_pullReview => 'בדוק ומשוך באשף הייבוא';
+
+  @override
+  String divelogsSync_pushHeader(int count) {
+    return 'דחיפה: $count צלילות שאינן ב-divelogs.de';
+  }
+
+  @override
+  String get divelogsSync_pushSelected => 'דחוף נבחרות';
+
+  @override
+  String get divelogsSync_pushing => 'דוחף צלילות ל-divelogs.de...';
+
+  @override
+  String divelogsSync_pushDone(int count) {
+    return '$count צלילות נדחפו ל-divelogs.de.';
+  }
+
+  @override
+  String divelogsSync_pushSkipped(int count) {
+    return '$count צלילות לא ניתנות להמרה ודולגו.';
+  }
+
+  @override
+  String divelogsSync_pushFailedPartial(int count, String error) {
+    return 'הדחיפה נעצרה אחרי $count צלילות: $error';
+  }
+
+  @override
+  String get divelogsSync_nothingToSync => 'הכול מסונכרן.';
+
+  @override
   String get divelogs_signIn_title => 'התחברות ל-divelogs.de';
 
   @override

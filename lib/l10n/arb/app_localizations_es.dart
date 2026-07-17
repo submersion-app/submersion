@@ -9,6 +9,65 @@ class AppLocalizationsEs extends AppLocalizations {
   AppLocalizationsEs([String locale = 'es']) : super(locale);
 
   @override
+  String get divelogsSync_title => 'Sincronización con divelogs.de';
+
+  @override
+  String get divelogsSync_notConnected =>
+      'Aún no hay una cuenta de divelogs.de conectada. Inicia una importación para iniciar sesión.';
+
+  @override
+  String get divelogsSync_openImport => 'Abrir importación de divelogs.de';
+
+  @override
+  String get divelogsSync_compare => 'Comparar';
+
+  @override
+  String get divelogsSync_comparing => 'Comparando con divelogs.de...';
+
+  @override
+  String divelogsSync_matched(int count) {
+    return '$count inmersiones ya sincronizadas';
+  }
+
+  @override
+  String divelogsSync_pullHeader(int count) {
+    return 'Descargar: $count nuevas en divelogs.de';
+  }
+
+  @override
+  String get divelogsSync_pullReview =>
+      'Revisar y descargar en el asistente de importación';
+
+  @override
+  String divelogsSync_pushHeader(int count) {
+    return 'Subir: $count inmersiones que no están en divelogs.de';
+  }
+
+  @override
+  String get divelogsSync_pushSelected => 'Subir seleccionadas';
+
+  @override
+  String get divelogsSync_pushing => 'Subiendo inmersiones a divelogs.de...';
+
+  @override
+  String divelogsSync_pushDone(int count) {
+    return 'Se subieron $count inmersiones a divelogs.de.';
+  }
+
+  @override
+  String divelogsSync_pushSkipped(int count) {
+    return '$count inmersiones no se pudieron convertir y se omitieron.';
+  }
+
+  @override
+  String divelogsSync_pushFailedPartial(int count, String error) {
+    return 'La subida se detuvo tras $count inmersiones: $error';
+  }
+
+  @override
+  String get divelogsSync_nothingToSync => 'Todo está sincronizado.';
+
+  @override
   String get divelogs_signIn_title => 'Iniciar sesión en divelogs.de';
 
   @override

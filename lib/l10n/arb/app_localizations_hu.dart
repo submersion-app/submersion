@@ -9,6 +9,65 @@ class AppLocalizationsHu extends AppLocalizations {
   AppLocalizationsHu([String locale = 'hu']) : super(locale);
 
   @override
+  String get divelogsSync_title => 'divelogs.de szinkronizálás';
+
+  @override
+  String get divelogsSync_notConnected =>
+      'Még nincs csatlakoztatott divelogs.de-fiók. Indíts egy importot a bejelentkezéshez.';
+
+  @override
+  String get divelogsSync_openImport => 'divelogs.de-import megnyitása';
+
+  @override
+  String get divelogsSync_compare => 'Összehasonlítás';
+
+  @override
+  String get divelogsSync_comparing => 'Összehasonlítás a divelogs.de-vel...';
+
+  @override
+  String divelogsSync_matched(int count) {
+    return '$count merülés már szinkronban';
+  }
+
+  @override
+  String divelogsSync_pullHeader(int count) {
+    return 'Letöltés: $count új a divelogs.de-n';
+  }
+
+  @override
+  String get divelogsSync_pullReview =>
+      'Ellenőrzés és letöltés az importvarázslóban';
+
+  @override
+  String divelogsSync_pushHeader(int count) {
+    return 'Feltöltés: $count merülés nincs a divelogs.de-n';
+  }
+
+  @override
+  String get divelogsSync_pushSelected => 'Kijelöltek feltöltése';
+
+  @override
+  String get divelogsSync_pushing => 'Merülések feltöltése a divelogs.de-re...';
+
+  @override
+  String divelogsSync_pushDone(int count) {
+    return '$count merülés feltöltve a divelogs.de-re.';
+  }
+
+  @override
+  String divelogsSync_pushSkipped(int count) {
+    return '$count merülést nem lehetett konvertálni, ezért kimaradt.';
+  }
+
+  @override
+  String divelogsSync_pushFailedPartial(int count, String error) {
+    return 'A feltöltés $count merülés után leállt: $error';
+  }
+
+  @override
+  String get divelogsSync_nothingToSync => 'Minden szinkronban van.';
+
+  @override
   String get divelogs_signIn_title => 'Bejelentkezés a divelogs.de-re';
 
   @override

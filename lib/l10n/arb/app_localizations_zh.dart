@@ -9,6 +9,63 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
+  String get divelogsSync_title => 'divelogs.de 同步';
+
+  @override
+  String get divelogsSync_notConnected => '尚未连接 divelogs.de 账户。请开始导入以登录。';
+
+  @override
+  String get divelogsSync_openImport => '打开 divelogs.de 导入';
+
+  @override
+  String get divelogsSync_compare => '比较';
+
+  @override
+  String get divelogsSync_comparing => '正在与 divelogs.de 比较...';
+
+  @override
+  String divelogsSync_matched(int count) {
+    return '$count 条潜水记录已同步';
+  }
+
+  @override
+  String divelogsSync_pullHeader(int count) {
+    return '拉取:divelogs.de 上有 $count 条新记录';
+  }
+
+  @override
+  String get divelogsSync_pullReview => '在导入向导中查看并拉取';
+
+  @override
+  String divelogsSync_pushHeader(int count) {
+    return '推送:$count 条潜水记录不在 divelogs.de 上';
+  }
+
+  @override
+  String get divelogsSync_pushSelected => '推送所选';
+
+  @override
+  String get divelogsSync_pushing => '正在向 divelogs.de 推送潜水记录...';
+
+  @override
+  String divelogsSync_pushDone(int count) {
+    return '已向 divelogs.de 推送 $count 条潜水记录。';
+  }
+
+  @override
+  String divelogsSync_pushSkipped(int count) {
+    return '$count 条潜水记录无法转换,已跳过。';
+  }
+
+  @override
+  String divelogsSync_pushFailedPartial(int count, String error) {
+    return '推送在 $count 条记录后停止:$error';
+  }
+
+  @override
+  String get divelogsSync_nothingToSync => '所有记录均已同步。';
+
+  @override
   String get divelogs_signIn_title => '登录 divelogs.de';
 
   @override

@@ -9,6 +9,65 @@ class AppLocalizationsFr extends AppLocalizations {
   AppLocalizationsFr([String locale = 'fr']) : super(locale);
 
   @override
+  String get divelogsSync_title => 'Synchronisation divelogs.de';
+
+  @override
+  String get divelogsSync_notConnected =>
+      'Aucun compte divelogs.de n\'est encore connecté. Lancez une importation pour vous connecter.';
+
+  @override
+  String get divelogsSync_openImport => 'Ouvrir l\'importation divelogs.de';
+
+  @override
+  String get divelogsSync_compare => 'Comparer';
+
+  @override
+  String get divelogsSync_comparing => 'Comparaison avec divelogs.de...';
+
+  @override
+  String divelogsSync_matched(int count) {
+    return '$count plongées déjà synchronisées';
+  }
+
+  @override
+  String divelogsSync_pullHeader(int count) {
+    return 'Récupérer : $count nouvelles sur divelogs.de';
+  }
+
+  @override
+  String get divelogsSync_pullReview =>
+      'Vérifier et récupérer dans l\'assistant d\'importation';
+
+  @override
+  String divelogsSync_pushHeader(int count) {
+    return 'Envoyer : $count plongées absentes de divelogs.de';
+  }
+
+  @override
+  String get divelogsSync_pushSelected => 'Envoyer la sélection';
+
+  @override
+  String get divelogsSync_pushing => 'Envoi des plongées vers divelogs.de...';
+
+  @override
+  String divelogsSync_pushDone(int count) {
+    return '$count plongées envoyées vers divelogs.de.';
+  }
+
+  @override
+  String divelogsSync_pushSkipped(int count) {
+    return '$count plongées n\'ont pas pu être converties et ont été ignorées.';
+  }
+
+  @override
+  String divelogsSync_pushFailedPartial(int count, String error) {
+    return 'Envoi arrêté après $count plongées : $error';
+  }
+
+  @override
+  String get divelogsSync_nothingToSync => 'Tout est synchronisé.';
+
+  @override
   String get divelogs_signIn_title => 'Se connecter à divelogs.de';
 
   @override

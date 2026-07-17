@@ -116,6 +116,96 @@ abstract class AppLocalizations {
     Locale('zh'),
   ];
 
+  /// No description provided for @divelogsSync_title.
+  ///
+  /// In en, this message translates to:
+  /// **'divelogs.de Sync'**
+  String get divelogsSync_title;
+
+  /// No description provided for @divelogsSync_notConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'No divelogs.de account is connected yet. Start an import to sign in.'**
+  String get divelogsSync_notConnected;
+
+  /// No description provided for @divelogsSync_openImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Open divelogs.de import'**
+  String get divelogsSync_openImport;
+
+  /// No description provided for @divelogsSync_compare.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare'**
+  String get divelogsSync_compare;
+
+  /// No description provided for @divelogsSync_comparing.
+  ///
+  /// In en, this message translates to:
+  /// **'Comparing with divelogs.de...'**
+  String get divelogsSync_comparing;
+
+  /// No description provided for @divelogsSync_matched.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} dives already in sync'**
+  String divelogsSync_matched(int count);
+
+  /// No description provided for @divelogsSync_pullHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Pull: {count} new on divelogs.de'**
+  String divelogsSync_pullHeader(int count);
+
+  /// No description provided for @divelogsSync_pullReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Review and pull in the import wizard'**
+  String get divelogsSync_pullReview;
+
+  /// No description provided for @divelogsSync_pushHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Push: {count} dives not on divelogs.de'**
+  String divelogsSync_pushHeader(int count);
+
+  /// No description provided for @divelogsSync_pushSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Push selected'**
+  String get divelogsSync_pushSelected;
+
+  /// No description provided for @divelogsSync_pushing.
+  ///
+  /// In en, this message translates to:
+  /// **'Pushing dives to divelogs.de...'**
+  String get divelogsSync_pushing;
+
+  /// No description provided for @divelogsSync_pushDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Pushed {count} dives to divelogs.de.'**
+  String divelogsSync_pushDone(int count);
+
+  /// No description provided for @divelogsSync_pushSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} dives could not be converted and were skipped.'**
+  String divelogsSync_pushSkipped(int count);
+
+  /// No description provided for @divelogsSync_pushFailedPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Push stopped after {count} dives: {error}'**
+  String divelogsSync_pushFailedPartial(int count, String error);
+
+  /// No description provided for @divelogsSync_nothingToSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything is in sync.'**
+  String get divelogsSync_nothingToSync;
+
   /// No description provided for @divelogs_signIn_title.
   ///
   /// In en, this message translates to:

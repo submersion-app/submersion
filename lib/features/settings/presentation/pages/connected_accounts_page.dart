@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
@@ -102,6 +103,11 @@ class _AccountTile extends ConsumerWidget {
     };
 
     return ListTile(
+      // divelogs accounts open their sync page; other kinds are managed
+      // from their own settings surfaces.
+      onTap: account.kind == AccountKind.divelogs
+          ? () => context.push('/settings/divelogs-sync')
+          : null,
       leading: Icon(_icon),
       title: Text(account.label),
       subtitle: Text(

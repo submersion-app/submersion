@@ -9,6 +9,65 @@ class AppLocalizationsNl extends AppLocalizations {
   AppLocalizationsNl([String locale = 'nl']) : super(locale);
 
   @override
+  String get divelogsSync_title => 'divelogs.de-synchronisatie';
+
+  @override
+  String get divelogsSync_notConnected =>
+      'Er is nog geen divelogs.de-account gekoppeld. Start een import om aan te melden.';
+
+  @override
+  String get divelogsSync_openImport => 'divelogs.de-import openen';
+
+  @override
+  String get divelogsSync_compare => 'Vergelijken';
+
+  @override
+  String get divelogsSync_comparing => 'Vergelijken met divelogs.de...';
+
+  @override
+  String divelogsSync_matched(int count) {
+    return '$count duiken al gesynchroniseerd';
+  }
+
+  @override
+  String divelogsSync_pullHeader(int count) {
+    return 'Ophalen: $count nieuw op divelogs.de';
+  }
+
+  @override
+  String get divelogsSync_pullReview =>
+      'Controleren en ophalen in de importwizard';
+
+  @override
+  String divelogsSync_pushHeader(int count) {
+    return 'Versturen: $count duiken niet op divelogs.de';
+  }
+
+  @override
+  String get divelogsSync_pushSelected => 'Selectie versturen';
+
+  @override
+  String get divelogsSync_pushing => 'Duiken versturen naar divelogs.de...';
+
+  @override
+  String divelogsSync_pushDone(int count) {
+    return '$count duiken naar divelogs.de verstuurd.';
+  }
+
+  @override
+  String divelogsSync_pushSkipped(int count) {
+    return '$count duiken konden niet worden geconverteerd en zijn overgeslagen.';
+  }
+
+  @override
+  String divelogsSync_pushFailedPartial(int count, String error) {
+    return 'Versturen gestopt na $count duiken: $error';
+  }
+
+  @override
+  String get divelogsSync_nothingToSync => 'Alles is gesynchroniseerd.';
+
+  @override
   String get divelogs_signIn_title => 'Aanmelden bij divelogs.de';
 
   @override

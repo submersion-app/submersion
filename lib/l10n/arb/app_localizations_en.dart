@@ -9,6 +9,64 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get divelogsSync_title => 'divelogs.de Sync';
+
+  @override
+  String get divelogsSync_notConnected =>
+      'No divelogs.de account is connected yet. Start an import to sign in.';
+
+  @override
+  String get divelogsSync_openImport => 'Open divelogs.de import';
+
+  @override
+  String get divelogsSync_compare => 'Compare';
+
+  @override
+  String get divelogsSync_comparing => 'Comparing with divelogs.de...';
+
+  @override
+  String divelogsSync_matched(int count) {
+    return '$count dives already in sync';
+  }
+
+  @override
+  String divelogsSync_pullHeader(int count) {
+    return 'Pull: $count new on divelogs.de';
+  }
+
+  @override
+  String get divelogsSync_pullReview => 'Review and pull in the import wizard';
+
+  @override
+  String divelogsSync_pushHeader(int count) {
+    return 'Push: $count dives not on divelogs.de';
+  }
+
+  @override
+  String get divelogsSync_pushSelected => 'Push selected';
+
+  @override
+  String get divelogsSync_pushing => 'Pushing dives to divelogs.de...';
+
+  @override
+  String divelogsSync_pushDone(int count) {
+    return 'Pushed $count dives to divelogs.de.';
+  }
+
+  @override
+  String divelogsSync_pushSkipped(int count) {
+    return '$count dives could not be converted and were skipped.';
+  }
+
+  @override
+  String divelogsSync_pushFailedPartial(int count, String error) {
+    return 'Push stopped after $count dives: $error';
+  }
+
+  @override
+  String get divelogsSync_nothingToSync => 'Everything is in sync.';
+
+  @override
   String get divelogs_signIn_title => 'Sign in to divelogs.de';
 
   @override

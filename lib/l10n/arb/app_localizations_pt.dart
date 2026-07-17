@@ -9,6 +9,65 @@ class AppLocalizationsPt extends AppLocalizations {
   AppLocalizationsPt([String locale = 'pt']) : super(locale);
 
   @override
+  String get divelogsSync_title => 'Sincronização divelogs.de';
+
+  @override
+  String get divelogsSync_notConnected =>
+      'Nenhuma conta divelogs.de conectada ainda. Inicie uma importação para entrar.';
+
+  @override
+  String get divelogsSync_openImport => 'Abrir importação do divelogs.de';
+
+  @override
+  String get divelogsSync_compare => 'Comparar';
+
+  @override
+  String get divelogsSync_comparing => 'Comparando com divelogs.de...';
+
+  @override
+  String divelogsSync_matched(int count) {
+    return '$count mergulhos ja sincronizados';
+  }
+
+  @override
+  String divelogsSync_pullHeader(int count) {
+    return 'Baixar: $count novos no divelogs.de';
+  }
+
+  @override
+  String get divelogsSync_pullReview =>
+      'Revisar e baixar no assistente de importação';
+
+  @override
+  String divelogsSync_pushHeader(int count) {
+    return 'Enviar: $count mergulhos que não estão no divelogs.de';
+  }
+
+  @override
+  String get divelogsSync_pushSelected => 'Enviar selecionados';
+
+  @override
+  String get divelogsSync_pushing => 'Enviando mergulhos para divelogs.de...';
+
+  @override
+  String divelogsSync_pushDone(int count) {
+    return '$count mergulhos enviados para divelogs.de.';
+  }
+
+  @override
+  String divelogsSync_pushSkipped(int count) {
+    return '$count mergulhos não puderam ser convertidos e foram ignorados.';
+  }
+
+  @override
+  String divelogsSync_pushFailedPartial(int count, String error) {
+    return 'Envio interrompido após $count mergulhos: $error';
+  }
+
+  @override
+  String get divelogsSync_nothingToSync => 'Tudo está sincronizado.';
+
+  @override
   String get divelogs_signIn_title => 'Iniciar sessão em divelogs.de';
 
   @override

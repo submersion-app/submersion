@@ -133,6 +133,7 @@ import 'package:submersion/features/dashboard/presentation/pages/dashboard_page.
 import 'package:submersion/features/planner/presentation/pages/plan_canvas_page.dart';
 import 'package:submersion/features/planner/presentation/pages/plan_compare_page.dart';
 import 'package:submersion/features/surface_interval_tool/presentation/pages/surface_interval_tool_page.dart';
+import 'package:submersion/features/divelogs_sync/presentation/pages/divelogs_sync_page.dart';
 import 'package:submersion/features/import_wizard/data/adapters/divelogs_adapter.dart';
 import 'package:submersion/features/import_wizard/data/adapters/universal_adapter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -974,6 +975,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'connected-accounts',
                 name: 'connectedAccounts',
                 builder: (context, state) => const ConnectedAccountsPage(),
+              ),
+              GoRoute(
+                path: 'divelogs-sync',
+                name: 'divelogsSync',
+                builder: (context, state) => const DivelogsSyncPage(),
               ),
               GoRoute(
                 path: 'fix-dive-times',
