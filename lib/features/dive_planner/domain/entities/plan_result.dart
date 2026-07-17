@@ -511,7 +511,10 @@ class DivePlanState extends Equatable {
   /// Altitude above sea level in meters (for altitude diving).
   final double? altitude;
 
-  /// Breathing mode (open circuit or CCR).
+  /// Planned start time; null = "now". Drives repetitive tissue init (v120).
+  final DateTime? startDateTime;
+
+  /// Breathing mode (open circuit, CCR, or SCR).
   final PlanMode mode;
 
   /// CCR setpoints in bar; null = the engine's defaults (0.7 / 1.3).
@@ -568,6 +571,7 @@ class DivePlanState extends Equatable {
     this.linkedDiveId,
     this.siteId,
     this.altitude,
+    this.startDateTime,
     this.mode = PlanMode.oc,
     this.setpointLow,
     this.setpointHigh,
@@ -630,6 +634,8 @@ class DivePlanState extends Equatable {
     String? linkedDiveId,
     String? siteId,
     double? altitude,
+    DateTime? startDateTime,
+    bool clearStartDateTime = false,
     PlanMode? mode,
     double? setpointLow,
     double? setpointHigh,
@@ -680,6 +686,9 @@ class DivePlanState extends Equatable {
           : (linkedDiveId ?? this.linkedDiveId),
       siteId: clearSiteId ? null : (siteId ?? this.siteId),
       altitude: clearAltitude ? null : (altitude ?? this.altitude),
+      startDateTime: clearStartDateTime
+          ? null
+          : (startDateTime ?? this.startDateTime),
       mode: mode ?? this.mode,
       setpointLow: clearSetpoints ? null : (setpointLow ?? this.setpointLow),
       setpointHigh: clearSetpoints ? null : (setpointHigh ?? this.setpointHigh),
@@ -726,6 +735,7 @@ class DivePlanState extends Equatable {
     linkedDiveId,
     siteId,
     altitude,
+    startDateTime,
     mode,
     setpointLow,
     setpointHigh,

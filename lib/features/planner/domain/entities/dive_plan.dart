@@ -30,6 +30,10 @@ class DivePlan extends Equatable {
   final double? altitude;
   final WaterType? waterType;
 
+  /// Planned start time; null = "now" at planning. Drives repetitive tissue
+  /// init and overlap detection (v120).
+  final DateTime? startDateTime;
+
   // Deco settings
   final int gfLow;
   final int gfHigh;
@@ -81,6 +85,7 @@ class DivePlan extends Equatable {
     this.mode = PlanMode.oc,
     this.altitude,
     this.waterType,
+    this.startDateTime,
     required this.gfLow,
     required this.gfHigh,
     this.descentRate = 18.0,
@@ -142,6 +147,8 @@ class DivePlan extends Equatable {
     double? altitude,
     bool clearAltitude = false,
     WaterType? waterType,
+    DateTime? startDateTime,
+    bool clearStartDateTime = false,
     bool clearWaterType = false,
     int? gfLow,
     int? gfHigh,
@@ -191,6 +198,9 @@ class DivePlan extends Equatable {
       updatedAt: updatedAt ?? this.updatedAt,
       mode: mode ?? this.mode,
       altitude: clearAltitude ? null : (altitude ?? this.altitude),
+      startDateTime: clearStartDateTime
+          ? null
+          : (startDateTime ?? this.startDateTime),
       waterType: clearWaterType ? null : (waterType ?? this.waterType),
       gfLow: gfLow ?? this.gfLow,
       gfHigh: gfHigh ?? this.gfHigh,
@@ -250,6 +260,7 @@ class DivePlan extends Equatable {
     mode,
     altitude,
     waterType,
+    startDateTime,
     gfLow,
     gfHigh,
     descentRate,
