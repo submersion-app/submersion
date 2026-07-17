@@ -26,6 +26,10 @@ import 'package:submersion/features/certifications/presentation/pages/certificat
 import 'package:submersion/features/certifications/presentation/pages/certification_wallet_page.dart';
 import 'package:submersion/features/checklists/presentation/pages/checklist_template_edit_page.dart';
 import 'package:submersion/features/checklists/presentation/pages/checklist_templates_page.dart';
+import 'package:submersion/features/pre_dive/presentation/pages/pre_dive_session_runner_page.dart';
+import 'package:submersion/features/pre_dive/presentation/pages/pre_dive_sessions_page.dart';
+import 'package:submersion/features/pre_dive/presentation/pages/pre_dive_template_edit_page.dart';
+import 'package:submersion/features/pre_dive/presentation/pages/pre_dive_templates_page.dart';
 import 'package:submersion/features/courses/presentation/pages/course_list_page.dart';
 import 'package:submersion/features/courses/presentation/pages/course_detail_page.dart';
 import 'package:submersion/features/courses/presentation/pages/course_edit_page.dart';
@@ -1095,6 +1099,44 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 name: 'editChecklistTemplate',
                 builder: (context, state) => ChecklistTemplateEditPage(
                   templateId: state.pathParameters['templateId'],
+                ),
+              ),
+            ],
+          ),
+
+          // Pre-dive checklists
+          GoRoute(
+            path: '/pre-dive-checklists',
+            name: 'preDiveTemplates',
+            builder: (context, state) => const PreDiveTemplatesPage(),
+            routes: [
+              GoRoute(
+                path: 'new',
+                name: 'newPreDiveTemplate',
+                builder: (context, state) => const PreDiveTemplateEditPage(),
+              ),
+              GoRoute(
+                path: ':templateId/edit',
+                name: 'editPreDiveTemplate',
+                builder: (context, state) => PreDiveTemplateEditPage(
+                  templateId: state.pathParameters['templateId'],
+                ),
+              ),
+            ],
+          ),
+          GoRoute(
+            path: '/pre-dive-sessions',
+            name: 'preDiveSessions',
+            pageBuilder: (context, state) => NoTransitionPage(
+              key: state.pageKey,
+              child: const PreDiveSessionsPage(),
+            ),
+            routes: [
+              GoRoute(
+                path: ':sessionId',
+                name: 'preDiveSessionRunner',
+                builder: (context, state) => PreDiveSessionRunnerPage(
+                  sessionId: state.pathParameters['sessionId']!,
                 ),
               ),
             ],

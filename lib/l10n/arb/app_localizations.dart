@@ -3654,6 +3654,66 @@ abstract class AppLocalizations {
   /// **'Add item'**
   String get checklists_template_addItem;
 
+  /// No description provided for @preDive_templates_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Pre-Dive Checklists'**
+  String get preDive_templates_title;
+
+  /// No description provided for @preDive_templates_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No pre-dive checklists yet'**
+  String get preDive_templates_empty;
+
+  /// No description provided for @preDive_templates_builtInBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in'**
+  String get preDive_templates_builtInBadge;
+
+  /// No description provided for @preDive_templates_clone.
+  ///
+  /// In en, this message translates to:
+  /// **'Clone'**
+  String get preDive_templates_clone;
+
+  /// No description provided for @preDive_templates_cloneSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **' (copy)'**
+  String get preDive_templates_cloneSuffix;
+
+  /// No description provided for @preDive_templates_delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get preDive_templates_delete;
+
+  /// No description provided for @preDive_templates_deleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this checklist template?'**
+  String get preDive_templates_deleteConfirm;
+
+  /// No description provided for @preDive_templates_strictOrderBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Strict order'**
+  String get preDive_templates_strictOrderBadge;
+
+  /// No description provided for @settings_manage_preDiveChecklists.
+  ///
+  /// In en, this message translates to:
+  /// **'Pre-Dive Checklists'**
+  String get settings_manage_preDiveChecklists;
+
+  /// No description provided for @settings_manage_preDiveChecklists_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Buddy checks, CCR build lists, gear packing'**
+  String get settings_manage_preDiveChecklists_subtitle;
+
   /// Back navigation tooltip
   ///
   /// In en, this message translates to:

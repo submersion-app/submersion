@@ -2110,6 +2110,38 @@ class AppLocalizationsAr extends AppLocalizations {
   String get checklists_template_addItem => 'إضافة عنصر';
 
   @override
+  String get preDive_templates_title => 'Pre-Dive Checklists';
+
+  @override
+  String get preDive_templates_empty => 'No pre-dive checklists yet';
+
+  @override
+  String get preDive_templates_builtInBadge => 'Built-in';
+
+  @override
+  String get preDive_templates_clone => 'Clone';
+
+  @override
+  String get preDive_templates_cloneSuffix => ' (copy)';
+
+  @override
+  String get preDive_templates_delete => 'Delete';
+
+  @override
+  String get preDive_templates_deleteConfirm =>
+      'Delete this checklist template?';
+
+  @override
+  String get preDive_templates_strictOrderBadge => 'Strict order';
+
+  @override
+  String get settings_manage_preDiveChecklists => 'Pre-Dive Checklists';
+
+  @override
+  String get settings_manage_preDiveChecklists_subtitle =>
+      'Buddy checks, CCR build lists, gear packing';
+
+  @override
   String get common_action_back => 'رجوع';
 
   @override

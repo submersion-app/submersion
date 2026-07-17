@@ -1679,6 +1679,16 @@ class _ManageSectionContent extends StatelessWidget {
                 ),
                 const Divider(height: 1),
                 ListTile(
+                  leading: const Icon(Icons.fact_check),
+                  title: Text(context.l10n.settings_manage_preDiveChecklists),
+                  subtitle: Text(
+                    context.l10n.settings_manage_preDiveChecklists_subtitle,
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/pre-dive-checklists'),
+                ),
+                const Divider(height: 1),
+                ListTile(
                   leading: const Icon(MdiIcons.fish),
                   title: Text(context.l10n.settings_manage_species),
                   subtitle: Text(context.l10n.settings_manage_species_subtitle),
