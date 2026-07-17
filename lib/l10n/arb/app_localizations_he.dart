@@ -19714,4 +19714,29 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_edit_invalidThickness => 'השתמשו ב-5, 5/4 או 7/5/3';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_title =>
+      'צלילות לפי עובי חליפה';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_subtitle =>
+      'העובי העיקרי של חליפת הצלילה על פני הצלילות';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_empty =>
+      'אין צלילות עם עובי חליפה מתועד';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_error =>
+      'לא ניתן לטעון נתוני עובי חליפה';
+
+  @override
+  String get diveLog_filter_sectionSuitThickness => 'עובי חליפה (מ\"מ)';
+
+  @override
+  String get diveLog_filter_thicknessMin => 'מינ\'';
+
+  @override
+  String get diveLog_filter_thicknessMax => 'מקס\'';
 }

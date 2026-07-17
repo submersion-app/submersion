@@ -12536,5 +12536,12 @@
   "equipment_edit_addCustomField": "Add custom field",
   "attr_flagYes": "Yes",
   "attr_flagNo": "No",
-  "equipment_edit_invalidThickness": "Use 5, 5/4 or 7/5/3"
+  "equipment_edit_invalidThickness": "Use 5, 5/4 or 7/5/3",
+  "statistics_progression_divesBySuitThickness_title": "Dives by Suit Thickness",
+  "statistics_progression_divesBySuitThickness_subtitle": "Exposure suit primary thickness across your dives",
+  "statistics_progression_divesBySuitThickness_empty": "No dives with a suit thickness recorded",
+  "statistics_progression_divesBySuitThickness_error": "Could not load suit thickness data",
+  "diveLog_filter_sectionSuitThickness": "Suit thickness (mm)",
+  "diveLog_filter_thicknessMin": "Min",
+  "diveLog_filter_thicknessMax": "Max"
 }

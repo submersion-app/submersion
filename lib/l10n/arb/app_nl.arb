@@ -5859,5 +5859,12 @@
   "equipment_edit_addCustomField": "Aangepast veld toevoegen",
   "attr_flagYes": "Ja",
   "attr_flagNo": "Nee",
-  "equipment_edit_invalidThickness": "Gebruik 5, 5/4 of 7/5/3"
+  "equipment_edit_invalidThickness": "Gebruik 5, 5/4 of 7/5/3",
+  "statistics_progression_divesBySuitThickness_title": "Duiken per pakdikte",
+  "statistics_progression_divesBySuitThickness_subtitle": "Primaire pakdikte over je duiken",
+  "statistics_progression_divesBySuitThickness_empty": "Geen duiken met een geregistreerde pakdikte",
+  "statistics_progression_divesBySuitThickness_error": "Kan pakdiktegegevens niet laden",
+  "diveLog_filter_sectionSuitThickness": "Pakdikte (mm)",
+  "diveLog_filter_thicknessMin": "Min",
+  "diveLog_filter_thicknessMax": "Max"
 }

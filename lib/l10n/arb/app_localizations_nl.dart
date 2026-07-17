@@ -20072,4 +20072,29 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_edit_invalidThickness => 'Gebruik 5, 5/4 of 7/5/3';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_title =>
+      'Duiken per pakdikte';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_subtitle =>
+      'Primaire pakdikte over je duiken';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_empty =>
+      'Geen duiken met een geregistreerde pakdikte';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_error =>
+      'Kan pakdiktegegevens niet laden';
+
+  @override
+  String get diveLog_filter_sectionSuitThickness => 'Pakdikte (mm)';
+
+  @override
+  String get diveLog_filter_thicknessMin => 'Min';
+
+  @override
+  String get diveLog_filter_thicknessMax => 'Max';
 }

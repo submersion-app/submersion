@@ -5859,5 +5859,12 @@
   "equipment_edit_addCustomField": "הוספת שדה מותאם אישית",
   "attr_flagYes": "כן",
   "attr_flagNo": "לא",
-  "equipment_edit_invalidThickness": "השתמשו ב-5, 5/4 או 7/5/3"
+  "equipment_edit_invalidThickness": "השתמשו ב-5, 5/4 או 7/5/3",
+  "statistics_progression_divesBySuitThickness_title": "צלילות לפי עובי חליפה",
+  "statistics_progression_divesBySuitThickness_subtitle": "העובי העיקרי של חליפת הצלילה על פני הצלילות",
+  "statistics_progression_divesBySuitThickness_empty": "אין צלילות עם עובי חליפה מתועד",
+  "statistics_progression_divesBySuitThickness_error": "לא ניתן לטעון נתוני עובי חליפה",
+  "diveLog_filter_sectionSuitThickness": "עובי חליפה (מ\"מ)",
+  "diveLog_filter_thicknessMin": "מינ'",
+  "diveLog_filter_thicknessMax": "מקס'"
 }

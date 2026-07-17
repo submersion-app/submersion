@@ -5859,5 +5859,12 @@
   "equipment_edit_addCustomField": "Adicionar campo personalizado",
   "attr_flagYes": "Sim",
   "attr_flagNo": "Não",
-  "equipment_edit_invalidThickness": "Use 5, 5/4 ou 7/5/3"
+  "equipment_edit_invalidThickness": "Use 5, 5/4 ou 7/5/3",
+  "statistics_progression_divesBySuitThickness_title": "Mergulhos por espessura da roupa",
+  "statistics_progression_divesBySuitThickness_subtitle": "Espessura principal da roupa nos seus mergulhos",
+  "statistics_progression_divesBySuitThickness_empty": "Nenhum mergulho com espessura de roupa registrada",
+  "statistics_progression_divesBySuitThickness_error": "Não foi possível carregar os dados de espessura",
+  "diveLog_filter_sectionSuitThickness": "Espessura da roupa (mm)",
+  "diveLog_filter_thicknessMin": "Mín",
+  "diveLog_filter_thicknessMax": "Máx"
 }

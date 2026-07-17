@@ -5859,5 +5859,12 @@
   "equipment_edit_addCustomField": "Benutzerdefiniertes Feld hinzufügen",
   "attr_flagYes": "Ja",
   "attr_flagNo": "Nein",
-  "equipment_edit_invalidThickness": "Format: 5, 5/4 oder 7/5/3"
+  "equipment_edit_invalidThickness": "Format: 5, 5/4 oder 7/5/3",
+  "statistics_progression_divesBySuitThickness_title": "Tauchgänge nach Anzugdicke",
+  "statistics_progression_divesBySuitThickness_subtitle": "Primäre Anzugdicke über deine Tauchgänge",
+  "statistics_progression_divesBySuitThickness_empty": "Keine Tauchgänge mit erfasster Anzugdicke",
+  "statistics_progression_divesBySuitThickness_error": "Anzugdicken-Daten konnten nicht geladen werden",
+  "diveLog_filter_sectionSuitThickness": "Anzugdicke (mm)",
+  "diveLog_filter_thicknessMin": "Min",
+  "diveLog_filter_thicknessMax": "Max"
 }

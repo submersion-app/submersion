@@ -5859,5 +5859,12 @@
   "equipment_edit_addCustomField": "Ajouter un champ personnalisé",
   "attr_flagYes": "Oui",
   "attr_flagNo": "Non",
-  "equipment_edit_invalidThickness": "Utilisez 5, 5/4 ou 7/5/3"
+  "equipment_edit_invalidThickness": "Utilisez 5, 5/4 ou 7/5/3",
+  "statistics_progression_divesBySuitThickness_title": "Plongées par épaisseur de combinaison",
+  "statistics_progression_divesBySuitThickness_subtitle": "Épaisseur principale de la combinaison sur vos plongées",
+  "statistics_progression_divesBySuitThickness_empty": "Aucune plongée avec une épaisseur de combinaison enregistrée",
+  "statistics_progression_divesBySuitThickness_error": "Impossible de charger les données d'épaisseur",
+  "diveLog_filter_sectionSuitThickness": "Épaisseur de combinaison (mm)",
+  "diveLog_filter_thicknessMin": "Min",
+  "diveLog_filter_thicknessMax": "Max"
 }

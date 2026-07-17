@@ -19889,4 +19889,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_edit_invalidThickness => 'Use 5, 5/4 or 7/5/3';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_title =>
+      'Dives by Suit Thickness';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_subtitle =>
+      'Exposure suit primary thickness across your dives';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_empty =>
+      'No dives with a suit thickness recorded';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_error =>
+      'Could not load suit thickness data';
+
+  @override
+  String get diveLog_filter_sectionSuitThickness => 'Suit thickness (mm)';
+
+  @override
+  String get diveLog_filter_thicknessMin => 'Min';
+
+  @override
+  String get diveLog_filter_thicknessMax => 'Max';
 }

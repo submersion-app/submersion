@@ -66,6 +66,31 @@ import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dar
     params.addAll(filter.equipmentIds);
   }
 
+  // Equipment attribute: dives linked to an equipment item whose curated
+  // attribute matches. value_num bounds are canonical metric.
+  if (filter.equipmentAttrKey != null) {
+    final sub = StringBuffer(
+      'id IN (SELECT de.dive_id FROM dive_equipment de '
+      'JOIN equipment_attributes ea ON ea.equipment_id = de.equipment_id '
+      'WHERE ea.attr_key = ? AND ea.is_custom = 0',
+    );
+    params.add(filter.equipmentAttrKey);
+    if (filter.equipmentAttrChoice != null) {
+      sub.write(' AND ea.value_text = ?');
+      params.add(filter.equipmentAttrChoice);
+    }
+    if (filter.equipmentAttrMin != null) {
+      sub.write(' AND ea.value_num >= ?');
+      params.add(filter.equipmentAttrMin);
+    }
+    if (filter.equipmentAttrMax != null) {
+      sub.write(' AND ea.value_num <= ?');
+      params.add(filter.equipmentAttrMax);
+    }
+    sub.write(')');
+    conditions.add(sub.toString());
+  }
+
   // Depth: null depth excluded when a bound is set.
   if (filter.minDepth != null) {
     conditions.add('max_depth IS NOT NULL AND max_depth >= ?');

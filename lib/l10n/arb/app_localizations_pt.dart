@@ -20227,4 +20227,29 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get equipment_edit_invalidThickness => 'Use 5, 5/4 ou 7/5/3';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_title =>
+      'Mergulhos por espessura da roupa';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_subtitle =>
+      'Espessura principal da roupa nos seus mergulhos';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_empty =>
+      'Nenhum mergulho com espessura de roupa registrada';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_error =>
+      'Não foi possível carregar os dados de espessura';
+
+  @override
+  String get diveLog_filter_sectionSuitThickness => 'Espessura da roupa (mm)';
+
+  @override
+  String get diveLog_filter_thicknessMin => 'Mín';
+
+  @override
+  String get diveLog_filter_thicknessMax => 'Máx';
 }

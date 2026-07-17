@@ -33959,6 +33959,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Use 5, 5/4 or 7/5/3'**
   String get equipment_edit_invalidThickness;
+
+  /// No description provided for @statistics_progression_divesBySuitThickness_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives by Suit Thickness'**
+  String get statistics_progression_divesBySuitThickness_title;
+
+  /// No description provided for @statistics_progression_divesBySuitThickness_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Exposure suit primary thickness across your dives'**
+  String get statistics_progression_divesBySuitThickness_subtitle;
+
+  /// No description provided for @statistics_progression_divesBySuitThickness_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No dives with a suit thickness recorded'**
+  String get statistics_progression_divesBySuitThickness_empty;
+
+  /// No description provided for @statistics_progression_divesBySuitThickness_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load suit thickness data'**
+  String get statistics_progression_divesBySuitThickness_error;
+
+  /// No description provided for @diveLog_filter_sectionSuitThickness.
+  ///
+  /// In en, this message translates to:
+  /// **'Suit thickness (mm)'**
+  String get diveLog_filter_sectionSuitThickness;
+
+  /// No description provided for @diveLog_filter_thicknessMin.
+  ///
+  /// In en, this message translates to:
+  /// **'Min'**
+  String get diveLog_filter_thicknessMin;
+
+  /// No description provided for @diveLog_filter_thicknessMax.
+  ///
+  /// In en, this message translates to:
+  /// **'Max'**
+  String get diveLog_filter_thicknessMax;
 }
 
 class _AppLocalizationsDelegate

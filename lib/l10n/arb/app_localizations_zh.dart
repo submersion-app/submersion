@@ -19205,4 +19205,27 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_edit_invalidThickness => '请输入 5、5/4 或 7/5/3';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_title => '按潜水服厚度统计';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_subtitle =>
+      '您潜水时所穿潜水服的主要厚度';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_empty =>
+      '没有记录潜水服厚度的潜水';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_error => '无法加载潜水服厚度数据';
+
+  @override
+  String get diveLog_filter_sectionSuitThickness => '潜水服厚度（毫米）';
+
+  @override
+  String get diveLog_filter_thicknessMin => '最小';
+
+  @override
+  String get diveLog_filter_thicknessMax => '最大';
 }

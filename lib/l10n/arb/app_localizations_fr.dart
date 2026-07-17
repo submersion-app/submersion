@@ -20298,4 +20298,30 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_edit_invalidThickness => 'Utilisez 5, 5/4 ou 7/5/3';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_title =>
+      'Plongées par épaisseur de combinaison';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_subtitle =>
+      'Épaisseur principale de la combinaison sur vos plongées';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_empty =>
+      'Aucune plongée avec une épaisseur de combinaison enregistrée';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_error =>
+      'Impossible de charger les données d\'épaisseur';
+
+  @override
+  String get diveLog_filter_sectionSuitThickness =>
+      'Épaisseur de combinaison (mm)';
+
+  @override
+  String get diveLog_filter_thicknessMin => 'Min';
+
+  @override
+  String get diveLog_filter_thicknessMax => 'Max';
 }

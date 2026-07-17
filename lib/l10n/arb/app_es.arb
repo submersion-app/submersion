@@ -5859,5 +5859,12 @@
   "equipment_edit_addCustomField": "Añadir campo personalizado",
   "attr_flagYes": "Sí",
   "attr_flagNo": "No",
-  "equipment_edit_invalidThickness": "Usa 5, 5/4 o 7/5/3"
+  "equipment_edit_invalidThickness": "Usa 5, 5/4 o 7/5/3",
+  "statistics_progression_divesBySuitThickness_title": "Inmersiones por grosor del traje",
+  "statistics_progression_divesBySuitThickness_subtitle": "Grosor principal del traje en tus inmersiones",
+  "statistics_progression_divesBySuitThickness_empty": "No hay inmersiones con grosor de traje registrado",
+  "statistics_progression_divesBySuitThickness_error": "No se pudieron cargar los datos de grosor del traje",
+  "diveLog_filter_sectionSuitThickness": "Grosor del traje (mm)",
+  "diveLog_filter_thicknessMin": "Mín",
+  "diveLog_filter_thicknessMax": "Máx"
 }

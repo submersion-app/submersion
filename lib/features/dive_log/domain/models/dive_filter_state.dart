@@ -30,6 +30,13 @@ class DiveFilterState {
   final String? customFieldKey;
   final String? customFieldValue;
 
+  // Equipment-attribute axis (curated keys only). key selects the attribute;
+  // choice matches value_text; min/max bound value_num (canonical metric).
+  final String? equipmentAttrKey;
+  final String? equipmentAttrChoice;
+  final double? equipmentAttrMin;
+  final double? equipmentAttrMax;
+
   const DiveFilterState({
     this.startDate,
     this.endDate,
@@ -53,6 +60,10 @@ class DiveFilterState {
     this.computerSerial,
     this.customFieldKey,
     this.customFieldValue,
+    this.equipmentAttrKey,
+    this.equipmentAttrChoice,
+    this.equipmentAttrMin,
+    this.equipmentAttrMax,
   });
 
   bool get hasActiveFilters =>
@@ -76,7 +87,8 @@ class DiveFilterState {
       minBottomTimeMinutes != null ||
       maxBottomTimeMinutes != null ||
       computerSerial != null ||
-      (customFieldKey != null && customFieldKey!.isNotEmpty);
+      (customFieldKey != null && customFieldKey!.isNotEmpty) ||
+      equipmentAttrKey != null;
 
   DiveFilterState copyWith({
     DateTime? startDate,
@@ -101,6 +113,10 @@ class DiveFilterState {
     String? computerSerial,
     String? customFieldKey,
     String? customFieldValue,
+    String? equipmentAttrKey,
+    String? equipmentAttrChoice,
+    double? equipmentAttrMin,
+    double? equipmentAttrMax,
     bool clearStartDate = false,
     bool clearEndDate = false,
     bool clearDiveType = false,
@@ -123,6 +139,7 @@ class DiveFilterState {
     bool clearComputerSerial = false,
     bool clearCustomFieldKey = false,
     bool clearCustomFieldValue = false,
+    bool clearEquipmentAttr = false,
   }) {
     return DiveFilterState(
       startDate: clearStartDate ? null : (startDate ?? this.startDate),
@@ -169,11 +186,26 @@ class DiveFilterState {
       customFieldValue: clearCustomFieldValue
           ? null
           : (customFieldValue ?? this.customFieldValue),
+      equipmentAttrKey: clearEquipmentAttr
+          ? null
+          : (equipmentAttrKey ?? this.equipmentAttrKey),
+      equipmentAttrChoice: clearEquipmentAttr
+          ? null
+          : (equipmentAttrChoice ?? this.equipmentAttrChoice),
+      equipmentAttrMin: clearEquipmentAttr
+          ? null
+          : (equipmentAttrMin ?? this.equipmentAttrMin),
+      equipmentAttrMax: clearEquipmentAttr
+          ? null
+          : (equipmentAttrMax ?? this.equipmentAttrMax),
     );
   }
 
   /// Filter a list of dives based on current filter state.
   /// Used as a fallback for non-paginated code paths (e.g., export).
+  ///
+  /// equipmentAttr*: SQL-only axis (see buildFilteredDiveIdSubquery); this
+  /// in-memory fallback ignores it, matching the equipmentIds precedent.
   List<Dive> apply(List<Dive> dives) {
     return dives.where((dive) {
       if (startDate != null && dive.dateTime.isBefore(startDate!)) {

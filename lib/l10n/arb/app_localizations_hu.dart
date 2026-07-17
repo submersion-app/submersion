@@ -20168,4 +20168,29 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_edit_invalidThickness => 'Formátum: 5, 5/4 vagy 7/5/3';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_title =>
+      'Merülések ruhavastagság szerint';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_subtitle =>
+      'A ruha fő vastagsága a merüléseid során';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_empty =>
+      'Nincs merülés rögzített ruhavastagsággal';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_error =>
+      'Nem sikerült betölteni a vastagsági adatokat';
+
+  @override
+  String get diveLog_filter_sectionSuitThickness => 'Ruhavastagság (mm)';
+
+  @override
+  String get diveLog_filter_thicknessMin => 'Min';
+
+  @override
+  String get diveLog_filter_thicknessMax => 'Max';
 }

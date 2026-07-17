@@ -5859,5 +5859,12 @@
   "equipment_edit_addCustomField": "إضافة حقل مخصص",
   "attr_flagYes": "نعم",
   "attr_flagNo": "لا",
-  "equipment_edit_invalidThickness": "استخدم 5 أو 5/4 أو 7/5/3"
+  "equipment_edit_invalidThickness": "استخدم 5 أو 5/4 أو 7/5/3",
+  "statistics_progression_divesBySuitThickness_title": "الغطسات حسب سماكة البدلة",
+  "statistics_progression_divesBySuitThickness_subtitle": "السماكة الأساسية لبدلة الغطس عبر غطساتك",
+  "statistics_progression_divesBySuitThickness_empty": "لا توجد غطسات مسجلة بسماكة بدلة",
+  "statistics_progression_divesBySuitThickness_error": "تعذر تحميل بيانات سماكة البدلة",
+  "diveLog_filter_sectionSuitThickness": "سماكة البدلة (مم)",
+  "diveLog_filter_thicknessMin": "الأدنى",
+  "diveLog_filter_thicknessMax": "الأقصى"
 }

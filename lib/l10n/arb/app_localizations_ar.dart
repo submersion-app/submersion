@@ -19856,4 +19856,29 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_edit_invalidThickness => 'استخدم 5 أو 5/4 أو 7/5/3';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_title =>
+      'الغطسات حسب سماكة البدلة';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_subtitle =>
+      'السماكة الأساسية لبدلة الغطس عبر غطساتك';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_empty =>
+      'لا توجد غطسات مسجلة بسماكة بدلة';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_error =>
+      'تعذر تحميل بيانات سماكة البدلة';
+
+  @override
+  String get diveLog_filter_sectionSuitThickness => 'سماكة البدلة (مم)';
+
+  @override
+  String get diveLog_filter_thicknessMin => 'الأدنى';
+
+  @override
+  String get diveLog_filter_thicknessMax => 'الأقصى';
 }

@@ -30,6 +30,8 @@ class StatisticsProgressionPage extends ConsumerWidget {
           const SizedBox(height: 16),
           _buildDivesPerYearSection(context, ref),
           const SizedBox(height: 16),
+          _buildDivesBySuitThicknessSection(context, ref),
+          const SizedBox(height: 16),
           _buildCumulativeSection(context, ref),
         ],
       ),
@@ -141,6 +143,59 @@ class StatisticsProgressionPage extends ConsumerWidget {
         error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
           message: context.l10n.statistics_progression_divesPerYear_error,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDivesBySuitThicknessSection(
+    BuildContext context,
+    WidgetRef ref,
+  ) {
+    final thicknessAsync = ref.watch(divesBySuitThicknessProvider);
+
+    String label(double mm) =>
+        mm == mm.roundToDouble() ? '${mm.toStringAsFixed(0)}mm' : '${mm}mm';
+
+    return StatSectionCard(
+      title: context.l10n.statistics_progression_divesBySuitThickness_title,
+      subtitle:
+          context.l10n.statistics_progression_divesBySuitThickness_subtitle,
+      child: thicknessAsync.when(
+        data: (data) {
+          if (data.isEmpty) {
+            return StatEmptyState(
+              icon: Icons.bar_chart,
+              message: context
+                  .l10n
+                  .statistics_progression_divesBySuitThickness_empty,
+            );
+          }
+          final chartData = data
+              .map((d) => (label: label(d.mm), count: d.count))
+              .toList();
+          final description = data
+              .map((d) => '${d.count} dives in a ${label(d.mm)} suit')
+              .join(', ');
+          return Semantics(
+            label: chartSummaryLabel(
+              chartType: 'Bar',
+              description: description,
+            ),
+            child: CategoryBarChart(
+              data: chartData,
+              barColor: Theme.of(context).colorScheme.tertiary,
+            ),
+          );
+        },
+        loading: () => const SizedBox(
+          height: 200,
+          child: Center(child: CircularProgressIndicator()),
+        ),
+        error: (_, _) => StatEmptyState(
+          icon: Icons.error_outline,
+          message:
+              context.l10n.statistics_progression_divesBySuitThickness_error,
         ),
       ),
     );

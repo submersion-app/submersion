@@ -5859,5 +5859,12 @@
   "equipment_edit_addCustomField": "Egyéni mező hozzáadása",
   "attr_flagYes": "Igen",
   "attr_flagNo": "Nem",
-  "equipment_edit_invalidThickness": "Formátum: 5, 5/4 vagy 7/5/3"
+  "equipment_edit_invalidThickness": "Formátum: 5, 5/4 vagy 7/5/3",
+  "statistics_progression_divesBySuitThickness_title": "Merülések ruhavastagság szerint",
+  "statistics_progression_divesBySuitThickness_subtitle": "A ruha fő vastagsága a merüléseid során",
+  "statistics_progression_divesBySuitThickness_empty": "Nincs merülés rögzített ruhavastagsággal",
+  "statistics_progression_divesBySuitThickness_error": "Nem sikerült betölteni a vastagsági adatokat",
+  "diveLog_filter_sectionSuitThickness": "Ruhavastagság (mm)",
+  "diveLog_filter_thicknessMin": "Min",
+  "diveLog_filter_thicknessMax": "Max"
 }

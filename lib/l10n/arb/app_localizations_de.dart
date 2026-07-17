@@ -20198,4 +20198,29 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_edit_invalidThickness => 'Format: 5, 5/4 oder 7/5/3';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_title =>
+      'Tauchgänge nach Anzugdicke';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_subtitle =>
+      'Primäre Anzugdicke über deine Tauchgänge';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_empty =>
+      'Keine Tauchgänge mit erfasster Anzugdicke';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_error =>
+      'Anzugdicken-Daten konnten nicht geladen werden';
+
+  @override
+  String get diveLog_filter_sectionSuitThickness => 'Anzugdicke (mm)';
+
+  @override
+  String get diveLog_filter_thicknessMin => 'Min';
+
+  @override
+  String get diveLog_filter_thicknessMax => 'Max';
 }

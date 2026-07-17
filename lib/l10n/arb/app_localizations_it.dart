@@ -20225,4 +20225,29 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get equipment_edit_invalidThickness => 'Usa 5, 5/4 o 7/5/3';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_title =>
+      'Immersioni per spessore della muta';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_subtitle =>
+      'Spessore principale della muta nelle tue immersioni';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_empty =>
+      'Nessuna immersione con spessore della muta registrato';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_error =>
+      'Impossibile caricare i dati sullo spessore';
+
+  @override
+  String get diveLog_filter_sectionSuitThickness => 'Spessore della muta (mm)';
+
+  @override
+  String get diveLog_filter_thicknessMin => 'Min';
+
+  @override
+  String get diveLog_filter_thicknessMax => 'Max';
 }
