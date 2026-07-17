@@ -196,4 +196,60 @@ void main() {
       expect(runBuoyancyTwin(input).samples, isEmpty);
     });
   });
+
+  group('smoothDepths', () {
+    test('damps a single-sample depth spike', () {
+      final profile = [
+        for (var t = 0; t <= 120; t += 10)
+          TwinProfileSample(timestamp: t, depthM: t == 60 ? 20.0 : 10.0),
+      ];
+      final smoothed = smoothDepths(profile, windowSeconds: 30);
+      final idx = profile.indexWhere((s) => s.timestamp == 60);
+      // Window [45,75] -> depths {10,20,10} -> ~13.3, far from the raw 20.
+      expect(smoothed[idx], closeTo(13.333, 0.1));
+    });
+
+    test('preserves a sustained depth change', () {
+      final profile = [
+        for (var t = 0; t <= 60; t += 10)
+          TwinProfileSample(timestamp: t, depthM: 10),
+        for (var t = 70; t <= 130; t += 10)
+          TwinProfileSample(timestamp: t, depthM: 30),
+      ];
+      final smoothed = smoothDepths(profile, windowSeconds: 30);
+      final idx = profile.indexWhere((s) => s.timestamp == 120);
+      expect(smoothed[idx], closeTo(30, 0.01));
+    });
+
+    test('empty profile yields empty output', () {
+      expect(smoothDepths(const []), isEmpty);
+    });
+  });
+
+  test('wetsuit curve is smoothed across a depth spike', () {
+    final profile = [
+      for (var t = 0; t <= 120; t += 10)
+        TwinProfileSample(timestamp: t, depthM: t == 60 ? 20.0 : 10.0),
+    ];
+    final input = inputWith(
+      profile: profile,
+      tanks: [al80(start: 200, end: 50)],
+    );
+    final result = runBuoyancyTwin(input);
+    final spike = result.samples.firstWhere((s) => s.timestamp == 60);
+    final neighbor = result.samples.firstWhere((s) => s.timestamp == 40);
+    final rawSpike = SuitCompression.buoyancyAtPressure(
+      surfaceKg: result.suitSurfaceKg,
+      pressureBar: saltEnv.pressureAtDepth(20),
+      surfacePressureBar: saltEnv.surfacePressureBar,
+    );
+    // The spike sample's suit term sits near its neighbours, not at the raw
+    // 20 m spike response.
+    expect(
+      (spike.suitKg - neighbor.suitKg).abs(),
+      lessThan((spike.suitKg - rawSpike).abs()),
+    );
+    // The sample still reports its true depth.
+    expect(spike.depthM, 20.0);
+  });
 }

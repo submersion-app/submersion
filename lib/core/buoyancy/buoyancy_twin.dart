@@ -243,6 +243,42 @@ double _pressureFromSortedSeries(List<TwinPressureSample> s, int t) {
   return a.pressureBar + (b.pressureBar - a.pressureBar) * frac;
 }
 
+/// Time window (seconds) over which depth is averaged before it feeds the
+/// suit-compression term, so depth jitter shorter than the window does not
+/// surface as buoyancy the diver never felt.
+const int kSuitDepthSmoothingSeconds = 30;
+
+/// Centered time-windowed moving average of the profile's depths, returned as
+/// a list parallel to [profile]: each entry is the mean depth of the samples
+/// within +/- [windowSeconds]/2 of that sample. O(n) via a sliding window;
+/// assumes the profile is time-ordered (as hydrated profiles are).
+List<double> smoothDepths(
+  List<TwinProfileSample> profile, {
+  int windowSeconds = kSuitDepthSmoothingSeconds,
+}) {
+  final n = profile.length;
+  if (n == 0) return const [];
+  final half = windowSeconds / 2.0;
+  final result = List<double>.filled(n, 0.0);
+  var lo = 0;
+  var hi = 0;
+  var sum = 0.0;
+  for (var i = 0; i < n; i++) {
+    final t = profile[i].timestamp;
+    while (lo < n && profile[lo].timestamp < t - half) {
+      sum -= profile[lo].depthM;
+      lo++;
+    }
+    while (hi < n && profile[hi].timestamp <= t + half) {
+      sum += profile[hi].depthM;
+      hi++;
+    }
+    final count = hi - lo;
+    result[i] = count > 0 ? sum / count : profile[i].depthM;
+  }
+  return result;
+}
+
 /// Runs the buoyancy twin. Top-level so it is safe to hand to `compute`.
 BuoyancyTwinResult runBuoyancyTwin(TwinInput input) {
   final env = input.environment;
@@ -292,9 +328,16 @@ BuoyancyTwinResult runBuoyancyTwin(TwinInput input) {
     }
   }
 
+  // The suit term follows depth, so it would otherwise stamp the depth
+  // sensor's high-frequency jitter (wave action, sensor precision) onto the
+  // buoyancy curve -- jitter the diver never feels as buoyancy. Feed the suit
+  // a time-smoothed depth; each sample still reports its raw depth.
+  final suitDepths = smoothDepths(profile);
+
   final samples = <TwinSample>[];
-  for (final point in profile) {
-    final suitKg = suitAt(point.depthM);
+  for (var i = 0; i < profile.length; i++) {
+    final point = profile[i];
+    final suitKg = suitAt(suitDepths[i]);
     var tanksKg = 0.0;
     for (final tank in input.tanks) {
       tanksKg += twinTankKgAt(tank, tankPressure(tank, point.timestamp));
@@ -311,6 +354,7 @@ BuoyancyTwinResult runBuoyancyTwin(TwinInput input) {
   }
 
   // Drysuit gas budget: liters added to hold constant loft on descents.
+  // Smoothed depth avoids counting sensor jitter as many tiny descents.
   var drysuitGasLiters = 0.0;
   if (suit.kind == TwinSuitKind.drysuit && profile.isNotEmpty) {
     final loft = SuitCompression.loftLitersFromBuoyancy(
@@ -319,7 +363,7 @@ BuoyancyTwinResult runBuoyancyTwin(TwinInput input) {
     );
     drysuitGasLiters = SuitCompression.drysuitGasLiters(
       loftLiters: loft,
-      pressuresBar: [for (final p in profile) env.pressureAtDepth(p.depthM)],
+      pressuresBar: [for (final d in suitDepths) env.pressureAtDepth(d)],
     );
   }
 
