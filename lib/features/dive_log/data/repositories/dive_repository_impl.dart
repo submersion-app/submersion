@@ -31,6 +31,7 @@ import 'package:submersion/features/dive_centers/domain/entities/dive_center.dar
     as domain;
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     as domain;
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart'
     as domain;
@@ -222,7 +223,6 @@ class DiveRepository {
                   brand: e.brand,
                   model: e.model,
                   serialNumber: e.serialNumber,
-                  size: e.size,
                   status: EquipmentStatus.values.firstWhere(
                     (s) => s.name == e.status,
                     orElse: () => EquipmentStatus.active,
@@ -238,10 +238,18 @@ class DiveRepository {
                   serviceIntervalDays: e.serviceIntervalDays,
                   notes: e.notes,
                   isActive: e.isActive,
-                  buoyancyKg: e.buoyancyKg,
-                  weightKg: e.weightKg,
                 ),
               );
+        }
+        final equipmentAttrs = await _equipmentAttributesFor(
+          equipmentByDive.values.expand((list) => list).map((e) => e.id),
+        );
+        for (final entry in equipmentByDive.entries.toList()) {
+          equipmentByDive[entry.key] = entry.value
+              .map(
+                (i) => i.copyWith(attributes: equipmentAttrs[i.id] ?? const []),
+              )
+              .toList();
         }
 
         // Note: Profile data is NOT loaded for list views to improve performance
@@ -2890,7 +2898,6 @@ class DiveRepository {
         brand: e.brand,
         model: e.model,
         serialNumber: e.serialNumber,
-        size: e.size,
         status: EquipmentStatus.values.firstWhere(
           (s) => s.name == e.status,
           orElse: () => EquipmentStatus.active,
@@ -2906,10 +2913,18 @@ class DiveRepository {
         serviceIntervalDays: e.serviceIntervalDays,
         notes: e.notes,
         isActive: e.isActive,
-        buoyancyKg: e.buoyancyKg,
-        weightKg: e.weightKg,
       );
     }).toList();
+    final singleDiveEquipmentAttrs = await _equipmentAttributesFor(
+      equipmentItems.map((i) => i.id),
+    );
+    final hydratedEquipmentItems = equipmentItems
+        .map(
+          (i) => i.copyWith(
+            attributes: singleDiveEquipmentAttrs[i.id] ?? const [],
+          ),
+        )
+        .toList();
 
     // Get weights for this dive
     final weights = await _loadWeightsForDive(row.id);
@@ -3180,7 +3195,7 @@ class DiveRepository {
         );
       }).toList(),
       profile: profileRows.map(_profilePointFromRow).toList(),
-      equipment: equipmentItems,
+      equipment: hydratedEquipmentItems,
       weights: weights,
       isFavorite: row.isFavorite,
       tags: tags,
@@ -5396,6 +5411,35 @@ class DiveRepository {
       importedAt: row.importedAt,
       createdAt: row.createdAt,
     );
+  }
+
+  /// Batch-loads equipment_attributes for the given equipment ids, grouped
+  /// by equipment id (one query, list-safe).
+  Future<Map<String, List<EquipmentAttribute>>> _equipmentAttributesFor(
+    Iterable<String> equipmentIds,
+  ) async {
+    final ids = equipmentIds.toSet().toList();
+    if (ids.isEmpty) return const {};
+    final rows = await (_db.select(
+      _db.equipmentAttributes,
+    )..where((t) => t.equipmentId.isIn(ids))).get();
+    final byEquipment = <String, List<EquipmentAttribute>>{};
+    for (final row in rows) {
+      byEquipment
+          .putIfAbsent(row.equipmentId, () => [])
+          .add(
+            EquipmentAttribute(
+              id: row.id,
+              equipmentId: row.equipmentId,
+              key: row.attrKey,
+              isCustom: row.isCustom,
+              valueText: row.valueText,
+              valueNum: row.valueNum,
+              sortOrder: row.sortOrder,
+            ),
+          );
+    }
+    return byEquipment;
   }
 }
 

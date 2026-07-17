@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_edit_page.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -48,12 +49,22 @@ void main() {
       tester,
     ) async {
       final created = await repository.createEquipment(
-        const EquipmentItem(
+        EquipmentItem(
           id: '',
           name: '7mm Wetsuit',
           type: EquipmentType.wetsuit,
-          buoyancyKg: 5.0,
-          weightKg: 2.5,
+          attributes: [
+            EquipmentAttribute.curated(
+              equipmentId: '',
+              key: 'buoyancy_kg',
+              valueNum: 5.0,
+            ),
+            EquipmentAttribute.curated(
+              equipmentId: '',
+              key: 'dry_weight_kg',
+              valueNum: 2.5,
+            ),
+          ],
         ),
       );
       await pumpEditor(tester, created.id);
@@ -79,11 +90,17 @@ void main() {
 
     testWidgets('empty fields save as null', (tester) async {
       final created = await repository.createEquipment(
-        const EquipmentItem(
+        EquipmentItem(
           id: '',
           name: 'Mask',
           type: EquipmentType.mask,
-          buoyancyKg: 0.2,
+          attributes: [
+            EquipmentAttribute.curated(
+              equipmentId: '',
+              key: 'buoyancy_kg',
+              valueNum: 0.2,
+            ),
+          ],
         ),
       );
       await pumpEditor(tester, created.id);

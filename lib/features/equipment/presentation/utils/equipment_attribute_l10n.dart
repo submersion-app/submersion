@@ -1,4 +1,4 @@
-import '../../../../l10n/arb/app_localizations.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Localized label for a curated attribute key. Custom-field keys (anything
 /// not in the switch) fall back to the raw key, which IS the user's label.

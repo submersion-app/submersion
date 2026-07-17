@@ -7,6 +7,8 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 
@@ -95,9 +97,25 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     super.dispose();
   }
 
+  /// Attributes beyond the four legacy-controller-backed keys (custom fields
+  /// and any curated values set elsewhere), preserved verbatim on save until
+  /// the type-driven attribute form replaces the legacy controllers.
+  List<EquipmentAttribute>? _existingExtraAttributes;
+
+  static const _legacyControllerKeys = {
+    EquipmentAttrKeys.size,
+    EquipmentAttrKeys.thicknessMm,
+    EquipmentAttrKeys.buoyancyKg,
+    EquipmentAttrKeys.dryWeightKg,
+  };
+
   void _initializeFromEquipment(EquipmentItem equipment) {
     if (_isInitialized) return;
     _isInitialized = true;
+
+    _existingExtraAttributes = equipment.attributes
+        .where((a) => a.isCustom || !_legacyControllerKeys.contains(a.key))
+        .toList();
 
     _nameController.text = equipment.name;
     _brandController.text = equipment.brand ?? '';
@@ -896,12 +914,6 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
         serialNumber: _serialController.text.trim().isEmpty
             ? null
             : _serialController.text.trim(),
-        size: _sizeController.text.trim().isEmpty
-            ? null
-            : _sizeController.text.trim(),
-        thickness: _thicknessController.text.trim().isEmpty
-            ? null
-            : _thicknessController.text.trim(),
         purchaseDate: _purchaseDate,
         purchasePrice: _purchasePriceController.text.isNotEmpty
             ? double.tryParse(_purchasePriceController.text)
@@ -915,12 +927,36 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
             : null,
         notes: _notesController.text.trim(),
         isActive: existingEquipment?.isActive ?? true,
-        buoyancyKg: _buoyancyController.text.isNotEmpty
-            ? _parseWeightToKg(_buoyancyController.text)
-            : null,
-        weightKg: _dryWeightController.text.isNotEmpty
-            ? _parseWeightToKg(_dryWeightController.text)
-            : null,
+        attributes: [
+          if (_sizeController.text.trim().isNotEmpty)
+            EquipmentAttribute.curated(
+              equipmentId: widget.equipmentId ?? '',
+              key: EquipmentAttrKeys.size,
+              valueText: _sizeController.text.trim(),
+            ),
+          if (_thicknessController.text.trim().isNotEmpty)
+            EquipmentAttribute.curated(
+              equipmentId: widget.equipmentId ?? '',
+              key: EquipmentAttrKeys.thicknessMm,
+              valueText: _thicknessController.text.trim(),
+              valueNum: parsePrimaryThickness(_thicknessController.text),
+            ),
+          if (_buoyancyController.text.isNotEmpty &&
+              _parseWeightToKg(_buoyancyController.text) != null)
+            EquipmentAttribute.curated(
+              equipmentId: widget.equipmentId ?? '',
+              key: EquipmentAttrKeys.buoyancyKg,
+              valueNum: _parseWeightToKg(_buoyancyController.text),
+            ),
+          if (_dryWeightController.text.isNotEmpty &&
+              _parseWeightToKg(_dryWeightController.text) != null)
+            EquipmentAttribute.curated(
+              equipmentId: widget.equipmentId ?? '',
+              key: EquipmentAttrKeys.dryWeightKg,
+              valueNum: _parseWeightToKg(_dryWeightController.text),
+            ),
+          ...?_existingExtraAttributes,
+        ],
         customReminderEnabled: _customReminderEnabled,
         customReminderDays: _customReminderEnabled == true
             ? _customReminderDays

@@ -1,4 +1,4 @@
-import '../../../../core/constants/enums.dart';
+import 'package:submersion/core/constants/enums.dart';
 
 /// How an attribute value is entered, stored, and displayed.
 /// Storage contract (equipment_attributes row):
@@ -33,7 +33,7 @@ abstract final class EquipmentAttrKeys {
 
 class EquipmentAttributeDef {
   /// Stable key, never translated ('thickness_mm'). L10n resolves labels via
-  /// attrLabel_<key> and choice options via attrChoice_<key>_<option>.
+  /// `attrLabel_<key>` and choice options via `attrChoice_<key>_<option>`.
   final String key;
   final AttributeKind kind;
   final AttributeDimension dimension;

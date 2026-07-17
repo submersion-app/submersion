@@ -9,6 +9,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 
 class EquipmentRepository {
@@ -32,7 +33,7 @@ class EquipmentRepository {
       }
 
       final rows = await query.get();
-      return rows.map(_mapRowToEquipment).toList();
+      return _mapRowsWithAttributes(rows);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get active equipment',
@@ -55,7 +56,7 @@ class EquipmentRepository {
       }
 
       final rows = await query.get();
-      return rows.map(_mapRowToEquipment).toList();
+      return _mapRowsWithAttributes(rows);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get retired equipment',
@@ -85,7 +86,7 @@ class EquipmentRepository {
       }
 
       final rows = await query.get();
-      return rows.map(_mapRowToEquipment).toList();
+      return _mapRowsWithAttributes(rows);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get all equipment',
@@ -114,7 +115,7 @@ class EquipmentRepository {
       }
 
       final rows = await query.get();
-      return rows.map(_mapRowToEquipment).toList();
+      return _mapRowsWithAttributes(rows);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get equipment by status: ${status.name}',
@@ -131,7 +132,11 @@ class EquipmentRepository {
       final query = _db.select(_db.equipment)..where((t) => t.id.equals(id));
 
       final row = await query.getSingleOrNull();
-      return row != null ? _mapRowToEquipment(row) : null;
+      if (row == null) return null;
+      return _mapRowToEquipment(
+        row,
+        attributes: await getAttributesForEquipment(id),
+      );
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get equipment by id: $id',
@@ -150,7 +155,7 @@ class EquipmentRepository {
       final query = _db.select(_db.equipment)..where((t) => t.id.isIn(ids));
 
       final rows = await query.get();
-      return rows.map(_mapRowToEquipment).toList();
+      return _mapRowsWithAttributes(rows);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get equipment by ids',
@@ -179,8 +184,6 @@ class EquipmentRepository {
               brand: Value(equipment.brand),
               model: Value(equipment.model),
               serialNumber: Value(equipment.serialNumber),
-              size: Value(equipment.size),
-              thickness: Value(equipment.thickness),
               status: Value(equipment.status.name),
               purchaseDate: Value(
                 equipment.purchaseDate?.millisecondsSinceEpoch,
@@ -193,8 +196,6 @@ class EquipmentRepository {
               serviceIntervalDays: Value(equipment.serviceIntervalDays),
               notes: Value(equipment.notes),
               isActive: Value(equipment.isActive),
-              buoyancyKg: Value(equipment.buoyancyKg),
-              weightKg: Value(equipment.weightKg),
               customReminderEnabled: Value(equipment.customReminderEnabled),
               customReminderDays: Value(
                 equipment.customReminderDays != null
@@ -206,6 +207,8 @@ class EquipmentRepository {
             ),
           );
 
+      await saveAttributes(id, equipment.attributes);
+
       await _syncRepository.markRecordPending(
         entityType: 'equipment',
         recordId: id,
@@ -214,7 +217,10 @@ class EquipmentRepository {
       SyncEventBus.notifyLocalChange();
 
       _log.info('Created equipment with id: $id');
-      return equipment.copyWith(id: id);
+      return equipment.copyWith(
+        id: id,
+        attributes: await getAttributesForEquipment(id),
+      );
     } catch (e, stackTrace) {
       _log.error(
         'Failed to create equipment: ${equipment.name}',
@@ -240,8 +246,6 @@ class EquipmentRepository {
           brand: Value(equipment.brand),
           model: Value(equipment.model),
           serialNumber: Value(equipment.serialNumber),
-          size: Value(equipment.size),
-          thickness: Value(equipment.thickness),
           status: Value(equipment.status.name),
           purchaseDate: Value(equipment.purchaseDate?.millisecondsSinceEpoch),
           purchasePrice: Value(equipment.purchasePrice),
@@ -252,8 +256,6 @@ class EquipmentRepository {
           serviceIntervalDays: Value(equipment.serviceIntervalDays),
           notes: Value(equipment.notes),
           isActive: Value(equipment.isActive),
-          buoyancyKg: Value(equipment.buoyancyKg),
-          weightKg: Value(equipment.weightKg),
           customReminderEnabled: Value(equipment.customReminderEnabled),
           customReminderDays: Value(
             equipment.customReminderDays != null
@@ -263,6 +265,7 @@ class EquipmentRepository {
           updatedAt: Value(now),
         ),
       );
+      await saveAttributes(equipment.id, equipment.attributes);
       await _syncRepository.markRecordPending(
         entityType: 'equipment',
         recordId: equipment.id,
@@ -375,7 +378,7 @@ class EquipmentRepository {
       }
 
       final rows = await query.get();
-      return rows.map(_mapRowToEquipment).toList();
+      return _mapRowsWithAttributes(rows);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get equipment with service dates',
@@ -412,7 +415,7 @@ class EquipmentRepository {
         ORDER BY is_active DESC, type ASC, name ASC
       ''', variables: variables).get();
 
-      return results.map((row) {
+      final items = results.map((row) {
         return EquipmentItem(
           id: row.data['id'] as String,
           name: row.data['name'] as String,
@@ -423,7 +426,6 @@ class EquipmentRepository {
           brand: row.data['brand'] as String?,
           model: row.data['model'] as String?,
           serialNumber: row.data['serial_number'] as String?,
-          size: row.data['size'] as String?,
           status: EquipmentStatus.values.firstWhere(
             (s) => s.name == (row.data['status'] as String? ?? 'active'),
             orElse: () => EquipmentStatus.active,
@@ -443,8 +445,6 @@ class EquipmentRepository {
           serviceIntervalDays: row.data['service_interval_days'] as int?,
           notes: (row.data['notes'] as String?) ?? '',
           isActive: row.data['is_active'] == 1,
-          buoyancyKg: (row.data['buoyancy_kg'] as num?)?.toDouble(),
-          weightKg: (row.data['weight_kg'] as num?)?.toDouble(),
           customReminderEnabled: row.data['custom_reminder_enabled'] == 1
               ? true
               : row.data['custom_reminder_enabled'] == 0
@@ -457,6 +457,12 @@ class EquipmentRepository {
               : null,
         );
       }).toList();
+      final attrsById = await getAttributesForEquipmentIds(
+        items.map((i) => i.id).toList(),
+      );
+      return items
+          .map((i) => i.copyWith(attributes: attrsById[i.id] ?? const []))
+          .toList();
     } catch (e, stackTrace) {
       _log.error(
         'Failed to search equipment: $query',
@@ -545,7 +551,10 @@ class EquipmentRepository {
     }
   }
 
-  EquipmentItem _mapRowToEquipment(EquipmentData row) {
+  EquipmentItem _mapRowToEquipment(
+    EquipmentData row, {
+    List<EquipmentAttribute> attributes = const [],
+  }) {
     return EquipmentItem(
       id: row.id,
       diverId: row.diverId,
@@ -557,8 +566,6 @@ class EquipmentRepository {
       brand: row.brand,
       model: row.model,
       serialNumber: row.serialNumber,
-      size: row.size,
-      thickness: row.thickness,
       status: EquipmentStatus.values.firstWhere(
         (s) => s.name == row.status,
         orElse: () => EquipmentStatus.active,
@@ -574,12 +581,149 @@ class EquipmentRepository {
       serviceIntervalDays: row.serviceIntervalDays,
       notes: row.notes,
       isActive: row.isActive,
-      buoyancyKg: row.buoyancyKg,
-      weightKg: row.weightKg,
+      attributes: attributes,
       customReminderEnabled: row.customReminderEnabled,
       customReminderDays: row.customReminderDays != null
           ? (jsonDecode(row.customReminderDays!) as List<dynamic>).cast<int>()
           : null,
     );
+  }
+
+  /// Maps rows to entities with attributes hydrated in ONE batched query
+  /// (list reads must not pay a per-item join).
+  Future<List<EquipmentItem>> _mapRowsWithAttributes(
+    List<EquipmentData> rows,
+  ) async {
+    final attrsById = await getAttributesForEquipmentIds(
+      rows.map((r) => r.id).toList(),
+    );
+    return rows
+        .map(
+          (row) => _mapRowToEquipment(
+            row,
+            attributes: attrsById[row.id] ?? const [],
+          ),
+        )
+        .toList();
+  }
+
+  EquipmentAttribute _mapAttributeRow(EquipmentAttributeRow row) =>
+      EquipmentAttribute(
+        id: row.id,
+        equipmentId: row.equipmentId,
+        key: row.attrKey,
+        isCustom: row.isCustom,
+        valueText: row.valueText,
+        valueNum: row.valueNum,
+        sortOrder: row.sortOrder,
+      );
+
+  Future<List<EquipmentAttribute>> getAttributesForEquipment(
+    String equipmentId,
+  ) async {
+    final rows =
+        await (_db.select(_db.equipmentAttributes)
+              ..where((t) => t.equipmentId.equals(equipmentId))
+              ..orderBy([(t) => OrderingTerm.asc(t.sortOrder)]))
+            .get();
+    return rows.map(_mapAttributeRow).toList();
+  }
+
+  Future<Map<String, List<EquipmentAttribute>>> getAttributesForEquipmentIds(
+    List<String> ids,
+  ) async {
+    if (ids.isEmpty) return const {};
+    final rows =
+        await (_db.select(_db.equipmentAttributes)
+              ..where((t) => t.equipmentId.isIn(ids))
+              ..orderBy([(t) => OrderingTerm.asc(t.sortOrder)]))
+            .get();
+    final byEquipment = <String, List<EquipmentAttribute>>{};
+    for (final row in rows) {
+      byEquipment
+          .putIfAbsent(row.equipmentId, () => [])
+          .add(_mapAttributeRow(row));
+    }
+    return byEquipment;
+  }
+
+  /// Writes the desired end state of [equipmentId]'s attributes: inserts and
+  /// updates changed rows, deletes (with a tombstone) rows no longer present.
+  /// Curated ids are normalized to the deterministic form here so callers
+  /// building attributes before the equipment id exists still converge.
+  Future<void> saveAttributes(
+    String equipmentId,
+    List<EquipmentAttribute> desired,
+  ) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+
+    final normalized = desired.where((a) => a.hasValue).map((a) {
+      if (a.isCustom) {
+        return a.copyWith(
+          equipmentId: equipmentId,
+          id: a.id.isNotEmpty ? a.id : _uuid.v4(),
+        );
+      }
+      return a.copyWith(
+        equipmentId: equipmentId,
+        id: EquipmentAttribute.curatedId(equipmentId, a.key),
+      );
+    }).toList();
+
+    final existingRows = await (_db.select(
+      _db.equipmentAttributes,
+    )..where((t) => t.equipmentId.equals(equipmentId))).get();
+    final existingById = {for (final r in existingRows) r.id: r};
+    final desiredIds = normalized.map((a) => a.id).toSet();
+    final pendingIds = <String>[];
+
+    await _db.transaction(() async {
+      for (final row in existingRows) {
+        if (desiredIds.contains(row.id)) continue;
+        await (_db.delete(
+          _db.equipmentAttributes,
+        )..where((t) => t.id.equals(row.id))).go();
+        await _syncRepository.logDeletion(
+          entityType: 'equipmentAttributes',
+          recordId: row.id,
+        );
+      }
+
+      for (final attr in normalized) {
+        final existing = existingById[attr.id];
+        final unchanged =
+            existing != null &&
+            existing.attrKey == attr.key &&
+            existing.valueText == attr.valueText &&
+            existing.valueNum == attr.valueNum &&
+            existing.sortOrder == attr.sortOrder;
+        if (unchanged) continue;
+
+        await _db
+            .into(_db.equipmentAttributes)
+            .insertOnConflictUpdate(
+              EquipmentAttributesCompanion(
+                id: Value(attr.id),
+                equipmentId: Value(equipmentId),
+                attrKey: Value(attr.key),
+                isCustom: Value(attr.isCustom),
+                valueText: Value(attr.valueText),
+                valueNum: Value(attr.valueNum),
+                sortOrder: Value(attr.sortOrder),
+                createdAt: Value(existing?.createdAt ?? now),
+                updatedAt: Value(now),
+              ),
+            );
+        pendingIds.add(attr.id);
+      }
+    });
+
+    for (final id in pendingIds) {
+      await _syncRepository.markRecordPending(
+        entityType: 'equipmentAttributes',
+        recordId: id,
+        localUpdatedAt: now,
+      );
+    }
   }
 }

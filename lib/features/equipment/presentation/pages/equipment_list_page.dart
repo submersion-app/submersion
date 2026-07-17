@@ -15,6 +15,8 @@ import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_field.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_list_content.dart';
@@ -718,9 +720,14 @@ class _AddEquipmentSheetState extends ConsumerState<AddEquipmentSheet> {
         serialNumber: _serialController.text.trim().isEmpty
             ? null
             : _serialController.text.trim(),
-        size: _sizeController.text.trim().isEmpty
-            ? null
-            : _sizeController.text.trim(),
+        attributes: [
+          if (_sizeController.text.trim().isNotEmpty)
+            EquipmentAttribute.curated(
+              equipmentId: '',
+              key: EquipmentAttrKeys.size,
+              valueText: _sizeController.text.trim(),
+            ),
+        ],
         purchaseDate: _purchaseDate,
         purchasePrice: _purchasePriceController.text.isNotEmpty
             ? double.tryParse(_purchasePriceController.text)

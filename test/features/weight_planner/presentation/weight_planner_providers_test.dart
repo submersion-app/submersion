@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_planner/presentation/providers/dive_pla
 import 'package:submersion/features/divers/domain/entities/diver_weight_entry.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_weight_entry_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/weight_planner/presentation/providers/weight_planner_providers.dart';
@@ -85,7 +86,20 @@ void main() {
 
   test('gearFeatureFor passes user metadata through', () {
     final feature = gearFeatureFor(
-      suitItem.copyWith(buoyancyKg: -2.0, weightKg: 2.5),
+      suitItem.copyWith(
+        attributes: [
+          EquipmentAttribute.curated(
+            equipmentId: suitItem.id,
+            key: 'buoyancy_kg',
+            valueNum: -2.0,
+          ),
+          EquipmentAttribute.curated(
+            equipmentId: suitItem.id,
+            key: 'dry_weight_kg',
+            valueNum: 2.5,
+          ),
+        ],
+      ),
     );
     expect(feature!.priorKg, -2.0);
     expect(feature.hasUserSpec, isTrue);
