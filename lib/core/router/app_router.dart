@@ -4,7 +4,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/services/database_service.dart';
-import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/core/services/notification_service.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_list_page.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -118,7 +117,6 @@ import 'package:submersion/features/marine_life/presentation/pages/species_edit_
 import 'package:submersion/features/marine_life/presentation/pages/species_detail_page.dart';
 import 'package:submersion/features/planning/presentation/pages/planning_page.dart';
 import 'package:submersion/features/planning/presentation/widgets/planning_shell.dart';
-import 'package:submersion/features/planning/presentation/widgets/planning_welcome.dart';
 import 'package:submersion/features/gps_log/presentation/pages/gps_logger_page.dart';
 import 'package:submersion/features/weight_planner/presentation/pages/weight_planner_page.dart';
 import 'package:submersion/features/deco_calculator/presentation/pages/deco_calculator_page.dart';
@@ -209,13 +207,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: '/planning',
                 name: 'planning',
                 pageBuilder: (context, state) {
-                  // On wide screens show welcome placeholder, on mobile show hub
-                  final isWide = ResponsiveBreakpoints.isMasterDetail(context);
+                  // The hub is the landing surface on every width; the shell
+                  // decides how much width it gets.
                   return NoTransitionPage(
                     key: state.pageKey,
-                    child: isWide
-                        ? const PlanningWelcome()
-                        : const PlanningPage(),
+                    child: const PlanningPage(),
                   );
                 },
                 routes: [
