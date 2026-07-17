@@ -4303,6 +4303,84 @@ class DiveRepository {
     }
   }
 
+  /// Shift dive times of every dive in [diveIds] by [offset].
+  /// Shifts dive_date_time always, entry_time/exit_time only when non-null.
+  /// Forces `updated_at = now` and marks each dive pending. Does NOT open a
+  /// transaction or notify sync -- the repair executor owns those.
+  Future<void> bulkShiftDiveTimes(List<String> diveIds, Duration offset) async {
+    if (diveIds.isEmpty || offset == Duration.zero) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final ms = offset.inMilliseconds;
+    final placeholders = List.filled(diveIds.length, '?').join(', ');
+    await _db.customUpdate(
+      'UPDATE dives SET '
+      'dive_date_time = dive_date_time + ?, '
+      'entry_time = CASE WHEN entry_time IS NULL THEN NULL '
+      'ELSE entry_time + ? END, '
+      'exit_time = CASE WHEN exit_time IS NULL THEN NULL '
+      'ELSE exit_time + ? END, '
+      'updated_at = ? '
+      'WHERE id IN ($placeholders)',
+      variables: [
+        Variable.withInt(ms),
+        Variable.withInt(ms),
+        Variable.withInt(ms),
+        Variable.withInt(now),
+        ...diveIds.map(Variable.withString),
+      ],
+      updates: {_db.dives},
+    );
+    for (final diveId in diveIds) {
+      await _syncRepository.markRecordPending(
+        entityType: 'dives',
+        recordId: diveId,
+        localUpdatedAt: now,
+      );
+    }
+  }
+
+  /// Prior time columns for [diveIds]; feed to [restoreDiveTimes] for undo.
+  Future<List<({String id, int diveDateTime, int? entryTime, int? exitTime})>>
+  getDiveTimesSnapshot(List<String> diveIds) async {
+    if (diveIds.isEmpty) return const [];
+    final rows = await (_db.select(
+      _db.dives,
+    )..where((t) => t.id.isIn(diveIds))).get();
+    return [
+      for (final r in rows)
+        (
+          id: r.id,
+          diveDateTime: r.diveDateTime,
+          entryTime: r.entryTime,
+          exitTime: r.exitTime,
+        ),
+    ];
+  }
+
+  /// Exact-restore of a [getDiveTimesSnapshot] result (repair undo).
+  Future<void> restoreDiveTimes(
+    List<({String id, int diveDateTime, int? entryTime, int? exitTime})>
+    snapshot,
+  ) async {
+    if (snapshot.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (final s in snapshot) {
+      await (_db.update(_db.dives)..where((t) => t.id.equals(s.id))).write(
+        DivesCompanion(
+          diveDateTime: Value(s.diveDateTime),
+          entryTime: Value(s.entryTime),
+          exitTime: Value(s.exitTime),
+          updatedAt: Value(now),
+        ),
+      );
+      await _syncRepository.markRecordPending(
+        entityType: 'dives',
+        recordId: s.id,
+        localUpdatedAt: now,
+      );
+    }
+  }
+
   /// Load each dive's ordered dive-type slugs from the junction, keyed by dive
   /// id. Used by the mappers and the summary query to hydrate `diveTypeIds`.
   Future<Map<String, List<String>>> _diveTypesForDives(
