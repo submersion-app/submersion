@@ -102,6 +102,7 @@ class PlanEngine {
     final policy = SchedulePolicy(
       lastStopDepth: plan.lastStopDepth,
       ascentRate: plan.ascentRate,
+      descentRate: plan.descentRate,
       gasSwitchStopSeconds: plan.gasSwitchStopSeconds,
       airBreaks: plan.airBreaks,
     );
