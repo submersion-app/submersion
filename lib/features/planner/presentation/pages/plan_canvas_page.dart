@@ -26,10 +26,8 @@ import 'package:submersion/features/planner/presentation/widgets/contingency_chi
 import 'package:submersion/features/planner/presentation/widgets/follow_dive_sheet.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
 import 'package:submersion/features/planner/presentation/widgets/saved_plans_sheet.dart';
-import 'package:submersion/features/planning/presentation/widgets/planning_rail.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
 /// Mission Control: a thin layout router over the planner's three panes.
 /// Editing state lives on [divePlanNotifierProvider]; every displayed number
@@ -76,21 +74,10 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     super.dispose();
   }
 
-  /// The width the page body effectively gets. When the window is wide
-  /// enough for the shell's icon rail, subtract it so header decisions agree
-  /// with the body's own LayoutBuilder.
-  double _approxBodyWidth(BuildContext context) {
-    final width = MediaQuery.sizeOf(context).width;
-    if (ResponsiveBreakpoints.isMasterDetail(context)) {
-      return width - PlanningRail.width - 1;
-    }
-    return width;
-  }
-
   @override
   Widget build(BuildContext context) {
     final planState = ref.watch(divePlanNotifierProvider);
-    final bodyWidth = _approxBodyWidth(context);
+    final bodyWidth = MediaQuery.sizeOf(context).width;
     final units = UnitFormatter(ref.watch(settingsProvider));
 
     return Scaffold(
@@ -247,7 +234,7 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
 
   /// Reveal a Setup accordion section in whatever layout mode is active.
   void _focusSetup(String section) {
-    final bodyWidth = _approxBodyWidth(context);
+    final bodyWidth = MediaQuery.sizeOf(context).width;
     if (bodyWidth < 760) {
       ref.read(plannerPhoneTabProvider.notifier).state = 2;
     } else if (bodyWidth < 1160) {

@@ -30,7 +30,7 @@ A verified gap analysis is in section 4.
 | --- | --- |
 | Scope | Whole Planning section: planner, hub/shell, all calculator tools |
 | Platforms | Full redesign of desktop AND phone layouts |
-| Desktop layout | Mission Control: editor pane, chart hero, results pane; Planning sidebar collapses to a 52px icon rail |
+| Desktop layout | Mission Control: editor pane, chart hero, results pane; tools render full-bleed (REVISED in phase 2 live review: no icon rail, no shell - back buttons navigate to the hub) |
 | Chart style | Precision Instrument: crisp technical chart, stop tags, ceiling as shaded no-go band, gas-switch flags, mean-depth line |
 | Chart technology | CustomPainter (not fl_chart) |
 | Phone layout | Chart + Tab Deck (chart approx 40%, stat strip, tabs: Plan, Tanks, Setup, Results); DraggableScrollableSheet removed |
@@ -188,6 +188,8 @@ Data flow unchanged: the chart consumes planCanvasSeriesProvider,
 deviationGhostSeriesProvider, planBailoutProvider, scrubTimeProvider.
 
 ### 6.2 Layout (phase 2)
+
+REVISION (phase 2 live review): no icon rail and no PlanningShell - tools render full-bleed on all widths and back buttons return to the hub. The paragraphs below predate that revision where they mention the rail or a centered hub.
 
 - PlanningShell: two wide states. On /planning index, the hub renders
   full-width (no master list; the 440px _PlanningSidebar is deleted). On any
