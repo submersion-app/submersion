@@ -1,7 +1,7 @@
 # Tombstone GC and Device Retirement (Fleet-Acked Horizon)
 
 Date: 2026-07-16
-Status: Implemented (schema v113 -- renumbered from v112 after main claimed it for equipment.thickness; see docs/superpowers/plans/2026-07-16-tombstone-gc-device-retirement.md)
+Status: Implemented (schema v114 -- renumbered twice while the PR was open: planned as v112, moved to v113 after main claimed v112 for equipment.thickness, then to v114 after main claimed v113 for the CNS calculation method; see docs/superpowers/plans/2026-07-16-tombstone-gc-device-retirement.md)
 
 ## Problem
 

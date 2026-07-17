@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Schema migration is **v113** (originally planned as v112; renumbered when main claimed v112 for equipment.thickness while the PR was open).
+- Schema migration is **v114** (renumbered twice while the PR was open: planned as v112, moved to v113 after main claimed v112 for equipment.thickness, then to v114 after main claimed v113 for the CNS calculation method). The task steps below were authored at the original v112 numbering but have been reconciled to the shipped **v114** so the migration number matches the code.
 - Constants: retirement period **365 days**, heartbeat max age **7 days**, GC safety floor **30 days**.
 - HLC comparisons use the fixed-width zero-padded canonical **string** form (`compareTo`), matching the existing v86 deletion filters. Never switch to parsed `Hlc.compareTo` in isolation.
 - Manifest changes are **additive JSON fields**; a manifest missing `appliedPeerHlc` acknowledges nothing (blocks GC).
@@ -24,7 +24,7 @@
 
 ---
 
-### Task 1: Schema v112 — deletion-log dedupe + unique index, cursor ack column, logDeletion upsert
+### Task 1: Schema v114 — deletion-log dedupe + unique index, cursor ack column, logDeletion upsert
 
 **Files:**
 - Modify: `lib/core/database/database.dart` (table defs ~line 1956, `migrationVersions` list ~line 2212/2321, version doc comment ~line 2406, `currentSchemaVersion` ~line 2207, onUpgrade ~line 5526, beforeOpen backstop ~line 5556)
@@ -63,7 +63,7 @@ void main() {
 
   test('ensureDeletionLogIndex collapses pre-existing duplicates, newest wins', () async {
     final db = DatabaseService.instance.database;
-    // Simulate a pre-v112 database: drop the index, insert raw duplicates.
+    // Simulate a pre-v114 database: drop the index, insert raw duplicates.
     await db.customStatement('DROP INDEX IF EXISTS idx_deletion_log_entity_record');
     await db.customStatement(
       "INSERT INTO deletion_log (id, entity_type, record_id, deleted_at, hlc) "
@@ -112,10 +112,10 @@ In `lib/core/database/database.dart`:
   TextColumn get appliedHlcHigh => text().nullable()();
 ```
 
-3b. Bump `currentSchemaVersion` to `112`, append `112` to `migrationVersions`, and add to the version doc comment block:
+3b. Bump `currentSchemaVersion` to `114`, append `114` to `migrationVersions`, and add to the version doc comment block:
 
 ```dart
-  /// v112: deletion_log unique index (dedupe tombstones per entity+record) +
+  /// v114: deletion_log unique index (dedupe tombstones per entity+record) +
   /// sync_peer_cursors.applied_hlc_high (fleet-acked tombstone GC).
 ```
 
@@ -126,7 +126,7 @@ In `lib/core/database/database.dart`:
   /// record_id wins) and (re-)assert the unique index that keeps the log
   /// collapsed. Cheap when the index already exists; the dedupe DELETE only
   /// runs when index creation fails on pre-existing duplicates. Called from
-  /// the v112 upgrade and the beforeOpen backstop (parallel-branch DBs heal
+  /// the v114 upgrade and the beforeOpen backstop (parallel-branch DBs heal
   /// here, mirroring the v111 backstop).
   Future<void> ensureDeletionLogIndex() async {
     const createIndex =
@@ -163,7 +163,7 @@ In `lib/core/database/database.dart`:
 3e. In the beforeOpen backstop section (next to the v111 backstop at ~line 5556):
 
 ```dart
-        // v112 backstop: re-assert sync_peer_cursors.applied_hlc_high and the
+        // v114 backstop: re-assert sync_peer_cursors.applied_hlc_high and the
         // deletion_log unique index.
         try {
           await customStatement(
@@ -183,7 +183,7 @@ In `lib/core/data/repositories/sync_repository.dart`, inside `logDeletion`, wrap
       await _db.transaction(() async {
         // One tombstone per record: replace any prior tombstone for this key
         // so its deletedAt/hlc advance (re-delete refreshes the stamp) and the
-        // v112 unique index is never violated.
+        // v114 unique index is never violated.
         await (_db.delete(_db.deletionLog)..where(
               (t) =>
                   t.entityType.equals(entityType) & t.recordId.equals(recordId),
@@ -217,7 +217,7 @@ Expected: PASS.
 ```bash
 dart format .
 git add lib/core/database/database.dart lib/core/data/repositories/sync_repository.dart test/core/data/repositories/sync_repository_deletion_dedupe_test.dart
-git commit -m "feat(sync): v112 tombstone dedupe index + peer ack column"
+git commit -m "feat(sync): v114 tombstone dedupe index + peer ack column"
 ```
 
 ---
