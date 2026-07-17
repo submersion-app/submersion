@@ -88,4 +88,16 @@ void main() {
     await tester.pumpAndSettle();
     expect(repo.dismissed, ['f-sample_gap']);
   });
+
+  testWidgets('expanded card shows exactly one Go to dive link', (
+    tester,
+  ) async {
+    // sample_gap's repair options include a GoToDiveRepair; the card also
+    // renders its own footer "Go to dive" -- there must be no duplicate.
+    await tester.pumpWidget(await _wrap(_FakeFindingsRepository([finding()])));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(ListTile).first); // expand
+    await tester.pumpAndSettle();
+    expect(find.text('Go to dive'), findsOneWidget);
+  });
 }

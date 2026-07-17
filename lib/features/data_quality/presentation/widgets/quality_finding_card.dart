@@ -84,7 +84,12 @@ class _QualityFindingCardState extends State<QualityFindingCard> {
       widget.finding,
       widget.formatters,
     );
-    final actions = repairOptionsFor(widget.finding);
+    // The card always renders its own "Go to dive" footer button, so drop any
+    // GoToDiveRepair actions from the repair list to avoid a duplicate link.
+    final actions = [
+      for (final a in repairOptionsFor(widget.finding))
+        if (a is! GoToDiveRepair) a,
+    ];
     final primary = actions.isNotEmpty ? actions.first : null;
 
     return Card(
