@@ -123,9 +123,12 @@ class DivelogsDive {
     if (date == null || duration == null || maxDepth == null) {
       throw FormatException('divelogs dive missing mandatory fields', json);
     }
+    // Dive timestamps are wall-clock; the import pipeline convention is to
+    // represent wall-clock as UTC (matches the Subsurface parser and DB
+    // loads with isUtc: true), so parse with an explicit Z suffix.
     final DateTime dateTime;
     try {
-      dateTime = DateTime.parse('$date $time');
+      dateTime = DateTime.parse('${date}T${time}Z');
     } on FormatException {
       throw FormatException('divelogs dive has unparseable date/time', json);
     }

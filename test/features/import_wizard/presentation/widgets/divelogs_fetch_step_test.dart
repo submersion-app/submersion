@@ -51,6 +51,7 @@ void main() {
       currentDiverProvider.overrideWith((ref) async => diver),
     ],
     child: const MaterialApp(
+      locale: Locale('en'),
       themeAnimationDuration: Duration.zero,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,

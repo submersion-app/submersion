@@ -25,7 +25,16 @@ class DivelogsImportService {
       diveEntities.add(_mapper.mapDive(dive));
       final site = _mapper.mapSite(dive);
       if (site != null) {
-        sitesByKey.putIfAbsent(site['uddfId'] as String, () => site);
+        final existing = sitesByKey[site['uddfId'] as String];
+        if (existing == null) {
+          sitesByKey[site['uddfId'] as String] = site;
+        } else {
+          // Same site seen on an earlier dive: backfill GPS the first
+          // occurrence lacked so location data is not dropped.
+          existing.putIfAbsent('latitude', () => site['latitude']);
+          existing.putIfAbsent('longitude', () => site['longitude']);
+          existing.removeWhere((_, value) => value == null);
+        }
       }
     }
 
@@ -43,9 +52,10 @@ class DivelogsImportService {
         if (result.skippedCount > 0)
           ImportWarning(
             severity: ImportWarningSeverity.warning,
-            message:
-                '${result.skippedCount} dives could not be read from '
-                'divelogs.de and were skipped.',
+            message: result.skippedCount == 1
+                ? '1 dive could not be read from divelogs.de and was skipped.'
+                : '${result.skippedCount} dives could not be read from '
+                      'divelogs.de and were skipped.',
           ),
       ],
       metadata: {'source': 'divelogs.de', 'diveCount': result.dives.length},

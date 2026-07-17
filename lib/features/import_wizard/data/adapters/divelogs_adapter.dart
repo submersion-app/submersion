@@ -13,9 +13,11 @@ final divelogsPayloadReadyProvider = Provider<bool>(
   (ref) => ref.watch(universalImportNotifierProvider).payload != null,
 );
 
-/// HTTP client for divelogs.de calls; null means the real network client.
-/// Overridable so widget tests can supply a MockClient.
-final divelogsHttpClientProvider = Provider<http.Client?>((ref) => null);
+/// HTTP client for divelogs.de calls. Overridable so widget tests can
+/// supply a MockClient (pattern: weatherHttpClientProvider).
+final divelogsHttpClientProvider = Provider<http.Client>(
+  (ref) => http.Client(),
+);
 
 /// Import source that pulls the user's logbook from divelogs.de.
 ///

@@ -678,17 +678,30 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   /// Installs a payload produced outside the file-parse path (e.g. a REST
   /// source like divelogs.de) and runs the standard duplicate check and
   /// default-selection pass so the wizard can proceed to review.
-  Future<void> setExternalPayload(ImportPayload payload) async {
+  ///
+  /// Returns false (leaving the payload unset and an error on the state)
+  /// when duplicate checking fails, so callers can surface a retryable
+  /// error instead of stranding the wizard in a loading state.
+  Future<bool> setExternalPayload(ImportPayload payload) async {
     state = state.copyWith(isLoading: true, clearError: true);
-    final dupResult = await _checkDuplicates(payload);
-    final selections = _defaultSelections(payload, dupResult);
-    state = state.copyWith(
-      isLoading: false,
-      payload: payload,
-      duplicateResult: dupResult,
-      selections: selections,
-      currentStep: ImportWizardStep.review,
-    );
+    try {
+      final dupResult = await _checkDuplicates(payload);
+      final selections = _defaultSelections(payload, dupResult);
+      state = state.copyWith(
+        isLoading: false,
+        payload: payload,
+        duplicateResult: dupResult,
+        selections: selections,
+        currentStep: ImportWizardStep.review,
+      );
+      return true;
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Failed to prepare import: $e',
+      );
+      return false;
+    }
   }
 
   // -- Parsing + Duplicate Check --

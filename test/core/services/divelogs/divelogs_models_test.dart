@@ -13,7 +13,7 @@ void main() {
   test('parses mandatory fields', () {
     final dive = DivelogsDive.fromJson(minimal());
     expect(dive.id, '4711');
-    expect(dive.dateTime, DateTime(2022, 9, 3, 14, 42));
+    expect(dive.dateTime, DateTime.utc(2022, 9, 3, 14, 42));
     expect(dive.durationSeconds, 2808);
     expect(dive.maxDepth, 12.0);
     expect(dive.samples, isEmpty);

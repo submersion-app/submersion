@@ -149,11 +149,14 @@ class _DivelogsFetchStepState extends ConsumerState<DivelogsFetchStep> {
       );
       final payload = await DivelogsImportService(api: api).fetchAllDives();
       if (!mounted) return;
-      await ref
+      final installed = await ref
           .read(universalImportNotifierProvider.notifier)
           .setExternalPayload(payload);
       if (!mounted) return;
-      setState(() => _phase = _StepPhase.done);
+      setState(() {
+        _phase = installed ? _StepPhase.done : _StepPhase.error;
+        if (!installed) _errorMessage = null;
+      });
     } on DivelogsApiException catch (e) {
       if (!mounted) return;
       setState(() {
@@ -205,7 +208,9 @@ class _DivelogsFetchStepState extends ConsumerState<DivelogsFetchStep> {
               labelText: context.l10n.divelogs_signIn_username,
             ),
             autocorrect: false,
-            enabled: !_connecting,
+            // Reconnecting an existing account: the username identifies the
+            // account row (accountIdentifier) and must not drift from it.
+            enabled: !_connecting && _account == null,
           ),
           const SizedBox(height: 12),
           TextField(

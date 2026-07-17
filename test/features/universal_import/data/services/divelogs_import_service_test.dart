@@ -62,14 +62,17 @@ void main() {
     expect(payload.entitiesOf(ImportEntityType.dives), hasLength(1));
     expect(payload.warnings, hasLength(1));
     expect(payload.warnings.single.severity, ImportWarningSeverity.warning);
-    expect(payload.warnings.single.message, contains('1 dives'));
+    expect(
+      payload.warnings.single.message,
+      '1 dive could not be read from divelogs.de and was skipped.',
+    );
   });
 
   group('duplicate checker integration', () {
     final existingDive = Dive(
       id: 'existing-1',
-      dateTime: DateTime(2022, 9, 3, 14, 42),
-      entryTime: DateTime(2022, 9, 3, 14, 42),
+      dateTime: DateTime.utc(2022, 9, 3, 14, 42),
+      entryTime: DateTime.utc(2022, 9, 3, 14, 42),
       runtime: const Duration(seconds: 2808),
       maxDepth: 12,
     );

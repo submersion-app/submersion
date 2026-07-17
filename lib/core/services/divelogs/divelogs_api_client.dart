@@ -35,7 +35,7 @@ class DivelogsApiClient {
 
   Future<Map<String, dynamic>> getUser() async {
     final response = await _get('/user');
-    final decoded = jsonDecode(response.body);
+    final decoded = _decode(response.body, '/user');
     if (decoded is! Map) {
       throw const DivelogsApiException(0, 'Unexpected /user response');
     }
@@ -44,7 +44,7 @@ class DivelogsApiClient {
 
   Future<DivelogsDivesResult> getAllDives() async {
     final response = await _get('/dives');
-    final decoded = jsonDecode(response.body);
+    final decoded = _decode(response.body, '/dives');
     final List<dynamic> rawDives;
     if (decoded is List) {
       rawDives = decoded;
@@ -67,6 +67,17 @@ class DivelogsApiClient {
       }
     }
     return DivelogsDivesResult(dives: dives, skippedCount: skipped);
+  }
+
+  /// Decodes a response body, converting FormatException (non-JSON error
+  /// pages, proxy-injected HTML) into the retryable DivelogsApiException the
+  /// UI already handles.
+  Object? _decode(String body, String endpoint) {
+    try {
+      return jsonDecode(body);
+    } on FormatException {
+      throw DivelogsApiException(0, 'Unexpected $endpoint response');
+    }
   }
 
   Future<http.Response> _get(String path) async {

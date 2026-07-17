@@ -13,7 +13,7 @@ void main() {
     double? lng = 35.1,
   }) => DivelogsDive(
     id: id,
-    dateTime: DateTime(2022, 9, 3, 14, 42),
+    dateTime: DateTime.utc(2022, 9, 3, 14, 42),
     durationSeconds: 2808,
     maxDepth: 12,
     meanDepth: 7.9,
@@ -50,7 +50,7 @@ void main() {
 
   test('maps core fields with importer-compatible keys', () {
     final map = mapper.mapDive(dive());
-    expect(map['dateTime'], DateTime(2022, 9, 3, 14, 42));
+    expect(map['dateTime'], DateTime.utc(2022, 9, 3, 14, 42));
     expect(map['runtime'], const Duration(seconds: 2808));
     expect(map['maxDepth'], 12.0);
     expect(map['avgDepth'], 7.9);
@@ -114,7 +114,7 @@ void main() {
 
   test('zero weights and temps are treated as unset', () {
     final d = DivelogsDive(
-      dateTime: DateTime(2022),
+      dateTime: DateTime.utc(2022),
       durationSeconds: 60,
       maxDepth: 5,
       weightsKg: 0,
