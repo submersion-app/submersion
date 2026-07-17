@@ -28,6 +28,7 @@ class SafetyReviewService {
 
     findings.addAll(_rapidAscentFindings(diveId, analysis, now, nextId));
     findings.addAll(_missedDecoStopFindings(diveId, analysis, now, nextId));
+    findings.addAll(_omittedSafetyStopFindings(diveId, analysis, now, nextId));
     findings.addAll(_highSurfaceGfFindings(diveId, analysis, now, nextId));
 
     return findings;
@@ -118,6 +119,51 @@ class SafetyReviewService {
     }
     close(samples.last.timestamp);
     return findings;
+  }
+
+  static const double _safetyStopRelevantDepthMeters = 10.0;
+  static const double _safetyStopCautionDepthMeters = 25.0;
+  static const int _safetyStopRemainingThresholdSeconds = 30;
+  static const double _surfacedDepthMeters = 1.0;
+
+  /// The recommended safety stop was skipped or cut short. Reads the engine's
+  /// own per-sample safety-stop credit (DecoStatus.safetyStopSeconds counts
+  /// down as the diver accumulates time in the stop zone) instead of
+  /// re-detecting stop holds.
+  List<SafetyFinding> _omittedSafetyStopFindings(
+    String diveId,
+    ProfileAnalysis analysis,
+    DateTime now,
+    String Function() nextId,
+  ) {
+    if (analysis.decoStatuses.isEmpty || analysis.ascentRates.isEmpty) {
+      return const [];
+    }
+    if (analysis.maxDepth <= _safetyStopRelevantDepthMeters) return const [];
+    // Deco dives are handled by the missed-stop rule; the engine zeroes
+    // safetyStopSeconds under a deco obligation anyway.
+    if (analysis.hadDecoObligation) return const [];
+    // Only meaningful when the profile actually ends at the surface.
+    if (analysis.ascentRates.last.depth > _surfacedDepthMeters) {
+      return const [];
+    }
+    final remaining = analysis.decoStatuses.last.safetyStopSeconds;
+    if (remaining <= _safetyStopRemainingThresholdSeconds) return const [];
+    return [
+      SafetyFinding(
+        id: nextId(),
+        diveId: diveId,
+        ruleId: SafetyRuleId.omittedSafetyStop,
+        severity: analysis.maxDepth > _safetyStopCautionDepthMeters
+            ? SafetySeverity.caution
+            : SafetySeverity.info,
+        startTimestamp: analysis.ascentRates.last.timestamp,
+        endTimestamp: analysis.ascentRates.last.timestamp,
+        value: remaining.toDouble(),
+        engineVersion: engineVersion,
+        createdAt: now,
+      ),
+    ];
   }
 
   /// Surfacing GF above the configured GF-high. Informational only: the

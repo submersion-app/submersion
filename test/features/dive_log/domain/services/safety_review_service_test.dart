@@ -90,4 +90,33 @@ void main() {
       expect(high.first.value, greaterThan(70)); // fixture GF-high is 70
     });
   });
+
+  group('omitted safety stop rule', () {
+    test('dive with a completed safety stop produces no finding', () {
+      final findings = reviewProfile(cleanDiveProfile());
+      expect(
+        findings.where((f) => f.ruleId == SafetyRuleId.omittedSafetyStop),
+        isEmpty,
+      );
+    });
+
+    test('skipping the safety stop on an 18 m dive produces a finding', () {
+      final findings = reviewProfile(omittedSafetyStopProfile());
+      final omitted = findings
+          .where((f) => f.ruleId == SafetyRuleId.omittedSafetyStop)
+          .toList();
+      expect(omitted, hasLength(1));
+      // maxDepth 18 is not > 25, so severity stays info per the spec table.
+      expect(omitted.first.severity, SafetySeverity.info);
+      expect(omitted.first.value, greaterThan(30));
+    });
+
+    test('deco dives are exempt (deco stops supersede the safety stop)', () {
+      final findings = reviewProfile(missedDecoStopProfile());
+      expect(
+        findings.where((f) => f.ruleId == SafetyRuleId.omittedSafetyStop),
+        isEmpty,
+      );
+    });
+  });
 }

@@ -61,3 +61,14 @@ ProfileAnalysis analyzeFixture({
       (45, 1500), // 25 min bottom time on air
       (0, 300), // straight up at 9 m/min, no stops
     ]);
+
+/// 18 m for 20 min (no-deco even at GF 30/70), then a steady ~7.7 m/min
+/// ascent straight to the surface with no safety stop. The rate stays under
+/// the 9 m/min warning threshold so only the omitted stop should flag.
+/// (25 m for 15 min was tried first but enters deco at GF 30/70.)
+({List<double> depths, List<int> timestamps}) omittedSafetyStopProfile() =>
+    buildProfile([
+      (18, 120),
+      (18, 1200),
+      (0, 140), // ~7.7 m/min direct ascent
+    ]);
