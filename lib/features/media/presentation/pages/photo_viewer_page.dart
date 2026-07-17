@@ -240,8 +240,9 @@ class _PhotoViewerPageState extends ConsumerState<PhotoViewerPage> {
                 // playback, exactly when this must stay up) and mounted
                 // BELOW it so the toolbar keeps hit-test priority when the
                 // chrome is visible (the default corner overlaps the top
-                // bar). A clean tap on the face falls through to the
-                // chrome-toggle tap target; only drags move it.
+                // bar). The face absorbs pointer events over its own bounds
+                // (drags move it, taps do nothing); chrome-toggle and video
+                // play/pause taps work anywhere outside it.
                 if (perdixAvailable && settings.perdixOverlayEnabled)
                   DraggablePerdixOverlay(
                     // Re-key when the persisted seed first arrives so a late
