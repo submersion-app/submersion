@@ -12,6 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
+import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -128,6 +129,9 @@ class AppSettings {
 
   /// SafetyRuleId.dbValue strings whose findings are hidden in the UI
   final Set<String> safetyReviewDisabledRules;
+
+  /// Flying-after-diving conservatism preset
+  final NoFlyPreset noFlyPreset;
 
   /// Show color-coded ascent rate on dive profile
   final bool showAscentRateColors;
@@ -350,6 +354,7 @@ class AppSettings {
     this.showCeilingOnProfile = true,
     this.safetyReviewEnabled = true,
     this.safetyReviewDisabledRules = const {},
+    this.noFlyPreset = NoFlyPreset.standard,
     this.showAscentRateColors = false,
     this.showNdlOnProfile = true,
     this.lastStopDepth = 3.0,
@@ -485,6 +490,7 @@ class AppSettings {
     bool? showCeilingOnProfile,
     bool? safetyReviewEnabled,
     Set<String>? safetyReviewDisabledRules,
+    NoFlyPreset? noFlyPreset,
     bool? showAscentRateColors,
     bool? showNdlOnProfile,
     double? lastStopDepth,
@@ -588,6 +594,7 @@ class AppSettings {
       safetyReviewEnabled: safetyReviewEnabled ?? this.safetyReviewEnabled,
       safetyReviewDisabledRules:
           safetyReviewDisabledRules ?? this.safetyReviewDisabledRules,
+      noFlyPreset: noFlyPreset ?? this.noFlyPreset,
       showAscentRateColors: showAscentRateColors ?? this.showAscentRateColors,
       showNdlOnProfile: showNdlOnProfile ?? this.showNdlOnProfile,
       lastStopDepth: lastStopDepth ?? this.lastStopDepth,
@@ -1019,6 +1026,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       rules.add(rule.dbValue);
     }
     state = state.copyWith(safetyReviewDisabledRules: rules);
+    await _saveSettings();
+  }
+
+  Future<void> setNoFlyPreset(NoFlyPreset preset) async {
+    state = state.copyWith(noFlyPreset: preset);
     await _saveSettings();
   }
 

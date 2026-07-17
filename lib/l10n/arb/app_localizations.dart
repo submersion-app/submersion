@@ -20168,6 +20168,120 @@ abstract class AppLocalizations {
   /// **'Analysis complete'**
   String get safetySettings_analyzeAll_done;
 
+  /// No description provided for @safetySettings_noFlyHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Flying after diving'**
+  String get safetySettings_noFlyHeader;
+
+  /// No description provided for @safetySettings_noFlyPreset_standard.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard (12/18/24 h)'**
+  String get safetySettings_noFlyPreset_standard;
+
+  /// No description provided for @safetySettings_noFlyPreset_strict.
+  ///
+  /// In en, this message translates to:
+  /// **'Strict (18/24/48 h)'**
+  String get safetySettings_noFlyPreset_strict;
+
+  /// No description provided for @safetySettings_noFlyPreset_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Guideline intervals after a single no-deco dive, repetitive dives, and deco dives'**
+  String get safetySettings_noFlyPreset_subtitle;
+
+  /// No description provided for @safetyHub_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety'**
+  String get safetyHub_title;
+
+  /// No description provided for @safetyHub_noFly_active_title.
+  ///
+  /// In en, this message translates to:
+  /// **'No-fly: {remaining} remaining'**
+  String safetyHub_noFly_active_title(String remaining);
+
+  /// No description provided for @safetyHub_noFly_until.
+  ///
+  /// In en, this message translates to:
+  /// **'Until {time}'**
+  String safetyHub_noFly_until(String time);
+
+  /// No description provided for @safetyHub_noFly_clear_title.
+  ///
+  /// In en, this message translates to:
+  /// **'No flying restriction'**
+  String get safetyHub_noFly_clear_title;
+
+  /// No description provided for @safetyHub_noFly_clear_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No dives in the last 48 hours'**
+  String get safetyHub_noFly_clear_subtitle;
+
+  /// No description provided for @safetyHub_noFly_category_single.
+  ///
+  /// In en, this message translates to:
+  /// **'After a single no-deco dive: {hours} h guideline'**
+  String safetyHub_noFly_category_single(int hours);
+
+  /// No description provided for @safetyHub_noFly_category_repetitive.
+  ///
+  /// In en, this message translates to:
+  /// **'After repetitive dives: {hours} h guideline'**
+  String safetyHub_noFly_category_repetitive(int hours);
+
+  /// No description provided for @safetyHub_noFly_category_deco.
+  ///
+  /// In en, this message translates to:
+  /// **'After a decompression dive: {hours} h guideline'**
+  String safetyHub_noFly_category_deco(int hours);
+
+  /// No description provided for @safetyHub_noFly_disclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'DAN/UHMS guideline intervals from your last dive. Not a substitute for your dive computer\'s no-fly time.'**
+  String get safetyHub_noFly_disclaimer;
+
+  /// No description provided for @safetyHub_surfaceIntervalLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Surface interval tool'**
+  String get safetyHub_surfaceIntervalLink;
+
+  /// No description provided for @safetyHub_surfaceIntervalLink_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Educational tissue desaturation model'**
+  String get safetyHub_surfaceIntervalLink_subtitle;
+
+  /// No description provided for @safetyHub_settingsLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety settings'**
+  String get safetyHub_settingsLink;
+
+  /// No description provided for @diveLog_detail_altitudeMismatch_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Site is at altitude'**
+  String get diveLog_detail_altitudeMismatch_title;
+
+  /// No description provided for @diveLog_detail_altitudeMismatch_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This site records an altitude but the dive has none set, so decompression analysis assumed sea level. Set the dive\'s altitude to correct it.'**
+  String get diveLog_detail_altitudeMismatch_subtitle;
+
+  /// No description provided for @safetyHub_alert_noFly.
+  ///
+  /// In en, this message translates to:
+  /// **'No-fly: {remaining} remaining'**
+  String safetyHub_alert_noFly(String remaining);
+
   /// No description provided for @safetyReview_showDismissed.
   ///
   /// In en, this message translates to:

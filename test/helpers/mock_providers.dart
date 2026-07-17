@@ -8,6 +8,7 @@ import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/features/dive_sites/domain/matching/site_match_sensitivity.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
+import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
@@ -107,6 +108,9 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setSafetyReviewEnabled(bool value) async =>
       state = state.copyWith(safetyReviewEnabled: value);
+  @override
+  Future<void> setNoFlyPreset(NoFlyPreset preset) async =>
+      state = state.copyWith(noFlyPreset: preset);
   @override
   Future<void> setSafetyRuleEnabled(SafetyRuleId rule, bool enabled) async {
     final rules = {...state.safetyReviewDisabledRules};

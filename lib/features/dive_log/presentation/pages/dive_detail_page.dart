@@ -50,6 +50,7 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_trac
 import 'package:submersion/features/dive_log/presentation/providers/profile_range_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/collapsible_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/safety_review_section.dart';
+import 'package:submersion/features/safety/domain/services/altitude_flag.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_locations_map.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/surface_gps_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/data_sources_section.dart';
@@ -310,7 +311,21 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         ];
       },
       DiveDetailSectionId.altitude: () {
-        if (dive.altitude == null || dive.altitude! <= 0) return [];
+        if (dive.altitude == null || dive.altitude! <= 0) {
+          // Safety phase 2: the site is at altitude but the dive was not
+          // altitude-adjusted -- surface an informational note instead of
+          // silently hiding the section.
+          if (needsAltitudeAdjustmentFlag(
+            diveAltitude: dive.altitude,
+            siteAltitude: dive.site?.altitude,
+          )) {
+            return [
+              const SizedBox(height: 24),
+              _buildAltitudeMismatchNote(context, dive),
+            ];
+          }
+          return [];
+        }
         return [
           const SizedBox(height: 24),
           _buildAltitudeSection(context, ref, dive),
@@ -2984,6 +2999,21 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             ],
           ],
         ),
+      ),
+    );
+  }
+
+  /// Informational note shown when the site records a meaningful altitude
+  /// but the dive itself has none, so deco replay ran at sea-level pressure.
+  Widget _buildAltitudeMismatchNote(BuildContext context, Dive dive) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Card(
+      child: ListTile(
+        leading: Icon(Icons.terrain, color: colorScheme.onSurfaceVariant),
+        title: Text(context.l10n.diveLog_detail_altitudeMismatch_title),
+        subtitle: Text(context.l10n.diveLog_detail_altitudeMismatch_subtitle),
+        trailing: const Icon(Icons.edit_outlined, size: 18),
+        onTap: () => context.push('/dives/${dive.id}/edit'),
       ),
     );
   }

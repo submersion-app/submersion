@@ -11569,6 +11569,80 @@ class AppLocalizationsHe extends AppLocalizations {
   String get safetySettings_analyzeAll_done => 'הניתוח הושלם';
 
   @override
+  String get safetySettings_noFlyHeader => 'טיסה אחרי צלילה';
+
+  @override
+  String get safetySettings_noFlyPreset_standard => 'רגיל (12/18/24 ש\')';
+
+  @override
+  String get safetySettings_noFlyPreset_strict => 'מחמיר (18/24/48 ש\')';
+
+  @override
+  String get safetySettings_noFlyPreset_subtitle =>
+      'מרווחים מנחים אחרי צלילה בודדת ללא דקו, צלילות חוזרות וצלילות דקומפרסיה';
+
+  @override
+  String get safetyHub_title => 'בטיחות';
+
+  @override
+  String safetyHub_noFly_active_title(String remaining) {
+    return 'איסור טיסה: נותרו $remaining';
+  }
+
+  @override
+  String safetyHub_noFly_until(String time) {
+    return 'עד $time';
+  }
+
+  @override
+  String get safetyHub_noFly_clear_title => 'אין הגבלת טיסה';
+
+  @override
+  String get safetyHub_noFly_clear_subtitle =>
+      'לא היו צלילות ב-48 השעות האחרונות';
+
+  @override
+  String safetyHub_noFly_category_single(int hours) {
+    return 'אחרי צלילה בודדת ללא דקו: הנחיה של $hours שעות';
+  }
+
+  @override
+  String safetyHub_noFly_category_repetitive(int hours) {
+    return 'אחרי צלילות חוזרות: הנחיה של $hours שעות';
+  }
+
+  @override
+  String safetyHub_noFly_category_deco(int hours) {
+    return 'אחרי צלילת דקומפרסיה: הנחיה של $hours שעות';
+  }
+
+  @override
+  String get safetyHub_noFly_disclaimer =>
+      'הנחיות DAN/UHMS מאז הצלילה האחרונה. אינו תחליף לזמן איסור הטיסה של מחשב הצלילה שלך.';
+
+  @override
+  String get safetyHub_surfaceIntervalLink => 'כלי מרווח פני השטח';
+
+  @override
+  String get safetyHub_surfaceIntervalLink_subtitle =>
+      'מודל לימודי של פליטת גזים מהרקמות';
+
+  @override
+  String get safetyHub_settingsLink => 'הגדרות בטיחות';
+
+  @override
+  String get diveLog_detail_altitudeMismatch_title => 'אתר הצלילה נמצא בגובה';
+
+  @override
+  String get diveLog_detail_altitudeMismatch_subtitle =>
+      'לאתר זה רשום גובה אך לצלילה אין, ולכן ניתוח הדקומפרסיה הניח גובה פני הים. הגדר את גובה הצלילה כדי לתקן.';
+
+  @override
+  String safetyHub_alert_noFly(String remaining) {
+    return 'איסור טיסה: נותרו $remaining';
+  }
+
+  @override
   String safetyReview_showDismissed(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

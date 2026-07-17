@@ -6,6 +6,8 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
+import 'package:submersion/features/safety/presentation/providers/no_fly_providers.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 
 /// Dashboard alerts data class
@@ -16,22 +18,28 @@ class DashboardAlerts {
   final DateTime? insuranceExpiryDate;
   final String? insuranceProvider;
 
+  /// Active flying-after-diving restriction (null when clear).
+  final NoFlyStatus? noFlyStatus;
+
   const DashboardAlerts({
     required this.equipmentServiceDue,
     required this.insuranceExpiringSoon,
     required this.insuranceExpired,
     this.insuranceExpiryDate,
     this.insuranceProvider,
+    this.noFlyStatus,
   });
 
   bool get hasAlerts =>
       equipmentServiceDue.isNotEmpty ||
       insuranceExpiringSoon ||
-      insuranceExpired;
+      insuranceExpired ||
+      noFlyStatus != null;
 
   int get alertCount {
     int count = equipmentServiceDue.length;
     if (insuranceExpiringSoon || insuranceExpired) count++;
+    if (noFlyStatus != null) count++;
     return count;
   }
 }
@@ -84,6 +92,7 @@ final recentDivesProvider = FutureProvider<List<Dive>>((ref) async {
 final dashboardAlertsProvider = FutureProvider<DashboardAlerts>((ref) async {
   final serviceDue = await ref.watch(serviceDueEquipmentProvider.future);
   final diver = await ref.watch(currentDiverProvider.future);
+  final noFlyStatus = await ref.watch(noFlyStatusProvider.future);
 
   return DashboardAlerts(
     equipmentServiceDue: serviceDue,
@@ -91,6 +100,7 @@ final dashboardAlertsProvider = FutureProvider<DashboardAlerts>((ref) async {
     insuranceExpired: diver?.insurance.isExpired ?? false,
     insuranceExpiryDate: diver?.insurance.expiryDate,
     insuranceProvider: diver?.insurance.provider,
+    noFlyStatus: noFlyStatus,
   );
 });
 

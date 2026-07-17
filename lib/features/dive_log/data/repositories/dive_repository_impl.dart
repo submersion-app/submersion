@@ -36,6 +36,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.d
     as domain;
 import 'package:submersion/features/dive_log/data/repositories/dive_custom_field_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
+import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart' as domain;
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart' as domain;
@@ -3865,6 +3866,56 @@ class DiveRepository {
   // ============================================================================
   // Surface Interval Operations
   // ============================================================================
+
+  /// Lightweight trailing-window query for the flying-after-diving
+  /// classifier: end time (exit time, else entry/date + runtime) plus a
+  /// had-deco flag derived from the recorded profile (any sample with
+  /// deco_type = 2 or a positive ceiling).
+  Future<List<NoFlyDiveInput>> getNoFlyDiveInputs({
+    required DateTime since,
+    String? diverId,
+  }) async {
+    try {
+      final diverClause = diverId != null ? 'AND d.diver_id = ?' : '';
+      final rows = await _db
+          .customSelect(
+            'SELECT '
+            'COALESCE(d.exit_time, '
+            'COALESCE(d.entry_time, d.dive_date_time) '
+            '+ COALESCE(d.runtime, 0) * 1000) AS end_ms, '
+            'EXISTS(SELECT 1 FROM dive_profiles p WHERE p.dive_id = d.id '
+            'AND (p.deco_type = 2 OR p.ceiling > 0)) AS had_deco '
+            'FROM dives d '
+            'WHERE COALESCE(d.exit_time, '
+            'COALESCE(d.entry_time, d.dive_date_time) '
+            '+ COALESCE(d.runtime, 0) * 1000) >= ? '
+            '$diverClause',
+            variables: [
+              Variable(since.millisecondsSinceEpoch),
+              if (diverId != null) Variable(diverId),
+            ],
+            readsFrom: {_db.dives, _db.diveProfiles},
+          )
+          .get();
+      return [
+        for (final row in rows)
+          NoFlyDiveInput(
+            endTime: DateTime.fromMillisecondsSinceEpoch(
+              row.read<int>('end_ms'),
+              isUtc: true,
+            ),
+            hadDecoObligation: row.read<int>('had_deco') == 1,
+          ),
+      ];
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to load no-fly dive inputs',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
 
   /// Get the previous dive (by entry time) for surface interval calculation
   /// Returns null if this is the first dive

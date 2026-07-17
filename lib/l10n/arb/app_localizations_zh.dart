@@ -11309,6 +11309,77 @@ class AppLocalizationsZh extends AppLocalizations {
   String get safetySettings_analyzeAll_done => '分析完成';
 
   @override
+  String get safetySettings_noFlyHeader => '潜水后飞行';
+
+  @override
+  String get safetySettings_noFlyPreset_standard => '标准(12/18/24 小时)';
+
+  @override
+  String get safetySettings_noFlyPreset_strict => '严格(18/24/48 小时)';
+
+  @override
+  String get safetySettings_noFlyPreset_subtitle => '单次免减压潜水、重复潜水和减压潜水后的指导间隔';
+
+  @override
+  String get safetyHub_title => '安全';
+
+  @override
+  String safetyHub_noFly_active_title(String remaining) {
+    return '禁飞:剩余 $remaining';
+  }
+
+  @override
+  String safetyHub_noFly_until(String time) {
+    return '直到 $time';
+  }
+
+  @override
+  String get safetyHub_noFly_clear_title => '无飞行限制';
+
+  @override
+  String get safetyHub_noFly_clear_subtitle => '过去 48 小时内没有潜水';
+
+  @override
+  String safetyHub_noFly_category_single(int hours) {
+    return '单次免减压潜水后:$hours 小时指导值';
+  }
+
+  @override
+  String safetyHub_noFly_category_repetitive(int hours) {
+    return '重复潜水后:$hours 小时指导值';
+  }
+
+  @override
+  String safetyHub_noFly_category_deco(int hours) {
+    return '减压潜水后:$hours 小时指导值';
+  }
+
+  @override
+  String get safetyHub_noFly_disclaimer =>
+      '自最后一次潜水起的 DAN/UHMS 指导值。不能替代潜水电脑的禁飞时间。';
+
+  @override
+  String get safetyHub_surfaceIntervalLink => '水面间隔工具';
+
+  @override
+  String get safetyHub_surfaceIntervalLink_subtitle => '组织脱饱和教学模型';
+
+  @override
+  String get safetyHub_settingsLink => '安全设置';
+
+  @override
+  String get diveLog_detail_altitudeMismatch_title => '潜点位于高海拔';
+
+  @override
+  String get diveLog_detail_altitudeMismatch_subtitle =>
+      '该潜点记录了海拔,但此次潜水未设置海拔,因此减压分析按海平面计算。请设置潜水海拔以更正。';
+
+  @override
+  String safetyHub_alert_noFly(String remaining) {
+    return '禁飞:剩余 $remaining';
+  }
+
+  @override
   String safetyReview_showDismissed(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

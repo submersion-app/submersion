@@ -32,7 +32,14 @@ class NoFlyStatus {
   final DateTime until;
   final NoFlyCategory category;
 
-  const NoFlyStatus({required this.until, required this.category});
+  /// The guideline interval that produced [until] (preset-scaled).
+  final Duration interval;
+
+  const NoFlyStatus({
+    required this.until,
+    required this.category,
+    required this.interval,
+  });
 
   Duration remaining(DateTime now) =>
       until.isAfter(now) ? until.difference(now) : Duration.zero;
@@ -87,6 +94,6 @@ class NoFlyService {
 
     final until = lastEnd.add(interval);
     if (!until.isAfter(now)) return null;
-    return NoFlyStatus(until: until, category: category);
+    return NoFlyStatus(until: until, category: category, interval: interval);
   }
 }

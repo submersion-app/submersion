@@ -11871,6 +11871,81 @@ class AppLocalizationsIt extends AppLocalizations {
   String get safetySettings_analyzeAll_done => 'Analisi completata';
 
   @override
+  String get safetySettings_noFlyHeader => 'Volare dopo l\'immersione';
+
+  @override
+  String get safetySettings_noFlyPreset_standard => 'Standard (12/18/24 h)';
+
+  @override
+  String get safetySettings_noFlyPreset_strict => 'Rigoroso (18/24/48 h)';
+
+  @override
+  String get safetySettings_noFlyPreset_subtitle =>
+      'Intervalli indicativi dopo una singola immersione senza deco, immersioni ripetitive e immersioni con deco';
+
+  @override
+  String get safetyHub_title => 'Sicurezza';
+
+  @override
+  String safetyHub_noFly_active_title(String remaining) {
+    return 'No-fly: mancano $remaining';
+  }
+
+  @override
+  String safetyHub_noFly_until(String time) {
+    return 'Fino alle $time';
+  }
+
+  @override
+  String get safetyHub_noFly_clear_title => 'Nessuna restrizione di volo';
+
+  @override
+  String get safetyHub_noFly_clear_subtitle =>
+      'Nessuna immersione nelle ultime 48 ore';
+
+  @override
+  String safetyHub_noFly_category_single(int hours) {
+    return 'Dopo una singola immersione senza deco: linea guida di $hours h';
+  }
+
+  @override
+  String safetyHub_noFly_category_repetitive(int hours) {
+    return 'Dopo immersioni ripetitive: linea guida di $hours h';
+  }
+
+  @override
+  String safetyHub_noFly_category_deco(int hours) {
+    return 'Dopo un\'immersione con decompressione: linea guida di $hours h';
+  }
+
+  @override
+  String get safetyHub_noFly_disclaimer =>
+      'Linee guida DAN/UHMS dall\'ultima immersione. Non sostituisce il tempo no-fly del tuo computer subacqueo.';
+
+  @override
+  String get safetyHub_surfaceIntervalLink =>
+      'Strumento intervallo di superficie';
+
+  @override
+  String get safetyHub_surfaceIntervalLink_subtitle =>
+      'Modello educativo di desaturazione dei tessuti';
+
+  @override
+  String get safetyHub_settingsLink => 'Impostazioni di sicurezza';
+
+  @override
+  String get diveLog_detail_altitudeMismatch_title => 'Il sito è in quota';
+
+  @override
+  String get diveLog_detail_altitudeMismatch_subtitle =>
+      'Questo sito registra un\'altitudine ma l\'immersione non ne ha una, quindi l\'analisi di decompressione ha assunto il livello del mare. Imposta l\'altitudine dell\'immersione per correggere.';
+
+  @override
+  String safetyHub_alert_noFly(String remaining) {
+    return 'No-fly: mancano $remaining';
+  }
+
+  @override
   String safetyReview_showDismissed(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

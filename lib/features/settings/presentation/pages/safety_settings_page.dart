@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
+import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -57,6 +58,44 @@ class _SafetySettingsPageState extends ConsumerState<SafetySettingsPage> {
                   ? (value) => notifier.setSafetyRuleEnabled(rule, value)
                   : null,
             ),
+          const Divider(height: 1),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+            child: Text(
+              l10n.safetySettings_noFlyHeader,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: SegmentedButton<NoFlyPreset>(
+              segments: [
+                ButtonSegment(
+                  value: NoFlyPreset.standard,
+                  label: Text(l10n.safetySettings_noFlyPreset_standard),
+                ),
+                ButtonSegment(
+                  value: NoFlyPreset.strict,
+                  label: Text(l10n.safetySettings_noFlyPreset_strict),
+                ),
+              ],
+              selected: {settings.noFlyPreset},
+              onSelectionChanged: (selection) =>
+                  notifier.setNoFlyPreset(selection.first),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              l10n.safetySettings_noFlyPreset_subtitle,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
           const Divider(height: 1),
           ListTile(
             leading: const Icon(Icons.manage_search),

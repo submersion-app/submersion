@@ -11914,6 +11914,80 @@ class AppLocalizationsFr extends AppLocalizations {
   String get safetySettings_analyzeAll_done => 'Analyse terminée';
 
   @override
+  String get safetySettings_noFlyHeader => 'Voler après la plongée';
+
+  @override
+  String get safetySettings_noFlyPreset_standard => 'Standard (12/18/24 h)';
+
+  @override
+  String get safetySettings_noFlyPreset_strict => 'Strict (18/24/48 h)';
+
+  @override
+  String get safetySettings_noFlyPreset_subtitle =>
+      'Intervalles indicatifs après une plongée unique sans déco, des plongées successives et des plongées avec déco';
+
+  @override
+  String get safetyHub_title => 'Sécurité';
+
+  @override
+  String safetyHub_noFly_active_title(String remaining) {
+    return 'Interdiction de vol : $remaining restant';
+  }
+
+  @override
+  String safetyHub_noFly_until(String time) {
+    return 'Jusqu\'à $time';
+  }
+
+  @override
+  String get safetyHub_noFly_clear_title => 'Aucune restriction de vol';
+
+  @override
+  String get safetyHub_noFly_clear_subtitle =>
+      'Aucune plongée dans les dernières 48 heures';
+
+  @override
+  String safetyHub_noFly_category_single(int hours) {
+    return 'Après une plongée unique sans déco : recommandation de $hours h';
+  }
+
+  @override
+  String safetyHub_noFly_category_repetitive(int hours) {
+    return 'Après des plongées successives : recommandation de $hours h';
+  }
+
+  @override
+  String safetyHub_noFly_category_deco(int hours) {
+    return 'Après une plongée avec décompression : recommandation de $hours h';
+  }
+
+  @override
+  String get safetyHub_noFly_disclaimer =>
+      'Recommandations DAN/UHMS depuis votre dernière plongée. Ne remplace pas le temps d\'interdiction de vol de votre ordinateur de plongée.';
+
+  @override
+  String get safetyHub_surfaceIntervalLink => 'Outil d\'intervalle de surface';
+
+  @override
+  String get safetyHub_surfaceIntervalLink_subtitle =>
+      'Modèle pédagogique de désaturation des tissus';
+
+  @override
+  String get safetyHub_settingsLink => 'Réglages de sécurité';
+
+  @override
+  String get diveLog_detail_altitudeMismatch_title => 'Le site est en altitude';
+
+  @override
+  String get diveLog_detail_altitudeMismatch_subtitle =>
+      'Ce site indique une altitude mais la plongée n\'en a aucune : l\'analyse de décompression a supposé le niveau de la mer. Définissez l\'altitude de la plongée pour corriger.';
+
+  @override
+  String safetyHub_alert_noFly(String remaining) {
+    return 'Interdiction de vol : $remaining restant';
+  }
+
+  @override
   String safetyReview_showDismissed(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

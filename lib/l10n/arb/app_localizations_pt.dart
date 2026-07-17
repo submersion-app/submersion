@@ -11871,6 +11871,82 @@ class AppLocalizationsPt extends AppLocalizations {
   String get safetySettings_analyzeAll_done => 'Análise concluída';
 
   @override
+  String get safetySettings_noFlyHeader => 'Voar depois de mergulhar';
+
+  @override
+  String get safetySettings_noFlyPreset_standard => 'Padrão (12/18/24 h)';
+
+  @override
+  String get safetySettings_noFlyPreset_strict => 'Rigoroso (18/24/48 h)';
+
+  @override
+  String get safetySettings_noFlyPreset_subtitle =>
+      'Intervalos orientativos após um único mergulho sem deco, mergulhos repetitivos e mergulhos com deco';
+
+  @override
+  String get safetyHub_title => 'Segurança';
+
+  @override
+  String safetyHub_noFly_active_title(String remaining) {
+    return 'Não voar: faltam $remaining';
+  }
+
+  @override
+  String safetyHub_noFly_until(String time) {
+    return 'Até $time';
+  }
+
+  @override
+  String get safetyHub_noFly_clear_title => 'Sem restrição de voo';
+
+  @override
+  String get safetyHub_noFly_clear_subtitle =>
+      'Sem mergulhos nas últimas 48 horas';
+
+  @override
+  String safetyHub_noFly_category_single(int hours) {
+    return 'Após um único mergulho sem deco: orientação de $hours h';
+  }
+
+  @override
+  String safetyHub_noFly_category_repetitive(int hours) {
+    return 'Após mergulhos repetitivos: orientação de $hours h';
+  }
+
+  @override
+  String safetyHub_noFly_category_deco(int hours) {
+    return 'Após um mergulho com descompressão: orientação de $hours h';
+  }
+
+  @override
+  String get safetyHub_noFly_disclaimer =>
+      'Orientações DAN/UHMS desde o último mergulho. Não substitui o tempo de não voar do seu computador de mergulho.';
+
+  @override
+  String get safetyHub_surfaceIntervalLink =>
+      'Ferramenta de intervalo de superfície';
+
+  @override
+  String get safetyHub_surfaceIntervalLink_subtitle =>
+      'Modelo educativo de dessaturação dos tecidos';
+
+  @override
+  String get safetyHub_settingsLink => 'Configurações de segurança';
+
+  @override
+  String get diveLog_detail_altitudeMismatch_title =>
+      'O ponto de mergulho fica em altitude';
+
+  @override
+  String get diveLog_detail_altitudeMismatch_subtitle =>
+      'Este ponto registra uma altitude, mas o mergulho não tem nenhuma, então a análise de descompressão assumiu o nível do mar. Defina a altitude do mergulho para corrigir.';
+
+  @override
+  String safetyHub_alert_noFly(String remaining) {
+    return 'Não voar: faltam $remaining';
+  }
+
+  @override
   String safetyReview_showDismissed(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/safety/presentation/providers/no_fly_providers.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -31,6 +32,7 @@ void main() {
             ...overrides,
             serviceDueEquipmentProvider.overrideWith((ref) async => []),
             currentDiverProvider.overrideWith((ref) async => null),
+            noFlyStatusProvider.overrideWith((ref) async => null),
           ].cast(),
           child: MaterialApp.router(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -75,6 +77,7 @@ void main() {
               (ref) async => [equipment],
             ),
             currentDiverProvider.overrideWith((ref) async => null),
+            noFlyStatusProvider.overrideWith((ref) async => null),
           ].cast(),
           child: MaterialApp.router(
             localizationsDelegates: AppLocalizations.localizationsDelegates,

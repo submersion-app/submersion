@@ -11651,6 +11651,80 @@ class AppLocalizationsAr extends AppLocalizations {
   String get safetySettings_analyzeAll_done => 'اكتمل التحليل';
 
   @override
+  String get safetySettings_noFlyHeader => 'الطيران بعد الغوص';
+
+  @override
+  String get safetySettings_noFlyPreset_standard => 'قياسي (12/18/24 س)';
+
+  @override
+  String get safetySettings_noFlyPreset_strict => 'صارم (18/24/48 س)';
+
+  @override
+  String get safetySettings_noFlyPreset_subtitle =>
+      'فترات إرشادية بعد غطسة واحدة بلا توقفات، وغطسات متكررة، وغطسات بتخفيف الضغط';
+
+  @override
+  String get safetyHub_title => 'السلامة';
+
+  @override
+  String safetyHub_noFly_active_title(String remaining) {
+    return 'حظر الطيران: متبقٍ $remaining';
+  }
+
+  @override
+  String safetyHub_noFly_until(String time) {
+    return 'حتى $time';
+  }
+
+  @override
+  String get safetyHub_noFly_clear_title => 'لا قيود على الطيران';
+
+  @override
+  String get safetyHub_noFly_clear_subtitle =>
+      'لا غطسات خلال الـ 48 ساعة الماضية';
+
+  @override
+  String safetyHub_noFly_category_single(int hours) {
+    return 'بعد غطسة واحدة بلا توقفات: إرشاد $hours ساعة';
+  }
+
+  @override
+  String safetyHub_noFly_category_repetitive(int hours) {
+    return 'بعد غطسات متكررة: إرشاد $hours ساعة';
+  }
+
+  @override
+  String safetyHub_noFly_category_deco(int hours) {
+    return 'بعد غطسة بتخفيف الضغط: إرشاد $hours ساعة';
+  }
+
+  @override
+  String get safetyHub_noFly_disclaimer =>
+      'إرشادات DAN/UHMS منذ آخر غطسة. ليست بديلاً عن وقت حظر الطيران في حاسوب الغوص الخاص بك.';
+
+  @override
+  String get safetyHub_surfaceIntervalLink => 'أداة الفاصل السطحي';
+
+  @override
+  String get safetyHub_surfaceIntervalLink_subtitle =>
+      'نموذج تعليمي لتخلص الأنسجة من التشبع';
+
+  @override
+  String get safetyHub_settingsLink => 'إعدادات السلامة';
+
+  @override
+  String get diveLog_detail_altitudeMismatch_title => 'موقع الغوص على ارتفاع';
+
+  @override
+  String get diveLog_detail_altitudeMismatch_subtitle =>
+      'هذا الموقع مسجل له ارتفاع لكن الغطسة بلا ارتفاع، لذا افترض تحليل تخفيف الضغط مستوى سطح البحر. عيّن ارتفاع الغطسة للتصحيح.';
+
+  @override
+  String safetyHub_alert_noFly(String remaining) {
+    return 'حظر الطيران: متبقٍ $remaining';
+  }
+
+  @override
   String safetyReview_showDismissed(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

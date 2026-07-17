@@ -6669,6 +6669,67 @@
     }
   },
   "safetySettings_analyzeAll_done": "Analysis complete",
+  "safetySettings_noFlyHeader": "Flying after diving",
+  "safetySettings_noFlyPreset_standard": "Standard (12/18/24 h)",
+  "safetySettings_noFlyPreset_strict": "Strict (18/24/48 h)",
+  "safetySettings_noFlyPreset_subtitle": "Guideline intervals after a single no-deco dive, repetitive dives, and deco dives",
+  "safetyHub_title": "Safety",
+  "safetyHub_noFly_active_title": "No-fly: {remaining} remaining",
+  "@safetyHub_noFly_active_title": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyHub_noFly_until": "Until {time}",
+  "@safetyHub_noFly_until": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyHub_noFly_clear_title": "No flying restriction",
+  "safetyHub_noFly_clear_subtitle": "No dives in the last 48 hours",
+  "safetyHub_noFly_category_single": "After a single no-deco dive: {hours} h guideline",
+  "@safetyHub_noFly_category_single": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "safetyHub_noFly_category_repetitive": "After repetitive dives: {hours} h guideline",
+  "@safetyHub_noFly_category_repetitive": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "safetyHub_noFly_category_deco": "After a decompression dive: {hours} h guideline",
+  "@safetyHub_noFly_category_deco": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "safetyHub_noFly_disclaimer": "DAN/UHMS guideline intervals from your last dive. Not a substitute for your dive computer's no-fly time.",
+  "safetyHub_surfaceIntervalLink": "Surface interval tool",
+  "safetyHub_surfaceIntervalLink_subtitle": "Educational tissue desaturation model",
+  "safetyHub_settingsLink": "Safety settings",
+  "diveLog_detail_altitudeMismatch_title": "Site is at altitude",
+  "diveLog_detail_altitudeMismatch_subtitle": "This site records an altitude but the dive has none set, so decompression analysis assumed sea level. Set the dive's altitude to correct it.",
+  "safetyHub_alert_noFly": "No-fly: {remaining} remaining",
+  "@safetyHub_alert_noFly": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
   "safetyReview_showDismissed": "{count, plural, =1{Show 1 dismissed} other{Show {count} dismissed}}",
   "@safetyReview_showDismissed": {
     "placeholders": {

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
+import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
@@ -88,6 +89,7 @@ class DiverSettingsRepository {
               safetyReviewDisabledRules: Value(
                 _encodeDisabledRules(s.safetyReviewDisabledRules),
               ),
+              noFlyPreset: Value(s.noFlyPreset.dbValue),
               showAscentRateColors: Value(s.showAscentRateColors),
               showNdlOnProfile: Value(s.showNdlOnProfile),
               lastStopDepth: Value(s.lastStopDepth),
@@ -229,6 +231,7 @@ class DiverSettingsRepository {
           safetyReviewDisabledRules: Value(
             _encodeDisabledRules(settings.safetyReviewDisabledRules),
           ),
+          noFlyPreset: Value(settings.noFlyPreset.dbValue),
           showAscentRateColors: Value(settings.showAscentRateColors),
           showNdlOnProfile: Value(settings.showNdlOnProfile),
           lastStopDepth: Value(settings.lastStopDepth),
@@ -410,6 +413,7 @@ class DiverSettingsRepository {
       safetyReviewDisabledRules: _decodeDisabledRules(
         row.safetyReviewDisabledRules,
       ),
+      noFlyPreset: NoFlyPreset.fromDbValue(row.noFlyPreset),
       showAscentRateColors: row.showAscentRateColors,
       showNdlOnProfile: row.showNdlOnProfile,
       lastStopDepth: row.lastStopDepth,

@@ -11866,6 +11866,81 @@ class AppLocalizationsDe extends AppLocalizations {
   String get safetySettings_analyzeAll_done => 'Analyse abgeschlossen';
 
   @override
+  String get safetySettings_noFlyHeader => 'Fliegen nach dem Tauchen';
+
+  @override
+  String get safetySettings_noFlyPreset_standard => 'Standard (12/18/24 h)';
+
+  @override
+  String get safetySettings_noFlyPreset_strict => 'Streng (18/24/48 h)';
+
+  @override
+  String get safetySettings_noFlyPreset_subtitle =>
+      'Richtwerte nach einem einzelnen Nullzeit-Tauchgang, Wiederholungstauchgängen und Deko-Tauchgängen';
+
+  @override
+  String get safetyHub_title => 'Sicherheit';
+
+  @override
+  String safetyHub_noFly_active_title(String remaining) {
+    return 'Flugverbot: noch $remaining';
+  }
+
+  @override
+  String safetyHub_noFly_until(String time) {
+    return 'Bis $time';
+  }
+
+  @override
+  String get safetyHub_noFly_clear_title => 'Keine Flugeinschränkung';
+
+  @override
+  String get safetyHub_noFly_clear_subtitle =>
+      'Keine Tauchgänge in den letzten 48 Stunden';
+
+  @override
+  String safetyHub_noFly_category_single(int hours) {
+    return 'Nach einem einzelnen Nullzeit-Tauchgang: $hours h Richtwert';
+  }
+
+  @override
+  String safetyHub_noFly_category_repetitive(int hours) {
+    return 'Nach Wiederholungstauchgängen: $hours h Richtwert';
+  }
+
+  @override
+  String safetyHub_noFly_category_deco(int hours) {
+    return 'Nach einem Deko-Tauchgang: $hours h Richtwert';
+  }
+
+  @override
+  String get safetyHub_noFly_disclaimer =>
+      'DAN/UHMS-Richtwerte ab dem letzten Tauchgang. Kein Ersatz für die Flugverbotszeit Ihres Tauchcomputers.';
+
+  @override
+  String get safetyHub_surfaceIntervalLink => 'Oberflächenpausen-Tool';
+
+  @override
+  String get safetyHub_surfaceIntervalLink_subtitle =>
+      'Lehrreiches Modell der Gewebeentsättigung';
+
+  @override
+  String get safetyHub_settingsLink => 'Sicherheitseinstellungen';
+
+  @override
+  String get diveLog_detail_altitudeMismatch_title =>
+      'Tauchplatz liegt in Höhenlage';
+
+  @override
+  String get diveLog_detail_altitudeMismatch_subtitle =>
+      'Für diesen Platz ist eine Höhe hinterlegt, der Tauchgang hat jedoch keine, daher ging die Deko-Analyse von Meereshöhe aus. Höhe des Tauchgangs setzen, um dies zu korrigieren.';
+
+  @override
+  String safetyHub_alert_noFly(String remaining) {
+    return 'Flugverbot: noch $remaining';
+  }
+
+  @override
   String safetyReview_showDismissed(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

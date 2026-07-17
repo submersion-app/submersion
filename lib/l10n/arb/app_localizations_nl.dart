@@ -11784,6 +11784,80 @@ class AppLocalizationsNl extends AppLocalizations {
   String get safetySettings_analyzeAll_done => 'Analyse voltooid';
 
   @override
+  String get safetySettings_noFlyHeader => 'Vliegen na het duiken';
+
+  @override
+  String get safetySettings_noFlyPreset_standard => 'Standaard (12/18/24 u)';
+
+  @override
+  String get safetySettings_noFlyPreset_strict => 'Strikt (18/24/48 u)';
+
+  @override
+  String get safetySettings_noFlyPreset_subtitle =>
+      'Richttijden na een enkele duik zonder deco, herhalingsduiken en decoduiken';
+
+  @override
+  String get safetyHub_title => 'Veiligheid';
+
+  @override
+  String safetyHub_noFly_active_title(String remaining) {
+    return 'Vliegverbod: nog $remaining';
+  }
+
+  @override
+  String safetyHub_noFly_until(String time) {
+    return 'Tot $time';
+  }
+
+  @override
+  String get safetyHub_noFly_clear_title => 'Geen vliegbeperking';
+
+  @override
+  String get safetyHub_noFly_clear_subtitle =>
+      'Geen duiken in de afgelopen 48 uur';
+
+  @override
+  String safetyHub_noFly_category_single(int hours) {
+    return 'Na een enkele duik zonder deco: richtlijn van $hours u';
+  }
+
+  @override
+  String safetyHub_noFly_category_repetitive(int hours) {
+    return 'Na herhalingsduiken: richtlijn van $hours u';
+  }
+
+  @override
+  String safetyHub_noFly_category_deco(int hours) {
+    return 'Na een decompressieduik: richtlijn van $hours u';
+  }
+
+  @override
+  String get safetyHub_noFly_disclaimer =>
+      'DAN/UHMS-richtlijnen vanaf je laatste duik. Geen vervanging voor de no-fly-tijd van je duikcomputer.';
+
+  @override
+  String get safetyHub_surfaceIntervalLink => 'Oppervlakte-interval-tool';
+
+  @override
+  String get safetyHub_surfaceIntervalLink_subtitle =>
+      'Educatief model van weefselontzadiging';
+
+  @override
+  String get safetyHub_settingsLink => 'Veiligheidsinstellingen';
+
+  @override
+  String get diveLog_detail_altitudeMismatch_title => 'Duikstek ligt op hoogte';
+
+  @override
+  String get diveLog_detail_altitudeMismatch_subtitle =>
+      'Deze stek heeft een hoogte geregistreerd maar de duik niet, dus de deco-analyse ging uit van zeeniveau. Stel de hoogte van de duik in om dit te corrigeren.';
+
+  @override
+  String safetyHub_alert_noFly(String remaining) {
+    return 'Vliegverbod: nog $remaining';
+  }
+
+  @override
   String safetyReview_showDismissed(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

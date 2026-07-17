@@ -5,6 +5,7 @@ import 'package:submersion/features/divers/data/repositories/diver_repository.da
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
+import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_sites/domain/matching/site_match_sensitivity.dart';
@@ -450,6 +451,18 @@ void main() {
       expect(container.read(settingsProvider).safetyReviewEnabled, isTrue);
       await notifier.setSafetyReviewEnabled(false);
       expect(container.read(settingsProvider).safetyReviewEnabled, isFalse);
+    });
+
+    test('setNoFlyPreset persists', () async {
+      final notifier = container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(
+        container.read(settingsProvider).noFlyPreset,
+        NoFlyPreset.standard,
+      );
+      await notifier.setNoFlyPreset(NoFlyPreset.strict);
+      expect(container.read(settingsProvider).noFlyPreset, NoFlyPreset.strict);
     });
 
     test('setSafetyRuleEnabled toggles the disabled-rules set', () async {

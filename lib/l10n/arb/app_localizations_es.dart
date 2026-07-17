@@ -11862,6 +11862,82 @@ class AppLocalizationsEs extends AppLocalizations {
   String get safetySettings_analyzeAll_done => 'Análisis completado';
 
   @override
+  String get safetySettings_noFlyHeader => 'Volar después de bucear';
+
+  @override
+  String get safetySettings_noFlyPreset_standard => 'Estándar (12/18/24 h)';
+
+  @override
+  String get safetySettings_noFlyPreset_strict => 'Estricto (18/24/48 h)';
+
+  @override
+  String get safetySettings_noFlyPreset_subtitle =>
+      'Intervalos orientativos tras una única inmersión sin deco, inmersiones sucesivas e inmersiones con deco';
+
+  @override
+  String get safetyHub_title => 'Seguridad';
+
+  @override
+  String safetyHub_noFly_active_title(String remaining) {
+    return 'No volar: quedan $remaining';
+  }
+
+  @override
+  String safetyHub_noFly_until(String time) {
+    return 'Hasta $time';
+  }
+
+  @override
+  String get safetyHub_noFly_clear_title => 'Sin restricción de vuelo';
+
+  @override
+  String get safetyHub_noFly_clear_subtitle =>
+      'Sin inmersiones en las últimas 48 horas';
+
+  @override
+  String safetyHub_noFly_category_single(int hours) {
+    return 'Tras una única inmersión sin deco: pauta de $hours h';
+  }
+
+  @override
+  String safetyHub_noFly_category_repetitive(int hours) {
+    return 'Tras inmersiones sucesivas: pauta de $hours h';
+  }
+
+  @override
+  String safetyHub_noFly_category_deco(int hours) {
+    return 'Tras una inmersión con descompresión: pauta de $hours h';
+  }
+
+  @override
+  String get safetyHub_noFly_disclaimer =>
+      'Pautas DAN/UHMS desde tu última inmersión. No sustituye el tiempo de no volar de tu ordenador de buceo.';
+
+  @override
+  String get safetyHub_surfaceIntervalLink =>
+      'Herramienta de intervalo en superficie';
+
+  @override
+  String get safetyHub_surfaceIntervalLink_subtitle =>
+      'Modelo educativo de desaturación de tejidos';
+
+  @override
+  String get safetyHub_settingsLink => 'Ajustes de seguridad';
+
+  @override
+  String get diveLog_detail_altitudeMismatch_title =>
+      'El punto de buceo está en altitud';
+
+  @override
+  String get diveLog_detail_altitudeMismatch_subtitle =>
+      'Este punto registra una altitud pero la inmersión no tiene ninguna, así que el análisis de descompresión asumió nivel del mar. Establece la altitud de la inmersión para corregirlo.';
+
+  @override
+  String safetyHub_alert_noFly(String remaining) {
+    return 'No volar: quedan $remaining';
+  }
+
+  @override
   String safetyReview_showDismissed(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

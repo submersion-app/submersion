@@ -91,6 +91,7 @@ import 'package:submersion/features/settings/presentation/pages/appearance_page.
 import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
 import 'package:submersion/features/settings/presentation/pages/default_visible_metrics_page.dart';
 import 'package:submersion/features/settings/presentation/pages/dive_detail_sections_page.dart';
+import 'package:submersion/features/safety/presentation/pages/safety_hub_page.dart';
 import 'package:submersion/features/settings/presentation/pages/safety_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/nav_customization_page.dart';
@@ -798,6 +799,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               key: state.pageKey,
               child: const GpsLoggerPage(),
             ),
+          ),
+
+          // Safety hub (no-fly status, emergency card, near-miss log)
+          GoRoute(
+            path: '/safety',
+            name: 'safety',
+            builder: (context, state) => const SafetyHubPage(),
           ),
 
           // Settings
