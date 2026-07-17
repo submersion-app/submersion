@@ -42,6 +42,16 @@ class SyncRepository {
     'checklistTemplates': (table: 'checklist_templates', pk: 'id'),
     'checklistTemplateItems': (table: 'checklist_template_items', pk: 'id'),
     'tripChecklistItems': (table: 'trip_checklist_items', pk: 'id'),
+    'preDiveChecklistTemplates': (
+      table: 'pre_dive_checklist_templates',
+      pk: 'id',
+    ),
+    'preDiveChecklistTemplateItems': (
+      table: 'pre_dive_checklist_template_items',
+      pk: 'id',
+    ),
+    'preDiveSessions': (table: 'pre_dive_sessions', pk: 'id'),
+    'preDiveSessionItems': (table: 'pre_dive_session_items', pk: 'id'),
     'gpsTracks': (table: 'gps_tracks', pk: 'id'),
     'divePlans': (table: 'dive_plans', pk: 'id'),
     'divePlanTanks': (table: 'dive_plan_tanks', pk: 'id'),

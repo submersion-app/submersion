@@ -240,6 +240,10 @@ class SyncData {
   final List<Map<String, dynamic>> checklistTemplates;
   final List<Map<String, dynamic>> checklistTemplateItems;
   final List<Map<String, dynamic>> tripChecklistItems;
+  final List<Map<String, dynamic>> preDiveChecklistTemplates;
+  final List<Map<String, dynamic>> preDiveChecklistTemplateItems;
+  final List<Map<String, dynamic>> preDiveSessions;
+  final List<Map<String, dynamic>> preDiveSessionItems;
   final List<Map<String, dynamic>> gpsTracks;
   final List<Map<String, dynamic>> divePlans;
   final List<Map<String, dynamic>> divePlanTanks;
@@ -297,6 +301,10 @@ class SyncData {
     this.checklistTemplates = const [],
     this.checklistTemplateItems = const [],
     this.tripChecklistItems = const [],
+    this.preDiveChecklistTemplates = const [],
+    this.preDiveChecklistTemplateItems = const [],
+    this.preDiveSessions = const [],
+    this.preDiveSessionItems = const [],
     this.gpsTracks = const [],
     this.divePlans = const [],
     this.divePlanTanks = const [],
@@ -355,6 +363,10 @@ class SyncData {
     'checklistTemplates': checklistTemplates,
     'checklistTemplateItems': checklistTemplateItems,
     'tripChecklistItems': tripChecklistItems,
+    'preDiveChecklistTemplates': preDiveChecklistTemplates,
+    'preDiveChecklistTemplateItems': preDiveChecklistTemplateItems,
+    'preDiveSessions': preDiveSessions,
+    'preDiveSessionItems': preDiveSessionItems,
     'gpsTracks': gpsTracks,
     'divePlans': divePlans,
     'divePlanTanks': divePlanTanks,
@@ -414,6 +426,12 @@ class SyncData {
       checklistTemplates: _parseList(json['checklistTemplates']),
       checklistTemplateItems: _parseList(json['checklistTemplateItems']),
       tripChecklistItems: _parseList(json['tripChecklistItems']),
+      preDiveChecklistTemplates: _parseList(json['preDiveChecklistTemplates']),
+      preDiveChecklistTemplateItems: _parseList(
+        json['preDiveChecklistTemplateItems'],
+      ),
+      preDiveSessions: _parseList(json['preDiveSessions']),
+      preDiveSessionItems: _parseList(json['preDiveSessionItems']),
       gpsTracks: _parseList(json['gpsTracks']),
       divePlans: _parseList(json['divePlans']),
       divePlanTanks: _parseList(json['divePlanTanks']),
@@ -642,6 +660,30 @@ class SyncDataSerializer {
     (
       key: 'tripChecklistItems',
       table: _db.tripChecklistItems,
+      blob: false,
+      full: null,
+    ),
+    (
+      key: 'preDiveChecklistTemplates',
+      table: _db.preDiveChecklistTemplates,
+      blob: false,
+      full: null,
+    ),
+    (
+      key: 'preDiveChecklistTemplateItems',
+      table: _db.preDiveChecklistTemplateItems,
+      blob: false,
+      full: null,
+    ),
+    (
+      key: 'preDiveSessions',
+      table: _db.preDiveSessions,
+      blob: false,
+      full: null,
+    ),
+    (
+      key: 'preDiveSessionItems',
+      table: _db.preDiveSessionItems,
       blob: false,
       full: null,
     ),
@@ -1057,6 +1099,22 @@ class SyncDataSerializer {
         'tripChecklistItems',
         () => _exportTripChecklistItems(hlcSince),
       ),
+      preDiveChecklistTemplates: await _safeExport(
+        'preDiveChecklistTemplates',
+        () => _exportPreDiveChecklistTemplates(hlcSince),
+      ),
+      preDiveChecklistTemplateItems: await _safeExport(
+        'preDiveChecklistTemplateItems',
+        () => _exportPreDiveChecklistTemplateItems(hlcSince),
+      ),
+      preDiveSessions: await _safeExport(
+        'preDiveSessions',
+        () => _exportPreDiveSessions(hlcSince),
+      ),
+      preDiveSessionItems: await _safeExport(
+        'preDiveSessionItems',
+        () => _exportPreDiveSessionItems(hlcSince),
+      ),
       gpsTracks: await _safeExport(
         'gpsTracks',
         () => _exportGpsTracks(hlcSince),
@@ -1424,6 +1482,26 @@ class SyncDataSerializer {
           _db.tripChecklistItems,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
+      case 'preDiveChecklistTemplates':
+        final row = await (_db.select(
+          _db.preDiveChecklistTemplates,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'preDiveChecklistTemplateItems':
+        final row = await (_db.select(
+          _db.preDiveChecklistTemplateItems,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'preDiveSessions':
+        final row = await (_db.select(
+          _db.preDiveSessions,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'preDiveSessionItems':
+        final row = await (_db.select(
+          _db.preDiveSessionItems,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
       case 'gpsTracks':
         final row = await (_db.select(
           _db.gpsTracks,
@@ -1682,6 +1760,26 @@ class SyncDataSerializer {
       case 'tripChecklistItems':
         final rows = await (_db.select(
           _db.tripChecklistItems,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'preDiveChecklistTemplates':
+        final rows = await (_db.select(
+          _db.preDiveChecklistTemplates,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'preDiveChecklistTemplateItems':
+        final rows = await (_db.select(
+          _db.preDiveChecklistTemplateItems,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'preDiveSessions':
+        final rows = await (_db.select(
+          _db.preDiveSessions,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'preDiveSessionItems':
+        final rows = await (_db.select(
+          _db.preDiveSessionItems,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
       case 'divePlans':
@@ -1983,6 +2081,34 @@ class SyncDataSerializer {
             .into(_db.tripChecklistItems)
             .insertOnConflictUpdate(
               TripChecklistItem.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'preDiveChecklistTemplates':
+        await _db
+            .into(_db.preDiveChecklistTemplates)
+            .insertOnConflictUpdate(
+              PreDiveChecklistTemplate.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'preDiveChecklistTemplateItems':
+        await _db
+            .into(_db.preDiveChecklistTemplateItems)
+            .insertOnConflictUpdate(
+              PreDiveChecklistTemplateItem.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'preDiveSessions':
+        await _db
+            .into(_db.preDiveSessions)
+            .insertOnConflictUpdate(
+              PreDiveSession.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'preDiveSessionItems':
+        await _db
+            .into(_db.preDiveSessionItems)
+            .insertOnConflictUpdate(
+              PreDiveSessionItem.fromJson(data).toCompanion(false),
             );
         return;
       case 'gpsTracks':
@@ -2461,6 +2587,53 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'preDiveChecklistTemplates':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.preDiveChecklistTemplates,
+            records
+                .map(
+                  (r) =>
+                      PreDiveChecklistTemplate.fromJson(r).toCompanion(false),
+                )
+                .toList(),
+          ),
+        );
+        return;
+      case 'preDiveChecklistTemplateItems':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.preDiveChecklistTemplateItems,
+            records
+                .map(
+                  (r) => PreDiveChecklistTemplateItem.fromJson(
+                    r,
+                  ).toCompanion(false),
+                )
+                .toList(),
+          ),
+        );
+        return;
+      case 'preDiveSessions':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.preDiveSessions,
+            records
+                .map((r) => PreDiveSession.fromJson(r).toCompanion(false))
+                .toList(),
+          ),
+        );
+        return;
+      case 'preDiveSessionItems':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.preDiveSessionItems,
+            records
+                .map((r) => PreDiveSessionItem.fromJson(r).toCompanion(false))
+                .toList(),
+          ),
+        );
+        return;
       case 'gpsTracks':
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
@@ -2821,6 +2994,20 @@ class SyncDataSerializer {
         return plain(_db.checklistTemplateItems, _db.checklistTemplateItems.id);
       case 'tripChecklistItems':
         return plain(_db.tripChecklistItems, _db.tripChecklistItems.id);
+      case 'preDiveChecklistTemplates':
+        return plain(
+          _db.preDiveChecklistTemplates,
+          _db.preDiveChecklistTemplates.id,
+        );
+      case 'preDiveChecklistTemplateItems':
+        return plain(
+          _db.preDiveChecklistTemplateItems,
+          _db.preDiveChecklistTemplateItems.id,
+        );
+      case 'preDiveSessions':
+        return plain(_db.preDiveSessions, _db.preDiveSessions.id);
+      case 'preDiveSessionItems':
+        return plain(_db.preDiveSessionItems, _db.preDiveSessionItems.id);
       case 'gpsTracks':
         return plain(_db.gpsTracks, _db.gpsTracks.id);
       case 'divePlans':
@@ -2947,6 +3134,21 @@ class SyncDataSerializer {
           _db.fieldPresets,
         )..where((t) => t.isBuiltIn.equals(false))).go();
         return;
+      case 'preDiveChecklistTemplates':
+        await (_db.delete(
+          _db.preDiveChecklistTemplates,
+        )..where((t) => t.isBuiltIn.equals(false))).go();
+        return;
+      case 'preDiveChecklistTemplateItems':
+        // Items of built-in templates are seeded reference data; clearing
+        // them would also trip the FK on the preserved built-in parents.
+        final builtinIds = _db.selectOnly(_db.preDiveChecklistTemplates)
+          ..addColumns([_db.preDiveChecklistTemplates.id])
+          ..where(_db.preDiveChecklistTemplates.isBuiltIn.equals(true));
+        await (_db.delete(
+          _db.preDiveChecklistTemplateItems,
+        )..where((t) => t.templateId.isNotInQuery(builtinIds))).go();
+        return;
     }
     await _db.delete(_syncTableFor(entityType)).go();
   }
@@ -2992,6 +3194,14 @@ class SyncDataSerializer {
         return _db.checklistTemplateItems;
       case 'tripChecklistItems':
         return _db.tripChecklistItems;
+      case 'preDiveChecklistTemplates':
+        return _db.preDiveChecklistTemplates;
+      case 'preDiveChecklistTemplateItems':
+        return _db.preDiveChecklistTemplateItems;
+      case 'preDiveSessions':
+        return _db.preDiveSessions;
+      case 'preDiveSessionItems':
+        return _db.preDiveSessionItems;
       case 'gpsTracks':
         return _db.gpsTracks;
       case 'divePlans':
@@ -3234,6 +3444,26 @@ class SyncDataSerializer {
       case 'tripChecklistItems':
         await (_db.delete(
           _db.tripChecklistItems,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'preDiveChecklistTemplates':
+        await (_db.delete(
+          _db.preDiveChecklistTemplates,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'preDiveChecklistTemplateItems':
+        await (_db.delete(
+          _db.preDiveChecklistTemplateItems,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'preDiveSessions':
+        await (_db.delete(
+          _db.preDiveSessions,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'preDiveSessionItems':
+        await (_db.delete(
+          _db.preDiveSessionItems,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'gpsTracks':
@@ -3752,6 +3982,59 @@ class SyncDataSerializer {
     String? hlcSince,
   ) async {
     final query = _db.select(_db.tripChecklistItems);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportPreDiveChecklistTemplates(
+    String? hlcSince,
+  ) async {
+    // Built-ins are re-seeded identically on every device; export custom
+    // templates only (mirrors _exportDiveTypes).
+    final query = _db.select(_db.preDiveChecklistTemplates)
+      ..where((t) => t.isBuiltIn.equals(false));
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportPreDiveChecklistTemplateItems(
+    String? hlcSince,
+  ) async {
+    // Items of built-in templates are seeded alongside their parents and
+    // must not export either.
+    final builtinIds = _db.selectOnly(_db.preDiveChecklistTemplates)
+      ..addColumns([_db.preDiveChecklistTemplates.id])
+      ..where(_db.preDiveChecklistTemplates.isBuiltIn.equals(true));
+    final query = _db.select(_db.preDiveChecklistTemplateItems)
+      ..where((t) => t.templateId.isNotInQuery(builtinIds));
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportPreDiveSessions(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.preDiveSessions);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportPreDiveSessionItems(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.preDiveSessionItems);
     if (hlcSince != null) {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }

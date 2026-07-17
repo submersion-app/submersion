@@ -934,6 +934,26 @@ class SyncService {
             records: data.tripChecklistItems,
             hasUpdatedAt: true,
           ),
+          (
+            type: 'preDiveChecklistTemplates',
+            records: data.preDiveChecklistTemplates,
+            hasUpdatedAt: true,
+          ),
+          (
+            type: 'preDiveChecklistTemplateItems',
+            records: data.preDiveChecklistTemplateItems,
+            hasUpdatedAt: true,
+          ),
+          (
+            type: 'preDiveSessions',
+            records: data.preDiveSessions,
+            hasUpdatedAt: true,
+          ),
+          (
+            type: 'preDiveSessionItems',
+            records: data.preDiveSessionItems,
+            hasUpdatedAt: true,
+          ),
           (type: 'gpsTracks', records: data.gpsTracks, hasUpdatedAt: true),
           (type: 'divePlans', records: data.divePlans, hasUpdatedAt: true),
           (
@@ -1568,6 +1588,10 @@ class SyncService {
     'checklistTemplates': true,
     'checklistTemplateItems': true,
     'tripChecklistItems': true,
+    'preDiveChecklistTemplates': true,
+    'preDiveChecklistTemplateItems': true,
+    'preDiveSessions': true,
+    'preDiveSessionItems': true,
     'gpsTracks': true,
     'divePlans': true,
     'divePlanTanks': true,
@@ -1694,6 +1718,27 @@ class SyncService {
       (field: 'templateId', parent: 'checklistTemplates', nullable: false),
     ],
     'tripChecklistItems': [(field: 'tripId', parent: 'trips', nullable: false)],
+    'preDiveChecklistTemplateItems': [
+      (
+        field: 'templateId',
+        parent: 'preDiveChecklistTemplates',
+        nullable: false,
+      ),
+    ],
+    'preDiveSessions': [
+      (
+        field: 'templateId',
+        parent: 'preDiveChecklistTemplates',
+        nullable: true,
+      ),
+      (field: 'diveId', parent: 'dives', nullable: true),
+      (field: 'tripId', parent: 'trips', nullable: true),
+      (field: 'equipmentSetId', parent: 'equipmentSets', nullable: true),
+    ],
+    'preDiveSessionItems': [
+      (field: 'sessionId', parent: 'preDiveSessions', nullable: false),
+      (field: 'equipmentId', parent: 'equipment', nullable: true),
+    ],
     'divePlans': [
       (field: 'siteId', parent: 'diveSites', nullable: true),
       (field: 'sourceDiveId', parent: 'dives', nullable: true),
