@@ -65,6 +65,7 @@ class SyncRepository {
     'media': (table: 'media', pk: 'id'),
     'species': (table: 'species', pk: 'id'),
     'fieldPresets': (table: 'field_presets', pk: 'id'),
+    'qualityFindings': (table: 'quality_findings', pk: 'id'),
   };
 
   // ============================================================================

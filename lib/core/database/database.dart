@@ -2631,6 +2631,7 @@ class AppDatabase extends _$AppDatabase {
     'media',
     'species',
     'field_presets',
+    'quality_findings',
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
