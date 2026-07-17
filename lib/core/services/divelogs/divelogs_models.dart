@@ -314,3 +314,34 @@ class DivelogsCertification {
     );
   }
 }
+
+/// One row of GET /pictures/{dive_id}. The response shape is undocumented,
+/// so parsing is tolerant: [url] is the first key that resolves to an
+/// absolute http(s) URI, and rows with only a bare filename keep their id
+/// with a null url (the caller counts those as un-downloadable).
+class DivelogsPicture {
+  final String? id;
+  final Uri? url;
+
+  const DivelogsPicture({this.id, this.url});
+
+  static const _urlKeys = ['url', 'link', 'href', 'imageurl'];
+
+  static DivelogsPicture? fromJson(Map<String, dynamic> json) {
+    final rawId = json['id'] ?? json['picture_id'];
+    Uri? url;
+    for (final key in _urlKeys) {
+      final candidate = _asNonEmptyString(json[key]);
+      if (candidate == null) continue;
+      final parsed = Uri.tryParse(candidate);
+      if (parsed != null &&
+          (parsed.isScheme('http') || parsed.isScheme('https'))) {
+        url = parsed;
+        break;
+      }
+    }
+    final hasUrlKey = _urlKeys.any((k) => json[k] != null);
+    if (rawId == null && !hasUrlKey) return null;
+    return DivelogsPicture(id: rawId == null ? null : '$rawId', url: url);
+  }
+}

@@ -292,6 +292,105 @@ void main() {
     await api.postCertification(name: 'OWD', date: '2022-06-15');
     expect(calls, 2);
   });
+
+  test('getPictures parses an array body', () async {
+    final api = client((req) async {
+      expect(req.url.path, '/api/pictures/4711');
+      return http.Response(
+        jsonEncode([
+          {'id': 1, 'url': 'https://divelogs.de/p/1.jpg'},
+          {'id': 2, 'url': '2.jpg'},
+        ]),
+        200,
+      );
+    });
+    final pics = await api.getPictures('4711');
+    expect(pics, hasLength(2));
+    expect(pics[0].url, Uri.parse('https://divelogs.de/p/1.jpg'));
+    expect(pics[1].url, isNull);
+  });
+
+  test('getPictures tolerates a {pictures: [...]} wrapper', () async {
+    final api = client(
+      (req) async => http.Response(
+        jsonEncode({
+          'pictures': [
+            {'id': 1, 'url': 'https://divelogs.de/p/1.jpg'},
+          ],
+        }),
+        200,
+      ),
+    );
+    expect((await api.getPictures('9')).single.id, '1');
+  });
+
+  test(
+    'downloadPictureBytes sends bearer to the exact url, returns bytes',
+    () async {
+      late Uri requested;
+      final api = client((req) async {
+        requested = req.url;
+        expect(req.headers['Authorization'], 'Bearer t1');
+        return http.Response.bytes([1, 2, 3, 4], 200);
+      });
+      final bytes = await api.downloadPictureBytes(
+        Uri.parse('https://cdn.divelogs.de/p/5.jpg'),
+      );
+      expect(requested, Uri.parse('https://cdn.divelogs.de/p/5.jpg'));
+      expect(bytes, [1, 2, 3, 4]);
+    },
+  );
+
+  test('downloadPictureBytes retries once on 401', () async {
+    var calls = 0;
+    final api = client((req) async {
+      calls++;
+      if (req.headers['Authorization'] == 'Bearer t1') {
+        return http.Response('', 401);
+      }
+      return http.Response.bytes([9], 200);
+    }, tokens: ['t1', 't2']);
+    final bytes = await api.downloadPictureBytes(
+      Uri.parse('https://cdn.divelogs.de/p/5.jpg'),
+    );
+    expect(bytes, [9]);
+    expect(calls, 2);
+  });
+
+  test('postPicture sends a multipart imagefile part with filename', () async {
+    late http.MultipartRequest captured;
+    final api = DivelogsApiClient(
+      getBearerToken: () async => 't1',
+      onTokenRejected: () {},
+      httpClient: _CapturingClient(
+        (req) => captured = req as http.MultipartRequest,
+      ),
+    );
+    await api.postPicture('4711', bytes: [1, 2, 3], filename: 'photo.jpg');
+    expect(captured.method, 'POST');
+    expect(captured.url.path, '/api/pictures/4711');
+    expect(captured.headers['Authorization'], 'Bearer t1');
+    expect(captured.files, hasLength(1));
+    expect(captured.files.single.field, 'imagefile');
+    expect(captured.files.single.filename, 'photo.jpg');
+  });
+
+  test('postPicture retries once on 401', () async {
+    var calls = 0;
+    final tokens = ['t1', 't2'];
+    final api = DivelogsApiClient(
+      getBearerToken: () async =>
+          tokens.length > 1 ? tokens.removeAt(0) : tokens.first,
+      onTokenRejected: () {},
+      httpClient: _CapturingClient(
+        (req) => calls++,
+        statusFor: (req) =>
+            req.headers['Authorization'] == 'Bearer t1' ? 401 : 200,
+      ),
+    );
+    await api.postPicture('9', bytes: [1], filename: 'x.jpg');
+    expect(calls, 2);
+  });
 }
 
 /// Minimal client that captures BaseRequests (MockClient materializes

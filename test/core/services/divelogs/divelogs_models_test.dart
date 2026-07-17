@@ -181,6 +181,35 @@ void main() {
     });
   });
 
+  group('DivelogsPicture', () {
+    test('picks the first absolute http(s) url from known keys', () {
+      final pic = DivelogsPicture.fromJson({
+        'id': 5,
+        'url': 'https://divelogs.de/pics/5.jpg',
+      })!;
+      expect(pic.id, '5');
+      expect(pic.url, Uri.parse('https://divelogs.de/pics/5.jpg'));
+    });
+
+    test('falls back through link/href/imageurl', () {
+      final pic = DivelogsPicture.fromJson({
+        'id': 6,
+        'link': 'http://divelogs.de/pics/6.jpg',
+      })!;
+      expect(pic.url, Uri.parse('http://divelogs.de/pics/6.jpg'));
+    });
+
+    test('keeps the row but null url for a bare filename', () {
+      final pic = DivelogsPicture.fromJson({'id': 7, 'url': '7.jpg'})!;
+      expect(pic.id, '7');
+      expect(pic.url, isNull);
+    });
+
+    test('returns null when neither id nor any url key is present', () {
+      expect(DivelogsPicture.fromJson({'foo': 'bar'}), isNull);
+    });
+  });
+
   test('DivelogsDive parses gearitems as string ids', () {
     final dive = DivelogsDive.fromJson({
       'id': 1,

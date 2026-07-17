@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 import 'package:submersion/core/services/divelogs/divelogs_models.dart';
@@ -178,6 +179,98 @@ class DivelogsApiClient {
       request.fields['name'] = name;
       request.fields['date'] = date;
       if (org != null) request.fields['org'] = org;
+      final http.Response response;
+      try {
+        response = await http.Response.fromStream(await _http.send(request));
+      } on Exception {
+        throw const DivelogsApiException(0, 'Could not reach divelogs.de.');
+      }
+      if (response.statusCode == 401) {
+        _onTokenRejected();
+        if (!authRetried) {
+          authRetried = true;
+          continue;
+        }
+        throw const DivelogsApiException(
+          401,
+          'divelogs.de sign-in expired. Sign in again in Settings.',
+        );
+      }
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw DivelogsApiException(
+          response.statusCode,
+          'divelogs.de API error ${response.statusCode}',
+        );
+      }
+      return;
+    }
+  }
+
+  Future<List<DivelogsPicture>> getPictures(String diveId) async {
+    final response = await _get('/pictures/$diveId');
+    final rows = _rows(_decode(response.body, '/pictures'), '/pictures', const [
+      'pictures',
+    ]);
+    return [
+      for (final row in rows)
+        if (row is Map)
+          ...?_maybe(DivelogsPicture.fromJson(Map<String, dynamic>.from(row))),
+    ];
+  }
+
+  /// Fetches picture bytes from an absolute URL (NOT a /api path), reusing
+  /// the same bearer + 401-invalidate-retry-once contract.
+  Future<Uint8List> downloadPictureBytes(Uri url) async {
+    var authRetried = false;
+    while (true) {
+      final token = await _getBearerToken();
+      final http.Response response;
+      try {
+        response = await _http.get(
+          url,
+          headers: {'Authorization': 'Bearer $token'},
+        );
+      } on Exception {
+        throw const DivelogsApiException(0, 'Could not reach divelogs.de.');
+      }
+      if (response.statusCode == 401) {
+        _onTokenRejected();
+        if (!authRetried) {
+          authRetried = true;
+          continue;
+        }
+        throw const DivelogsApiException(
+          401,
+          'divelogs.de sign-in expired. Sign in again in Settings.',
+        );
+      }
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw DivelogsApiException(
+          response.statusCode,
+          'divelogs.de API error ${response.statusCode}',
+        );
+      }
+      return response.bodyBytes;
+    }
+  }
+
+  /// Uploads a picture to a dive via multipart form-data (field `imagefile`).
+  /// Same 401-retry-once semantics; the request is rebuilt per attempt.
+  Future<void> postPicture(
+    String diveId, {
+    required List<int> bytes,
+    required String filename,
+  }) async {
+    var authRetried = false;
+    while (true) {
+      final token = await _getBearerToken();
+      final request = http.MultipartRequest(
+        'POST',
+        _baseUri.replace(path: '${_baseUri.path}/pictures/$diveId'),
+      )..headers['Authorization'] = 'Bearer $token';
+      request.files.add(
+        http.MultipartFile.fromBytes('imagefile', bytes, filename: filename),
+      );
       final http.Response response;
       try {
         response = await http.Response.fromStream(await _http.send(request));
