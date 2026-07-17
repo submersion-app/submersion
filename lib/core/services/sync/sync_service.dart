@@ -1595,6 +1595,8 @@ class SyncService {
     'diveBuddies': false,
     'diveProfiles': false,
     'diveProfileEvents': false,
+    'diveSafetyReviews': false,
+    'diveSafetyFindings': false,
     'gasSwitches': false,
     'diveCustomFields': false,
     'diveDataSources': false,
@@ -1664,6 +1666,8 @@ class SyncService {
       (field: 'diveId', parent: 'dives', nullable: false),
       (field: 'computerId', parent: 'diveComputers', nullable: true),
     ],
+    'diveSafetyReviews': [(field: 'diveId', parent: 'dives', nullable: false)],
+    'diveSafetyFindings': [(field: 'diveId', parent: 'dives', nullable: false)],
     'gasSwitches': [(field: 'diveId', parent: 'dives', nullable: false)],
     'diveCustomFields': [(field: 'diveId', parent: 'dives', nullable: false)],
     'tankPressureProfiles': [

@@ -259,6 +259,8 @@ class SyncData {
   final List<Map<String, dynamic>> species;
   final List<Map<String, dynamic>> sightings;
   final List<Map<String, dynamic>> diveProfileEvents;
+  final List<Map<String, dynamic>> diveSafetyReviews;
+  final List<Map<String, dynamic>> diveSafetyFindings;
   final List<Map<String, dynamic>> gasSwitches;
   final List<Map<String, dynamic>> diveCustomFields;
   final List<Map<String, dynamic>> diveDataSources;
@@ -316,6 +318,8 @@ class SyncData {
     this.species = const [],
     this.sightings = const [],
     this.diveProfileEvents = const [],
+    this.diveSafetyReviews = const [],
+    this.diveSafetyFindings = const [],
     this.gasSwitches = const [],
     this.diveCustomFields = const [],
     this.diveDataSources = const [],
@@ -374,6 +378,8 @@ class SyncData {
     'species': species,
     'sightings': sightings,
     'diveProfileEvents': diveProfileEvents,
+    'diveSafetyReviews': diveSafetyReviews,
+    'diveSafetyFindings': diveSafetyFindings,
     'gasSwitches': gasSwitches,
     'diveCustomFields': diveCustomFields,
     'diveDataSources': diveDataSources,
@@ -433,6 +439,8 @@ class SyncData {
       species: _parseList(json['species']),
       sightings: _parseList(json['sightings']),
       diveProfileEvents: _parseList(json['diveProfileEvents']),
+      diveSafetyReviews: _parseList(json['diveSafetyReviews']),
+      diveSafetyFindings: _parseList(json['diveSafetyFindings']),
       gasSwitches: _parseList(json['gasSwitches']),
       diveCustomFields: _parseList(json['diveCustomFields']),
       diveDataSources: _parseList(json['diveDataSources']),
@@ -708,6 +716,20 @@ class SyncDataSerializer {
     (
       key: 'diveProfileEvents',
       table: _db.diveProfileEvents,
+      blob: false,
+      full: null,
+    ),
+    (
+      // PK is dive_id, not id, so the keyset pager can't stream it; the table
+      // is tiny (3 columns, one row per analyzed dive) so full export is fine.
+      key: 'diveSafetyReviews',
+      table: null,
+      blob: false,
+      full: () => _exportDiveSafetyReviews(null),
+    ),
+    (
+      key: 'diveSafetyFindings',
+      table: _db.diveSafetyFindings,
       blob: false,
       full: null,
     ),
@@ -1121,6 +1143,14 @@ class SyncDataSerializer {
         'diveProfileEvents',
         () => _exportDiveProfileEvents(hlcSince),
       ),
+      diveSafetyReviews: await _safeExport(
+        'diveSafetyReviews',
+        () => _exportDiveSafetyReviews(hlcSince),
+      ),
+      diveSafetyFindings: await _safeExport(
+        'diveSafetyFindings',
+        () => _exportDiveSafetyFindings(hlcSince),
+      ),
       gasSwitches: await _safeExport(
         'gasSwitches',
         () => _exportGasSwitches(hlcSince),
@@ -1522,6 +1552,16 @@ class SyncDataSerializer {
       case 'diveProfileEvents':
         final row = await (_db.select(
           _db.diveProfileEvents,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'diveSafetyReviews':
+        final row = await (_db.select(
+          _db.diveSafetyReviews,
+        )..where((t) => t.diveId.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'diveSafetyFindings':
+        final row = await (_db.select(
+          _db.diveSafetyFindings,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
       case 'gasSwitches':
@@ -2110,6 +2150,16 @@ class SyncDataSerializer {
               DiveProfileEvent.fromJson(diveProfileEventData),
             );
         return;
+      case 'diveSafetyReviews':
+        await _db
+            .into(_db.diveSafetyReviews)
+            .insertOnConflictUpdate(DiveSafetyReview.fromJson(data));
+        return;
+      case 'diveSafetyFindings':
+        await _db
+            .into(_db.diveSafetyFindings)
+            .insertOnConflictUpdate(DiveSafetyFinding.fromJson(data));
+        return;
       case 'gasSwitches':
         await _db
             .into(_db.gasSwitches)
@@ -2643,6 +2693,22 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'diveSafetyReviews':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.diveSafetyReviews,
+            records.map((r) => DiveSafetyReview.fromJson(r)).toList(),
+          ),
+        );
+        return;
+      case 'diveSafetyFindings':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.diveSafetyFindings,
+            records.map((r) => DiveSafetyFinding.fromJson(r)).toList(),
+          ),
+        );
+        return;
       case 'gasSwitches':
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
@@ -2867,6 +2933,10 @@ class SyncDataSerializer {
         return plain(_db.diveProfiles, _db.diveProfiles.id);
       case 'diveProfileEvents':
         return plain(_db.diveProfileEvents, _db.diveProfileEvents.id);
+      case 'diveSafetyReviews':
+        return plain(_db.diveSafetyReviews, _db.diveSafetyReviews.diveId);
+      case 'diveSafetyFindings':
+        return plain(_db.diveSafetyFindings, _db.diveSafetyFindings.id);
       case 'gasSwitches':
         return plain(_db.gasSwitches, _db.gasSwitches.id);
       case 'diveCustomFields':
@@ -3038,6 +3108,10 @@ class SyncDataSerializer {
         return _db.diveProfiles;
       case 'diveProfileEvents':
         return _db.diveProfileEvents;
+      case 'diveSafetyReviews':
+        return _db.diveSafetyReviews;
+      case 'diveSafetyFindings':
+        return _db.diveSafetyFindings;
       case 'gasSwitches':
         return _db.gasSwitches;
       case 'diveCustomFields':
@@ -3317,6 +3391,16 @@ class SyncDataSerializer {
       case 'diveProfileEvents':
         await (_db.delete(
           _db.diveProfileEvents,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'diveSafetyReviews':
+        await (_db.delete(
+          _db.diveSafetyReviews,
+        )..where((t) => t.diveId.equals(recordId))).go();
+        return;
+      case 'diveSafetyFindings':
+        await (_db.delete(
+          _db.diveSafetyFindings,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'gasSwitches':
@@ -4100,6 +4184,44 @@ class SyncDataSerializer {
       return rows.map((r) => r.toJson()).toList();
     }
     final rows = await _db.select(_db.diveProfileEvents).get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportDiveSafetyReviews(
+    String? hlcSince,
+  ) async {
+    if (hlcSince != null) {
+      final modifiedDives = await (_db.select(
+        _db.dives,
+      )..where((t) => t.hlc.isBiggerThanValue(hlcSince))).get();
+      final diveIds = modifiedDives.map((d) => d.id).toSet();
+      if (diveIds.isEmpty) return [];
+
+      final rows = await (_db.select(
+        _db.diveSafetyReviews,
+      )..where((t) => t.diveId.isIn(diveIds))).get();
+      return rows.map((r) => r.toJson()).toList();
+    }
+    final rows = await _db.select(_db.diveSafetyReviews).get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportDiveSafetyFindings(
+    String? hlcSince,
+  ) async {
+    if (hlcSince != null) {
+      final modifiedDives = await (_db.select(
+        _db.dives,
+      )..where((t) => t.hlc.isBiggerThanValue(hlcSince))).get();
+      final diveIds = modifiedDives.map((d) => d.id).toSet();
+      if (diveIds.isEmpty) return [];
+
+      final rows = await (_db.select(
+        _db.diveSafetyFindings,
+      )..where((t) => t.diveId.isIn(diveIds))).get();
+      return rows.map((r) => r.toJson()).toList();
+    }
+    final rows = await _db.select(_db.diveSafetyFindings).get();
     return rows.map((r) => r.toJson()).toList();
   }
 
