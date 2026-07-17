@@ -48,6 +48,7 @@ class SyncRepository {
     'divePlanSegments': (table: 'dive_plan_segments', pk: 'id'),
     'equipment': (table: 'equipment', pk: 'id'),
     'equipmentSets': (table: 'equipment_sets', pk: 'id'),
+    'equipmentAttributes': (table: 'equipment_attributes', pk: 'id'),
     'diveTypes': (table: 'dive_types', pk: 'id'),
     'diveRoles': (table: 'dive_roles', pk: 'id'),
     'diverWeightEntries': (table: 'diver_weight_entries', pk: 'id'),

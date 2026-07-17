@@ -964,6 +964,13 @@ class SyncService {
             records: data.equipmentSetGeofences,
             hasUpdatedAt: true,
           ),
+          // Child of equipment; must apply after its parent so the
+          // deferred-FK commit sees the equipment row.
+          (
+            type: 'equipmentAttributes',
+            records: data.equipmentAttributes,
+            hasUpdatedAt: true,
+          ),
           // After both parents (divePlans and equipment).
           (
             type: 'divePlanEquipment',
@@ -1576,6 +1583,7 @@ class SyncService {
     'equipmentSets': true,
     'equipmentSetItems': false,
     'equipmentSetGeofences': true,
+    'equipmentAttributes': true,
     'divePlanEquipment': false,
     'diverWeightEntries': true,
     'diveTypes': true,
