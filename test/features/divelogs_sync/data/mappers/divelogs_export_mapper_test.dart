@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/divelogs_sync/data/mappers/divelogs_export_mapper.dart';
 
@@ -107,6 +109,36 @@ void main() {
   test('returns null when duration or maxdepth cannot be produced', () {
     expect(mapper.mapDive(dive(runtime: null)), isNull);
     expect(mapper.mapDive(dive(maxDepth: null)), isNull);
+  });
+
+  test('emits gearitems for equipment with known remote ids', () {
+    final withGear = Dive(
+      id: 'd2',
+      dateTime: DateTime.utc(2022, 9, 3, 14),
+      entryTime: DateTime.utc(2022, 9, 3, 14),
+      runtime: const Duration(minutes: 40),
+      maxDepth: 10,
+      equipment: const [
+        EquipmentItem(
+          id: 'e1',
+          name: 'Apex XTX50',
+          type: EquipmentType.regulator,
+        ),
+        EquipmentItem(
+          id: 'e2',
+          name: 'Unknown Remote',
+          type: EquipmentType.other,
+        ),
+      ],
+    );
+    final json = mapper.mapDive(
+      withGear,
+      remoteGearIdByName: {'apex xtx50': '45'},
+    )!;
+    expect(json['gearitems'], [45]);
+
+    final without = mapper.mapDive(withGear)!;
+    expect(without.containsKey('gearitems'), isFalse);
   });
 
   test('falls back to profile max depth when maxDepth is null', () {

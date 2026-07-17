@@ -1,5 +1,11 @@
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
+/// Formats a wall-clock UTC date the way the divelogs.de API expects.
+String divelogsDate(DateTime d) {
+  String two(int v) => v.toString().padLeft(2, '0');
+  return '${d.year}-${two(d.month)}-${two(d.day)}';
+}
+
 /// Projects a domain Dive onto the divelogs.de dive JSON schema.
 ///
 /// Lossy by design (spec: push path): one profile channel, tanks, site
@@ -9,7 +15,10 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 class DivelogsExportMapper {
   const DivelogsExportMapper();
 
-  Map<String, dynamic>? mapDive(Dive dive) {
+  Map<String, dynamic>? mapDive(
+    Dive dive, {
+    Map<String, String> remoteGearIdByName = const {},
+  }) {
     final entry = dive.effectiveEntryTime;
     final durationSeconds = dive.effectiveRuntime?.inSeconds;
     final maxDepth = dive.maxDepth ?? dive.calculateMaxDepthFromProfile();
@@ -19,11 +28,18 @@ class DivelogsExportMapper {
 
     String two(int v) => v.toString().padLeft(2, '0');
     final json = <String, dynamic>{
-      'date': '${entry.year}-${two(entry.month)}-${two(entry.day)}',
+      'date': divelogsDate(entry),
       'time': '${two(entry.hour)}:${two(entry.minute)}:${two(entry.second)}',
       'duration': durationSeconds,
       'maxdepth': maxDepth,
     };
+
+    final gearIds = <int>[
+      for (final item in dive.equipment)
+        if (remoteGearIdByName[item.name.trim().toLowerCase()] != null)
+          ...?_parsedId(remoteGearIdByName[item.name.trim().toLowerCase()]!),
+    ];
+    if (gearIds.isNotEmpty) json['gearitems'] = gearIds;
 
     final avg = dive.avgDepth;
     if (avg != null && avg > 0) json['meandepth'] = avg;
@@ -71,6 +87,11 @@ class DivelogsExportMapper {
 
     _addProfile(json, dive.profile);
     return json;
+  }
+
+  List<int>? _parsedId(String raw) {
+    final id = int.tryParse(raw);
+    return id == null ? null : [id];
   }
 
   /// divelogs sampledata assumes one fixed sample rate, so only uniform

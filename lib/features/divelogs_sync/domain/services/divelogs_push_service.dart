@@ -38,11 +38,12 @@ class DivelogsPushService {
   Future<DivelogsPushResult> push(
     List<Dive> dives, {
     void Function(int done, int total)? onProgress,
+    Map<String, String> remoteGearIdByName = const {},
   }) async {
     final mapped = <Map<String, dynamic>>[];
     var skipped = 0;
     for (final dive in dives) {
-      final json = mapper.mapDive(dive);
+      final json = mapper.mapDive(dive, remoteGearIdByName: remoteGearIdByName);
       if (json == null) {
         skipped++;
       } else {
