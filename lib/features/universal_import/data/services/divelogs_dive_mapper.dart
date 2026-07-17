@@ -12,6 +12,10 @@ class DivelogsDiveMapper {
   static String siteKey(String name) =>
       'divelogs-site-${name.trim().toLowerCase()}';
 
+  /// Payload ref key for a remote gear item; must match the `uddfId` used
+  /// by the equipment entities so `equipmentIdMapping` links dives to gear.
+  static String gearKey(String id) => 'divelogs-gear-$id';
+
   Map<String, dynamic> mapDive(DivelogsDive dive) {
     final map = <String, dynamic>{
       'dateTime': dive.dateTime,
@@ -43,6 +47,9 @@ class DivelogsDiveMapper {
       map['surfaceInterval'] = Duration(seconds: dive.surfaceIntervalSeconds!);
     }
     if (dive.id != null) map['sourceUuid'] = 'divelogs:${dive.id}';
+    if (dive.gearItemIds.isNotEmpty) {
+      map['equipmentRefs'] = [for (final id in dive.gearItemIds) gearKey(id)];
+    }
 
     final siteName = dive.siteName;
     if (siteName != null) {

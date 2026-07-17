@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/divelogs/divelogs_api_client.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
@@ -26,13 +27,30 @@ void main() {
     'lng': 35.1,
   };
 
-  DivelogsImportService service(Object body) => DivelogsImportService(
+  DivelogsImportService service(
+    Object dives, {
+    Object gear = const [],
+    Object geartypes = const [],
+    Object certifications = const [],
+    int gearStatus = 200,
+    int certStatus = 200,
+  }) => DivelogsImportService(
     api: DivelogsApiClient(
       getBearerToken: () async => 't',
       onTokenRejected: () {},
-      httpClient: MockClient(
-        (req) async => http.Response(jsonEncode(body), 200),
-      ),
+      httpClient: MockClient((req) async {
+        switch (req.url.path) {
+          case '/api/dives':
+            return http.Response(jsonEncode(dives), 200);
+          case '/api/gear':
+            return http.Response(jsonEncode(gear), gearStatus);
+          case '/api/geartypes':
+            return http.Response(jsonEncode(geartypes), 200);
+          case '/api/certifications':
+            return http.Response(jsonEncode(certifications), certStatus);
+        }
+        fail('unexpected request ${req.url}');
+      }),
     ),
   );
 
@@ -66,6 +84,99 @@ void main() {
       payload.warnings.single.message,
       '1 dive could not be read from divelogs.de and was skipped.',
     );
+  });
+
+  group('gear and certification pull', () {
+    test('maps gear rows into equipment entities', () async {
+      final payload = await service(
+        [diveJson(1)],
+        gear: [
+          {'id': 45, 'name': 'Apex XTX50', 'geartype': 1},
+          {
+            'id': 46,
+            'name': 'Old BCD',
+            'geartype': 2,
+            'discarddate': '2020-01-01',
+          },
+        ],
+        geartypes: [
+          {'id': 1, 'name': 'Regulator'},
+          {'id': 2, 'name': 'Jacket'},
+        ],
+      ).fetchAllDives();
+
+      final equipment = payload.entitiesOf(ImportEntityType.equipment);
+      expect(equipment, hasLength(2));
+      expect(equipment[0]['uddfId'], 'divelogs-gear-45');
+      expect(equipment[0]['type'], EquipmentType.regulator);
+      expect(equipment[0]['status'], EquipmentStatus.active);
+      expect(equipment[1]['status'], EquipmentStatus.retired);
+      expect(equipment[1]['isActive'], isFalse);
+    });
+
+    test('maps certification rows into certification entities', () async {
+      final payload = await service(
+        [diveJson(1)],
+        certifications: [
+          {
+            'id': 123,
+            'name': 'Open Water',
+            'date': '2022-06-15',
+            'org': 'PADI',
+          },
+        ],
+      ).fetchAllDives();
+
+      final certs = payload.entitiesOf(ImportEntityType.certifications);
+      expect(certs, hasLength(1));
+      expect(certs.single['agency'], CertificationAgency.padi);
+      expect(certs.single['issueDate'], DateTime.utc(2022, 6, 15));
+      expect(certs.single['level'], CertificationLevel.openWater);
+    });
+
+    test('dive gearitems become equipmentRefs', () async {
+      final payload = await service(
+        [
+          {
+            ...diveJson(1),
+            'gearitems': [45],
+          },
+        ],
+        gear: [
+          {'id': 45, 'name': 'Apex XTX50'},
+        ],
+      ).fetchAllDives();
+
+      expect(
+        payload.entitiesOf(ImportEntityType.dives).single['equipmentRefs'],
+        ['divelogs-gear-45'],
+      );
+    });
+
+    test('gear fetch failure degrades to a warning, dives survive', () async {
+      final payload = await service([
+        diveJson(1),
+      ], gearStatus: 500).fetchAllDives();
+
+      expect(payload.entitiesOf(ImportEntityType.dives), hasLength(1));
+      expect(payload.entitiesOf(ImportEntityType.equipment), isEmpty);
+      expect(
+        payload.warnings.map((w) => w.message),
+        anyElement(contains('Gear')),
+      );
+    });
+
+    test('certification fetch failure degrades to a warning', () async {
+      final payload = await service([
+        diveJson(1),
+      ], certStatus: 500).fetchAllDives();
+
+      expect(payload.entitiesOf(ImportEntityType.dives), hasLength(1));
+      expect(
+        payload.warnings.map((w) => w.message),
+        anyElement(contains('Certifications')),
+      );
+    });
   });
 
   group('duplicate checker integration', () {

@@ -112,6 +112,28 @@ void main() {
     expect(mapper.mapDive(d).containsKey('site'), isFalse);
   });
 
+  test('maps gearitems to equipmentRefs with the divelogs gear keys', () {
+    final d = DivelogsDive(
+      dateTime: DateTime.utc(2022),
+      durationSeconds: 60,
+      maxDepth: 5,
+      gearItemIds: const ['45', '62'],
+    );
+    expect(mapper.mapDive(d)['equipmentRefs'], [
+      'divelogs-gear-45',
+      'divelogs-gear-62',
+    ]);
+  });
+
+  test('no equipmentRefs key without gearitems', () {
+    final d = DivelogsDive(
+      dateTime: DateTime.utc(2022),
+      durationSeconds: 60,
+      maxDepth: 5,
+    );
+    expect(mapper.mapDive(d).containsKey('equipmentRefs'), isFalse);
+  });
+
   test('zero weights and temps are treated as unset', () {
     final d = DivelogsDive(
       dateTime: DateTime.utc(2022),

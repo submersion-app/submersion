@@ -66,7 +66,10 @@ void main() {
         loginStatus,
       );
     }
-    if (req.url.path == '/api/dives') {
+    if (req.url.path == '/api/dives' ||
+        req.url.path == '/api/gear' ||
+        req.url.path == '/api/geartypes' ||
+        req.url.path == '/api/certifications') {
       return http.Response(jsonEncode([]), 200);
     }
     fail('unexpected request ${req.url}');
