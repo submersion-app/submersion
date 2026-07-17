@@ -45,6 +45,9 @@ void main() {
     expect(plan.pullCandidates, isEmpty);
     expect(plan.pushCandidates, isEmpty);
     expect(plan.matchedCount, 1);
+    expect(plan.matchedPairs.single.remoteId, 'r1');
+    expect(plan.matchedPairs.single.localDiveId, 'l1');
+    expect(plan.matchedPairs.single.localTime, t0);
   });
 
   test('remote-only dives are pull candidates, local-only are push', () {

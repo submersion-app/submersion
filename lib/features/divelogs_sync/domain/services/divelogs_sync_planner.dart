@@ -2,15 +2,31 @@ import 'package:submersion/core/services/divelogs/divelogs_models.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 
+/// A remote dive matched to a local dive (same physical dive). Photo sync
+/// (Phase 4) walks these pairs.
+class DivelogsMatchedDive {
+  final String remoteId;
+  final String localDiveId;
+  final DateTime localTime;
+
+  const DivelogsMatchedDive({
+    required this.remoteId,
+    required this.localDiveId,
+    required this.localTime,
+  });
+}
+
 /// Result of comparing the remote divelist with local dive summaries.
 class DivelogsSyncPlan {
   final List<DivelogsDivelistEntry> pullCandidates;
   final List<DiveSummary> pushCandidates;
+  final List<DivelogsMatchedDive> matchedPairs;
   final int matchedCount;
 
   const DivelogsSyncPlan({
     required this.pullCandidates,
     required this.pushCandidates,
+    required this.matchedPairs,
     required this.matchedCount,
   });
 }
@@ -35,7 +51,7 @@ class DivelogsSyncPlanner {
       ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
     final unmatchedLocal = [...local];
     final pull = <DivelogsDivelistEntry>[];
-    var matched = 0;
+    final matchedPairs = <DivelogsMatchedDive>[];
 
     for (final entry in sortedRemote) {
       DiveSummary? best;
@@ -49,7 +65,13 @@ class DivelogsSyncPlanner {
       }
       if (best != null) {
         unmatchedLocal.remove(best);
-        matched++;
+        matchedPairs.add(
+          DivelogsMatchedDive(
+            remoteId: entry.id,
+            localDiveId: best.id,
+            localTime: best.entryTime ?? best.dateTime,
+          ),
+        );
       } else {
         pull.add(entry);
       }
@@ -58,7 +80,8 @@ class DivelogsSyncPlanner {
     return DivelogsSyncPlan(
       pullCandidates: pull,
       pushCandidates: unmatchedLocal,
-      matchedCount: matched,
+      matchedPairs: matchedPairs,
+      matchedCount: matchedPairs.length,
     );
   }
 
