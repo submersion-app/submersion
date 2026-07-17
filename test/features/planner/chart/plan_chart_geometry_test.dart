@@ -34,6 +34,12 @@ void main() {
     test('deeper is lower on screen', () {
       expect(geometry.yFor(30), greaterThan(geometry.yFor(10)));
     });
+
+    test('depthAtDy inverts yFor and clamps to the padded range', () {
+      expect(geometry.depthAtDy(geometry.yFor(20)), closeTo(20, 0.01));
+      expect(geometry.depthAtDy(-50), 0);
+      expect(geometry.depthAtDy(100000), closeTo(40 * 1.1, 0.01));
+    });
   });
 
   group('ticks', () {

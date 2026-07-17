@@ -52,6 +52,13 @@ class PlanChartGeometry {
     return t.clamp(0.0, maxTimeSeconds);
   }
 
+  /// Inverse of [yFor], clamped to the data depth range so a drag never
+  /// pushes a waypoint past the deepest planned point's padding.
+  double depthAtDy(double dy) {
+    final d = (dy - plotRect.top) / plotRect.height * _paddedMaxDepth;
+    return d.clamp(0.0, _paddedMaxDepth);
+  }
+
   double get timeTickIntervalSeconds => niceInterval(_paddedMaxTime / 60) * 60;
 
   double get depthTickIntervalMeters =>
