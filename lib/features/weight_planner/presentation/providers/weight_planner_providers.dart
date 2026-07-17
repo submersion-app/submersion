@@ -1,7 +1,9 @@
+import 'package:submersion/core/buoyancy/gear_buoyancy_traits.dart';
 import 'package:submersion/core/buoyancy/gear_feature.dart';
 import 'package:submersion/core/buoyancy/weight_observation.dart';
 import 'package:submersion/core/buoyancy/weight_prediction_engine.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
@@ -19,6 +21,7 @@ GearFeature? gearFeatureFor(EquipmentItem item) {
   if (item.type == EquipmentType.weights || item.type == EquipmentType.tank) {
     return null;
   }
+  final thicknessText = item.attrText(EquipmentAttrKeys.thicknessMm);
   return GearFeature.fromEquipment(
     id: item.id,
     type: item.type,
@@ -27,6 +30,17 @@ GearFeature? gearFeatureFor(EquipmentItem item) {
     thickness: item.thickness,
     buoyancyKg: item.buoyancyKg,
     weightKg: item.weightKg,
+    traits: GearBuoyancyTraits(
+      primaryThicknessMm: item.attrNum(EquipmentAttrKeys.thicknessMm),
+      panelThicknessesMm: thicknessText == null
+          ? const []
+          : GearBuoyancyTraits.parsePanelsMm(thicknessText),
+      suitStyle: item.attrText(EquipmentAttrKeys.suitStyle),
+      shellMaterial: item.attrText(EquipmentAttrKeys.shellMaterial),
+      bcdStyle: item.attrText(EquipmentAttrKeys.bcdStyle),
+      liftCapacityKg: item.attrNum(EquipmentAttrKeys.liftCapacityKg),
+      gloveType: item.attrText(EquipmentAttrKeys.gloveType),
+    ),
   );
 }
 
