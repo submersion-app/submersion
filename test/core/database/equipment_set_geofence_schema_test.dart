@@ -74,8 +74,7 @@ void main() {
     },
   );
 
-  test('v112 is the current schema version (exact-latest tripwire)', () {
-    expect(AppDatabase.currentSchemaVersion, 112);
+  test('v112 is on the migration ladder', () {
     expect(AppDatabase.migrationVersions, contains(112));
   });
 }

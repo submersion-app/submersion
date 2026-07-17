@@ -201,6 +201,162 @@ class TripChecklistItems extends Table {
   // coverage:ignore-end
 }
 
+/// Pre-dive checklist templates (spec 2026-07-16-pre-dive-checklist).
+/// Built-ins (isBuiltIn) are seeded by kSeedBuiltInPreDiveTemplate* SQL,
+/// re-asserted in beforeOpen, and skipped by sync export.
+class PreDiveChecklistTemplates extends Table {
+  // coverage:ignore-start
+  TextColumn get id => text()();
+  TextColumn get diverId => text().nullable().references(Divers, #id)();
+  TextColumn get name => text()();
+  TextColumn get description => text().withDefault(const Constant(''))();
+  TextColumn get category => text().nullable()();
+
+  /// Enforce item order during sessions (CCR-build style).
+  BoolColumn get strictOrder => boolean().withDefault(const Constant(false))();
+  BoolColumn get isBuiltIn => boolean().withDefault(const Constant(false))();
+
+  /// Stable identity for built-in re-seeding and content upgrades.
+  TextColumn get builtinKey => text().nullable()();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+  // coverage:ignore-end
+}
+
+/// Items belonging to a pre-dive checklist template.
+class PreDiveChecklistTemplateItems extends Table {
+  // coverage:ignore-start
+  TextColumn get id => text()();
+  TextColumn get templateId =>
+      text().references(PreDiveChecklistTemplates, #id)();
+
+  /// Visual grouping header (e.g. "Cells", "Bailout").
+  TextColumn get section => text().nullable()();
+  TextColumn get title => text()();
+  TextColumn get notes => text().withDefault(const Constant(''))();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+
+  /// 'check' | 'value' | 'equipmentSet' (PreDiveItemType.name).
+  TextColumn get itemType => text().withDefault(const Constant('check'))();
+  TextColumn get valueLabel => text().nullable()();
+  TextColumn get valueUnit => text().nullable()();
+
+  /// Warning thresholds for value items — advisory, never blocking.
+  RealColumn get valueMin => real().nullable()();
+  RealColumn get valueMax => real().nullable()();
+
+  /// Required items must end Done or Flagged (never Skipped).
+  BoolColumn get isRequired => boolean().withDefault(const Constant(false))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution.
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+  // coverage:ignore-end
+}
+
+/// A pre-dive checklist run. Snapshots everything at start; completed and
+/// aborted sessions are immutable audit records (repository-enforced).
+class PreDiveSessions extends Table {
+  // coverage:ignore-start
+  TextColumn get id => text()();
+  TextColumn get diverId => text().nullable().references(Divers, #id)();
+  TextColumn get templateId => text().nullable().references(
+    PreDiveChecklistTemplates,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+
+  /// Snapshot; survives template deletion.
+  TextColumn get templateName => text()();
+
+  /// Snapshot of the template's strictOrder at session start.
+  BoolColumn get strictOrder => boolean().withDefault(const Constant(false))();
+  TextColumn get diveId =>
+      text().nullable().references(Dives, #id, onDelete: KeyAction.setNull)();
+  TextColumn get tripId =>
+      text().nullable().references(Trips, #id, onDelete: KeyAction.setNull)();
+  IntColumn get startedAt => integer()();
+  IntColumn get completedAt => integer().nullable()();
+
+  /// 'inProgress' | 'completed' | 'aborted' (PreDiveSessionStatus.name).
+  TextColumn get status => text().withDefault(const Constant('inProgress'))();
+  TextColumn get equipmentSetId => text().nullable().references(
+    EquipmentSets,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+
+  /// Display snapshot; survives set deletion.
+  TextColumn get equipmentSetName => text().nullable()();
+  TextColumn get notes => text().withDefault(const Constant(''))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution.
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+  // coverage:ignore-end
+}
+
+/// Per-session checklist items: a full snapshot of the template item plus
+/// run state. Mutated individually during a run, so first-class HLC rows.
+class PreDiveSessionItems extends Table {
+  // coverage:ignore-start
+  TextColumn get id => text()();
+  TextColumn get sessionId =>
+      text().references(PreDiveSessions, #id, onDelete: KeyAction.cascade)();
+  TextColumn get section => text().nullable()();
+  TextColumn get title => text()();
+  TextColumn get notes => text().withDefault(const Constant(''))();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  TextColumn get itemType => text().withDefault(const Constant('check'))();
+  TextColumn get valueLabel => text().nullable()();
+  TextColumn get valueUnit => text().nullable()();
+  RealColumn get valueMin => real().nullable()();
+  RealColumn get valueMax => real().nullable()();
+  BoolColumn get isRequired => boolean().withDefault(const Constant(false))();
+
+  /// 'pending' | 'done' | 'skipped' | 'flagged' (PreDiveItemState.name).
+  TextColumn get state => text().withDefault(const Constant('pending'))();
+  RealColumn get valueNumber => real().nullable()();
+  TextColumn get valueText => text().nullable()();
+
+  /// Diver note recorded during the run (e.g. "cell 2 sluggish").
+  TextColumn get note => text().withDefault(const Constant(''))();
+
+  /// Stamped at tap time — audit evidence, never backfilled.
+  IntColumn get completedAt => integer().nullable()();
+
+  /// Set for equipment-expanded rows; navigation only.
+  TextColumn get equipmentId => text().nullable().references(
+    Equipment,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution.
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+  // coverage:ignore-end
+}
+
 /// GPS surface tracks recorded by the phone during a dive day (spec
 /// 2026-07-06-gps-track-logging). One row per recording session; points
 /// live in a gzipped JSON blob because matching always reads whole tracks
@@ -2178,6 +2334,11 @@ class FieldPresets extends Table {
     ChecklistTemplates,
     ChecklistTemplateItems,
     TripChecklistItems,
+    // Pre-dive checklists (spec 2026-07-16-pre-dive-checklist)
+    PreDiveChecklistTemplates,
+    PreDiveChecklistTemplateItems,
+    PreDiveSessions,
+    PreDiveSessionItems,
     // GPS surface track logging (discussion #289)
     GpsTracks,
     GpsTrackPointsLocal,
@@ -2205,7 +2366,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 112;
+  static const int currentSchemaVersion = 113;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -2321,6 +2482,7 @@ class AppDatabase extends _$AppDatabase {
     110,
     111,
     112,
+    113,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -2413,6 +2575,29 @@ class AppDatabase extends _$AppDatabase {
     if (cols.isNotEmpty && !hasThickness) {
       await customStatement('ALTER TABLE equipment ADD COLUMN thickness TEXT');
     }
+  }
+
+  /// v113: pre-dive checklist tables. Migrator.createTable is IF NOT EXISTS,
+  /// so this is safe to call from both onUpgrade and the beforeOpen backstop
+  /// (parallel-branch version-collision self-heal).
+  Future<void> _assertPreDiveChecklistSchema() async {
+    final m = createMigrator();
+    await m.createTable(preDiveChecklistTemplates);
+    await m.createTable(preDiveChecklistTemplateItems);
+    await m.createTable(preDiveSessions);
+    await m.createTable(preDiveSessionItems);
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_pre_dive_template_items_template_id '
+      'ON pre_dive_checklist_template_items(template_id)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_pre_dive_sessions_dive_id '
+      'ON pre_dive_sessions(dive_id)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_pre_dive_session_items_session_id '
+      'ON pre_dive_session_items(session_id)',
+    );
   }
 
   /// v111: equipment_sets.is_default column + equipment_set_geofences table.
@@ -5543,6 +5728,10 @@ class AppDatabase extends _$AppDatabase {
           await _assertEquipmentThicknessColumn();
         }
         if (from < 112) await reportProgress();
+        if (from < 113) {
+          await _assertPreDiveChecklistSchema();
+        }
+        if (from < 113) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
@@ -5575,6 +5764,9 @@ class AppDatabase extends _$AppDatabase {
 
         // v112 backstop: re-assert equipment.thickness column.
         await _assertEquipmentThicknessColumn();
+
+        // v113 backstop: re-assert the pre-dive checklist tables.
+        await _assertPreDiveChecklistSchema();
 
         // Built-in dive types are reference data: identical on every device and
         // undeletable through DiveTypeRepository. Nothing else restores them --
