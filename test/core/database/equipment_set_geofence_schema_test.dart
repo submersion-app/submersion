@@ -74,8 +74,10 @@ void main() {
     },
   );
 
-  test('v112 is the current schema version (exact-latest tripwire)', () {
-    expect(AppDatabase.currentSchemaVersion, 112);
+  test('v112 objects are present at the current schema version', () {
+    // Exact-latest tripwire moved to migration_v120_planner_parity_test when
+    // the planner-parity migration landed on top of this one.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(112));
     expect(AppDatabase.migrationVersions, contains(112));
   });
 }
