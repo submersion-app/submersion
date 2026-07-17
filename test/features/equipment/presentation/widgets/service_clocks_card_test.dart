@@ -79,6 +79,7 @@ void main() {
         serviceKindsProvider.overrideWith((ref) async => [hydro, vip, o2]),
       ],
       child: const MaterialApp(
+        locale: Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(

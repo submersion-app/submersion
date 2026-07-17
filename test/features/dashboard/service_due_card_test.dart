@@ -53,6 +53,7 @@ void main() {
     return ProviderScope(
       overrides: [dueClocksProvider.overrideWith((ref) async => due)],
       child: const MaterialApp(
+        locale: Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(body: ServiceDueCard()),

@@ -25,6 +25,10 @@ class TripServiceAlertBanner extends ConsumerWidget {
     if (alerts.isEmpty) return const SizedBox.shrink();
 
     final scheme = Theme.of(context).colorScheme;
+    // The provider yields one entry per blocking CLOCK; the label counts
+    // ITEMS, so collapse to distinct equipment ids (hydro + VIP on one
+    // cylinder is still one item to bring to the shop).
+    final itemCount = alerts.map((a) => a.item.id).toSet().length;
     final anyOverdue = alerts.any(
       (a) => a.status.severity == ServiceClockSeverity.overdue,
     );
@@ -37,7 +41,7 @@ class TripServiceAlertBanner extends ConsumerWidget {
 
     return Semantics(
       button: true,
-      label: context.l10n.trips_serviceAlert_count(alerts.length),
+      label: context.l10n.trips_serviceAlert_count(itemCount),
       child: InkWell(
         onTap: () => _showAlertSheet(context, alerts),
         child: Container(
@@ -50,7 +54,7 @@ class TripServiceAlertBanner extends ConsumerWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  context.l10n.trips_serviceAlert_count(alerts.length),
+                  context.l10n.trips_serviceAlert_count(itemCount),
                   style: Theme.of(
                     context,
                   ).textTheme.bodyMedium?.copyWith(color: foreground),

@@ -102,11 +102,16 @@ void main() {
       final tank = await equipmentRepo.createEquipment(
         const EquipmentItem(id: '', name: 'AL80', type: EquipmentType.tank),
       );
-      // Overdue hydro: blocks any upcoming trip.
+      // BOTH clocks overdue on the same tank: the trip nag must still count
+      // one ITEM, not two clocks.
       final schedules = await scheduleRepo.getSchedulesForEquipment(tank.id);
       final hydro = schedules.firstWhere((s) => s.serviceKindId == 'hydro');
       await scheduleRepo.updateSchedule(
         hydro.copyWith(anchorDate: now.subtract(const Duration(days: 2190))),
+      );
+      final vip = schedules.firstWhere((s) => s.serviceKindId == 'vip');
+      await scheduleRepo.updateSchedule(
+        vip.copyWith(anchorDate: now.subtract(const Duration(days: 400))),
       );
 
       final trip = await TripRepository().createTrip(
@@ -128,7 +133,8 @@ void main() {
       expect(fake.tripReminders, hasLength(1));
       final reminder = fake.tripReminders.single;
       expect(reminder.tripId, trip.id);
-      expect(reminder.itemCount, greaterThanOrEqualTo(1));
+      // One tank with hydro AND vip overdue is one item, not two.
+      expect(reminder.itemCount, 1);
       // Fires tripServiceLeadDays (default 14) before the trip starts.
       final expectedDay = trip.startDate.subtract(const Duration(days: 14));
       expect(reminder.fireAt.day, expectedDay.day);

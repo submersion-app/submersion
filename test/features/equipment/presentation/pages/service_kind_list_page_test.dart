@@ -24,6 +24,7 @@ void main() {
     return ProviderScope(
       overrides: [serviceKindsProvider.overrideWith((ref) async => kinds)],
       child: const MaterialApp(
+        locale: Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: ServiceKindListPage(),

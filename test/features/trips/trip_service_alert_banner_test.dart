@@ -72,6 +72,7 @@ void main() {
         tripServiceAlertsProvider(trip.id).overrideWith((ref) async => alerts),
       ],
       child: MaterialApp.router(
+        locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         routerConfig: router,
@@ -92,6 +93,47 @@ void main() {
 
     expect(find.text('AL80'), findsOneWidget);
     expect(find.textContaining('Hydrostatic test due'), findsOneWidget);
+  });
+
+  testWidgets('two blocking clocks on one item still count as 1 item', (
+    tester,
+  ) async {
+    final vipKind = ServiceKind(
+      id: 'vip',
+      name: 'Visual inspection (VIP)',
+      defaultIntervalDays: 365,
+      isBuiltIn: true,
+      createdAt: t0,
+      updatedAt: t0,
+    );
+    final vipAlert = (
+      item: const EquipmentItem(
+        id: 'e1',
+        name: 'AL80',
+        type: EquipmentType.tank,
+      ),
+      status: ServiceClockStatus(
+        schedule: ServiceSchedule(
+          id: 's2',
+          equipmentId: 'e1',
+          serviceKindId: 'vip',
+          createdAt: t0,
+          updatedAt: t0,
+        ),
+        kind: vipKind,
+        anchor: t0,
+        dueDate: now.add(const Duration(days: 3)),
+        severity: ServiceClockSeverity.dueSoon,
+        now: now,
+      ),
+    );
+    await tester.pumpWidget(
+      buildBanner(upcomingTrip(), [hydroAlert(), vipAlert]),
+    );
+    await tester.pumpAndSettle();
+
+    // Per-clock alerts collapse to distinct equipment items in the label.
+    expect(find.text('1 item needs service before this trip'), findsOneWidget);
   });
 
   testWidgets('renders nothing when there are no alerts', (tester) async {

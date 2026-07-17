@@ -220,6 +220,7 @@ class EquipmentRepository {
       await ServiceScheduleRepository().autoAttachForEquipment(
         equipmentId: id,
         type: equipment.type,
+        diverId: equipment.diverId,
       );
 
       _log.info('Created equipment with id: $id');

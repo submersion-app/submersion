@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -298,9 +299,15 @@ class _ServiceKindEditDialogState extends State<_ServiceKindEditDialog> {
     final repo = widget.ref.read(serviceKindRepositoryProvider);
     final existing = widget.existing;
     if (existing == null) {
+      // Scope the custom kind to the active diver so it does not surface
+      // (or auto-attach) for other divers; null only when no diver exists.
+      final diverId = await widget.ref.read(
+        validatedCurrentDiverIdProvider.future,
+      );
       await repo.createKind(
         ServiceKind(
           id: '',
+          diverId: diverId,
           name: _name.text.trim(),
           applicableTypes: _types.toList(),
           defaultIntervalDays: int.tryParse(_days.text.trim()),

@@ -63,7 +63,11 @@ class UpcomingTripBanner extends ConsumerWidget {
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
-                    context.l10n.trips_serviceAlert_count(serviceAlerts.length),
+                    // Per-clock alerts collapse to distinct items for the
+                    // "N items" phrasing.
+                    context.l10n.trips_serviceAlert_count(
+                      serviceAlerts.map((a) => a.item.id).toSet().length,
+                    ),
                     style: theme.textTheme.labelMedium?.copyWith(
                       color: theme.colorScheme.error,
                       fontWeight: FontWeight.bold,

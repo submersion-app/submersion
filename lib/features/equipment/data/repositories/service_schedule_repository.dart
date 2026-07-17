@@ -99,15 +99,22 @@ class ServiceScheduleRepository {
   /// Creates one enabled schedule per auto-attach kind matching [type] that
   /// the item does not already have. Deterministic ids keep this idempotent
   /// and collision-free across devices.
+  ///
+  /// Kinds are scoped to [diverId]: built-ins and unowned customs always
+  /// apply; another diver's custom kinds never auto-attach.
   Future<void> autoAttachForEquipment({
     required String equipmentId,
     required EquipmentType type,
+    String? diverId,
   }) async {
     final kinds = await ServiceKindRepository().getAllKinds();
     final existing = await getSchedulesForEquipment(equipmentId);
     final existingKindIds = existing.map((s) => s.serviceKindId).toSet();
     final now = DateTime.now();
     for (final kind in kinds) {
+      if (!kind.isBuiltIn && kind.diverId != null && kind.diverId != diverId) {
+        continue; // another diver's custom kind
+      }
       if (!kind.autoAttach || !kind.appliesTo(type)) continue;
       if (existingKindIds.contains(kind.id)) continue;
       await createSchedule(

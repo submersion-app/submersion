@@ -217,17 +217,20 @@ class NotificationScheduler {
     for (final trip in trips) {
       if (!trip.startDate.isAfter(now)) continue;
 
-      var alertCount = 0;
+      // Count distinct ITEMS with any blocking clock -- the notification
+      // says "N items", and one item with hydro + VIP both due is still one
+      // thing to bring to the shop.
+      final blockedItemIds = <String>{};
       for (final item in items) {
         for (final status in statusesByItem[item.id] ?? const []) {
           final blocks =
               status.severity == ServiceClockSeverity.overdue ||
               (status.dueDate != null &&
                   status.dueDate!.isBefore(trip.endDate));
-          if (blocks) alertCount++;
+          if (blocks) blockedItemIds.add(item.id);
         }
       }
-      if (alertCount == 0) continue;
+      if (blockedItemIds.isEmpty) continue;
 
       final fireAt = DateTime(
         trip.startDate.year,
@@ -241,7 +244,7 @@ class NotificationScheduler {
       await _notificationService.scheduleTripServiceReminder(
         tripId: trip.id,
         tripName: trip.name,
-        itemCount: alertCount,
+        itemCount: blockedItemIds.length,
         scheduledDate: fireAt,
       );
     }
