@@ -270,8 +270,8 @@ void main() {
           );
           await tester.pumpAndSettle();
 
-          expect(find.text('THE DIVE'), findsOneWidget);
-          expect(find.text('GAS & GEAR'), findsOneWidget);
+          expect(find.text('The Dive'), findsOneWidget);
+          expect(find.text('Gas & Gear'), findsOneWidget);
           // Collapsed: the group shows its summary bar, not its content.
           expect(find.textContaining('Add Tank'), findsNothing);
           expect(find.textContaining('tank'), findsOneWidget);

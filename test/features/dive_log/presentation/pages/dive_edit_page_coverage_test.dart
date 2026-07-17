@@ -242,9 +242,9 @@ void main() {
     final dive = await seedRichDive();
     await pumpEditor(tester, dive.id, surfaceSize: const Size(1400, 1600));
 
-    final theDive = tester.getTopLeft(find.text('THE DIVE'));
-    final gasGear = tester.getTopLeft(find.text('GAS & GEAR'));
-    final conditions = tester.getTopLeft(find.text('CONDITIONS'));
+    final theDive = tester.getTopLeft(find.text('The Dive'));
+    final gasGear = tester.getTopLeft(find.text('Gas & Gear'));
+    final conditions = tester.getTopLeft(find.text('Conditions'));
 
     // Left column (split after Gas & Gear): The Dive then Gas & Gear stacked.
     expect(gasGear.dx, closeTo(theDive.dx, 1));
@@ -376,11 +376,11 @@ void main() {
 
     await tester.tap(find.text('Training Course'));
     await tester.pumpAndSettle();
-    expect(find.text('TRAINING COURSE'), findsOneWidget);
+    expect(find.text('Training Course'), findsOneWidget);
 
     // The seeded custom field means its section renders directly rather
     // than hiding behind the add row.
-    expect(find.text('CUSTOM FIELDS'), findsOneWidget);
+    expect(find.text('Custom Fields'), findsOneWidget);
     await tester.tap(find.text('Add Field'));
     await tester.pumpAndSettle();
   });

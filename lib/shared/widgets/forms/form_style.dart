@@ -81,4 +81,39 @@ abstract final class FormStyle {
       color: theme.colorScheme.onSurfaceVariant,
     );
   }
+
+  /// Padding of the header row inside a section card.
+  static const EdgeInsets headerPadding = EdgeInsets.symmetric(
+    horizontal: 14,
+    vertical: 12,
+  );
+
+  /// Section title inside the card header.
+  static TextStyle sectionTitleStyle(BuildContext context) {
+    final theme = Theme.of(context);
+    return theme.textTheme.titleMedium!.copyWith(
+      fontSize: 15.5,
+      fontWeight: FontWeight.w600,
+      color: theme.colorScheme.onSurface,
+    );
+  }
+
+  /// Sub-header overline inside a section body (TANKS, EQUIPMENT, WEATHER).
+  static TextStyle overlineStyle(BuildContext context) {
+    final theme = Theme.of(context);
+    return theme.textTheme.labelSmall!.copyWith(
+      fontSize: 10.5,
+      letterSpacing: 0.9,
+      fontWeight: FontWeight.w700,
+      color: theme.colorScheme.onSurfaceVariant,
+    );
+  }
+
+  /// Hairline border around section cards (light-theme discernibility).
+  static Color cardBorderColor(BuildContext context) =>
+      Theme.of(context).colorScheme.outlineVariant;
+
+  /// Fainter color for empty-invitation text in a collapsed header.
+  static Color invitationColor(BuildContext context) =>
+      Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.7);
 }
