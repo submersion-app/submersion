@@ -179,6 +179,43 @@ void main() {
     expect(page.nextUrl, isNull);
   });
 
+  test('listAssets tolerates non-scalar payload fields without crashing '
+      'the scan', () async {
+    // The live API returned a list where a scalar was expected, aborting the
+    // whole scan with "type List<dynamic> is not a subtype of type num?".
+    final fixture =
+        _guard +
+        jsonEncode({
+          'resources': [
+            {
+              'id': 'assetX',
+              'subtype': 'image',
+              'payload': {
+                'captureDate': '2026-05-06T18:39:22',
+                'importSource': {
+                  'fileName': ['a', 'b'],
+                },
+                'location': {
+                  'latitude': [1, 2, 3],
+                  'longitude': 55.5,
+                },
+              },
+            },
+          ],
+        });
+    final c = await client((req) async => http.Response(fixture, 200));
+    final page = await c.listAssets(
+      'cat1',
+      capturedBefore: DateTime.utc(2026, 5, 6, 20),
+    );
+    expect(page.assets, hasLength(1));
+    final a = page.assets.single;
+    expect(a.captureDate, DateTime.utc(2026, 5, 6, 18, 39, 22));
+    expect(a.latitude, isNull, reason: 'a list is tolerated, not cast');
+    expect(a.longitude, 55.5, reason: 'a valid scalar still parses');
+    expect(a.fileName, isNull);
+  });
+
   test('listAlbumAssets unwraps embedded assets', () async {
     late http.Request captured;
     final fixture =
