@@ -88,6 +88,14 @@ class _PlanningSidebar extends StatelessWidget {
         isSelected: location.contains('/surface-interval'),
         route: '/planning/surface-interval',
       ),
+      _SidebarItem(
+        icon: Icons.airplanemode_inactive,
+        iconColor: colorScheme.error,
+        title: context.l10n.safetySettings_noFlyHeader,
+        subtitle: context.l10n.planning_card_noFly_subtitle,
+        isSelected: location.contains('/no-fly'),
+        route: '/planning/no-fly',
+      ),
     ];
 
     return Column(

@@ -20,7 +20,7 @@ class IncidentsListPage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.incidents_title)),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/safety/incidents/new'),
+        onPressed: () => context.push('/incidents/new'),
         icon: const Icon(Icons.add),
         label: Text(l10n.incidents_add),
       ),
@@ -107,7 +107,7 @@ class _IncidentTile extends ConsumerWidget {
             if (incident.diveId != null) l10n.incidents_linkedDive,
           ].join(' - '),
         ),
-        onTap: () => context.push('/safety/incidents/${incident.id}'),
+        onTap: () => context.push('/incidents/${incident.id}'),
       ),
     );
   }
