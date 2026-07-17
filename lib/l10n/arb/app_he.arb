@@ -1,4 +1,11 @@
 {
+  "divelogsSync_photosHeader": "תמונות",
+  "divelogsSync_photosButton": "סנכרן תמונות עבור {count} צלילות תואמות",
+  "divelogsSync_photosSyncing": "מסנכרן תמונות עם divelogs.de...",
+  "divelogsSync_photosDone": "{pulled} תמונות נמשכו, {pushed} נדחפו.",
+  "divelogsSync_photosDuplicates": "{count} תמונות כבר היו קיימות (זוהו לפי תוכן).",
+  "divelogsSync_photosNoUrl": "ל-{count} תמונות מרוחקות לא היה קישור להורדה והן דולגו.",
+  "divelogsSync_photosFailed": "סנכרון התמונות נעצר: {error}",
   "divelogsSync_gearCertHeader": "ציוד והסמכות",
   "divelogsSync_gearCertMatched": "{gear} פריטי ציוד ו-{certs} הסמכות כבר מסונכרנים",
   "divelogsSync_gearCertPush": "דחיפה: {gear} פריטי ציוד, {certs} הסמכות",

@@ -1,4 +1,11 @@
 {
+  "divelogsSync_photosHeader": "Fényképek",
+  "divelogsSync_photosButton": "Fényképek szinkronizálása {count} párosított merüléshez",
+  "divelogsSync_photosSyncing": "Fényképek szinkronizálása a divelogs.de-vel...",
+  "divelogsSync_photosDone": "{pulled} fénykép letöltve, {pushed} feltöltve.",
+  "divelogsSync_photosDuplicates": "{count} fénykép már megvolt (tartalom alapján felismerve).",
+  "divelogsSync_photosNoUrl": "{count} távoli képnek nem volt letölthető hivatkozása, ezért kimaradtak.",
+  "divelogsSync_photosFailed": "A fényképszinkronizálás leállt: {error}",
   "divelogsSync_gearCertHeader": "Felszerelés és minősítések",
   "divelogsSync_gearCertMatched": "{gear} felszerelés és {certs} minősítés már szinkronban",
   "divelogsSync_gearCertPush": "Feltöltés: {gear} felszerelés, {certs} minősítés",

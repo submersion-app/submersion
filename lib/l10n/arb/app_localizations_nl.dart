@@ -9,6 +9,38 @@ class AppLocalizationsNl extends AppLocalizations {
   AppLocalizationsNl([String locale = 'nl']) : super(locale);
 
   @override
+  String get divelogsSync_photosHeader => 'Foto\'s';
+
+  @override
+  String divelogsSync_photosButton(int count) {
+    return 'Foto\'s synchroniseren voor $count gekoppelde duiken';
+  }
+
+  @override
+  String get divelogsSync_photosSyncing =>
+      'Foto\'s synchroniseren met divelogs.de...';
+
+  @override
+  String divelogsSync_photosDone(int pulled, int pushed) {
+    return '$pulled foto\'s opgehaald, $pushed verstuurd.';
+  }
+
+  @override
+  String divelogsSync_photosDuplicates(int count) {
+    return '$count foto\'s waren al aanwezig (herkend op inhoud).';
+  }
+
+  @override
+  String divelogsSync_photosNoUrl(int count) {
+    return '$count externe afbeeldingen hadden geen downloadbare link en zijn overgeslagen.';
+  }
+
+  @override
+  String divelogsSync_photosFailed(String error) {
+    return 'Fotosynchronisatie gestopt: $error';
+  }
+
+  @override
   String get divelogsSync_gearCertHeader => 'Uitrusting & brevetten';
 
   @override

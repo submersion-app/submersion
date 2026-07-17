@@ -345,4 +345,42 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets('photos section syncs matched dives', (tester) async {
+    var pictureCalls = 0;
+    final client = MockClient((req) async {
+      final fallback = gearCertDefaults(req);
+      if (fallback != null) return fallback;
+      if (req.url.path == '/api/divelist') {
+        return http.Response(
+          jsonEncode([divelistEntry(1, '2022-09-03', '10:00:00')]),
+          200,
+        );
+      }
+      if (req.url.path.startsWith('/api/pictures/')) {
+        pictureCalls++;
+        return http.Response(jsonEncode([]), 200);
+      }
+      fail('unexpected request ${req.url}');
+    });
+
+    await tester.runAsync(() async {
+      await seedAccount();
+      await seedLocalDive('local-matched', DateTime.utc(2022, 9, 3, 10));
+      await tester.pumpWidget(host(client));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Compare'));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Sync photos for 1 matched dives'), findsOneWidget);
+      await tester.ensureVisible(find.text('Sync photos for 1 matched dives'));
+      await tester.tap(find.text('Sync photos for 1 matched dives'));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      await tester.pumpAndSettle();
+    });
+
+    expect(pictureCalls, 1, reason: 'the one matched dive is queried');
+    expect(find.text('Pulled 0 photos, pushed 0.'), findsOneWidget);
+  });
 }

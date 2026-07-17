@@ -1,4 +1,11 @@
 {
+  "divelogsSync_photosHeader": "Foto",
+  "divelogsSync_photosButton": "Sincronizza le foto di {count} immersioni corrispondenti",
+  "divelogsSync_photosSyncing": "Sincronizzazione foto con divelogs.de...",
+  "divelogsSync_photosDone": "{pulled} foto scaricate, {pushed} caricate.",
+  "divelogsSync_photosDuplicates": "{count} foto erano già presenti (riconosciute dal contenuto).",
+  "divelogsSync_photosNoUrl": "{count} immagini remote non avevano un link scaricabile e sono state ignorate.",
+  "divelogsSync_photosFailed": "Sincronizzazione foto interrotta: {error}",
   "divelogsSync_gearCertHeader": "Attrezzatura e certificazioni",
   "divelogsSync_gearCertMatched": "{gear} attrezzature e {certs} certificazioni già sincronizzate",
   "divelogsSync_gearCertPush": "Carica: {gear} attrezzature, {certs} certificazioni",

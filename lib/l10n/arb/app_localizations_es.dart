@@ -9,6 +9,38 @@ class AppLocalizationsEs extends AppLocalizations {
   AppLocalizationsEs([String locale = 'es']) : super(locale);
 
   @override
+  String get divelogsSync_photosHeader => 'Fotos';
+
+  @override
+  String divelogsSync_photosButton(int count) {
+    return 'Sincronizar fotos de $count inmersiones coincidentes';
+  }
+
+  @override
+  String get divelogsSync_photosSyncing =>
+      'Sincronizando fotos con divelogs.de...';
+
+  @override
+  String divelogsSync_photosDone(int pulled, int pushed) {
+    return 'Se descargaron $pulled fotos y se subieron $pushed.';
+  }
+
+  @override
+  String divelogsSync_photosDuplicates(int count) {
+    return '$count fotos ya estaban presentes (coincidencia por contenido).';
+  }
+
+  @override
+  String divelogsSync_photosNoUrl(int count) {
+    return '$count imágenes remotas no tenían enlace de descarga y se omitieron.';
+  }
+
+  @override
+  String divelogsSync_photosFailed(String error) {
+    return 'La sincronización de fotos se detuvo: $error';
+  }
+
+  @override
   String get divelogsSync_gearCertHeader => 'Equipo y certificaciones';
 
   @override

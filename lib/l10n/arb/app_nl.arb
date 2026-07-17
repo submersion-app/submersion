@@ -1,4 +1,11 @@
 {
+  "divelogsSync_photosHeader": "Foto's",
+  "divelogsSync_photosButton": "Foto's synchroniseren voor {count} gekoppelde duiken",
+  "divelogsSync_photosSyncing": "Foto's synchroniseren met divelogs.de...",
+  "divelogsSync_photosDone": "{pulled} foto's opgehaald, {pushed} verstuurd.",
+  "divelogsSync_photosDuplicates": "{count} foto's waren al aanwezig (herkend op inhoud).",
+  "divelogsSync_photosNoUrl": "{count} externe afbeeldingen hadden geen downloadbare link en zijn overgeslagen.",
+  "divelogsSync_photosFailed": "Fotosynchronisatie gestopt: {error}",
   "divelogsSync_gearCertHeader": "Uitrusting & brevetten",
   "divelogsSync_gearCertMatched": "{gear} uitrustingsstukken en {certs} brevetten al gesynchroniseerd",
   "divelogsSync_gearCertPush": "Versturen: {gear} uitrustingsstukken, {certs} brevetten",

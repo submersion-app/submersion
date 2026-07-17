@@ -1,4 +1,11 @@
 {
+  "divelogsSync_photosHeader": "الصور",
+  "divelogsSync_photosButton": "مزامنة صور {count} غطسات متطابقة",
+  "divelogsSync_photosSyncing": "جارٍ مزامنة الصور مع divelogs.de...",
+  "divelogsSync_photosDone": "تم سحب {pulled} صور ودفع {pushed}.",
+  "divelogsSync_photosDuplicates": "{count} صور كانت موجودة بالفعل (تم التعرف عليها بالمحتوى).",
+  "divelogsSync_photosNoUrl": "{count} صور بعيدة لم يكن لها رابط تنزيل وتم تخطيها.",
+  "divelogsSync_photosFailed": "توقفت مزامنة الصور: {error}",
   "divelogsSync_gearCertHeader": "المعدات والشهادات",
   "divelogsSync_gearCertMatched": "{gear} قطع معدات و{certs} شهادات متزامنة بالفعل",
   "divelogsSync_gearCertPush": "دفع: {gear} قطع معدات، {certs} شهادات",

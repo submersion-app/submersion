@@ -1,4 +1,11 @@
 {
+  "divelogsSync_photosHeader": "照片",
+  "divelogsSync_photosButton": "为 {count} 条匹配的潜水记录同步照片",
+  "divelogsSync_photosSyncing": "正在与 divelogs.de 同步照片...",
+  "divelogsSync_photosDone": "拉取了 {pulled} 张照片,推送了 {pushed} 张。",
+  "divelogsSync_photosDuplicates": "{count} 张照片已存在(按内容匹配)。",
+  "divelogsSync_photosNoUrl": "{count} 张远程图片没有可下载链接,已跳过。",
+  "divelogsSync_photosFailed": "照片同步已停止:{error}",
   "divelogsSync_gearCertHeader": "装备与证书",
   "divelogsSync_gearCertMatched": "{gear} 件装备和 {certs} 张证书已同步",
   "divelogsSync_gearCertPush": "推送:{gear} 件装备,{certs} 张证书",

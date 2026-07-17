@@ -1,4 +1,11 @@
 {
+  "divelogsSync_photosHeader": "Fotos",
+  "divelogsSync_photosButton": "Fotos für {count} zugeordnete Tauchgänge synchronisieren",
+  "divelogsSync_photosSyncing": "Fotos werden mit divelogs.de synchronisiert...",
+  "divelogsSync_photosDone": "{pulled} Fotos geladen, {pushed} gesendet.",
+  "divelogsSync_photosDuplicates": "{count} Fotos waren bereits vorhanden (inhaltlich erkannt).",
+  "divelogsSync_photosNoUrl": "{count} entfernte Bilder hatten keinen ladbaren Link und wurden übersprungen.",
+  "divelogsSync_photosFailed": "Fotosynchronisierung gestoppt: {error}",
   "divelogsSync_gearCertHeader": "Ausrüstung & Zertifizierungen",
   "divelogsSync_gearCertMatched": "{gear} Ausrüstungsteile und {certs} Zertifizierungen bereits synchron",
   "divelogsSync_gearCertPush": "Senden: {gear} Ausrüstungsteile, {certs} Zertifizierungen",

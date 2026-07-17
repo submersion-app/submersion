@@ -9,6 +9,38 @@ class AppLocalizationsAr extends AppLocalizations {
   AppLocalizationsAr([String locale = 'ar']) : super(locale);
 
   @override
+  String get divelogsSync_photosHeader => 'الصور';
+
+  @override
+  String divelogsSync_photosButton(int count) {
+    return 'مزامنة صور $count غطسات متطابقة';
+  }
+
+  @override
+  String get divelogsSync_photosSyncing =>
+      'جارٍ مزامنة الصور مع divelogs.de...';
+
+  @override
+  String divelogsSync_photosDone(int pulled, int pushed) {
+    return 'تم سحب $pulled صور ودفع $pushed.';
+  }
+
+  @override
+  String divelogsSync_photosDuplicates(int count) {
+    return '$count صور كانت موجودة بالفعل (تم التعرف عليها بالمحتوى).';
+  }
+
+  @override
+  String divelogsSync_photosNoUrl(int count) {
+    return '$count صور بعيدة لم يكن لها رابط تنزيل وتم تخطيها.';
+  }
+
+  @override
+  String divelogsSync_photosFailed(String error) {
+    return 'توقفت مزامنة الصور: $error';
+  }
+
+  @override
   String get divelogsSync_gearCertHeader => 'المعدات والشهادات';
 
   @override

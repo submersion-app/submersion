@@ -116,6 +116,48 @@ abstract class AppLocalizations {
     Locale('zh'),
   ];
 
+  /// No description provided for @divelogsSync_photosHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos'**
+  String get divelogsSync_photosHeader;
+
+  /// No description provided for @divelogsSync_photosButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync photos for {count} matched dives'**
+  String divelogsSync_photosButton(int count);
+
+  /// No description provided for @divelogsSync_photosSyncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing photos with divelogs.de...'**
+  String get divelogsSync_photosSyncing;
+
+  /// No description provided for @divelogsSync_photosDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Pulled {pulled} photos, pushed {pushed}.'**
+  String divelogsSync_photosDone(int pulled, int pushed);
+
+  /// No description provided for @divelogsSync_photosDuplicates.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} photos were already present (matched by content).'**
+  String divelogsSync_photosDuplicates(int count);
+
+  /// No description provided for @divelogsSync_photosNoUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} remote pictures had no downloadable link and were skipped.'**
+  String divelogsSync_photosNoUrl(int count);
+
+  /// No description provided for @divelogsSync_photosFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo sync stopped: {error}'**
+  String divelogsSync_photosFailed(String error);
+
   /// No description provided for @divelogsSync_gearCertHeader.
   ///
   /// In en, this message translates to:

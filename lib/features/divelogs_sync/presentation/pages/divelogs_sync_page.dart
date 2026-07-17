@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
@@ -12,12 +15,17 @@ import 'package:submersion/features/certifications/presentation/providers/certif
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/divelogs_sync/domain/services/divelogs_gear_cert_push_service.dart';
+import 'package:submersion/features/divelogs_sync/domain/services/divelogs_photo_sync_service.dart';
 import 'package:submersion/features/divelogs_sync/domain/services/divelogs_push_service.dart';
 import 'package:submersion/features/divelogs_sync/domain/services/divelogs_sync_planner.dart';
 import 'package:submersion/features/divelogs_sync/domain/services/gear_cert_sync_planner.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/import_wizard/data/adapters/divelogs_adapter.dart';
+import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
+import 'package:submersion/features/media/presentation/providers/media_providers.dart';
+import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
+import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 enum _PagePhase {
@@ -56,6 +64,11 @@ class _DivelogsSyncPageState extends ConsumerState<DivelogsSyncPage> {
   String? _gearCertError;
   GearCertPushResult? _lastGearCertResult;
   bool _pushingGearCerts = false;
+  List<DivelogsMatchedDive> _matchedPairs = const [];
+  PhotoSyncResult? _lastPhotoResult;
+  bool _syncingPhotos = false;
+  int _photoSyncDone = 0;
+  int _photoSyncTotal = 0;
 
   @override
   void initState() {
@@ -160,6 +173,7 @@ class _DivelogsSyncPageState extends ConsumerState<DivelogsSyncPage> {
       setState(() {
         _plan = plan;
         _selectedPushIds = plan.pushCandidates.map((s) => s.id).toSet();
+        _matchedPairs = plan.matchedPairs;
         _gearCertPlan = gearCertPlan;
         _gearCertError = gearCertError;
         _geartypes = geartypes;
@@ -227,6 +241,63 @@ class _DivelogsSyncPageState extends ConsumerState<DivelogsSyncPage> {
     _lastGearCertResult = result;
     _pushingGearCerts = false;
     await _compare();
+  }
+
+  Future<void> _syncPhotos() async {
+    final account = _account;
+    if (account == null || _matchedPairs.isEmpty) return;
+    setState(() {
+      _syncingPhotos = true;
+      _photoSyncDone = 0;
+      _photoSyncTotal = _matchedPairs.length;
+    });
+    final mediaRepo = ref.read(mediaRepositoryProvider);
+    final resolvers = ref.read(mediaSourceResolverRegistryProvider);
+    final importService = ref.read(mediaImportServiceProvider);
+    final service = DivelogsPhotoSyncService(
+      api: _api(account),
+      getLocalMedia: mediaRepo.getMediaForDive,
+      resolveLocalBytes: (item) async {
+        final data = await resolvers.resolverFor(item.sourceType).resolve(item);
+        return switch (data) {
+          FileData(:final file) => await file.readAsBytes(),
+          BytesData(:final bytes) => bytes,
+          _ => null,
+        };
+      },
+      attachToDive:
+          ({
+            required bytes,
+            required filename,
+            required diveId,
+            required takenAt,
+          }) async {
+            final dir = await Directory.systemTemp.createTemp('divelogs_photo');
+            final file = File(p.join(dir.path, p.basename(filename)));
+            await file.writeAsBytes(bytes);
+            await importService.importLocalFileForDive(
+              sourceFile: file,
+              diveId: diveId,
+              takenAt: takenAt,
+            );
+          },
+    );
+    final result = await service.sync(
+      _matchedPairs,
+      onProgress: (done, total) {
+        if (!mounted) return;
+        setState(() {
+          _photoSyncDone = done;
+          _photoSyncTotal = total;
+        });
+      },
+    );
+    if (!mounted) return;
+    // Photos do not change the dive diff, so no re-compare.
+    setState(() {
+      _lastPhotoResult = result;
+      _syncingPhotos = false;
+    });
   }
 
   @override
@@ -431,8 +502,62 @@ class _DivelogsSyncPageState extends ConsumerState<DivelogsSyncPage> {
         ],
         const SizedBox(height: 16),
         ..._buildGearCertSection(context),
+        const SizedBox(height: 16),
+        ..._buildPhotoSection(context),
       ],
     );
+  }
+
+  List<Widget> _buildPhotoSection(BuildContext context) {
+    final l10n = context.l10n;
+    final result = _lastPhotoResult;
+    return [
+      Text(
+        l10n.divelogsSync_photosHeader,
+        style: Theme.of(context).textTheme.titleMedium,
+      ),
+      const SizedBox(height: 8),
+      if (_syncingPhotos)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              LinearProgressIndicator(
+                value: _photoSyncTotal == 0
+                    ? null
+                    : _photoSyncDone / _photoSyncTotal,
+              ),
+              const SizedBox(height: 8),
+              Text(l10n.divelogsSync_photosSyncing),
+            ],
+          ),
+        ),
+      if (result != null) ...[
+        Text(
+          result.failed
+              ? l10n.divelogsSync_photosFailed(result.error!)
+              : l10n.divelogsSync_photosDone(result.pulled, result.pushed),
+        ),
+        if (result.pulledDuplicates > 0)
+          Text(
+            l10n.divelogsSync_photosDuplicates(result.pulledDuplicates),
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        if (result.skippedNoUrl > 0)
+          Text(
+            l10n.divelogsSync_photosNoUrl(result.skippedNoUrl),
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        const SizedBox(height: 8),
+      ],
+      FilledButton.tonal(
+        onPressed: (_matchedPairs.isEmpty || _syncingPhotos)
+            ? null
+            : _syncPhotos,
+        child: Text(l10n.divelogsSync_photosButton(_matchedPairs.length)),
+      ),
+    ];
   }
 
   List<Widget> _buildGearCertSection(BuildContext context) {

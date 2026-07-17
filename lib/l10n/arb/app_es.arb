@@ -1,4 +1,11 @@
 {
+  "divelogsSync_photosHeader": "Fotos",
+  "divelogsSync_photosButton": "Sincronizar fotos de {count} inmersiones coincidentes",
+  "divelogsSync_photosSyncing": "Sincronizando fotos con divelogs.de...",
+  "divelogsSync_photosDone": "Se descargaron {pulled} fotos y se subieron {pushed}.",
+  "divelogsSync_photosDuplicates": "{count} fotos ya estaban presentes (coincidencia por contenido).",
+  "divelogsSync_photosNoUrl": "{count} imágenes remotas no tenían enlace de descarga y se omitieron.",
+  "divelogsSync_photosFailed": "La sincronización de fotos se detuvo: {error}",
   "divelogsSync_gearCertHeader": "Equipo y certificaciones",
   "divelogsSync_gearCertMatched": "{gear} equipos y {certs} certificaciones ya sincronizados",
   "divelogsSync_gearCertPush": "Subir: {gear} equipos, {certs} certificaciones",

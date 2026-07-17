@@ -9,6 +9,38 @@ class AppLocalizationsHu extends AppLocalizations {
   AppLocalizationsHu([String locale = 'hu']) : super(locale);
 
   @override
+  String get divelogsSync_photosHeader => 'Fényképek';
+
+  @override
+  String divelogsSync_photosButton(int count) {
+    return 'Fényképek szinkronizálása $count párosított merüléshez';
+  }
+
+  @override
+  String get divelogsSync_photosSyncing =>
+      'Fényképek szinkronizálása a divelogs.de-vel...';
+
+  @override
+  String divelogsSync_photosDone(int pulled, int pushed) {
+    return '$pulled fénykép letöltve, $pushed feltöltve.';
+  }
+
+  @override
+  String divelogsSync_photosDuplicates(int count) {
+    return '$count fénykép már megvolt (tartalom alapján felismerve).';
+  }
+
+  @override
+  String divelogsSync_photosNoUrl(int count) {
+    return '$count távoli képnek nem volt letölthető hivatkozása, ezért kimaradtak.';
+  }
+
+  @override
+  String divelogsSync_photosFailed(String error) {
+    return 'A fényképszinkronizálás leállt: $error';
+  }
+
+  @override
   String get divelogsSync_gearCertHeader => 'Felszerelés és minősítések';
 
   @override

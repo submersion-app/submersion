@@ -9,6 +9,37 @@ class AppLocalizationsHe extends AppLocalizations {
   AppLocalizationsHe([String locale = 'he']) : super(locale);
 
   @override
+  String get divelogsSync_photosHeader => 'תמונות';
+
+  @override
+  String divelogsSync_photosButton(int count) {
+    return 'סנכרן תמונות עבור $count צלילות תואמות';
+  }
+
+  @override
+  String get divelogsSync_photosSyncing => 'מסנכרן תמונות עם divelogs.de...';
+
+  @override
+  String divelogsSync_photosDone(int pulled, int pushed) {
+    return '$pulled תמונות נמשכו, $pushed נדחפו.';
+  }
+
+  @override
+  String divelogsSync_photosDuplicates(int count) {
+    return '$count תמונות כבר היו קיימות (זוהו לפי תוכן).';
+  }
+
+  @override
+  String divelogsSync_photosNoUrl(int count) {
+    return 'ל-$count תמונות מרוחקות לא היה קישור להורדה והן דולגו.';
+  }
+
+  @override
+  String divelogsSync_photosFailed(String error) {
+    return 'סנכרון התמונות נעצר: $error';
+  }
+
+  @override
   String get divelogsSync_gearCertHeader => 'ציוד והסמכות';
 
   @override

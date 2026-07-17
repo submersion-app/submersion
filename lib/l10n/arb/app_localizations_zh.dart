@@ -9,6 +9,37 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
+  String get divelogsSync_photosHeader => '照片';
+
+  @override
+  String divelogsSync_photosButton(int count) {
+    return '为 $count 条匹配的潜水记录同步照片';
+  }
+
+  @override
+  String get divelogsSync_photosSyncing => '正在与 divelogs.de 同步照片...';
+
+  @override
+  String divelogsSync_photosDone(int pulled, int pushed) {
+    return '拉取了 $pulled 张照片,推送了 $pushed 张。';
+  }
+
+  @override
+  String divelogsSync_photosDuplicates(int count) {
+    return '$count 张照片已存在(按内容匹配)。';
+  }
+
+  @override
+  String divelogsSync_photosNoUrl(int count) {
+    return '$count 张远程图片没有可下载链接,已跳过。';
+  }
+
+  @override
+  String divelogsSync_photosFailed(String error) {
+    return '照片同步已停止:$error';
+  }
+
+  @override
   String get divelogsSync_gearCertHeader => '装备与证书';
 
   @override
