@@ -92,8 +92,22 @@ class _PlanSetupAccordionState extends ConsumerState<PlanSetupAccordion> {
           KeyedSubtree(
             key: _keyFor(key),
             child: ExpansionTile(
-              key: PageStorageKey('planSetup_$key'),
+              // NO PageStorageKey here: ExpansionTile would persist its
+              // expanded bool into PageStorage, which TextFields inside the
+              // section then read back as a scroll offset and crash on the
+              // double cast. Expansion memory lives in
+              // [setupExpandedSectionsProvider] instead.
+              key: ValueKey('planSetup_$key'),
               controller: _controllerFor(key),
+              initiallyExpanded: ref
+                  .read(setupExpandedSectionsProvider)
+                  .contains(key),
+              onExpansionChanged: (open) {
+                final expanded = {...ref.read(setupExpandedSectionsProvider)};
+                open ? expanded.add(key) : expanded.remove(key);
+                ref.read(setupExpandedSectionsProvider.notifier).state =
+                    expanded;
+              },
               title: Text(title, style: Theme.of(context).textTheme.titleSmall),
               tilePadding: const EdgeInsets.symmetric(horizontal: 12),
               childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),

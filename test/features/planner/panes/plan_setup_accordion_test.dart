@@ -49,6 +49,23 @@ void main() {
     expect(find.byType(PlanDecoSection), findsOneWidget);
   });
 
+  testWidgets('sections with text fields expand without PageStorage crash', (
+    tester,
+  ) async {
+    // Regression: ExpansionTile + PageStorageKey persisted a bool that the
+    // reserve TextField's Scrollable read back as a double scroll offset.
+    await tester.pumpWidget(_harness());
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Gas'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.byType(TextField), findsWidgets);
+
+    await tester.tap(find.text('Environment'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('CCR section appears for CCR plans', (tester) async {
     await tester.pumpWidget(_harness());
     final container = ProviderScope.containerOf(

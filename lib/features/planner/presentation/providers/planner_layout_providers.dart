@@ -18,6 +18,12 @@ final resultsPaneNarrowExpandedProvider = StateProvider<bool>((_) => false);
 /// Active phone tab: 0 Plan, 1 Tanks, 2 Setup, 3 Results.
 final plannerPhoneTabProvider = StateProvider<int>((_) => 0);
 
+/// Which Setup-accordion sections are expanded (session memory). Kept here
+/// instead of PageStorage: ExpansionTile writes its bool into PageStorage
+/// under its PageStorageKey, and any TextField inside the section then reads
+/// that bool back as a scroll offset (double cast) and crashes.
+final setupExpandedSectionsProvider = StateProvider<Set<String>>((_) => {});
+
 /// Setup-accordion section to reveal (header chip deep-links). Keys:
 /// 'deco' | 'gas' | 'environment' | 'ccr' | 'contingencies' | 'gear'.
 /// Consumed and cleared by the accordion after expanding the section.
