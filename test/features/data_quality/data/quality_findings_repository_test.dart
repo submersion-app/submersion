@@ -172,4 +172,40 @@ void main() {
     await repo.setStatus(f.id, QualityStatus.dismissed);
     expect(await repo.watchOpenCount().first, 0);
   });
+
+  test('dismissAll dismisses every id with one call', () async {
+    final a = finding();
+    final b = finding(detectorId: 'depth_spike');
+    await repo.applyScanResults(
+      scopeDiveIds: {'d1'},
+      ranDetectorIds: {'sample_gap', 'depth_spike'},
+      produced: [a, b],
+    );
+    await repo.dismissAll([a.id, b.id]);
+    final all = await repo.getFindings();
+    expect(all.map((f) => f.status).toSet(), {QualityStatus.dismissed});
+  });
+
+  test('watchOpenCountForDive matches diveId or relatedDiveId', () async {
+    final pid = qualityPairIdentity(detectorId: 'duplicate', a: 'dX', b: 'dY');
+    await repo.applyScanResults(
+      scopeDiveIds: {'dX', 'dY'},
+      ranDetectorIds: {'duplicate'},
+      produced: [
+        QualityFinding(
+          id: pid.id,
+          diveId: pid.diveId,
+          relatedDiveId: pid.relatedDiveId,
+          detectorId: 'duplicate',
+          detectorVersion: 1,
+          category: QualityCategory.duplicate,
+          severity: QualitySeverity.warning,
+          status: QualityStatus.open,
+          createdAt: DateTime.utc(2026, 7, 17),
+          updatedAt: DateTime.utc(2026, 7, 17),
+        ),
+      ],
+    );
+    expect(await repo.watchOpenCountForDive('dY').first, 1);
+  });
 }

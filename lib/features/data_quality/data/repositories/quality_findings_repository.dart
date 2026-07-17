@@ -182,6 +182,49 @@ class QualityFindingsRepository {
     return query.watchSingle().map((row) => row.read(count) ?? 0);
   }
 
+  Stream<List<QualityFinding>> watchFindings() {
+    final query = _db.select(_db.qualityFindings)
+      ..orderBy([(t) => OrderingTerm.desc(t.updatedAt)]);
+    return query.watch().map((rows) => [for (final r in rows) _fromRow(r)]);
+  }
+
+  Stream<int> watchOpenCountForDive(String diveId) {
+    final count = _db.qualityFindings.id.count();
+    final query = _db.selectOnly(_db.qualityFindings)
+      ..addColumns([count])
+      ..where(
+        _db.qualityFindings.status.equals(QualityStatus.open.name) &
+            (_db.qualityFindings.diveId.equals(diveId) |
+                _db.qualityFindings.relatedDiveId.equals(diveId)),
+      );
+    return query.watchSingle().map((row) => row.read(count) ?? 0);
+  }
+
+  /// Bulk dismiss with ONE notify (fifty false positives, one tap).
+  Future<void> dismissAll(Iterable<String> ids) async {
+    final idList = ids.toList();
+    if (idList.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _db.transaction(() async {
+      await (_db.update(
+        _db.qualityFindings,
+      )..where((t) => t.id.isIn(idList))).write(
+        QualityFindingsCompanion(
+          status: Value(QualityStatus.dismissed.name),
+          updatedAt: Value(now),
+        ),
+      );
+      for (final id in idList) {
+        await _sync.markRecordPending(
+          entityType: 'qualityFindings',
+          recordId: id,
+          localUpdatedAt: now,
+        );
+      }
+    });
+    SyncEventBus.notifyLocalChange();
+  }
+
   QualityFinding _fromRow(QualityFindingRow row) => QualityFinding(
     id: row.id,
     diveId: row.diveId,

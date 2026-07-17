@@ -11,6 +11,7 @@ import 'package:submersion/features/data_quality/domain/detectors/quality_detect
 import 'package:submersion/features/data_quality/domain/detectors/quality_detector_registry.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
 import 'package:submersion/features/data_quality/domain/quality_thresholds.dart';
+import 'package:submersion/features/data_quality/domain/detectors/quality_detector_toggles.dart';
 import 'package:submersion/features/data_quality/data/repositories/quality_findings_repository.dart';
 import 'package:submersion/features/data_quality/data/services/quality_context_builder.dart';
 import 'package:submersion/features/data_quality/data/services/quality_prefilters.dart';
@@ -43,12 +44,18 @@ class QualityScanService {
   final QualityFindingsRepository _findings;
   final List<QualityDetector> _detectors;
 
-  List<QualityDetector> _enabled(Set<String>? enabledIds) => enabledIds == null
-      ? _detectors
-      : [
-          for (final d in _detectors)
-            if (enabledIds.contains(d.id)) d,
-        ];
+  List<QualityDetector> _enabled(Set<String>? enabledIds) {
+    if (enabledIds != null) {
+      return [
+        for (final d in _detectors)
+          if (enabledIds.contains(d.id)) d,
+      ];
+    }
+    return [
+      for (final d in _detectors)
+        if (!QualityDetectorToggles.disabled.contains(d.id)) d,
+    ];
+  }
 
   /// Targeted scan: the given dives plus their chronological neighbors (so
   /// cross-dive pair findings can be retired from either side).

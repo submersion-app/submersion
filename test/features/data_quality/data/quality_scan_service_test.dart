@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/data_quality/data/repositories/quality_findings_repository.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/data_quality/domain/detectors/quality_detector.dart';
+import 'package:submersion/features/data_quality/domain/detectors/quality_detector_toggles.dart';
 import 'package:submersion/features/data_quality/domain/entities/dive_quality_context.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -48,6 +49,16 @@ void main() {
     expect(summary.findingsProduced, greaterThanOrEqualTo(1));
     final findings = await findingsRepo.getFindings(diveId: 'd1');
     expect(findings.map((f) => f.detectorId), contains('clock_offset'));
+  });
+
+  test('a disabled detector is skipped during a scan', () async {
+    await seedFutureDive('d1');
+    addTearDown(() => QualityDetectorToggles.disabled = <String>{});
+    QualityDetectorToggles.disabled = {'clock_offset'};
+    final service = QualityScanService();
+    await service.scanDives({'d1'}, now: DateTime.utc(2026, 7, 17));
+    final findings = await findingsRepo.getFindings(diveId: 'd1');
+    expect(findings.where((f) => f.detectorId == 'clock_offset'), isEmpty);
   });
 
   test('fixing the dive retires the finding on rescan', () async {
