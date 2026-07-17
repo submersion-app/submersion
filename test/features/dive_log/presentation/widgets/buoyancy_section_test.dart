@@ -98,14 +98,14 @@ Future<void> _pump(WidgetTester tester, BuoyancyTwinOutcome? outcome) async {
         settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
         buoyancyTwinProvider('d1').overrideWith((ref) async => outcome),
       ],
-      child: MaterialApp(
+      child: const MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: SingleChildScrollView(
             child: BuoyancySection(
               diveId: 'd1',
-              units: UnitFormatter(const AppSettings()),
+              units: UnitFormatter(AppSettings()),
             ),
           ),
         ),

@@ -33,7 +33,7 @@ TwinSample _s(int t, double depth, double net) =>
     TwinSample(timestamp: t, depthM: depth, suitKg: 3, tanksKg: 0, netKg: net);
 
 void main() {
-  final units = UnitFormatter(const AppSettings());
+  const units = UnitFormatter(AppSettings());
 
   group('BuoyancyChart.spotsFor', () {
     test('one spot per sample, x in minutes', () {

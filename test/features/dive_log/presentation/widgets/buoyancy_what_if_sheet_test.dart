@@ -42,7 +42,7 @@ Future<void> _open(WidgetTester tester) async {
             onPressed: () => showBuoyancyWhatIfSheet(
               context,
               baseInput: _base(),
-              units: UnitFormatter(const AppSettings()),
+              units: const UnitFormatter(AppSettings()),
             ),
             child: const Text('open'),
           ),
