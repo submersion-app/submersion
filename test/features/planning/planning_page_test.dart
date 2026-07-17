@@ -55,7 +55,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('New plan'), findsOneWidget);
+    expect(find.text('Dive Planner'), findsOneWidget);
+    expect(find.text('Create multi-level dive plans'), findsOneWidget);
     expect(find.text('Reef 30m'), findsOneWidget);
     expect(find.text('Wreck 50m'), findsOneWidget);
     expect(find.text('TOOLS'), findsOneWidget);
