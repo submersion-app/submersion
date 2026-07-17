@@ -11266,6 +11266,55 @@ class AppLocalizationsZh extends AppLocalizations {
   String get safetyReview_restore => 'Restore';
 
   @override
+  String get safetySettings_title => 'Safety review';
+
+  @override
+  String get safetySettings_entry_subtitle =>
+      'Post-dive observations and rules';
+
+  @override
+  String get safetySettings_masterToggle => 'Post-dive safety review';
+
+  @override
+  String get safetySettings_masterToggle_subtitle =>
+      'Automatically note ascent, stop, and profile observations on analyzed dives';
+
+  @override
+  String get safetySettings_rulesHeader => 'Rules';
+
+  @override
+  String get safetySettings_rule_rapidAscent => 'Rapid ascents';
+
+  @override
+  String get safetySettings_rule_missedDecoStop =>
+      'Missed or shortened deco stops';
+
+  @override
+  String get safetySettings_rule_omittedSafetyStop => 'Omitted safety stops';
+
+  @override
+  String get safetySettings_rule_sawtoothProfile => 'Sawtooth profiles';
+
+  @override
+  String get safetySettings_rule_highSurfaceGf =>
+      'High surfacing gradient factor';
+
+  @override
+  String get safetySettings_analyzeAll => 'Analyze all dives';
+
+  @override
+  String get safetySettings_analyzeAll_subtitle =>
+      'Run the safety review over every dive with a profile that has not been analyzed yet';
+
+  @override
+  String safetySettings_analyzeAll_progress(int done, int total) {
+    return 'Analyzed $done of $total';
+  }
+
+  @override
+  String get safetySettings_analyzeAll_done => 'Analysis complete';
+
+  @override
   String safetyReview_showDismissed(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

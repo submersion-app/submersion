@@ -20084,6 +20084,90 @@ abstract class AppLocalizations {
   /// **'Restore'**
   String get safetyReview_restore;
 
+  /// No description provided for @safetySettings_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety review'**
+  String get safetySettings_title;
+
+  /// No description provided for @safetySettings_entry_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Post-dive observations and rules'**
+  String get safetySettings_entry_subtitle;
+
+  /// No description provided for @safetySettings_masterToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Post-dive safety review'**
+  String get safetySettings_masterToggle;
+
+  /// No description provided for @safetySettings_masterToggle_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically note ascent, stop, and profile observations on analyzed dives'**
+  String get safetySettings_masterToggle_subtitle;
+
+  /// No description provided for @safetySettings_rulesHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Rules'**
+  String get safetySettings_rulesHeader;
+
+  /// No description provided for @safetySettings_rule_rapidAscent.
+  ///
+  /// In en, this message translates to:
+  /// **'Rapid ascents'**
+  String get safetySettings_rule_rapidAscent;
+
+  /// No description provided for @safetySettings_rule_missedDecoStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Missed or shortened deco stops'**
+  String get safetySettings_rule_missedDecoStop;
+
+  /// No description provided for @safetySettings_rule_omittedSafetyStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Omitted safety stops'**
+  String get safetySettings_rule_omittedSafetyStop;
+
+  /// No description provided for @safetySettings_rule_sawtoothProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Sawtooth profiles'**
+  String get safetySettings_rule_sawtoothProfile;
+
+  /// No description provided for @safetySettings_rule_highSurfaceGf.
+  ///
+  /// In en, this message translates to:
+  /// **'High surfacing gradient factor'**
+  String get safetySettings_rule_highSurfaceGf;
+
+  /// No description provided for @safetySettings_analyzeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyze all dives'**
+  String get safetySettings_analyzeAll;
+
+  /// No description provided for @safetySettings_analyzeAll_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Run the safety review over every dive with a profile that has not been analyzed yet'**
+  String get safetySettings_analyzeAll_subtitle;
+
+  /// No description provided for @safetySettings_analyzeAll_progress.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzed {done} of {total}'**
+  String safetySettings_analyzeAll_progress(int done, int total);
+
+  /// No description provided for @safetySettings_analyzeAll_done.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysis complete'**
+  String get safetySettings_analyzeAll_done;
+
   /// No description provided for @safetyReview_showDismissed.
   ///
   /// In en, this message translates to:

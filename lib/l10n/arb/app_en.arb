@@ -6645,6 +6645,30 @@
   },
   "safetyReview_dismiss": "Dismiss",
   "safetyReview_restore": "Restore",
+  "safetySettings_title": "Safety review",
+  "safetySettings_entry_subtitle": "Post-dive observations and rules",
+  "safetySettings_masterToggle": "Post-dive safety review",
+  "safetySettings_masterToggle_subtitle": "Automatically note ascent, stop, and profile observations on analyzed dives",
+  "safetySettings_rulesHeader": "Rules",
+  "safetySettings_rule_rapidAscent": "Rapid ascents",
+  "safetySettings_rule_missedDecoStop": "Missed or shortened deco stops",
+  "safetySettings_rule_omittedSafetyStop": "Omitted safety stops",
+  "safetySettings_rule_sawtoothProfile": "Sawtooth profiles",
+  "safetySettings_rule_highSurfaceGf": "High surfacing gradient factor",
+  "safetySettings_analyzeAll": "Analyze all dives",
+  "safetySettings_analyzeAll_subtitle": "Run the safety review over every dive with a profile that has not been analyzed yet",
+  "safetySettings_analyzeAll_progress": "Analyzed {done} of {total}",
+  "@safetySettings_analyzeAll_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "safetySettings_analyzeAll_done": "Analysis complete",
   "safetyReview_showDismissed": "{count, plural, =1{Show 1 dismissed} other{Show {count} dismissed}}",
   "@safetyReview_showDismissed": {
     "placeholders": {
