@@ -2209,7 +2209,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 115;
+  static const int currentSchemaVersion = 116;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -2325,7 +2325,7 @@ class AppDatabase extends _$AppDatabase {
     110,
     111,
     112,
-    115,
+    116,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -2421,7 +2421,7 @@ class AppDatabase extends _$AppDatabase {
     }
   }
 
-  /// v115: connected_accounts.diver_id column (divelogs.de diver binding).
+  /// v116: connected_accounts.diver_id column (divelogs.de diver binding).
   /// Idempotent so it is safe to call from both onUpgrade and the beforeOpen
   /// backstop.
   Future<void> _assertConnectedAccountsDiverIdColumn() async {
@@ -5564,10 +5564,10 @@ class AppDatabase extends _$AppDatabase {
           await _assertEquipmentThicknessColumn();
         }
         if (from < 112) await reportProgress();
-        if (from < 115) {
+        if (from < 116) {
           await _assertConnectedAccountsDiverIdColumn();
         }
-        if (from < 115) await reportProgress();
+        if (from < 116) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
@@ -5601,7 +5601,7 @@ class AppDatabase extends _$AppDatabase {
         // v112 backstop: re-assert equipment.thickness column.
         await _assertEquipmentThicknessColumn();
 
-        // v115 backstop: re-assert connected_accounts.diver_id column.
+        // v116 backstop: re-assert connected_accounts.diver_id column.
         await _assertConnectedAccountsDiverIdColumn();
 
         // Built-in dive types are reference data: identical on every device and
