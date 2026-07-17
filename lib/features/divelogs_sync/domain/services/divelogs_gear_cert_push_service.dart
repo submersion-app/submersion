@@ -44,7 +44,7 @@ class DivelogsGearCertPushService {
         final lastServiceDate = item.lastServiceDate;
         await _api.postGear({
           'name': item.name,
-          ?'geartype': geartypeId,
+          'geartype': ?geartypeId,
           if (purchaseDate != null) 'purchasedate': divelogsDate(purchaseDate),
           if (lastServiceDate != null)
             'last_servicedate': divelogsDate(lastServiceDate),
