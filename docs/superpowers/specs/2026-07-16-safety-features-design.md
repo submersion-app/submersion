@@ -1,7 +1,7 @@
 # Safety Features — Design
 
 Date: 2026-07-16
-Status: Approved design, pending implementation planning
+Status: Implemented (phases 1-4; PRs #606, #609, #610, #611)
 Branch/worktree: `worktree-safety-features`
 
 ## Summary
