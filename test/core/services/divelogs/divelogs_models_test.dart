@@ -137,4 +137,59 @@ void main() {
       expect(DivelogsDivelistEntry.fromJson({'id': 1}), isNull);
     });
   });
+
+  group('DivelogsGearItem', () {
+    test('parses fields with wall-clock UTC dates', () {
+      final gear = DivelogsGearItem.fromJson({
+        'id': 45,
+        'name': 'Apex XTX50',
+        'geartype': 1,
+        'purchasedate': '2007-05-12',
+        'last_servicedate': '2024-01-02',
+        'discarddate': null,
+      })!;
+      expect(gear.id, '45');
+      expect(gear.name, 'Apex XTX50');
+      expect(gear.geartypeId, 1);
+      expect(gear.purchaseDate, DateTime.utc(2007, 5, 12));
+      expect(gear.lastServiceDate, DateTime.utc(2024, 1, 2));
+      expect(gear.discardDate, isNull);
+    });
+
+    test('returns null without id or name', () {
+      expect(DivelogsGearItem.fromJson({'name': 'X'}), isNull);
+      expect(DivelogsGearItem.fromJson({'id': 1}), isNull);
+    });
+  });
+
+  group('DivelogsCertification', () {
+    test('parses fields', () {
+      final cert = DivelogsCertification.fromJson({
+        'id': 123,
+        'name': 'Open Water Diver',
+        'date': '2022-06-15',
+        'org': 'PADI',
+      })!;
+      expect(cert.id, '123');
+      expect(cert.name, 'Open Water Diver');
+      expect(cert.date, DateTime.utc(2022, 6, 15));
+      expect(cert.org, 'PADI');
+    });
+
+    test('returns null without a name', () {
+      expect(DivelogsCertification.fromJson({'id': 1}), isNull);
+    });
+  });
+
+  test('DivelogsDive parses gearitems as string ids', () {
+    final dive = DivelogsDive.fromJson({
+      'id': 1,
+      'date': '2022-09-03',
+      'time': '10:00:00',
+      'duration': 60,
+      'maxdepth': 5,
+      'gearitems': [45, 62],
+    });
+    expect(dive.gearItemIds, ['45', '62']);
+  });
 }

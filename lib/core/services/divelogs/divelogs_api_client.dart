@@ -103,6 +103,120 @@ class DivelogsApiClient {
     await _send('/dives', method: 'POST', jsonBody: dives);
   }
 
+  Future<List<DivelogsGearItem>> getGear() async {
+    final response = await _get('/gear');
+    final rows = _rows(_decode(response.body, '/gear'), '/gear', const [
+      'gear',
+      'gearitems',
+    ]);
+    return [
+      for (final row in rows)
+        if (row is Map)
+          ...?_maybe(DivelogsGearItem.fromJson(Map<String, dynamic>.from(row))),
+    ];
+  }
+
+  Future<List<DivelogsCertification>> getCertifications() async {
+    final response = await _get('/certifications');
+    final rows = _rows(
+      _decode(response.body, '/certifications'),
+      '/certifications',
+      const ['certifications'],
+    );
+    return [
+      for (final row in rows)
+        if (row is Map)
+          ...?_maybe(
+            DivelogsCertification.fromJson(Map<String, dynamic>.from(row)),
+          ),
+    ];
+  }
+
+  /// Geartype reference list: id -> display name. Accepts array-of-objects,
+  /// wrapped, or id->name map forms (shape unconfirmed, spec open question).
+  Future<Map<int, String>> getGeartypes() async {
+    final response = await _get('/geartypes');
+    final decoded = _decode(response.body, '/geartypes');
+    final result = <int, String>{};
+    if (decoded is Map && decoded.values.every((v) => v is String)) {
+      decoded.forEach((k, v) {
+        final id = int.tryParse('$k');
+        if (id != null) result[id] = v as String;
+      });
+      return result;
+    }
+    final rows = _rows(decoded, '/geartypes', const ['geartypes']);
+    for (final row in rows) {
+      if (row is Map) {
+        final id = row['id'];
+        final name = row['name'];
+        if (id is num && name is String) result[id.toInt()] = name;
+      }
+    }
+    return result;
+  }
+
+  Future<void> postGear(Map<String, dynamic> gear) async {
+    await _send('/gear', method: 'POST', jsonBody: gear);
+  }
+
+  /// Certifications are created via multipart form-data (the endpoint also
+  /// accepts scan uploads, deferred to Phase 4). Same 401-retry-once
+  /// semantics as [_send]; the request is rebuilt for each attempt.
+  Future<void> postCertification({
+    required String name,
+    required String date,
+    String? org,
+  }) async {
+    var authRetried = false;
+    while (true) {
+      final token = await _getBearerToken();
+      final request = http.MultipartRequest(
+        'POST',
+        _baseUri.replace(path: '${_baseUri.path}/certifications'),
+      )..headers['Authorization'] = 'Bearer $token';
+      request.fields['name'] = name;
+      request.fields['date'] = date;
+      if (org != null) request.fields['org'] = org;
+      final http.Response response;
+      try {
+        response = await http.Response.fromStream(await _http.send(request));
+      } on Exception {
+        throw const DivelogsApiException(0, 'Could not reach divelogs.de.');
+      }
+      if (response.statusCode == 401) {
+        _onTokenRejected();
+        if (!authRetried) {
+          authRetried = true;
+          continue;
+        }
+        throw const DivelogsApiException(
+          401,
+          'divelogs.de sign-in expired. Sign in again in Settings.',
+        );
+      }
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw DivelogsApiException(
+          response.statusCode,
+          'divelogs.de API error ${response.statusCode}',
+        );
+      }
+      return;
+    }
+  }
+
+  List<dynamic> _rows(Object? decoded, String endpoint, List<String> listKeys) {
+    if (decoded is List) return decoded;
+    if (decoded is Map) {
+      for (final key in listKeys) {
+        if (decoded[key] is List) return decoded[key] as List;
+      }
+    }
+    throw DivelogsApiException(0, 'Unexpected $endpoint response');
+  }
+
+  List<T>? _maybe<T>(T? value) => value == null ? null : [value];
+
   /// Decodes a response body, converting FormatException (non-JSON error
   /// pages, proxy-injected HTML) into the retryable DivelogsApiException the
   /// UI already handles.

@@ -179,4 +179,133 @@ void main() {
       ),
     );
   });
+
+  test('getGear parses array and skips unusable rows', () async {
+    final api = client((req) async {
+      expect(req.url.path, '/api/gear');
+      return http.Response(
+        jsonEncode([
+          {'id': 45, 'name': 'Apex XTX50', 'geartype': 1},
+          {'geartype': 2},
+        ]),
+        200,
+      );
+    });
+    final gear = await api.getGear();
+    expect(gear, hasLength(1));
+    expect(gear.single.id, '45');
+  });
+
+  test('getGeartypes accepts array-of-objects form', () async {
+    final api = client(
+      (req) async => http.Response(
+        jsonEncode([
+          {'id': 1, 'name': 'Regulator'},
+          {'id': 2, 'name': 'Jacket'},
+        ]),
+        200,
+      ),
+    );
+    expect(await api.getGeartypes(), {1: 'Regulator', 2: 'Jacket'});
+  });
+
+  test('getGeartypes accepts id-to-name map form', () async {
+    final api = client(
+      (req) async =>
+          http.Response(jsonEncode({'1': 'Regulator', '2': 'Jacket'}), 200),
+    );
+    expect(await api.getGeartypes(), {1: 'Regulator', 2: 'Jacket'});
+  });
+
+  test('getCertifications parses documented array', () async {
+    final api = client(
+      (req) async => http.Response(
+        jsonEncode([
+          {
+            'id': 123,
+            'name': 'Open Water Diver',
+            'date': '2022-06-15',
+            'org': 'PADI',
+          },
+        ]),
+        200,
+      ),
+    );
+    final certs = await api.getCertifications();
+    expect(certs, hasLength(1));
+    expect(certs.single.org, 'PADI');
+  });
+
+  test('postGear sends JSON POST to /api/gear', () async {
+    late http.Request captured;
+    final api = client((req) async {
+      captured = req;
+      return http.Response('{}', 200);
+    });
+    await api.postGear({'name': 'Apex XTX50', 'geartype': 1});
+    expect(captured.method, 'POST');
+    expect(captured.url.path, '/api/gear');
+    expect(jsonDecode(captured.body), {'name': 'Apex XTX50', 'geartype': 1});
+  });
+
+  test('postCertification sends multipart fields with bearer header', () async {
+    // MockClient materializes multipart bodies into encoded form-data, so
+    // capture the BaseRequest instead to assert on the typed fields.
+    late http.MultipartRequest captured;
+    var calls = 0;
+    final api = DivelogsApiClient(
+      getBearerToken: () async => 't1',
+      onTokenRejected: () {},
+      httpClient: _CapturingClient((req) {
+        calls++;
+        captured = req as http.MultipartRequest;
+      }),
+    );
+    await api.postCertification(
+      name: 'Open Water Diver',
+      date: '2022-06-15',
+      org: 'PADI',
+    );
+    expect(calls, 1);
+    expect(captured.url.path, '/api/certifications');
+    expect(captured.headers['Authorization'], 'Bearer t1');
+    expect(captured.fields, {
+      'name': 'Open Water Diver',
+      'date': '2022-06-15',
+      'org': 'PADI',
+    });
+  });
+
+  test('postCertification retries once on 401', () async {
+    var calls = 0;
+    final tokens = ['t1', 't2'];
+    final api = DivelogsApiClient(
+      getBearerToken: () async =>
+          tokens.length > 1 ? tokens.removeAt(0) : tokens.first,
+      onTokenRejected: () {},
+      httpClient: _CapturingClient(
+        (req) => calls++,
+        statusFor: (req) =>
+            req.headers['Authorization'] == 'Bearer t1' ? 401 : 200,
+      ),
+    );
+    await api.postCertification(name: 'OWD', date: '2022-06-15');
+    expect(calls, 2);
+  });
+}
+
+/// Minimal client that captures BaseRequests (MockClient materializes
+/// multipart bodies, losing the fields we want to assert on).
+class _CapturingClient extends http.BaseClient {
+  _CapturingClient(this.onRequest, {this.statusFor});
+
+  final void Function(http.BaseRequest) onRequest;
+  final int Function(http.BaseRequest)? statusFor;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    onRequest(request);
+    final status = statusFor?.call(request) ?? 200;
+    return http.StreamedResponse(Stream.value('{}'.codeUnits), status);
+  }
 }

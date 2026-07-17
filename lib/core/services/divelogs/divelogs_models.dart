@@ -23,6 +23,11 @@ String? _asNonEmptyString(Object? v) {
   return trimmed.isEmpty ? null : trimmed;
 }
 
+DateTime? _asUtcDate(Object? v) {
+  final s = _asNonEmptyString(v);
+  return s == null ? null : DateTime.tryParse('${s}T00:00:00Z');
+}
+
 class DivelogsSample {
   final double depth;
   final double? temperature;
@@ -88,6 +93,7 @@ class DivelogsDive {
   final double? surfaceTemp;
   final double? weightsKg;
   final int? surfaceIntervalSeconds;
+  final List<String> gearItemIds;
 
   const DivelogsDive({
     this.id,
@@ -113,6 +119,7 @@ class DivelogsDive {
     this.surfaceTemp,
     this.weightsKg,
     this.surfaceIntervalSeconds,
+    this.gearItemIds = const [],
   });
 
   factory DivelogsDive.fromJson(Map<String, dynamic> json) {
@@ -185,6 +192,9 @@ class DivelogsDive {
       surfaceTemp: _asDouble(json['surfacetemp']),
       weightsKg: _asDouble(json['weights']),
       surfaceIntervalSeconds: _asInt(json['surface_interval']),
+      gearItemIds: json['gearitems'] is List
+          ? [for (final g in json['gearitems'] as List) '$g']
+          : const [],
     );
   }
 }
@@ -243,4 +253,64 @@ class DivelogsDivelistResult {
   final int skippedCount;
 
   const DivelogsDivelistResult({required this.entries, this.skippedCount = 0});
+}
+
+/// One row of GET /gear. Tolerant: unusable rows yield null.
+class DivelogsGearItem {
+  final String id;
+  final String name;
+  final int? geartypeId;
+  final DateTime? purchaseDate;
+  final DateTime? lastServiceDate;
+  final DateTime? discardDate;
+
+  const DivelogsGearItem({
+    required this.id,
+    required this.name,
+    this.geartypeId,
+    this.purchaseDate,
+    this.lastServiceDate,
+    this.discardDate,
+  });
+
+  static DivelogsGearItem? fromJson(Map<String, dynamic> json) {
+    final rawId = json['id'] ?? json['gear_id'];
+    final name = _asNonEmptyString(json['name']);
+    if (rawId == null || name == null) return null;
+    return DivelogsGearItem(
+      id: '$rawId',
+      name: name,
+      geartypeId: _asInt(json['geartype']),
+      purchaseDate: _asUtcDate(json['purchasedate']),
+      lastServiceDate: _asUtcDate(json['last_servicedate']),
+      discardDate: _asUtcDate(json['discarddate']),
+    );
+  }
+}
+
+/// One row of GET /certifications. Tolerant: unusable rows yield null.
+class DivelogsCertification {
+  final String? id;
+  final String name;
+  final DateTime? date;
+  final String? org;
+
+  const DivelogsCertification({
+    this.id,
+    required this.name,
+    this.date,
+    this.org,
+  });
+
+  static DivelogsCertification? fromJson(Map<String, dynamic> json) {
+    final name = _asNonEmptyString(json['name']);
+    if (name == null) return null;
+    final rawId = json['id'];
+    return DivelogsCertification(
+      id: rawId == null ? null : '$rawId',
+      name: name,
+      date: _asUtcDate(json['date']),
+      org: _asNonEmptyString(json['org']),
+    );
+  }
 }
