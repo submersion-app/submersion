@@ -4,6 +4,7 @@ import 'package:submersion/core/database/database.dart'
     show DiveDataSourcesCompanion, DiveSitesCompanion, DivesCompanion;
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/features/equipment/data/services/dive_equipment_defaulter.dart';
+import 'package:submersion/features/pre_dive/data/services/checklist_dive_linker.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/number_utils.dart';
@@ -1298,6 +1299,7 @@ class UddfEntityImporter {
 
       await repos.diveRepository.createDive(dive);
       await DiveEquipmentDefaulter().applyForImportedDive(dive);
+      await ChecklistDiveLinker().applyForImportedDive(dive);
       importedDiveIds.add(diveId);
       diveIdByIndex[i] = diveId;
 

@@ -21,6 +21,7 @@ import 'package:submersion/core/matching/match_scorer.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     show GeoPoint;
 import 'package:submersion/features/equipment/data/services/dive_equipment_defaulter.dart';
+import 'package:submersion/features/pre_dive/data/services/checklist_dive_linker.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
@@ -934,6 +935,14 @@ class DiveComputerRepository {
           diveId: diveId,
           diverId: diverId,
           divePoints: defaultPoints,
+        );
+
+        // Auto-link a pre-dive checklist session started shortly before
+        // this dive's entry time.
+        await ChecklistDiveLinker().autoLinkForDive(
+          diveId: diveId,
+          diverId: diverId,
+          diveStart: DateTime.fromMillisecondsSinceEpoch(entryTimeMs),
         );
 
         // Create a data source record for provenance tracking.
