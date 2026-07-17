@@ -69,6 +69,40 @@ class DivelogsApiClient {
     return DivelogsDivesResult(dives: dives, skippedCount: skipped);
   }
 
+  /// Fetches the short divelist used for the cheap two-way compare.
+  Future<DivelogsDivelistResult> getDivelist() async {
+    final response = await _get('/divelist');
+    final decoded = _decode(response.body, '/divelist');
+    final List<dynamic> rows;
+    if (decoded is List) {
+      rows = decoded;
+    } else if (decoded is Map && decoded['divelist'] is List) {
+      rows = decoded['divelist'] as List;
+    } else if (decoded is Map && decoded['dives'] is List) {
+      rows = decoded['dives'] as List;
+    } else {
+      throw const DivelogsApiException(0, 'Unexpected /divelist response');
+    }
+    final entries = <DivelogsDivelistEntry>[];
+    var skipped = 0;
+    for (final row in rows) {
+      final entry = row is Map
+          ? DivelogsDivelistEntry.fromJson(Map<String, dynamic>.from(row))
+          : null;
+      if (entry == null) {
+        skipped++;
+      } else {
+        entries.add(entry);
+      }
+    }
+    return DivelogsDivelistResult(entries: entries, skippedCount: skipped);
+  }
+
+  /// Bulk-create dives (create-only; the caller chunks).
+  Future<void> postDives(List<Map<String, dynamic>> dives) async {
+    await _send('/dives', method: 'POST', jsonBody: dives);
+  }
+
   /// Decodes a response body, converting FormatException (non-JSON error
   /// pages, proxy-injected HTML) into the retryable DivelogsApiException the
   /// UI already handles.
@@ -80,16 +114,30 @@ class DivelogsApiClient {
     }
   }
 
-  Future<http.Response> _get(String path) async {
+  Future<http.Response> _get(String path) => _send(path);
+
+  Future<http.Response> _send(
+    String path, {
+    String method = 'GET',
+    Object? jsonBody,
+  }) async {
     var authRetried = false;
     while (true) {
       final token = await _getBearerToken();
+      final uri = _baseUri.replace(path: '${_baseUri.path}$path');
+      final headers = {
+        'Authorization': 'Bearer $token',
+        if (jsonBody != null) 'Content-Type': 'application/json',
+      };
       final http.Response response;
       try {
-        response = await _http.get(
-          _baseUri.replace(path: '${_baseUri.path}$path'),
-          headers: {'Authorization': 'Bearer $token'},
-        );
+        response = method == 'POST'
+            ? await _http.post(
+                uri,
+                headers: headers,
+                body: jsonEncode(jsonBody),
+              )
+            : await _http.get(uri, headers: headers);
       } on Exception {
         throw const DivelogsApiException(0, 'Could not reach divelogs.de.');
       }

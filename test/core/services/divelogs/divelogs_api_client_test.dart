@@ -106,4 +106,77 @@ void main() {
     final user = await api.getUser();
     expect(user['username'], 'eric');
   });
+
+  test('getDivelist parses array body and counts unusable rows', () async {
+    final api = client((req) async {
+      expect(req.url.path, '/api/divelist');
+      return http.Response(
+        jsonEncode([
+          {'id': 1, 'date': '2022-09-03', 'time': '10:00:00'},
+          {'no_id': true},
+        ]),
+        200,
+      );
+    });
+    final result = await api.getDivelist();
+    expect(result.entries, hasLength(1));
+    expect(result.entries.single.id, '1');
+    expect(result.skippedCount, 1);
+  });
+
+  test('getDivelist tolerates object body with dives/divelist key', () async {
+    final api = client(
+      (req) async => http.Response(
+        jsonEncode({
+          'divelist': [
+            {'id': 1, 'date': '2022-09-03', 'time': '10:00:00'},
+          ],
+        }),
+        200,
+      ),
+    );
+    expect((await api.getDivelist()).entries, hasLength(1));
+  });
+
+  test('postDives sends JSON array body with bearer header', () async {
+    late http.Request captured;
+    final api = client((req) async {
+      captured = req;
+      return http.Response('{"success": true}', 200);
+    });
+    await api.postDives([
+      {'date': '2022-09-03', 'time': '10:00:00', 'duration': 60, 'maxdepth': 5},
+    ]);
+    expect(captured.method, 'POST');
+    expect(captured.url.toString(), 'https://divelogs.de/api/dives');
+    expect(captured.headers['Authorization'], 'Bearer t1');
+    expect(captured.headers['Content-Type'], startsWith('application/json'));
+    final body = jsonDecode(captured.body) as List;
+    expect(body, hasLength(1));
+  });
+
+  test('postDives retries once on 401 then succeeds', () async {
+    var calls = 0;
+    final api = client((req) async {
+      calls++;
+      if (req.headers['Authorization'] == 'Bearer t1') {
+        return http.Response('', 401);
+      }
+      return http.Response('{}', 200);
+    }, tokens: ['t1', 't2']);
+    await api.postDives([
+      {'duration': 60},
+    ]);
+    expect(calls, 2);
+  });
+
+  test('postDives throws DivelogsApiException on 400', () async {
+    final api = client((req) async => http.Response('bad', 400));
+    expect(
+      () => api.postDives([<String, dynamic>{}]),
+      throwsA(
+        isA<DivelogsApiException>().having((e) => e.statusCode, 'status', 400),
+      ),
+    );
+  });
 }

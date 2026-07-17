@@ -98,4 +98,43 @@ void main() {
     expect(dive.surfaceIntervalSeconds, 3600);
     expect(dive.dcModel, 'Suunto D6');
   });
+
+  group('DivelogsDivelistEntry', () {
+    test('parses id, date/time (wall-clock UTC), duration, maxdepth', () {
+      final entry = DivelogsDivelistEntry.fromJson({
+        'id': 4711,
+        'date': '2022-09-03',
+        'time': '14:42:00',
+        'duration': 2808,
+        'maxdepth': 12,
+      })!;
+      expect(entry.id, '4711');
+      expect(entry.dateTime, DateTime.utc(2022, 9, 3, 14, 42));
+      expect(entry.durationSeconds, 2808);
+      expect(entry.maxDepth, 12.0);
+    });
+
+    test('tolerates missing duration and maxdepth', () {
+      final entry = DivelogsDivelistEntry.fromJson({
+        'id': '9',
+        'date': '2022-09-03',
+        'time': '14:42:00',
+      })!;
+      expect(entry.durationSeconds, isNull);
+      expect(entry.maxDepth, isNull);
+    });
+
+    test('accepts a combined datetime field as fallback', () {
+      final entry = DivelogsDivelistEntry.fromJson({
+        'id': 9,
+        'datetime': '2022-09-03 14:42:00',
+      })!;
+      expect(entry.dateTime, DateTime.utc(2022, 9, 3, 14, 42));
+    });
+
+    test('returns null when id or date is unusable', () {
+      expect(DivelogsDivelistEntry.fromJson({'date': '2022-09-03'}), isNull);
+      expect(DivelogsDivelistEntry.fromJson({'id': 1}), isNull);
+    });
+  });
 }

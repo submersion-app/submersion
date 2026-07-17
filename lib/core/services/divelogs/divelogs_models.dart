@@ -195,3 +195,52 @@ class DivelogsDivesResult {
 
   const DivelogsDivesResult({required this.dives, this.skippedCount = 0});
 }
+
+/// One row of GET /divelist — the cheap compare key set. The endpoint's
+/// exact shape is undocumented (spec open question 3), so parsing is
+/// tolerant: unusable rows yield null and are counted, never thrown.
+class DivelogsDivelistEntry {
+  final String id;
+  final DateTime dateTime; // wall-clock UTC, same convention as DivelogsDive
+  final int? durationSeconds;
+  final double? maxDepth;
+
+  const DivelogsDivelistEntry({
+    required this.id,
+    required this.dateTime,
+    this.durationSeconds,
+    this.maxDepth,
+  });
+
+  static DivelogsDivelistEntry? fromJson(Map<String, dynamic> json) {
+    final rawId = json['id'] ?? json['dive_id'];
+    if (rawId == null) return null;
+
+    DateTime? dateTime;
+    final date = _asNonEmptyString(json['date']);
+    if (date != null) {
+      final time = _asNonEmptyString(json['time']) ?? '00:00:00';
+      dateTime = DateTime.tryParse('${date}T${time}Z');
+    } else {
+      final combined = _asNonEmptyString(json['datetime']);
+      if (combined != null) {
+        dateTime = DateTime.tryParse('${combined.replaceFirst(' ', 'T')}Z');
+      }
+    }
+    if (dateTime == null) return null;
+
+    return DivelogsDivelistEntry(
+      id: '$rawId',
+      dateTime: dateTime,
+      durationSeconds: _asInt(json['duration']),
+      maxDepth: _asDouble(json['maxdepth']),
+    );
+  }
+}
+
+class DivelogsDivelistResult {
+  final List<DivelogsDivelistEntry> entries;
+  final int skippedCount;
+
+  const DivelogsDivelistResult({required this.entries, this.skippedCount = 0});
+}
