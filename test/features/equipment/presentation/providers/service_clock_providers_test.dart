@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -102,6 +103,69 @@ void main() {
     final hydroDue = due.firstWhere((d) => d.status.kind.id == 'hydro');
     expect(hydroDue.item.id, tank.id);
     expect(hydroDue.status.severity, ServiceClockSeverity.overdue);
+  });
+
+  test('tripServiceAlertsProvider returns empty for an unknown trip', () async {
+    await seedCurrentDiver();
+    final container = makeContainer();
+    addTearDown(container.dispose);
+
+    final alerts = await container.read(
+      tripServiceAlertsProvider('no-such-trip').future,
+    );
+    expect(alerts, isEmpty);
+  });
+
+  test('equipmentWorstClockProvider maps one worst clock per item', () async {
+    final diver = await seedCurrentDiver();
+    final tank = await seedTank(diver.id);
+
+    // Both clocks overdue: the map should hold ONE entry for the tank, and
+    // it should be the overdue clock that sorts first.
+    final schedules = await scheduleRepo.getSchedulesForEquipment(tank.id);
+    for (final s in schedules) {
+      await scheduleRepo.updateSchedule(
+        s.copyWith(
+          anchorDate: DateTime.now().subtract(const Duration(days: 2190)),
+        ),
+      );
+    }
+
+    final container = makeContainer();
+    addTearDown(container.dispose);
+
+    final worst = await container.read(equipmentWorstClockProvider.future);
+    expect(worst.keys, [tank.id]);
+    expect(worst[tank.id]!.status.severity, ServiceClockSeverity.overdue);
+  });
+
+  test(
+    'serviceDueSoonWindowDaysProvider reads the widest reminder day',
+    () async {
+      final diver = await seedCurrentDiver();
+      // createDiver auto-seeds diver_settings; widen the reminder window.
+      await DatabaseService.instance.database.customStatement(
+        "UPDATE diver_settings SET service_reminder_days = '[7, 60]' "
+        "WHERE diver_id = '${diver.id}'",
+      );
+
+      final container = makeContainer();
+      addTearDown(container.dispose);
+
+      final window = await container.read(
+        serviceDueSoonWindowDaysProvider.future,
+      );
+      expect(window, 60);
+    },
+  );
+
+  test('serviceKindsProvider lists built-ins for the current diver', () async {
+    await seedCurrentDiver();
+    final container = makeContainer();
+    addTearDown(container.dispose);
+
+    final kinds = await container.read(serviceKindsProvider.future);
+    expect(kinds.where((k) => k.isBuiltIn).length, 9);
   });
 
   test('tripServiceAlertsProvider gates on trip end date', () async {

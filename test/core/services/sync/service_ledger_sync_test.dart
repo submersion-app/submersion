@@ -94,6 +94,62 @@ void main() {
     );
   });
 
+  test('serviceKinds round-trip through single-record CRUD', () async {
+    await serializer.upsertRecord('serviceKinds', {
+      'id': 'k-solo',
+      'name': 'Solo kind',
+      'applicableTypes': '[]',
+      'autoAttach': false,
+      'isBuiltIn': false,
+      'createdAt': 1000,
+      'updatedAt': 1000,
+    });
+    final row = await serializer.fetchRecord('serviceKinds', 'k-solo');
+    expect(row, isNotNull);
+    expect(row!['name'], 'Solo kind');
+
+    await serializer.deleteRecord('serviceKinds', 'k-solo');
+    expect(await serializer.fetchRecord('serviceKinds', 'k-solo'), isNull);
+  });
+
+  test('serviceSchedules round-trip through batch paths', () async {
+    await serializer.upsertRecord('equipment', {
+      'id': 'e1',
+      'name': 'AL80',
+      'type': 'tank',
+      'status': 'active',
+      'purchaseCurrency': 'USD',
+      'notes': '',
+      'isActive': true,
+      'createdAt': 1000,
+      'updatedAt': 1000,
+    });
+    await serializer.upsertRecords('serviceSchedules', [
+      {
+        'id': 'b1',
+        'equipmentId': 'e1',
+        'serviceKindId': 'hydro',
+        'enabled': true,
+        'createdAt': 1000,
+        'updatedAt': 1000,
+      },
+      {
+        'id': 'b2',
+        'equipmentId': 'e1',
+        'serviceKindId': 'vip',
+        'enabled': false,
+        'createdAt': 1000,
+        'updatedAt': 1000,
+      },
+    ]);
+    final rows = await serializer.fetchRecords('serviceSchedules', [
+      'b1',
+      'b2',
+    ]);
+    expect(rows.keys, containsAll(['b1', 'b2']));
+    expect(rows['b2']!['enabled'], anyOf(false, 0));
+  });
+
   test('serviceKinds round-trip through batch paths', () async {
     await serializer.upsertRecords('serviceKinds', [
       {

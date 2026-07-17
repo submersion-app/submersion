@@ -64,7 +64,10 @@ void main() {
           path: '/',
           builder: (_, _) => Scaffold(body: TripServiceAlertBanner(trip: trip)),
         ),
-        GoRoute(path: '/equipment/:id', builder: (_, _) => const Scaffold()),
+        GoRoute(
+          path: '/equipment/:id',
+          builder: (_, _) => const Scaffold(body: Text('EQUIPMENT_PAGE')),
+        ),
       ],
     );
     return ProviderScope(
@@ -134,6 +137,52 @@ void main() {
 
     // Per-clock alerts collapse to distinct equipment items in the label.
     expect(find.text('1 item needs service before this trip'), findsOneWidget);
+  });
+
+  testWidgets('overdue alert styles the banner and taps through to the item', (
+    tester,
+  ) async {
+    final overdue = (
+      item: const EquipmentItem(
+        id: 'e1',
+        name: 'AL80',
+        type: EquipmentType.tank,
+      ),
+      status: ServiceClockStatus(
+        schedule: ServiceSchedule(
+          id: 's1',
+          equipmentId: 'e1',
+          serviceKindId: 'hydro',
+          createdAt: t0,
+          updatedAt: t0,
+        ),
+        kind: ServiceKind(
+          id: 'hydro',
+          name: 'Hydrostatic test',
+          defaultIntervalDays: 1825,
+          isBuiltIn: true,
+          createdAt: t0,
+          updatedAt: t0,
+        ),
+        anchor: t0,
+        dueDate: now.subtract(const Duration(days: 30)),
+        severity: ServiceClockSeverity.overdue,
+        now: now,
+      ),
+    );
+    await tester.pumpWidget(buildBanner(upcomingTrip(), [overdue]));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(InkWell).first);
+    await tester.pumpAndSettle();
+
+    // Overdue clocks phrase without a due date.
+    expect(find.text('Hydrostatic test overdue'), findsOneWidget);
+
+    // Tapping the row closes the sheet and navigates to the item.
+    await tester.tap(find.text('AL80'));
+    await tester.pumpAndSettle();
+    expect(find.text('EQUIPMENT_PAGE'), findsOneWidget);
   });
 
   testWidgets('renders nothing when there are no alerts', (tester) async {

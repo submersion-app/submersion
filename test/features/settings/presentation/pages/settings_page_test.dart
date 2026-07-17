@@ -842,4 +842,43 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   });
+
+  group('NotificationsSectionContent trip lead time', () {
+    Widget buildNotificationsWidget(List<Override> overrides) {
+      final router = GoRouter(
+        initialLocation: '/settings?selected=notifications',
+        routes: [
+          GoRoute(
+            path: '/settings',
+            builder: (context, state) => const SettingsPage(),
+          ),
+        ],
+      );
+      return ProviderScope(
+        overrides: overrides,
+        child: MaterialApp.router(
+          routerConfig: router,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      );
+    }
+
+    testWidgets('dropdown changes the trip service lead days', (tester) async {
+      await tester.pumpWidget(buildNotificationsWidget(getOverrides()));
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(find.text('Trip service lead time'), 200);
+      await tester.ensureVisible(find.text('Trip service lead time'));
+      await tester.pumpAndSettle();
+      expect(find.text('14 days before a trip'), findsOneWidget);
+
+      await tester.tap(find.byType(DropdownButton<int>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('21').last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('21 days before a trip'), findsOneWidget);
+    });
+  });
 }

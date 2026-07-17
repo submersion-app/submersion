@@ -39,6 +39,101 @@ void main() {
     expect(s.intervalDays, null); // immutability
   });
 
+  test('ServiceKind.copyWith covers every field', () {
+    final base = kind();
+    final copy = base.copyWith(
+      id: 'x',
+      diverId: 'd1',
+      name: 'Renamed',
+      applicableTypes: const [EquipmentType.regulator],
+      defaultIntervalDays: 1,
+      defaultIntervalDives: 2,
+      defaultIntervalHours: 3.0,
+      autoAttach: false,
+      isBuiltIn: false,
+      createdAt: DateTime(2027),
+      updatedAt: DateTime(2027, 2),
+    );
+    expect(copy.id, 'x');
+    expect(copy.diverId, 'd1');
+    expect(copy.name, 'Renamed');
+    expect(copy.applicableTypes, const [EquipmentType.regulator]);
+    expect(copy.defaultIntervalDays, 1);
+    expect(copy.defaultIntervalDives, 2);
+    expect(copy.defaultIntervalHours, 3.0);
+    expect(copy.autoAttach, isFalse);
+    expect(copy.isBuiltIn, isFalse);
+    expect(copy.createdAt, DateTime(2027));
+    expect(copy.updatedAt, DateTime(2027, 2));
+    expect(copy == base, isFalse);
+    expect(base.copyWith(), base); // Equatable identity
+  });
+
+  test('ServiceSchedule.copyWith covers every field', () {
+    final base = ServiceSchedule(
+      id: 's1',
+      equipmentId: 'e1',
+      serviceKindId: 'hydro',
+      createdAt: t0,
+      updatedAt: t0,
+    );
+    final copy = base.copyWith(
+      id: 's2',
+      equipmentId: 'e2',
+      serviceKindId: 'vip',
+      intervalDays: 10,
+      intervalDives: 20,
+      intervalHours: 30.0,
+      anchorDate: DateTime(2026, 5, 5),
+      enabled: false,
+      createdAt: DateTime(2027),
+      updatedAt: DateTime(2027, 2),
+    );
+    expect(copy.id, 's2');
+    expect(copy.equipmentId, 'e2');
+    expect(copy.serviceKindId, 'vip');
+    expect(copy.intervalDays, 10);
+    expect(copy.intervalDives, 20);
+    expect(copy.intervalHours, 30.0);
+    expect(copy.anchorDate, DateTime(2026, 5, 5));
+    expect(copy.enabled, isFalse);
+    expect(base.copyWith(), base);
+  });
+
+  test('ServiceClockStatus equality and null daysUntilDue', () {
+    final schedule = ServiceSchedule(
+      id: 's1',
+      equipmentId: 'e1',
+      serviceKindId: 'hydro',
+      createdAt: t0,
+      updatedAt: t0,
+    );
+    final a = ServiceClockStatus(
+      schedule: schedule,
+      kind: kind(),
+      anchor: t0,
+      divesSinceAnchor: 5,
+      divesRemaining: 95,
+      hoursSinceAnchor: 1.5,
+      hoursRemaining: 3.5,
+      severity: ServiceClockSeverity.ok,
+      now: DateTime(2026, 1, 15),
+    );
+    final b = ServiceClockStatus(
+      schedule: schedule,
+      kind: kind(),
+      anchor: t0,
+      divesSinceAnchor: 5,
+      divesRemaining: 95,
+      hoursSinceAnchor: 1.5,
+      hoursRemaining: 3.5,
+      severity: ServiceClockSeverity.ok,
+      now: DateTime(2026, 1, 15),
+    );
+    expect(a, b);
+    expect(a.daysUntilDue, isNull); // no date trigger
+  });
+
   test('ServiceClockStatus.daysUntilDue is negative when overdue', () {
     final status = ServiceClockStatus(
       schedule: ServiceSchedule(

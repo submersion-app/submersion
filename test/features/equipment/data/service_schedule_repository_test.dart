@@ -122,6 +122,64 @@ void main() {
     },
   );
 
+  test('getDueSoonWindowDays fallback chain', () async {
+    // No diver id -> default.
+    expect(await repo.getDueSoonWindowDays(), 30);
+    // Unknown diver -> no settings row -> default.
+    expect(await repo.getDueSoonWindowDays(diverId: 'nobody'), 30);
+
+    // Row with malformed JSON -> default.
+    await db.customStatement(
+      "INSERT INTO divers (id, name, created_at, updated_at) "
+      "VALUES ('d-bad', 'X', 0, 0)",
+    );
+    await db.customStatement(
+      "INSERT INTO diver_settings "
+      "(id, diver_id, service_reminder_days, created_at, updated_at) "
+      "VALUES ('ds-bad', 'd-bad', 'not json', 0, 0)",
+    );
+    expect(await repo.getDueSoonWindowDays(diverId: 'd-bad'), 30);
+
+    // Row with a valid list -> widest value.
+    await db.customStatement(
+      "UPDATE diver_settings SET service_reminder_days = '[3, 45, 7]' "
+      "WHERE diver_id = 'd-bad'",
+    );
+    expect(await repo.getDueSoonWindowDays(diverId: 'd-bad'), 45);
+  });
+
+  test('usage samples honor the since filter', () async {
+    final tank = await makeTank();
+    final oldMs = DateTime(2020, 1, 1).millisecondsSinceEpoch;
+    final newMs = DateTime(2026, 1, 1).millisecondsSinceEpoch;
+    for (final (id, ms) in [('old', oldMs), ('new', newMs)]) {
+      await db
+          .into(db.dives)
+          .insert(
+            DivesCompanion.insert(
+              id: id,
+              diveDateTime: ms,
+              createdAt: ms,
+              updatedAt: ms,
+            ).copyWith(bottomTime: const Value(600)),
+          );
+      await db
+          .into(db.diveEquipment)
+          .insert(
+            DiveEquipmentCompanion.insert(diveId: id, equipmentId: tank.id),
+          );
+    }
+
+    final all = await equipmentRepo.getUsageSamplesForEquipment(tank.id);
+    expect(all, hasLength(2));
+    final recent = await equipmentRepo.getUsageSamplesForEquipment(
+      tank.id,
+      since: DateTime(2025, 1, 1),
+    );
+    expect(recent, hasLength(1));
+    expect(recent.single.date.year, 2026);
+  });
+
   test('deleting equipment tombstones its schedules', () async {
     final tank = await makeTank();
     final before = await repo.getSchedulesForEquipment(tank.id);

@@ -142,6 +142,59 @@ void main() {
     },
   );
 
+  test(
+    'per-item custom reminders disabled cancels instead of scheduling',
+    () async {
+      final now = DateTime.now();
+      final tank = await equipmentRepo.createEquipment(
+        const EquipmentItem(
+          id: '',
+          name: 'AL80',
+          type: EquipmentType.tank,
+          customReminderEnabled: false,
+        ),
+      );
+      final schedules = await scheduleRepo.getSchedulesForEquipment(tank.id);
+      final hydro = schedules.firstWhere((s) => s.serviceKindId == 'hydro');
+      await scheduleRepo.updateSchedule(
+        hydro.copyWith(anchorDate: now.add(const Duration(days: 20 - 1825))),
+      );
+
+      await NotificationScheduler().scheduleAll(settings: const AppSettings());
+
+      expect(await db.select(db.scheduledNotifications).get(), isEmpty);
+    },
+  );
+
+  test('updateForEquipment cancels recorded rows and reschedules', () async {
+    final now = DateTime.now();
+    final tank = await equipmentRepo.createEquipment(
+      const EquipmentItem(id: '', name: 'AL80', type: EquipmentType.tank),
+    );
+    final schedules = await scheduleRepo.getSchedulesForEquipment(tank.id);
+    final hydro = schedules.firstWhere((s) => s.serviceKindId == 'hydro');
+    await scheduleRepo.updateSchedule(
+      hydro.copyWith(anchorDate: now.add(const Duration(days: 20 - 1825))),
+    );
+
+    final scheduler = NotificationScheduler();
+    await scheduler.scheduleAll(settings: const AppSettings());
+    final before = await db.select(db.scheduledNotifications).get();
+    expect(before, isNotEmpty);
+
+    final item = (await equipmentRepo.getEquipmentById(tank.id))!;
+    await scheduler.updateForEquipment(
+      item: item,
+      globalSettings: const AppSettings(),
+    );
+
+    // Old rows were cancelled+deleted, fresh rows recorded per clock --
+    // same shape as before, no duplicates from the reschedule.
+    final after = await db.select(db.scheduledNotifications).get();
+    expect(after.length, before.length);
+    expect(after.map((r) => r.scheduleId).toSet(), contains(hydro.id));
+  });
+
   test('notifications disabled schedules nothing', () async {
     await equipmentRepo.createEquipment(
       const EquipmentItem(id: '', name: 'AL80', type: EquipmentType.tank),
