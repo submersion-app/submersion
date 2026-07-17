@@ -11653,6 +11653,78 @@ class AppLocalizationsEn extends AppLocalizations {
       'Weight breakdown, total weight';
 
   @override
+  String get diveDetailSection_buoyancy_name => 'Buoyancy';
+
+  @override
+  String get diveDetailSection_buoyancy_description =>
+      'Buoyancy through the dive, swing, ditchable weight';
+
+  @override
+  String get buoyancy_tooltip =>
+      'Modeled net buoyancy through the dive from your profile, gas use, and gear.';
+
+  @override
+  String buoyancy_verdictBuoyant(String depth, String amount) {
+    return 'At your final stop (~$depth) you were about $amount buoyant';
+  }
+
+  @override
+  String buoyancy_verdictHeavy(String depth, String amount) {
+    return 'At your final stop (~$depth) you were about $amount heavy';
+  }
+
+  @override
+  String get buoyancy_verdictNeutral =>
+      'Your rig was close to neutral at the final stop';
+
+  @override
+  String get buoyancy_verdictConvention =>
+      'Estimated at the 5 m safety-stop convention';
+
+  @override
+  String get buoyancy_breakdownTitle => 'Term breakdown';
+
+  @override
+  String get buoyancy_suitTerm => 'Suit';
+
+  @override
+  String get buoyancy_leadTerm => 'Lead';
+
+  @override
+  String get buoyancy_beginNet => 'Start of dive';
+
+  @override
+  String get buoyancy_endNet => 'End of dive';
+
+  @override
+  String get buoyancy_swing => 'Buoyancy swing';
+
+  @override
+  String get buoyancy_peakLift => 'Peak lift needed';
+
+  @override
+  String get buoyancy_wingWarning => 'Exceeds your wing\'s rated lift';
+
+  @override
+  String get buoyancy_minDitchable => 'Min ditchable weight';
+
+  @override
+  String get buoyancy_droppable => 'You can ditch';
+
+  @override
+  String get buoyancy_ditchWarning => 'More than you can ditch';
+
+  @override
+  String get buoyancy_drysuitGas => 'Drysuit gas added';
+
+  @override
+  String get buoyancy_estimatedPressures => 'Tank pressures are estimated';
+
+  @override
+  String get buoyancy_linkSuitHint =>
+      'Link an exposure suit to this dive for a fuller picture';
+
+  @override
   String get diveDetailSection_tanks_name => 'Cylinders';
 
   @override

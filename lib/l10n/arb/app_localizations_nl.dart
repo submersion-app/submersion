@@ -11757,6 +11757,79 @@ class AppLocalizationsNl extends AppLocalizations {
       'Gewichtsoverzicht, totaalgewicht';
 
   @override
+  String get diveDetailSection_buoyancy_name => 'Drijfvermogen';
+
+  @override
+  String get diveDetailSection_buoyancy_description =>
+      'Drijfvermogen tijdens de duik, variatie, afwerpbaar lood';
+
+  @override
+  String get buoyancy_tooltip =>
+      'Gemodelleerd netto drijfvermogen tijdens de duik op basis van profiel, gasverbruik en uitrusting.';
+
+  @override
+  String buoyancy_verdictBuoyant(String depth, String amount) {
+    return 'Bij je laatste stop (~$depth) had je ongeveer $amount opdrijvend vermogen';
+  }
+
+  @override
+  String buoyancy_verdictHeavy(String depth, String amount) {
+    return 'Bij je laatste stop (~$depth) was je ongeveer $amount te zwaar';
+  }
+
+  @override
+  String get buoyancy_verdictNeutral =>
+      'Je configuratie was bijna neutraal bij de laatste stop';
+
+  @override
+  String get buoyancy_verdictConvention =>
+      'Geschat volgens de 5 m-veiligheidsstopconventie';
+
+  @override
+  String get buoyancy_breakdownTitle => 'Termuitsplitsing';
+
+  @override
+  String get buoyancy_suitTerm => 'Pak';
+
+  @override
+  String get buoyancy_leadTerm => 'Lood';
+
+  @override
+  String get buoyancy_beginNet => 'Begin van de duik';
+
+  @override
+  String get buoyancy_endNet => 'Einde van de duik';
+
+  @override
+  String get buoyancy_swing => 'Drijfvermogenvariatie';
+
+  @override
+  String get buoyancy_peakLift => 'Maximaal benodigde lift';
+
+  @override
+  String get buoyancy_wingWarning =>
+      'Overschrijdt de nominale lift van je wing';
+
+  @override
+  String get buoyancy_minDitchable => 'Min. afwerpbaar lood';
+
+  @override
+  String get buoyancy_droppable => 'Je kunt afwerpen';
+
+  @override
+  String get buoyancy_ditchWarning => 'Meer dan je kunt afwerpen';
+
+  @override
+  String get buoyancy_drysuitGas => 'Droogpakgas toegevoegd';
+
+  @override
+  String get buoyancy_estimatedPressures => 'Flesdrukken zijn geschat';
+
+  @override
+  String get buoyancy_linkSuitHint =>
+      'Koppel een duikpak aan deze duik voor een vollediger beeld';
+
+  @override
   String get diveDetailSection_tanks_name => 'Flessen';
 
   @override

@@ -11887,6 +11887,80 @@ class AppLocalizationsFr extends AppLocalizations {
       'Repartition des lests, poids total';
 
   @override
+  String get diveDetailSection_buoyancy_name => 'Flottabilité';
+
+  @override
+  String get diveDetailSection_buoyancy_description =>
+      'Flottabilité pendant la plongée, variation, lest largable';
+
+  @override
+  String get buoyancy_tooltip =>
+      'Flottabilité nette modélisée pendant la plongée d\'après le profil, la consommation de gaz et l\'équipement.';
+
+  @override
+  String buoyancy_verdictBuoyant(String depth, String amount) {
+    return 'À votre dernier palier (~$depth), vous aviez environ $amount de portance';
+  }
+
+  @override
+  String buoyancy_verdictHeavy(String depth, String amount) {
+    return 'À votre dernier palier (~$depth), vous étiez environ $amount trop lourd';
+  }
+
+  @override
+  String get buoyancy_verdictNeutral =>
+      'Votre configuration était proche de la neutralité au dernier palier';
+
+  @override
+  String get buoyancy_verdictConvention =>
+      'Estimé selon la convention du palier de sécurité à 5 m';
+
+  @override
+  String get buoyancy_breakdownTitle => 'Détail des termes';
+
+  @override
+  String get buoyancy_suitTerm => 'Combinaison';
+
+  @override
+  String get buoyancy_leadTerm => 'Lest';
+
+  @override
+  String get buoyancy_beginNet => 'Début de plongée';
+
+  @override
+  String get buoyancy_endNet => 'Fin de plongée';
+
+  @override
+  String get buoyancy_swing => 'Variation de flottabilité';
+
+  @override
+  String get buoyancy_peakLift => 'Portance maximale requise';
+
+  @override
+  String get buoyancy_wingWarning =>
+      'Dépasse la portance nominale de votre wing';
+
+  @override
+  String get buoyancy_minDitchable => 'Lest largable minimal';
+
+  @override
+  String get buoyancy_droppable => 'Largable';
+
+  @override
+  String get buoyancy_ditchWarning => 'Plus que ce que vous pouvez larguer';
+
+  @override
+  String get buoyancy_drysuitGas => 'Gaz d\'étanche ajouté';
+
+  @override
+  String get buoyancy_estimatedPressures =>
+      'Les pressions des blocs sont estimées';
+
+  @override
+  String get buoyancy_linkSuitHint =>
+      'Associez une combinaison à cette plongée pour un tableau plus complet';
+
+  @override
   String get diveDetailSection_tanks_name => 'Bouteilles';
 
   @override

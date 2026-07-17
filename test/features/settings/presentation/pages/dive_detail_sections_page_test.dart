@@ -68,7 +68,7 @@ Widget _buildTestWidget() {
 
 void main() {
   group('DiveDetailSectionsPage', () {
-    testWidgets('renders all 18 section names', (tester) async {
+    testWidgets('renders all 19 section names', (tester) async {
       await tester.binding.setSurfaceSize(const Size(400, 4000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
@@ -80,14 +80,14 @@ void main() {
       }
     });
 
-    testWidgets('renders 18 switches', (tester) async {
+    testWidgets('renders 19 switches', (tester) async {
       await tester.binding.setSurfaceSize(const Size(400, 4000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
       await tester.pumpWidget(_buildTestWidget());
       await tester.pumpAndSettle();
 
-      expect(find.byType(Switch), findsNWidgets(18));
+      expect(find.byType(Switch), findsNWidgets(19));
     });
 
     testWidgets('renders drag handles', (tester) async {
@@ -97,7 +97,7 @@ void main() {
       await tester.pumpWidget(_buildTestWidget());
       await tester.pumpAndSettle();
 
-      expect(find.byIcon(Icons.drag_handle), findsNWidgets(18));
+      expect(find.byIcon(Icons.drag_handle), findsNWidgets(19));
     });
 
     testWidgets('shows fixed sections note', (tester) async {

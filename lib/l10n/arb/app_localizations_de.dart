@@ -11838,6 +11838,79 @@ class AppLocalizationsDe extends AppLocalizations {
       'Gewichtsaufteilung, Gesamtgewicht';
 
   @override
+  String get diveDetailSection_buoyancy_name => 'Auftrieb';
+
+  @override
+  String get diveDetailSection_buoyancy_description =>
+      'Auftrieb im Tauchgangverlauf, Schwankung, abwerfbares Blei';
+
+  @override
+  String get buoyancy_tooltip =>
+      'Modellierter Nettoauftrieb im Tauchgangverlauf aus Profil, Gasverbrauch und Ausrüstung.';
+
+  @override
+  String buoyancy_verdictBuoyant(String depth, String amount) {
+    return 'Am letzten Stopp (~$depth) hattest du etwa $amount Auftrieb';
+  }
+
+  @override
+  String buoyancy_verdictHeavy(String depth, String amount) {
+    return 'Am letzten Stopp (~$depth) warst du etwa $amount zu schwer';
+  }
+
+  @override
+  String get buoyancy_verdictNeutral =>
+      'Am letzten Stopp war deine Konfiguration nahezu neutral';
+
+  @override
+  String get buoyancy_verdictConvention =>
+      'Geschätzt an der 5-m-Sicherheitsstopp-Konvention';
+
+  @override
+  String get buoyancy_breakdownTitle => 'Term-Aufschlüsselung';
+
+  @override
+  String get buoyancy_suitTerm => 'Anzug';
+
+  @override
+  String get buoyancy_leadTerm => 'Blei';
+
+  @override
+  String get buoyancy_beginNet => 'Tauchgangbeginn';
+
+  @override
+  String get buoyancy_endNet => 'Tauchgangende';
+
+  @override
+  String get buoyancy_swing => 'Auftriebsschwankung';
+
+  @override
+  String get buoyancy_peakLift => 'Max. benötigter Auftrieb';
+
+  @override
+  String get buoyancy_wingWarning =>
+      'Übersteigt die Nennauftriebskraft deines Wings';
+
+  @override
+  String get buoyancy_minDitchable => 'Min. abwerfbares Blei';
+
+  @override
+  String get buoyancy_droppable => 'Abwerfbar';
+
+  @override
+  String get buoyancy_ditchWarning => 'Mehr als du abwerfen kannst';
+
+  @override
+  String get buoyancy_drysuitGas => 'Trocki-Gas zugegeben';
+
+  @override
+  String get buoyancy_estimatedPressures => 'Flaschendrücke sind geschätzt';
+
+  @override
+  String get buoyancy_linkSuitHint =>
+      'Verknüpfe einen Tauchanzug mit diesem Tauchgang für ein vollständigeres Bild';
+
+  @override
   String get diveDetailSection_tanks_name => 'Flaschen';
 
   @override

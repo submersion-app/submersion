@@ -6596,6 +6596,39 @@
   "diveLog_detail_openInMaps": "Open in Maps",
   "diveDetailSection_weights_name": "Weights",
   "diveDetailSection_weights_description": "Weight breakdown, total weight",
+  "diveDetailSection_buoyancy_name": "Buoyancy",
+  "diveDetailSection_buoyancy_description": "Buoyancy through the dive, swing, ditchable weight",
+  "buoyancy_tooltip": "Modeled net buoyancy through the dive from your profile, gas use, and gear.",
+  "buoyancy_verdictBuoyant": "At your final stop (~{depth}) you were about {amount} buoyant",
+  "@buoyancy_verdictBuoyant": {
+    "placeholders": {
+      "depth": { "type": "String" },
+      "amount": { "type": "String" }
+    }
+  },
+  "buoyancy_verdictHeavy": "At your final stop (~{depth}) you were about {amount} heavy",
+  "@buoyancy_verdictHeavy": {
+    "placeholders": {
+      "depth": { "type": "String" },
+      "amount": { "type": "String" }
+    }
+  },
+  "buoyancy_verdictNeutral": "Your rig was close to neutral at the final stop",
+  "buoyancy_verdictConvention": "Estimated at the 5 m safety-stop convention",
+  "buoyancy_breakdownTitle": "Term breakdown",
+  "buoyancy_suitTerm": "Suit",
+  "buoyancy_leadTerm": "Lead",
+  "buoyancy_beginNet": "Start of dive",
+  "buoyancy_endNet": "End of dive",
+  "buoyancy_swing": "Buoyancy swing",
+  "buoyancy_peakLift": "Peak lift needed",
+  "buoyancy_wingWarning": "Exceeds your wing's rated lift",
+  "buoyancy_minDitchable": "Min ditchable weight",
+  "buoyancy_droppable": "You can ditch",
+  "buoyancy_ditchWarning": "More than you can ditch",
+  "buoyancy_drysuitGas": "Drysuit gas added",
+  "buoyancy_estimatedPressures": "Tank pressures are estimated",
+  "buoyancy_linkSuitHint": "Link an exposure suit to this dive for a fuller picture",
   "diveDetailSection_tanks_name": "Cylinders",
   "diveDetailSection_tanks_description": "Cylinder list, gas mixes, pressures, MOD/MND, per-tank SAC",
   "diveDetailSection_buddies_name": "Buddies",

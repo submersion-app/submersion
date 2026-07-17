@@ -11834,6 +11834,80 @@ class AppLocalizationsEs extends AppLocalizations {
       'Desglose de pesos, peso total';
 
   @override
+  String get diveDetailSection_buoyancy_name => 'Flotabilidad';
+
+  @override
+  String get diveDetailSection_buoyancy_description =>
+      'Flotabilidad durante la inmersión, variación, lastre soltable';
+
+  @override
+  String get buoyancy_tooltip =>
+      'Flotabilidad neta modelada durante la inmersión a partir del perfil, el consumo de gas y el equipo.';
+
+  @override
+  String buoyancy_verdictBuoyant(String depth, String amount) {
+    return 'En tu última parada (~$depth) tenías unos $amount de flotabilidad';
+  }
+
+  @override
+  String buoyancy_verdictHeavy(String depth, String amount) {
+    return 'En tu última parada (~$depth) estabas unos $amount sobrelastrado';
+  }
+
+  @override
+  String get buoyancy_verdictNeutral =>
+      'Tu configuración estaba casi neutra en la última parada';
+
+  @override
+  String get buoyancy_verdictConvention =>
+      'Estimado en la convención de parada de seguridad a 5 m';
+
+  @override
+  String get buoyancy_breakdownTitle => 'Desglose de términos';
+
+  @override
+  String get buoyancy_suitTerm => 'Traje';
+
+  @override
+  String get buoyancy_leadTerm => 'Lastre';
+
+  @override
+  String get buoyancy_beginNet => 'Inicio de la inmersión';
+
+  @override
+  String get buoyancy_endNet => 'Fin de la inmersión';
+
+  @override
+  String get buoyancy_swing => 'Variación de flotabilidad';
+
+  @override
+  String get buoyancy_peakLift => 'Sustentación máxima necesaria';
+
+  @override
+  String get buoyancy_wingWarning =>
+      'Supera la sustentación nominal de tu wing';
+
+  @override
+  String get buoyancy_minDitchable => 'Lastre soltable mínimo';
+
+  @override
+  String get buoyancy_droppable => 'Puedes soltar';
+
+  @override
+  String get buoyancy_ditchWarning => 'Más de lo que puedes soltar';
+
+  @override
+  String get buoyancy_drysuitGas => 'Gas de traje seco añadido';
+
+  @override
+  String get buoyancy_estimatedPressures =>
+      'Las presiones de botella son estimadas';
+
+  @override
+  String get buoyancy_linkSuitHint =>
+      'Asocia un traje a esta inmersión para un panorama más completo';
+
+  @override
   String get diveDetailSection_tanks_name => 'Tanques';
 
   @override

@@ -11845,6 +11845,79 @@ class AppLocalizationsPt extends AppLocalizations {
       'Detalhamento de peso, peso total';
 
   @override
+  String get diveDetailSection_buoyancy_name => 'Flutuabilidade';
+
+  @override
+  String get diveDetailSection_buoyancy_description =>
+      'Flutuabilidade durante o mergulho, variação, lastro descartável';
+
+  @override
+  String get buoyancy_tooltip =>
+      'Flutuabilidade líquida modelada durante o mergulho a partir do perfil, consumo de gás e equipamento.';
+
+  @override
+  String buoyancy_verdictBuoyant(String depth, String amount) {
+    return 'Na sua última parada (~$depth) você tinha cerca de $amount de flutuabilidade';
+  }
+
+  @override
+  String buoyancy_verdictHeavy(String depth, String amount) {
+    return 'Na sua última parada (~$depth) você estava cerca de $amount pesado demais';
+  }
+
+  @override
+  String get buoyancy_verdictNeutral =>
+      'Sua configuração estava quase neutra na última parada';
+
+  @override
+  String get buoyancy_verdictConvention =>
+      'Estimado pela convenção de parada de segurança a 5 m';
+
+  @override
+  String get buoyancy_breakdownTitle => 'Detalhe dos termos';
+
+  @override
+  String get buoyancy_suitTerm => 'Roupa';
+
+  @override
+  String get buoyancy_leadTerm => 'Lastro';
+
+  @override
+  String get buoyancy_beginNet => 'Início do mergulho';
+
+  @override
+  String get buoyancy_endNet => 'Fim do mergulho';
+
+  @override
+  String get buoyancy_swing => 'Variação de flutuabilidade';
+
+  @override
+  String get buoyancy_peakLift => 'Sustentação máxima necessária';
+
+  @override
+  String get buoyancy_wingWarning => 'Excede a sustentação nominal do seu wing';
+
+  @override
+  String get buoyancy_minDitchable => 'Lastro descartável mínimo';
+
+  @override
+  String get buoyancy_droppable => 'Você pode soltar';
+
+  @override
+  String get buoyancy_ditchWarning => 'Mais do que você pode soltar';
+
+  @override
+  String get buoyancy_drysuitGas => 'Gás de roupa seca adicionado';
+
+  @override
+  String get buoyancy_estimatedPressures =>
+      'As pressões dos cilindros são estimadas';
+
+  @override
+  String get buoyancy_linkSuitHint =>
+      'Associe uma roupa de exposição a este mergulho para um quadro mais completo';
+
+  @override
   String get diveDetailSection_tanks_name => 'Cilindros';
 
   @override

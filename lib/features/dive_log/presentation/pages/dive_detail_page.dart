@@ -11,6 +11,7 @@ import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_section.dart';
 import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/units.dart';
@@ -343,6 +344,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         return [
           const SizedBox(height: 24),
           _buildWeightSection(context, dive, units),
+        ];
+      },
+      DiveDetailSectionId.buoyancy: () {
+        if (dive.tanks.isEmpty && !_hasExposureSuit(dive)) return [];
+        return [
+          const SizedBox(height: 24),
+          BuoyancySection(diveId: dive.id, units: units),
         ];
       },
       DiveDetailSectionId.tanks: () {
@@ -2789,6 +2797,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     return dive.weights.isNotEmpty ||
         (dive.weightAmount != null && dive.weightAmount! > 0);
   }
+
+  bool _hasExposureSuit(Dive dive) => dive.equipment.any(
+    (e) => e.type == EquipmentType.wetsuit || e.type == EquipmentType.drysuit,
+  );
 
   /// Calculate profile markers for max depth and pressure thresholds
   List<ProfileMarker> _calculateProfileMarkers({

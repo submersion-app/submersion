@@ -11281,6 +11281,73 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveDetailSection_weights_description => '配重明细、总重量';
 
   @override
+  String get diveDetailSection_buoyancy_name => '浮力';
+
+  @override
+  String get diveDetailSection_buoyancy_description => '整个潜水过程的浮力、变化和可抛弃配重';
+
+  @override
+  String get buoyancy_tooltip => '根据剖面、气体消耗和装备模拟的整个潜水过程净浮力。';
+
+  @override
+  String buoyancy_verdictBuoyant(String depth, String amount) {
+    return '在最后停留点（~$depth），你约有 $amount 的正浮力';
+  }
+
+  @override
+  String buoyancy_verdictHeavy(String depth, String amount) {
+    return '在最后停留点（~$depth），你约超重 $amount';
+  }
+
+  @override
+  String get buoyancy_verdictNeutral => '在最后停留点，你的配置接近中性';
+
+  @override
+  String get buoyancy_verdictConvention => '按 5 米安全停留惯例估算';
+
+  @override
+  String get buoyancy_breakdownTitle => '分项明细';
+
+  @override
+  String get buoyancy_suitTerm => '潜水服';
+
+  @override
+  String get buoyancy_leadTerm => '配重';
+
+  @override
+  String get buoyancy_beginNet => '潜水开始';
+
+  @override
+  String get buoyancy_endNet => '潜水结束';
+
+  @override
+  String get buoyancy_swing => '浮力变化';
+
+  @override
+  String get buoyancy_peakLift => '所需峰值浮力';
+
+  @override
+  String get buoyancy_wingWarning => '超过浮力背心的额定浮力';
+
+  @override
+  String get buoyancy_minDitchable => '最小可抛弃配重';
+
+  @override
+  String get buoyancy_droppable => '可抛弃';
+
+  @override
+  String get buoyancy_ditchWarning => '超过可抛弃的量';
+
+  @override
+  String get buoyancy_drysuitGas => '干式潜水服充气量';
+
+  @override
+  String get buoyancy_estimatedPressures => '气瓶压力为估算值';
+
+  @override
+  String get buoyancy_linkSuitHint => '为本次潜水关联一件暴露服以获得更完整的分析';
+
+  @override
   String get diveDetailSection_tanks_name => '气瓶';
 
   @override

@@ -11810,6 +11810,79 @@ class AppLocalizationsHu extends AppLocalizations {
       'Súly lebontás, teljes súly';
 
   @override
+  String get diveDetailSection_buoyancy_name => 'Felhajtóerő';
+
+  @override
+  String get diveDetailSection_buoyancy_description =>
+      'Felhajtóerő a merülés során, ingadozás, ledobható ólom';
+
+  @override
+  String get buoyancy_tooltip =>
+      'Modellezett nettó felhajtóerő a merülés során a profilból, gázfogyasztásból és felszerelésből.';
+
+  @override
+  String buoyancy_verdictBuoyant(String depth, String amount) {
+    return 'Az utolsó megállónál (~$depth) körülbelül $amount felhajtóerőd volt';
+  }
+
+  @override
+  String buoyancy_verdictHeavy(String depth, String amount) {
+    return 'Az utolsó megállónál (~$depth) körülbelül $amount-mal nehezebb voltál';
+  }
+
+  @override
+  String get buoyancy_verdictNeutral =>
+      'A konfigurációd közel semleges volt az utolsó megállónál';
+
+  @override
+  String get buoyancy_verdictConvention =>
+      'Az 5 m-es biztonsági megálló konvenciója szerint becsülve';
+
+  @override
+  String get buoyancy_breakdownTitle => 'Tételek részletezése';
+
+  @override
+  String get buoyancy_suitTerm => 'Ruha';
+
+  @override
+  String get buoyancy_leadTerm => 'Ólom';
+
+  @override
+  String get buoyancy_beginNet => 'Merülés kezdete';
+
+  @override
+  String get buoyancy_endNet => 'Merülés vége';
+
+  @override
+  String get buoyancy_swing => 'Felhajtóerő-ingadozás';
+
+  @override
+  String get buoyancy_peakLift => 'Max. szükséges felhajtóerő';
+
+  @override
+  String get buoyancy_wingWarning =>
+      'Meghaladja a szárnyad névleges felhajtóerejét';
+
+  @override
+  String get buoyancy_minDitchable => 'Min. ledobható ólom';
+
+  @override
+  String get buoyancy_droppable => 'Ledobható';
+
+  @override
+  String get buoyancy_ditchWarning => 'Több, mint amennyit ledobhatsz';
+
+  @override
+  String get buoyancy_drysuitGas => 'Hozzáadott szárazruha-gáz';
+
+  @override
+  String get buoyancy_estimatedPressures => 'A palacknyomások becsültek';
+
+  @override
+  String get buoyancy_linkSuitHint =>
+      'Kapcsolj egy búvárruhát ehhez a merüléshez a teljesebb képért';
+
+  @override
   String get diveDetailSection_tanks_name => 'Palackok';
 
   @override

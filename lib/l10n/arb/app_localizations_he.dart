@@ -11542,6 +11542,78 @@ class AppLocalizationsHe extends AppLocalizations {
       'פירוט משקולות, משקל כולל';
 
   @override
+  String get diveDetailSection_buoyancy_name => 'ציפה';
+
+  @override
+  String get diveDetailSection_buoyancy_description =>
+      'ציפה לאורך הצלילה, שינוי ומשקל הניתן להשלכה';
+
+  @override
+  String get buoyancy_tooltip =>
+      'ציפה נטו מודלת לאורך הצלילה מהפרופיל, צריכת הגז והציוד.';
+
+  @override
+  String buoyancy_verdictBuoyant(String depth, String amount) {
+    return 'בעצירה האחרונה (~$depth) היית בערך $amount ציפה';
+  }
+
+  @override
+  String buoyancy_verdictHeavy(String depth, String amount) {
+    return 'בעצירה האחרונה (~$depth) היית כבד בערך ב-$amount';
+  }
+
+  @override
+  String get buoyancy_verdictNeutral =>
+      'התצורה שלך הייתה קרובה לניטרלית בעצירה האחרונה';
+
+  @override
+  String get buoyancy_verdictConvention =>
+      'מוערך לפי מוסכמת עצירת הבטיחות ב-5 מ\'';
+
+  @override
+  String get buoyancy_breakdownTitle => 'פירוט מרכיבים';
+
+  @override
+  String get buoyancy_suitTerm => 'חליפה';
+
+  @override
+  String get buoyancy_leadTerm => 'משקולות';
+
+  @override
+  String get buoyancy_beginNet => 'תחילת הצלילה';
+
+  @override
+  String get buoyancy_endNet => 'סוף הצלילה';
+
+  @override
+  String get buoyancy_swing => 'שינוי ציפה';
+
+  @override
+  String get buoyancy_peakLift => 'כוח ציפה מרבי נדרש';
+
+  @override
+  String get buoyancy_wingWarning => 'חורג מכוח הציפה הנקוב של האגף';
+
+  @override
+  String get buoyancy_minDitchable => 'משקל מזערי הניתן להשלכה';
+
+  @override
+  String get buoyancy_droppable => 'ניתן להשליך';
+
+  @override
+  String get buoyancy_ditchWarning => 'יותר ממה שניתן להשליך';
+
+  @override
+  String get buoyancy_drysuitGas => 'גז יבשה שנוסף';
+
+  @override
+  String get buoyancy_estimatedPressures => 'לחצי המכלים משוערים';
+
+  @override
+  String get buoyancy_linkSuitHint =>
+      'קשר חליפת חשיפה לצלילה זו לתמונה מלאה יותר';
+
+  @override
   String get diveDetailSection_tanks_name => 'בלונים';
 
   @override

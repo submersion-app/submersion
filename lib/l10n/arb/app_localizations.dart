@@ -20156,6 +20156,132 @@ abstract class AppLocalizations {
   /// **'Weight breakdown, total weight'**
   String get diveDetailSection_weights_description;
 
+  /// No description provided for @diveDetailSection_buoyancy_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Buoyancy'**
+  String get diveDetailSection_buoyancy_name;
+
+  /// No description provided for @diveDetailSection_buoyancy_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Buoyancy through the dive, swing, ditchable weight'**
+  String get diveDetailSection_buoyancy_description;
+
+  /// No description provided for @buoyancy_tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Modeled net buoyancy through the dive from your profile, gas use, and gear.'**
+  String get buoyancy_tooltip;
+
+  /// No description provided for @buoyancy_verdictBuoyant.
+  ///
+  /// In en, this message translates to:
+  /// **'At your final stop (~{depth}) you were about {amount} buoyant'**
+  String buoyancy_verdictBuoyant(String depth, String amount);
+
+  /// No description provided for @buoyancy_verdictHeavy.
+  ///
+  /// In en, this message translates to:
+  /// **'At your final stop (~{depth}) you were about {amount} heavy'**
+  String buoyancy_verdictHeavy(String depth, String amount);
+
+  /// No description provided for @buoyancy_verdictNeutral.
+  ///
+  /// In en, this message translates to:
+  /// **'Your rig was close to neutral at the final stop'**
+  String get buoyancy_verdictNeutral;
+
+  /// No description provided for @buoyancy_verdictConvention.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated at the 5 m safety-stop convention'**
+  String get buoyancy_verdictConvention;
+
+  /// No description provided for @buoyancy_breakdownTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Term breakdown'**
+  String get buoyancy_breakdownTitle;
+
+  /// No description provided for @buoyancy_suitTerm.
+  ///
+  /// In en, this message translates to:
+  /// **'Suit'**
+  String get buoyancy_suitTerm;
+
+  /// No description provided for @buoyancy_leadTerm.
+  ///
+  /// In en, this message translates to:
+  /// **'Lead'**
+  String get buoyancy_leadTerm;
+
+  /// No description provided for @buoyancy_beginNet.
+  ///
+  /// In en, this message translates to:
+  /// **'Start of dive'**
+  String get buoyancy_beginNet;
+
+  /// No description provided for @buoyancy_endNet.
+  ///
+  /// In en, this message translates to:
+  /// **'End of dive'**
+  String get buoyancy_endNet;
+
+  /// No description provided for @buoyancy_swing.
+  ///
+  /// In en, this message translates to:
+  /// **'Buoyancy swing'**
+  String get buoyancy_swing;
+
+  /// No description provided for @buoyancy_peakLift.
+  ///
+  /// In en, this message translates to:
+  /// **'Peak lift needed'**
+  String get buoyancy_peakLift;
+
+  /// No description provided for @buoyancy_wingWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Exceeds your wing\'s rated lift'**
+  String get buoyancy_wingWarning;
+
+  /// No description provided for @buoyancy_minDitchable.
+  ///
+  /// In en, this message translates to:
+  /// **'Min ditchable weight'**
+  String get buoyancy_minDitchable;
+
+  /// No description provided for @buoyancy_droppable.
+  ///
+  /// In en, this message translates to:
+  /// **'You can ditch'**
+  String get buoyancy_droppable;
+
+  /// No description provided for @buoyancy_ditchWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'More than you can ditch'**
+  String get buoyancy_ditchWarning;
+
+  /// No description provided for @buoyancy_drysuitGas.
+  ///
+  /// In en, this message translates to:
+  /// **'Drysuit gas added'**
+  String get buoyancy_drysuitGas;
+
+  /// No description provided for @buoyancy_estimatedPressures.
+  ///
+  /// In en, this message translates to:
+  /// **'Tank pressures are estimated'**
+  String get buoyancy_estimatedPressures;
+
+  /// No description provided for @buoyancy_linkSuitHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Link an exposure suit to this dive for a fuller picture'**
+  String get buoyancy_linkSuitHint;
+
   /// No description provided for @diveDetailSection_tanks_name.
   ///
   /// In en, this message translates to:
