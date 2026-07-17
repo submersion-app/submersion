@@ -90,19 +90,15 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
               ),
             ),
             const SizedBox(width: 8),
-            // State-derived OC/CCR toggle.
+            // State-derived mode toggle: tap cycles OC -> CCR -> SCR.
             InkWell(
               borderRadius: BorderRadius.circular(12),
               onTap: () => ref
                   .read(divePlanNotifierProvider.notifier)
-                  .updateMode(
-                    planState.mode == domain.PlanMode.ccr
-                        ? domain.PlanMode.oc
-                        : domain.PlanMode.ccr,
-                  ),
+                  .updateMode(_nextMode(planState.mode)),
               child: PlanChip(
-                label: planState.mode == domain.PlanMode.ccr ? 'CCR' : 'OC',
-                emphasized: planState.mode == domain.PlanMode.ccr,
+                label: planState.mode.name.toUpperCase(),
+                emphasized: planState.mode != domain.PlanMode.oc,
               ),
             ),
             if (MediaQuery.sizeOf(context).width >= 560) ...[
@@ -185,6 +181,12 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
       ),
     );
   }
+
+  static domain.PlanMode _nextMode(domain.PlanMode mode) => switch (mode) {
+    domain.PlanMode.oc => domain.PlanMode.ccr,
+    domain.PlanMode.ccr => domain.PlanMode.scr,
+    domain.PlanMode.scr => domain.PlanMode.oc,
+  };
 
   PopupMenuItem<String> _menuItem(String value, IconData icon, String label) {
     return PopupMenuItem(
