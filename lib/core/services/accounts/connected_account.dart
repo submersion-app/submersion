@@ -11,6 +11,10 @@ class ConnectedAccount {
   final DateTime createdAt;
   final DateTime updatedAt;
 
+  /// Diver this account is bound to (connector kinds with per-diver data,
+  /// e.g. divelogs.de). Null for library-wide kinds. Fixed at creation.
+  final String? diverId;
+
   const ConnectedAccount({
     required this.id,
     required this.kind,
@@ -18,6 +22,7 @@ class ConnectedAccount {
     this.accountIdentifier,
     required this.createdAt,
     required this.updatedAt,
+    this.diverId,
   });
 
   /// Keychain key for this account's credentials blob.
@@ -35,6 +40,7 @@ class ConnectedAccount {
       accountIdentifier: accountIdentifier ?? this.accountIdentifier,
       createdAt: createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      diverId: diverId,
     );
   }
 }

@@ -116,6 +116,258 @@ abstract class AppLocalizations {
     Locale('zh'),
   ];
 
+  /// No description provided for @divelogsSync_photosHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos'**
+  String get divelogsSync_photosHeader;
+
+  /// No description provided for @divelogsSync_photosButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync photos for {count} matched dives'**
+  String divelogsSync_photosButton(int count);
+
+  /// No description provided for @divelogsSync_photosSyncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing photos with divelogs.de...'**
+  String get divelogsSync_photosSyncing;
+
+  /// No description provided for @divelogsSync_photosDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Pulled {pulled} photos, pushed {pushed}.'**
+  String divelogsSync_photosDone(int pulled, int pushed);
+
+  /// No description provided for @divelogsSync_photosDuplicates.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} photos were already present (matched by content).'**
+  String divelogsSync_photosDuplicates(int count);
+
+  /// No description provided for @divelogsSync_photosNoUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} remote pictures had no downloadable link and were skipped.'**
+  String divelogsSync_photosNoUrl(int count);
+
+  /// No description provided for @divelogsSync_photosFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo sync stopped: {error}'**
+  String divelogsSync_photosFailed(String error);
+
+  /// No description provided for @divelogsSync_gearCertHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear & certifications'**
+  String get divelogsSync_gearCertHeader;
+
+  /// No description provided for @divelogsSync_gearCertMatched.
+  ///
+  /// In en, this message translates to:
+  /// **'{gear} gear items and {certs} certifications already in sync'**
+  String divelogsSync_gearCertMatched(int gear, int certs);
+
+  /// No description provided for @divelogsSync_gearCertPush.
+  ///
+  /// In en, this message translates to:
+  /// **'Push: {gear} gear items, {certs} certifications'**
+  String divelogsSync_gearCertPush(int gear, int certs);
+
+  /// No description provided for @divelogsSync_gearCertPushButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync gear & certifications'**
+  String get divelogsSync_gearCertPushButton;
+
+  /// No description provided for @divelogsSync_gearCertPushDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Pushed {gear} gear items and {certs} certifications.'**
+  String divelogsSync_gearCertPushDone(int gear, int certs);
+
+  /// No description provided for @divelogsSync_gearCertPushFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear/certification push stopped: {error}'**
+  String divelogsSync_gearCertPushFailed(String error);
+
+  /// No description provided for @divelogsSync_certsMissingDate.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} certifications need an issue date before they can be pushed.'**
+  String divelogsSync_certsMissingDate(int count);
+
+  /// No description provided for @divelogsSync_gearCertUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear and certifications could not be compared: {error}'**
+  String divelogsSync_gearCertUnavailable(String error);
+
+  /// No description provided for @divelogsSync_title.
+  ///
+  /// In en, this message translates to:
+  /// **'divelogs.de Sync'**
+  String get divelogsSync_title;
+
+  /// No description provided for @divelogsSync_notConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'No divelogs.de account is connected yet. Start an import to sign in.'**
+  String get divelogsSync_notConnected;
+
+  /// No description provided for @divelogsSync_openImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Open divelogs.de import'**
+  String get divelogsSync_openImport;
+
+  /// No description provided for @divelogsSync_compare.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare'**
+  String get divelogsSync_compare;
+
+  /// No description provided for @divelogsSync_comparing.
+  ///
+  /// In en, this message translates to:
+  /// **'Comparing with divelogs.de...'**
+  String get divelogsSync_comparing;
+
+  /// No description provided for @divelogsSync_matched.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} dives already in sync'**
+  String divelogsSync_matched(int count);
+
+  /// No description provided for @divelogsSync_pullHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Pull: {count} new on divelogs.de'**
+  String divelogsSync_pullHeader(int count);
+
+  /// No description provided for @divelogsSync_pullReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Review and pull in the import wizard'**
+  String get divelogsSync_pullReview;
+
+  /// No description provided for @divelogsSync_pushHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Push: {count} dives not on divelogs.de'**
+  String divelogsSync_pushHeader(int count);
+
+  /// No description provided for @divelogsSync_pushSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Push selected'**
+  String get divelogsSync_pushSelected;
+
+  /// No description provided for @divelogsSync_pushing.
+  ///
+  /// In en, this message translates to:
+  /// **'Pushing dives to divelogs.de...'**
+  String get divelogsSync_pushing;
+
+  /// No description provided for @divelogsSync_pushDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Pushed {count} dives to divelogs.de.'**
+  String divelogsSync_pushDone(int count);
+
+  /// No description provided for @divelogsSync_pushSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} dives could not be converted and were skipped.'**
+  String divelogsSync_pushSkipped(int count);
+
+  /// No description provided for @divelogsSync_pushFailedPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Push stopped after {count} dives: {error}'**
+  String divelogsSync_pushFailedPartial(int count, String error);
+
+  /// No description provided for @divelogsSync_nothingToSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything is in sync.'**
+  String get divelogsSync_nothingToSync;
+
+  /// No description provided for @divelogs_signIn_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to divelogs.de'**
+  String get divelogs_signIn_title;
+
+  /// No description provided for @divelogs_signIn_username.
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get divelogs_signIn_username;
+
+  /// No description provided for @divelogs_signIn_password.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get divelogs_signIn_password;
+
+  /// No description provided for @divelogs_signIn_diver.
+  ///
+  /// In en, this message translates to:
+  /// **'Import into diver'**
+  String get divelogs_signIn_diver;
+
+  /// No description provided for @divelogs_signIn_connect.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect'**
+  String get divelogs_signIn_connect;
+
+  /// No description provided for @divelogs_fetch_inProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetching dives from divelogs.de...'**
+  String get divelogs_fetch_inProgress;
+
+  /// No description provided for @divelogs_fetch_done.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives fetched.'**
+  String get divelogs_fetch_done;
+
+  /// No description provided for @divelogs_fetch_retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get divelogs_fetch_retry;
+
+  /// No description provided for @divelogs_fetch_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not fetch dives from divelogs.de.'**
+  String get divelogs_fetch_error;
+
+  /// No description provided for @divelogs_fetch_wrongDiver.
+  ///
+  /// In en, this message translates to:
+  /// **'This divelogs.de account is linked to a different diver profile. Switch divers to import.'**
+  String get divelogs_fetch_wrongDiver;
+
+  /// No description provided for @transfer_import_divelogs_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Import from divelogs.de'**
+  String get transfer_import_divelogs_title;
+
+  /// No description provided for @transfer_import_divelogs_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pull your logbook from your divelogs.de account'**
+  String get transfer_import_divelogs_subtitle;
+
   /// No description provided for @diveLog_edit_geofenceSuggestion_near.
   ///
   /// In en, this message translates to:

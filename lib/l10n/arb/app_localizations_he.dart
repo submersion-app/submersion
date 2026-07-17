@@ -9,6 +9,169 @@ class AppLocalizationsHe extends AppLocalizations {
   AppLocalizationsHe([String locale = 'he']) : super(locale);
 
   @override
+  String get divelogsSync_photosHeader => 'תמונות';
+
+  @override
+  String divelogsSync_photosButton(int count) {
+    return 'סנכרן תמונות עבור $count צלילות תואמות';
+  }
+
+  @override
+  String get divelogsSync_photosSyncing => 'מסנכרן תמונות עם divelogs.de...';
+
+  @override
+  String divelogsSync_photosDone(int pulled, int pushed) {
+    return '$pulled תמונות נמשכו, $pushed נדחפו.';
+  }
+
+  @override
+  String divelogsSync_photosDuplicates(int count) {
+    return '$count תמונות כבר היו קיימות (זוהו לפי תוכן).';
+  }
+
+  @override
+  String divelogsSync_photosNoUrl(int count) {
+    return 'ל-$count תמונות מרוחקות לא היה קישור להורדה והן דולגו.';
+  }
+
+  @override
+  String divelogsSync_photosFailed(String error) {
+    return 'סנכרון התמונות נעצר: $error';
+  }
+
+  @override
+  String get divelogsSync_gearCertHeader => 'ציוד והסמכות';
+
+  @override
+  String divelogsSync_gearCertMatched(int gear, int certs) {
+    return '$gear פריטי ציוד ו-$certs הסמכות כבר מסונכרנים';
+  }
+
+  @override
+  String divelogsSync_gearCertPush(int gear, int certs) {
+    return 'דחיפה: $gear פריטי ציוד, $certs הסמכות';
+  }
+
+  @override
+  String get divelogsSync_gearCertPushButton => 'סנכרן ציוד והסמכות';
+
+  @override
+  String divelogsSync_gearCertPushDone(int gear, int certs) {
+    return 'נדחפו $gear פריטי ציוד ו-$certs הסמכות.';
+  }
+
+  @override
+  String divelogsSync_gearCertPushFailed(String error) {
+    return 'דחיפת ציוד/הסמכות נעצרה: $error';
+  }
+
+  @override
+  String divelogsSync_certsMissingDate(int count) {
+    return '$count הסמכות זקוקות לתאריך הנפקה לפני שניתן לדחוף אותן.';
+  }
+
+  @override
+  String divelogsSync_gearCertUnavailable(String error) {
+    return 'לא ניתן להשוות ציוד והסמכות: $error';
+  }
+
+  @override
+  String get divelogsSync_title => 'סנכרון divelogs.de';
+
+  @override
+  String get divelogsSync_notConnected =>
+      'עדיין לא מחובר חשבון divelogs.de. התחל ייבוא כדי להתחבר.';
+
+  @override
+  String get divelogsSync_openImport => 'פתח ייבוא divelogs.de';
+
+  @override
+  String get divelogsSync_compare => 'השווה';
+
+  @override
+  String get divelogsSync_comparing => 'משווה מול divelogs.de...';
+
+  @override
+  String divelogsSync_matched(int count) {
+    return '$count צלילות כבר מסונכרנות';
+  }
+
+  @override
+  String divelogsSync_pullHeader(int count) {
+    return 'משיכה: $count חדשות ב-divelogs.de';
+  }
+
+  @override
+  String get divelogsSync_pullReview => 'בדוק ומשוך באשף הייבוא';
+
+  @override
+  String divelogsSync_pushHeader(int count) {
+    return 'דחיפה: $count צלילות שאינן ב-divelogs.de';
+  }
+
+  @override
+  String get divelogsSync_pushSelected => 'דחוף נבחרות';
+
+  @override
+  String get divelogsSync_pushing => 'דוחף צלילות ל-divelogs.de...';
+
+  @override
+  String divelogsSync_pushDone(int count) {
+    return '$count צלילות נדחפו ל-divelogs.de.';
+  }
+
+  @override
+  String divelogsSync_pushSkipped(int count) {
+    return '$count צלילות לא ניתנות להמרה ודולגו.';
+  }
+
+  @override
+  String divelogsSync_pushFailedPartial(int count, String error) {
+    return 'הדחיפה נעצרה אחרי $count צלילות: $error';
+  }
+
+  @override
+  String get divelogsSync_nothingToSync => 'הכול מסונכרן.';
+
+  @override
+  String get divelogs_signIn_title => 'התחברות ל-divelogs.de';
+
+  @override
+  String get divelogs_signIn_username => 'שם משתמש';
+
+  @override
+  String get divelogs_signIn_password => 'סיסמה';
+
+  @override
+  String get divelogs_signIn_diver => 'ייבוא לפרופיל צוללן';
+
+  @override
+  String get divelogs_signIn_connect => 'התחבר';
+
+  @override
+  String get divelogs_fetch_inProgress => 'מוריד צלילות מ-divelogs.de...';
+
+  @override
+  String get divelogs_fetch_done => 'הצלילות הורדו.';
+
+  @override
+  String get divelogs_fetch_retry => 'נסה שוב';
+
+  @override
+  String get divelogs_fetch_error => 'לא ניתן להוריד צלילות מ-divelogs.de.';
+
+  @override
+  String get divelogs_fetch_wrongDiver =>
+      'חשבון divelogs.de זה מקושר לפרופיל צוללן אחר. החלף צוללן כדי לייבא.';
+
+  @override
+  String get transfer_import_divelogs_title => 'ייבוא מ-divelogs.de';
+
+  @override
+  String get transfer_import_divelogs_subtitle =>
+      'משוך את יומן הצלילה מחשבון divelogs.de שלך';
+
+  @override
   String diveLog_edit_geofenceSuggestion_near(String location) {
     return 'ליד $location';
   }
