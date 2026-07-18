@@ -4191,6 +4191,9 @@ class SyncDataSerializer {
       'defaultShowAscentRateLine': false,
       // Non-nullable bool added in v96; seed payloads predating the column.
       'defaultShowPhotoMarkers': true,
+      // v113: seed it so payloads predating the column hydrate instead of
+      // throwing in DiverSetting.fromJson.
+      'cnsCalculationMethod': 'shearwater',
       // Override with actual data (existing values take precedence)
       ...data,
     };

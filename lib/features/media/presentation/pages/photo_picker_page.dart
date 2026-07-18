@@ -4,7 +4,6 @@ import 'package:photo_manager/photo_manager.dart' as pm;
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
-import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/files_tab.dart';
 import 'package:submersion/features/media/presentation/widgets/url_tab.dart';
@@ -113,7 +112,6 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(photoPickerNotifierProvider);
-    final showHiddenTabs = ref.watch(mediaPickerHiddenTabsProvider);
 
     final appBarLeading = IconButton(
       icon: const Icon(Icons.close),
@@ -133,18 +131,6 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage> {
       ),
     ];
 
-    if (!showHiddenTabs) {
-      return Scaffold(
-        appBar: AppBar(
-          leading: appBarLeading,
-          title: Text(context.l10n.media_photoPicker_appBarTitle),
-          actions: appBarActions,
-        ),
-        body: _galleryTab(context),
-      );
-    }
-
-    // TODO(media): localize tab labels when phases 2/3 ship
     return DefaultTabController(
       length: 3,
       child: Scaffold(
@@ -152,11 +138,11 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage> {
           leading: appBarLeading,
           title: Text(context.l10n.media_photoPicker_appBarTitle),
           actions: appBarActions,
-          bottom: const TabBar(
+          bottom: TabBar(
             tabs: [
-              Tab(text: 'Gallery'),
-              Tab(text: 'Files'),
-              Tab(text: 'URL'),
+              Tab(text: context.l10n.media_photoPicker_tab_gallery),
+              Tab(text: context.l10n.media_photoPicker_tab_files),
+              Tab(text: context.l10n.media_photoPicker_tab_url),
             ],
           ),
         ),

@@ -19,6 +19,7 @@ import 'package:submersion/features/tank_presets/presentation/providers/tank_pre
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/forms/form_section.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
@@ -242,9 +243,12 @@ void main() {
     final dive = await seedRichDive();
     await pumpEditor(tester, dive.id, surfaceSize: const Size(1400, 1600));
 
-    final theDive = tester.getTopLeft(find.text('THE DIVE'));
-    final gasGear = tester.getTopLeft(find.text('GAS & GEAR'));
-    final conditions = tester.getTopLeft(find.text('CONDITIONS'));
+    Offset sectionTopLeft(String title) => tester.getTopLeft(
+      find.ancestor(of: find.text(title), matching: find.byType(FormSection)),
+    );
+    final theDive = sectionTopLeft('The Dive');
+    final gasGear = sectionTopLeft('Gas & Gear');
+    final conditions = sectionTopLeft('Conditions');
 
     // Left column (split after Gas & Gear): The Dive then Gas & Gear stacked.
     expect(gasGear.dx, closeTo(theDive.dx, 1));
@@ -266,7 +270,7 @@ void main() {
     expect(find.text('Surface interval'), findsOneWidget);
     expect(find.textContaining('Belize'), findsWidgets);
     expect(find.text('11 points'), findsOneWidget);
-    expect(find.text('Edit Profile'), findsOneWidget);
+    expect(find.text('Dive profile'), findsOneWidget);
     // Profile-derived one-tap calculate buttons on the metric rows.
     expect(find.byIcon(Icons.calculate_outlined), findsWidgets);
 
@@ -376,11 +380,11 @@ void main() {
 
     await tester.tap(find.text('Training Course'));
     await tester.pumpAndSettle();
-    expect(find.text('TRAINING COURSE'), findsOneWidget);
+    expect(find.text('Training Course'), findsOneWidget);
 
     // The seeded custom field means its section renders directly rather
     // than hiding behind the add row.
-    expect(find.text('CUSTOM FIELDS'), findsOneWidget);
+    expect(find.text('Custom Fields'), findsOneWidget);
     await tester.tap(find.text('Add Field'));
     await tester.pumpAndSettle();
   });

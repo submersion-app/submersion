@@ -66,4 +66,23 @@ void main() {
     ];
     expect(ChangesetLogLayout.peerDeviceIds(names, dev), {other});
   });
+
+  test(
+    'retirement marker name round-trips device id and is not a manifest',
+    () {
+      final name = ChangesetLogLayout.retiredMarkerName('dev-1');
+      expect(name, 'ssv1.dev-1.retired.json');
+      expect(ChangesetLogLayout.isRetiredMarker(name), isTrue);
+      expect(ChangesetLogLayout.deviceIdOf(name), 'dev-1');
+      expect(ChangesetLogLayout.isManifest(name), isFalse);
+      expect(ChangesetLogLayout.changesetSeqOf(name), isNull);
+      expect(ChangesetLogLayout.basePartOf(name), isNull);
+      expect(
+        ChangesetLogLayout.isRetiredMarker(
+          ChangesetLogLayout.manifestName('dev-1'),
+        ),
+        isFalse,
+      );
+    },
+  );
 }

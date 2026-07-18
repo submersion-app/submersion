@@ -3,99 +3,105 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart' show DateFormat;
-import 'package:submersion/core/icons/mdi_icons.dart';
-import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart' show DateFormat;
 import 'package:latlong2/latlong.dart';
-
+import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/o2_toxicity_card.dart';
+import 'package:submersion/core/icons/mdi_icons.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/export/export_service.dart';
+import 'package:submersion/core/tide/entities/tide_extremes.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
-import 'package:submersion/features/marine_life/domain/entities/species.dart';
-import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
+import 'package:submersion/features/dive_3d/presentation/pages/dive_3d_page.dart';
+import 'package:submersion/features/dive_3d/presentation/pages/spatial_site_page.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/reparse_providers.dart';
 import 'package:submersion/features/dive_log/data/services/gas_usage_segments_service.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/data/services/profile_markers_service.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
-import 'package:submersion/features/dive_3d/presentation/pages/dive_3d_page.dart';
-import 'package:submersion/features/dive_3d/presentation/pages/spatial_site_page.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
-import 'package:submersion/features/dive_log/presentation/formatters/dive_mode_label.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_detail_ui_providers.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_nav_buttons.dart';
-import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
-import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
-import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
-import 'package:submersion/features/dive_log/presentation/pages/fullscreen_profile_page.dart';
-import 'package:submersion/features/dive_log/presentation/utils/sac_normalization.dart';
-import 'package:submersion/features/planner/presentation/providers/plan_overlay_provider.dart';
-import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
-import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
-import 'package:submersion/features/dive_log/presentation/providers/profile_playback_provider.dart';
-import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
-import 'package:submersion/features/dive_log/presentation/providers/profile_range_provider.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/collapsible_section.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_locations_map.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/surface_gps_section.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/data_sources_section.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_detail_row.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/domain/services/field_attribution_service.dart';
 import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
+import 'package:submersion/features/dive_log/presentation/formatters/dive_mode_label.dart';
+import 'package:submersion/features/dive_log/presentation/pages/fullscreen_profile_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_detail_ui_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_playback_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_range_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
+import 'package:submersion/features/dive_log/presentation/utils/sac_normalization.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/collapsible_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_deco_status_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_tissue_loading_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/cylinders_card.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/data_sources_section.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail_row.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_locations_map.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_nav_buttons.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/o2_toxicity_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_layout.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/playback_controls.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/playback_stats_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/range_selection_overlay.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/range_stats_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/responsive_section_pair.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/surface_gps_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_saturation_panel.dart';
-import 'package:submersion/core/tide/entities/tide_extremes.dart';
-import 'package:submersion/features/tides/domain/entities/tide_record.dart';
-import 'package:submersion/features/tides/presentation/providers/tide_providers.dart';
-import 'package:submersion/features/tides/presentation/widgets/tide_cycle_graph.dart';
-import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
+import 'package:submersion/features/dive_roles/presentation/dive_role_display.dart';
+import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
+import 'package:submersion/features/marine_life/domain/entities/species.dart';
+import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
+import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
 import 'package:submersion/features/media/data/services/trip_media_scanner.dart';
 import 'package:submersion/features/media/presentation/helpers/photo_import_helper.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/dive_media_section.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_overlay_provider.dart';
+import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/signatures/presentation/providers/signature_providers.dart';
+import 'package:submersion/features/signatures/presentation/widgets/buddy_signatures_section.dart';
 import 'package:submersion/features/signatures/presentation/widgets/signature_capture_widget.dart';
 import 'package:submersion/features/signatures/presentation/widgets/signature_display_widget.dart';
-import 'package:submersion/features/signatures/presentation/widgets/buddy_signatures_section.dart';
-import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
+import 'package:submersion/features/tides/domain/entities/tide_record.dart';
+import 'package:submersion/features/tides/presentation/providers/tide_providers.dart';
+import 'package:submersion/features/tides/presentation/widgets/tide_cycle_graph.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/features/dive_roles/presentation/dive_role_display.dart';
-import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
-import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
-
-import 'package:submersion/features/dive_computer/presentation/providers/reparse_providers.dart';
+import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
+import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
 class DiveDetailPage extends ConsumerStatefulWidget {
   final String diveId;
 
   /// When true, renders without Scaffold wrapper for use in master-detail layout.
   final bool embedded;
+
+  /// Optional site ID to show instead of dive details.
+  /// Used in master-detail layout to keep dive list visible.
+  final String? embeddedSiteId;
+
+  /// Callback to clear the embedded site view.
+  final VoidCallback? onCloseEmbeddedSite;
 
   /// Callback when the dive is deleted (used in embedded mode).
   final VoidCallback? onDeleted;
@@ -104,6 +110,8 @@ class DiveDetailPage extends ConsumerStatefulWidget {
     super.key,
     required this.diveId,
     this.embedded = false,
+    this.embeddedSiteId,
+    this.onCloseEmbeddedSite,
     this.onDeleted,
   });
 
@@ -184,6 +192,15 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final embeddedSiteId = widget.embeddedSiteId;
+    if (embeddedSiteId != null && embeddedSiteId.isNotEmpty) {
+      return SiteDetailPage(
+        siteId: embeddedSiteId,
+        embedded: true,
+        onClose: widget.onCloseEmbeddedSite,
+      );
+    }
+
     // On desktop, redirect standalone detail pages to master-detail view.
     // Skip in table mode -- table view has no master-detail split to redirect into.
     if (!widget.embedded &&
@@ -1054,7 +1071,28 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             ? '${context.l10n.diveLog_detail_viewSite} ${site.name}'
             : '',
         child: InkWell(
-          onTap: site != null ? () => context.push('/sites/${site.id}') : null,
+          onTap: site != null
+              ? () {
+                  if (widget.embedded &&
+                      ResponsiveBreakpoints.isMasterDetail(context)) {
+                    final router = GoRouter.of(context);
+                    final state = GoRouterState.of(context);
+                    final currentPath = state.uri.path;
+                    final params = Map<String, String>.from(
+                      state.uri.queryParameters,
+                    );
+                    params['site'] = site.id;
+                    router.go(
+                      Uri(
+                        path: currentPath,
+                        queryParameters: params,
+                      ).toString(),
+                    );
+                  } else {
+                    context.push('/sites/${site.id}');
+                  }
+                }
+              : null,
           child: Stack(
             children: [
               // Map background (decorative, non-interactive).
@@ -1113,7 +1151,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          Icons.open_in_new,
+                          Icons.arrow_forward,
                           size: 14,
                           color: colorScheme.onPrimaryContainer,
                         ),

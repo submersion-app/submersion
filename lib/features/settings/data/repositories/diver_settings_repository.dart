@@ -11,6 +11,7 @@ import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
@@ -93,6 +94,7 @@ class DiverSettingsRepository {
               defaultCeilingSource: Value(s.defaultCeilingSource.toInt()),
               defaultTtsSource: Value(s.defaultTtsSource.toInt()),
               defaultCnsSource: Value(s.defaultCnsSource.toInt()),
+              cnsCalculationMethod: Value(s.cnsCalculationMethod.dbValue),
               showDepthColoredDiveCards: Value(s.showDepthColoredDiveCards),
               cardColorAttribute: Value(s.cardColorAttribute.name),
               diveListViewMode: Value(s.diveListViewMode.name),
@@ -230,6 +232,7 @@ class DiverSettingsRepository {
           defaultCeilingSource: Value(settings.defaultCeilingSource.toInt()),
           defaultTtsSource: Value(settings.defaultTtsSource.toInt()),
           defaultCnsSource: Value(settings.defaultCnsSource.toInt()),
+          cnsCalculationMethod: Value(settings.cnsCalculationMethod.dbValue),
           showDepthColoredDiveCards: Value(settings.showDepthColoredDiveCards),
           cardColorAttribute: Value(settings.cardColorAttribute.name),
           diveListViewMode: Value(settings.diveListViewMode.name),
@@ -410,6 +413,9 @@ class DiverSettingsRepository {
       defaultCeilingSource: MetricDataSource.fromInt(row.defaultCeilingSource),
       defaultTtsSource: MetricDataSource.fromInt(row.defaultTtsSource),
       defaultCnsSource: MetricDataSource.fromInt(row.defaultCnsSource),
+      cnsCalculationMethod: CnsCalculationMethod.fromDbValue(
+        row.cnsCalculationMethod,
+      ),
       cardColorAttribute: CardColorAttribute.fromName(row.cardColorAttribute),
       diveListViewMode: ListViewMode.fromName(row.diveListViewMode),
       siteListViewMode: ListViewMode.fromName(row.siteListViewMode),

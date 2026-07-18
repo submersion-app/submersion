@@ -8,6 +8,7 @@ import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/lightroom/adobe_ims_auth_manager.dart';
 import 'package:submersion/core/services/lightroom/lightroom_api_client.dart';
 import 'package:submersion/core/services/lightroom/lightroom_auth_store.dart';
+import 'package:submersion/core/services/lightroom/lightroom_redirect_capture.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
@@ -71,6 +72,16 @@ void main() {
     );
     final resolver = registry.resolverFor(MediaSourceType.serviceConnector);
     expect(resolver.sourceType, MediaSourceType.serviceConnector);
+  });
+
+  test('lightroomRedirectCaptureProvider provides the flutter_web_auth '
+      'capturer by default', () {
+    // Not overridden here, so the real factory runs: the embedded connect
+    // flow gets the platform-backed capturer.
+    expect(
+      container.read(lightroomRedirectCaptureProvider),
+      isA<FlutterWebAuthRedirectCapture>(),
+    );
   });
 
   test('resolver declines connector items while no account exists', () async {

@@ -1,8 +1,32 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
+import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 void main() {
+  group('AppSettings cnsCalculationMethod', () {
+    test('defaults to shearwater', () {
+      const settings = AppSettings();
+      expect(settings.cnsCalculationMethod, CnsCalculationMethod.shearwater);
+    });
+
+    test('copyWith updates cnsCalculationMethod', () {
+      const settings = AppSettings();
+      final updated = settings.copyWith(
+        cnsCalculationMethod: CnsCalculationMethod.subsurface,
+      );
+      expect(updated.cnsCalculationMethod, CnsCalculationMethod.subsurface);
+    });
+
+    test('copyWith preserves cnsCalculationMethod when not specified', () {
+      const settings = AppSettings(
+        cnsCalculationMethod: CnsCalculationMethod.classic,
+      );
+      final updated = settings.copyWith(themePresetId: 'dark');
+      expect(updated.cnsCalculationMethod, CnsCalculationMethod.classic);
+    });
+  });
+
   group('AppSettings defaultTankPreset', () {
     test('has al80 as default', () {
       const settings = AppSettings();

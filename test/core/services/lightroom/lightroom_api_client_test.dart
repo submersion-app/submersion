@@ -113,9 +113,12 @@ void main() {
       );
       expect(captured.url.path, '/v2/catalogs/cat1/assets');
       expect(captured.url.queryParameters['subtype'], 'image;video');
+      // captured_after and captured_before are mutually exclusive on this
+      // endpoint (Adobe returns 400 if both are sent); with both supplied,
+      // only the upper bound goes on the wire.
       expect(
-        captured.url.queryParameters['captured_after'],
-        '2026-07-01T09:00:00.000',
+        captured.url.queryParameters.containsKey('captured_after'),
+        isFalse,
       );
       expect(
         captured.url.queryParameters['captured_before'],
@@ -140,6 +143,24 @@ void main() {
     },
   );
 
+  test('listAssets sends captured_after alone when only the lower bound is '
+      'set', () async {
+    late http.Request captured;
+    final c = await client((req) async {
+      captured = req;
+      return http.Response('$_guard${jsonEncode({'resources': []})}', 200);
+    });
+    await c.listAssets('cat1', capturedAfter: DateTime.utc(2026, 7, 1, 9));
+    expect(
+      captured.url.queryParameters['captured_after'],
+      '2026-07-01T09:00:00.000',
+    );
+    expect(
+      captured.url.queryParameters.containsKey('captured_before'),
+      isFalse,
+    );
+  });
+
   test('listAssets with nextUrl requests it verbatim', () async {
     late http.Request captured;
     final c = await client((req) async {
@@ -156,6 +177,43 @@ void main() {
     );
     expect(page.assets, isEmpty);
     expect(page.nextUrl, isNull);
+  });
+
+  test('listAssets tolerates non-scalar payload fields without crashing '
+      'the scan', () async {
+    // The live API returned a list where a scalar was expected, aborting the
+    // whole scan with "type List<dynamic> is not a subtype of type num?".
+    final fixture =
+        _guard +
+        jsonEncode({
+          'resources': [
+            {
+              'id': 'assetX',
+              'subtype': 'image',
+              'payload': {
+                'captureDate': '2026-05-06T18:39:22',
+                'importSource': {
+                  'fileName': ['a', 'b'],
+                },
+                'location': {
+                  'latitude': [1, 2, 3],
+                  'longitude': 55.5,
+                },
+              },
+            },
+          ],
+        });
+    final c = await client((req) async => http.Response(fixture, 200));
+    final page = await c.listAssets(
+      'cat1',
+      capturedBefore: DateTime.utc(2026, 5, 6, 20),
+    );
+    expect(page.assets, hasLength(1));
+    final a = page.assets.single;
+    expect(a.captureDate, DateTime.utc(2026, 5, 6, 18, 39, 22));
+    expect(a.latitude, isNull, reason: 'a list is tolerated, not cast');
+    expect(a.longitude, 55.5, reason: 'a valid scalar still parses');
+    expect(a.fileName, isNull);
   });
 
   test('listAlbumAssets unwraps embedded assets', () async {
@@ -258,6 +316,53 @@ void main() {
               'msg',
               contains('reconnect'),
             ),
+      ),
+    );
+  });
+
+  test('non-401 error surfaces the concise Adobe detail, abuse guard '
+      'stripped', () async {
+    final c = await client(
+      (req) async => http.Response(
+        '$_guard${jsonEncode({'error_description': 'Invalid redirect_uri', 'code': 'bad_request'})}',
+        400,
+      ),
+    );
+    await expectLater(
+      c.getCatalogId(),
+      throwsA(
+        isA<LightroomApiException>()
+            .having((e) => e.statusCode, 'status', 400)
+            .having((e) => e.message, 'msg', contains('Invalid redirect_uri'))
+            .having((e) => e.message, 'no guard', isNot(contains('while (1)'))),
+      ),
+    );
+  });
+
+  test('non-JSON error body is whitespace-compacted and truncated', () async {
+    final noisy = '  <html>\n\n${'x' * 400}\n</html>  ';
+    final c = await client((req) async => http.Response(noisy, 500));
+    await expectLater(
+      c.getCatalogId(),
+      throwsA(
+        isA<LightroomApiException>()
+            .having((e) => e.statusCode, 'status', 500)
+            .having((e) => e.message, 'compacted', isNot(contains('\n')))
+            .having((e) => e.message, 'truncated', contains('...')),
+      ),
+    );
+  });
+
+  test('an empty error body yields just the status code', () async {
+    final c = await client((req) async => http.Response('', 503));
+    await expectLater(
+      c.getCatalogId(),
+      throwsA(
+        isA<LightroomApiException>().having(
+          (e) => e.message,
+          'msg',
+          'Lightroom API error 503',
+        ),
       ),
     );
   });

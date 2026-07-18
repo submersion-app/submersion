@@ -21,6 +21,7 @@ final planEngineConfigProvider = Provider<PlanEngineConfig>((ref) {
     cnsWarningThreshold: ref.watch(cnsWarningThresholdProvider),
     o2Narcotic: ref.watch(settingsProvider).o2Narcotic,
     pscrRatio: ref.watch(pscrRatioProvider),
+    cnsMethod: ref.watch(cnsCalculationMethodProvider),
   );
 });
 

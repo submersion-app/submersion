@@ -4365,10 +4365,44 @@ class AppLocalizationsHu extends AppLocalizations {
       'Jegyzetek hozzaadasa ehhez a meruleshez...';
 
   @override
+  String get diveLog_edit_overline_tanks => 'Palackok';
+
+  @override
+  String get diveLog_edit_profile_draw => 'Profil rajzolása';
+
+  @override
+  String get diveLog_edit_profile_none => 'Nincs rögzítve';
+
+  @override
+  String diveLog_edit_profile_outliers(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count lehetséges kiugró érték észlelve',
+      one: '1 lehetséges kiugró érték észlelve',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_edit_profile_points(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pont',
+      one: '1 pont',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_row_addSite => 'Merülőhely hozzáadása';
 
   @override
   String get diveLog_edit_row_diveCenter => 'Búvárközpont';
+
+  @override
+  String get diveLog_edit_row_diveProfile => 'Merülési profil';
 
   @override
   String get diveLog_edit_row_entry => 'Beszállás';
@@ -10863,6 +10897,15 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_photoPicker_appBarTitle => 'Fotok kivalasztasa';
 
   @override
+  String get media_photoPicker_tab_gallery => 'Galeria';
+
+  @override
+  String get media_photoPicker_tab_files => 'Fajlok';
+
+  @override
+  String get media_photoPicker_tab_url => 'URL';
+
+  @override
   String get media_photoPicker_clearSelectionButton => 'Törlés';
 
   @override
@@ -10930,6 +10973,42 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get media_photoPicker_thumbnailAlreadyLinkedLabel =>
       'A fotó már hozzá van kapcsolva ehhez a merüléshez';
+
+  @override
+  String get media_perdixOverlay_labelCns => 'CNS';
+
+  @override
+  String get media_perdixOverlay_labelDepth => 'MÉLYS';
+
+  @override
+  String get media_perdixOverlay_labelGas => 'GAS';
+
+  @override
+  String get media_perdixOverlay_labelMax => 'MAX';
+
+  @override
+  String get media_perdixOverlay_labelNdl => 'NDL';
+
+  @override
+  String get media_perdixOverlay_labelPpo2 => 'PPO2';
+
+  @override
+  String get media_perdixOverlay_labelStop => 'STOP';
+
+  @override
+  String get media_perdixOverlay_labelTank => 'TANK';
+
+  @override
+  String get media_perdixOverlay_labelTemp => 'HŐM';
+
+  @override
+  String get media_perdixOverlay_labelTime => 'IDŐ';
+
+  @override
+  String get media_perdixOverlay_labelTts => 'TTS';
+
+  @override
+  String get media_perdixOverlay_toggleTooltip => 'Búvárszámítógép-réteg';
 
   @override
   String get media_photoViewer_cannotShare => 'Nem oszthato meg ez a foto';
@@ -12130,7 +12209,8 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_backToSettings_tooltip => 'Vissza a beallitasokhoz';
 
   @override
-  String get settings_cloudSync_appBar_title => 'Felho szinkronizalas';
+  String get settings_cloudSync_appBar_title =>
+      'Adatbazis felho szinkronizalas';
 
   @override
   String get settings_cloudSync_autoSync => 'Automatikus szinkronizalas';
@@ -12601,7 +12681,7 @@ class AppLocalizationsHu extends AppLocalizations {
       'Biztonsagi mentes keszitese az adatokrol';
 
   @override
-  String get settings_data_cloudSync => 'Felho szinkronizalas';
+  String get settings_data_cloudSync => 'Adatbazis felho szinkronizalas';
 
   @override
   String get settings_data_customFolder => 'Egyedi mappa';
@@ -12742,6 +12822,9 @@ class AppLocalizationsHu extends AppLocalizations {
       'Gradiens Faktorok';
 
   @override
+  String get settings_decompression_header_oxygenToxicity => 'Oxigéntoxicitás';
+
+  @override
   String settings_decompression_preset_selectLabel(Object presetName) {
     return '$presetName konzervativizmus elore beallitott ertek kivalasztasa';
   }
@@ -12765,6 +12848,67 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_decompression_endLimit_dialog_title => 'END határ';
+
+  @override
+  String get settings_decompression_cnsMethodTitle => 'CNS-számítás';
+
+  @override
+  String get settings_decompression_cnsMethodClassic =>
+      'NOAA-táblázat, lépcsős (klasszikus)';
+
+  @override
+  String get settings_decompression_cnsMethodClassicDesc =>
+      'Minden 0,1 bar-os sávot a szigorúbb szélén számol. A Submersion eredeti módszere.';
+
+  @override
+  String get settings_decompression_cnsMethodShearwater =>
+      'Lineáris interpoláció (Shearwater-stílus)';
+
+  @override
+  String get settings_decompression_cnsMethodShearwaterDesc =>
+      'A NOAA-határértékek között lineárisan interpolál, ahogyan a Shearwater dokumentálja. A legtöbb búvárcomputerrel megegyezik.';
+
+  @override
+  String get settings_decompression_cnsMethodSubsurface =>
+      'Exponenciális illesztés (mint a Subsurface)';
+
+  @override
+  String get settings_decompression_cnsMethodSubsurfaceDesc =>
+      'Sima görbeillesztés a NOAA-táblázatra. Megegyezik a Subsurface által számított CNS-értékkel.';
+
+  @override
+  String get settings_decompression_cnsMethodAboutTitle =>
+      'Ezekről a módszerekről';
+
+  @override
+  String get settings_decompression_cnsMethodAboutBody =>
+      'Mindhárom módszer a NOAA Diving Manual oxigénterhelési határértékein alapul (300 perc 1,0 bar ppO2 mellett, 45 perc 1,6 bar mellett). A táblázat csak 0,1 bar-os lépésekben határoz meg határértékeket: a klasszikus módszer egy sávon belül mindent a sáv szigorúbb szélén számol, ami a bejegyzések közötti terhelést rendszeresen túlbecsüli. A Shearwater búvárcomputerei a NOAA-határértékek közötti lineáris interpolációt dokumentálják, 1,65 bar felett rögzített, percenkénti 15%-kal. A Subsurface 2019-ben a táblázatos kikeresést egy sima, kétszakaszos exponenciális illesztésre cserélte ugyanazokra a NOAA-adatokra (Robert C. Helling), amely 1,6 bar felett is természetesen kiterjed. A táblázat bejegyzései között a két sima módszer körülbelül egy CNS-ponton belül megegyezik; a klasszikus módszer magasabb értéket mutat.';
+
+  @override
+  String get settings_decompression_cnsMethodDisclaimer =>
+      'A nevek a megfelelő projektek és gyártók közzétett módszereire utalnak; ez nem jelent semmilyen kapcsolatot vagy támogatást. A számított értékek eltérhetnek a búvárcomputer tényleges kijelzéseitől.';
+
+  @override
+  String get settings_decompression_cnsMethodSourcesTitle => 'Források';
+
+  @override
+  String get settings_linkOpenFailed => 'A hivatkozást nem sikerült megnyitni.';
+
+  @override
+  String get settings_decompression_cnsMethodSourceNoaa =>
+      'NOAA: Diving Program (a NOAA Diving Manual kiadója)';
+
+  @override
+  String get settings_decompression_cnsMethodSourceShearwater =>
+      'Shearwater: A CNS oxigénórája';
+
+  @override
+  String get settings_decompression_cnsMethodSourceTheoreticalDiver =>
+      'The Theoretical Diver: A CNS oxigéntoxicitás számítása';
+
+  @override
+  String get settings_decompression_cnsMethodSourceSubsurface =>
+      'Subsurface: megvalósítás (divelist.cpp)';
 
   @override
   String get settings_existingDb_cancel => 'Megse';
@@ -12950,7 +13094,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String settings_lightroom_clientId_help(String redirectUri) {
-    return 'Hozz létre egy integrációt az Adobe Developer Console-ban a Lightroom Services API-val és egy PKCE-t támogató hitelesítőtípussal. Az átirányítási URI legyen $redirectUri.';
+    return 'Hozz létre egy integrációt az Adobe Developer Console-ban a Lightroom Services API-val és egy PKCE-t támogató hitelesítőtípussal. Add meg alább a hitelesítő adatod átirányítási URI-jét — a Native App hitelesítők egyedi sémát használnak —, vagy hagyd üresen a(z) $redirectUri használatához.';
   }
 
   @override
@@ -12961,7 +13105,18 @@ class AppLocalizationsHu extends AppLocalizations {
       'Klienstitok (nem kötelező)';
 
   @override
+  String get settings_lightroom_redirectUri_label =>
+      'Átirányítási URI (nem kötelező)';
+
+  @override
   String get settings_lightroom_connect => 'Lightroom csatlakoztatása';
+
+  @override
+  String get settings_lightroom_connectEmbedded => 'Csatlakozás az Adobe-hoz';
+
+  @override
+  String get settings_lightroom_advancedByo =>
+      'Saját Adobe hitelesítő adatok használata';
 
   @override
   String get settings_lightroom_connect_codeLabel =>

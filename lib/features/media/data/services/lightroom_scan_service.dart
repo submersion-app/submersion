@@ -212,18 +212,51 @@ class LightroomScanService {
   ) async {
     final assets = <LightroomAsset>[];
     for (final span in spans) {
+      // captured_after/captured_before are mutually exclusive on the assets
+      // endpoint, so query the upper bound only and page `next` (older). The
+      // listing is newest-first, so once assets cross below the window start
+      // every later page is older too -- stop then.
+      _log.info(
+        '[LR-SCAN] span ${span.start.toIso8601String()} .. '
+        '${span.end.toIso8601String()} '
+        '(query captured_before=${span.end.toIso8601String()})',
+      );
       String? next;
+      var reachedStart = false;
+      var pageNum = 0;
       do {
         final page = await _api.listAssets(
           catalogId,
-          capturedAfter: span.start,
           capturedBefore: span.end,
           nextUrl: next,
         );
-        assets.addAll(page.assets);
-        next = page.nextUrl;
+        pageNum++;
+        // Per-page detail (including capture timestamps) is verbose and would
+        // flood logs on large catalogs -- keep it at debug; the span and
+        // summary lines below stay at info.
+        _log.debug(
+          '[LR-SCAN] page $pageNum: got=${page.assets.length} '
+          'firstDates=[${page.assets.take(4).map((a) => a.captureDate?.toIso8601String() ?? 'null').join(' | ')}] '
+          'lastDate=${page.assets.isEmpty ? 'n/a' : page.assets.last.captureDate?.toIso8601String()} '
+          'hasNext=${page.nextUrl != null}',
+        );
+        for (final asset in page.assets) {
+          final captureDate = asset.captureDate;
+          if (captureDate != null && captureDate.isBefore(span.start)) {
+            // Assets page newest-first, so everything after this one is older
+            // than the window start too -- stop scanning this page.
+            reachedStart = true;
+            break;
+          }
+          assets.add(asset);
+        }
+        next = reachedStart ? null : page.nextUrl;
       } while (next != null);
+      if (reachedStart) {
+        _log.info('[LR-SCAN] early-stop fired (asset older than window start)');
+      }
     }
+    _log.info('[LR-SCAN] total collected within windows=${assets.length}');
     return assets;
   }
 

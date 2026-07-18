@@ -696,7 +696,8 @@ jobs:
             libgtk-3-dev \
             liblzma-dev \
             libstdc++-12-dev \
-            libsecret-1-dev
+            libsecret-1-dev \
+            libwebkit2gtk-4.1-dev
 
       - name: Disable Swift Package Manager (project uses CocoaPods)
         run: flutter config --no-enable-swift-package-manager

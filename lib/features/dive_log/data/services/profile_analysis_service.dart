@@ -8,6 +8,7 @@ import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
 import 'package:submersion/core/deco/ascent_rate_calculator.dart';
 import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
+import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
@@ -478,6 +479,7 @@ class ProfileAnalysisService {
     double lastStopDepth = 3.0,
     double decoStopIncrement = 3.0,
     DiveEnvironment environment = DiveEnvironment.standard,
+    CnsCalculationMethod cnsCalculationMethod = CnsCalculationMethod.shearwater,
   }) : _ascentRateCalculator = AscentRateCalculator(
          warningThreshold: ascentRateWarning,
          criticalThreshold: ascentRateCritical,
@@ -486,6 +488,7 @@ class ProfileAnalysisService {
          ppO2WarningThreshold: ppO2WarningThreshold,
          ppO2CriticalThreshold: ppO2CriticalThreshold,
          cnsWarningThreshold: cnsWarningThreshold,
+         cnsMethod: cnsCalculationMethod,
        ),
        _buhlmannAlgorithm = BuhlmannAlgorithm(
          gfLow: gfLow,

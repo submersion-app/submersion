@@ -3,6 +3,7 @@ import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
 import 'package:submersion/core/deco/ascent/ccr_loop_ascent_gas.dart';
 import 'package:submersion/core/deco/deco_model.dart';
 import 'package:submersion/core/deco/entities/breathing_config.dart';
+import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/gas_density.dart';
 import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
@@ -47,6 +48,9 @@ class PlanEngineConfig {
   /// fresh gas and shrinks the inspired-O2 drop.
   final double pscrRatio;
 
+  /// Algorithm used to convert ppO2 exposure into CNS %/min.
+  final CnsCalculationMethod cnsMethod;
+
   const PlanEngineConfig({
     this.ppO2Working = 1.4,
     this.ppO2Deco = 1.6,
@@ -61,6 +65,7 @@ class PlanEngineConfig {
     this.pscrO2ConsumptionMlMin = 720.0,
     this.pscrSacMlMin = 20000.0,
     this.pscrRatio = 100.0,
+    this.cnsMethod = CnsCalculationMethod.shearwater,
   });
 }
 
@@ -171,6 +176,7 @@ class PlanEngine {
       ppO2WarningThreshold: config.ppO2Working,
       ppO2CriticalThreshold: config.ppO2Deco,
       cnsWarningThreshold: config.cnsWarningThreshold,
+      cnsMethod: config.cnsMethod,
     );
 
     final segments = List<PlanSegment>.from(plan.segments)

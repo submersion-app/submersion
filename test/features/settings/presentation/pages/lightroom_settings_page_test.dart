@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart'
+    show debugDefaultTargetPlatformOverride, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,9 +12,12 @@ import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/services/accounts/account_credentials_store.dart';
 import 'package:submersion/core/services/accounts/account_provider_registry.dart';
 import 'package:submersion/core/services/accounts/adapters/lightroom_account_adapter.dart';
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/lightroom/adobe_ims_auth_manager.dart';
 import 'package:submersion/core/services/lightroom/lightroom_api_client.dart';
 import 'package:submersion/core/services/lightroom/lightroom_auth_store.dart';
+import 'package:submersion/core/services/lightroom/lightroom_embedded_credential.dart';
+import 'package:submersion/core/services/lightroom/lightroom_redirect_capture.dart';
 import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/features/media/data/services/lightroom_connector_state.dart';
@@ -25,6 +30,37 @@ import '../../../../helpers/test_database.dart';
 import '../../../../support/fake_keychain_storage.dart';
 
 const _guard = 'while (1) {}';
+
+/// Returns a fixed redirect (with an auth code) from the in-app auth session.
+class _FakeCapture implements LightroomRedirectCapture {
+  _FakeCapture(this.result);
+  final String result;
+  @override
+  Future<String> capture({
+    required Uri authorizeUrl,
+    required String callbackScheme,
+  }) async => result;
+}
+
+/// Simulates the user cancelling / the auth session failing with a typed
+/// connector error (surfaced via displayMessage).
+class _ThrowingCapture implements LightroomRedirectCapture {
+  @override
+  Future<String> capture({
+    required Uri authorizeUrl,
+    required String callbackScheme,
+  }) async => throw const CloudStorageException('Sign-in was cancelled');
+}
+
+/// Simulates a plain (non-CloudStorageException) failure, surfaced via
+/// toString().
+class _GenericThrowingCapture implements LightroomRedirectCapture {
+  @override
+  Future<String> capture({
+    required Uri authorizeUrl,
+    required String callbackScheme,
+  }) async => throw Exception('unexpected boom');
+}
 
 void main() {
   late SharedPreferences prefs;
@@ -87,7 +123,7 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  Widget app() => ProviderScope(
+  Widget app({LightroomRedirectCapture? capture}) => ProviderScope(
     overrides: [
       sharedPreferencesProvider.overrideWithValue(prefs),
       lightroomAuthManagerProvider.overrideWithValue(authManager),
@@ -105,17 +141,23 @@ void main() {
           ),
         ]),
       ),
+      if (capture != null)
+        lightroomRedirectCaptureProvider.overrideWithValue(capture),
     ],
     child: const MaterialApp(
+      locale: Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: LightroomSettingsPage(),
     ),
   );
 
-  Future<void> pumpPage(WidgetTester tester) async {
+  Future<void> pumpPage(
+    WidgetTester tester, {
+    LightroomRedirectCapture? capture,
+  }) async {
     await tester.runAsync(() async {
-      await tester.pumpWidget(app());
+      await tester.pumpWidget(app(capture: capture));
       await Future<void>.delayed(const Duration(milliseconds: 50));
       await tester.pump();
     });
@@ -151,6 +193,95 @@ void main() {
         find.widgetWithText(FilledButton, 'Connect Lightroom'),
       );
       expect(enabled.onPressed, isNotNull);
+    });
+
+    testWidgets('renders the optional redirect URI field for BYO', (
+      tester,
+    ) async {
+      await pumpPage(tester);
+      expect(find.text('Redirect URI (optional)'), findsOneWidget);
+    });
+
+    testWidgets('hides the embedded Connect button on Linux, keeps BYO', (
+      tester,
+    ) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+      try {
+        await pumpPage(tester);
+        expect(
+          find.widgetWithText(FilledButton, 'Connect with Adobe'),
+          findsNothing,
+        );
+        expect(find.text('Use your own Adobe credentials'), findsOneWidget);
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
+    });
+
+    testWidgets('shows the embedded Connect button on macOS', (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+      try {
+        await pumpPage(tester);
+        expect(
+          find.widgetWithText(FilledButton, 'Connect with Adobe'),
+          findsOneWidget,
+        );
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
+    });
+
+    testWidgets('a BYO redirect URI is carried into the connect dialog', (
+      tester,
+    ) async {
+      await pumpPage(tester);
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Adobe client ID'),
+        'cid',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Redirect URI (optional)'),
+        'adobe+abc://adobeid/cid',
+      );
+      await tester.pump();
+      await tester.tap(find.widgetWithText(FilledButton, 'Connect Lightroom'));
+      await settle(tester);
+      // The dialog opened (browser open fails inline in tests); the redirect
+      // was threaded through beginAuthorization without error.
+      expect(find.text('Connect Lightroom'), findsWidgets);
+    });
+
+    testWidgets('embedded Connect with Adobe signs in and shows the '
+        'connected body', (tester) async {
+      final capture = _FakeCapture(
+        '${LightroomEmbeddedCredential.redirectUri}?code=thecode',
+      );
+      await pumpPage(tester, capture: capture);
+      await tester.tap(find.widgetWithText(FilledButton, 'Connect with Adobe'));
+      await settle(tester);
+      await settle(tester);
+      expect(find.text('Connected as Eric G'), findsOneWidget);
+    });
+
+    testWidgets('a failed embedded sign-in surfaces an error and stays '
+        'disconnected', (tester) async {
+      await pumpPage(tester, capture: _ThrowingCapture());
+      await tester.tap(find.widgetWithText(FilledButton, 'Connect with Adobe'));
+      await settle(tester);
+      expect(find.textContaining('Sign-in was cancelled'), findsOneWidget);
+      expect(
+        find.widgetWithText(FilledButton, 'Connect with Adobe'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('an unexpected embedded failure is surfaced via toString', (
+      tester,
+    ) async {
+      await pumpPage(tester, capture: _GenericThrowingCapture());
+      await tester.tap(find.widgetWithText(FilledButton, 'Connect with Adobe'));
+      await settle(tester);
+      expect(find.textContaining('unexpected boom'), findsOneWidget);
     });
 
     testWidgets('full connect flow creates the account and shows the '
@@ -223,6 +354,7 @@ void main() {
               ),
             ],
             child: const MaterialApp(
+              locale: Locale('en'),
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
               home: LightroomSettingsPage(),
