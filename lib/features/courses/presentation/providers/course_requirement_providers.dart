@@ -12,13 +12,17 @@ final courseRequirementRepositoryProvider =
     });
 
 /// Requirement progress for one course. Self-invalidates on any write to
-/// the requirement tables (including sync merges) so progress stays live.
+/// the requirement tables (including sync merges) and on any dive write:
+/// getCourseProgress joins dives/dive_sites for the linked-dive summaries
+/// (number, date, site name), so editing a credited dive must refresh the
+/// course detail page even when no requirement/link changed.
 final courseProgressProvider = FutureProvider.family<CourseProgress, String>((
   ref,
   courseId,
 ) async {
   final repository = ref.watch(courseRequirementRepositoryProvider);
   ref.invalidateSelfWhen(repository.watchRequirementsChanges());
+  ref.invalidateSelfWhen(ref.watch(diveRepositoryProvider).watchDivesChanges());
   return repository.getCourseProgress(courseId);
 });
 

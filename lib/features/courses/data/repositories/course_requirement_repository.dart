@@ -281,14 +281,57 @@ class CourseRequirementRepository {
 
   /// Append the template's rows to the course. Never destructive: applying
   /// twice duplicates rows, which is the user's explicit choice to fix.
+  ///
+  /// All rows insert in a single transaction, then the ids are marked pending
+  /// and a single change notification fires (TripChecklistRepository pattern),
+  /// instead of one write + markRecordPending + notifyLocalChange per row.
   Future<void> applyTemplate(String courseId, CourseTemplate template) async {
-    for (final item in template.requirements) {
-      await createRequirement(
-        courseId: courseId,
-        name: item.name,
-        kind: item.kind,
-        targetCount: item.targetCount,
+    if (template.requirements.isEmpty) return;
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final pendingIds = <String>[];
+
+      await _db.transaction(() async {
+        var sortOrder = await _getMaxSortOrder(courseId);
+        for (final item in template.requirements) {
+          final id = _uuid.v4();
+          await _db
+              .into(_db.courseRequirements)
+              .insert(
+                CourseRequirementsCompanion(
+                  id: Value(id),
+                  courseId: Value(courseId),
+                  name: Value(item.name.trim()),
+                  kind: Value(item.kind.name),
+                  targetCount: Value(item.targetCount),
+                  sortOrder: Value(++sortOrder),
+                  createdAt: Value(now),
+                  updatedAt: Value(now),
+                ),
+              );
+          pendingIds.add(id);
+        }
+      });
+
+      for (final id in pendingIds) {
+        await _syncRepository.markRecordPending(
+          entityType: 'courseRequirements',
+          recordId: id,
+          localUpdatedAt: now,
+        );
+      }
+      SyncEventBus.notifyLocalChange();
+      _log.info(
+        'Applied template "${template.name}" '
+        '(${pendingIds.length} requirements) to course: $courseId',
       );
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to apply template to course: $courseId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
     }
   }
 
