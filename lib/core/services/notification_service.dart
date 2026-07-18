@@ -6,6 +6,22 @@ import 'package:timezone/timezone.dart' as tz;
 
 import 'package:submersion/core/services/logger_service.dart';
 
+/// Deterministic 32-bit notification id for [key].
+///
+/// [String.hashCode] is seeded with a per-launch random value (hash-flood
+/// mitigation), so an id derived from it changes between app runs and can also
+/// fall outside the positive int32 range Android notification ids require. This
+/// FNV-1a hash is stable across launches and always fits 31 bits, so a reminder
+/// scheduled in one run can be replaced or cancelled by id in the next.
+int _stableNotificationId(String key) {
+  var hash = 0x811c9dc5; // FNV-1a 32-bit offset basis
+  for (final unit in key.codeUnits) {
+    hash ^= unit;
+    hash = (hash * 0x01000193) & 0xFFFFFFFF; // FNV prime, wrap to 32 bits
+  }
+  return hash & 0x7FFFFFFF; // positive, within int32
+}
+
 /// Service for managing local notifications
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -141,7 +157,7 @@ class NotificationService {
     // Skip on desktop platforms
     if (!_isMobilePlatform) return 0;
 
-    final notificationId = scheduleId.hashCode + daysBefore;
+    final notificationId = _stableNotificationId('$scheduleId#$daysBefore');
 
     final title = '$kindName due: $equipmentName';
     final body = daysBefore > 0
@@ -199,7 +215,7 @@ class NotificationService {
   }) async {
     if (!_isMobilePlatform) return 0;
 
-    final notificationId = tripId.hashCode ^ 0x5EAF1CE;
+    final notificationId = _stableNotificationId('trip#$tripId');
     final title = 'Gear service before $tripName';
     final body = itemCount == 1
         ? '1 item needs service before this trip'

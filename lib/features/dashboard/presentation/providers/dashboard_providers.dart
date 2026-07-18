@@ -4,15 +4,11 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 
 /// Dashboard alerts data class
 class DashboardAlerts {
-  /// Legacy single-clock list (kept for existing consumers).
-  final List<EquipmentItem> equipmentServiceDue;
-
   /// Per-clock service alerts from the service ledger (overdue/due-soon).
   final List<DueClock> serviceClocksDue;
   final bool insuranceExpiringSoon;
@@ -21,7 +17,6 @@ class DashboardAlerts {
   final String? insuranceProvider;
 
   const DashboardAlerts({
-    required this.equipmentServiceDue,
     this.serviceClocksDue = const [],
     required this.insuranceExpiringSoon,
     required this.insuranceExpired,
@@ -85,12 +80,10 @@ final recentDivesProvider = FutureProvider<List<Dive>>((ref) async {
 
 /// Dashboard alerts provider - combines equipment and insurance alerts
 final dashboardAlertsProvider = FutureProvider<DashboardAlerts>((ref) async {
-  final serviceDue = await ref.watch(serviceDueEquipmentProvider.future);
   final clocksDue = await ref.watch(dueClocksProvider.future);
   final diver = await ref.watch(currentDiverProvider.future);
 
   return DashboardAlerts(
-    equipmentServiceDue: serviceDue,
     serviceClocksDue: clocksDue,
     insuranceExpiringSoon: diver?.insurance.isExpiringSoon ?? false,
     insuranceExpired: diver?.insurance.isExpired ?? false,

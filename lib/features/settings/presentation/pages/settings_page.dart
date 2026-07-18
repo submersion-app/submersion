@@ -1595,12 +1595,19 @@ class _NotificationsSectionContent extends ConsumerWidget {
                 trailing: DropdownButton<int>(
                   value: settings.tripServiceLeadDays,
                   underline: const SizedBox.shrink(),
-                  items: [7, 14, 21, 30]
-                      .map(
-                        (days) =>
-                            DropdownMenuItem(value: days, child: Text('$days')),
-                      )
-                      .toList(),
+                  // Always include the persisted value so a non-standard lead
+                  // time (a future UI, manual edit, or migration) never trips
+                  // DropdownButton's "value must appear in items" assertion.
+                  items:
+                      ({7, 14, 21, 30, settings.tripServiceLeadDays}.toList()
+                            ..sort())
+                          .map(
+                            (days) => DropdownMenuItem(
+                              value: days,
+                              child: Text('$days'),
+                            ),
+                          )
+                          .toList(),
                   onChanged: (days) {
                     if (days != null) {
                       ref

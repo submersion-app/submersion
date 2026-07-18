@@ -32,7 +32,8 @@ typedef Override = riverpod.Override;
 /// Mock SettingsNotifier that doesn't access the database
 class _MockSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
-  _MockSettingsNotifier() : super(const AppSettings());
+  _MockSettingsNotifier([AppSettings? initial])
+    : super(initial ?? const AppSettings());
 
   @override
   Future<void> setDefaultShowGasTimeline(bool value) async =>
@@ -398,12 +399,12 @@ void main() {
   });
 
   /// Helper to create common provider overrides for SettingsPage tests
-  List<Override> getOverrides() {
+  List<Override> getOverrides([AppSettings? settings]) {
     return [
       sharedPreferencesProvider.overrideWithValue(prefs),
       logFileServiceProvider.overrideWithValue(logFileService),
       // Mock the settingsProvider to avoid database access
-      settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+      settingsProvider.overrideWith((ref) => _MockSettingsNotifier(settings)),
       // Mock the currentDiverIdProvider to avoid database access
       currentDiverIdProvider.overrideWith(
         (ref) => _MockCurrentDiverIdNotifier(),
@@ -879,6 +880,27 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('21 days before a trip'), findsOneWidget);
+    });
+
+    testWidgets('renders without throwing for a non-standard persisted value', (
+      tester,
+    ) async {
+      // A lead time outside the standard {7, 14, 21, 30} options (from a
+      // migration, manual edit, or future UI) must not trip DropdownButton's
+      // "value must appear in items" assertion.
+      final overrides = getOverrides(
+        const AppSettings(tripServiceLeadDays: 10),
+      );
+      await tester.pumpWidget(buildNotificationsWidget(overrides));
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(find.text('Trip service lead time'), 200);
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('10 days before a trip'), findsOneWidget);
+      // The persisted value appears in the dropdown's options.
+      expect(find.byType(DropdownButton<int>), findsOneWidget);
     });
   });
 }
