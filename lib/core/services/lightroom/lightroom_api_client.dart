@@ -80,7 +80,7 @@ class LightroomApiClient {
           ),
         );
       }
-      final next = _nextUrl(json);
+      final next = _nextUrl(uri, json);
       uri = next == null ? null : Uri.parse(next);
     }
     return albums;
@@ -117,7 +117,7 @@ class LightroomApiClient {
         for (final resource in _resources(json))
           ?LightroomAsset.fromResource(resource),
       ],
-      nextUrl: _nextUrl(json),
+      nextUrl: _nextUrl(uri, json),
     );
   }
 
@@ -142,7 +142,7 @@ class LightroomApiClient {
               resource['asset']! as Map<String, Object?>,
             ),
       ],
-      nextUrl: _nextUrl(json),
+      nextUrl: _nextUrl(uri, json),
     );
   }
 
@@ -250,15 +250,19 @@ class LightroomApiClient {
     return raw.whereType<Map<String, Object?>>().toList();
   }
 
-  String? _nextUrl(Map<String, Object?> json) {
+  String? _nextUrl(Uri requestUri, Map<String, Object?> json) {
     final links = json['links'];
     if (links is! Map<String, Object?>) return null;
     final next = links['next'];
     if (next is! Map<String, Object?>) return null;
     final href = next['href'];
     if (href is! String || href.isEmpty) return null;
-    final uri = Uri.parse(href);
-    return uri.hasScheme ? href : '$baseUrl$href';
+    // Adobe's `next.href` is a reference relative to the request path (e.g.
+    // `assets?captured_after=...&created_after=...`, no leading slash); resolve
+    // it against the request URI. Gluing it onto the bare host produced
+    // `lr.adobe.ioassets` and a failed host lookup once paging followed it.
+    // Absolute and absolute-path (leading-slash) hrefs resolve correctly too.
+    return requestUri.resolve(href).toString();
   }
 
   /// Wall-clock timestamps formatted without a zone designator, matching

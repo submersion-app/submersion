@@ -144,6 +144,34 @@ void main() {
     },
   );
 
+  test('listAssets resolves a relative next href against the request path '
+      '(not glued to the bare host)', () async {
+    // The live API returns `next.href` RELATIVE to the request path, e.g.
+    // `assets?captured_after=...&created_after=...` with no leading slash.
+    // Gluing it onto the bare base produced host `lr.adobe.ioassets` and a
+    // "Failed host lookup" once paging actually followed the link.
+    final fixture =
+        _guard +
+        jsonEncode({
+          'resources': <Map<String, Object?>>[],
+          'links': {
+            'next': {
+              'href': 'assets?subtype=image;video&created_after=2026-05-30T23',
+            },
+          },
+        });
+    final c = await client((req) async => http.Response(fixture, 200));
+    final page = await c.listAssets(
+      'cat1',
+      capturedAfter: DateTime.utc(2026, 5, 6, 18),
+    );
+    expect(
+      page.nextUrl,
+      'https://lr.adobe.io/v2/catalogs/cat1/assets'
+      '?subtype=image;video&created_after=2026-05-30T23',
+    );
+  });
+
   test('listAssets sends captured_after alone when only the lower bound is '
       'set', () async {
     late http.Request captured;
