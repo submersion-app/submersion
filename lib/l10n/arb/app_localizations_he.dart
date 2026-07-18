@@ -11859,7 +11859,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_backToSettings_tooltip => 'חזרה להגדרות';
 
   @override
-  String get settings_cloudSync_appBar_title => 'סנכרון ענן';
+  String get settings_cloudSync_appBar_title => 'סנכרון ענן של מסד נתונים';
 
   @override
   String get settings_cloudSync_autoSync => 'סנכרון אוטומטי';
@@ -12308,7 +12308,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_data_backup_subtitle => 'צור גיבוי של הנתונים שלך';
 
   @override
-  String get settings_data_cloudSync => 'סנכרון ענן';
+  String get settings_data_cloudSync => 'סנכרון ענן של מסד נתונים';
 
   @override
   String get settings_data_customFolder => 'תיקייה מותאמת אישית';

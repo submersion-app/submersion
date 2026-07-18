@@ -6772,7 +6772,7 @@
     "description": "SnackBar shown when persisting the nav order fails (e.g., database write error)."
   },
   "settings_backToSettings_tooltip": "Back to settings",
-  "settings_cloudSync_appBar_title": "Cloud Sync",
+  "settings_cloudSync_appBar_title": "Database Cloud Sync",
   "settings_cloudSync_autoSync": "Auto Sync",
   "settings_cloudSync_autoSync_subtitle": "Sync automatically after changes",
   "settings_cloudSync_conflictItems": "{count, plural, =1{1 item needs attention} other{{count} items need attention}}",
@@ -6937,7 +6937,7 @@
   "settings_data_appDefaultLocation": "App default location",
   "settings_data_backup": "Backup & Restore",
   "settings_data_backup_subtitle": "Create a backup of your data",
-  "settings_data_cloudSync": "Cloud Sync",
+  "settings_data_cloudSync": "Database Cloud Sync",
   "settings_data_customFolder": "Custom folder",
   "settings_data_databaseStorage": "Database Storage",
   "settings_data_export_completed": "Export completed",

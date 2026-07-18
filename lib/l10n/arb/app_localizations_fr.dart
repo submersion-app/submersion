@@ -12210,7 +12210,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_backToSettings_tooltip => 'Retour aux reglages';
 
   @override
-  String get settings_cloudSync_appBar_title => 'Synchronisation cloud';
+  String get settings_cloudSync_appBar_title =>
+      'Synchronisation cloud de la base de donnees';
 
   @override
   String get settings_cloudSync_autoSync => 'Synchronisation automatique';
@@ -12679,7 +12680,8 @@ class AppLocalizationsFr extends AppLocalizations {
       'Creer une sauvegarde de vos donnees';
 
   @override
-  String get settings_data_cloudSync => 'Synchronisation cloud';
+  String get settings_data_cloudSync =>
+      'Synchronisation cloud de la base de donnees';
 
   @override
   String get settings_data_customFolder => 'Dossier personnalise';

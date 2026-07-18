@@ -12158,7 +12158,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_backToSettings_tooltip => 'Zurück zu Einstellungen';
 
   @override
-  String get settings_cloudSync_appBar_title => 'Cloud-Synchronisierung';
+  String get settings_cloudSync_appBar_title =>
+      'Datenbank-Cloud-Synchronisierung';
 
   @override
   String get settings_cloudSync_autoSync => 'Automatische Synchronisierung';
@@ -12625,7 +12626,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_data_backup_subtitle => 'Sicherung Ihrer Daten erstellen';
 
   @override
-  String get settings_data_cloudSync => 'Cloud-Synchronisierung';
+  String get settings_data_cloudSync => 'Datenbank-Cloud-Synchronisierung';
 
   @override
   String get settings_data_customFolder => 'Benutzerdefinierter Ordner';

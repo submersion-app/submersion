@@ -11581,7 +11581,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_backToSettings_tooltip => '返回设置';
 
   @override
-  String get settings_cloudSync_appBar_title => '云同步';
+  String get settings_cloudSync_appBar_title => '数据库云同步';
 
   @override
   String get settings_cloudSync_autoSync => '自动同步';
@@ -12019,7 +12019,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_data_backup_subtitle => '创建数据备份';
 
   @override
-  String get settings_data_cloudSync => '云同步';
+  String get settings_data_cloudSync => '数据库云同步';
 
   @override
   String get settings_data_customFolder => '自定义文件夹';
