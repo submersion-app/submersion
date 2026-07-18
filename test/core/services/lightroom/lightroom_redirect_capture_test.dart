@@ -1,8 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-// FlutterWebAuth2Platform lives in the platform-interface package, pulled in
-// transitively via flutter_web_auth_2; import it directly so the test can swap
-// in a fake platform instance instead of opening a real browser session.
-// ignore: depend_on_referenced_packages
+// FlutterWebAuth2Platform lives in the platform-interface package (declared as
+// an explicit dev_dependency); swap in a fake instance so the test never opens
+// a real browser session.
 import 'package:flutter_web_auth_2_platform_interface/flutter_web_auth_2_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:submersion/core/services/lightroom/lightroom_redirect_capture.dart';

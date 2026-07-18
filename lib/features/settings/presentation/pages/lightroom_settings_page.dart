@@ -338,6 +338,10 @@ class _LightroomSettingsPageState extends ConsumerState<LightroomSettingsPage> {
           controller: _redirectUriController,
           enabled: !_busy,
           keyboardType: TextInputType.url,
+          // Custom-scheme redirect URIs (e.g. adobe+<hash>://...) must be typed
+          // verbatim; autocorrect/suggestions would silently mangle them.
+          autocorrect: false,
+          enableSuggestions: false,
           decoration: InputDecoration(
             labelText: l10n.settings_lightroom_redirectUri_label,
             border: const OutlineInputBorder(),
