@@ -482,13 +482,17 @@ class _ConnectorVideoItem extends ConsumerWidget {
     final url = (catalogId != null && item.remoteAssetId != null)
         ? LightroomApiClient.assetWebUrl(catalogId, item.remoteAssetId!)
         : null;
+    // Shared open action: drives both the pointer tap (GestureDetector) and the
+    // semantic activation on the labeled play button so screen readers can
+    // actually trigger it, not just announce it.
+    final onOpen = url == null
+        ? null
+        : () => unawaited(
+            launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication),
+          );
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: url == null
-          ? null
-          : () => unawaited(
-              launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication),
-            ),
+      onTap: onOpen,
       child: Stack(
         alignment: Alignment.center,
         children: [
@@ -499,6 +503,7 @@ class _ConnectorVideoItem extends ConsumerWidget {
               Semantics(
                 button: url != null,
                 label: context.l10n.media_lightroom_openInLightroom,
+                onTap: onOpen,
                 child: Container(
                   width: 72,
                   height: 72,
