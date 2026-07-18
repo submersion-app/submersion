@@ -10792,6 +10792,42 @@ class AppLocalizationsAr extends AppLocalizations {
       'الصورة مرتبطة بالفعل بهذه الغوصة';
 
   @override
+  String get media_perdixOverlay_labelCns => 'CNS';
+
+  @override
+  String get media_perdixOverlay_labelDepth => 'العمق';
+
+  @override
+  String get media_perdixOverlay_labelGas => 'GAS';
+
+  @override
+  String get media_perdixOverlay_labelMax => 'MAX';
+
+  @override
+  String get media_perdixOverlay_labelNdl => 'NDL';
+
+  @override
+  String get media_perdixOverlay_labelPpo2 => 'PPO2';
+
+  @override
+  String get media_perdixOverlay_labelStop => 'STOP';
+
+  @override
+  String get media_perdixOverlay_labelTank => 'TANK';
+
+  @override
+  String get media_perdixOverlay_labelTemp => 'الحرارة';
+
+  @override
+  String get media_perdixOverlay_labelTime => 'الوقت';
+
+  @override
+  String get media_perdixOverlay_labelTts => 'TTS';
+
+  @override
+  String get media_perdixOverlay_toggleTooltip => 'طبقة كمبيوتر الغوص';
+
+  @override
   String get media_photoViewer_cannotShare => 'لا يمكن مشاركة هذه الصورة';
 
   @override

@@ -10719,6 +10719,42 @@ class AppLocalizationsHe extends AppLocalizations {
       'תמונה כבר מקושרת לצלילה זו';
 
   @override
+  String get media_perdixOverlay_labelCns => 'CNS';
+
+  @override
+  String get media_perdixOverlay_labelDepth => 'עומק';
+
+  @override
+  String get media_perdixOverlay_labelGas => 'GAS';
+
+  @override
+  String get media_perdixOverlay_labelMax => 'MAX';
+
+  @override
+  String get media_perdixOverlay_labelNdl => 'NDL';
+
+  @override
+  String get media_perdixOverlay_labelPpo2 => 'PPO2';
+
+  @override
+  String get media_perdixOverlay_labelStop => 'STOP';
+
+  @override
+  String get media_perdixOverlay_labelTank => 'TANK';
+
+  @override
+  String get media_perdixOverlay_labelTemp => 'טמפ';
+
+  @override
+  String get media_perdixOverlay_labelTime => 'זמן';
+
+  @override
+  String get media_perdixOverlay_labelTts => 'TTS';
+
+  @override
+  String get media_perdixOverlay_toggleTooltip => 'שכבת מחשב צלילה';
+
+  @override
   String get media_photoViewer_cannotShare => 'לא ניתן לשתף תמונה זו';
 
   @override

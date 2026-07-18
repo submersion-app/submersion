@@ -18716,6 +18716,78 @@ abstract class AppLocalizations {
   /// **'Photo already linked to this dive'**
   String get media_photoPicker_thumbnailAlreadyLinkedLabel;
 
+  /// No description provided for @media_perdixOverlay_labelCns.
+  ///
+  /// In en, this message translates to:
+  /// **'CNS'**
+  String get media_perdixOverlay_labelCns;
+
+  /// No description provided for @media_perdixOverlay_labelDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'DEPTH'**
+  String get media_perdixOverlay_labelDepth;
+
+  /// No description provided for @media_perdixOverlay_labelGas.
+  ///
+  /// In en, this message translates to:
+  /// **'GAS'**
+  String get media_perdixOverlay_labelGas;
+
+  /// No description provided for @media_perdixOverlay_labelMax.
+  ///
+  /// In en, this message translates to:
+  /// **'MAX'**
+  String get media_perdixOverlay_labelMax;
+
+  /// No description provided for @media_perdixOverlay_labelNdl.
+  ///
+  /// In en, this message translates to:
+  /// **'NDL'**
+  String get media_perdixOverlay_labelNdl;
+
+  /// No description provided for @media_perdixOverlay_labelPpo2.
+  ///
+  /// In en, this message translates to:
+  /// **'PPO2'**
+  String get media_perdixOverlay_labelPpo2;
+
+  /// No description provided for @media_perdixOverlay_labelStop.
+  ///
+  /// In en, this message translates to:
+  /// **'STOP'**
+  String get media_perdixOverlay_labelStop;
+
+  /// No description provided for @media_perdixOverlay_labelTank.
+  ///
+  /// In en, this message translates to:
+  /// **'TANK'**
+  String get media_perdixOverlay_labelTank;
+
+  /// No description provided for @media_perdixOverlay_labelTemp.
+  ///
+  /// In en, this message translates to:
+  /// **'TEMP'**
+  String get media_perdixOverlay_labelTemp;
+
+  /// No description provided for @media_perdixOverlay_labelTime.
+  ///
+  /// In en, this message translates to:
+  /// **'TIME'**
+  String get media_perdixOverlay_labelTime;
+
+  /// No description provided for @media_perdixOverlay_labelTts.
+  ///
+  /// In en, this message translates to:
+  /// **'TTS'**
+  String get media_perdixOverlay_labelTts;
+
+  /// No description provided for @media_perdixOverlay_toggleTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive computer overlay'**
+  String get media_perdixOverlay_toggleTooltip;
+
   /// No description provided for @media_photoViewer_cannotShare.
   ///
   /// In en, this message translates to:
