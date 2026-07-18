@@ -2136,16 +2136,34 @@ class AppLocalizationsHe extends AppLocalizations {
   String get courses_action_add => 'הוסף קורס';
 
   @override
+  String get courses_action_addFromTemplate => 'הוסף מתבנית';
+
+  @override
+  String get courses_action_addRequirement => 'הוסף דרישה';
+
+  @override
   String get courses_action_create => 'צור קורס';
+
+  @override
+  String get courses_action_deleteRequirement => 'מחק דרישה';
 
   @override
   String get courses_action_edit => 'ערוך קורס';
 
   @override
+  String get courses_action_editRequirement => 'ערוך דרישה';
+
+  @override
   String get courses_action_exportTrainingLog => 'ייצא יומן אימונים';
 
   @override
+  String get courses_action_linkDive => 'קשר';
+
+  @override
   String get courses_action_markCompleted => 'סמן כהושלם';
+
+  @override
+  String get courses_action_unlinkDive => 'בטל קישור צלילה';
 
   @override
   String get courses_action_moreOptions => 'אפשרויות נוספות';
@@ -2319,6 +2337,35 @@ class AppLocalizationsHe extends AppLocalizations {
   String get courses_picker_tapToLink => 'לחץ כדי לקשר לקורס אימון';
 
   @override
+  String courses_requirement_diveProgress(int count, int target) {
+    return '$count מתוך $target צלילות';
+  }
+
+  @override
+  String get courses_requirement_field_name => 'שם';
+
+  @override
+  String get courses_requirement_field_targetCount => 'צלילות נדרשות';
+
+  @override
+  String get courses_requirement_kind_checklist => 'פריט לסימון';
+
+  @override
+  String get courses_requirement_kind_dive => 'דרישת צלילה';
+
+  @override
+  String get courses_requirement_suggestions => 'צלילות מוצעות';
+
+  @override
+  String get courses_requirements_empty =>
+      'עקוב אחר צלילות הרפתקה, דרישות קדם ופריטים לסימון עבור קורס זה.';
+
+  @override
+  String courses_requirements_progress(int satisfied, int total) {
+    return '$satisfied מתוך $total הושלמו';
+  }
+
+  @override
   String get courses_section_details => 'פרטי הקורס';
 
   @override
@@ -2329,6 +2376,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get courses_section_notes => 'הערות';
+
+  @override
+  String get courses_section_requirements => 'דרישות';
 
   @override
   String get courses_section_trainingDives => 'צלילות אימון';
@@ -2352,6 +2402,11 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String courses_status_semanticLabel(Object status, Object duration) {
     return '$status, $duration';
+  }
+
+  @override
+  String courses_template_addsCount(int count) {
+    return 'מוסיף $count דרישות';
   }
 
   @override
@@ -2386,6 +2441,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get courses_validation_nameRequired => 'נא להזין שם קורס';
+
+  @override
+  String get dashboard_activeCourses_title => 'קורסים בתהליך';
 
   @override
   String get dashboard_activity_daySinceDiving => 'יום מאז הצלילה האחרונה';
@@ -9226,6 +9284,216 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_detail_serviceInfoTitle => 'מידע טיפול';
 
   @override
+  String get equipment_serviceClocks_title => 'שעוני טיפולים';
+
+  @override
+  String get equipment_serviceClocks_addClock => 'הוספת שעון';
+
+  @override
+  String get equipment_serviceClocks_logService => 'רישום טיפול';
+
+  @override
+  String get equipment_serviceClocks_edit => 'עריכת מרווחים';
+
+  @override
+  String get equipment_serviceClocks_pause => 'השהיה';
+
+  @override
+  String get equipment_serviceClocks_resume => 'המשך';
+
+  @override
+  String get equipment_serviceClocks_remove => 'הסרה';
+
+  @override
+  String get equipment_serviceClocks_paused => 'מושהה';
+
+  @override
+  String get equipment_serviceClocks_empty => 'אין שעוני טיפולים';
+
+  @override
+  String equipment_serviceClocks_dueOn(String date) {
+    return 'לביצוע עד $date';
+  }
+
+  @override
+  String equipment_serviceClocks_overdueSince(String date) {
+    return 'באיחור מאז $date';
+  }
+
+  @override
+  String get equipment_serviceClocks_overdue => 'באיחור';
+
+  @override
+  String equipment_serviceClocks_divesLeft(int remaining, int total) {
+    return 'נותרו $remaining מתוך $total צלילות';
+  }
+
+  @override
+  String equipment_serviceClocks_hoursLeft(String remaining, String total) {
+    return 'נותרו $remaining מתוך $total שעות';
+  }
+
+  @override
+  String get equipment_serviceClocks_manageKinds => 'ניהול סוגי טיפול';
+
+  @override
+  String get equipment_serviceClocks_appliesToClock => 'חל על שעון';
+
+  @override
+  String get equipment_serviceClocks_noClockOption => 'לא משויך לשעון';
+
+  @override
+  String get equipment_scheduleDialog_title => 'עריכת שעון';
+
+  @override
+  String get equipment_scheduleDialog_intervalDays => 'מרווח (ימים)';
+
+  @override
+  String get equipment_scheduleDialog_intervalDives => 'מרווח (צלילות)';
+
+  @override
+  String get equipment_scheduleDialog_intervalHours => 'מרווח (שעות)';
+
+  @override
+  String equipment_scheduleDialog_inheritHint(String value) {
+    return 'ברירת מחדל: $value';
+  }
+
+  @override
+  String get equipment_scheduleDialog_anchorDate => 'תאריך בסיס';
+
+  @override
+  String get equipment_scheduleDialog_anchorHint =>
+      'בשימוש כאשר עדיין אין רשומת טיפול מסוג זה';
+
+  @override
+  String get equipment_scheduleDialog_clearAnchor => 'ניקוי תאריך הבסיס';
+
+  @override
+  String get equipment_scheduleDialog_save => 'שמירה';
+
+  @override
+  String get equipment_scheduleDialog_cancel => 'ביטול';
+
+  @override
+  String get equipment_serviceKinds_title => 'סוגי טיפול';
+
+  @override
+  String get equipment_serviceKinds_builtIn => 'מובנה';
+
+  @override
+  String get equipment_serviceKinds_custom => 'מותאם אישית';
+
+  @override
+  String get equipment_serviceKinds_add => 'הוספת סוג טיפול';
+
+  @override
+  String get equipment_serviceKinds_editTitle => 'עריכת סוג טיפול';
+
+  @override
+  String get equipment_serviceKinds_nameLabel => 'שם';
+
+  @override
+  String get equipment_serviceKinds_nameRequired => 'נדרש שם';
+
+  @override
+  String get equipment_serviceKinds_appliesTo => 'חל על';
+
+  @override
+  String get equipment_serviceKinds_autoAttach => 'צירוף אוטומטי לציוד חדש';
+
+  @override
+  String get equipment_serviceKinds_deleteConfirmTitle =>
+      'למחוק את סוג הטיפול?';
+
+  @override
+  String get equipment_serviceKinds_deleteConfirmBody =>
+      'שעונים המשתמשים בסוג טיפול זה יוסרו.';
+
+  @override
+  String get equipment_serviceKinds_delete => 'מחיקה';
+
+  @override
+  String get equipment_serviceKinds_cancel => 'ביטול';
+
+  @override
+  String get equipment_serviceKinds_save => 'שמירה';
+
+  @override
+  String get equipment_serviceKinds_emptyCustom =>
+      'אין עדיין סוגי טיפול מותאמים אישית';
+
+  @override
+  String equipment_serviceKinds_everyDays(int days) {
+    return 'כל $days ימים';
+  }
+
+  @override
+  String equipment_serviceKinds_everyDives(int dives) {
+    return 'כל $dives צלילות';
+  }
+
+  @override
+  String equipment_serviceKinds_everyHours(String hours) {
+    return 'כל $hours שעות';
+  }
+
+  @override
+  String get dashboard_serviceDue_title => 'טיפול נדרש';
+
+  @override
+  String dashboard_serviceDue_more(int count) {
+    return '+$count נוספים';
+  }
+
+  @override
+  String dashboard_alerts_clockDue(String name, String kind) {
+    return '$name: $kind נדרש';
+  }
+
+  @override
+  String dashboard_alerts_clockOverdue(String name, String kind) {
+    return '$name: $kind באיחור';
+  }
+
+  @override
+  String equipment_list_worstClock(String kind) {
+    return '$kind באיחור';
+  }
+
+  @override
+  String trips_serviceAlert_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטי ציוד זקוקים לטיפול לפני הטיול הזה',
+      many: '$count פריטי ציוד זקוקים לטיפול לפני הטיול הזה',
+      two: 'שני פריטי ציוד זקוקים לטיפול לפני הטיול הזה',
+      one: 'פריט ציוד אחד זקוק לטיפול לפני הטיול הזה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_serviceAlert_dueBefore(String kind, String date) {
+    return '$kind לביצוע עד $date';
+  }
+
+  @override
+  String trips_serviceAlert_overdue(String kind) {
+    return '$kind באיחור';
+  }
+
+  @override
+  String get settings_notifications_tripLeadTitle =>
+      'זמן התראה לטיפול לפני טיול';
+
+  @override
+  String settings_notifications_tripLeadDays(int days) {
+    return '$days ימים לפני טיול';
+  }
+
+  @override
   String get equipment_detail_serviceIntervalLabel => 'מרווח טיפול';
 
   @override
@@ -9518,6 +9786,17 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String equipment_list_tile_daysCount(Object days) {
     return '$days ימים';
+  }
+
+  @override
+  String equipment_list_tile_serviceInDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'טיפול בעוד $days ימים',
+      one: 'טיפול בעוד יום אחד',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -10651,6 +10930,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_photoPicker_appBarTitle => 'בחר תמונות';
 
   @override
+  String get media_photoPicker_tab_gallery => 'גלריה';
+
+  @override
+  String get media_photoPicker_tab_files => 'קבצים';
+
+  @override
+  String get media_photoPicker_tab_url => 'URL';
+
+  @override
   String get media_photoPicker_clearSelectionButton => 'נקה';
 
   @override
@@ -11065,6 +11353,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerCanvas_ccr_switchDepth => 'עומק החלפת נקודת הכיוון';
 
   @override
+  String get plannerCanvas_pscr_ratio => 'יחס pSCR';
+
+  @override
+  String get plannerCanvas_pscr_ratio_hint =>
+      'גדול יותר = יותר גז טרי, ירידת חמצן קטנה יותר';
+
+  @override
   String plannerCanvas_chip_cns(String value) {
     return 'CNS $value%';
   }
@@ -11102,6 +11397,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get plannerCanvas_contingency_timeDelta => 'דקות נוספות';
+
+  @override
+  String plannerCanvas_chart_meanDepth(String depth) {
+    return 'ממוצע $depth';
+  }
 
   @override
   String get plannerCanvas_contingency_title => 'תוכניות חירום';
@@ -11177,6 +11477,27 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get plannerCanvas_range_legend =>
       'התאים מציגים את זמן העלייה לפני המים; אדום = לא ניתן לצלול כמתוכנן';
+
+  @override
+  String get plannerCanvas_pane_collapse => 'כווץ חלונית';
+
+  @override
+  String get plannerCanvas_pane_expand => 'הרחב חלונית';
+
+  @override
+  String get plannerCanvas_tab_setup => 'הגדרה';
+
+  @override
+  String get plannerCanvas_o2Narcotic => 'התייחס לחמצן כמשכר';
+
+  @override
+  String get plannerCanvas_rates_ascent => 'קצב עלייה';
+
+  @override
+  String get plannerCanvas_rates_descent => 'קצב ירידה';
+
+  @override
+  String get plannerCanvas_rates_title => 'קצבים';
 
   @override
   String get plannerCanvas_range_title => 'טבלת טווחים';
@@ -12022,7 +12343,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_backToSettings_tooltip => 'חזרה להגדרות';
 
   @override
-  String get settings_cloudSync_appBar_title => 'סנכרון ענן';
+  String get settings_cloudSync_appBar_title => 'סנכרון ענן של מסד נתונים';
 
   @override
   String get settings_cloudSync_autoSync => 'סנכרון אוטומטי';
@@ -12471,7 +12792,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_data_backup_subtitle => 'צור גיבוי של הנתונים שלך';
 
   @override
-  String get settings_data_cloudSync => 'סנכרון ענן';
+  String get settings_data_cloudSync => 'סנכרון ענן של מסד נתונים';
 
   @override
   String get settings_data_customFolder => 'תיקייה מותאמת אישית';
@@ -12872,7 +13193,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String settings_lightroom_clientId_help(String redirectUri) {
-    return 'צרו אינטגרציה ב-Adobe Developer Console עם Lightroom Services API וסוג אישור התומך ב-PKCE. הגדירו את כתובת ההפניה ל-$redirectUri.';
+    return 'צרו אינטגרציה ב-Adobe Developer Console עם Lightroom Services API וסוג אישור התומך ב-PKCE. הזינו למטה את כתובת ההפניה של האישור שלכם — אישורי Native App משתמשים בסכימה מותאמת אישית — או השאירו ריק כדי להשתמש ב-$redirectUri.';
   }
 
   @override
@@ -12882,7 +13203,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_lightroom_clientSecret_label => 'סוד לקוח (אופציונלי)';
 
   @override
+  String get settings_lightroom_redirectUri_label => 'כתובת הפניה (אופציונלי)';
+
+  @override
   String get settings_lightroom_connect => 'חיבור Lightroom';
+
+  @override
+  String get settings_lightroom_connectEmbedded => 'התחברות עם Adobe';
+
+  @override
+  String get settings_lightroom_advancedByo => 'שימוש בפרטי הכניסה שלך ב-Adobe';
 
   @override
   String get settings_lightroom_connect_codeLabel => 'כתובת URL מופנית או קוד';

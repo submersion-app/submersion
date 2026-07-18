@@ -1058,6 +1058,17 @@ class SyncService {
           // so a future read of this list still tells the dependency story.)
           (type: 'courses', records: data.courses, hasUpdatedAt: true),
           (type: 'dives', records: data.dives, hasUpdatedAt: true),
+          // Requirements before their junction rows (parent-first apply).
+          (
+            type: 'courseRequirements',
+            records: data.courseRequirements,
+            hasUpdatedAt: true,
+          ),
+          (
+            type: 'courseRequirementDives',
+            records: data.courseRequirementDives,
+            hasUpdatedAt: false,
+          ),
           (type: 'diveSites', records: data.diveSites, hasUpdatedAt: true),
           (type: 'diveTanks', records: data.diveTanks, hasUpdatedAt: false),
           (type: 'diveWeights', records: data.diveWeights, hasUpdatedAt: false),
@@ -1133,6 +1144,16 @@ class SyncService {
           (
             type: 'serviceRecords',
             records: data.serviceRecords,
+            hasUpdatedAt: true,
+          ),
+          (
+            type: 'serviceKinds',
+            records: data.serviceKinds,
+            hasUpdatedAt: true,
+          ),
+          (
+            type: 'serviceSchedules',
+            records: data.serviceSchedules,
             hasUpdatedAt: true,
           ),
           (type: 'settings', records: data.settings, hasUpdatedAt: true),
@@ -1663,6 +1684,8 @@ class SyncService {
     'species': false,
     'tags': true,
     'courses': true,
+    'courseRequirements': true,
+    'courseRequirementDives': false,
     'dives': true,
     'diveSites': true,
     'diveTanks': false,
@@ -1687,6 +1710,8 @@ class SyncService {
     'sightings': false,
     'certifications': true,
     'serviceRecords': true,
+    'serviceKinds': true,
+    'serviceSchedules': true,
     'settings': true,
     'media': false,
     'mediaStores': false,
@@ -1792,6 +1817,13 @@ class SyncService {
       (field: 'buddyId', parent: 'buddies', nullable: true),
     ],
     'courses': [(field: 'instructorId', parent: 'buddies', nullable: true)],
+    'courseRequirements': [
+      (field: 'courseId', parent: 'courses', nullable: false),
+    ],
+    'courseRequirementDives': [
+      (field: 'requirementId', parent: 'courseRequirements', nullable: false),
+      (field: 'diveId', parent: 'dives', nullable: false),
+    ],
     'equipmentSetItems': [
       (field: 'setId', parent: 'equipmentSets', nullable: false),
       (field: 'equipmentId', parent: 'equipment', nullable: false),
@@ -1805,6 +1837,10 @@ class SyncService {
     ],
     'serviceRecords': [
       (field: 'equipmentId', parent: 'equipment', nullable: false),
+    ],
+    'serviceSchedules': [
+      (field: 'equipmentId', parent: 'equipment', nullable: false),
+      (field: 'serviceKindId', parent: 'serviceKinds', nullable: false),
     ],
   };
 

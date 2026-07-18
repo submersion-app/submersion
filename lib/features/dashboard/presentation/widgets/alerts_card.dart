@@ -3,6 +3,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A compact single-line banner showing alerts and reminders.
@@ -38,12 +39,17 @@ class _CompactAlertsBanner extends StatelessWidget {
     if (alerts.insuranceExpiringSoon) {
       return context.l10n.dashboard_alerts_insuranceExpiringSoon;
     }
-    final equipment = alerts.equipmentServiceDue.first;
-    final daysUntil = equipment.daysUntilService;
-    final isOverdue = daysUntil != null && daysUntil < 0;
+    final clock = alerts.serviceClocksDue.first;
+    final isOverdue = clock.status.severity == ServiceClockSeverity.overdue;
     return isOverdue
-        ? context.l10n.dashboard_alerts_equipmentServiceOverdue(equipment.name)
-        : context.l10n.dashboard_alerts_equipmentServiceDue(equipment.name);
+        ? context.l10n.dashboard_alerts_clockOverdue(
+            clock.item.name,
+            clock.status.kind.name,
+          )
+        : context.l10n.dashboard_alerts_clockDue(
+            clock.item.name,
+            clock.status.kind.name,
+          );
   }
 
   void _onTap(BuildContext context) {
@@ -52,9 +58,9 @@ class _CompactAlertsBanner extends StatelessWidget {
         context.go('/settings');
         return;
       }
-      if (alerts.equipmentServiceDue.isNotEmpty) {
-        final equipment = alerts.equipmentServiceDue.first;
-        context.push('/equipment/${equipment.id}');
+      if (alerts.serviceClocksDue.isNotEmpty) {
+        final clock = alerts.serviceClocksDue.first;
+        context.push('/equipment/${clock.item.id}');
         return;
       }
     }

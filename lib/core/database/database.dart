@@ -257,9 +257,13 @@ class DivePlans extends Table {
   TextColumn get name => text()();
   TextColumn get notes => text().withDefault(const Constant(''))();
 
-  /// PlanMode enum name: 'oc' | 'ccr'.
+  /// PlanMode enum name: 'oc' | 'ccr' | 'scr' | 'pscr'.
   TextColumn get mode => text().withDefault(const Constant('oc'))();
   TextColumn get siteId => text().nullable().references(DiveSites, #id)();
+
+  /// Planned start time (Unix seconds); null = "now" at planning. Drives
+  /// repetitive tissue init and overlap detection (v120).
+  IntColumn get startDateTime => integer().nullable()();
 
   /// Tissue-seeding source dive (repetitive planning, Phase 6).
   TextColumn get sourceDiveId => text().nullable().references(Dives, #id)();
@@ -343,6 +347,10 @@ class DivePlanTanks extends Table {
   /// TankMaterial enum name; null = unspecified.
   TextColumn get material => text().nullable()();
   TextColumn get presetName => text().nullable()();
+
+  /// Deco gas-switch depth override in meters; null = auto (MOD at deco pO2).
+  /// Subsurface per-cylinder "Deco switch at" (v120).
+  RealColumn get decoSwitchDepth => real().nullable()();
   IntColumn get sortOrder => integer().withDefault(const Constant(0))();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
@@ -372,6 +380,14 @@ class DivePlanSegments extends Table {
   RealColumn get gasHe => real()();
   RealColumn get rate => real().nullable()();
   TextColumn get switchToTankId => text().nullable()();
+
+  /// Per-segment CCR setpoint override in bar; null = the plan's depth-based
+  /// setpoint (v120, Subsurface per-segment setpoint column).
+  RealColumn get setpointBar => real().nullable()();
+
+  /// Per-segment dive-mode override enum name ('oc'|'ccr'|'scr'|'pscr'); null =
+  /// the plan's mode. Models mid-plan bailout (v120).
+  TextColumn get diveModeOverride => text().nullable()();
   IntColumn get sortOrder => integer().withDefault(const Constant(0))();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
@@ -840,6 +856,64 @@ class EquipmentSetGeofences extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Catalog of service kinds (hydro, VIP, regulator service, ...).
+/// Built-ins are reference data: seeded on create/upgrade/open, skipped by
+/// sync export, undeletable through the repository. Custom kinds sync.
+@DataClassName('ServiceKindRow')
+class ServiceKinds extends Table {
+  TextColumn get id => text()();
+  TextColumn get diverId => text().nullable().references(Divers, #id)();
+  TextColumn get name => text()();
+
+  /// JSON array of EquipmentType names this kind suggests for, e.g. '["tank"]'.
+  TextColumn get applicableTypes => text().withDefault(const Constant('[]'))();
+  IntColumn get defaultIntervalDays => integer().nullable()();
+  IntColumn get defaultIntervalDives => integer().nullable()();
+  RealColumn get defaultIntervalHours => real().nullable()();
+
+  /// Auto-create a schedule when matching equipment is created.
+  BoolColumn get autoAttach => boolean().withDefault(const Constant(false))();
+  BoolColumn get isBuiltIn => boolean().withDefault(const Constant(false))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution.
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// One service clock per (equipment item, service kind). Next-due is always
+/// computed from the newest ServiceRecord of the kind (anchorDate/purchase
+/// fallbacks) -- never stored, so dive logging does not churn sync rows.
+@DataClassName('ServiceScheduleRow')
+class ServiceSchedules extends Table {
+  TextColumn get id => text()();
+  TextColumn get equipmentId =>
+      text().references(Equipment, #id, onDelete: KeyAction.cascade)();
+  TextColumn get serviceKindId =>
+      text().references(ServiceKinds, #id, onDelete: KeyAction.cascade)();
+
+  /// Per-item overrides; null = inherit the kind's default interval.
+  IntColumn get intervalDays => integer().nullable()();
+  IntColumn get intervalDives => integer().nullable()();
+  RealColumn get intervalHours => real().nullable()();
+
+  /// Baseline when no ServiceRecord of this kind exists yet (e.g. last hydro
+  /// before app adoption). Fallback chain: purchaseDate, then createdAt.
+  IntColumn get anchorDate => integer().nullable()();
+  BoolColumn get enabled => boolean().withDefault(const Constant(true))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution.
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Marine life species catalog
 class Species extends Table {
   TextColumn get id => text()();
@@ -1199,7 +1273,7 @@ class DiverSettings extends Table {
   // CNS calculation method: 'classic' | 'shearwater' | 'subsurface' (v113)
   TextColumn get cnsCalculationMethod =>
       text().withDefault(const Constant('shearwater'))();
-  // Post-dive safety review (safety features phase 1, v115)
+  // Post-dive safety review (safety features phase 1, v123)
   BoolColumn get safetyReviewEnabled =>
       boolean().withDefault(const Constant(true))();
   // JSON array of SafetyRuleId.dbValue strings; null/absent = none disabled.
@@ -1304,6 +1378,9 @@ class DiverSettings extends Table {
       text().withDefault(const Constant('[7, 14, 30]'))(); // JSON array
   TextColumn get reminderTime =>
       text().withDefault(const Constant('09:00'))(); // HH:mm format
+  // v122: days before a trip to nag about gear due before trip end.
+  IntColumn get tripServiceLeadDays =>
+      integer().withDefault(const Constant(14))();
   // Data source badge visibility (v55)
   BoolColumn get showDataSourceBadges =>
       boolean().withDefault(const Constant(true))();
@@ -1447,6 +1524,10 @@ class ServiceRecords extends Table {
   TextColumn get equipmentId =>
       text().references(Equipment, #id, onDelete: KeyAction.cascade)();
   TextColumn get serviceType => text()(); // annual, repair, inspection, etc.
+
+  /// v122: which service kind this record fulfills (resets that clock).
+  /// Plain text (no FK) so records survive custom-kind deletion.
+  TextColumn get serviceKindId => text().nullable()();
   IntColumn get serviceDate => integer()();
   TextColumn get provider => text().nullable()(); // Shop or technician name
   RealColumn get cost => real().nullable()();
@@ -1653,6 +1734,38 @@ const String kSeedBuiltInDiveRolesSql = '''
     UNION ALL SELECT 'rearGuard', 'Rear Guard', 6
     UNION ALL SELECT 'supportDiver', 'Support Diver', 7
     UNION ALL SELECT 'safetyDiver', 'Safety Diver', 8
+  ) t
+  CROSS JOIN (SELECT CAST(strftime('%s','now') AS INTEGER) * 1000 AS now_ms) n
+''';
+
+/// Built-in service kinds: identical on every device, stable slug ids
+/// (service_schedules.service_kind_id references them), INSERT OR IGNORE
+/// so re-running is a no-op. Intervals per tech-diving convention.
+const String kSeedBuiltInServiceKindsSql = '''
+  INSERT OR IGNORE INTO service_kinds
+    (id, diver_id, name, applicable_types, default_interval_days,
+     default_interval_dives, default_interval_hours, auto_attach,
+     is_built_in, created_at, updated_at)
+  SELECT t.id, NULL, t.name, t.types, t.days, t.dives, NULL, t.auto, 1,
+         n.now_ms, n.now_ms
+  FROM (
+    SELECT 'hydro' AS id, 'Hydrostatic test' AS name, '["tank"]' AS types,
+           1825 AS days, NULL AS dives, 1 AS auto
+    UNION ALL SELECT 'vip', 'Visual inspection (VIP)', '["tank"]',
+           365, NULL, 1
+    UNION ALL SELECT 'o2-clean', 'O2 clean', '["tank"]', 365, NULL, 0
+    UNION ALL SELECT 'regulator-service', 'Regulator service',
+           '["regulator"]', 365, 100, 1
+    UNION ALL SELECT 'computer-battery', 'Computer battery', '["computer"]',
+           730, NULL, 1
+    UNION ALL SELECT 'transmitter-battery', 'Transmitter battery',
+           '["transmitter"]', 365, NULL, 1
+    UNION ALL SELECT 'bcd-inspection', 'BCD/wing inspection', '["bcd"]',
+           365, NULL, 1
+    UNION ALL SELECT 'drysuit-seals', 'Drysuit seals', '["drysuit"]',
+           730, NULL, 0
+    UNION ALL SELECT 'general-service', 'General service', '[]',
+           NULL, NULL, 0
   ) t
   CROSS JOIN (SELECT CAST(strftime('%s','now') AS INTEGER) * 1000 AS now_ms) n
 ''';
@@ -2079,6 +2192,52 @@ class Courses extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Countable requirements for a training course (requirement tracker spec,
+/// docs/superpowers/specs/2026-07-16-course-requirement-tracker-design.md).
+/// kind is a RequirementKind enum name: 'dive' rows derive progress from
+/// course_requirement_dives links; 'checklist' rows complete via completedAt.
+@DataClassName('CourseRequirementRow')
+class CourseRequirements extends Table {
+  TextColumn get id => text()();
+  TextColumn get courseId =>
+      text().references(Courses, #id, onDelete: KeyAction.cascade)();
+  TextColumn get name => text()();
+  TextColumn get kind => text()();
+  IntColumn get targetCount => integer().withDefault(const Constant(1))();
+  IntColumn get completedAt => integer().nullable()(); // Unix ms, checklist
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  TextColumn get notes => text().nullable()();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Junction crediting a logged dive toward a course requirement.
+///
+/// The id is a DETERMINISTIC UUIDv5 of (requirementId, diveId) -- see
+/// CourseRequirementRepository.linkIdFor -- so the same link created on two
+/// devices converges to a single row under sync upsert; no unique index is
+/// needed. No hlc column: delta export is gated by the parent requirement's
+/// hlc, which linkDive/unlinkDive bump (equipment_set_items pattern).
+@DataClassName('CourseRequirementDiveRow')
+class CourseRequirementDives extends Table {
+  TextColumn get id => text()();
+  TextColumn get requirementId =>
+      text().references(CourseRequirements, #id, onDelete: KeyAction.cascade)();
+  TextColumn get diveId =>
+      text().references(Dives, #id, onDelete: KeyAction.cascade)();
+  IntColumn get createdAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Junction table for expected species at dive sites (manual curation)
 class SiteSpecies extends Table {
   TextColumn get id => text()();
@@ -2098,6 +2257,10 @@ class ScheduledNotifications extends Table {
   TextColumn get id => text()();
   TextColumn get equipmentId =>
       text().references(Equipment, #id, onDelete: KeyAction.cascade)();
+
+  /// v122: the service schedule this reminder belongs to (null = legacy
+  /// single-clock reminder). Local-only table, not synced.
+  TextColumn get scheduleId => text().nullable()();
   IntColumn get scheduledDate => integer()(); // Unix timestamp
   IntColumn get reminderDaysBefore => integer()(); // 7, 14, or 30
   IntColumn get notificationId => integer()(); // Platform notification ID
@@ -2208,6 +2371,9 @@ class FieldPresets extends Table {
     SiteSpecies,
     // Training courses (v1.5)
     Courses,
+    // Course requirement tracker (v121)
+    CourseRequirements,
+    CourseRequirementDives,
     // Sync tables
     SyncMetadata,
     SyncRecords,
@@ -2244,6 +2410,8 @@ class FieldPresets extends Table {
     MediaFetchDiagnostics,
     MediaStores,
     ConnectedAccounts,
+    ServiceKinds,
+    ServiceSchedules,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -2253,7 +2421,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 115;
+  static const int currentSchemaVersion = 123;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -2371,7 +2539,18 @@ class AppDatabase extends _$AppDatabase {
     112,
     113,
     114,
-    115,
+    // v120 claimed in-worktree for the planner Subsurface-parity columns;
+    // 115-119 belong to other branches and interleave at merge time.
+    120,
+    // v121: course requirement tracker tables (renumbered from v114 at merge
+    // time; v114 became the tombstone-GC migration on main).
+    121,
+    // v122: gear service ledger (renumbered from v115 as main advanced past
+    // it; see schema-version ladder).
+    122,
+    // v123: post-dive safety review tables + diver safety settings columns
+    // (renumbered from v115 as main advanced past it at merge time).
+    123,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -2512,6 +2691,26 @@ class AppDatabase extends _$AppDatabase {
     }
   }
 
+  /// v120: planner Subsurface-parity columns - plan start time, per-segment
+  /// setpoint + dive-mode override, and per-tank deco-switch depth. Idempotent
+  /// (each ALTER is PRAGMA-guarded) so it is safe from both onUpgrade and the
+  /// beforeOpen backstop (shared sandbox DB heals across parallel branches).
+  Future<void> _assertPlannerParitySchema() async {
+    Future<void> add(String table, String column, String type) async {
+      final cols = await customSelect("PRAGMA table_info('$table')").get();
+      if (cols.isEmpty) return;
+      final has = cols.any((c) => c.read<String>('name') == column);
+      if (!has) {
+        await customStatement('ALTER TABLE $table ADD COLUMN $column $type');
+      }
+    }
+
+    await add('dive_plans', 'start_date_time', 'INTEGER');
+    await add('dive_plan_segments', 'setpoint_bar', 'REAL');
+    await add('dive_plan_segments', 'dive_mode_override', 'TEXT');
+    await add('dive_plan_tanks', 'deco_switch_depth', 'REAL');
+  }
+
   /// v113: diver_settings.cns_calculation_method column. Self-guarding when
   /// the diver_settings table is absent (partial-schema migration tests), so
   /// it is safe to call from both onUpgrade and the beforeOpen backstop.
@@ -2530,7 +2729,7 @@ class AppDatabase extends _$AppDatabase {
     }
   }
 
-  /// v115: safety review tables, index, and settings columns. Idempotent
+  /// v123: safety review tables, index, and settings columns. Idempotent
   /// (createTable is IF NOT EXISTS; the ALTERs are PRAGMA-guarded) so it is
   /// safe to call from both onUpgrade and the beforeOpen backstop.
   Future<void> _assertSafetyReviewSchema() async {
@@ -2576,6 +2775,104 @@ class AppDatabase extends _$AppDatabase {
         'INTEGER NOT NULL DEFAULT 0 CHECK (is_default IN (0, 1))',
       );
     }
+  }
+
+  /// v122: service ledger -- service_kinds + service_schedules tables,
+  /// service_records.service_kind_id, scheduled_notifications.schedule_id,
+  /// diver_settings.trip_service_lead_days, built-in kind seed, and the
+  /// legacy single-clock backfill. Idempotent; called from onUpgrade AND
+  /// the beforeOpen backstop (parallel-branch collision self-heal).
+  Future<void> _assertServiceLedgerSchema() async {
+    await createMigrator().createTable(serviceKinds);
+    await createMigrator().createTable(serviceSchedules);
+
+    final srCols = await customSelect(
+      "PRAGMA table_info('service_records')",
+    ).get();
+    if (srCols.isNotEmpty &&
+        !srCols.any((c) => c.read<String>('name') == 'service_kind_id')) {
+      await customStatement(
+        'ALTER TABLE service_records ADD COLUMN service_kind_id TEXT',
+      );
+    }
+
+    final snCols = await customSelect(
+      "PRAGMA table_info('scheduled_notifications')",
+    ).get();
+    if (snCols.isNotEmpty &&
+        !snCols.any((c) => c.read<String>('name') == 'schedule_id')) {
+      await customStatement(
+        'ALTER TABLE scheduled_notifications ADD COLUMN schedule_id TEXT',
+      );
+    }
+
+    final dsCols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    if (dsCols.isNotEmpty &&
+        !dsCols.any(
+          (c) => c.read<String>('name') == 'trip_service_lead_days',
+        )) {
+      await customStatement(
+        'ALTER TABLE diver_settings ADD COLUMN trip_service_lead_days '
+        'INTEGER NOT NULL DEFAULT 14',
+      );
+    }
+
+    // Indexes: onCreate's createAll() never builds raw-SQL indexes, so they
+    // must be asserted here to exist on fresh installs too. The
+    // service_records index is guarded on the table existing so this helper
+    // stays self-guarding for partial fixture databases (old-migration
+    // tests) where service_records is absent.
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_service_schedules_equipment '
+      'ON service_schedules(equipment_id)',
+    );
+    if (srCols.isNotEmpty) {
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS idx_service_records_kind '
+        'ON service_records(equipment_id, service_kind_id)',
+      );
+    }
+
+    // Seed built-ins only when the divers FK parent exists (self-guard for
+    // partial fixture databases; real databases always have divers).
+    final diversTable = await customSelect(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='divers'",
+    ).get();
+    if (diversTable.isNotEmpty) {
+      await customStatement(kSeedBuiltInServiceKindsSql);
+    }
+  }
+
+  /// v122 one-time data copy: items with a legacy single-clock interval get
+  /// one "General service" schedule. Invoked from the v122 onUpgrade block
+  /// only, NEVER the beforeOpen backstop -- re-running on every open would
+  /// resurrect a schedule the user deleted (mirrors the v109 buddy-cert
+  /// rule). The deterministic id ('legacy-svc-' || equipment id) plus
+  /// INSERT OR IGNORE makes independent per-device migrations converge to
+  /// one row under sync instead of duplicating.
+  Future<void> _backfillLegacyServiceSchedules() async {
+    // Self-guard for partial fixture databases: skip unless the equipment
+    // table exists WITH the legacy columns the copy reads.
+    final eqCols = await customSelect("PRAGMA table_info('equipment')").get();
+    final names = eqCols.map((c) => c.read<String>('name')).toSet();
+    if (!names.containsAll({'service_interval_days', 'last_service_date'})) {
+      return;
+    }
+    await customStatement('''
+      INSERT OR IGNORE INTO service_schedules
+        (id, equipment_id, service_kind_id, interval_days, anchor_date,
+         enabled, created_at, updated_at)
+      SELECT 'legacy-svc-' || e.id, e.id, 'general-service',
+             e.service_interval_days, e.last_service_date, 1,
+             n.now_ms, n.now_ms
+      FROM equipment e
+      CROSS JOIN (
+        SELECT CAST(strftime('%s','now') AS INTEGER) * 1000 AS now_ms
+      ) n
+      WHERE e.service_interval_days IS NOT NULL
+    ''');
   }
 
   /// Copy each buddy's inline certification into a certifications row owned by
@@ -2837,6 +3134,10 @@ class AppDatabase extends _$AppDatabase {
         // Seed built-in dive roles (the v103 migration backfills these for
         // upgraded databases).
         await customStatement(kSeedBuiltInDiveRolesSql);
+
+        // Seed built-in service kinds (the v122 migration backfills these
+        // for upgraded databases; beforeOpen re-asserts).
+        await customStatement(kSeedBuiltInServiceKindsSql);
       },
       onUpgrade: (Migrator m, int from, int to) async {
         int completedSteps = 0;
@@ -5706,10 +6007,35 @@ class AppDatabase extends _$AppDatabase {
           await ensureDeletionLogIndex();
         }
         if (from < 114) await reportProgress();
-        if (from < 115) {
+        // v120: planner Subsurface-parity columns. Version claimed in-worktree
+        // per the schema-ladder convention; reconcile numbering at merge time.
+        if (from < 120) {
+          await _assertPlannerParitySchema();
+        }
+        if (from < 120) await reportProgress();
+        // v121: course requirement tracker (renumbered from v114 at merge
+        // time; v114 became the tombstone-GC migration on main). Both tables
+        // are new, no data migration. createTable is idempotent (IF NOT
+        // EXISTS).
+        if (from < 121) {
+          await m.createTable(courseRequirements);
+          await m.createTable(courseRequirementDives);
+        }
+        if (from < 121) await reportProgress();
+        // v122: gear service ledger (renumbered from v115 as main advanced
+        // past it at merge time). The legacy backfill runs here only, never in
+        // beforeOpen, so user-deleted schedules are not resurrected.
+        if (from < 122) {
+          await _assertServiceLedgerSchema();
+          await _backfillLegacyServiceSchedules();
+        }
+        if (from < 122) await reportProgress();
+        // v123: post-dive safety review tables + diver safety settings columns
+        // (renumbered from v115 as main advanced past it at merge time).
+        if (from < 123) {
           await _assertSafetyReviewSchema();
         }
-        if (from < 115) await reportProgress();
+        if (from < 123) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
@@ -5761,7 +6087,20 @@ class AppDatabase extends _$AppDatabase {
         }
         await ensureDeletionLogIndex();
 
-        // v115 backstop: re-assert safety review tables + settings columns
+        // v120 backstop: re-assert planner Subsurface-parity columns.
+        await _assertPlannerParitySchema();
+
+        // v121 backstop: course requirement tables (parallel-branch
+        // collision self-heal; createTable is idempotent).
+        await createMigrator().createTable(courseRequirements);
+        await createMigrator().createTable(courseRequirementDives);
+
+        // v122 backstop: re-assert service ledger schema + built-in kinds.
+        // The legacy backfill is NOT here (onUpgrade only) -- re-running it
+        // would resurrect user-deleted schedules.
+        await _assertServiceLedgerSchema();
+
+        // v123 backstop: re-assert safety review tables + settings columns
         // (parallel-branch collision self-heal).
         await _assertSafetyReviewSchema();
 

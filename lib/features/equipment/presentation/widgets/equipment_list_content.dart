@@ -16,6 +16,7 @@ import 'package:submersion/shared/widgets/debounced_search_results.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_field.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/dense_equipment_list_tile.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -542,7 +543,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
 }
 
 /// List item widget for displaying equipment
-class EquipmentListTile extends StatelessWidget {
+class EquipmentListTile extends ConsumerWidget {
   final EquipmentItem item;
   final bool isSelected;
   final VoidCallback? onTap;
@@ -555,8 +556,16 @@ class EquipmentListTile extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final worstClock = ref.watch(equipmentWorstClockProvider).value?[item.id];
+    // Mirror the trailing's fallback: when the ledger map is still loading or
+    // the item only has a legacy interval, worstClock is null but the trailing
+    // still shows "Service Due" from item.isServiceDue -- so the avatar must
+    // read as overdue too, otherwise the two disagree.
+    final isOverdue = worstClock != null
+        ? worstClock.status.severity == ServiceClockSeverity.overdue
+        : item.isServiceDue;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -566,24 +575,24 @@ class EquipmentListTile extends StatelessWidget {
       child: ListTile(
         onTap: onTap,
         leading: CircleAvatar(
-          backgroundColor: item.isServiceDue
+          backgroundColor: isOverdue
               ? theme.colorScheme.errorContainer
               : theme.colorScheme.tertiaryContainer,
           child: Icon(
             _getIconForType(item.type),
-            color: item.isServiceDue
+            color: isOverdue
                 ? theme.colorScheme.onErrorContainer
                 : theme.colorScheme.onTertiaryContainer,
           ),
         ),
         title: Text(item.name),
         subtitle: item.fullName != item.name ? Text(item.fullName) : null,
-        trailing: _buildTrailing(context),
+        trailing: _buildTrailing(context, worstClock),
       ),
     );
   }
 
-  Widget _buildTrailing(BuildContext context) {
+  Widget _buildTrailing(BuildContext context, DueClock? worstClock) {
     final theme = Theme.of(context);
 
     final typeLabel = Text(
@@ -593,6 +602,34 @@ class EquipmentListTile extends StatelessWidget {
       ),
     );
 
+    if (worstClock != null) {
+      final overdue =
+          worstClock.status.severity == ServiceClockSeverity.overdue;
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          typeLabel,
+          const SizedBox(height: 2),
+          Text(
+            overdue
+                ? context.l10n.equipment_list_worstClock(
+                    worstClock.status.kind.name,
+                  )
+                : worstClock.status.kind.name,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: overdue
+                  ? theme.colorScheme.error
+                  : theme.colorScheme.tertiary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      );
+    }
+
+    // Legacy single-clock fallback (before the ledger map loads, or for
+    // items whose only signal is the legacy interval).
     if (item.isServiceDue) {
       return Column(
         mainAxisSize: MainAxisSize.min,
@@ -601,7 +638,7 @@ class EquipmentListTile extends StatelessWidget {
           typeLabel,
           const SizedBox(height: 2),
           Text(
-            'Service Due',
+            context.l10n.equipment_list_tile_serviceDueChip,
             style: theme.textTheme.labelSmall?.copyWith(
               color: theme.colorScheme.error,
               fontWeight: FontWeight.w600,
@@ -620,7 +657,7 @@ class EquipmentListTile extends StatelessWidget {
           typeLabel,
           const SizedBox(height: 2),
           Text(
-            'Service in $days days',
+            context.l10n.equipment_list_tile_serviceInDays(days),
             style: theme.textTheme.labelSmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -673,6 +710,8 @@ class EquipmentListTile extends StatelessWidget {
         return Icons.flashlight_on;
       case EquipmentType.camera:
         return Icons.camera_alt;
+      case EquipmentType.transmitter:
+        return Icons.sensors;
       default:
         return Icons.backpack;
     }

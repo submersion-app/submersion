@@ -33,6 +33,21 @@ class PlanEngineConfig {
   /// Rock-bottom sizing: how many divers share the emergency ascent.
   final double buddyFactor;
 
+  /// SCR supply injection rate (surface liters per minute) for the CMF loop.
+  final double scrInjectionRateLpm;
+
+  /// pSCR metabolic O2 consumption in surface mL/min (Subsurface
+  /// `o2consumption`, default 720).
+  final double pscrO2ConsumptionMlMin;
+
+  /// pSCR bottom surface air consumption in mL/min (Subsurface `bottomsac`,
+  /// default 20000).
+  final double pscrSacMlMin;
+
+  /// pSCR ratio (Subsurface `pscr_ratio`, default 100). Larger dumps/adds more
+  /// fresh gas and shrinks the inspired-O2 drop.
+  final double pscrRatio;
+
   /// Algorithm used to convert ppO2 exposure into CNS %/min.
   final CnsCalculationMethod cnsMethod;
 
@@ -46,6 +61,10 @@ class PlanEngineConfig {
     this.o2MetabolicRateLpm = 1.0,
     this.loopVolumeLiters = 6.0,
     this.buddyFactor = 2.0,
+    this.scrInjectionRateLpm = 12.0,
+    this.pscrO2ConsumptionMlMin = 720.0,
+    this.pscrSacMlMin = 20000.0,
+    this.pscrRatio = 100.0,
     this.cnsMethod = CnsCalculationMethod.shearwater,
   });
 }
@@ -62,24 +81,60 @@ class PlanEngine {
 
   const PlanEngine({this.config = const PlanEngineConfig()});
 
-  /// Setpoint in force at [depth] for a CCR plan.
-  double _setpointAt(domain.DivePlan plan, double depth) =>
-      depth > plan.effectiveSetpointSwitchDepth
-      ? plan.effectiveSetpointHigh
-      : plan.effectiveSetpointLow;
+  /// The breathing mode in force for [segment] (its per-segment override, or
+  /// the plan's mode). Models mid-plan bailout.
+  domain.PlanMode _modeFor(domain.DivePlan plan, PlanSegment? segment) =>
+      segment?.diveModeOverride ?? plan.mode;
+
+  /// Setpoint in force at [depth]: the segment's per-segment override if set,
+  /// else the plan's depth-based (low/high) setpoint.
+  double _setpointAt(
+    domain.DivePlan plan,
+    double depth, {
+    PlanSegment? segment,
+  }) {
+    final override = segment?.setpointBar;
+    if (override != null) return override;
+    return depth > plan.effectiveSetpointSwitchDepth
+        ? plan.effectiveSetpointHigh
+        : plan.effectiveSetpointLow;
+  }
 
   /// Mode-aware breathing for [gas] at [depth]: the loop at the in-force
-  /// setpoint for CCR (gas = diluent), open circuit otherwise.
+  /// setpoint for CCR (gas = diluent), CMF loop for SCR, open circuit
+  /// otherwise. A per-segment [segment] override wins over the plan mode.
   BreathingConfig _breathingFor(
     domain.DivePlan plan,
     GasMix gas,
-    double depth,
-  ) {
-    if (plan.mode == domain.PlanMode.ccr) {
+    double depth, {
+    PlanSegment? segment,
+  }) {
+    final mode = _modeFor(plan, segment);
+    if (mode == domain.PlanMode.ccr) {
       return ClosedCircuit(
-        setpoint: _setpointAt(plan, depth),
+        setpoint: _setpointAt(plan, depth, segment: segment),
         diluentFO2: gas.o2 / 100.0,
         diluentFHe: gas.he / 100.0,
+      );
+    }
+    if (mode == domain.PlanMode.scr) {
+      // CMF semi-closed loop: the segment gas is the supply, and the loop
+      // fraction is the validated steady-state CMF calculation.
+      return Scr(
+        supplyFO2: gas.o2 / 100.0,
+        supplyFHe: gas.he / 100.0,
+        injectionRateLpm: config.scrInjectionRateLpm,
+      );
+    }
+    if (mode == domain.PlanMode.pscr) {
+      // Passive-addition semi-closed loop (Subsurface pscr_o2 model): the
+      // inspired O2 is the supply ppO2 minus a fixed metabolic drop.
+      return PassiveScr(
+        supplyFO2: gas.o2 / 100.0,
+        supplyFHe: gas.he / 100.0,
+        o2ConsumptionMlMin: config.pscrO2ConsumptionMlMin,
+        sacMlMin: config.pscrSacMlMin,
+        pscrRatio: config.pscrRatio,
       );
     }
     return OpenCircuit(fO2: gas.o2 / 100.0, fHe: gas.he / 100.0);
@@ -107,6 +162,7 @@ class PlanEngine {
     final policy = SchedulePolicy(
       lastStopDepth: plan.lastStopDepth,
       ascentRate: plan.ascentRate,
+      descentRate: plan.descentRate,
       gasSwitchStopSeconds: plan.gasSwitchStopSeconds,
       airBreaks: plan.airBreaks,
     );
@@ -153,7 +209,15 @@ class PlanEngine {
 
     for (final segment in segments) {
       final startRuntime = runtime;
-      final breathing = _breathingFor(plan, segment.gasMix, segment.avgDepth);
+      final breathing = _breathingFor(
+        plan,
+        segment.gasMix,
+        segment.avgDepth,
+        segment: segment,
+      );
+      // The segment's effective breathing mode is loop-based (CCR/SCR) unless
+      // OC - drives the ppO2 convention below.
+      final segmentIsLoop = _modeFor(plan, segment) != domain.PlanMode.oc;
 
       state = model.applySegment(
         state,
@@ -170,13 +234,14 @@ class PlanEngine {
       final deeperEnd = segment.startDepth > segment.endDepth
           ? segment.startDepth
           : segment.endDepth;
-      // OC ppO2 keeps the legacy ambient x fraction convention; CCR ppO2 is
-      // the loop's (clamped) setpoint.
-      final segmentMaxPpO2 = isCcr
+      // OC ppO2 keeps the legacy ambient x fraction convention; loop ppO2 is
+      // the inspired (setpoint/CMF) value.
+      final segmentMaxPpO2 = segmentIsLoop
           ? _breathingFor(
               plan,
               segment.gasMix,
               deeperEnd,
+              segment: segment,
             ).inspiredAt(environment.pressureAtDepth(deeperEnd)).pO2
           : O2ToxicityCalculator.calculatePpO2(
               deeperEnd,
@@ -184,7 +249,7 @@ class PlanEngine {
             );
       if (segmentMaxPpO2 > maxPpO2) maxPpO2 = segmentMaxPpO2;
 
-      final avgPpO2 = isCcr
+      final avgPpO2 = segmentIsLoop
           ? breathing
                 .inspiredAt(environment.pressureAtDepth(segment.avgDepth))
                 .pO2
@@ -198,7 +263,12 @@ class PlanEngine {
       final ndl = model.ndlSeconds(
         state,
         depthMeters: segment.endDepth,
-        breathing: _breathingFor(plan, segment.gasMix, segment.endDepth),
+        breathing: _breathingFor(
+          plan,
+          segment.gasMix,
+          segment.endDepth,
+          segment: segment,
+        ),
       );
       final ceiling = model.ceilingMeters(
         state,

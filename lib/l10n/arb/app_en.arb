@@ -1336,10 +1336,16 @@
     "description": "Generic error snackbar shown when an action fails and the user should retry."
   },
   "courses_action_add": "Add Course",
+  "courses_action_addFromTemplate": "Add from template",
+  "courses_action_addRequirement": "Add requirement",
   "courses_action_create": "Create Course",
+  "courses_action_deleteRequirement": "Delete requirement",
   "courses_action_edit": "Edit course",
+  "courses_action_editRequirement": "Edit requirement",
   "courses_action_exportTrainingLog": "Export Training Log",
+  "courses_action_linkDive": "Link",
   "courses_action_markCompleted": "Mark as Completed",
+  "courses_action_unlinkDive": "Unlink dive",
   "courses_action_moreOptions": "More options",
   "courses_action_retry": "Retry",
   "courses_action_saveChanges": "Save Changes",
@@ -1392,16 +1398,26 @@
   "courses_picker_selectTitle": "Select Training Course",
   "courses_picker_selected": "selected",
   "courses_picker_tapToLink": "Tap to link to a training course",
+  "courses_requirement_diveProgress": "{count} of {target} dives",
+  "courses_requirement_field_name": "Name",
+  "courses_requirement_field_targetCount": "Required dives",
+  "courses_requirement_kind_checklist": "Check-off item",
+  "courses_requirement_kind_dive": "Dive requirement",
+  "courses_requirement_suggestions": "Suggested dives",
+  "courses_requirements_empty": "Track adventure dives, prerequisites, and check-offs for this course.",
+  "courses_requirements_progress": "{satisfied} of {total} complete",
   "courses_section_details": "Course Details",
   "courses_section_earnedCertification": "Earned Certification",
   "courses_section_instructor": "Instructor",
   "courses_section_notes": "Notes",
+  "courses_section_requirements": "Requirements",
   "courses_section_trainingDives": "Training Dives",
   "courses_status_completed": "Completed",
   "courses_status_daysSinceStart": "{days} days since start",
   "courses_status_durationDays": "{days} days",
   "courses_status_inProgress": "In Progress",
   "courses_status_semanticLabel": "{status}, {duration}",
+  "courses_template_addsCount": "Adds {count} requirements",
   "courses_summary_overview": "Overview",
   "courses_summary_quickActions": "Quick Actions",
   "courses_summary_recentCourses": "Recent Courses",
@@ -1462,6 +1478,33 @@
       }
     }
   },
+  "@courses_requirement_diveProgress": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "@courses_requirements_progress": {
+    "placeholders": {
+      "satisfied": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "@courses_template_addsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "@courses_status_daysSinceStart": {
     "placeholders": {
       "days": {
@@ -1486,6 +1529,7 @@
       }
     }
   },
+  "dashboard_activeCourses_title": "Courses in progress",
   "dashboard_activity_daySinceDiving": "Day since diving",
   "dashboard_activity_daysSinceDiving": "Days since diving",
   "dashboard_activity_diveInYear": "Dive in {year}",
@@ -5110,6 +5154,188 @@
   "equipment_detail_retiredChip": "Retired",
   "equipment_detail_serialNumberLabel": "Serial Number",
   "equipment_detail_serviceInfoTitle": "Service Information",
+  "equipment_serviceClocks_title": "Service clocks",
+  "equipment_serviceClocks_addClock": "Add clock",
+  "equipment_serviceClocks_logService": "Log service",
+  "equipment_serviceClocks_edit": "Edit intervals",
+  "equipment_serviceClocks_pause": "Pause",
+  "equipment_serviceClocks_resume": "Resume",
+  "equipment_serviceClocks_remove": "Remove",
+  "equipment_serviceClocks_paused": "Paused",
+  "equipment_serviceClocks_empty": "No service clocks",
+  "equipment_serviceClocks_dueOn": "Due {date}",
+  "@equipment_serviceClocks_dueOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_overdueSince": "Overdue since {date}",
+  "@equipment_serviceClocks_overdueSince": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_overdue": "Overdue",
+  "equipment_serviceClocks_divesLeft": "{remaining} of {total} dives left",
+  "@equipment_serviceClocks_divesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_serviceClocks_hoursLeft": "{remaining} of {total} hours left",
+  "@equipment_serviceClocks_hoursLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_manageKinds": "Manage service types",
+  "equipment_serviceClocks_appliesToClock": "Applies to clock",
+  "equipment_serviceClocks_noClockOption": "Not tied to a clock",
+  "equipment_scheduleDialog_title": "Edit clock",
+  "equipment_scheduleDialog_intervalDays": "Interval (days)",
+  "equipment_scheduleDialog_intervalDives": "Interval (dives)",
+  "equipment_scheduleDialog_intervalHours": "Interval (hours)",
+  "equipment_scheduleDialog_inheritHint": "Default: {value}",
+  "@equipment_scheduleDialog_inheritHint": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_scheduleDialog_anchorDate": "Baseline date",
+  "equipment_scheduleDialog_anchorHint": "Used when no service record of this kind exists yet",
+  "equipment_scheduleDialog_clearAnchor": "Clear baseline date",
+  "equipment_scheduleDialog_save": "Save",
+  "equipment_scheduleDialog_cancel": "Cancel",
+  "equipment_serviceKinds_title": "Service types",
+  "equipment_serviceKinds_builtIn": "Built-in",
+  "equipment_serviceKinds_custom": "Custom",
+  "equipment_serviceKinds_add": "Add service type",
+  "equipment_serviceKinds_editTitle": "Edit service type",
+  "equipment_serviceKinds_nameLabel": "Name",
+  "equipment_serviceKinds_nameRequired": "A name is required",
+  "equipment_serviceKinds_appliesTo": "Applies to",
+  "equipment_serviceKinds_autoAttach": "Attach automatically to new gear",
+  "equipment_serviceKinds_deleteConfirmTitle": "Delete service type?",
+  "equipment_serviceKinds_deleteConfirmBody": "Clocks using this service type will be removed.",
+  "equipment_serviceKinds_delete": "Delete",
+  "equipment_serviceKinds_cancel": "Cancel",
+  "equipment_serviceKinds_save": "Save",
+  "equipment_serviceKinds_emptyCustom": "No custom service types yet",
+  "equipment_serviceKinds_everyDays": "every {days} days",
+  "@equipment_serviceKinds_everyDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_serviceKinds_everyDives": "every {dives} dives",
+  "@equipment_serviceKinds_everyDives": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_serviceKinds_everyHours": "every {hours} hours",
+  "@equipment_serviceKinds_everyHours": {
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboard_serviceDue_title": "Service due",
+  "dashboard_serviceDue_more": "+{count} more",
+  "@dashboard_serviceDue_more": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboard_alerts_clockDue": "{name}: {kind} due",
+  "@dashboard_alerts_clockDue": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboard_alerts_clockOverdue": "{name}: {kind} overdue",
+  "@dashboard_alerts_clockOverdue": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_list_worstClock": "{kind} overdue",
+  "@equipment_list_worstClock": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_serviceAlert_count": "{count, plural, =1{1 item needs service before this trip} other{{count} items need service before this trip}}",
+  "@trips_serviceAlert_count": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_serviceAlert_dueBefore": "{kind} due {date}",
+  "@trips_serviceAlert_dueBefore": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_serviceAlert_overdue": "{kind} overdue",
+  "@trips_serviceAlert_overdue": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_notifications_tripLeadTitle": "Trip service lead time",
+  "settings_notifications_tripLeadDays": "{days} days before a trip",
+  "@settings_notifications_tripLeadDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "equipment_detail_serviceIntervalLabel": "Service Interval",
   "equipment_detail_serviceIntervalValue": "{days} days",
   "equipment_detail_serviceOverdue": "Service is overdue!",
@@ -5198,6 +5424,7 @@
   "equipment_list_sortTitle": "Sort Equipment",
   "equipment_list_sortTooltip": "Sort",
   "equipment_list_tile_daysCount": "{days} days",
+  "equipment_list_tile_serviceInDays": "{days, plural, =1{Service in 1 day} other{Service in {days} days}}",
   "equipment_list_tile_serviceDueChip": "Service Due",
   "equipment_list_tile_serviceIn": "Service in",
   "equipment_menu_delete": "Delete",
@@ -5480,6 +5707,13 @@
     "placeholders": {
       "error": {
         "type": "Object"
+      }
+    }
+  },
+  "@equipment_list_tile_serviceInDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
       }
     }
   },
@@ -5937,6 +6171,9 @@
   "media_miniProfile_headerLabel": "Dive Profile",
   "media_miniProfile_semanticLabel": "Mini dive profile chart",
   "media_photoPicker_appBarTitle": "Select Photos",
+  "media_photoPicker_tab_gallery": "Gallery",
+  "media_photoPicker_tab_files": "Files",
+  "media_photoPicker_tab_url": "URL",
   "media_photoPicker_clearSelectionButton": "Clear",
   "media_photoPicker_closeTooltip": "Close photo picker",
   "media_photoPicker_doneButton": "Done",
@@ -6367,6 +6604,8 @@
   "plannerCanvas_ccr_setpointHigh": "Setpoint high (bar)",
   "plannerCanvas_ccr_setpointLow": "Setpoint low (bar)",
   "plannerCanvas_ccr_switchDepth": "Setpoint switch depth",
+  "plannerCanvas_pscr_ratio": "pSCR ratio",
+  "plannerCanvas_pscr_ratio_hint": "Larger adds more fresh gas and lowers the O₂ drop",
   "plannerCanvas_chip_cns": "CNS {value}%",
   "@plannerCanvas_chip_cns": {
     "placeholders": {
@@ -6397,6 +6636,14 @@
     }
   },
   "plannerCanvas_contingency_timeDelta": "Extra minutes",
+  "plannerCanvas_chart_meanDepth": "mean {depth}",
+  "@plannerCanvas_chart_meanDepth": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      }
+    }
+  },
   "plannerCanvas_contingency_title": "Contingencies",
   "plannerCanvas_contingency_turnFraction": "Turn fraction",
   "plannerCanvas_contingency_turnRule": "Turn pressure rule",
@@ -6468,6 +6715,13 @@
   "plannerCanvas_issue_noDecoGas": "Decompression required but no deco gas carried",
   "plannerCanvas_range_base": "Base",
   "plannerCanvas_range_legend": "Cells show time to surface; red = not diveable as planned",
+  "plannerCanvas_pane_collapse": "Collapse panel",
+  "plannerCanvas_pane_expand": "Expand panel",
+  "plannerCanvas_tab_setup": "Setup",
+  "plannerCanvas_o2Narcotic": "Treat O₂ as narcotic",
+  "plannerCanvas_rates_ascent": "Ascent rate",
+  "plannerCanvas_rates_descent": "Descent rate",
+  "plannerCanvas_rates_title": "Rates",
   "plannerCanvas_range_title": "Range table",
   "plannerCanvas_results_noDeco": "No decompression required",
   "plannerCanvas_sac_useLogged": "Use logged average ({sac})",
@@ -6897,7 +7151,7 @@
     "description": "SnackBar shown when persisting the nav order fails (e.g., database write error)."
   },
   "settings_backToSettings_tooltip": "Back to settings",
-  "settings_cloudSync_appBar_title": "Cloud Sync",
+  "settings_cloudSync_appBar_title": "Database Cloud Sync",
   "settings_cloudSync_autoSync": "Auto Sync",
   "settings_cloudSync_autoSync_subtitle": "Sync automatically after changes",
   "settings_cloudSync_conflictItems": "{count, plural, =1{1 item needs attention} other{{count} items need attention}}",
@@ -7062,7 +7316,7 @@
   "settings_data_appDefaultLocation": "App default location",
   "settings_data_backup": "Backup & Restore",
   "settings_data_backup_subtitle": "Create a backup of your data",
-  "settings_data_cloudSync": "Cloud Sync",
+  "settings_data_cloudSync": "Database Cloud Sync",
   "settings_data_customFolder": "Custom folder",
   "settings_data_databaseStorage": "Database Storage",
   "settings_data_export_completed": "Export completed",
@@ -7178,7 +7432,7 @@
   "settings_lightroom_albumFilter_all": "Entire catalog",
   "settings_lightroom_albumFilter_title": "Albums to scan",
   "settings_lightroom_autoPoll_title": "Check for new photos automatically",
-  "settings_lightroom_clientId_help": "Create an integration in the Adobe Developer Console with the Lightroom Services API and a credential type that supports PKCE. Set the redirect URI to {redirectUri}.",
+  "settings_lightroom_clientId_help": "Create an integration in the Adobe Developer Console with the Lightroom Services API and a credential type that supports PKCE. Enter your credential's redirect URI below — Native App credentials use a custom scheme — or leave it blank to use {redirectUri}.",
   "@settings_lightroom_clientId_help": {
     "placeholders": {
       "redirectUri": {
@@ -7188,7 +7442,16 @@
   },
   "settings_lightroom_clientId_label": "Adobe client ID",
   "settings_lightroom_clientSecret_label": "Client secret (optional)",
+  "settings_lightroom_redirectUri_label": "Redirect URI (optional)",
   "settings_lightroom_connect": "Connect Lightroom",
+  "settings_lightroom_connectEmbedded": "Connect with Adobe",
+  "@settings_lightroom_connectEmbedded": {
+    "description": "Primary button to connect Lightroom with the app's bundled Adobe credential"
+  },
+  "settings_lightroom_advancedByo": "Use your own Adobe credentials",
+  "@settings_lightroom_advancedByo": {
+    "description": "Header for the advanced BYO client-id connect path"
+  },
   "settings_lightroom_connect_codeLabel": "Redirected URL or code",
   "settings_lightroom_connect_emptyCode": "Paste the redirected URL or authorization code",
   "settings_lightroom_connect_failed": "Could not connect to Lightroom: {error}",

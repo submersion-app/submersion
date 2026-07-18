@@ -150,6 +150,7 @@ class DiverSettingsRepository {
               serviceReminderDays: Value(
                 _formatReminderDays(s.serviceReminderDays),
               ),
+              tripServiceLeadDays: Value(s.tripServiceLeadDays),
               reminderTime: Value(_formatReminderTime(s.reminderTime)),
               showDataSourceBadges: Value(s.showDataSourceBadges),
               showProfilePanelInTableView: Value(s.showProfilePanelInTableView),
@@ -294,6 +295,7 @@ class DiverSettingsRepository {
           serviceReminderDays: Value(
             _formatReminderDays(settings.serviceReminderDays),
           ),
+          tripServiceLeadDays: Value(settings.tripServiceLeadDays),
           reminderTime: Value(_formatReminderTime(settings.reminderTime)),
           showDataSourceBadges: Value(settings.showDataSourceBadges),
           showProfilePanelInTableView: Value(
@@ -472,6 +474,7 @@ class DiverSettingsRepository {
       defaultShowAscentRateLine: row.defaultShowAscentRateLine,
       notificationsEnabled: row.notificationsEnabled,
       serviceReminderDays: _parseReminderDays(row.serviceReminderDays),
+      tripServiceLeadDays: row.tripServiceLeadDays,
       reminderTime: _parseReminderTime(row.reminderTime),
       showDataSourceBadges: row.showDataSourceBadges,
       showProfilePanelInTableView: row.showProfilePanelInTableView,

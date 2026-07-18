@@ -34,7 +34,8 @@ typedef Override = riverpod.Override;
 /// Mock SettingsNotifier that doesn't access the database
 class _MockSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
-  _MockSettingsNotifier() : super(const AppSettings());
+  _MockSettingsNotifier([AppSettings? initial])
+    : super(initial ?? const AppSettings());
 
   @override
   Future<void> setDefaultShowGasTimeline(bool value) async =>
@@ -153,6 +154,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setDecoStopIncrement(double value) async =>
       state = state.copyWith(decoStopIncrement: value);
   @override
+  Future<void> setPscrRatio(double value) async =>
+      state = state.copyWith(pscrRatio: value);
+  @override
   Future<void> setO2Narcotic(bool value) async =>
       state = state.copyWith(o2Narcotic: value);
   @override
@@ -261,6 +265,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setReminderTime(TimeOfDay time) async =>
       state = state.copyWith(reminderTime: time);
+  @override
+  Future<void> setTripServiceLeadDays(int days) async =>
+      state = state.copyWith(tripServiceLeadDays: days);
   @override
   Future<void> toggleReminderDay(int days) async {
     final current = List<int>.from(state.serviceReminderDays);
@@ -427,12 +434,12 @@ void main() {
   });
 
   /// Helper to create common provider overrides for SettingsPage tests
-  List<Override> getOverrides() {
+  List<Override> getOverrides([AppSettings? settings]) {
     return [
       sharedPreferencesProvider.overrideWithValue(prefs),
       logFileServiceProvider.overrideWithValue(logFileService),
       // Mock the settingsProvider to avoid database access
-      settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+      settingsProvider.overrideWith((ref) => _MockSettingsNotifier(settings)),
       // Mock the currentDiverIdProvider to avoid database access
       currentDiverIdProvider.overrideWith(
         (ref) => _MockCurrentDiverIdNotifier(),
@@ -869,6 +876,69 @@ void main() {
 
       expect(find.text('Checklist Templates Stub'), findsOneWidget);
       expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('NotificationsSectionContent trip lead time', () {
+    Widget buildNotificationsWidget(List<Override> overrides) {
+      final router = GoRouter(
+        initialLocation: '/settings?selected=notifications',
+        routes: [
+          GoRoute(
+            path: '/settings',
+            builder: (context, state) => const SettingsPage(),
+          ),
+        ],
+      );
+      return ProviderScope(
+        overrides: overrides,
+        child: MaterialApp.router(
+          routerConfig: router,
+          // Pin the locale so the English string-based finders below are
+          // deterministic regardless of the host environment locale.
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      );
+    }
+
+    testWidgets('dropdown changes the trip service lead days', (tester) async {
+      await tester.pumpWidget(buildNotificationsWidget(getOverrides()));
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(find.text('Trip service lead time'), 200);
+      await tester.ensureVisible(find.text('Trip service lead time'));
+      await tester.pumpAndSettle();
+      expect(find.text('14 days before a trip'), findsOneWidget);
+
+      await tester.tap(find.byType(DropdownButton<int>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('21').last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('21 days before a trip'), findsOneWidget);
+    });
+
+    testWidgets('renders without throwing for a non-standard persisted value', (
+      tester,
+    ) async {
+      // A lead time outside the standard {7, 14, 21, 30} options (from a
+      // migration, manual edit, or future UI) must not trip DropdownButton's
+      // "value must appear in items" assertion.
+      final overrides = getOverrides(
+        const AppSettings(tripServiceLeadDays: 10),
+      );
+      await tester.pumpWidget(buildNotificationsWidget(overrides));
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(find.text('Trip service lead time'), 200);
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('10 days before a trip'), findsOneWidget);
+      // The persisted value appears in the dropdown's options.
+      expect(find.byType(DropdownButton<int>), findsOneWidget);
     });
   });
 }

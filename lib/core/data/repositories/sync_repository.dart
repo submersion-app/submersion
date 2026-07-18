@@ -55,6 +55,9 @@ class SyncRepository {
     'diveComputers': (table: 'dive_computers', pk: 'id'),
     'tags': (table: 'tags', pk: 'id'),
     'courses': (table: 'courses', pk: 'id'),
+    // HLC merge-root only: the courseRequirementDives junction is clockless
+    // and rides the parent requirement's hlc (equipment_set_items pattern).
+    'courseRequirements': (table: 'course_requirements', pk: 'id'),
     'dives': (table: 'dives', pk: 'id'),
     'diveSites': (table: 'dive_sites', pk: 'id'),
     'certifications': (table: 'certifications', pk: 'id'),

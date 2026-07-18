@@ -953,6 +953,11 @@ class DiveTank extends Equatable {
   /// entered/edited tank not tied to a specific computer).
   final String? computerId;
 
+  /// Deco gas-switch depth override in meters (planning only); null = auto
+  /// (MOD at the deco pO2). Subsurface per-cylinder "Deco switch at", v120.
+  /// Unused for logged-dive tanks.
+  final double? decoSwitchDepth;
+
   const DiveTank({
     required this.id,
     this.name,
@@ -966,6 +971,7 @@ class DiveTank extends Equatable {
     this.order = 0,
     this.presetName,
     this.computerId,
+    this.decoSwitchDepth,
   });
 
   /// Pressure consumed during dive
@@ -989,6 +995,8 @@ class DiveTank extends Equatable {
     String? presetName,
     bool clearPresetName = false,
     String? computerId,
+    double? decoSwitchDepth,
+    bool clearDecoSwitchDepth = false,
   }) {
     return DiveTank(
       id: id ?? this.id,
@@ -1003,6 +1011,9 @@ class DiveTank extends Equatable {
       order: order ?? this.order,
       presetName: clearPresetName ? null : (presetName ?? this.presetName),
       computerId: computerId ?? this.computerId,
+      decoSwitchDepth: clearDecoSwitchDepth
+          ? null
+          : (decoSwitchDepth ?? this.decoSwitchDepth),
     );
   }
 
@@ -1020,6 +1031,7 @@ class DiveTank extends Equatable {
     order,
     presetName,
     computerId,
+    decoSwitchDepth,
   ];
 }
 

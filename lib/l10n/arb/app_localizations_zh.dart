@@ -2069,16 +2069,34 @@ class AppLocalizationsZh extends AppLocalizations {
   String get courses_action_add => '添加课程';
 
   @override
+  String get courses_action_addFromTemplate => '从模板添加';
+
+  @override
+  String get courses_action_addRequirement => '添加要求';
+
+  @override
   String get courses_action_create => '创建课程';
+
+  @override
+  String get courses_action_deleteRequirement => '删除要求';
 
   @override
   String get courses_action_edit => '编辑课程';
 
   @override
+  String get courses_action_editRequirement => '编辑要求';
+
+  @override
   String get courses_action_exportTrainingLog => '导出训练日志';
 
   @override
+  String get courses_action_linkDive => '关联';
+
+  @override
   String get courses_action_markCompleted => '标记为已完成';
+
+  @override
+  String get courses_action_unlinkDive => '取消关联潜水';
 
   @override
   String get courses_action_moreOptions => '更多选项';
@@ -2251,6 +2269,34 @@ class AppLocalizationsZh extends AppLocalizations {
   String get courses_picker_tapToLink => '点击关联培训课程';
 
   @override
+  String courses_requirement_diveProgress(int count, int target) {
+    return '$count/$target 次潜水';
+  }
+
+  @override
+  String get courses_requirement_field_name => '名称';
+
+  @override
+  String get courses_requirement_field_targetCount => '所需潜水次数';
+
+  @override
+  String get courses_requirement_kind_checklist => '核对项';
+
+  @override
+  String get courses_requirement_kind_dive => '潜水要求';
+
+  @override
+  String get courses_requirement_suggestions => '建议的潜水';
+
+  @override
+  String get courses_requirements_empty => '跟踪此课程的探险潜水、先决条件和核对项。';
+
+  @override
+  String courses_requirements_progress(int satisfied, int total) {
+    return '$satisfied/$total 已完成';
+  }
+
+  @override
   String get courses_section_details => '课程详情';
 
   @override
@@ -2261,6 +2307,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get courses_section_notes => '备注';
+
+  @override
+  String get courses_section_requirements => '要求';
 
   @override
   String get courses_section_trainingDives => '培训潜水';
@@ -2284,6 +2333,11 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String courses_status_semanticLabel(Object status, Object duration) {
     return '$status，$duration';
+  }
+
+  @override
+  String courses_template_addsCount(int count) {
+    return '添加 $count 项要求';
   }
 
   @override
@@ -2318,6 +2372,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get courses_validation_nameRequired => '请输入课程名称';
+
+  @override
+  String get dashboard_activeCourses_title => '进行中的课程';
 
   @override
   String get dashboard_activity_daySinceDiving => '距上次潜水天数';
@@ -9028,6 +9085,208 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_detail_serviceInfoTitle => '维护信息';
 
   @override
+  String get equipment_serviceClocks_title => '维护倒计时';
+
+  @override
+  String get equipment_serviceClocks_addClock => '添加倒计时';
+
+  @override
+  String get equipment_serviceClocks_logService => '记录维护';
+
+  @override
+  String get equipment_serviceClocks_edit => '编辑间隔';
+
+  @override
+  String get equipment_serviceClocks_pause => '暂停';
+
+  @override
+  String get equipment_serviceClocks_resume => '恢复';
+
+  @override
+  String get equipment_serviceClocks_remove => '移除';
+
+  @override
+  String get equipment_serviceClocks_paused => '已暂停';
+
+  @override
+  String get equipment_serviceClocks_empty => '暂无维护倒计时';
+
+  @override
+  String equipment_serviceClocks_dueOn(String date) {
+    return '$date 到期';
+  }
+
+  @override
+  String equipment_serviceClocks_overdueSince(String date) {
+    return '自 $date 起逾期';
+  }
+
+  @override
+  String get equipment_serviceClocks_overdue => '已逾期';
+
+  @override
+  String equipment_serviceClocks_divesLeft(int remaining, int total) {
+    return '剩余 $remaining/$total 次潜水';
+  }
+
+  @override
+  String equipment_serviceClocks_hoursLeft(String remaining, String total) {
+    return '剩余 $remaining/$total 小时';
+  }
+
+  @override
+  String get equipment_serviceClocks_manageKinds => '管理维护类型';
+
+  @override
+  String get equipment_serviceClocks_appliesToClock => '适用的倒计时';
+
+  @override
+  String get equipment_serviceClocks_noClockOption => '不关联倒计时';
+
+  @override
+  String get equipment_scheduleDialog_title => '编辑倒计时';
+
+  @override
+  String get equipment_scheduleDialog_intervalDays => '间隔（天）';
+
+  @override
+  String get equipment_scheduleDialog_intervalDives => '间隔（潜水次数）';
+
+  @override
+  String get equipment_scheduleDialog_intervalHours => '间隔（小时）';
+
+  @override
+  String equipment_scheduleDialog_inheritHint(String value) {
+    return '默认：$value';
+  }
+
+  @override
+  String get equipment_scheduleDialog_anchorDate => '基准日期';
+
+  @override
+  String get equipment_scheduleDialog_anchorHint => '在尚无此类维护记录时使用';
+
+  @override
+  String get equipment_scheduleDialog_clearAnchor => '清除基准日期';
+
+  @override
+  String get equipment_scheduleDialog_save => '保存';
+
+  @override
+  String get equipment_scheduleDialog_cancel => '取消';
+
+  @override
+  String get equipment_serviceKinds_title => '维护类型';
+
+  @override
+  String get equipment_serviceKinds_builtIn => '内置';
+
+  @override
+  String get equipment_serviceKinds_custom => '自定义';
+
+  @override
+  String get equipment_serviceKinds_add => '添加维护类型';
+
+  @override
+  String get equipment_serviceKinds_editTitle => '编辑维护类型';
+
+  @override
+  String get equipment_serviceKinds_nameLabel => '名称';
+
+  @override
+  String get equipment_serviceKinds_nameRequired => '名称为必填项';
+
+  @override
+  String get equipment_serviceKinds_appliesTo => '适用于';
+
+  @override
+  String get equipment_serviceKinds_autoAttach => '自动附加到新装备';
+
+  @override
+  String get equipment_serviceKinds_deleteConfirmTitle => '删除维护类型？';
+
+  @override
+  String get equipment_serviceKinds_deleteConfirmBody => '使用此维护类型的倒计时将被移除。';
+
+  @override
+  String get equipment_serviceKinds_delete => '删除';
+
+  @override
+  String get equipment_serviceKinds_cancel => '取消';
+
+  @override
+  String get equipment_serviceKinds_save => '保存';
+
+  @override
+  String get equipment_serviceKinds_emptyCustom => '暂无自定义维护类型';
+
+  @override
+  String equipment_serviceKinds_everyDays(int days) {
+    return '每 $days 天';
+  }
+
+  @override
+  String equipment_serviceKinds_everyDives(int dives) {
+    return '每 $dives 次潜水';
+  }
+
+  @override
+  String equipment_serviceKinds_everyHours(String hours) {
+    return '每 $hours 小时';
+  }
+
+  @override
+  String get dashboard_serviceDue_title => '维护到期';
+
+  @override
+  String dashboard_serviceDue_more(int count) {
+    return '+$count 项';
+  }
+
+  @override
+  String dashboard_alerts_clockDue(String name, String kind) {
+    return '$name：$kind到期';
+  }
+
+  @override
+  String dashboard_alerts_clockOverdue(String name, String kind) {
+    return '$name：$kind已逾期';
+  }
+
+  @override
+  String equipment_list_worstClock(String kind) {
+    return '$kind已逾期';
+  }
+
+  @override
+  String trips_serviceAlert_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 件装备需要在此行程前维护',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_serviceAlert_dueBefore(String kind, String date) {
+    return '$kind将于 $date 到期';
+  }
+
+  @override
+  String trips_serviceAlert_overdue(String kind) {
+    return '$kind已逾期';
+  }
+
+  @override
+  String get settings_notifications_tripLeadTitle => '行程维护提前提醒';
+
+  @override
+  String settings_notifications_tripLeadDays(int days) {
+    return '行程前 $days 天';
+  }
+
+  @override
   String get equipment_detail_serviceIntervalLabel => '维护间隔';
 
   @override
@@ -9309,6 +9568,17 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String equipment_list_tile_daysCount(Object days) {
     return '$days 天';
+  }
+
+  @override
+  String equipment_list_tile_serviceInDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '维护在 $days 天',
+      one: '维护在 1 天',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -10430,6 +10700,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_photoPicker_appBarTitle => '选择照片';
 
   @override
+  String get media_photoPicker_tab_gallery => '图库';
+
+  @override
+  String get media_photoPicker_tab_files => '文件';
+
+  @override
+  String get media_photoPicker_tab_url => 'URL';
+
+  @override
   String get media_photoPicker_clearSelectionButton => '清除';
 
   @override
@@ -10831,6 +11110,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerCanvas_ccr_switchDepth => '设定点切换深度';
 
   @override
+  String get plannerCanvas_pscr_ratio => 'pSCR 比率';
+
+  @override
+  String get plannerCanvas_pscr_ratio_hint => '越大 = 新鲜气体越多，氧分压下降越小';
+
+  @override
   String plannerCanvas_chip_cns(String value) {
     return 'CNS $value%';
   }
@@ -10867,6 +11152,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get plannerCanvas_contingency_timeDelta => '额外分钟';
+
+  @override
+  String plannerCanvas_chart_meanDepth(String depth) {
+    return '平均 $depth';
+  }
 
   @override
   String get plannerCanvas_contingency_title => '应急计划';
@@ -10938,6 +11228,27 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get plannerCanvas_range_legend => '单元格显示到达水面所需时间；红色 = 无法按计划潜水';
+
+  @override
+  String get plannerCanvas_pane_collapse => '折叠面板';
+
+  @override
+  String get plannerCanvas_pane_expand => '展开面板';
+
+  @override
+  String get plannerCanvas_tab_setup => '设置';
+
+  @override
+  String get plannerCanvas_o2Narcotic => '将氧气视为麻醉性';
+
+  @override
+  String get plannerCanvas_rates_ascent => '上升速率';
+
+  @override
+  String get plannerCanvas_rates_descent => '下降速率';
+
+  @override
+  String get plannerCanvas_rates_title => '速率';
 
   @override
   String get plannerCanvas_range_title => '范围表';
@@ -11739,7 +12050,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_backToSettings_tooltip => '返回设置';
 
   @override
-  String get settings_cloudSync_appBar_title => '云同步';
+  String get settings_cloudSync_appBar_title => '数据库云同步';
 
   @override
   String get settings_cloudSync_autoSync => '自动同步';
@@ -12177,7 +12488,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_data_backup_subtitle => '创建数据备份';
 
   @override
-  String get settings_data_cloudSync => '云同步';
+  String get settings_data_cloudSync => '数据库云同步';
 
   @override
   String get settings_data_customFolder => '自定义文件夹';
@@ -12568,7 +12879,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String settings_lightroom_clientId_help(String redirectUri) {
-    return '在 Adobe Developer Console 中使用 Lightroom Services API 创建集成，并选择支持 PKCE 的凭据类型。将重定向 URI 设置为 $redirectUri。';
+    return '在 Adobe Developer Console 中使用 Lightroom Services API 创建集成，并选择支持 PKCE 的凭据类型。在下方输入您凭据的重定向 URI（Native App 凭据使用自定义方案），或留空以使用 $redirectUri。';
   }
 
   @override
@@ -12578,7 +12889,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_lightroom_clientSecret_label => '客户端密钥（可选）';
 
   @override
+  String get settings_lightroom_redirectUri_label => '重定向 URI（可选）';
+
+  @override
   String get settings_lightroom_connect => '连接 Lightroom';
+
+  @override
+  String get settings_lightroom_connectEmbedded => '使用 Adobe 连接';
+
+  @override
+  String get settings_lightroom_advancedByo => '使用您自己的 Adobe 凭据';
 
   @override
   String get settings_lightroom_connect_codeLabel => '重定向的网址或代码';

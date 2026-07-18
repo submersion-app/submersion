@@ -145,6 +145,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setDecoStopIncrement(double value) async =>
       state = state.copyWith(decoStopIncrement: value);
   @override
+  Future<void> setPscrRatio(double value) async =>
+      state = state.copyWith(pscrRatio: value);
+  @override
   Future<void> setO2Narcotic(bool value) async =>
       state = state.copyWith(o2Narcotic: value);
   @override
@@ -253,6 +256,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setReminderTime(TimeOfDay time) async =>
       state = state.copyWith(reminderTime: time);
+  @override
+  Future<void> setTripServiceLeadDays(int days) async =>
+      state = state.copyWith(tripServiceLeadDays: days);
   @override
   Future<void> toggleReminderDay(int days) async {
     final current = List<int>.from(state.serviceReminderDays);

@@ -127,7 +127,7 @@ class PlanSlatePdfService {
     PlanOutcome outcome,
     UnitFormatter units,
   ) {
-    final mode = plan.mode == domain.PlanMode.ccr ? 'CCR' : 'OC';
+    final mode = plan.mode.name.toUpperCase();
     final date =
         '${plan.updatedAt.year}-${plan.updatedAt.month.toString().padLeft(2, '0')}-${plan.updatedAt.day.toString().padLeft(2, '0')}';
     return pw.Column(

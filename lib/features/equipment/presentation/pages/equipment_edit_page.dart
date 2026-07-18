@@ -336,9 +336,13 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
           _buildDateSection(context),
           const SizedBox(height: 24),
 
-          // Service Settings
-          _buildServiceSection(context),
-          const SizedBox(height: 24),
+          // Service Settings (legacy single clock). New items get service
+          // clocks auto-attached on create and manage them from the detail
+          // page, so the legacy section only shows when editing.
+          if (widget.isEditing) ...[
+            _buildServiceSection(context),
+            const SizedBox(height: 24),
+          ],
 
           // Notes
           TextFormField(

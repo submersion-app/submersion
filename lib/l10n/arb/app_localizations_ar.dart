@@ -2155,16 +2155,34 @@ class AppLocalizationsAr extends AppLocalizations {
   String get courses_action_add => 'إضافة دورة';
 
   @override
+  String get courses_action_addFromTemplate => 'إضافة من قالب';
+
+  @override
+  String get courses_action_addRequirement => 'إضافة متطلب';
+
+  @override
   String get courses_action_create => 'إنشاء دورة';
+
+  @override
+  String get courses_action_deleteRequirement => 'حذف المتطلب';
 
   @override
   String get courses_action_edit => 'تعديل الدورة';
 
   @override
+  String get courses_action_editRequirement => 'تعديل المتطلب';
+
+  @override
   String get courses_action_exportTrainingLog => 'تصدير سجل التدريب';
 
   @override
+  String get courses_action_linkDive => 'ربط';
+
+  @override
   String get courses_action_markCompleted => 'وضع علامة كمكتمل';
+
+  @override
+  String get courses_action_unlinkDive => 'إلغاء ربط الغطسة';
 
   @override
   String get courses_action_moreOptions => 'المزيد من الخيارات';
@@ -2340,6 +2358,35 @@ class AppLocalizationsAr extends AppLocalizations {
   String get courses_picker_tapToLink => 'اضغط للربط بدورة تدريبية';
 
   @override
+  String courses_requirement_diveProgress(int count, int target) {
+    return '$count من $target غطسات';
+  }
+
+  @override
+  String get courses_requirement_field_name => 'الاسم';
+
+  @override
+  String get courses_requirement_field_targetCount => 'الغطسات المطلوبة';
+
+  @override
+  String get courses_requirement_kind_checklist => 'عنصر تحقق';
+
+  @override
+  String get courses_requirement_kind_dive => 'متطلب غطس';
+
+  @override
+  String get courses_requirement_suggestions => 'غطسات مقترحة';
+
+  @override
+  String get courses_requirements_empty =>
+      'تتبع غطسات المغامرة والمتطلبات المسبقة وعناصر التحقق لهذه الدورة.';
+
+  @override
+  String courses_requirements_progress(int satisfied, int total) {
+    return '$satisfied من $total مكتملة';
+  }
+
+  @override
   String get courses_section_details => 'تفاصيل الدورة';
 
   @override
@@ -2350,6 +2397,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get courses_section_notes => 'ملاحظات';
+
+  @override
+  String get courses_section_requirements => 'المتطلبات';
 
   @override
   String get courses_section_trainingDives => 'الغطسات التدريبية';
@@ -2373,6 +2423,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String courses_status_semanticLabel(Object status, Object duration) {
     return '$status، $duration';
+  }
+
+  @override
+  String courses_template_addsCount(int count) {
+    return 'يضيف $count متطلبات';
   }
 
   @override
@@ -2407,6 +2462,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get courses_validation_nameRequired => 'الرجاء إدخال اسم الدورة';
+
+  @override
+  String get dashboard_activeCourses_title => 'الدورات قيد التنفيذ';
 
   @override
   String get dashboard_activity_daySinceDiving => 'يوم منذ آخر غوصة';
@@ -9281,6 +9339,218 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_detail_serviceInfoTitle => 'معلومات الصيانة';
 
   @override
+  String get equipment_serviceClocks_title => 'عدادات الصيانة';
+
+  @override
+  String get equipment_serviceClocks_addClock => 'إضافة عداد';
+
+  @override
+  String get equipment_serviceClocks_logService => 'تسجيل صيانة';
+
+  @override
+  String get equipment_serviceClocks_edit => 'تعديل الفترات';
+
+  @override
+  String get equipment_serviceClocks_pause => 'إيقاف مؤقت';
+
+  @override
+  String get equipment_serviceClocks_resume => 'استئناف';
+
+  @override
+  String get equipment_serviceClocks_remove => 'إزالة';
+
+  @override
+  String get equipment_serviceClocks_paused => 'متوقف مؤقتًا';
+
+  @override
+  String get equipment_serviceClocks_empty => 'لا توجد عدادات صيانة';
+
+  @override
+  String equipment_serviceClocks_dueOn(String date) {
+    return 'مستحق في $date';
+  }
+
+  @override
+  String equipment_serviceClocks_overdueSince(String date) {
+    return 'متأخر منذ $date';
+  }
+
+  @override
+  String get equipment_serviceClocks_overdue => 'متأخر';
+
+  @override
+  String equipment_serviceClocks_divesLeft(int remaining, int total) {
+    return 'متبقٍ $remaining من $total غوصة';
+  }
+
+  @override
+  String equipment_serviceClocks_hoursLeft(String remaining, String total) {
+    return 'متبقٍ $remaining من $total ساعة';
+  }
+
+  @override
+  String get equipment_serviceClocks_manageKinds => 'إدارة أنواع الصيانة';
+
+  @override
+  String get equipment_serviceClocks_appliesToClock => 'ينطبق على العداد';
+
+  @override
+  String get equipment_serviceClocks_noClockOption => 'غير مرتبط بعداد';
+
+  @override
+  String get equipment_scheduleDialog_title => 'تعديل العداد';
+
+  @override
+  String get equipment_scheduleDialog_intervalDays => 'الفترة (أيام)';
+
+  @override
+  String get equipment_scheduleDialog_intervalDives => 'الفترة (غوصات)';
+
+  @override
+  String get equipment_scheduleDialog_intervalHours => 'الفترة (ساعات)';
+
+  @override
+  String equipment_scheduleDialog_inheritHint(String value) {
+    return 'الافتراضي: $value';
+  }
+
+  @override
+  String get equipment_scheduleDialog_anchorDate => 'تاريخ الأساس';
+
+  @override
+  String get equipment_scheduleDialog_anchorHint =>
+      'يُستخدم عندما لا يوجد بعد سجل صيانة من هذا النوع';
+
+  @override
+  String get equipment_scheduleDialog_clearAnchor => 'مسح تاريخ الأساس';
+
+  @override
+  String get equipment_scheduleDialog_save => 'حفظ';
+
+  @override
+  String get equipment_scheduleDialog_cancel => 'إلغاء';
+
+  @override
+  String get equipment_serviceKinds_title => 'أنواع الصيانة';
+
+  @override
+  String get equipment_serviceKinds_builtIn => 'مدمج';
+
+  @override
+  String get equipment_serviceKinds_custom => 'مخصص';
+
+  @override
+  String get equipment_serviceKinds_add => 'إضافة نوع صيانة';
+
+  @override
+  String get equipment_serviceKinds_editTitle => 'تعديل نوع الصيانة';
+
+  @override
+  String get equipment_serviceKinds_nameLabel => 'الاسم';
+
+  @override
+  String get equipment_serviceKinds_nameRequired => 'الاسم مطلوب';
+
+  @override
+  String get equipment_serviceKinds_appliesTo => 'ينطبق على';
+
+  @override
+  String get equipment_serviceKinds_autoAttach =>
+      'إرفاق تلقائيًا بالمعدات الجديدة';
+
+  @override
+  String get equipment_serviceKinds_deleteConfirmTitle => 'حذف نوع الصيانة؟';
+
+  @override
+  String get equipment_serviceKinds_deleteConfirmBody =>
+      'ستتم إزالة العدادات التي تستخدم هذا النوع من الصيانة.';
+
+  @override
+  String get equipment_serviceKinds_delete => 'حذف';
+
+  @override
+  String get equipment_serviceKinds_cancel => 'إلغاء';
+
+  @override
+  String get equipment_serviceKinds_save => 'حفظ';
+
+  @override
+  String get equipment_serviceKinds_emptyCustom =>
+      'لا توجد أنواع صيانة مخصصة بعد';
+
+  @override
+  String equipment_serviceKinds_everyDays(int days) {
+    return 'كل $days يوم';
+  }
+
+  @override
+  String equipment_serviceKinds_everyDives(int dives) {
+    return 'كل $dives غوصة';
+  }
+
+  @override
+  String equipment_serviceKinds_everyHours(String hours) {
+    return 'كل $hours ساعة';
+  }
+
+  @override
+  String get dashboard_serviceDue_title => 'صيانة مستحقة';
+
+  @override
+  String dashboard_serviceDue_more(int count) {
+    return '+$count أخرى';
+  }
+
+  @override
+  String dashboard_alerts_clockDue(String name, String kind) {
+    return '$name: $kind مستحقة';
+  }
+
+  @override
+  String dashboard_alerts_clockOverdue(String name, String kind) {
+    return '$name: $kind متأخرة';
+  }
+
+  @override
+  String equipment_list_worstClock(String kind) {
+    return '$kind متأخرة';
+  }
+
+  @override
+  String trips_serviceAlert_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count قطعة معدات تحتاج إلى صيانة قبل هذه الرحلة',
+      many: '$count قطعة معدات تحتاج إلى صيانة قبل هذه الرحلة',
+      few: '$count قطع معدات تحتاج إلى صيانة قبل هذه الرحلة',
+      two: 'قطعتا معدات تحتاجان إلى صيانة قبل هذه الرحلة',
+      one: 'قطعة معدات واحدة تحتاج إلى صيانة قبل هذه الرحلة',
+      zero: 'لا توجد معدات تحتاج إلى صيانة قبل هذه الرحلة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_serviceAlert_dueBefore(String kind, String date) {
+    return '$kind مستحقة في $date';
+  }
+
+  @override
+  String trips_serviceAlert_overdue(String kind) {
+    return '$kind متأخرة';
+  }
+
+  @override
+  String get settings_notifications_tripLeadTitle =>
+      'مهلة التنبيه لصيانة الرحلة';
+
+  @override
+  String settings_notifications_tripLeadDays(int days) {
+    return '$days أيام قبل الرحلة';
+  }
+
+  @override
   String get equipment_detail_serviceIntervalLabel => 'فترة الصيانة';
 
   @override
@@ -9575,6 +9845,17 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String equipment_list_tile_daysCount(Object days) {
     return '$days يوم';
+  }
+
+  @override
+  String equipment_list_tile_serviceInDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'الصيانة خلال $days يوم',
+      one: 'الصيانة خلال يوم واحد',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -10724,6 +11005,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_photoPicker_appBarTitle => 'اختيار الصور';
 
   @override
+  String get media_photoPicker_tab_gallery => 'المعرض';
+
+  @override
+  String get media_photoPicker_tab_files => 'الملفات';
+
+  @override
+  String get media_photoPicker_tab_url => 'URL';
+
+  @override
   String get media_photoPicker_clearSelectionButton => 'مسح';
 
   @override
@@ -11141,6 +11431,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerCanvas_ccr_switchDepth => 'عمق تبديل نقطة الضبط';
 
   @override
+  String get plannerCanvas_pscr_ratio => 'نسبة pSCR';
+
+  @override
+  String get plannerCanvas_pscr_ratio_hint =>
+      'أكبر = غاز طازج أكثر وانخفاض أقل في الأكسجين';
+
+  @override
   String plannerCanvas_chip_cns(String value) {
     return 'CNS $value%';
   }
@@ -11178,6 +11475,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get plannerCanvas_contingency_timeDelta => 'دقائق إضافية';
+
+  @override
+  String plannerCanvas_chart_meanDepth(String depth) {
+    return 'المتوسط $depth';
+  }
 
   @override
   String get plannerCanvas_contingency_title => 'خطط الطوارئ';
@@ -11253,6 +11555,27 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get plannerCanvas_range_legend =>
       'تعرض الخلايا زمن الصعود إلى السطح؛ الأحمر = غير قابلة للغطس كما هو مخطط';
+
+  @override
+  String get plannerCanvas_pane_collapse => 'طي اللوحة';
+
+  @override
+  String get plannerCanvas_pane_expand => 'توسيع اللوحة';
+
+  @override
+  String get plannerCanvas_tab_setup => 'الإعداد';
+
+  @override
+  String get plannerCanvas_o2Narcotic => 'اعتبار الأكسجين مخدرًا';
+
+  @override
+  String get plannerCanvas_rates_ascent => 'معدل الصعود';
+
+  @override
+  String get plannerCanvas_rates_descent => 'معدل النزول';
+
+  @override
+  String get plannerCanvas_rates_title => 'المعدلات';
 
   @override
   String get plannerCanvas_range_title => 'جدول النطاقات';
@@ -12108,7 +12431,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_backToSettings_tooltip => 'العودة إلى الإعدادات';
 
   @override
-  String get settings_cloudSync_appBar_title => 'المزامنة السحابية';
+  String get settings_cloudSync_appBar_title =>
+      'المزامنة السحابية لقاعدة البيانات';
 
   @override
   String get settings_cloudSync_autoSync => 'المزامنة التلقائية';
@@ -12562,7 +12886,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_data_backup_subtitle => 'إنشاء نسخة احتياطية من بياناتك';
 
   @override
-  String get settings_data_cloudSync => 'المزامنة السحابية';
+  String get settings_data_cloudSync => 'المزامنة السحابية لقاعدة البيانات';
 
   @override
   String get settings_data_customFolder => 'مجلد مخصص';
@@ -12966,7 +13290,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String settings_lightroom_clientId_help(String redirectUri) {
-    return 'أنشئ تكاملًا في Adobe Developer Console باستخدام واجهة Lightroom Services API ونوع اعتماد يدعم PKCE. عيّن عنوان إعادة التوجيه إلى $redirectUri.';
+    return 'أنشئ تكاملًا في Adobe Developer Console باستخدام واجهة Lightroom Services API ونوع اعتماد يدعم PKCE. أدخل عنوان إعادة التوجيه الخاص باعتمادك أدناه (تستخدم اعتمادات Native App مخططًا مخصصًا) أو اتركه فارغًا لاستخدام $redirectUri.';
   }
 
   @override
@@ -12976,7 +13300,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_lightroom_clientSecret_label => 'سر العميل (اختياري)';
 
   @override
+  String get settings_lightroom_redirectUri_label =>
+      'عنوان إعادة التوجيه (اختياري)';
+
+  @override
   String get settings_lightroom_connect => 'ربط Lightroom';
+
+  @override
+  String get settings_lightroom_connectEmbedded => 'الاتصال عبر Adobe';
+
+  @override
+  String get settings_lightroom_advancedByo =>
+      'استخدم بيانات اعتماد Adobe الخاصة بك';
 
   @override
   String get settings_lightroom_connect_codeLabel =>

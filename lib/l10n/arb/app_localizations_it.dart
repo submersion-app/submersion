@@ -2200,17 +2200,35 @@ class AppLocalizationsIt extends AppLocalizations {
   String get courses_action_add => 'Aggiungi Corso';
 
   @override
+  String get courses_action_addFromTemplate => 'Aggiungi da modello';
+
+  @override
+  String get courses_action_addRequirement => 'Aggiungi requisito';
+
+  @override
   String get courses_action_create => 'Crea Corso';
 
   @override
+  String get courses_action_deleteRequirement => 'Elimina requisito';
+
+  @override
   String get courses_action_edit => 'Modifica corso';
+
+  @override
+  String get courses_action_editRequirement => 'Modifica requisito';
 
   @override
   String get courses_action_exportTrainingLog =>
       'Esporta Registro Addestramento';
 
   @override
+  String get courses_action_linkDive => 'Collega';
+
+  @override
   String get courses_action_markCompleted => 'Segna come Completato';
+
+  @override
+  String get courses_action_unlinkDive => 'Scollega immersione';
 
   @override
   String get courses_action_moreOptions => 'Altre opzioni';
@@ -2392,6 +2410,35 @@ class AppLocalizationsIt extends AppLocalizations {
       'Tocca per collegare a un corso di addestramento';
 
   @override
+  String courses_requirement_diveProgress(int count, int target) {
+    return '$count di $target immersioni';
+  }
+
+  @override
+  String get courses_requirement_field_name => 'Nome';
+
+  @override
+  String get courses_requirement_field_targetCount => 'Immersioni richieste';
+
+  @override
+  String get courses_requirement_kind_checklist => 'Elemento da spuntare';
+
+  @override
+  String get courses_requirement_kind_dive => 'Requisito di immersione';
+
+  @override
+  String get courses_requirement_suggestions => 'Immersioni suggerite';
+
+  @override
+  String get courses_requirements_empty =>
+      'Tieni traccia delle immersioni adventure, dei prerequisiti e degli elementi da spuntare per questo corso.';
+
+  @override
+  String courses_requirements_progress(int satisfied, int total) {
+    return '$satisfied di $total completati';
+  }
+
+  @override
   String get courses_section_details => 'Dettagli Corso';
 
   @override
@@ -2402,6 +2449,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get courses_section_notes => 'Note';
+
+  @override
+  String get courses_section_requirements => 'Requisiti';
 
   @override
   String get courses_section_trainingDives => 'Immersioni di Addestramento';
@@ -2425,6 +2475,11 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String courses_status_semanticLabel(Object status, Object duration) {
     return '$status, $duration';
+  }
+
+  @override
+  String courses_template_addsCount(int count) {
+    return 'Aggiunge $count requisiti';
   }
 
   @override
@@ -2460,6 +2515,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get courses_validation_nameRequired => 'Inserisci un nome corso';
+
+  @override
+  String get dashboard_activeCourses_title => 'Corsi in corso';
 
   @override
   String get dashboard_activity_daySinceDiving =>
@@ -9445,6 +9503,223 @@ class AppLocalizationsIt extends AppLocalizations {
   String get equipment_detail_serviceInfoTitle => 'Informazioni manutenzione';
 
   @override
+  String get equipment_serviceClocks_title => 'Scadenze di manutenzione';
+
+  @override
+  String get equipment_serviceClocks_addClock => 'Aggiungi scadenza';
+
+  @override
+  String get equipment_serviceClocks_logService => 'Registra manutenzione';
+
+  @override
+  String get equipment_serviceClocks_edit => 'Modifica intervalli';
+
+  @override
+  String get equipment_serviceClocks_pause => 'Sospendi';
+
+  @override
+  String get equipment_serviceClocks_resume => 'Riprendi';
+
+  @override
+  String get equipment_serviceClocks_remove => 'Rimuovi';
+
+  @override
+  String get equipment_serviceClocks_paused => 'In pausa';
+
+  @override
+  String get equipment_serviceClocks_empty =>
+      'Nessuna scadenza di manutenzione';
+
+  @override
+  String equipment_serviceClocks_dueOn(String date) {
+    return 'Scade il $date';
+  }
+
+  @override
+  String equipment_serviceClocks_overdueSince(String date) {
+    return 'In ritardo dal $date';
+  }
+
+  @override
+  String get equipment_serviceClocks_overdue => 'In ritardo';
+
+  @override
+  String equipment_serviceClocks_divesLeft(int remaining, int total) {
+    return '$remaining immersioni rimanenti su $total';
+  }
+
+  @override
+  String equipment_serviceClocks_hoursLeft(String remaining, String total) {
+    return '$remaining ore rimanenti su $total';
+  }
+
+  @override
+  String get equipment_serviceClocks_manageKinds =>
+      'Gestisci tipi di manutenzione';
+
+  @override
+  String get equipment_serviceClocks_appliesToClock =>
+      'Si applica alla scadenza';
+
+  @override
+  String get equipment_serviceClocks_noClockOption =>
+      'Non collegato a una scadenza';
+
+  @override
+  String get equipment_scheduleDialog_title => 'Modifica scadenza';
+
+  @override
+  String get equipment_scheduleDialog_intervalDays => 'Intervallo (giorni)';
+
+  @override
+  String get equipment_scheduleDialog_intervalDives =>
+      'Intervallo (immersioni)';
+
+  @override
+  String get equipment_scheduleDialog_intervalHours => 'Intervallo (ore)';
+
+  @override
+  String equipment_scheduleDialog_inheritHint(String value) {
+    return 'Predefinito: $value';
+  }
+
+  @override
+  String get equipment_scheduleDialog_anchorDate => 'Data di riferimento';
+
+  @override
+  String get equipment_scheduleDialog_anchorHint =>
+      'Usata quando non esiste ancora alcuna registrazione di manutenzione di questo tipo';
+
+  @override
+  String get equipment_scheduleDialog_clearAnchor =>
+      'Cancella data di riferimento';
+
+  @override
+  String get equipment_scheduleDialog_save => 'Salva';
+
+  @override
+  String get equipment_scheduleDialog_cancel => 'Annulla';
+
+  @override
+  String get equipment_serviceKinds_title => 'Tipi di manutenzione';
+
+  @override
+  String get equipment_serviceKinds_builtIn => 'Predefiniti';
+
+  @override
+  String get equipment_serviceKinds_custom => 'Personalizzati';
+
+  @override
+  String get equipment_serviceKinds_add => 'Aggiungi tipo di manutenzione';
+
+  @override
+  String get equipment_serviceKinds_editTitle =>
+      'Modifica tipo di manutenzione';
+
+  @override
+  String get equipment_serviceKinds_nameLabel => 'Nome';
+
+  @override
+  String get equipment_serviceKinds_nameRequired => 'Il nome è obbligatorio';
+
+  @override
+  String get equipment_serviceKinds_appliesTo => 'Si applica a';
+
+  @override
+  String get equipment_serviceKinds_autoAttach =>
+      'Associa automaticamente alla nuova attrezzatura';
+
+  @override
+  String get equipment_serviceKinds_deleteConfirmTitle =>
+      'Eliminare il tipo di manutenzione?';
+
+  @override
+  String get equipment_serviceKinds_deleteConfirmBody =>
+      'Le scadenze che usano questo tipo di manutenzione verranno rimosse.';
+
+  @override
+  String get equipment_serviceKinds_delete => 'Elimina';
+
+  @override
+  String get equipment_serviceKinds_cancel => 'Annulla';
+
+  @override
+  String get equipment_serviceKinds_save => 'Salva';
+
+  @override
+  String get equipment_serviceKinds_emptyCustom =>
+      'Ancora nessun tipo di manutenzione personalizzato';
+
+  @override
+  String equipment_serviceKinds_everyDays(int days) {
+    return 'ogni $days giorni';
+  }
+
+  @override
+  String equipment_serviceKinds_everyDives(int dives) {
+    return 'ogni $dives immersioni';
+  }
+
+  @override
+  String equipment_serviceKinds_everyHours(String hours) {
+    return 'ogni $hours ore';
+  }
+
+  @override
+  String get dashboard_serviceDue_title => 'Manutenzione in scadenza';
+
+  @override
+  String dashboard_serviceDue_more(int count) {
+    return '+$count altri';
+  }
+
+  @override
+  String dashboard_alerts_clockDue(String name, String kind) {
+    return '$name: $kind in scadenza';
+  }
+
+  @override
+  String dashboard_alerts_clockOverdue(String name, String kind) {
+    return '$name: $kind in ritardo';
+  }
+
+  @override
+  String equipment_list_worstClock(String kind) {
+    return '$kind in ritardo';
+  }
+
+  @override
+  String trips_serviceAlert_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count attrezzature necessitano di manutenzione prima di questo viaggio',
+      one: '1 attrezzatura necessita di manutenzione prima di questo viaggio',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_serviceAlert_dueBefore(String kind, String date) {
+    return '$kind in scadenza il $date';
+  }
+
+  @override
+  String trips_serviceAlert_overdue(String kind) {
+    return '$kind in ritardo';
+  }
+
+  @override
+  String get settings_notifications_tripLeadTitle =>
+      'Preavviso di manutenzione per i viaggi';
+
+  @override
+  String settings_notifications_tripLeadDays(int days) {
+    return '$days giorni prima di un viaggio';
+  }
+
+  @override
   String get equipment_detail_serviceIntervalLabel => 'Intervallo manutenzione';
 
   @override
@@ -9746,6 +10021,17 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String equipment_list_tile_daysCount(Object days) {
     return '$days giorni';
+  }
+
+  @override
+  String equipment_list_tile_serviceInDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Manutenzione tra $days giorni',
+      one: 'Manutenzione tra 1 giorno',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -10925,6 +11211,15 @@ class AppLocalizationsIt extends AppLocalizations {
   String get media_photoPicker_appBarTitle => 'Seleziona foto';
 
   @override
+  String get media_photoPicker_tab_gallery => 'Galleria';
+
+  @override
+  String get media_photoPicker_tab_files => 'File';
+
+  @override
+  String get media_photoPicker_tab_url => 'URL';
+
+  @override
   String get media_photoPicker_clearSelectionButton => 'Cancella';
 
   @override
@@ -11352,6 +11647,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get plannerCanvas_ccr_switchDepth => 'Profondità di cambio setpoint';
 
   @override
+  String get plannerCanvas_pscr_ratio => 'Rapporto pSCR';
+
+  @override
+  String get plannerCanvas_pscr_ratio_hint =>
+      'Maggiore = più gas fresco, minore calo di O₂';
+
+  @override
   String plannerCanvas_chip_cns(String value) {
     return 'CNS $value%';
   }
@@ -11390,6 +11692,11 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get plannerCanvas_contingency_timeDelta => 'Minuti extra';
+
+  @override
+  String plannerCanvas_chart_meanDepth(String depth) {
+    return 'media $depth';
+  }
 
   @override
   String get plannerCanvas_contingency_title => 'Contingenze';
@@ -11466,6 +11773,27 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get plannerCanvas_range_legend =>
       'Le celle mostrano il tempo di risalita; rosso = non immergibile come pianificato';
+
+  @override
+  String get plannerCanvas_pane_collapse => 'Comprimi pannello';
+
+  @override
+  String get plannerCanvas_pane_expand => 'Espandi pannello';
+
+  @override
+  String get plannerCanvas_tab_setup => 'Configurazione';
+
+  @override
+  String get plannerCanvas_o2Narcotic => 'Tratta l\'O₂ come narcotico';
+
+  @override
+  String get plannerCanvas_rates_ascent => 'Velocità di risalita';
+
+  @override
+  String get plannerCanvas_rates_descent => 'Velocità di discesa';
+
+  @override
+  String get plannerCanvas_rates_title => 'Velocità';
 
   @override
   String get plannerCanvas_range_title => 'Tabella di variazione';
@@ -12331,7 +12659,8 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_backToSettings_tooltip => 'Torna alle impostazioni';
 
   @override
-  String get settings_cloudSync_appBar_title => 'Sincronizzazione cloud';
+  String get settings_cloudSync_appBar_title =>
+      'Sincronizzazione cloud del database';
 
   @override
   String get settings_cloudSync_autoSync => 'Sincronizzazione automatica';
@@ -12802,7 +13131,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_data_backup_subtitle => 'Crea un backup dei tuoi dati';
 
   @override
-  String get settings_data_cloudSync => 'Sincronizzazione cloud';
+  String get settings_data_cloudSync => 'Sincronizzazione cloud del database';
 
   @override
   String get settings_data_customFolder => 'Cartella personalizzata';
@@ -13214,7 +13543,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String settings_lightroom_clientId_help(String redirectUri) {
-    return 'Crea un\'integrazione nella Adobe Developer Console con l\'API Lightroom Services e un tipo di credenziale che supporti PKCE. Imposta l\'URI di reindirizzamento su $redirectUri.';
+    return 'Crea un\'integrazione nella Adobe Developer Console con l\'API Lightroom Services e un tipo di credenziale che supporti PKCE. Inserisci qui sotto l\'URI di reindirizzamento della tua credenziale — le credenziali Native App usano uno schema personalizzato — oppure lascialo vuoto per usare $redirectUri.';
   }
 
   @override
@@ -13225,7 +13554,17 @@ class AppLocalizationsIt extends AppLocalizations {
       'Segreto client (facoltativo)';
 
   @override
+  String get settings_lightroom_redirectUri_label =>
+      'URI di reindirizzamento (facoltativo)';
+
+  @override
   String get settings_lightroom_connect => 'Collega Lightroom';
+
+  @override
+  String get settings_lightroom_connectEmbedded => 'Connetti con Adobe';
+
+  @override
+  String get settings_lightroom_advancedByo => 'Usa le tue credenziali Adobe';
 
   @override
   String get settings_lightroom_connect_codeLabel =>

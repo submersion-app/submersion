@@ -5,6 +5,9 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/alerts_card.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
+import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -30,6 +33,7 @@ void main() {
           overrides: [
             ...overrides,
             serviceDueEquipmentProvider.overrideWith((ref) async => []),
+            dueClocksProvider.overrideWith((ref) async => []),
             currentDiverProvider.overrideWith((ref) async => null),
           ].cast(),
           child: MaterialApp.router(
@@ -73,6 +77,34 @@ void main() {
             ...overrides,
             serviceDueEquipmentProvider.overrideWith(
               (ref) async => [equipment],
+            ),
+            dueClocksProvider.overrideWith(
+              (ref) async => [
+                (
+                  item: equipment,
+                  status: ServiceClockStatus(
+                    schedule: ServiceSchedule(
+                      id: 's1',
+                      equipmentId: equipment.id,
+                      serviceKindId: 'regulator-service',
+                      createdAt: DateTime(2025),
+                      updatedAt: DateTime(2025),
+                    ),
+                    kind: ServiceKind(
+                      id: 'regulator-service',
+                      name: 'Regulator service',
+                      defaultIntervalDays: 365,
+                      isBuiltIn: true,
+                      createdAt: DateTime(2025),
+                      updatedAt: DateTime(2025),
+                    ),
+                    anchor: DateTime(2025),
+                    dueDate: DateTime.now().subtract(const Duration(days: 35)),
+                    severity: ServiceClockSeverity.overdue,
+                    now: DateTime.now(),
+                  ),
+                ),
+              ],
             ),
             currentDiverProvider.overrideWith((ref) async => null),
           ].cast(),

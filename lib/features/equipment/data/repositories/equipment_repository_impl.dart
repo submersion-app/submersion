@@ -9,7 +9,9 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 
 class EquipmentRepository {
   AppDatabase get _db => DatabaseService.instance.database;
@@ -213,8 +215,32 @@ class EquipmentRepository {
       );
       SyncEventBus.notifyLocalChange();
 
+      // Seed service clocks for kinds flagged auto-attach (hydro/VIP for
+      // tanks, reg service for regulators, ...). Best-effort: the equipment
+      // row is already committed and marked pending above, so a failure here
+      // must not rethrow and make the caller treat the whole create as failed
+      // (which could prompt a retry and duplicate the item). The clocks can be
+      // added manually later; log and continue.
+      try {
+        await ServiceScheduleRepository().autoAttachForEquipment(
+          equipmentId: id,
+          type: equipment.type,
+          diverId: equipment.diverId,
+        );
+      } catch (e, stackTrace) {
+        _log.error(
+          'Auto-attach of default service clocks failed for equipment $id; '
+          'the equipment was still created',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
+
       _log.info('Created equipment with id: $id');
-      return equipment.copyWith(id: id);
+      return equipment.copyWith(
+        id: id,
+        createdAt: DateTime.fromMillisecondsSinceEpoch(now),
+      );
     } catch (e, stackTrace) {
       _log.error(
         'Failed to create equipment: ${equipment.name}',
@@ -280,12 +306,38 @@ class EquipmentRepository {
     }
   }
 
-  /// Delete equipment
+  /// Delete equipment. Service schedules and service records are first-class
+  /// synced children cascade-deleted by SQLite, but cascades emit no
+  /// deletion-log entries, so each is tombstoned explicitly (mirrors
+  /// EquipmentSetRepository.deleteSet).
   Future<void> deleteEquipment(String id) async {
     try {
       _log.info('Deleting equipment: $id');
-      await (_db.delete(_db.equipment)..where((t) => t.id.equals(id))).go();
-      await _syncRepository.logDeletion(entityType: 'equipment', recordId: id);
+      await _db.transaction(() async {
+        final schedules = await (_db.select(
+          _db.serviceSchedules,
+        )..where((t) => t.equipmentId.equals(id))).get();
+        final records = await (_db.select(
+          _db.serviceRecords,
+        )..where((t) => t.equipmentId.equals(id))).get();
+        await (_db.delete(_db.equipment)..where((t) => t.id.equals(id))).go();
+        for (final s in schedules) {
+          await _syncRepository.logDeletion(
+            entityType: 'serviceSchedules',
+            recordId: s.id,
+          );
+        }
+        for (final r in records) {
+          await _syncRepository.logDeletion(
+            entityType: 'serviceRecords',
+            recordId: r.id,
+          );
+        }
+        await _syncRepository.logDeletion(
+          entityType: 'equipment',
+          recordId: id,
+        );
+      });
       SyncEventBus.notifyLocalChange();
       _log.info('Deleted equipment: $id');
     } catch (e, stackTrace) {
@@ -492,6 +544,61 @@ class EquipmentRepository {
     }
   }
 
+  /// (date, duration) samples of dives linked to this equipment via the
+  /// dive_equipment junction or dive_tanks.equipment_id, for usage-based
+  /// service clocks. Duration is COALESCE(runtime, bottom_time) seconds.
+  Future<List<DiveUsageSample>> getUsageSamplesForEquipment(
+    String equipmentId, {
+    DateTime? since,
+  }) async {
+    try {
+      final rows = await _db
+          .customSelect(
+            '''
+        SELECT d.dive_date_time AS date_ms,
+               COALESCE(d.runtime, d.bottom_time, 0) AS duration_sec
+        FROM (
+          SELECT dive_id FROM dive_equipment WHERE equipment_id = ?1
+          UNION
+          SELECT dive_id FROM dive_tanks
+            WHERE equipment_id = ?1 AND dive_id IS NOT NULL
+        ) je
+        JOIN dives d ON d.id = je.dive_id
+        WHERE (?2 IS NULL OR d.dive_date_time >= ?2)
+        ORDER BY d.dive_date_time
+      ''',
+            variables: [
+              Variable.withString(equipmentId),
+              Variable(since?.millisecondsSinceEpoch),
+            ],
+          )
+          .get();
+      return rows
+          .map(
+            (r) => DiveUsageSample(
+              // dives.dive_date_time is epoch millis with wall-clock-as-UTC
+              // semantics (see dive_filter_sql.dart); decode with isUtc: true
+              // like the other dive-date mappers so the engine's
+              // date.isAfter(anchor) usage comparison is not shifted by the
+              // local offset around day boundaries.
+              date: DateTime.fromMillisecondsSinceEpoch(
+                r.data['date_ms'] as int,
+                isUtc: true,
+              ),
+              durationSeconds: (r.data['duration_sec'] as num).toInt(),
+            ),
+          )
+          .toList();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get usage samples for equipment: $equipmentId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Get trip count for equipment item (unique trips from dives using this equipment)
   Future<int> getTripCountForEquipment(String equipmentId) async {
     try {
@@ -580,6 +687,7 @@ class EquipmentRepository {
       customReminderDays: row.customReminderDays != null
           ? (jsonDecode(row.customReminderDays!) as List<dynamic>).cast<int>()
           : null,
+      createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
     );
   }
 }

@@ -70,6 +70,7 @@ class SettingsKeys {
   static const String showNdlOnProfile = 'show_ndl_on_profile';
   static const String lastStopDepth = 'last_stop_depth';
   static const String decoStopIncrement = 'deco_stop_increment';
+  static const String pscrRatio = 'pscr_ratio';
 
   // Fullscreen profile view instrument tile preferences (device-local,
   // stored directly in SharedPreferences rather than per-diver in the DB).
@@ -147,6 +148,11 @@ class AppSettings {
 
   /// Deco stop increment in meters (typically 3)
   final double decoStopIncrement;
+
+  /// Passive-SCR ratio (Subsurface `pscr_ratio`, default 100). A device-local
+  /// planning preference describing the diver's pSCR unit; larger values add
+  /// more fresh gas and shrink the inspired-O2 drop.
+  final double pscrRatio;
 
   /// Which carried gases feed the ideal (best-gas) ascent projection.
   final AscentGasSet ascentGasSet;
@@ -301,6 +307,9 @@ class AppSettings {
   final List<int> serviceReminderDays;
   final TimeOfDay reminderTime;
 
+  /// Days before a trip starts to nag about gear due before the trip ends.
+  final int tripServiceLeadDays;
+
   /// Show field-level data source attribution badges on dive details
   final bool showDataSourceBadges;
 
@@ -374,6 +383,7 @@ class AppSettings {
     this.showNdlOnProfile = true,
     this.lastStopDepth = 3.0,
     this.decoStopIncrement = 3.0,
+    this.pscrRatio = 100.0,
     this.ascentGasSet = AscentGasSet.allCarried,
     this.o2Narcotic = true,
     this.endLimit = 30.0,
@@ -426,6 +436,7 @@ class AppSettings {
     // Notification defaults
     this.notificationsEnabled = true,
     this.serviceReminderDays = const [7, 14, 30],
+    this.tripServiceLeadDays = 14,
     this.reminderTime = const TimeOfDay(hour: 9, minute: 0),
     this.showDataSourceBadges = true,
     this.showProfilePanelInTableView = true,
@@ -513,6 +524,7 @@ class AppSettings {
     bool? showNdlOnProfile,
     double? lastStopDepth,
     double? decoStopIncrement,
+    double? pscrRatio,
     AscentGasSet? ascentGasSet,
     bool? o2Narcotic,
     double? endLimit,
@@ -563,6 +575,7 @@ class AppSettings {
     bool? defaultShowAscentRateLine,
     bool? notificationsEnabled,
     List<int>? serviceReminderDays,
+    int? tripServiceLeadDays,
     TimeOfDay? reminderTime,
     bool? showDataSourceBadges,
     bool? showProfilePanelInTableView,
@@ -620,6 +633,7 @@ class AppSettings {
       showNdlOnProfile: showNdlOnProfile ?? this.showNdlOnProfile,
       lastStopDepth: lastStopDepth ?? this.lastStopDepth,
       decoStopIncrement: decoStopIncrement ?? this.decoStopIncrement,
+      pscrRatio: pscrRatio ?? this.pscrRatio,
       ascentGasSet: ascentGasSet ?? this.ascentGasSet,
       o2Narcotic: o2Narcotic ?? this.o2Narcotic,
       endLimit: endLimit ?? this.endLimit,
@@ -685,6 +699,7 @@ class AppSettings {
           defaultShowAscentRateLine ?? this.defaultShowAscentRateLine,
       notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
       serviceReminderDays: serviceReminderDays ?? this.serviceReminderDays,
+      tripServiceLeadDays: tripServiceLeadDays ?? this.tripServiceLeadDays,
       reminderTime: reminderTime ?? this.reminderTime,
       showDataSourceBadges: showDataSourceBadges ?? this.showDataSourceBadges,
       showProfilePanelInTableView:
@@ -816,6 +831,10 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       final fullscreenReadoutCardY = prefs.getDouble(
         SettingsKeys.fullscreenReadoutCardY,
       );
+      // pSCR ratio is a device-local planning preference (kept out of the
+      // per-diver settings table), so it is read straight from SharedPreferences
+      // like the fullscreen tile prefs above.
+      final pscrRatio = prefs.getDouble(SettingsKeys.pscrRatio);
       final perdixOverlayEnabled =
           prefs.getBool(SettingsKeys.perdixOverlayEnabled) ?? false;
       final perdixOverlayX = prefs.getDouble(SettingsKeys.perdixOverlayX);
@@ -829,6 +848,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
           fullscreenHiddenTiles: fullscreenHiddenTiles,
           fullscreenReadoutCardX: fullscreenReadoutCardX,
           fullscreenReadoutCardY: fullscreenReadoutCardY,
+          pscrRatio: pscrRatio ?? 100.0,
           perdixOverlayEnabled: perdixOverlayEnabled,
           perdixOverlayX: perdixOverlayX,
           perdixOverlayY: perdixOverlayY,
@@ -843,6 +863,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
         fullscreenHiddenTiles: fullscreenHiddenTiles,
         fullscreenReadoutCardX: fullscreenReadoutCardX,
         fullscreenReadoutCardY: fullscreenReadoutCardY,
+        pscrRatio: pscrRatio,
         perdixOverlayEnabled: perdixOverlayEnabled,
         perdixOverlayX: perdixOverlayX,
         perdixOverlayY: perdixOverlayY,
@@ -897,6 +918,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     if (readoutCardY != null) {
       await prefs.setDouble(SettingsKeys.fullscreenReadoutCardY, readoutCardY);
     }
+    await prefs.setDouble(SettingsKeys.pscrRatio, state.pscrRatio);
     await prefs.setBool(
       SettingsKeys.perdixOverlayEnabled,
       state.perdixOverlayEnabled,
@@ -1095,6 +1117,12 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   Future<void> setDecoStopIncrement(double value) async {
     final clamped = value.clamp(1.0, 3.0);
     state = state.copyWith(decoStopIncrement: clamped);
+    await _saveSettings();
+  }
+
+  Future<void> setPscrRatio(double value) async {
+    final clamped = value.clamp(1.0, 1000.0);
+    state = state.copyWith(pscrRatio: clamped);
     await _saveSettings();
   }
 
@@ -1355,6 +1383,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
+  Future<void> setTripServiceLeadDays(int days) async {
+    state = state.copyWith(tripServiceLeadDays: days);
+    await _saveSettings();
+  }
+
   Future<void> setShowDataSourceBadges(bool value) async {
     state = state.copyWith(showDataSourceBadges: value);
     await _saveSettings();
@@ -1577,6 +1610,13 @@ final showNdlOnProfileProvider = Provider<bool>((ref) {
 
 final lastStopDepthProvider = Provider<double>((ref) {
   return ref.watch(settingsProvider.select((s) => s.lastStopDepth));
+});
+
+/// The device-local passive-SCR ratio (Subsurface `pscr_ratio`, default 100).
+/// Persisted to SharedPreferences, not per-diver, so switching the active diver
+/// does not change it.
+final pscrRatioProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.pscrRatio));
 });
 
 final ascentGasSetProvider = Provider<AscentGasSet>((ref) {

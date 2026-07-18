@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/router/app_router.dart';
 import 'package:submersion/features/checklists/presentation/pages/checklist_template_edit_page.dart';
 import 'package:submersion/features/checklists/presentation/pages/checklist_templates_page.dart';
@@ -494,6 +495,57 @@ void main() {
       );
       // The GoRouter initialLocation is /dashboard
       // which is resolved via the shell route
+    });
+  });
+
+  group('app_router lightroom route (pending Adobe review)', () {
+    test('lightroom route stays defined so navigation degrades gracefully', () {
+      // The route is intentionally kept (not removed) while the UI is hidden so
+      // deep links and PendingSetupService's '/settings/lightroom' target
+      // redirect instead of hitting an unknown-route error screen.
+      final route = _findRouteByName(router.configuration.routes, 'lightroom');
+      expect(route, isNotNull);
+      expect(route!.path, 'lightroom');
+      expect(route.redirect, isNotNull);
+    });
+
+    testWidgets('redirects to media sources when lightroomUiEnabled is false, '
+        'and passes through when true', (tester) async {
+      final config = router.configuration;
+      final route = _findRouteByName(config.routes, 'lightroom');
+      expect(route, isNotNull);
+
+      late BuildContext capturedContext;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              capturedContext = context;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+
+      final state = GoRouterState(
+        config,
+        uri: Uri.parse('/settings/lightroom'),
+        matchedLocation: '/settings/lightroom',
+        fullPath: '/settings/lightroom',
+        pathParameters: const {},
+        pageKey: const ValueKey('/settings/lightroom'),
+      );
+
+      addTearDown(() => lightroomUiEnabled = false);
+
+      lightroomUiEnabled = false;
+      expect(
+        await route!.redirect!(capturedContext, state),
+        '/settings/media-sources',
+      );
+
+      lightroomUiEnabled = true;
+      expect(await route.redirect!(capturedContext, state), isNull);
     });
   });
 }

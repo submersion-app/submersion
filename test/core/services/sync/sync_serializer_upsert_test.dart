@@ -103,6 +103,14 @@ void main() {
         (type: 'diveBuddies', table: db.diveBuddies.actualTableName),
         (type: 'certifications', table: db.certifications.actualTableName),
         (type: 'courses', table: db.courses.actualTableName),
+        (
+          type: 'courseRequirements',
+          table: db.courseRequirements.actualTableName,
+        ),
+        (
+          type: 'courseRequirementDives',
+          table: db.courseRequirementDives.actualTableName,
+        ),
         (type: 'serviceRecords', table: db.serviceRecords.actualTableName),
         (type: 'diveCenters', table: db.diveCenters.actualTableName),
         (type: 'trips', table: db.trips.actualTableName),

@@ -2190,16 +2190,34 @@ class AppLocalizationsNl extends AppLocalizations {
   String get courses_action_add => 'Cursus toevoegen';
 
   @override
+  String get courses_action_addFromTemplate => 'Toevoegen vanuit sjabloon';
+
+  @override
+  String get courses_action_addRequirement => 'Vereiste toevoegen';
+
+  @override
   String get courses_action_create => 'Cursus aanmaken';
+
+  @override
+  String get courses_action_deleteRequirement => 'Vereiste verwijderen';
 
   @override
   String get courses_action_edit => 'Cursus bewerken';
 
   @override
+  String get courses_action_editRequirement => 'Vereiste bewerken';
+
+  @override
   String get courses_action_exportTrainingLog => 'Trainingslogboek exporteren';
 
   @override
+  String get courses_action_linkDive => 'Koppelen';
+
+  @override
   String get courses_action_markCompleted => 'Markeren als voltooid';
+
+  @override
+  String get courses_action_unlinkDive => 'Duik ontkoppelen';
 
   @override
   String get courses_action_moreOptions => 'Meer opties';
@@ -2379,6 +2397,35 @@ class AppLocalizationsNl extends AppLocalizations {
       'Tik om te koppelen aan een trainingscursus';
 
   @override
+  String courses_requirement_diveProgress(int count, int target) {
+    return '$count van $target duiken';
+  }
+
+  @override
+  String get courses_requirement_field_name => 'Naam';
+
+  @override
+  String get courses_requirement_field_targetCount => 'Vereiste duiken';
+
+  @override
+  String get courses_requirement_kind_checklist => 'Afvinkpunt';
+
+  @override
+  String get courses_requirement_kind_dive => 'Duikvereiste';
+
+  @override
+  String get courses_requirement_suggestions => 'Voorgestelde duiken';
+
+  @override
+  String get courses_requirements_empty =>
+      'Houd adventure-duiken, voorvereisten en afvinkpunten bij voor deze cursus.';
+
+  @override
+  String courses_requirements_progress(int satisfied, int total) {
+    return '$satisfied van $total voltooid';
+  }
+
+  @override
   String get courses_section_details => 'Cursusdetails';
 
   @override
@@ -2389,6 +2436,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get courses_section_notes => 'Notities';
+
+  @override
+  String get courses_section_requirements => 'Vereisten';
 
   @override
   String get courses_section_trainingDives => 'Trainingsduiken';
@@ -2412,6 +2462,11 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String courses_status_semanticLabel(Object status, Object duration) {
     return '$status, $duration';
+  }
+
+  @override
+  String courses_template_addsCount(int count) {
+    return 'Voegt $count vereisten toe';
   }
 
   @override
@@ -2447,6 +2502,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get courses_validation_nameRequired => 'Voer een cursusnaam in';
+
+  @override
+  String get dashboard_activeCourses_title => 'Lopende cursussen';
 
   @override
   String get dashboard_activity_daySinceDiving => 'Dag sinds laatste duik';
@@ -9381,6 +9439,216 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_detail_serviceInfoTitle => 'Service-informatie';
 
   @override
+  String get equipment_serviceClocks_title => 'Serviceintervallen';
+
+  @override
+  String get equipment_serviceClocks_addClock => 'Interval toevoegen';
+
+  @override
+  String get equipment_serviceClocks_logService => 'Service registreren';
+
+  @override
+  String get equipment_serviceClocks_edit => 'Intervallen bewerken';
+
+  @override
+  String get equipment_serviceClocks_pause => 'Pauzeren';
+
+  @override
+  String get equipment_serviceClocks_resume => 'Hervatten';
+
+  @override
+  String get equipment_serviceClocks_remove => 'Verwijderen';
+
+  @override
+  String get equipment_serviceClocks_paused => 'Gepauzeerd';
+
+  @override
+  String get equipment_serviceClocks_empty => 'Geen serviceintervallen';
+
+  @override
+  String equipment_serviceClocks_dueOn(String date) {
+    return 'Vervalt op $date';
+  }
+
+  @override
+  String equipment_serviceClocks_overdueSince(String date) {
+    return 'Achterstallig sinds $date';
+  }
+
+  @override
+  String get equipment_serviceClocks_overdue => 'Te laat';
+
+  @override
+  String equipment_serviceClocks_divesLeft(int remaining, int total) {
+    return '$remaining van $total duiken resterend';
+  }
+
+  @override
+  String equipment_serviceClocks_hoursLeft(String remaining, String total) {
+    return '$remaining van $total uur resterend';
+  }
+
+  @override
+  String get equipment_serviceClocks_manageKinds => 'Servicetypen beheren';
+
+  @override
+  String get equipment_serviceClocks_appliesToClock => 'Gekoppeld aan interval';
+
+  @override
+  String get equipment_serviceClocks_noClockOption =>
+      'Niet aan een interval gekoppeld';
+
+  @override
+  String get equipment_scheduleDialog_title => 'Interval bewerken';
+
+  @override
+  String get equipment_scheduleDialog_intervalDays => 'Interval (dagen)';
+
+  @override
+  String get equipment_scheduleDialog_intervalDives => 'Interval (duiken)';
+
+  @override
+  String get equipment_scheduleDialog_intervalHours => 'Interval (uren)';
+
+  @override
+  String equipment_scheduleDialog_inheritHint(String value) {
+    return 'Standaard: $value';
+  }
+
+  @override
+  String get equipment_scheduleDialog_anchorDate => 'Referentiedatum';
+
+  @override
+  String get equipment_scheduleDialog_anchorHint =>
+      'Wordt gebruikt zolang er nog geen servicerecord van dit type bestaat';
+
+  @override
+  String get equipment_scheduleDialog_clearAnchor => 'Referentiedatum wissen';
+
+  @override
+  String get equipment_scheduleDialog_save => 'Opslaan';
+
+  @override
+  String get equipment_scheduleDialog_cancel => 'Annuleren';
+
+  @override
+  String get equipment_serviceKinds_title => 'Servicetypen';
+
+  @override
+  String get equipment_serviceKinds_builtIn => 'Ingebouwd';
+
+  @override
+  String get equipment_serviceKinds_custom => 'Aangepast';
+
+  @override
+  String get equipment_serviceKinds_add => 'Servicetype toevoegen';
+
+  @override
+  String get equipment_serviceKinds_editTitle => 'Servicetype bewerken';
+
+  @override
+  String get equipment_serviceKinds_nameLabel => 'Naam';
+
+  @override
+  String get equipment_serviceKinds_nameRequired => 'Een naam is verplicht';
+
+  @override
+  String get equipment_serviceKinds_appliesTo => 'Geldt voor';
+
+  @override
+  String get equipment_serviceKinds_autoAttach =>
+      'Automatisch koppelen aan nieuwe uitrusting';
+
+  @override
+  String get equipment_serviceKinds_deleteConfirmTitle =>
+      'Servicetype verwijderen?';
+
+  @override
+  String get equipment_serviceKinds_deleteConfirmBody =>
+      'Intervallen die dit servicetype gebruiken worden verwijderd.';
+
+  @override
+  String get equipment_serviceKinds_delete => 'Verwijderen';
+
+  @override
+  String get equipment_serviceKinds_cancel => 'Annuleren';
+
+  @override
+  String get equipment_serviceKinds_save => 'Opslaan';
+
+  @override
+  String get equipment_serviceKinds_emptyCustom =>
+      'Nog geen aangepaste servicetypen';
+
+  @override
+  String equipment_serviceKinds_everyDays(int days) {
+    return 'elke $days dagen';
+  }
+
+  @override
+  String equipment_serviceKinds_everyDives(int dives) {
+    return 'elke $dives duiken';
+  }
+
+  @override
+  String equipment_serviceKinds_everyHours(String hours) {
+    return 'elke $hours uur';
+  }
+
+  @override
+  String get dashboard_serviceDue_title => 'Service nodig';
+
+  @override
+  String dashboard_serviceDue_more(int count) {
+    return '+$count meer';
+  }
+
+  @override
+  String dashboard_alerts_clockDue(String name, String kind) {
+    return '$name: $kind nodig';
+  }
+
+  @override
+  String dashboard_alerts_clockOverdue(String name, String kind) {
+    return '$name: $kind achterstallig';
+  }
+
+  @override
+  String equipment_list_worstClock(String kind) {
+    return '$kind achterstallig';
+  }
+
+  @override
+  String trips_serviceAlert_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items hebben vóór deze reis service nodig',
+      one: '1 item heeft vóór deze reis service nodig',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_serviceAlert_dueBefore(String kind, String date) {
+    return '$kind vervalt op $date';
+  }
+
+  @override
+  String trips_serviceAlert_overdue(String kind) {
+    return '$kind achterstallig';
+  }
+
+  @override
+  String get settings_notifications_tripLeadTitle =>
+      'Aanlooptijd voor service vóór reizen';
+
+  @override
+  String settings_notifications_tripLeadDays(int days) {
+    return '$days dagen vóór een reis';
+  }
+
+  @override
   String get equipment_detail_serviceIntervalLabel => 'Serviceinterval';
 
   @override
@@ -9681,6 +9949,17 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String equipment_list_tile_daysCount(Object days) {
     return '$days dagen';
+  }
+
+  @override
+  String equipment_list_tile_serviceInDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Service over $days dagen',
+      one: 'Service over 1 dag',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -10848,6 +11127,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_photoPicker_appBarTitle => 'Foto\'s selecteren';
 
   @override
+  String get media_photoPicker_tab_gallery => 'Galerij';
+
+  @override
+  String get media_photoPicker_tab_files => 'Bestanden';
+
+  @override
+  String get media_photoPicker_tab_url => 'URL';
+
+  @override
   String get media_photoPicker_clearSelectionButton => 'Wissen';
 
   @override
@@ -11270,6 +11558,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get plannerCanvas_ccr_switchDepth => 'Setpoint-wisseldiepte';
 
   @override
+  String get plannerCanvas_pscr_ratio => 'pSCR-verhouding';
+
+  @override
+  String get plannerCanvas_pscr_ratio_hint =>
+      'Groter = meer vers gas, kleinere O₂-daling';
+
+  @override
   String plannerCanvas_chip_cns(String value) {
     return 'CNS $value%';
   }
@@ -11308,6 +11603,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get plannerCanvas_contingency_timeDelta => 'Extra minuten';
+
+  @override
+  String plannerCanvas_chart_meanDepth(String depth) {
+    return 'gem. $depth';
+  }
 
   @override
   String get plannerCanvas_contingency_title => 'Noodplannen';
@@ -11383,6 +11683,27 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get plannerCanvas_range_legend =>
       'Cellen tonen de tijd naar de oppervlakte; rood = niet duikbaar zoals gepland';
+
+  @override
+  String get plannerCanvas_pane_collapse => 'Paneel inklappen';
+
+  @override
+  String get plannerCanvas_pane_expand => 'Paneel uitklappen';
+
+  @override
+  String get plannerCanvas_tab_setup => 'Instellingen';
+
+  @override
+  String get plannerCanvas_o2Narcotic => 'O₂ als narcotisch behandelen';
+
+  @override
+  String get plannerCanvas_rates_ascent => 'Stijgsnelheid';
+
+  @override
+  String get plannerCanvas_rates_descent => 'Daalsnelheid';
+
+  @override
+  String get plannerCanvas_rates_title => 'Snelheden';
 
   @override
   String get plannerCanvas_range_title => 'Bereiktabel';
@@ -12241,7 +12562,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_backToSettings_tooltip => 'Terug naar instellingen';
 
   @override
-  String get settings_cloudSync_appBar_title => 'Cloudsynchronisatie';
+  String get settings_cloudSync_appBar_title => 'Database-cloudsynchronisatie';
 
   @override
   String get settings_cloudSync_autoSync => 'Automatische synchronisatie';
@@ -12704,7 +13025,7 @@ class AppLocalizationsNl extends AppLocalizations {
       'Maak een back-up van je gegevens';
 
   @override
-  String get settings_data_cloudSync => 'Cloudsynchronisatie';
+  String get settings_data_cloudSync => 'Database-cloudsynchronisatie';
 
   @override
   String get settings_data_customFolder => 'Aangepaste map';
@@ -13110,7 +13431,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String settings_lightroom_clientId_help(String redirectUri) {
-    return 'Maak in de Adobe Developer Console een integratie met de Lightroom Services API en een referentietype dat PKCE ondersteunt. Stel de redirect-URI in op $redirectUri.';
+    return 'Maak in de Adobe Developer Console een integratie met de Lightroom Services API en een referentietype dat PKCE ondersteunt. Voer hieronder de redirect-URI van je referentie in — Native App-referenties gebruiken een aangepast schema — of laat het leeg om $redirectUri te gebruiken.';
   }
 
   @override
@@ -13121,7 +13442,17 @@ class AppLocalizationsNl extends AppLocalizations {
       'Client secret (optioneel)';
 
   @override
+  String get settings_lightroom_redirectUri_label => 'Redirect-URI (optioneel)';
+
+  @override
   String get settings_lightroom_connect => 'Lightroom koppelen';
+
+  @override
+  String get settings_lightroom_connectEmbedded => 'Verbinden met Adobe';
+
+  @override
+  String get settings_lightroom_advancedByo =>
+      'Je eigen Adobe-inloggegevens gebruiken';
 
   @override
   String get settings_lightroom_connect_codeLabel =>

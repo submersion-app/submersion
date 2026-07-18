@@ -21,6 +21,7 @@ const _entityForTable = {
   'dive_roles': 'diveRoles',
   'species': 'species',
   'field_presets': 'fieldPresets',
+  'service_kinds': 'serviceKinds',
 };
 
 const _diverId = 'diver-1';
@@ -42,6 +43,9 @@ String _insert(String table, {required String id, required bool builtIn}) {
       return "INSERT INTO field_presets (id, diver_id, view_mode, name, "
           "config_json, created_at, is_built_in) VALUES ('$id', '$_diverId', "
           "'table', '$id', '{}', 0, $b)";
+    case 'service_kinds':
+      return "INSERT INTO service_kinds (id, name, created_at, updated_at, "
+          "is_built_in) VALUES ('$id', '$id', 0, 0, $b)";
     default:
       throw ArgumentError('no insert template for $table');
   }
@@ -106,6 +110,7 @@ void main() {
     expect(data.diveTypes, isEmpty);
     expect(data.species, isEmpty);
     expect(data.fieldPresets, isEmpty);
+    expect(data.serviceKinds, isEmpty);
   });
 
   for (final entry in _entityForTable.entries) {

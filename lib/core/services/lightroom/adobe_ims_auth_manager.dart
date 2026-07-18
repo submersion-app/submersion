@@ -7,6 +7,18 @@ import 'package:submersion/core/services/lightroom/lightroom_auth_store.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/oauth/oauth_pkce.dart';
 
+/// Thrown when a Native App connection's access token has expired and there
+/// is no refresh token to renew it. The user must sign in again.
+///
+/// Extends [CloudStorageException] so it flows through the same user-facing
+/// error handling as other connector failures (surfaced via `displayMessage`,
+/// no `Exception:`/class-name prefix in snackbars). It is thrown in normal
+/// runtime paths such as media scans.
+class LightroomReauthRequiredException extends CloudStorageException {
+  const LightroomReauthRequiredException()
+    : super('Lightroom sign-in has expired; sign in again.');
+}
+
 /// OAuth 2 PKCE lifecycle against Adobe IMS for the Lightroom connector:
 /// authorize-URL construction, the paste-the-redirected-URL code exchange,
 /// in-memory access-token caching with single-flight refresh, disconnect.
@@ -55,6 +67,7 @@ class AdobeImsAuthManager {
   String? _pendingVerifier;
   String? _pendingClientId;
   String? _pendingClientSecret;
+  String? _pendingRedirectUri;
   String? _accessToken;
   DateTime? _accessTokenExpiry;
   Future<String>? _refreshInFlight;
@@ -76,7 +89,11 @@ class AdobeImsAuthManager {
 
   /// Generates a fresh PKCE verifier and returns the IMS authorize URL to
   /// open in the system browser.
-  Uri beginAuthorization({required String clientId, String? clientSecret}) {
+  Uri beginAuthorization({
+    required String clientId,
+    String? clientSecret,
+    String? redirectUri,
+  }) {
     if (clientId.trim().isEmpty) {
       throw const CloudStorageException(
         'Enter your Adobe client ID before connecting.',
@@ -88,12 +105,15 @@ class AdobeImsAuthManager {
     _pendingClientSecret = (clientSecret == null || clientSecret.trim().isEmpty)
         ? null
         : clientSecret.trim();
+    _pendingRedirectUri = (redirectUri == null || redirectUri.trim().isEmpty)
+        ? AdobeImsAuthManager.redirectUri
+        : redirectUri.trim();
     return _authorizeUri.replace(
       queryParameters: {
         'client_id': _pendingClientId!,
         'scope': scopes,
         'response_type': 'code',
-        'redirect_uri': redirectUri,
+        'redirect_uri': _pendingRedirectUri!,
         'code_challenge': codeChallengeS256(verifier),
         'code_challenge_method': 'S256',
       },
@@ -127,24 +147,22 @@ class AdobeImsAuthManager {
       'client_secret': ?_pendingClientSecret,
       'code': code,
       'code_verifier': verifier,
-      'redirect_uri': redirectUri,
+      'redirect_uri': _pendingRedirectUri ?? AdobeImsAuthManager.redirectUri,
     });
-    final refreshToken = tokens['refresh_token'];
-    if (refreshToken is! String || refreshToken.isEmpty) {
-      throw const CloudStorageException(
-        'Adobe did not return a refresh token. Check that your integration '
-        'includes the offline_access scope.',
-      );
-    }
+    final refreshTokenValue = tokens['refresh_token'];
     final auth = LightroomAuthData(
       clientId: clientId,
+      redirectUri: _pendingRedirectUri,
       clientSecret: _pendingClientSecret,
-      refreshToken: refreshToken,
+      refreshToken: refreshTokenValue is String && refreshTokenValue.isNotEmpty
+          ? refreshTokenValue
+          : null,
     );
     await _store.save(auth);
     _pendingVerifier = null;
     _pendingClientId = null;
     _pendingClientSecret = null;
+    _pendingRedirectUri = null;
     _cacheAccessToken(tokens);
     _log.info('Lightroom connected');
     return auth;
@@ -190,16 +208,18 @@ class AdobeImsAuthManager {
         'Lightroom is not connected. Connect Lightroom in Settings.',
       );
     }
+    final refreshToken = auth.refreshToken;
+    if (refreshToken == null || refreshToken.isEmpty) {
+      throw const LightroomReauthRequiredException();
+    }
     final tokens = await _requestToken({
       'grant_type': 'refresh_token',
-      'refresh_token': auth.refreshToken,
+      'refresh_token': refreshToken,
       'client_id': auth.clientId,
       'client_secret': ?auth.clientSecret,
     });
     final rotated = tokens['refresh_token'];
-    if (rotated is String &&
-        rotated.isNotEmpty &&
-        rotated != auth.refreshToken) {
+    if (rotated is String && rotated.isNotEmpty && rotated != refreshToken) {
       await _store.save(auth.copyWith(refreshToken: rotated));
     }
     return _cacheAccessToken(tokens);
