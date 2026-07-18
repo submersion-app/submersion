@@ -1196,7 +1196,10 @@ class DiverSettings extends Table {
       integer().withDefault(const Constant(1))();
   IntColumn get defaultTtsSource => integer().withDefault(const Constant(1))();
   IntColumn get defaultCnsSource => integer().withDefault(const Constant(1))();
-  // Post-dive safety review (safety features phase 1, v116)
+  // CNS calculation method: 'classic' | 'shearwater' | 'subsurface' (v113)
+  TextColumn get cnsCalculationMethod =>
+      text().withDefault(const Constant('shearwater'))();
+  // Post-dive safety review (safety features phase 1, v115)
   BoolColumn get safetyReviewEnabled =>
       boolean().withDefault(const Constant(true))();
   // JSON array of SafetyRuleId.dbValue strings; null/absent = none disabled.
@@ -1997,6 +2000,11 @@ class SyncPeerCursors extends Table {
   TextColumn get provider => text()();
   IntColumn get baseSeqApplied => integer().nullable()();
   IntColumn get lastSeqApplied => integer().withDefault(const Constant(0))();
+
+  // Highest HLC applied FROM this peer's log -- published in our manifest's
+  // appliedPeerHlc map so the peer can garbage-collect tombstones we have
+  // provably seen (fleet-acked horizon).
+  TextColumn get appliedHlcHigh => text().nullable()();
   IntColumn get updatedAt => integer()();
 
   @override
@@ -2245,7 +2253,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 116;
+  static const int currentSchemaVersion = 115;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -2361,7 +2369,9 @@ class AppDatabase extends _$AppDatabase {
     110,
     111,
     112,
-    116,
+    113,
+    114,
+    115,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -2446,6 +2456,52 @@ class AppDatabase extends _$AppDatabase {
     }
   }
 
+  /// v114: collapse duplicate tombstones (newest deleted_at per entity_type +
+  /// record_id wins) and (re-)assert the unique index that keeps the deletion
+  /// log collapsed. Cheap when the index already exists; the dedupe DELETE
+  /// only runs when index creation fails *and* actual duplicates are present.
+  /// Any other index-creation failure (corruption, disk full, locked DB) is
+  /// rethrown unchanged rather than masked behind a destructive DELETE. Called
+  /// from the v114 upgrade and the beforeOpen backstop (parallel-branch
+  /// schema-version collisions heal here, mirroring the v111 backstop).
+  Future<void> ensureDeletionLogIndex() async {
+    // Self-guarding when the table is absent (minimal migration-test
+    // fixtures), mirroring the other beforeOpen backstop helpers.
+    final table = await customSelect(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='deletion_log'",
+    ).get();
+    if (table.isEmpty) return;
+    const createIndex =
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_deletion_log_entity_record '
+        'ON deletion_log (entity_type, record_id)';
+    try {
+      await customStatement(createIndex);
+    } catch (_) {
+      // The only expected cause is pre-existing duplicate (entity_type,
+      // record_id) rows -- a DB written before the unique index existed
+      // (parallel-branch collision, or logDeletion duplicates from before the
+      // v114 upsert). Confirm duplicates are actually present before running
+      // the dedupe DELETE; if there are none, the failure is something else
+      // (corruption, disk full, locked) that must surface, not be swallowed.
+      final hasDuplicates = await customSelect(
+        'SELECT 1 FROM deletion_log GROUP BY entity_type, record_id '
+        'HAVING COUNT(*) > 1 LIMIT 1',
+      ).get();
+      if (hasDuplicates.isEmpty) rethrow;
+      await customStatement('''
+        DELETE FROM deletion_log WHERE rowid NOT IN (
+          SELECT rowid FROM (
+            SELECT rowid, ROW_NUMBER() OVER (
+              PARTITION BY entity_type, record_id
+              ORDER BY deleted_at DESC, COALESCE(hlc, '') DESC, rowid DESC
+            ) AS rn FROM deletion_log
+          ) WHERE rn = 1
+        )
+      ''');
+      await customStatement(createIndex);
+    }
+  }
+
   /// v112: equipment.thickness column. Idempotent so it is safe to call from
   /// both onUpgrade and the beforeOpen backstop.
   Future<void> _assertEquipmentThicknessColumn() async {
@@ -2456,7 +2512,25 @@ class AppDatabase extends _$AppDatabase {
     }
   }
 
-  /// v116: safety review tables, index, and settings columns. Idempotent
+  /// v113: diver_settings.cns_calculation_method column. Self-guarding when
+  /// the diver_settings table is absent (partial-schema migration tests), so
+  /// it is safe to call from both onUpgrade and the beforeOpen backstop.
+  Future<void> _assertCnsCalculationMethodColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    final hasColumn = cols.any(
+      (c) => c.read<String>('name') == 'cns_calculation_method',
+    );
+    if (cols.isNotEmpty && !hasColumn) {
+      await customStatement(
+        "ALTER TABLE diver_settings ADD COLUMN cns_calculation_method "
+        "TEXT NOT NULL DEFAULT 'shearwater'",
+      );
+    }
+  }
+
+  /// v115: safety review tables, index, and settings columns. Idempotent
   /// (createTable is IF NOT EXISTS; the ALTERs are PRAGMA-guarded) so it is
   /// safe to call from both onUpgrade and the beforeOpen backstop.
   Future<void> _assertSafetyReviewSchema() async {
@@ -5613,10 +5687,29 @@ class AppDatabase extends _$AppDatabase {
           await _assertEquipmentThicknessColumn();
         }
         if (from < 112) await reportProgress();
-        if (from < 116) {
+        if (from < 113) {
+          await _assertCnsCalculationMethodColumn();
+        }
+        if (from < 113) await reportProgress();
+        if (from < 114) {
+          // Guarded like the beforeOpen backstops: minimal migration-test
+          // fixtures may lack the table entirely.
+          final peerCursorCols = await customSelect(
+            "PRAGMA table_info('sync_peer_cursors')",
+          ).get();
+          final hasAck = peerCursorCols.any(
+            (c) => c.read<String>('name') == 'applied_hlc_high',
+          );
+          if (peerCursorCols.isNotEmpty && !hasAck) {
+            await m.addColumn(syncPeerCursors, syncPeerCursors.appliedHlcHigh);
+          }
+          await ensureDeletionLogIndex();
+        }
+        if (from < 114) await reportProgress();
+        if (from < 115) {
           await _assertSafetyReviewSchema();
         }
-        if (from < 116) await reportProgress();
+        if (from < 115) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
@@ -5650,7 +5743,25 @@ class AppDatabase extends _$AppDatabase {
         // v112 backstop: re-assert equipment.thickness column.
         await _assertEquipmentThicknessColumn();
 
-        // v116 backstop: re-assert safety review tables + settings columns
+        // v113 backstop: re-assert diver_settings.cns_calculation_method.
+        await _assertCnsCalculationMethodColumn();
+
+        // v114 backstop: re-assert sync_peer_cursors.applied_hlc_high and the
+        // deletion_log unique index.
+        final peerCursorCols = await customSelect(
+          "PRAGMA table_info('sync_peer_cursors')",
+        ).get();
+        final hasAppliedHlcHigh = peerCursorCols.any(
+          (c) => c.read<String>('name') == 'applied_hlc_high',
+        );
+        if (peerCursorCols.isNotEmpty && !hasAppliedHlcHigh) {
+          await customStatement(
+            'ALTER TABLE sync_peer_cursors ADD COLUMN applied_hlc_high TEXT',
+          );
+        }
+        await ensureDeletionLogIndex();
+
+        // v115 backstop: re-assert safety review tables + settings columns
         // (parallel-branch collision self-heal).
         await _assertSafetyReviewSchema();
 

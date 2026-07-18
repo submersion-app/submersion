@@ -25,6 +25,7 @@ class BuddiesSection extends StatelessWidget {
     final l10n = context.l10n;
     return FormSection(
       label: l10n.diveLog_edit_group_buddies,
+      icon: Icons.group_outlined,
       expanded: expanded,
       onToggle: onToggle,
       summary: summary,
