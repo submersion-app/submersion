@@ -46,6 +46,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_data_source.da
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/outlier_suggestion_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/custom_field_input_row.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/buddies_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/conditions_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/experience_section.dart';
@@ -1317,7 +1318,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             child: _enumDropdown<CurrentDirection>(
               value: _currentDirection,
               options: CurrentDirection.values,
-              label: (v) => v.displayName,
+              label: (v) => v.localizedName(context.l10n),
               onChanged: (v) => setState(() => _currentDirection = v),
             ),
           ),
@@ -1329,7 +1330,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             child: _enumDropdown<CurrentStrength>(
               value: _currentStrength,
               options: CurrentStrength.values,
-              label: (v) => v.displayName,
+              label: (v) => v.localizedName(context.l10n),
               onChanged: (v) => setState(() => _currentStrength = v),
             ),
           ),
@@ -1350,7 +1351,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             child: _enumDropdown<EntryMethod>(
               value: _entryMethod,
               options: EntryMethod.values,
-              label: (v) => v.displayName,
+              label: (v) => v.localizedName(context.l10n),
               onChanged: (v) => setState(() => _entryMethod = v),
             ),
           ),
@@ -1362,7 +1363,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             child: _enumDropdown<EntryMethod>(
               value: _exitMethod,
               options: EntryMethod.values,
-              label: (v) => v.displayName,
+              label: (v) => v.localizedName(context.l10n),
               onChanged: (v) => setState(() => _exitMethod = v),
             ),
           ),
@@ -1411,7 +1412,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             child: _enumDropdown<CurrentDirection>(
               value: _windDirection,
               options: CurrentDirection.values,
-              label: (v) => v.displayName,
+              label: (v) => v.localizedName(context.l10n),
               onChanged: (v) => setState(() => _windDirection = v),
             ),
           ),
@@ -1423,7 +1424,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             child: _enumDropdown<CloudCover>(
               value: _cloudCover,
               options: CloudCover.values,
-              label: (v) => v.displayName,
+              label: (v) => v.localizedName(context.l10n),
               onChanged: (v) => setState(() => _cloudCover = v),
             ),
           ),
@@ -1435,7 +1436,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             child: _enumDropdown<Precipitation>(
               value: _precipitation,
               options: Precipitation.values,
-              label: (v) => v.displayName,
+              label: (v) => v.localizedName(context.l10n),
               onChanged: (v) => setState(() => _precipitation = v),
             ),
           ),
@@ -3498,14 +3499,14 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         label: l10n.diveLog_edit_label_currentDirection,
         value: _currentDirection,
         values: CurrentDirection.values,
-        displayName: (v) => v.displayName,
+        displayName: (v) => v.localizedName(l10n),
         onChanged: (v) => setState(() => _currentDirection = v),
       ),
       EnumPickerRow<CurrentStrength>(
         label: l10n.diveLog_edit_label_currentStrength,
         value: _currentStrength,
         values: CurrentStrength.values,
-        displayName: (v) => v.displayName,
+        displayName: (v) => v.localizedName(l10n),
         onChanged: (v) => setState(() => _currentStrength = v),
       ),
       FormRow.text(
@@ -3540,14 +3541,14 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         label: l10n.diveLog_edit_label_entryMethod,
         value: _entryMethod,
         values: EntryMethod.values,
-        displayName: (v) => v.displayName,
+        displayName: (v) => v.localizedName(l10n),
         onChanged: (v) => setState(() => _entryMethod = v),
       ),
       EnumPickerRow<EntryMethod>(
         label: l10n.diveLog_edit_label_exitMethod,
         value: _exitMethod,
         values: EntryMethod.values,
-        displayName: (v) => v.displayName,
+        displayName: (v) => v.localizedName(l10n),
         onChanged: (v) => setState(() => _exitMethod = v),
       ),
     ];
@@ -3585,7 +3586,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         label: l10n.diveLog_edit_label_windDirection,
         value: _windDirection,
         values: CurrentDirection.values,
-        displayName: (v) => v.displayName,
+        displayName: (v) => v.localizedName(l10n),
         onChanged: (v) => setState(() => _windDirection = v),
       ),
       FormRow.text(
@@ -3599,14 +3600,14 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         label: l10n.diveLog_edit_label_cloudCover,
         value: _cloudCover,
         values: CloudCover.values,
-        displayName: (v) => v.displayName,
+        displayName: (v) => v.localizedName(l10n),
         onChanged: (v) => setState(() => _cloudCover = v),
       ),
       EnumPickerRow<Precipitation>(
         label: l10n.diveLog_edit_label_precipitation,
         value: _precipitation,
         values: Precipitation.values,
-        displayName: (v) => v.displayName,
+        displayName: (v) => v.localizedName(l10n),
         onChanged: (v) => setState(() => _precipitation = v),
       ),
       FormRow.text(
