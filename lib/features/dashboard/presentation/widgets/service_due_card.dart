@@ -89,7 +89,11 @@ class ServiceDueCard extends ConsumerWidget {
     // severity so a clock that is overdue on dives/hours -- but whose date
     // trigger is null or still in the future -- never renders as merely "due".
     if (status.severity == ServiceClockSeverity.overdue) {
-      if (dueDate != null && !status.now.isBefore(dueDate)) {
+      // Strict isAfter: "overdue since {date}" only when a *past* date drove
+      // the overdue state. At the exact due instant (now == dueDate) the engine
+      // is not yet date-overdue, and a clock overdue purely on dives/hours has
+      // a null/future date trigger -- both fall through to the generic label.
+      if (dueDate != null && status.now.isAfter(dueDate)) {
         final formatted = MaterialLocalizations.of(
           context,
         ).formatShortDate(dueDate);

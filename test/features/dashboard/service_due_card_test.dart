@@ -128,6 +128,49 @@ void main() {
     },
   );
 
+  testWidgets(
+    'at the exact due instant reads generic Overdue, not "Overdue since"',
+    (tester) async {
+      // dueDate == now: the engine boundary is strict-overdue-after-dueDate, so
+      // the card must show the generic "Overdue" label and not surface the date
+      // via "Overdue since {date}".
+      final boundary = (
+        item: const EquipmentItem(
+          id: 'e1',
+          name: 'AL80',
+          type: EquipmentType.tank,
+        ),
+        status: ServiceClockStatus(
+          schedule: ServiceSchedule(
+            id: 's1',
+            equipmentId: 'e1',
+            serviceKindId: 'hydro',
+            createdAt: t0,
+            updatedAt: t0,
+          ),
+          kind: ServiceKind(
+            id: 'hydro',
+            name: 'Hydro',
+            defaultIntervalDays: 1825,
+            isBuiltIn: true,
+            createdAt: t0,
+            updatedAt: t0,
+          ),
+          anchor: t0,
+          dueDate: now, // exactly now
+          severity: ServiceClockSeverity.overdue,
+          now: now,
+        ),
+      );
+
+      await tester.pumpWidget(buildCard([boundary]));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Overdue'), findsOneWidget);
+      expect(find.textContaining('since'), findsNothing);
+    },
+  );
+
   testWidgets('truncates past five rows with a +N more footer', (tester) async {
     await tester.pumpWidget(
       buildCard([

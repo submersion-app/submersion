@@ -42,9 +42,13 @@ class ServiceClocksCard extends ConsumerWidget {
         context,
       ).formatShortDate(dueDate);
       parts.add(
-        status.now.isBefore(dueDate)
-            ? l10n.equipment_serviceClocks_dueOn(formatted)
-            : l10n.equipment_serviceClocks_overdueSince(formatted),
+        // Strict isAfter: at the exact due instant (now == dueDate) the engine
+        // treats the date trigger as due-soon, not overdue, so render "Due
+        // {date}" until now is strictly past dueDate. Matches the engine's
+        // now.isAfter(dueDate) boundary.
+        status.now.isAfter(dueDate)
+            ? l10n.equipment_serviceClocks_overdueSince(formatted)
+            : l10n.equipment_serviceClocks_dueOn(formatted),
       );
     }
     final divesRemaining = status.divesRemaining;

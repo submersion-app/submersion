@@ -576,8 +576,14 @@ class EquipmentRepository {
       return rows
           .map(
             (r) => DiveUsageSample(
+              // dives.dive_date_time is epoch millis with wall-clock-as-UTC
+              // semantics (see dive_filter_sql.dart); decode with isUtc: true
+              // like the other dive-date mappers so the engine's
+              // date.isAfter(anchor) usage comparison is not shifted by the
+              // local offset around day boundaries.
               date: DateTime.fromMillisecondsSinceEpoch(
                 r.data['date_ms'] as int,
+                isUtc: true,
               ),
               durationSeconds: (r.data['duration_sec'] as num).toInt(),
             ),
