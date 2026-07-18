@@ -1478,6 +1478,21 @@ class DiveRepository {
   /// Uses cursor-based pagination for stable page boundaries even when
   /// rows are inserted or deleted between page loads.
   /// Returns lightweight [DiveSummary] objects optimized for list display.
+  /// Builds the `AND sf.rule_id NOT IN (...)` fragment and its bound args for
+  /// the safety-finding count subquery, so the dive-list badge counts only
+  /// findings whose rule is enabled (matching SafetyReviewSection). Returns an
+  /// empty fragment and no args when the diver has disabled no rules.
+  (String, List<Variable<Object>>) _disabledRulesCountFilter(
+    Set<String> disabledRules,
+  ) {
+    if (disabledRules.isEmpty) return ('', const []);
+    final placeholders = List.filled(disabledRules.length, '?').join(', ');
+    return (
+      ' AND sf.rule_id NOT IN ($placeholders)',
+      disabledRules.map((r) => Variable<Object>(r)).toList(),
+    );
+  }
+
   Future<List<DiveSummary>> getDiveSummaries({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
@@ -1485,6 +1500,7 @@ class DiveRepository {
     int? offset,
     int limit = 50,
     SortState<DiveSortField>? sort,
+    Set<String> disabledSafetyRules = const {},
   }) async {
     try {
       return await PerfTimer.measure('getDiveSummaries', () async {
@@ -1531,6 +1547,14 @@ class DiveRepository {
             ? 'OFFSET $offset'
             : '';
 
+        // Exclude findings for rules the diver has disabled so the badge count
+        // matches what SafetyReviewSection actually renders. The subquery lives
+        // in the SELECT list, so its placeholders bind BEFORE the WHERE/LIMIT
+        // args and must be prepended to the variable list.
+        final (safetyCountFilter, safetyCountArgs) = _disabledRulesCountFilter(
+          disabledSafetyRules,
+        );
+
         final sql =
             'SELECT '
             'd.id, d.dive_number, d.name AS dive_name, '
@@ -1545,7 +1569,8 @@ class DiveRepository {
             // idx_dive_safety_findings_dive_id and only counts findings for the
             // page's dives, instead of grouping the whole findings table.
             '(SELECT COUNT(*) FROM dive_safety_findings sf '
-            'WHERE sf.dive_id = d.id AND sf.dismissed_at IS NULL) '
+            'WHERE sf.dive_id = d.id AND sf.dismissed_at IS NULL'
+            '$safetyCountFilter) '
             'AS safety_finding_count '
             'FROM dives d '
             'LEFT JOIN dive_sites s ON d.site_id = s.id '
@@ -1557,7 +1582,7 @@ class DiveRepository {
         final rows = await _db
             .customSelect(
               sql,
-              variables: args,
+              variables: [...safetyCountArgs, ...args],
               readsFrom: {_db.dives, _db.diveSites, _db.diveSafetyFindings},
             )
             .get();
@@ -1996,6 +2021,7 @@ class DiveRepository {
     String query, {
     String? diverId,
     int limit = kDiveSearchResultLimit,
+    Set<String> disabledSafetyRules = const {},
   }) async {
     try {
       return await PerfTimer.measure('searchDiveSummaries', () async {
@@ -2057,7 +2083,7 @@ class DiveRepository {
         if (matchingIds.isEmpty) return <DiveSummary>[];
 
         final ids = matchingIds.map((r) => r.read<String>('id')).toList();
-        return _summariesForIds(ids);
+        return _summariesForIds(ids, disabledSafetyRules: disabledSafetyRules);
       });
     } catch (e, stackTrace) {
       _log.error(
@@ -2071,8 +2097,16 @@ class DiveRepository {
 
   /// Loads [DiveSummary] rows for [ids] (slim SELECT plus batched tags and
   /// dive types), ordered most recent first.
-  Future<List<DiveSummary>> _summariesForIds(List<String> ids) async {
+  Future<List<DiveSummary>> _summariesForIds(
+    List<String> ids, {
+    Set<String> disabledSafetyRules = const {},
+  }) async {
     final placeholders = List.filled(ids.length, '?').join(', ');
+    // Count subquery lives in the SELECT list, so its placeholders bind BEFORE
+    // the WHERE id args and must be prepended to the variable list.
+    final (safetyCountFilter, safetyCountArgs) = _disabledRulesCountFilter(
+      disabledSafetyRules,
+    );
     final rows = await _db
         .customSelect(
           'SELECT '
@@ -2088,14 +2122,18 @@ class DiveRepository {
           // idx_dive_safety_findings_dive_id and only counts findings for the
           // requested dives, instead of grouping the whole findings table.
           '(SELECT COUNT(*) FROM dive_safety_findings sf '
-          'WHERE sf.dive_id = d.id AND sf.dismissed_at IS NULL) '
+          'WHERE sf.dive_id = d.id AND sf.dismissed_at IS NULL'
+          '$safetyCountFilter) '
           'AS safety_finding_count '
           'FROM dives d '
           'LEFT JOIN dive_sites s ON d.site_id = s.id '
           'WHERE d.id IN ($placeholders) '
           'ORDER BY sort_timestamp DESC, '
           'COALESCE(d.dive_number, 0) DESC, d.id DESC',
-          variables: [for (final id in ids) Variable<String>(id)],
+          variables: [
+            ...safetyCountArgs,
+            for (final id in ids) Variable<String>(id),
+          ],
           readsFrom: {_db.dives, _db.diveSites, _db.diveSafetyFindings},
         )
         .get();

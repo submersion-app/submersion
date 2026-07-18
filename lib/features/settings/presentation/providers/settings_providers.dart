@@ -1600,6 +1600,16 @@ final safetyReviewEnabledProvider = Provider<bool>((ref) {
   return ref.watch(settingsProvider.select((s) => s.safetyReviewEnabled));
 });
 
+/// The set of safety-rule dbValues the active diver has disabled. Backed by a
+/// `select` on the settings so it only notifies when the rule set actually
+/// changes (AppSettings.copyWith reuses the same Set instance for unrelated
+/// edits), not on every settings write. Consumers (dive-list badge count,
+/// SafetyReviewSection) filter findings by this set so badge visibility and
+/// the detail section stay aligned.
+final safetyReviewDisabledRulesProvider = Provider<Set<String>>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.safetyReviewDisabledRules));
+});
+
 final showAscentRateColorsProvider = Provider<bool>((ref) {
   return ref.watch(settingsProvider.select((s) => s.showAscentRateColors));
 });

@@ -35,6 +35,7 @@ void main() {
     String id,
     String diveId, {
     bool dismissed = false,
+    String rule = 'rapidAscent',
   }) async {
     await db
         .into(db.diveSafetyFindings)
@@ -42,7 +43,7 @@ void main() {
           DiveSafetyFindingsCompanion.insert(
             id: id,
             diveId: diveId,
-            ruleId: 'rapidAscent',
+            ruleId: rule,
             severity: 'caution',
             engineVersion: 1,
             dismissedAt: Value(dismissed ? now : null),
@@ -71,5 +72,44 @@ void main() {
     final results = await repository.searchDiveSummaries('Reef');
     expect(results, isNotEmpty);
     expect(results.first.safetyFindingCount, 1);
+  });
+
+  test('disabled rules are excluded from the summary count', () async {
+    await insertDive('dive-1');
+    // Two findings for different rules; disabling one leaves the other counted.
+    await insertFinding('f1', 'dive-1', rule: 'rapidAscent');
+    await insertFinding('f2', 'dive-1', rule: 'missedDecoStop');
+
+    final all = await repository.getDiveSummaries();
+    expect(all.single.safetyFindingCount, 2);
+
+    final filtered = await repository.getDiveSummaries(
+      disabledSafetyRules: {'rapidAscent'},
+    );
+    expect(
+      filtered.single.safetyFindingCount,
+      1,
+      reason: 'the rapidAscent finding is excluded, missedDecoStop remains',
+    );
+
+    final allDisabled = await repository.getDiveSummaries(
+      disabledSafetyRules: {'rapidAscent', 'missedDecoStop'},
+    );
+    expect(
+      allDisabled.single.safetyFindingCount,
+      0,
+      reason: 'no badge when every finding belongs to a disabled rule',
+    );
+  });
+
+  test('search summaries exclude disabled rules from the count', () async {
+    await insertDive('dive-1');
+    await insertFinding('f1', 'dive-1', rule: 'rapidAscent');
+
+    final results = await repository.searchDiveSummaries(
+      'Reef',
+      disabledSafetyRules: {'rapidAscent'},
+    );
+    expect(results.single.safetyFindingCount, 0);
   });
 }
