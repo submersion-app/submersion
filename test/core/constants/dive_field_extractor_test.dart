@@ -386,13 +386,17 @@ void main() {
         },
       );
 
-      test('junction data takes precedence over the legacy scalar', () {
+      test('a populated junction is authoritative over both scalars', () {
+        // Modern dive: buddy present in junction, DM only in the legacy scalar.
+        // The buddy column shows the junction name; the DM column must NOT leak
+        // the stale scalar just because the junction has no guide role.
         final dive = _diveWithBuddies(
           [_person('Alice', DiveRole.buddyId)],
           buddy: 'Legacy Name',
           diveMaster: 'Legacy DM',
         );
         expect(DiveField.buddy.extractFromDive(dive), 'Alice');
+        expect(DiveField.diveMaster.extractFromDive(dive), isNull);
       });
 
       test('falls back to the legacy scalar when no junction buddies', () {
@@ -405,20 +409,26 @@ void main() {
         expect(DiveField.diveMaster.extractFromDive(dive), 'Legacy DM');
       });
 
-      test('buddy column falls back to scalar when junction has only a DM', () {
-        final dive = _diveWithBuddies([
-          _person('Guido', DiveRole.diveMasterId),
-        ], buddy: 'Legacy Buddy');
-        // No non-guide participant -> scalar buddy still shows.
-        expect(DiveField.buddy.extractFromDive(dive), 'Legacy Buddy');
-        expect(DiveField.diveMaster.extractFromDive(dive), 'Guido');
-      });
+      test(
+        'buddy column is null (no scalar leak) when junction has only a DM',
+        () {
+          // Junction is populated, so the dive is junction-authoritative: the
+          // frozen legacy scalar must not resurface in the buddy column.
+          final dive = _diveWithBuddies([
+            _person('Guido', DiveRole.diveMasterId),
+          ], buddy: 'Legacy Buddy');
+          expect(DiveField.buddy.extractFromDive(dive), isNull);
+          expect(DiveField.diveMaster.extractFromDive(dive), 'Guido');
+        },
+      );
 
-      test('blank buddy names are ignored', () {
+      test('blank junction names do not fall back to the scalar', () {
+        // Junction populated (even if only with blank names) -> authoritative,
+        // so the buddy column is null rather than the stale scalar.
         final dive = _diveWithBuddies([
           _person('   ', DiveRole.buddyId),
         ], buddy: 'Legacy Buddy');
-        expect(DiveField.buddy.extractFromDive(dive), 'Legacy Buddy');
+        expect(DiveField.buddy.extractFromDive(dive), isNull);
       });
     });
 

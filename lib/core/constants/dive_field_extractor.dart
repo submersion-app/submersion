@@ -195,32 +195,36 @@ double? _computeSacRate(Dive dive, SacUnit sacUnit) =>
 /// Names shown in the Buddy table column: every recorded participant whose
 /// role is NOT a guide/divemaster (see [_isGuideRole]), comma-joined.
 ///
-/// Modern dives store people in the `dive_buddies` junction (#553), so this
-/// prefers the hydrated [Dive.buddies]. Falls back to the legacy free-text
-/// [Dive.buddy] scalar when no junction buddies are present -- either a legacy
-/// dive that only ever used the scalar, or a code path that did not hydrate
-/// buddies (in which case the scalar preserves prior behavior).
+/// The `dive_buddies` junction (#553) is the source of truth for modern dives.
+/// The legacy free-text [Dive.buddy] scalar is only a whole-dive fallback: it
+/// is used when the junction is empty -- a legacy dive that only ever used the
+/// scalar, or a code path that did not hydrate [Dive.buddies]. Once the
+/// junction holds any participant the dive is treated as junction-authoritative
+/// and the (frozen, never-migrated) scalar is ignored, so stale legacy text
+/// cannot leak onto -- or duplicate a name already shown for -- a modern dive.
 String? _buddyColumnValue(Dive dive) {
+  if (dive.buddies.isEmpty) return dive.buddy;
   final names = dive.buddies
       .where((b) => !_isGuideRole(b.role.id))
       .map((b) => b.buddy.name.trim())
       .where((n) => n.isNotEmpty)
       .toList();
-  if (names.isNotEmpty) return names.join(', ');
-  return dive.buddy;
+  return names.isEmpty ? null : names.join(', ');
 }
 
 /// Names shown in the Dive Master table column: recorded participants whose
-/// role is a guide/divemaster, comma-joined. Falls back to the legacy
-/// free-text [Dive.diveMaster] scalar when none are hydrated.
+/// role is a guide/divemaster, comma-joined.
+///
+/// Uses the same junction-authoritative rule as [_buddyColumnValue]: the legacy
+/// [Dive.diveMaster] scalar is used only when [Dive.buddies] is empty.
 String? _diveMasterColumnValue(Dive dive) {
+  if (dive.buddies.isEmpty) return dive.diveMaster;
   final names = dive.buddies
       .where((b) => _isGuideRole(b.role.id))
       .map((b) => b.buddy.name.trim())
       .where((n) => n.isNotEmpty)
       .toList();
-  if (names.isNotEmpty) return names.join(', ');
-  return dive.diveMaster;
+  return names.isEmpty ? null : names.join(', ');
 }
 
 /// A `dive_roles` id representing someone guiding the dive rather than a peer
