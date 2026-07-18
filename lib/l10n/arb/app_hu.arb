@@ -5271,7 +5271,7 @@
   "buoyancy_whatIfLead": "Ólom",
   "buoyancy_whatIfSuit": "Ruha felhajtóereje",
   "buoyancy_whatIfReset": "Visszaállítás",
-  "buoyancy_whatIfDelta": "{delta} a tényleceshez",
+  "buoyancy_whatIfDelta": "{delta} a ténylegeshez",
   "diveDetailSection_weights_name": "Súlyok",
   "diveLog_edit_section_environment": "Environment",
   "diveLog_edit_subsection_weather": "Weather",

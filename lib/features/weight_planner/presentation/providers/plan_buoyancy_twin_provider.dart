@@ -87,7 +87,8 @@ final planBuoyancyTwinProvider = Provider<BuoyancyTwinOutcome?>((ref) {
     items: items,
     tanks: tanks,
     model: model,
-    waterType: null, // the plan state carries no water type (salt baseline)
+    waterType:
+        WaterType.salt, // plan state carries no water type; salt baseline
     bodyWeightKg: latestWeight?.weightKg,
   );
 
@@ -98,7 +99,11 @@ final planBuoyancyTwinProvider = Provider<BuoyancyTwinOutcome?>((ref) {
     staticTerms: rig.staticTerms,
     leadKg: lead,
     droppableLeadKg: lead,
-    environment: DiveEnvironment.forConditions(altitudeMeters: state.altitude),
+    environment: DiveEnvironment.forConditions(
+      altitudeMeters: state.altitude,
+      waterType:
+          WaterType.salt, // salt baseline, matching composeRigTerms above
+    ),
     totalMassKg: rig.totalMassKg,
   );
 

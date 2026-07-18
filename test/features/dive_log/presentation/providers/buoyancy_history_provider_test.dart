@@ -6,7 +6,6 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/buoyancy_history_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_weight_entry_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/weight_planner/presentation/providers/weight_planner_providers.dart';
@@ -60,13 +59,18 @@ void main() {
           ),
         ),
         latestDiverWeightProvider.overrideWith((ref) async => null),
-        analysisDiveProvider(
+        // The provider now reads the fully-hydrated diveProvider (equipment +
+        // typed weights) and the isPrimary-filtered diveProfileProvider, not
+        // the lean analysisDiveProvider. See buoyancyTwinProvider for the same
+        // hydration pairing.
+        diveProvider(
           'cur',
         ).overrideWith((ref) async => diveWith(equipment: [suit])),
         for (final entry in divesById.entries) ...[
-          analysisDiveProvider(
+          diveProvider(entry.key).overrideWith((ref) async => entry.value),
+          diveProfileProvider(
             entry.key,
-          ).overrideWith((ref) async => entry.value),
+          ).overrideWith((ref) async => const <DiveProfilePoint>[]),
           tankPressuresProvider(
             entry.key,
           ).overrideWith((ref) async => <String, List<TankPressurePoint>>{}),

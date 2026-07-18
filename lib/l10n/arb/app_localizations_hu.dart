@@ -11930,7 +11930,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String buoyancy_whatIfDelta(String delta) {
-    return '$delta a tényleceshez';
+    return '$delta a ténylegeshez';
   }
 
   @override

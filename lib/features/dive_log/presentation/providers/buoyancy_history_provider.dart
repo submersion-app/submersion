@@ -4,7 +4,6 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/services/buoyancy_twin_assembler.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_weight_entry_providers.dart';
 import 'package:submersion/features/weight_planner/presentation/providers/weight_planner_providers.dart';
 
@@ -34,9 +33,7 @@ final buoyancyHistoryProvider =
       ref,
       currentDiveId,
     ) async {
-      final currentDive = await ref.watch(
-        analysisDiveProvider(currentDiveId).future,
-      );
+      final currentDive = await ref.watch(diveProvider(currentDiveId).future);
       final model = await ref.watch(weightCalibrationProvider.future);
       final observations = await ref.watch(weightObservationsProvider.future);
       final latestWeight = await ref.watch(latestDiverWeightProvider.future);
@@ -60,13 +57,14 @@ final buoyancyHistoryProvider =
 
       final entries = <BuoyancyHistoryEntry>[];
       for (final obs in recent) {
-        final dive = await ref.read(analysisDiveProvider(obs.diveId).future);
+        final dive = await ref.read(diveProvider(obs.diveId).future);
         if (dive == null) continue;
+        final profile = await ref.read(diveProfileProvider(obs.diveId).future);
         final tankPressures = await ref.read(
           tankPressuresProvider(obs.diveId).future,
         );
         final input = BuoyancyTwinAssembler.assemble(
-          dive: dive,
+          dive: dive.copyWith(profile: profile),
           tankPressures: tankPressures,
           model: model,
           bodyWeightKg: latestWeight?.weightKg,
