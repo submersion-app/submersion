@@ -11991,7 +11991,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_backToSettings_tooltip => 'العودة إلى الإعدادات';
 
   @override
-  String get settings_cloudSync_appBar_title => 'المزامنة السحابية';
+  String get settings_cloudSync_appBar_title =>
+      'المزامنة السحابية لقاعدة البيانات';
 
   @override
   String get settings_cloudSync_autoSync => 'المزامنة التلقائية';
@@ -12445,7 +12446,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_data_backup_subtitle => 'إنشاء نسخة احتياطية من بياناتك';
 
   @override
-  String get settings_data_cloudSync => 'المزامنة السحابية';
+  String get settings_data_cloudSync => 'المزامنة السحابية لقاعدة البيانات';
 
   @override
   String get settings_data_customFolder => 'مجلد مخصص';

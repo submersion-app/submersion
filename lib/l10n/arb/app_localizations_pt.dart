@@ -12215,7 +12215,8 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_backToSettings_tooltip => 'Voltar para configuracoes';
 
   @override
-  String get settings_cloudSync_appBar_title => 'Sincronizacao na Nuvem';
+  String get settings_cloudSync_appBar_title =>
+      'Sincronizacao na Nuvem do Banco de Dados';
 
   @override
   String get settings_cloudSync_autoSync => 'Sincronizacao Automatica';
@@ -12682,7 +12683,8 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_data_backup_subtitle => 'Criar um backup dos seus dados';
 
   @override
-  String get settings_data_cloudSync => 'Sincronizacao na Nuvem';
+  String get settings_data_cloudSync =>
+      'Sincronizacao na Nuvem do Banco de Dados';
 
   @override
   String get settings_data_customFolder => 'Pasta personalizada';

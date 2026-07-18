@@ -12017,7 +12017,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_backToSettings_tooltip => 'Back to settings';
 
   @override
-  String get settings_cloudSync_appBar_title => 'Cloud Sync';
+  String get settings_cloudSync_appBar_title => 'Database Cloud Sync';
 
   @override
   String get settings_cloudSync_autoSync => 'Auto Sync';
@@ -12470,7 +12470,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_data_backup_subtitle => 'Create a backup of your data';
 
   @override
-  String get settings_data_cloudSync => 'Cloud Sync';
+  String get settings_data_cloudSync => 'Database Cloud Sync';
 
   @override
   String get settings_data_customFolder => 'Custom folder';

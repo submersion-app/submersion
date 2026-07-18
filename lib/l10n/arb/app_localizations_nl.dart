@@ -12121,7 +12121,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_backToSettings_tooltip => 'Terug naar instellingen';
 
   @override
-  String get settings_cloudSync_appBar_title => 'Cloudsynchronisatie';
+  String get settings_cloudSync_appBar_title => 'Database-cloudsynchronisatie';
 
   @override
   String get settings_cloudSync_autoSync => 'Automatische synchronisatie';
@@ -12584,7 +12584,7 @@ class AppLocalizationsNl extends AppLocalizations {
       'Maak een back-up van je gegevens';
 
   @override
-  String get settings_data_cloudSync => 'Cloudsynchronisatie';
+  String get settings_data_cloudSync => 'Database-cloudsynchronisatie';
 
   @override
   String get settings_data_customFolder => 'Aangepaste map';

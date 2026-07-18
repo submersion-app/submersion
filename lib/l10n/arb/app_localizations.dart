@@ -20781,7 +20781,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_cloudSync_appBar_title.
   ///
   /// In en, this message translates to:
-  /// **'Cloud Sync'**
+  /// **'Database Cloud Sync'**
   String get settings_cloudSync_appBar_title;
 
   /// No description provided for @settings_cloudSync_autoSync.
@@ -21456,7 +21456,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_data_cloudSync.
   ///
   /// In en, this message translates to:
-  /// **'Cloud Sync'**
+  /// **'Database Cloud Sync'**
   String get settings_data_cloudSync;
 
   /// No description provided for @settings_data_customFolder.
