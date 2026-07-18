@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -91,78 +90,49 @@ class _SectionLabel extends StatelessWidget {
   }
 }
 
-/// The planner front and center: a New Plan call to action plus the three
-/// most recently touched saved plans.
+/// The planner front and center: a tool row just like the others (the whole
+/// row opens the planner), with the three most recently touched saved plans
+/// beneath it.
 class _PlannerSection extends ConsumerWidget {
   const _PlannerSection();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
     final summaries = ref.watch(divePlanSummariesProvider).valueOrNull;
     final units = UnitFormatter(ref.watch(settingsProvider));
     final recent = summaries?.take(3).toList() ?? const [];
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  ExcludeSemantics(
-                    child: Icon(
-                      Icons.edit_calendar,
-                      color: theme.colorScheme.primary,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      context.l10n.planning_card_divePlanner_title,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: theme.colorScheme.primary,
-                      ),
-                    ),
-                  ),
-                  FilledButton.icon(
-                    icon: const Icon(Icons.add, size: 18),
-                    label: Text(context.l10n.planning_newPlan),
-                    onPressed: () {
-                      ref.read(divePlanNotifierProvider.notifier).newPlan();
-                      context.go('/planning/dive-planner');
-                    },
-                  ),
-                ],
-              ),
-              if (recent.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                for (final summary in recent)
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    dense: true,
-                    leading: const Icon(Icons.route, size: 20),
-                    title: Text(summary.name),
-                    subtitle: Text(
-                      [
-                        if (summary.maxDepth != null)
-                          units.formatDepth(summary.maxDepth!),
-                        if (summary.runtimeSeconds != null)
-                          '${(summary.runtimeSeconds! / 60).ceil()}′',
-                        summary.mode.name.toUpperCase(),
-                      ].join(' · '),
-                    ),
-                    onTap: () =>
-                        context.go('/planning/dive-planner/${summary.id}'),
-                  ),
-              ],
-            ],
+    return Column(
+      children: [
+        _PlanningTile(
+          tool: _PlanningTool(
+            icon: Icons.edit_calendar,
+            color: colorScheme.primary,
+            title: context.l10n.planning_card_divePlanner_title,
+            subtitle: context.l10n.planning_card_divePlanner_subtitle,
+            route: '/planning/dive-planner',
           ),
         ),
-      ),
+        if (recent.isNotEmpty)
+          for (final summary in recent)
+            ListTile(
+              contentPadding: const EdgeInsets.only(left: 76, right: 16),
+              dense: true,
+              leading: const Icon(Icons.route, size: 20),
+              title: Text(summary.name),
+              subtitle: Text(
+                [
+                  if (summary.maxDepth != null)
+                    units.formatDepth(summary.maxDepth!),
+                  if (summary.runtimeSeconds != null)
+                    '${(summary.runtimeSeconds! / 60).ceil()}′',
+                  summary.mode.name.toUpperCase(),
+                ].join(' · '),
+              ),
+              onTap: () => context.go('/planning/dive-planner/${summary.id}'),
+            ),
+      ],
     );
   }
 }

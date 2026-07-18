@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_kit.dart';
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/bailout_solver.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
@@ -114,25 +115,25 @@ class PlanResultsSheet extends ConsumerWidget {
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
       children: [
         _grip(theme),
-        _SectionHeader(context.l10n.divePlanner_label_decoSchedule),
+        PlanSectionHeader(context.l10n.divePlanner_label_decoSchedule),
         _RuntimeTable(outcome: outcome, units: units),
         const SizedBox(height: 20),
-        _SectionHeader(context.l10n.divePlanner_label_gasConsumption),
+        PlanSectionHeader(context.l10n.divePlanner_label_gasConsumption),
         for (final usage in outcome.tankUsages)
           _GasRow(usage: usage, label: tankLabel(usage.tankId), units: units),
         if (bailout != null) ...[
           const SizedBox(height: 20),
-          _SectionHeader(context.l10n.plannerCanvas_bailout_title),
+          PlanSectionHeader(context.l10n.plannerCanvas_bailout_title),
           _BailoutSection(outcome: bailout, units: units),
         ],
         ...?_contingencySections(context, ref, units),
         if (ref.watch(planRangeTableProvider) != null) ...[
           const SizedBox(height: 20),
-          _SectionHeader(context.l10n.plannerCanvas_range_title),
+          PlanSectionHeader(context.l10n.plannerCanvas_range_title),
           const RangeTableSection(),
         ],
         const SizedBox(height: 20),
-        _SectionHeader(context.l10n.divePlanner_label_warnings),
+        PlanSectionHeader(context.l10n.divePlanner_label_warnings),
         if (outcome.issues.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 6),
@@ -194,7 +195,7 @@ class PlanResultsSheet extends ConsumerWidget {
             ref.read(contingenciesExpandedProvider.notifier).state = !expanded,
         child: Row(
           children: [
-            _SectionHeader(context.l10n.plannerCanvas_contingency_title),
+            PlanSectionHeader(context.l10n.plannerCanvas_contingency_title),
             const Spacer(),
             Icon(
               expanded ? Icons.expand_less : Icons.expand_more,
@@ -232,26 +233,6 @@ class PlanResultsSheet extends ConsumerWidget {
       ),
     ),
   );
-}
-
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader(this.label);
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(
-        label.toUpperCase(),
-        style: theme.textTheme.labelSmall?.copyWith(
-          color: theme.colorScheme.outline,
-          letterSpacing: 0.6,
-        ),
-      ),
-    );
-  }
 }
 
 class _RuntimeTable extends StatelessWidget {
@@ -410,21 +391,10 @@ class _IssueRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final color = planIssueSeverityColor(theme.colorScheme, issue.severity);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(_issueIcon(issue.severity), size: 18, color: color),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              planIssueMessage(context, issue, units),
-              style: theme.textTheme.bodyMedium?.copyWith(color: color),
-            ),
-          ),
-        ],
-      ),
+    return PlanWarningRow(
+      icon: _issueIcon(issue.severity),
+      color: color,
+      message: planIssueMessage(context, issue, units),
     );
   }
 }

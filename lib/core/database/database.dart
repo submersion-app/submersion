@@ -257,9 +257,13 @@ class DivePlans extends Table {
   TextColumn get name => text()();
   TextColumn get notes => text().withDefault(const Constant(''))();
 
-  /// PlanMode enum name: 'oc' | 'ccr'.
+  /// PlanMode enum name: 'oc' | 'ccr' | 'scr' | 'pscr'.
   TextColumn get mode => text().withDefault(const Constant('oc'))();
   TextColumn get siteId => text().nullable().references(DiveSites, #id)();
+
+  /// Planned start time (Unix seconds); null = "now" at planning. Drives
+  /// repetitive tissue init and overlap detection (v120).
+  IntColumn get startDateTime => integer().nullable()();
 
   /// Tissue-seeding source dive (repetitive planning, Phase 6).
   TextColumn get sourceDiveId => text().nullable().references(Dives, #id)();
@@ -343,6 +347,10 @@ class DivePlanTanks extends Table {
   /// TankMaterial enum name; null = unspecified.
   TextColumn get material => text().nullable()();
   TextColumn get presetName => text().nullable()();
+
+  /// Deco gas-switch depth override in meters; null = auto (MOD at deco pO2).
+  /// Subsurface per-cylinder "Deco switch at" (v120).
+  RealColumn get decoSwitchDepth => real().nullable()();
   IntColumn get sortOrder => integer().withDefault(const Constant(0))();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
@@ -372,6 +380,14 @@ class DivePlanSegments extends Table {
   RealColumn get gasHe => real()();
   RealColumn get rate => real().nullable()();
   TextColumn get switchToTankId => text().nullable()();
+
+  /// Per-segment CCR setpoint override in bar; null = the plan's depth-based
+  /// setpoint (v120, Subsurface per-segment setpoint column).
+  RealColumn get setpointBar => real().nullable()();
+
+  /// Per-segment dive-mode override enum name ('oc'|'ccr'|'scr'|'pscr'); null =
+  /// the plan's mode. Models mid-plan bailout (v120).
+  TextColumn get diveModeOverride => text().nullable()();
   IntColumn get sortOrder => integer().withDefault(const Constant(0))();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
@@ -1196,6 +1212,9 @@ class DiverSettings extends Table {
       integer().withDefault(const Constant(1))();
   IntColumn get defaultTtsSource => integer().withDefault(const Constant(1))();
   IntColumn get defaultCnsSource => integer().withDefault(const Constant(1))();
+  // CNS calculation method: 'classic' | 'shearwater' | 'subsurface' (v113)
+  TextColumn get cnsCalculationMethod =>
+      text().withDefault(const Constant('shearwater'))();
   // Appearance settings
   BoolColumn get showDepthColoredDiveCards =>
       boolean().withDefault(const Constant(false))();
@@ -1959,6 +1978,11 @@ class SyncPeerCursors extends Table {
   TextColumn get provider => text()();
   IntColumn get baseSeqApplied => integer().nullable()();
   IntColumn get lastSeqApplied => integer().withDefault(const Constant(0))();
+
+  // Highest HLC applied FROM this peer's log -- published in our manifest's
+  // appliedPeerHlc map so the peer can garbage-collect tombstones we have
+  // provably seen (fleet-acked horizon).
+  TextColumn get appliedHlcHigh => text().nullable()();
   IntColumn get updatedAt => integer()();
 
   @override
@@ -2206,7 +2230,7 @@ class FieldPresets extends Table {
     SiteSpecies,
     // Training courses (v1.5)
     Courses,
-    // Course requirement tracker (v114)
+    // Course requirement tracker (v121)
     CourseRequirements,
     CourseRequirementDives,
     // Sync tables
@@ -2254,7 +2278,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 114;
+  static const int currentSchemaVersion = 121;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -2370,7 +2394,14 @@ class AppDatabase extends _$AppDatabase {
     110,
     111,
     112,
+    113,
     114,
+    // v120 claimed in-worktree for the planner Subsurface-parity columns;
+    // 115-119 belong to other branches and interleave at merge time.
+    120,
+    // v121: course requirement tracker tables (renumbered from v114 at merge
+    // time; v114 became the tombstone-GC migration on main).
+    121,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -2455,6 +2486,52 @@ class AppDatabase extends _$AppDatabase {
     }
   }
 
+  /// v114: collapse duplicate tombstones (newest deleted_at per entity_type +
+  /// record_id wins) and (re-)assert the unique index that keeps the deletion
+  /// log collapsed. Cheap when the index already exists; the dedupe DELETE
+  /// only runs when index creation fails *and* actual duplicates are present.
+  /// Any other index-creation failure (corruption, disk full, locked DB) is
+  /// rethrown unchanged rather than masked behind a destructive DELETE. Called
+  /// from the v114 upgrade and the beforeOpen backstop (parallel-branch
+  /// schema-version collisions heal here, mirroring the v111 backstop).
+  Future<void> ensureDeletionLogIndex() async {
+    // Self-guarding when the table is absent (minimal migration-test
+    // fixtures), mirroring the other beforeOpen backstop helpers.
+    final table = await customSelect(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='deletion_log'",
+    ).get();
+    if (table.isEmpty) return;
+    const createIndex =
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_deletion_log_entity_record '
+        'ON deletion_log (entity_type, record_id)';
+    try {
+      await customStatement(createIndex);
+    } catch (_) {
+      // The only expected cause is pre-existing duplicate (entity_type,
+      // record_id) rows -- a DB written before the unique index existed
+      // (parallel-branch collision, or logDeletion duplicates from before the
+      // v114 upsert). Confirm duplicates are actually present before running
+      // the dedupe DELETE; if there are none, the failure is something else
+      // (corruption, disk full, locked) that must surface, not be swallowed.
+      final hasDuplicates = await customSelect(
+        'SELECT 1 FROM deletion_log GROUP BY entity_type, record_id '
+        'HAVING COUNT(*) > 1 LIMIT 1',
+      ).get();
+      if (hasDuplicates.isEmpty) rethrow;
+      await customStatement('''
+        DELETE FROM deletion_log WHERE rowid NOT IN (
+          SELECT rowid FROM (
+            SELECT rowid, ROW_NUMBER() OVER (
+              PARTITION BY entity_type, record_id
+              ORDER BY deleted_at DESC, COALESCE(hlc, '') DESC, rowid DESC
+            ) AS rn FROM deletion_log
+          ) WHERE rn = 1
+        )
+      ''');
+      await customStatement(createIndex);
+    }
+  }
+
   /// v112: equipment.thickness column. Idempotent so it is safe to call from
   /// both onUpgrade and the beforeOpen backstop.
   Future<void> _assertEquipmentThicknessColumn() async {
@@ -2462,6 +2539,44 @@ class AppDatabase extends _$AppDatabase {
     final hasThickness = cols.any((c) => c.read<String>('name') == 'thickness');
     if (cols.isNotEmpty && !hasThickness) {
       await customStatement('ALTER TABLE equipment ADD COLUMN thickness TEXT');
+    }
+  }
+
+  /// v120: planner Subsurface-parity columns - plan start time, per-segment
+  /// setpoint + dive-mode override, and per-tank deco-switch depth. Idempotent
+  /// (each ALTER is PRAGMA-guarded) so it is safe from both onUpgrade and the
+  /// beforeOpen backstop (shared sandbox DB heals across parallel branches).
+  Future<void> _assertPlannerParitySchema() async {
+    Future<void> add(String table, String column, String type) async {
+      final cols = await customSelect("PRAGMA table_info('$table')").get();
+      if (cols.isEmpty) return;
+      final has = cols.any((c) => c.read<String>('name') == column);
+      if (!has) {
+        await customStatement('ALTER TABLE $table ADD COLUMN $column $type');
+      }
+    }
+
+    await add('dive_plans', 'start_date_time', 'INTEGER');
+    await add('dive_plan_segments', 'setpoint_bar', 'REAL');
+    await add('dive_plan_segments', 'dive_mode_override', 'TEXT');
+    await add('dive_plan_tanks', 'deco_switch_depth', 'REAL');
+  }
+
+  /// v113: diver_settings.cns_calculation_method column. Self-guarding when
+  /// the diver_settings table is absent (partial-schema migration tests), so
+  /// it is safe to call from both onUpgrade and the beforeOpen backstop.
+  Future<void> _assertCnsCalculationMethodColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    final hasColumn = cols.any(
+      (c) => c.read<String>('name') == 'cns_calculation_method',
+    );
+    if (cols.isNotEmpty && !hasColumn) {
+      await customStatement(
+        "ALTER TABLE diver_settings ADD COLUMN cns_calculation_method "
+        "TEXT NOT NULL DEFAULT 'shearwater'",
+      );
     }
   }
 
@@ -5593,15 +5708,40 @@ class AppDatabase extends _$AppDatabase {
           await _assertEquipmentThicknessColumn();
         }
         if (from < 112) await reportProgress();
-        // v113 is claimed by the fleet-acked tombstone GC branch (PR #600);
-        // the course requirement tracker takes the next free number, v114.
+        if (from < 113) {
+          await _assertCnsCalculationMethodColumn();
+        }
+        if (from < 113) await reportProgress();
         if (from < 114) {
-          // Course requirement tracker: both tables are new, no data
-          // migration. createTable is idempotent (IF NOT EXISTS).
+          // Guarded like the beforeOpen backstops: minimal migration-test
+          // fixtures may lack the table entirely.
+          final peerCursorCols = await customSelect(
+            "PRAGMA table_info('sync_peer_cursors')",
+          ).get();
+          final hasAck = peerCursorCols.any(
+            (c) => c.read<String>('name') == 'applied_hlc_high',
+          );
+          if (peerCursorCols.isNotEmpty && !hasAck) {
+            await m.addColumn(syncPeerCursors, syncPeerCursors.appliedHlcHigh);
+          }
+          await ensureDeletionLogIndex();
+        }
+        if (from < 114) await reportProgress();
+        // v120: planner Subsurface-parity columns. Version claimed in-worktree
+        // per the schema-ladder convention; reconcile numbering at merge time.
+        if (from < 120) {
+          await _assertPlannerParitySchema();
+        }
+        if (from < 120) await reportProgress();
+        // v121: course requirement tracker (renumbered from v114 at merge
+        // time; v114 became the tombstone-GC migration on main). Both tables
+        // are new, no data migration. createTable is idempotent (IF NOT
+        // EXISTS).
+        if (from < 121) {
           await m.createTable(courseRequirements);
           await m.createTable(courseRequirementDives);
         }
-        if (from < 114) await reportProgress();
+        if (from < 121) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
@@ -5635,7 +5775,28 @@ class AppDatabase extends _$AppDatabase {
         // v112 backstop: re-assert equipment.thickness column.
         await _assertEquipmentThicknessColumn();
 
-        // v114 backstop: course requirement tables (parallel-branch
+        // v113 backstop: re-assert diver_settings.cns_calculation_method.
+        await _assertCnsCalculationMethodColumn();
+
+        // v114 backstop: re-assert sync_peer_cursors.applied_hlc_high and the
+        // deletion_log unique index.
+        final peerCursorCols = await customSelect(
+          "PRAGMA table_info('sync_peer_cursors')",
+        ).get();
+        final hasAppliedHlcHigh = peerCursorCols.any(
+          (c) => c.read<String>('name') == 'applied_hlc_high',
+        );
+        if (peerCursorCols.isNotEmpty && !hasAppliedHlcHigh) {
+          await customStatement(
+            'ALTER TABLE sync_peer_cursors ADD COLUMN applied_hlc_high TEXT',
+          );
+        }
+        await ensureDeletionLogIndex();
+
+        // v120 backstop: re-assert planner Subsurface-parity columns.
+        await _assertPlannerParitySchema();
+
+        // v121 backstop: course requirement tables (parallel-branch
         // collision self-heal; createTable is idempotent).
         await createMigrator().createTable(courseRequirements);
         await createMigrator().createTable(courseRequirementDives);

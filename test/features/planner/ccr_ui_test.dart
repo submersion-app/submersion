@@ -41,7 +41,7 @@ void main() {
     settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
   ];
 
-  testWidgets('badge toggles between OC and CCR', (tester) async {
+  testWidgets('badge cycles OC -> CCR -> SCR -> PSCR -> OC', (tester) async {
     tester.view.physicalSize = const Size(420, 900);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
@@ -59,9 +59,23 @@ void main() {
 
     await tester.tap(find.text('OC'));
     await tester.pumpAndSettle();
-
     expect(container.read(divePlanNotifierProvider).mode, domain.PlanMode.ccr);
     expect(find.text('CCR'), findsOneWidget);
+
+    await tester.tap(find.text('CCR'));
+    await tester.pumpAndSettle();
+    expect(container.read(divePlanNotifierProvider).mode, domain.PlanMode.scr);
+    expect(find.text('SCR'), findsOneWidget);
+
+    await tester.tap(find.text('SCR'));
+    await tester.pumpAndSettle();
+    expect(container.read(divePlanNotifierProvider).mode, domain.PlanMode.pscr);
+    expect(find.text('PSCR'), findsOneWidget);
+
+    await tester.tap(find.text('PSCR'));
+    await tester.pumpAndSettle();
+    expect(container.read(divePlanNotifierProvider).mode, domain.PlanMode.oc);
+    expect(find.text('OC'), findsOneWidget);
   });
 
   testWidgets('CCR plan with bailout tank shows the bailout section', (

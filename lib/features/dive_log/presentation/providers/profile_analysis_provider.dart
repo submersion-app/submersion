@@ -6,6 +6,7 @@ import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
 import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
+import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
 import 'package:submersion/core/deco/entities/profile_gas_segment.dart';
@@ -376,6 +377,7 @@ ProfileAnalysisService _resolveAnalysisService(
     ascentRateCritical: ref.watch(ascentRateCriticalProvider),
     lastStopDepth: ref.watch(lastStopDepthProvider),
     environment: environment,
+    cnsCalculationMethod: ref.watch(cnsCalculationMethodProvider),
   );
 }
 
@@ -611,6 +613,7 @@ final profileAnalysisServiceProvider = Provider<ProfileAnalysisService>((ref) {
     ascentRateWarning: ascentRateWarning,
     ascentRateCritical: ascentRateCritical,
     lastStopDepth: lastStopDepth,
+    cnsCalculationMethod: ref.watch(cnsCalculationMethodProvider),
   );
 });
 
@@ -646,6 +649,7 @@ class _ProfileAnalysisInput {
   final double ascentMaxPpO2;
   final List<double>? rebreatherPpO2Curve;
   final DiveEnvironment environment;
+  final CnsCalculationMethod cnsCalculationMethod;
 
   const _ProfileAnalysisInput({
     required this.gfLow,
@@ -676,6 +680,7 @@ class _ProfileAnalysisInput {
     this.ascentMaxPpO2 = 1.6,
     this.rebreatherPpO2Curve,
     this.environment = DiveEnvironment.standard,
+    this.cnsCalculationMethod = CnsCalculationMethod.shearwater,
   });
 }
 
@@ -692,6 +697,7 @@ ProfileAnalysis _runProfileAnalysis(_ProfileAnalysisInput input) {
     ascentRateCritical: input.ascentRateCritical,
     lastStopDepth: input.lastStopDepth,
     environment: input.environment,
+    cnsCalculationMethod: input.cnsCalculationMethod,
   );
   final ascentGasPlan =
       input.ascentGases != null && input.ascentGases!.isNotEmpty
@@ -976,6 +982,7 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
         startOtu: startOtu,
         gasSegments: gasSegments,
         ascentGases: ascentGases,
+        cnsCalculationMethod: ref.watch(cnsCalculationMethodProvider),
         environment: DiveEnvironment.forConditions(
           altitudeMeters: dive.altitude,
           waterType: dive.waterType,

@@ -393,6 +393,11 @@ class DivePlanRepository {
       sourceDiveId: Value(plan.sourceDiveId),
       linkedDiveId: Value(plan.linkedDiveId),
       altitude: Value(plan.altitude),
+      startDateTime: Value(
+        plan.startDateTime != null
+            ? plan.startDateTime!.millisecondsSinceEpoch ~/ 1000
+            : null,
+      ),
       waterType: Value(plan.waterType?.name),
       gfLow: Value(plan.gfLow),
       gfHigh: Value(plan.gfHigh),
@@ -453,6 +458,7 @@ class DivePlanRepository {
       role: Value(tank.role.name),
       material: Value(tank.material?.name),
       presetName: Value(tank.presetName),
+      decoSwitchDepth: Value(tank.decoSwitchDepth),
       sortOrder: Value(sortOrder),
       createdAt: Value(createdAt ?? now),
       updatedAt: Value(now),
@@ -478,6 +484,8 @@ class DivePlanRepository {
       gasHe: Value(segment.gasMix.he),
       rate: Value(segment.rate),
       switchToTankId: Value(segment.switchToTankId),
+      setpointBar: Value(segment.setpointBar),
+      diveModeOverride: Value(segment.diveModeOverride?.name),
       sortOrder: Value(sortOrder),
       createdAt: Value(createdAt ?? now),
       updatedAt: Value(now),
@@ -499,6 +507,9 @@ class DivePlanRepository {
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
       mode: domain.PlanMode.values.byName(row.mode),
       altitude: row.altitude,
+      startDateTime: row.startDateTime != null
+          ? DateTime.fromMillisecondsSinceEpoch(row.startDateTime! * 1000)
+          : null,
       waterType: row.waterType != null
           ? WaterType.values.byName(row.waterType!)
           : null,
@@ -554,6 +565,7 @@ class DivePlanRepository {
                   : null,
               order: t.sortOrder,
               presetName: t.presetName,
+              decoSwitchDepth: t.decoSwitchDepth,
             ),
           )
           .toList(),
@@ -569,6 +581,10 @@ class DivePlanRepository {
               gasMix: GasMix(o2: s.gasO2, he: s.gasHe),
               rate: s.rate,
               switchToTankId: s.switchToTankId,
+              setpointBar: s.setpointBar,
+              diveModeOverride: s.diveModeOverride != null
+                  ? domain.PlanMode.values.byName(s.diveModeOverride!)
+                  : null,
               order: s.sortOrder,
             ),
           )

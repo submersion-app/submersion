@@ -7448,6 +7448,36 @@ abstract class AppLocalizations {
   /// **'Add notes about this dive...'**
   String get diveLog_edit_notesHint;
 
+  /// Sub-header overline above the tank rows in the Gas & Gear edit section
+  ///
+  /// In en, this message translates to:
+  /// **'Tanks'**
+  String get diveLog_edit_overline_tanks;
+
+  /// Dive profile row placeholder when no profile exists; tapping opens the draw editor
+  ///
+  /// In en, this message translates to:
+  /// **'Draw a profile'**
+  String get diveLog_edit_profile_draw;
+
+  /// Dive profile row value on a new dive with no profile data
+  ///
+  /// In en, this message translates to:
+  /// **'Not recorded'**
+  String get diveLog_edit_profile_none;
+
+  /// Chip under the dive profile row offering outlier cleanup
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 potential outlier detected} other{{count} potential outliers detected}}'**
+  String diveLog_edit_profile_outliers(num count);
+
+  /// Dive profile row value: number of recorded profile samples
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 point} other{{count} points}}'**
+  String diveLog_edit_profile_points(num count);
+
   /// Placeholder when no site selected
   ///
   /// In en, this message translates to:
@@ -7459,6 +7489,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dive center'**
   String get diveLog_edit_row_diveCenter;
+
+  /// Row label: dive profile (points count / draw affordance)
+  ///
+  /// In en, this message translates to:
+  /// **'Dive profile'**
+  String get diveLog_edit_row_diveProfile;
 
   /// Row label: entry date and time
   ///
@@ -18675,6 +18711,24 @@ abstract class AppLocalizations {
   /// **'Select Photos'**
   String get media_photoPicker_appBarTitle;
 
+  /// No description provided for @media_photoPicker_tab_gallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Gallery'**
+  String get media_photoPicker_tab_gallery;
+
+  /// No description provided for @media_photoPicker_tab_files.
+  ///
+  /// In en, this message translates to:
+  /// **'Files'**
+  String get media_photoPicker_tab_files;
+
+  /// No description provided for @media_photoPicker_tab_url.
+  ///
+  /// In en, this message translates to:
+  /// **'URL'**
+  String get media_photoPicker_tab_url;
+
   /// No description provided for @media_photoPicker_clearSelectionButton.
   ///
   /// In en, this message translates to:
@@ -18781,6 +18835,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Photo already linked to this dive'**
   String get media_photoPicker_thumbnailAlreadyLinkedLabel;
+
+  /// No description provided for @media_perdixOverlay_labelCns.
+  ///
+  /// In en, this message translates to:
+  /// **'CNS'**
+  String get media_perdixOverlay_labelCns;
+
+  /// No description provided for @media_perdixOverlay_labelDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'DEPTH'**
+  String get media_perdixOverlay_labelDepth;
+
+  /// No description provided for @media_perdixOverlay_labelGas.
+  ///
+  /// In en, this message translates to:
+  /// **'GAS'**
+  String get media_perdixOverlay_labelGas;
+
+  /// No description provided for @media_perdixOverlay_labelMax.
+  ///
+  /// In en, this message translates to:
+  /// **'MAX'**
+  String get media_perdixOverlay_labelMax;
+
+  /// No description provided for @media_perdixOverlay_labelNdl.
+  ///
+  /// In en, this message translates to:
+  /// **'NDL'**
+  String get media_perdixOverlay_labelNdl;
+
+  /// No description provided for @media_perdixOverlay_labelPpo2.
+  ///
+  /// In en, this message translates to:
+  /// **'PPO2'**
+  String get media_perdixOverlay_labelPpo2;
+
+  /// No description provided for @media_perdixOverlay_labelStop.
+  ///
+  /// In en, this message translates to:
+  /// **'STOP'**
+  String get media_perdixOverlay_labelStop;
+
+  /// No description provided for @media_perdixOverlay_labelTank.
+  ///
+  /// In en, this message translates to:
+  /// **'TANK'**
+  String get media_perdixOverlay_labelTank;
+
+  /// No description provided for @media_perdixOverlay_labelTemp.
+  ///
+  /// In en, this message translates to:
+  /// **'TEMP'**
+  String get media_perdixOverlay_labelTemp;
+
+  /// No description provided for @media_perdixOverlay_labelTime.
+  ///
+  /// In en, this message translates to:
+  /// **'TIME'**
+  String get media_perdixOverlay_labelTime;
+
+  /// No description provided for @media_perdixOverlay_labelTts.
+  ///
+  /// In en, this message translates to:
+  /// **'TTS'**
+  String get media_perdixOverlay_labelTts;
+
+  /// No description provided for @media_perdixOverlay_toggleTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive computer overlay'**
+  String get media_perdixOverlay_toggleTooltip;
 
   /// No description provided for @media_photoViewer_cannotShare.
   ///
@@ -19316,6 +19442,18 @@ abstract class AppLocalizations {
   /// **'Setpoint switch depth'**
   String get plannerCanvas_ccr_switchDepth;
 
+  /// No description provided for @plannerCanvas_pscr_ratio.
+  ///
+  /// In en, this message translates to:
+  /// **'pSCR ratio'**
+  String get plannerCanvas_pscr_ratio;
+
+  /// No description provided for @plannerCanvas_pscr_ratio_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Larger adds more fresh gas and lowers the O₂ drop'**
+  String get plannerCanvas_pscr_ratio_hint;
+
   /// No description provided for @plannerCanvas_chip_cns.
   ///
   /// In en, this message translates to:
@@ -19369,6 +19507,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Extra minutes'**
   String get plannerCanvas_contingency_timeDelta;
+
+  /// No description provided for @plannerCanvas_chart_meanDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'mean {depth}'**
+  String plannerCanvas_chart_meanDepth(String depth);
 
   /// No description provided for @plannerCanvas_contingency_title.
   ///
@@ -19483,6 +19627,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cells show time to surface; red = not diveable as planned'**
   String get plannerCanvas_range_legend;
+
+  /// No description provided for @plannerCanvas_pane_collapse.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse panel'**
+  String get plannerCanvas_pane_collapse;
+
+  /// No description provided for @plannerCanvas_pane_expand.
+  ///
+  /// In en, this message translates to:
+  /// **'Expand panel'**
+  String get plannerCanvas_pane_expand;
+
+  /// No description provided for @plannerCanvas_tab_setup.
+  ///
+  /// In en, this message translates to:
+  /// **'Setup'**
+  String get plannerCanvas_tab_setup;
+
+  /// No description provided for @plannerCanvas_o2Narcotic.
+  ///
+  /// In en, this message translates to:
+  /// **'Treat O₂ as narcotic'**
+  String get plannerCanvas_o2Narcotic;
+
+  /// No description provided for @plannerCanvas_rates_ascent.
+  ///
+  /// In en, this message translates to:
+  /// **'Ascent rate'**
+  String get plannerCanvas_rates_ascent;
+
+  /// No description provided for @plannerCanvas_rates_descent.
+  ///
+  /// In en, this message translates to:
+  /// **'Descent rate'**
+  String get plannerCanvas_rates_descent;
+
+  /// No description provided for @plannerCanvas_rates_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Rates'**
+  String get plannerCanvas_rates_title;
 
   /// No description provided for @plannerCanvas_range_title.
   ///
@@ -20757,7 +20943,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_cloudSync_appBar_title.
   ///
   /// In en, this message translates to:
-  /// **'Cloud Sync'**
+  /// **'Database Cloud Sync'**
   String get settings_cloudSync_appBar_title;
 
   /// No description provided for @settings_cloudSync_autoSync.
@@ -21432,7 +21618,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_data_cloudSync.
   ///
   /// In en, this message translates to:
-  /// **'Cloud Sync'**
+  /// **'Database Cloud Sync'**
   String get settings_data_cloudSync;
 
   /// No description provided for @settings_data_customFolder.
@@ -21663,6 +21849,12 @@ abstract class AppLocalizations {
   /// **'Gradient Factors'**
   String get settings_decompression_header_gradientFactors;
 
+  /// No description provided for @settings_decompression_header_oxygenToxicity.
+  ///
+  /// In en, this message translates to:
+  /// **'Oxygen Toxicity'**
+  String get settings_decompression_header_oxygenToxicity;
+
   /// No description provided for @settings_decompression_preset_selectLabel.
   ///
   /// In en, this message translates to:
@@ -21704,6 +21896,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'END Limit'**
   String get settings_decompression_endLimit_dialog_title;
+
+  /// Title of the CNS calculation method setting tile and its picker dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'CNS calculation'**
+  String get settings_decompression_cnsMethodTitle;
+
+  /// Label for the classic stepped NOAA-table CNS calculation method.
+  ///
+  /// In en, this message translates to:
+  /// **'NOAA table, stepped (classic)'**
+  String get settings_decompression_cnsMethodClassic;
+
+  /// One-line description of the classic stepped CNS method shown under its label.
+  ///
+  /// In en, this message translates to:
+  /// **'Charges each 0.1 bar band at its harsher edge. Submersion\'s original method.'**
+  String get settings_decompression_cnsMethodClassicDesc;
+
+  /// Label for the linear-interpolation CNS method as documented by Shearwater. Keep 'Shearwater' as written.
+  ///
+  /// In en, this message translates to:
+  /// **'Linear interpolation (Shearwater-style)'**
+  String get settings_decompression_cnsMethodShearwater;
+
+  /// One-line description of the Shearwater-style linear interpolation CNS method. Keep 'NOAA' and 'Shearwater' as written.
+  ///
+  /// In en, this message translates to:
+  /// **'Interpolates between the NOAA limits as documented by Shearwater. Matches most dive computers.'**
+  String get settings_decompression_cnsMethodShearwaterDesc;
+
+  /// Label for the exponential-fit CNS method as used by Subsurface. Keep 'Subsurface' as written.
+  ///
+  /// In en, this message translates to:
+  /// **'Exponential fit (as Subsurface)'**
+  String get settings_decompression_cnsMethodSubsurface;
+
+  /// One-line description of the Subsurface exponential-fit CNS method. Keep 'NOAA' and 'Subsurface' as written.
+  ///
+  /// In en, this message translates to:
+  /// **'Smooth curve fit to the NOAA table. Matches Subsurface\'s calculated CNS.'**
+  String get settings_decompression_cnsMethodSubsurfaceDesc;
+
+  /// Title of the expandable 'about these methods' section in the CNS method picker dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'About these methods'**
+  String get settings_decompression_cnsMethodAboutTitle;
+
+  /// Explanatory paragraph on the history and differences of the three CNS calculation methods. Keep 'NOAA', 'Shearwater', 'Subsurface' and the name 'Robert C. Helling' as written.
+  ///
+  /// In en, this message translates to:
+  /// **'All three methods are built on the oxygen exposure limits of the NOAA Diving Manual (300 minutes at a ppO2 of 1.0 bar, 45 minutes at 1.6 bar). The table only defines limits in 0.1 bar steps: the classic method charges everything in a band at the band\'s harsher edge, which systematically overstates exposure between entries. Shearwater\'s dive computers document interpolating linearly between the NOAA limits, with a fixed 15% per minute above 1.65 bar. Subsurface replaced its table lookup in 2019 with a smooth two-line exponential fit to the same NOAA data (Robert C. Helling), which also extends naturally beyond 1.6 bar. Between table entries the two smooth methods agree within about one CNS point; the classic method reads higher.'**
+  String get settings_decompression_cnsMethodAboutBody;
+
+  /// Trademark and accuracy disclaimer shown at the bottom of the CNS method picker dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Names refer to the published methods of the respective projects and manufacturers; no affiliation or endorsement is implied. Computed values may differ from actual dive computer readings.'**
+  String get settings_decompression_cnsMethodDisclaimer;
+
+  /// Heading for the list of external reference links in the CNS method picker dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Sources'**
+  String get settings_decompression_cnsMethodSourcesTitle;
+
+  /// Snackbar shown when an external link cannot be opened
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the link.'**
+  String get settings_linkOpenFailed;
+
+  /// Source link label for the NOAA Diving Program page in the CNS method dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'NOAA: Diving Program (publisher of the NOAA Diving Manual)'**
+  String get settings_decompression_cnsMethodSourceNoaa;
+
+  /// Tappable link label for the Shearwater CNS oxygen clock article. Keep 'Shearwater' and 'CNS' as written; translate only the descriptive words.
+  ///
+  /// In en, this message translates to:
+  /// **'Shearwater: The CNS Oxygen Clock'**
+  String get settings_decompression_cnsMethodSourceShearwater;
+
+  /// Tappable link label for The Theoretical Diver article on oxygen CNS toxicity. Keep the site name 'The Theoretical Diver' and 'CNS' as written; translate only the descriptive words.
+  ///
+  /// In en, this message translates to:
+  /// **'The Theoretical Diver: Calculating oxygen CNS toxicity'**
+  String get settings_decompression_cnsMethodSourceTheoreticalDiver;
+
+  /// Tappable link label for the Subsurface source implementation. Keep 'Subsurface', 'CNS' and the file name 'divelist.cpp' as written; translate only the descriptor 'implementation'.
+  ///
+  /// In en, this message translates to:
+  /// **'Subsurface: implementation (divelist.cpp)'**
+  String get settings_decompression_cnsMethodSourceSubsurface;
 
   /// No description provided for @settings_existingDb_cancel.
   ///
@@ -22030,7 +22318,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_lightroom_clientId_help.
   ///
   /// In en, this message translates to:
-  /// **'Create an integration in the Adobe Developer Console with the Lightroom Services API and a credential type that supports PKCE. Set the redirect URI to {redirectUri}.'**
+  /// **'Create an integration in the Adobe Developer Console with the Lightroom Services API and a credential type that supports PKCE. Enter your credential\'s redirect URI below — Native App credentials use a custom scheme — or leave it blank to use {redirectUri}.'**
   String settings_lightroom_clientId_help(String redirectUri);
 
   /// No description provided for @settings_lightroom_clientId_label.
@@ -22045,11 +22333,29 @@ abstract class AppLocalizations {
   /// **'Client secret (optional)'**
   String get settings_lightroom_clientSecret_label;
 
+  /// No description provided for @settings_lightroom_redirectUri_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Redirect URI (optional)'**
+  String get settings_lightroom_redirectUri_label;
+
   /// No description provided for @settings_lightroom_connect.
   ///
   /// In en, this message translates to:
   /// **'Connect Lightroom'**
   String get settings_lightroom_connect;
+
+  /// Primary button to connect Lightroom with the app's bundled Adobe credential
+  ///
+  /// In en, this message translates to:
+  /// **'Connect with Adobe'**
+  String get settings_lightroom_connectEmbedded;
+
+  /// Header for the advanced BYO client-id connect path
+  ///
+  /// In en, this message translates to:
+  /// **'Use your own Adobe credentials'**
+  String get settings_lightroom_advancedByo;
 
   /// No description provided for @settings_lightroom_connect_codeLabel.
   ///

@@ -4,7 +4,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/services/database_service.dart';
-import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/core/services/notification_service.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_list_page.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -116,9 +115,8 @@ import 'package:submersion/features/marine_life/presentation/pages/species_manag
 import 'package:submersion/features/tags/presentation/pages/tag_manage_page.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_edit_page.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_detail_page.dart';
+import 'package:submersion/features/planner/presentation/pages/plan_chart_fullscreen_page.dart';
 import 'package:submersion/features/planning/presentation/pages/planning_page.dart';
-import 'package:submersion/features/planning/presentation/widgets/planning_shell.dart';
-import 'package:submersion/features/planning/presentation/widgets/planning_welcome.dart';
 import 'package:submersion/features/gps_log/presentation/pages/gps_logger_page.dart';
 import 'package:submersion/features/weight_planner/presentation/pages/weight_planner_page.dart';
 import 'package:submersion/features/deco_calculator/presentation/pages/deco_calculator_page.dart';
@@ -198,79 +196,73 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ),
           ),
 
-          // Planning Hub with ShellRoute for master/detail on wide screens
-          ShellRoute(
-            pageBuilder: (context, state, child) => NoTransitionPage(
-              key: state.pageKey,
-              child: PlanningShell(child: child),
-            ),
+          // Planning hub and tools
+          GoRoute(
+            path: '/planning',
+            name: 'planning',
+            pageBuilder: (context, state) {
+              // The hub is the landing surface on every width; the shell
+              // decides how much width it gets.
+              return NoTransitionPage(
+                key: state.pageKey,
+                child: const PlanningPage(),
+              );
+            },
             routes: [
               GoRoute(
-                path: '/planning',
-                name: 'planning',
-                pageBuilder: (context, state) {
-                  // On wide screens show welcome placeholder, on mobile show hub
-                  final isWide = ResponsiveBreakpoints.isMasterDetail(context);
-                  return NoTransitionPage(
-                    key: state.pageKey,
-                    child: isWide
-                        ? const PlanningWelcome()
-                        : const PlanningPage(),
-                  );
-                },
+                path: 'dive-planner',
+                name: 'divePlanner',
+                builder: (context, state) => const PlanCanvasPage(),
                 routes: [
                   GoRoute(
-                    path: 'dive-planner',
-                    name: 'divePlanner',
-                    builder: (context, state) => const PlanCanvasPage(),
-                    routes: [
-                      GoRoute(
-                        path: 'compare',
-                        name: 'comparePlans',
-                        builder: (context, state) => PlanComparePage(
-                          planIds: (state.uri.queryParameters['ids'] ?? '')
-                              .split(',')
-                              .where((id) => id.isNotEmpty)
-                              .toList(),
-                        ),
-                      ),
-                      GoRoute(
-                        path: ':planId',
-                        name: 'editPlan',
-                        builder: (context, state) => PlanCanvasPage(
-                          planId: state.pathParameters['planId'],
-                        ),
-                      ),
-                    ],
+                    path: 'compare',
+                    name: 'comparePlans',
+                    builder: (context, state) => PlanComparePage(
+                      planIds: (state.uri.queryParameters['ids'] ?? '')
+                          .split(',')
+                          .where((id) => id.isNotEmpty)
+                          .toList(),
+                    ),
                   ),
                   GoRoute(
-                    path: 'deco-calculator',
-                    name: 'decoCalculator',
-                    builder: (context, state) => const DecoCalculatorPage(),
-                  ),
-                  GoRoute(
-                    path: 'gas-calculators',
-                    name: 'gasCalculators',
-                    builder: (context, state) => const GasCalculatorsPage(),
-                  ),
-                  GoRoute(
-                    path: 'weight-calculator',
-                    name: 'weightCalculator',
-                    builder: (context, state) => const WeightPlannerPage(),
-                  ),
-                  GoRoute(
-                    path: 'surface-interval',
-                    name: 'surfaceInterval',
+                    path: 'chart',
+                    name: 'planChart',
                     builder: (context, state) =>
-                        const SurfaceIntervalToolPage(),
+                        const PlanChartFullscreenPage(),
                   ),
-                  // GPS Logger moved to top-level /gps-log; keep old deep
-                  // links working.
                   GoRoute(
-                    path: 'gps-logger',
-                    redirect: (context, state) => '/gps-log',
+                    path: ':planId',
+                    name: 'editPlan',
+                    builder: (context, state) =>
+                        PlanCanvasPage(planId: state.pathParameters['planId']),
                   ),
                 ],
+              ),
+              GoRoute(
+                path: 'deco-calculator',
+                name: 'decoCalculator',
+                builder: (context, state) => const DecoCalculatorPage(),
+              ),
+              GoRoute(
+                path: 'gas-calculators',
+                name: 'gasCalculators',
+                builder: (context, state) => const GasCalculatorsPage(),
+              ),
+              GoRoute(
+                path: 'weight-calculator',
+                name: 'weightCalculator',
+                builder: (context, state) => const WeightPlannerPage(),
+              ),
+              GoRoute(
+                path: 'surface-interval',
+                name: 'surfaceInterval',
+                builder: (context, state) => const SurfaceIntervalToolPage(),
+              ),
+              // GPS Logger moved to top-level /gps-log; keep old deep
+              // links working.
+              GoRoute(
+                path: 'gps-logger',
+                redirect: (context, state) => '/gps-log',
               ),
             ],
           ),

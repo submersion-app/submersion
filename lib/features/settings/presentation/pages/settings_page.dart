@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/constants/map_style.dart';
+import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
@@ -41,6 +42,16 @@ import 'package:url_launcher/url_launcher.dart';
 
 /// The URL for the GitHub issues page, used by [launchReportIssue].
 const reportIssueUrl = 'https://github.com/submersion-app/submersion/issues';
+
+/// Reference URLs for the CNS calculation methods, opened from the CNS method
+/// picker dialog's "Sources" section.
+const _cnsSourceNoaaUrl = 'https://www.omao.noaa.gov/noaa-diving-program';
+const _cnsSourceShearwaterUrl =
+    'https://shearwater.com/blogs/community/shearwater-and-the-cns-oxygen-clock';
+const _cnsSourceTheoreticalDiverUrl =
+    'https://thetheoreticaldiver.org/wordpress/index.php/2019/08/15/calculating-oxygen-cns-toxicity/';
+const _cnsSourceSubsurfaceUrl =
+    'https://github.com/subsurface/subsurface/commit/a0912b38bd';
 
 /// Opens the GitHub issues page in an external browser. Falls back to a
 /// snackbar if the URL cannot be launched or an error occurs.
@@ -899,6 +910,23 @@ class _DecompressionSectionContent extends ConsumerWidget {
             context.l10n.settings_decompression_aboutContent,
           ),
           const SizedBox(height: 24),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_decompression_header_oxygenToxicity,
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.percent),
+              title: Text(context.l10n.settings_decompression_cnsMethodTitle),
+              subtitle: Text(
+                _cnsMethodLabel(context, settings.cnsCalculationMethod),
+              ),
+              trailing: const Icon(Icons.edit),
+              onTap: () => _showCnsMethodPicker(context, ref, settings),
+            ),
+          ),
+          const SizedBox(height: 24),
           _buildSectionHeader(context, 'Data Source Preferences'),
           const SizedBox(height: 4),
           Padding(
@@ -1063,6 +1091,239 @@ class _DecompressionSectionContent extends ConsumerWidget {
         onChanged: (newValue) {
           if (newValue != null) onChanged(newValue);
         },
+      ),
+    );
+  }
+
+  String _cnsMethodLabel(BuildContext context, CnsCalculationMethod method) {
+    switch (method) {
+      case CnsCalculationMethod.classic:
+        return context.l10n.settings_decompression_cnsMethodClassic;
+      case CnsCalculationMethod.shearwater:
+        return context.l10n.settings_decompression_cnsMethodShearwater;
+      case CnsCalculationMethod.subsurface:
+        return context.l10n.settings_decompression_cnsMethodSubsurface;
+    }
+  }
+
+  String _cnsMethodDescription(
+    BuildContext context,
+    CnsCalculationMethod method,
+  ) {
+    switch (method) {
+      case CnsCalculationMethod.classic:
+        return context.l10n.settings_decompression_cnsMethodClassicDesc;
+      case CnsCalculationMethod.shearwater:
+        return context.l10n.settings_decompression_cnsMethodShearwaterDesc;
+      case CnsCalculationMethod.subsurface:
+        return context.l10n.settings_decompression_cnsMethodSubsurfaceDesc;
+    }
+  }
+
+  Widget _buildCnsSourceLink(BuildContext context, String label, String url) {
+    final color = Theme.of(context).colorScheme.primary;
+    return InkWell(
+      onTap: () => _launchCnsSource(context, url),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.open_in_new, size: 16, color: color),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                label,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: color,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _launchCnsSource(BuildContext context, String url) async {
+    final uri = Uri.parse(url);
+    var didLaunch = false;
+
+    if (await canLaunchUrl(uri)) {
+      try {
+        didLaunch = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } catch (_) {
+        didLaunch = false;
+      }
+    }
+
+    if (!didLaunch && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.settings_linkOpenFailed)),
+      );
+    }
+  }
+
+  Widget _buildCnsMethodOption(
+    BuildContext context,
+    BuildContext dialogContext,
+    WidgetRef ref,
+    AppSettings settings,
+    CnsCalculationMethod method,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final isSelected = settings.cnsCalculationMethod == method;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Semantics(
+        button: true,
+        label: _cnsMethodLabel(context, method),
+        child: InkWell(
+          onTap: () {
+            ref.read(settingsProvider.notifier).setCnsCalculationMethod(method);
+            Navigator.of(dialogContext).pop();
+          },
+          borderRadius: BorderRadius.circular(8),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? colorScheme.primaryContainer
+                  : colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(8),
+              border: isSelected
+                  ? Border.all(color: colorScheme.primary, width: 2)
+                  : null,
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _cnsMethodLabel(context, method),
+                        style: textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        _cnsMethodDescription(context, method),
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (isSelected)
+                  Icon(Icons.check, color: colorScheme.primary, size: 20),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showCnsMethodPicker(
+    BuildContext context,
+    WidgetRef ref,
+    AppSettings settings,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(context.l10n.settings_decompression_cnsMethodTitle),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (final method in CnsCalculationMethod.values)
+                _buildCnsMethodOption(
+                  context,
+                  dialogContext,
+                  ref,
+                  settings,
+                  method,
+                ),
+              const SizedBox(height: 8),
+              const Divider(),
+              ExpansionTile(
+                title: Text(
+                  context.l10n.settings_decompression_cnsMethodAboutTitle,
+                  style: textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                tilePadding: EdgeInsets.zero,
+                childrenPadding: const EdgeInsets.only(bottom: 8),
+                expandedCrossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    context.l10n.settings_decompression_cnsMethodAboutBody,
+                    style: textTheme.bodySmall,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    context.l10n.settings_decompression_cnsMethodSourcesTitle,
+                    style: textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  _buildCnsSourceLink(
+                    context,
+                    context.l10n.settings_decompression_cnsMethodSourceNoaa,
+                    _cnsSourceNoaaUrl,
+                  ),
+                  _buildCnsSourceLink(
+                    context,
+                    context
+                        .l10n
+                        .settings_decompression_cnsMethodSourceShearwater,
+                    _cnsSourceShearwaterUrl,
+                  ),
+                  _buildCnsSourceLink(
+                    context,
+                    context
+                        .l10n
+                        .settings_decompression_cnsMethodSourceTheoreticalDiver,
+                    _cnsSourceTheoreticalDiverUrl,
+                  ),
+                  _buildCnsSourceLink(
+                    context,
+                    context
+                        .l10n
+                        .settings_decompression_cnsMethodSourceSubsurface,
+                    _cnsSourceSubsurfaceUrl,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                context.l10n.settings_decompression_cnsMethodDisclaimer,
+                style: textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(context.l10n.common_action_close),
+          ),
+        ],
       ),
     );
   }

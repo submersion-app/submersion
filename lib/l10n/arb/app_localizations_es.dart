@@ -4441,10 +4441,44 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_edit_notesHint => 'Agrega notas sobre esta inmersión...';
 
   @override
+  String get diveLog_edit_overline_tanks => 'Botellas';
+
+  @override
+  String get diveLog_edit_profile_draw => 'Dibujar un perfil';
+
+  @override
+  String get diveLog_edit_profile_none => 'No registrado';
+
+  @override
+  String diveLog_edit_profile_outliers(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count posibles valores atípicos detectados',
+      one: '1 posible valor atípico detectado',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_edit_profile_points(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count puntos',
+      one: '1 punto',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_row_addSite => 'Añadir punto';
 
   @override
   String get diveLog_edit_row_diveCenter => 'Centro de buceo';
+
+  @override
+  String get diveLog_edit_row_diveProfile => 'Perfil de inmersión';
 
   @override
   String get diveLog_edit_row_entry => 'Entrada';
@@ -10935,6 +10969,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get media_photoPicker_appBarTitle => 'Seleccionar fotos';
 
   @override
+  String get media_photoPicker_tab_gallery => 'Galeria';
+
+  @override
+  String get media_photoPicker_tab_files => 'Archivos';
+
+  @override
+  String get media_photoPicker_tab_url => 'URL';
+
+  @override
   String get media_photoPicker_clearSelectionButton => 'Limpiar';
 
   @override
@@ -11002,6 +11045,43 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get media_photoPicker_thumbnailAlreadyLinkedLabel =>
       'Foto ya vinculada a esta inmersion';
+
+  @override
+  String get media_perdixOverlay_labelCns => 'CNS';
+
+  @override
+  String get media_perdixOverlay_labelDepth => 'PROF';
+
+  @override
+  String get media_perdixOverlay_labelGas => 'GAS';
+
+  @override
+  String get media_perdixOverlay_labelMax => 'MAX';
+
+  @override
+  String get media_perdixOverlay_labelNdl => 'NDL';
+
+  @override
+  String get media_perdixOverlay_labelPpo2 => 'PPO2';
+
+  @override
+  String get media_perdixOverlay_labelStop => 'STOP';
+
+  @override
+  String get media_perdixOverlay_labelTank => 'TANK';
+
+  @override
+  String get media_perdixOverlay_labelTemp => 'TEMP';
+
+  @override
+  String get media_perdixOverlay_labelTime => 'TIEMPO';
+
+  @override
+  String get media_perdixOverlay_labelTts => 'TTS';
+
+  @override
+  String get media_perdixOverlay_toggleTooltip =>
+      'Superposición de ordenador de buceo';
 
   @override
   String get media_photoViewer_cannotShare => 'No se puede compartir esta foto';
@@ -11327,6 +11407,13 @@ class AppLocalizationsEs extends AppLocalizations {
       'Profundidad de cambio de setpoint';
 
   @override
+  String get plannerCanvas_pscr_ratio => 'Relación pSCR';
+
+  @override
+  String get plannerCanvas_pscr_ratio_hint =>
+      'Mayor = más gas fresco, menor caída de O₂';
+
+  @override
   String plannerCanvas_chip_cns(String value) {
     return 'CNS $value%';
   }
@@ -11365,6 +11452,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get plannerCanvas_contingency_timeDelta => 'Minutos extra';
+
+  @override
+  String plannerCanvas_chart_meanDepth(String depth) {
+    return 'media $depth';
+  }
 
   @override
   String get plannerCanvas_contingency_title => 'Contingencias';
@@ -11442,6 +11534,27 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get plannerCanvas_range_legend =>
       'Las celdas muestran el tiempo hasta la superficie; rojo = no buceable según lo planeado';
+
+  @override
+  String get plannerCanvas_pane_collapse => 'Contraer panel';
+
+  @override
+  String get plannerCanvas_pane_expand => 'Expandir panel';
+
+  @override
+  String get plannerCanvas_tab_setup => 'Configuración';
+
+  @override
+  String get plannerCanvas_o2Narcotic => 'Tratar el O₂ como narcótico';
+
+  @override
+  String get plannerCanvas_rates_ascent => 'Tasa de ascenso';
+
+  @override
+  String get plannerCanvas_rates_descent => 'Tasa de descenso';
+
+  @override
+  String get plannerCanvas_rates_title => 'Tasas';
 
   @override
   String get plannerCanvas_range_title => 'Tabla de rangos';
@@ -12182,7 +12295,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_backToSettings_tooltip => 'Volver a ajustes';
 
   @override
-  String get settings_cloudSync_appBar_title => 'Sincronizacion en la nube';
+  String get settings_cloudSync_appBar_title =>
+      'Sincronizacion de base de datos en la nube';
 
   @override
   String get settings_cloudSync_autoSync => 'Sincronizacion automatica';
@@ -12650,7 +12764,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_data_backup_subtitle => 'Crear un respaldo de tus datos';
 
   @override
-  String get settings_data_cloudSync => 'Sincronizacion en la nube';
+  String get settings_data_cloudSync =>
+      'Sincronizacion de base de datos en la nube';
 
   @override
   String get settings_data_customFolder => 'Carpeta personalizada';
@@ -12789,6 +12904,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Factores de gradiente';
 
   @override
+  String get settings_decompression_header_oxygenToxicity =>
+      'Toxicidad del oxígeno';
+
+  @override
   String settings_decompression_preset_selectLabel(Object presetName) {
     return 'Seleccionar preajuste de conservadurismo $presetName';
   }
@@ -12812,6 +12931,67 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_decompression_endLimit_dialog_title => 'Limite END';
+
+  @override
+  String get settings_decompression_cnsMethodTitle => 'Cálculo de CNS';
+
+  @override
+  String get settings_decompression_cnsMethodClassic =>
+      'Tabla NOAA, escalonada (clásico)';
+
+  @override
+  String get settings_decompression_cnsMethodClassicDesc =>
+      'Calcula cada banda de 0,1 bar en su extremo más estricto. Método original de Submersion.';
+
+  @override
+  String get settings_decompression_cnsMethodShearwater =>
+      'Interpolación lineal (estilo Shearwater)';
+
+  @override
+  String get settings_decompression_cnsMethodShearwaterDesc =>
+      'Interpola entre los límites de NOAA según lo documentado por Shearwater. Coincide con la mayoría de las computadoras de buceo.';
+
+  @override
+  String get settings_decompression_cnsMethodSubsurface =>
+      'Ajuste exponencial (como Subsurface)';
+
+  @override
+  String get settings_decompression_cnsMethodSubsurfaceDesc =>
+      'Ajuste de curva suave a la tabla NOAA. Coincide con el CNS calculado por Subsurface.';
+
+  @override
+  String get settings_decompression_cnsMethodAboutTitle =>
+      'Acerca de estos métodos';
+
+  @override
+  String get settings_decompression_cnsMethodAboutBody =>
+      'Los tres métodos se basan en los límites de exposición al oxígeno del NOAA Diving Manual (300 minutos con un ppO2 de 1,0 bar, 45 minutos a 1,6 bar). La tabla solo define límites en pasos de 0,1 bar: el método clásico calcula todo lo que hay dentro de una banda en el extremo más estricto de la banda, lo que sobrestima sistemáticamente la exposición entre las entradas. Las computadoras de buceo de Shearwater documentan una interpolación lineal entre los límites de NOAA, con un 15 % fijo por minuto por encima de 1,65 bar. En 2019, Subsurface reemplazó su búsqueda en tabla por un ajuste exponencial suave de dos tramos a los mismos datos de NOAA (Robert C. Helling), que también se extiende de forma natural más allá de 1,6 bar. Entre las entradas de la tabla, los dos métodos suaves coinciden con una diferencia de aproximadamente un punto de CNS; el método clásico muestra valores más altos.';
+
+  @override
+  String get settings_decompression_cnsMethodDisclaimer =>
+      'Los nombres se refieren a los métodos publicados de los respectivos proyectos y fabricantes; no implican ninguna afiliación ni respaldo. Los valores calculados pueden diferir de las lecturas reales de la computadora de buceo.';
+
+  @override
+  String get settings_decompression_cnsMethodSourcesTitle => 'Fuentes';
+
+  @override
+  String get settings_linkOpenFailed => 'No se pudo abrir el enlace.';
+
+  @override
+  String get settings_decompression_cnsMethodSourceNoaa =>
+      'NOAA: Diving Program (editor del NOAA Diving Manual)';
+
+  @override
+  String get settings_decompression_cnsMethodSourceShearwater =>
+      'Shearwater: El reloj de oxígeno CNS';
+
+  @override
+  String get settings_decompression_cnsMethodSourceTheoreticalDiver =>
+      'The Theoretical Diver: Cálculo de la toxicidad CNS del oxígeno';
+
+  @override
+  String get settings_decompression_cnsMethodSourceSubsurface =>
+      'Subsurface: implementación (divelist.cpp)';
 
   @override
   String get settings_existingDb_cancel => 'Cancelar';
@@ -12999,7 +13179,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String settings_lightroom_clientId_help(String redirectUri) {
-    return 'Crea una integración en la Adobe Developer Console con la API de Lightroom Services y un tipo de credencial compatible con PKCE. Establece la URI de redirección en $redirectUri.';
+    return 'Crea una integración en la Adobe Developer Console con la API de Lightroom Services y un tipo de credencial compatible con PKCE. Introduce a continuación la URI de redirección de tu credencial (las credenciales de Native App usan un esquema personalizado) o déjala en blanco para usar $redirectUri.';
   }
 
   @override
@@ -13010,7 +13190,18 @@ class AppLocalizationsEs extends AppLocalizations {
       'Secreto de cliente (opcional)';
 
   @override
+  String get settings_lightroom_redirectUri_label =>
+      'URI de redirección (opcional)';
+
+  @override
   String get settings_lightroom_connect => 'Conectar Lightroom';
+
+  @override
+  String get settings_lightroom_connectEmbedded => 'Conectar con Adobe';
+
+  @override
+  String get settings_lightroom_advancedByo =>
+      'Usa tus propias credenciales de Adobe';
 
   @override
   String get settings_lightroom_connect_codeLabel => 'URL redirigida o código';

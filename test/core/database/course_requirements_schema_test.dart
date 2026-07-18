@@ -35,7 +35,7 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  group('v114 course requirement schema', () {
+  group('v121 course requirement schema', () {
     test('course_requirements has the expected columns', () async {
       final cols = await _columns('course_requirements');
       expect(

@@ -96,6 +96,19 @@
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
+        <!-- flutter_web_auth_2 OAuth callback for the Lightroom (Adobe IMS)
+             custom-scheme redirect. -->
+        <activity
+            android:name="com.linusu.flutter_web_auth_2.CallbackActivity"
+            android:exported="true"
+            android:taskAffinity="">
+            <intent-filter android:label="flutter_web_auth_2">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="adobe+66776bfb6c08aeff345bb6435bf88a06f406d90d" />
+            </intent-filter>
+        </activity>
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

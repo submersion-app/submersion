@@ -2,8 +2,11 @@
 
 **Date:** 2026-07-16
 **Status:** Approved design, pending implementation plan
-**Schema:** v114 (drafted as v112; renumbered when main claimed v112 for
-equipment.thickness and PR #600 reserved v113 — see the schema-version ladder)
+**Schema:** v121 (drafted as v112; renumbered repeatedly as main advanced —
+v112 went to equipment.thickness, v113 to CNS calc method, v114 to the
+tombstone-GC migration, and v120 to planner Subsurface-parity, so the course
+requirement tables land at the next free number, v121 — see the schema-version
+ladder)
 
 ## Problem
 
@@ -29,7 +32,7 @@ no way to see "3 of 5 done" or which logged dives counted.
    for in-progress courses. A dive-detail "credited to" chip is explicitly out
    of scope for this iteration.
 
-## Data model (schema v114)
+## Data model (schema v121)
 
 ### New table `course_requirements`
 
@@ -65,7 +68,7 @@ the deterministic-id + parent-gated design replaced both.)*
 
 ### Migration & sync
 
-- `onUpgrade` `from < 114` creates both tables; matching `beforeOpen`
+- `onUpgrade` `from < 121` creates both tables; matching `beforeOpen`
   re-assert backstop (v109 pattern). No data migration, no seeding.
 - Both tables emit per-row tombstones on delete (#466 child-delete lesson).
   `course_requirements` is an HLC merge-root (registered in `_hlcTargets`,
@@ -176,7 +179,7 @@ TDD throughout:
 - **Repository tests** (in-memory Drift): CRUD; `applyTemplate` appends;
   link/unlink writes tombstone rows; `getSuggestedDives` filtering (date
   window, already-linked exclusion, diver scoping, cap); cascade on course
-  delete; schema-shape migration test (v114).
+  delete; schema-shape migration test (v121).
 - **Entity tests:** `isSatisfied` and `CourseProgress` roll-up, including
   `targetCount > 1` and checklist kinds.
 - **Widget tests:** requirements section (checkbox toggle, progress text,

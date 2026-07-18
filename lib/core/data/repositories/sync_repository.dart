@@ -761,17 +761,27 @@ class SyncRepository {
       await ensureSyncClockConfigured();
       final hlc = SyncClock.instance.issue();
 
-      await _db
-          .into(_db.deletionLog)
-          .insert(
-            DeletionLogCompanion(
-              id: Value(id),
-              entityType: Value(entityType),
-              recordId: Value(recordId),
-              deletedAt: Value(now),
-              hlc: Value(hlc),
-            ),
-          );
+      await _db.transaction(() async {
+        // One tombstone per record: replace any prior tombstone for this key
+        // so its deletedAt/hlc advance (re-delete refreshes the stamp) and the
+        // v114 unique index is never violated.
+        await (_db.delete(_db.deletionLog)..where(
+              (t) =>
+                  t.entityType.equals(entityType) & t.recordId.equals(recordId),
+            ))
+            .go();
+        await _db
+            .into(_db.deletionLog)
+            .insert(
+              DeletionLogCompanion(
+                id: Value(id),
+                entityType: Value(entityType),
+                recordId: Value(recordId),
+                deletedAt: Value(now),
+                hlc: Value(hlc),
+              ),
+            );
+      });
 
       _log.info('Logged deletion: $entityType/$recordId');
     } catch (e, stackTrace) {
@@ -863,21 +873,31 @@ class SyncRepository {
     }
   }
 
-  /// Clear old deletions (older than given days)
-  Future<void> clearOldDeletions({int olderThanDays = 90}) async {
+  /// Fleet-acked tombstone GC: delete tombstones that (a) are older than the
+  /// safety floor, (b) carry an HLC (a null-hlc tombstone cannot be compared
+  /// so it is kept and rides every base -- rare and harmless), and (c) sort at
+  /// or below [upToHlc], the minimum HLC every live peer's manifest
+  /// acknowledges having applied from us. A null [upToHlc] means no live peer
+  /// constrains GC (single-device library): the floor alone applies.
+  /// Replaces the old unconditional 90-day purge, which silently resurrected
+  /// records on devices offline longer than the window.
+  Future<void> clearAcknowledgedDeletions({
+    required String? upToHlc,
+    required int floorCutoffMillis,
+  }) async {
     try {
-      final cutoff = DateTime.now()
-          .subtract(Duration(days: olderThanDays))
-          .millisecondsSinceEpoch;
-
-      await (_db.delete(
-        _db.deletionLog,
-      )..where((t) => t.deletedAt.isSmallerThanValue(cutoff))).go();
-
-      _log.info('Cleared deletions older than $olderThanDays days');
+      await (_db.delete(_db.deletionLog)..where((t) {
+            final base =
+                t.deletedAt.isSmallerThanValue(floorCutoffMillis) &
+                t.hlc.isNotNull();
+            if (upToHlc == null) return base;
+            return base & t.hlc.isSmallerOrEqualValue(upToHlc);
+          }))
+          .go();
+      _log.info('Cleared acknowledged deletions (upTo: $upToHlc)');
     } catch (e, stackTrace) {
       _log.error(
-        'Failed to clear old deletions',
+        'Failed to clear acknowledged deletions',
         error: e,
         stackTrace: stackTrace,
       );

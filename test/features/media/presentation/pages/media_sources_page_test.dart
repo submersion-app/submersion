@@ -41,6 +41,7 @@ class _StubDiagnosticsService implements LocalFilesDiagnosticsService {
 
 Widget _wrap() => const ProviderScope(
   child: MaterialApp(
+    locale: Locale('en'),
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
     home: MediaSourcesPage(),
@@ -50,6 +51,7 @@ Widget _wrap() => const ProviderScope(
 Widget _wrapWith(List<Object> overrides) => ProviderScope(
   overrides: overrides.cast(),
   child: const MaterialApp(
+    locale: Locale('en'),
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
     home: MediaSourcesPage(),
@@ -57,47 +59,17 @@ Widget _wrapWith(List<Object> overrides) => ProviderScope(
 );
 
 void main() {
-  testWidgets('renders Photo library entry and Show hidden picker tabs', (
-    tester,
-  ) async {
+  testWidgets('renders Photo library and Adobe Lightroom, without the '
+      'hidden-picker-tabs toggle', (tester) async {
     await tester.pumpWidget(_wrap());
     await tester.pumpAndSettle();
 
     expect(find.text('Media Sources'), findsOneWidget);
     expect(find.text('Photo library'), findsOneWidget);
-    expect(find.text('Show hidden picker tabs'), findsOneWidget);
-    expect(find.text('Hidden by default'), findsOneWidget);
-    expect(find.byType(Switch), findsOneWidget);
-  });
-
-  testWidgets('toggling switch flips mediaPickerHiddenTabsProvider', (
-    tester,
-  ) async {
-    final container = ProviderContainer();
-    addTearDown(container.dispose);
-
-    await tester.pumpWidget(
-      UncontrolledProviderScope(
-        container: container,
-        child: const MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: MediaSourcesPage(),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    expect(container.read(mediaPickerHiddenTabsProvider), isFalse);
-
-    await tester.tap(find.byType(Switch));
-    await tester.pumpAndSettle();
-
-    expect(container.read(mediaPickerHiddenTabsProvider), isTrue);
-    expect(
-      find.text('Files and URL tabs visible in picker (debug)'),
-      findsOneWidget,
-    );
+    expect(find.text('Adobe Lightroom'), findsOneWidget);
+    // The debug toggle is retired; the picker always shows all tabs.
+    expect(find.text('Show hidden picker tabs'), findsNothing);
+    expect(find.byType(Switch), findsNothing);
   });
 
   testWidgets(
@@ -235,6 +207,7 @@ void main() {
       ProviderScope(
         child: MaterialApp.router(
           routerConfig: router,
+          locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
         ),

@@ -6,7 +6,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
-import 'package:submersion/features/dive_planner/presentation/widgets/plan_settings_panel.dart';
+import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_gas_section.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/follow_dive_sheet.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
@@ -80,7 +80,7 @@ void main() {
           ...overrides(),
           loggedAverageSacProvider.overrideWith((ref) async => 17.6),
         ],
-        child: const SingleChildScrollView(child: PlanSettingsPanel()),
+        child: const SingleChildScrollView(child: PlanGasSection()),
       ),
     );
     await tester.pumpAndSettle();
@@ -92,7 +92,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final container = ProviderScope.containerOf(
-      tester.element(find.byType(PlanSettingsPanel)),
+      tester.element(find.byType(PlanGasSection)),
     );
     expect(
       container.read(divePlanNotifierProvider).sacRate,

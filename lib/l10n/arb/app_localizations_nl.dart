@@ -4412,10 +4412,44 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_edit_notesHint => 'Voeg notities toe over deze duik...';
 
   @override
+  String get diveLog_edit_overline_tanks => 'Flessen';
+
+  @override
+  String get diveLog_edit_profile_draw => 'Profiel tekenen';
+
+  @override
+  String get diveLog_edit_profile_none => 'Niet vastgelegd';
+
+  @override
+  String diveLog_edit_profile_outliers(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mogelijke uitschieters gedetecteerd',
+      one: '1 mogelijke uitschieter gedetecteerd',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_edit_profile_points(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count punten',
+      one: '1 punt',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_row_addSite => 'Duikstek toevoegen';
 
   @override
   String get diveLog_edit_row_diveCenter => 'Duikcentrum';
+
+  @override
+  String get diveLog_edit_row_diveProfile => 'Duikprofiel';
 
   @override
   String get diveLog_edit_row_entry => 'Te water';
@@ -10872,6 +10906,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_photoPicker_appBarTitle => 'Foto\'s selecteren';
 
   @override
+  String get media_photoPicker_tab_gallery => 'Galerij';
+
+  @override
+  String get media_photoPicker_tab_files => 'Bestanden';
+
+  @override
+  String get media_photoPicker_tab_url => 'URL';
+
+  @override
   String get media_photoPicker_clearSelectionButton => 'Wissen';
 
   @override
@@ -10939,6 +10982,42 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get media_photoPicker_thumbnailAlreadyLinkedLabel =>
       'Foto al gekoppeld aan deze duik';
+
+  @override
+  String get media_perdixOverlay_labelCns => 'CNS';
+
+  @override
+  String get media_perdixOverlay_labelDepth => 'DIEPTE';
+
+  @override
+  String get media_perdixOverlay_labelGas => 'GAS';
+
+  @override
+  String get media_perdixOverlay_labelMax => 'MAX';
+
+  @override
+  String get media_perdixOverlay_labelNdl => 'NDL';
+
+  @override
+  String get media_perdixOverlay_labelPpo2 => 'PPO2';
+
+  @override
+  String get media_perdixOverlay_labelStop => 'STOP';
+
+  @override
+  String get media_perdixOverlay_labelTank => 'TANK';
+
+  @override
+  String get media_perdixOverlay_labelTemp => 'TEMP';
+
+  @override
+  String get media_perdixOverlay_labelTime => 'TIJD';
+
+  @override
+  String get media_perdixOverlay_labelTts => 'TTS';
+
+  @override
+  String get media_perdixOverlay_toggleTooltip => 'Duikcomputer-overlay';
 
   @override
   String get media_photoViewer_cannotShare => 'Kan deze foto niet delen';
@@ -11258,6 +11337,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get plannerCanvas_ccr_switchDepth => 'Setpoint-wisseldiepte';
 
   @override
+  String get plannerCanvas_pscr_ratio => 'pSCR-verhouding';
+
+  @override
+  String get plannerCanvas_pscr_ratio_hint =>
+      'Groter = meer vers gas, kleinere O₂-daling';
+
+  @override
   String plannerCanvas_chip_cns(String value) {
     return 'CNS $value%';
   }
@@ -11296,6 +11382,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get plannerCanvas_contingency_timeDelta => 'Extra minuten';
+
+  @override
+  String plannerCanvas_chart_meanDepth(String depth) {
+    return 'gem. $depth';
+  }
 
   @override
   String get plannerCanvas_contingency_title => 'Noodplannen';
@@ -11371,6 +11462,27 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get plannerCanvas_range_legend =>
       'Cellen tonen de tijd naar de oppervlakte; rood = niet duikbaar zoals gepland';
+
+  @override
+  String get plannerCanvas_pane_collapse => 'Paneel inklappen';
+
+  @override
+  String get plannerCanvas_pane_expand => 'Paneel uitklappen';
+
+  @override
+  String get plannerCanvas_tab_setup => 'Instellingen';
+
+  @override
+  String get plannerCanvas_o2Narcotic => 'O₂ als narcotisch behandelen';
+
+  @override
+  String get plannerCanvas_rates_ascent => 'Stijgsnelheid';
+
+  @override
+  String get plannerCanvas_rates_descent => 'Daalsnelheid';
+
+  @override
+  String get plannerCanvas_rates_title => 'Snelheden';
 
   @override
   String get plannerCanvas_range_title => 'Bereiktabel';
@@ -12100,7 +12212,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_backToSettings_tooltip => 'Terug naar instellingen';
 
   @override
-  String get settings_cloudSync_appBar_title => 'Cloudsynchronisatie';
+  String get settings_cloudSync_appBar_title => 'Database-cloudsynchronisatie';
 
   @override
   String get settings_cloudSync_autoSync => 'Automatische synchronisatie';
@@ -12563,7 +12675,7 @@ class AppLocalizationsNl extends AppLocalizations {
       'Maak een back-up van je gegevens';
 
   @override
-  String get settings_data_cloudSync => 'Cloudsynchronisatie';
+  String get settings_data_cloudSync => 'Database-cloudsynchronisatie';
 
   @override
   String get settings_data_customFolder => 'Aangepaste map';
@@ -12700,6 +12812,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Gradientfactoren';
 
   @override
+  String get settings_decompression_header_oxygenToxicity =>
+      'Zuurstoftoxiciteit';
+
+  @override
   String settings_decompression_preset_selectLabel(Object presetName) {
     return 'Selecteer $presetName conservatismevoorinstelling';
   }
@@ -12723,6 +12839,66 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_decompression_endLimit_dialog_title => 'END-limiet';
+
+  @override
+  String get settings_decompression_cnsMethodTitle => 'CNS-berekening';
+
+  @override
+  String get settings_decompression_cnsMethodClassic =>
+      'NOAA-tabel, getrapt (klassiek)';
+
+  @override
+  String get settings_decompression_cnsMethodClassicDesc =>
+      'Rekent elke band van 0,1 bar af op de strengere rand. Oorspronkelijke methode van Submersion.';
+
+  @override
+  String get settings_decompression_cnsMethodShearwater =>
+      'Lineaire interpolatie (Shearwater-stijl)';
+
+  @override
+  String get settings_decompression_cnsMethodShearwaterDesc =>
+      'Interpoleert lineair tussen de NOAA-grenzen zoals gedocumenteerd door Shearwater. Komt overeen met de meeste duikcomputers.';
+
+  @override
+  String get settings_decompression_cnsMethodSubsurface =>
+      'Exponentiële fit (zoals Subsurface)';
+
+  @override
+  String get settings_decompression_cnsMethodSubsurfaceDesc =>
+      'Vloeiende curvefit op de NOAA-tabel. Komt overeen met de door Subsurface berekende CNS.';
+
+  @override
+  String get settings_decompression_cnsMethodAboutTitle => 'Over deze methoden';
+
+  @override
+  String get settings_decompression_cnsMethodAboutBody =>
+      'Alle drie de methoden zijn gebaseerd op de zuurstofblootstellingslimieten van het NOAA Diving Manual (300 minuten bij een ppO2 van 1,0 bar, 45 minuten bij 1,6 bar). De tabel definieert grenzen alleen in stappen van 0,1 bar: de klassieke methode rekent alles binnen een band af op de strengere rand van die band, waardoor de blootstelling tussen de waarden systematisch wordt overschat. De duikcomputers van Shearwater documenteren een lineaire interpolatie tussen de NOAA-grenzen, met een vaste 15% per minuut boven 1,65 bar. Subsurface verving in 2019 zijn tabelopzoeking door een vloeiende exponentiële fit in twee delen op dezelfde NOAA-gegevens (Robert C. Helling), die ook op natuurlijke wijze verder reikt dan 1,6 bar. Tussen de tabelwaarden komen de twee vloeiende methoden overeen tot op ongeveer één CNS-punt; de klassieke methode geeft hogere waarden.';
+
+  @override
+  String get settings_decompression_cnsMethodDisclaimer =>
+      'De namen verwijzen naar de gepubliceerde methoden van de respectievelijke projecten en fabrikanten; er wordt geen band of goedkeuring gesuggereerd. Berekende waarden kunnen afwijken van de werkelijke aflezingen van de duikcomputer.';
+
+  @override
+  String get settings_decompression_cnsMethodSourcesTitle => 'Bronnen';
+
+  @override
+  String get settings_linkOpenFailed => 'De link kon niet worden geopend.';
+
+  @override
+  String get settings_decompression_cnsMethodSourceNoaa =>
+      'NOAA: Diving Program (uitgever van het NOAA Diving Manual)';
+
+  @override
+  String get settings_decompression_cnsMethodSourceShearwater =>
+      'Shearwater: de CNS-zuurstofklok';
+
+  @override
+  String get settings_decompression_cnsMethodSourceTheoreticalDiver =>
+      'The Theoretical Diver: berekening van CNS-zuurstoftoxiciteit';
+
+  @override
+  String get settings_decompression_cnsMethodSourceSubsurface =>
+      'Subsurface: implementatie (divelist.cpp)';
 
   @override
   String get settings_existingDb_cancel => 'Annuleren';
@@ -12905,7 +13081,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String settings_lightroom_clientId_help(String redirectUri) {
-    return 'Maak in de Adobe Developer Console een integratie met de Lightroom Services API en een referentietype dat PKCE ondersteunt. Stel de redirect-URI in op $redirectUri.';
+    return 'Maak in de Adobe Developer Console een integratie met de Lightroom Services API en een referentietype dat PKCE ondersteunt. Voer hieronder de redirect-URI van je referentie in — Native App-referenties gebruiken een aangepast schema — of laat het leeg om $redirectUri te gebruiken.';
   }
 
   @override
@@ -12916,7 +13092,17 @@ class AppLocalizationsNl extends AppLocalizations {
       'Client secret (optioneel)';
 
   @override
+  String get settings_lightroom_redirectUri_label => 'Redirect-URI (optioneel)';
+
+  @override
   String get settings_lightroom_connect => 'Lightroom koppelen';
+
+  @override
+  String get settings_lightroom_connectEmbedded => 'Verbinden met Adobe';
+
+  @override
+  String get settings_lightroom_advancedByo =>
+      'Je eigen Adobe-inloggegevens gebruiken';
 
   @override
   String get settings_lightroom_connect_codeLabel =>

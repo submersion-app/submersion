@@ -68,4 +68,42 @@ void main() {
       expect(row.defaultShowPhotoMarkers, isTrue);
     },
   );
+
+  test(
+    'applies a pre-v113 diver_settings payload missing cnsCalculationMethod',
+    () async {
+      await db.customStatement('PRAGMA foreign_keys = OFF');
+
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await db
+          .into(db.diverSettings)
+          .insert(
+            DiverSettingsCompanion.insert(
+              id: 'ds2',
+              diverId: 'diver-2',
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+      final exported = await serializer.fetchRecord('diverSettings', 'ds2');
+      expect(exported, isNotNull);
+
+      // Simulate an older sender predating v113: strip the CNS method key.
+      final legacy = Map<String, dynamic>.from(exported!)
+        ..remove('cnsCalculationMethod');
+
+      await (db.delete(
+        db.diverSettings,
+      )..where((t) => t.id.equals('ds2'))).go();
+
+      // Must not throw on the missing non-nullable TEXT column.
+      await serializer.upsertRecord('diverSettings', legacy);
+
+      final row = await (db.select(
+        db.diverSettings,
+      )..where((t) => t.id.equals('ds2'))).getSingle();
+      // The v113 column hydrates to its default rather than throwing.
+      expect(row.cnsCalculationMethod, 'shearwater');
+    },
+  );
 }

@@ -35,37 +35,12 @@ class PhotosMediaHubPage extends ConsumerWidget {
           const PendingSetupCard(margin: EdgeInsets.only(bottom: 16)),
           _header(context, l10n.settings_photosMedia_sourcesHeader),
           Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.photo_library_outlined),
-                  title: Text(l10n.settings_photosMedia_photoSources_title),
-                  subtitle: Text(
-                    l10n.settings_photosMedia_photoSources_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/settings/media-sources'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.cloud_sync_outlined),
-                  title: Text(l10n.settings_lightroom_title),
-                  subtitle: Text(l10n.settings_lightroom_subtitle),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/settings/lightroom'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.rss_feed_outlined),
-                  title: Text(l10n.settings_photosMedia_networkSources_title),
-                  subtitle: Text(
-                    l10n.settings_photosMedia_networkSources_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () =>
-                      context.push('/settings/media-sources/network-sources'),
-                ),
-              ],
+            child: ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: Text(l10n.settings_photosMedia_photoSources_title),
+              subtitle: Text(l10n.settings_photosMedia_photoSources_subtitle),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.push('/settings/media-sources'),
             ),
           ),
           const SizedBox(height: 16),

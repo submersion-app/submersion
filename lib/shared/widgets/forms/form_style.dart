@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-/// Design tokens for the shared form system. Initial values match the
+/// Design tokens for the shared form system. Values match the header-in-card
 /// design-freeze mockup (docs/superpowers/specs/assets/
-/// 2026-06-11-edit-form-redesign-mockup.html); tune here, never inline.
+/// 2026-07-17-edit-form-chrome-redesign-mockup.html); tune here, never inline.
 abstract final class FormStyle {
   /// Corner radius of section groups and collapsed bars.
   static const double groupRadius = 13;
@@ -19,24 +19,11 @@ abstract final class FormStyle {
     vertical: 10,
   );
 
-  /// Vertical gap between a section label and its group surface.
-  static const double labelGap = 4;
-
   /// Vertical gap between consecutive sections.
   static const double sectionGap = 14;
 
   /// Horizontal page padding around the whole form.
   static const EdgeInsets pagePadding = EdgeInsets.all(16);
-
-  /// Uppercase section label, rendered outside the group surface.
-  static TextStyle labelStyle(BuildContext context) {
-    final theme = Theme.of(context);
-    return theme.textTheme.labelSmall!.copyWith(
-      letterSpacing: 0.9,
-      fontWeight: FontWeight.w600,
-      color: theme.colorScheme.onSurfaceVariant,
-    );
-  }
 
   /// Tonal background of group surfaces and collapsed bars.
   static Color groupColor(BuildContext context) =>
@@ -81,4 +68,39 @@ abstract final class FormStyle {
       color: theme.colorScheme.onSurfaceVariant,
     );
   }
+
+  /// Padding of the header row inside a section card.
+  static const EdgeInsets headerPadding = EdgeInsets.symmetric(
+    horizontal: 14,
+    vertical: 12,
+  );
+
+  /// Section title inside the card header.
+  static TextStyle sectionTitleStyle(BuildContext context) {
+    final theme = Theme.of(context);
+    return theme.textTheme.titleMedium!.copyWith(
+      fontSize: 15.5,
+      fontWeight: FontWeight.w600,
+      color: theme.colorScheme.onSurface,
+    );
+  }
+
+  /// Sub-header overline inside a section body (TANKS, EQUIPMENT, WEATHER).
+  static TextStyle overlineStyle(BuildContext context) {
+    final theme = Theme.of(context);
+    return theme.textTheme.labelSmall!.copyWith(
+      fontSize: 10.5,
+      letterSpacing: 0.9,
+      fontWeight: FontWeight.w700,
+      color: theme.colorScheme.onSurfaceVariant,
+    );
+  }
+
+  /// Hairline border around section cards (light-theme discernibility).
+  static Color cardBorderColor(BuildContext context) =>
+      Theme.of(context).colorScheme.outlineVariant;
+
+  /// Fainter color for empty-invitation text in a collapsed header.
+  static Color invitationColor(BuildContext context) =>
+      Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.7);
 }

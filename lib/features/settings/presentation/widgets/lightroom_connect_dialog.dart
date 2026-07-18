@@ -15,6 +15,7 @@ class LightroomConnectDialog extends StatefulWidget {
     required this.authManager,
     required this.clientId,
     this.clientSecret,
+    this.redirectUri,
     this.openUri,
     super.key,
   });
@@ -22,6 +23,11 @@ class LightroomConnectDialog extends StatefulWidget {
   final AdobeImsAuthManager authManager;
   final String clientId;
   final String? clientSecret;
+
+  /// Per-credential redirect URI for BYO Native App credentials (which use an
+  /// Adobe-generated custom scheme). Null falls back to the bundled web
+  /// callback in [AdobeImsAuthManager.beginAuthorization].
+  final String? redirectUri;
   final Future<bool> Function(Uri uri)? openUri;
 
   @override
@@ -54,6 +60,7 @@ class _LightroomConnectDialogState extends State<LightroomConnectDialog> {
       final uri = _authorizeUri ??= widget.authManager.beginAuthorization(
         clientId: widget.clientId,
         clientSecret: widget.clientSecret,
+        redirectUri: widget.redirectUri,
       );
       final open =
           widget.openUri ??

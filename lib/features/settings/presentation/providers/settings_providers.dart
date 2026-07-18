@@ -12,6 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/notifications/data/services/notification_scheduler.dart';
@@ -68,6 +69,7 @@ class SettingsKeys {
   static const String showNdlOnProfile = 'show_ndl_on_profile';
   static const String lastStopDepth = 'last_stop_depth';
   static const String decoStopIncrement = 'deco_stop_increment';
+  static const String pscrRatio = 'pscr_ratio';
 
   // Fullscreen profile view instrument tile preferences (device-local,
   // stored directly in SharedPreferences rather than per-diver in the DB).
@@ -75,6 +77,12 @@ class SettingsKeys {
   static const String fullscreenHiddenTiles = 'fullscreen_hidden_tiles';
   static const String fullscreenReadoutCardX = 'fullscreen_readout_card_x';
   static const String fullscreenReadoutCardY = 'fullscreen_readout_card_y';
+
+  // Perdix-style media overlay preferences (device-local, stored directly in
+  // SharedPreferences rather than per-diver in the DB).
+  static const String perdixOverlayEnabled = 'perdix_overlay_enabled';
+  static const String perdixOverlayX = 'perdix_overlay_x';
+  static const String perdixOverlayY = 'perdix_overlay_y';
 }
 
 /// App settings state
@@ -134,6 +142,11 @@ class AppSettings {
   /// Deco stop increment in meters (typically 3)
   final double decoStopIncrement;
 
+  /// Passive-SCR ratio (Subsurface `pscr_ratio`, default 100). A device-local
+  /// planning preference describing the diver's pSCR unit; larger values add
+  /// more fresh gas and shrink the inspired-O2 drop.
+  final double pscrRatio;
+
   /// Which carried gases feed the ideal (best-gas) ascent projection.
   final AscentGasSet ascentGasSet;
 
@@ -154,6 +167,10 @@ class AppSettings {
 
   /// Default data source for CNS metric (computer or calculated)
   final MetricDataSource defaultCnsSource;
+
+  /// Algorithm used for calculated CNS%; see
+  /// docs/plans/2026-07-16-cns-calculation-method-setting-design.md
+  final CnsCalculationMethod cnsCalculationMethod;
 
   // Appearance settings
   /// Which attribute to use for card background coloring
@@ -314,6 +331,15 @@ class AppSettings {
   final double? fullscreenReadoutCardX;
   final double? fullscreenReadoutCardY;
 
+  /// Perdix-style media overlay: shown over photos/videos when enabled.
+  /// Device-local, not per-diver.
+  final bool perdixOverlayEnabled;
+
+  /// Perdix overlay position as fractions (0..1) of the movable range;
+  /// null means the default corner. See DraggablePerdixOverlay.
+  final double? perdixOverlayX;
+  final double? perdixOverlayY;
+
   const AppSettings({
     this.depthUnit = DepthUnit.meters,
     this.temperatureUnit = TemperatureUnit.celsius,
@@ -345,6 +371,7 @@ class AppSettings {
     this.showNdlOnProfile = true,
     this.lastStopDepth = 3.0,
     this.decoStopIncrement = 3.0,
+    this.pscrRatio = 100.0,
     this.ascentGasSet = AscentGasSet.allCarried,
     this.o2Narcotic = true,
     this.endLimit = 30.0,
@@ -352,6 +379,7 @@ class AppSettings {
     this.defaultCeilingSource = MetricDataSource.calculated,
     this.defaultTtsSource = MetricDataSource.calculated,
     this.defaultCnsSource = MetricDataSource.calculated,
+    this.cnsCalculationMethod = CnsCalculationMethod.shearwater,
     // Appearance defaults
     this.cardColorAttribute = CardColorAttribute.none,
     this.diveListViewMode = ListViewMode.detailed,
@@ -412,6 +440,9 @@ class AppSettings {
     this.fullscreenHiddenTiles = const [],
     this.fullscreenReadoutCardX,
     this.fullscreenReadoutCardY,
+    this.perdixOverlayEnabled = false,
+    this.perdixOverlayX,
+    this.perdixOverlayY,
   });
 
   /// Compute the current unit preset based on actual unit values
@@ -478,6 +509,7 @@ class AppSettings {
     bool? showNdlOnProfile,
     double? lastStopDepth,
     double? decoStopIncrement,
+    double? pscrRatio,
     AscentGasSet? ascentGasSet,
     bool? o2Narcotic,
     double? endLimit,
@@ -485,6 +517,7 @@ class AppSettings {
     MetricDataSource? defaultCeilingSource,
     MetricDataSource? defaultTtsSource,
     MetricDataSource? defaultCnsSource,
+    CnsCalculationMethod? cnsCalculationMethod,
     CardColorAttribute? cardColorAttribute,
     ListViewMode? diveListViewMode,
     ListViewMode? siteListViewMode,
@@ -544,6 +577,9 @@ class AppSettings {
     List<String>? fullscreenHiddenTiles,
     double? fullscreenReadoutCardX,
     double? fullscreenReadoutCardY,
+    bool? perdixOverlayEnabled,
+    double? perdixOverlayX,
+    double? perdixOverlayY,
   }) {
     return AppSettings(
       depthUnit: depthUnit ?? this.depthUnit,
@@ -578,6 +614,7 @@ class AppSettings {
       showNdlOnProfile: showNdlOnProfile ?? this.showNdlOnProfile,
       lastStopDepth: lastStopDepth ?? this.lastStopDepth,
       decoStopIncrement: decoStopIncrement ?? this.decoStopIncrement,
+      pscrRatio: pscrRatio ?? this.pscrRatio,
       ascentGasSet: ascentGasSet ?? this.ascentGasSet,
       o2Narcotic: o2Narcotic ?? this.o2Narcotic,
       endLimit: endLimit ?? this.endLimit,
@@ -585,6 +622,7 @@ class AppSettings {
       defaultCeilingSource: defaultCeilingSource ?? this.defaultCeilingSource,
       defaultTtsSource: defaultTtsSource ?? this.defaultTtsSource,
       defaultCnsSource: defaultCnsSource ?? this.defaultCnsSource,
+      cnsCalculationMethod: cnsCalculationMethod ?? this.cnsCalculationMethod,
       cardColorAttribute: cardColorAttribute ?? this.cardColorAttribute,
       diveListViewMode: diveListViewMode ?? this.diveListViewMode,
       siteListViewMode: siteListViewMode ?? this.siteListViewMode,
@@ -669,6 +707,9 @@ class AppSettings {
           fullscreenReadoutCardX ?? this.fullscreenReadoutCardX,
       fullscreenReadoutCardY:
           fullscreenReadoutCardY ?? this.fullscreenReadoutCardY,
+      perdixOverlayEnabled: perdixOverlayEnabled ?? this.perdixOverlayEnabled,
+      perdixOverlayX: perdixOverlayX ?? this.perdixOverlayX,
+      perdixOverlayY: perdixOverlayY ?? this.perdixOverlayY,
     );
   }
 }
@@ -770,6 +811,14 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       final fullscreenReadoutCardY = prefs.getDouble(
         SettingsKeys.fullscreenReadoutCardY,
       );
+      // pSCR ratio is a device-local planning preference (kept out of the
+      // per-diver settings table), so it is read straight from SharedPreferences
+      // like the fullscreen tile prefs above.
+      final pscrRatio = prefs.getDouble(SettingsKeys.pscrRatio);
+      final perdixOverlayEnabled =
+          prefs.getBool(SettingsKeys.perdixOverlayEnabled) ?? false;
+      final perdixOverlayX = prefs.getDouble(SettingsKeys.perdixOverlayX);
+      final perdixOverlayY = prefs.getDouble(SettingsKeys.perdixOverlayY);
 
       final diverId = _validatedDiverId;
       if (diverId == null) {
@@ -779,6 +828,10 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
           fullscreenHiddenTiles: fullscreenHiddenTiles,
           fullscreenReadoutCardX: fullscreenReadoutCardX,
           fullscreenReadoutCardY: fullscreenReadoutCardY,
+          pscrRatio: pscrRatio ?? 100.0,
+          perdixOverlayEnabled: perdixOverlayEnabled,
+          perdixOverlayX: perdixOverlayX,
+          perdixOverlayY: perdixOverlayY,
         );
         return;
       }
@@ -790,6 +843,10 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
         fullscreenHiddenTiles: fullscreenHiddenTiles,
         fullscreenReadoutCardX: fullscreenReadoutCardX,
         fullscreenReadoutCardY: fullscreenReadoutCardY,
+        pscrRatio: pscrRatio,
+        perdixOverlayEnabled: perdixOverlayEnabled,
+        perdixOverlayX: perdixOverlayX,
+        perdixOverlayY: perdixOverlayY,
       );
 
       // Schedule notifications with the loaded settings
@@ -840,6 +897,19 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     final readoutCardY = state.fullscreenReadoutCardY;
     if (readoutCardY != null) {
       await prefs.setDouble(SettingsKeys.fullscreenReadoutCardY, readoutCardY);
+    }
+    await prefs.setDouble(SettingsKeys.pscrRatio, state.pscrRatio);
+    await prefs.setBool(
+      SettingsKeys.perdixOverlayEnabled,
+      state.perdixOverlayEnabled,
+    );
+    final perdixX = state.perdixOverlayX;
+    if (perdixX != null) {
+      await prefs.setDouble(SettingsKeys.perdixOverlayX, perdixX);
+    }
+    final perdixY = state.perdixOverlayY;
+    if (perdixY != null) {
+      await prefs.setDouble(SettingsKeys.perdixOverlayY, perdixY);
     }
 
     final diverId = _validatedDiverId;
@@ -1014,6 +1084,12 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
+  Future<void> setPscrRatio(double value) async {
+    final clamped = value.clamp(1.0, 1000.0);
+    state = state.copyWith(pscrRatio: clamped);
+    await _saveSettings();
+  }
+
   Future<void> setO2Narcotic(bool value) async {
     state = state.copyWith(o2Narcotic: value);
     await _saveSettings();
@@ -1047,6 +1123,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setDefaultCnsSource(MetricDataSource value) async {
     state = state.copyWith(defaultCnsSource: value);
+    await _saveSettings();
+  }
+
+  Future<void> setCnsCalculationMethod(CnsCalculationMethod value) async {
+    state = state.copyWith(cnsCalculationMethod: value);
     await _saveSettings();
   }
 
@@ -1314,6 +1395,21 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
+  Future<void> setPerdixOverlayEnabled(bool value) async {
+    state = state.copyWith(perdixOverlayEnabled: value);
+    await _saveSettings();
+  }
+
+  Future<void> setPerdixOverlayPosition(double x, double y) async {
+    // Same 0..1 fraction contract and non-finite canonicalization as
+    // setFullscreenReadoutCardPosition; default corner is top-right (1, 0).
+    state = state.copyWith(
+      perdixOverlayX: x.isFinite ? x.clamp(0.0, 1.0) : 1.0,
+      perdixOverlayY: y.isFinite ? y.clamp(0.0, 1.0) : 0.0,
+    );
+    await _saveSettings();
+  }
+
   Future<void> toggleReminderDay(int days) async {
     final current = List<int>.from(state.serviceReminderDays);
     if (current.contains(days)) {
@@ -1443,6 +1539,10 @@ final cnsWarningThresholdProvider = Provider<int>((ref) {
   return ref.watch(settingsProvider.select((s) => s.cnsWarningThreshold));
 });
 
+final cnsCalculationMethodProvider = Provider<CnsCalculationMethod>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.cnsCalculationMethod));
+});
+
 final ascentRateWarningProvider = Provider<double>((ref) {
   return ref.watch(settingsProvider.select((s) => s.ascentRateWarning));
 });
@@ -1465,6 +1565,13 @@ final showNdlOnProfileProvider = Provider<bool>((ref) {
 
 final lastStopDepthProvider = Provider<double>((ref) {
   return ref.watch(settingsProvider.select((s) => s.lastStopDepth));
+});
+
+/// The device-local passive-SCR ratio (Subsurface `pscr_ratio`, default 100).
+/// Persisted to SharedPreferences, not per-diver, so switching the active diver
+/// does not change it.
+final pscrRatioProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.pscrRatio));
 });
 
 final ascentGasSetProvider = Provider<AscentGasSet>((ref) {
