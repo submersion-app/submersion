@@ -6,28 +6,26 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/providers/location_service_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:submersion/core/icons/mdi_icons.dart';
 
-import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
-import 'package:submersion/features/dive_sites/domain/services/site_suggestions.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/access_safety_section.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/dive_info_section.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/identity_section.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/life_notes_section.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/location_section.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/merge_field_extras.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/location_picker_map.dart';
-import 'package:submersion/features/dive_sites/presentation/widgets/similar_value_hint.dart';
-import 'package:submersion/features/dive_sites/presentation/widgets/suggestion_field.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/marine_life/presentation/widgets/species_picker_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/edit_form_scaffold.dart';
-import 'package:submersion/shared/widgets/forms/form_row.dart';
-import 'package:submersion/shared/widgets/forms/form_section.dart';
 import 'package:submersion/shared/widgets/forms/responsive_form_columns.dart';
-import 'package:submersion/shared/widgets/forms/stat_strip.dart';
 
 class SiteEditPage extends ConsumerStatefulWidget {
   final String? siteId;
@@ -600,6 +598,71 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     return null;
   }
 
+  String? _altitudeValidatorFn(String? value) {
+    if (value != null && value.isNotEmpty) {
+      final altitude = double.tryParse(value);
+      if (altitude == null || altitude < 0) {
+        return context.l10n.diveSites_edit_altitude_validation;
+      }
+    }
+    return null;
+  }
+
+  MergeFieldExtras? _mergeExtras(String key) {
+    final candidates = _mergeTextCandidates[key];
+    if (!widget.isMerging || candidates == null || candidates.length < 2) {
+      return null;
+    }
+    final index = _mergeFieldIndices[key] ?? 0;
+    return MergeFieldExtras(
+      sourceLabel: context.l10n.diveSites_edit_merge_fieldSourceLabel(
+        candidates[index].siteName,
+        index + 1,
+        candidates.length,
+      ),
+      onCycle: () => _cycleTextField(key),
+    );
+  }
+
+  MergeFieldExtras? _coordinateExtras() {
+    if (!widget.isMerging || _coordinateCandidates.length < 2) return null;
+    final index = _mergeFieldIndices['coordinates'] ?? 0;
+    return MergeFieldExtras(
+      sourceLabel: context.l10n.diveSites_edit_merge_fieldSourceLabel(
+        _coordinateCandidates[index].siteName,
+        index + 1,
+        _coordinateCandidates.length,
+      ),
+      onCycle: _cycleCoordinates,
+    );
+  }
+
+  MergeFieldExtras? _difficultyExtras() {
+    if (!widget.isMerging || _difficultyCandidates.length < 2) return null;
+    final index = _mergeFieldIndices['difficulty'] ?? 0;
+    return MergeFieldExtras(
+      sourceLabel: context.l10n.diveSites_edit_merge_fieldSourceLabel(
+        _difficultyCandidates[index].siteName,
+        index + 1,
+        _difficultyCandidates.length,
+      ),
+      onCycle: _cycleDifficulty,
+    );
+  }
+
+  MergeFieldExtras? _ratingExtras() {
+    if (!widget.isMerging || _ratingCandidates.length < 2) return null;
+    final index = _mergeFieldIndices['rating'] ?? 0;
+    return MergeFieldExtras(
+      sourceLabel: context.l10n.diveSites_edit_merge_fieldSourceLabel(
+        _ratingCandidates[index].siteName,
+        index + 1,
+        _ratingCandidates.length,
+      ),
+      onCycle: _cycleRating,
+    );
+  }
+
   int _identityErrorCount() =>
       _nameValidatorFn(_nameController.text) == null ? 0 : 1;
 
@@ -672,300 +735,104 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
       child: ResponsiveFormColumns(
         splitIndex: 2,
         children: [
-          FormSection(
-            label: context.l10n.diveSites_edit_group_identity,
-            expanded: true,
-            onToggle: null,
+          IdentitySection(
+            allSites: allSites,
+            excludeId: _originalSite?.id,
+            nameController: _nameController,
+            descriptionController: _descriptionController,
+            countryController: _countryController,
+            regionController: _regionController,
+            cityController: _cityController,
+            islandController: _islandController,
+            bodyOfWaterController: _bodyOfWaterController,
+            nameValidator: _nameValidatorFn,
+            mergeExtras: widget.isMerging ? _mergeExtras : null,
             errorCount: _identityErrorCount(),
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SuggestionField(
-                      controller: _nameController,
-                      suggestions: suggestedSiteNames(
-                        allSites,
-                        excludeId: _originalSite?.id,
-                      ),
-                      enableFuzzy: true,
-                      textCapitalization: TextCapitalization.words,
-                      decoration: _withMergeTextDecoration(
-                        key: 'name',
-                        decoration: InputDecoration(
-                          labelText:
-                              context.l10n.diveSites_edit_field_siteName_label,
-                          prefixIcon: const Icon(Icons.location_on),
-                          hintText:
-                              context.l10n.diveSites_edit_field_siteName_hint,
-                        ),
-                      ),
-                      validator: _nameValidatorFn,
-                    ),
-                    ValueListenableBuilder<TextEditingValue>(
-                      valueListenable: _nameController,
-                      builder: (context, name, _) {
-                        return SimilarValueHint(
-                          query: name.text,
-                          candidates: suggestedSiteNames(
-                            allSites,
-                            excludeId: _originalSite?.id,
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 8, 14, 4),
-                child: TextFormField(
-                  controller: _descriptionController,
-                  decoration: _withMergeTextDecoration(
-                    key: 'description',
-                    decoration: InputDecoration(
-                      labelText:
-                          context.l10n.diveSites_edit_field_description_label,
-                      prefixIcon: const Icon(Icons.description),
-                      hintText:
-                          context.l10n.diveSites_edit_field_description_hint,
-                    ),
-                  ),
-                  maxLines: 3,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: SuggestionField(
-                        controller: _countryController,
-                        suggestions: suggestedCountries(allSites),
-                        textCapitalization: TextCapitalization.words,
-                        decoration: _withMergeTextDecoration(
-                          key: 'country',
-                          decoration: InputDecoration(
-                            labelText:
-                                context.l10n.diveSites_edit_field_country_label,
-                            prefixIcon: const Icon(Icons.flag),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: ValueListenableBuilder<TextEditingValue>(
-                        valueListenable: _countryController,
-                        builder: (context, country, _) {
-                          return SuggestionField(
-                            controller: _regionController,
-                            suggestions: suggestedRegions(
-                              allSites,
-                              country.text,
-                            ),
-                            enableFuzzy: true,
-                            textCapitalization: TextCapitalization.words,
-                            decoration: _withMergeTextDecoration(
-                              key: 'region',
-                              decoration: InputDecoration(
-                                labelText: context
-                                    .l10n
-                                    .diveSites_edit_field_region_label,
-                                prefixIcon: const Icon(Icons.map),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
-                child: Column(
-                  children: [
-                    ValueListenableBuilder<TextEditingValue>(
-                      valueListenable: _countryController,
-                      builder: (context, country, _) {
-                        return ValueListenableBuilder<TextEditingValue>(
-                          valueListenable: _regionController,
-                          builder: (context, region, _) {
-                            return SuggestionField(
-                              controller: _cityController,
-                              suggestions: suggestedCities(
-                                allSites,
-                                country.text,
-                                region.text,
-                              ),
-                              enableFuzzy: true,
-                              textCapitalization: TextCapitalization.words,
-                              decoration: _withMergeTextDecoration(
-                                key: 'city',
-                                decoration: InputDecoration(
-                                  labelText: context
-                                      .l10n
-                                      .diveSites_edit_field_city_label,
-                                  prefixIcon: const Icon(Icons.location_city),
-                                ),
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    ValueListenableBuilder<TextEditingValue>(
-                      valueListenable: _countryController,
-                      builder: (context, country, _) {
-                        return SuggestionField(
-                          controller: _islandController,
-                          suggestions: suggestedIslands(allSites, country.text),
-                          enableFuzzy: true,
-                          textCapitalization: TextCapitalization.words,
-                          decoration: _withMergeTextDecoration(
-                            key: 'island',
-                            decoration: InputDecoration(
-                              labelText: context
-                                  .l10n
-                                  .diveSites_edit_field_island_label,
-                              prefixIcon: const Icon(Icons.landscape),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    ValueListenableBuilder<TextEditingValue>(
-                      valueListenable: _countryController,
-                      builder: (context, country, _) {
-                        return SuggestionField(
-                          controller: _bodyOfWaterController,
-                          suggestions: suggestedBodiesOfWater(
-                            allSites,
-                            country.text,
-                          ),
-                          enableFuzzy: true,
-                          textCapitalization: TextCapitalization.words,
-                          decoration: _withMergeTextDecoration(
-                            key: 'bodyOfWater',
-                            decoration: InputDecoration(
-                              labelText: context
-                                  .l10n
-                                  .diveSites_edit_field_bodyOfWater_label,
-                              prefixIcon: const Icon(Icons.waves),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ],
           ),
-          FormSection(
-            label: context.l10n.diveSites_edit_group_location,
+          LocationSection(
             expanded: _siteSectionExpanded('location'),
             onToggle: widget.isMerging
                 ? null
                 : () => _toggleSiteSection('location'),
             summary: _locationSummary(units),
             isEmpty: _locationIsEmpty(),
-            emptyInvitation: context.l10n.diveSites_edit_invite_location,
             errorCount: _locationErrorCount(),
-            children: [
-              _buildGpsSection(context),
-              _buildAltitudeSection(context, units),
-            ],
+            latitudeController: _latitudeController,
+            longitudeController: _longitudeController,
+            altitudeController: _altitudeController,
+            latValidator: _latValidatorFn,
+            lonValidator: _lonValidatorFn,
+            altitudeValidator: _altitudeValidatorFn,
+            isGettingLocation: _isGettingLocation,
+            onUseMyLocation: _useMyLocation,
+            onPickFromMap: _pickFromMap,
+            units: units,
+            coordinatesExtras: _coordinateExtras(),
+            altitudeExtras: _mergeExtras('altitude'),
           ),
-          FormSection(
-            label: context.l10n.diveSites_edit_group_diveInfo,
+          DiveInfoSection(
             expanded: _siteSectionExpanded('diveInfo'),
             onToggle: widget.isMerging
                 ? null
                 : () => _toggleSiteSection('diveInfo'),
             summary: _diveInfoSummary(),
             isEmpty: _diveInfoSummary().isEmpty,
-            emptyInvitation: context.l10n.diveSites_edit_invite_diveInfo,
-            hero: widget.isMerging
-                ? null
-                : StatStrip(
-                    cells: [
-                      StatCell(
-                        label: context.l10n.diveSites_edit_depth_heroMin,
-                        unit: units.depthSymbol,
-                        controller: _minDepthController,
-                      ),
-                      StatCell(
-                        label: context.l10n.diveSites_edit_depth_heroMax,
-                        unit: units.depthSymbol,
-                        controller: _maxDepthController,
-                      ),
-                    ],
-                  ),
-            children: [
-              if (widget.isMerging) _buildDepthSection(context, units),
-              _buildDifficultySection(context),
-              _buildRatingSection(context),
-            ],
+            minDepthController: _minDepthController,
+            maxDepthController: _maxDepthController,
+            depthSymbol: units.depthSymbol,
+            difficulty: _difficulty,
+            onDifficultyChanged: (value) => setState(() {
+              _difficulty = value;
+              _hasChanges = true;
+            }),
+            rating: _rating.round(),
+            onRatingChanged: (value) => setState(() {
+              _rating = value.toDouble();
+              _hasChanges = true;
+            }),
+            onRatingCleared: () => setState(() {
+              _rating = 0;
+              _hasChanges = true;
+            }),
+            mergeExtras: widget.isMerging ? _mergeExtras : null,
+            difficultyExtras: _difficultyExtras(),
+            ratingExtras: _ratingExtras(),
           ),
-          FormSection(
-            label: context.l10n.diveSites_edit_group_accessSafety,
+          AccessSafetySection(
             expanded: _siteSectionExpanded('access'),
             onToggle: widget.isMerging
                 ? null
                 : () => _toggleSiteSection('access'),
             summary: _accessSummary(),
             isEmpty: _accessSummary().isEmpty,
-            emptyInvitation: context.l10n.diveSites_edit_invite_accessSafety,
-            children: [
-              _buildAccessSection(context),
-              _buildSafetySection(context),
-            ],
+            accessNotesController: _accessNotesController,
+            mooringNumberController: _mooringNumberController,
+            parkingInfoController: _parkingInfoController,
+            hazardsController: _hazardsController,
+            mergeExtras: widget.isMerging ? _mergeExtras : null,
           ),
-          FormSection(
-            label: context.l10n.diveSites_edit_group_lifeNotes,
+          LifeNotesSection(
             expanded: _siteSectionExpanded('life'),
             onToggle: widget.isMerging
                 ? null
                 : () => _toggleSiteSection('life'),
             summary: _lifeNotesSummary(),
             isEmpty: _lifeNotesSummary().isEmpty,
-            emptyInvitation: context.l10n.diveSites_edit_invite_lifeNotes,
-            children: [
-              _buildExpectedMarineLifeSection(context),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 8, 14, 8),
-                child: TextFormField(
-                  controller: _notesController,
-                  decoration: _withMergeTextDecoration(
-                    key: 'notes',
-                    decoration: InputDecoration(
-                      labelText: context.l10n.diveSites_edit_field_notes_label,
-                      prefixIcon: const Icon(Icons.notes),
-                      hintText: context.l10n.diveSites_edit_field_notes_hint,
-                    ),
-                  ),
-                  maxLines: 4,
-                ),
-              ),
-              ref
-                  .watch(allDiversProvider)
-                  .maybeWhen(
-                    data: (divers) => divers.length >= 2
-                        ? FormRow.toggle(
-                            label:
-                                context.l10n.common_label_shareWithAllProfiles,
-                            value: _isShared,
-                            onChanged: (v) => _onShareToggled(v),
-                          )
-                        : const SizedBox.shrink(),
-                    orElse: () => const SizedBox.shrink(),
-                  ),
-            ],
+            species: _expectedSpecies,
+            onAddSpecies: _showSpeciesPicker,
+            onRemoveSpecies: (s) => setState(() {
+              _expectedSpecies = _expectedSpecies
+                  .where((existing) => existing.id != s.id)
+                  .toList();
+              _hasChanges = true;
+            }),
+            notesController: _notesController,
+            mergeExtras: widget.isMerging ? _mergeExtras : null,
+            showShareToggle: ref
+                .watch(allDiversProvider)
+                .maybeWhen(data: (d) => d.length >= 2, orElse: () => false),
+            isShared: _isShared,
+            onShareChanged: _onShareToggled,
           ),
         ],
       ),
@@ -1108,49 +975,6 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     return index >= 0 ? index : 0;
   }
 
-  Widget _buildMergeCycleButton(VoidCallback onPressed) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return IconButton(
-      onPressed: onPressed,
-      tooltip: context.l10n.diveSites_edit_merge_fieldSourceCycleTooltip,
-      icon: const Icon(Icons.sync_alt, size: 18),
-      iconSize: 18,
-      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-      padding: const EdgeInsets.all(6),
-      style: IconButton.styleFrom(
-        backgroundColor: colorScheme.primaryContainer,
-        foregroundColor: colorScheme.onPrimaryContainer,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
-  }
-
-  InputDecoration _withMergeTextDecoration({
-    required String key,
-    required InputDecoration decoration,
-  }) {
-    final candidates = _mergeTextCandidates[key];
-    if (!widget.isMerging || candidates == null || candidates.length < 2) {
-      return decoration;
-    }
-
-    final currentIndex = _mergeFieldIndices[key] ?? 0;
-    final current = candidates[currentIndex];
-
-    return decoration.copyWith(
-      helperText: context.l10n.diveSites_edit_merge_fieldSourceLabel(
-        current.siteName,
-        currentIndex + 1,
-        candidates.length,
-      ),
-      suffixIcon: Padding(
-        padding: const EdgeInsets.only(right: 6),
-        child: _buildMergeCycleButton(() => _cycleTextField(key)),
-      ),
-      suffixIconConstraints: const BoxConstraints(minWidth: 44, minHeight: 36),
-    );
-  }
-
   void _selectTextFieldCandidate(String key, int index) {
     final candidates = _mergeTextCandidates[key];
     if (candidates == null || index < 0 || index >= candidates.length) return;
@@ -1231,16 +1055,6 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     _longitudeController.text = candidate.longitudeText;
   }
 
-  String? _mergeSectionSourceLabel(String key, int length, String siteName) {
-    if (!widget.isMerging || length < 2) return null;
-    final index = _mergeFieldIndices[key] ?? 0;
-    return context.l10n.diveSites_edit_merge_fieldSourceLabel(
-      siteName,
-      index + 1,
-      length,
-    );
-  }
-
   Future<bool> _confirmMerge() async {
     final count = widget.mergeSiteIds?.length ?? 0;
     final confirmed = await showDialog<bool>(
@@ -1261,197 +1075,6 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
       ),
     );
     return confirmed == true;
-  }
-
-  Widget _buildRatingSection(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(
-                context.l10n.diveSites_edit_section_rating,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              if (widget.isMerging && _ratingCandidates.length > 1) ...[
-                const Spacer(),
-                _buildMergeCycleButton(_cycleRating),
-              ],
-            ],
-          ),
-          if (widget.isMerging && _ratingCandidates.length > 1)
-            Text(
-              _mergeSectionSourceLabel(
-                    'rating',
-                    _ratingCandidates.length,
-                    _ratingCandidates[_mergeFieldIndices['rating'] ?? 0]
-                        .siteName,
-                  ) ??
-                  '',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(5, (index) {
-              return IconButton(
-                icon: Icon(
-                  index < _rating ? Icons.star : Icons.star_border,
-                  color: Colors.amber,
-                  size: 32,
-                ),
-                tooltip: context.l10n.diveSites_edit_rating_starTooltip(
-                  index + 1,
-                ),
-                onPressed: () {
-                  setState(() {
-                    _rating = index + 1.0;
-                    _hasChanges = true;
-                  });
-                },
-              );
-            }),
-          ),
-          if (_rating > 0)
-            Center(
-              child: TextButton(
-                onPressed: () => setState(() {
-                  _rating = 0;
-                  _hasChanges = true;
-                }),
-                child: Text(context.l10n.diveSites_edit_rating_clear),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDepthSection(BuildContext context, UnitFormatter units) {
-    final depthSymbol = units.depthSymbol;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.arrow_downward),
-              const SizedBox(width: 8),
-              Text(
-                context.l10n.diveSites_edit_section_depthRange,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            context.l10n.diveSites_edit_depth_helperText,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: TextFormField(
-                  controller: _minDepthController,
-                  decoration: _withMergeTextDecoration(
-                    key: 'minDepth',
-                    decoration: InputDecoration(
-                      labelText: context.l10n.diveSites_edit_depth_minLabel(
-                        depthSymbol,
-                      ),
-                      hintText: context.l10n.diveSites_edit_depth_minHint,
-                    ),
-                  ),
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Text(context.l10n.diveSites_edit_depth_separator),
-              ),
-              Expanded(
-                child: TextFormField(
-                  controller: _maxDepthController,
-                  decoration: _withMergeTextDecoration(
-                    key: 'maxDepth',
-                    decoration: InputDecoration(
-                      labelText: context.l10n.diveSites_edit_depth_maxLabel(
-                        depthSymbol,
-                      ),
-                      hintText: context.l10n.diveSites_edit_depth_maxHint,
-                    ),
-                  ),
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDifficultySection(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.fitness_center),
-              const SizedBox(width: 8),
-              Text(
-                context.l10n.diveSites_edit_section_difficultyLevel,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              if (widget.isMerging && _difficultyCandidates.length > 1) ...[
-                const Spacer(),
-                _buildMergeCycleButton(_cycleDifficulty),
-              ],
-            ],
-          ),
-          if (widget.isMerging && _difficultyCandidates.length > 1)
-            Text(
-              _mergeSectionSourceLabel(
-                    'difficulty',
-                    _difficultyCandidates.length,
-                    _difficultyCandidates[_mergeFieldIndices['difficulty'] ?? 0]
-                        .siteName,
-                  ) ??
-                  '',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            children: SiteDifficulty.values.map((difficulty) {
-              final isSelected = _difficulty == difficulty;
-              return ChoiceChip(
-                label: Text(difficulty.displayName),
-                selected: isSelected,
-                onSelected: (selected) {
-                  setState(() {
-                    _difficulty = selected ? difficulty : null;
-                    _hasChanges = true;
-                  });
-                },
-              );
-            }).toList(),
-          ),
-        ],
-      ),
-    );
   }
 
   bool _isGettingLocation = false;
@@ -1563,439 +1186,6 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
         ),
       );
     }
-  }
-
-  Widget _buildGpsSection(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.gps_fixed),
-              const SizedBox(width: 8),
-              Text(
-                context.l10n.diveSites_edit_section_gpsCoordinates,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              if (widget.isMerging && _coordinateCandidates.length > 1) ...[
-                const Spacer(),
-                _buildMergeCycleButton(_cycleCoordinates),
-              ],
-            ],
-          ),
-          if (widget.isMerging && _coordinateCandidates.length > 1)
-            Text(
-              _mergeSectionSourceLabel(
-                    'coordinates',
-                    _coordinateCandidates.length,
-                    _coordinateCandidates[_mergeFieldIndices['coordinates'] ??
-                            0]
-                        .siteName,
-                  ) ??
-                  '',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          const SizedBox(height: 8),
-          Text(
-            context.l10n.diveSites_edit_gps_helperText,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              FilledButton.tonalIcon(
-                onPressed: _isGettingLocation ? null : _useMyLocation,
-                icon: _isGettingLocation
-                    ? SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: colorScheme.onSecondaryContainer,
-                        ),
-                      )
-                    : const Icon(Icons.my_location, size: 18),
-                label: Text(
-                  _isGettingLocation
-                      ? context.l10n.diveSites_edit_gps_gettingLocation
-                      : context.l10n.diveSites_edit_gps_useMyLocation,
-                ),
-              ),
-              OutlinedButton.icon(
-                onPressed: _pickFromMap,
-                icon: const Icon(Icons.map, size: 18),
-                label: Text(context.l10n.diveSites_edit_gps_pickFromMap),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: TextFormField(
-                  controller: _latitudeController,
-                  decoration: InputDecoration(
-                    labelText: context.l10n.diveSites_edit_gps_latitude_label,
-                    hintText: context.l10n.diveSites_edit_gps_latitude_hint,
-                  ),
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                    signed: true,
-                  ),
-                  validator: _latValidatorFn,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: TextFormField(
-                  controller: _longitudeController,
-                  decoration: InputDecoration(
-                    labelText: context.l10n.diveSites_edit_gps_longitude_label,
-                    hintText: context.l10n.diveSites_edit_gps_longitude_hint,
-                  ),
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                    signed: true,
-                  ),
-                  validator: _lonValidatorFn,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAltitudeSection(BuildContext context, UnitFormatter units) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final altitudeSymbol = units.altitudeSymbol;
-
-    // Parse current altitude to show group indicator
-    final altitudeInput = double.tryParse(_altitudeController.text);
-    final altitudeMeters = altitudeInput != null
-        ? units.altitudeToMeters(altitudeInput)
-        : null;
-    final altitudeGroup = AltitudeGroup.fromAltitude(altitudeMeters);
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.terrain),
-              const SizedBox(width: 8),
-              Text(
-                context.l10n.diveSites_edit_section_altitude,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            context.l10n.diveSites_edit_altitude_helperText,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _altitudeController,
-            decoration: _withMergeTextDecoration(
-              key: 'altitude',
-              decoration: InputDecoration(
-                labelText: context.l10n.diveSites_edit_altitude_label(
-                  altitudeSymbol,
-                ),
-                hintText: context.l10n.diveSites_edit_altitude_hint,
-                prefixIcon: const Icon(Icons.terrain),
-              ),
-            ),
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            onChanged: (_) => setState(() {}),
-            validator: (value) {
-              if (value != null && value.isNotEmpty) {
-                final altitude = double.tryParse(value);
-                if (altitude == null || altitude < 0) {
-                  return context.l10n.diveSites_edit_altitude_validation;
-                }
-              }
-              return null;
-            },
-          ),
-          if (altitudeGroup != AltitudeGroup.seaLevel && altitudeMeters != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 12),
-              child: _buildAltitudeGroupIndicator(context, altitudeGroup),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAltitudeGroupIndicator(
-    BuildContext context,
-    AltitudeGroup group,
-  ) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    Color backgroundColor;
-    Color foregroundColor;
-    IconData icon;
-
-    switch (group.warningLevel) {
-      case AltitudeWarningLevel.none:
-        backgroundColor = colorScheme.surfaceContainerHighest;
-        foregroundColor = colorScheme.onSurface;
-        icon = Icons.check_circle_outline;
-      case AltitudeWarningLevel.info:
-        backgroundColor = colorScheme.primaryContainer;
-        foregroundColor = colorScheme.onPrimaryContainer;
-        icon = Icons.info_outline;
-      case AltitudeWarningLevel.caution:
-        backgroundColor = colorScheme.tertiaryContainer;
-        foregroundColor = colorScheme.onTertiaryContainer;
-        icon = Icons.warning_amber;
-      case AltitudeWarningLevel.warning:
-        backgroundColor = colorScheme.errorContainer;
-        foregroundColor = colorScheme.onErrorContainer;
-        icon = Icons.warning;
-      case AltitudeWarningLevel.severe:
-        backgroundColor = colorScheme.error;
-        foregroundColor = colorScheme.onError;
-        icon = Icons.dangerous;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 18, color: foregroundColor),
-          const SizedBox(width: 8),
-          Flexible(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  group.displayName,
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: foregroundColor,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                Text(
-                  group.rangeDescription,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: foregroundColor.withValues(alpha: 0.8),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAccessSection(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.directions),
-              const SizedBox(width: 8),
-              Text(
-                context.l10n.diveSites_edit_section_access,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _accessNotesController,
-            decoration: _withMergeTextDecoration(
-              key: 'accessNotes',
-              decoration: InputDecoration(
-                labelText: context.l10n.diveSites_edit_access_accessNotes_label,
-                hintText: context.l10n.diveSites_edit_access_accessNotes_hint,
-              ),
-            ),
-            maxLines: 3,
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: TextFormField(
-                  controller: _mooringNumberController,
-                  decoration: _withMergeTextDecoration(
-                    key: 'mooringNumber',
-                    decoration: InputDecoration(
-                      labelText: context
-                          .l10n
-                          .diveSites_edit_access_mooringNumber_label,
-                      hintText:
-                          context.l10n.diveSites_edit_access_mooringNumber_hint,
-                      prefixIcon: const Icon(Icons.anchor),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _parkingInfoController,
-            decoration: _withMergeTextDecoration(
-              key: 'parkingInfo',
-              decoration: InputDecoration(
-                labelText: context.l10n.diveSites_edit_access_parkingInfo_label,
-                hintText: context.l10n.diveSites_edit_access_parkingInfo_hint,
-                prefixIcon: const Icon(Icons.local_parking),
-              ),
-            ),
-            maxLines: 2,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSafetySection(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.warning_amber,
-                color: Theme.of(context).colorScheme.error,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                context.l10n.diveSites_edit_section_hazards,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            context.l10n.diveSites_edit_hazards_helperText,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _hazardsController,
-            decoration: _withMergeTextDecoration(
-              key: 'hazards',
-              decoration: InputDecoration(
-                labelText: context.l10n.diveSites_edit_hazards_label,
-                hintText: context.l10n.diveSites_edit_hazards_hint,
-              ),
-            ),
-            maxLines: 3,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildExpectedMarineLifeSection(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.water, color: colorScheme.primary),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  context.l10n.diveSites_edit_section_expectedMarineLife,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ),
-              FilledButton.tonalIcon(
-                onPressed: _showSpeciesPicker,
-                icon: const Icon(Icons.add, size: 18),
-                label: Text(context.l10n.diveSites_edit_marineLife_addButton),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            widget.isMerging
-                ? context.l10n.diveSites_edit_merge_marineLifeHelperText
-                : context.l10n.diveSites_edit_marineLife_helperText,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-          if (_expectedSpecies.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _expectedSpecies.map((species) {
-                return Chip(
-                  avatar: Icon(
-                    MdiIcons.fish,
-                    size: 16,
-                    color: colorScheme.primary,
-                  ),
-                  label: Text(species.commonName),
-                  deleteIcon: const Icon(Icons.close, size: 16),
-                  onDeleted: () {
-                    setState(() {
-                      _expectedSpecies = _expectedSpecies
-                          .where((s) => s.id != species.id)
-                          .toList();
-                      _hasChanges = true;
-                    });
-                  },
-                );
-              }).toList(),
-            ),
-          ] else ...[
-            const SizedBox(height: 16),
-            Center(
-              child: Text(
-                context.l10n.diveSites_edit_marineLife_empty,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
   }
 
   Future<void> _showSpeciesPicker() async {

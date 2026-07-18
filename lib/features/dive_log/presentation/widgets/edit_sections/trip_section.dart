@@ -63,6 +63,7 @@ class TripSection extends StatelessWidget {
     final l10n = context.l10n;
     return FormSection(
       label: l10n.diveLog_edit_group_trip,
+      icon: Icons.flight_takeoff,
       expanded: expanded,
       onToggle: onToggle,
       summary: summary,

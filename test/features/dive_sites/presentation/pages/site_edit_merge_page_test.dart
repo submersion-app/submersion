@@ -228,17 +228,17 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Scroll down to make the GPS section visible
+      // Scroll down to make the Location section's rows visible
       await tester.scrollUntilVisible(
-        find.text('GPS Coordinates'),
+        find.text('Latitude'),
         200,
         scrollable: find.byType(Scrollable).first,
       );
       await tester.pumpAndSettle();
 
-      // Find the GPS section
+      // Find the Location section
       final gpsSection = find.ancestor(
-        of: find.text('GPS Coordinates'),
+        of: find.text('Latitude'),
         matching: find.byType(FormSection),
       );
       final gpsCycleButton = find.descendant(

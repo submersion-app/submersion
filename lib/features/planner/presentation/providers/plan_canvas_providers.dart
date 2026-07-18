@@ -20,6 +20,7 @@ final planEngineConfigProvider = Provider<PlanEngineConfig>((ref) {
     ppO2Deco: ref.watch(ppO2MaxDecoProvider),
     cnsWarningThreshold: ref.watch(cnsWarningThresholdProvider),
     o2Narcotic: ref.watch(settingsProvider).o2Narcotic,
+    cnsMethod: ref.watch(cnsCalculationMethodProvider),
   );
 });
 

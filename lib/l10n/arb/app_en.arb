@@ -2300,6 +2300,36 @@
   "diveLog_edit_noMarineLife": "No marine life logged",
   "diveLog_edit_notSpecified": "Not specified",
   "diveLog_edit_notesHint": "Add notes about this dive...",
+  "diveLog_edit_overline_tanks": "Tanks",
+  "@diveLog_edit_overline_tanks": {
+    "description": "Sub-header overline above the tank rows in the Gas & Gear edit section"
+  },
+  "diveLog_edit_profile_draw": "Draw a profile",
+  "@diveLog_edit_profile_draw": {
+    "description": "Dive profile row placeholder when no profile exists; tapping opens the draw editor"
+  },
+  "diveLog_edit_profile_none": "Not recorded",
+  "@diveLog_edit_profile_none": {
+    "description": "Dive profile row value on a new dive with no profile data"
+  },
+  "diveLog_edit_profile_outliers": "{count, plural, one{1 potential outlier detected} other{{count} potential outliers detected}}",
+  "@diveLog_edit_profile_outliers": {
+    "description": "Chip under the dive profile row offering outlier cleanup",
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "diveLog_edit_profile_points": "{count, plural, one{1 point} other{{count} points}}",
+  "@diveLog_edit_profile_points": {
+    "description": "Dive profile row value: number of recorded profile samples",
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "diveLog_edit_row_addSite": "Add site",
   "@diveLog_edit_row_addSite": {
     "description": "Placeholder when no site selected"
@@ -2307,6 +2337,10 @@
   "diveLog_edit_row_diveCenter": "Dive center",
   "@diveLog_edit_row_diveCenter": {
     "description": "Row label: dive center picker"
+  },
+  "diveLog_edit_row_diveProfile": "Dive profile",
+  "@diveLog_edit_row_diveProfile": {
+    "description": "Row label: dive profile (points count / draw affordance)"
   },
   "diveLog_edit_row_entry": "Entry",
   "@diveLog_edit_row_entry": {
@@ -5920,6 +5954,18 @@
   "media_photoPicker_thumbnailToggleLabel": "Toggle selection for photo",
   "media_photoPicker_thumbnailToggleSelectedLabel": "Toggle selection for photo, selected",
   "media_photoPicker_thumbnailAlreadyLinkedLabel": "Photo already linked to this dive",
+  "media_perdixOverlay_labelCns": "CNS",
+  "media_perdixOverlay_labelDepth": "DEPTH",
+  "media_perdixOverlay_labelGas": "GAS",
+  "media_perdixOverlay_labelMax": "MAX",
+  "media_perdixOverlay_labelNdl": "NDL",
+  "media_perdixOverlay_labelPpo2": "PPO2",
+  "media_perdixOverlay_labelStop": "STOP",
+  "media_perdixOverlay_labelTank": "TANK",
+  "media_perdixOverlay_labelTemp": "TEMP",
+  "media_perdixOverlay_labelTime": "TIME",
+  "media_perdixOverlay_labelTts": "TTS",
+  "media_perdixOverlay_toggleTooltip": "Dive computer overlay",
   "media_photoViewer_cannotShare": "Cannot share this photo",
   "media_photoViewer_cannotWriteMetadata": "Cannot write metadata - media not linked to library",
   "media_photoViewer_closeTooltip": "Close photo viewer",
@@ -6942,6 +6988,7 @@
   "settings_decompression_dialog_title": "Gradient Factors",
   "settings_decompression_gfValue": "GF {gfLow}/{gfHigh}",
   "settings_decompression_header_gradientFactors": "Gradient Factors",
+  "settings_decompression_header_oxygenToxicity": "Oxygen Toxicity",
   "settings_decompression_preset_selectLabel": "Select {presetName} conservatism preset",
   "settings_decompression_header_narcosis": "Narcosis",
   "settings_decompression_o2Narcotic": "O2 is narcotic",
@@ -6949,6 +6996,22 @@
   "settings_decompression_endLimit": "END Limit",
   "settings_decompression_endLimit_subtitle": "Maximum equivalent narcotic depth used for MND calculations",
   "settings_decompression_endLimit_dialog_title": "END Limit",
+  "settings_decompression_cnsMethodTitle": "CNS calculation",
+  "settings_decompression_cnsMethodClassic": "NOAA table, stepped (classic)",
+  "settings_decompression_cnsMethodClassicDesc": "Charges each 0.1 bar band at its harsher edge. Submersion's original method.",
+  "settings_decompression_cnsMethodShearwater": "Linear interpolation (Shearwater-style)",
+  "settings_decompression_cnsMethodShearwaterDesc": "Interpolates between the NOAA limits as documented by Shearwater. Matches most dive computers.",
+  "settings_decompression_cnsMethodSubsurface": "Exponential fit (as Subsurface)",
+  "settings_decompression_cnsMethodSubsurfaceDesc": "Smooth curve fit to the NOAA table. Matches Subsurface's calculated CNS.",
+  "settings_decompression_cnsMethodAboutTitle": "About these methods",
+  "settings_decompression_cnsMethodAboutBody": "All three methods are built on the oxygen exposure limits of the NOAA Diving Manual (300 minutes at a ppO2 of 1.0 bar, 45 minutes at 1.6 bar). The table only defines limits in 0.1 bar steps: the classic method charges everything in a band at the band's harsher edge, which systematically overstates exposure between entries. Shearwater's dive computers document interpolating linearly between the NOAA limits, with a fixed 15% per minute above 1.65 bar. Subsurface replaced its table lookup in 2019 with a smooth two-line exponential fit to the same NOAA data (Robert C. Helling), which also extends naturally beyond 1.6 bar. Between table entries the two smooth methods agree within about one CNS point; the classic method reads higher.",
+  "settings_decompression_cnsMethodDisclaimer": "Names refer to the published methods of the respective projects and manufacturers; no affiliation or endorsement is implied. Computed values may differ from actual dive computer readings.",
+  "settings_decompression_cnsMethodSourcesTitle": "Sources",
+  "settings_linkOpenFailed": "Could not open the link.",
+  "settings_decompression_cnsMethodSourceNoaa": "NOAA: Diving Program (publisher of the NOAA Diving Manual)",
+  "settings_decompression_cnsMethodSourceShearwater": "Shearwater: The CNS Oxygen Clock",
+  "settings_decompression_cnsMethodSourceTheoreticalDiver": "The Theoretical Diver: Calculating oxygen CNS toxicity",
+  "settings_decompression_cnsMethodSourceSubsurface": "Subsurface: implementation (divelist.cpp)",
   "settings_existingDb_cancel": "Cancel",
   "settings_existingDb_continue": "Continue",
   "settings_existingDb_current": "Current",
@@ -7462,6 +7525,54 @@
         "type": "Object"
       }
     }
+  },
+  "@settings_decompression_cnsMethodTitle": {
+    "description": "Title of the CNS calculation method setting tile and its picker dialog."
+  },
+  "@settings_decompression_cnsMethodClassic": {
+    "description": "Label for the classic stepped NOAA-table CNS calculation method."
+  },
+  "@settings_decompression_cnsMethodClassicDesc": {
+    "description": "One-line description of the classic stepped CNS method shown under its label."
+  },
+  "@settings_decompression_cnsMethodShearwater": {
+    "description": "Label for the linear-interpolation CNS method as documented by Shearwater. Keep 'Shearwater' as written."
+  },
+  "@settings_decompression_cnsMethodShearwaterDesc": {
+    "description": "One-line description of the Shearwater-style linear interpolation CNS method. Keep 'NOAA' and 'Shearwater' as written."
+  },
+  "@settings_decompression_cnsMethodSubsurface": {
+    "description": "Label for the exponential-fit CNS method as used by Subsurface. Keep 'Subsurface' as written."
+  },
+  "@settings_decompression_cnsMethodSubsurfaceDesc": {
+    "description": "One-line description of the Subsurface exponential-fit CNS method. Keep 'NOAA' and 'Subsurface' as written."
+  },
+  "@settings_decompression_cnsMethodAboutTitle": {
+    "description": "Title of the expandable 'about these methods' section in the CNS method picker dialog."
+  },
+  "@settings_decompression_cnsMethodAboutBody": {
+    "description": "Explanatory paragraph on the history and differences of the three CNS calculation methods. Keep 'NOAA', 'Shearwater', 'Subsurface' and the name 'Robert C. Helling' as written."
+  },
+  "@settings_decompression_cnsMethodDisclaimer": {
+    "description": "Trademark and accuracy disclaimer shown at the bottom of the CNS method picker dialog."
+  },
+  "@settings_decompression_cnsMethodSourcesTitle": {
+    "description": "Heading for the list of external reference links in the CNS method picker dialog."
+  },
+  "@settings_linkOpenFailed": {
+    "description": "Snackbar shown when an external link cannot be opened"
+  },
+  "@settings_decompression_cnsMethodSourceNoaa": {
+    "description": "Source link label for the NOAA Diving Program page in the CNS method dialog."
+  },
+  "@settings_decompression_cnsMethodSourceShearwater": {
+    "description": "Tappable link label for the Shearwater CNS oxygen clock article. Keep 'Shearwater' and 'CNS' as written; translate only the descriptive words."
+  },
+  "@settings_decompression_cnsMethodSourceTheoreticalDiver": {
+    "description": "Tappable link label for The Theoretical Diver article on oxygen CNS toxicity. Keep the site name 'The Theoretical Diver' and 'CNS' as written; translate only the descriptive words."
+  },
+  "@settings_decompression_cnsMethodSourceSubsurface": {
+    "description": "Tappable link label for the Subsurface source implementation. Keep 'Subsurface', 'CNS' and the file name 'divelist.cpp' as written; translate only the descriptor 'implementation'."
   },
   "@settings_import_itemCount": {
     "placeholders": {

@@ -3,6 +3,7 @@ import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
 import 'package:submersion/core/deco/ascent/ccr_loop_ascent_gas.dart';
 import 'package:submersion/core/deco/deco_model.dart';
 import 'package:submersion/core/deco/entities/breathing_config.dart';
+import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/gas_density.dart';
 import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
@@ -32,6 +33,9 @@ class PlanEngineConfig {
   /// Rock-bottom sizing: how many divers share the emergency ascent.
   final double buddyFactor;
 
+  /// Algorithm used to convert ppO2 exposure into CNS %/min.
+  final CnsCalculationMethod cnsMethod;
+
   const PlanEngineConfig({
     this.ppO2Working = 1.4,
     this.ppO2Deco = 1.6,
@@ -42,6 +46,7 @@ class PlanEngineConfig {
     this.o2MetabolicRateLpm = 1.0,
     this.loopVolumeLiters = 6.0,
     this.buddyFactor = 2.0,
+    this.cnsMethod = CnsCalculationMethod.shearwater,
   });
 }
 
@@ -115,6 +120,7 @@ class PlanEngine {
       ppO2WarningThreshold: config.ppO2Working,
       ppO2CriticalThreshold: config.ppO2Deco,
       cnsWarningThreshold: config.cnsWarningThreshold,
+      cnsMethod: config.cnsMethod,
     );
 
     final segments = List<PlanSegment>.from(plan.segments)

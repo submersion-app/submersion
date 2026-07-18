@@ -74,8 +74,13 @@ void main() {
     },
   );
 
-  test('v112 is the current schema version (exact-latest tripwire)', () {
-    expect(AppDatabase.currentSchemaVersion, 112);
+  test('v114 is the current schema version (exact-latest tripwire)', () {
+    // v112: equipment.thickness (main). v113: diver_settings.cns_calculation_method
+    // (main). v114: deletion_log unique index + sync_peer_cursors.applied_hlc_high
+    // (fleet-acked tombstone GC).
+    expect(AppDatabase.currentSchemaVersion, 114);
     expect(AppDatabase.migrationVersions, contains(112));
+    expect(AppDatabase.migrationVersions, contains(113));
+    expect(AppDatabase.migrationVersions, contains(114));
   });
 }

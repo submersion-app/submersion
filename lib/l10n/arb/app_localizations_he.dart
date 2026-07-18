@@ -4264,10 +4264,44 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_notesHint => 'הוסף הערות לצלילה זו...';
 
   @override
+  String get diveLog_edit_overline_tanks => 'מיכלים';
+
+  @override
+  String get diveLog_edit_profile_draw => 'שרטוט פרופיל';
+
+  @override
+  String get diveLog_edit_profile_none => 'לא הוקלט';
+
+  @override
+  String diveLog_edit_profile_outliers(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'זוהו $count חריגות אפשריות',
+      one: 'זוהתה חריגה אפשרית אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_edit_profile_points(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count נקודות',
+      one: 'נקודה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_row_addSite => 'הוספת אתר';
 
   @override
   String get diveLog_edit_row_diveCenter => 'מרכז צלילה';
+
+  @override
+  String get diveLog_edit_row_diveProfile => 'פרופיל צלילה';
 
   @override
   String get diveLog_edit_row_entry => 'כניסה';
@@ -10685,6 +10719,42 @@ class AppLocalizationsHe extends AppLocalizations {
       'תמונה כבר מקושרת לצלילה זו';
 
   @override
+  String get media_perdixOverlay_labelCns => 'CNS';
+
+  @override
+  String get media_perdixOverlay_labelDepth => 'עומק';
+
+  @override
+  String get media_perdixOverlay_labelGas => 'GAS';
+
+  @override
+  String get media_perdixOverlay_labelMax => 'MAX';
+
+  @override
+  String get media_perdixOverlay_labelNdl => 'NDL';
+
+  @override
+  String get media_perdixOverlay_labelPpo2 => 'PPO2';
+
+  @override
+  String get media_perdixOverlay_labelStop => 'STOP';
+
+  @override
+  String get media_perdixOverlay_labelTank => 'TANK';
+
+  @override
+  String get media_perdixOverlay_labelTemp => 'טמפ';
+
+  @override
+  String get media_perdixOverlay_labelTime => 'זמן';
+
+  @override
+  String get media_perdixOverlay_labelTts => 'TTS';
+
+  @override
+  String get media_perdixOverlay_toggleTooltip => 'שכבת מחשב צלילה';
+
+  @override
   String get media_photoViewer_cannotShare => 'לא ניתן לשתף תמונה זו';
 
   @override
@@ -12410,6 +12480,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_decompression_header_gradientFactors => 'גורמי שיפוע';
 
   @override
+  String get settings_decompression_header_oxygenToxicity => 'רעילות חמצן';
+
+  @override
   String settings_decompression_preset_selectLabel(Object presetName) {
     return 'בחר הגדרת שמרנות $presetName';
   }
@@ -12433,6 +12506,66 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_decompression_endLimit_dialog_title => 'מגבלת END';
+
+  @override
+  String get settings_decompression_cnsMethodTitle => 'חישוב CNS';
+
+  @override
+  String get settings_decompression_cnsMethodClassic =>
+      'טבלת NOAA, מדורגת (קלאסי)';
+
+  @override
+  String get settings_decompression_cnsMethodClassicDesc =>
+      'מחשב כל תחום של 0.1 bar לפי הקצה המחמיר שלו. השיטה המקורית של Submersion.';
+
+  @override
+  String get settings_decompression_cnsMethodShearwater =>
+      'אינטרפולציה לינארית (בסגנון Shearwater)';
+
+  @override
+  String get settings_decompression_cnsMethodShearwaterDesc =>
+      'מבצע אינטרפולציה בין גבולות NOAA כפי שמתועד על ידי Shearwater. תואם את רוב מחשבי הצלילה.';
+
+  @override
+  String get settings_decompression_cnsMethodSubsurface =>
+      'התאמה מעריכית (כמו Subsurface)';
+
+  @override
+  String get settings_decompression_cnsMethodSubsurfaceDesc =>
+      'התאמת עקומה חלקה לטבלת NOAA. תואם את ה-CNS המחושב של Subsurface.';
+
+  @override
+  String get settings_decompression_cnsMethodAboutTitle => 'אודות שיטות אלה';
+
+  @override
+  String get settings_decompression_cnsMethodAboutBody =>
+      'שלוש השיטות מבוססות על גבולות החשיפה לחמצן שבמדריך הצלילה של NOAA (300 דקות ב-ppO2 של 1.0 bar, 45 דקות ב-1.6 bar). הטבלה מגדירה גבולות רק בצעדים של 0.1 bar: השיטה הקלאסית מחשבת את כל מה שנמצא בתוך תחום לפי הקצה המחמיר של התחום, ובכך מעריכה ביתר באופן שיטתי את החשיפה שבין הערכים. מחשבי הצלילה של Shearwater מתעדים אינטרפולציה לינארית בין גבולות NOAA, עם 15% קבועים לדקה מעל 1.65 bar. בשנת 2019 החליפה Subsurface את חיפוש הטבלה שלה בהתאמה מעריכית חלקה בשני מקטעים לאותם נתוני NOAA (Robert C. Helling), שגם מתרחבת באופן טבעי מעבר ל-1.6 bar. בין ערכי הטבלה שתי השיטות החלקות תואמות זו את זו בהפרש של כנקודת CNS אחת בקירוב; השיטה הקלאסית מציגה ערכים גבוהים יותר.';
+
+  @override
+  String get settings_decompression_cnsMethodDisclaimer =>
+      'השמות מתייחסים לשיטות שפורסמו של הפרויקטים והיצרנים המתאימים; אין בכך כדי לרמז על שיוך או חסות. ערכים מחושבים עשויים להיות שונים מהקריאות בפועל של מחשב הצלילה.';
+
+  @override
+  String get settings_decompression_cnsMethodSourcesTitle => 'מקורות';
+
+  @override
+  String get settings_linkOpenFailed => 'לא ניתן לפתוח את הקישור.';
+
+  @override
+  String get settings_decompression_cnsMethodSourceNoaa =>
+      'NOAA: Diving Program (המוציא לאור של NOAA Diving Manual)';
+
+  @override
+  String get settings_decompression_cnsMethodSourceShearwater =>
+      'Shearwater: שעון החמצן של CNS';
+
+  @override
+  String get settings_decompression_cnsMethodSourceTheoreticalDiver =>
+      'The Theoretical Diver: חישוב רעילות חמצן CNS';
+
+  @override
+  String get settings_decompression_cnsMethodSourceSubsurface =>
+      'Subsurface: מימוש (divelist.cpp)';
 
   @override
   String get settings_existingDb_cancel => 'ביטול';
