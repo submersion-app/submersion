@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
@@ -144,6 +145,65 @@ void main() {
       expect(advancedChip.selected, isTrue);
     },
   );
+
+  testWidgets('merge mode cycles water type when sites differ', (tester) async {
+    tester.view.physicalSize = const Size(900, 3600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    final site1 = await siteRepository.createSite(
+      const DiveSite(id: 'wt-m1', name: 'Salt Site', waterType: WaterType.salt),
+    );
+    final site2 = await siteRepository.createSite(
+      const DiveSite(
+        id: 'wt-m2',
+        name: 'Fresh Site',
+        waterType: WaterType.fresh,
+      ),
+    );
+
+    await tester.pumpWidget(
+      _buildMergePageHarness(
+        prefs: prefs,
+        siteRepository: siteRepository,
+        siteIds: [site1.id, site2.id],
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Water Type'),
+      100,
+      scrollable: find.byType(Scrollable).first,
+    );
+
+    // Salt Water (site1, the first non-empty candidate) selected initially.
+    expect(
+      tester
+          .widget<ChoiceChip>(find.widgetWithText(ChoiceChip, 'Salt Water'))
+          .selected,
+      isTrue,
+    );
+
+    // Only water type differs, so exactly one cycle button sits in Dive Info.
+    final waterTypeSection = find.ancestor(
+      of: find.text('Water Type'),
+      matching: find.byType(FormSection),
+    );
+    final cycleButton = find.descendant(
+      of: waterTypeSection,
+      matching: find.byIcon(Icons.sync_alt),
+    );
+    expect(cycleButton, findsOneWidget);
+
+    await tester.tap(cycleButton);
+    await tester.pumpAndSettle();
+
+    expect(
+      tester
+          .widget<ChoiceChip>(find.widgetWithText(ChoiceChip, 'Fresh Water'))
+          .selected,
+      isTrue,
+    );
+  });
 
   testWidgets('merge mode cycles rating when sites have different ratings', (
     tester,
