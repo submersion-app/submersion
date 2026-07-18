@@ -257,7 +257,7 @@ class DivePlans extends Table {
   TextColumn get name => text()();
   TextColumn get notes => text().withDefault(const Constant(''))();
 
-  /// PlanMode enum name: 'oc' | 'ccr' | 'scr' | 'recreational'.
+  /// PlanMode enum name: 'oc' | 'ccr' | 'scr' | 'pscr'.
   TextColumn get mode => text().withDefault(const Constant('oc'))();
   TextColumn get siteId => text().nullable().references(DiveSites, #id)();
 
@@ -385,7 +385,7 @@ class DivePlanSegments extends Table {
   /// setpoint (v120, Subsurface per-segment setpoint column).
   RealColumn get setpointBar => real().nullable()();
 
-  /// Per-segment dive-mode override enum name ('oc'|'ccr'|'scr'); null =
+  /// Per-segment dive-mode override enum name ('oc'|'ccr'|'scr'|'pscr'); null =
   /// the plan's mode. Models mid-plan bailout (v120).
   TextColumn get diveModeOverride => text().nullable()();
   IntColumn get sortOrder => integer().withDefault(const Constant(0))();
