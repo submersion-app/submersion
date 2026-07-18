@@ -214,9 +214,10 @@ class LightroomScanService {
     for (final span in spans) {
       // captured_after/captured_before are mutually exclusive on the assets
       // endpoint, so query the lower bound only and page `next`. Adobe lists
-      // assets oldest-first, so querying captured_after=window start puts the
-      // window's assets on the first pages; once an asset crosses above the
-      // window end every later asset is newer too -- stop then.
+      // assets coarsely oldest-first (ascending by day, unordered within a
+      // day), so querying captured_after=window start puts the window's assets
+      // on the first pages; page until an entire page falls past the window end
+      // (see the per-page stop below) rather than trusting a strict order.
       _log.info(
         '[LR-SCAN] span ${span.start.toIso8601String()} .. '
         '${span.end.toIso8601String()} '
@@ -241,16 +242,33 @@ class LightroomScanService {
           'lastDate=${page.assets.isEmpty ? 'n/a' : page.assets.last.captureDate?.toIso8601String()} '
           'hasNext=${page.nextUrl != null}',
         );
+        var sawWithinWindow = false;
         for (final asset in page.assets) {
           final captureDate = asset.captureDate;
-          if (captureDate != null && captureDate.isAfter(span.end)) {
-            // Assets page oldest-first, so everything after this one is newer
-            // than the window end too -- stop scanning this page.
-            reachedEnd = true;
-            break;
+          if (captureDate == null) {
+            // The catalog path is capture-date filtered so nulls should not
+            // surface, but keep any that slip through for summary accounting.
+            // They cannot fall in a window and must not drive the stop below.
+            assets.add(asset);
+            continue;
           }
+          if (captureDate.isAfter(span.end)) {
+            // Past the window end. The endpoint orders assets only coarsely
+            // (ascending by day, unordered within a day), so a later asset on
+            // this same page can still sit inside the window -- skip this one
+            // but keep scanning the rest of the page rather than stopping.
+            continue;
+          }
+          // captured_after already bounds the low end, so this is in-window.
           assets.add(asset);
+          sawWithinWindow = true;
         }
+        // Stop only once an entire page falls beyond the window end: pages run
+        // coarsely oldest-first, so once none of a page's assets reach back
+        // into the window, no later page will either. Stopping on the first
+        // past-end asset (the previous behaviour) dropped in-window assets that
+        // trailed an out-of-window one within the same page.
+        reachedEnd = page.assets.isNotEmpty && !sawWithinWindow;
         next = reachedEnd ? null : page.nextUrl;
       } while (next != null);
       if (reachedEnd) {

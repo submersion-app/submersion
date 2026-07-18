@@ -62,13 +62,16 @@ class _FakeLightroomApi extends LightroomApiClient {
   }
 }
 
-/// Models the ordering and pagination of the live Lightroom assets endpoint:
-/// dated assets are sorted oldest-first (ascending capture date) and paginated
-/// via `next`. The cursor (captured_after / captured_before) is honoured on the
-/// first call and then re-encoded into the next URL, mirroring how the real
-/// `next` link carries the original query forward. Assets without a capture
-/// date are not modelled here (the catalog path is capture-date filtered); the
-/// null-capture accounting is exercised through [_FakeLightroomApi] instead.
+/// Models the pagination of the live Lightroom assets endpoint. The cursor
+/// (captured_after / captured_before) is honoured as a *filter* on the first
+/// call and then re-encoded into the next URL, mirroring how the real `next`
+/// link carries the original query forward. Assets are returned in the order
+/// the test supplies them -- the live endpoint orders only coarsely (ascending
+/// by day, unordered within a day), so tests model that order directly rather
+/// than relying on a strict ascending sort the endpoint does not guarantee.
+/// Assets without a capture date are not modelled here (the catalog path is
+/// capture-date filtered); the null-capture accounting is exercised through
+/// [_FakeLightroomApi] instead.
 class _PagingLightroomApi extends LightroomApiClient {
   _PagingLightroomApi({required this.assets, this.pageSize = 2})
     : super(auth: AdobeImsAuthManager());
@@ -98,11 +101,13 @@ class _PagingLightroomApi extends LightroomApiClient {
       assetCalls.add((after: capturedAfter, before: capturedBefore));
     }
 
+    // Filter by the cursor but preserve the supplied order: the endpoint does
+    // not return a strict ascending sort, so tests decide the exact order.
     final filtered = assets.where((x) => x.captureDate != null).where((x) {
       final t = x.captureDate!;
       return (after == null || !t.isBefore(after)) &&
           (before == null || !t.isAfter(before));
-    }).toList()..sort((p, q) => p.captureDate!.compareTo(q.captureDate!));
+    }).toList();
 
     final slice = filtered.skip(offset).take(pageSize).toList();
     final consumed = offset + slice.length;
@@ -262,6 +267,38 @@ void main() {
         image('inWindow', DateTime.utc(2026, 7, 1, 10, 30)),
         image('after', DateTime.utc(2026, 7, 1, 13)),
         image('wayAfter', DateTime.utc(2026, 7, 2, 9)),
+      ],
+    );
+    final summary = await service(
+      api,
+    ).scanDives(account: account, dives: [dive], state: state);
+
+    expect(summary.attached, 1);
+    expect(
+      (await mediaRepository.getMediaForDive(dive.id)).single.remoteAssetId,
+      'inWindow',
+    );
+  });
+
+  test('attaches an in-window asset that trails out-of-window assets on the '
+      'same page (endpoint orders coarsely, not strictly ascending)', () async {
+    final dive = await createDive(
+      entry: DateTime.utc(2026, 7, 1, 10),
+      exit: DateTime.utc(2026, 7, 1, 11),
+    );
+    // Reproduces the field failure. Window is [09:30, 12:00]. The live endpoint
+    // orders assets only coarsely (ascending by day, unordered within a day):
+    // here two shots past the window end (13:00) are returned BEFORE the
+    // in-window shot (10:30) on the same page. captured_after=09:30 keeps all
+    // three. The scan must not stop on the past-end shots and drop the
+    // in-window one sitting behind them -- the previous early-stop broke on the
+    // first past-end asset and collected nothing.
+    final api = _PagingLightroomApi(
+      pageSize: 4,
+      assets: [
+        image('after1', DateTime.utc(2026, 7, 1, 13)),
+        image('after2', DateTime.utc(2026, 7, 1, 13, 5)),
+        image('inWindow', DateTime.utc(2026, 7, 1, 10, 30)),
       ],
     );
     final summary = await service(

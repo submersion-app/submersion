@@ -102,9 +102,9 @@ class LightroomApiClient {
               'subtype': 'image;video',
               // captured_after and captured_before are mutually exclusive on
               // this endpoint (Adobe returns 400 if both are sent). Adobe lists
-              // assets oldest-first, so the scanner queries the lower bound
-              // (captured_after) and pages `next` toward newer assets; prefer
-              // it when both are supplied.
+              // assets coarsely oldest-first, so the scanner queries the lower
+              // bound (captured_after) and pages `next` toward newer assets;
+              // prefer it when both are supplied.
               if (capturedAfter != null)
                 'captured_after': _isoWallClock(capturedAfter)!
               else if (capturedBefore != null)
