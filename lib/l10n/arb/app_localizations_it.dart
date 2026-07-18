@@ -10024,8 +10024,14 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String equipment_list_tile_serviceInDays(Object days) {
-    return 'Manutenzione tra $days giorni';
+  String equipment_list_tile_serviceInDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Manutenzione tra $days giorni',
+      one: 'Manutenzione tra 1 giorno',
+    );
+    return '$_temp0';
   }
 
   @override

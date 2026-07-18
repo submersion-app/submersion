@@ -3120,7 +3120,7 @@
   "equipment_list_sortTitle": "מיין ציוד",
   "equipment_list_sortTooltip": "מיין",
   "equipment_list_tile_daysCount": "{days} ימים",
-  "equipment_list_tile_serviceInDays": "טיפול בעוד {days} ימים",
+  "equipment_list_tile_serviceInDays": "{days, plural, =1{טיפול בעוד יום אחד} other{טיפול בעוד {days} ימים}}",
   "equipment_list_tile_serviceDueChip": "טיפול נדרש",
   "equipment_list_tile_serviceIn": "טיפול בעוד",
   "equipment_menu_delete": "מחק",

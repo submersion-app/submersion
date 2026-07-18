@@ -10053,8 +10053,14 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String equipment_list_tile_serviceInDays(Object days) {
-    return 'Revision dans $days jours';
+  String equipment_list_tile_serviceInDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Revision dans $days jours',
+      one: 'Revision dans 1 jour',
+    );
+    return '$_temp0';
   }
 
   @override

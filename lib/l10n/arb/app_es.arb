@@ -3154,7 +3154,7 @@
   "equipment_list_sortTitle": "Ordenar equipo",
   "equipment_list_sortTooltip": "Ordenar",
   "equipment_list_tile_daysCount": "{days} dias",
-  "equipment_list_tile_serviceInDays": "Servicio en {days} dias",
+  "equipment_list_tile_serviceInDays": "{days, plural, =1{Servicio en 1 dia} other{Servicio en {days} dias}}",
   "equipment_list_tile_serviceDueChip": "Servicio pendiente",
   "equipment_list_tile_serviceIn": "Servicio en",
   "equipment_menu_delete": "Eliminar",

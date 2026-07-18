@@ -9571,8 +9571,14 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String equipment_list_tile_serviceInDays(Object days) {
-    return '维护在 $days 天';
+  String equipment_list_tile_serviceInDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '维护在 $days 天',
+      one: '维护在 1 天',
+    );
+    return '$_temp0';
   }
 
   @override

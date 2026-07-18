@@ -3154,7 +3154,7 @@
   "equipment_list_sortTitle": "Ausrüstung sortieren",
   "equipment_list_sortTooltip": "Sortieren",
   "equipment_list_tile_daysCount": "{days} Tage",
-  "equipment_list_tile_serviceInDays": "Wartung in {days} Tage",
+  "equipment_list_tile_serviceInDays": "{days, plural, =1{Wartung in 1 Tag} other{Wartung in {days} Tage}}",
   "equipment_list_tile_serviceDueChip": "Wartung fällig",
   "equipment_list_tile_serviceIn": "Wartung in",
   "equipment_menu_delete": "Löschen",

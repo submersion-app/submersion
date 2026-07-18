@@ -3120,7 +3120,7 @@
   "equipment_list_sortTitle": "Felszereles rendezese",
   "equipment_list_sortTooltip": "Rendezes",
   "equipment_list_tile_daysCount": "{days} nap",
-  "equipment_list_tile_serviceInDays": "Szerviz {days} nap",
+  "equipment_list_tile_serviceInDays": "{days, plural, =1{Szerviz 1 nap} other{Szerviz {days} nap}}",
   "equipment_list_tile_serviceDueChip": "Szerviz esedek",
   "equipment_list_tile_serviceIn": "Szerviz",
   "equipment_menu_delete": "Torles",

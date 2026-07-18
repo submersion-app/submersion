@@ -69,6 +69,34 @@ void main() {
     expect(base.copyWith(), base); // Equatable identity
   });
 
+  test('ServiceKind.copyWith clears nullable fields when passed null', () {
+    final full = kind().copyWith(
+      diverId: 'd1',
+      defaultIntervalDives: 100,
+      defaultIntervalHours: 50.0,
+    );
+    // Explicit null clears each nullable field (e.g. promote a custom kind to
+    // shared by clearing diverId, or drop a default interval to leave it unset)
+    // via the _undefined sentinel, not just overwrite with a non-null value.
+    final cleared = full.copyWith(
+      diverId: null,
+      defaultIntervalDays: null,
+      defaultIntervalDives: null,
+      defaultIntervalHours: null,
+    );
+    expect(cleared.diverId, isNull);
+    expect(cleared.defaultIntervalDays, isNull);
+    expect(cleared.defaultIntervalDives, isNull);
+    expect(cleared.defaultIntervalHours, isNull);
+
+    // Omitting a nullable arg leaves the existing value untouched.
+    final untouched = full.copyWith(name: 'Renamed');
+    expect(untouched.diverId, 'd1');
+    expect(untouched.defaultIntervalDays, 1825);
+    expect(untouched.defaultIntervalDives, 100);
+    expect(untouched.defaultIntervalHours, 50.0);
+  });
+
   test('ServiceSchedule.copyWith covers every field', () {
     final base = ServiceSchedule(
       id: 's1',

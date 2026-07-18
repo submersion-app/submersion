@@ -17149,8 +17149,8 @@ abstract class AppLocalizations {
   /// No description provided for @equipment_list_tile_serviceInDays.
   ///
   /// In en, this message translates to:
-  /// **'Service in {days} days'**
-  String equipment_list_tile_serviceInDays(Object days);
+  /// **'{days, plural, =1{Service in 1 day} other{Service in {days} days}}'**
+  String equipment_list_tile_serviceInDays(int days);
 
   /// No description provided for @equipment_list_tile_serviceDueChip.
   ///

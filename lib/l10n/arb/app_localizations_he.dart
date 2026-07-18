@@ -9789,8 +9789,14 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String equipment_list_tile_serviceInDays(Object days) {
-    return 'טיפול בעוד $days ימים';
+  String equipment_list_tile_serviceInDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'טיפול בעוד $days ימים',
+      one: 'טיפול בעוד יום אחד',
+    );
+    return '$_temp0';
   }
 
   @override

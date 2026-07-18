@@ -35,14 +35,19 @@ class ServiceKind extends Equatable {
   bool appliesTo(EquipmentType type) =>
       applicableTypes.isEmpty || applicableTypes.contains(type);
 
+  /// The nullable fields (diverId/defaultInterval*) use the [_undefined]
+  /// sentinel so callers can explicitly clear them to null (e.g. promote a
+  /// custom kind to shared by clearing diverId, or drop a default interval)
+  /// rather than only ever overwriting with a non-null value. Mirrors
+  /// [ServiceSchedule.copyWith].
   ServiceKind copyWith({
     String? id,
-    String? diverId,
+    Object? diverId = _undefined,
     String? name,
     List<EquipmentType>? applicableTypes,
-    int? defaultIntervalDays,
-    int? defaultIntervalDives,
-    double? defaultIntervalHours,
+    Object? defaultIntervalDays = _undefined,
+    Object? defaultIntervalDives = _undefined,
+    Object? defaultIntervalHours = _undefined,
     bool? autoAttach,
     bool? isBuiltIn,
     DateTime? createdAt,
@@ -50,12 +55,18 @@ class ServiceKind extends Equatable {
   }) {
     return ServiceKind(
       id: id ?? this.id,
-      diverId: diverId ?? this.diverId,
+      diverId: diverId == _undefined ? this.diverId : diverId as String?,
       name: name ?? this.name,
       applicableTypes: applicableTypes ?? this.applicableTypes,
-      defaultIntervalDays: defaultIntervalDays ?? this.defaultIntervalDays,
-      defaultIntervalDives: defaultIntervalDives ?? this.defaultIntervalDives,
-      defaultIntervalHours: defaultIntervalHours ?? this.defaultIntervalHours,
+      defaultIntervalDays: defaultIntervalDays == _undefined
+          ? this.defaultIntervalDays
+          : defaultIntervalDays as int?,
+      defaultIntervalDives: defaultIntervalDives == _undefined
+          ? this.defaultIntervalDives
+          : defaultIntervalDives as int?,
+      defaultIntervalHours: defaultIntervalHours == _undefined
+          ? this.defaultIntervalHours
+          : defaultIntervalHours as double?,
       autoAttach: autoAttach ?? this.autoAttach,
       isBuiltIn: isBuiltIn ?? this.isBuiltIn,
       createdAt: createdAt ?? this.createdAt,
@@ -78,3 +89,7 @@ class ServiceKind extends Equatable {
     updatedAt,
   ];
 }
+
+/// Sentinel distinguishing "argument omitted" from "explicitly set to null" in
+/// [ServiceKind.copyWith], so nullable fields can be cleared.
+const _undefined = Object();

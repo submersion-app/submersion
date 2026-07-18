@@ -9848,8 +9848,14 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String equipment_list_tile_serviceInDays(Object days) {
-    return 'الصيانة خلال $days يوم';
+  String equipment_list_tile_serviceInDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'الصيانة خلال $days يوم',
+      one: 'الصيانة خلال يوم واحد',
+    );
+    return '$_temp0';
   }
 
   @override

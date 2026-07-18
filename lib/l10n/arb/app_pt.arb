@@ -3154,7 +3154,7 @@
   "equipment_list_sortTitle": "Ordenar Equipamento",
   "equipment_list_sortTooltip": "Ordenar",
   "equipment_list_tile_daysCount": "{days} dias",
-  "equipment_list_tile_serviceInDays": "Manutencao em {days} dias",
+  "equipment_list_tile_serviceInDays": "{days, plural, =1{Manutencao em 1 dia} other{Manutencao em {days} dias}}",
   "equipment_list_tile_serviceDueChip": "Manutencao Pendente",
   "equipment_list_tile_serviceIn": "Manutencao em",
   "equipment_menu_delete": "Excluir",

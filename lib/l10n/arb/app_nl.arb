@@ -3154,7 +3154,7 @@
   "equipment_list_sortTitle": "Uitrusting sorteren",
   "equipment_list_sortTooltip": "Sorteren",
   "equipment_list_tile_daysCount": "{days} dagen",
-  "equipment_list_tile_serviceInDays": "Service over {days} dagen",
+  "equipment_list_tile_serviceInDays": "{days, plural, =1{Service over 1 dag} other{Service over {days} dagen}}",
   "equipment_list_tile_serviceDueChip": "Service nodig",
   "equipment_list_tile_serviceIn": "Service over",
   "equipment_menu_delete": "Verwijderen",

@@ -3154,7 +3154,7 @@
   "equipment_list_sortTitle": "ترتيب المعدات",
   "equipment_list_sortTooltip": "ترتيب",
   "equipment_list_tile_daysCount": "{days} يوم",
-  "equipment_list_tile_serviceInDays": "الصيانة خلال {days} يوم",
+  "equipment_list_tile_serviceInDays": "{days, plural, =1{الصيانة خلال يوم واحد} other{الصيانة خلال {days} يوم}}",
   "equipment_list_tile_serviceDueChip": "الصيانة مستحقة",
   "equipment_list_tile_serviceIn": "الصيانة خلال",
   "equipment_menu_delete": "حذف",

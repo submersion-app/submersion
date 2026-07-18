@@ -3120,7 +3120,7 @@
   "equipment_list_sortTitle": "Ordina attrezzatura",
   "equipment_list_sortTooltip": "Ordina",
   "equipment_list_tile_daysCount": "{days} giorni",
-  "equipment_list_tile_serviceInDays": "Manutenzione tra {days} giorni",
+  "equipment_list_tile_serviceInDays": "{days, plural, =1{Manutenzione tra 1 giorno} other{Manutenzione tra {days} giorni}}",
   "equipment_list_tile_serviceDueChip": "Manutenzione prevista",
   "equipment_list_tile_serviceIn": "Manutenzione tra",
   "equipment_menu_delete": "Elimina",

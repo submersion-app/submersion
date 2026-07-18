@@ -10013,8 +10013,14 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String equipment_list_tile_serviceInDays(Object days) {
-    return 'Servicio en $days dias';
+  String equipment_list_tile_serviceInDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Servicio en $days dias',
+      one: 'Servicio en 1 dia',
+    );
+    return '$_temp0';
   }
 
   @override

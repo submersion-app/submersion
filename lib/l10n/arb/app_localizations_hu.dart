@@ -10001,8 +10001,14 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String equipment_list_tile_serviceInDays(Object days) {
-    return 'Szerviz $days nap';
+  String equipment_list_tile_serviceInDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Szerviz $days nap',
+      one: 'Szerviz 1 nap',
+    );
+    return '$_temp0';
   }
 
   @override

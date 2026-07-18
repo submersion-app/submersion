@@ -3120,7 +3120,7 @@
   "equipment_list_sortTitle": "Trier l'equipement",
   "equipment_list_sortTooltip": "Trier",
   "equipment_list_tile_daysCount": "{days} jours",
-  "equipment_list_tile_serviceInDays": "Revision dans {days} jours",
+  "equipment_list_tile_serviceInDays": "{days, plural, =1{Revision dans 1 jour} other{Revision dans {days} jours}}",
   "equipment_list_tile_serviceDueChip": "Revision due",
   "equipment_list_tile_serviceIn": "Revision dans",
   "equipment_menu_delete": "Supprimer",

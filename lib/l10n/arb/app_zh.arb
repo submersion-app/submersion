@@ -3296,7 +3296,7 @@
   "equipment_list_sortTitle": "排序装备",
   "equipment_list_sortTooltip": "排序",
   "equipment_list_tile_daysCount": "{days} 天",
-  "equipment_list_tile_serviceInDays": "维护在 {days} 天",
+  "equipment_list_tile_serviceInDays": "{days, plural, =1{维护在 1 天} other{维护在 {days} 天}}",
   "equipment_list_tile_serviceDueChip": "需要维护",
   "equipment_list_tile_serviceIn": "维护在",
   "equipment_menu_delete": "删除",
