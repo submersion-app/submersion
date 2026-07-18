@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 
@@ -127,6 +128,66 @@ void main() {
     await repo.setDismissed(findingId: 'f1', dismissed: false, now: now);
     review = await repo.getReview('dive-1');
     expect(review!.findings.single.isDismissed, isFalse);
+  });
+
+  test('setDismissed advances the parent dive HLC so the change syncs', () async {
+    // dive_safety_findings has no HLC of its own; the incremental exporter
+    // pulls findings for dives whose parent HLC advanced. A standalone dismiss
+    // must therefore bump the parent dive's HLC or the change is stranded.
+    await syncRepository.markRecordPending(
+      entityType: 'dives',
+      recordId: 'dive-1',
+      localUpdatedAt: now.millisecondsSinceEpoch,
+    );
+    await repo.saveReview(
+      SafetyReview(
+        diveId: 'dive-1',
+        engineVersion: 1,
+        reviewedAt: now,
+        findings: [finding('f1')],
+      ),
+    );
+
+    // Watermark = the dive's HLC in the already-synced state (post-saveReview,
+    // which does not touch the dive). An export since this watermark is empty.
+    final watermark =
+        (await db
+                .customSelect("SELECT hlc FROM dives WHERE id = 'dive-1'")
+                .getSingle())
+            .read<String>('hlc');
+
+    final serializer = SyncDataSerializer();
+    final deviceId = await syncRepository.getDeviceId();
+    final before = await serializer.exportChangeset(
+      deviceId: deviceId,
+      hlcWatermark: watermark,
+      deletions: const [],
+    );
+    expect(
+      before.data.diveSafetyFindings,
+      isEmpty,
+      reason: 'nothing changed since the watermark yet',
+    );
+
+    await repo.setDismissed(findingId: 'f1', dismissed: true, now: now);
+
+    final after = await serializer.exportChangeset(
+      deviceId: deviceId,
+      hlcWatermark: watermark,
+      deletions: const [],
+    );
+    final exportedIds = after.data.diveSafetyFindings
+        .map((f) => f['id'])
+        .toSet();
+    expect(
+      exportedIds,
+      contains('f1'),
+      reason: 'dismiss must advance the dive HLC so the finding is re-exported',
+    );
+    final exported = after.data.diveSafetyFindings.firstWhere(
+      (f) => f['id'] == 'f1',
+    );
+    expect(exported['dismissedAt'], isNotNull);
   });
 
   test(

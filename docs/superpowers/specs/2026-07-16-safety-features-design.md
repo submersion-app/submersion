@@ -205,10 +205,11 @@ shared/printable logbook output.)
 
 ### Schema and sync
 
-- New migrations claim the next free schema rungs at implementation time. As
-  of this writing: main is at v112, PR #600 renumbers to v113, v114 is claimed
-  by the equipment-attributes spec → phase 1 starts at **v116**; re-verify the
-  ladder when each phase lands.
+- New migrations claim the next free schema rungs at implementation time. The
+  shared `schema_user_version` scalar collides across parallel branches, so the
+  exact number is resolved at merge (whoever merges second renumbers). Phase 1
+  as implemented ships at **v115** (`AppDatabase.currentSchemaVersion = 115`);
+  re-verify the ladder when each phase lands.
 - All new tables follow existing conventions: HLC columns for parent/aggregate
   entities, write-once child conventions (no HLC; `markRecordPending` +
   per-row `logDeletion`) for children of dives, idempotent `createTable` in

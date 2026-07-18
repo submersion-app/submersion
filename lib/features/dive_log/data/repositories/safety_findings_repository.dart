@@ -103,18 +103,34 @@ class SafetyFindingsRepository {
     required bool dismissed,
     required DateTime now,
   }) async {
-    await (_db.update(
-      _db.diveSafetyFindings,
-    )..where((t) => t.id.equals(findingId))).write(
-      DiveSafetyFindingsCompanion(
-        dismissedAt: Value(dismissed ? now.millisecondsSinceEpoch : null),
-      ),
-    );
-    await _syncRepository.markRecordPending(
-      entityType: 'diveSafetyFindings',
-      recordId: findingId,
-      localUpdatedAt: now.millisecondsSinceEpoch,
-    );
+    final nowMs = now.millisecondsSinceEpoch;
+    await _db.transaction(() async {
+      final finding = await (_db.select(
+        _db.diveSafetyFindings,
+      )..where((t) => t.id.equals(findingId))).getSingleOrNull();
+      if (finding == null) return;
+      await (_db.update(
+        _db.diveSafetyFindings,
+      )..where((t) => t.id.equals(findingId))).write(
+        DiveSafetyFindingsCompanion(
+          dismissedAt: Value(dismissed ? nowMs : null),
+        ),
+      );
+      await _syncRepository.markRecordPending(
+        entityType: 'diveSafetyFindings',
+        recordId: findingId,
+        localUpdatedAt: nowMs,
+      );
+      // dive_safety_findings has no HLC of its own; the incremental exporter
+      // pulls findings for dives whose parent HLC advanced. A standalone
+      // dismiss/restore never touches the dive, so bump the parent dive's HLC
+      // here too or the change is stranded and never reaches other devices.
+      await _syncRepository.markRecordPending(
+        entityType: 'dives',
+        recordId: finding.diveId,
+        localUpdatedAt: nowMs,
+      );
+    });
     SyncEventBus.notifyLocalChange();
   }
 

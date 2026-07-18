@@ -208,6 +208,65 @@ void main() {
     expect(repo.calls.first.$2, isTrue);
   });
 
+  testWidgets('tapping restore on a dismissed finding invokes the repository', (
+    tester,
+  ) async {
+    final repo = _RecordingSafetyRepo();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          safetyFindingsRepositoryProvider.overrideWithValue(repo),
+          safetyReviewProvider('dive-1').overrideWith(
+            (ref) async => reviewWith([rapidAscent(dismissedAt: now)]),
+          ),
+        ],
+        child: localizedMaterialApp(
+          home: const Scaffold(
+            body: SingleChildScrollView(
+              child: SafetyReviewSection(diveId: 'dive-1'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Reveal the dismissed section, then tap its restore (undo) control.
+    await tester.tap(find.textContaining('dismissed'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.undo));
+    await tester.pumpAndSettle();
+
+    expect(repo.calls, hasLength(1));
+    expect(repo.calls.first.$1, 'f1');
+    expect(repo.calls.first.$2, isFalse);
+  });
+
+  testWidgets('sawtooth with null value falls back to the neutral rule name', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      reviewWith([
+        SafetyFinding(
+          id: 'saw-null',
+          diveId: 'dive-1',
+          ruleId: SafetyRuleId.sawtoothProfile,
+          severity: SafetySeverity.caution,
+          startTimestamp: 100,
+          endTimestamp: 160,
+          value: null,
+          engineVersion: 1,
+          createdAt: now,
+        ),
+      ]),
+    );
+    // With no cycle count there is nothing to interpolate, so the tile shows
+    // the neutral rule name rather than "0 repeated ... depth changes".
+    expect(find.text('Sawtooth profiles'), findsOneWidget);
+  });
+
   testWidgets('collapse toggle flips the expanded state', (tester) async {
     await pump(tester, reviewWith([rapidAscent()]));
     CollapsibleSection section() =>

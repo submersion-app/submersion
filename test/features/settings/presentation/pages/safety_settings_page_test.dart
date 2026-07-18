@@ -81,6 +81,25 @@ void main() {
     ),
   );
 
+  testWidgets('tapping an enabled rule switch toggles it off', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(400, 1600));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final notifier = MockSettingsNotifier();
+    await tester.pumpWidget(_buildTestWidget(notifier));
+    await tester.pumpAndSettle();
+
+    // Index 0 is the master toggle; index 1 is the first per-rule switch, on by
+    // default (its rule is not in the disabled set).
+    final firstRule = find.byType(SwitchListTile).at(1);
+    expect(tester.widget<SwitchListTile>(firstRule).value, isTrue);
+
+    await tester.tap(firstRule);
+    await tester.pumpAndSettle();
+
+    expect(tester.widget<SwitchListTile>(firstRule).value, isFalse);
+  });
+
   testWidgets('backfill shows progress while analyzing, then completes', (
     tester,
   ) async {

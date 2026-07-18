@@ -1541,14 +1541,14 @@ class DiveRepository {
             's.name AS site_name, s.country AS site_country, '
             's.region AS site_region, s.latitude AS site_latitude, '
             's.longitude AS site_longitude, '
-            'COALESCE(sf.safety_finding_count, 0) AS safety_finding_count '
+            // Correlated count keyed by d.id so SQLite uses
+            // idx_dive_safety_findings_dive_id and only counts findings for the
+            // page's dives, instead of grouping the whole findings table.
+            '(SELECT COUNT(*) FROM dive_safety_findings sf '
+            'WHERE sf.dive_id = d.id AND sf.dismissed_at IS NULL) '
+            'AS safety_finding_count '
             'FROM dives d '
             'LEFT JOIN dive_sites s ON d.site_id = s.id '
-            'LEFT JOIN ('
-            'SELECT dive_id, COUNT(*) AS safety_finding_count '
-            'FROM dive_safety_findings WHERE dismissed_at IS NULL '
-            'GROUP BY dive_id'
-            ') sf ON sf.dive_id = d.id '
             '$whereClause '
             'ORDER BY $orderByClause '
             'LIMIT ? $offsetClause';
@@ -2084,14 +2084,14 @@ class DiveRepository {
           's.name AS site_name, s.country AS site_country, '
           's.region AS site_region, s.latitude AS site_latitude, '
           's.longitude AS site_longitude, '
-          'COALESCE(sf.safety_finding_count, 0) AS safety_finding_count '
+          // Correlated count keyed by d.id so SQLite uses
+          // idx_dive_safety_findings_dive_id and only counts findings for the
+          // requested dives, instead of grouping the whole findings table.
+          '(SELECT COUNT(*) FROM dive_safety_findings sf '
+          'WHERE sf.dive_id = d.id AND sf.dismissed_at IS NULL) '
+          'AS safety_finding_count '
           'FROM dives d '
           'LEFT JOIN dive_sites s ON d.site_id = s.id '
-          'LEFT JOIN ('
-          'SELECT dive_id, COUNT(*) AS safety_finding_count '
-          'FROM dive_safety_findings WHERE dismissed_at IS NULL '
-          'GROUP BY dive_id'
-          ') sf ON sf.dive_id = d.id '
           'WHERE d.id IN ($placeholders) '
           'ORDER BY sort_timestamp DESC, '
           'COALESCE(d.dive_number, 0) DESC, d.id DESC',
