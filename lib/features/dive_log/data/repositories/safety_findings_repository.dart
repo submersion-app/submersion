@@ -71,6 +71,18 @@ class SafetyFindingsRepository {
         recordId: review.diveId,
         localUpdatedAt: reviewedAtMs,
       );
+      // Both safety exporters gate incremental export on the parent dive's
+      // HLC (dives.hlc > hlcSince). A review computed lazily on first view
+      // never touches the dive, so its rows (and their device-local random
+      // ids) would never sync; a later dismiss/restore on another device
+      // would then reference finding ids it never received. Bump the parent
+      // dive's HLC so the freshly computed review propagates and all devices
+      // converge on one set of finding ids, mirroring setDismissed.
+      await _syncRepository.markRecordPending(
+        entityType: 'dives',
+        recordId: review.diveId,
+        localUpdatedAt: reviewedAtMs,
+      );
       for (final finding in review.findings) {
         await _db
             .into(_db.diveSafetyFindings)

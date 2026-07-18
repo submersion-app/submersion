@@ -130,26 +130,81 @@ void main() {
     expect(review!.findings.single.isDismissed, isFalse);
   });
 
-  test('setDismissed advances the parent dive HLC so the change syncs', () async {
-    // dive_safety_findings has no HLC of its own; the incremental exporter
-    // pulls findings for dives whose parent HLC advanced. A standalone dismiss
-    // must therefore bump the parent dive's HLC or the change is stranded.
+  test(
+    'setDismissed advances the parent dive HLC so the change syncs',
+    () async {
+      // dive_safety_findings has no HLC of its own; the incremental exporter
+      // pulls findings for dives whose parent HLC advanced. A standalone dismiss
+      // must therefore bump the parent dive's HLC or the change is stranded.
+      await syncRepository.markRecordPending(
+        entityType: 'dives',
+        recordId: 'dive-1',
+        localUpdatedAt: now.millisecondsSinceEpoch,
+      );
+      await repo.saveReview(
+        SafetyReview(
+          diveId: 'dive-1',
+          engineVersion: 1,
+          reviewedAt: now,
+          findings: [finding('f1')],
+        ),
+      );
+
+      // Watermark = the dive's HLC after saveReview. An export since this
+      // watermark is empty until a further change advances the dive's HLC.
+      final watermark =
+          (await db
+                  .customSelect("SELECT hlc FROM dives WHERE id = 'dive-1'")
+                  .getSingle())
+              .read<String>('hlc');
+
+      final serializer = SyncDataSerializer();
+      final deviceId = await syncRepository.getDeviceId();
+      final before = await serializer.exportChangeset(
+        deviceId: deviceId,
+        hlcWatermark: watermark,
+        deletions: const [],
+      );
+      expect(
+        before.data.diveSafetyFindings,
+        isEmpty,
+        reason: 'nothing changed since the watermark yet',
+      );
+
+      await repo.setDismissed(findingId: 'f1', dismissed: true, now: now);
+
+      final after = await serializer.exportChangeset(
+        deviceId: deviceId,
+        hlcWatermark: watermark,
+        deletions: const [],
+      );
+      final exportedIds = after.data.diveSafetyFindings
+          .map((f) => f['id'])
+          .toSet();
+      expect(
+        exportedIds,
+        contains('f1'),
+        reason:
+            'dismiss must advance the dive HLC so the finding is re-exported',
+      );
+      final exported = after.data.diveSafetyFindings.firstWhere(
+        (f) => f['id'] == 'f1',
+      );
+      expect(exported['dismissedAt'], isNotNull);
+    },
+  );
+
+  test('saveReview advances the parent dive HLC so the review syncs', () async {
+    // A review computed lazily on first view does not otherwise touch the
+    // dive, but both safety exporters gate on the parent dive's HLC. Without
+    // a bump the freshly computed review (and its device-local finding ids)
+    // would never reach other devices, so a later dismiss could reference a
+    // finding id a peer never received.
     await syncRepository.markRecordPending(
       entityType: 'dives',
       recordId: 'dive-1',
       localUpdatedAt: now.millisecondsSinceEpoch,
     );
-    await repo.saveReview(
-      SafetyReview(
-        diveId: 'dive-1',
-        engineVersion: 1,
-        reviewedAt: now,
-        findings: [finding('f1')],
-      ),
-    );
-
-    // Watermark = the dive's HLC in the already-synced state (post-saveReview,
-    // which does not touch the dive). An export since this watermark is empty.
     final watermark =
         (await db
                 .customSelect("SELECT hlc FROM dives WHERE id = 'dive-1'")
@@ -164,30 +219,36 @@ void main() {
       deletions: const [],
     );
     expect(
-      before.data.diveSafetyFindings,
+      before.data.diveSafetyReviews,
       isEmpty,
-      reason: 'nothing changed since the watermark yet',
+      reason: 'no review saved yet',
     );
+    expect(before.data.diveSafetyFindings, isEmpty);
 
-    await repo.setDismissed(findingId: 'f1', dismissed: true, now: now);
+    await repo.saveReview(
+      SafetyReview(
+        diveId: 'dive-1',
+        engineVersion: 1,
+        reviewedAt: now,
+        findings: [finding('f1')],
+      ),
+    );
 
     final after = await serializer.exportChangeset(
       deviceId: deviceId,
       hlcWatermark: watermark,
       deletions: const [],
     );
-    final exportedIds = after.data.diveSafetyFindings
-        .map((f) => f['id'])
-        .toSet();
     expect(
-      exportedIds,
+      after.data.diveSafetyReviews,
+      isNotEmpty,
+      reason: 'saveReview must advance the dive HLC so the review is exported',
+    );
+    expect(
+      after.data.diveSafetyFindings.map((f) => f['id']).toSet(),
       contains('f1'),
-      reason: 'dismiss must advance the dive HLC so the finding is re-exported',
+      reason: 'the review findings must ride the same dive-HLC bump',
     );
-    final exported = after.data.diveSafetyFindings.firstWhere(
-      (f) => f['id'] == 'f1',
-    );
-    expect(exported['dismissedAt'], isNotNull);
   });
 
   test(
