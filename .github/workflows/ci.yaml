@@ -239,9 +239,10 @@ jobs:
         if: always()
         run: |
           awk '
-            /^SF:.*photo_viewer_page\.dart/ { f=1; c=0; t=0 }
-            f && /^DA:/ { t++; split($0,a,","); if (a[2]+0>0) c++ }
-            f && /^end_of_record/ { print "[COV-DIAG] shard ${{ matrix.shard }}: photo_viewer_page.dart " c "/" t " covered"; f=0 }
+            /^SF:.*\/photo_viewer_page\.dart$/ { f=1; c=0; t=0; cv=0; tv=0 }
+            f && /^DA:/ { t++; split($0,a,","); h=a[2]+0; if (h>0) c++;
+                          ln=substr(a[1],4)+0; if (ln>=465 && ln<=531) { tv++; if (h>0) cv++ } }
+            f && /^end_of_record/ { print "[COV-DIAG] shard ${{ matrix.shard }}: photo_viewer " c "/" t " (connector-video 465-531: " cv "/" tv ")"; f=0 }
           ' coverage/lcov.info 2>/dev/null \
             || echo "[COV-DIAG] shard ${{ matrix.shard }}: no photo_viewer record"
       - name: Upload shard coverage artifact
@@ -340,9 +341,10 @@ jobs:
             python3 scripts/merge_lcov.py coverage/lcov.info "${reports[@]}"
           fi
           awk '
-            /^SF:.*photo_viewer_page\.dart/ { f=1; c=0; t=0 }
-            f && /^DA:/ { t++; split($0,a,","); if (a[2]+0>0) c++ }
-            f && /^end_of_record/ { print "[COV-DIAG] MERGED photo_viewer_page.dart " c "/" t " covered"; f=0 }
+            /^SF:.*\/photo_viewer_page\.dart$/ { f=1; c=0; t=0; cv=0; tv=0 }
+            f && /^DA:/ { t++; split($0,a,","); h=a[2]+0; if (h>0) c++;
+                          ln=substr(a[1],4)+0; if (ln>=465 && ln<=531) { tv++; if (h>0) cv++ } }
+            f && /^end_of_record/ { print "[COV-DIAG] MERGED photo_viewer " c "/" t " (connector-video 465-531: " cv "/" tv ")"; f=0 }
           ' coverage/lcov.info 2>/dev/null \
             || echo "[COV-DIAG] merged: no photo_viewer record"
       - name: Upload merged coverage to Codecov

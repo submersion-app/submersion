@@ -66,8 +66,9 @@ def main(argv):
             for lineno in sorted(lines):
                 out.write(f"DA:{lineno},{lines[lineno]}\n")
             hit = sum(1 for h in lines.values() if h > 0)
-            out.write(f"LH:{hit}\n")
+            # LF (found) before LH (hit) is the conventional lcov field order.
             out.write(f"LF:{len(lines)}\n")
+            out.write(f"LH:{hit}\n")
             out.write("end_of_record\n")
             records += 1
 
