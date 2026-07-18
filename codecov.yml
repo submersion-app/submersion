@@ -3,20 +3,22 @@
 
 codecov:
   notify:
-    # Coverage arrives as 2 uploads: the `coverage` job's single merged Dart
-    # lcov (all 4 file-shards unioned by scripts/merge_lcov.py) plus the
-    # script-tests job (flag `scripts`). We merge the shards ourselves rather
-    # than let Codecov merge per-shard flag uploads -- that cross-flag merge
-    # let all-zero "compiled-but-not-executed" reports override a file's real
-    # coverage (a file one shard executes is compiled as 0 by every other shard
-    # that only imports it), zeroing genuinely-tested code. Hold the status
-    # until both uploads arrive so it is computed once on the complete picture.
-    after_n_builds: 2
+    # Coverage arrives as 5 separate uploads: the 4 file-sharded test jobs
+    # (flags shard-0..3) plus the scripts job (flag scripts). Tests are sharded
+    # BY FILE (ci.yaml), so each shard's lcov only marks the lines its subset
+    # executed and Codecov must union them. Without waiting, Codecov computes
+    # the patch/project STATUS after the first upload lands -- and a shard that
+    # touched only part of a PR's diff then posts a misleadingly low patch %
+    # (e.g. 12.5% when the fully-merged coverage is 100%), which sticks. Hold
+    # the status until all 5 uploads arrive, then compute once on the merge.
+    # Both upload steps run `if: always()` (empty shards upload an empty lcov),
+    # so exactly 5 uploads occur -- keep this in sync with the shard count.
+    after_n_builds: 5
     wait_for_ci: true
 
 comment:
-  # Same rationale: don't post/update the PR comment until both uploads are in.
-  after_n_builds: 2
+  # Same rationale: don't post/update the PR comment until every upload is in.
+  after_n_builds: 5
 
 coverage:
   status:

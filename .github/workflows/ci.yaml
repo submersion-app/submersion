@@ -228,31 +228,15 @@ jobs:
           fi
           flutter test --coverage --exclude-tags performance "${files[@]}"
 
-      # Upload this shard's partial lcov as an ARTIFACT (not straight to
-      # Codecov). The `coverage` job merges all shards into one authoritative
-      # report before a single upload. Sharding by file means a shard often
-      # only COMPILES a file (all lines hit=0) that another shard executes;
-      # per-shard Codecov flags let those zero reports win the cross-flag merge
-      # and zero-out genuinely-tested files. Merging first (max hits per line)
-      # fixes that -- see scripts/merge_lcov.py.
-      - name: Diagnostic - this shard's photo_viewer coverage
+      - name: Upload coverage
+        uses: codecov/codecov-action@v7
         if: always()
-        run: |
-          awk '
-            /^SF:.*\/photo_viewer_page\.dart$/ { f=1; c=0; t=0; cv=0; tv=0 }
-            f && /^DA:/ { t++; split($0,a,","); h=a[2]+0; if (h>0) c++;
-                          ln=substr(a[1],4)+0; if (ln>=465 && ln<=531) { tv++; if (h>0) cv++ } }
-            f && /^end_of_record/ { print "[COV-DIAG] shard ${{ matrix.shard }}: photo_viewer " c "/" t " (connector-video 465-531: " cv "/" tv ")"; f=0 }
-          ' coverage/lcov.info 2>/dev/null \
-            || echo "[COV-DIAG] shard ${{ matrix.shard }}: no photo_viewer record"
-      - name: Upload shard coverage artifact
-        if: always()
-        uses: actions/upload-artifact@v7
         with:
-          name: coverage-shard-${{ matrix.shard }}
-          path: coverage/lcov.info
-          if-no-files-found: warn
-          retention-days: 1
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage/lcov.info
+          # Per-shard flag so Codecov merges the partial reports for this commit.
+          flags: shard-${{ matrix.shard }}
+          fail_ci_if_error: false  # Enable after configuring repo on codecov.io
 
   # Unit-tests the dependency-free Python guard scripts (e.g. the issue #318
   # ProGuard keep-rule checker). No Flutter/codegen needed, so it runs in
@@ -306,121 +290,6 @@ jobs:
           files: coverage/scripts.xml
           flags: scripts
           fail_ci_if_error: false
-
-  # Merge every Dart shard's partial lcov into ONE report, then do a single
-  # Codecov upload. Replaces the per-shard flagged uploads, whose cross-flag
-  # merge let all-zero "compiled-but-not-executed" reports override a file's
-  # real coverage (e.g. photo_viewer_page.dart's connector-video item -- tested
-  # only in the shard running photo_viewer_lightroom_test, but compiled as 0 by
-  # every shard whose tests import it for navigation). See scripts/merge_lcov.py.
-  coverage:
-    name: Merge & upload coverage
-    if: always()
-    needs:
-      - test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v6
-        with:
-          python-version: '3.x'
-      - name: Download shard coverage artifacts
-        uses: actions/download-artifact@v8
-        with:
-          pattern: coverage-shard-*
-          path: shard-coverage
-      - name: Merge shard lcov reports into one
-        run: |
-          mkdir -p coverage
-          shopt -s nullglob
-          reports=(shard-coverage/coverage-shard-*/lcov.info)
-          echo "Merging ${#reports[@]} shard report(s)."
-          if [ ${#reports[@]} -eq 0 ]; then
-            : > coverage/lcov.info
-          else
-            python3 scripts/merge_lcov.py coverage/lcov.info "${reports[@]}"
-          fi
-          awk '
-            /^SF:.*\/photo_viewer_page\.dart$/ { f=1; c=0; t=0; cv=0; tv=0 }
-            f && /^DA:/ { t++; split($0,a,","); h=a[2]+0; if (h>0) c++;
-                          ln=substr(a[1],4)+0; if (ln>=465 && ln<=531) { tv++; if (h>0) cv++ } }
-            f && /^end_of_record/ { print "[COV-DIAG] MERGED photo_viewer " c "/" t " (connector-video 465-531: " cv "/" tv ")"; f=0 }
-          ' coverage/lcov.info 2>/dev/null \
-            || echo "[COV-DIAG] merged: no photo_viewer record"
-      - name: Upload merged coverage to Codecov
-        uses: codecov/codecov-action@v7
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: coverage/lcov.info
-          fail_ci_if_error: false
-
-  # TEMPORARY diagnostic: is photo_viewer_lightroom_test's coverage of
-  # _ConnectorVideoItem lost by the test itself on Linux, or by interaction with
-  # other tests in its shard? Runs the file (A) alone and (B) alongside a
-  # transitive-zero loader, printing connector-video coverage each way. Remove
-  # once the root cause is understood.
-  coverage-debug:
-    name: Coverage debug (photo_viewer isolation)
-    needs: codegen
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          submodules: true
-      - name: Read Flutter version
-        id: flutter-ver
-        run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
-      - uses: subosito/flutter-action@v2
-        id: setup-flutter
-        with:
-          flutter-version: ${{ steps.flutter-ver.outputs.version }}
-          channel: 'stable'
-      - name: Cache Flutter SDK
-        uses: actions/cache@v6
-        with:
-          path: ${{ steps.setup-flutter.outputs.CACHE-PATH }}
-          key: ${{ steps.setup-flutter.outputs.CACHE-KEY }}
-      - name: Cache pub dependencies
-        uses: actions/cache@v6
-        with:
-          path: |
-            ~/.pub-cache
-            ${{ github.workspace }}/.dart_tool
-          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            pub-${{ runner.os }}-
-      - name: Disable Swift Package Manager (project uses CocoaPods)
-        run: flutter config --no-enable-swift-package-manager
-      - name: Install dependencies
-        run: flutter pub get
-      - name: Download generated code
-        uses: actions/download-artifact@v8
-        with:
-          name: generated-code
-      - name: Unpack generated code
-        run: tar -xzf generated-code.tar.gz
-      - name: 'A) photo_viewer_lightroom_test ALONE'
-        if: always()
-        run: |
-          flutter test --coverage \
-            test/features/media/presentation/pages/photo_viewer_lightroom_test.dart || true
-          awk '
-            /^SF:.*\/photo_viewer_page\.dart$/ { f=1; c=0; t=0; cv=0; tv=0 }
-            f && /^DA:/ { t++; split($0,a,","); h=a[2]+0; if (h>0) c++;
-                          ln=substr(a[1],4)+0; if (ln>=465 && ln<=531) { tv++; if (h>0) cv++ } }
-            f && /^end_of_record/ { print "[COV-DEBUG] A) ALONE: photo_viewer " c "/" t " (connector-video " cv "/" tv ")"; f=0 }
-          ' coverage/lcov.info 2>/dev/null || echo "[COV-DEBUG] A) no photo_viewer record"
-      - name: 'C) direct ConnectorVideoItem test (candidate fix)'
-        if: always()
-        run: |
-          flutter test --coverage \
-            test/features/media/presentation/pages/connector_video_item_test.dart || true
-          awk '
-            /^SF:.*\/photo_viewer_page\.dart$/ { f=1; c=0; t=0; cv=0; tv=0 }
-            f && /^DA:/ { t++; split($0,a,","); h=a[2]+0; if (h>0) c++;
-                          ln=substr(a[1],4)+0; if (ln>=465 && ln<=531) { tv++; if (h>0) cv++ } }
-            f && /^end_of_record/ { print "[COV-DEBUG] C) direct test: photo_viewer " c "/" t " (connector-video " cv "/" tv ")"; f=0 }
-          ' coverage/lcov.info 2>/dev/null || echo "[COV-DEBUG] C) no photo_viewer record"
 
   integration-test:
     name: Integration Test (macOS)
