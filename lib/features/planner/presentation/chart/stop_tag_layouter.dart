@@ -13,6 +13,17 @@ class StopTagLayouter {
     double gap = 2,
   }) {
     assert(anchors.length == sizes.length);
+
+    // Keep a rect within the vertical span of [bounds] so a tag never paints
+    // over the axis/gutter or off-canvas. Horizontal clamping is done inline.
+    Rect clampVertical(Rect r) {
+      if (r.top < bounds.top) return r.translate(0, bounds.top - r.top);
+      if (r.bottom > bounds.bottom) {
+        return r.translate(0, bounds.bottom - r.bottom);
+      }
+      return r;
+    }
+
     final placed = <Rect>[];
     for (var i = 0; i < anchors.length; i++) {
       final anchor = anchors[i];
@@ -34,20 +45,27 @@ class StopTagLayouter {
       while (_collides(candidate, placed, gap) && guard++ < 64) {
         candidate = candidate.translate(0, size.height + gap);
         if (candidate.bottom > bounds.bottom) {
-          // Out of room below: flip above the anchor and walk upward.
-          candidate = Rect.fromLTWH(
-            rect.left,
-            anchor.dy - 4 - size.height,
-            size.width,
-            size.height,
+          // Out of room below: flip above the anchor and walk upward,
+          // clamping so the flipped tag never starts above the top edge.
+          candidate = clampVertical(
+            Rect.fromLTWH(
+              rect.left,
+              anchor.dy - 4 - size.height,
+              size.width,
+              size.height,
+            ),
           );
           while (_collides(candidate, placed, gap) && guard++ < 64) {
-            candidate = candidate.translate(0, -(size.height + gap));
+            final next = candidate.translate(0, -(size.height + gap));
+            // Stop before stepping past the top edge rather than walking a
+            // tag off-canvas; the final clamp keeps it in bounds.
+            if (next.top < bounds.top) break;
+            candidate = next;
           }
           break;
         }
       }
-      placed.add(candidate);
+      placed.add(clampVertical(candidate));
     }
     return placed;
   }
