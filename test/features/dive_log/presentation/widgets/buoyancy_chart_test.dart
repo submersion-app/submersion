@@ -56,6 +56,23 @@ void main() {
       expect(spots.length, 2);
       expect(spots.every((s) => s.y.isFinite), isTrue);
     });
+
+    // When a non-finite sample is dropped, the surviving samples and the
+    // plotted spots must stay index-aligned so a touched spot resolves to the
+    // right sample in the tooltip (previously it indexed the unfiltered list).
+    test('plottableSamples stays in lockstep with spotsFor', () {
+      final samples = [
+        _s(0, 0, 2),
+        _s(60, 10, double.nan), // dropped
+        _s(120, 5, 1.5),
+      ];
+      final plotted = BuoyancyChart.plottableSamples(samples, units);
+      final spots = BuoyancyChart.spotsFor(samples, units);
+      expect(plotted.length, spots.length);
+      // Spot index 1 maps to the t=120 sample, not the dropped NaN sample.
+      expect(plotted[1].timestamp, 120);
+      expect(spots[1].x, closeTo(2.0, 1e-9)); // 120 s -> 2 min
+    });
   });
 
   testWidgets('renders a LineChart with labelled axes', (tester) async {

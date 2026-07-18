@@ -20,21 +20,38 @@ class BuoyancyChart extends StatelessWidget {
     this.height = 180,
   });
 
-  /// Chart points in (minutes, converted-net) space, with non-finite values
-  /// dropped so a NaN can never reach fl_chart (a known crash source).
-  static List<FlSpot> spotsFor(List<TwinSample> samples, UnitFormatter units) {
-    final spots = <FlSpot>[];
-    for (final s in samples) {
-      final y = units.convertWeight(s.netKg);
-      if (!s.netKg.isFinite || !y.isFinite) continue;
-      spots.add(FlSpot(s.timestamp / 60.0, y));
-    }
-    return spots;
-  }
+  /// True when [s] can be plotted: both its net buoyancy and the unit-converted
+  /// y value are finite. A NaN reaching fl_chart is a known crash source.
+  static bool _isPlottable(TwinSample s, UnitFormatter units) =>
+      s.netKg.isFinite && units.convertWeight(s.netKg).isFinite;
+
+  /// The samples that survive the finite-value filter, in profile order. Kept
+  /// in lockstep with [spotsFor] (both derive from this filter), because
+  /// fl_chart reports a touched point by its index into the plotted-spot list.
+  /// The tooltip must therefore resolve that index against these filtered
+  /// samples -- not the raw `result.samples`, which is longer whenever a
+  /// non-finite sample was dropped, which would otherwise mis-map the tooltip.
+  static List<TwinSample> plottableSamples(
+    List<TwinSample> samples,
+    UnitFormatter units,
+  ) => [
+    for (final s in samples)
+      if (_isPlottable(s, units)) s,
+  ];
+
+  /// Chart points in (minutes, converted-net) space, one per plottable sample.
+  static List<FlSpot> spotsFor(List<TwinSample> samples, UnitFormatter units) =>
+      [
+        for (final s in plottableSamples(samples, units))
+          FlSpot(s.timestamp / 60.0, units.convertWeight(s.netKg)),
+      ];
 
   @override
   Widget build(BuildContext context) {
     if (result.samples.length < 2) return const SizedBox.shrink();
+    // `plotted` and `spots` are parallel (both filter through plottableSamples),
+    // so a touched spot's index maps back to the correct sample below.
+    final plotted = plottableSamples(result.samples, units);
     final spots = spotsFor(result.samples, units);
     if (spots.length < 2) return const SizedBox.shrink();
 
@@ -49,7 +66,7 @@ class BuoyancyChart extends StatelessWidget {
           lineTouchData: LineTouchData(
             touchTooltipData: LineTouchTooltipData(
               getTooltipItems: (touched) => touched.map((spot) {
-                final sample = result.samples[spot.spotIndex];
+                final sample = plotted[spot.spotIndex];
                 final staticLead =
                     sample.netKg - sample.suitKg - sample.tanksKg;
                 return LineTooltipItem(

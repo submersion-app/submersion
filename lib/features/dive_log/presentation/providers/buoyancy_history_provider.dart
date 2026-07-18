@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart' show compute;
+
 import 'package:submersion/core/buoyancy/buoyancy_twin.dart';
 import 'package:submersion/core/buoyancy/twin_analyzer.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -6,6 +8,13 @@ import 'package:submersion/features/dive_log/data/services/buoyancy_twin_assembl
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_weight_entry_providers.dart';
 import 'package:submersion/features/weight_planner/presentation/providers/weight_planner_providers.dart';
+
+/// Runs the twin and analyzer for one history dive and returns only the
+/// derived ideal-lead figure the strip needs. Top-level so it is a valid
+/// `compute` entry point, and narrow so the isolate ships back a single double
+/// rather than a full per-sample series per dive.
+double buoyancyHistoryIdealLeadKg(TwinInput input) =>
+    TwinAnalyzer.analyze(runBuoyancyTwin(input)).idealLeadKg;
 
 /// One historical dive's carried-versus-modeled lead comparison.
 class BuoyancyHistoryEntry {
@@ -70,13 +79,16 @@ final buoyancyHistoryProvider =
           bodyWeightKg: latestWeight?.weightKg,
         );
         if (input == null) continue;
-        final outputs = TwinAnalyzer.analyze(runBuoyancyTwin(input));
+        // Offload the O(samples x tanks) simulation to an isolate (mirroring
+        // buoyancyTwinProvider) so building the strip does not block the main
+        // isolate when several dives are modeled back-to-back.
+        final idealLeadKg = await compute(buoyancyHistoryIdealLeadKg, input);
         entries.add(
           BuoyancyHistoryEntry(
             diveId: obs.diveId,
             diveDateTime: obs.diveDateTime,
             carriedKg: obs.carriedKg,
-            idealKg: outputs.idealLeadKg,
+            idealKg: idealLeadKg,
             feedback: obs.feedback,
           ),
         );

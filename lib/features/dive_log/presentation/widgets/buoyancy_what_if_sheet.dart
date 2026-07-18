@@ -37,18 +37,29 @@ class _BuoyancyWhatIfSheetState extends State<_BuoyancyWhatIfSheet> {
   late WaterType _waterType;
   late double _suitAnchor;
   late final TwinOutputs _baseOutputs;
+  late TwinOutputs _outputs;
 
   @override
   void initState() {
     super.initState();
     _reset();
     _baseOutputs = TwinAnalyzer.analyze(runBuoyancyTwin(widget.baseInput));
+    _outputs = TwinAnalyzer.analyze(runBuoyancyTwin(_current()));
   }
 
   void _reset() {
     _leadKg = widget.baseInput.leadKg;
     _waterType = _waterTypeOf(widget.baseInput.environment);
     _suitAnchor = widget.baseInput.suit.anchorKg;
+  }
+
+  /// Re-runs the (potentially dense-profile) twin and refreshes the verdict.
+  /// Called only on committed changes -- discrete lead/water taps and the suit
+  /// slider's drag-end -- so a continuous drag does not re-simulate per frame.
+  void _recompute() {
+    setState(() {
+      _outputs = TwinAnalyzer.analyze(runBuoyancyTwin(_current()));
+    });
   }
 
   double get _incrementKg =>
@@ -92,7 +103,7 @@ class _BuoyancyWhatIfSheetState extends State<_BuoyancyWhatIfSheet> {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final units = widget.units;
-    final outputs = TwinAnalyzer.analyze(runBuoyancyTwin(_current()));
+    final outputs = _outputs;
     final deltaNet = outputs.verdict.netKg - _baseOutputs.verdict.netKg;
 
     return Padding(
@@ -126,7 +137,10 @@ class _BuoyancyWhatIfSheetState extends State<_BuoyancyWhatIfSheet> {
               ),
             ],
             selected: {_waterType},
-            onSelectionChanged: (s) => setState(() => _waterType = s.first),
+            onSelectionChanged: (s) {
+              _waterType = s.first;
+              _recompute();
+            },
           ),
           if (widget.baseInput.suit.kind != TwinSuitKind.none) ...[
             const SizedBox(height: 16),
@@ -138,7 +152,10 @@ class _BuoyancyWhatIfSheetState extends State<_BuoyancyWhatIfSheet> {
               value: _suitAnchor.clamp(0, 12),
               max: 12,
               divisions: 24,
+              // Live value keeps the label/thumb responsive during the drag;
+              // the twin only re-simulates once the drag settles.
               onChanged: (v) => setState(() => _suitAnchor = v),
+              onChangeEnd: (_) => _recompute(),
             ),
           ],
           const Divider(height: 32),
@@ -162,7 +179,10 @@ class _BuoyancyWhatIfSheetState extends State<_BuoyancyWhatIfSheet> {
           Align(
             alignment: Alignment.centerRight,
             child: TextButton(
-              onPressed: () => setState(_reset),
+              onPressed: () {
+                _reset();
+                _recompute();
+              },
               child: Text(l10n.buoyancy_whatIfReset),
             ),
           ),
@@ -177,8 +197,10 @@ class _BuoyancyWhatIfSheetState extends State<_BuoyancyWhatIfSheet> {
         Expanded(child: Text(context.l10n.buoyancy_whatIfLead)),
         IconButton(
           icon: const Icon(Icons.remove),
-          onPressed: () =>
-              setState(() => _leadKg = (_leadKg - _incrementKg).clamp(0, 100)),
+          onPressed: () {
+            _leadKg = (_leadKg - _incrementKg).clamp(0, 100);
+            _recompute();
+          },
         ),
         SizedBox(
           width: 72,
@@ -190,8 +212,10 @@ class _BuoyancyWhatIfSheetState extends State<_BuoyancyWhatIfSheet> {
         ),
         IconButton(
           icon: const Icon(Icons.add),
-          onPressed: () =>
-              setState(() => _leadKg = (_leadKg + _incrementKg).clamp(0, 100)),
+          onPressed: () {
+            _leadKg = (_leadKg + _incrementKg).clamp(0, 100);
+            _recompute();
+          },
         ),
       ],
     );

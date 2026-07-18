@@ -40,8 +40,13 @@ class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
   final List<EquipmentItem> _gear = [];
   final List<TankPresetEntity> _tanks = [];
   WaterType _water = WaterType.salt;
+  // Committed values feed the (synthetic-profile) twin. The `_draft` fields
+  // hold the in-progress slider value so the thumb/label track the drag live
+  // while the simulation only re-runs on drag-end (see the sliders below).
   double _maxDepthM = 18;
   int _bottomMinutes = 45;
+  double? _maxDepthDraft;
+  int? _bottomMinutesDraft;
   final _bodyWeightController = TextEditingController();
   bool _bodyWeightSeeded = false;
   bool _tanksSeeded = false;
@@ -54,6 +59,9 @@ class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
     _bodyWeightController.dispose();
     super.dispose();
   }
+
+  double get _displayDepthM => _maxDepthDraft ?? _maxDepthM;
+  int get _displayBottomMinutes => _bottomMinutesDraft ?? _bottomMinutes;
 
   double? _bodyWeightKg(UnitFormatter units) {
     final parsed = double.tryParse(_bodyWeightController.text);
@@ -191,27 +199,35 @@ class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
             const SizedBox(height: 8),
             Text(
               '${context.l10n.diveLog_detail_stat_maxDepth}: '
-              '${units.formatDepth(_maxDepthM)}',
+              '${units.formatDepth(_displayDepthM)}',
               style: theme.textTheme.bodySmall,
             ),
             Slider(
-              value: _maxDepthM.clamp(5, 60),
+              value: _displayDepthM.clamp(5, 60),
               min: 5,
               max: 60,
               divisions: 55,
-              onChanged: (v) => setState(() => _maxDepthM = v),
+              onChanged: (v) => setState(() => _maxDepthDraft = v),
+              onChangeEnd: (v) => setState(() {
+                _maxDepthM = v;
+                _maxDepthDraft = null;
+              }),
             ),
             Text(
               '${context.l10n.diveLog_detail_stat_bottomTime}: '
-              '$_bottomMinutes min',
+              '$_displayBottomMinutes min',
               style: theme.textTheme.bodySmall,
             ),
             Slider(
-              value: _bottomMinutes.toDouble().clamp(5, 90),
+              value: _displayBottomMinutes.toDouble().clamp(5, 90),
               min: 5,
               max: 90,
               divisions: 85,
-              onChanged: (v) => setState(() => _bottomMinutes = v.round()),
+              onChanged: (v) => setState(() => _bottomMinutesDraft = v.round()),
+              onChangeEnd: (v) => setState(() {
+                _bottomMinutes = v.round();
+                _bottomMinutesDraft = null;
+              }),
             ),
             const SizedBox(height: 8),
             Text(verdict, style: theme.textTheme.bodyMedium),
