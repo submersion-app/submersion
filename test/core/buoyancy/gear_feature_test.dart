@@ -71,6 +71,38 @@ void main() {
     expect(feature(type: EquipmentType.mask, name: 'M').dryMassKg, 0.5);
   });
 
+  test('non-finite user numerics are ignored, not propagated', () {
+    // Infinity/NaN buoyancy is not an authoritative spec; fall through the
+    // ladder instead of seeding the model with a non-finite prior.
+    final infBuoy = feature(name: '5mm', buoyancyKg: double.infinity);
+    expect(infBuoy.priorKg.isFinite, isTrue);
+    expect(infBuoy.hasUserSpec, isFalse);
+    expect(infBuoy.priorKg, closeTo(5.0, 0.001)); // from the name parse
+    expect(infBuoy.priorStrength, 4.0);
+
+    // Non-finite dry weight falls back to the type dry-mass default.
+    final nanWeight = feature(name: 'Suit', weightKg: double.nan);
+    expect(nanWeight.dryMassKg, 2.0); // wetsuit default
+    expect(nanWeight.dryMassKg.isFinite, isTrue);
+  });
+
+  test('non-finite primary thickness is not a usable signal', () {
+    GearFeature f(EquipmentType type, double mm) => GearFeature.fromEquipment(
+      id: 't',
+      type: type,
+      name: 'Item',
+      traits: GearBuoyancyTraits(primaryThicknessMm: mm),
+    );
+    // NaN thickness -> no attribute signal -> wetsuit type default.
+    final nanSuit = f(EquipmentType.wetsuit, double.nan);
+    expect(nanSuit.priorKg, 4.0);
+    expect(nanSuit.priorStrength, 2.0);
+    // Infinity thickness -> no signal -> hood type default, stays finite.
+    final infHood = f(EquipmentType.hood, double.infinity);
+    expect(infHood.priorKg, 0.3);
+    expect(infHood.priorKg.isFinite, isTrue);
+  });
+
   test('weights and tank types are rejected as gear features', () {
     expect(
       () => feature(type: EquipmentType.weights, name: 'Lead'),

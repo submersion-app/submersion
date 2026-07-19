@@ -68,8 +68,12 @@ class GearFeature extends Equatable {
     final double prior;
     final double strength;
     final bool hasUserSpec;
-    if (buoyancyKg != null) {
-      prior = buoyancyKg;
+    // Numeric equipment attributes are parsed with double.tryParse, which has
+    // no finiteness guard, so a value like 1e309 arrives here as Infinity.
+    // Non-finite user numbers are treated as absent, never as a spec.
+    final userBuoyancy = _finiteOrNull(buoyancyKg);
+    if (userBuoyancy != null) {
+      prior = userBuoyancy;
       strength = _metadataStrength;
       hasUserSpec = true;
     } else {
@@ -99,7 +103,7 @@ class GearFeature extends Equatable {
       label: name,
       priorKg: prior,
       priorStrength: strength,
-      dryMassKg: weightKg ?? _typeDryMass(type),
+      dryMassKg: _finiteOrNull(weightKg) ?? _typeDryMass(type),
       hasUserSpec: hasUserSpec,
     );
   }
@@ -173,9 +177,17 @@ class GearFeature extends Equatable {
     } else {
       mm = t.primaryThicknessMm;
     }
-    if (mm == null) return null;
+    // A non-finite mm (NaN survives clamp, and either poisons predictions)
+    // means no usable thickness signal.
+    if (mm == null || !mm.isFinite) return null;
     return mm.clamp(0.0, 15.0);
   }
+
+  /// The value when it is a finite number, else null. Numeric equipment
+  /// attributes are user-entered via double.tryParse (no finiteness guard),
+  /// so NaN/Infinity must be filtered before reaching the prediction math.
+  static double? _finiteOrNull(double? v) =>
+      (v != null && v.isFinite) ? v : null;
 
   static double _suitStyleFactor(String? style) => switch (style) {
     'semi_dry' => 1.1,
