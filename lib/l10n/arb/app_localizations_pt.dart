@@ -11995,6 +11995,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get emergencyCard_hideChamber => 'Ocultar';
 
   @override
+  String get emergencyCard_chamberHidden => 'Câmara ocultada';
+
+  @override
+  String get emergencyCard_undo => 'Desfazer';
+
+  @override
   String get emergencyCard_addChamber => 'Adicionar câmara';
 
   @override

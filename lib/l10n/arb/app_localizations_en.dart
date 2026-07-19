@@ -11801,6 +11801,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get emergencyCard_hideChamber => 'Hide';
 
   @override
+  String get emergencyCard_chamberHidden => 'Chamber hidden';
+
+  @override
+  String get emergencyCard_undo => 'Undo';
+
+  @override
   String get emergencyCard_addChamber => 'Add chamber';
 
   @override

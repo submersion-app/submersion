@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/safety/presentation/providers/emergency_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -83,6 +84,7 @@ class _AddChamberPageState extends ConsumerState<AddChamberPage> {
 
   Future<void> _save() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
+    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
     await ref
         .read(emergencyChamberRepositoryProvider)
         .createChamber(
@@ -91,6 +93,7 @@ class _AddChamberPageState extends ConsumerState<AddChamberPage> {
           phone: _phone.text.trim(),
           city: _city.text.trim().isEmpty ? null : _city.text.trim(),
           notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
+          diverId: diverId,
         );
     if (mounted) context.pop();
   }

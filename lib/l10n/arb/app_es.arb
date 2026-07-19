@@ -5843,6 +5843,8 @@
   "emergencyCard_chamberVerified": "Datos verificados {date}",
   "@emergencyCard_chamberVerified": {"placeholders": {"date": {"type": "String"}}},
   "emergencyCard_hideChamber": "Ocultar",
+  "emergencyCard_chamberHidden": "Cámara ocultada",
+  "emergencyCard_undo": "Deshacer",
   "emergencyCard_addChamber": "Añadir cámara",
   "emergencyCard_deleteChamber": "Eliminar",
   "emergencyCard_regionLabel": "Región: {region}",

@@ -11986,6 +11986,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get emergencyCard_hideChamber => 'Ocultar';
 
   @override
+  String get emergencyCard_chamberHidden => 'Cámara ocultada';
+
+  @override
+  String get emergencyCard_undo => 'Deshacer';
+
+  @override
   String get emergencyCard_addChamber => 'Añadir cámara';
 
   @override

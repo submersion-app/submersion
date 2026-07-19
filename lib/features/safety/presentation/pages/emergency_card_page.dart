@@ -229,9 +229,22 @@ class _ChamberTile extends ConsumerWidget {
             if (value == 'call') {
               await onCall(chamber.phone);
             } else if (value == 'hide') {
-              await ref
-                  .read(settingsProvider.notifier)
-                  .setChamberHidden(chamber.id, true);
+              // Capture the messenger before the await; hiding a bundled
+              // chamber is otherwise irreversible from this screen, so offer
+              // an immediate undo.
+              final messenger = ScaffoldMessenger.of(context);
+              final notifier = ref.read(settingsProvider.notifier);
+              await notifier.setChamberHidden(chamber.id, true);
+              messenger.showSnackBar(
+                SnackBar(
+                  content: Text(l10n.emergencyCard_chamberHidden),
+                  action: SnackBarAction(
+                    label: l10n.emergencyCard_undo,
+                    onPressed: () =>
+                        notifier.setChamberHidden(chamber.id, false),
+                  ),
+                ),
+              );
             } else if (value == 'delete') {
               await ref
                   .read(emergencyChamberRepositoryProvider)

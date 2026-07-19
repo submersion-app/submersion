@@ -11692,6 +11692,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get emergencyCard_hideChamber => 'הסתר';
 
   @override
+  String get emergencyCard_chamberHidden => 'התא הוסתר';
+
+  @override
+  String get emergencyCard_undo => 'בטל';
+
+  @override
   String get emergencyCard_addChamber => 'הוסף תא לחץ';
 
   @override

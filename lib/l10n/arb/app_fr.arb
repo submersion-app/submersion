@@ -5843,6 +5843,8 @@
   "emergencyCard_chamberVerified": "Coordonnées vérifiées {date}",
   "@emergencyCard_chamberVerified": {"placeholders": {"date": {"type": "String"}}},
   "emergencyCard_hideChamber": "Masquer",
+  "emergencyCard_chamberHidden": "Caisson masqué",
+  "emergencyCard_undo": "Annuler",
   "emergencyCard_addChamber": "Ajouter un caisson",
   "emergencyCard_deleteChamber": "Supprimer",
   "emergencyCard_regionLabel": "Région : {region}",

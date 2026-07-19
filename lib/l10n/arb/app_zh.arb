@@ -5843,6 +5843,8 @@
   "emergencyCard_chamberVerified": "信息核实于 {date}",
   "@emergencyCard_chamberVerified": {"placeholders": {"date": {"type": "String"}}},
   "emergencyCard_hideChamber": "隐藏",
+  "emergencyCard_chamberHidden": "已隐藏氧舱",
+  "emergencyCard_undo": "撤消",
   "emergencyCard_addChamber": "添加减压舱",
   "emergencyCard_deleteChamber": "删除",
   "emergencyCard_regionLabel": "区域:{region}",

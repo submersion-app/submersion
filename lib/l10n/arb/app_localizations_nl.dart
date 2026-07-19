@@ -11907,6 +11907,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get emergencyCard_hideChamber => 'Verbergen';
 
   @override
+  String get emergencyCard_chamberHidden => 'Kamer verborgen';
+
+  @override
+  String get emergencyCard_undo => 'Ongedaan maken';
+
+  @override
   String get emergencyCard_addChamber => 'Kamer toevoegen';
 
   @override

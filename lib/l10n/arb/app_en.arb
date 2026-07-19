@@ -6784,6 +6784,8 @@
     }
   },
   "emergencyCard_hideChamber": "Hide",
+  "emergencyCard_chamberHidden": "Chamber hidden",
+  "emergencyCard_undo": "Undo",
   "emergencyCard_addChamber": "Add chamber",
   "emergencyCard_deleteChamber": "Delete",
   "emergencyCard_regionLabel": "Region: {region}",

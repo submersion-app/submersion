@@ -14,10 +14,16 @@ class EmergencyChamberRepository {
   final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
 
-  Future<List<EmergencyChamber>> getUserChambers() async {
-    final rows = await (_db.select(
-      _db.emergencyChambers,
-    )..orderBy([(t) => OrderingTerm.asc(t.name)])).get();
+  /// User-added chambers for [diverId], plus any legacy/global entries with a
+  /// null diverId. When [diverId] is null (no active diver) all rows are
+  /// returned. Mirrors the per-diver scoping used by checklist templates.
+  Future<List<EmergencyChamber>> getUserChambers({String? diverId}) async {
+    final query = _db.select(_db.emergencyChambers)
+      ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+    if (diverId != null) {
+      query.where((t) => t.diverId.equals(diverId) | t.diverId.isNull());
+    }
+    final rows = await query.get();
     return [for (final row in rows) _toDomain(row)];
   }
 

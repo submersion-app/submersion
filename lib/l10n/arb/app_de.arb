@@ -5843,6 +5843,8 @@
   "emergencyCard_chamberVerified": "Angaben geprüft {date}",
   "@emergencyCard_chamberVerified": {"placeholders": {"date": {"type": "String"}}},
   "emergencyCard_hideChamber": "Ausblenden",
+  "emergencyCard_chamberHidden": "Kammer ausgeblendet",
+  "emergencyCard_undo": "Rückgängig",
   "emergencyCard_addChamber": "Kammer hinzufügen",
   "emergencyCard_deleteChamber": "Löschen",
   "emergencyCard_regionLabel": "Region: {region}",

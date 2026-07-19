@@ -47,7 +47,33 @@ class _SafetyHubPageState extends ConsumerState<SafetyHubPage> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _NoFlyCard(status: statusAsync.value),
+          // Only render the all-clear/active card from real data. During
+          // loading or on error, show an explicit state instead of letting a
+          // null value read as "no flying restriction" on a safety banner.
+          statusAsync.when(
+            data: (status) => _NoFlyCard(status: status),
+            loading: () => const Card(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Center(
+                  child: SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
+              ),
+            ),
+            error: (_, _) => Card(
+              child: ListTile(
+                leading: Icon(
+                  Icons.error_outline,
+                  color: Theme.of(context).colorScheme.error,
+                ),
+                title: Text(l10n.common_error_tryAgain),
+              ),
+            ),
+          ),
           const SizedBox(height: 16),
           Card(
             child: ListTile(
@@ -142,7 +168,7 @@ class _NoFlyCard extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              _categoryText(l10n, status!.category, remaining),
+              _categoryText(l10n, status!.category),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -161,11 +187,7 @@ class _NoFlyCard extends StatelessWidget {
     );
   }
 
-  String _categoryText(
-    AppLocalizations l10n,
-    NoFlyCategory category,
-    Duration remaining,
-  ) {
+  String _categoryText(AppLocalizations l10n, NoFlyCategory category) {
     final hours = status!.interval.inHours;
     return switch (category) {
       NoFlyCategory.single => l10n.safetyHub_noFly_category_single(hours),

@@ -12037,6 +12037,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get emergencyCard_hideChamber => 'Masquer';
 
   @override
+  String get emergencyCard_chamberHidden => 'Caisson masqué';
+
+  @override
+  String get emergencyCard_undo => 'Annuler';
+
+  @override
   String get emergencyCard_addChamber => 'Ajouter un caisson';
 
   @override

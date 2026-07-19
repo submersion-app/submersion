@@ -5843,6 +5843,8 @@
   "emergencyCard_chamberVerified": "تم التحقق من البيانات {date}",
   "@emergencyCard_chamberVerified": {"placeholders": {"date": {"type": "String"}}},
   "emergencyCard_hideChamber": "إخفاء",
+  "emergencyCard_chamberHidden": "تم إخفاء الغرفة",
+  "emergencyCard_undo": "تراجع",
   "emergencyCard_addChamber": "إضافة غرفة",
   "emergencyCard_deleteChamber": "حذف",
   "emergencyCard_regionLabel": "المنطقة: {region}",

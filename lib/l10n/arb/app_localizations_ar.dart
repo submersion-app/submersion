@@ -11774,6 +11774,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get emergencyCard_hideChamber => 'إخفاء';
 
   @override
+  String get emergencyCard_chamberHidden => 'تم إخفاء الغرفة';
+
+  @override
+  String get emergencyCard_undo => 'تراجع';
+
+  @override
   String get emergencyCard_addChamber => 'إضافة غرفة';
 
   @override

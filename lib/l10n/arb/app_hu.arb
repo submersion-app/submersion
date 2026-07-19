@@ -5843,6 +5843,8 @@
   "emergencyCard_chamberVerified": "Adatok ellenőrizve: {date}",
   "@emergencyCard_chamberVerified": {"placeholders": {"date": {"type": "String"}}},
   "emergencyCard_hideChamber": "Elrejtés",
+  "emergencyCard_chamberHidden": "Kamra elrejtve",
+  "emergencyCard_undo": "Visszavonás",
   "emergencyCard_addChamber": "Kamra hozzáadása",
   "emergencyCard_deleteChamber": "Törlés",
   "emergencyCard_regionLabel": "Régió: {region}",

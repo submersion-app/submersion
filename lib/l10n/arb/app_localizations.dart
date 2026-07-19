@@ -20354,6 +20354,18 @@ abstract class AppLocalizations {
   /// **'Hide'**
   String get emergencyCard_hideChamber;
 
+  /// No description provided for @emergencyCard_chamberHidden.
+  ///
+  /// In en, this message translates to:
+  /// **'Chamber hidden'**
+  String get emergencyCard_chamberHidden;
+
+  /// No description provided for @emergencyCard_undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get emergencyCard_undo;
+
   /// No description provided for @emergencyCard_addChamber.
   ///
   /// In en, this message translates to:

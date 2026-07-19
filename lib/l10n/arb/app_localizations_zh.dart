@@ -11427,6 +11427,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get emergencyCard_hideChamber => '隐藏';
 
   @override
+  String get emergencyCard_chamberHidden => '已隐藏氧舱';
+
+  @override
+  String get emergencyCard_undo => '撤消';
+
+  @override
   String get emergencyCard_addChamber => '添加减压舱';
 
   @override

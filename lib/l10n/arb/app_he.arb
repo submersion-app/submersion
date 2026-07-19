@@ -5843,6 +5843,8 @@
   "emergencyCard_chamberVerified": "הפרטים אומתו {date}",
   "@emergencyCard_chamberVerified": {"placeholders": {"date": {"type": "String"}}},
   "emergencyCard_hideChamber": "הסתר",
+  "emergencyCard_chamberHidden": "התא הוסתר",
+  "emergencyCard_undo": "בטל",
   "emergencyCard_addChamber": "הוסף תא לחץ",
   "emergencyCard_deleteChamber": "מחק",
   "emergencyCard_regionLabel": "אזור: {region}",

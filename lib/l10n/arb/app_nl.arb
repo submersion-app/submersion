@@ -5843,6 +5843,8 @@
   "emergencyCard_chamberVerified": "Gegevens gecontroleerd {date}",
   "@emergencyCard_chamberVerified": {"placeholders": {"date": {"type": "String"}}},
   "emergencyCard_hideChamber": "Verbergen",
+  "emergencyCard_chamberHidden": "Kamer verborgen",
+  "emergencyCard_undo": "Ongedaan maken",
   "emergencyCard_addChamber": "Kamer toevoegen",
   "emergencyCard_deleteChamber": "Verwijderen",
   "emergencyCard_regionLabel": "Regio: {region}",

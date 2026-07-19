@@ -11961,6 +11961,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get emergencyCard_hideChamber => 'Elrejtés';
 
   @override
+  String get emergencyCard_chamberHidden => 'Kamra elrejtve';
+
+  @override
+  String get emergencyCard_undo => 'Visszavonás';
+
+  @override
   String get emergencyCard_addChamber => 'Kamra hozzáadása';
 
   @override
