@@ -18856,6 +18856,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get gpsLogger_tracksHeader => 'Traces enregistrées';
 
   @override
+  String get maps_compass_resetLabel =>
+      'Réinitialiser l\'orientation de la carte vers le nord';
+
+  @override
+  String get maps_compass_resetTooltip => 'Nord en haut';
+
+  @override
   String get maps_heatMap_hide => 'Masquer la carte de chaleur';
 
   @override

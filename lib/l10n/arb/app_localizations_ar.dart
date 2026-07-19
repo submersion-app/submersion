@@ -18443,6 +18443,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gpsLogger_tracksHeader => 'المسارات المسجّلة';
 
   @override
+  String get maps_compass_resetLabel => 'إعادة ضبط اتجاه الخريطة نحو الشمال';
+
+  @override
+  String get maps_compass_resetTooltip => 'الشمال للأعلى';
+
+  @override
   String get maps_heatMap_hide => 'إخفاء خريطة الحرارة';
 
   @override

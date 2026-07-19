@@ -17819,6 +17819,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gpsLogger_tracksHeader => '已记录的轨迹';
 
   @override
+  String get maps_compass_resetLabel => '将地图方向重置为正北';
+
+  @override
+  String get maps_compass_resetTooltip => '正北朝上';
+
+  @override
   String get maps_heatMap_hide => '隐藏热力图';
 
   @override

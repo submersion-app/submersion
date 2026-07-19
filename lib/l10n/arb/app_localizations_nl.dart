@@ -18631,6 +18631,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get gpsLogger_tracksHeader => 'Opgenomen tracks';
 
   @override
+  String get maps_compass_resetLabel =>
+      'Kaartoriëntatie terugzetten naar het noorden';
+
+  @override
+  String get maps_compass_resetTooltip => 'Noorden boven';
+
+  @override
   String get maps_heatMap_hide => 'Heatmap verbergen';
 
   @override

@@ -3393,6 +3393,8 @@
   "gas_tmx1845_displayName": "Tx 18/45",
   "gas_tmx2135_description": "Normoxisches Trimix 21/35",
   "gas_tmx2135_displayName": "Tx 21/35",
+  "maps_compass_resetLabel": "Kartenausrichtung nach Norden zurücksetzen",
+  "maps_compass_resetTooltip": "Norden oben",
   "maps_heatMap_hide": "Heatmap ausblenden",
   "maps_heatMap_overlayOff": "Heatmap-Overlay ist aus",
   "maps_heatMap_overlayOn": "Heatmap-Overlay ist an",

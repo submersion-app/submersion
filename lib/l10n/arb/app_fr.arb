@@ -3359,6 +3359,8 @@
   "gas_tmx1845_displayName": "Tx 18/45",
   "gas_tmx2135_description": "Trimix normoxique 21/35",
   "gas_tmx2135_displayName": "Tx 21/35",
+  "maps_compass_resetLabel": "Réinitialiser l'orientation de la carte vers le nord",
+  "maps_compass_resetTooltip": "Nord en haut",
   "maps_heatMap_hide": "Masquer la carte de chaleur",
   "maps_heatMap_overlayOff": "La carte de chaleur est desactivee",
   "maps_heatMap_overlayOn": "La carte de chaleur est activee",

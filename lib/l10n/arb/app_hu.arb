@@ -3359,6 +3359,8 @@
   "gas_tmx1845_displayName": "Tx 18/45",
   "gas_tmx2135_description": "Normoxikus trimix 21/35",
   "gas_tmx2135_displayName": "Tx 21/35",
+  "maps_compass_resetLabel": "Terkep tajolasanak visszaallitasa eszakra",
+  "maps_compass_resetTooltip": "Eszak felul",
   "maps_heatMap_hide": "Hoterkep elrejtese",
   "maps_heatMap_overlayOff": "A hoterkep reteg ki van kapcsolva",
   "maps_heatMap_overlayOn": "A hoterkep reteg be van kapcsolva",

@@ -11653,6 +11653,8 @@
     }
   },
   "gpsLogger_tracksHeader": "Recorded tracks",
+  "maps_compass_resetLabel": "Reset map orientation to north",
+  "maps_compass_resetTooltip": "North up",
   "maps_heatMap_hide": "Hide Heat Map",
   "maps_heatMap_overlayOff": "Heat map overlay is off",
   "maps_heatMap_overlayOn": "Heat map overlay is on",

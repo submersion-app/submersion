@@ -3359,6 +3359,8 @@
   "gas_tmx1845_displayName": "Tx 18/45",
   "gas_tmx2135_description": "טרימיקס נורמוקסי 21/35",
   "gas_tmx2135_displayName": "Tx 21/35",
+  "maps_compass_resetLabel": "איפוס כיוון המפה לצפון",
+  "maps_compass_resetTooltip": "צפון למעלה",
   "maps_heatMap_hide": "הסתר מפת חום",
   "maps_heatMap_overlayOff": "שכבת מפת חום כבויה",
   "maps_heatMap_overlayOn": "שכבת מפת חום פעילה",

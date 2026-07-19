@@ -18783,6 +18783,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get gpsLogger_tracksHeader => 'Trilhas gravadas';
 
   @override
+  String get maps_compass_resetLabel =>
+      'Redefinir a orientação do mapa para o norte';
+
+  @override
+  String get maps_compass_resetTooltip => 'Norte para cima';
+
+  @override
   String get maps_heatMap_hide => 'Ocultar Mapa de Calor';
 
   @override

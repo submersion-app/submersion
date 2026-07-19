@@ -31363,6 +31363,18 @@ abstract class AppLocalizations {
   /// **'Recorded tracks'**
   String get gpsLogger_tracksHeader;
 
+  /// No description provided for @maps_compass_resetLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset map orientation to north'**
+  String get maps_compass_resetLabel;
+
+  /// No description provided for @maps_compass_resetTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'North up'**
+  String get maps_compass_resetTooltip;
+
   /// No description provided for @maps_heatMap_hide.
   ///
   /// In en, this message translates to:

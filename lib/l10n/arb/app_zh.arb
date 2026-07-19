@@ -3536,6 +3536,8 @@
   "gas_tmx2135_description": "常氧三混气 21/35",
   "gas_tmx2135_displayName": "Tx 21/35",
   "importWizard_tagsLabel": "标签",
+  "maps_compass_resetLabel": "将地图方向重置为正北",
+  "maps_compass_resetTooltip": "正北朝上",
   "maps_heatMap_hide": "隐藏热力图",
   "maps_heatMap_overlayOff": "热力图叠加层已关闭",
   "maps_heatMap_overlayOn": "热力图叠加层已开启",

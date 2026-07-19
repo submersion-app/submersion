@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_compass_button.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 
 /// Marker colors for the GPS entry/exit fixes, matching the values the dive
@@ -150,45 +151,56 @@ class _DiveLocationsMapState extends ConsumerState<DiveLocationsMap> {
         ),
     ];
 
-    return TrackpadZoomMap(
-      controller: _effectiveController,
-      child: FlutterMap(
-        mapController: _effectiveController,
-        options: MapOptions(
-          initialCenter: center,
-          initialZoom: zoom,
-          initialCameraFit: fit,
-          interactionOptions: InteractionOptions(
-            flags: interactive ? InteractiveFlag.all : InteractiveFlag.none,
+    return Stack(
+      children: [
+        TrackpadZoomMap(
+          controller: _effectiveController,
+          child: FlutterMap(
+            mapController: _effectiveController,
+            options: MapOptions(
+              initialCenter: center,
+              initialZoom: zoom,
+              initialCameraFit: fit,
+              interactionOptions: InteractionOptions(
+                flags: interactive ? InteractiveFlag.all : InteractiveFlag.none,
+              ),
+            ),
+            children: [
+              TileLayer(
+                urlTemplate: ref.watch(mapTileUrlProvider),
+                userAgentPackageName: 'app.submersion',
+                maxZoom: ref.watch(mapTileMaxZoomProvider),
+                tileProvider: TileCacheService.instance.isInitialized
+                    ? TileCacheService.instance.getTileProvider()
+                    : null,
+              ),
+              if (entry != null && exit != null)
+                PolylineLayer(
+                  polylines: [
+                    Polyline(
+                      points: [
+                        LatLng(entry.latitude, entry.longitude),
+                        LatLng(exit.latitude, exit.longitude),
+                      ],
+                      strokeWidth: 3.0,
+                      color: colorScheme.onSurface.withValues(alpha: 0.7),
+                      pattern: const StrokePattern.dotted(),
+                    ),
+                  ],
+                ),
+              MarkerLayer(markers: markers),
+              const MapAttribution(),
+            ],
           ),
         ),
-        children: [
-          TileLayer(
-            urlTemplate: ref.watch(mapTileUrlProvider),
-            userAgentPackageName: 'app.submersion',
-            maxZoom: ref.watch(mapTileMaxZoomProvider),
-            tileProvider: TileCacheService.instance.isInitialized
-                ? TileCacheService.instance.getTileProvider()
-                : null,
+        // Reset-to-north compass (only when the map accepts rotation gestures)
+        if (interactive)
+          Positioned(
+            top: 16,
+            right: 16,
+            child: MapCompassButton(controller: _effectiveController),
           ),
-          if (entry != null && exit != null)
-            PolylineLayer(
-              polylines: [
-                Polyline(
-                  points: [
-                    LatLng(entry.latitude, entry.longitude),
-                    LatLng(exit.latitude, exit.longitude),
-                  ],
-                  strokeWidth: 3.0,
-                  color: colorScheme.onSurface.withValues(alpha: 0.7),
-                  pattern: const StrokePattern.dotted(),
-                ),
-              ],
-            ),
-          MarkerLayer(markers: markers),
-          const MapAttribution(),
-        ],
-      ),
+      ],
     );
   }
 }

@@ -18731,6 +18731,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get gpsLogger_tracksHeader => 'Rögzített útvonalak';
 
   @override
+  String get maps_compass_resetLabel =>
+      'Terkep tajolasanak visszaallitasa eszakra';
+
+  @override
+  String get maps_compass_resetTooltip => 'Eszak felul';
+
+  @override
   String get maps_heatMap_hide => 'Hoterkep elrejtese';
 
   @override
