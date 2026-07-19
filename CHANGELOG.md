@@ -3,6 +3,18 @@
 All notable changes to Submersion are documented in this file.
 
 
+## Unreleased
+
+### Features
+
+- configurable CNS calculation method: NOAA stepped table (classic),
+  Shearwater-style linear interpolation (new default), or Subsurface-style
+  exponential fit (#578). Calculated CNS values decrease slightly under the
+  new default; select "classic" in Settings > Decompression to reproduce
+  previous values. The picker's "About these methods" section explains each
+  method's origin with source links.
+
+
 ## 1.6.1 (2026-07-10)
 
 ### Bug Fixes

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/accessibility/app_shortcuts.dart';
+import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/services/database_service.dart';
-import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/core/services/notification_service.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_list_page.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -62,6 +62,7 @@ import 'package:submersion/features/equipment/presentation/pages/equipment_list_
 import 'package:submersion/features/equipment/presentation/pages/equipment_detail_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_edit_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_list_page.dart';
+import 'package:submersion/features/equipment/presentation/pages/service_kind_list_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_detail_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_edit_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_list_page.dart';
@@ -95,6 +96,10 @@ import 'package:submersion/features/settings/presentation/pages/appearance_page.
 import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
 import 'package:submersion/features/settings/presentation/pages/default_visible_metrics_page.dart';
 import 'package:submersion/features/settings/presentation/pages/dive_detail_sections_page.dart';
+import 'package:submersion/features/safety/presentation/pages/add_chamber_page.dart';
+import 'package:submersion/features/safety/presentation/pages/emergency_card_page.dart';
+import 'package:submersion/features/safety/presentation/pages/safety_hub_page.dart';
+import 'package:submersion/features/settings/presentation/pages/safety_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/nav_customization_page.dart';
 import 'package:submersion/features/settings/presentation/pages/theme_gallery_page.dart';
@@ -120,9 +125,8 @@ import 'package:submersion/features/marine_life/presentation/pages/species_manag
 import 'package:submersion/features/tags/presentation/pages/tag_manage_page.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_edit_page.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_detail_page.dart';
+import 'package:submersion/features/planner/presentation/pages/plan_chart_fullscreen_page.dart';
 import 'package:submersion/features/planning/presentation/pages/planning_page.dart';
-import 'package:submersion/features/planning/presentation/widgets/planning_shell.dart';
-import 'package:submersion/features/planning/presentation/widgets/planning_welcome.dart';
 import 'package:submersion/features/gps_log/presentation/pages/gps_logger_page.dart';
 import 'package:submersion/features/weight_planner/presentation/pages/weight_planner_page.dart';
 import 'package:submersion/features/deco_calculator/presentation/pages/deco_calculator_page.dart';
@@ -202,79 +206,73 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ),
           ),
 
-          // Planning Hub with ShellRoute for master/detail on wide screens
-          ShellRoute(
-            pageBuilder: (context, state, child) => NoTransitionPage(
-              key: state.pageKey,
-              child: PlanningShell(child: child),
-            ),
+          // Planning hub and tools
+          GoRoute(
+            path: '/planning',
+            name: 'planning',
+            pageBuilder: (context, state) {
+              // The hub is the landing surface on every width; the shell
+              // decides how much width it gets.
+              return NoTransitionPage(
+                key: state.pageKey,
+                child: const PlanningPage(),
+              );
+            },
             routes: [
               GoRoute(
-                path: '/planning',
-                name: 'planning',
-                pageBuilder: (context, state) {
-                  // On wide screens show welcome placeholder, on mobile show hub
-                  final isWide = ResponsiveBreakpoints.isMasterDetail(context);
-                  return NoTransitionPage(
-                    key: state.pageKey,
-                    child: isWide
-                        ? const PlanningWelcome()
-                        : const PlanningPage(),
-                  );
-                },
+                path: 'dive-planner',
+                name: 'divePlanner',
+                builder: (context, state) => const PlanCanvasPage(),
                 routes: [
                   GoRoute(
-                    path: 'dive-planner',
-                    name: 'divePlanner',
-                    builder: (context, state) => const PlanCanvasPage(),
-                    routes: [
-                      GoRoute(
-                        path: 'compare',
-                        name: 'comparePlans',
-                        builder: (context, state) => PlanComparePage(
-                          planIds: (state.uri.queryParameters['ids'] ?? '')
-                              .split(',')
-                              .where((id) => id.isNotEmpty)
-                              .toList(),
-                        ),
-                      ),
-                      GoRoute(
-                        path: ':planId',
-                        name: 'editPlan',
-                        builder: (context, state) => PlanCanvasPage(
-                          planId: state.pathParameters['planId'],
-                        ),
-                      ),
-                    ],
+                    path: 'compare',
+                    name: 'comparePlans',
+                    builder: (context, state) => PlanComparePage(
+                      planIds: (state.uri.queryParameters['ids'] ?? '')
+                          .split(',')
+                          .where((id) => id.isNotEmpty)
+                          .toList(),
+                    ),
                   ),
                   GoRoute(
-                    path: 'deco-calculator',
-                    name: 'decoCalculator',
-                    builder: (context, state) => const DecoCalculatorPage(),
-                  ),
-                  GoRoute(
-                    path: 'gas-calculators',
-                    name: 'gasCalculators',
-                    builder: (context, state) => const GasCalculatorsPage(),
-                  ),
-                  GoRoute(
-                    path: 'weight-calculator',
-                    name: 'weightCalculator',
-                    builder: (context, state) => const WeightPlannerPage(),
-                  ),
-                  GoRoute(
-                    path: 'surface-interval',
-                    name: 'surfaceInterval',
+                    path: 'chart',
+                    name: 'planChart',
                     builder: (context, state) =>
-                        const SurfaceIntervalToolPage(),
+                        const PlanChartFullscreenPage(),
                   ),
-                  // GPS Logger moved to top-level /gps-log; keep old deep
-                  // links working.
                   GoRoute(
-                    path: 'gps-logger',
-                    redirect: (context, state) => '/gps-log',
+                    path: ':planId',
+                    name: 'editPlan',
+                    builder: (context, state) =>
+                        PlanCanvasPage(planId: state.pathParameters['planId']),
                   ),
                 ],
+              ),
+              GoRoute(
+                path: 'deco-calculator',
+                name: 'decoCalculator',
+                builder: (context, state) => const DecoCalculatorPage(),
+              ),
+              GoRoute(
+                path: 'gas-calculators',
+                name: 'gasCalculators',
+                builder: (context, state) => const GasCalculatorsPage(),
+              ),
+              GoRoute(
+                path: 'weight-calculator',
+                name: 'weightCalculator',
+                builder: (context, state) => const WeightPlannerPage(),
+              ),
+              GoRoute(
+                path: 'surface-interval',
+                name: 'surfaceInterval',
+                builder: (context, state) => const SurfaceIntervalToolPage(),
+              ),
+              // GPS Logger moved to top-level /gps-log; keep old deep
+              // links working.
+              GoRoute(
+                path: 'gps-logger',
+                redirect: (context, state) => '/gps-log',
               ),
             ],
           ),
@@ -482,6 +480,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     ],
                   ),
                 ],
+              ),
+              GoRoute(
+                path: 'service-types',
+                name: 'manageServiceTypes',
+                builder: (context, state) => const ServiceKindListPage(),
               ),
               GoRoute(
                 path: ':equipmentId',
@@ -803,6 +806,27 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ),
           ),
 
+          // Safety hub (no-fly status, emergency card, near-miss log)
+          GoRoute(
+            path: '/safety',
+            name: 'safety',
+            builder: (context, state) => const SafetyHubPage(),
+            routes: [
+              GoRoute(
+                path: 'emergency-card',
+                name: 'emergencyCard',
+                builder: (context, state) => const EmergencyCardPage(),
+                routes: [
+                  GoRoute(
+                    path: 'add-chamber',
+                    name: 'addChamber',
+                    builder: (context, state) => const AddChamberPage(),
+                  ),
+                ],
+              ),
+            ],
+          ),
+
           // Settings
           GoRoute(
             path: '/settings',
@@ -891,6 +915,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) => const DiveDetailSectionsPage(),
               ),
               GoRoute(
+                path: 'safety',
+                name: 'safetySettings',
+                builder: (context, state) => const SafetySettingsPage(),
+              ),
+              GoRoute(
                 path: 'default-metrics',
                 name: 'defaultMetrics',
                 builder: (context, state) => const DefaultVisibleMetricsPage(),
@@ -951,9 +980,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   ),
                 ],
               ),
+              // Lightroom settings page hidden pending Adobe review
+              // (lightroomUiEnabled). The route stays defined so any lingering
+              // navigation to it (a deep link, or PendingSetupService which
+              // computes '/settings/lightroom' for an on-device Lightroom
+              // account) degrades gracefully by redirecting to the media
+              // sources page instead of hitting an unknown-route error screen.
               GoRoute(
                 path: 'lightroom',
                 name: 'lightroom',
+                redirect: (context, state) =>
+                    lightroomUiEnabled ? null : '/settings/media-sources',
                 builder: (context, state) => const LightroomSettingsPage(),
               ),
               GoRoute(

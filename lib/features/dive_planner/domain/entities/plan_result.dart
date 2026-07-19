@@ -487,6 +487,12 @@ class DivePlanState extends Equatable {
   /// Surface air consumption rate in L/min.
   final double sacRate;
 
+  /// Ascent rate in meters per minute (Subsurface parity, G7/G8).
+  final double ascentRate;
+
+  /// Descent rate in meters per minute.
+  final double descentRate;
+
   /// Surface interval before this dive (for repetitive diving).
   final Duration? surfaceInterval;
 
@@ -505,7 +511,10 @@ class DivePlanState extends Equatable {
   /// Altitude above sea level in meters (for altitude diving).
   final double? altitude;
 
-  /// Breathing mode (open circuit or CCR).
+  /// Planned start time; null = "now". Drives repetitive tissue init (v120).
+  final DateTime? startDateTime;
+
+  /// Breathing mode (open circuit, CCR, or SCR).
   final PlanMode mode;
 
   /// CCR setpoints in bar; null = the engine's defaults (0.7 / 1.3).
@@ -554,12 +563,15 @@ class DivePlanState extends Equatable {
     this.gfLow = 30,
     this.gfHigh = 70,
     this.sacRate = 15.0,
+    this.ascentRate = 9.0,
+    this.descentRate = 18.0,
     this.surfaceInterval,
     this.initialTissueState,
     this.sourceDiveId,
     this.linkedDiveId,
     this.siteId,
     this.altitude,
+    this.startDateTime,
     this.mode = PlanMode.oc,
     this.setpointLow,
     this.setpointHigh,
@@ -614,12 +626,16 @@ class DivePlanState extends Equatable {
     int? gfLow,
     int? gfHigh,
     double? sacRate,
+    double? ascentRate,
+    double? descentRate,
     Duration? surfaceInterval,
     List<TissueCompartment>? initialTissueState,
     String? sourceDiveId,
     String? linkedDiveId,
     String? siteId,
     double? altitude,
+    DateTime? startDateTime,
+    bool clearStartDateTime = false,
     PlanMode? mode,
     double? setpointLow,
     double? setpointHigh,
@@ -654,6 +670,8 @@ class DivePlanState extends Equatable {
       gfLow: gfLow ?? this.gfLow,
       gfHigh: gfHigh ?? this.gfHigh,
       sacRate: sacRate ?? this.sacRate,
+      ascentRate: ascentRate ?? this.ascentRate,
+      descentRate: descentRate ?? this.descentRate,
       surfaceInterval: clearSurfaceInterval
           ? null
           : (surfaceInterval ?? this.surfaceInterval),
@@ -668,6 +686,9 @@ class DivePlanState extends Equatable {
           : (linkedDiveId ?? this.linkedDiveId),
       siteId: clearSiteId ? null : (siteId ?? this.siteId),
       altitude: clearAltitude ? null : (altitude ?? this.altitude),
+      startDateTime: clearStartDateTime
+          ? null
+          : (startDateTime ?? this.startDateTime),
       mode: mode ?? this.mode,
       setpointLow: clearSetpoints ? null : (setpointLow ?? this.setpointLow),
       setpointHigh: clearSetpoints ? null : (setpointHigh ?? this.setpointHigh),
@@ -706,12 +727,15 @@ class DivePlanState extends Equatable {
     gfLow,
     gfHigh,
     sacRate,
+    ascentRate,
+    descentRate,
     surfaceInterval,
     initialTissueState,
     sourceDiveId,
     linkedDiveId,
     siteId,
     altitude,
+    startDateTime,
     mode,
     setpointLow,
     setpointHigh,

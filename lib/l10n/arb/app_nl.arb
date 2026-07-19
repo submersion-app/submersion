@@ -836,10 +836,16 @@
   "common_label_loading": "Laden",
   "common_placeholder_noValue": "--",
   "courses_action_add": "Cursus toevoegen",
+  "courses_action_addFromTemplate": "Toevoegen vanuit sjabloon",
+  "courses_action_addRequirement": "Vereiste toevoegen",
   "courses_action_create": "Cursus aanmaken",
+  "courses_action_deleteRequirement": "Vereiste verwijderen",
   "courses_action_edit": "Cursus bewerken",
+  "courses_action_editRequirement": "Vereiste bewerken",
   "courses_action_exportTrainingLog": "Trainingslogboek exporteren",
+  "courses_action_linkDive": "Koppelen",
   "courses_action_markCompleted": "Markeren als voltooid",
+  "courses_action_unlinkDive": "Duik ontkoppelen",
   "courses_action_moreOptions": "Meer opties",
   "courses_action_retry": "Opnieuw proberen",
   "courses_action_saveChanges": "Wijzigingen opslaan",
@@ -892,16 +898,26 @@
   "courses_picker_selectTitle": "Selecteer trainingscursus",
   "courses_picker_selected": "geselecteerd",
   "courses_picker_tapToLink": "Tik om te koppelen aan een trainingscursus",
+  "courses_requirement_diveProgress": "{count} van {target} duiken",
+  "courses_requirement_field_name": "Naam",
+  "courses_requirement_field_targetCount": "Vereiste duiken",
+  "courses_requirement_kind_checklist": "Afvinkpunt",
+  "courses_requirement_kind_dive": "Duikvereiste",
+  "courses_requirement_suggestions": "Voorgestelde duiken",
+  "courses_requirements_empty": "Houd adventure-duiken, voorvereisten en afvinkpunten bij voor deze cursus.",
+  "courses_requirements_progress": "{satisfied} van {total} voltooid",
   "courses_section_details": "Cursusdetails",
   "courses_section_earnedCertification": "Behaalde certificering",
   "courses_section_instructor": "Instructeur",
   "courses_section_notes": "Notities",
+  "courses_section_requirements": "Vereisten",
   "courses_section_trainingDives": "Trainingsduiken",
   "courses_status_completed": "Voltooid",
   "courses_status_daysSinceStart": "{days} dagen sinds start",
   "courses_status_durationDays": "{days} dagen",
   "courses_status_inProgress": "Bezig",
   "courses_status_semanticLabel": "{status}, {duration}",
+  "courses_template_addsCount": "Voegt {count} vereisten toe",
   "courses_summary_overview": "Overzicht",
   "courses_summary_quickActions": "Snelle acties",
   "courses_summary_recentCourses": "Recente cursussen",
@@ -913,6 +929,7 @@
   "courses_title_new": "Nieuwe cursus",
   "courses_title_singular": "Cursus",
   "courses_validation_nameRequired": "Voer een cursusnaam in",
+  "dashboard_activeCourses_title": "Lopende cursussen",
   "dashboard_activity_daySinceDiving": "Dag sinds laatste duik",
   "dashboard_activity_daysSinceDiving": "Dagen sinds laatste duik",
   "dashboard_activity_diveInYear": "Duik in {year}",
@@ -1297,6 +1314,42 @@
   "diveDetailSection_tide_description": "Getijdecyclusgrafiek en timing",
   "diveDetailSection_tide_name": "Getij",
   "diveDetailSection_weights_description": "Gewichtsoverzicht, totaalgewicht",
+  "diveDetailSection_buoyancy_name": "Drijfvermogen",
+  "diveDetailSection_buoyancy_description": "Drijfvermogen tijdens de duik, variatie, afwerpbaar lood",
+  "buoyancy_tooltip": "Gemodelleerd netto drijfvermogen tijdens de duik op basis van profiel, gasverbruik en uitrusting.",
+  "buoyancy_verdictBuoyant": "Bij je laatste stop (~{depth}) had je ongeveer {amount} opdrijvend vermogen",
+  "buoyancy_verdictHeavy": "Bij je laatste stop (~{depth}) was je ongeveer {amount} te zwaar",
+  "buoyancy_verdictNeutral": "Je configuratie was bijna neutraal bij de laatste stop",
+  "buoyancy_verdictConvention": "Geschat volgens de 5 m-veiligheidsstopconventie",
+  "buoyancy_breakdownTitle": "Termuitsplitsing",
+  "buoyancy_suitTerm": "Pak",
+  "buoyancy_leadTerm": "Lood",
+  "buoyancy_beginNet": "Begin van de duik",
+  "buoyancy_endNet": "Einde van de duik",
+  "buoyancy_swing": "Drijfvermogenvariatie",
+  "buoyancy_peakLift": "Maximaal benodigde lift",
+  "buoyancy_wingWarning": "Overschrijdt de nominale lift van je wing",
+  "buoyancy_minDitchable": "Min. afwerpbaar lood",
+  "buoyancy_droppable": "Je kunt afwerpen",
+  "buoyancy_ditchWarning": "Meer dan je kunt afwerpen",
+  "buoyancy_drysuitGas": "Droogpakgas toegevoegd",
+  "buoyancy_estimatedPressures": "Flesdrukken zijn geschat",
+  "buoyancy_linkSuitHint": "Koppel een duikpak aan deze duik voor een vollediger beeld",
+  "buoyancy_chartNet": "Netto",
+  "buoyancy_chartRig": "Uitrusting + lood",
+  "buoyancy_chartMinutes": "Tijd (min)",
+  "buoyancy_historyTitle": "Loodgeschiedenis",
+  "buoyancy_historyCarried": "Gedragen",
+  "buoyancy_historyModeled": "Gemodelleerd",
+  "buoyancy_historyMore": "Je draagt doorgaans {delta} meer dan het model voorstelt",
+  "buoyancy_historyLess": "Je draagt doorgaans {delta} minder dan het model voorstelt",
+  "buoyancy_throughDive": "Tijdens de duik",
+  "buoyancy_adjust": "Aanpassen",
+  "buoyancy_whatIfTitle": "Deze duik aanpassen",
+  "buoyancy_whatIfLead": "Lood",
+  "buoyancy_whatIfSuit": "Pakdrijfvermogen",
+  "buoyancy_whatIfReset": "Herstellen",
+  "buoyancy_whatIfDelta": "{delta} t.o.v. werkelijk",
   "diveDetailSection_weights_name": "Gewichten",
   "diveImport_alreadyImported": "Al geimporteerd",
   "diveImport_avgHR": "Gem. HR",
@@ -1660,6 +1713,12 @@
   "diveLog_edit_noMarineLife": "Geen onderwaterleven gelogd",
   "diveLog_edit_notSpecified": "Niet opgegeven",
   "diveLog_edit_notesHint": "Voeg notities toe over deze duik...",
+  "diveLog_edit_overline_tanks": "Flessen",
+  "diveLog_edit_profile_draw": "Profiel tekenen",
+  "diveLog_edit_profile_none": "Niet vastgelegd",
+  "diveLog_edit_profile_outliers": "{count, plural, one{1 mogelijke uitschieter gedetecteerd} other{{count} mogelijke uitschieters gedetecteerd}}",
+  "diveLog_edit_profile_points": "{count, plural, one{1 punt} other{{count} punten}}",
+  "diveLog_edit_row_diveProfile": "Duikprofiel",
   "diveLog_edit_row_addSite": "Duikstek toevoegen",
   "diveLog_edit_row_diveCenter": "Duikcentrum",
   "diveLog_edit_row_entry": "Te water",
@@ -2490,6 +2549,7 @@
   "diveSites_edit_section_gpsCoordinates": "GPS-coordinaten",
   "diveSites_edit_section_hazards": "Gevaren & veiligheid",
   "diveSites_edit_section_rating": "Beoordeling",
+  "diveSites_edit_section_waterType": "Watertype",
   "diveSites_edit_snackbar_errorDeleting": "Fout bij verwijderen van stek: {error}",
   "diveSites_edit_snackbar_errorSaving": "Fout bij opslaan van stek: {error}",
   "diveSites_edit_snackbar_locationCaptured": "Locatie vastgelegd",
@@ -3095,6 +3155,61 @@
   "equipment_detail_retiredChip": "Buiten gebruik",
   "equipment_detail_serialNumberLabel": "Serienummer",
   "equipment_detail_serviceInfoTitle": "Service-informatie",
+  "equipment_serviceClocks_title": "Serviceintervallen",
+  "equipment_serviceClocks_addClock": "Interval toevoegen",
+  "equipment_serviceClocks_logService": "Service registreren",
+  "equipment_serviceClocks_edit": "Intervallen bewerken",
+  "equipment_serviceClocks_pause": "Pauzeren",
+  "equipment_serviceClocks_resume": "Hervatten",
+  "equipment_serviceClocks_remove": "Verwijderen",
+  "equipment_serviceClocks_paused": "Gepauzeerd",
+  "equipment_serviceClocks_empty": "Geen serviceintervallen",
+  "equipment_serviceClocks_dueOn": "Vervalt op {date}",
+  "equipment_serviceClocks_overdueSince": "Achterstallig sinds {date}",
+  "equipment_serviceClocks_overdue": "Te laat",
+  "equipment_serviceClocks_divesLeft": "{remaining} van {total} duiken resterend",
+  "equipment_serviceClocks_hoursLeft": "{remaining} van {total} uur resterend",
+  "equipment_serviceClocks_manageKinds": "Servicetypen beheren",
+  "equipment_serviceClocks_appliesToClock": "Gekoppeld aan interval",
+  "equipment_serviceClocks_noClockOption": "Niet aan een interval gekoppeld",
+  "equipment_scheduleDialog_title": "Interval bewerken",
+  "equipment_scheduleDialog_intervalDays": "Interval (dagen)",
+  "equipment_scheduleDialog_intervalDives": "Interval (duiken)",
+  "equipment_scheduleDialog_intervalHours": "Interval (uren)",
+  "equipment_scheduleDialog_inheritHint": "Standaard: {value}",
+  "equipment_scheduleDialog_anchorDate": "Referentiedatum",
+  "equipment_scheduleDialog_anchorHint": "Wordt gebruikt zolang er nog geen servicerecord van dit type bestaat",
+  "equipment_scheduleDialog_clearAnchor": "Referentiedatum wissen",
+  "equipment_scheduleDialog_save": "Opslaan",
+  "equipment_scheduleDialog_cancel": "Annuleren",
+  "equipment_serviceKinds_title": "Servicetypen",
+  "equipment_serviceKinds_builtIn": "Ingebouwd",
+  "equipment_serviceKinds_custom": "Aangepast",
+  "equipment_serviceKinds_add": "Servicetype toevoegen",
+  "equipment_serviceKinds_editTitle": "Servicetype bewerken",
+  "equipment_serviceKinds_nameLabel": "Naam",
+  "equipment_serviceKinds_nameRequired": "Een naam is verplicht",
+  "equipment_serviceKinds_appliesTo": "Geldt voor",
+  "equipment_serviceKinds_autoAttach": "Automatisch koppelen aan nieuwe uitrusting",
+  "equipment_serviceKinds_deleteConfirmTitle": "Servicetype verwijderen?",
+  "equipment_serviceKinds_deleteConfirmBody": "Intervallen die dit servicetype gebruiken worden verwijderd.",
+  "equipment_serviceKinds_delete": "Verwijderen",
+  "equipment_serviceKinds_cancel": "Annuleren",
+  "equipment_serviceKinds_save": "Opslaan",
+  "equipment_serviceKinds_emptyCustom": "Nog geen aangepaste servicetypen",
+  "equipment_serviceKinds_everyDays": "elke {days} dagen",
+  "equipment_serviceKinds_everyDives": "elke {dives} duiken",
+  "equipment_serviceKinds_everyHours": "elke {hours} uur",
+  "dashboard_serviceDue_title": "Service nodig",
+  "dashboard_serviceDue_more": "+{count} meer",
+  "dashboard_alerts_clockDue": "{name}: {kind} nodig",
+  "dashboard_alerts_clockOverdue": "{name}: {kind} achterstallig",
+  "equipment_list_worstClock": "{kind} achterstallig",
+  "trips_serviceAlert_count": "{count, plural, =1{1 item heeft vóór deze reis service nodig} other{{count} items hebben vóór deze reis service nodig}}",
+  "trips_serviceAlert_dueBefore": "{kind} vervalt op {date}",
+  "trips_serviceAlert_overdue": "{kind} achterstallig",
+  "settings_notifications_tripLeadTitle": "Aanlooptijd voor service vóór reizen",
+  "settings_notifications_tripLeadDays": "{days} dagen vóór een reis",
   "equipment_detail_serviceIntervalLabel": "Serviceinterval",
   "equipment_detail_serviceIntervalValue": "{days} dagen",
   "equipment_detail_serviceOverdue": "Service is achterstallig!",
@@ -3158,6 +3273,7 @@
   "equipment_edit_snackbar_error": "Fout bij opslaan van uitrusting: {error}",
   "equipment_edit_snackbar_updated": "Uitrusting bijgewerkt",
   "equipment_edit_statusLabel": "Status",
+  "equipment_edit_thicknessDesignationHint": "bijv. 5, 5/4, 7/5/3",
   "equipment_edit_thicknessHint": "bijv. 5mm, 7mm",
   "equipment_edit_thicknessLabel": "Dikte",
   "equipment_edit_typeLabel": "Type *",
@@ -3183,6 +3299,7 @@
   "equipment_list_sortTitle": "Uitrusting sorteren",
   "equipment_list_sortTooltip": "Sorteren",
   "equipment_list_tile_daysCount": "{days} dagen",
+  "equipment_list_tile_serviceInDays": "{days, plural, =1{Service over 1 dag} other{Service over {days} dagen}}",
   "equipment_list_tile_serviceDueChip": "Service nodig",
   "equipment_list_tile_serviceIn": "Service over",
   "equipment_menu_delete": "Verwijderen",
@@ -3419,6 +3536,8 @@
   "gas_tmx1845_displayName": "Tx 18/45",
   "gas_tmx2135_description": "Normoxisch trimix 21/35",
   "gas_tmx2135_displayName": "Tx 21/35",
+  "maps_compass_resetLabel": "Kaartoriëntatie terugzetten naar het noorden",
+  "maps_compass_resetTooltip": "Noorden boven",
   "maps_heatMap_hide": "Heatmap verbergen",
   "maps_heatMap_overlayOff": "Heatmap-overlay is uit",
   "maps_heatMap_overlayOn": "Heatmap-overlay is aan",
@@ -3575,6 +3694,9 @@
   "media_miniProfile_headerLabel": "Duikprofiel",
   "media_miniProfile_semanticLabel": "Mini duikprofielgrafiek",
   "media_photoPicker_appBarTitle": "Foto's selecteren",
+  "media_photoPicker_tab_gallery": "Galerij",
+  "media_photoPicker_tab_files": "Bestanden",
+  "media_photoPicker_tab_url": "URL",
   "media_photoPicker_clearSelectionButton": "Wissen",
   "media_photoPicker_closeTooltip": "Fotokiezer sluiten",
   "media_photoPicker_doneButton": "Gereed",
@@ -3592,6 +3714,18 @@
   "media_photoPicker_thumbnailAlreadyLinkedLabel": "Foto al gekoppeld aan deze duik",
   "media_photoPicker_thumbnailToggleLabel": "Selectie voor foto aan/uit",
   "media_photoPicker_thumbnailToggleSelectedLabel": "Selectie voor foto aan/uit, geselecteerd",
+  "media_perdixOverlay_labelCns": "CNS",
+  "media_perdixOverlay_labelDepth": "DIEPTE",
+  "media_perdixOverlay_labelGas": "GAS",
+  "media_perdixOverlay_labelMax": "MAX",
+  "media_perdixOverlay_labelNdl": "NDL",
+  "media_perdixOverlay_labelPpo2": "PPO2",
+  "media_perdixOverlay_labelStop": "STOP",
+  "media_perdixOverlay_labelTank": "TANK",
+  "media_perdixOverlay_labelTemp": "TEMP",
+  "media_perdixOverlay_labelTime": "TIJD",
+  "media_perdixOverlay_labelTts": "TTS",
+  "media_perdixOverlay_toggleTooltip": "Duikcomputer-overlay",
   "media_photoViewer_cannotShare": "Kan deze foto niet delen",
   "media_photoViewer_cannotWriteMetadata": "Kan metadata niet schrijven - media niet gekoppeld aan bibliotheek",
   "media_photoViewer_closeTooltip": "Fotoviewer sluiten",
@@ -3681,6 +3815,8 @@
   "plannerCanvas_ccr_setpointHigh": "Setpoint hoog (bar)",
   "plannerCanvas_ccr_setpointLow": "Setpoint laag (bar)",
   "plannerCanvas_ccr_switchDepth": "Setpoint-wisseldiepte",
+  "plannerCanvas_pscr_ratio": "pSCR-verhouding",
+  "plannerCanvas_pscr_ratio_hint": "Groter = meer vers gas, kleinere O₂-daling",
   "plannerCanvas_chip_cns": "CNS {value}%",
   "plannerCanvas_chip_issues": "{count, plural, =1{1 probleem} other{{count} problemen}}",
   "plannerCanvas_compare_action": "Vergelijken",
@@ -3690,6 +3826,14 @@
   "plannerCanvas_contingency_depthDelta": "Extra diepte",
   "plannerCanvas_contingency_lostGas": "{gas} verloren",
   "plannerCanvas_contingency_timeDelta": "Extra minuten",
+  "plannerCanvas_chart_meanDepth": "gem. {depth}",
+  "@plannerCanvas_chart_meanDepth": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      }
+    }
+  },
   "plannerCanvas_contingency_title": "Noodplannen",
   "plannerCanvas_contingency_turnFraction": "Keerfractie",
   "plannerCanvas_contingency_turnRule": "Keerdruk-regel",
@@ -3709,6 +3853,13 @@
   "plannerCanvas_issue_noDecoGas": "Decompressie vereist maar geen decogas meegenomen",
   "plannerCanvas_range_base": "Basis",
   "plannerCanvas_range_legend": "Cellen tonen de tijd naar de oppervlakte; rood = niet duikbaar zoals gepland",
+  "plannerCanvas_pane_collapse": "Paneel inklappen",
+  "plannerCanvas_pane_expand": "Paneel uitklappen",
+  "plannerCanvas_tab_setup": "Instellingen",
+  "plannerCanvas_o2Narcotic": "O₂ als narcotisch behandelen",
+  "plannerCanvas_rates_ascent": "Stijgsnelheid",
+  "plannerCanvas_rates_descent": "Daalsnelheid",
+  "plannerCanvas_rates_title": "Snelheden",
   "plannerCanvas_range_title": "Bereiktabel",
   "plannerCanvas_results_noDeco": "Geen decompressie vereist",
   "plannerCanvas_saved_deleteConfirmBody": "'{name}' definitief verwijderen?",
@@ -3859,7 +4010,7 @@
   "settings_navCustomization_subtitlePreview": "{first} · {second} · {third}",
   "settings_navCustomization_saveError": "Could not save navigation layout. Please try again.",
   "settings_backToSettings_tooltip": "Terug naar instellingen",
-  "settings_cloudSync_appBar_title": "Cloudsynchronisatie",
+  "settings_cloudSync_appBar_title": "Database-cloudsynchronisatie",
   "settings_cloudSync_autoSync": "Automatische synchronisatie",
   "settings_cloudSync_autoSync_subtitle": "Automatisch synchroniseren na wijzigingen",
   "settings_cloudSync_conflictItems": "{count, plural, =1{1 item vereist aandacht} other{{count} items vereisen aandacht}}",
@@ -3970,7 +4121,7 @@
   "settings_data_appDefaultLocation": "Standaard app-locatie",
   "settings_data_backup": "Back-up en herstel",
   "settings_data_backup_subtitle": "Maak een back-up van je gegevens",
-  "settings_data_cloudSync": "Cloudsynchronisatie",
+  "settings_data_cloudSync": "Database-cloudsynchronisatie",
   "settings_data_customFolder": "Aangepaste map",
   "settings_data_databaseStorage": "Database-opslag",
   "settings_data_export_completed": "Export voltooid",
@@ -4009,9 +4160,26 @@
   "settings_decompression_dialog_title": "Gradientfactoren",
   "settings_decompression_endLimit": "END-limiet",
   "settings_decompression_endLimit_dialog_title": "END-limiet",
+  "settings_decompression_cnsMethodTitle": "CNS-berekening",
+  "settings_decompression_cnsMethodClassic": "NOAA-tabel, getrapt (klassiek)",
+  "settings_decompression_cnsMethodClassicDesc": "Rekent elke band van 0,1 bar af op de strengere rand. Oorspronkelijke methode van Submersion.",
+  "settings_decompression_cnsMethodShearwater": "Lineaire interpolatie (Shearwater-stijl)",
+  "settings_decompression_cnsMethodShearwaterDesc": "Interpoleert lineair tussen de NOAA-grenzen zoals gedocumenteerd door Shearwater. Komt overeen met de meeste duikcomputers.",
+  "settings_decompression_cnsMethodSubsurface": "Exponentiële fit (zoals Subsurface)",
+  "settings_decompression_cnsMethodSubsurfaceDesc": "Vloeiende curvefit op de NOAA-tabel. Komt overeen met de door Subsurface berekende CNS.",
+  "settings_decompression_cnsMethodAboutTitle": "Over deze methoden",
+  "settings_decompression_cnsMethodAboutBody": "Alle drie de methoden zijn gebaseerd op de zuurstofblootstellingslimieten van het NOAA Diving Manual (300 minuten bij een ppO2 van 1,0 bar, 45 minuten bij 1,6 bar). De tabel definieert grenzen alleen in stappen van 0,1 bar: de klassieke methode rekent alles binnen een band af op de strengere rand van die band, waardoor de blootstelling tussen de waarden systematisch wordt overschat. De duikcomputers van Shearwater documenteren een lineaire interpolatie tussen de NOAA-grenzen, met een vaste 15% per minuut boven 1,65 bar. Subsurface verving in 2019 zijn tabelopzoeking door een vloeiende exponentiële fit in twee delen op dezelfde NOAA-gegevens (Robert C. Helling), die ook op natuurlijke wijze verder reikt dan 1,6 bar. Tussen de tabelwaarden komen de twee vloeiende methoden overeen tot op ongeveer één CNS-punt; de klassieke methode geeft hogere waarden.",
+  "settings_decompression_cnsMethodDisclaimer": "De namen verwijzen naar de gepubliceerde methoden van de respectievelijke projecten en fabrikanten; er wordt geen band of goedkeuring gesuggereerd. Berekende waarden kunnen afwijken van de werkelijke aflezingen van de duikcomputer.",
+  "settings_decompression_cnsMethodSourcesTitle": "Bronnen",
+  "settings_linkOpenFailed": "De link kon niet worden geopend.",
+  "settings_decompression_cnsMethodSourceNoaa": "NOAA: Diving Program (uitgever van het NOAA Diving Manual)",
+  "settings_decompression_cnsMethodSourceShearwater": "Shearwater: de CNS-zuurstofklok",
+  "settings_decompression_cnsMethodSourceTheoreticalDiver": "The Theoretical Diver: berekening van CNS-zuurstoftoxiciteit",
+  "settings_decompression_cnsMethodSourceSubsurface": "Subsurface: implementatie (divelist.cpp)",
   "settings_decompression_endLimit_subtitle": "Maximale equivalente narcotische diepte voor MND-berekeningen",
   "settings_decompression_gfValue": "GF {gfLow}/{gfHigh}",
   "settings_decompression_header_gradientFactors": "Gradientfactoren",
+  "settings_decompression_header_oxygenToxicity": "Zuurstoftoxiciteit",
   "settings_decompression_header_narcosis": "Narcose",
   "settings_decompression_o2Narcotic": "O2 is narcotisch",
   "settings_decompression_o2Narcotic_subtitle": "Wanneer ingeschakeld, worden zowel O2 als N2 als narcotisch beschouwd (conservatiever). Wanneer uitgeschakeld, draagt alleen N2 bij aan narcose.",
@@ -4073,10 +4241,13 @@
   "settings_lightroom_albumFilter_all": "Volledige catalogus",
   "settings_lightroom_albumFilter_title": "Te scannen albums",
   "settings_lightroom_autoPoll_title": "Automatisch controleren op nieuwe foto's",
-  "settings_lightroom_clientId_help": "Maak in de Adobe Developer Console een integratie met de Lightroom Services API en een referentietype dat PKCE ondersteunt. Stel de redirect-URI in op {redirectUri}.",
+  "settings_lightroom_clientId_help": "Maak in de Adobe Developer Console een integratie met de Lightroom Services API en een referentietype dat PKCE ondersteunt. Voer hieronder de redirect-URI van je referentie in — Native App-referenties gebruiken een aangepast schema — of laat het leeg om {redirectUri} te gebruiken.",
   "settings_lightroom_clientId_label": "Adobe client-ID",
   "settings_lightroom_clientSecret_label": "Client secret (optioneel)",
+  "settings_lightroom_redirectUri_label": "Redirect-URI (optioneel)",
   "settings_lightroom_connect": "Lightroom koppelen",
+  "settings_lightroom_connectEmbedded": "Verbinden met Adobe",
+  "settings_lightroom_advancedByo": "Je eigen Adobe-inloggegevens gebruiken",
   "settings_lightroom_connect_codeLabel": "Doorgestuurde URL of code",
   "settings_lightroom_connect_emptyCode": "Plak de doorgestuurde URL of autorisatiecode",
   "settings_lightroom_connect_failed": "Kan geen verbinding maken met Lightroom: {error}",
@@ -5344,15 +5515,15 @@
   "diveComputer_download_newDivesOnlySubtitle": "Downloadt alleen duiken die zijn toegevoegd sinds je laatste synchronisatie",
   "diveComputer_download_newDivesOnlyTitle": "Alleen nieuwe duiken downloaden",
   "diveComputer_download_upToDate": "Geen nieuwe duiken gevonden -- je logboek is up-to-date",
-  "diveLog_edit_section_environment": "Environment",
-  "diveLog_edit_subsection_weather": "Weather",
-  "diveLog_edit_subsection_diveConditions": "Dive Conditions",
-  "diveLog_edit_label_windSpeed": "Wind Speed",
-  "diveLog_edit_label_windDirection": "Wind Direction",
-  "diveLog_edit_label_cloudCover": "Cloud Cover",
-  "diveLog_edit_label_precipitation": "Precipitation",
-  "diveLog_edit_label_humidity": "Humidity",
-  "diveLog_edit_label_weatherDescription": "Weather Description",
+  "diveLog_edit_section_environment": "Omgeving",
+  "diveLog_edit_subsection_weather": "Weer",
+  "diveLog_edit_subsection_diveConditions": "Duikomstandigheden",
+  "diveLog_edit_label_windSpeed": "Windsnelheid",
+  "diveLog_edit_label_windDirection": "Windrichting",
+  "diveLog_edit_label_cloudCover": "Bewolking",
+  "diveLog_edit_label_precipitation": "Neerslag",
+  "diveLog_edit_label_humidity": "Luchtvochtigheid",
+  "diveLog_edit_label_weatherDescription": "Weerbeschrijving",
   "diveLog_edit_button_fetchWeather": "Fetch Weather",
   "diveLog_edit_fetchingWeather": "Fetching weather...",
   "diveLog_edit_weatherFetched": "Weather data loaded",
@@ -5361,28 +5532,28 @@
   "diveLog_edit_fetchWeatherNotYetAvailable": "Weather data not yet available for this date",
   "diveLog_edit_fetchWeatherHint": "Add a date and dive site first",
   "diveLog_edit_fetchWeatherConfirm": "Replace existing weather data with fetched data?",
-  "diveLog_detail_section_environment": "Environment",
-  "diveLog_detail_subsection_weather": "Weather",
-  "diveLog_detail_subsection_diveConditions": "Dive Conditions",
-  "diveLog_detail_label_windSpeed": "Wind Speed",
-  "diveLog_detail_label_windDirection": "Wind Direction",
-  "diveLog_detail_label_cloudCover": "Cloud Cover",
-  "diveLog_detail_label_precipitation": "Precipitation",
-  "diveLog_detail_label_humidity": "Humidity",
-  "diveLog_detail_label_weatherDescription": "Description",
+  "diveLog_detail_section_environment": "Omgeving",
+  "diveLog_detail_subsection_weather": "Weer",
+  "diveLog_detail_subsection_diveConditions": "Duikomstandigheden",
+  "diveLog_detail_label_windSpeed": "Windsnelheid",
+  "diveLog_detail_label_windDirection": "Windrichting",
+  "diveLog_detail_label_cloudCover": "Bewolking",
+  "diveLog_detail_label_precipitation": "Neerslag",
+  "diveLog_detail_label_humidity": "Luchtvochtigheid",
+  "diveLog_detail_label_weatherDescription": "Beschrijving",
   "diveLog_detail_weatherSourceOpenMeteo": "via Open-Meteo",
-  "enum_cloudCover_clear": "Clear",
-  "enum_cloudCover_partlyCloudy": "Partly Cloudy",
-  "enum_cloudCover_mostlyCloudy": "Mostly Cloudy",
-  "enum_cloudCover_overcast": "Overcast",
-  "enum_precipitation_none": "None",
-  "enum_precipitation_drizzle": "Drizzle",
-  "enum_precipitation_lightRain": "Light Rain",
-  "enum_precipitation_rain": "Rain",
-  "enum_precipitation_heavyRain": "Heavy Rain",
-  "enum_precipitation_snow": "Snow",
-  "enum_precipitation_sleet": "Sleet",
-  "enum_precipitation_hail": "Hail",
+  "enum_cloudCover_clear": "Helder",
+  "enum_cloudCover_partlyCloudy": "Gedeeltelijk bewolkt",
+  "enum_cloudCover_mostlyCloudy": "Overwegend bewolkt",
+  "enum_cloudCover_overcast": "Zwaar bewolkt",
+  "enum_precipitation_none": "Geen",
+  "enum_precipitation_drizzle": "Motregen",
+  "enum_precipitation_lightRain": "Lichte regen",
+  "enum_precipitation_rain": "Regen",
+  "enum_precipitation_heavyRain": "Zware regen",
+  "enum_precipitation_snow": "Sneeuw",
+  "enum_precipitation_sleet": "Natte sneeuw",
+  "enum_precipitation_hail": "Hagel",
   "dashboard_activityStats_divesInYear": "duiken in {year}",
   "dashboard_hero_daysSinceLabel": "dagen sinds laatste duik",
   "dashboard_hero_diverFallbackName": "Duiker",
@@ -5657,6 +5828,8 @@
   "equipment_edit_buoyancyHint_tank": "Leeg laten - flessen gebruiken hun eigen specificaties",
   "equipment_edit_buoyancyLabel": "Drijfvermogen ({unit})",
   "equipment_edit_dryWeightLabel": "Drooggewicht ({unit})",
+  "equipment_edit_liftCapacityLabel": "Liftcapaciteit ({unit})",
+  "equipment_edit_liftCapacityHint": "Nominale liftkracht van wing of trimvest",
   "planner_gearWeights_accept": "Gebruik als gepland lood",
   "planner_gearWeights_addGear": "Uitrusting toevoegen",
   "planner_gearWeights_empty": "Voeg uitrusting toe om je lood te voorspellen",
@@ -5866,5 +6039,377 @@
   "settings_setupGuide_statusTodo": "Niet ingesteld",
   "settings_setupGuide_open": "Openen",
   "settings_connectedAccounts_loadError": "Accounts konden niet worden geladen",
-  "media_unavailablePlaceholder_volumeOffline": "Volume niet gekoppeld"
+  "media_unavailablePlaceholder_volumeOffline": "Volume niet gekoppeld",
+  "attrLabel_size": "Maat",
+  "attrLabel_thickness_mm": "Dikte (mm)",
+  "attrLabel_suit_style": "Type pak",
+  "attrLabel_shell_material": "Buitenmateriaal",
+  "attrLabel_seal_type": "Type seals",
+  "attrLabel_volume_l": "Volume",
+  "attrLabel_working_pressure_bar": "Werkdruk",
+  "attrLabel_tank_material": "Materiaal",
+  "attrLabel_valve_type": "Kraan",
+  "attrLabel_tank_identifier": "Identificatie",
+  "attrLabel_last_visual_inspection": "Laatste visuele inspectie",
+  "attrLabel_last_hydro_test": "Laatste hydrostatische test",
+  "attrLabel_connection": "Aansluiting",
+  "attrLabel_cold_water_rated": "Geschikt voor koud water",
+  "attrLabel_bcd_style": "Stijl",
+  "attrLabel_lift_capacity_kg": "Liftcapaciteit",
+  "attrLabel_heel_type": "Hiel",
+  "attrLabel_blade_style": "Blad",
+  "attrLabel_mount": "Bevestiging",
+  "attrLabel_connectivity": "Connectiviteit",
+  "attrLabel_lens_config": "Lens",
+  "attrLabel_prescription": "Lenzen op sterkte",
+  "attrLabel_weight_style": "Stijl",
+  "attrLabel_lumens": "Lumen",
+  "attrLabel_beam_type": "Bundel",
+  "attrLabel_depth_rating_m": "Dieptewaardering",
+  "attrLabel_smb_type": "Type",
+  "attrLabel_length_m": "Lengte",
+  "attrLabel_reel_type": "Type",
+  "attrLabel_line_length_m": "Lijnlengte",
+  "attrLabel_blade_material": "Lemmetmateriaal",
+  "attrLabel_tip_type": "Punt",
+  "attrLabel_glove_type": "Type",
+  "attrLabel_sole_type": "Zool",
+  "attrLabel_buoyancy_kg": "Drijfvermogen",
+  "attrLabel_dry_weight_kg": "Drooggewicht",
+  "attrChoice_suit_style_full": "Volledig pak",
+  "attrChoice_suit_style_shorty": "Shorty",
+  "attrChoice_suit_style_two_piece": "Tweedelig",
+  "attrChoice_suit_style_semi_dry": "Semi-dry",
+  "attrChoice_shell_material_trilaminate": "Trilaminaat",
+  "attrChoice_shell_material_neoprene": "Neopreen",
+  "attrChoice_shell_material_crushed_neoprene": "Geperst neopreen",
+  "attrChoice_shell_material_vulcanized_rubber": "Gevulkaniseerd rubber",
+  "attrChoice_seal_type_latex": "Latex",
+  "attrChoice_seal_type_silicone": "Siliconen",
+  "attrChoice_seal_type_neoprene": "Neopreen",
+  "attrChoice_tank_material_aluminum": "Aluminium",
+  "attrChoice_tank_material_steel": "Staal",
+  "attrChoice_tank_material_carbon_composite": "Carboncomposiet",
+  "attrChoice_valve_type_din": "DIN",
+  "attrChoice_valve_type_yoke": "Beugel (INT)",
+  "attrChoice_valve_type_convertible": "Ombouwbaar",
+  "attrChoice_connection_din": "DIN",
+  "attrChoice_connection_yoke": "Beugel (INT)",
+  "attrChoice_bcd_style_jacket": "Jacket",
+  "attrChoice_bcd_style_back_inflate": "Back-inflate",
+  "attrChoice_bcd_style_wing": "Wing",
+  "attrChoice_bcd_style_sidemount": "Sidemount",
+  "attrChoice_heel_type_open_heel": "Open hiel",
+  "attrChoice_heel_type_full_foot": "Gesloten voet",
+  "attrChoice_blade_style_paddle": "Paddle",
+  "attrChoice_blade_style_split": "Split",
+  "attrChoice_blade_style_vented": "Geventileerd",
+  "attrChoice_mount_wrist": "Pols",
+  "attrChoice_mount_console": "Console",
+  "attrChoice_mount_hud": "HUD",
+  "attrChoice_connectivity_ble": "Bluetooth (BLE)",
+  "attrChoice_connectivity_usb": "USB",
+  "attrChoice_connectivity_infrared": "Infrarood",
+  "attrChoice_connectivity_none": "Geen",
+  "attrChoice_lens_config_single": "Enkel glas",
+  "attrChoice_lens_config_twin": "Dubbel glas",
+  "attrChoice_lens_config_frameless": "Frameloos",
+  "attrChoice_weight_style_belt": "Riem",
+  "attrChoice_weight_style_integrated": "Geïntegreerd",
+  "attrChoice_weight_style_trim": "Trim",
+  "attrChoice_weight_style_ankle": "Enkel",
+  "attrChoice_beam_type_spot": "Spot",
+  "attrChoice_beam_type_flood": "Flood",
+  "attrChoice_beam_type_adjustable": "Verstelbaar",
+  "attrChoice_smb_type_open": "Open",
+  "attrChoice_smb_type_closed": "Gesloten",
+  "attrChoice_reel_type_spool": "Spool",
+  "attrChoice_reel_type_ratchet": "Ratelreel",
+  "attrChoice_blade_material_stainless": "Roestvrij staal",
+  "attrChoice_blade_material_titanium": "Titanium",
+  "attrChoice_tip_type_pointed": "Puntig",
+  "attrChoice_tip_type_blunt": "Stomp",
+  "attrChoice_tip_type_line_cutter": "Lijnsnijder",
+  "attrChoice_glove_type_five_finger": "Vijfvinger",
+  "attrChoice_glove_type_mitt": "Want",
+  "attrChoice_glove_type_dry": "Droog",
+  "attrChoice_sole_type_hard": "Harde zool",
+  "attrChoice_sole_type_soft": "Zachte zool",
+  "equipment_edit_customFieldsTitle": "Aangepaste velden",
+  "equipment_edit_addCustomField": "Aangepast veld toevoegen",
+  "attr_flagYes": "Ja",
+  "attr_flagNo": "Nee",
+  "equipment_edit_invalidThickness": "Gebruik 5, 5/4 of 7/5/3",
+  "statistics_progression_divesBySuitThickness_title": "Duiken per pakdikte",
+  "statistics_progression_divesBySuitThickness_subtitle": "Primaire pakdikte over je duiken",
+  "statistics_progression_divesBySuitThickness_empty": "Geen duiken met een geregistreerde pakdikte",
+  "statistics_progression_divesBySuitThickness_error": "Kan pakdiktegegevens niet laden",
+  "diveLog_filter_sectionSuitThickness": "Pakdikte (mm)",
+  "diveLog_filter_thicknessMin": "Min",
+  "diveLog_filter_thicknessMax": "Max",
+  "diveDetailSection_safetyReview_name": "Veiligheidscontrole",
+  "diveDetailSection_safetyReview_description": "Automatische profielobservaties na de duik",
+  "safetyReview_sectionTitle": "Veiligheidscontrole",
+  "safetyReview_findingCount": "{count, plural, =1{1 observatie} other{{count} observaties}}",
+  "@safetyReview_findingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "safetyReview_rapidAscent_title": "Opstijging overschreed {rate} gedurende {duration}",
+  "@safetyReview_rapidAscent_title": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyReview_missedDecoStop_title": "Diepte lag {excess} boven het vereiste stopplafond gedurende {duration}",
+  "@safetyReview_missedDecoStop_title": {
+    "placeholders": {
+      "excess": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyReview_omittedSafetyStop_title": "De aanbevolen veiligheidsstop is met {remaining} ingekort",
+  "@safetyReview_omittedSafetyStop_title": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyReview_sawtoothProfile_title": "{count} herhaalde op-en-neer dieptewisselingen tijdens de duik",
+  "@safetyReview_sawtoothProfile_title": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "safetyReview_highSurfaceGf_title": "Aan de oppervlakte gekomen met gradiëntfactor {gf}, boven de ingestelde {gfHigh}",
+  "@safetyReview_highSurfaceGf_title": {
+    "placeholders": {
+      "gf": {
+        "type": "String"
+      },
+      "gfHigh": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyReview_timeRange": "Op {start}–{end}",
+  "@safetyReview_timeRange": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyReview_dismiss": "Negeren",
+  "safetyReview_restore": "Herstellen",
+  "safetyReview_showDismissed": "{count, plural, =1{Toon 1 genegeerde} other{Toon {count} genegeerde}}",
+  "@safetyReview_showDismissed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "safetySettings_title": "Veiligheidscontrole",
+  "safetySettings_entry_subtitle": "Observaties en regels na de duik",
+  "safetySettings_masterToggle": "Veiligheidscontrole na de duik",
+  "safetySettings_masterToggle_subtitle": "Automatisch observaties over opstijging, stops en profiel noteren bij geanalyseerde duiken",
+  "safetySettings_rulesHeader": "Regels",
+  "safetySettings_rule_rapidAscent": "Snelle opstijgingen",
+  "safetySettings_rule_missedDecoStop": "Gemiste of ingekorte decostops",
+  "safetySettings_rule_omittedSafetyStop": "Overgeslagen veiligheidsstops",
+  "safetySettings_rule_sawtoothProfile": "Zaagtandprofielen",
+  "safetySettings_rule_highSurfaceGf": "Hoge gradiëntfactor bij opduiken",
+  "safetySettings_analyzeAll": "Alle duiken analyseren",
+  "safetySettings_analyzeAll_subtitle": "Voer de veiligheidscontrole uit op alle duiken met een profiel die nog niet geanalyseerd zijn",
+  "safetySettings_analyzeAll_progress": "{done} van {total} geanalyseerd",
+  "@safetySettings_analyzeAll_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "safetySettings_analyzeAll_done": "Analyse voltooid",
+  "safetySettings_analyzeAll_doneWithErrors": "Analyse voltooid — {count, plural, =1{1 duik kon niet worden geanalyseerd} other{{count} duiken konden niet worden geanalyseerd}}",
+  "@safetySettings_analyzeAll_doneWithErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "safetySettings_noFlyHeader": "Vliegen na het duiken",
+  "safetySettings_noFlyPreset_standard": "Standaard (12/18/24 u)",
+  "safetySettings_noFlyPreset_strict": "Strikt (18/24/48 u)",
+  "safetySettings_noFlyPreset_subtitle": "Richttijden na een enkele duik zonder deco, herhalingsduiken en decoduiken",
+  "safetyHub_title": "Veiligheid",
+  "safetyHub_noFly_active_title": "Vliegverbod: nog {remaining}",
+  "@safetyHub_noFly_active_title": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyHub_noFly_until": "Tot {time}",
+  "@safetyHub_noFly_until": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyHub_noFly_clear_title": "Geen vliegbeperking",
+  "safetyHub_noFly_clear_subtitle": "Geen actieve vliegbeperking",
+  "safetyHub_noFly_category_single": "Na een enkele duik zonder deco: richtlijn van {hours} u",
+  "@safetyHub_noFly_category_single": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "safetyHub_noFly_category_repetitive": "Na herhalingsduiken: richtlijn van {hours} u",
+  "@safetyHub_noFly_category_repetitive": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "safetyHub_noFly_category_deco": "Na een decompressieduik: richtlijn van {hours} u",
+  "@safetyHub_noFly_category_deco": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "safetyHub_noFly_disclaimer": "DAN/UHMS-richtlijnen vanaf je laatste duik. Geen vervanging voor de no-fly-tijd van je duikcomputer.",
+  "safetyHub_surfaceIntervalLink": "Oppervlakte-interval-tool",
+  "safetyHub_surfaceIntervalLink_subtitle": "Educatief model van weefselontzadiging",
+  "safetyHub_settingsLink": "Veiligheidsinstellingen",
+  "safetyHub_alert_noFly": "Vliegverbod: nog {remaining}",
+  "@safetyHub_alert_noFly": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_detail_altitudeMismatch_title": "Duikstek ligt op hoogte",
+  "diveLog_detail_altitudeMismatch_subtitle": "Deze stek heeft een hoogte geregistreerd maar de duik niet, dus de deco-analyse ging uit van zeeniveau. Stel de hoogte van de duik in om dit te corrigeren.",
+  "emergencyCard_title": "Noodgeval",
+  "emergencyCard_callDan": "Bel {name}",
+  "@emergencyCard_callDan": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_callDan_subtitle": "Noodlijn voor duikers. Bel eerst: zij coördineren evacuatie en doorverwijzing naar een kamer.",
+  "emergencyCard_ems": "Lokale hulpdiensten: {number}",
+  "@emergencyCard_ems": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_diverSection": "Duiker",
+  "emergencyCard_bloodType": "Bloedgroep: {value}",
+  "@emergencyCard_bloodType": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_allergies": "Allergieën: {value}",
+  "@emergencyCard_allergies": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_medications": "Medicatie: {value}",
+  "@emergencyCard_medications": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_contactsSection": "Noodcontacten",
+  "emergencyCard_insuranceSection": "Duikverzekering",
+  "emergencyCard_insurancePolicy": "Polis {number}",
+  "@emergencyCard_insurancePolicy": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_chambersSection": "Decompressiekamers",
+  "emergencyCard_chambersNote": "Beschikbaarheid verandert. Bel altijd eerst de noodlijn voor duikers voor doorverwijzing.",
+  "emergencyCard_chamberVerified": "Gegevens gecontroleerd {date}",
+  "@emergencyCard_chamberVerified": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_hideChamber": "Verbergen",
+  "emergencyCard_chamberHidden": "Kamer verborgen",
+  "emergencyCard_undo": "Ongedaan maken",
+  "emergencyCard_addChamber": "Kamer toevoegen",
+  "emergencyCard_deleteChamber": "Verwijderen",
+  "emergencyCard_regionLabel": "Regio: {region}",
+  "@emergencyCard_regionLabel": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_regionUnknown": "Regio onbekend - wereldwijde noodlijn wordt gebruikt",
+  "emergencyCard_noDiverData": "Geen duikersprofielgegevens. Voeg noodcontacten, medische gegevens en verzekering toe in het duikersprofiel.",
+  "addChamber_title": "Kamer toevoegen",
+  "addChamber_name": "Naam",
+  "addChamber_country": "Landcode (bijv. NL)",
+  "addChamber_city": "Stad",
+  "addChamber_phone": "Telefoon",
+  "addChamber_notes": "Notities",
+  "addChamber_save": "Opslaan",
+  "addChamber_nameRequired": "Naam is verplicht",
+  "addChamber_countryRequired": "Landcode is verplicht",
+  "addChamber_phoneRequired": "Telefoonnummer is verplicht",
+  "safetyHub_emergencyCardLink": "Noodkaart",
+  "safetyHub_emergencyCardLink_subtitle": "Offline: noodlijn, hulpdiensten, kamers, je medische en verzekeringsgegevens",
+  "dashboard_quickAction_emergency": "Noodkaart"
 }

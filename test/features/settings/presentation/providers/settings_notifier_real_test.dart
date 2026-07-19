@@ -1,9 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
+import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_sites/domain/matching/site_match_sensitivity.dart';
@@ -112,6 +115,35 @@ void main() {
           .read(settingsProvider.notifier)
           .setShowDetailsPaneForSection('dives', true);
       expect(container.read(settingsProvider).showDetailsPaneDives, isTrue);
+    });
+
+    test('setChamberHidden toggles hidden chamber ids', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(container.read(settingsProvider).hiddenChamberIds, isEmpty);
+      await container
+          .read(settingsProvider.notifier)
+          .setChamberHidden('au-townsville', true);
+      expect(
+        container.read(settingsProvider).hiddenChamberIds,
+        contains('au-townsville'),
+      );
+      await container
+          .read(settingsProvider.notifier)
+          .setChamberHidden('au-townsville', false);
+      expect(container.read(settingsProvider).hiddenChamberIds, isEmpty);
+    });
+
+    test('setEmergencyRegion sets and clears the override', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(container.read(settingsProvider).emergencyRegion, isNull);
+      await container.read(settingsProvider.notifier).setEmergencyRegion('US');
+      expect(container.read(settingsProvider).emergencyRegion, 'US');
+      await container.read(settingsProvider.notifier).setEmergencyRegion(null);
+      expect(container.read(settingsProvider).emergencyRegion, isNull);
     });
 
     test('sets siteMatchSensitivity', () async {
@@ -338,6 +370,27 @@ void main() {
       },
     );
 
+    test('setCnsCalculationMethod updates state and persists', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(
+        container.read(settingsProvider).cnsCalculationMethod,
+        CnsCalculationMethod.shearwater,
+      );
+      await container
+          .read(settingsProvider.notifier)
+          .setCnsCalculationMethod(CnsCalculationMethod.subsurface);
+      expect(
+        container.read(settingsProvider).cnsCalculationMethod,
+        CnsCalculationMethod.subsurface,
+      );
+      expect(
+        container.read(cnsCalculationMethodProvider),
+        CnsCalculationMethod.subsurface,
+      );
+    });
+
     test('fullscreen tile preferences persist and reload', () async {
       final notifier = container.read(settingsProvider.notifier);
       await waitForInit();
@@ -410,6 +463,169 @@ void main() {
       expect(prefs.getDouble('fullscreen_readout_card_x'), 1.0);
       expect(prefs.getDouble('fullscreen_readout_card_y'), 0.0);
     });
+  });
+
+  group('Real SettingsNotifier safety review settings', () {
+    late ProviderContainer container;
+
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+
+      container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          diverSettingsRepositoryProvider.overrideWithValue(
+            _InMemorySettingsRepository(),
+          ),
+          diverRepositoryProvider.overrideWithValue(_EmptyDiverRepository()),
+          currentDiverIdProvider.overrideWith((ref) => _NullDiverIdNotifier()),
+        ],
+      );
+      await Future.delayed(const Duration(milliseconds: 50));
+    });
+
+    tearDown(() {
+      container.dispose();
+    });
+
+    Future<void> waitForInit() async {
+      for (var i = 0; i < 10; i++) {
+        await Future.delayed(Duration.zero);
+      }
+    }
+
+    test('setSafetyReviewEnabled persists', () async {
+      final notifier = container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(container.read(settingsProvider).safetyReviewEnabled, isTrue);
+      await notifier.setSafetyReviewEnabled(false);
+      expect(container.read(settingsProvider).safetyReviewEnabled, isFalse);
+    });
+
+    test('setNoFlyPreset persists', () async {
+      final notifier = container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(
+        container.read(settingsProvider).noFlyPreset,
+        NoFlyPreset.standard,
+      );
+      await notifier.setNoFlyPreset(NoFlyPreset.strict);
+      expect(container.read(settingsProvider).noFlyPreset, NoFlyPreset.strict);
+    });
+
+    test('setSafetyRuleEnabled toggles the disabled-rules set', () async {
+      final notifier = container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(
+        container.read(settingsProvider).safetyReviewDisabledRules,
+        isEmpty,
+      );
+      await notifier.setSafetyRuleEnabled(SafetyRuleId.sawtoothProfile, false);
+      expect(
+        container.read(settingsProvider).safetyReviewDisabledRules,
+        contains('sawtoothProfile'),
+      );
+      await notifier.setSafetyRuleEnabled(SafetyRuleId.sawtoothProfile, true);
+      expect(
+        container.read(settingsProvider).safetyReviewDisabledRules,
+        isEmpty,
+      );
+    });
+  });
+
+  group('Real SettingsNotifier perdix overlay settings', () {
+    late ProviderContainer container;
+
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+
+      container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          diverSettingsRepositoryProvider.overrideWithValue(
+            _InMemorySettingsRepository(),
+          ),
+          diverRepositoryProvider.overrideWithValue(_EmptyDiverRepository()),
+          currentDiverIdProvider.overrideWith((ref) => _NullDiverIdNotifier()),
+        ],
+      );
+
+      await Future.delayed(const Duration(milliseconds: 50));
+    });
+
+    tearDown(() {
+      container.dispose();
+    });
+
+    Future<void> waitForInit() async {
+      for (var i = 0; i < 10; i++) {
+        await Future.delayed(Duration.zero);
+      }
+    }
+
+    test('defaults: disabled, null position', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      final s = container.read(settingsProvider);
+      expect(s.perdixOverlayEnabled, isFalse);
+      expect(s.perdixOverlayX, isNull);
+      expect(s.perdixOverlayY, isNull);
+    });
+
+    test('setPerdixOverlayEnabled persists to prefs and state', () async {
+      final notifier = container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      await notifier.setPerdixOverlayEnabled(true);
+      expect(container.read(settingsProvider).perdixOverlayEnabled, isTrue);
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getBool('perdix_overlay_enabled'), isTrue);
+
+      await notifier.setPerdixOverlayEnabled(false);
+      expect(container.read(settingsProvider).perdixOverlayEnabled, isFalse);
+      expect(prefs.getBool('perdix_overlay_enabled'), isFalse);
+    });
+
+    test('setPerdixOverlayPosition persists and clamps', () async {
+      final notifier = container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      await notifier.setPerdixOverlayPosition(0.25, 0.75);
+      var s = container.read(settingsProvider);
+      expect(s.perdixOverlayX, 0.25);
+      expect(s.perdixOverlayY, 0.75);
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getDouble('perdix_overlay_x'), 0.25);
+      expect(prefs.getDouble('perdix_overlay_y'), 0.75);
+
+      await notifier.setPerdixOverlayPosition(-2.0, 9.0);
+      s = container.read(settingsProvider);
+      expect(s.perdixOverlayX, 0.0);
+      expect(s.perdixOverlayY, 1.0);
+      expect(prefs.getDouble('perdix_overlay_x'), 0.0);
+      expect(prefs.getDouble('perdix_overlay_y'), 1.0);
+    });
+
+    test(
+      'setPerdixOverlayPosition sanitizes non-finite to default corner',
+      () async {
+        final notifier = container.read(settingsProvider.notifier);
+        await waitForInit();
+
+        await notifier.setPerdixOverlayPosition(double.nan, double.infinity);
+        final s = container.read(settingsProvider);
+        expect(s.perdixOverlayX, 1.0);
+        expect(s.perdixOverlayY, 0.0);
+      },
+    );
   });
 }
 

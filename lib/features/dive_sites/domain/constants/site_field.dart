@@ -457,7 +457,7 @@ class SiteFieldAdapter extends EntityFieldAdapter<SiteWithCount, SiteField> {
       case SiteField.altitude:
         return site.altitude;
       case SiteField.waterType:
-        return site.conditions?.waterType;
+        return site.waterType?.displayName;
       case SiteField.typicalVisibility:
         return site.conditions?.typicalVisibility;
       case SiteField.typicalCurrent:

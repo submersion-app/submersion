@@ -313,6 +313,92 @@ void main() {
     expect(applied.minRating, isNull);
   });
 
+  testWidgets('suit-thickness min/max write the equipment-attribute axis', (
+    tester,
+  ) async {
+    final ref = await openSheet(tester);
+
+    await scrollTo(tester, find.text('Suit thickness (mm)'));
+    // Depth and duration also label their fields Min/Max; only the thickness
+    // fields carry no unit suffix, which disambiguates them.
+    final minField = find.byWidgetPredicate(
+      (w) =>
+          w is TextField &&
+          w.decoration?.labelText == 'Min' &&
+          w.decoration?.suffixText == null,
+    );
+    final maxField = find.byWidgetPredicate(
+      (w) =>
+          w is TextField &&
+          w.decoration?.labelText == 'Max' &&
+          w.decoration?.suffixText == null,
+    );
+    await tester.enterText(minField, '3');
+    await tester.enterText(maxField, '7');
+    await tester.pumpAndSettle();
+
+    await tapText(tester, 'Apply Filters');
+    final applied = ref.read(filterProvider);
+    expect(applied.equipmentAttrKey, 'thickness_mm');
+    expect(applied.equipmentAttrMin, 3);
+    expect(applied.equipmentAttrMax, 7);
+  });
+
+  testWidgets('suit-thickness bounds hydrate from an existing filter', (
+    tester,
+  ) async {
+    // Covers the initState branch that reads back an equipment-attribute axis.
+    final ref = await openSheet(
+      tester,
+      initial: const DiveFilterState(
+        equipmentAttrKey: 'thickness_mm',
+        equipmentAttrMin: 5,
+        equipmentAttrMax: 5,
+      ),
+    );
+
+    await scrollTo(tester, find.text('Suit thickness (mm)'));
+    // The prefilled bounds render as "5" in both fields.
+    expect(find.widgetWithText(TextField, '5'), findsNWidgets(2));
+
+    // Applying without edits preserves the hydrated axis.
+    await tapText(tester, 'Apply Filters');
+    final applied = ref.read(filterProvider);
+    expect(applied.equipmentAttrMin, 5);
+    expect(applied.equipmentAttrMax, 5);
+  });
+
+  testWidgets('suit-thickness bounds keep decimals and accept comma input', (
+    tester,
+  ) async {
+    // Hydrate with a fractional min: the field must render "2.5", not "2".
+    final ref = await openSheet(
+      tester,
+      initial: const DiveFilterState(
+        equipmentAttrKey: 'thickness_mm',
+        equipmentAttrMin: 2.5,
+      ),
+    );
+
+    await scrollTo(tester, find.text('Suit thickness (mm)'));
+    expect(find.widgetWithText(TextField, '2.5'), findsOneWidget);
+
+    // A comma decimal separator parses to the same value as a dot.
+    final maxField = find.byWidgetPredicate(
+      (w) =>
+          w is TextField &&
+          w.decoration?.labelText == 'Max' &&
+          w.decoration?.suffixText == null,
+    );
+    await tester.enterText(maxField, '7,5');
+    await tester.pumpAndSettle();
+
+    await tapText(tester, 'Apply Filters');
+    final applied = ref.read(filterProvider);
+    expect(applied.equipmentAttrMin, 2.5);
+    expect(applied.equipmentAttrMax, 7.5);
+  });
+
   testWidgets('Clear All resets the filter and closes the sheet', (
     tester,
   ) async {

@@ -6,8 +6,12 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
@@ -233,6 +237,94 @@ void main() {
         expect(result[0].diveNumber, equals(3)); // Most recent
         expect(result[1].diveNumber, equals(2));
         expect(result[2].diveNumber, equals(1)); // Oldest
+      });
+
+      test('hydrates equipment attributes ordered by sortOrder', () async {
+        final equipmentRepository = EquipmentRepository();
+        final gear = await equipmentRepository.createEquipment(
+          const EquipmentItem(
+            id: '',
+            name: 'Wetsuit',
+            type: EquipmentType.wetsuit,
+            // Deliberately out of sort order to prove the query orders them.
+            attributes: [
+              EquipmentAttribute(
+                id: '',
+                equipmentId: '',
+                key: 'size',
+                valueText: 'L',
+                sortOrder: 2,
+              ),
+              EquipmentAttribute(
+                id: '',
+                equipmentId: '',
+                key: 'thickness_mm',
+                valueText: '5',
+                valueNum: 5.0,
+                sortOrder: 0,
+              ),
+              EquipmentAttribute(
+                id: '',
+                equipmentId: '',
+                key: 'buoyancy_kg',
+                valueNum: 1.5,
+                sortOrder: 1,
+              ),
+            ],
+          ),
+        );
+        await repository.createDive(
+          createTestDive(diveNumber: 1).copyWith(equipment: [gear]),
+        );
+
+        final result = await repository.getAllDives();
+
+        expect(result, hasLength(1));
+        final attrs = result.single.equipment.single.attributes;
+        expect(
+          attrs.map((a) => a.sortOrder),
+          [0, 1, 2],
+          reason: 'attributes come back ascending by sortOrder',
+        );
+        expect(attrs.map((a) => a.key), [
+          'thickness_mm',
+          'buoyancy_kg',
+          'size',
+        ]);
+      });
+
+      // Issue #626: junction buddies must be hydrated onto the Dive entities
+      // so the table view's Buddy / Dive Master columns can render them.
+      test('hydrates junction buddies onto each dive', () async {
+        final created = await repository.createDive(
+          createTestDive(diveNumber: 1, dateTime: DateTime(2024, 1, 1)),
+        );
+        final buddyRepo = BuddyRepository();
+        final alice = await buddyRepo.createBuddy(
+          Buddy(
+            id: 'b1',
+            name: 'Alice',
+            createdAt: DateTime(2024, 1, 1),
+            updatedAt: DateTime(2024, 1, 1),
+          ),
+        );
+        await buddyRepo.addBuddyToDive(created.id, alice.id, DiveRole.buddyId);
+
+        final result = await repository.getAllDives();
+
+        expect(result.single.buddies, hasLength(1));
+        expect(result.single.buddies.single.buddy.name, 'Alice');
+        expect(result.single.buddies.single.role.id, DiveRole.buddyId);
+      });
+
+      test('leaves buddies empty for dives with no junction records', () async {
+        await repository.createDive(
+          createTestDive(diveNumber: 1, dateTime: DateTime(2024, 1, 1)),
+        );
+
+        final result = await repository.getAllDives();
+
+        expect(result.single.buddies, isEmpty);
       });
     });
 

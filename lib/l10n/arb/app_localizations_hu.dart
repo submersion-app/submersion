@@ -2434,16 +2434,34 @@ class AppLocalizationsHu extends AppLocalizations {
   String get courses_action_add => 'Tanfolyam hozzáadása';
 
   @override
+  String get courses_action_addFromTemplate => 'Hozzáadás sablonból';
+
+  @override
+  String get courses_action_addRequirement => 'Követelmény hozzáadása';
+
+  @override
   String get courses_action_create => 'Tanfolyam létrehozása';
+
+  @override
+  String get courses_action_deleteRequirement => 'Követelmény törlése';
 
   @override
   String get courses_action_edit => 'Tanfolyam szerkesztése';
 
   @override
+  String get courses_action_editRequirement => 'Követelmény szerkesztése';
+
+  @override
   String get courses_action_exportTrainingLog => 'Képzési napló exportálása';
 
   @override
+  String get courses_action_linkDive => 'Csatolás';
+
+  @override
   String get courses_action_markCompleted => 'Megjelölés befejezettként';
+
+  @override
+  String get courses_action_unlinkDive => 'Merülés leválasztása';
 
   @override
   String get courses_action_moreOptions => 'További lehetőségek';
@@ -2623,6 +2641,35 @@ class AppLocalizationsHu extends AppLocalizations {
       'Koppints a képzési tanfolyamhoz való csatoláshoz';
 
   @override
+  String courses_requirement_diveProgress(int count, int target) {
+    return '$count / $target merülés';
+  }
+
+  @override
+  String get courses_requirement_field_name => 'Név';
+
+  @override
+  String get courses_requirement_field_targetCount => 'Szükséges merülések';
+
+  @override
+  String get courses_requirement_kind_checklist => 'Kipipálandó elem';
+
+  @override
+  String get courses_requirement_kind_dive => 'Merülési követelmény';
+
+  @override
+  String get courses_requirement_suggestions => 'Javasolt merülések';
+
+  @override
+  String get courses_requirements_empty =>
+      'Kövesd nyomon a kalandmerüléseket, előfeltételeket és kipipálandó elemeket ehhez a tanfolyamhoz.';
+
+  @override
+  String courses_requirements_progress(int satisfied, int total) {
+    return '$satisfied / $total teljesítve';
+  }
+
+  @override
   String get courses_section_details => 'Tanfolyam részletei';
 
   @override
@@ -2633,6 +2680,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get courses_section_notes => 'Jegyzetek';
+
+  @override
+  String get courses_section_requirements => 'Követelmények';
 
   @override
   String get courses_section_trainingDives => 'Képzési merülések';
@@ -2656,6 +2706,11 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String courses_status_semanticLabel(Object status, Object duration) {
     return '$status, $duration';
+  }
+
+  @override
+  String courses_template_addsCount(int count) {
+    return '$count követelményt ad hozzá';
   }
 
   @override
@@ -2691,6 +2746,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get courses_validation_nameRequired => 'Adj meg tanfolyamnevet';
+
+  @override
+  String get dashboard_activeCourses_title => 'Folyamatban lévő tanfolyamok';
 
   @override
   String get dashboard_activity_daySinceDiving => 'Napja nem merult';
@@ -4607,10 +4665,44 @@ class AppLocalizationsHu extends AppLocalizations {
       'Jegyzetek hozzaadasa ehhez a meruleshez...';
 
   @override
+  String get diveLog_edit_overline_tanks => 'Palackok';
+
+  @override
+  String get diveLog_edit_profile_draw => 'Profil rajzolása';
+
+  @override
+  String get diveLog_edit_profile_none => 'Nincs rögzítve';
+
+  @override
+  String diveLog_edit_profile_outliers(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count lehetséges kiugró érték észlelve',
+      one: '1 lehetséges kiugró érték észlelve',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_edit_profile_points(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pont',
+      one: '1 pont',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_row_addSite => 'Merülőhely hozzáadása';
 
   @override
   String get diveLog_edit_row_diveCenter => 'Búvárközpont';
+
+  @override
+  String get diveLog_edit_row_diveProfile => 'Merülési profil';
 
   @override
   String get diveLog_edit_row_entry => 'Beszállás';
@@ -7608,6 +7700,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveSites_edit_section_rating => 'Ertekeles';
 
   @override
+  String get diveSites_edit_section_waterType => 'Víztípus';
+
+  @override
   String diveSites_edit_snackbar_errorDeleting(Object error) {
     return 'Hiba a helyszin torlesekor: $error';
   }
@@ -9637,6 +9732,216 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_detail_serviceInfoTitle => 'Szerviz informaciok';
 
   @override
+  String get equipment_serviceClocks_title => 'Szervizintervallumok';
+
+  @override
+  String get equipment_serviceClocks_addClock => 'Intervallum hozzáadása';
+
+  @override
+  String get equipment_serviceClocks_logService => 'Szerviz rögzítése';
+
+  @override
+  String get equipment_serviceClocks_edit => 'Intervallumok szerkesztése';
+
+  @override
+  String get equipment_serviceClocks_pause => 'Szüneteltetés';
+
+  @override
+  String get equipment_serviceClocks_resume => 'Folytatás';
+
+  @override
+  String get equipment_serviceClocks_remove => 'Eltávolítás';
+
+  @override
+  String get equipment_serviceClocks_paused => 'Szüneteltetve';
+
+  @override
+  String get equipment_serviceClocks_empty => 'Nincsenek szervizintervallumok';
+
+  @override
+  String equipment_serviceClocks_dueOn(String date) {
+    return 'Esedékes: $date';
+  }
+
+  @override
+  String equipment_serviceClocks_overdueSince(String date) {
+    return '$date óta esedékes';
+  }
+
+  @override
+  String get equipment_serviceClocks_overdue => 'Lejárt';
+
+  @override
+  String equipment_serviceClocks_divesLeft(int remaining, int total) {
+    return '$remaining / $total merülés van hátra';
+  }
+
+  @override
+  String equipment_serviceClocks_hoursLeft(String remaining, String total) {
+    return '$remaining / $total óra van hátra';
+  }
+
+  @override
+  String get equipment_serviceClocks_manageKinds => 'Szerviztípusok kezelése';
+
+  @override
+  String get equipment_serviceClocks_appliesToClock => 'Kapcsolódó intervallum';
+
+  @override
+  String get equipment_serviceClocks_noClockOption =>
+      'Nem tartozik intervallumhoz';
+
+  @override
+  String get equipment_scheduleDialog_title => 'Intervallum szerkesztése';
+
+  @override
+  String get equipment_scheduleDialog_intervalDays => 'Intervallum (nap)';
+
+  @override
+  String get equipment_scheduleDialog_intervalDives => 'Intervallum (merülés)';
+
+  @override
+  String get equipment_scheduleDialog_intervalHours => 'Intervallum (óra)';
+
+  @override
+  String equipment_scheduleDialog_inheritHint(String value) {
+    return 'Alapértelmezés: $value';
+  }
+
+  @override
+  String get equipment_scheduleDialog_anchorDate => 'Kiindulási dátum';
+
+  @override
+  String get equipment_scheduleDialog_anchorHint =>
+      'Akkor használjuk, ha még nincs ilyen típusú szervizbejegyzés';
+
+  @override
+  String get equipment_scheduleDialog_clearAnchor => 'Kiindulási dátum törlése';
+
+  @override
+  String get equipment_scheduleDialog_save => 'Mentés';
+
+  @override
+  String get equipment_scheduleDialog_cancel => 'Mégse';
+
+  @override
+  String get equipment_serviceKinds_title => 'Szerviztípusok';
+
+  @override
+  String get equipment_serviceKinds_builtIn => 'Beépített';
+
+  @override
+  String get equipment_serviceKinds_custom => 'Egyéni';
+
+  @override
+  String get equipment_serviceKinds_add => 'Szerviztípus hozzáadása';
+
+  @override
+  String get equipment_serviceKinds_editTitle => 'Szerviztípus szerkesztése';
+
+  @override
+  String get equipment_serviceKinds_nameLabel => 'Név';
+
+  @override
+  String get equipment_serviceKinds_nameRequired => 'A név megadása kötelező';
+
+  @override
+  String get equipment_serviceKinds_appliesTo => 'Vonatkozik erre';
+
+  @override
+  String get equipment_serviceKinds_autoAttach =>
+      'Automatikus hozzáadás új felszereléshez';
+
+  @override
+  String get equipment_serviceKinds_deleteConfirmTitle =>
+      'Törli a szerviztípust?';
+
+  @override
+  String get equipment_serviceKinds_deleteConfirmBody =>
+      'Az ezt a szerviztípust használó intervallumok eltávolításra kerülnek.';
+
+  @override
+  String get equipment_serviceKinds_delete => 'Törlés';
+
+  @override
+  String get equipment_serviceKinds_cancel => 'Mégse';
+
+  @override
+  String get equipment_serviceKinds_save => 'Mentés';
+
+  @override
+  String get equipment_serviceKinds_emptyCustom =>
+      'Még nincsenek egyéni szerviztípusok';
+
+  @override
+  String equipment_serviceKinds_everyDays(int days) {
+    return '$days naponta';
+  }
+
+  @override
+  String equipment_serviceKinds_everyDives(int dives) {
+    return '$dives merülésenként';
+  }
+
+  @override
+  String equipment_serviceKinds_everyHours(String hours) {
+    return '$hours óránként';
+  }
+
+  @override
+  String get dashboard_serviceDue_title => 'Esedékes szerviz';
+
+  @override
+  String dashboard_serviceDue_more(int count) {
+    return '+$count további';
+  }
+
+  @override
+  String dashboard_alerts_clockDue(String name, String kind) {
+    return '$name: $kind esedékes';
+  }
+
+  @override
+  String dashboard_alerts_clockOverdue(String name, String kind) {
+    return '$name: $kind lejárt';
+  }
+
+  @override
+  String equipment_list_worstClock(String kind) {
+    return '$kind lejárt';
+  }
+
+  @override
+  String trips_serviceAlert_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count felszerelés szervizt igényel az utazás előtt',
+      one: '1 felszerelés szervizt igényel az utazás előtt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_serviceAlert_dueBefore(String kind, String date) {
+    return '$kind esedékes: $date';
+  }
+
+  @override
+  String trips_serviceAlert_overdue(String kind) {
+    return '$kind lejárt';
+  }
+
+  @override
+  String get settings_notifications_tripLeadTitle =>
+      'Utazás előtti szervizértesítési idő';
+
+  @override
+  String settings_notifications_tripLeadDays(int days) {
+    return '$days nappal az utazás előtt';
+  }
+
+  @override
   String get equipment_detail_serviceIntervalLabel => 'Szerviz intervallum';
 
   @override
@@ -9851,6 +10156,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_edit_statusLabel => 'Allapot';
 
   @override
+  String get equipment_edit_thicknessDesignationHint => 'pl. 5, 5/4, 7/5/3';
+
+  @override
   String get equipment_edit_thicknessHint => 'pl. 5mm, 7mm';
 
   @override
@@ -9938,6 +10246,17 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String equipment_list_tile_daysCount(Object days) {
     return '$days nap';
+  }
+
+  @override
+  String equipment_list_tile_serviceInDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Szerviz $days nap',
+      one: 'Szerviz 1 nap',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -11105,6 +11424,15 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_photoPicker_appBarTitle => 'Fotok kivalasztasa';
 
   @override
+  String get media_photoPicker_tab_gallery => 'Galeria';
+
+  @override
+  String get media_photoPicker_tab_files => 'Fajlok';
+
+  @override
+  String get media_photoPicker_tab_url => 'URL';
+
+  @override
   String get media_photoPicker_clearSelectionButton => 'Törlés';
 
   @override
@@ -11172,6 +11500,42 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get media_photoPicker_thumbnailAlreadyLinkedLabel =>
       'A fotó már hozzá van kapcsolva ehhez a merüléshez';
+
+  @override
+  String get media_perdixOverlay_labelCns => 'CNS';
+
+  @override
+  String get media_perdixOverlay_labelDepth => 'MÉLYS';
+
+  @override
+  String get media_perdixOverlay_labelGas => 'GAS';
+
+  @override
+  String get media_perdixOverlay_labelMax => 'MAX';
+
+  @override
+  String get media_perdixOverlay_labelNdl => 'NDL';
+
+  @override
+  String get media_perdixOverlay_labelPpo2 => 'PPO2';
+
+  @override
+  String get media_perdixOverlay_labelStop => 'STOP';
+
+  @override
+  String get media_perdixOverlay_labelTank => 'TANK';
+
+  @override
+  String get media_perdixOverlay_labelTemp => 'HŐM';
+
+  @override
+  String get media_perdixOverlay_labelTime => 'IDŐ';
+
+  @override
+  String get media_perdixOverlay_labelTts => 'TTS';
+
+  @override
+  String get media_perdixOverlay_toggleTooltip => 'Búvárszámítógép-réteg';
 
   @override
   String get media_photoViewer_cannotShare => 'Nem oszthato meg ez a foto';
@@ -11494,6 +11858,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get plannerCanvas_ccr_switchDepth => 'Setpoint váltási mélység';
 
   @override
+  String get plannerCanvas_pscr_ratio => 'pSCR arány';
+
+  @override
+  String get plannerCanvas_pscr_ratio_hint =>
+      'Nagyobb = több friss gáz, kisebb O₂-esés';
+
+  @override
   String plannerCanvas_chip_cns(String value) {
     return 'CNS $value%';
   }
@@ -11532,6 +11903,11 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get plannerCanvas_contingency_timeDelta => 'Extra percek';
+
+  @override
+  String plannerCanvas_chart_meanDepth(String depth) {
+    return 'átlag $depth';
+  }
 
   @override
   String get plannerCanvas_contingency_title => 'Vészhelyzeti tervek';
@@ -11607,6 +11983,27 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get plannerCanvas_range_legend =>
       'A cellák a felszínre érés idejét mutatják; piros = a terv szerint nem merülhető';
+
+  @override
+  String get plannerCanvas_pane_collapse => 'Panel összecsukása';
+
+  @override
+  String get plannerCanvas_pane_expand => 'Panel kibontása';
+
+  @override
+  String get plannerCanvas_tab_setup => 'Beállítás';
+
+  @override
+  String get plannerCanvas_o2Narcotic => 'O₂ kezelése kábítóként';
+
+  @override
+  String get plannerCanvas_rates_ascent => 'Emelkedési ütem';
+
+  @override
+  String get plannerCanvas_rates_descent => 'Merülési ütem';
+
+  @override
+  String get plannerCanvas_rates_title => 'Ütemek';
 
   @override
   String get plannerCanvas_range_title => 'Tartománytáblázat';
@@ -11972,6 +12369,136 @@ class AppLocalizationsHu extends AppLocalizations {
       'NDL, plafon, szövet hőtérkép, O2 toxicitás';
 
   @override
+  String get diveDetailSection_safetyReview_name => 'Biztonsági áttekintés';
+
+  @override
+  String get diveDetailSection_safetyReview_description =>
+      'Automatikus profilmegfigyelések a merülés után';
+
+  @override
+  String get safetyReview_sectionTitle => 'Biztonsági áttekintés';
+
+  @override
+  String safetyReview_findingCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count megfigyelés',
+      one: '1 megfigyelés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String safetyReview_rapidAscent_title(String rate, String duration) {
+    return 'A felemelkedés $duration ideig meghaladta a(z) $rate értéket';
+  }
+
+  @override
+  String safetyReview_missedDecoStop_title(String excess, String duration) {
+    return 'A mélység $duration ideig $excess értékkel az előírt megállási plafon felett volt';
+  }
+
+  @override
+  String safetyReview_omittedSafetyStop_title(String remaining) {
+    return 'Az ajánlott biztonsági megálló $remaining idővel rövidült';
+  }
+
+  @override
+  String safetyReview_sawtoothProfile_title(int count) {
+    return '$count ismételt fel-le mélységváltozás a merülés során';
+  }
+
+  @override
+  String safetyReview_highSurfaceGf_title(String gf, String gfHigh) {
+    return 'Felszínre érkezés $gf gradiens faktorral, a beállított $gfHigh felett';
+  }
+
+  @override
+  String safetyReview_timeRange(String start, String end) {
+    return '$start–$end időpontban';
+  }
+
+  @override
+  String get safetyReview_dismiss => 'Elvetés';
+
+  @override
+  String get safetyReview_restore => 'Visszaállítás';
+
+  @override
+  String get safetySettings_title => 'Biztonsági áttekintés';
+
+  @override
+  String get safetySettings_entry_subtitle =>
+      'Merülés utáni megfigyelések és szabályok';
+
+  @override
+  String get safetySettings_masterToggle =>
+      'Merülés utáni biztonsági áttekintés';
+
+  @override
+  String get safetySettings_masterToggle_subtitle =>
+      'Felemelkedési, megállási és profilmegfigyelések automatikus rögzítése az elemzett merüléseknél';
+
+  @override
+  String get safetySettings_rulesHeader => 'Szabályok';
+
+  @override
+  String get safetySettings_rule_rapidAscent => 'Gyors felemelkedések';
+
+  @override
+  String get safetySettings_rule_missedDecoStop =>
+      'Kihagyott vagy lerövidített deko megállók';
+
+  @override
+  String get safetySettings_rule_omittedSafetyStop =>
+      'Kihagyott biztonsági megállók';
+
+  @override
+  String get safetySettings_rule_sawtoothProfile => 'Fűrészfog-profilok';
+
+  @override
+  String get safetySettings_rule_highSurfaceGf =>
+      'Magas gradiens faktor felszínre érkezéskor';
+
+  @override
+  String get safetySettings_analyzeAll => 'Összes merülés elemzése';
+
+  @override
+  String get safetySettings_analyzeAll_subtitle =>
+      'A biztonsági áttekintés futtatása minden olyan profillal rendelkező merülésen, amely még nincs elemezve';
+
+  @override
+  String safetySettings_analyzeAll_progress(int done, int total) {
+    return '$done / $total elemezve';
+  }
+
+  @override
+  String get safetySettings_analyzeAll_done => 'Elemzés kész';
+
+  @override
+  String safetySettings_analyzeAll_doneWithErrors(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülést nem sikerült elemezni',
+      one: '1 merülést nem sikerült elemezni',
+    );
+    return 'Elemzés kész — $_temp0';
+  }
+
+  @override
+  String safetyReview_showDismissed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elvetett megjelenítése',
+      one: '1 elvetett megjelenítése',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveDetailSection_sacSegments_name => 'SAC arány szegmensenként';
 
   @override
@@ -12050,6 +12577,130 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveDetailSection_weights_description =>
       'Súly lebontás, teljes súly';
+
+  @override
+  String get diveDetailSection_buoyancy_name => 'Felhajtóerő';
+
+  @override
+  String get diveDetailSection_buoyancy_description =>
+      'Felhajtóerő a merülés során, ingadozás, ledobható ólom';
+
+  @override
+  String get buoyancy_tooltip =>
+      'Modellezett nettó felhajtóerő a merülés során a profilból, gázfogyasztásból és felszerelésből.';
+
+  @override
+  String buoyancy_verdictBuoyant(String depth, String amount) {
+    return 'Az utolsó megállónál (~$depth) körülbelül $amount felhajtóerőd volt';
+  }
+
+  @override
+  String buoyancy_verdictHeavy(String depth, String amount) {
+    return 'Az utolsó megállónál (~$depth) körülbelül $amount-mal nehezebb voltál';
+  }
+
+  @override
+  String get buoyancy_verdictNeutral =>
+      'A konfigurációd közel semleges volt az utolsó megállónál';
+
+  @override
+  String get buoyancy_verdictConvention =>
+      'Az 5 m-es biztonsági megálló konvenciója szerint becsülve';
+
+  @override
+  String get buoyancy_breakdownTitle => 'Tételek részletezése';
+
+  @override
+  String get buoyancy_suitTerm => 'Ruha';
+
+  @override
+  String get buoyancy_leadTerm => 'Ólom';
+
+  @override
+  String get buoyancy_beginNet => 'Merülés kezdete';
+
+  @override
+  String get buoyancy_endNet => 'Merülés vége';
+
+  @override
+  String get buoyancy_swing => 'Felhajtóerő-ingadozás';
+
+  @override
+  String get buoyancy_peakLift => 'Max. szükséges felhajtóerő';
+
+  @override
+  String get buoyancy_wingWarning =>
+      'Meghaladja a szárnyad névleges felhajtóerejét';
+
+  @override
+  String get buoyancy_minDitchable => 'Min. ledobható ólom';
+
+  @override
+  String get buoyancy_droppable => 'Ledobható';
+
+  @override
+  String get buoyancy_ditchWarning => 'Több, mint amennyit ledobhatsz';
+
+  @override
+  String get buoyancy_drysuitGas => 'Hozzáadott szárazruha-gáz';
+
+  @override
+  String get buoyancy_estimatedPressures => 'A palacknyomások becsültek';
+
+  @override
+  String get buoyancy_linkSuitHint =>
+      'Kapcsolj egy búvárruhát ehhez a merüléshez a teljesebb képért';
+
+  @override
+  String get buoyancy_chartNet => 'Nettó';
+
+  @override
+  String get buoyancy_chartRig => 'Felszerelés + ólom';
+
+  @override
+  String get buoyancy_chartMinutes => 'Idő (perc)';
+
+  @override
+  String get buoyancy_historyTitle => 'Ólomelőzmények';
+
+  @override
+  String get buoyancy_historyCarried => 'Vitt';
+
+  @override
+  String get buoyancy_historyModeled => 'Modellezett';
+
+  @override
+  String buoyancy_historyMore(String delta) {
+    return 'Általában $delta-mal többet viszel, mint amit a modell javasol';
+  }
+
+  @override
+  String buoyancy_historyLess(String delta) {
+    return 'Általában $delta-mal kevesebbet viszel, mint amit a modell javasol';
+  }
+
+  @override
+  String get buoyancy_throughDive => 'A merülés során';
+
+  @override
+  String get buoyancy_adjust => 'Módosítás';
+
+  @override
+  String get buoyancy_whatIfTitle => 'Merülés módosítása';
+
+  @override
+  String get buoyancy_whatIfLead => 'Ólom';
+
+  @override
+  String get buoyancy_whatIfSuit => 'Ruha felhajtóereje';
+
+  @override
+  String get buoyancy_whatIfReset => 'Visszaállítás';
+
+  @override
+  String buoyancy_whatIfDelta(String delta) {
+    return '$delta a ténylegeshez';
+  }
 
   @override
   String get diveDetailSection_tanks_name => 'Palackok';
@@ -12339,7 +12990,8 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_backToSettings_tooltip => 'Vissza a beallitasokhoz';
 
   @override
-  String get settings_cloudSync_appBar_title => 'Felho szinkronizalas';
+  String get settings_cloudSync_appBar_title =>
+      'Adatbazis felho szinkronizalas';
 
   @override
   String get settings_cloudSync_autoSync => 'Automatikus szinkronizalas';
@@ -12810,7 +13462,7 @@ class AppLocalizationsHu extends AppLocalizations {
       'Biztonsagi mentes keszitese az adatokrol';
 
   @override
-  String get settings_data_cloudSync => 'Felho szinkronizalas';
+  String get settings_data_cloudSync => 'Adatbazis felho szinkronizalas';
 
   @override
   String get settings_data_customFolder => 'Egyedi mappa';
@@ -12951,6 +13603,9 @@ class AppLocalizationsHu extends AppLocalizations {
       'Gradiens Faktorok';
 
   @override
+  String get settings_decompression_header_oxygenToxicity => 'Oxigéntoxicitás';
+
+  @override
   String settings_decompression_preset_selectLabel(Object presetName) {
     return '$presetName konzervativizmus elore beallitott ertek kivalasztasa';
   }
@@ -12974,6 +13629,67 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_decompression_endLimit_dialog_title => 'END határ';
+
+  @override
+  String get settings_decompression_cnsMethodTitle => 'CNS-számítás';
+
+  @override
+  String get settings_decompression_cnsMethodClassic =>
+      'NOAA-táblázat, lépcsős (klasszikus)';
+
+  @override
+  String get settings_decompression_cnsMethodClassicDesc =>
+      'Minden 0,1 bar-os sávot a szigorúbb szélén számol. A Submersion eredeti módszere.';
+
+  @override
+  String get settings_decompression_cnsMethodShearwater =>
+      'Lineáris interpoláció (Shearwater-stílus)';
+
+  @override
+  String get settings_decompression_cnsMethodShearwaterDesc =>
+      'A NOAA-határértékek között lineárisan interpolál, ahogyan a Shearwater dokumentálja. A legtöbb búvárcomputerrel megegyezik.';
+
+  @override
+  String get settings_decompression_cnsMethodSubsurface =>
+      'Exponenciális illesztés (mint a Subsurface)';
+
+  @override
+  String get settings_decompression_cnsMethodSubsurfaceDesc =>
+      'Sima görbeillesztés a NOAA-táblázatra. Megegyezik a Subsurface által számított CNS-értékkel.';
+
+  @override
+  String get settings_decompression_cnsMethodAboutTitle =>
+      'Ezekről a módszerekről';
+
+  @override
+  String get settings_decompression_cnsMethodAboutBody =>
+      'Mindhárom módszer a NOAA Diving Manual oxigénterhelési határértékein alapul (300 perc 1,0 bar ppO2 mellett, 45 perc 1,6 bar mellett). A táblázat csak 0,1 bar-os lépésekben határoz meg határértékeket: a klasszikus módszer egy sávon belül mindent a sáv szigorúbb szélén számol, ami a bejegyzések közötti terhelést rendszeresen túlbecsüli. A Shearwater búvárcomputerei a NOAA-határértékek közötti lineáris interpolációt dokumentálják, 1,65 bar felett rögzített, percenkénti 15%-kal. A Subsurface 2019-ben a táblázatos kikeresést egy sima, kétszakaszos exponenciális illesztésre cserélte ugyanazokra a NOAA-adatokra (Robert C. Helling), amely 1,6 bar felett is természetesen kiterjed. A táblázat bejegyzései között a két sima módszer körülbelül egy CNS-ponton belül megegyezik; a klasszikus módszer magasabb értéket mutat.';
+
+  @override
+  String get settings_decompression_cnsMethodDisclaimer =>
+      'A nevek a megfelelő projektek és gyártók közzétett módszereire utalnak; ez nem jelent semmilyen kapcsolatot vagy támogatást. A számított értékek eltérhetnek a búvárcomputer tényleges kijelzéseitől.';
+
+  @override
+  String get settings_decompression_cnsMethodSourcesTitle => 'Források';
+
+  @override
+  String get settings_linkOpenFailed => 'A hivatkozást nem sikerült megnyitni.';
+
+  @override
+  String get settings_decompression_cnsMethodSourceNoaa =>
+      'NOAA: Diving Program (a NOAA Diving Manual kiadója)';
+
+  @override
+  String get settings_decompression_cnsMethodSourceShearwater =>
+      'Shearwater: A CNS oxigénórája';
+
+  @override
+  String get settings_decompression_cnsMethodSourceTheoreticalDiver =>
+      'The Theoretical Diver: A CNS oxigéntoxicitás számítása';
+
+  @override
+  String get settings_decompression_cnsMethodSourceSubsurface =>
+      'Subsurface: megvalósítás (divelist.cpp)';
 
   @override
   String get settings_existingDb_cancel => 'Megse';
@@ -13159,7 +13875,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String settings_lightroom_clientId_help(String redirectUri) {
-    return 'Hozz létre egy integrációt az Adobe Developer Console-ban a Lightroom Services API-val és egy PKCE-t támogató hitelesítőtípussal. Az átirányítási URI legyen $redirectUri.';
+    return 'Hozz létre egy integrációt az Adobe Developer Console-ban a Lightroom Services API-val és egy PKCE-t támogató hitelesítőtípussal. Add meg alább a hitelesítő adatod átirányítási URI-jét — a Native App hitelesítők egyedi sémát használnak —, vagy hagyd üresen a(z) $redirectUri használatához.';
   }
 
   @override
@@ -13170,7 +13886,18 @@ class AppLocalizationsHu extends AppLocalizations {
       'Klienstitok (nem kötelező)';
 
   @override
+  String get settings_lightroom_redirectUri_label =>
+      'Átirányítási URI (nem kötelező)';
+
+  @override
   String get settings_lightroom_connect => 'Lightroom csatlakoztatása';
+
+  @override
+  String get settings_lightroom_connectEmbedded => 'Csatlakozás az Adobe-hoz';
+
+  @override
+  String get settings_lightroom_advancedByo =>
+      'Saját Adobe hitelesítő adatok használata';
 
   @override
   String get settings_lightroom_connect_codeLabel =>
@@ -18370,6 +19097,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get gpsLogger_tracksHeader => 'Rögzített útvonalak';
 
   @override
+  String get maps_compass_resetLabel =>
+      'Terkep tajolasanak visszaallitasa eszakra';
+
+  @override
+  String get maps_compass_resetTooltip => 'Eszak felul';
+
+  @override
   String get maps_heatMap_hide => 'Hoterkep elrejtese';
 
   @override
@@ -18914,31 +19648,31 @@ class AppLocalizationsHu extends AppLocalizations {
       'No data source integrations are available on this platform.';
 
   @override
-  String get diveLog_edit_section_environment => 'Environment';
+  String get diveLog_edit_section_environment => 'Környezet';
 
   @override
-  String get diveLog_edit_subsection_weather => 'Weather';
+  String get diveLog_edit_subsection_weather => 'Időjárás';
 
   @override
-  String get diveLog_edit_subsection_diveConditions => 'Dive Conditions';
+  String get diveLog_edit_subsection_diveConditions => 'Merülési körülmények';
 
   @override
-  String get diveLog_edit_label_windSpeed => 'Wind Speed';
+  String get diveLog_edit_label_windSpeed => 'Szélsebesség';
 
   @override
-  String get diveLog_edit_label_windDirection => 'Wind Direction';
+  String get diveLog_edit_label_windDirection => 'Szélirány';
 
   @override
-  String get diveLog_edit_label_cloudCover => 'Cloud Cover';
+  String get diveLog_edit_label_cloudCover => 'Felhőzet';
 
   @override
-  String get diveLog_edit_label_precipitation => 'Precipitation';
+  String get diveLog_edit_label_precipitation => 'Csapadék';
 
   @override
-  String get diveLog_edit_label_humidity => 'Humidity';
+  String get diveLog_edit_label_humidity => 'Páratartalom';
 
   @override
-  String get diveLog_edit_label_weatherDescription => 'Weather Description';
+  String get diveLog_edit_label_weatherDescription => 'Időjárás leírása';
 
   @override
   String get diveLog_edit_button_fetchWeather => 'Fetch Weather';
@@ -18968,31 +19702,31 @@ class AppLocalizationsHu extends AppLocalizations {
       'Replace existing weather data with fetched data?';
 
   @override
-  String get diveLog_detail_section_environment => 'Environment';
+  String get diveLog_detail_section_environment => 'Környezet';
 
   @override
-  String get diveLog_detail_subsection_weather => 'Weather';
+  String get diveLog_detail_subsection_weather => 'Időjárás';
 
   @override
-  String get diveLog_detail_subsection_diveConditions => 'Dive Conditions';
+  String get diveLog_detail_subsection_diveConditions => 'Merülési körülmények';
 
   @override
-  String get diveLog_detail_label_windSpeed => 'Wind Speed';
+  String get diveLog_detail_label_windSpeed => 'Szélsebesség';
 
   @override
-  String get diveLog_detail_label_windDirection => 'Wind Direction';
+  String get diveLog_detail_label_windDirection => 'Szélirány';
 
   @override
-  String get diveLog_detail_label_cloudCover => 'Cloud Cover';
+  String get diveLog_detail_label_cloudCover => 'Felhőzet';
 
   @override
-  String get diveLog_detail_label_precipitation => 'Precipitation';
+  String get diveLog_detail_label_precipitation => 'Csapadék';
 
   @override
-  String get diveLog_detail_label_humidity => 'Humidity';
+  String get diveLog_detail_label_humidity => 'Páratartalom';
 
   @override
-  String get diveLog_detail_label_weatherDescription => 'Description';
+  String get diveLog_detail_label_weatherDescription => 'Leírás';
 
   @override
   String get diveLog_detail_weatherSourceOpenMeteo => 'via Open-Meteo';
@@ -19015,40 +19749,40 @@ class AppLocalizationsHu extends AppLocalizations {
   String get dropTarget_error_readFailed => 'A fájl nem olvasható';
 
   @override
-  String get enum_cloudCover_clear => 'Clear';
+  String get enum_cloudCover_clear => 'Tiszta';
 
   @override
-  String get enum_cloudCover_partlyCloudy => 'Partly Cloudy';
+  String get enum_cloudCover_partlyCloudy => 'Részben felhős';
 
   @override
-  String get enum_cloudCover_mostlyCloudy => 'Mostly Cloudy';
+  String get enum_cloudCover_mostlyCloudy => 'Többnyire felhős';
 
   @override
-  String get enum_cloudCover_overcast => 'Overcast';
+  String get enum_cloudCover_overcast => 'Borult';
 
   @override
-  String get enum_precipitation_none => 'None';
+  String get enum_precipitation_none => 'Nincs';
 
   @override
-  String get enum_precipitation_drizzle => 'Drizzle';
+  String get enum_precipitation_drizzle => 'Szitálás';
 
   @override
-  String get enum_precipitation_lightRain => 'Light Rain';
+  String get enum_precipitation_lightRain => 'Gyenge eső';
 
   @override
-  String get enum_precipitation_rain => 'Rain';
+  String get enum_precipitation_rain => 'Eső';
 
   @override
-  String get enum_precipitation_heavyRain => 'Heavy Rain';
+  String get enum_precipitation_heavyRain => 'Erős eső';
 
   @override
-  String get enum_precipitation_snow => 'Snow';
+  String get enum_precipitation_snow => 'Hó';
 
   @override
-  String get enum_precipitation_sleet => 'Sleet';
+  String get enum_precipitation_sleet => 'Ónos eső';
 
   @override
-  String get enum_precipitation_hail => 'Hail';
+  String get enum_precipitation_hail => 'Jégeső';
 
   @override
   String get columnConfig_title => 'Merülési lista mezői';
@@ -19693,6 +20427,15 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String equipment_edit_liftCapacityLabel(String unit) {
+    return 'Emelőkapacitás ($unit)';
+  }
+
+  @override
+  String get equipment_edit_liftCapacityHint =>
+      'A szárny vagy BCD névleges felhajtóereje';
+
+  @override
   String get planner_gearWeights_accept => 'Használat tervezett súlyként';
 
   @override
@@ -20110,4 +20853,530 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get media_unavailablePlaceholder_volumeOffline =>
       'A kötet nincs csatlakoztatva';
+
+  @override
+  String get attrLabel_size => 'Méret';
+
+  @override
+  String get attrLabel_thickness_mm => 'Vastagság (mm)';
+
+  @override
+  String get attrLabel_suit_style => 'Ruha fazonja';
+
+  @override
+  String get attrLabel_shell_material => 'Külső anyag';
+
+  @override
+  String get attrLabel_seal_type => 'Mandzsetta típusa';
+
+  @override
+  String get attrLabel_volume_l => 'Térfogat';
+
+  @override
+  String get attrLabel_working_pressure_bar => 'Üzemi nyomás';
+
+  @override
+  String get attrLabel_tank_material => 'Anyag';
+
+  @override
+  String get attrLabel_valve_type => 'Szelep';
+
+  @override
+  String get attrLabel_tank_identifier => 'Azonosító';
+
+  @override
+  String get attrLabel_last_visual_inspection => 'Utolsó szemrevételezés';
+
+  @override
+  String get attrLabel_last_hydro_test => 'Utolsó hidrosztatikai vizsgálat';
+
+  @override
+  String get attrLabel_connection => 'Csatlakozás';
+
+  @override
+  String get attrLabel_cold_water_rated => 'Hidegvízre minősített';
+
+  @override
+  String get attrLabel_bcd_style => 'Fazon';
+
+  @override
+  String get attrLabel_lift_capacity_kg => 'Emelőkapacitás';
+
+  @override
+  String get attrLabel_heel_type => 'Sarok';
+
+  @override
+  String get attrLabel_blade_style => 'Lapát';
+
+  @override
+  String get attrLabel_mount => 'Rögzítés';
+
+  @override
+  String get attrLabel_connectivity => 'Kapcsolat';
+
+  @override
+  String get attrLabel_lens_config => 'Lencse';
+
+  @override
+  String get attrLabel_prescription => 'Dioptriás lencsék';
+
+  @override
+  String get attrLabel_weight_style => 'Fazon';
+
+  @override
+  String get attrLabel_lumens => 'Lumen';
+
+  @override
+  String get attrLabel_beam_type => 'Fénysugár';
+
+  @override
+  String get attrLabel_depth_rating_m => 'Mélységi besorolás';
+
+  @override
+  String get attrLabel_smb_type => 'Típus';
+
+  @override
+  String get attrLabel_length_m => 'Hossz';
+
+  @override
+  String get attrLabel_reel_type => 'Típus';
+
+  @override
+  String get attrLabel_line_length_m => 'Zsinór hossza';
+
+  @override
+  String get attrLabel_blade_material => 'Penge anyaga';
+
+  @override
+  String get attrLabel_tip_type => 'Hegy';
+
+  @override
+  String get attrLabel_glove_type => 'Típus';
+
+  @override
+  String get attrLabel_sole_type => 'Talp';
+
+  @override
+  String get attrLabel_buoyancy_kg => 'Felhajtóerő';
+
+  @override
+  String get attrLabel_dry_weight_kg => 'Száraz tömeg';
+
+  @override
+  String get attrChoice_suit_style_full => 'Egész ruha';
+
+  @override
+  String get attrChoice_suit_style_shorty => 'Shorty';
+
+  @override
+  String get attrChoice_suit_style_two_piece => 'Kétrészes';
+
+  @override
+  String get attrChoice_suit_style_semi_dry => 'Félszáraz';
+
+  @override
+  String get attrChoice_shell_material_trilaminate => 'Trilaminát';
+
+  @override
+  String get attrChoice_shell_material_neoprene => 'Neoprén';
+
+  @override
+  String get attrChoice_shell_material_crushed_neoprene => 'Préselt neoprén';
+
+  @override
+  String get attrChoice_shell_material_vulcanized_rubber => 'Vulkanizált gumi';
+
+  @override
+  String get attrChoice_seal_type_latex => 'Latex';
+
+  @override
+  String get attrChoice_seal_type_silicone => 'Szilikon';
+
+  @override
+  String get attrChoice_seal_type_neoprene => 'Neoprén';
+
+  @override
+  String get attrChoice_tank_material_aluminum => 'Alumínium';
+
+  @override
+  String get attrChoice_tank_material_steel => 'Acél';
+
+  @override
+  String get attrChoice_tank_material_carbon_composite => 'Karbon kompozit';
+
+  @override
+  String get attrChoice_valve_type_din => 'DIN';
+
+  @override
+  String get attrChoice_valve_type_yoke => 'Kengyel (INT)';
+
+  @override
+  String get attrChoice_valve_type_convertible => 'Átalakítható';
+
+  @override
+  String get attrChoice_connection_din => 'DIN';
+
+  @override
+  String get attrChoice_connection_yoke => 'Kengyel (INT)';
+
+  @override
+  String get attrChoice_bcd_style_jacket => 'Mellény';
+
+  @override
+  String get attrChoice_bcd_style_back_inflate => 'Háti kamrás';
+
+  @override
+  String get attrChoice_bcd_style_wing => 'Wing';
+
+  @override
+  String get attrChoice_bcd_style_sidemount => 'Sidemount';
+
+  @override
+  String get attrChoice_heel_type_open_heel => 'Nyitott sarkú';
+
+  @override
+  String get attrChoice_heel_type_full_foot => 'Zárt sarkú';
+
+  @override
+  String get attrChoice_blade_style_paddle => 'Lapátos';
+
+  @override
+  String get attrChoice_blade_style_split => 'Osztott';
+
+  @override
+  String get attrChoice_blade_style_vented => 'Szellőzős';
+
+  @override
+  String get attrChoice_mount_wrist => 'Csukló';
+
+  @override
+  String get attrChoice_mount_console => 'Konzol';
+
+  @override
+  String get attrChoice_mount_hud => 'HUD';
+
+  @override
+  String get attrChoice_connectivity_ble => 'Bluetooth (BLE)';
+
+  @override
+  String get attrChoice_connectivity_usb => 'USB';
+
+  @override
+  String get attrChoice_connectivity_infrared => 'Infravörös';
+
+  @override
+  String get attrChoice_connectivity_none => 'Nincs';
+
+  @override
+  String get attrChoice_lens_config_single => 'Egylencsés';
+
+  @override
+  String get attrChoice_lens_config_twin => 'Kétlencsés';
+
+  @override
+  String get attrChoice_lens_config_frameless => 'Keret nélküli';
+
+  @override
+  String get attrChoice_weight_style_belt => 'Öv';
+
+  @override
+  String get attrChoice_weight_style_integrated => 'Integrált';
+
+  @override
+  String get attrChoice_weight_style_trim => 'Trimm';
+
+  @override
+  String get attrChoice_weight_style_ankle => 'Boka';
+
+  @override
+  String get attrChoice_beam_type_spot => 'Pont';
+
+  @override
+  String get attrChoice_beam_type_flood => 'Széles';
+
+  @override
+  String get attrChoice_beam_type_adjustable => 'Állítható';
+
+  @override
+  String get attrChoice_smb_type_open => 'Nyitott';
+
+  @override
+  String get attrChoice_smb_type_closed => 'Zárt';
+
+  @override
+  String get attrChoice_reel_type_spool => 'Orsó';
+
+  @override
+  String get attrChoice_reel_type_ratchet => 'Racsnis';
+
+  @override
+  String get attrChoice_blade_material_stainless => 'Rozsdamentes acél';
+
+  @override
+  String get attrChoice_blade_material_titanium => 'Titán';
+
+  @override
+  String get attrChoice_tip_type_pointed => 'Hegyes';
+
+  @override
+  String get attrChoice_tip_type_blunt => 'Tompa';
+
+  @override
+  String get attrChoice_tip_type_line_cutter => 'Zsinórvágó';
+
+  @override
+  String get attrChoice_glove_type_five_finger => 'Ötujjas';
+
+  @override
+  String get attrChoice_glove_type_mitt => 'Egyujjas';
+
+  @override
+  String get attrChoice_glove_type_dry => 'Száraz';
+
+  @override
+  String get attrChoice_sole_type_hard => 'Kemény talp';
+
+  @override
+  String get attrChoice_sole_type_soft => 'Puha talp';
+
+  @override
+  String get equipment_edit_customFieldsTitle => 'Egyéni mezők';
+
+  @override
+  String get equipment_edit_addCustomField => 'Egyéni mező hozzáadása';
+
+  @override
+  String get attr_flagYes => 'Igen';
+
+  @override
+  String get attr_flagNo => 'Nem';
+
+  @override
+  String get equipment_edit_invalidThickness => 'Formátum: 5, 5/4 vagy 7/5/3';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_title =>
+      'Merülések ruhavastagság szerint';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_subtitle =>
+      'A ruha fő vastagsága a merüléseid során';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_empty =>
+      'Nincs merülés rögzített ruhavastagsággal';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_error =>
+      'Nem sikerült betölteni a vastagsági adatokat';
+
+  @override
+  String get diveLog_filter_sectionSuitThickness => 'Ruhavastagság (mm)';
+
+  @override
+  String get diveLog_filter_thicknessMin => 'Min';
+
+  @override
+  String get diveLog_filter_thicknessMax => 'Max';
+
+  @override
+  String get safetySettings_noFlyHeader => 'Repülés merülés után';
+
+  @override
+  String get safetySettings_noFlyPreset_standard => 'Normál (12/18/24 ó)';
+
+  @override
+  String get safetySettings_noFlyPreset_strict => 'Szigorú (18/24/48 ó)';
+
+  @override
+  String get safetySettings_noFlyPreset_subtitle =>
+      'Irányadó időközök egyetlen nullidős merülés, ismétlő merülések és dekós merülések után';
+
+  @override
+  String get safetyHub_title => 'Biztonság';
+
+  @override
+  String safetyHub_noFly_active_title(String remaining) {
+    return 'Repülési tilalom: $remaining van hátra';
+  }
+
+  @override
+  String safetyHub_noFly_until(String time) {
+    return 'Eddig: $time';
+  }
+
+  @override
+  String get safetyHub_noFly_clear_title => 'Nincs repülési korlátozás';
+
+  @override
+  String get safetyHub_noFly_clear_subtitle =>
+      'Nincs aktív repülési korlátozás';
+
+  @override
+  String safetyHub_noFly_category_single(int hours) {
+    return 'Egyetlen nullidős merülés után: $hours ó irányelv';
+  }
+
+  @override
+  String safetyHub_noFly_category_repetitive(int hours) {
+    return 'Ismétlő merülések után: $hours ó irányelv';
+  }
+
+  @override
+  String safetyHub_noFly_category_deco(int hours) {
+    return 'Dekompressziós merülés után: $hours ó irányelv';
+  }
+
+  @override
+  String get safetyHub_noFly_disclaimer =>
+      'DAN/UHMS irányelvek az utolsó merüléstől számítva. Nem helyettesíti a búvárkomputer no-fly idejét.';
+
+  @override
+  String get safetyHub_surfaceIntervalLink => 'Felszíni intervallum eszköz';
+
+  @override
+  String get safetyHub_surfaceIntervalLink_subtitle =>
+      'Oktató jellegű szöveti telítettségcsökkenési modell';
+
+  @override
+  String get safetyHub_settingsLink => 'Biztonsági beállítások';
+
+  @override
+  String get diveLog_detail_altitudeMismatch_title =>
+      'A merülőhely magaslaton fekszik';
+
+  @override
+  String get diveLog_detail_altitudeMismatch_subtitle =>
+      'Ehhez a helyhez magasság van rögzítve, a merüléshez azonban nincs, így a dekompressziós elemzés tengerszintet feltételezett. A javításhoz állítsd be a merülés magasságát.';
+
+  @override
+  String safetyHub_alert_noFly(String remaining) {
+    return 'Repülési tilalom: $remaining van hátra';
+  }
+
+  @override
+  String get emergencyCard_title => 'Vészhelyzet';
+
+  @override
+  String emergencyCard_callDan(String name) {
+    return '$name hívása';
+  }
+
+  @override
+  String get emergencyCard_callDan_subtitle =>
+      'Búvár segélyvonal. Először ezt hívd: ők koordinálják az evakuálást és a kamrába irányítást.';
+
+  @override
+  String emergencyCard_ems(String number) {
+    return 'Helyi segélyhívó: $number';
+  }
+
+  @override
+  String get emergencyCard_diverSection => 'Búvár';
+
+  @override
+  String emergencyCard_bloodType(String value) {
+    return 'Vércsoport: $value';
+  }
+
+  @override
+  String emergencyCard_allergies(String value) {
+    return 'Allergiák: $value';
+  }
+
+  @override
+  String emergencyCard_medications(String value) {
+    return 'Gyógyszerek: $value';
+  }
+
+  @override
+  String get emergencyCard_contactsSection => 'Vészhelyzeti kapcsolatok';
+
+  @override
+  String get emergencyCard_insuranceSection => 'Búvárbiztosítás';
+
+  @override
+  String emergencyCard_insurancePolicy(String number) {
+    return 'Kötvény: $number';
+  }
+
+  @override
+  String get emergencyCard_chambersSection => 'Hiperbárikus kamrák';
+
+  @override
+  String get emergencyCard_chambersNote =>
+      'Az elérhetőség változik. Irányításért mindig először a búvár segélyvonalat hívd.';
+
+  @override
+  String emergencyCard_chamberVerified(String date) {
+    return 'Adatok ellenőrizve: $date';
+  }
+
+  @override
+  String get emergencyCard_hideChamber => 'Elrejtés';
+
+  @override
+  String get emergencyCard_chamberHidden => 'Kamra elrejtve';
+
+  @override
+  String get emergencyCard_undo => 'Visszavonás';
+
+  @override
+  String get emergencyCard_addChamber => 'Kamra hozzáadása';
+
+  @override
+  String get emergencyCard_deleteChamber => 'Törlés';
+
+  @override
+  String emergencyCard_regionLabel(String region) {
+    return 'Régió: $region';
+  }
+
+  @override
+  String get emergencyCard_regionUnknown =>
+      'Ismeretlen régió - a világméretű segélyvonal használata';
+
+  @override
+  String get emergencyCard_noDiverData =>
+      'Nincsenek búvárprofil-adatok. Add meg a vészhelyzeti kapcsolatokat, egészségügyi és biztosítási adatokat a búvárprofilban.';
+
+  @override
+  String get addChamber_title => 'Kamra hozzáadása';
+
+  @override
+  String get addChamber_name => 'Név';
+
+  @override
+  String get addChamber_country => 'Országkód (pl. HU)';
+
+  @override
+  String get addChamber_city => 'Város';
+
+  @override
+  String get addChamber_phone => 'Telefon';
+
+  @override
+  String get addChamber_notes => 'Jegyzetek';
+
+  @override
+  String get addChamber_save => 'Mentés';
+
+  @override
+  String get addChamber_nameRequired => 'A név megadása kötelező';
+
+  @override
+  String get addChamber_countryRequired => 'Az országkód megadása kötelező';
+
+  @override
+  String get addChamber_phoneRequired => 'A telefonszám megadása kötelező';
+
+  @override
+  String get safetyHub_emergencyCardLink => 'Vészhelyzeti kártya';
+
+  @override
+  String get safetyHub_emergencyCardLink_subtitle =>
+      'Offline: segélyvonal, segélyhívó, kamrák, egészségügyi és biztosítási adataid';
+
+  @override
+  String get dashboard_quickAction_emergency => 'Vészhelyzeti kártya';
 }

@@ -301,6 +301,54 @@ void main() {
       );
     });
 
+    group('getBuddiesForDives (batch, #626)', () {
+      Future<void> insertDive(String id) async {
+        final db = DatabaseService.instance.database;
+        await db.customStatement(
+          "INSERT INTO dives (id, dive_date_time, created_at, updated_at) "
+          "VALUES ('$id', 1000, 1000, 1000)",
+        );
+      }
+
+      test('returns an empty map for empty input', () async {
+        expect(await repository.getBuddiesForDives([]), isEmpty);
+      });
+
+      test('groups buddies by dive id and resolves roles', () async {
+        await insertDive('d1');
+        await insertDive('d2');
+        final alice = await repository.createBuddy(
+          createTestBuddy(id: 'b1', name: 'Alice'),
+        );
+        final guido = await repository.createBuddy(
+          createTestBuddy(id: 'b2', name: 'Guido'),
+        );
+        await repository.addBuddyToDive('d1', alice.id, DiveRole.buddyId);
+        await repository.addBuddyToDive('d1', guido.id, DiveRole.diveMasterId);
+        await repository.addBuddyToDive('d2', alice.id, DiveRole.buddyId);
+
+        final result = await repository.getBuddiesForDives(['d1', 'd2']);
+
+        expect(result['d1'], hasLength(2));
+        expect(result['d2'], hasLength(1));
+        expect(
+          result['d1']!.map((b) => b.buddy.name),
+          containsAll(['Alice', 'Guido']),
+        );
+        final guidoLink = result['d1']!.firstWhere(
+          (b) => b.buddy.name == 'Guido',
+        );
+        expect(guidoLink.role.id, DiveRole.diveMasterId);
+        expect(result['d2']!.single.buddy.name, 'Alice');
+      });
+
+      test('omits dives that have no buddies', () async {
+        await insertDive('d1');
+        final result = await repository.getBuddiesForDives(['d1']);
+        expect(result.containsKey('d1'), isFalse);
+      });
+    });
+
     group('dive role resolution', () {
       Future<void> insertDive(String id) async {
         final db = DatabaseService.instance.database;

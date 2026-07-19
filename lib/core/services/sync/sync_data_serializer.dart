@@ -223,6 +223,7 @@ class SyncData {
   final List<Map<String, dynamic>> equipmentSets;
   final List<Map<String, dynamic>> equipmentSetItems;
   final List<Map<String, dynamic>> equipmentSetGeofences;
+  final List<Map<String, dynamic>> equipmentAttributes;
   final List<Map<String, dynamic>> media;
   final List<Map<String, dynamic>> buddies;
   final List<Map<String, dynamic>> buddyRoles;
@@ -232,7 +233,11 @@ class SyncData {
   final List<Map<String, dynamic>> diveBuddies;
   final List<Map<String, dynamic>> certifications;
   final List<Map<String, dynamic>> courses;
+  final List<Map<String, dynamic>> courseRequirements;
+  final List<Map<String, dynamic>> courseRequirementDives;
   final List<Map<String, dynamic>> serviceRecords;
+  final List<Map<String, dynamic>> serviceKinds;
+  final List<Map<String, dynamic>> serviceSchedules;
   final List<Map<String, dynamic>> diveCenters;
   final List<Map<String, dynamic>> trips;
   final List<Map<String, dynamic>> liveaboardDetails;
@@ -263,6 +268,9 @@ class SyncData {
   final List<Map<String, dynamic>> species;
   final List<Map<String, dynamic>> sightings;
   final List<Map<String, dynamic>> diveProfileEvents;
+  final List<Map<String, dynamic>> diveSafetyReviews;
+  final List<Map<String, dynamic>> diveSafetyFindings;
+  final List<Map<String, dynamic>> emergencyChambers;
   final List<Map<String, dynamic>> gasSwitches;
   final List<Map<String, dynamic>> diveCustomFields;
   final List<Map<String, dynamic>> diveDataSources;
@@ -284,6 +292,7 @@ class SyncData {
     this.equipmentSets = const [],
     this.equipmentSetItems = const [],
     this.equipmentSetGeofences = const [],
+    this.equipmentAttributes = const [],
     this.media = const [],
     this.buddies = const [],
     this.buddyRoles = const [],
@@ -293,7 +302,11 @@ class SyncData {
     this.diveBuddies = const [],
     this.certifications = const [],
     this.courses = const [],
+    this.courseRequirements = const [],
+    this.courseRequirementDives = const [],
     this.serviceRecords = const [],
+    this.serviceKinds = const [],
+    this.serviceSchedules = const [],
     this.diveCenters = const [],
     this.trips = const [],
     this.liveaboardDetails = const [],
@@ -324,6 +337,9 @@ class SyncData {
     this.species = const [],
     this.sightings = const [],
     this.diveProfileEvents = const [],
+    this.diveSafetyReviews = const [],
+    this.diveSafetyFindings = const [],
+    this.emergencyChambers = const [],
     this.gasSwitches = const [],
     this.diveCustomFields = const [],
     this.diveDataSources = const [],
@@ -346,6 +362,7 @@ class SyncData {
     'equipmentSets': equipmentSets,
     'equipmentSetItems': equipmentSetItems,
     'equipmentSetGeofences': equipmentSetGeofences,
+    'equipmentAttributes': equipmentAttributes,
     'media': media,
     'buddies': buddies,
     'buddyRoles': buddyRoles,
@@ -355,7 +372,11 @@ class SyncData {
     'diveBuddies': diveBuddies,
     'certifications': certifications,
     'courses': courses,
+    'courseRequirements': courseRequirements,
+    'courseRequirementDives': courseRequirementDives,
     'serviceRecords': serviceRecords,
+    'serviceKinds': serviceKinds,
+    'serviceSchedules': serviceSchedules,
     'diveCenters': diveCenters,
     'trips': trips,
     'liveaboardDetails': liveaboardDetails,
@@ -386,6 +407,9 @@ class SyncData {
     'species': species,
     'sightings': sightings,
     'diveProfileEvents': diveProfileEvents,
+    'diveSafetyReviews': diveSafetyReviews,
+    'diveSafetyFindings': diveSafetyFindings,
+    'emergencyChambers': emergencyChambers,
     'gasSwitches': gasSwitches,
     'diveCustomFields': diveCustomFields,
     'diveDataSources': diveDataSources,
@@ -409,6 +433,7 @@ class SyncData {
       equipmentSets: _parseList(json['equipmentSets']),
       equipmentSetItems: _parseList(json['equipmentSetItems']),
       equipmentSetGeofences: _parseList(json['equipmentSetGeofences']),
+      equipmentAttributes: _parseList(json['equipmentAttributes']),
       media: _parseList(json['media']),
       buddies: _parseList(json['buddies']),
       buddyRoles: _parseList(json['buddyRoles']),
@@ -418,7 +443,11 @@ class SyncData {
       diveBuddies: _parseList(json['diveBuddies']),
       certifications: _parseList(json['certifications']),
       courses: _parseList(json['courses']),
+      courseRequirements: _parseList(json['courseRequirements']),
+      courseRequirementDives: _parseList(json['courseRequirementDives']),
       serviceRecords: _parseList(json['serviceRecords']),
+      serviceKinds: _parseList(json['serviceKinds']),
+      serviceSchedules: _parseList(json['serviceSchedules']),
       diveCenters: _parseList(json['diveCenters']),
       trips: _parseList(json['trips']),
       liveaboardDetails: _parseList(json['liveaboardDetails']),
@@ -451,6 +480,9 @@ class SyncData {
       species: _parseList(json['species']),
       sightings: _parseList(json['sightings']),
       diveProfileEvents: _parseList(json['diveProfileEvents']),
+      diveSafetyReviews: _parseList(json['diveSafetyReviews']),
+      diveSafetyFindings: _parseList(json['diveSafetyFindings']),
+      emergencyChambers: _parseList(json['emergencyChambers']),
       gasSwitches: _parseList(json['gasSwitches']),
       diveCustomFields: _parseList(json['diveCustomFields']),
       diveDataSources: _parseList(json['diveDataSources']),
@@ -611,6 +643,12 @@ class SyncDataSerializer {
       blob: false,
       full: null,
     ),
+    (
+      key: 'equipmentAttributes',
+      table: _db.equipmentAttributes,
+      blob: false,
+      full: null,
+    ),
     (key: 'media', table: _db.media, blob: true, full: null),
     (key: 'buddies', table: _db.buddies, blob: false, full: null),
     (key: 'buddyRoles', table: _db.buddyRoles, blob: false, full: null),
@@ -630,7 +668,33 @@ class SyncDataSerializer {
     (key: 'diveBuddies', table: _db.diveBuddies, blob: false, full: null),
     (key: 'certifications', table: _db.certifications, blob: true, full: null),
     (key: 'courses', table: _db.courses, blob: false, full: null),
+    (
+      key: 'courseRequirements',
+      table: _db.courseRequirements,
+      blob: false,
+      full: null,
+    ),
+    (
+      key: 'courseRequirementDives',
+      table: _db.courseRequirementDives,
+      blob: false,
+      full: null,
+    ),
     (key: 'serviceRecords', table: _db.serviceRecords, blob: false, full: null),
+    // serviceKinds excludes built-in reference data (isBuiltIn=false), so
+    // reuse its exporter rather than paging all rows.
+    (
+      key: 'serviceKinds',
+      table: null,
+      blob: false,
+      full: () => _exportServiceKinds(null),
+    ),
+    (
+      key: 'serviceSchedules',
+      table: _db.serviceSchedules,
+      blob: false,
+      full: null,
+    ),
     (key: 'diveCenters', table: _db.diveCenters, blob: false, full: null),
     (key: 'trips', table: _db.trips, blob: false, full: null),
     (
@@ -663,17 +727,22 @@ class SyncDataSerializer {
       blob: false,
       full: null,
     ),
+    // Built-in pre-dive templates (and the items of built-in templates) are
+    // re-seeded identically on every device, so both must be excluded from the
+    // base exactly as the incremental changeset excludes them. Paging the raw
+    // table would ship the seeds and diverge from exportChangeset (parity),
+    // so reuse the filtered exporters (mirrors serviceKinds).
     (
       key: 'preDiveChecklistTemplates',
-      table: _db.preDiveChecklistTemplates,
+      table: null,
       blob: false,
-      full: null,
+      full: () => _exportPreDiveChecklistTemplates(null),
     ),
     (
       key: 'preDiveChecklistTemplateItems',
-      table: _db.preDiveChecklistTemplateItems,
+      table: null,
       blob: false,
-      full: null,
+      full: () => _exportPreDiveChecklistTemplateItems(null),
     ),
     (
       key: 'preDiveSessions',
@@ -750,6 +819,26 @@ class SyncDataSerializer {
     (
       key: 'diveProfileEvents',
       table: _db.diveProfileEvents,
+      blob: false,
+      full: null,
+    ),
+    (
+      // PK is dive_id, not id, so the keyset pager can't stream it; the table
+      // is tiny (3 columns, one row per analyzed dive) so full export is fine.
+      key: 'diveSafetyReviews',
+      table: null,
+      blob: false,
+      full: () => _exportDiveSafetyReviews(null),
+    ),
+    (
+      key: 'diveSafetyFindings',
+      table: _db.diveSafetyFindings,
+      blob: false,
+      full: null,
+    ),
+    (
+      key: 'emergencyChambers',
+      table: _db.emergencyChambers,
       blob: false,
       full: null,
     ),
@@ -1043,6 +1132,10 @@ class SyncDataSerializer {
         'equipmentSetGeofences',
         () => _exportEquipmentSetGeofences(hlcSince),
       ),
+      equipmentAttributes: await _safeExport(
+        'equipmentAttributes',
+        () => _exportEquipmentAttributes(hlcSince),
+      ),
       media: await _safeExport('media', () => _exportMedia(hlcSince)),
       buddies: await _safeExport('buddies', () => _exportBuddies(hlcSince)),
       buddyRoles: await _safeExport(
@@ -1070,9 +1163,25 @@ class SyncDataSerializer {
         () => _exportCertifications(hlcSince),
       ),
       courses: await _safeExport('courses', () => _exportCourses(hlcSince)),
+      courseRequirements: await _safeExport(
+        'courseRequirements',
+        () => _exportCourseRequirements(hlcSince),
+      ),
+      courseRequirementDives: await _safeExport(
+        'courseRequirementDives',
+        () => _exportCourseRequirementDives(hlcSince),
+      ),
       serviceRecords: await _safeExport(
         'serviceRecords',
         () => _exportServiceRecords(hlcSince),
+      ),
+      serviceKinds: await _safeExport(
+        'serviceKinds',
+        () => _exportServiceKinds(hlcSince),
+      ),
+      serviceSchedules: await _safeExport(
+        'serviceSchedules',
+        () => _exportServiceSchedules(hlcSince),
       ),
       diveCenters: await _safeExport(
         'diveCenters',
@@ -1178,6 +1287,18 @@ class SyncDataSerializer {
       diveProfileEvents: await _safeExport(
         'diveProfileEvents',
         () => _exportDiveProfileEvents(hlcSince),
+      ),
+      diveSafetyReviews: await _safeExport(
+        'diveSafetyReviews',
+        () => _exportDiveSafetyReviews(hlcSince),
+      ),
+      diveSafetyFindings: await _safeExport(
+        'diveSafetyFindings',
+        () => _exportDiveSafetyFindings(hlcSince),
+      ),
+      emergencyChambers: await _safeExport(
+        'emergencyChambers',
+        () => _exportEmergencyChambers(hlcSince),
       ),
       gasSwitches: await _safeExport(
         'gasSwitches',
@@ -1385,6 +1506,11 @@ class SyncDataSerializer {
           _db.equipmentSetGeofences,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
+      case 'equipmentAttributes':
+        final row = await (_db.select(
+          _db.equipmentAttributes,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
       case 'equipmentSetItems':
         final parts = _splitCompositeId(recordId);
         if (parts.length != 2) return null;
@@ -1442,9 +1568,29 @@ class SyncDataSerializer {
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         // Drift-generated toJson keeps fetch symmetric with import.
         return row?.toJson();
+      case 'courseRequirements':
+        final row = await (_db.select(
+          _db.courseRequirements,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'courseRequirementDives':
+        final row = await (_db.select(
+          _db.courseRequirementDives,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
       case 'serviceRecords':
         final row = await (_db.select(
           _db.serviceRecords,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'serviceKinds':
+        final row = await (_db.select(
+          _db.serviceKinds,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'serviceSchedules':
+        final row = await (_db.select(
+          _db.serviceSchedules,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
       case 'diveCenters':
@@ -1602,6 +1748,21 @@ class SyncDataSerializer {
           _db.diveProfileEvents,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
+      case 'diveSafetyReviews':
+        final row = await (_db.select(
+          _db.diveSafetyReviews,
+        )..where((t) => t.diveId.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'diveSafetyFindings':
+        final row = await (_db.select(
+          _db.diveSafetyFindings,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'emergencyChambers':
+        final row = await (_db.select(
+          _db.emergencyChambers,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
       case 'gasSwitches':
         final row = await (_db.select(
           _db.gasSwitches,
@@ -1700,6 +1861,11 @@ class SyncDataSerializer {
       case 'equipmentSetGeofences':
         final rows = await (_db.select(
           _db.equipmentSetGeofences,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'equipmentAttributes':
+        final rows = await (_db.select(
+          _db.equipmentAttributes,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
       case 'buddies':
@@ -1832,9 +1998,24 @@ class SyncDataSerializer {
           _db.courses,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
+      case 'courseRequirements':
+        final rows = await (_db.select(
+          _db.courseRequirements,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
       case 'serviceRecords':
         final rows = await (_db.select(
           _db.serviceRecords,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'serviceKinds':
+        final rows = await (_db.select(
+          _db.serviceKinds,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'serviceSchedules':
+        final rows = await (_db.select(
+          _db.serviceSchedules,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
       case 'csvPresets':
@@ -1964,6 +2145,13 @@ class SyncDataSerializer {
               EquipmentSetGeofence.fromJson(data).toCompanion(false),
             );
         return;
+      case 'equipmentAttributes':
+        await _db
+            .into(_db.equipmentAttributes)
+            .insertOnConflictUpdate(
+              EquipmentAttributeRow.fromJson(data).toCompanion(false),
+            );
+        return;
       case 'equipmentSetItems':
         await _db
             .into(_db.equipmentSetItems)
@@ -2029,11 +2217,39 @@ class SyncDataSerializer {
             .into(_db.courses)
             .insertOnConflictUpdate(Course.fromJson(data).toCompanion(false));
         return;
+      case 'courseRequirements':
+        await _db
+            .into(_db.courseRequirements)
+            .insertOnConflictUpdate(
+              CourseRequirementRow.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'courseRequirementDives':
+        // Clockless junction: plain fromJson, no null-overwrite semantics
+        // (#474 rule -- .toCompanion(false) is for HLC entities only).
+        await _db
+            .into(_db.courseRequirementDives)
+            .insertOnConflictUpdate(CourseRequirementDiveRow.fromJson(data));
+        return;
       case 'serviceRecords':
         await _db
             .into(_db.serviceRecords)
             .insertOnConflictUpdate(
               ServiceRecord.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'serviceKinds':
+        await _db
+            .into(_db.serviceKinds)
+            .insertOnConflictUpdate(
+              ServiceKindRow.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'serviceSchedules':
+        await _db
+            .into(_db.serviceSchedules)
+            .insertOnConflictUpdate(
+              ServiceScheduleRow.fromJson(data).toCompanion(false),
             );
         return;
       case 'diveCenters':
@@ -2236,6 +2452,21 @@ class SyncDataSerializer {
               DiveProfileEvent.fromJson(diveProfileEventData),
             );
         return;
+      case 'diveSafetyReviews':
+        await _db
+            .into(_db.diveSafetyReviews)
+            .insertOnConflictUpdate(DiveSafetyReview.fromJson(data));
+        return;
+      case 'diveSafetyFindings':
+        await _db
+            .into(_db.diveSafetyFindings)
+            .insertOnConflictUpdate(DiveSafetyFinding.fromJson(data));
+        return;
+      case 'emergencyChambers':
+        await _db
+            .into(_db.emergencyChambers)
+            .insertOnConflictUpdate(EmergencyChamber.fromJson(data));
+        return;
       case 'gasSwitches':
         await _db
             .into(_db.gasSwitches)
@@ -2406,6 +2637,18 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'equipmentAttributes':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.equipmentAttributes,
+            records
+                .map(
+                  (r) => EquipmentAttributeRow.fromJson(r).toCompanion(false),
+                )
+                .toList(),
+          ),
+        );
+        return;
       case 'equipmentSetItems':
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
@@ -2505,12 +2748,50 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'courseRequirements':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.courseRequirements,
+            records
+                .map((r) => CourseRequirementRow.fromJson(r).toCompanion(false))
+                .toList(),
+          ),
+        );
+        return;
+      case 'courseRequirementDives':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.courseRequirementDives,
+            records.map(CourseRequirementDiveRow.fromJson).toList(),
+          ),
+        );
+        return;
       case 'serviceRecords':
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
             _db.serviceRecords,
             records
                 .map((r) => ServiceRecord.fromJson(r).toCompanion(false))
+                .toList(),
+          ),
+        );
+        return;
+      case 'serviceKinds':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.serviceKinds,
+            records
+                .map((r) => ServiceKindRow.fromJson(r).toCompanion(false))
+                .toList(),
+          ),
+        );
+        return;
+      case 'serviceSchedules':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.serviceSchedules,
+            records
+                .map((r) => ServiceScheduleRow.fromJson(r).toCompanion(false))
                 .toList(),
           ),
         );
@@ -2816,6 +3097,30 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'diveSafetyReviews':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.diveSafetyReviews,
+            records.map((r) => DiveSafetyReview.fromJson(r)).toList(),
+          ),
+        );
+        return;
+      case 'diveSafetyFindings':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.diveSafetyFindings,
+            records.map((r) => DiveSafetyFinding.fromJson(r)).toList(),
+          ),
+        );
+        return;
+      case 'emergencyChambers':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.emergencyChambers,
+            records.map((r) => EmergencyChamber.fromJson(r)).toList(),
+          ),
+        );
+        return;
       case 'gasSwitches':
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
@@ -3022,6 +3327,8 @@ class SyncDataSerializer {
         return plain(_db.equipmentSets, _db.equipmentSets.id);
       case 'equipmentSetGeofences':
         return plain(_db.equipmentSetGeofences, _db.equipmentSetGeofences.id);
+      case 'equipmentAttributes':
+        return plain(_db.equipmentAttributes, _db.equipmentAttributes.id);
       case 'diveTypes':
         return plain(_db.diveTypes, _db.diveTypes.id);
       case 'diveRoles':
@@ -3036,6 +3343,10 @@ class SyncDataSerializer {
         return plain(_db.tags, _db.tags.id);
       case 'courses':
         return plain(_db.courses, _db.courses.id);
+      case 'courseRequirements':
+        return plain(_db.courseRequirements, _db.courseRequirements.id);
+      case 'courseRequirementDives':
+        return plain(_db.courseRequirementDives, _db.courseRequirementDives.id);
       case 'dives':
         return plain(_db.dives, _db.dives.id);
       case 'diveSites':
@@ -3054,6 +3365,12 @@ class SyncDataSerializer {
         return plain(_db.diveProfiles, _db.diveProfiles.id);
       case 'diveProfileEvents':
         return plain(_db.diveProfileEvents, _db.diveProfileEvents.id);
+      case 'diveSafetyReviews':
+        return plain(_db.diveSafetyReviews, _db.diveSafetyReviews.diveId);
+      case 'diveSafetyFindings':
+        return plain(_db.diveSafetyFindings, _db.diveSafetyFindings.id);
+      case 'emergencyChambers':
+        return plain(_db.emergencyChambers, _db.emergencyChambers.id);
       case 'gasSwitches':
         return plain(_db.gasSwitches, _db.gasSwitches.id);
       case 'diveCustomFields':
@@ -3078,6 +3395,10 @@ class SyncDataSerializer {
         return plain(_db.certifications, _db.certifications.id);
       case 'serviceRecords':
         return plain(_db.serviceRecords, _db.serviceRecords.id);
+      case 'serviceKinds':
+        return plain(_db.serviceKinds, _db.serviceKinds.id);
+      case 'serviceSchedules':
+        return plain(_db.serviceSchedules, _db.serviceSchedules.id);
       case 'media':
         return plain(_db.media, _db.media.id);
       default:
@@ -3149,6 +3470,11 @@ class SyncDataSerializer {
           _db.preDiveChecklistTemplateItems,
         )..where((t) => t.templateId.isNotInQuery(builtinIds))).go();
         return;
+      case 'serviceKinds':
+        await (_db.delete(
+          _db.serviceKinds,
+        )..where((t) => t.isBuiltIn.equals(false))).go();
+        return;
     }
     await _db.delete(_syncTableFor(entityType)).go();
   }
@@ -3216,6 +3542,8 @@ class SyncDataSerializer {
         return _db.equipmentSets;
       case 'equipmentSetGeofences':
         return _db.equipmentSetGeofences;
+      case 'equipmentAttributes':
+        return _db.equipmentAttributes;
       case 'diveTypes':
         return _db.diveTypes;
       case 'diveRoles':
@@ -3230,6 +3558,10 @@ class SyncDataSerializer {
         return _db.tags;
       case 'courses':
         return _db.courses;
+      case 'courseRequirements':
+        return _db.courseRequirements;
+      case 'courseRequirementDives':
+        return _db.courseRequirementDives;
       case 'dives':
         return _db.dives;
       case 'diveSites':
@@ -3248,6 +3580,12 @@ class SyncDataSerializer {
         return _db.diveProfiles;
       case 'diveProfileEvents':
         return _db.diveProfileEvents;
+      case 'diveSafetyReviews':
+        return _db.diveSafetyReviews;
+      case 'diveSafetyFindings':
+        return _db.diveSafetyFindings;
+      case 'emergencyChambers':
+        return _db.emergencyChambers;
       case 'gasSwitches':
         return _db.gasSwitches;
       case 'diveCustomFields':
@@ -3272,6 +3610,10 @@ class SyncDataSerializer {
         return _db.certifications;
       case 'serviceRecords':
         return _db.serviceRecords;
+      case 'serviceKinds':
+        return _db.serviceKinds;
+      case 'serviceSchedules':
+        return _db.serviceSchedules;
       case 'media':
         return _db.media;
       default:
@@ -3356,6 +3698,11 @@ class SyncDataSerializer {
           _db.equipmentSetGeofences,
         )..where((t) => t.id.equals(recordId))).go();
         return;
+      case 'equipmentAttributes':
+        await (_db.delete(
+          _db.equipmentAttributes,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
       case 'equipmentSetItems':
         final parts = _splitCompositeId(recordId);
         if (parts.length == 2) {
@@ -3408,9 +3755,29 @@ class SyncDataSerializer {
           _db.courses,
         )..where((t) => t.id.equals(recordId))).go();
         return;
+      case 'courseRequirements':
+        await (_db.delete(
+          _db.courseRequirements,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'courseRequirementDives':
+        await (_db.delete(
+          _db.courseRequirementDives,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
       case 'serviceRecords':
         await (_db.delete(
           _db.serviceRecords,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'serviceKinds':
+        await (_db.delete(
+          _db.serviceKinds,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'serviceSchedules':
+        await (_db.delete(
+          _db.serviceSchedules,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'diveCenters':
@@ -3547,6 +3914,21 @@ class SyncDataSerializer {
       case 'diveProfileEvents':
         await (_db.delete(
           _db.diveProfileEvents,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'diveSafetyReviews':
+        await (_db.delete(
+          _db.diveSafetyReviews,
+        )..where((t) => t.diveId.equals(recordId))).go();
+        return;
+      case 'diveSafetyFindings':
+        await (_db.delete(
+          _db.diveSafetyFindings,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'emergencyChambers':
+        await (_db.delete(
+          _db.emergencyChambers,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'gasSwitches':
@@ -3775,6 +4157,17 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
+  Future<List<Map<String, dynamic>>> _exportEquipmentAttributes(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.equipmentAttributes);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
   Future<List<Map<String, dynamic>>> _exportEquipmentSetItems(
     String? hlcSince,
   ) async {
@@ -3903,10 +4296,66 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
+  Future<List<Map<String, dynamic>>> _exportCourseRequirements(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.courseRequirements);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  /// Clockless junction: delta export rides the PARENT requirement's hlc
+  /// (linkDive/unlinkDive bump it), mirroring equipmentSetItems.
+  Future<List<Map<String, dynamic>>> _exportCourseRequirementDives(
+    String? hlcSince,
+  ) async {
+    if (hlcSince != null) {
+      final changed = await (_db.select(
+        _db.courseRequirements,
+      )..where((t) => t.hlc.isBiggerThanValue(hlcSince))).get();
+      final requirementIds = changed.map((r) => r.id).toSet();
+      if (requirementIds.isEmpty) return [];
+      final rows = await (_db.select(
+        _db.courseRequirementDives,
+      )..where((t) => t.requirementId.isIn(requirementIds))).get();
+      return rows.map((r) => r.toJson()).toList();
+    }
+    final rows = await _db.select(_db.courseRequirementDives).get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
   Future<List<Map<String, dynamic>>> _exportServiceRecords(
     String? hlcSince,
   ) async {
     final query = _db.select(_db.serviceRecords);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  /// Built-in kinds are reference data (seeded on every device, undeletable)
+  /// and are never exported -- mirrors the built-in dive-types convention.
+  Future<List<Map<String, dynamic>>> _exportServiceKinds(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.serviceKinds)
+      ..where((t) => t.isBuiltIn.equals(false));
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportServiceSchedules(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.serviceSchedules);
     if (hlcSince != null) {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
@@ -4386,6 +4835,57 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
+  Future<List<Map<String, dynamic>>> _exportDiveSafetyReviews(
+    String? hlcSince,
+  ) async {
+    if (hlcSince != null) {
+      final modifiedDives = await (_db.select(
+        _db.dives,
+      )..where((t) => t.hlc.isBiggerThanValue(hlcSince))).get();
+      final diveIds = modifiedDives.map((d) => d.id).toSet();
+      if (diveIds.isEmpty) return [];
+
+      final rows = await (_db.select(
+        _db.diveSafetyReviews,
+      )..where((t) => t.diveId.isIn(diveIds))).get();
+      return rows.map((r) => r.toJson()).toList();
+    }
+    final rows = await _db.select(_db.diveSafetyReviews).get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportDiveSafetyFindings(
+    String? hlcSince,
+  ) async {
+    if (hlcSince != null) {
+      final modifiedDives = await (_db.select(
+        _db.dives,
+      )..where((t) => t.hlc.isBiggerThanValue(hlcSince))).get();
+      final diveIds = modifiedDives.map((d) => d.id).toSet();
+      if (diveIds.isEmpty) return [];
+
+      final rows = await (_db.select(
+        _db.diveSafetyFindings,
+      )..where((t) => t.diveId.isIn(diveIds))).get();
+      return rows.map((r) => r.toJson()).toList();
+    }
+    final rows = await _db.select(_db.diveSafetyFindings).get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportEmergencyChambers(
+    String? hlcSince,
+  ) async {
+    if (hlcSince != null) {
+      final rows = await (_db.select(
+        _db.emergencyChambers,
+      )..where((t) => t.hlc.isBiggerThanValue(hlcSince))).get();
+      return rows.map((r) => r.toJson()).toList();
+    }
+    final rows = await _db.select(_db.emergencyChambers).get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
   Future<List<Map<String, dynamic>>> _exportGasSwitches(
     String? hlcSince,
   ) async {
@@ -4474,6 +4974,9 @@ class SyncDataSerializer {
       'defaultShowAscentRateLine': false,
       // Non-nullable bool added in v96; seed payloads predating the column.
       'defaultShowPhotoMarkers': true,
+      // v113: seed it so payloads predating the column hydrate instead of
+      // throwing in DiverSetting.fromJson.
+      'cnsCalculationMethod': 'shearwater',
       // Override with actual data (existing values take precedence)
       ...data,
     };

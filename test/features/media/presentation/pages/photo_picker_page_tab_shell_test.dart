@@ -1,7 +1,5 @@
-// Coverage for the tab-shell branches in PhotoPickerPage.build():
-//   - When mediaPickerHiddenTabsProvider == false → simple Scaffold body.
-//   - When mediaPickerHiddenTabsProvider == true  → DefaultTabController
-//     with Gallery / Files / URL tabs.
+// Coverage for the picker's tab shell: PhotoPickerPage.build() always
+// renders a DefaultTabController with Gallery / Files / URL tabs.
 //
 // Phase 3a / Task 17 swapped the URL placeholder for [UrlTab]. The tab's
 // notifier eagerly reads [networkFetchPipelineProvider], which constructs
@@ -22,7 +20,6 @@ import 'package:submersion/features/media/data/services/network_fetch_pipeline.d
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
 import 'package:submersion/features/media/presentation/pages/photo_picker_page.dart';
-import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/files_tab.dart';
@@ -79,14 +76,13 @@ class _FakeMediaRepository implements MediaRepository {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-Widget _wrap({required bool showHiddenTabs}) {
+Widget _wrap() {
   final pipeline = _FakeNetworkFetchPipeline();
   final credentials = _FakeNetworkCredentialsService();
   final mediaRepo = _FakeMediaRepository();
   return ProviderScope(
     overrides: [
       photoPickerServiceProvider.overrideWithValue(_StubPhotoPickerService()),
-      mediaPickerHiddenTabsProvider.overrideWith((ref) => showHiddenTabs),
       // [UrlTab] watches [urlTabNotifierProvider]. The default factory
       // pulls `DatabaseService.instance.database` (uninitialized in tests),
       // so swap it for a notifier built from the fakes above.
@@ -104,6 +100,7 @@ Widget _wrap({required bool showHiddenTabs}) {
       networkCredentialsServiceProvider.overrideWithValue(credentials),
     ],
     child: MaterialApp(
+      locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: PhotoPickerPage(
@@ -116,20 +113,9 @@ Widget _wrap({required bool showHiddenTabs}) {
 
 void main() {
   testWidgets(
-    'renders single Scaffold (no tabs) when mediaPickerHiddenTabsProvider is false',
+    'always renders DefaultTabController with Gallery / Files / URL tabs',
     (tester) async {
-      await tester.pumpWidget(_wrap(showHiddenTabs: false));
-      await tester.pump();
-
-      expect(find.byType(TabBar), findsNothing);
-      expect(find.byType(DefaultTabController), findsNothing);
-    },
-  );
-
-  testWidgets(
-    'renders DefaultTabController with Gallery / Files / URL tabs when mediaPickerHiddenTabsProvider is true',
-    (tester) async {
-      await tester.pumpWidget(_wrap(showHiddenTabs: true));
+      await tester.pumpWidget(_wrap());
       await tester.pump();
 
       expect(find.byType(DefaultTabController), findsOneWidget);
@@ -141,7 +127,7 @@ void main() {
   );
 
   testWidgets('switching to Files tab shows FilesTab', (tester) async {
-    await tester.pumpWidget(_wrap(showHiddenTabs: true));
+    await tester.pumpWidget(_wrap());
     await tester.pump();
 
     await tester.tap(find.text('Files'));
@@ -152,7 +138,7 @@ void main() {
   });
 
   testWidgets('switching to URL tab shows UrlTab', (tester) async {
-    await tester.pumpWidget(_wrap(showHiddenTabs: true));
+    await tester.pumpWidget(_wrap());
     await tester.pump();
 
     await tester.tap(find.text('URL'));

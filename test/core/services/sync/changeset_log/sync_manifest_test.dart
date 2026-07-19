@@ -41,4 +41,26 @@ void main() {
     expect(back.basePartChecksums, isEmpty);
     expect(back.headSeq, 0);
   });
+
+  test('appliedPeerHlc round-trips and defaults to empty when absent', () {
+    const m = SyncManifest(
+      deviceId: 'dev-1',
+      provider: 'fake',
+      headSeq: 3,
+      updatedAt: 999,
+      appliedPeerHlc: {'peer-a': '00000000000010:000001:dev-1'},
+    );
+    final decoded = SyncManifest.fromBytes(m.toBytes());
+    expect(decoded.appliedPeerHlc, {'peer-a': '00000000000010:000001:dev-1'});
+
+    // An old-format manifest (field absent) must decode to an empty map:
+    // "acknowledges nothing", which blocks GC.
+    final legacy = SyncManifest.fromJson({
+      'deviceId': 'dev-1',
+      'provider': 'fake',
+      'headSeq': 1,
+      'updatedAt': 5,
+    });
+    expect(legacy.appliedPeerHlc, isEmpty);
+  });
 }

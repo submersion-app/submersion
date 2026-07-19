@@ -14,12 +14,18 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/divers/presentation/providers/diver_weight_entry_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/core/buoyancy/buoyancy_physics.dart';
+import 'package:submersion/core/buoyancy/buoyancy_twin.dart';
+import 'package:submersion/core/buoyancy/twin_analyzer.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
+import 'package:submersion/features/dive_log/data/services/buoyancy_twin_assembler.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/features/weight_planner/presentation/providers/weight_planner_providers.dart';
 import 'package:submersion/features/weight_planner/presentation/widgets/rig_composer.dart';
 import 'package:submersion/features/weight_planner/presentation/widgets/weight_prediction_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/twin_summary_rows.dart';
 
 /// The Weight Planner tool: compose a rig, get a personalized weight
 /// prediction from the diver's history, and swap gear to see the change.
@@ -34,6 +40,13 @@ class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
   final List<EquipmentItem> _gear = [];
   final List<TankPresetEntity> _tanks = [];
   WaterType _water = WaterType.salt;
+  // Committed values feed the (synthetic-profile) twin. The `_draft` fields
+  // hold the in-progress slider value so the thumb/label track the drag live
+  // while the simulation only re-runs on drag-end (see the sliders below).
+  double _maxDepthM = 18;
+  int _bottomMinutes = 45;
+  double? _maxDepthDraft;
+  int? _bottomMinutesDraft;
   final _bodyWeightController = TextEditingController();
   bool _bodyWeightSeeded = false;
   bool _tanksSeeded = false;
@@ -46,6 +59,9 @@ class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
     _bodyWeightController.dispose();
     super.dispose();
   }
+
+  double get _displayDepthM => _maxDepthDraft ?? _maxDepthM;
+  int get _displayBottomMinutes => _bottomMinutesDraft ?? _bottomMinutes;
 
   double? _bodyWeightKg(UnitFormatter units) {
     final parsed = double.tryParse(_bodyWeightController.text);
@@ -70,6 +86,143 @@ class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
         tanks: tanks,
         waterType: _water,
         bodyWeightKg: _bodyWeightKg(units),
+      ),
+    );
+  }
+
+  List<TwinProfileSample> _squareProfile() =>
+      squareDiveProfile(maxDepthM: _maxDepthM, bottomMinutes: _bottomMinutes);
+
+  BuoyancyTwinOutcome? _buoyancyOutcome(
+    FittedWeightModel? model,
+    UnitFormatter units,
+    Map<String, double>? placement,
+  ) {
+    if (model == null || _tanks.isEmpty) return null;
+    final lead = _predict(model, units)?.totalKg ?? 0.0;
+    if (lead <= 0) return null;
+    final tanks = <TwinTankInput>[
+      for (final p in _tanks)
+        TwinTankInput(
+          id: p.name,
+          label: p.name,
+          presetName: p.name,
+          volumeL: p.volumeLiters,
+          workingPressureBar: p.workingPressureBar,
+          material: p.material,
+          o2Percent: 21,
+          startPressureBar: p.workingPressureBar,
+          endPressureBar: BuoyancyPhysics.defaultReserveBar,
+        ),
+    ];
+    final rig = BuoyancyTwinAssembler.composeRigTerms(
+      items: _gear,
+      tanks: tanks,
+      model: model,
+      waterType: _water,
+      bodyWeightKg: _bodyWeightKg(units),
+    );
+    final input = TwinInput(
+      profile: _squareProfile(),
+      tanks: tanks,
+      suit: rig.suit,
+      staticTerms: rig.staticTerms,
+      leadKg: lead,
+      // Only belt + integrated lead is ditchable; fixed placements
+      // (backplate/trim) must not inflate the droppable figure, which would
+      // suppress the min-ditchable warning.
+      droppableLeadKg: placement != null
+          ? BuoyancyTwinAssembler.droppableLeadFromPlacement(placement)
+          : lead,
+      environment: DiveEnvironment.forConditions(waterType: _water),
+      totalMassKg: rig.totalMassKg,
+    );
+    final wing = _gear
+        .where((e) => e.type == EquipmentType.bcd && e.liftCapacityKg != null)
+        .map((e) => e.liftCapacityKg)
+        .firstOrNull;
+    final result = runBuoyancyTwin(input);
+    return BuoyancyTwinOutcome(
+      result: result,
+      outputs: TwinAnalyzer.analyze(result),
+      wingLiftCapacityKg: wing,
+    );
+  }
+
+  Widget _throughDivePanel(
+    BuildContext context,
+    UnitFormatter units,
+    BuoyancyTwinOutcome outcome,
+  ) {
+    final theme = Theme.of(context);
+    final net = outcome.outputs.verdict.netKg;
+    final String verdict;
+    if (net.abs() <= 0.5) {
+      verdict = context.l10n.buoyancy_verdictNeutral;
+    } else if (net > 0) {
+      verdict = context.l10n.buoyancy_verdictBuoyant(
+        units.formatDepth(outcome.outputs.verdict.anchor.depthM),
+        units.formatWeight(net.abs()),
+      );
+    } else {
+      verdict = context.l10n.buoyancy_verdictHeavy(
+        units.formatDepth(outcome.outputs.verdict.anchor.depthM),
+        units.formatWeight(net.abs()),
+      );
+    }
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              context.l10n.buoyancy_throughDive,
+              style: theme.textTheme.titleSmall,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '${context.l10n.diveLog_detail_stat_maxDepth}: '
+              '${units.formatDepth(_displayDepthM)}',
+              style: theme.textTheme.bodySmall,
+            ),
+            Slider(
+              value: _displayDepthM.clamp(5.0, 60.0),
+              min: 5,
+              max: 60,
+              divisions: 55,
+              onChanged: (v) => setState(() => _maxDepthDraft = v),
+              onChangeEnd: (v) => setState(() {
+                _maxDepthM = v;
+                _maxDepthDraft = null;
+              }),
+            ),
+            Text(
+              '${context.l10n.diveLog_detail_stat_bottomTime}: '
+              '$_displayBottomMinutes min',
+              style: theme.textTheme.bodySmall,
+            ),
+            Slider(
+              value: _displayBottomMinutes.toDouble().clamp(5.0, 90.0),
+              min: 5,
+              max: 90,
+              divisions: 85,
+              onChanged: (v) => setState(() => _bottomMinutesDraft = v.round()),
+              onChangeEnd: (v) => setState(() {
+                _bottomMinutes = v.round();
+                _bottomMinutesDraft = null;
+              }),
+            ),
+            const SizedBox(height: 8),
+            Text(verdict, style: theme.textTheme.bodyMedium),
+            const SizedBox(height: 12),
+            TwinSummaryRows(
+              outputs: outcome.outputs,
+              units: units,
+              wingLiftCapacityKg: outcome.wingLiftCapacityKg,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -156,6 +309,9 @@ class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
                 : 0.45359237,
           )
         : null;
+    // Placement (belt/integrated vs fixed) computed before the twin so its
+    // droppable-lead figure can distinguish ditchable from fixed weight.
+    final buoyancy = _buoyancyOutcome(model, units, placement);
 
     final savedWeightKg = latestWeight?.weightKg;
     final enteredKg = _bodyWeightKg(units);
@@ -213,6 +369,10 @@ class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
               onSaveBodyWeight: () => _saveBodyWeightToProfile(units),
               onChanged: () => setState(() {}),
             ),
+            if (buoyancy != null) ...[
+              const SizedBox(height: 16),
+              _throughDivePanel(context, units, buoyancy),
+            ],
             const SizedBox(height: 16),
             Card(
               color: Theme.of(context).colorScheme.surfaceContainerHighest,
@@ -231,4 +391,42 @@ class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
       ),
     );
   }
+}
+
+/// Square synthetic dive profile for the weight-planner tool: descent at
+/// 18 m/min, [bottomMinutes] at [maxDepthM], ascent at 9 m/min, a 3 min stop
+/// at 5 m, then the surface.
+///
+/// Timestamps are strictly increasing. When [maxDepthM] is at (or below) the
+/// 5 m stop the ascent leg has zero duration, so its transition sample is
+/// skipped -- emitting it would duplicate the previous sample's timestamp and
+/// hand the simulator a zero-`dt` step.
+@visibleForTesting
+List<TwinProfileSample> squareDiveProfile({
+  required double maxDepthM,
+  required int bottomMinutes,
+}) {
+  final samples = <TwinProfileSample>[
+    const TwinProfileSample(timestamp: 0, depthM: 0),
+  ];
+  var t = (maxDepthM / 18.0 * 60).round();
+  samples.add(TwinProfileSample(timestamp: t, depthM: maxDepthM));
+  final bottomS = bottomMinutes * 60;
+  for (var s = 30; s < bottomS; s += 30) {
+    samples.add(TwinProfileSample(timestamp: t + s, depthM: maxDepthM));
+  }
+  t += bottomS;
+  samples.add(TwinProfileSample(timestamp: t, depthM: maxDepthM));
+  final ascentS = ((maxDepthM - 5).clamp(0, 100) / 9.0 * 60).round();
+  if (ascentS > 0) {
+    t += ascentS;
+    samples.add(TwinProfileSample(timestamp: t, depthM: 5));
+  }
+  for (var s = 30; s < 180; s += 30) {
+    samples.add(TwinProfileSample(timestamp: t + s, depthM: 5));
+  }
+  t += 180;
+  samples.add(TwinProfileSample(timestamp: t, depthM: 5));
+  samples.add(TwinProfileSample(timestamp: t + 33, depthM: 0));
+  return samples;
 }

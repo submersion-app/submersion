@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
+import 'package:submersion/features/safety/presentation/providers/no_fly_providers.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/alerts_card.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
+import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -30,7 +35,9 @@ void main() {
           overrides: [
             ...overrides,
             serviceDueEquipmentProvider.overrideWith((ref) async => []),
+            dueClocksProvider.overrideWith((ref) async => []),
             currentDiverProvider.overrideWith((ref) async => null),
+            noFlyStatusProvider.overrideWith((ref) async => null),
           ].cast(),
           child: MaterialApp.router(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -74,7 +81,36 @@ void main() {
             serviceDueEquipmentProvider.overrideWith(
               (ref) async => [equipment],
             ),
+            dueClocksProvider.overrideWith(
+              (ref) async => [
+                (
+                  item: equipment,
+                  status: ServiceClockStatus(
+                    schedule: ServiceSchedule(
+                      id: 's1',
+                      equipmentId: equipment.id,
+                      serviceKindId: 'regulator-service',
+                      createdAt: DateTime(2025),
+                      updatedAt: DateTime(2025),
+                    ),
+                    kind: ServiceKind(
+                      id: 'regulator-service',
+                      name: 'Regulator service',
+                      defaultIntervalDays: 365,
+                      isBuiltIn: true,
+                      createdAt: DateTime(2025),
+                      updatedAt: DateTime(2025),
+                    ),
+                    anchor: DateTime(2025),
+                    dueDate: DateTime.now().subtract(const Duration(days: 35)),
+                    severity: ServiceClockSeverity.overdue,
+                    now: DateTime.now(),
+                  ),
+                ),
+              ],
+            ),
             currentDiverProvider.overrideWith((ref) async => null),
+            noFlyStatusProvider.overrideWith((ref) async => null),
           ].cast(),
           child: MaterialApp.router(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -87,6 +123,56 @@ void main() {
 
       // Badge count should be visible
       expect(find.text('1'), findsWidgets);
+    });
+
+    testWidgets('active no-fly renders the countdown and taps to /safety', (
+      tester,
+    ) async {
+      final overrides = await getBaseOverrides();
+
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, _) => const Scaffold(body: AlertsCard()),
+          ),
+          GoRoute(
+            path: '/safety',
+            builder: (_, _) => const Scaffold(body: Text('safety-hub-reached')),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            serviceDueEquipmentProvider.overrideWith((ref) async => []),
+            dueClocksProvider.overrideWith((ref) async => []),
+            currentDiverProvider.overrideWith((ref) async => null),
+            noFlyStatusProvider.overrideWith(
+              (ref) async => NoFlyStatus(
+                until: DateTime.now().toUtc().add(const Duration(hours: 5)),
+                category: NoFlyCategory.single,
+                interval: const Duration(hours: 12),
+              ),
+            ),
+          ].cast(),
+          child: MaterialApp.router(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: router,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('No-fly:'), findsOneWidget);
+
+      await tester.tap(find.byType(AlertsCard));
+      await tester.pumpAndSettle();
+      expect(find.text('safety-hub-reached'), findsOneWidget);
     });
   });
 }
