@@ -79,7 +79,9 @@ void main() {
       );
       await tester.ensureVisible(buoyancyField);
       await tester.pumpAndSettle();
-      expect(find.text('5.0'), findsOneWidget);
+      // Whole numbers render without a trailing ".0" (matching the display
+      // formatter); fractional values keep their decimal.
+      expect(find.text('5'), findsOneWidget);
       expect(find.text('2.5'), findsOneWidget);
 
       await tester.enterText(buoyancyField, '-2.5');

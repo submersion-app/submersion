@@ -267,6 +267,34 @@ void main() {
     expect(emitted?.valueNum, isNotNull);
   });
 
+  testWidgets('date field clamps a stored future date so the picker opens', (
+    tester,
+  ) async {
+    // A future value would trip showDatePicker's initialDate <= lastDate
+    // assertion without the clamp.
+    final future = DateTime.now().add(const Duration(days: 3650));
+    await pumpSection(
+      tester,
+      type: EquipmentType.tank,
+      values: {
+        'last_hydro_test': EquipmentAttribute.curated(
+          equipmentId: 'e1',
+          key: 'last_hydro_test',
+          valueNum: future.millisecondsSinceEpoch.toDouble(),
+        ),
+      },
+      onChanged: (_) {},
+    );
+    final field = find.byKey(const ValueKey('attr-field-last_hydro_test'));
+    await tester.ensureVisible(field);
+    await tester.tap(field);
+    await tester.pumpAndSettle(); // would throw if the assertion fired
+
+    expect(find.text('OK'), findsOneWidget); // picker opened successfully
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+  });
+
   testWidgets('text and thickness fields render their preset values', (
     tester,
   ) async {

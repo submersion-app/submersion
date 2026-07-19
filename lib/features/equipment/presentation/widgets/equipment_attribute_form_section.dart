@@ -177,11 +177,16 @@ class EquipmentAttributeFormSection extends StatelessWidget {
         return InkWell(
           key: fieldKey,
           onTap: () async {
+            // Catalog date attributes (last visual inspection / hydro test)
+            // record past events, so cap at today. Clamp initialDate too: a
+            // stored future date would otherwise trip showDatePicker's
+            // initialDate <= lastDate assertion.
+            final now = DateTime.now();
             final picked = await showDatePicker(
               context: context,
-              initialDate: date ?? DateTime.now(),
+              initialDate: (date == null || date.isAfter(now)) ? now : date,
               firstDate: DateTime(1970),
-              lastDate: DateTime.now().add(const Duration(days: 365 * 10)),
+              lastDate: now,
             );
             if (picked != null) {
               onChanged(
