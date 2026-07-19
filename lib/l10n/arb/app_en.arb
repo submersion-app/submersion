@@ -6873,6 +6873,119 @@
   "settings_diveDetailSections_configurableSections": "Configurable sections (drag to reorder)",
   "diveDetailSection_decoO2_name": "Deco Status / Tissue Loading",
   "diveDetailSection_decoO2_description": "NDL, ceiling, tissue heat map, O2 toxicity",
+  "diveDetailSection_safetyReview_name": "Safety Review",
+  "diveDetailSection_safetyReview_description": "Automatic post-dive profile observations",
+  "safetyReview_sectionTitle": "Safety review",
+  "safetyReview_findingCount": "{count, plural, =1{1 observation} other{{count} observations}}",
+  "@safetyReview_findingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "safetyReview_rapidAscent_title": "Ascent exceeded {rate} for {duration}",
+  "@safetyReview_rapidAscent_title": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyReview_missedDecoStop_title": "Depth was {excess} above the required stop ceiling for {duration}",
+  "@safetyReview_missedDecoStop_title": {
+    "placeholders": {
+      "excess": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyReview_omittedSafetyStop_title": "The recommended safety stop was cut short by {remaining}",
+  "@safetyReview_omittedSafetyStop_title": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyReview_sawtoothProfile_title": "{count} repeated up-and-down depth changes during the dive",
+  "@safetyReview_sawtoothProfile_title": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "safetyReview_highSurfaceGf_title": "Surfaced at gradient factor {gf}, above the configured {gfHigh}",
+  "@safetyReview_highSurfaceGf_title": {
+    "placeholders": {
+      "gf": {
+        "type": "String"
+      },
+      "gfHigh": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyReview_timeRange": "At {start}–{end}",
+  "@safetyReview_timeRange": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyReview_dismiss": "Dismiss",
+  "safetyReview_restore": "Restore",
+  "safetySettings_title": "Safety review",
+  "safetySettings_entry_subtitle": "Post-dive observations and rules",
+  "safetySettings_masterToggle": "Post-dive safety review",
+  "safetySettings_masterToggle_subtitle": "Automatically note ascent, stop, and profile observations on analyzed dives",
+  "safetySettings_rulesHeader": "Rules",
+  "safetySettings_rule_rapidAscent": "Rapid ascents",
+  "safetySettings_rule_missedDecoStop": "Missed or shortened deco stops",
+  "safetySettings_rule_omittedSafetyStop": "Omitted safety stops",
+  "safetySettings_rule_sawtoothProfile": "Sawtooth profiles",
+  "safetySettings_rule_highSurfaceGf": "High surfacing gradient factor",
+  "safetySettings_analyzeAll": "Analyze all dives",
+  "safetySettings_analyzeAll_subtitle": "Run the safety review over every dive with a profile that has not been analyzed yet",
+  "safetySettings_analyzeAll_progress": "Analyzed {done} of {total}",
+  "@safetySettings_analyzeAll_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "safetySettings_analyzeAll_done": "Analysis complete",
+  "safetySettings_analyzeAll_doneWithErrors": "Analysis complete — {count, plural, =1{1 dive could not be analyzed} other{{count} dives could not be analyzed}}",
+  "@safetySettings_analyzeAll_doneWithErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "safetyReview_showDismissed": "{count, plural, =1{Show 1 dismissed} other{Show {count} dismissed}}",
+  "@safetyReview_showDismissed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "diveDetailSection_sacSegments_name": "SAC Rate by Segment",
   "diveDetailSection_sacSegments_description": "Phase/time SAC segmentation",
   "diveDetailSection_details_name": "Details",

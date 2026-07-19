@@ -106,7 +106,7 @@ void main() {
   });
 
   test('isValidThicknessDesignation accepts what the migration preserves', () {
-    // Legacy values the v123 migration copies verbatim into valueText must
+    // Legacy values the v124 migration copies verbatim into valueText must
     // pass the edit-form validator, or the item can never be saved again.
     expect(isValidThicknessDesignation('6mm'), isTrue);
     expect(isValidThicknessDesignation('6 mm'), isTrue);

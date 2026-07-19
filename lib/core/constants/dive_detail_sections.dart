@@ -8,6 +8,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// (Header and Dive Profile Chart) are not included — they always render first.
 enum DiveDetailSectionId {
   decoO2,
+  safetyReview,
   sacSegments,
   details,
   environment,
@@ -30,6 +31,7 @@ enum DiveDetailSectionId {
   String get displayName {
     return switch (this) {
       decoO2 => 'Deco Status / Tissue Loading',
+      safetyReview => 'Safety Review',
       sacSegments => 'SAC Rate by Segment',
       details => 'Details',
       environment => 'Environment',
@@ -55,6 +57,7 @@ enum DiveDetailSectionId {
   String get description {
     return switch (this) {
       decoO2 => 'NDL, ceiling, tissue heat map, O2 toxicity',
+      safetyReview => 'Automatic post-dive profile observations',
       sacSegments => 'Phase/time SAC segmentation',
       details => 'Type, location, trip, dive center, interval',
       environment => 'Air/water temp, visibility, current',
@@ -79,6 +82,7 @@ enum DiveDetailSectionId {
   String localizedDisplayName(AppLocalizations l10n) {
     return switch (this) {
       decoO2 => l10n.diveDetailSection_decoO2_name,
+      safetyReview => l10n.diveDetailSection_safetyReview_name,
       sacSegments => l10n.diveDetailSection_sacSegments_name,
       details => l10n.diveDetailSection_details_name,
       environment => l10n.diveDetailSection_environment_name,
@@ -103,6 +107,7 @@ enum DiveDetailSectionId {
   String localizedDescription(AppLocalizations l10n) {
     return switch (this) {
       decoO2 => l10n.diveDetailSection_decoO2_description,
+      safetyReview => l10n.diveDetailSection_safetyReview_description,
       sacSegments => l10n.diveDetailSection_sacSegments_description,
       details => l10n.diveDetailSection_details_description,
       environment => l10n.diveDetailSection_environment_description,
@@ -163,6 +168,10 @@ class DiveDetailSectionConfig {
 
   static const List<DiveDetailSectionConfig> defaultSections = [
     DiveDetailSectionConfig(id: DiveDetailSectionId.decoO2, visible: true),
+    DiveDetailSectionConfig(
+      id: DiveDetailSectionId.safetyReview,
+      visible: true,
+    ),
     DiveDetailSectionConfig(id: DiveDetailSectionId.sacSegments, visible: true),
     DiveDetailSectionConfig(id: DiveDetailSectionId.details, visible: true),
     DiveDetailSectionConfig(id: DiveDetailSectionId.environment, visible: true),

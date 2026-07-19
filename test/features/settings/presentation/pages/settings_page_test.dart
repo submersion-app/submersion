@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 // ignore: implementation_imports
@@ -126,6 +127,20 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setShowCeilingOnProfile(bool value) async =>
       state = state.copyWith(showCeilingOnProfile: value);
+  @override
+  Future<void> setSafetyReviewEnabled(bool value) async =>
+      state = state.copyWith(safetyReviewEnabled: value);
+  @override
+  Future<void> setSafetyRuleEnabled(SafetyRuleId rule, bool enabled) async {
+    final rules = {...state.safetyReviewDisabledRules};
+    if (enabled) {
+      rules.remove(rule.dbValue);
+    } else {
+      rules.add(rule.dbValue);
+    }
+    state = state.copyWith(safetyReviewDisabledRules: rules);
+  }
+
   @override
   Future<void> setShowAscentRateColors(bool value) async =>
       state = state.copyWith(showAscentRateColors: value);

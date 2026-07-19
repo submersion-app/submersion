@@ -904,6 +904,16 @@ class _DecompressionSectionContent extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.health_and_safety_outlined),
+              title: Text(context.l10n.safetySettings_title),
+              subtitle: Text(context.l10n.safetySettings_entry_subtitle),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.push('/settings/safety'),
+            ),
+          ),
+          const SizedBox(height: 16),
           _buildInfoCard(
             context,
             context.l10n.settings_decompression_aboutTitle,

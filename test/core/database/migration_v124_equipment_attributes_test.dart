@@ -7,7 +7,7 @@ import 'package:sqlite3/sqlite3.dart';
 import 'package:submersion/core/database/database.dart';
 
 void main() {
-  test('v123 creates equipment_attributes and copies legacy columns', () async {
+  test('v124 creates equipment_attributes and copies legacy columns', () async {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
         rawDb.execute('PRAGMA user_version = 112');
@@ -101,11 +101,11 @@ void main() {
   test(
     'reopen (beforeOpen backstop) does not resurrect cleared values',
     () async {
-      final dir = await Directory.systemTemp.createTemp('subm_v123_test');
+      final dir = await Directory.systemTemp.createTemp('subm_v124_test');
       addTearDown(() => dir.delete(recursive: true));
       final path = '${dir.path}/test.db';
 
-      // Seed a pre-v123 file-backed schema directly with sqlite3 (a setup
+      // Seed a pre-v124 file-backed schema directly with sqlite3 (a setup
       // callback would re-run on every open and reset user_version).
       final raw = sqlite3.open(path);
       raw.execute('PRAGMA user_version = 112');
@@ -126,7 +126,7 @@ void main() {
       );
       raw.dispose();
 
-      // First open runs the v123 migration and copies size -> attribute row.
+      // First open runs the v124 migration and copies size -> attribute row.
       final db1 = AppDatabase(NativeDatabase(File(path)));
       final migrated = await db1
           .customSelect(
@@ -141,7 +141,7 @@ void main() {
       );
       await db1.close();
 
-      // Second open: onUpgrade is skipped (user_version is already 123); the
+      // Second open: onUpgrade is skipped (user_version is already 124); the
       // beforeOpen backstop must assert schema only and NOT re-copy data.
       final db2 = AppDatabase(NativeDatabase(File(path)));
       addTearDown(() => db2.close());
@@ -154,12 +154,12 @@ void main() {
     },
   );
 
-  test('v123 equipment_attributes migration is in the ladder', () {
-    // Membership, not equality: v123 was renumbered from v115 as main advanced
+  test('v124 equipment_attributes migration is in the ladder', () {
+    // Membership, not equality: v124 was renumbered from v115/v123 as main advanced
     // past it at merge time (see schema-version ladder). The exact-latest
     // tripwire is not pinned here so later branches can land on top.
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(123));
-    expect(AppDatabase.migrationVersions, contains(123));
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(124));
+    expect(AppDatabase.migrationVersions, contains(124));
   });
 
   test('fresh database exposes equipment_attributes via Drift', () async {

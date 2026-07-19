@@ -12151,6 +12151,137 @@ class AppLocalizationsEs extends AppLocalizations {
       'NDL, techo, mapa de calor de tejidos, toxicidad de O2';
 
   @override
+  String get diveDetailSection_safetyReview_name => 'Revisión de seguridad';
+
+  @override
+  String get diveDetailSection_safetyReview_description =>
+      'Observaciones automáticas del perfil tras la inmersión';
+
+  @override
+  String get safetyReview_sectionTitle => 'Revisión de seguridad';
+
+  @override
+  String safetyReview_findingCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count observaciones',
+      one: '1 observación',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String safetyReview_rapidAscent_title(String rate, String duration) {
+    return 'El ascenso superó $rate durante $duration';
+  }
+
+  @override
+  String safetyReview_missedDecoStop_title(String excess, String duration) {
+    return 'La profundidad estuvo $excess por encima del techo de parada requerido durante $duration';
+  }
+
+  @override
+  String safetyReview_omittedSafetyStop_title(String remaining) {
+    return 'La parada de seguridad recomendada se acortó en $remaining';
+  }
+
+  @override
+  String safetyReview_sawtoothProfile_title(int count) {
+    return '$count cambios repetidos de profundidad de subida y bajada durante la inmersión';
+  }
+
+  @override
+  String safetyReview_highSurfaceGf_title(String gf, String gfHigh) {
+    return 'Salida a superficie con factor de gradiente $gf, por encima del $gfHigh configurado';
+  }
+
+  @override
+  String safetyReview_timeRange(String start, String end) {
+    return 'En $start–$end';
+  }
+
+  @override
+  String get safetyReview_dismiss => 'Descartar';
+
+  @override
+  String get safetyReview_restore => 'Restaurar';
+
+  @override
+  String get safetySettings_title => 'Revisión de seguridad';
+
+  @override
+  String get safetySettings_entry_subtitle =>
+      'Observaciones y reglas tras la inmersión';
+
+  @override
+  String get safetySettings_masterToggle =>
+      'Revisión de seguridad tras la inmersión';
+
+  @override
+  String get safetySettings_masterToggle_subtitle =>
+      'Anotar automáticamente observaciones de ascenso, paradas y perfil en las inmersiones analizadas';
+
+  @override
+  String get safetySettings_rulesHeader => 'Reglas';
+
+  @override
+  String get safetySettings_rule_rapidAscent => 'Ascensos rápidos';
+
+  @override
+  String get safetySettings_rule_missedDecoStop =>
+      'Paradas deco omitidas o acortadas';
+
+  @override
+  String get safetySettings_rule_omittedSafetyStop =>
+      'Paradas de seguridad omitidas';
+
+  @override
+  String get safetySettings_rule_sawtoothProfile =>
+      'Perfiles en dientes de sierra';
+
+  @override
+  String get safetySettings_rule_highSurfaceGf =>
+      'Factor de gradiente alto al salir a superficie';
+
+  @override
+  String get safetySettings_analyzeAll => 'Analizar todas las inmersiones';
+
+  @override
+  String get safetySettings_analyzeAll_subtitle =>
+      'Ejecutar la revisión de seguridad en todas las inmersiones con perfil que aún no se hayan analizado';
+
+  @override
+  String safetySettings_analyzeAll_progress(int done, int total) {
+    return 'Analizadas $done de $total';
+  }
+
+  @override
+  String get safetySettings_analyzeAll_done => 'Análisis completado';
+
+  @override
+  String safetySettings_analyzeAll_doneWithErrors(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'No se pudieron analizar $count inmersiones',
+      one: 'No se pudo analizar 1 inmersión',
+    );
+    return 'Análisis completado — $_temp0';
+  }
+
+  @override
+  String safetyReview_showDismissed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Mostrar $count descartadas',
+      one: 'Mostrar 1 descartada',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveDetailSection_sacSegments_name => 'SAC Rate por Segmento';
 
   @override
@@ -19207,31 +19338,31 @@ class AppLocalizationsEs extends AppLocalizations {
       'No data source integrations are available on this platform.';
 
   @override
-  String get diveLog_edit_section_environment => 'Environment';
+  String get diveLog_edit_section_environment => 'Entorno';
 
   @override
-  String get diveLog_edit_subsection_weather => 'Weather';
+  String get diveLog_edit_subsection_weather => 'Clima';
 
   @override
-  String get diveLog_edit_subsection_diveConditions => 'Dive Conditions';
+  String get diveLog_edit_subsection_diveConditions => 'Condiciones de buceo';
 
   @override
-  String get diveLog_edit_label_windSpeed => 'Wind Speed';
+  String get diveLog_edit_label_windSpeed => 'Velocidad del viento';
 
   @override
-  String get diveLog_edit_label_windDirection => 'Wind Direction';
+  String get diveLog_edit_label_windDirection => 'Dirección del viento';
 
   @override
-  String get diveLog_edit_label_cloudCover => 'Cloud Cover';
+  String get diveLog_edit_label_cloudCover => 'Nubosidad';
 
   @override
-  String get diveLog_edit_label_precipitation => 'Precipitation';
+  String get diveLog_edit_label_precipitation => 'Precipitación';
 
   @override
-  String get diveLog_edit_label_humidity => 'Humidity';
+  String get diveLog_edit_label_humidity => 'Humedad';
 
   @override
-  String get diveLog_edit_label_weatherDescription => 'Weather Description';
+  String get diveLog_edit_label_weatherDescription => 'Descripción del clima';
 
   @override
   String get diveLog_edit_button_fetchWeather => 'Fetch Weather';
@@ -19261,31 +19392,31 @@ class AppLocalizationsEs extends AppLocalizations {
       'Replace existing weather data with fetched data?';
 
   @override
-  String get diveLog_detail_section_environment => 'Environment';
+  String get diveLog_detail_section_environment => 'Entorno';
 
   @override
-  String get diveLog_detail_subsection_weather => 'Weather';
+  String get diveLog_detail_subsection_weather => 'Clima';
 
   @override
-  String get diveLog_detail_subsection_diveConditions => 'Dive Conditions';
+  String get diveLog_detail_subsection_diveConditions => 'Condiciones de buceo';
 
   @override
-  String get diveLog_detail_label_windSpeed => 'Wind Speed';
+  String get diveLog_detail_label_windSpeed => 'Velocidad del viento';
 
   @override
-  String get diveLog_detail_label_windDirection => 'Wind Direction';
+  String get diveLog_detail_label_windDirection => 'Dirección del viento';
 
   @override
-  String get diveLog_detail_label_cloudCover => 'Cloud Cover';
+  String get diveLog_detail_label_cloudCover => 'Nubosidad';
 
   @override
-  String get diveLog_detail_label_precipitation => 'Precipitation';
+  String get diveLog_detail_label_precipitation => 'Precipitación';
 
   @override
-  String get diveLog_detail_label_humidity => 'Humidity';
+  String get diveLog_detail_label_humidity => 'Humedad';
 
   @override
-  String get diveLog_detail_label_weatherDescription => 'Description';
+  String get diveLog_detail_label_weatherDescription => 'Descripción';
 
   @override
   String get diveLog_detail_weatherSourceOpenMeteo => 'via Open-Meteo';
@@ -19309,40 +19440,40 @@ class AppLocalizationsEs extends AppLocalizations {
   String get dropTarget_error_readFailed => 'No se pudo leer el archivo';
 
   @override
-  String get enum_cloudCover_clear => 'Clear';
+  String get enum_cloudCover_clear => 'Despejado';
 
   @override
-  String get enum_cloudCover_partlyCloudy => 'Partly Cloudy';
+  String get enum_cloudCover_partlyCloudy => 'Parcialmente nublado';
 
   @override
-  String get enum_cloudCover_mostlyCloudy => 'Mostly Cloudy';
+  String get enum_cloudCover_mostlyCloudy => 'Mayormente nublado';
 
   @override
-  String get enum_cloudCover_overcast => 'Overcast';
+  String get enum_cloudCover_overcast => 'Cubierto';
 
   @override
-  String get enum_precipitation_none => 'None';
+  String get enum_precipitation_none => 'Ninguna';
 
   @override
-  String get enum_precipitation_drizzle => 'Drizzle';
+  String get enum_precipitation_drizzle => 'Llovizna';
 
   @override
-  String get enum_precipitation_lightRain => 'Light Rain';
+  String get enum_precipitation_lightRain => 'Lluvia ligera';
 
   @override
-  String get enum_precipitation_rain => 'Rain';
+  String get enum_precipitation_rain => 'Lluvia';
 
   @override
-  String get enum_precipitation_heavyRain => 'Heavy Rain';
+  String get enum_precipitation_heavyRain => 'Lluvia intensa';
 
   @override
-  String get enum_precipitation_snow => 'Snow';
+  String get enum_precipitation_snow => 'Nieve';
 
   @override
-  String get enum_precipitation_sleet => 'Sleet';
+  String get enum_precipitation_sleet => 'Aguanieve';
 
   @override
-  String get enum_precipitation_hail => 'Hail';
+  String get enum_precipitation_hail => 'Granizo';
 
   @override
   String get columnConfig_title => 'Campos de la lista de inmersiones';

@@ -44,7 +44,7 @@ void main() {
   });
 
   test('legacy value that already carries the unit is not doubled', () {
-    // The v123 migration preserves "6mm" verbatim in valueText; the formatter
+    // The v124 migration preserves "6mm" verbatim in valueText; the formatter
     // must not render "6mm mm".
     expect(formatAttributeValue(thickness('6mm'), def, units, l10n), '6 mm');
     expect(formatAttributeValue(thickness('6 mm'), def, units, l10n), '6 mm');

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/constants/units.dart';
@@ -110,6 +111,20 @@ class _FakeAppSettingsRepository implements AppSettingsRepository {
 class _MockSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
   _MockSettingsNotifier() : super(const AppSettings());
+
+  @override
+  Future<void> setSafetyReviewEnabled(bool value) async =>
+      state = state.copyWith(safetyReviewEnabled: value);
+  @override
+  Future<void> setSafetyRuleEnabled(SafetyRuleId rule, bool enabled) async {
+    final rules = {...state.safetyReviewDisabledRules};
+    if (enabled) {
+      rules.remove(rule.dbValue);
+    } else {
+      rules.add(rule.dbValue);
+    }
+    state = state.copyWith(safetyReviewDisabledRules: rules);
+  }
 
   @override
   Future<void> setDefaultShowGasTimeline(bool value) async =>

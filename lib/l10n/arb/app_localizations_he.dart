@@ -11858,6 +11858,133 @@ class AppLocalizationsHe extends AppLocalizations {
       'NDL, תקרה, מפת חום של רקמות, רעילות O2';
 
   @override
+  String get diveDetailSection_safetyReview_name => 'סקירת בטיחות';
+
+  @override
+  String get diveDetailSection_safetyReview_description =>
+      'תצפיות אוטומטיות על פרופיל הצלילה לאחר הצלילה';
+
+  @override
+  String get safetyReview_sectionTitle => 'סקירת בטיחות';
+
+  @override
+  String safetyReview_findingCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count תצפיות',
+      one: 'תצפית אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String safetyReview_rapidAscent_title(String rate, String duration) {
+    return 'העלייה חרגה מ-$rate למשך $duration';
+  }
+
+  @override
+  String safetyReview_missedDecoStop_title(String excess, String duration) {
+    return 'העומק היה $excess מעל תקרת העצירה הנדרשת למשך $duration';
+  }
+
+  @override
+  String safetyReview_omittedSafetyStop_title(String remaining) {
+    return 'עצירת הבטיחות המומלצת קוצרה ב-$remaining';
+  }
+
+  @override
+  String safetyReview_sawtoothProfile_title(int count) {
+    return '$count שינויי עומק חוזרים מעלה ומטה במהלך הצלילה';
+  }
+
+  @override
+  String safetyReview_highSurfaceGf_title(String gf, String gfHigh) {
+    return 'עלייה לפני השטח עם פקטור גרדיאנט $gf, מעל $gfHigh שהוגדר';
+  }
+
+  @override
+  String safetyReview_timeRange(String start, String end) {
+    return 'ב-$start–$end';
+  }
+
+  @override
+  String get safetyReview_dismiss => 'התעלם';
+
+  @override
+  String get safetyReview_restore => 'שחזר';
+
+  @override
+  String get safetySettings_title => 'סקירת בטיחות';
+
+  @override
+  String get safetySettings_entry_subtitle => 'תצפיות וכללים לאחר הצלילה';
+
+  @override
+  String get safetySettings_masterToggle => 'סקירת בטיחות לאחר הצלילה';
+
+  @override
+  String get safetySettings_masterToggle_subtitle =>
+      'רישום אוטומטי של תצפיות עלייה, עצירות ופרופיל בצלילות שנותחו';
+
+  @override
+  String get safetySettings_rulesHeader => 'כללים';
+
+  @override
+  String get safetySettings_rule_rapidAscent => 'עליות מהירות';
+
+  @override
+  String get safetySettings_rule_missedDecoStop =>
+      'עצירות דקו שהוחמצו או קוצרו';
+
+  @override
+  String get safetySettings_rule_omittedSafetyStop => 'עצירות בטיחות שהושמטו';
+
+  @override
+  String get safetySettings_rule_sawtoothProfile => 'פרופילי שן מסור';
+
+  @override
+  String get safetySettings_rule_highSurfaceGf =>
+      'פקטור גרדיאנט גבוה בעלייה לפני השטח';
+
+  @override
+  String get safetySettings_analyzeAll => 'נתח את כל הצלילות';
+
+  @override
+  String get safetySettings_analyzeAll_subtitle =>
+      'הרצת סקירת הבטיחות על כל צלילה עם פרופיל שטרם נותחה';
+
+  @override
+  String safetySettings_analyzeAll_progress(int done, int total) {
+    return 'נותחו $done מתוך $total';
+  }
+
+  @override
+  String get safetySettings_analyzeAll_done => 'הניתוח הושלם';
+
+  @override
+  String safetySettings_analyzeAll_doneWithErrors(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'לא ניתן היה לנתח $count צלילות',
+      one: 'לא ניתן היה לנתח צלילה אחת',
+    );
+    return 'הניתוח הושלם — $_temp0';
+  }
+
+  @override
+  String safetyReview_showDismissed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'הצג $count תצפיות שהוסתרו',
+      one: 'הצג תצפית אחת שהוסתרה',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveDetailSection_sacSegments_name => 'קצב SAC לפי קטע';
 
   @override
@@ -18711,31 +18838,31 @@ class AppLocalizationsHe extends AppLocalizations {
       'No data source integrations are available on this platform.';
 
   @override
-  String get diveLog_edit_section_environment => 'Environment';
+  String get diveLog_edit_section_environment => 'סביבה';
 
   @override
-  String get diveLog_edit_subsection_weather => 'Weather';
+  String get diveLog_edit_subsection_weather => 'מזג אוויר';
 
   @override
-  String get diveLog_edit_subsection_diveConditions => 'Dive Conditions';
+  String get diveLog_edit_subsection_diveConditions => 'תנאי צלילה';
 
   @override
-  String get diveLog_edit_label_windSpeed => 'Wind Speed';
+  String get diveLog_edit_label_windSpeed => 'מהירות רוח';
 
   @override
-  String get diveLog_edit_label_windDirection => 'Wind Direction';
+  String get diveLog_edit_label_windDirection => 'כיוון רוח';
 
   @override
-  String get diveLog_edit_label_cloudCover => 'Cloud Cover';
+  String get diveLog_edit_label_cloudCover => 'כיסוי עננים';
 
   @override
-  String get diveLog_edit_label_precipitation => 'Precipitation';
+  String get diveLog_edit_label_precipitation => 'משקעים';
 
   @override
-  String get diveLog_edit_label_humidity => 'Humidity';
+  String get diveLog_edit_label_humidity => 'לחות';
 
   @override
-  String get diveLog_edit_label_weatherDescription => 'Weather Description';
+  String get diveLog_edit_label_weatherDescription => 'תיאור מזג האוויר';
 
   @override
   String get diveLog_edit_button_fetchWeather => 'Fetch Weather';
@@ -18765,31 +18892,31 @@ class AppLocalizationsHe extends AppLocalizations {
       'Replace existing weather data with fetched data?';
 
   @override
-  String get diveLog_detail_section_environment => 'Environment';
+  String get diveLog_detail_section_environment => 'סביבה';
 
   @override
-  String get diveLog_detail_subsection_weather => 'Weather';
+  String get diveLog_detail_subsection_weather => 'מזג אוויר';
 
   @override
-  String get diveLog_detail_subsection_diveConditions => 'Dive Conditions';
+  String get diveLog_detail_subsection_diveConditions => 'תנאי צלילה';
 
   @override
-  String get diveLog_detail_label_windSpeed => 'Wind Speed';
+  String get diveLog_detail_label_windSpeed => 'מהירות רוח';
 
   @override
-  String get diveLog_detail_label_windDirection => 'Wind Direction';
+  String get diveLog_detail_label_windDirection => 'כיוון רוח';
 
   @override
-  String get diveLog_detail_label_cloudCover => 'Cloud Cover';
+  String get diveLog_detail_label_cloudCover => 'כיסוי עננים';
 
   @override
-  String get diveLog_detail_label_precipitation => 'Precipitation';
+  String get diveLog_detail_label_precipitation => 'משקעים';
 
   @override
-  String get diveLog_detail_label_humidity => 'Humidity';
+  String get diveLog_detail_label_humidity => 'לחות';
 
   @override
-  String get diveLog_detail_label_weatherDescription => 'Description';
+  String get diveLog_detail_label_weatherDescription => 'תיאור';
 
   @override
   String get diveLog_detail_weatherSourceOpenMeteo => 'via Open-Meteo';
@@ -18810,40 +18937,40 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dropTarget_error_readFailed => 'לא ניתן לקרוא את הקובץ';
 
   @override
-  String get enum_cloudCover_clear => 'Clear';
+  String get enum_cloudCover_clear => 'בהיר';
 
   @override
-  String get enum_cloudCover_partlyCloudy => 'Partly Cloudy';
+  String get enum_cloudCover_partlyCloudy => 'מעונן חלקית';
 
   @override
-  String get enum_cloudCover_mostlyCloudy => 'Mostly Cloudy';
+  String get enum_cloudCover_mostlyCloudy => 'מעונן ברובו';
 
   @override
-  String get enum_cloudCover_overcast => 'Overcast';
+  String get enum_cloudCover_overcast => 'מעונן';
 
   @override
-  String get enum_precipitation_none => 'None';
+  String get enum_precipitation_none => 'ללא';
 
   @override
-  String get enum_precipitation_drizzle => 'Drizzle';
+  String get enum_precipitation_drizzle => 'טפטוף';
 
   @override
-  String get enum_precipitation_lightRain => 'Light Rain';
+  String get enum_precipitation_lightRain => 'גשם קל';
 
   @override
-  String get enum_precipitation_rain => 'Rain';
+  String get enum_precipitation_rain => 'גשם';
 
   @override
-  String get enum_precipitation_heavyRain => 'Heavy Rain';
+  String get enum_precipitation_heavyRain => 'גשם כבד';
 
   @override
-  String get enum_precipitation_snow => 'Snow';
+  String get enum_precipitation_snow => 'שלג';
 
   @override
-  String get enum_precipitation_sleet => 'Sleet';
+  String get enum_precipitation_sleet => 'גשם קפוא';
 
   @override
-  String get enum_precipitation_hail => 'Hail';
+  String get enum_precipitation_hail => 'ברד';
 
   @override
   String get columnConfig_title => 'שדות רשימת פרטי צלילות';

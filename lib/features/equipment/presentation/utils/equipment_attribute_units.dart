@@ -58,7 +58,7 @@ String formatAttributeValue(
     case AttributeKind.thickness:
       if (attr.valueText == null) return '';
       // Strip any unit the stored designation already carries (legacy values
-      // like "6mm" that the v123 migration preserved verbatim) so the unit is
+      // like "6mm" that the v124 migration preserved verbatim) so the unit is
       // appended exactly once.
       final raw = attr.valueText!.trim();
       final base = raw.toLowerCase().endsWith('mm')

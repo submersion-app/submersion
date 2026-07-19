@@ -289,7 +289,7 @@ double? parsePrimaryThickness(String text) {
 
 /// Whether [text] is an acceptable thickness designation for the edit form:
 /// one or more numeric panels separated by `/`, `,` or `-`, each optionally
-/// suffixed with `mm`. Accepts the legacy values the v123 migration preserves
+/// suffixed with `mm`. Accepts the legacy values the v124 migration preserves
 /// verbatim (e.g. "6mm") and multi-panel forms ("5/4/3"); empty is valid
 /// because the field is optional. Only non-numeric garbage ("thin") fails.
 bool isValidThicknessDesignation(String text) {

@@ -20642,6 +20642,174 @@ abstract class AppLocalizations {
   /// **'NDL, ceiling, tissue heat map, O2 toxicity'**
   String get diveDetailSection_decoO2_description;
 
+  /// No description provided for @diveDetailSection_safetyReview_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety Review'**
+  String get diveDetailSection_safetyReview_name;
+
+  /// No description provided for @diveDetailSection_safetyReview_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic post-dive profile observations'**
+  String get diveDetailSection_safetyReview_description;
+
+  /// No description provided for @safetyReview_sectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety review'**
+  String get safetyReview_sectionTitle;
+
+  /// No description provided for @safetyReview_findingCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 observation} other{{count} observations}}'**
+  String safetyReview_findingCount(int count);
+
+  /// No description provided for @safetyReview_rapidAscent_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Ascent exceeded {rate} for {duration}'**
+  String safetyReview_rapidAscent_title(String rate, String duration);
+
+  /// No description provided for @safetyReview_missedDecoStop_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth was {excess} above the required stop ceiling for {duration}'**
+  String safetyReview_missedDecoStop_title(String excess, String duration);
+
+  /// No description provided for @safetyReview_omittedSafetyStop_title.
+  ///
+  /// In en, this message translates to:
+  /// **'The recommended safety stop was cut short by {remaining}'**
+  String safetyReview_omittedSafetyStop_title(String remaining);
+
+  /// No description provided for @safetyReview_sawtoothProfile_title.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} repeated up-and-down depth changes during the dive'**
+  String safetyReview_sawtoothProfile_title(int count);
+
+  /// No description provided for @safetyReview_highSurfaceGf_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Surfaced at gradient factor {gf}, above the configured {gfHigh}'**
+  String safetyReview_highSurfaceGf_title(String gf, String gfHigh);
+
+  /// No description provided for @safetyReview_timeRange.
+  ///
+  /// In en, this message translates to:
+  /// **'At {start}–{end}'**
+  String safetyReview_timeRange(String start, String end);
+
+  /// No description provided for @safetyReview_dismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get safetyReview_dismiss;
+
+  /// No description provided for @safetyReview_restore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get safetyReview_restore;
+
+  /// No description provided for @safetySettings_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety review'**
+  String get safetySettings_title;
+
+  /// No description provided for @safetySettings_entry_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Post-dive observations and rules'**
+  String get safetySettings_entry_subtitle;
+
+  /// No description provided for @safetySettings_masterToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Post-dive safety review'**
+  String get safetySettings_masterToggle;
+
+  /// No description provided for @safetySettings_masterToggle_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically note ascent, stop, and profile observations on analyzed dives'**
+  String get safetySettings_masterToggle_subtitle;
+
+  /// No description provided for @safetySettings_rulesHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Rules'**
+  String get safetySettings_rulesHeader;
+
+  /// No description provided for @safetySettings_rule_rapidAscent.
+  ///
+  /// In en, this message translates to:
+  /// **'Rapid ascents'**
+  String get safetySettings_rule_rapidAscent;
+
+  /// No description provided for @safetySettings_rule_missedDecoStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Missed or shortened deco stops'**
+  String get safetySettings_rule_missedDecoStop;
+
+  /// No description provided for @safetySettings_rule_omittedSafetyStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Omitted safety stops'**
+  String get safetySettings_rule_omittedSafetyStop;
+
+  /// No description provided for @safetySettings_rule_sawtoothProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Sawtooth profiles'**
+  String get safetySettings_rule_sawtoothProfile;
+
+  /// No description provided for @safetySettings_rule_highSurfaceGf.
+  ///
+  /// In en, this message translates to:
+  /// **'High surfacing gradient factor'**
+  String get safetySettings_rule_highSurfaceGf;
+
+  /// No description provided for @safetySettings_analyzeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyze all dives'**
+  String get safetySettings_analyzeAll;
+
+  /// No description provided for @safetySettings_analyzeAll_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Run the safety review over every dive with a profile that has not been analyzed yet'**
+  String get safetySettings_analyzeAll_subtitle;
+
+  /// No description provided for @safetySettings_analyzeAll_progress.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzed {done} of {total}'**
+  String safetySettings_analyzeAll_progress(int done, int total);
+
+  /// No description provided for @safetySettings_analyzeAll_done.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysis complete'**
+  String get safetySettings_analyzeAll_done;
+
+  /// No description provided for @safetySettings_analyzeAll_doneWithErrors.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysis complete — {count, plural, =1{1 dive could not be analyzed} other{{count} dives could not be analyzed}}'**
+  String safetySettings_analyzeAll_doneWithErrors(int count);
+
+  /// No description provided for @safetyReview_showDismissed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Show 1 dismissed} other{Show {count} dismissed}}'**
+  String safetyReview_showDismissed(int count);
+
   /// No description provided for @diveDetailSection_sacSegments_name.
   ///
   /// In en, this message translates to:

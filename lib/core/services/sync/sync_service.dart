@@ -1101,6 +1101,16 @@ class SyncService {
             records: data.diveProfileEvents,
             hasUpdatedAt: false,
           ),
+          (
+            type: 'diveSafetyReviews',
+            records: data.diveSafetyReviews,
+            hasUpdatedAt: false,
+          ),
+          (
+            type: 'diveSafetyFindings',
+            records: data.diveSafetyFindings,
+            hasUpdatedAt: false,
+          ),
           (type: 'gasSwitches', records: data.gasSwitches, hasUpdatedAt: false),
           // Extra entities added in the SyncData expansion. Four are
           // append-only and use the blind-upsert merge path (no updatedAt
@@ -1694,6 +1704,8 @@ class SyncService {
     'diveBuddies': false,
     'diveProfiles': false,
     'diveProfileEvents': false,
+    'diveSafetyReviews': false,
+    'diveSafetyFindings': false,
     'gasSwitches': false,
     'diveCustomFields': false,
     'diveDataSources': false,
@@ -1765,6 +1777,8 @@ class SyncService {
       (field: 'diveId', parent: 'dives', nullable: false),
       (field: 'computerId', parent: 'diveComputers', nullable: true),
     ],
+    'diveSafetyReviews': [(field: 'diveId', parent: 'dives', nullable: false)],
+    'diveSafetyFindings': [(field: 'diveId', parent: 'dives', nullable: false)],
     'gasSwitches': [(field: 'diveId', parent: 'dives', nullable: false)],
     'diveCustomFields': [(field: 'diveId', parent: 'dives', nullable: false)],
     'tankPressureProfiles': [
@@ -2107,6 +2121,9 @@ class SyncService {
     switch (entityType) {
       case 'settings':
         return record['key'] as String?;
+      case 'diveSafetyReviews':
+        // PK is dive_id (one marker row per dive), not id.
+        return record['diveId'] as String?;
       case 'diveEquipment':
         return record['id'] as String? ??
             _compositeId(record['diveId'], record['equipmentId']);
