@@ -17002,6 +17002,12 @@ abstract class AppLocalizations {
   /// **'Status'**
   String get equipment_edit_statusLabel;
 
+  /// No description provided for @equipment_edit_thicknessDesignationHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., 5, 5/4, 7/5/3'**
+  String get equipment_edit_thicknessDesignationHint;
+
   /// No description provided for @equipment_edit_thicknessHint.
   ///
   /// In en, this message translates to:
@@ -34277,6 +34283,648 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Volume not mounted'**
   String get media_unavailablePlaceholder_volumeOffline;
+
+  /// No description provided for @attrLabel_size.
+  ///
+  /// In en, this message translates to:
+  /// **'Size'**
+  String get attrLabel_size;
+
+  /// No description provided for @attrLabel_thickness_mm.
+  ///
+  /// In en, this message translates to:
+  /// **'Thickness (mm)'**
+  String get attrLabel_thickness_mm;
+
+  /// No description provided for @attrLabel_suit_style.
+  ///
+  /// In en, this message translates to:
+  /// **'Suit style'**
+  String get attrLabel_suit_style;
+
+  /// No description provided for @attrLabel_shell_material.
+  ///
+  /// In en, this message translates to:
+  /// **'Shell material'**
+  String get attrLabel_shell_material;
+
+  /// No description provided for @attrLabel_seal_type.
+  ///
+  /// In en, this message translates to:
+  /// **'Seal type'**
+  String get attrLabel_seal_type;
+
+  /// No description provided for @attrLabel_volume_l.
+  ///
+  /// In en, this message translates to:
+  /// **'Volume'**
+  String get attrLabel_volume_l;
+
+  /// No description provided for @attrLabel_working_pressure_bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Working pressure'**
+  String get attrLabel_working_pressure_bar;
+
+  /// No description provided for @attrLabel_tank_material.
+  ///
+  /// In en, this message translates to:
+  /// **'Material'**
+  String get attrLabel_tank_material;
+
+  /// No description provided for @attrLabel_valve_type.
+  ///
+  /// In en, this message translates to:
+  /// **'Valve'**
+  String get attrLabel_valve_type;
+
+  /// No description provided for @attrLabel_tank_identifier.
+  ///
+  /// In en, this message translates to:
+  /// **'Identifier'**
+  String get attrLabel_tank_identifier;
+
+  /// No description provided for @attrLabel_last_visual_inspection.
+  ///
+  /// In en, this message translates to:
+  /// **'Last visual inspection'**
+  String get attrLabel_last_visual_inspection;
+
+  /// No description provided for @attrLabel_last_hydro_test.
+  ///
+  /// In en, this message translates to:
+  /// **'Last hydrostatic test'**
+  String get attrLabel_last_hydro_test;
+
+  /// No description provided for @attrLabel_connection.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection'**
+  String get attrLabel_connection;
+
+  /// No description provided for @attrLabel_cold_water_rated.
+  ///
+  /// In en, this message translates to:
+  /// **'Cold-water rated'**
+  String get attrLabel_cold_water_rated;
+
+  /// No description provided for @attrLabel_bcd_style.
+  ///
+  /// In en, this message translates to:
+  /// **'Style'**
+  String get attrLabel_bcd_style;
+
+  /// No description provided for @attrLabel_lift_capacity_kg.
+  ///
+  /// In en, this message translates to:
+  /// **'Lift capacity'**
+  String get attrLabel_lift_capacity_kg;
+
+  /// No description provided for @attrLabel_heel_type.
+  ///
+  /// In en, this message translates to:
+  /// **'Heel'**
+  String get attrLabel_heel_type;
+
+  /// No description provided for @attrLabel_blade_style.
+  ///
+  /// In en, this message translates to:
+  /// **'Blade'**
+  String get attrLabel_blade_style;
+
+  /// No description provided for @attrLabel_mount.
+  ///
+  /// In en, this message translates to:
+  /// **'Mount'**
+  String get attrLabel_mount;
+
+  /// No description provided for @attrLabel_connectivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Connectivity'**
+  String get attrLabel_connectivity;
+
+  /// No description provided for @attrLabel_lens_config.
+  ///
+  /// In en, this message translates to:
+  /// **'Lens'**
+  String get attrLabel_lens_config;
+
+  /// No description provided for @attrLabel_prescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Prescription lenses'**
+  String get attrLabel_prescription;
+
+  /// No description provided for @attrLabel_weight_style.
+  ///
+  /// In en, this message translates to:
+  /// **'Style'**
+  String get attrLabel_weight_style;
+
+  /// No description provided for @attrLabel_lumens.
+  ///
+  /// In en, this message translates to:
+  /// **'Lumens'**
+  String get attrLabel_lumens;
+
+  /// No description provided for @attrLabel_beam_type.
+  ///
+  /// In en, this message translates to:
+  /// **'Beam'**
+  String get attrLabel_beam_type;
+
+  /// No description provided for @attrLabel_depth_rating_m.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth rating'**
+  String get attrLabel_depth_rating_m;
+
+  /// No description provided for @attrLabel_smb_type.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get attrLabel_smb_type;
+
+  /// No description provided for @attrLabel_length_m.
+  ///
+  /// In en, this message translates to:
+  /// **'Length'**
+  String get attrLabel_length_m;
+
+  /// No description provided for @attrLabel_reel_type.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get attrLabel_reel_type;
+
+  /// No description provided for @attrLabel_line_length_m.
+  ///
+  /// In en, this message translates to:
+  /// **'Line length'**
+  String get attrLabel_line_length_m;
+
+  /// No description provided for @attrLabel_blade_material.
+  ///
+  /// In en, this message translates to:
+  /// **'Blade material'**
+  String get attrLabel_blade_material;
+
+  /// No description provided for @attrLabel_tip_type.
+  ///
+  /// In en, this message translates to:
+  /// **'Tip'**
+  String get attrLabel_tip_type;
+
+  /// No description provided for @attrLabel_glove_type.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get attrLabel_glove_type;
+
+  /// No description provided for @attrLabel_sole_type.
+  ///
+  /// In en, this message translates to:
+  /// **'Sole'**
+  String get attrLabel_sole_type;
+
+  /// No description provided for @attrLabel_buoyancy_kg.
+  ///
+  /// In en, this message translates to:
+  /// **'Buoyancy'**
+  String get attrLabel_buoyancy_kg;
+
+  /// No description provided for @attrLabel_dry_weight_kg.
+  ///
+  /// In en, this message translates to:
+  /// **'Dry weight'**
+  String get attrLabel_dry_weight_kg;
+
+  /// No description provided for @attrChoice_suit_style_full.
+  ///
+  /// In en, this message translates to:
+  /// **'Full suit'**
+  String get attrChoice_suit_style_full;
+
+  /// No description provided for @attrChoice_suit_style_shorty.
+  ///
+  /// In en, this message translates to:
+  /// **'Shorty'**
+  String get attrChoice_suit_style_shorty;
+
+  /// No description provided for @attrChoice_suit_style_two_piece.
+  ///
+  /// In en, this message translates to:
+  /// **'Two-piece'**
+  String get attrChoice_suit_style_two_piece;
+
+  /// No description provided for @attrChoice_suit_style_semi_dry.
+  ///
+  /// In en, this message translates to:
+  /// **'Semi-dry'**
+  String get attrChoice_suit_style_semi_dry;
+
+  /// No description provided for @attrChoice_shell_material_trilaminate.
+  ///
+  /// In en, this message translates to:
+  /// **'Trilaminate'**
+  String get attrChoice_shell_material_trilaminate;
+
+  /// No description provided for @attrChoice_shell_material_neoprene.
+  ///
+  /// In en, this message translates to:
+  /// **'Neoprene'**
+  String get attrChoice_shell_material_neoprene;
+
+  /// No description provided for @attrChoice_shell_material_crushed_neoprene.
+  ///
+  /// In en, this message translates to:
+  /// **'Crushed neoprene'**
+  String get attrChoice_shell_material_crushed_neoprene;
+
+  /// No description provided for @attrChoice_shell_material_vulcanized_rubber.
+  ///
+  /// In en, this message translates to:
+  /// **'Vulcanized rubber'**
+  String get attrChoice_shell_material_vulcanized_rubber;
+
+  /// No description provided for @attrChoice_seal_type_latex.
+  ///
+  /// In en, this message translates to:
+  /// **'Latex'**
+  String get attrChoice_seal_type_latex;
+
+  /// No description provided for @attrChoice_seal_type_silicone.
+  ///
+  /// In en, this message translates to:
+  /// **'Silicone'**
+  String get attrChoice_seal_type_silicone;
+
+  /// No description provided for @attrChoice_seal_type_neoprene.
+  ///
+  /// In en, this message translates to:
+  /// **'Neoprene'**
+  String get attrChoice_seal_type_neoprene;
+
+  /// No description provided for @attrChoice_tank_material_aluminum.
+  ///
+  /// In en, this message translates to:
+  /// **'Aluminum'**
+  String get attrChoice_tank_material_aluminum;
+
+  /// No description provided for @attrChoice_tank_material_steel.
+  ///
+  /// In en, this message translates to:
+  /// **'Steel'**
+  String get attrChoice_tank_material_steel;
+
+  /// No description provided for @attrChoice_tank_material_carbon_composite.
+  ///
+  /// In en, this message translates to:
+  /// **'Carbon composite'**
+  String get attrChoice_tank_material_carbon_composite;
+
+  /// No description provided for @attrChoice_valve_type_din.
+  ///
+  /// In en, this message translates to:
+  /// **'DIN'**
+  String get attrChoice_valve_type_din;
+
+  /// No description provided for @attrChoice_valve_type_yoke.
+  ///
+  /// In en, this message translates to:
+  /// **'Yoke (INT)'**
+  String get attrChoice_valve_type_yoke;
+
+  /// No description provided for @attrChoice_valve_type_convertible.
+  ///
+  /// In en, this message translates to:
+  /// **'Convertible'**
+  String get attrChoice_valve_type_convertible;
+
+  /// No description provided for @attrChoice_connection_din.
+  ///
+  /// In en, this message translates to:
+  /// **'DIN'**
+  String get attrChoice_connection_din;
+
+  /// No description provided for @attrChoice_connection_yoke.
+  ///
+  /// In en, this message translates to:
+  /// **'Yoke (INT)'**
+  String get attrChoice_connection_yoke;
+
+  /// No description provided for @attrChoice_bcd_style_jacket.
+  ///
+  /// In en, this message translates to:
+  /// **'Jacket'**
+  String get attrChoice_bcd_style_jacket;
+
+  /// No description provided for @attrChoice_bcd_style_back_inflate.
+  ///
+  /// In en, this message translates to:
+  /// **'Back-inflate'**
+  String get attrChoice_bcd_style_back_inflate;
+
+  /// No description provided for @attrChoice_bcd_style_wing.
+  ///
+  /// In en, this message translates to:
+  /// **'Wing'**
+  String get attrChoice_bcd_style_wing;
+
+  /// No description provided for @attrChoice_bcd_style_sidemount.
+  ///
+  /// In en, this message translates to:
+  /// **'Sidemount'**
+  String get attrChoice_bcd_style_sidemount;
+
+  /// No description provided for @attrChoice_heel_type_open_heel.
+  ///
+  /// In en, this message translates to:
+  /// **'Open heel'**
+  String get attrChoice_heel_type_open_heel;
+
+  /// No description provided for @attrChoice_heel_type_full_foot.
+  ///
+  /// In en, this message translates to:
+  /// **'Full foot'**
+  String get attrChoice_heel_type_full_foot;
+
+  /// No description provided for @attrChoice_blade_style_paddle.
+  ///
+  /// In en, this message translates to:
+  /// **'Paddle'**
+  String get attrChoice_blade_style_paddle;
+
+  /// No description provided for @attrChoice_blade_style_split.
+  ///
+  /// In en, this message translates to:
+  /// **'Split'**
+  String get attrChoice_blade_style_split;
+
+  /// No description provided for @attrChoice_blade_style_vented.
+  ///
+  /// In en, this message translates to:
+  /// **'Vented'**
+  String get attrChoice_blade_style_vented;
+
+  /// No description provided for @attrChoice_mount_wrist.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrist'**
+  String get attrChoice_mount_wrist;
+
+  /// No description provided for @attrChoice_mount_console.
+  ///
+  /// In en, this message translates to:
+  /// **'Console'**
+  String get attrChoice_mount_console;
+
+  /// No description provided for @attrChoice_mount_hud.
+  ///
+  /// In en, this message translates to:
+  /// **'HUD'**
+  String get attrChoice_mount_hud;
+
+  /// No description provided for @attrChoice_connectivity_ble.
+  ///
+  /// In en, this message translates to:
+  /// **'Bluetooth (BLE)'**
+  String get attrChoice_connectivity_ble;
+
+  /// No description provided for @attrChoice_connectivity_usb.
+  ///
+  /// In en, this message translates to:
+  /// **'USB'**
+  String get attrChoice_connectivity_usb;
+
+  /// No description provided for @attrChoice_connectivity_infrared.
+  ///
+  /// In en, this message translates to:
+  /// **'Infrared'**
+  String get attrChoice_connectivity_infrared;
+
+  /// No description provided for @attrChoice_connectivity_none.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get attrChoice_connectivity_none;
+
+  /// No description provided for @attrChoice_lens_config_single.
+  ///
+  /// In en, this message translates to:
+  /// **'Single lens'**
+  String get attrChoice_lens_config_single;
+
+  /// No description provided for @attrChoice_lens_config_twin.
+  ///
+  /// In en, this message translates to:
+  /// **'Twin lens'**
+  String get attrChoice_lens_config_twin;
+
+  /// No description provided for @attrChoice_lens_config_frameless.
+  ///
+  /// In en, this message translates to:
+  /// **'Frameless'**
+  String get attrChoice_lens_config_frameless;
+
+  /// No description provided for @attrChoice_weight_style_belt.
+  ///
+  /// In en, this message translates to:
+  /// **'Belt'**
+  String get attrChoice_weight_style_belt;
+
+  /// No description provided for @attrChoice_weight_style_integrated.
+  ///
+  /// In en, this message translates to:
+  /// **'Integrated'**
+  String get attrChoice_weight_style_integrated;
+
+  /// No description provided for @attrChoice_weight_style_trim.
+  ///
+  /// In en, this message translates to:
+  /// **'Trim'**
+  String get attrChoice_weight_style_trim;
+
+  /// No description provided for @attrChoice_weight_style_ankle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ankle'**
+  String get attrChoice_weight_style_ankle;
+
+  /// No description provided for @attrChoice_beam_type_spot.
+  ///
+  /// In en, this message translates to:
+  /// **'Spot'**
+  String get attrChoice_beam_type_spot;
+
+  /// No description provided for @attrChoice_beam_type_flood.
+  ///
+  /// In en, this message translates to:
+  /// **'Flood'**
+  String get attrChoice_beam_type_flood;
+
+  /// No description provided for @attrChoice_beam_type_adjustable.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjustable'**
+  String get attrChoice_beam_type_adjustable;
+
+  /// No description provided for @attrChoice_smb_type_open.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get attrChoice_smb_type_open;
+
+  /// No description provided for @attrChoice_smb_type_closed.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get attrChoice_smb_type_closed;
+
+  /// No description provided for @attrChoice_reel_type_spool.
+  ///
+  /// In en, this message translates to:
+  /// **'Spool'**
+  String get attrChoice_reel_type_spool;
+
+  /// No description provided for @attrChoice_reel_type_ratchet.
+  ///
+  /// In en, this message translates to:
+  /// **'Ratchet'**
+  String get attrChoice_reel_type_ratchet;
+
+  /// No description provided for @attrChoice_blade_material_stainless.
+  ///
+  /// In en, this message translates to:
+  /// **'Stainless steel'**
+  String get attrChoice_blade_material_stainless;
+
+  /// No description provided for @attrChoice_blade_material_titanium.
+  ///
+  /// In en, this message translates to:
+  /// **'Titanium'**
+  String get attrChoice_blade_material_titanium;
+
+  /// No description provided for @attrChoice_tip_type_pointed.
+  ///
+  /// In en, this message translates to:
+  /// **'Pointed'**
+  String get attrChoice_tip_type_pointed;
+
+  /// No description provided for @attrChoice_tip_type_blunt.
+  ///
+  /// In en, this message translates to:
+  /// **'Blunt'**
+  String get attrChoice_tip_type_blunt;
+
+  /// No description provided for @attrChoice_tip_type_line_cutter.
+  ///
+  /// In en, this message translates to:
+  /// **'Line cutter'**
+  String get attrChoice_tip_type_line_cutter;
+
+  /// No description provided for @attrChoice_glove_type_five_finger.
+  ///
+  /// In en, this message translates to:
+  /// **'Five-finger'**
+  String get attrChoice_glove_type_five_finger;
+
+  /// No description provided for @attrChoice_glove_type_mitt.
+  ///
+  /// In en, this message translates to:
+  /// **'Mitt'**
+  String get attrChoice_glove_type_mitt;
+
+  /// No description provided for @attrChoice_glove_type_dry.
+  ///
+  /// In en, this message translates to:
+  /// **'Dry'**
+  String get attrChoice_glove_type_dry;
+
+  /// No description provided for @attrChoice_sole_type_hard.
+  ///
+  /// In en, this message translates to:
+  /// **'Hard sole'**
+  String get attrChoice_sole_type_hard;
+
+  /// No description provided for @attrChoice_sole_type_soft.
+  ///
+  /// In en, this message translates to:
+  /// **'Soft sole'**
+  String get attrChoice_sole_type_soft;
+
+  /// No description provided for @equipment_edit_customFieldsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom fields'**
+  String get equipment_edit_customFieldsTitle;
+
+  /// No description provided for @equipment_edit_addCustomField.
+  ///
+  /// In en, this message translates to:
+  /// **'Add custom field'**
+  String get equipment_edit_addCustomField;
+
+  /// No description provided for @attr_flagYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get attr_flagYes;
+
+  /// No description provided for @attr_flagNo.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get attr_flagNo;
+
+  /// No description provided for @equipment_edit_invalidThickness.
+  ///
+  /// In en, this message translates to:
+  /// **'Use 5, 5/4 or 7/5/3'**
+  String get equipment_edit_invalidThickness;
+
+  /// No description provided for @statistics_progression_divesBySuitThickness_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives by Suit Thickness'**
+  String get statistics_progression_divesBySuitThickness_title;
+
+  /// No description provided for @statistics_progression_divesBySuitThickness_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Exposure suit primary thickness across your dives'**
+  String get statistics_progression_divesBySuitThickness_subtitle;
+
+  /// No description provided for @statistics_progression_divesBySuitThickness_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No dives with a suit thickness recorded'**
+  String get statistics_progression_divesBySuitThickness_empty;
+
+  /// No description provided for @statistics_progression_divesBySuitThickness_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load suit thickness data'**
+  String get statistics_progression_divesBySuitThickness_error;
+
+  /// No description provided for @diveLog_filter_sectionSuitThickness.
+  ///
+  /// In en, this message translates to:
+  /// **'Suit thickness (mm)'**
+  String get diveLog_filter_sectionSuitThickness;
+
+  /// No description provided for @diveLog_filter_thicknessMin.
+  ///
+  /// In en, this message translates to:
+  /// **'Min'**
+  String get diveLog_filter_thicknessMin;
+
+  /// No description provided for @diveLog_filter_thicknessMax.
+  ///
+  /// In en, this message translates to:
+  /// **'Max'**
+  String get diveLog_filter_thicknessMax;
 }
 
 class _AppLocalizationsDelegate

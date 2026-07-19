@@ -9704,6 +9704,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_edit_statusLabel => 'סטטוס';
 
   @override
+  String get equipment_edit_thicknessDesignationHint => 'למשל, 5, 5/4, 7/5/3';
+
+  @override
   String get equipment_edit_thicknessHint => 'למשל, 5 מ\"מ, 7 מ\"מ';
 
   @override
@@ -20007,4 +20010,329 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get media_unavailablePlaceholder_volumeOffline => 'הכונן אינו מחובר';
+
+  @override
+  String get attrLabel_size => 'מידה';
+
+  @override
+  String get attrLabel_thickness_mm => 'עובי (מ\"מ)';
+
+  @override
+  String get attrLabel_suit_style => 'סוג חליפה';
+
+  @override
+  String get attrLabel_shell_material => 'חומר מעטפת';
+
+  @override
+  String get attrLabel_seal_type => 'סוג אטמים';
+
+  @override
+  String get attrLabel_volume_l => 'נפח';
+
+  @override
+  String get attrLabel_working_pressure_bar => 'לחץ עבודה';
+
+  @override
+  String get attrLabel_tank_material => 'חומר';
+
+  @override
+  String get attrLabel_valve_type => 'שסתום';
+
+  @override
+  String get attrLabel_tank_identifier => 'מזהה';
+
+  @override
+  String get attrLabel_last_visual_inspection => 'בדיקה חזותית אחרונה';
+
+  @override
+  String get attrLabel_last_hydro_test => 'מבחן הידרוסטטי אחרון';
+
+  @override
+  String get attrLabel_connection => 'חיבור';
+
+  @override
+  String get attrLabel_cold_water_rated => 'מתאים למים קרים';
+
+  @override
+  String get attrLabel_bcd_style => 'סגנון';
+
+  @override
+  String get attrLabel_lift_capacity_kg => 'כושר הרמה';
+
+  @override
+  String get attrLabel_heel_type => 'עקב';
+
+  @override
+  String get attrLabel_blade_style => 'להב';
+
+  @override
+  String get attrLabel_mount => 'התקנה';
+
+  @override
+  String get attrLabel_connectivity => 'קישוריות';
+
+  @override
+  String get attrLabel_lens_config => 'עדשה';
+
+  @override
+  String get attrLabel_prescription => 'עדשות אופטיות';
+
+  @override
+  String get attrLabel_weight_style => 'סגנון';
+
+  @override
+  String get attrLabel_lumens => 'לומן';
+
+  @override
+  String get attrLabel_beam_type => 'אלומה';
+
+  @override
+  String get attrLabel_depth_rating_m => 'דירוג עומק';
+
+  @override
+  String get attrLabel_smb_type => 'סוג';
+
+  @override
+  String get attrLabel_length_m => 'אורך';
+
+  @override
+  String get attrLabel_reel_type => 'סוג';
+
+  @override
+  String get attrLabel_line_length_m => 'אורך חוט';
+
+  @override
+  String get attrLabel_blade_material => 'חומר להב';
+
+  @override
+  String get attrLabel_tip_type => 'קצה';
+
+  @override
+  String get attrLabel_glove_type => 'סוג';
+
+  @override
+  String get attrLabel_sole_type => 'סוליה';
+
+  @override
+  String get attrLabel_buoyancy_kg => 'ציפה';
+
+  @override
+  String get attrLabel_dry_weight_kg => 'משקל יבש';
+
+  @override
+  String get attrChoice_suit_style_full => 'חליפה מלאה';
+
+  @override
+  String get attrChoice_suit_style_shorty => 'שורטי';
+
+  @override
+  String get attrChoice_suit_style_two_piece => 'שני חלקים';
+
+  @override
+  String get attrChoice_suit_style_semi_dry => 'חצי יבשה';
+
+  @override
+  String get attrChoice_shell_material_trilaminate => 'טרילמינט';
+
+  @override
+  String get attrChoice_shell_material_neoprene => 'ניאופרן';
+
+  @override
+  String get attrChoice_shell_material_crushed_neoprene => 'ניאופרן דחוס';
+
+  @override
+  String get attrChoice_shell_material_vulcanized_rubber => 'גומי מגופר';
+
+  @override
+  String get attrChoice_seal_type_latex => 'לטקס';
+
+  @override
+  String get attrChoice_seal_type_silicone => 'סיליקון';
+
+  @override
+  String get attrChoice_seal_type_neoprene => 'ניאופרן';
+
+  @override
+  String get attrChoice_tank_material_aluminum => 'אלומיניום';
+
+  @override
+  String get attrChoice_tank_material_steel => 'פלדה';
+
+  @override
+  String get attrChoice_tank_material_carbon_composite => 'מרוכב פחמן';
+
+  @override
+  String get attrChoice_valve_type_din => 'DIN';
+
+  @override
+  String get attrChoice_valve_type_yoke => 'יוק (INT)';
+
+  @override
+  String get attrChoice_valve_type_convertible => 'הפיך';
+
+  @override
+  String get attrChoice_connection_din => 'DIN';
+
+  @override
+  String get attrChoice_connection_yoke => 'יוק (INT)';
+
+  @override
+  String get attrChoice_bcd_style_jacket => 'ז\'קט';
+
+  @override
+  String get attrChoice_bcd_style_back_inflate => 'ניפוח גב';
+
+  @override
+  String get attrChoice_bcd_style_wing => 'כנף';
+
+  @override
+  String get attrChoice_bcd_style_sidemount => 'סייד-מאונט';
+
+  @override
+  String get attrChoice_heel_type_open_heel => 'עקב פתוח';
+
+  @override
+  String get attrChoice_heel_type_full_foot => 'רגל מלאה';
+
+  @override
+  String get attrChoice_blade_style_paddle => 'חתירה';
+
+  @override
+  String get attrChoice_blade_style_split => 'מפוצל';
+
+  @override
+  String get attrChoice_blade_style_vented => 'מאוורר';
+
+  @override
+  String get attrChoice_mount_wrist => 'פרק יד';
+
+  @override
+  String get attrChoice_mount_console => 'קונסולה';
+
+  @override
+  String get attrChoice_mount_hud => 'HUD';
+
+  @override
+  String get attrChoice_connectivity_ble => 'Bluetooth (BLE)';
+
+  @override
+  String get attrChoice_connectivity_usb => 'USB';
+
+  @override
+  String get attrChoice_connectivity_infrared => 'אינפרא אדום';
+
+  @override
+  String get attrChoice_connectivity_none => 'ללא';
+
+  @override
+  String get attrChoice_lens_config_single => 'עדשה אחת';
+
+  @override
+  String get attrChoice_lens_config_twin => 'שתי עדשות';
+
+  @override
+  String get attrChoice_lens_config_frameless => 'ללא מסגרת';
+
+  @override
+  String get attrChoice_weight_style_belt => 'חגורה';
+
+  @override
+  String get attrChoice_weight_style_integrated => 'משולב';
+
+  @override
+  String get attrChoice_weight_style_trim => 'טרים';
+
+  @override
+  String get attrChoice_weight_style_ankle => 'קרסול';
+
+  @override
+  String get attrChoice_beam_type_spot => 'ספוט';
+
+  @override
+  String get attrChoice_beam_type_flood => 'רחב';
+
+  @override
+  String get attrChoice_beam_type_adjustable => 'מתכוונן';
+
+  @override
+  String get attrChoice_smb_type_open => 'פתוח';
+
+  @override
+  String get attrChoice_smb_type_closed => 'סגור';
+
+  @override
+  String get attrChoice_reel_type_spool => 'סליל';
+
+  @override
+  String get attrChoice_reel_type_ratchet => 'רצ\'ט';
+
+  @override
+  String get attrChoice_blade_material_stainless => 'פלדת אל-חלד';
+
+  @override
+  String get attrChoice_blade_material_titanium => 'טיטניום';
+
+  @override
+  String get attrChoice_tip_type_pointed => 'מחודד';
+
+  @override
+  String get attrChoice_tip_type_blunt => 'קהה';
+
+  @override
+  String get attrChoice_tip_type_line_cutter => 'חותך חוטים';
+
+  @override
+  String get attrChoice_glove_type_five_finger => 'חמש אצבעות';
+
+  @override
+  String get attrChoice_glove_type_mitt => 'כפפת אגרוף';
+
+  @override
+  String get attrChoice_glove_type_dry => 'יבש';
+
+  @override
+  String get attrChoice_sole_type_hard => 'סוליה קשה';
+
+  @override
+  String get attrChoice_sole_type_soft => 'סוליה רכה';
+
+  @override
+  String get equipment_edit_customFieldsTitle => 'שדות מותאמים אישית';
+
+  @override
+  String get equipment_edit_addCustomField => 'הוספת שדה מותאם אישית';
+
+  @override
+  String get attr_flagYes => 'כן';
+
+  @override
+  String get attr_flagNo => 'לא';
+
+  @override
+  String get equipment_edit_invalidThickness => 'השתמשו ב-5, 5/4 או 7/5/3';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_title =>
+      'צלילות לפי עובי חליפה';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_subtitle =>
+      'העובי העיקרי של חליפת הצלילה על פני הצלילות';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_empty =>
+      'אין צלילות עם עובי חליפה מתועד';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_error =>
+      'לא ניתן לטעון נתוני עובי חליפה';
+
+  @override
+  String get diveLog_filter_sectionSuitThickness => 'עובי חליפה (מ\"מ)';
+
+  @override
+  String get diveLog_filter_thicknessMin => 'מינ\'';
+
+  @override
+  String get diveLog_filter_thicknessMax => 'מקס\'';
 }

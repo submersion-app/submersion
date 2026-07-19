@@ -9914,6 +9914,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_edit_statusLabel => 'Allapot';
 
   @override
+  String get equipment_edit_thicknessDesignationHint => 'pl. 5, 5/4, 7/5/3';
+
+  @override
   String get equipment_edit_thicknessHint => 'pl. 5mm, 7mm';
 
   @override
@@ -20468,4 +20471,329 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get media_unavailablePlaceholder_volumeOffline =>
       'A kötet nincs csatlakoztatva';
+
+  @override
+  String get attrLabel_size => 'Méret';
+
+  @override
+  String get attrLabel_thickness_mm => 'Vastagság (mm)';
+
+  @override
+  String get attrLabel_suit_style => 'Ruha fazonja';
+
+  @override
+  String get attrLabel_shell_material => 'Külső anyag';
+
+  @override
+  String get attrLabel_seal_type => 'Mandzsetta típusa';
+
+  @override
+  String get attrLabel_volume_l => 'Térfogat';
+
+  @override
+  String get attrLabel_working_pressure_bar => 'Üzemi nyomás';
+
+  @override
+  String get attrLabel_tank_material => 'Anyag';
+
+  @override
+  String get attrLabel_valve_type => 'Szelep';
+
+  @override
+  String get attrLabel_tank_identifier => 'Azonosító';
+
+  @override
+  String get attrLabel_last_visual_inspection => 'Utolsó szemrevételezés';
+
+  @override
+  String get attrLabel_last_hydro_test => 'Utolsó hidrosztatikai vizsgálat';
+
+  @override
+  String get attrLabel_connection => 'Csatlakozás';
+
+  @override
+  String get attrLabel_cold_water_rated => 'Hidegvízre minősített';
+
+  @override
+  String get attrLabel_bcd_style => 'Fazon';
+
+  @override
+  String get attrLabel_lift_capacity_kg => 'Emelőkapacitás';
+
+  @override
+  String get attrLabel_heel_type => 'Sarok';
+
+  @override
+  String get attrLabel_blade_style => 'Lapát';
+
+  @override
+  String get attrLabel_mount => 'Rögzítés';
+
+  @override
+  String get attrLabel_connectivity => 'Kapcsolat';
+
+  @override
+  String get attrLabel_lens_config => 'Lencse';
+
+  @override
+  String get attrLabel_prescription => 'Dioptriás lencsék';
+
+  @override
+  String get attrLabel_weight_style => 'Fazon';
+
+  @override
+  String get attrLabel_lumens => 'Lumen';
+
+  @override
+  String get attrLabel_beam_type => 'Fénysugár';
+
+  @override
+  String get attrLabel_depth_rating_m => 'Mélységi besorolás';
+
+  @override
+  String get attrLabel_smb_type => 'Típus';
+
+  @override
+  String get attrLabel_length_m => 'Hossz';
+
+  @override
+  String get attrLabel_reel_type => 'Típus';
+
+  @override
+  String get attrLabel_line_length_m => 'Zsinór hossza';
+
+  @override
+  String get attrLabel_blade_material => 'Penge anyaga';
+
+  @override
+  String get attrLabel_tip_type => 'Hegy';
+
+  @override
+  String get attrLabel_glove_type => 'Típus';
+
+  @override
+  String get attrLabel_sole_type => 'Talp';
+
+  @override
+  String get attrLabel_buoyancy_kg => 'Felhajtóerő';
+
+  @override
+  String get attrLabel_dry_weight_kg => 'Száraz tömeg';
+
+  @override
+  String get attrChoice_suit_style_full => 'Egész ruha';
+
+  @override
+  String get attrChoice_suit_style_shorty => 'Shorty';
+
+  @override
+  String get attrChoice_suit_style_two_piece => 'Kétrészes';
+
+  @override
+  String get attrChoice_suit_style_semi_dry => 'Félszáraz';
+
+  @override
+  String get attrChoice_shell_material_trilaminate => 'Trilaminát';
+
+  @override
+  String get attrChoice_shell_material_neoprene => 'Neoprén';
+
+  @override
+  String get attrChoice_shell_material_crushed_neoprene => 'Préselt neoprén';
+
+  @override
+  String get attrChoice_shell_material_vulcanized_rubber => 'Vulkanizált gumi';
+
+  @override
+  String get attrChoice_seal_type_latex => 'Latex';
+
+  @override
+  String get attrChoice_seal_type_silicone => 'Szilikon';
+
+  @override
+  String get attrChoice_seal_type_neoprene => 'Neoprén';
+
+  @override
+  String get attrChoice_tank_material_aluminum => 'Alumínium';
+
+  @override
+  String get attrChoice_tank_material_steel => 'Acél';
+
+  @override
+  String get attrChoice_tank_material_carbon_composite => 'Karbon kompozit';
+
+  @override
+  String get attrChoice_valve_type_din => 'DIN';
+
+  @override
+  String get attrChoice_valve_type_yoke => 'Kengyel (INT)';
+
+  @override
+  String get attrChoice_valve_type_convertible => 'Átalakítható';
+
+  @override
+  String get attrChoice_connection_din => 'DIN';
+
+  @override
+  String get attrChoice_connection_yoke => 'Kengyel (INT)';
+
+  @override
+  String get attrChoice_bcd_style_jacket => 'Mellény';
+
+  @override
+  String get attrChoice_bcd_style_back_inflate => 'Háti kamrás';
+
+  @override
+  String get attrChoice_bcd_style_wing => 'Wing';
+
+  @override
+  String get attrChoice_bcd_style_sidemount => 'Sidemount';
+
+  @override
+  String get attrChoice_heel_type_open_heel => 'Nyitott sarkú';
+
+  @override
+  String get attrChoice_heel_type_full_foot => 'Zárt sarkú';
+
+  @override
+  String get attrChoice_blade_style_paddle => 'Lapátos';
+
+  @override
+  String get attrChoice_blade_style_split => 'Osztott';
+
+  @override
+  String get attrChoice_blade_style_vented => 'Szellőzős';
+
+  @override
+  String get attrChoice_mount_wrist => 'Csukló';
+
+  @override
+  String get attrChoice_mount_console => 'Konzol';
+
+  @override
+  String get attrChoice_mount_hud => 'HUD';
+
+  @override
+  String get attrChoice_connectivity_ble => 'Bluetooth (BLE)';
+
+  @override
+  String get attrChoice_connectivity_usb => 'USB';
+
+  @override
+  String get attrChoice_connectivity_infrared => 'Infravörös';
+
+  @override
+  String get attrChoice_connectivity_none => 'Nincs';
+
+  @override
+  String get attrChoice_lens_config_single => 'Egylencsés';
+
+  @override
+  String get attrChoice_lens_config_twin => 'Kétlencsés';
+
+  @override
+  String get attrChoice_lens_config_frameless => 'Keret nélküli';
+
+  @override
+  String get attrChoice_weight_style_belt => 'Öv';
+
+  @override
+  String get attrChoice_weight_style_integrated => 'Integrált';
+
+  @override
+  String get attrChoice_weight_style_trim => 'Trimm';
+
+  @override
+  String get attrChoice_weight_style_ankle => 'Boka';
+
+  @override
+  String get attrChoice_beam_type_spot => 'Pont';
+
+  @override
+  String get attrChoice_beam_type_flood => 'Széles';
+
+  @override
+  String get attrChoice_beam_type_adjustable => 'Állítható';
+
+  @override
+  String get attrChoice_smb_type_open => 'Nyitott';
+
+  @override
+  String get attrChoice_smb_type_closed => 'Zárt';
+
+  @override
+  String get attrChoice_reel_type_spool => 'Orsó';
+
+  @override
+  String get attrChoice_reel_type_ratchet => 'Racsnis';
+
+  @override
+  String get attrChoice_blade_material_stainless => 'Rozsdamentes acél';
+
+  @override
+  String get attrChoice_blade_material_titanium => 'Titán';
+
+  @override
+  String get attrChoice_tip_type_pointed => 'Hegyes';
+
+  @override
+  String get attrChoice_tip_type_blunt => 'Tompa';
+
+  @override
+  String get attrChoice_tip_type_line_cutter => 'Zsinórvágó';
+
+  @override
+  String get attrChoice_glove_type_five_finger => 'Ötujjas';
+
+  @override
+  String get attrChoice_glove_type_mitt => 'Egyujjas';
+
+  @override
+  String get attrChoice_glove_type_dry => 'Száraz';
+
+  @override
+  String get attrChoice_sole_type_hard => 'Kemény talp';
+
+  @override
+  String get attrChoice_sole_type_soft => 'Puha talp';
+
+  @override
+  String get equipment_edit_customFieldsTitle => 'Egyéni mezők';
+
+  @override
+  String get equipment_edit_addCustomField => 'Egyéni mező hozzáadása';
+
+  @override
+  String get attr_flagYes => 'Igen';
+
+  @override
+  String get attr_flagNo => 'Nem';
+
+  @override
+  String get equipment_edit_invalidThickness => 'Formátum: 5, 5/4 vagy 7/5/3';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_title =>
+      'Merülések ruhavastagság szerint';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_subtitle =>
+      'A ruha fő vastagsága a merüléseid során';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_empty =>
+      'Nincs merülés rögzített ruhavastagsággal';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_error =>
+      'Nem sikerült betölteni a vastagsági adatokat';
+
+  @override
+  String get diveLog_filter_sectionSuitThickness => 'Ruhavastagság (mm)';
+
+  @override
+  String get diveLog_filter_thicknessMin => 'Min';
+
+  @override
+  String get diveLog_filter_thicknessMax => 'Max';
 }

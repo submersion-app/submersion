@@ -13,9 +13,13 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:collection/collection.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_l10n.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_units.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_clocks_card.dart';
 
 class EquipmentDetailPage extends ConsumerStatefulWidget {
@@ -567,18 +571,24 @@ class _EquipmentDetailContent extends ConsumerWidget {
                 context.l10n.equipment_detail_serialNumberLabel,
                 equipment.serialNumber!,
               ),
-            if (equipment.size != null)
-              _buildDetailRow(
-                context,
-                context.l10n.equipment_detail_sizeLabel,
-                equipment.size!,
-              ),
-            if (equipment.thickness != null)
-              _buildDetailRow(
-                context,
-                context.l10n.equipment_detail_thicknessLabel,
-                equipment.thickness!,
-              ),
+            // Curated attributes in catalog order, then custom fields.
+            for (final def in EquipmentAttributeCatalog.attributesFor(
+              equipment.type,
+            ))
+              if (equipment.attributes.firstWhereOrNull(
+                    (a) => !a.isCustom && a.key == def.key,
+                  )
+                  case final attr? when attr.hasValue)
+                _buildDetailRow(
+                  context,
+                  attributeLabel(context.l10n, def.key),
+                  formatAttributeValue(attr, def, units, context.l10n),
+                ),
+            for (final attr
+                in equipment.attributes.where((a) => a.isCustom).toList()
+                  ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder)))
+              if (attr.hasValue)
+                _buildDetailRow(context, attr.key, attr.valueText ?? ''),
             if (equipment.purchaseDate != null)
               _buildDetailRow(
                 context,
@@ -668,7 +678,16 @@ class _EquipmentDetailContent extends ConsumerWidget {
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
-          Text(value, style: Theme.of(context).textTheme.bodyMedium),
+          const SizedBox(width: 16),
+          // Flexible so long values (e.g. free-text custom fields) wrap
+          // instead of overflowing the row.
+          Flexible(
+            child: Text(
+              value,
+              style: Theme.of(context).textTheme.bodyMedium,
+              textAlign: TextAlign.end,
+            ),
+          ),
         ],
       ),
     );

@@ -9763,6 +9763,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_edit_statusLabel => 'الحالة';
 
   @override
+  String get equipment_edit_thicknessDesignationHint => 'مثلاً 5، 5/4، 7/5/3';
+
+  @override
   String get equipment_edit_thicknessHint => 'مثلاً 5 مم، 7 مم';
 
   @override
@@ -20153,4 +20156,329 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get media_unavailablePlaceholder_volumeOffline =>
       'وحدة التخزين غير مثبتة';
+
+  @override
+  String get attrLabel_size => 'المقاس';
+
+  @override
+  String get attrLabel_thickness_mm => 'السماكة (مم)';
+
+  @override
+  String get attrLabel_suit_style => 'نوع البدلة';
+
+  @override
+  String get attrLabel_shell_material => 'مادة الغلاف';
+
+  @override
+  String get attrLabel_seal_type => 'نوع العزل';
+
+  @override
+  String get attrLabel_volume_l => 'السعة';
+
+  @override
+  String get attrLabel_working_pressure_bar => 'ضغط التشغيل';
+
+  @override
+  String get attrLabel_tank_material => 'المادة';
+
+  @override
+  String get attrLabel_valve_type => 'الصمام';
+
+  @override
+  String get attrLabel_tank_identifier => 'المعرف';
+
+  @override
+  String get attrLabel_last_visual_inspection => 'آخر فحص بصري';
+
+  @override
+  String get attrLabel_last_hydro_test => 'آخر اختبار هيدروستاتيكي';
+
+  @override
+  String get attrLabel_connection => 'التوصيل';
+
+  @override
+  String get attrLabel_cold_water_rated => 'مخصص للمياه الباردة';
+
+  @override
+  String get attrLabel_bcd_style => 'النمط';
+
+  @override
+  String get attrLabel_lift_capacity_kg => 'قوة الرفع';
+
+  @override
+  String get attrLabel_heel_type => 'الكعب';
+
+  @override
+  String get attrLabel_blade_style => 'الزعنفة';
+
+  @override
+  String get attrLabel_mount => 'التثبيت';
+
+  @override
+  String get attrLabel_connectivity => 'الاتصال';
+
+  @override
+  String get attrLabel_lens_config => 'العدسة';
+
+  @override
+  String get attrLabel_prescription => 'عدسات طبية';
+
+  @override
+  String get attrLabel_weight_style => 'النمط';
+
+  @override
+  String get attrLabel_lumens => 'لومن';
+
+  @override
+  String get attrLabel_beam_type => 'الشعاع';
+
+  @override
+  String get attrLabel_depth_rating_m => 'تصنيف العمق';
+
+  @override
+  String get attrLabel_smb_type => 'النوع';
+
+  @override
+  String get attrLabel_length_m => 'الطول';
+
+  @override
+  String get attrLabel_reel_type => 'النوع';
+
+  @override
+  String get attrLabel_line_length_m => 'طول الخيط';
+
+  @override
+  String get attrLabel_blade_material => 'مادة النصل';
+
+  @override
+  String get attrLabel_tip_type => 'الطرف';
+
+  @override
+  String get attrLabel_glove_type => 'النوع';
+
+  @override
+  String get attrLabel_sole_type => 'النعل';
+
+  @override
+  String get attrLabel_buoyancy_kg => 'الطفو';
+
+  @override
+  String get attrLabel_dry_weight_kg => 'الوزن الجاف';
+
+  @override
+  String get attrChoice_suit_style_full => 'بدلة كاملة';
+
+  @override
+  String get attrChoice_suit_style_shorty => 'شورتي';
+
+  @override
+  String get attrChoice_suit_style_two_piece => 'قطعتان';
+
+  @override
+  String get attrChoice_suit_style_semi_dry => 'شبه جافة';
+
+  @override
+  String get attrChoice_shell_material_trilaminate => 'ثلاثي الطبقات';
+
+  @override
+  String get attrChoice_shell_material_neoprene => 'نيوبرين';
+
+  @override
+  String get attrChoice_shell_material_crushed_neoprene => 'نيوبرين مضغوط';
+
+  @override
+  String get attrChoice_shell_material_vulcanized_rubber => 'مطاط مفلكن';
+
+  @override
+  String get attrChoice_seal_type_latex => 'لاتكس';
+
+  @override
+  String get attrChoice_seal_type_silicone => 'سيليكون';
+
+  @override
+  String get attrChoice_seal_type_neoprene => 'نيوبرين';
+
+  @override
+  String get attrChoice_tank_material_aluminum => 'ألومنيوم';
+
+  @override
+  String get attrChoice_tank_material_steel => 'فولاذ';
+
+  @override
+  String get attrChoice_tank_material_carbon_composite => 'مركب كربوني';
+
+  @override
+  String get attrChoice_valve_type_din => 'DIN';
+
+  @override
+  String get attrChoice_valve_type_yoke => 'يوك (INT)';
+
+  @override
+  String get attrChoice_valve_type_convertible => 'قابل للتحويل';
+
+  @override
+  String get attrChoice_connection_din => 'DIN';
+
+  @override
+  String get attrChoice_connection_yoke => 'يوك (INT)';
+
+  @override
+  String get attrChoice_bcd_style_jacket => 'جاكيت';
+
+  @override
+  String get attrChoice_bcd_style_back_inflate => 'نفخ خلفي';
+
+  @override
+  String get attrChoice_bcd_style_wing => 'وينغ';
+
+  @override
+  String get attrChoice_bcd_style_sidemount => 'تثبيت جانبي';
+
+  @override
+  String get attrChoice_heel_type_open_heel => 'كعب مفتوح';
+
+  @override
+  String get attrChoice_heel_type_full_foot => 'قدم كاملة';
+
+  @override
+  String get attrChoice_blade_style_paddle => 'مجداف';
+
+  @override
+  String get attrChoice_blade_style_split => 'مشقوق';
+
+  @override
+  String get attrChoice_blade_style_vented => 'مهوى';
+
+  @override
+  String get attrChoice_mount_wrist => 'معصم';
+
+  @override
+  String get attrChoice_mount_console => 'كونسول';
+
+  @override
+  String get attrChoice_mount_hud => 'HUD';
+
+  @override
+  String get attrChoice_connectivity_ble => 'بلوتوث (BLE)';
+
+  @override
+  String get attrChoice_connectivity_usb => 'USB';
+
+  @override
+  String get attrChoice_connectivity_infrared => 'الأشعة تحت الحمراء';
+
+  @override
+  String get attrChoice_connectivity_none => 'بدون';
+
+  @override
+  String get attrChoice_lens_config_single => 'عدسة واحدة';
+
+  @override
+  String get attrChoice_lens_config_twin => 'عدستان';
+
+  @override
+  String get attrChoice_lens_config_frameless => 'بدون إطار';
+
+  @override
+  String get attrChoice_weight_style_belt => 'حزام';
+
+  @override
+  String get attrChoice_weight_style_integrated => 'مدمج';
+
+  @override
+  String get attrChoice_weight_style_trim => 'موازنة';
+
+  @override
+  String get attrChoice_weight_style_ankle => 'كاحل';
+
+  @override
+  String get attrChoice_beam_type_spot => 'سبوت';
+
+  @override
+  String get attrChoice_beam_type_flood => 'فيضي';
+
+  @override
+  String get attrChoice_beam_type_adjustable => 'قابل للتعديل';
+
+  @override
+  String get attrChoice_smb_type_open => 'مفتوح';
+
+  @override
+  String get attrChoice_smb_type_closed => 'مغلق';
+
+  @override
+  String get attrChoice_reel_type_spool => 'بكرة';
+
+  @override
+  String get attrChoice_reel_type_ratchet => 'بكرة بسقاطة';
+
+  @override
+  String get attrChoice_blade_material_stainless => 'فولاذ مقاوم للصدأ';
+
+  @override
+  String get attrChoice_blade_material_titanium => 'تيتانيوم';
+
+  @override
+  String get attrChoice_tip_type_pointed => 'مدبب';
+
+  @override
+  String get attrChoice_tip_type_blunt => 'غير حاد';
+
+  @override
+  String get attrChoice_tip_type_line_cutter => 'قاطع خيوط';
+
+  @override
+  String get attrChoice_glove_type_five_finger => 'خمسة أصابع';
+
+  @override
+  String get attrChoice_glove_type_mitt => 'قفاز كفي';
+
+  @override
+  String get attrChoice_glove_type_dry => 'جاف';
+
+  @override
+  String get attrChoice_sole_type_hard => 'نعل صلب';
+
+  @override
+  String get attrChoice_sole_type_soft => 'نعل لين';
+
+  @override
+  String get equipment_edit_customFieldsTitle => 'حقول مخصصة';
+
+  @override
+  String get equipment_edit_addCustomField => 'إضافة حقل مخصص';
+
+  @override
+  String get attr_flagYes => 'نعم';
+
+  @override
+  String get attr_flagNo => 'لا';
+
+  @override
+  String get equipment_edit_invalidThickness => 'استخدم 5 أو 5/4 أو 7/5/3';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_title =>
+      'الغطسات حسب سماكة البدلة';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_subtitle =>
+      'السماكة الأساسية لبدلة الغطس عبر غطساتك';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_empty =>
+      'لا توجد غطسات مسجلة بسماكة بدلة';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_error =>
+      'تعذر تحميل بيانات سماكة البدلة';
+
+  @override
+  String get diveLog_filter_sectionSuitThickness => 'سماكة البدلة (مم)';
+
+  @override
+  String get diveLog_filter_thicknessMin => 'الأدنى';
+
+  @override
+  String get diveLog_filter_thicknessMax => 'الأقصى';
 }

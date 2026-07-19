@@ -832,6 +832,46 @@ class StatisticsRepository {
     }
   }
 
+  /// Dives grouped by the primary thickness of linked exposure suits
+  /// (wetsuit/drysuit). COUNT(DISTINCT) so a dive with two suits of the same
+  /// thickness counts once per bucket.
+  Future<List<({double mm, int count})>> getDivesBySuitThickness({
+    String? diverId,
+    DiveFilterState filter = const DiveFilterState(),
+  }) async {
+    try {
+      final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
+      final df = _diveFilter(filter, alias: 'd');
+      final params = diverId != null ? [diverId, ...df.params] : [...df.params];
+
+      final results = await _db.customSelect('''
+        SELECT ea.value_num AS mm, COUNT(DISTINCT d.id) AS count
+        FROM dives d
+        JOIN dive_equipment de ON de.dive_id = d.id
+        JOIN equipment e ON e.id = de.equipment_id
+          AND e.type IN ('wetsuit', 'drysuit')
+        JOIN equipment_attributes ea ON ea.equipment_id = e.id
+          AND ea.attr_key = 'thickness_mm'
+          AND ea.is_custom = 0
+          AND ea.value_num IS NOT NULL
+        WHERE 1=1 $diverFilter ${df.clause}
+        GROUP BY ea.value_num
+        ORDER BY ea.value_num
+        ''', variables: params.map((p) => Variable(p)).toList()).get();
+
+      return results.map((row) {
+        return (mm: row.read<double>('mm'), count: row.read<int>('count'));
+      }).toList();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get dives by suit thickness',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return [];
+    }
+  }
+
   /// Get cumulative dive count over time
   Future<List<TrendDataPoint>> getCumulativeDiveCount({
     String? diverId,

@@ -9928,6 +9928,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get equipment_edit_statusLabel => 'Status';
 
   @override
+  String get equipment_edit_thicknessDesignationHint => 'ex: 5, 5/4, 7/5/3';
+
+  @override
   String get equipment_edit_thicknessHint => 'ex: 5mm, 7mm';
 
   @override
@@ -20529,4 +20532,332 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get media_unavailablePlaceholder_volumeOffline => 'Volume não montado';
+
+  @override
+  String get attrLabel_size => 'Tamanho';
+
+  @override
+  String get attrLabel_thickness_mm => 'Espessura (mm)';
+
+  @override
+  String get attrLabel_suit_style => 'Tipo de roupa';
+
+  @override
+  String get attrLabel_shell_material => 'Material externo';
+
+  @override
+  String get attrLabel_seal_type => 'Tipo de vedação';
+
+  @override
+  String get attrLabel_volume_l => 'Volume';
+
+  @override
+  String get attrLabel_working_pressure_bar => 'Pressão de trabalho';
+
+  @override
+  String get attrLabel_tank_material => 'Material';
+
+  @override
+  String get attrLabel_valve_type => 'Válvula';
+
+  @override
+  String get attrLabel_tank_identifier => 'Identificador';
+
+  @override
+  String get attrLabel_last_visual_inspection => 'Última inspeção visual';
+
+  @override
+  String get attrLabel_last_hydro_test => 'Último teste hidrostático';
+
+  @override
+  String get attrLabel_connection => 'Conexão';
+
+  @override
+  String get attrLabel_cold_water_rated => 'Adequado para água fria';
+
+  @override
+  String get attrLabel_bcd_style => 'Estilo';
+
+  @override
+  String get attrLabel_lift_capacity_kg => 'Capacidade de elevação';
+
+  @override
+  String get attrLabel_heel_type => 'Calcanhar';
+
+  @override
+  String get attrLabel_blade_style => 'Lâmina';
+
+  @override
+  String get attrLabel_mount => 'Fixação';
+
+  @override
+  String get attrLabel_connectivity => 'Conectividade';
+
+  @override
+  String get attrLabel_lens_config => 'Lente';
+
+  @override
+  String get attrLabel_prescription => 'Lentes graduadas';
+
+  @override
+  String get attrLabel_weight_style => 'Estilo';
+
+  @override
+  String get attrLabel_lumens => 'Lúmens';
+
+  @override
+  String get attrLabel_beam_type => 'Feixe';
+
+  @override
+  String get attrLabel_depth_rating_m => 'Profundidade máxima';
+
+  @override
+  String get attrLabel_smb_type => 'Tipo';
+
+  @override
+  String get attrLabel_length_m => 'Comprimento';
+
+  @override
+  String get attrLabel_reel_type => 'Tipo';
+
+  @override
+  String get attrLabel_line_length_m => 'Comprimento da linha';
+
+  @override
+  String get attrLabel_blade_material => 'Material da lâmina';
+
+  @override
+  String get attrLabel_tip_type => 'Ponta';
+
+  @override
+  String get attrLabel_glove_type => 'Tipo';
+
+  @override
+  String get attrLabel_sole_type => 'Sola';
+
+  @override
+  String get attrLabel_buoyancy_kg => 'Flutuabilidade';
+
+  @override
+  String get attrLabel_dry_weight_kg => 'Peso seco';
+
+  @override
+  String get attrChoice_suit_style_full => 'Roupa inteira';
+
+  @override
+  String get attrChoice_suit_style_shorty => 'Shorty';
+
+  @override
+  String get attrChoice_suit_style_two_piece => 'Duas peças';
+
+  @override
+  String get attrChoice_suit_style_semi_dry => 'Semisseca';
+
+  @override
+  String get attrChoice_shell_material_trilaminate => 'Trilaminado';
+
+  @override
+  String get attrChoice_shell_material_neoprene => 'Neoprene';
+
+  @override
+  String get attrChoice_shell_material_crushed_neoprene =>
+      'Neoprene comprimido';
+
+  @override
+  String get attrChoice_shell_material_vulcanized_rubber =>
+      'Borracha vulcanizada';
+
+  @override
+  String get attrChoice_seal_type_latex => 'Látex';
+
+  @override
+  String get attrChoice_seal_type_silicone => 'Silicone';
+
+  @override
+  String get attrChoice_seal_type_neoprene => 'Neoprene';
+
+  @override
+  String get attrChoice_tank_material_aluminum => 'Alumínio';
+
+  @override
+  String get attrChoice_tank_material_steel => 'Aço';
+
+  @override
+  String get attrChoice_tank_material_carbon_composite =>
+      'Compósito de carbono';
+
+  @override
+  String get attrChoice_valve_type_din => 'DIN';
+
+  @override
+  String get attrChoice_valve_type_yoke => 'Garra (INT)';
+
+  @override
+  String get attrChoice_valve_type_convertible => 'Convertível';
+
+  @override
+  String get attrChoice_connection_din => 'DIN';
+
+  @override
+  String get attrChoice_connection_yoke => 'Garra (INT)';
+
+  @override
+  String get attrChoice_bcd_style_jacket => 'Colete';
+
+  @override
+  String get attrChoice_bcd_style_back_inflate => 'Inflagem traseira';
+
+  @override
+  String get attrChoice_bcd_style_wing => 'Asa';
+
+  @override
+  String get attrChoice_bcd_style_sidemount => 'Sidemount';
+
+  @override
+  String get attrChoice_heel_type_open_heel => 'Calcanhar aberto';
+
+  @override
+  String get attrChoice_heel_type_full_foot => 'Pé inteiro';
+
+  @override
+  String get attrChoice_blade_style_paddle => 'Pá';
+
+  @override
+  String get attrChoice_blade_style_split => 'Dividida';
+
+  @override
+  String get attrChoice_blade_style_vented => 'Ventilada';
+
+  @override
+  String get attrChoice_mount_wrist => 'Pulso';
+
+  @override
+  String get attrChoice_mount_console => 'Console';
+
+  @override
+  String get attrChoice_mount_hud => 'HUD';
+
+  @override
+  String get attrChoice_connectivity_ble => 'Bluetooth (BLE)';
+
+  @override
+  String get attrChoice_connectivity_usb => 'USB';
+
+  @override
+  String get attrChoice_connectivity_infrared => 'Infravermelho';
+
+  @override
+  String get attrChoice_connectivity_none => 'Nenhuma';
+
+  @override
+  String get attrChoice_lens_config_single => 'Lente única';
+
+  @override
+  String get attrChoice_lens_config_twin => 'Lentes duplas';
+
+  @override
+  String get attrChoice_lens_config_frameless => 'Sem armação';
+
+  @override
+  String get attrChoice_weight_style_belt => 'Cinto';
+
+  @override
+  String get attrChoice_weight_style_integrated => 'Integrado';
+
+  @override
+  String get attrChoice_weight_style_trim => 'Trim';
+
+  @override
+  String get attrChoice_weight_style_ankle => 'Tornozelo';
+
+  @override
+  String get attrChoice_beam_type_spot => 'Foco';
+
+  @override
+  String get attrChoice_beam_type_flood => 'Difuso';
+
+  @override
+  String get attrChoice_beam_type_adjustable => 'Ajustável';
+
+  @override
+  String get attrChoice_smb_type_open => 'Aberta';
+
+  @override
+  String get attrChoice_smb_type_closed => 'Fechada';
+
+  @override
+  String get attrChoice_reel_type_spool => 'Carretel simples';
+
+  @override
+  String get attrChoice_reel_type_ratchet => 'Carretilha com catraca';
+
+  @override
+  String get attrChoice_blade_material_stainless => 'Aço inoxidável';
+
+  @override
+  String get attrChoice_blade_material_titanium => 'Titânio';
+
+  @override
+  String get attrChoice_tip_type_pointed => 'Pontiaguda';
+
+  @override
+  String get attrChoice_tip_type_blunt => 'Romba';
+
+  @override
+  String get attrChoice_tip_type_line_cutter => 'Cortador de linha';
+
+  @override
+  String get attrChoice_glove_type_five_finger => 'Cinco dedos';
+
+  @override
+  String get attrChoice_glove_type_mitt => 'Mitene';
+
+  @override
+  String get attrChoice_glove_type_dry => 'Seco';
+
+  @override
+  String get attrChoice_sole_type_hard => 'Sola rígida';
+
+  @override
+  String get attrChoice_sole_type_soft => 'Sola macia';
+
+  @override
+  String get equipment_edit_customFieldsTitle => 'Campos personalizados';
+
+  @override
+  String get equipment_edit_addCustomField => 'Adicionar campo personalizado';
+
+  @override
+  String get attr_flagYes => 'Sim';
+
+  @override
+  String get attr_flagNo => 'Não';
+
+  @override
+  String get equipment_edit_invalidThickness => 'Use 5, 5/4 ou 7/5/3';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_title =>
+      'Mergulhos por espessura da roupa';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_subtitle =>
+      'Espessura principal da roupa nos seus mergulhos';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_empty =>
+      'Nenhum mergulho com espessura de roupa registrada';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_error =>
+      'Não foi possível carregar os dados de espessura';
+
+  @override
+  String get diveLog_filter_sectionSuitThickness => 'Espessura da roupa (mm)';
+
+  @override
+  String get diveLog_filter_thicknessMin => 'Mín';
+
+  @override
+  String get diveLog_filter_thicknessMax => 'Máx';
 }
