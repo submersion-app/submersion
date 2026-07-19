@@ -25,6 +25,27 @@ class _NoQueryDiveRepository extends Fake implements DiveRepository {
   }
 }
 
+/// Fake repository that returns a fixed set of dive inputs for the active-diver
+/// happy path. Records the diverId it was queried with.
+class _StubDiveRepository extends Fake implements DiveRepository {
+  final List<NoFlyDiveInput> inputs;
+  String? queriedDiverId;
+
+  _StubDiveRepository(this.inputs);
+
+  @override
+  Stream<void> watchDivesChanges() => const Stream.empty();
+
+  @override
+  Future<List<NoFlyDiveInput>> getNoFlyDiveInputs({
+    required DateTime since,
+    String? diverId,
+  }) async {
+    queriedDiverId = diverId;
+    return inputs;
+  }
+}
+
 void main() {
   test('returns null without querying dives when no diver is active', () async {
     final container = ProviderContainer(
@@ -42,4 +63,33 @@ void main() {
     final status = await container.read(noFlyStatusProvider.future);
     expect(status, isNull);
   });
+
+  test(
+    'computes a restriction for the active diver from recent dives',
+    () async {
+      // One no-deco dive an hour ago -> single-dive category, 12 h guideline.
+      final repo = _StubDiveRepository([
+        NoFlyDiveInput(
+          endTime: DateTime.now().toUtc().subtract(const Duration(hours: 1)),
+          hadDecoObligation: false,
+        ),
+      ]);
+      final diverNotifier = MockCurrentDiverIdNotifier();
+      diverNotifier.setCurrentDiver('diver-1');
+
+      final container = ProviderContainer(
+        overrides: [
+          diveRepositoryProvider.overrideWithValue(repo),
+          currentDiverIdProvider.overrideWith((ref) => diverNotifier),
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final status = await container.read(noFlyStatusProvider.future);
+      expect(status, isNotNull);
+      expect(status!.category, NoFlyCategory.single);
+      expect(repo.queriedDiverId, 'diver-1');
+    },
+  );
 }

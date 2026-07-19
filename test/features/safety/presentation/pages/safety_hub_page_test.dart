@@ -87,6 +87,16 @@ void main() {
     expect(find.textContaining('Not a substitute'), findsOneWidget);
   });
 
+  testWidgets('shows the deco-dive guideline category', (tester) async {
+    final status = NoFlyStatus(
+      until: DateTime.now().toUtc().add(const Duration(hours: 20)),
+      category: NoFlyCategory.deco,
+      interval: const Duration(hours: 24),
+    );
+    await pump(tester, status);
+    expect(find.textContaining('decompression dive: 24 h'), findsOneWidget);
+  });
+
   test('formatNoFlyRemaining formats hours and minutes', () {
     expect(
       formatNoFlyRemaining(const Duration(hours: 14, minutes: 20)),
@@ -94,4 +104,12 @@ void main() {
     );
     expect(formatNoFlyRemaining(const Duration(minutes: 45)), '45min');
   });
+
+  test(
+    'formatNoFlyRemaining shows <1min for a positive sub-minute remainder',
+    () {
+      expect(formatNoFlyRemaining(const Duration(seconds: 30)), '<1min');
+      expect(formatNoFlyRemaining(Duration.zero), '0min');
+    },
+  );
 }

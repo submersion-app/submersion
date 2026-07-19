@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dar
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/settings/presentation/pages/safety_settings_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -48,6 +49,20 @@ void main() {
       find.byType(SwitchListTile).first,
     );
     expect(master.value, isTrue);
+  });
+
+  testWidgets('selecting the strict no-fly preset persists it', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(400, 1600));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final notifier = MockSettingsNotifier();
+    await tester.pumpWidget(_buildTestWidget(notifier));
+    await tester.pumpAndSettle();
+
+    expect(notifier.state.noFlyPreset, NoFlyPreset.standard);
+    await tester.tap(find.text('Strict (18/24/48 h)'));
+    await tester.pumpAndSettle();
+    expect(notifier.state.noFlyPreset, NoFlyPreset.strict);
   });
 
   testWidgets('toggling master off disables rule switches', (tester) async {
