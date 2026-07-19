@@ -11745,6 +11745,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get incidents_delete_confirm => 'למחוק דוח כמעט-תאונה זה?';
 
   @override
+  String get incidents_notFound => 'דוח כמעט-תאונה לא נמצא';
+
+  @override
   String get incidentEdit_title_new => 'רישום כמעט-תאונה';
 
   @override

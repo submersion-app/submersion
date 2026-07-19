@@ -12091,6 +12091,9 @@ class AppLocalizationsFr extends AppLocalizations {
       'Supprimer ce rapport de presque-accident ?';
 
   @override
+  String get incidents_notFound => 'Rapport de presque-accident introuvable';
+
+  @override
   String get incidentEdit_title_new => 'Consigner un presque-accident';
 
   @override

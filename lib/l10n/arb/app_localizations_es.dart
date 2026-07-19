@@ -12039,6 +12039,9 @@ class AppLocalizationsEs extends AppLocalizations {
       '¿Eliminar este informe de casi incidente?';
 
   @override
+  String get incidents_notFound => 'Informe de casi accidente no encontrado';
+
+  @override
   String get incidentEdit_title_new => 'Registrar casi incidente';
 
   @override

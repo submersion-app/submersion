@@ -5860,6 +5860,7 @@
   "incidents_add": "Registra quasi incidente",
   "incidents_linkedDive": "Collegato a un'immersione",
   "incidents_delete_confirm": "Eliminare questo rapporto di quasi incidente?",
+  "incidents_notFound": "Segnalazione di quasi incidente non trovata",
   "incidentEdit_title_new": "Registra quasi incidente",
   "incidentEdit_title_edit": "Modifica quasi incidente",
   "incidentEdit_category": "Categoria",

@@ -11854,6 +11854,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get incidents_delete_confirm => 'Delete this near-miss report?';
 
   @override
+  String get incidents_notFound => 'Near-miss report not found';
+
+  @override
   String get incidentEdit_title_new => 'Log near-miss';
 
   @override

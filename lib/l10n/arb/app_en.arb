@@ -6807,6 +6807,7 @@
   "incidents_add": "Log near-miss",
   "incidents_linkedDive": "Linked to a dive",
   "incidents_delete_confirm": "Delete this near-miss report?",
+  "incidents_notFound": "Near-miss report not found",
   "incidentEdit_title_new": "Log near-miss",
   "incidentEdit_title_edit": "Edit near-miss",
   "incidentEdit_category": "Category",

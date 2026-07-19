@@ -5860,6 +5860,7 @@
   "incidents_add": "Beinahe-Unfall erfassen",
   "incidents_linkedDive": "Mit einem Tauchgang verknüpft",
   "incidents_delete_confirm": "Diesen Beinahe-Unfall-Bericht löschen?",
+  "incidents_notFound": "Beinahe-Unfall-Bericht nicht gefunden",
   "incidentEdit_title_new": "Beinahe-Unfall erfassen",
   "incidentEdit_title_edit": "Beinahe-Unfall bearbeiten",
   "incidentEdit_category": "Kategorie",

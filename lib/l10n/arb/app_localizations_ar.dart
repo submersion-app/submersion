@@ -11827,6 +11827,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get incidents_delete_confirm => 'حذف تقرير الحادث الوشيك هذا؟';
 
   @override
+  String get incidents_notFound => 'لم يتم العثور على تقرير الحادث الوشيك';
+
+  @override
   String get incidentEdit_title_new => 'تسجيل حادث وشيك';
 
   @override

@@ -5860,6 +5860,7 @@
   "incidents_add": "Bijna-ongeval vastleggen",
   "incidents_linkedDive": "Gekoppeld aan een duik",
   "incidents_delete_confirm": "Dit bijna-ongevalrapport verwijderen?",
+  "incidents_notFound": "Bijna-ongevalrapport niet gevonden",
   "incidentEdit_title_new": "Bijna-ongeval vastleggen",
   "incidentEdit_title_edit": "Bijna-ongeval bewerken",
   "incidentEdit_category": "Categorie",

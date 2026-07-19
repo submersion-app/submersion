@@ -20450,6 +20450,12 @@ abstract class AppLocalizations {
   /// **'Delete this near-miss report?'**
   String get incidents_delete_confirm;
 
+  /// No description provided for @incidents_notFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Near-miss report not found'**
+  String get incidents_notFound;
+
   /// No description provided for @incidentEdit_title_new.
   ///
   /// In en, this message translates to:

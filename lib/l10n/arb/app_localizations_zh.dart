@@ -11477,6 +11477,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get incidents_delete_confirm => '删除此未遂事件报告?';
 
   @override
+  String get incidents_notFound => '未找到未遂事件记录';
+
+  @override
   String get incidentEdit_title_new => '记录未遂事件';
 
   @override

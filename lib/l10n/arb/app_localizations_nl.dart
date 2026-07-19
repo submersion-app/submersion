@@ -11961,6 +11961,9 @@ class AppLocalizationsNl extends AppLocalizations {
       'Dit bijna-ongevalrapport verwijderen?';
 
   @override
+  String get incidents_notFound => 'Bijna-ongevalrapport niet gevonden';
+
+  @override
   String get incidentEdit_title_new => 'Bijna-ongeval vastleggen';
 
   @override

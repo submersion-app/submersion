@@ -12043,6 +12043,9 @@ class AppLocalizationsDe extends AppLocalizations {
       'Diesen Beinahe-Unfall-Bericht löschen?';
 
   @override
+  String get incidents_notFound => 'Beinahe-Unfall-Bericht nicht gefunden';
+
+  @override
   String get incidentEdit_title_new => 'Beinahe-Unfall erfassen';
 
   @override

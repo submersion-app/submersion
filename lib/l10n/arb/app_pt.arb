@@ -5860,6 +5860,7 @@
   "incidents_add": "Registrar quase acidente",
   "incidents_linkedDive": "Vinculado a um mergulho",
   "incidents_delete_confirm": "Excluir este relato de quase acidente?",
+  "incidents_notFound": "Relatório de quase acidente não encontrado",
   "incidentEdit_title_new": "Registrar quase acidente",
   "incidentEdit_title_edit": "Editar quase acidente",
   "incidentEdit_category": "Categoria",

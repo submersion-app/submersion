@@ -5860,6 +5860,7 @@
   "incidents_add": "Kvázibaleset rögzítése",
   "incidents_linkedDive": "Merüléshez kapcsolva",
   "incidents_delete_confirm": "Törlöd ezt a kvázibaleset-jelentést?",
+  "incidents_notFound": "Kvázibaleset-jelentés nem található",
   "incidentEdit_title_new": "Kvázibaleset rögzítése",
   "incidentEdit_title_edit": "Kvázibaleset szerkesztése",
   "incidentEdit_category": "Kategória",

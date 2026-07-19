@@ -12014,6 +12014,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get incidents_delete_confirm => 'Törlöd ezt a kvázibaleset-jelentést?';
 
   @override
+  String get incidents_notFound => 'Kvázibaleset-jelentés nem található';
+
+  @override
   String get incidentEdit_title_new => 'Kvázibaleset rögzítése';
 
   @override

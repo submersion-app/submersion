@@ -36,6 +36,7 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
   var _severity = IncidentSeverity.minor;
   DateTime _occurredAt = DateTime.now();
   var _loaded = false;
+  var _loadFailed = false;
 
   @override
   void initState() {
@@ -60,6 +61,13 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
               }
               _loaded = true;
             });
+          })
+          .catchError((Object _) {
+            if (!mounted) return;
+            setState(() {
+              _loadFailed = true;
+              _loaded = true;
+            });
           });
     }
   }
@@ -77,6 +85,20 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
     final l10n = context.l10n;
     if (!_loaded) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    // Edit route whose record could not be loaded (read error or a
+    // missing/deleted incident). Never fall through to the create form: its
+    // title would read "Edit" while Save silently created a NEW record.
+    if (widget.incidentId != null && _existing == null) {
+      return Scaffold(
+        appBar: AppBar(title: Text(l10n.incidentEdit_title_edit)),
+        body: Center(
+          child: Text(
+            _loadFailed ? l10n.common_error_tryAgain : l10n.incidents_notFound,
+          ),
+        ),
+      );
     }
 
     return Scaffold(

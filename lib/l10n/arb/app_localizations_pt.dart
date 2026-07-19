@@ -12048,6 +12048,9 @@ class AppLocalizationsPt extends AppLocalizations {
       'Excluir este relato de quase acidente?';
 
   @override
+  String get incidents_notFound => 'Relatório de quase acidente não encontrado';
+
+  @override
   String get incidentEdit_title_new => 'Registrar quase acidente';
 
   @override

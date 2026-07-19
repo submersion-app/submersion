@@ -56,6 +56,7 @@ void main() {
     'tank_pressure_profiles': 'tankPressureProfiles',
     'tide_records': 'tideRecords',
     'sightings': 'sightings',
+    'incidents': 'incidents',
     'certifications': 'certifications',
     'service_records': 'serviceRecords',
     'settings': 'settings',

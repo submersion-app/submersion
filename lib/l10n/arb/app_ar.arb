@@ -5860,6 +5860,7 @@
   "incidents_add": "تسجيل حادث وشيك",
   "incidents_linkedDive": "مرتبط بغطسة",
   "incidents_delete_confirm": "حذف تقرير الحادث الوشيك هذا؟",
+  "incidents_notFound": "لم يتم العثور على تقرير الحادث الوشيك",
   "incidentEdit_title_new": "تسجيل حادث وشيك",
   "incidentEdit_title_edit": "تعديل الحادث الوشيك",
   "incidentEdit_category": "الفئة",

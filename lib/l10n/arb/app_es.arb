@@ -5860,6 +5860,7 @@
   "incidents_add": "Registrar casi incidente",
   "incidents_linkedDive": "Vinculado a una inmersión",
   "incidents_delete_confirm": "¿Eliminar este informe de casi incidente?",
+  "incidents_notFound": "Informe de casi accidente no encontrado",
   "incidentEdit_title_new": "Registrar casi incidente",
   "incidentEdit_title_edit": "Editar casi incidente",
   "incidentEdit_category": "Categoría",

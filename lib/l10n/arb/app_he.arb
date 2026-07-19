@@ -5860,6 +5860,7 @@
   "incidents_add": "רישום כמעט-תאונה",
   "incidents_linkedDive": "מקושר לצלילה",
   "incidents_delete_confirm": "למחוק דוח כמעט-תאונה זה?",
+  "incidents_notFound": "דוח כמעט-תאונה לא נמצא",
   "incidentEdit_title_new": "רישום כמעט-תאונה",
   "incidentEdit_title_edit": "עריכת כמעט-תאונה",
   "incidentEdit_category": "קטגוריה",

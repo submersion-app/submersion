@@ -12048,6 +12048,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Eliminare questo rapporto di quasi incidente?';
 
   @override
+  String get incidents_notFound =>
+      'Segnalazione di quasi incidente non trovata';
+
+  @override
   String get incidentEdit_title_new => 'Registra quasi incidente';
 
   @override

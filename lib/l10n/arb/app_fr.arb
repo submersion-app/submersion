@@ -5860,6 +5860,7 @@
   "incidents_add": "Consigner un presque-accident",
   "incidents_linkedDive": "Lié à une plongée",
   "incidents_delete_confirm": "Supprimer ce rapport de presque-accident ?",
+  "incidents_notFound": "Rapport de presque-accident introuvable",
   "incidentEdit_title_new": "Consigner un presque-accident",
   "incidentEdit_title_edit": "Modifier le presque-accident",
   "incidentEdit_category": "Catégorie",

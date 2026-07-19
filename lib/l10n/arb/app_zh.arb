@@ -5860,6 +5860,7 @@
   "incidents_add": "记录未遂事件",
   "incidents_linkedDive": "已关联潜水",
   "incidents_delete_confirm": "删除此未遂事件报告?",
+  "incidents_notFound": "未找到未遂事件记录",
   "incidentEdit_title_new": "记录未遂事件",
   "incidentEdit_title_edit": "编辑未遂事件",
   "incidentEdit_category": "类别",
