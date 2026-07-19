@@ -13111,5 +13111,96 @@
         "type": "String"
       }
     }
-  }
+  },
+  "emergencyCard_title": "Emergency",
+  "emergencyCard_callDan": "Call {name}",
+  "@emergencyCard_callDan": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_callDan_subtitle": "Diver emergency hotline. Call first: they coordinate evacuation and chamber referral.",
+  "emergencyCard_ems": "Local emergency services: {number}",
+  "@emergencyCard_ems": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_diverSection": "Diver",
+  "emergencyCard_bloodType": "Blood type: {value}",
+  "@emergencyCard_bloodType": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_allergies": "Allergies: {value}",
+  "@emergencyCard_allergies": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_medications": "Medications: {value}",
+  "@emergencyCard_medications": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_contactsSection": "Emergency contacts",
+  "emergencyCard_insuranceSection": "Dive insurance",
+  "emergencyCard_insurancePolicy": "Policy {number}",
+  "@emergencyCard_insurancePolicy": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_chambersSection": "Hyperbaric chambers",
+  "emergencyCard_chambersNote": "Availability changes. Always call the diver emergency hotline first for referral.",
+  "emergencyCard_chamberVerified": "Details verified {date}",
+  "@emergencyCard_chamberVerified": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_hideChamber": "Hide",
+  "emergencyCard_chamberHidden": "Chamber hidden",
+  "emergencyCard_undo": "Undo",
+  "emergencyCard_addChamber": "Add chamber",
+  "emergencyCard_deleteChamber": "Delete",
+  "emergencyCard_regionLabel": "Region: {region}",
+  "@emergencyCard_regionLabel": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_regionUnknown": "Region unknown - using worldwide hotline",
+  "emergencyCard_noDiverData": "No diver profile data. Add emergency contacts, medical and insurance details in Diver Profile settings.",
+  "addChamber_title": "Add chamber",
+  "addChamber_name": "Name",
+  "addChamber_country": "Country code (e.g. US)",
+  "addChamber_city": "City",
+  "addChamber_phone": "Phone",
+  "addChamber_notes": "Notes",
+  "addChamber_save": "Save",
+  "addChamber_nameRequired": "Name is required",
+  "addChamber_countryRequired": "Country code is required",
+  "addChamber_phoneRequired": "Phone number is required",
+  "safetyHub_emergencyCardLink": "Emergency card",
+  "safetyHub_emergencyCardLink_subtitle": "Offline: hotline, EMS, chambers, your medical and insurance details",
+  "dashboard_quickAction_emergency": "Emergency card"
 }

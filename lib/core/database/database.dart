@@ -1311,6 +1311,10 @@ class DiverSettings extends Table {
   // Flying-after-diving conservatism (NoFlyPreset.dbValue, v125).
   TextColumn get noFlyPreset =>
       text().withDefault(const Constant('standard'))();
+  // Emergency card (v126): hidden bundled chamber ids (JSON list) and a
+  // manual region override (ISO country code).
+  TextColumn get hiddenChamberIds => text().nullable()();
+  TextColumn get emergencyRegion => text().nullable()();
   // Appearance settings
   BoolColumn get showDepthColoredDiveCards =>
       boolean().withDefault(const Constant(false))();
@@ -1970,6 +1974,28 @@ class DiveSafetyFindings extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// User-added hyperbaric chamber entries for the offline emergency card
+/// (bundled chambers stay asset-resident). Aggregate root with HLC for
+/// cross-device conflict resolution.
+class EmergencyChambers extends Table {
+  TextColumn get id => text()();
+  TextColumn get diverId =>
+      text().nullable().references(Divers, #id, onDelete: KeyAction.cascade)();
+  TextColumn get name => text()();
+  TextColumn get country => text()();
+  TextColumn get city => text().nullable()();
+  TextColumn get phone => text()();
+  RealColumn get latitude => real().nullable()();
+  RealColumn get longitude => real().nullable()();
+  TextColumn get notes => text().nullable()();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Gas switches during a dive
 class GasSwitches extends Table {
   TextColumn get id => text()();
@@ -2398,6 +2424,7 @@ class FieldPresets extends Table {
     DiveProfileEvents,
     DiveSafetyReviews,
     DiveSafetyFindings,
+    EmergencyChambers,
     GasSwitches,
     TankPressureProfiles,
     TideRecords,
@@ -2455,7 +2482,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 125;
+  static const int currentSchemaVersion = 126;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -2592,6 +2619,9 @@ class AppDatabase extends _$AppDatabase {
     // countdown). Renumbered from v117/v124 as main advanced past it at merge
     // time.
     125,
+    // v126: emergency_chambers table + emergency card settings columns
+    // (renumbered from v118 as main advanced past it at merge time).
+    126,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -2899,6 +2929,27 @@ class AppDatabase extends _$AppDatabase {
       await customStatement(
         "ALTER TABLE diver_settings ADD COLUMN no_fly_preset TEXT "
         "NOT NULL DEFAULT 'standard'",
+      );
+    }
+  }
+
+  /// v126: emergency_chambers table + emergency card settings columns.
+  /// Idempotent so it is safe to call from both onUpgrade and the
+  /// beforeOpen backstop.
+  Future<void> _assertEmergencyCardSchema() async {
+    await createMigrator().createTable(emergencyChambers);
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (cols.isNotEmpty && !names.contains('hidden_chamber_ids')) {
+      await customStatement(
+        'ALTER TABLE diver_settings ADD COLUMN hidden_chamber_ids TEXT',
+      );
+    }
+    if (cols.isNotEmpty && !names.contains('emergency_region')) {
+      await customStatement(
+        'ALTER TABLE diver_settings ADD COLUMN emergency_region TEXT',
       );
     }
   }
@@ -6198,6 +6249,12 @@ class AppDatabase extends _$AppDatabase {
           await _assertNoFlySettingsColumn();
         }
         if (from < 125) await reportProgress();
+        // v126: emergency_chambers table + emergency card settings columns
+        // (renumbered from v118 as main advanced past it at merge time).
+        if (from < 126) {
+          await _assertEmergencyCardSchema();
+        }
+        if (from < 126) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
@@ -6273,6 +6330,9 @@ class AppDatabase extends _$AppDatabase {
 
         // v125 backstop: re-assert diver_settings.no_fly_preset.
         await _assertNoFlySettingsColumn();
+
+        // v126 backstop: re-assert emergency card schema.
+        await _assertEmergencyCardSchema();
 
         // Built-in dive types are reference data: identical on every device and
         // undeletable through DiveTypeRepository. Nothing else restores them --

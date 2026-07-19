@@ -20909,4 +20909,130 @@ class AppLocalizationsDe extends AppLocalizations {
   String safetyHub_alert_noFly(String remaining) {
     return 'Flugverbot: noch $remaining';
   }
+
+  @override
+  String get emergencyCard_title => 'Notfall';
+
+  @override
+  String emergencyCard_callDan(String name) {
+    return '$name anrufen';
+  }
+
+  @override
+  String get emergencyCard_callDan_subtitle =>
+      'Taucher-Notfallhotline. Zuerst anrufen: sie koordiniert Evakuierung und Kammerzuweisung.';
+
+  @override
+  String emergencyCard_ems(String number) {
+    return 'Örtlicher Notruf: $number';
+  }
+
+  @override
+  String get emergencyCard_diverSection => 'Taucher';
+
+  @override
+  String emergencyCard_bloodType(String value) {
+    return 'Blutgruppe: $value';
+  }
+
+  @override
+  String emergencyCard_allergies(String value) {
+    return 'Allergien: $value';
+  }
+
+  @override
+  String emergencyCard_medications(String value) {
+    return 'Medikamente: $value';
+  }
+
+  @override
+  String get emergencyCard_contactsSection => 'Notfallkontakte';
+
+  @override
+  String get emergencyCard_insuranceSection => 'Tauchversicherung';
+
+  @override
+  String emergencyCard_insurancePolicy(String number) {
+    return 'Police $number';
+  }
+
+  @override
+  String get emergencyCard_chambersSection => 'Druckkammern';
+
+  @override
+  String get emergencyCard_chambersNote =>
+      'Verfügbarkeit ändert sich. Immer zuerst die Taucher-Notfallhotline zur Zuweisung anrufen.';
+
+  @override
+  String emergencyCard_chamberVerified(String date) {
+    return 'Angaben geprüft $date';
+  }
+
+  @override
+  String get emergencyCard_hideChamber => 'Ausblenden';
+
+  @override
+  String get emergencyCard_chamberHidden => 'Kammer ausgeblendet';
+
+  @override
+  String get emergencyCard_undo => 'Rückgängig';
+
+  @override
+  String get emergencyCard_addChamber => 'Kammer hinzufügen';
+
+  @override
+  String get emergencyCard_deleteChamber => 'Löschen';
+
+  @override
+  String emergencyCard_regionLabel(String region) {
+    return 'Region: $region';
+  }
+
+  @override
+  String get emergencyCard_regionUnknown =>
+      'Region unbekannt - weltweite Hotline wird verwendet';
+
+  @override
+  String get emergencyCard_noDiverData =>
+      'Keine Taucherprofildaten. Notfallkontakte, medizinische Daten und Versicherung im Taucherprofil hinterlegen.';
+
+  @override
+  String get addChamber_title => 'Kammer hinzufügen';
+
+  @override
+  String get addChamber_name => 'Name';
+
+  @override
+  String get addChamber_country => 'Ländercode (z. B. DE)';
+
+  @override
+  String get addChamber_city => 'Stadt';
+
+  @override
+  String get addChamber_phone => 'Telefon';
+
+  @override
+  String get addChamber_notes => 'Notizen';
+
+  @override
+  String get addChamber_save => 'Speichern';
+
+  @override
+  String get addChamber_nameRequired => 'Name ist erforderlich';
+
+  @override
+  String get addChamber_countryRequired => 'Ländercode ist erforderlich';
+
+  @override
+  String get addChamber_phoneRequired => 'Telefonnummer ist erforderlich';
+
+  @override
+  String get safetyHub_emergencyCardLink => 'Notfallkarte';
+
+  @override
+  String get safetyHub_emergencyCardLink_subtitle =>
+      'Offline: Hotline, Notruf, Kammern, deine medizinischen und Versicherungsdaten';
+
+  @override
+  String get dashboard_quickAction_emergency => 'Notfallkarte';
 }

@@ -68,6 +68,18 @@ class _SafetyHubPageState extends ConsumerState<SafetyHubPage> {
           const SizedBox(height: 16),
           Card(
             child: ListTile(
+              leading: Icon(
+                Icons.emergency_outlined,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              title: Text(l10n.safetyHub_emergencyCardLink),
+              subtitle: Text(l10n.safetyHub_emergencyCardLink_subtitle),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.push('/safety/emergency-card'),
+            ),
+          ),
+          Card(
+            child: ListTile(
               leading: const Icon(Icons.hourglass_bottom),
               title: Text(l10n.safetyHub_surfaceIntervalLink),
               subtitle: Text(l10n.safetyHub_surfaceIntervalLink_subtitle),

@@ -20944,4 +20944,130 @@ class AppLocalizationsIt extends AppLocalizations {
   String safetyHub_alert_noFly(String remaining) {
     return 'No-fly: mancano $remaining';
   }
+
+  @override
+  String get emergencyCard_title => 'Emergenza';
+
+  @override
+  String emergencyCard_callDan(String name) {
+    return 'Chiama $name';
+  }
+
+  @override
+  String get emergencyCard_callDan_subtitle =>
+      'Linea di emergenza subacquei. Chiama prima: coordinano evacuazione e invio in camera iperbarica.';
+
+  @override
+  String emergencyCard_ems(String number) {
+    return 'Emergenze locali: $number';
+  }
+
+  @override
+  String get emergencyCard_diverSection => 'Subacqueo';
+
+  @override
+  String emergencyCard_bloodType(String value) {
+    return 'Gruppo sanguigno: $value';
+  }
+
+  @override
+  String emergencyCard_allergies(String value) {
+    return 'Allergie: $value';
+  }
+
+  @override
+  String emergencyCard_medications(String value) {
+    return 'Farmaci: $value';
+  }
+
+  @override
+  String get emergencyCard_contactsSection => 'Contatti di emergenza';
+
+  @override
+  String get emergencyCard_insuranceSection => 'Assicurazione subacquea';
+
+  @override
+  String emergencyCard_insurancePolicy(String number) {
+    return 'Polizza $number';
+  }
+
+  @override
+  String get emergencyCard_chambersSection => 'Camere iperbariche';
+
+  @override
+  String get emergencyCard_chambersNote =>
+      'La disponibilità cambia. Chiama sempre prima la linea di emergenza subacquei per l\'invio.';
+
+  @override
+  String emergencyCard_chamberVerified(String date) {
+    return 'Dati verificati $date';
+  }
+
+  @override
+  String get emergencyCard_hideChamber => 'Nascondi';
+
+  @override
+  String get emergencyCard_chamberHidden => 'Camera nascosta';
+
+  @override
+  String get emergencyCard_undo => 'Annulla';
+
+  @override
+  String get emergencyCard_addChamber => 'Aggiungi camera';
+
+  @override
+  String get emergencyCard_deleteChamber => 'Elimina';
+
+  @override
+  String emergencyCard_regionLabel(String region) {
+    return 'Regione: $region';
+  }
+
+  @override
+  String get emergencyCard_regionUnknown =>
+      'Regione sconosciuta: si usa la linea mondiale';
+
+  @override
+  String get emergencyCard_noDiverData =>
+      'Nessun dato del profilo subacqueo. Aggiungi contatti di emergenza, dati medici e assicurazione nel profilo subacqueo.';
+
+  @override
+  String get addChamber_title => 'Aggiungi camera';
+
+  @override
+  String get addChamber_name => 'Nome';
+
+  @override
+  String get addChamber_country => 'Codice paese (es. IT)';
+
+  @override
+  String get addChamber_city => 'Città';
+
+  @override
+  String get addChamber_phone => 'Telefono';
+
+  @override
+  String get addChamber_notes => 'Note';
+
+  @override
+  String get addChamber_save => 'Salva';
+
+  @override
+  String get addChamber_nameRequired => 'Il nome è obbligatorio';
+
+  @override
+  String get addChamber_countryRequired => 'Il codice paese è obbligatorio';
+
+  @override
+  String get addChamber_phoneRequired => 'Il numero di telefono è obbligatorio';
+
+  @override
+  String get safetyHub_emergencyCardLink => 'Scheda di emergenza';
+
+  @override
+  String get safetyHub_emergencyCardLink_subtitle =>
+      'Offline: linea diretta, emergenze, camere, i tuoi dati medici e assicurativi';
+
+  @override
+  String get dashboard_quickAction_emergency => 'Scheda di emergenza';
 }

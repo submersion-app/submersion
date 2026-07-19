@@ -6175,5 +6175,96 @@
     }
   },
   "diveLog_detail_altitudeMismatch_title": "Il sito è in quota",
-  "diveLog_detail_altitudeMismatch_subtitle": "Questo sito registra un'altitudine ma l'immersione non ne ha una, quindi l'analisi di decompressione ha assunto il livello del mare. Imposta l'altitudine dell'immersione per correggere."
+  "diveLog_detail_altitudeMismatch_subtitle": "Questo sito registra un'altitudine ma l'immersione non ne ha una, quindi l'analisi di decompressione ha assunto il livello del mare. Imposta l'altitudine dell'immersione per correggere.",
+  "emergencyCard_title": "Emergenza",
+  "emergencyCard_callDan": "Chiama {name}",
+  "@emergencyCard_callDan": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_callDan_subtitle": "Linea di emergenza subacquei. Chiama prima: coordinano evacuazione e invio in camera iperbarica.",
+  "emergencyCard_ems": "Emergenze locali: {number}",
+  "@emergencyCard_ems": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_diverSection": "Subacqueo",
+  "emergencyCard_bloodType": "Gruppo sanguigno: {value}",
+  "@emergencyCard_bloodType": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_allergies": "Allergie: {value}",
+  "@emergencyCard_allergies": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_medications": "Farmaci: {value}",
+  "@emergencyCard_medications": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_contactsSection": "Contatti di emergenza",
+  "emergencyCard_insuranceSection": "Assicurazione subacquea",
+  "emergencyCard_insurancePolicy": "Polizza {number}",
+  "@emergencyCard_insurancePolicy": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_chambersSection": "Camere iperbariche",
+  "emergencyCard_chambersNote": "La disponibilità cambia. Chiama sempre prima la linea di emergenza subacquei per l'invio.",
+  "emergencyCard_chamberVerified": "Dati verificati {date}",
+  "@emergencyCard_chamberVerified": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_hideChamber": "Nascondi",
+  "emergencyCard_chamberHidden": "Camera nascosta",
+  "emergencyCard_undo": "Annulla",
+  "emergencyCard_addChamber": "Aggiungi camera",
+  "emergencyCard_deleteChamber": "Elimina",
+  "emergencyCard_regionLabel": "Regione: {region}",
+  "@emergencyCard_regionLabel": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_regionUnknown": "Regione sconosciuta: si usa la linea mondiale",
+  "emergencyCard_noDiverData": "Nessun dato del profilo subacqueo. Aggiungi contatti di emergenza, dati medici e assicurazione nel profilo subacqueo.",
+  "addChamber_title": "Aggiungi camera",
+  "addChamber_name": "Nome",
+  "addChamber_country": "Codice paese (es. IT)",
+  "addChamber_city": "Città",
+  "addChamber_phone": "Telefono",
+  "addChamber_notes": "Note",
+  "addChamber_save": "Salva",
+  "addChamber_nameRequired": "Il nome è obbligatorio",
+  "addChamber_countryRequired": "Il codice paese è obbligatorio",
+  "addChamber_phoneRequired": "Il numero di telefono è obbligatorio",
+  "safetyHub_emergencyCardLink": "Scheda di emergenza",
+  "safetyHub_emergencyCardLink_subtitle": "Offline: linea diretta, emergenze, camere, i tuoi dati medici e assicurativi",
+  "dashboard_quickAction_emergency": "Scheda di emergenza"
 }

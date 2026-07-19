@@ -6175,5 +6175,96 @@
     }
   },
   "diveLog_detail_altitudeMismatch_title": "El punto de buceo está en altitud",
-  "diveLog_detail_altitudeMismatch_subtitle": "Este punto registra una altitud pero la inmersión no tiene ninguna, así que el análisis de descompresión asumió nivel del mar. Establece la altitud de la inmersión para corregirlo."
+  "diveLog_detail_altitudeMismatch_subtitle": "Este punto registra una altitud pero la inmersión no tiene ninguna, así que el análisis de descompresión asumió nivel del mar. Establece la altitud de la inmersión para corregirlo.",
+  "emergencyCard_title": "Emergencia",
+  "emergencyCard_callDan": "Llamar a {name}",
+  "@emergencyCard_callDan": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_callDan_subtitle": "Línea de emergencias para buceadores. Llama primero: coordinan la evacuación y la derivación a cámara.",
+  "emergencyCard_ems": "Emergencias locales: {number}",
+  "@emergencyCard_ems": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_diverSection": "Buceador",
+  "emergencyCard_bloodType": "Grupo sanguíneo: {value}",
+  "@emergencyCard_bloodType": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_allergies": "Alergias: {value}",
+  "@emergencyCard_allergies": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_medications": "Medicación: {value}",
+  "@emergencyCard_medications": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_contactsSection": "Contactos de emergencia",
+  "emergencyCard_insuranceSection": "Seguro de buceo",
+  "emergencyCard_insurancePolicy": "Póliza {number}",
+  "@emergencyCard_insurancePolicy": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_chambersSection": "Cámaras hiperbáricas",
+  "emergencyCard_chambersNote": "La disponibilidad cambia. Llama siempre primero a la línea de emergencias para buceadores para la derivación.",
+  "emergencyCard_chamberVerified": "Datos verificados {date}",
+  "@emergencyCard_chamberVerified": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_hideChamber": "Ocultar",
+  "emergencyCard_chamberHidden": "Cámara ocultada",
+  "emergencyCard_undo": "Deshacer",
+  "emergencyCard_addChamber": "Añadir cámara",
+  "emergencyCard_deleteChamber": "Eliminar",
+  "emergencyCard_regionLabel": "Región: {region}",
+  "@emergencyCard_regionLabel": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_regionUnknown": "Región desconocida: se usa la línea mundial",
+  "emergencyCard_noDiverData": "Sin datos del perfil del buceador. Añade contactos de emergencia, datos médicos y seguro en Perfil del buceador.",
+  "addChamber_title": "Añadir cámara",
+  "addChamber_name": "Nombre",
+  "addChamber_country": "Código de país (p. ej. ES)",
+  "addChamber_city": "Ciudad",
+  "addChamber_phone": "Teléfono",
+  "addChamber_notes": "Notas",
+  "addChamber_save": "Guardar",
+  "addChamber_nameRequired": "El nombre es obligatorio",
+  "addChamber_countryRequired": "El código de país es obligatorio",
+  "addChamber_phoneRequired": "El número de teléfono es obligatorio",
+  "safetyHub_emergencyCardLink": "Tarjeta de emergencia",
+  "safetyHub_emergencyCardLink_subtitle": "Sin conexión: línea directa, emergencias, cámaras, tus datos médicos y de seguro",
+  "dashboard_quickAction_emergency": "Tarjeta de emergencia"
 }

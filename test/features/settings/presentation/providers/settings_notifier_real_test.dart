@@ -117,6 +117,35 @@ void main() {
       expect(container.read(settingsProvider).showDetailsPaneDives, isTrue);
     });
 
+    test('setChamberHidden toggles hidden chamber ids', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(container.read(settingsProvider).hiddenChamberIds, isEmpty);
+      await container
+          .read(settingsProvider.notifier)
+          .setChamberHidden('au-townsville', true);
+      expect(
+        container.read(settingsProvider).hiddenChamberIds,
+        contains('au-townsville'),
+      );
+      await container
+          .read(settingsProvider.notifier)
+          .setChamberHidden('au-townsville', false);
+      expect(container.read(settingsProvider).hiddenChamberIds, isEmpty);
+    });
+
+    test('setEmergencyRegion sets and clears the override', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(container.read(settingsProvider).emergencyRegion, isNull);
+      await container.read(settingsProvider.notifier).setEmergencyRegion('US');
+      expect(container.read(settingsProvider).emergencyRegion, 'US');
+      await container.read(settingsProvider.notifier).setEmergencyRegion(null);
+      expect(container.read(settingsProvider).emergencyRegion, isNull);
+    });
+
     test('sets siteMatchSensitivity', () async {
       container.read(settingsProvider.notifier);
       await waitForInit();

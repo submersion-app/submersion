@@ -20955,4 +20955,130 @@ class AppLocalizationsEs extends AppLocalizations {
   String safetyHub_alert_noFly(String remaining) {
     return 'No volar: quedan $remaining';
   }
+
+  @override
+  String get emergencyCard_title => 'Emergencia';
+
+  @override
+  String emergencyCard_callDan(String name) {
+    return 'Llamar a $name';
+  }
+
+  @override
+  String get emergencyCard_callDan_subtitle =>
+      'Línea de emergencias para buceadores. Llama primero: coordinan la evacuación y la derivación a cámara.';
+
+  @override
+  String emergencyCard_ems(String number) {
+    return 'Emergencias locales: $number';
+  }
+
+  @override
+  String get emergencyCard_diverSection => 'Buceador';
+
+  @override
+  String emergencyCard_bloodType(String value) {
+    return 'Grupo sanguíneo: $value';
+  }
+
+  @override
+  String emergencyCard_allergies(String value) {
+    return 'Alergias: $value';
+  }
+
+  @override
+  String emergencyCard_medications(String value) {
+    return 'Medicación: $value';
+  }
+
+  @override
+  String get emergencyCard_contactsSection => 'Contactos de emergencia';
+
+  @override
+  String get emergencyCard_insuranceSection => 'Seguro de buceo';
+
+  @override
+  String emergencyCard_insurancePolicy(String number) {
+    return 'Póliza $number';
+  }
+
+  @override
+  String get emergencyCard_chambersSection => 'Cámaras hiperbáricas';
+
+  @override
+  String get emergencyCard_chambersNote =>
+      'La disponibilidad cambia. Llama siempre primero a la línea de emergencias para buceadores para la derivación.';
+
+  @override
+  String emergencyCard_chamberVerified(String date) {
+    return 'Datos verificados $date';
+  }
+
+  @override
+  String get emergencyCard_hideChamber => 'Ocultar';
+
+  @override
+  String get emergencyCard_chamberHidden => 'Cámara ocultada';
+
+  @override
+  String get emergencyCard_undo => 'Deshacer';
+
+  @override
+  String get emergencyCard_addChamber => 'Añadir cámara';
+
+  @override
+  String get emergencyCard_deleteChamber => 'Eliminar';
+
+  @override
+  String emergencyCard_regionLabel(String region) {
+    return 'Región: $region';
+  }
+
+  @override
+  String get emergencyCard_regionUnknown =>
+      'Región desconocida: se usa la línea mundial';
+
+  @override
+  String get emergencyCard_noDiverData =>
+      'Sin datos del perfil del buceador. Añade contactos de emergencia, datos médicos y seguro en Perfil del buceador.';
+
+  @override
+  String get addChamber_title => 'Añadir cámara';
+
+  @override
+  String get addChamber_name => 'Nombre';
+
+  @override
+  String get addChamber_country => 'Código de país (p. ej. ES)';
+
+  @override
+  String get addChamber_city => 'Ciudad';
+
+  @override
+  String get addChamber_phone => 'Teléfono';
+
+  @override
+  String get addChamber_notes => 'Notas';
+
+  @override
+  String get addChamber_save => 'Guardar';
+
+  @override
+  String get addChamber_nameRequired => 'El nombre es obligatorio';
+
+  @override
+  String get addChamber_countryRequired => 'El código de país es obligatorio';
+
+  @override
+  String get addChamber_phoneRequired => 'El número de teléfono es obligatorio';
+
+  @override
+  String get safetyHub_emergencyCardLink => 'Tarjeta de emergencia';
+
+  @override
+  String get safetyHub_emergencyCardLink_subtitle =>
+      'Sin conexión: línea directa, emergencias, cámaras, tus datos médicos y de seguro';
+
+  @override
+  String get dashboard_quickAction_emergency => 'Tarjeta de emergencia';
 }

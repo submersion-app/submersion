@@ -35051,6 +35051,216 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No-fly: {remaining} remaining'**
   String safetyHub_alert_noFly(String remaining);
+
+  /// No description provided for @emergencyCard_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency'**
+  String get emergencyCard_title;
+
+  /// No description provided for @emergencyCard_callDan.
+  ///
+  /// In en, this message translates to:
+  /// **'Call {name}'**
+  String emergencyCard_callDan(String name);
+
+  /// No description provided for @emergencyCard_callDan_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Diver emergency hotline. Call first: they coordinate evacuation and chamber referral.'**
+  String get emergencyCard_callDan_subtitle;
+
+  /// No description provided for @emergencyCard_ems.
+  ///
+  /// In en, this message translates to:
+  /// **'Local emergency services: {number}'**
+  String emergencyCard_ems(String number);
+
+  /// No description provided for @emergencyCard_diverSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Diver'**
+  String get emergencyCard_diverSection;
+
+  /// No description provided for @emergencyCard_bloodType.
+  ///
+  /// In en, this message translates to:
+  /// **'Blood type: {value}'**
+  String emergencyCard_bloodType(String value);
+
+  /// No description provided for @emergencyCard_allergies.
+  ///
+  /// In en, this message translates to:
+  /// **'Allergies: {value}'**
+  String emergencyCard_allergies(String value);
+
+  /// No description provided for @emergencyCard_medications.
+  ///
+  /// In en, this message translates to:
+  /// **'Medications: {value}'**
+  String emergencyCard_medications(String value);
+
+  /// No description provided for @emergencyCard_contactsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency contacts'**
+  String get emergencyCard_contactsSection;
+
+  /// No description provided for @emergencyCard_insuranceSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive insurance'**
+  String get emergencyCard_insuranceSection;
+
+  /// No description provided for @emergencyCard_insurancePolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Policy {number}'**
+  String emergencyCard_insurancePolicy(String number);
+
+  /// No description provided for @emergencyCard_chambersSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Hyperbaric chambers'**
+  String get emergencyCard_chambersSection;
+
+  /// No description provided for @emergencyCard_chambersNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Availability changes. Always call the diver emergency hotline first for referral.'**
+  String get emergencyCard_chambersNote;
+
+  /// No description provided for @emergencyCard_chamberVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Details verified {date}'**
+  String emergencyCard_chamberVerified(String date);
+
+  /// No description provided for @emergencyCard_hideChamber.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide'**
+  String get emergencyCard_hideChamber;
+
+  /// No description provided for @emergencyCard_chamberHidden.
+  ///
+  /// In en, this message translates to:
+  /// **'Chamber hidden'**
+  String get emergencyCard_chamberHidden;
+
+  /// No description provided for @emergencyCard_undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get emergencyCard_undo;
+
+  /// No description provided for @emergencyCard_addChamber.
+  ///
+  /// In en, this message translates to:
+  /// **'Add chamber'**
+  String get emergencyCard_addChamber;
+
+  /// No description provided for @emergencyCard_deleteChamber.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get emergencyCard_deleteChamber;
+
+  /// No description provided for @emergencyCard_regionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Region: {region}'**
+  String emergencyCard_regionLabel(String region);
+
+  /// No description provided for @emergencyCard_regionUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Region unknown - using worldwide hotline'**
+  String get emergencyCard_regionUnknown;
+
+  /// No description provided for @emergencyCard_noDiverData.
+  ///
+  /// In en, this message translates to:
+  /// **'No diver profile data. Add emergency contacts, medical and insurance details in Diver Profile settings.'**
+  String get emergencyCard_noDiverData;
+
+  /// No description provided for @addChamber_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Add chamber'**
+  String get addChamber_title;
+
+  /// No description provided for @addChamber_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get addChamber_name;
+
+  /// No description provided for @addChamber_country.
+  ///
+  /// In en, this message translates to:
+  /// **'Country code (e.g. US)'**
+  String get addChamber_country;
+
+  /// No description provided for @addChamber_city.
+  ///
+  /// In en, this message translates to:
+  /// **'City'**
+  String get addChamber_city;
+
+  /// No description provided for @addChamber_phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get addChamber_phone;
+
+  /// No description provided for @addChamber_notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get addChamber_notes;
+
+  /// No description provided for @addChamber_save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get addChamber_save;
+
+  /// No description provided for @addChamber_nameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Name is required'**
+  String get addChamber_nameRequired;
+
+  /// No description provided for @addChamber_countryRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Country code is required'**
+  String get addChamber_countryRequired;
+
+  /// No description provided for @addChamber_phoneRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone number is required'**
+  String get addChamber_phoneRequired;
+
+  /// No description provided for @safetyHub_emergencyCardLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency card'**
+  String get safetyHub_emergencyCardLink;
+
+  /// No description provided for @safetyHub_emergencyCardLink_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline: hotline, EMS, chambers, your medical and insurance details'**
+  String get safetyHub_emergencyCardLink_subtitle;
+
+  /// No description provided for @dashboard_quickAction_emergency.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency card'**
+  String get dashboard_quickAction_emergency;
 }
 
 class _AppLocalizationsDelegate

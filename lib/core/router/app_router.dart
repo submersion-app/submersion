@@ -92,6 +92,8 @@ import 'package:submersion/features/settings/presentation/pages/appearance_page.
 import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
 import 'package:submersion/features/settings/presentation/pages/default_visible_metrics_page.dart';
 import 'package:submersion/features/settings/presentation/pages/dive_detail_sections_page.dart';
+import 'package:submersion/features/safety/presentation/pages/add_chamber_page.dart';
+import 'package:submersion/features/safety/presentation/pages/emergency_card_page.dart';
 import 'package:submersion/features/safety/presentation/pages/safety_hub_page.dart';
 import 'package:submersion/features/settings/presentation/pages/safety_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
@@ -805,6 +807,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/safety',
             name: 'safety',
             builder: (context, state) => const SafetyHubPage(),
+            routes: [
+              GoRoute(
+                path: 'emergency-card',
+                name: 'emergencyCard',
+                builder: (context, state) => const EmergencyCardPage(),
+                routes: [
+                  GoRoute(
+                    path: 'add-chamber',
+                    name: 'addChamber',
+                    builder: (context, state) => const AddChamberPage(),
+                  ),
+                ],
+              ),
+            ],
           ),
 
           // Settings

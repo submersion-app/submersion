@@ -19883,4 +19883,125 @@ class AppLocalizationsZh extends AppLocalizations {
   String safetyHub_alert_noFly(String remaining) {
     return '禁飞:剩余 $remaining';
   }
+
+  @override
+  String get emergencyCard_title => '紧急情况';
+
+  @override
+  String emergencyCard_callDan(String name) {
+    return '呼叫 $name';
+  }
+
+  @override
+  String get emergencyCard_callDan_subtitle => '潜水员紧急热线。请先拨打:他们负责协调撤离和减压舱转诊。';
+
+  @override
+  String emergencyCard_ems(String number) {
+    return '当地急救电话:$number';
+  }
+
+  @override
+  String get emergencyCard_diverSection => '潜水员';
+
+  @override
+  String emergencyCard_bloodType(String value) {
+    return '血型:$value';
+  }
+
+  @override
+  String emergencyCard_allergies(String value) {
+    return '过敏:$value';
+  }
+
+  @override
+  String emergencyCard_medications(String value) {
+    return '用药:$value';
+  }
+
+  @override
+  String get emergencyCard_contactsSection => '紧急联系人';
+
+  @override
+  String get emergencyCard_insuranceSection => '潜水保险';
+
+  @override
+  String emergencyCard_insurancePolicy(String number) {
+    return '保单 $number';
+  }
+
+  @override
+  String get emergencyCard_chambersSection => '高压氧舱';
+
+  @override
+  String get emergencyCard_chambersNote => '可用性会变化。转诊请务必先拨打潜水员紧急热线。';
+
+  @override
+  String emergencyCard_chamberVerified(String date) {
+    return '信息核实于 $date';
+  }
+
+  @override
+  String get emergencyCard_hideChamber => '隐藏';
+
+  @override
+  String get emergencyCard_chamberHidden => '已隐藏氧舱';
+
+  @override
+  String get emergencyCard_undo => '撤消';
+
+  @override
+  String get emergencyCard_addChamber => '添加减压舱';
+
+  @override
+  String get emergencyCard_deleteChamber => '删除';
+
+  @override
+  String emergencyCard_regionLabel(String region) {
+    return '区域:$region';
+  }
+
+  @override
+  String get emergencyCard_regionUnknown => '区域未知 - 使用全球热线';
+
+  @override
+  String get emergencyCard_noDiverData => '无潜水员资料。请在潜水员资料设置中添加紧急联系人、医疗和保险信息。';
+
+  @override
+  String get addChamber_title => '添加减压舱';
+
+  @override
+  String get addChamber_name => '名称';
+
+  @override
+  String get addChamber_country => '国家代码(如 CN)';
+
+  @override
+  String get addChamber_city => '城市';
+
+  @override
+  String get addChamber_phone => '电话';
+
+  @override
+  String get addChamber_notes => '备注';
+
+  @override
+  String get addChamber_save => '保存';
+
+  @override
+  String get addChamber_nameRequired => '名称为必填项';
+
+  @override
+  String get addChamber_countryRequired => '国家代码为必填项';
+
+  @override
+  String get addChamber_phoneRequired => '电话号码为必填项';
+
+  @override
+  String get safetyHub_emergencyCardLink => '紧急卡片';
+
+  @override
+  String get safetyHub_emergencyCardLink_subtitle => '离线可用:热线、急救、减压舱、你的医疗和保险信息';
+
+  @override
+  String get dashboard_quickAction_emergency => '紧急卡片';
 }

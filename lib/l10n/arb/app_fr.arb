@@ -6175,5 +6175,96 @@
     }
   },
   "diveLog_detail_altitudeMismatch_title": "Le site est en altitude",
-  "diveLog_detail_altitudeMismatch_subtitle": "Ce site indique une altitude mais la plongée n'en a aucune : l'analyse de décompression a supposé le niveau de la mer. Définissez l'altitude de la plongée pour corriger."
+  "diveLog_detail_altitudeMismatch_subtitle": "Ce site indique une altitude mais la plongée n'en a aucune : l'analyse de décompression a supposé le niveau de la mer. Définissez l'altitude de la plongée pour corriger.",
+  "emergencyCard_title": "Urgence",
+  "emergencyCard_callDan": "Appeler {name}",
+  "@emergencyCard_callDan": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_callDan_subtitle": "Ligne d'urgence plongeurs. Appelez d'abord : ils coordonnent l'évacuation et l'orientation vers un caisson.",
+  "emergencyCard_ems": "Secours locaux : {number}",
+  "@emergencyCard_ems": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_diverSection": "Plongeur",
+  "emergencyCard_bloodType": "Groupe sanguin : {value}",
+  "@emergencyCard_bloodType": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_allergies": "Allergies : {value}",
+  "@emergencyCard_allergies": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_medications": "Médicaments : {value}",
+  "@emergencyCard_medications": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_contactsSection": "Contacts d'urgence",
+  "emergencyCard_insuranceSection": "Assurance plongée",
+  "emergencyCard_insurancePolicy": "Police {number}",
+  "@emergencyCard_insurancePolicy": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_chambersSection": "Caissons hyperbares",
+  "emergencyCard_chambersNote": "La disponibilité évolue. Appelez toujours d'abord la ligne d'urgence plongeurs pour l'orientation.",
+  "emergencyCard_chamberVerified": "Coordonnées vérifiées {date}",
+  "@emergencyCard_chamberVerified": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_hideChamber": "Masquer",
+  "emergencyCard_chamberHidden": "Caisson masqué",
+  "emergencyCard_undo": "Annuler",
+  "emergencyCard_addChamber": "Ajouter un caisson",
+  "emergencyCard_deleteChamber": "Supprimer",
+  "emergencyCard_regionLabel": "Région : {region}",
+  "@emergencyCard_regionLabel": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_regionUnknown": "Région inconnue : ligne mondiale utilisée",
+  "emergencyCard_noDiverData": "Aucune donnée de profil plongeur. Ajoutez contacts d'urgence, données médicales et assurance dans le profil plongeur.",
+  "addChamber_title": "Ajouter un caisson",
+  "addChamber_name": "Nom",
+  "addChamber_country": "Code pays (ex. FR)",
+  "addChamber_city": "Ville",
+  "addChamber_phone": "Téléphone",
+  "addChamber_notes": "Notes",
+  "addChamber_save": "Enregistrer",
+  "addChamber_nameRequired": "Le nom est requis",
+  "addChamber_countryRequired": "Le code pays est requis",
+  "addChamber_phoneRequired": "Le numéro de téléphone est requis",
+  "safetyHub_emergencyCardLink": "Carte d'urgence",
+  "safetyHub_emergencyCardLink_subtitle": "Hors ligne : ligne directe, secours, caissons, vos données médicales et d'assurance",
+  "dashboard_quickAction_emergency": "Carte d'urgence"
 }

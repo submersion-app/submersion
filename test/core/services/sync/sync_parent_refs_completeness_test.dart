@@ -62,6 +62,7 @@ void main() {
     'media': 'media',
     'course_requirements': 'courseRequirements',
     'course_requirement_dives': 'courseRequirementDives',
+    'emergency_chambers': 'emergencyChambers',
   };
 
   // Parent table -> entityType for parents a user can delete (and thus

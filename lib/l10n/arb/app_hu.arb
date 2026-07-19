@@ -6175,5 +6175,96 @@
     }
   },
   "diveLog_detail_altitudeMismatch_title": "A merülőhely magaslaton fekszik",
-  "diveLog_detail_altitudeMismatch_subtitle": "Ehhez a helyhez magasság van rögzítve, a merüléshez azonban nincs, így a dekompressziós elemzés tengerszintet feltételezett. A javításhoz állítsd be a merülés magasságát."
+  "diveLog_detail_altitudeMismatch_subtitle": "Ehhez a helyhez magasság van rögzítve, a merüléshez azonban nincs, így a dekompressziós elemzés tengerszintet feltételezett. A javításhoz állítsd be a merülés magasságát.",
+  "emergencyCard_title": "Vészhelyzet",
+  "emergencyCard_callDan": "{name} hívása",
+  "@emergencyCard_callDan": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_callDan_subtitle": "Búvár segélyvonal. Először ezt hívd: ők koordinálják az evakuálást és a kamrába irányítást.",
+  "emergencyCard_ems": "Helyi segélyhívó: {number}",
+  "@emergencyCard_ems": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_diverSection": "Búvár",
+  "emergencyCard_bloodType": "Vércsoport: {value}",
+  "@emergencyCard_bloodType": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_allergies": "Allergiák: {value}",
+  "@emergencyCard_allergies": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_medications": "Gyógyszerek: {value}",
+  "@emergencyCard_medications": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_contactsSection": "Vészhelyzeti kapcsolatok",
+  "emergencyCard_insuranceSection": "Búvárbiztosítás",
+  "emergencyCard_insurancePolicy": "Kötvény: {number}",
+  "@emergencyCard_insurancePolicy": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_chambersSection": "Hiperbárikus kamrák",
+  "emergencyCard_chambersNote": "Az elérhetőség változik. Irányításért mindig először a búvár segélyvonalat hívd.",
+  "emergencyCard_chamberVerified": "Adatok ellenőrizve: {date}",
+  "@emergencyCard_chamberVerified": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_hideChamber": "Elrejtés",
+  "emergencyCard_chamberHidden": "Kamra elrejtve",
+  "emergencyCard_undo": "Visszavonás",
+  "emergencyCard_addChamber": "Kamra hozzáadása",
+  "emergencyCard_deleteChamber": "Törlés",
+  "emergencyCard_regionLabel": "Régió: {region}",
+  "@emergencyCard_regionLabel": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_regionUnknown": "Ismeretlen régió - a világméretű segélyvonal használata",
+  "emergencyCard_noDiverData": "Nincsenek búvárprofil-adatok. Add meg a vészhelyzeti kapcsolatokat, egészségügyi és biztosítási adatokat a búvárprofilban.",
+  "addChamber_title": "Kamra hozzáadása",
+  "addChamber_name": "Név",
+  "addChamber_country": "Országkód (pl. HU)",
+  "addChamber_city": "Város",
+  "addChamber_phone": "Telefon",
+  "addChamber_notes": "Jegyzetek",
+  "addChamber_save": "Mentés",
+  "addChamber_nameRequired": "A név megadása kötelező",
+  "addChamber_countryRequired": "Az országkód megadása kötelező",
+  "addChamber_phoneRequired": "A telefonszám megadása kötelező",
+  "safetyHub_emergencyCardLink": "Vészhelyzeti kártya",
+  "safetyHub_emergencyCardLink_subtitle": "Offline: segélyvonal, segélyhívó, kamrák, egészségügyi és biztosítási adataid",
+  "dashboard_quickAction_emergency": "Vészhelyzeti kártya"
 }

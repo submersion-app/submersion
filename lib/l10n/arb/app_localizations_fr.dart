@@ -21015,4 +21015,130 @@ class AppLocalizationsFr extends AppLocalizations {
   String safetyHub_alert_noFly(String remaining) {
     return 'Interdiction de vol : $remaining restant';
   }
+
+  @override
+  String get emergencyCard_title => 'Urgence';
+
+  @override
+  String emergencyCard_callDan(String name) {
+    return 'Appeler $name';
+  }
+
+  @override
+  String get emergencyCard_callDan_subtitle =>
+      'Ligne d\'urgence plongeurs. Appelez d\'abord : ils coordonnent l\'évacuation et l\'orientation vers un caisson.';
+
+  @override
+  String emergencyCard_ems(String number) {
+    return 'Secours locaux : $number';
+  }
+
+  @override
+  String get emergencyCard_diverSection => 'Plongeur';
+
+  @override
+  String emergencyCard_bloodType(String value) {
+    return 'Groupe sanguin : $value';
+  }
+
+  @override
+  String emergencyCard_allergies(String value) {
+    return 'Allergies : $value';
+  }
+
+  @override
+  String emergencyCard_medications(String value) {
+    return 'Médicaments : $value';
+  }
+
+  @override
+  String get emergencyCard_contactsSection => 'Contacts d\'urgence';
+
+  @override
+  String get emergencyCard_insuranceSection => 'Assurance plongée';
+
+  @override
+  String emergencyCard_insurancePolicy(String number) {
+    return 'Police $number';
+  }
+
+  @override
+  String get emergencyCard_chambersSection => 'Caissons hyperbares';
+
+  @override
+  String get emergencyCard_chambersNote =>
+      'La disponibilité évolue. Appelez toujours d\'abord la ligne d\'urgence plongeurs pour l\'orientation.';
+
+  @override
+  String emergencyCard_chamberVerified(String date) {
+    return 'Coordonnées vérifiées $date';
+  }
+
+  @override
+  String get emergencyCard_hideChamber => 'Masquer';
+
+  @override
+  String get emergencyCard_chamberHidden => 'Caisson masqué';
+
+  @override
+  String get emergencyCard_undo => 'Annuler';
+
+  @override
+  String get emergencyCard_addChamber => 'Ajouter un caisson';
+
+  @override
+  String get emergencyCard_deleteChamber => 'Supprimer';
+
+  @override
+  String emergencyCard_regionLabel(String region) {
+    return 'Région : $region';
+  }
+
+  @override
+  String get emergencyCard_regionUnknown =>
+      'Région inconnue : ligne mondiale utilisée';
+
+  @override
+  String get emergencyCard_noDiverData =>
+      'Aucune donnée de profil plongeur. Ajoutez contacts d\'urgence, données médicales et assurance dans le profil plongeur.';
+
+  @override
+  String get addChamber_title => 'Ajouter un caisson';
+
+  @override
+  String get addChamber_name => 'Nom';
+
+  @override
+  String get addChamber_country => 'Code pays (ex. FR)';
+
+  @override
+  String get addChamber_city => 'Ville';
+
+  @override
+  String get addChamber_phone => 'Téléphone';
+
+  @override
+  String get addChamber_notes => 'Notes';
+
+  @override
+  String get addChamber_save => 'Enregistrer';
+
+  @override
+  String get addChamber_nameRequired => 'Le nom est requis';
+
+  @override
+  String get addChamber_countryRequired => 'Le code pays est requis';
+
+  @override
+  String get addChamber_phoneRequired => 'Le numéro de téléphone est requis';
+
+  @override
+  String get safetyHub_emergencyCardLink => 'Carte d\'urgence';
+
+  @override
+  String get safetyHub_emergencyCardLink_subtitle =>
+      'Hors ligne : ligne directe, secours, caissons, vos données médicales et d\'assurance';
+
+  @override
+  String get dashboard_quickAction_emergency => 'Carte d\'urgence';
 }

@@ -6175,5 +6175,96 @@
     }
   },
   "diveLog_detail_altitudeMismatch_title": "Tauchplatz liegt in Höhenlage",
-  "diveLog_detail_altitudeMismatch_subtitle": "Für diesen Platz ist eine Höhe hinterlegt, der Tauchgang hat jedoch keine, daher ging die Deko-Analyse von Meereshöhe aus. Höhe des Tauchgangs setzen, um dies zu korrigieren."
+  "diveLog_detail_altitudeMismatch_subtitle": "Für diesen Platz ist eine Höhe hinterlegt, der Tauchgang hat jedoch keine, daher ging die Deko-Analyse von Meereshöhe aus. Höhe des Tauchgangs setzen, um dies zu korrigieren.",
+  "emergencyCard_title": "Notfall",
+  "emergencyCard_callDan": "{name} anrufen",
+  "@emergencyCard_callDan": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_callDan_subtitle": "Taucher-Notfallhotline. Zuerst anrufen: sie koordiniert Evakuierung und Kammerzuweisung.",
+  "emergencyCard_ems": "Örtlicher Notruf: {number}",
+  "@emergencyCard_ems": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_diverSection": "Taucher",
+  "emergencyCard_bloodType": "Blutgruppe: {value}",
+  "@emergencyCard_bloodType": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_allergies": "Allergien: {value}",
+  "@emergencyCard_allergies": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_medications": "Medikamente: {value}",
+  "@emergencyCard_medications": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_contactsSection": "Notfallkontakte",
+  "emergencyCard_insuranceSection": "Tauchversicherung",
+  "emergencyCard_insurancePolicy": "Police {number}",
+  "@emergencyCard_insurancePolicy": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_chambersSection": "Druckkammern",
+  "emergencyCard_chambersNote": "Verfügbarkeit ändert sich. Immer zuerst die Taucher-Notfallhotline zur Zuweisung anrufen.",
+  "emergencyCard_chamberVerified": "Angaben geprüft {date}",
+  "@emergencyCard_chamberVerified": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_hideChamber": "Ausblenden",
+  "emergencyCard_chamberHidden": "Kammer ausgeblendet",
+  "emergencyCard_undo": "Rückgängig",
+  "emergencyCard_addChamber": "Kammer hinzufügen",
+  "emergencyCard_deleteChamber": "Löschen",
+  "emergencyCard_regionLabel": "Region: {region}",
+  "@emergencyCard_regionLabel": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_regionUnknown": "Region unbekannt - weltweite Hotline wird verwendet",
+  "emergencyCard_noDiverData": "Keine Taucherprofildaten. Notfallkontakte, medizinische Daten und Versicherung im Taucherprofil hinterlegen.",
+  "addChamber_title": "Kammer hinzufügen",
+  "addChamber_name": "Name",
+  "addChamber_country": "Ländercode (z. B. DE)",
+  "addChamber_city": "Stadt",
+  "addChamber_phone": "Telefon",
+  "addChamber_notes": "Notizen",
+  "addChamber_save": "Speichern",
+  "addChamber_nameRequired": "Name ist erforderlich",
+  "addChamber_countryRequired": "Ländercode ist erforderlich",
+  "addChamber_phoneRequired": "Telefonnummer ist erforderlich",
+  "safetyHub_emergencyCardLink": "Notfallkarte",
+  "safetyHub_emergencyCardLink_subtitle": "Offline: Hotline, Notruf, Kammern, deine medizinischen und Versicherungsdaten",
+  "dashboard_quickAction_emergency": "Notfallkarte"
 }

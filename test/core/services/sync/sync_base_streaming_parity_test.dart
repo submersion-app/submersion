@@ -147,6 +147,16 @@ Future<void> _seedRichLibrary() async {
     'createdAt': 1700000000000,
   });
 
+  // User-added emergency chamber (HLC parent added in safety phase 3).
+  await serializer.upsertRecord('emergencyChambers', {
+    'id': 'chamber-1',
+    'name': 'Test Hyperbaric Unit',
+    'country': 'US',
+    'phone': '+1-555-0100',
+    'createdAt': 1700000000000,
+    'updatedAt': 1700000000000,
+  });
+
   // A tombstone so the deletions pass is exercised (best-effort: deleteDive
   // logs a deletion if the repository does so).
   await dives.createDive(

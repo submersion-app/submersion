@@ -20560,4 +20560,130 @@ class AppLocalizationsAr extends AppLocalizations {
   String safetyHub_alert_noFly(String remaining) {
     return 'حظر الطيران: متبقٍ $remaining';
   }
+
+  @override
+  String get emergencyCard_title => 'الطوارئ';
+
+  @override
+  String emergencyCard_callDan(String name) {
+    return 'اتصل بـ $name';
+  }
+
+  @override
+  String get emergencyCard_callDan_subtitle =>
+      'خط طوارئ الغواصين. اتصل به أولاً: فهم ينسقون الإخلاء والإحالة إلى غرفة الضغط.';
+
+  @override
+  String emergencyCard_ems(String number) {
+    return 'خدمات الطوارئ المحلية: $number';
+  }
+
+  @override
+  String get emergencyCard_diverSection => 'الغواص';
+
+  @override
+  String emergencyCard_bloodType(String value) {
+    return 'فصيلة الدم: $value';
+  }
+
+  @override
+  String emergencyCard_allergies(String value) {
+    return 'الحساسية: $value';
+  }
+
+  @override
+  String emergencyCard_medications(String value) {
+    return 'الأدوية: $value';
+  }
+
+  @override
+  String get emergencyCard_contactsSection => 'جهات اتصال الطوارئ';
+
+  @override
+  String get emergencyCard_insuranceSection => 'تأمين الغوص';
+
+  @override
+  String emergencyCard_insurancePolicy(String number) {
+    return 'وثيقة $number';
+  }
+
+  @override
+  String get emergencyCard_chambersSection => 'غرف الضغط العالي';
+
+  @override
+  String get emergencyCard_chambersNote =>
+      'التوفر يتغير. اتصل دائمًا بخط طوارئ الغواصين أولاً للإحالة.';
+
+  @override
+  String emergencyCard_chamberVerified(String date) {
+    return 'تم التحقق من البيانات $date';
+  }
+
+  @override
+  String get emergencyCard_hideChamber => 'إخفاء';
+
+  @override
+  String get emergencyCard_chamberHidden => 'تم إخفاء الغرفة';
+
+  @override
+  String get emergencyCard_undo => 'تراجع';
+
+  @override
+  String get emergencyCard_addChamber => 'إضافة غرفة';
+
+  @override
+  String get emergencyCard_deleteChamber => 'حذف';
+
+  @override
+  String emergencyCard_regionLabel(String region) {
+    return 'المنطقة: $region';
+  }
+
+  @override
+  String get emergencyCard_regionUnknown =>
+      'المنطقة غير معروفة - يُستخدم الخط العالمي';
+
+  @override
+  String get emergencyCard_noDiverData =>
+      'لا توجد بيانات ملف الغواص. أضف جهات اتصال الطوارئ والبيانات الطبية والتأمين في ملف الغواص.';
+
+  @override
+  String get addChamber_title => 'إضافة غرفة';
+
+  @override
+  String get addChamber_name => 'الاسم';
+
+  @override
+  String get addChamber_country => 'رمز الدولة (مثل EG)';
+
+  @override
+  String get addChamber_city => 'المدينة';
+
+  @override
+  String get addChamber_phone => 'الهاتف';
+
+  @override
+  String get addChamber_notes => 'ملاحظات';
+
+  @override
+  String get addChamber_save => 'حفظ';
+
+  @override
+  String get addChamber_nameRequired => 'الاسم مطلوب';
+
+  @override
+  String get addChamber_countryRequired => 'رمز الدولة مطلوب';
+
+  @override
+  String get addChamber_phoneRequired => 'رقم الهاتف مطلوب';
+
+  @override
+  String get safetyHub_emergencyCardLink => 'بطاقة الطوارئ';
+
+  @override
+  String get safetyHub_emergencyCardLink_subtitle =>
+      'دون اتصال: الخط الساخن، الطوارئ، الغرف، بياناتك الطبية والتأمينية';
+
+  @override
+  String get dashboard_quickAction_emergency => 'بطاقة الطوارئ';
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -26,5 +28,25 @@ final noFlyStatusProvider = FutureProvider<NoFlyStatus?>((ref) async {
     since: now.subtract(NoFlyService.lookback),
     diverId: diverId,
   );
-  return const NoFlyService().evaluate(dives: dives, preset: preset, now: now);
+  final status = const NoFlyService().evaluate(
+    dives: dives,
+    preset: preset,
+    now: now,
+  );
+
+  // The status is a snapshot: nothing writes to the dive table when a
+  // restriction naturally expires, so schedule a self-invalidation just past
+  // the deadline. Without it the provider (and the dashboard alert that reads
+  // it) would keep reporting an expired restriction until the next dive write.
+  if (status != null) {
+    final untilExpiry = status.until.difference(DateTime.now().toUtc());
+    if (untilExpiry > Duration.zero) {
+      final timer = Timer(
+        untilExpiry + const Duration(seconds: 1),
+        ref.invalidateSelf,
+      );
+      ref.onDispose(timer.cancel);
+    }
+  }
+  return status;
 });

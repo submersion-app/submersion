@@ -113,6 +113,22 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setNoFlyPreset(NoFlyPreset preset) async =>
       state = state.copyWith(noFlyPreset: preset);
   @override
+  Future<void> setChamberHidden(String chamberId, bool hidden) async {
+    final ids = {...state.hiddenChamberIds};
+    if (hidden) {
+      ids.add(chamberId);
+    } else {
+      ids.remove(chamberId);
+    }
+    state = state.copyWith(hiddenChamberIds: ids);
+  }
+
+  @override
+  Future<void> setEmergencyRegion(String? countryCode) async =>
+      state = countryCode == null
+      ? state.copyWith(clearEmergencyRegion: true)
+      : state.copyWith(emergencyRegion: countryCode);
+  @override
   Future<void> setSafetyRuleEnabled(SafetyRuleId rule, bool enabled) async {
     final rules = {...state.safetyReviewDisabledRules};
     if (enabled) {

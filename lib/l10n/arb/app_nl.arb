@@ -6175,5 +6175,96 @@
     }
   },
   "diveLog_detail_altitudeMismatch_title": "Duikstek ligt op hoogte",
-  "diveLog_detail_altitudeMismatch_subtitle": "Deze stek heeft een hoogte geregistreerd maar de duik niet, dus de deco-analyse ging uit van zeeniveau. Stel de hoogte van de duik in om dit te corrigeren."
+  "diveLog_detail_altitudeMismatch_subtitle": "Deze stek heeft een hoogte geregistreerd maar de duik niet, dus de deco-analyse ging uit van zeeniveau. Stel de hoogte van de duik in om dit te corrigeren.",
+  "emergencyCard_title": "Noodgeval",
+  "emergencyCard_callDan": "Bel {name}",
+  "@emergencyCard_callDan": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_callDan_subtitle": "Noodlijn voor duikers. Bel eerst: zij coördineren evacuatie en doorverwijzing naar een kamer.",
+  "emergencyCard_ems": "Lokale hulpdiensten: {number}",
+  "@emergencyCard_ems": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_diverSection": "Duiker",
+  "emergencyCard_bloodType": "Bloedgroep: {value}",
+  "@emergencyCard_bloodType": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_allergies": "Allergieën: {value}",
+  "@emergencyCard_allergies": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_medications": "Medicatie: {value}",
+  "@emergencyCard_medications": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_contactsSection": "Noodcontacten",
+  "emergencyCard_insuranceSection": "Duikverzekering",
+  "emergencyCard_insurancePolicy": "Polis {number}",
+  "@emergencyCard_insurancePolicy": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_chambersSection": "Decompressiekamers",
+  "emergencyCard_chambersNote": "Beschikbaarheid verandert. Bel altijd eerst de noodlijn voor duikers voor doorverwijzing.",
+  "emergencyCard_chamberVerified": "Gegevens gecontroleerd {date}",
+  "@emergencyCard_chamberVerified": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_hideChamber": "Verbergen",
+  "emergencyCard_chamberHidden": "Kamer verborgen",
+  "emergencyCard_undo": "Ongedaan maken",
+  "emergencyCard_addChamber": "Kamer toevoegen",
+  "emergencyCard_deleteChamber": "Verwijderen",
+  "emergencyCard_regionLabel": "Regio: {region}",
+  "@emergencyCard_regionLabel": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_regionUnknown": "Regio onbekend - wereldwijde noodlijn wordt gebruikt",
+  "emergencyCard_noDiverData": "Geen duikersprofielgegevens. Voeg noodcontacten, medische gegevens en verzekering toe in het duikersprofiel.",
+  "addChamber_title": "Kamer toevoegen",
+  "addChamber_name": "Naam",
+  "addChamber_country": "Landcode (bijv. NL)",
+  "addChamber_city": "Stad",
+  "addChamber_phone": "Telefoon",
+  "addChamber_notes": "Notities",
+  "addChamber_save": "Opslaan",
+  "addChamber_nameRequired": "Naam is verplicht",
+  "addChamber_countryRequired": "Landcode is verplicht",
+  "addChamber_phoneRequired": "Telefoonnummer is verplicht",
+  "safetyHub_emergencyCardLink": "Noodkaart",
+  "safetyHub_emergencyCardLink_subtitle": "Offline: noodlijn, hulpdiensten, kamers, je medische en verzekeringsgegevens",
+  "dashboard_quickAction_emergency": "Noodkaart"
 }

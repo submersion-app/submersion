@@ -6175,5 +6175,96 @@
     }
   },
   "diveLog_detail_altitudeMismatch_title": "موقع الغوص على ارتفاع",
-  "diveLog_detail_altitudeMismatch_subtitle": "هذا الموقع مسجل له ارتفاع لكن الغطسة بلا ارتفاع، لذا افترض تحليل تخفيف الضغط مستوى سطح البحر. عيّن ارتفاع الغطسة للتصحيح."
+  "diveLog_detail_altitudeMismatch_subtitle": "هذا الموقع مسجل له ارتفاع لكن الغطسة بلا ارتفاع، لذا افترض تحليل تخفيف الضغط مستوى سطح البحر. عيّن ارتفاع الغطسة للتصحيح.",
+  "emergencyCard_title": "الطوارئ",
+  "emergencyCard_callDan": "اتصل بـ {name}",
+  "@emergencyCard_callDan": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_callDan_subtitle": "خط طوارئ الغواصين. اتصل به أولاً: فهم ينسقون الإخلاء والإحالة إلى غرفة الضغط.",
+  "emergencyCard_ems": "خدمات الطوارئ المحلية: {number}",
+  "@emergencyCard_ems": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_diverSection": "الغواص",
+  "emergencyCard_bloodType": "فصيلة الدم: {value}",
+  "@emergencyCard_bloodType": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_allergies": "الحساسية: {value}",
+  "@emergencyCard_allergies": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_medications": "الأدوية: {value}",
+  "@emergencyCard_medications": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_contactsSection": "جهات اتصال الطوارئ",
+  "emergencyCard_insuranceSection": "تأمين الغوص",
+  "emergencyCard_insurancePolicy": "وثيقة {number}",
+  "@emergencyCard_insurancePolicy": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_chambersSection": "غرف الضغط العالي",
+  "emergencyCard_chambersNote": "التوفر يتغير. اتصل دائمًا بخط طوارئ الغواصين أولاً للإحالة.",
+  "emergencyCard_chamberVerified": "تم التحقق من البيانات {date}",
+  "@emergencyCard_chamberVerified": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_hideChamber": "إخفاء",
+  "emergencyCard_chamberHidden": "تم إخفاء الغرفة",
+  "emergencyCard_undo": "تراجع",
+  "emergencyCard_addChamber": "إضافة غرفة",
+  "emergencyCard_deleteChamber": "حذف",
+  "emergencyCard_regionLabel": "المنطقة: {region}",
+  "@emergencyCard_regionLabel": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_regionUnknown": "المنطقة غير معروفة - يُستخدم الخط العالمي",
+  "emergencyCard_noDiverData": "لا توجد بيانات ملف الغواص. أضف جهات اتصال الطوارئ والبيانات الطبية والتأمين في ملف الغواص.",
+  "addChamber_title": "إضافة غرفة",
+  "addChamber_name": "الاسم",
+  "addChamber_country": "رمز الدولة (مثل EG)",
+  "addChamber_city": "المدينة",
+  "addChamber_phone": "الهاتف",
+  "addChamber_notes": "ملاحظات",
+  "addChamber_save": "حفظ",
+  "addChamber_nameRequired": "الاسم مطلوب",
+  "addChamber_countryRequired": "رمز الدولة مطلوب",
+  "addChamber_phoneRequired": "رقم الهاتف مطلوب",
+  "safetyHub_emergencyCardLink": "بطاقة الطوارئ",
+  "safetyHub_emergencyCardLink_subtitle": "دون اتصال: الخط الساخن، الطوارئ، الغرف، بياناتك الطبية والتأمينية",
+  "dashboard_quickAction_emergency": "بطاقة الطوارئ"
 }

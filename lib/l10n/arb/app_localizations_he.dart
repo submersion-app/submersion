@@ -20414,4 +20414,130 @@ class AppLocalizationsHe extends AppLocalizations {
   String safetyHub_alert_noFly(String remaining) {
     return 'איסור טיסה: נותרו $remaining';
   }
+
+  @override
+  String get emergencyCard_title => 'חירום';
+
+  @override
+  String emergencyCard_callDan(String name) {
+    return 'התקשר אל $name';
+  }
+
+  @override
+  String get emergencyCard_callDan_subtitle =>
+      'קו חירום לצוללים. התקשר אליו קודם: הם מתאמים פינוי והפניה לתא לחץ.';
+
+  @override
+  String emergencyCard_ems(String number) {
+    return 'שירותי חירום מקומיים: $number';
+  }
+
+  @override
+  String get emergencyCard_diverSection => 'צולל';
+
+  @override
+  String emergencyCard_bloodType(String value) {
+    return 'סוג דם: $value';
+  }
+
+  @override
+  String emergencyCard_allergies(String value) {
+    return 'אלרגיות: $value';
+  }
+
+  @override
+  String emergencyCard_medications(String value) {
+    return 'תרופות: $value';
+  }
+
+  @override
+  String get emergencyCard_contactsSection => 'אנשי קשר לחירום';
+
+  @override
+  String get emergencyCard_insuranceSection => 'ביטוח צלילה';
+
+  @override
+  String emergencyCard_insurancePolicy(String number) {
+    return 'פוליסה $number';
+  }
+
+  @override
+  String get emergencyCard_chambersSection => 'תאי לחץ';
+
+  @override
+  String get emergencyCard_chambersNote =>
+      'הזמינות משתנה. תמיד התקשר קודם לקו החירום לצוללים להפניה.';
+
+  @override
+  String emergencyCard_chamberVerified(String date) {
+    return 'הפרטים אומתו $date';
+  }
+
+  @override
+  String get emergencyCard_hideChamber => 'הסתר';
+
+  @override
+  String get emergencyCard_chamberHidden => 'התא הוסתר';
+
+  @override
+  String get emergencyCard_undo => 'בטל';
+
+  @override
+  String get emergencyCard_addChamber => 'הוסף תא לחץ';
+
+  @override
+  String get emergencyCard_deleteChamber => 'מחק';
+
+  @override
+  String emergencyCard_regionLabel(String region) {
+    return 'אזור: $region';
+  }
+
+  @override
+  String get emergencyCard_regionUnknown =>
+      'אזור לא ידוע - נעשה שימוש בקו העולמי';
+
+  @override
+  String get emergencyCard_noDiverData =>
+      'אין נתוני פרופיל צולל. הוסף אנשי קשר לחירום, נתונים רפואיים וביטוח בפרופיל הצולל.';
+
+  @override
+  String get addChamber_title => 'הוסף תא לחץ';
+
+  @override
+  String get addChamber_name => 'שם';
+
+  @override
+  String get addChamber_country => 'קוד מדינה (למשל IL)';
+
+  @override
+  String get addChamber_city => 'עיר';
+
+  @override
+  String get addChamber_phone => 'טלפון';
+
+  @override
+  String get addChamber_notes => 'הערות';
+
+  @override
+  String get addChamber_save => 'שמור';
+
+  @override
+  String get addChamber_nameRequired => 'שם נדרש';
+
+  @override
+  String get addChamber_countryRequired => 'קוד מדינה נדרש';
+
+  @override
+  String get addChamber_phoneRequired => 'מספר טלפון נדרש';
+
+  @override
+  String get safetyHub_emergencyCardLink => 'כרטיס חירום';
+
+  @override
+  String get safetyHub_emergencyCardLink_subtitle =>
+      'לא מקוון: קו חם, חירום, תאי לחץ, הנתונים הרפואיים והביטוחיים שלך';
+
+  @override
+  String get dashboard_quickAction_emergency => 'כרטיס חירום';
 }

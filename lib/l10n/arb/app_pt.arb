@@ -6175,5 +6175,96 @@
     }
   },
   "diveLog_detail_altitudeMismatch_title": "O ponto de mergulho fica em altitude",
-  "diveLog_detail_altitudeMismatch_subtitle": "Este ponto registra uma altitude, mas o mergulho não tem nenhuma, então a análise de descompressão assumiu o nível do mar. Defina a altitude do mergulho para corrigir."
+  "diveLog_detail_altitudeMismatch_subtitle": "Este ponto registra uma altitude, mas o mergulho não tem nenhuma, então a análise de descompressão assumiu o nível do mar. Defina a altitude do mergulho para corrigir.",
+  "emergencyCard_title": "Emergência",
+  "emergencyCard_callDan": "Ligar para {name}",
+  "@emergencyCard_callDan": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_callDan_subtitle": "Linha de emergência para mergulhadores. Ligue primeiro: eles coordenam a evacuação e o encaminhamento para câmara.",
+  "emergencyCard_ems": "Emergência local: {number}",
+  "@emergencyCard_ems": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_diverSection": "Mergulhador",
+  "emergencyCard_bloodType": "Tipo sanguíneo: {value}",
+  "@emergencyCard_bloodType": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_allergies": "Alergias: {value}",
+  "@emergencyCard_allergies": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_medications": "Medicamentos: {value}",
+  "@emergencyCard_medications": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_contactsSection": "Contatos de emergência",
+  "emergencyCard_insuranceSection": "Seguro de mergulho",
+  "emergencyCard_insurancePolicy": "Apólice {number}",
+  "@emergencyCard_insurancePolicy": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_chambersSection": "Câmaras hiperbáricas",
+  "emergencyCard_chambersNote": "A disponibilidade muda. Ligue sempre primeiro para a linha de emergência de mergulhadores para encaminhamento.",
+  "emergencyCard_chamberVerified": "Dados verificados em {date}",
+  "@emergencyCard_chamberVerified": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_hideChamber": "Ocultar",
+  "emergencyCard_chamberHidden": "Câmara ocultada",
+  "emergencyCard_undo": "Desfazer",
+  "emergencyCard_addChamber": "Adicionar câmara",
+  "emergencyCard_deleteChamber": "Excluir",
+  "emergencyCard_regionLabel": "Região: {region}",
+  "@emergencyCard_regionLabel": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_regionUnknown": "Região desconhecida - usando a linha mundial",
+  "emergencyCard_noDiverData": "Sem dados do perfil do mergulhador. Adicione contatos de emergência, dados médicos e seguro no perfil do mergulhador.",
+  "addChamber_title": "Adicionar câmara",
+  "addChamber_name": "Nome",
+  "addChamber_country": "Código do país (ex. BR)",
+  "addChamber_city": "Cidade",
+  "addChamber_phone": "Telefone",
+  "addChamber_notes": "Notas",
+  "addChamber_save": "Salvar",
+  "addChamber_nameRequired": "O nome é obrigatório",
+  "addChamber_countryRequired": "O código do país é obrigatório",
+  "addChamber_phoneRequired": "O número de telefone é obrigatório",
+  "safetyHub_emergencyCardLink": "Cartão de emergência",
+  "safetyHub_emergencyCardLink_subtitle": "Offline: linha direta, emergência, câmaras, seus dados médicos e de seguro",
+  "dashboard_quickAction_emergency": "Cartão de emergência"
 }

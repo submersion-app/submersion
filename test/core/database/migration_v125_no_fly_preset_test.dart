@@ -37,11 +37,10 @@ void main() {
     expect(rows.single.read<String>('no_fly_preset'), 'standard');
   });
 
-  test('v125 is the current schema version (exact-latest tripwire)', () {
-    // Exact assertion: the newest migration owns the tripwire, so the next
-    // schema bump must move it forward. Relax to greaterThanOrEqualTo and add
-    // a fresh exact test when a later migration lands on top of v125.
-    expect(AppDatabase.currentSchemaVersion, 125);
+  test('v125 migration is present', () {
+    // Relaxed from an exact tripwire: v126 (emergency card) now lands on top of
+    // v125, so the exact-latest assertion lives in migration_v126_*_test.dart.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(125));
     expect(AppDatabase.migrationVersions, contains(125));
   });
 }

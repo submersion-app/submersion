@@ -114,6 +114,23 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   _MockSettingsNotifier() : super(const AppSettings());
 
   @override
+  Future<void> setChamberHidden(String chamberId, bool hidden) async {
+    final ids = {...state.hiddenChamberIds};
+    if (hidden) {
+      ids.add(chamberId);
+    } else {
+      ids.remove(chamberId);
+    }
+    state = state.copyWith(hiddenChamberIds: ids);
+  }
+
+  @override
+  Future<void> setEmergencyRegion(String? countryCode) async =>
+      state = countryCode == null
+      ? state.copyWith(clearEmergencyRegion: true)
+      : state.copyWith(emergencyRegion: countryCode);
+
+  @override
   Future<void> setSafetyReviewEnabled(bool value) async =>
       state = state.copyWith(safetyReviewEnabled: value);
   @override

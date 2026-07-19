@@ -20878,4 +20878,130 @@ class AppLocalizationsHu extends AppLocalizations {
   String safetyHub_alert_noFly(String remaining) {
     return 'Repülési tilalom: $remaining van hátra';
   }
+
+  @override
+  String get emergencyCard_title => 'Vészhelyzet';
+
+  @override
+  String emergencyCard_callDan(String name) {
+    return '$name hívása';
+  }
+
+  @override
+  String get emergencyCard_callDan_subtitle =>
+      'Búvár segélyvonal. Először ezt hívd: ők koordinálják az evakuálást és a kamrába irányítást.';
+
+  @override
+  String emergencyCard_ems(String number) {
+    return 'Helyi segélyhívó: $number';
+  }
+
+  @override
+  String get emergencyCard_diverSection => 'Búvár';
+
+  @override
+  String emergencyCard_bloodType(String value) {
+    return 'Vércsoport: $value';
+  }
+
+  @override
+  String emergencyCard_allergies(String value) {
+    return 'Allergiák: $value';
+  }
+
+  @override
+  String emergencyCard_medications(String value) {
+    return 'Gyógyszerek: $value';
+  }
+
+  @override
+  String get emergencyCard_contactsSection => 'Vészhelyzeti kapcsolatok';
+
+  @override
+  String get emergencyCard_insuranceSection => 'Búvárbiztosítás';
+
+  @override
+  String emergencyCard_insurancePolicy(String number) {
+    return 'Kötvény: $number';
+  }
+
+  @override
+  String get emergencyCard_chambersSection => 'Hiperbárikus kamrák';
+
+  @override
+  String get emergencyCard_chambersNote =>
+      'Az elérhetőség változik. Irányításért mindig először a búvár segélyvonalat hívd.';
+
+  @override
+  String emergencyCard_chamberVerified(String date) {
+    return 'Adatok ellenőrizve: $date';
+  }
+
+  @override
+  String get emergencyCard_hideChamber => 'Elrejtés';
+
+  @override
+  String get emergencyCard_chamberHidden => 'Kamra elrejtve';
+
+  @override
+  String get emergencyCard_undo => 'Visszavonás';
+
+  @override
+  String get emergencyCard_addChamber => 'Kamra hozzáadása';
+
+  @override
+  String get emergencyCard_deleteChamber => 'Törlés';
+
+  @override
+  String emergencyCard_regionLabel(String region) {
+    return 'Régió: $region';
+  }
+
+  @override
+  String get emergencyCard_regionUnknown =>
+      'Ismeretlen régió - a világméretű segélyvonal használata';
+
+  @override
+  String get emergencyCard_noDiverData =>
+      'Nincsenek búvárprofil-adatok. Add meg a vészhelyzeti kapcsolatokat, egészségügyi és biztosítási adatokat a búvárprofilban.';
+
+  @override
+  String get addChamber_title => 'Kamra hozzáadása';
+
+  @override
+  String get addChamber_name => 'Név';
+
+  @override
+  String get addChamber_country => 'Országkód (pl. HU)';
+
+  @override
+  String get addChamber_city => 'Város';
+
+  @override
+  String get addChamber_phone => 'Telefon';
+
+  @override
+  String get addChamber_notes => 'Jegyzetek';
+
+  @override
+  String get addChamber_save => 'Mentés';
+
+  @override
+  String get addChamber_nameRequired => 'A név megadása kötelező';
+
+  @override
+  String get addChamber_countryRequired => 'Az országkód megadása kötelező';
+
+  @override
+  String get addChamber_phoneRequired => 'A telefonszám megadása kötelező';
+
+  @override
+  String get safetyHub_emergencyCardLink => 'Vészhelyzeti kártya';
+
+  @override
+  String get safetyHub_emergencyCardLink_subtitle =>
+      'Offline: segélyvonal, segélyhívó, kamrák, egészségügyi és biztosítási adataid';
+
+  @override
+  String get dashboard_quickAction_emergency => 'Vészhelyzeti kártya';
 }

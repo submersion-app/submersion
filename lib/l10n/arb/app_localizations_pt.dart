@@ -20942,4 +20942,130 @@ class AppLocalizationsPt extends AppLocalizations {
   String safetyHub_alert_noFly(String remaining) {
     return 'Não voar: faltam $remaining';
   }
+
+  @override
+  String get emergencyCard_title => 'Emergência';
+
+  @override
+  String emergencyCard_callDan(String name) {
+    return 'Ligar para $name';
+  }
+
+  @override
+  String get emergencyCard_callDan_subtitle =>
+      'Linha de emergência para mergulhadores. Ligue primeiro: eles coordenam a evacuação e o encaminhamento para câmara.';
+
+  @override
+  String emergencyCard_ems(String number) {
+    return 'Emergência local: $number';
+  }
+
+  @override
+  String get emergencyCard_diverSection => 'Mergulhador';
+
+  @override
+  String emergencyCard_bloodType(String value) {
+    return 'Tipo sanguíneo: $value';
+  }
+
+  @override
+  String emergencyCard_allergies(String value) {
+    return 'Alergias: $value';
+  }
+
+  @override
+  String emergencyCard_medications(String value) {
+    return 'Medicamentos: $value';
+  }
+
+  @override
+  String get emergencyCard_contactsSection => 'Contatos de emergência';
+
+  @override
+  String get emergencyCard_insuranceSection => 'Seguro de mergulho';
+
+  @override
+  String emergencyCard_insurancePolicy(String number) {
+    return 'Apólice $number';
+  }
+
+  @override
+  String get emergencyCard_chambersSection => 'Câmaras hiperbáricas';
+
+  @override
+  String get emergencyCard_chambersNote =>
+      'A disponibilidade muda. Ligue sempre primeiro para a linha de emergência de mergulhadores para encaminhamento.';
+
+  @override
+  String emergencyCard_chamberVerified(String date) {
+    return 'Dados verificados em $date';
+  }
+
+  @override
+  String get emergencyCard_hideChamber => 'Ocultar';
+
+  @override
+  String get emergencyCard_chamberHidden => 'Câmara ocultada';
+
+  @override
+  String get emergencyCard_undo => 'Desfazer';
+
+  @override
+  String get emergencyCard_addChamber => 'Adicionar câmara';
+
+  @override
+  String get emergencyCard_deleteChamber => 'Excluir';
+
+  @override
+  String emergencyCard_regionLabel(String region) {
+    return 'Região: $region';
+  }
+
+  @override
+  String get emergencyCard_regionUnknown =>
+      'Região desconhecida - usando a linha mundial';
+
+  @override
+  String get emergencyCard_noDiverData =>
+      'Sem dados do perfil do mergulhador. Adicione contatos de emergência, dados médicos e seguro no perfil do mergulhador.';
+
+  @override
+  String get addChamber_title => 'Adicionar câmara';
+
+  @override
+  String get addChamber_name => 'Nome';
+
+  @override
+  String get addChamber_country => 'Código do país (ex. BR)';
+
+  @override
+  String get addChamber_city => 'Cidade';
+
+  @override
+  String get addChamber_phone => 'Telefone';
+
+  @override
+  String get addChamber_notes => 'Notas';
+
+  @override
+  String get addChamber_save => 'Salvar';
+
+  @override
+  String get addChamber_nameRequired => 'O nome é obrigatório';
+
+  @override
+  String get addChamber_countryRequired => 'O código do país é obrigatório';
+
+  @override
+  String get addChamber_phoneRequired => 'O número de telefone é obrigatório';
+
+  @override
+  String get safetyHub_emergencyCardLink => 'Cartão de emergência';
+
+  @override
+  String get safetyHub_emergencyCardLink_subtitle =>
+      'Offline: linha direta, emergência, câmaras, seus dados médicos e de seguro';
+
+  @override
+  String get dashboard_quickAction_emergency => 'Cartão de emergência';
 }

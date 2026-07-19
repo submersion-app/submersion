@@ -6175,5 +6175,96 @@
     }
   },
   "diveLog_detail_altitudeMismatch_title": "אתר הצלילה נמצא בגובה",
-  "diveLog_detail_altitudeMismatch_subtitle": "לאתר זה רשום גובה אך לצלילה אין, ולכן ניתוח הדקומפרסיה הניח גובה פני הים. הגדר את גובה הצלילה כדי לתקן."
+  "diveLog_detail_altitudeMismatch_subtitle": "לאתר זה רשום גובה אך לצלילה אין, ולכן ניתוח הדקומפרסיה הניח גובה פני הים. הגדר את גובה הצלילה כדי לתקן.",
+  "emergencyCard_title": "חירום",
+  "emergencyCard_callDan": "התקשר אל {name}",
+  "@emergencyCard_callDan": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_callDan_subtitle": "קו חירום לצוללים. התקשר אליו קודם: הם מתאמים פינוי והפניה לתא לחץ.",
+  "emergencyCard_ems": "שירותי חירום מקומיים: {number}",
+  "@emergencyCard_ems": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_diverSection": "צולל",
+  "emergencyCard_bloodType": "סוג דם: {value}",
+  "@emergencyCard_bloodType": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_allergies": "אלרגיות: {value}",
+  "@emergencyCard_allergies": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_medications": "תרופות: {value}",
+  "@emergencyCard_medications": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_contactsSection": "אנשי קשר לחירום",
+  "emergencyCard_insuranceSection": "ביטוח צלילה",
+  "emergencyCard_insurancePolicy": "פוליסה {number}",
+  "@emergencyCard_insurancePolicy": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_chambersSection": "תאי לחץ",
+  "emergencyCard_chambersNote": "הזמינות משתנה. תמיד התקשר קודם לקו החירום לצוללים להפניה.",
+  "emergencyCard_chamberVerified": "הפרטים אומתו {date}",
+  "@emergencyCard_chamberVerified": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_hideChamber": "הסתר",
+  "emergencyCard_chamberHidden": "התא הוסתר",
+  "emergencyCard_undo": "בטל",
+  "emergencyCard_addChamber": "הוסף תא לחץ",
+  "emergencyCard_deleteChamber": "מחק",
+  "emergencyCard_regionLabel": "אזור: {region}",
+  "@emergencyCard_regionLabel": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_regionUnknown": "אזור לא ידוע - נעשה שימוש בקו העולמי",
+  "emergencyCard_noDiverData": "אין נתוני פרופיל צולל. הוסף אנשי קשר לחירום, נתונים רפואיים וביטוח בפרופיל הצולל.",
+  "addChamber_title": "הוסף תא לחץ",
+  "addChamber_name": "שם",
+  "addChamber_country": "קוד מדינה (למשל IL)",
+  "addChamber_city": "עיר",
+  "addChamber_phone": "טלפון",
+  "addChamber_notes": "הערות",
+  "addChamber_save": "שמור",
+  "addChamber_nameRequired": "שם נדרש",
+  "addChamber_countryRequired": "קוד מדינה נדרש",
+  "addChamber_phoneRequired": "מספר טלפון נדרש",
+  "safetyHub_emergencyCardLink": "כרטיס חירום",
+  "safetyHub_emergencyCardLink_subtitle": "לא מקוון: קו חם, חירום, תאי לחץ, הנתונים הרפואיים והביטוחיים שלך",
+  "dashboard_quickAction_emergency": "כרטיס חירום"
 }

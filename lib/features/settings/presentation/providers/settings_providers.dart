@@ -141,6 +141,12 @@ class AppSettings {
   /// Flying-after-diving conservatism preset
   final NoFlyPreset noFlyPreset;
 
+  /// Bundled chamber ids hidden from the emergency card
+  final Set<String> hiddenChamberIds;
+
+  /// Manual emergency-card region override (ISO country code)
+  final String? emergencyRegion;
+
   /// Show color-coded ascent rate on dive profile
   final bool showAscentRateColors;
 
@@ -384,6 +390,8 @@ class AppSettings {
     this.safetyReviewEnabled = true,
     this.safetyReviewDisabledRules = const {},
     this.noFlyPreset = NoFlyPreset.standard,
+    this.hiddenChamberIds = const {},
+    this.emergencyRegion,
     this.showAscentRateColors = false,
     this.showNdlOnProfile = true,
     this.lastStopDepth = 3.0,
@@ -526,6 +534,9 @@ class AppSettings {
     bool? safetyReviewEnabled,
     Set<String>? safetyReviewDisabledRules,
     NoFlyPreset? noFlyPreset,
+    Set<String>? hiddenChamberIds,
+    String? emergencyRegion,
+    bool clearEmergencyRegion = false,
     bool? showAscentRateColors,
     bool? showNdlOnProfile,
     double? lastStopDepth,
@@ -636,6 +647,10 @@ class AppSettings {
       safetyReviewDisabledRules:
           safetyReviewDisabledRules ?? this.safetyReviewDisabledRules,
       noFlyPreset: noFlyPreset ?? this.noFlyPreset,
+      hiddenChamberIds: hiddenChamberIds ?? this.hiddenChamberIds,
+      emergencyRegion: clearEmergencyRegion
+          ? null
+          : (emergencyRegion ?? this.emergencyRegion),
       showAscentRateColors: showAscentRateColors ?? this.showAscentRateColors,
       showNdlOnProfile: showNdlOnProfile ?? this.showNdlOnProfile,
       lastStopDepth: lastStopDepth ?? this.lastStopDepth,
@@ -1107,6 +1122,24 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setNoFlyPreset(NoFlyPreset preset) async {
     state = state.copyWith(noFlyPreset: preset);
+    await _saveSettings();
+  }
+
+  Future<void> setChamberHidden(String chamberId, bool hidden) async {
+    final ids = {...state.hiddenChamberIds};
+    if (hidden) {
+      ids.add(chamberId);
+    } else {
+      ids.remove(chamberId);
+    }
+    state = state.copyWith(hiddenChamberIds: ids);
+    await _saveSettings();
+  }
+
+  Future<void> setEmergencyRegion(String? countryCode) async {
+    state = countryCode == null
+        ? state.copyWith(clearEmergencyRegion: true)
+        : state.copyWith(emergencyRegion: countryCode);
     await _saveSettings();
   }
 

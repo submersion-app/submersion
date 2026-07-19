@@ -20589,4 +20589,130 @@ class AppLocalizationsEn extends AppLocalizations {
   String safetyHub_alert_noFly(String remaining) {
     return 'No-fly: $remaining remaining';
   }
+
+  @override
+  String get emergencyCard_title => 'Emergency';
+
+  @override
+  String emergencyCard_callDan(String name) {
+    return 'Call $name';
+  }
+
+  @override
+  String get emergencyCard_callDan_subtitle =>
+      'Diver emergency hotline. Call first: they coordinate evacuation and chamber referral.';
+
+  @override
+  String emergencyCard_ems(String number) {
+    return 'Local emergency services: $number';
+  }
+
+  @override
+  String get emergencyCard_diverSection => 'Diver';
+
+  @override
+  String emergencyCard_bloodType(String value) {
+    return 'Blood type: $value';
+  }
+
+  @override
+  String emergencyCard_allergies(String value) {
+    return 'Allergies: $value';
+  }
+
+  @override
+  String emergencyCard_medications(String value) {
+    return 'Medications: $value';
+  }
+
+  @override
+  String get emergencyCard_contactsSection => 'Emergency contacts';
+
+  @override
+  String get emergencyCard_insuranceSection => 'Dive insurance';
+
+  @override
+  String emergencyCard_insurancePolicy(String number) {
+    return 'Policy $number';
+  }
+
+  @override
+  String get emergencyCard_chambersSection => 'Hyperbaric chambers';
+
+  @override
+  String get emergencyCard_chambersNote =>
+      'Availability changes. Always call the diver emergency hotline first for referral.';
+
+  @override
+  String emergencyCard_chamberVerified(String date) {
+    return 'Details verified $date';
+  }
+
+  @override
+  String get emergencyCard_hideChamber => 'Hide';
+
+  @override
+  String get emergencyCard_chamberHidden => 'Chamber hidden';
+
+  @override
+  String get emergencyCard_undo => 'Undo';
+
+  @override
+  String get emergencyCard_addChamber => 'Add chamber';
+
+  @override
+  String get emergencyCard_deleteChamber => 'Delete';
+
+  @override
+  String emergencyCard_regionLabel(String region) {
+    return 'Region: $region';
+  }
+
+  @override
+  String get emergencyCard_regionUnknown =>
+      'Region unknown - using worldwide hotline';
+
+  @override
+  String get emergencyCard_noDiverData =>
+      'No diver profile data. Add emergency contacts, medical and insurance details in Diver Profile settings.';
+
+  @override
+  String get addChamber_title => 'Add chamber';
+
+  @override
+  String get addChamber_name => 'Name';
+
+  @override
+  String get addChamber_country => 'Country code (e.g. US)';
+
+  @override
+  String get addChamber_city => 'City';
+
+  @override
+  String get addChamber_phone => 'Phone';
+
+  @override
+  String get addChamber_notes => 'Notes';
+
+  @override
+  String get addChamber_save => 'Save';
+
+  @override
+  String get addChamber_nameRequired => 'Name is required';
+
+  @override
+  String get addChamber_countryRequired => 'Country code is required';
+
+  @override
+  String get addChamber_phoneRequired => 'Phone number is required';
+
+  @override
+  String get safetyHub_emergencyCardLink => 'Emergency card';
+
+  @override
+  String get safetyHub_emergencyCardLink_subtitle =>
+      'Offline: hotline, EMS, chambers, your medical and insurance details';
+
+  @override
+  String get dashboard_quickAction_emergency => 'Emergency card';
 }

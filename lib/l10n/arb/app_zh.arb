@@ -6175,5 +6175,96 @@
     }
   },
   "diveLog_detail_altitudeMismatch_title": "潜点位于高海拔",
-  "diveLog_detail_altitudeMismatch_subtitle": "该潜点记录了海拔,但此次潜水未设置海拔,因此减压分析按海平面计算。请设置潜水海拔以更正。"
+  "diveLog_detail_altitudeMismatch_subtitle": "该潜点记录了海拔,但此次潜水未设置海拔,因此减压分析按海平面计算。请设置潜水海拔以更正。",
+  "emergencyCard_title": "紧急情况",
+  "emergencyCard_callDan": "呼叫 {name}",
+  "@emergencyCard_callDan": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_callDan_subtitle": "潜水员紧急热线。请先拨打:他们负责协调撤离和减压舱转诊。",
+  "emergencyCard_ems": "当地急救电话:{number}",
+  "@emergencyCard_ems": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_diverSection": "潜水员",
+  "emergencyCard_bloodType": "血型:{value}",
+  "@emergencyCard_bloodType": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_allergies": "过敏:{value}",
+  "@emergencyCard_allergies": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_medications": "用药:{value}",
+  "@emergencyCard_medications": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_contactsSection": "紧急联系人",
+  "emergencyCard_insuranceSection": "潜水保险",
+  "emergencyCard_insurancePolicy": "保单 {number}",
+  "@emergencyCard_insurancePolicy": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_chambersSection": "高压氧舱",
+  "emergencyCard_chambersNote": "可用性会变化。转诊请务必先拨打潜水员紧急热线。",
+  "emergencyCard_chamberVerified": "信息核实于 {date}",
+  "@emergencyCard_chamberVerified": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_hideChamber": "隐藏",
+  "emergencyCard_chamberHidden": "已隐藏氧舱",
+  "emergencyCard_undo": "撤消",
+  "emergencyCard_addChamber": "添加减压舱",
+  "emergencyCard_deleteChamber": "删除",
+  "emergencyCard_regionLabel": "区域:{region}",
+  "@emergencyCard_regionLabel": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_regionUnknown": "区域未知 - 使用全球热线",
+  "emergencyCard_noDiverData": "无潜水员资料。请在潜水员资料设置中添加紧急联系人、医疗和保险信息。",
+  "addChamber_title": "添加减压舱",
+  "addChamber_name": "名称",
+  "addChamber_country": "国家代码(如 CN)",
+  "addChamber_city": "城市",
+  "addChamber_phone": "电话",
+  "addChamber_notes": "备注",
+  "addChamber_save": "保存",
+  "addChamber_nameRequired": "名称为必填项",
+  "addChamber_countryRequired": "国家代码为必填项",
+  "addChamber_phoneRequired": "电话号码为必填项",
+  "safetyHub_emergencyCardLink": "紧急卡片",
+  "safetyHub_emergencyCardLink_subtitle": "离线可用:热线、急救、减压舱、你的医疗和保险信息",
+  "dashboard_quickAction_emergency": "紧急卡片"
 }
