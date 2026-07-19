@@ -108,6 +108,34 @@ void main() {
       expect(saved!.liftCapacityKg, 18.0);
     });
 
+    testWidgets('non-positive lift capacity saves as null', (tester) async {
+      final created = await repository.createEquipment(
+        const EquipmentItem(
+          id: '',
+          name: 'Wing 18',
+          type: EquipmentType.bcd,
+          liftCapacityKg: 15.0,
+        ),
+      );
+      await pumpEditor(tester, created.id);
+
+      await tester.scrollUntilVisible(
+        find.text('Advanced'),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+
+      // A negative rated lift is meaningless and would fire false
+      // wing-capacity warnings; it must be dropped, not persisted.
+      await tester.enterText(find.text('15.0'), '-5');
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      final saved = await repository.getEquipmentById(created.id);
+      expect(saved!.liftCapacityKg, isNull);
+    });
+
     testWidgets('lift capacity field is hidden for a wetsuit', (tester) async {
       final created = await repository.createEquipment(
         const EquipmentItem(

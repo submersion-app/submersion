@@ -137,6 +137,11 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     return UnitFormatter(ref.read(settingsProvider)).weightToKg(parsed);
   }
 
+  /// Returns [value] only when it is strictly positive, else null. Used for
+  /// fields whose domain is a positive magnitude (e.g. rated wing lift).
+  double? _positiveOrNull(double? value) =>
+      (value != null && value > 0) ? value : null;
+
   void _handleCancel() {
     if (widget.embedded) {
       widget.onCancel?.call();
@@ -943,10 +948,13 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
         weightKg: _dryWeightController.text.isNotEmpty
             ? _parseWeightToKg(_dryWeightController.text)
             : null,
+        // Rated wing lift is a strictly-positive magnitude; a non-positive
+        // entry is meaningless and would trigger false wing-capacity
+        // warnings, so persist it as null.
         liftCapacityKg:
             (_selectedType == EquipmentType.bcd &&
                 _liftCapacityController.text.isNotEmpty)
-            ? _parseWeightToKg(_liftCapacityController.text)
+            ? _positiveOrNull(_parseWeightToKg(_liftCapacityController.text))
             : null,
         customReminderEnabled: _customReminderEnabled,
         customReminderDays: _customReminderEnabled == true

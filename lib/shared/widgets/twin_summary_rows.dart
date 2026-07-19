@@ -23,7 +23,12 @@ class TwinSummaryRows extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final o = outputs;
-    final wing = wingLiftCapacityKg;
+    // Only a positive rated lift is meaningful; a non-positive value (e.g.
+    // imported/legacy bad data) would fire a spurious "exceeds wing lift"
+    // warning against any positive demand.
+    final wing = (wingLiftCapacityKg != null && wingLiftCapacityKg! > 0)
+        ? wingLiftCapacityKg
+        : null;
     return Wrap(
       spacing: 24,
       runSpacing: 12,
