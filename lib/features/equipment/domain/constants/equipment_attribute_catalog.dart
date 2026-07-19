@@ -29,7 +29,11 @@ abstract final class EquipmentAttrKeys {
   static const thicknessMm = 'thickness_mm';
   static const buoyancyKg = 'buoyancy_kg';
   static const dryWeightKg = 'dry_weight_kg';
+  static const suitStyle = 'suit_style';
+  static const shellMaterial = 'shell_material';
+  static const bcdStyle = 'bcd_style';
   static const liftCapacityKg = 'lift_capacity_kg';
+  static const gloveType = 'glove_type';
 }
 
 class EquipmentAttributeDef {
@@ -79,7 +83,7 @@ abstract final class EquipmentAttributeCatalog {
       _size,
       _thickness,
       EquipmentAttributeDef(
-        key: 'suit_style',
+        key: EquipmentAttrKeys.suitStyle,
         kind: AttributeKind.choice,
         choiceKeys: ['full', 'shorty', 'two_piece', 'semi_dry'],
       ),
@@ -87,7 +91,7 @@ abstract final class EquipmentAttributeCatalog {
     EquipmentType.drysuit: [
       _size,
       EquipmentAttributeDef(
-        key: 'shell_material',
+        key: EquipmentAttrKeys.shellMaterial,
         kind: AttributeKind.choice,
         choiceKeys: [
           'trilaminate',
@@ -141,7 +145,7 @@ abstract final class EquipmentAttributeCatalog {
     EquipmentType.bcd: [
       _size,
       EquipmentAttributeDef(
-        key: 'bcd_style',
+        key: EquipmentAttrKeys.bcdStyle,
         kind: AttributeKind.choice,
         choiceKeys: ['jacket', 'back_inflate', 'wing', 'sidemount'],
       ),
@@ -247,7 +251,7 @@ abstract final class EquipmentAttributeCatalog {
       _size,
       _thickness,
       EquipmentAttributeDef(
-        key: 'glove_type',
+        key: EquipmentAttrKeys.gloveType,
         kind: AttributeKind.choice,
         choiceKeys: ['five_finger', 'mitt', 'dry'],
       ),
