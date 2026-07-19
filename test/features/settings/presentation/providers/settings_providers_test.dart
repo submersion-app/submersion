@@ -77,9 +77,9 @@ void main() {
   });
 
   group('AppSettings diveDetailSections', () {
-    test('defaults to all 19 sections visible', () {
+    test('defaults to all 20 sections visible', () {
       const settings = AppSettings();
-      expect(settings.diveDetailSections.length, 19);
+      expect(settings.diveDetailSections.length, 20);
       expect(settings.diveDetailSections.every((s) => s.visible), true);
     });
 
@@ -110,7 +110,7 @@ void main() {
         ],
       );
       final updated = settings.copyWith(clearDiveDetailSections: true);
-      expect(updated.diveDetailSections.length, 19);
+      expect(updated.diveDetailSections.length, 20);
       expect(updated.diveDetailSections.every((s) => s.visible), true);
     });
 
@@ -161,7 +161,7 @@ void main() {
           clearDiveDetailSections: true,
         );
         // Clear flag wins — should be defaults, not the custom list
-        expect(updated.diveDetailSections.length, 19);
+        expect(updated.diveDetailSections.length, 20);
         expect(updated.diveDetailSections.every((s) => s.visible), true);
       },
     );
