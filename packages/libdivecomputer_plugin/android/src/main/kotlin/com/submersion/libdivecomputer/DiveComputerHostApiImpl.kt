@@ -23,6 +23,12 @@ private const val LIBDC_STATUS_CANCELLED = -10
 private const val UINT32_SENTINEL: Long = 4294967295L  // UINT32_MAX = unavailable
 private const val GATT_INSUFFICIENT_AUTHENTICATION = 5
 
+// Settle time between a stale-bond repair (GATT close + removeBond) and the
+// reconnect attempt. An immediate reconnect races the Bluetooth stack's
+// teardown and the peripheral's advertising recovery and fails to establish
+// (status 147).
+private const val BOND_REPAIR_SETTLE_MS = 2500L
+
 private const val TAG = "DiveComputerHost"
 
 // Bluetooth permissions are requested at the Dart layer before BLE methods are called.
@@ -324,6 +330,33 @@ class DiveComputerHostApiImpl(
         }
 
         if (!bleStream.connectAndDiscover()) {
+            // A stale bond makes connection establishment itself fail:
+            // Android auto-starts encryption on connect when a bond exists,
+            // and rejected keys disconnect with GATT status 5 before any
+            // service discovery runs. Remove the bond and retry once,
+            // mirroring the same repair on the download-failure path below
+            // (issue #621).
+            if (!isRetry &&
+                bleStream.lastDisconnectStatus == GATT_INSUFFICIENT_AUTHENTICATION
+            ) {
+                NativeLogger.w(
+                    TAG, "BLE",
+                    "Auth failure during connect (GATT status 5), removing stale bond and retrying"
+                )
+                bleStream.close()
+                bleStream.removeBond()
+                activeBleStream = null
+                LibdcWrapper.nativeDownloadSessionFree(sessionPtr)
+                downloadSessionPtr = 0
+                // Reconnecting immediately after tearing down the encrypted
+                // link and removing the bond races the Bluetooth stack and
+                // the device's advertising recovery; the fresh connectGatt
+                // then never establishes (status 147). Give both sides a
+                // moment to settle before the retry.
+                Thread.sleep(BOND_REPAIR_SETTLE_MS)
+                performDownload(device, fingerprint, isRetry = true)
+                return
+            }
             reportError("connect_failed", "Failed to connect to device")
             LibdcWrapper.nativeDownloadSessionFree(sessionPtr)
             downloadSessionPtr = 0
@@ -381,6 +414,9 @@ class DiveComputerHostApiImpl(
                 activeBleStream = null
                 LibdcWrapper.nativeDownloadSessionFree(sessionPtr)
                 downloadSessionPtr = 0
+                // Same settle wait as the connect-path repair: an immediate
+                // reconnect after removeBond fails to establish (status 147).
+                Thread.sleep(BOND_REPAIR_SETTLE_MS)
                 performDownload(device, fingerprint, isRetry = true)
                 return
             }
