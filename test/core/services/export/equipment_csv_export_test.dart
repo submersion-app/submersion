@@ -46,4 +46,36 @@ void main() {
     expect(lines[1], contains('suit_style=full'));
     expect(lines[1], contains('2.5'));
   });
+
+  test('custom field colliding with a curated key is not dropped', () {
+    final csv = CsvExportService().generateEquipmentCsvContent([
+      EquipmentItem(
+        id: 'e1',
+        name: 'Suit',
+        type: EquipmentType.wetsuit,
+        attributes: const [
+          // Curated size fills the dedicated Size column.
+          EquipmentAttribute(
+            id: 'attr_e1_size',
+            equipmentId: 'e1',
+            key: 'size',
+            valueText: 'L',
+          ),
+          // Custom field that happens to share the "size" key: must still
+          // appear in the combined Attributes column.
+          EquipmentAttribute(
+            id: 'c1',
+            equipmentId: 'e1',
+            key: 'size',
+            isCustom: true,
+            valueText: 'legacy-tag',
+          ),
+        ],
+      ),
+    ]);
+
+    final line = csv.split('\n')[1];
+    expect(line, contains('L')); // dedicated Size column (curated)
+    expect(line, contains('size=legacy-tag')); // custom, in Attributes column
+  });
 }
