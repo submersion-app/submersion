@@ -382,10 +382,12 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
       },
       onImportPartial: () {
         // The user chose to keep the dives delivered before an interrupted
-        // download. For drivers that deliver oldest-first (as Shearwater
-        // does), this is a contiguous prefix of the oldest dives, so capturing
-        // it advances the fingerprint to a correct resume point for the next
-        // download. Ordering depends on the native driver, not this code.
+        // download. Dives arrive newest-first (issue #621: real hardware
+        // rejects other request orders), so the partial set is kept but the
+        // resume fingerprint does not advance; the next download re-fetches
+        // from the top and duplicate detection skips what was already
+        // imported. _captureAndAdvance passes the download's completeness to
+        // the adapter, which gates the fingerprint advance on it.
         _captureAndAdvance(ref.read(downloadNotifierProvider));
       },
     );
@@ -397,7 +399,10 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
   void _captureAndAdvance(DownloadState state) {
     if (_captured) return;
     _captured = true;
-    widget.adapter.setDownloadedDives(state.downloadedDives);
+    widget.adapter.setDownloadedDives(
+      state.downloadedDives,
+      downloadComplete: state.isComplete,
+    );
 
     // No dives — show an informational message instead of advancing to an
     // empty Review step.

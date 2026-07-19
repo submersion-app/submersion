@@ -19,11 +19,12 @@ class DownloadStepWidget extends ConsumerStatefulWidget {
 
   /// Invoked when the user chooses to import the dives that were delivered
   /// before an interrupted (errored or cancelled) download. Null disables the
-  /// action. When the native driver delivers dives oldest-first (as the
-  /// Shearwater driver does), the retained set is a contiguous prefix of the
-  /// oldest dives, so importing it and advancing the fingerprint yields a
-  /// correct resume point for the next download. This widget does not itself
-  /// enforce that ordering — it relies on the driver's delivery order.
+  /// action. Dives are delivered newest-first (issue #621: real hardware
+  /// rejects other request orders), so the retained set is a newest-suffix
+  /// of the logbook; the import keeps the dives but must NOT advance the
+  /// resume fingerprint, or the never-delivered older dives would be
+  /// stranded (issue #480). The next download re-fetches from the top and
+  /// duplicate detection skips already-imported dives.
   final VoidCallback? onImportPartial;
 
   /// When true, `newDivesOnly` is set to false after the notifier reset,
@@ -241,12 +242,11 @@ class _DownloadStepWidgetState extends ConsumerState<DownloadStepWidget> {
   /// Actions shown after an interrupted (errored or cancelled) download.
   ///
   /// When the download delivered some dives before stopping, offers to import
-  /// that partial set. For drivers that deliver dives oldest-first (as
-  /// Shearwater does), the retained dives are a contiguous prefix of the
-  /// oldest dives; importing them advances the fingerprint to a correct
-  /// high-water mark and the next download resumes with the newer dives.
-  /// Ordering is the driver's responsibility, not this widget's. Retry is
-  /// always available.
+  /// that partial set. Dives arrive newest-first (issue #621), so the
+  /// partial set is a newest-suffix of the logbook: the import keeps the
+  /// dives but the resume fingerprint does not advance (issue #480), and the
+  /// next download re-fetches from the top with duplicate detection skipping
+  /// already-imported dives. Retry is always available.
   List<Widget> _buildInterruptedActions(
     BuildContext context,
     DownloadState state,
