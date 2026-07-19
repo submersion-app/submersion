@@ -104,12 +104,16 @@ class _MapCompassButtonState extends State<MapCompassButton>
       curve: Curves.easeInOut,
     );
     void applyFrame() {
+      if (!mounted) return;
       widget.controller.rotate(start + (end - start) * animation.value);
     }
 
     animation.addListener(applyFrame);
     try {
       await _resetController.forward();
+    } on TickerCanceled {
+      // The widget was disposed mid-glide (e.g. the map was navigated away);
+      // the reset is simply abandoned.
     } finally {
       animation.removeListener(applyFrame);
     }

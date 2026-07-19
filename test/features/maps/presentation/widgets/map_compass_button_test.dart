@@ -92,14 +92,40 @@ void main() {
     final controller = await pumpCompass(tester);
 
     // 350 degrees is only 10 degrees short of a full turn; resetting should
-    // land on 360 (a multiple of 360, i.e. north) rather than unwinding to 0.
+    // climb forward toward 360 rather than unwinding ~350 degrees back to 0.
     controller.rotate(350);
     await tester.pump();
 
     await tester.tap(find.byTooltip('North up'));
+    // Sample mid-glide: the shortest path forward keeps the bearing at/above
+    // the 350 start; unwinding to 0 would instead drop it below 350.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 150));
+    expect(controller.camera.rotation, greaterThanOrEqualTo(350));
+
     await tester.pumpAndSettle();
 
-    expect(controller.camera.rotation, 360);
+    // End state is north-up regardless of whether the controller keeps 360 or
+    // normalizes it to 0.
+    expect(controller.camera.rotation % 360, closeTo(0, 0.01));
     expect(opacity(tester), 0);
+  });
+
+  testWidgets('disposing mid-reset does not throw', (tester) async {
+    final controller = await pumpCompass(tester);
+
+    controller.rotate(90);
+    await tester.pump();
+
+    await tester.tap(find.byTooltip('North up'));
+    await tester.pump(); // start the glide-to-north animation
+    await tester.pump(const Duration(milliseconds: 100)); // partway through
+
+    // Tear the compass out of the tree while the animation is still running,
+    // cancelling the ticker mid-flight.
+    await tester.pumpWidget(const MaterialApp(home: Scaffold()));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
   });
 }
