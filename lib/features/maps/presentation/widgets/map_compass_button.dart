@@ -55,7 +55,7 @@ class _MapCompassButtonState extends State<MapCompassButton>
       vsync: this,
       duration: widget.resetDuration,
     );
-    _eventSub = widget.controller.mapEventStream.listen(_onMapEvent);
+    _subscribe();
   }
 
   @override
@@ -63,9 +63,23 @@ class _MapCompassButtonState extends State<MapCompassButton>
     super.didUpdateWidget(oldWidget);
     if (oldWidget.controller != widget.controller) {
       _eventSub?.cancel();
-      _eventSub = widget.controller.mapEventStream.listen(_onMapEvent);
+      _subscribe();
     }
     _resetController.duration = widget.resetDuration;
+  }
+
+  /// Listen to the controller's events and seed [_rotation] from its current
+  /// bearing. Seeding matters when the controller is already rotated as this
+  /// widget mounts (or when a new controller is swapped in): without it the
+  /// needle would show north until the next map event arrives.
+  void _subscribe() {
+    _eventSub = widget.controller.mapEventStream.listen(_onMapEvent);
+    try {
+      _rotation = widget.controller.camera.rotation;
+    } on StateError {
+      // The map is not attached to this controller yet; the first emitted
+      // map event will sync the rotation.
+    }
   }
 
   @override
