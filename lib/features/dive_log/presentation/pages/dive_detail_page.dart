@@ -54,6 +54,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail_ro
 import 'package:submersion/features/dive_log/presentation/widgets/dive_locations_map.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_nav_buttons.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/o2_toxicity_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_layout.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/playback_controls.dart';
@@ -2936,19 +2937,19 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 _buildDetailRow(
                   context,
                   context.l10n.diveLog_detail_label_windDirection,
-                  dive.windDirection!.displayName,
+                  dive.windDirection!.localizedName(context.l10n),
                 ),
               if (dive.cloudCover != null)
                 _buildDetailRow(
                   context,
                   context.l10n.diveLog_detail_label_cloudCover,
-                  dive.cloudCover!.displayName,
+                  dive.cloudCover!.localizedName(context.l10n),
                 ),
               if (dive.precipitation != null)
                 _buildDetailRow(
                   context,
                   context.l10n.diveLog_detail_label_precipitation,
-                  dive.precipitation!.displayName,
+                  dive.precipitation!.localizedName(context.l10n),
                 ),
               if (dive.humidity != null)
                 _buildDetailRow(
@@ -2993,13 +2994,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 _buildDetailRow(
                   context,
                   context.l10n.diveLog_detail_label_currentDirection,
-                  dive.currentDirection!.displayName,
+                  dive.currentDirection!.localizedName(context.l10n),
                 ),
               if (dive.currentStrength != null)
                 _buildDetailRow(
                   context,
                   context.l10n.diveLog_detail_label_currentStrength,
-                  dive.currentStrength!.displayName,
+                  dive.currentStrength!.localizedName(context.l10n),
                 ),
               if (dive.swellHeight != null)
                 _buildDetailRow(
@@ -3011,13 +3012,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 _buildDetailRow(
                   context,
                   context.l10n.diveLog_detail_label_entryMethod,
-                  dive.entryMethod!.displayName,
+                  dive.entryMethod!.localizedName(context.l10n),
                 ),
               if (dive.exitMethod != null)
                 _buildDetailRow(
                   context,
                   context.l10n.diveLog_detail_label_exitMethod,
-                  dive.exitMethod!.displayName,
+                  dive.exitMethod!.localizedName(context.l10n),
                 ),
             ],
           ],
