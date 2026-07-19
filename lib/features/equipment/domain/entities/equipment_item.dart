@@ -78,6 +78,11 @@ class EquipmentItem extends Equatable {
   double? get buoyancyKg => attrNum(EquipmentAttrKeys.buoyancyKg);
   double? get weightKg => attrNum(EquipmentAttrKeys.dryWeightKg);
 
+  /// Wing/BCD rated lift capacity in kg (curated attribute; see the BCD entry
+  /// in [EquipmentAttributeCatalog]). Feeds the buoyancy twin's peak-lift
+  /// demand comparison; null when unspecified.
+  double? get liftCapacityKg => attrNum(EquipmentAttrKeys.liftCapacityKg);
+
   /// Full name including brand and model
   String get fullName {
     final parts = <String>[];

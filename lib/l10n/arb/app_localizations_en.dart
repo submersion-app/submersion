@@ -12176,6 +12176,129 @@ class AppLocalizationsEn extends AppLocalizations {
       'Weight breakdown, total weight';
 
   @override
+  String get diveDetailSection_buoyancy_name => 'Buoyancy';
+
+  @override
+  String get diveDetailSection_buoyancy_description =>
+      'Buoyancy through the dive, swing, ditchable weight';
+
+  @override
+  String get buoyancy_tooltip =>
+      'Modeled net buoyancy through the dive from your profile, gas use, and gear.';
+
+  @override
+  String buoyancy_verdictBuoyant(String depth, String amount) {
+    return 'At your final stop (~$depth) you were about $amount buoyant';
+  }
+
+  @override
+  String buoyancy_verdictHeavy(String depth, String amount) {
+    return 'At your final stop (~$depth) you were about $amount heavy';
+  }
+
+  @override
+  String get buoyancy_verdictNeutral =>
+      'Your rig was close to neutral at the final stop';
+
+  @override
+  String get buoyancy_verdictConvention =>
+      'Estimated at the 5 m safety-stop convention';
+
+  @override
+  String get buoyancy_breakdownTitle => 'Term breakdown';
+
+  @override
+  String get buoyancy_suitTerm => 'Suit';
+
+  @override
+  String get buoyancy_leadTerm => 'Lead';
+
+  @override
+  String get buoyancy_beginNet => 'Start of dive';
+
+  @override
+  String get buoyancy_endNet => 'End of dive';
+
+  @override
+  String get buoyancy_swing => 'Buoyancy swing';
+
+  @override
+  String get buoyancy_peakLift => 'Peak lift needed';
+
+  @override
+  String get buoyancy_wingWarning => 'Exceeds your wing\'s rated lift';
+
+  @override
+  String get buoyancy_minDitchable => 'Min ditchable weight';
+
+  @override
+  String get buoyancy_droppable => 'You can ditch';
+
+  @override
+  String get buoyancy_ditchWarning => 'More than you can ditch';
+
+  @override
+  String get buoyancy_drysuitGas => 'Drysuit gas added';
+
+  @override
+  String get buoyancy_estimatedPressures => 'Tank pressures are estimated';
+
+  @override
+  String get buoyancy_linkSuitHint =>
+      'Link an exposure suit to this dive for a fuller picture';
+
+  @override
+  String get buoyancy_chartNet => 'Net';
+
+  @override
+  String get buoyancy_chartRig => 'Rig + lead';
+
+  @override
+  String get buoyancy_chartMinutes => 'Time (min)';
+
+  @override
+  String get buoyancy_historyTitle => 'Weighting history';
+
+  @override
+  String get buoyancy_historyCarried => 'Carried';
+
+  @override
+  String get buoyancy_historyModeled => 'Modeled';
+
+  @override
+  String buoyancy_historyMore(String delta) {
+    return 'You typically carry $delta more than the model suggests';
+  }
+
+  @override
+  String buoyancy_historyLess(String delta) {
+    return 'You typically carry $delta less than the model suggests';
+  }
+
+  @override
+  String get buoyancy_throughDive => 'Through the dive';
+
+  @override
+  String get buoyancy_adjust => 'Adjust';
+
+  @override
+  String get buoyancy_whatIfTitle => 'Adjust this dive';
+
+  @override
+  String get buoyancy_whatIfLead => 'Lead';
+
+  @override
+  String get buoyancy_whatIfSuit => 'Suit buoyancy';
+
+  @override
+  String get buoyancy_whatIfReset => 'Reset';
+
+  @override
+  String buoyancy_whatIfDelta(String delta) {
+    return '$delta vs. actual';
+  }
+
+  @override
   String get diveDetailSection_tanks_name => 'Cylinders';
 
   @override
@@ -19777,6 +19900,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String equipment_edit_dryWeightLabel(String unit) {
     return 'Dry weight ($unit)';
   }
+
+  @override
+  String equipment_edit_liftCapacityLabel(String unit) {
+    return 'Lift capacity ($unit)';
+  }
+
+  @override
+  String get equipment_edit_liftCapacityHint => 'Wing or BCD rated lift';
 
   @override
   String get planner_gearWeights_accept => 'Use as planned weight';

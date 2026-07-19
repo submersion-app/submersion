@@ -12152,6 +12152,129 @@ class AppLocalizationsAr extends AppLocalizations {
       'تفصيل الأوزان، إجمالي الوزن';
 
   @override
+  String get diveDetailSection_buoyancy_name => 'الطفو';
+
+  @override
+  String get diveDetailSection_buoyancy_description =>
+      'الطفو خلال الغطسة، التغيّر، والوزن القابل للإسقاط';
+
+  @override
+  String get buoyancy_tooltip =>
+      'الطفو الصافي المُنمذَج خلال الغطسة من المخطط واستهلاك الغاز والمعدات.';
+
+  @override
+  String buoyancy_verdictBuoyant(String depth, String amount) {
+    return 'عند محطتك الأخيرة (~$depth) كان لديك نحو $amount من الطفو';
+  }
+
+  @override
+  String buoyancy_verdictHeavy(String depth, String amount) {
+    return 'عند محطتك الأخيرة (~$depth) كنت أثقل بنحو $amount';
+  }
+
+  @override
+  String get buoyancy_verdictNeutral =>
+      'كانت تهيئتك قريبة من التعادل عند المحطة الأخيرة';
+
+  @override
+  String get buoyancy_verdictConvention =>
+      'مُقدَّر وفق اصطلاح محطة الأمان عند 5 أمتار';
+
+  @override
+  String get buoyancy_breakdownTitle => 'تفصيل العناصر';
+
+  @override
+  String get buoyancy_suitTerm => 'البدلة';
+
+  @override
+  String get buoyancy_leadTerm => 'الرصاص';
+
+  @override
+  String get buoyancy_beginNet => 'بداية الغطسة';
+
+  @override
+  String get buoyancy_endNet => 'نهاية الغطسة';
+
+  @override
+  String get buoyancy_swing => 'تغيّر الطفو';
+
+  @override
+  String get buoyancy_peakLift => 'أقصى رفع مطلوب';
+
+  @override
+  String get buoyancy_wingWarning => 'يتجاوز قدرة الرفع الاسمية لجناحك';
+
+  @override
+  String get buoyancy_minDitchable => 'أدنى وزن قابل للإسقاط';
+
+  @override
+  String get buoyancy_droppable => 'يمكنك إسقاط';
+
+  @override
+  String get buoyancy_ditchWarning => 'أكثر مما يمكنك إسقاطه';
+
+  @override
+  String get buoyancy_drysuitGas => 'غاز البدلة الجافة المُضاف';
+
+  @override
+  String get buoyancy_estimatedPressures => 'ضغوط الأسطوانات تقديرية';
+
+  @override
+  String get buoyancy_linkSuitHint =>
+      'اربط بدلة تعرّض بهذه الغطسة للحصول على صورة أوفى';
+
+  @override
+  String get buoyancy_chartNet => 'الصافي';
+
+  @override
+  String get buoyancy_chartRig => 'المعدات + الرصاص';
+
+  @override
+  String get buoyancy_chartMinutes => 'الزمن (دقيقة)';
+
+  @override
+  String get buoyancy_historyTitle => 'سجل الترصيص';
+
+  @override
+  String get buoyancy_historyCarried => 'المحمول';
+
+  @override
+  String get buoyancy_historyModeled => 'المُنمذَج';
+
+  @override
+  String buoyancy_historyMore(String delta) {
+    return 'عادةً ما تحمل $delta أكثر مما يقترحه النموذج';
+  }
+
+  @override
+  String buoyancy_historyLess(String delta) {
+    return 'عادةً ما تحمل $delta أقل مما يقترحه النموذج';
+  }
+
+  @override
+  String get buoyancy_throughDive => 'خلال الغطسة';
+
+  @override
+  String get buoyancy_adjust => 'تعديل';
+
+  @override
+  String get buoyancy_whatIfTitle => 'تعديل هذه الغطسة';
+
+  @override
+  String get buoyancy_whatIfLead => 'الرصاص';
+
+  @override
+  String get buoyancy_whatIfSuit => 'طفو البدلة';
+
+  @override
+  String get buoyancy_whatIfReset => 'إعادة تعيين';
+
+  @override
+  String buoyancy_whatIfDelta(String delta) {
+    return '$delta مقابل الفعلي';
+  }
+
+  @override
   String get diveDetailSection_tanks_name => 'الأسطوانات';
 
   @override
@@ -19750,6 +19873,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String equipment_edit_dryWeightLabel(String unit) {
     return 'الوزن الجاف ($unit)';
   }
+
+  @override
+  String equipment_edit_liftCapacityLabel(String unit) {
+    return 'سعة الرفع ($unit)';
+  }
+
+  @override
+  String get equipment_edit_liftCapacityHint => 'قوة رفع الجناح أو منظم الطفو';
 
   @override
   String get planner_gearWeights_accept => 'استخدام كوزن مخطط';

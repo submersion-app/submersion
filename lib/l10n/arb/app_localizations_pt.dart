@@ -12374,6 +12374,130 @@ class AppLocalizationsPt extends AppLocalizations {
       'Detalhamento de peso, peso total';
 
   @override
+  String get diveDetailSection_buoyancy_name => 'Flutuabilidade';
+
+  @override
+  String get diveDetailSection_buoyancy_description =>
+      'Flutuabilidade durante o mergulho, variação, lastro descartável';
+
+  @override
+  String get buoyancy_tooltip =>
+      'Flutuabilidade líquida modelada durante o mergulho a partir do perfil, consumo de gás e equipamento.';
+
+  @override
+  String buoyancy_verdictBuoyant(String depth, String amount) {
+    return 'Na sua última parada (~$depth) você tinha cerca de $amount de flutuabilidade';
+  }
+
+  @override
+  String buoyancy_verdictHeavy(String depth, String amount) {
+    return 'Na sua última parada (~$depth) você estava cerca de $amount pesado demais';
+  }
+
+  @override
+  String get buoyancy_verdictNeutral =>
+      'Sua configuração estava quase neutra na última parada';
+
+  @override
+  String get buoyancy_verdictConvention =>
+      'Estimado pela convenção de parada de segurança a 5 m';
+
+  @override
+  String get buoyancy_breakdownTitle => 'Detalhe dos termos';
+
+  @override
+  String get buoyancy_suitTerm => 'Roupa';
+
+  @override
+  String get buoyancy_leadTerm => 'Lastro';
+
+  @override
+  String get buoyancy_beginNet => 'Início do mergulho';
+
+  @override
+  String get buoyancy_endNet => 'Fim do mergulho';
+
+  @override
+  String get buoyancy_swing => 'Variação de flutuabilidade';
+
+  @override
+  String get buoyancy_peakLift => 'Sustentação máxima necessária';
+
+  @override
+  String get buoyancy_wingWarning => 'Excede a sustentação nominal do seu wing';
+
+  @override
+  String get buoyancy_minDitchable => 'Lastro descartável mínimo';
+
+  @override
+  String get buoyancy_droppable => 'Você pode soltar';
+
+  @override
+  String get buoyancy_ditchWarning => 'Mais do que você pode soltar';
+
+  @override
+  String get buoyancy_drysuitGas => 'Gás de roupa seca adicionado';
+
+  @override
+  String get buoyancy_estimatedPressures =>
+      'As pressões dos cilindros são estimadas';
+
+  @override
+  String get buoyancy_linkSuitHint =>
+      'Associe uma roupa de exposição a este mergulho para um quadro mais completo';
+
+  @override
+  String get buoyancy_chartNet => 'Líquido';
+
+  @override
+  String get buoyancy_chartRig => 'Equipamento + lastro';
+
+  @override
+  String get buoyancy_chartMinutes => 'Tempo (min)';
+
+  @override
+  String get buoyancy_historyTitle => 'Histórico de lastro';
+
+  @override
+  String get buoyancy_historyCarried => 'Levado';
+
+  @override
+  String get buoyancy_historyModeled => 'Modelado';
+
+  @override
+  String buoyancy_historyMore(String delta) {
+    return 'Você costuma levar $delta a mais do que o modelo sugere';
+  }
+
+  @override
+  String buoyancy_historyLess(String delta) {
+    return 'Você costuma levar $delta a menos do que o modelo sugere';
+  }
+
+  @override
+  String get buoyancy_throughDive => 'Durante o mergulho';
+
+  @override
+  String get buoyancy_adjust => 'Ajustar';
+
+  @override
+  String get buoyancy_whatIfTitle => 'Ajustar este mergulho';
+
+  @override
+  String get buoyancy_whatIfLead => 'Lastro';
+
+  @override
+  String get buoyancy_whatIfSuit => 'Flutuabilidade da roupa';
+
+  @override
+  String get buoyancy_whatIfReset => 'Redefinir';
+
+  @override
+  String buoyancy_whatIfDelta(String delta) {
+    return '$delta vs real';
+  }
+
+  @override
   String get diveDetailSection_tanks_name => 'Cilindros';
 
   @override
@@ -20118,6 +20242,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String equipment_edit_dryWeightLabel(String unit) {
     return 'Peso seco ($unit)';
   }
+
+  @override
+  String equipment_edit_liftCapacityLabel(String unit) {
+    return 'Capacidade de sustentação ($unit)';
+  }
+
+  @override
+  String get equipment_edit_liftCapacityHint =>
+      'Sustentação nominal do wing ou colete';
 
   @override
   String get planner_gearWeights_accept => 'Usar como lastro planejado';

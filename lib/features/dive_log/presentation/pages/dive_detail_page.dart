@@ -45,6 +45,7 @@ import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.d
 import 'package:submersion/features/dive_log/presentation/providers/profile_playback_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_range_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/collapsible_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/safety_review_section.dart';
 import 'package:submersion/features/safety/domain/services/altitude_flag.dart';
@@ -383,6 +384,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         return [
           const SizedBox(height: 24),
           _buildWeightSection(context, dive, units),
+        ];
+      },
+      DiveDetailSectionId.buoyancy: () {
+        if (dive.tanks.isEmpty && !_hasExposureSuit(dive)) return [];
+        return [
+          const SizedBox(height: 24),
+          BuoyancySection(diveId: dive.id, units: units),
         ];
       },
       DiveDetailSectionId.tanks: () {
@@ -2850,6 +2858,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     return dive.weights.isNotEmpty ||
         (dive.weightAmount != null && dive.weightAmount! > 0);
   }
+
+  bool _hasExposureSuit(Dive dive) => dive.equipment.any(
+    (e) => e.type == EquipmentType.wetsuit || e.type == EquipmentType.drysuit,
+  );
 
   /// Calculate profile markers for max depth and pressure thresholds
   List<ProfileMarker> _calculateProfileMarkers({

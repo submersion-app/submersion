@@ -7027,6 +7027,63 @@
   "diveLog_detail_openInMaps": "Open in Maps",
   "diveDetailSection_weights_name": "Weights",
   "diveDetailSection_weights_description": "Weight breakdown, total weight",
+  "diveDetailSection_buoyancy_name": "Buoyancy",
+  "diveDetailSection_buoyancy_description": "Buoyancy through the dive, swing, ditchable weight",
+  "buoyancy_tooltip": "Modeled net buoyancy through the dive from your profile, gas use, and gear.",
+  "buoyancy_verdictBuoyant": "At your final stop (~{depth}) you were about {amount} buoyant",
+  "@buoyancy_verdictBuoyant": {
+    "placeholders": {
+      "depth": { "type": "String" },
+      "amount": { "type": "String" }
+    }
+  },
+  "buoyancy_verdictHeavy": "At your final stop (~{depth}) you were about {amount} heavy",
+  "@buoyancy_verdictHeavy": {
+    "placeholders": {
+      "depth": { "type": "String" },
+      "amount": { "type": "String" }
+    }
+  },
+  "buoyancy_verdictNeutral": "Your rig was close to neutral at the final stop",
+  "buoyancy_verdictConvention": "Estimated at the 5 m safety-stop convention",
+  "buoyancy_breakdownTitle": "Term breakdown",
+  "buoyancy_suitTerm": "Suit",
+  "buoyancy_leadTerm": "Lead",
+  "buoyancy_beginNet": "Start of dive",
+  "buoyancy_endNet": "End of dive",
+  "buoyancy_swing": "Buoyancy swing",
+  "buoyancy_peakLift": "Peak lift needed",
+  "buoyancy_wingWarning": "Exceeds your wing's rated lift",
+  "buoyancy_minDitchable": "Min ditchable weight",
+  "buoyancy_droppable": "You can ditch",
+  "buoyancy_ditchWarning": "More than you can ditch",
+  "buoyancy_drysuitGas": "Drysuit gas added",
+  "buoyancy_estimatedPressures": "Tank pressures are estimated",
+  "buoyancy_linkSuitHint": "Link an exposure suit to this dive for a fuller picture",
+  "buoyancy_chartNet": "Net",
+  "buoyancy_chartRig": "Rig + lead",
+  "buoyancy_chartMinutes": "Time (min)",
+  "buoyancy_historyTitle": "Weighting history",
+  "buoyancy_historyCarried": "Carried",
+  "buoyancy_historyModeled": "Modeled",
+  "buoyancy_historyMore": "You typically carry {delta} more than the model suggests",
+  "@buoyancy_historyMore": {
+    "placeholders": { "delta": { "type": "String" } }
+  },
+  "buoyancy_historyLess": "You typically carry {delta} less than the model suggests",
+  "@buoyancy_historyLess": {
+    "placeholders": { "delta": { "type": "String" } }
+  },
+  "buoyancy_throughDive": "Through the dive",
+  "buoyancy_adjust": "Adjust",
+  "buoyancy_whatIfTitle": "Adjust this dive",
+  "buoyancy_whatIfLead": "Lead",
+  "buoyancy_whatIfSuit": "Suit buoyancy",
+  "buoyancy_whatIfReset": "Reset",
+  "buoyancy_whatIfDelta": "{delta} vs. actual",
+  "@buoyancy_whatIfDelta": {
+    "placeholders": { "delta": { "type": "String" } }
+  },
   "diveDetailSection_tanks_name": "Cylinders",
   "diveDetailSection_tanks_description": "Cylinder list, gas mixes, pressures, MOD/MND, per-tank SAC",
   "diveDetailSection_buddies_name": "Buddies",
@@ -12687,6 +12744,15 @@
       }
     }
   },
+  "equipment_edit_liftCapacityLabel": "Lift capacity ({unit})",
+  "@equipment_edit_liftCapacityLabel": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_edit_liftCapacityHint": "Wing or BCD rated lift",
   "planner_gearWeights_accept": "Use as planned weight",
   "planner_gearWeights_addGear": "Add gear",
   "planner_gearWeights_empty": "Add gear to predict your weighting",

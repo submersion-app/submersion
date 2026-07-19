@@ -29,6 +29,7 @@ abstract final class EquipmentAttrKeys {
   static const thicknessMm = 'thickness_mm';
   static const buoyancyKg = 'buoyancy_kg';
   static const dryWeightKg = 'dry_weight_kg';
+  static const liftCapacityKg = 'lift_capacity_kg';
 }
 
 class EquipmentAttributeDef {
@@ -145,7 +146,7 @@ abstract final class EquipmentAttributeCatalog {
         choiceKeys: ['jacket', 'back_inflate', 'wing', 'sidemount'],
       ),
       EquipmentAttributeDef(
-        key: 'lift_capacity_kg',
+        key: EquipmentAttrKeys.liftCapacityKg,
         kind: AttributeKind.number,
         dimension: AttributeDimension.massKg,
       ),

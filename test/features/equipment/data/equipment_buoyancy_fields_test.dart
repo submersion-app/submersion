@@ -3,6 +3,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 
@@ -91,5 +92,38 @@ void main() {
     final loaded = await diveRepository.getDiveById(dive.id);
     expect(loaded!.equipment.single.buoyancyKg, -2.5);
     expect(loaded.equipment.single.weightKg, 3.0);
+  });
+
+  test('liftCapacityKg round-trips and carries through the dive join', () async {
+    final wing = await repository.createEquipment(
+      EquipmentItem(
+        id: '',
+        name: 'Wing 18',
+        type: EquipmentType.bcd,
+        attributes: [
+          EquipmentAttribute.curated(
+            equipmentId: '',
+            key: EquipmentAttrKeys.liftCapacityKg,
+            valueNum: 18.0,
+          ),
+        ],
+      ),
+    );
+    final loaded = await repository.getEquipmentById(wing.id);
+    expect(loaded!.liftCapacityKg, 18.0);
+
+    // The buoyancy twin reads liftCapacityKg off dive-joined equipment, so the
+    // curated attribute must survive the dive equipment hydration path.
+    final diveRepository = DiveRepository();
+    final dive = await diveRepository.createDive(
+      Dive(
+        id: '',
+        diveNumber: 2,
+        dateTime: DateTime(2026, 1, 2),
+        equipment: [loaded],
+      ),
+    );
+    final loadedDive = await diveRepository.getDiveById(dive.id);
+    expect(loadedDive!.equipment.single.liftCapacityKg, 18.0);
   });
 }
