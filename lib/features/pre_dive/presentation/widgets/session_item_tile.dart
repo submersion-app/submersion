@@ -41,7 +41,10 @@ class SessionItemTile extends StatelessWidget {
       sortedItems,
       item,
     );
-    final showMenu = !session.isLocked;
+    // The overflow menu must respect strict-order gating too: a pending item
+    // that is not yet actionable cannot be skipped/flagged/noted out of order.
+    // Resolved items keep their menu so Reset/Note stay reachable.
+    final showMenu = !session.isLocked && (actionable || item.isResolved);
 
     final (stateIcon, stateColor) = switch (item.state) {
       PreDiveItemState.pending => (

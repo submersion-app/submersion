@@ -233,6 +233,10 @@ void main() {
 
       await tester.tap(find.byType(ListTile), warnIfMissed: false);
       expect(done, isFalse);
+
+      // The overflow menu is also gated: Skip/Flag/Note must not be reachable
+      // on a not-yet-actionable pending item in a strict-order session.
+      expect(find.byType(PopupMenuButton<String>), findsNothing);
     });
 
     testWidgets('the next item is not dimmed and is actionable', (
