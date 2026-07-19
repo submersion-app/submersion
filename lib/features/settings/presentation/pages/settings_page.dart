@@ -333,6 +333,7 @@ class _MobileSettingsTile extends StatelessWidget {
       'about' => context.l10n.settings_section_about_title,
       'dataSources' => context.l10n.settings_section_dataSources_title,
       'sharedData' => context.l10n.settings_sharedData_sectionTitle,
+      'safety' => context.l10n.settings_section_safety_title,
       _ => section.title,
     };
   }
@@ -348,6 +349,7 @@ class _MobileSettingsTile extends StatelessWidget {
       'data' => context.l10n.settings_section_data_subtitle,
       'about' => context.l10n.settings_section_about_subtitle,
       'dataSources' => context.l10n.settings_section_dataSources_subtitle,
+      'safety' => context.l10n.settings_section_safety_subtitle,
       _ => section.subtitle,
     };
   }

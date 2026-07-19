@@ -475,12 +475,13 @@ void main() {
   /// Builds a test widget with mobile screen size to avoid MasterDetailScaffold
   /// which requires GoRouter. The SettingsPage uses MasterDetailScaffold on
   /// desktop (>=800px) which calls GoRouterState.of(context).
-  Widget buildTestWidget(Widget child) {
+  Widget buildTestWidget(Widget child, {Locale? locale}) {
     return MediaQuery(
       data: const MediaQueryData(size: Size(400, 800)),
       child: ProviderScope(
         overrides: getOverrides(),
         child: MaterialApp(
+          locale: locale,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: child,
@@ -559,6 +560,31 @@ void main() {
 
       expect(find.text('Diver Profile'), findsOneWidget);
       expect(find.text('Active diver & profiles'), findsOneWidget);
+    });
+
+    testWidgets('mobile Safety tile localizes its title and subtitle', (
+      tester,
+    ) async {
+      // Pinned to Spanish so a regression to the hardcoded English fallback
+      // (identical to the English l10n value) would be visible. The mobile
+      // tile must localize the same way the desktop master-detail tile does.
+      await tester.pumpWidget(
+        buildTestWidget(const SettingsPage(), locale: const Locale('es')),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(
+        find.text('Seguridad'),
+        50.0,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text('Seguridad'), findsOneWidget);
+      expect(
+        find.text('Reglas de revisión y volar tras bucear'),
+        findsOneWidget,
+      );
+      // Never the hardcoded English fallback.
+      expect(find.text('Safety'), findsNothing);
     });
 
     testWidgets('should display About section', (tester) async {
