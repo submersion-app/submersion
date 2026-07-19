@@ -297,7 +297,7 @@ void main() {
       expect(negLift.priorStrength, 4.0);
       // A non-finite lift is likewise ignored and never yields NaN.
       final infLift = bcd(
-        traits: GearBuoyancyTraits(
+        traits: const GearBuoyancyTraits(
           bcdStyle: 'jacket',
           liftCapacityKg: double.infinity,
         ),
