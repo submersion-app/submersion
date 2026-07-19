@@ -12148,6 +12148,137 @@ class AppLocalizationsEs extends AppLocalizations {
       'NDL, techo, mapa de calor de tejidos, toxicidad de O2';
 
   @override
+  String get diveDetailSection_safetyReview_name => 'Revisión de seguridad';
+
+  @override
+  String get diveDetailSection_safetyReview_description =>
+      'Observaciones automáticas del perfil tras la inmersión';
+
+  @override
+  String get safetyReview_sectionTitle => 'Revisión de seguridad';
+
+  @override
+  String safetyReview_findingCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count observaciones',
+      one: '1 observación',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String safetyReview_rapidAscent_title(String rate, String duration) {
+    return 'El ascenso superó $rate durante $duration';
+  }
+
+  @override
+  String safetyReview_missedDecoStop_title(String excess, String duration) {
+    return 'La profundidad estuvo $excess por encima del techo de parada requerido durante $duration';
+  }
+
+  @override
+  String safetyReview_omittedSafetyStop_title(String remaining) {
+    return 'La parada de seguridad recomendada se acortó en $remaining';
+  }
+
+  @override
+  String safetyReview_sawtoothProfile_title(int count) {
+    return '$count cambios repetidos de profundidad de subida y bajada durante la inmersión';
+  }
+
+  @override
+  String safetyReview_highSurfaceGf_title(String gf, String gfHigh) {
+    return 'Salida a superficie con factor de gradiente $gf, por encima del $gfHigh configurado';
+  }
+
+  @override
+  String safetyReview_timeRange(String start, String end) {
+    return 'En $start–$end';
+  }
+
+  @override
+  String get safetyReview_dismiss => 'Descartar';
+
+  @override
+  String get safetyReview_restore => 'Restaurar';
+
+  @override
+  String get safetySettings_title => 'Revisión de seguridad';
+
+  @override
+  String get safetySettings_entry_subtitle =>
+      'Observaciones y reglas tras la inmersión';
+
+  @override
+  String get safetySettings_masterToggle =>
+      'Revisión de seguridad tras la inmersión';
+
+  @override
+  String get safetySettings_masterToggle_subtitle =>
+      'Anotar automáticamente observaciones de ascenso, paradas y perfil en las inmersiones analizadas';
+
+  @override
+  String get safetySettings_rulesHeader => 'Reglas';
+
+  @override
+  String get safetySettings_rule_rapidAscent => 'Ascensos rápidos';
+
+  @override
+  String get safetySettings_rule_missedDecoStop =>
+      'Paradas deco omitidas o acortadas';
+
+  @override
+  String get safetySettings_rule_omittedSafetyStop =>
+      'Paradas de seguridad omitidas';
+
+  @override
+  String get safetySettings_rule_sawtoothProfile =>
+      'Perfiles en dientes de sierra';
+
+  @override
+  String get safetySettings_rule_highSurfaceGf =>
+      'Factor de gradiente alto al salir a superficie';
+
+  @override
+  String get safetySettings_analyzeAll => 'Analizar todas las inmersiones';
+
+  @override
+  String get safetySettings_analyzeAll_subtitle =>
+      'Ejecutar la revisión de seguridad en todas las inmersiones con perfil que aún no se hayan analizado';
+
+  @override
+  String safetySettings_analyzeAll_progress(int done, int total) {
+    return 'Analizadas $done de $total';
+  }
+
+  @override
+  String get safetySettings_analyzeAll_done => 'Análisis completado';
+
+  @override
+  String safetySettings_analyzeAll_doneWithErrors(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'No se pudieron analizar $count inmersiones',
+      one: 'No se pudo analizar 1 inmersión',
+    );
+    return 'Análisis completado — $_temp0';
+  }
+
+  @override
+  String safetyReview_showDismissed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Mostrar $count descartadas',
+      one: 'Mostrar 1 descartada',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveDetailSection_sacSegments_name => 'SAC Rate por Segmento';
 
   @override

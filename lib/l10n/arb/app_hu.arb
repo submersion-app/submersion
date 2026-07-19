@@ -5890,5 +5890,49 @@
   "settings_setupGuide_statusTodo": "Nincs beállítva",
   "settings_setupGuide_open": "Megnyitás",
   "settings_connectedAccounts_loadError": "A fiókok nem tölthetők be",
-  "media_unavailablePlaceholder_volumeOffline": "A kötet nincs csatlakoztatva"
+  "media_unavailablePlaceholder_volumeOffline": "A kötet nincs csatlakoztatva",
+  "diveDetailSection_safetyReview_name": "Biztonsági áttekintés",
+  "diveDetailSection_safetyReview_description": "Automatikus profilmegfigyelések a merülés után",
+  "safetyReview_sectionTitle": "Biztonsági áttekintés",
+  "safetyReview_findingCount": "{count, plural, =1{1 megfigyelés} other{{count} megfigyelés}}",
+  "@safetyReview_findingCount": {"placeholders": {"count": {"type": "int"}}},
+  "safetyReview_rapidAscent_title": "A felemelkedés {duration} ideig meghaladta a(z) {rate} értéket",
+  "@safetyReview_rapidAscent_title": {"placeholders": {"rate": {"type": "String"}, "duration": {"type": "String"}}},
+  "safetyReview_missedDecoStop_title": "A mélység {duration} ideig {excess} értékkel az előírt megállási plafon felett volt",
+  "@safetyReview_missedDecoStop_title": {"placeholders": {"excess": {"type": "String"}, "duration": {"type": "String"}}},
+  "safetyReview_omittedSafetyStop_title": "Az ajánlott biztonsági megálló {remaining} idővel rövidült",
+  "@safetyReview_omittedSafetyStop_title": {"placeholders": {"remaining": {"type": "String"}}},
+  "safetyReview_sawtoothProfile_title": "{count} ismételt fel-le mélységváltozás a merülés során",
+  "@safetyReview_sawtoothProfile_title": {"placeholders": {"count": {"type": "int"}}},
+  "safetyReview_highSurfaceGf_title": "Felszínre érkezés {gf} gradiens faktorral, a beállított {gfHigh} felett",
+  "@safetyReview_highSurfaceGf_title": {"placeholders": {"gf": {"type": "String"}, "gfHigh": {"type": "String"}}},
+  "safetyReview_timeRange": "{start}–{end} időpontban",
+  "@safetyReview_timeRange": {"placeholders": {"start": {"type": "String"}, "end": {"type": "String"}}},
+  "safetyReview_dismiss": "Elvetés",
+  "safetyReview_restore": "Visszaállítás",
+  "safetyReview_showDismissed": "{count, plural, =1{1 elvetett megjelenítése} other{{count} elvetett megjelenítése}}",
+  "@safetyReview_showDismissed": {"placeholders": {"count": {"type": "int"}}},
+  "safetySettings_title": "Biztonsági áttekintés",
+  "safetySettings_entry_subtitle": "Merülés utáni megfigyelések és szabályok",
+  "safetySettings_masterToggle": "Merülés utáni biztonsági áttekintés",
+  "safetySettings_masterToggle_subtitle": "Felemelkedési, megállási és profilmegfigyelések automatikus rögzítése az elemzett merüléseknél",
+  "safetySettings_rulesHeader": "Szabályok",
+  "safetySettings_rule_rapidAscent": "Gyors felemelkedések",
+  "safetySettings_rule_missedDecoStop": "Kihagyott vagy lerövidített deko megállók",
+  "safetySettings_rule_omittedSafetyStop": "Kihagyott biztonsági megállók",
+  "safetySettings_rule_sawtoothProfile": "Fűrészfog-profilok",
+  "safetySettings_rule_highSurfaceGf": "Magas gradiens faktor felszínre érkezéskor",
+  "safetySettings_analyzeAll": "Összes merülés elemzése",
+  "safetySettings_analyzeAll_subtitle": "A biztonsági áttekintés futtatása minden olyan profillal rendelkező merülésen, amely még nincs elemezve",
+  "safetySettings_analyzeAll_progress": "{done} / {total} elemezve",
+  "@safetySettings_analyzeAll_progress": {"placeholders": {"done": {"type": "int"}, "total": {"type": "int"}}},
+  "safetySettings_analyzeAll_done": "Elemzés kész",
+  "safetySettings_analyzeAll_doneWithErrors": "Elemzés kész — {count, plural, =1{1 merülést nem sikerült elemezni} other{{count} merülést nem sikerült elemezni}}",
+  "@safetySettings_analyzeAll_doneWithErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

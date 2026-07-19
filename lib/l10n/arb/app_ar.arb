@@ -5890,5 +5890,49 @@
   "settings_setupGuide_statusTodo": "لم يتم الإعداد",
   "settings_setupGuide_open": "فتح",
   "settings_connectedAccounts_loadError": "تعذر تحميل الحسابات",
-  "media_unavailablePlaceholder_volumeOffline": "وحدة التخزين غير مثبتة"
+  "media_unavailablePlaceholder_volumeOffline": "وحدة التخزين غير مثبتة",
+  "diveDetailSection_safetyReview_name": "مراجعة السلامة",
+  "diveDetailSection_safetyReview_description": "ملاحظات تلقائية على ملف الغوص بعد الغطسة",
+  "safetyReview_sectionTitle": "مراجعة السلامة",
+  "safetyReview_findingCount": "{count, plural, =1{ملاحظة واحدة} other{{count} ملاحظات}}",
+  "@safetyReview_findingCount": {"placeholders": {"count": {"type": "int"}}},
+  "safetyReview_rapidAscent_title": "تجاوز الصعود {rate} لمدة {duration}",
+  "@safetyReview_rapidAscent_title": {"placeholders": {"rate": {"type": "String"}, "duration": {"type": "String"}}},
+  "safetyReview_missedDecoStop_title": "كان العمق أعلى من سقف التوقف المطلوب بمقدار {excess} لمدة {duration}",
+  "@safetyReview_missedDecoStop_title": {"placeholders": {"excess": {"type": "String"}, "duration": {"type": "String"}}},
+  "safetyReview_omittedSafetyStop_title": "تم تقصير توقف السلامة الموصى به بمقدار {remaining}",
+  "@safetyReview_omittedSafetyStop_title": {"placeholders": {"remaining": {"type": "String"}}},
+  "safetyReview_sawtoothProfile_title": "{count} تغيرات متكررة في العمق صعودًا وهبوطًا أثناء الغطسة",
+  "@safetyReview_sawtoothProfile_title": {"placeholders": {"count": {"type": "int"}}},
+  "safetyReview_highSurfaceGf_title": "الصعود إلى السطح بعامل تدرج {gf}، أعلى من {gfHigh} المُعد",
+  "@safetyReview_highSurfaceGf_title": {"placeholders": {"gf": {"type": "String"}, "gfHigh": {"type": "String"}}},
+  "safetyReview_timeRange": "عند {start}–{end}",
+  "@safetyReview_timeRange": {"placeholders": {"start": {"type": "String"}, "end": {"type": "String"}}},
+  "safetyReview_dismiss": "تجاهل",
+  "safetyReview_restore": "استعادة",
+  "safetyReview_showDismissed": "{count, plural, =1{إظهار ملاحظة متجاهلة واحدة} other{إظهار {count} ملاحظات متجاهلة}}",
+  "@safetyReview_showDismissed": {"placeholders": {"count": {"type": "int"}}},
+  "safetySettings_title": "مراجعة السلامة",
+  "safetySettings_entry_subtitle": "ملاحظات وقواعد ما بعد الغطسة",
+  "safetySettings_masterToggle": "مراجعة السلامة بعد الغطسة",
+  "safetySettings_masterToggle_subtitle": "تدوين ملاحظات الصعود والتوقفات والملف تلقائيًا للغطسات المحللة",
+  "safetySettings_rulesHeader": "القواعد",
+  "safetySettings_rule_rapidAscent": "صعود سريع",
+  "safetySettings_rule_missedDecoStop": "توقفات تخفيف الضغط الفائتة أو المختصرة",
+  "safetySettings_rule_omittedSafetyStop": "توقفات السلامة المُغفلة",
+  "safetySettings_rule_sawtoothProfile": "ملفات بنمط سن المنشار",
+  "safetySettings_rule_highSurfaceGf": "عامل تدرج مرتفع عند الصعود",
+  "safetySettings_analyzeAll": "تحليل جميع الغطسات",
+  "safetySettings_analyzeAll_subtitle": "تشغيل مراجعة السلامة على كل غطسة ذات ملف لم تُحلل بعد",
+  "safetySettings_analyzeAll_progress": "تم تحليل {done} من {total}",
+  "@safetySettings_analyzeAll_progress": {"placeholders": {"done": {"type": "int"}, "total": {"type": "int"}}},
+  "safetySettings_analyzeAll_done": "اكتمل التحليل",
+  "safetySettings_analyzeAll_doneWithErrors": "اكتمل التحليل — {count, plural, =1{تعذّر تحليل غوصة واحدة} other{تعذّر تحليل {count} غوصات}}",
+  "@safetySettings_analyzeAll_doneWithErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

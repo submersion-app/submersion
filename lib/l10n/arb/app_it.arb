@@ -5890,5 +5890,49 @@
   "settings_setupGuide_statusTodo": "Non configurato",
   "settings_setupGuide_open": "Apri",
   "settings_connectedAccounts_loadError": "Impossibile caricare gli account",
-  "media_unavailablePlaceholder_volumeOffline": "Volume non montato"
+  "media_unavailablePlaceholder_volumeOffline": "Volume non montato",
+  "diveDetailSection_safetyReview_name": "Revisione di sicurezza",
+  "diveDetailSection_safetyReview_description": "Osservazioni automatiche del profilo dopo l'immersione",
+  "safetyReview_sectionTitle": "Revisione di sicurezza",
+  "safetyReview_findingCount": "{count, plural, =1{1 osservazione} other{{count} osservazioni}}",
+  "@safetyReview_findingCount": {"placeholders": {"count": {"type": "int"}}},
+  "safetyReview_rapidAscent_title": "La risalita ha superato {rate} per {duration}",
+  "@safetyReview_rapidAscent_title": {"placeholders": {"rate": {"type": "String"}, "duration": {"type": "String"}}},
+  "safetyReview_missedDecoStop_title": "La profondità è rimasta {excess} sopra il ceiling di tappa richiesto per {duration}",
+  "@safetyReview_missedDecoStop_title": {"placeholders": {"excess": {"type": "String"}, "duration": {"type": "String"}}},
+  "safetyReview_omittedSafetyStop_title": "La tappa di sicurezza consigliata è stata accorciata di {remaining}",
+  "@safetyReview_omittedSafetyStop_title": {"placeholders": {"remaining": {"type": "String"}}},
+  "safetyReview_sawtoothProfile_title": "{count} variazioni ripetute di profondità su e giù durante l'immersione",
+  "@safetyReview_sawtoothProfile_title": {"placeholders": {"count": {"type": "int"}}},
+  "safetyReview_highSurfaceGf_title": "Emersione con fattore di gradiente {gf}, oltre il {gfHigh} configurato",
+  "@safetyReview_highSurfaceGf_title": {"placeholders": {"gf": {"type": "String"}, "gfHigh": {"type": "String"}}},
+  "safetyReview_timeRange": "A {start}–{end}",
+  "@safetyReview_timeRange": {"placeholders": {"start": {"type": "String"}, "end": {"type": "String"}}},
+  "safetyReview_dismiss": "Ignora",
+  "safetyReview_restore": "Ripristina",
+  "safetyReview_showDismissed": "{count, plural, =1{Mostra 1 ignorata} other{Mostra {count} ignorate}}",
+  "@safetyReview_showDismissed": {"placeholders": {"count": {"type": "int"}}},
+  "safetySettings_title": "Revisione di sicurezza",
+  "safetySettings_entry_subtitle": "Osservazioni e regole post-immersione",
+  "safetySettings_masterToggle": "Revisione di sicurezza post-immersione",
+  "safetySettings_masterToggle_subtitle": "Annota automaticamente osservazioni su risalita, tappe e profilo nelle immersioni analizzate",
+  "safetySettings_rulesHeader": "Regole",
+  "safetySettings_rule_rapidAscent": "Risalite rapide",
+  "safetySettings_rule_missedDecoStop": "Tappe deco saltate o accorciate",
+  "safetySettings_rule_omittedSafetyStop": "Tappe di sicurezza omesse",
+  "safetySettings_rule_sawtoothProfile": "Profili a dente di sega",
+  "safetySettings_rule_highSurfaceGf": "Fattore di gradiente alto in emersione",
+  "safetySettings_analyzeAll": "Analizza tutte le immersioni",
+  "safetySettings_analyzeAll_subtitle": "Esegui la revisione di sicurezza su tutte le immersioni con profilo non ancora analizzate",
+  "safetySettings_analyzeAll_progress": "Analizzate {done} di {total}",
+  "@safetySettings_analyzeAll_progress": {"placeholders": {"done": {"type": "int"}, "total": {"type": "int"}}},
+  "safetySettings_analyzeAll_done": "Analisi completata",
+  "safetySettings_analyzeAll_doneWithErrors": "Analisi completata — {count, plural, =1{Impossibile analizzare 1 immersione} other{Impossibile analizzare {count} immersioni}}",
+  "@safetySettings_analyzeAll_doneWithErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

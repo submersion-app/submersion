@@ -280,6 +280,20 @@ class CompactDiveListTile extends ConsumerWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                      if ((summary?.safetyFindingCount ?? 0) > 0 &&
+                          ref.watch(safetyReviewEnabledProvider)) ...[
+                        const SizedBox(width: 6),
+                        Tooltip(
+                          message: context.l10n.safetyReview_findingCount(
+                            summary!.safetyFindingCount,
+                          ),
+                          child: Icon(
+                            Icons.circle,
+                            size: 8,
+                            color: secondaryTextColor,
+                          ),
+                        ),
+                      ],
                       const SizedBox(width: 8),
                       Text(
                         dateText,

@@ -5890,5 +5890,49 @@
   "settings_setupGuide_statusTodo": "Nicht eingerichtet",
   "settings_setupGuide_open": "Öffnen",
   "settings_connectedAccounts_loadError": "Konten konnten nicht geladen werden",
-  "media_unavailablePlaceholder_volumeOffline": "Volume nicht eingebunden"
+  "media_unavailablePlaceholder_volumeOffline": "Volume nicht eingebunden",
+  "diveDetailSection_safetyReview_name": "Sicherheitsüberprüfung",
+  "diveDetailSection_safetyReview_description": "Automatische Profilbeobachtungen nach dem Tauchgang",
+  "safetyReview_sectionTitle": "Sicherheitsüberprüfung",
+  "safetyReview_findingCount": "{count, plural, =1{1 Beobachtung} other{{count} Beobachtungen}}",
+  "@safetyReview_findingCount": {"placeholders": {"count": {"type": "int"}}},
+  "safetyReview_rapidAscent_title": "Aufstieg überschritt {rate} für {duration}",
+  "@safetyReview_rapidAscent_title": {"placeholders": {"rate": {"type": "String"}, "duration": {"type": "String"}}},
+  "safetyReview_missedDecoStop_title": "Tiefe lag für {duration} {excess} über dem erforderlichen Deko-Ceiling",
+  "@safetyReview_missedDecoStop_title": {"placeholders": {"excess": {"type": "String"}, "duration": {"type": "String"}}},
+  "safetyReview_omittedSafetyStop_title": "Der empfohlene Sicherheitsstopp wurde um {remaining} verkürzt",
+  "@safetyReview_omittedSafetyStop_title": {"placeholders": {"remaining": {"type": "String"}}},
+  "safetyReview_sawtoothProfile_title": "{count} wiederholte Auf- und Abwärtsbewegungen während des Tauchgangs",
+  "@safetyReview_sawtoothProfile_title": {"placeholders": {"count": {"type": "int"}}},
+  "safetyReview_highSurfaceGf_title": "Aufgetaucht bei Gradientenfaktor {gf}, über dem konfigurierten {gfHigh}",
+  "@safetyReview_highSurfaceGf_title": {"placeholders": {"gf": {"type": "String"}, "gfHigh": {"type": "String"}}},
+  "safetyReview_timeRange": "Bei {start}–{end}",
+  "@safetyReview_timeRange": {"placeholders": {"start": {"type": "String"}, "end": {"type": "String"}}},
+  "safetyReview_dismiss": "Ausblenden",
+  "safetyReview_restore": "Wiederherstellen",
+  "safetyReview_showDismissed": "{count, plural, =1{1 Ausgeblendete anzeigen} other{{count} Ausgeblendete anzeigen}}",
+  "@safetyReview_showDismissed": {"placeholders": {"count": {"type": "int"}}},
+  "safetySettings_title": "Sicherheitsüberprüfung",
+  "safetySettings_entry_subtitle": "Beobachtungen und Regeln nach dem Tauchgang",
+  "safetySettings_masterToggle": "Sicherheitsüberprüfung nach dem Tauchgang",
+  "safetySettings_masterToggle_subtitle": "Aufstiegs-, Stopp- und Profilbeobachtungen bei analysierten Tauchgängen automatisch vermerken",
+  "safetySettings_rulesHeader": "Regeln",
+  "safetySettings_rule_rapidAscent": "Schnelle Aufstiege",
+  "safetySettings_rule_missedDecoStop": "Ausgelassene oder verkürzte Deko-Stopps",
+  "safetySettings_rule_omittedSafetyStop": "Ausgelassene Sicherheitsstopps",
+  "safetySettings_rule_sawtoothProfile": "Sägezahnprofile",
+  "safetySettings_rule_highSurfaceGf": "Hoher Gradientenfaktor beim Auftauchen",
+  "safetySettings_analyzeAll": "Alle Tauchgänge analysieren",
+  "safetySettings_analyzeAll_subtitle": "Sicherheitsüberprüfung für alle noch nicht analysierten Tauchgänge mit Profil ausführen",
+  "safetySettings_analyzeAll_progress": "{done} von {total} analysiert",
+  "@safetySettings_analyzeAll_progress": {"placeholders": {"done": {"type": "int"}, "total": {"type": "int"}}},
+  "safetySettings_analyzeAll_done": "Analyse abgeschlossen",
+  "safetySettings_analyzeAll_doneWithErrors": "Analyse abgeschlossen — {count, plural, =1{1 Tauchgang konnte nicht analysiert werden} other{{count} Tauchgänge konnten nicht analysiert werden}}",
+  "@safetySettings_analyzeAll_doneWithErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

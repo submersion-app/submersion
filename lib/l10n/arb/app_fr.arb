@@ -5890,5 +5890,49 @@
   "settings_setupGuide_statusTodo": "Non configuré",
   "settings_setupGuide_open": "Ouvrir",
   "settings_connectedAccounts_loadError": "Impossible de charger les comptes",
-  "media_unavailablePlaceholder_volumeOffline": "Volume non monté"
+  "media_unavailablePlaceholder_volumeOffline": "Volume non monté",
+  "diveDetailSection_safetyReview_name": "Bilan de sécurité",
+  "diveDetailSection_safetyReview_description": "Observations automatiques du profil après la plongée",
+  "safetyReview_sectionTitle": "Bilan de sécurité",
+  "safetyReview_findingCount": "{count, plural, =1{1 observation} other{{count} observations}}",
+  "@safetyReview_findingCount": {"placeholders": {"count": {"type": "int"}}},
+  "safetyReview_rapidAscent_title": "La remontée a dépassé {rate} pendant {duration}",
+  "@safetyReview_rapidAscent_title": {"placeholders": {"rate": {"type": "String"}, "duration": {"type": "String"}}},
+  "safetyReview_missedDecoStop_title": "La profondeur est restée {excess} au-dessus du plafond de palier requis pendant {duration}",
+  "@safetyReview_missedDecoStop_title": {"placeholders": {"excess": {"type": "String"}, "duration": {"type": "String"}}},
+  "safetyReview_omittedSafetyStop_title": "Le palier de sécurité recommandé a été écourté de {remaining}",
+  "@safetyReview_omittedSafetyStop_title": {"placeholders": {"remaining": {"type": "String"}}},
+  "safetyReview_sawtoothProfile_title": "{count} variations répétées de profondeur en montée et descente pendant la plongée",
+  "@safetyReview_sawtoothProfile_title": {"placeholders": {"count": {"type": "int"}}},
+  "safetyReview_highSurfaceGf_title": "Surface atteinte avec un facteur de gradient de {gf}, au-dessus du {gfHigh} configuré",
+  "@safetyReview_highSurfaceGf_title": {"placeholders": {"gf": {"type": "String"}, "gfHigh": {"type": "String"}}},
+  "safetyReview_timeRange": "À {start}–{end}",
+  "@safetyReview_timeRange": {"placeholders": {"start": {"type": "String"}, "end": {"type": "String"}}},
+  "safetyReview_dismiss": "Ignorer",
+  "safetyReview_restore": "Restaurer",
+  "safetyReview_showDismissed": "{count, plural, =1{Afficher 1 ignorée} other{Afficher {count} ignorées}}",
+  "@safetyReview_showDismissed": {"placeholders": {"count": {"type": "int"}}},
+  "safetySettings_title": "Bilan de sécurité",
+  "safetySettings_entry_subtitle": "Observations et règles après la plongée",
+  "safetySettings_masterToggle": "Bilan de sécurité après la plongée",
+  "safetySettings_masterToggle_subtitle": "Noter automatiquement les observations de remontée, de paliers et de profil sur les plongées analysées",
+  "safetySettings_rulesHeader": "Règles",
+  "safetySettings_rule_rapidAscent": "Remontées rapides",
+  "safetySettings_rule_missedDecoStop": "Paliers de déco manqués ou écourtés",
+  "safetySettings_rule_omittedSafetyStop": "Paliers de sécurité omis",
+  "safetySettings_rule_sawtoothProfile": "Profils en dents de scie",
+  "safetySettings_rule_highSurfaceGf": "Facteur de gradient élevé en surface",
+  "safetySettings_analyzeAll": "Analyser toutes les plongées",
+  "safetySettings_analyzeAll_subtitle": "Exécuter le bilan de sécurité sur toutes les plongées avec profil pas encore analysées",
+  "safetySettings_analyzeAll_progress": "{done} sur {total} analysées",
+  "@safetySettings_analyzeAll_progress": {"placeholders": {"done": {"type": "int"}, "total": {"type": "int"}}},
+  "safetySettings_analyzeAll_done": "Analyse terminée",
+  "safetySettings_analyzeAll_doneWithErrors": "Analyse terminée — {count, plural, =1{1 plongée n'a pas pu être analysée} other{{count} plongées n'ont pas pu être analysées}}",
+  "@safetySettings_analyzeAll_doneWithErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

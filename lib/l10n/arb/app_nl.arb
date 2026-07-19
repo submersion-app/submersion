@@ -5890,5 +5890,49 @@
   "settings_setupGuide_statusTodo": "Niet ingesteld",
   "settings_setupGuide_open": "Openen",
   "settings_connectedAccounts_loadError": "Accounts konden niet worden geladen",
-  "media_unavailablePlaceholder_volumeOffline": "Volume niet gekoppeld"
+  "media_unavailablePlaceholder_volumeOffline": "Volume niet gekoppeld",
+  "diveDetailSection_safetyReview_name": "Veiligheidscontrole",
+  "diveDetailSection_safetyReview_description": "Automatische profielobservaties na de duik",
+  "safetyReview_sectionTitle": "Veiligheidscontrole",
+  "safetyReview_findingCount": "{count, plural, =1{1 observatie} other{{count} observaties}}",
+  "@safetyReview_findingCount": {"placeholders": {"count": {"type": "int"}}},
+  "safetyReview_rapidAscent_title": "Opstijging overschreed {rate} gedurende {duration}",
+  "@safetyReview_rapidAscent_title": {"placeholders": {"rate": {"type": "String"}, "duration": {"type": "String"}}},
+  "safetyReview_missedDecoStop_title": "Diepte lag {excess} boven het vereiste stopplafond gedurende {duration}",
+  "@safetyReview_missedDecoStop_title": {"placeholders": {"excess": {"type": "String"}, "duration": {"type": "String"}}},
+  "safetyReview_omittedSafetyStop_title": "De aanbevolen veiligheidsstop is met {remaining} ingekort",
+  "@safetyReview_omittedSafetyStop_title": {"placeholders": {"remaining": {"type": "String"}}},
+  "safetyReview_sawtoothProfile_title": "{count} herhaalde op-en-neer dieptewisselingen tijdens de duik",
+  "@safetyReview_sawtoothProfile_title": {"placeholders": {"count": {"type": "int"}}},
+  "safetyReview_highSurfaceGf_title": "Aan de oppervlakte gekomen met gradiëntfactor {gf}, boven de ingestelde {gfHigh}",
+  "@safetyReview_highSurfaceGf_title": {"placeholders": {"gf": {"type": "String"}, "gfHigh": {"type": "String"}}},
+  "safetyReview_timeRange": "Op {start}–{end}",
+  "@safetyReview_timeRange": {"placeholders": {"start": {"type": "String"}, "end": {"type": "String"}}},
+  "safetyReview_dismiss": "Negeren",
+  "safetyReview_restore": "Herstellen",
+  "safetyReview_showDismissed": "{count, plural, =1{Toon 1 genegeerde} other{Toon {count} genegeerde}}",
+  "@safetyReview_showDismissed": {"placeholders": {"count": {"type": "int"}}},
+  "safetySettings_title": "Veiligheidscontrole",
+  "safetySettings_entry_subtitle": "Observaties en regels na de duik",
+  "safetySettings_masterToggle": "Veiligheidscontrole na de duik",
+  "safetySettings_masterToggle_subtitle": "Automatisch observaties over opstijging, stops en profiel noteren bij geanalyseerde duiken",
+  "safetySettings_rulesHeader": "Regels",
+  "safetySettings_rule_rapidAscent": "Snelle opstijgingen",
+  "safetySettings_rule_missedDecoStop": "Gemiste of ingekorte decostops",
+  "safetySettings_rule_omittedSafetyStop": "Overgeslagen veiligheidsstops",
+  "safetySettings_rule_sawtoothProfile": "Zaagtandprofielen",
+  "safetySettings_rule_highSurfaceGf": "Hoge gradiëntfactor bij opduiken",
+  "safetySettings_analyzeAll": "Alle duiken analyseren",
+  "safetySettings_analyzeAll_subtitle": "Voer de veiligheidscontrole uit op alle duiken met een profiel die nog niet geanalyseerd zijn",
+  "safetySettings_analyzeAll_progress": "{done} van {total} geanalyseerd",
+  "@safetySettings_analyzeAll_progress": {"placeholders": {"done": {"type": "int"}, "total": {"type": "int"}}},
+  "safetySettings_analyzeAll_done": "Analyse voltooid",
+  "safetySettings_analyzeAll_doneWithErrors": "Analyse voltooid — {count, plural, =1{1 duik kon niet worden geanalyseerd} other{{count} duiken konden niet worden geanalyseerd}}",
+  "@safetySettings_analyzeAll_doneWithErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

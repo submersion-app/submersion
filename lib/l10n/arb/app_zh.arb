@@ -5890,5 +5890,49 @@
   "settings_setupGuide_statusTodo": "未设置",
   "settings_setupGuide_open": "打开",
   "settings_connectedAccounts_loadError": "无法加载账户",
-  "media_unavailablePlaceholder_volumeOffline": "卷未挂载"
+  "media_unavailablePlaceholder_volumeOffline": "卷未挂载",
+  "diveDetailSection_safetyReview_name": "安全回顾",
+  "diveDetailSection_safetyReview_description": "潜水后自动生成的剖面观察",
+  "safetyReview_sectionTitle": "安全回顾",
+  "safetyReview_findingCount": "{count, plural, =1{1 条观察} other{{count} 条观察}}",
+  "@safetyReview_findingCount": {"placeholders": {"count": {"type": "int"}}},
+  "safetyReview_rapidAscent_title": "上升速度超过 {rate},持续 {duration}",
+  "@safetyReview_rapidAscent_title": {"placeholders": {"rate": {"type": "String"}, "duration": {"type": "String"}}},
+  "safetyReview_missedDecoStop_title": "深度高于所需停留天花板 {excess},持续 {duration}",
+  "@safetyReview_missedDecoStop_title": {"placeholders": {"excess": {"type": "String"}, "duration": {"type": "String"}}},
+  "safetyReview_omittedSafetyStop_title": "建议的安全停留缩短了 {remaining}",
+  "@safetyReview_omittedSafetyStop_title": {"placeholders": {"remaining": {"type": "String"}}},
+  "safetyReview_sawtoothProfile_title": "潜水期间出现 {count} 次反复的上下深度变化",
+  "@safetyReview_sawtoothProfile_title": {"placeholders": {"count": {"type": "int"}}},
+  "safetyReview_highSurfaceGf_title": "出水时梯度因子为 {gf},高于设定的 {gfHigh}",
+  "@safetyReview_highSurfaceGf_title": {"placeholders": {"gf": {"type": "String"}, "gfHigh": {"type": "String"}}},
+  "safetyReview_timeRange": "于 {start}–{end}",
+  "@safetyReview_timeRange": {"placeholders": {"start": {"type": "String"}, "end": {"type": "String"}}},
+  "safetyReview_dismiss": "忽略",
+  "safetyReview_restore": "恢复",
+  "safetyReview_showDismissed": "{count, plural, =1{显示 1 条已忽略} other{显示 {count} 条已忽略}}",
+  "@safetyReview_showDismissed": {"placeholders": {"count": {"type": "int"}}},
+  "safetySettings_title": "安全回顾",
+  "safetySettings_entry_subtitle": "潜水后的观察与规则",
+  "safetySettings_masterToggle": "潜水后安全回顾",
+  "safetySettings_masterToggle_subtitle": "自动记录已分析潜水的上升、停留和剖面观察",
+  "safetySettings_rulesHeader": "规则",
+  "safetySettings_rule_rapidAscent": "快速上升",
+  "safetySettings_rule_missedDecoStop": "错过或缩短的减压停留",
+  "safetySettings_rule_omittedSafetyStop": "省略的安全停留",
+  "safetySettings_rule_sawtoothProfile": "锯齿形剖面",
+  "safetySettings_rule_highSurfaceGf": "出水时梯度因子过高",
+  "safetySettings_analyzeAll": "分析所有潜水",
+  "safetySettings_analyzeAll_subtitle": "对所有具有剖面且尚未分析的潜水运行安全回顾",
+  "safetySettings_analyzeAll_progress": "已分析 {done}/{total}",
+  "@safetySettings_analyzeAll_progress": {"placeholders": {"done": {"type": "int"}, "total": {"type": "int"}}},
+  "safetySettings_analyzeAll_done": "分析完成",
+  "safetySettings_analyzeAll_doneWithErrors": "分析完成 — {count, plural, =1{有 1 次潜水无法分析} other{有 {count} 次潜水无法分析}}",
+  "@safetySettings_analyzeAll_doneWithErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

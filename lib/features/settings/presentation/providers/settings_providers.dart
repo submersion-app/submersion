@@ -11,6 +11,7 @@ import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/constants/profile_metrics.dart';
+import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -129,6 +130,12 @@ class AppSettings {
 
   /// Show ceiling curve on dive profile
   final bool showCeilingOnProfile;
+
+  /// Master toggle for the post-dive safety review
+  final bool safetyReviewEnabled;
+
+  /// SafetyRuleId.dbValue strings whose findings are hidden in the UI
+  final Set<String> safetyReviewDisabledRules;
 
   /// Show color-coded ascent rate on dive profile
   final bool showAscentRateColors;
@@ -370,6 +377,8 @@ class AppSettings {
     this.ascentRateWarning = 9.0,
     this.ascentRateCritical = 12.0,
     this.showCeilingOnProfile = true,
+    this.safetyReviewEnabled = true,
+    this.safetyReviewDisabledRules = const {},
     this.showAscentRateColors = false,
     this.showNdlOnProfile = true,
     this.lastStopDepth = 3.0,
@@ -509,6 +518,8 @@ class AppSettings {
     double? ascentRateWarning,
     double? ascentRateCritical,
     bool? showCeilingOnProfile,
+    bool? safetyReviewEnabled,
+    Set<String>? safetyReviewDisabledRules,
     bool? showAscentRateColors,
     bool? showNdlOnProfile,
     double? lastStopDepth,
@@ -615,6 +626,9 @@ class AppSettings {
       ascentRateWarning: ascentRateWarning ?? this.ascentRateWarning,
       ascentRateCritical: ascentRateCritical ?? this.ascentRateCritical,
       showCeilingOnProfile: showCeilingOnProfile ?? this.showCeilingOnProfile,
+      safetyReviewEnabled: safetyReviewEnabled ?? this.safetyReviewEnabled,
+      safetyReviewDisabledRules:
+          safetyReviewDisabledRules ?? this.safetyReviewDisabledRules,
       showAscentRateColors: showAscentRateColors ?? this.showAscentRateColors,
       showNdlOnProfile: showNdlOnProfile ?? this.showNdlOnProfile,
       lastStopDepth: lastStopDepth ?? this.lastStopDepth,
@@ -1065,6 +1079,22 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setShowCeilingOnProfile(bool value) async {
     state = state.copyWith(showCeilingOnProfile: value);
+    await _saveSettings();
+  }
+
+  Future<void> setSafetyReviewEnabled(bool value) async {
+    state = state.copyWith(safetyReviewEnabled: value);
+    await _saveSettings();
+  }
+
+  Future<void> setSafetyRuleEnabled(SafetyRuleId rule, bool enabled) async {
+    final rules = {...state.safetyReviewDisabledRules};
+    if (enabled) {
+      rules.remove(rule.dbValue);
+    } else {
+      rules.add(rule.dbValue);
+    }
+    state = state.copyWith(safetyReviewDisabledRules: rules);
     await _saveSettings();
   }
 
@@ -1564,6 +1594,20 @@ final ascentRateCriticalProvider = Provider<double>((ref) {
 
 final showCeilingOnProfileProvider = Provider<bool>((ref) {
   return ref.watch(settingsProvider.select((s) => s.showCeilingOnProfile));
+});
+
+final safetyReviewEnabledProvider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.safetyReviewEnabled));
+});
+
+/// The set of safety-rule dbValues the active diver has disabled. Backed by a
+/// `select` on the settings so it only notifies when the rule set actually
+/// changes (AppSettings.copyWith reuses the same Set instance for unrelated
+/// edits), not on every settings write. Consumers (dive-list badge count,
+/// SafetyReviewSection) filter findings by this set so badge visibility and
+/// the detail section stay aligned.
+final safetyReviewDisabledRulesProvider = Provider<Set<String>>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.safetyReviewDisabledRules));
 });
 
 final showAscentRateColorsProvider = Provider<bool>((ref) {

@@ -11940,6 +11940,132 @@ class AppLocalizationsAr extends AppLocalizations {
       'NDL، السقف، خريطة حرارة الأنسجة، سمية O2';
 
   @override
+  String get diveDetailSection_safetyReview_name => 'مراجعة السلامة';
+
+  @override
+  String get diveDetailSection_safetyReview_description =>
+      'ملاحظات تلقائية على ملف الغوص بعد الغطسة';
+
+  @override
+  String get safetyReview_sectionTitle => 'مراجعة السلامة';
+
+  @override
+  String safetyReview_findingCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ملاحظات',
+      one: 'ملاحظة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String safetyReview_rapidAscent_title(String rate, String duration) {
+    return 'تجاوز الصعود $rate لمدة $duration';
+  }
+
+  @override
+  String safetyReview_missedDecoStop_title(String excess, String duration) {
+    return 'كان العمق أعلى من سقف التوقف المطلوب بمقدار $excess لمدة $duration';
+  }
+
+  @override
+  String safetyReview_omittedSafetyStop_title(String remaining) {
+    return 'تم تقصير توقف السلامة الموصى به بمقدار $remaining';
+  }
+
+  @override
+  String safetyReview_sawtoothProfile_title(int count) {
+    return '$count تغيرات متكررة في العمق صعودًا وهبوطًا أثناء الغطسة';
+  }
+
+  @override
+  String safetyReview_highSurfaceGf_title(String gf, String gfHigh) {
+    return 'الصعود إلى السطح بعامل تدرج $gf، أعلى من $gfHigh المُعد';
+  }
+
+  @override
+  String safetyReview_timeRange(String start, String end) {
+    return 'عند $start–$end';
+  }
+
+  @override
+  String get safetyReview_dismiss => 'تجاهل';
+
+  @override
+  String get safetyReview_restore => 'استعادة';
+
+  @override
+  String get safetySettings_title => 'مراجعة السلامة';
+
+  @override
+  String get safetySettings_entry_subtitle => 'ملاحظات وقواعد ما بعد الغطسة';
+
+  @override
+  String get safetySettings_masterToggle => 'مراجعة السلامة بعد الغطسة';
+
+  @override
+  String get safetySettings_masterToggle_subtitle =>
+      'تدوين ملاحظات الصعود والتوقفات والملف تلقائيًا للغطسات المحللة';
+
+  @override
+  String get safetySettings_rulesHeader => 'القواعد';
+
+  @override
+  String get safetySettings_rule_rapidAscent => 'صعود سريع';
+
+  @override
+  String get safetySettings_rule_missedDecoStop =>
+      'توقفات تخفيف الضغط الفائتة أو المختصرة';
+
+  @override
+  String get safetySettings_rule_omittedSafetyStop => 'توقفات السلامة المُغفلة';
+
+  @override
+  String get safetySettings_rule_sawtoothProfile => 'ملفات بنمط سن المنشار';
+
+  @override
+  String get safetySettings_rule_highSurfaceGf => 'عامل تدرج مرتفع عند الصعود';
+
+  @override
+  String get safetySettings_analyzeAll => 'تحليل جميع الغطسات';
+
+  @override
+  String get safetySettings_analyzeAll_subtitle =>
+      'تشغيل مراجعة السلامة على كل غطسة ذات ملف لم تُحلل بعد';
+
+  @override
+  String safetySettings_analyzeAll_progress(int done, int total) {
+    return 'تم تحليل $done من $total';
+  }
+
+  @override
+  String get safetySettings_analyzeAll_done => 'اكتمل التحليل';
+
+  @override
+  String safetySettings_analyzeAll_doneWithErrors(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تعذّر تحليل $count غوصات',
+      one: 'تعذّر تحليل غوصة واحدة',
+    );
+    return 'اكتمل التحليل — $_temp0';
+  }
+
+  @override
+  String safetyReview_showDismissed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'إظهار $count ملاحظات متجاهلة',
+      one: 'إظهار ملاحظة متجاهلة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveDetailSection_sacSegments_name => 'معدل SAC حسب المقطع';
 
   @override

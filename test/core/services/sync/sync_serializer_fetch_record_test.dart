@@ -119,6 +119,8 @@ void main() {
       'species',
       'sightings',
       'diveProfileEvents',
+      'diveSafetyReviews',
+      'diveSafetyFindings',
       'gasSwitches',
       'diveCustomFields',
       'diveDataSources',
@@ -222,6 +224,14 @@ void main() {
           type: 'diveProfileEvents',
           table: db.diveProfileEvents.actualTableName,
         ),
+        (
+          type: 'diveSafetyReviews',
+          table: db.diveSafetyReviews.actualTableName,
+        ),
+        (
+          type: 'diveSafetyFindings',
+          table: db.diveSafetyFindings.actualTableName,
+        ),
         (type: 'gasSwitches', table: db.gasSwitches.actualTableName),
         (type: 'diveCustomFields', table: db.diveCustomFields.actualTableName),
         (type: 'diveDataSources', table: db.diveDataSources.actualTableName),
@@ -256,6 +266,35 @@ void main() {
         greaterThanOrEqualTo(25),
         reason: 'most entity types should seed+fetch; failures: $failures',
       );
+    });
+  });
+
+  group('SyncDataSerializer.deleteRecord for safety entities', () {
+    test('deletes a dive_safety_reviews row by dive_id', () async {
+      await db.customStatement('PRAGMA foreign_keys = OFF');
+      await seedMinimalRow(db.diveSafetyReviews.actualTableName, 'dive-1');
+      expect(
+        await serializer.fetchRecord('diveSafetyReviews', 'dive-1'),
+        isNotNull,
+      );
+
+      await serializer.deleteRecord('diveSafetyReviews', 'dive-1');
+      expect(
+        await serializer.fetchRecord('diveSafetyReviews', 'dive-1'),
+        isNull,
+      );
+    });
+
+    test('deletes a dive_safety_findings row by id', () async {
+      await db.customStatement('PRAGMA foreign_keys = OFF');
+      await seedMinimalRow(db.diveSafetyFindings.actualTableName, 'f1');
+      expect(
+        await serializer.fetchRecord('diveSafetyFindings', 'f1'),
+        isNotNull,
+      );
+
+      await serializer.deleteRecord('diveSafetyFindings', 'f1');
+      expect(await serializer.fetchRecord('diveSafetyFindings', 'f1'), isNull);
     });
   });
 }

@@ -12158,6 +12158,135 @@ class AppLocalizationsPt extends AppLocalizations {
       'NDL, teto, mapa de calor de tecidos, toxicidade de O2';
 
   @override
+  String get diveDetailSection_safetyReview_name => 'Revisão de segurança';
+
+  @override
+  String get diveDetailSection_safetyReview_description =>
+      'Observações automáticas do perfil após o mergulho';
+
+  @override
+  String get safetyReview_sectionTitle => 'Revisão de segurança';
+
+  @override
+  String safetyReview_findingCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count observações',
+      one: '1 observação',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String safetyReview_rapidAscent_title(String rate, String duration) {
+    return 'A subida excedeu $rate durante $duration';
+  }
+
+  @override
+  String safetyReview_missedDecoStop_title(String excess, String duration) {
+    return 'A profundidade ficou $excess acima do teto de parada exigido durante $duration';
+  }
+
+  @override
+  String safetyReview_omittedSafetyStop_title(String remaining) {
+    return 'A parada de segurança recomendada foi encurtada em $remaining';
+  }
+
+  @override
+  String safetyReview_sawtoothProfile_title(int count) {
+    return '$count variações repetidas de profundidade para cima e para baixo durante o mergulho';
+  }
+
+  @override
+  String safetyReview_highSurfaceGf_title(String gf, String gfHigh) {
+    return 'Chegou à superfície com fator de gradiente $gf, acima do $gfHigh configurado';
+  }
+
+  @override
+  String safetyReview_timeRange(String start, String end) {
+    return 'Em $start–$end';
+  }
+
+  @override
+  String get safetyReview_dismiss => 'Dispensar';
+
+  @override
+  String get safetyReview_restore => 'Restaurar';
+
+  @override
+  String get safetySettings_title => 'Revisão de segurança';
+
+  @override
+  String get safetySettings_entry_subtitle =>
+      'Observações e regras pós-mergulho';
+
+  @override
+  String get safetySettings_masterToggle => 'Revisão de segurança pós-mergulho';
+
+  @override
+  String get safetySettings_masterToggle_subtitle =>
+      'Anotar automaticamente observações de subida, paradas e perfil nos mergulhos analisados';
+
+  @override
+  String get safetySettings_rulesHeader => 'Regras';
+
+  @override
+  String get safetySettings_rule_rapidAscent => 'Subidas rápidas';
+
+  @override
+  String get safetySettings_rule_missedDecoStop =>
+      'Paradas deco perdidas ou encurtadas';
+
+  @override
+  String get safetySettings_rule_omittedSafetyStop =>
+      'Paradas de segurança omitidas';
+
+  @override
+  String get safetySettings_rule_sawtoothProfile => 'Perfis em dente de serra';
+
+  @override
+  String get safetySettings_rule_highSurfaceGf =>
+      'Fator de gradiente alto ao emergir';
+
+  @override
+  String get safetySettings_analyzeAll => 'Analisar todos os mergulhos';
+
+  @override
+  String get safetySettings_analyzeAll_subtitle =>
+      'Executar a revisão de segurança em todos os mergulhos com perfil ainda não analisados';
+
+  @override
+  String safetySettings_analyzeAll_progress(int done, int total) {
+    return 'Analisados $done de $total';
+  }
+
+  @override
+  String get safetySettings_analyzeAll_done => 'Análise concluída';
+
+  @override
+  String safetySettings_analyzeAll_doneWithErrors(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Não foi possível analisar $count mergulhos',
+      one: 'Não foi possível analisar 1 mergulho',
+    );
+    return 'Análise concluída — $_temp0';
+  }
+
+  @override
+  String safetyReview_showDismissed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Mostrar $count dispensadas',
+      one: 'Mostrar 1 dispensada',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveDetailSection_sacSegments_name => 'Taxa SAC por Segmento';
 
   @override

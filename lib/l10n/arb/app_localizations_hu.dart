@@ -12121,6 +12121,136 @@ class AppLocalizationsHu extends AppLocalizations {
       'NDL, plafon, szövet hőtérkép, O2 toxicitás';
 
   @override
+  String get diveDetailSection_safetyReview_name => 'Biztonsági áttekintés';
+
+  @override
+  String get diveDetailSection_safetyReview_description =>
+      'Automatikus profilmegfigyelések a merülés után';
+
+  @override
+  String get safetyReview_sectionTitle => 'Biztonsági áttekintés';
+
+  @override
+  String safetyReview_findingCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count megfigyelés',
+      one: '1 megfigyelés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String safetyReview_rapidAscent_title(String rate, String duration) {
+    return 'A felemelkedés $duration ideig meghaladta a(z) $rate értéket';
+  }
+
+  @override
+  String safetyReview_missedDecoStop_title(String excess, String duration) {
+    return 'A mélység $duration ideig $excess értékkel az előírt megállási plafon felett volt';
+  }
+
+  @override
+  String safetyReview_omittedSafetyStop_title(String remaining) {
+    return 'Az ajánlott biztonsági megálló $remaining idővel rövidült';
+  }
+
+  @override
+  String safetyReview_sawtoothProfile_title(int count) {
+    return '$count ismételt fel-le mélységváltozás a merülés során';
+  }
+
+  @override
+  String safetyReview_highSurfaceGf_title(String gf, String gfHigh) {
+    return 'Felszínre érkezés $gf gradiens faktorral, a beállított $gfHigh felett';
+  }
+
+  @override
+  String safetyReview_timeRange(String start, String end) {
+    return '$start–$end időpontban';
+  }
+
+  @override
+  String get safetyReview_dismiss => 'Elvetés';
+
+  @override
+  String get safetyReview_restore => 'Visszaállítás';
+
+  @override
+  String get safetySettings_title => 'Biztonsági áttekintés';
+
+  @override
+  String get safetySettings_entry_subtitle =>
+      'Merülés utáni megfigyelések és szabályok';
+
+  @override
+  String get safetySettings_masterToggle =>
+      'Merülés utáni biztonsági áttekintés';
+
+  @override
+  String get safetySettings_masterToggle_subtitle =>
+      'Felemelkedési, megállási és profilmegfigyelések automatikus rögzítése az elemzett merüléseknél';
+
+  @override
+  String get safetySettings_rulesHeader => 'Szabályok';
+
+  @override
+  String get safetySettings_rule_rapidAscent => 'Gyors felemelkedések';
+
+  @override
+  String get safetySettings_rule_missedDecoStop =>
+      'Kihagyott vagy lerövidített deko megállók';
+
+  @override
+  String get safetySettings_rule_omittedSafetyStop =>
+      'Kihagyott biztonsági megállók';
+
+  @override
+  String get safetySettings_rule_sawtoothProfile => 'Fűrészfog-profilok';
+
+  @override
+  String get safetySettings_rule_highSurfaceGf =>
+      'Magas gradiens faktor felszínre érkezéskor';
+
+  @override
+  String get safetySettings_analyzeAll => 'Összes merülés elemzése';
+
+  @override
+  String get safetySettings_analyzeAll_subtitle =>
+      'A biztonsági áttekintés futtatása minden olyan profillal rendelkező merülésen, amely még nincs elemezve';
+
+  @override
+  String safetySettings_analyzeAll_progress(int done, int total) {
+    return '$done / $total elemezve';
+  }
+
+  @override
+  String get safetySettings_analyzeAll_done => 'Elemzés kész';
+
+  @override
+  String safetySettings_analyzeAll_doneWithErrors(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülést nem sikerült elemezni',
+      one: '1 merülést nem sikerült elemezni',
+    );
+    return 'Elemzés kész — $_temp0';
+  }
+
+  @override
+  String safetyReview_showDismissed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elvetett megjelenítése',
+      one: '1 elvetett megjelenítése',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveDetailSection_sacSegments_name => 'SAC arány szegmensenként';
 
   @override

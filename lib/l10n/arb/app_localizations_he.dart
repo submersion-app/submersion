@@ -11855,6 +11855,133 @@ class AppLocalizationsHe extends AppLocalizations {
       'NDL, תקרה, מפת חום של רקמות, רעילות O2';
 
   @override
+  String get diveDetailSection_safetyReview_name => 'סקירת בטיחות';
+
+  @override
+  String get diveDetailSection_safetyReview_description =>
+      'תצפיות אוטומטיות על פרופיל הצלילה לאחר הצלילה';
+
+  @override
+  String get safetyReview_sectionTitle => 'סקירת בטיחות';
+
+  @override
+  String safetyReview_findingCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count תצפיות',
+      one: 'תצפית אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String safetyReview_rapidAscent_title(String rate, String duration) {
+    return 'העלייה חרגה מ-$rate למשך $duration';
+  }
+
+  @override
+  String safetyReview_missedDecoStop_title(String excess, String duration) {
+    return 'העומק היה $excess מעל תקרת העצירה הנדרשת למשך $duration';
+  }
+
+  @override
+  String safetyReview_omittedSafetyStop_title(String remaining) {
+    return 'עצירת הבטיחות המומלצת קוצרה ב-$remaining';
+  }
+
+  @override
+  String safetyReview_sawtoothProfile_title(int count) {
+    return '$count שינויי עומק חוזרים מעלה ומטה במהלך הצלילה';
+  }
+
+  @override
+  String safetyReview_highSurfaceGf_title(String gf, String gfHigh) {
+    return 'עלייה לפני השטח עם פקטור גרדיאנט $gf, מעל $gfHigh שהוגדר';
+  }
+
+  @override
+  String safetyReview_timeRange(String start, String end) {
+    return 'ב-$start–$end';
+  }
+
+  @override
+  String get safetyReview_dismiss => 'התעלם';
+
+  @override
+  String get safetyReview_restore => 'שחזר';
+
+  @override
+  String get safetySettings_title => 'סקירת בטיחות';
+
+  @override
+  String get safetySettings_entry_subtitle => 'תצפיות וכללים לאחר הצלילה';
+
+  @override
+  String get safetySettings_masterToggle => 'סקירת בטיחות לאחר הצלילה';
+
+  @override
+  String get safetySettings_masterToggle_subtitle =>
+      'רישום אוטומטי של תצפיות עלייה, עצירות ופרופיל בצלילות שנותחו';
+
+  @override
+  String get safetySettings_rulesHeader => 'כללים';
+
+  @override
+  String get safetySettings_rule_rapidAscent => 'עליות מהירות';
+
+  @override
+  String get safetySettings_rule_missedDecoStop =>
+      'עצירות דקו שהוחמצו או קוצרו';
+
+  @override
+  String get safetySettings_rule_omittedSafetyStop => 'עצירות בטיחות שהושמטו';
+
+  @override
+  String get safetySettings_rule_sawtoothProfile => 'פרופילי שן מסור';
+
+  @override
+  String get safetySettings_rule_highSurfaceGf =>
+      'פקטור גרדיאנט גבוה בעלייה לפני השטח';
+
+  @override
+  String get safetySettings_analyzeAll => 'נתח את כל הצלילות';
+
+  @override
+  String get safetySettings_analyzeAll_subtitle =>
+      'הרצת סקירת הבטיחות על כל צלילה עם פרופיל שטרם נותחה';
+
+  @override
+  String safetySettings_analyzeAll_progress(int done, int total) {
+    return 'נותחו $done מתוך $total';
+  }
+
+  @override
+  String get safetySettings_analyzeAll_done => 'הניתוח הושלם';
+
+  @override
+  String safetySettings_analyzeAll_doneWithErrors(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'לא ניתן היה לנתח $count צלילות',
+      one: 'לא ניתן היה לנתח צלילה אחת',
+    );
+    return 'הניתוח הושלם — $_temp0';
+  }
+
+  @override
+  String safetyReview_showDismissed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'הצג $count תצפיות שהוסתרו',
+      one: 'הצג תצפית אחת שהוסתרה',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveDetailSection_sacSegments_name => 'קצב SAC לפי קטע';
 
   @override

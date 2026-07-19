@@ -5890,5 +5890,49 @@
   "settings_setupGuide_statusTodo": "לא מוגדר",
   "settings_setupGuide_open": "פתח",
   "settings_connectedAccounts_loadError": "לא ניתן לטעון חשבונות",
-  "media_unavailablePlaceholder_volumeOffline": "הכונן אינו מחובר"
+  "media_unavailablePlaceholder_volumeOffline": "הכונן אינו מחובר",
+  "diveDetailSection_safetyReview_name": "סקירת בטיחות",
+  "diveDetailSection_safetyReview_description": "תצפיות אוטומטיות על פרופיל הצלילה לאחר הצלילה",
+  "safetyReview_sectionTitle": "סקירת בטיחות",
+  "safetyReview_findingCount": "{count, plural, =1{תצפית אחת} other{{count} תצפיות}}",
+  "@safetyReview_findingCount": {"placeholders": {"count": {"type": "int"}}},
+  "safetyReview_rapidAscent_title": "העלייה חרגה מ-{rate} למשך {duration}",
+  "@safetyReview_rapidAscent_title": {"placeholders": {"rate": {"type": "String"}, "duration": {"type": "String"}}},
+  "safetyReview_missedDecoStop_title": "העומק היה {excess} מעל תקרת העצירה הנדרשת למשך {duration}",
+  "@safetyReview_missedDecoStop_title": {"placeholders": {"excess": {"type": "String"}, "duration": {"type": "String"}}},
+  "safetyReview_omittedSafetyStop_title": "עצירת הבטיחות המומלצת קוצרה ב-{remaining}",
+  "@safetyReview_omittedSafetyStop_title": {"placeholders": {"remaining": {"type": "String"}}},
+  "safetyReview_sawtoothProfile_title": "{count} שינויי עומק חוזרים מעלה ומטה במהלך הצלילה",
+  "@safetyReview_sawtoothProfile_title": {"placeholders": {"count": {"type": "int"}}},
+  "safetyReview_highSurfaceGf_title": "עלייה לפני השטח עם פקטור גרדיאנט {gf}, מעל {gfHigh} שהוגדר",
+  "@safetyReview_highSurfaceGf_title": {"placeholders": {"gf": {"type": "String"}, "gfHigh": {"type": "String"}}},
+  "safetyReview_timeRange": "ב-{start}–{end}",
+  "@safetyReview_timeRange": {"placeholders": {"start": {"type": "String"}, "end": {"type": "String"}}},
+  "safetyReview_dismiss": "התעלם",
+  "safetyReview_restore": "שחזר",
+  "safetyReview_showDismissed": "{count, plural, =1{הצג תצפית אחת שהוסתרה} other{הצג {count} תצפיות שהוסתרו}}",
+  "@safetyReview_showDismissed": {"placeholders": {"count": {"type": "int"}}},
+  "safetySettings_title": "סקירת בטיחות",
+  "safetySettings_entry_subtitle": "תצפיות וכללים לאחר הצלילה",
+  "safetySettings_masterToggle": "סקירת בטיחות לאחר הצלילה",
+  "safetySettings_masterToggle_subtitle": "רישום אוטומטי של תצפיות עלייה, עצירות ופרופיל בצלילות שנותחו",
+  "safetySettings_rulesHeader": "כללים",
+  "safetySettings_rule_rapidAscent": "עליות מהירות",
+  "safetySettings_rule_missedDecoStop": "עצירות דקו שהוחמצו או קוצרו",
+  "safetySettings_rule_omittedSafetyStop": "עצירות בטיחות שהושמטו",
+  "safetySettings_rule_sawtoothProfile": "פרופילי שן מסור",
+  "safetySettings_rule_highSurfaceGf": "פקטור גרדיאנט גבוה בעלייה לפני השטח",
+  "safetySettings_analyzeAll": "נתח את כל הצלילות",
+  "safetySettings_analyzeAll_subtitle": "הרצת סקירת הבטיחות על כל צלילה עם פרופיל שטרם נותחה",
+  "safetySettings_analyzeAll_progress": "נותחו {done} מתוך {total}",
+  "@safetySettings_analyzeAll_progress": {"placeholders": {"done": {"type": "int"}, "total": {"type": "int"}}},
+  "safetySettings_analyzeAll_done": "הניתוח הושלם",
+  "safetySettings_analyzeAll_doneWithErrors": "הניתוח הושלם — {count, plural, =1{לא ניתן היה לנתח צלילה אחת} other{לא ניתן היה לנתח {count} צלילות}}",
+  "@safetySettings_analyzeAll_doneWithErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

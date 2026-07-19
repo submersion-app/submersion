@@ -5890,5 +5890,49 @@
   "settings_setupGuide_statusTodo": "Sin configurar",
   "settings_setupGuide_open": "Abrir",
   "settings_connectedAccounts_loadError": "No se pudieron cargar las cuentas",
-  "media_unavailablePlaceholder_volumeOffline": "Volumen no montado"
+  "media_unavailablePlaceholder_volumeOffline": "Volumen no montado",
+  "diveDetailSection_safetyReview_name": "Revisión de seguridad",
+  "diveDetailSection_safetyReview_description": "Observaciones automáticas del perfil tras la inmersión",
+  "safetyReview_sectionTitle": "Revisión de seguridad",
+  "safetyReview_findingCount": "{count, plural, =1{1 observación} other{{count} observaciones}}",
+  "@safetyReview_findingCount": {"placeholders": {"count": {"type": "int"}}},
+  "safetyReview_rapidAscent_title": "El ascenso superó {rate} durante {duration}",
+  "@safetyReview_rapidAscent_title": {"placeholders": {"rate": {"type": "String"}, "duration": {"type": "String"}}},
+  "safetyReview_missedDecoStop_title": "La profundidad estuvo {excess} por encima del techo de parada requerido durante {duration}",
+  "@safetyReview_missedDecoStop_title": {"placeholders": {"excess": {"type": "String"}, "duration": {"type": "String"}}},
+  "safetyReview_omittedSafetyStop_title": "La parada de seguridad recomendada se acortó en {remaining}",
+  "@safetyReview_omittedSafetyStop_title": {"placeholders": {"remaining": {"type": "String"}}},
+  "safetyReview_sawtoothProfile_title": "{count} cambios repetidos de profundidad de subida y bajada durante la inmersión",
+  "@safetyReview_sawtoothProfile_title": {"placeholders": {"count": {"type": "int"}}},
+  "safetyReview_highSurfaceGf_title": "Salida a superficie con factor de gradiente {gf}, por encima del {gfHigh} configurado",
+  "@safetyReview_highSurfaceGf_title": {"placeholders": {"gf": {"type": "String"}, "gfHigh": {"type": "String"}}},
+  "safetyReview_timeRange": "En {start}–{end}",
+  "@safetyReview_timeRange": {"placeholders": {"start": {"type": "String"}, "end": {"type": "String"}}},
+  "safetyReview_dismiss": "Descartar",
+  "safetyReview_restore": "Restaurar",
+  "safetyReview_showDismissed": "{count, plural, =1{Mostrar 1 descartada} other{Mostrar {count} descartadas}}",
+  "@safetyReview_showDismissed": {"placeholders": {"count": {"type": "int"}}},
+  "safetySettings_title": "Revisión de seguridad",
+  "safetySettings_entry_subtitle": "Observaciones y reglas tras la inmersión",
+  "safetySettings_masterToggle": "Revisión de seguridad tras la inmersión",
+  "safetySettings_masterToggle_subtitle": "Anotar automáticamente observaciones de ascenso, paradas y perfil en las inmersiones analizadas",
+  "safetySettings_rulesHeader": "Reglas",
+  "safetySettings_rule_rapidAscent": "Ascensos rápidos",
+  "safetySettings_rule_missedDecoStop": "Paradas deco omitidas o acortadas",
+  "safetySettings_rule_omittedSafetyStop": "Paradas de seguridad omitidas",
+  "safetySettings_rule_sawtoothProfile": "Perfiles en dientes de sierra",
+  "safetySettings_rule_highSurfaceGf": "Factor de gradiente alto al salir a superficie",
+  "safetySettings_analyzeAll": "Analizar todas las inmersiones",
+  "safetySettings_analyzeAll_subtitle": "Ejecutar la revisión de seguridad en todas las inmersiones con perfil que aún no se hayan analizado",
+  "safetySettings_analyzeAll_progress": "Analizadas {done} de {total}",
+  "@safetySettings_analyzeAll_progress": {"placeholders": {"done": {"type": "int"}, "total": {"type": "int"}}},
+  "safetySettings_analyzeAll_done": "Análisis completado",
+  "safetySettings_analyzeAll_doneWithErrors": "Análisis completado — {count, plural, =1{No se pudo analizar 1 inmersión} other{No se pudieron analizar {count} inmersiones}}",
+  "@safetySettings_analyzeAll_doneWithErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

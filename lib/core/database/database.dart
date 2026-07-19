@@ -1273,6 +1273,11 @@ class DiverSettings extends Table {
   // CNS calculation method: 'classic' | 'shearwater' | 'subsurface' (v113)
   TextColumn get cnsCalculationMethod =>
       text().withDefault(const Constant('shearwater'))();
+  // Post-dive safety review (safety features phase 1, v123)
+  BoolColumn get safetyReviewEnabled =>
+      boolean().withDefault(const Constant(true))();
+  // JSON array of SafetyRuleId.dbValue strings; null/absent = none disabled.
+  TextColumn get safetyReviewDisabledRules => text().nullable()();
   // Appearance settings
   BoolColumn get showDepthColoredDiveCards =>
       boolean().withDefault(const Constant(false))();
@@ -1899,6 +1904,39 @@ class DiveProfileEvents extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Marker row recording that the safety review engine has analyzed a dive.
+/// Lets zero-findings (clean) dives be distinguished from never-analyzed
+/// dives without replaying the profile. Write-once child of Dives: no HLC
+/// columns; sync uses markRecordPending/logDeletion like DiveProfileEvents.
+class DiveSafetyReviews extends Table {
+  TextColumn get diveId =>
+      text().references(Dives, #id, onDelete: KeyAction.cascade)();
+  IntColumn get engineVersion => integer()();
+  IntColumn get reviewedAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {diveId};
+}
+
+/// One safety review observation for a dive (see SafetyFinding entity).
+/// Write-once child of Dives except for dismissed_at, which toggles.
+class DiveSafetyFindings extends Table {
+  TextColumn get id => text()();
+  TextColumn get diveId =>
+      text().references(Dives, #id, onDelete: KeyAction.cascade)();
+  TextColumn get ruleId => text()(); // SafetyRuleId.dbValue
+  TextColumn get severity => text()(); // SafetySeverity.dbValue
+  IntColumn get startTimestamp => integer().nullable()();
+  IntColumn get endTimestamp => integer().nullable()();
+  RealColumn get value => real().nullable()();
+  IntColumn get engineVersion => integer()();
+  IntColumn get dismissedAt => integer().nullable()();
+  IntColumn get createdAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Gas switches during a dive
 class GasSwitches extends Table {
   TextColumn get id => text()();
@@ -2324,6 +2362,8 @@ class FieldPresets extends Table {
     DiveComputers,
     DiveDataSources,
     DiveProfileEvents,
+    DiveSafetyReviews,
+    DiveSafetyFindings,
     GasSwitches,
     TankPressureProfiles,
     TideRecords,
@@ -2381,7 +2421,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 122;
+  static const int currentSchemaVersion = 123;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -2508,6 +2548,9 @@ class AppDatabase extends _$AppDatabase {
     // v122: gear service ledger (renumbered from v115 as main advanced past
     // it; see schema-version ladder).
     122,
+    // v123: post-dive safety review tables + diver safety settings columns
+    // (renumbered from v115 as main advanced past it at merge time).
+    123,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -2682,6 +2725,35 @@ class AppDatabase extends _$AppDatabase {
       await customStatement(
         "ALTER TABLE diver_settings ADD COLUMN cns_calculation_method "
         "TEXT NOT NULL DEFAULT 'shearwater'",
+      );
+    }
+  }
+
+  /// v123: safety review tables, index, and settings columns. Idempotent
+  /// (createTable is IF NOT EXISTS; the ALTERs are PRAGMA-guarded) so it is
+  /// safe to call from both onUpgrade and the beforeOpen backstop.
+  Future<void> _assertSafetyReviewSchema() async {
+    final m = createMigrator();
+    await m.createTable(diveSafetyReviews);
+    await m.createTable(diveSafetyFindings);
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_dive_safety_findings_dive_id '
+      'ON dive_safety_findings (dive_id)',
+    );
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (cols.isNotEmpty && !names.contains('safety_review_enabled')) {
+      await customStatement(
+        'ALTER TABLE diver_settings ADD COLUMN safety_review_enabled '
+        'INTEGER NOT NULL DEFAULT 1 CHECK (safety_review_enabled IN (0, 1))',
+      );
+    }
+    if (cols.isNotEmpty && !names.contains('safety_review_disabled_rules')) {
+      await customStatement(
+        'ALTER TABLE diver_settings ADD COLUMN safety_review_disabled_rules '
+        'TEXT',
       );
     }
   }
@@ -5958,6 +6030,12 @@ class AppDatabase extends _$AppDatabase {
           await _backfillLegacyServiceSchedules();
         }
         if (from < 122) await reportProgress();
+        // v123: post-dive safety review tables + diver safety settings columns
+        // (renumbered from v115 as main advanced past it at merge time).
+        if (from < 123) {
+          await _assertSafetyReviewSchema();
+        }
+        if (from < 123) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
@@ -6021,6 +6099,10 @@ class AppDatabase extends _$AppDatabase {
         // The legacy backfill is NOT here (onUpgrade only) -- re-running it
         // would resurrect user-deleted schedules.
         await _assertServiceLedgerSchema();
+
+        // v123 backstop: re-assert safety review tables + settings columns
+        // (parallel-branch collision self-heal).
+        await _assertSafetyReviewSchema();
 
         // Built-in dive types are reference data: identical on every device and
         // undeletable through DiveTypeRepository. Nothing else restores them --

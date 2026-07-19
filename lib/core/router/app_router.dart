@@ -92,6 +92,7 @@ import 'package:submersion/features/settings/presentation/pages/appearance_page.
 import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
 import 'package:submersion/features/settings/presentation/pages/default_visible_metrics_page.dart';
 import 'package:submersion/features/settings/presentation/pages/dive_detail_sections_page.dart';
+import 'package:submersion/features/settings/presentation/pages/safety_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/nav_customization_page.dart';
 import 'package:submersion/features/settings/presentation/pages/theme_gallery_page.dart';
@@ -884,6 +885,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'dive-detail-sections',
                 name: 'diveDetailSections',
                 builder: (context, state) => const DiveDetailSectionsPage(),
+              ),
+              GoRoute(
+                path: 'safety',
+                name: 'safetySettings',
+                builder: (context, state) => const SafetySettingsPage(),
               ),
               GoRoute(
                 path: 'default-metrics',

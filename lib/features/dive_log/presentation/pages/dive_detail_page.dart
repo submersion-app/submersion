@@ -61,6 +61,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/playback_stats
 import 'package:submersion/features/dive_log/presentation/widgets/range_selection_overlay.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/range_stats_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/responsive_section_pair.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/safety_review_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/surface_gps_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_saturation_panel.dart';
@@ -287,6 +288,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             },
           ),
         ];
+      },
+      DiveDetailSectionId.safetyReview: () {
+        if (dive.profile.isEmpty) return [];
+        // The widget collapses to nothing when there are no findings, so a
+        // plain SizedBox spacer would double up; let the widget own it.
+        return [SafetyReviewSection(diveId: dive.id)];
       },
       DiveDetailSectionId.sacSegments: () {
         if (dive.profile.isEmpty) return [];
