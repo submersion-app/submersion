@@ -36,6 +36,10 @@ void main() {
     expect(tombstones.map((t) => t.entityType), contains('emergencyChambers'));
   });
 
+  test('watchChanges exposes a stream over the emergency_chambers table', () {
+    expect(repo.watchChanges(), isA<Stream<void>>());
+  });
+
   test('getUserChambers scopes to a diver plus null-diver globals', () async {
     // diver_id is an FK to divers, so the referenced rows must exist.
     for (final id in ['diver-a', 'diver-b']) {
