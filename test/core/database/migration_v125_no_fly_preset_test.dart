@@ -37,9 +37,9 @@ void main() {
     expect(rows.single.read<String>('no_fly_preset'), 'standard');
   });
 
-  test('v125 migration is present', () {
-    // Relaxed from an exact tripwire: v126 (emergency card) now lands on top of
-    // v125, so the exact-latest assertion lives in migration_v126_*_test.dart.
+  test('v125 no_fly_preset migration is present', () {
+    // The exact-latest tripwire moved to migration_v127_incidents_test when
+    // the incidents migration (v127) landed on top of v125/v126.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(125));
     expect(AppDatabase.migrationVersions, contains(125));
   });

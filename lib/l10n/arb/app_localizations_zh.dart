@@ -19952,9 +19952,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get safetySettings_noFlyPreset_subtitle => '单次免减压潜水、重复潜水和减压潜水后的指导间隔';
 
   @override
-  String get safetyHub_title => '安全';
-
-  @override
   String safetyHub_noFly_active_title(String remaining) {
     return '禁飞:剩余 $remaining';
   }
@@ -19988,15 +19985,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get safetyHub_noFly_disclaimer =>
       '自最后一次潜水起的 DAN/UHMS 指导值。不能替代潜水电脑的禁飞时间。';
-
-  @override
-  String get safetyHub_surfaceIntervalLink => '水面间隔工具';
-
-  @override
-  String get safetyHub_surfaceIntervalLink_subtitle => '组织脱饱和教学模型';
-
-  @override
-  String get safetyHub_settingsLink => '安全设置';
 
   @override
   String get diveLog_detail_altitudeMismatch_title => '潜点位于高海拔';
@@ -20130,4 +20118,124 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get dashboard_quickAction_emergency => '紧急卡片';
+
+  @override
+  String get incidents_title => '未遂事件日志';
+
+  @override
+  String get incidents_empty => '尚无未遂事件记录。不加评判地记下差点出错的事,能在它们变成事故之前让规律显现。';
+
+  @override
+  String get incidents_add => '记录未遂事件';
+
+  @override
+  String get incidents_linkedDive => '已关联潜水';
+
+  @override
+  String get incidents_delete_confirm => '删除此未遂事件报告?';
+
+  @override
+  String get incidents_notFound => '未找到未遂事件记录';
+
+  @override
+  String get incidentEdit_title_new => '记录未遂事件';
+
+  @override
+  String get incidentEdit_title_edit => '编辑未遂事件';
+
+  @override
+  String get incidentEdit_category => '类别';
+
+  @override
+  String get incidentEdit_severity => '严重程度';
+
+  @override
+  String get incidentEdit_severity_minor => '轻微';
+
+  @override
+  String get incidentEdit_severity_moderate => '中等';
+
+  @override
+  String get incidentEdit_severity_serious => '严重';
+
+  @override
+  String get incidentEdit_date => '发生时间';
+
+  @override
+  String get incidentEdit_narrative => '发生了什么';
+
+  @override
+  String get incidentEdit_narrative_hint => '只写事实,用你自己的话。此内容保持私密。';
+
+  @override
+  String get incidentEdit_narrative_required => '描述发生了什么';
+
+  @override
+  String get incidentEdit_contributingFactors => '促成因素(可选)';
+
+  @override
+  String get incidentEdit_lessonsLearned => '下次怎样会更好(可选)';
+
+  @override
+  String get incidentEdit_save => '保存';
+
+  @override
+  String get incidentEdit_privacyNote =>
+      '未遂事件报告在你的设备之间同步并包含在备份中,但绝不会包含在导出或共享的日志页面中。';
+
+  @override
+  String get incidentCategory_buoyancy => '浮力';
+
+  @override
+  String get incidentCategory_gasSupply => '气源';
+
+  @override
+  String get incidentCategory_equipment => '装备';
+
+  @override
+  String get incidentCategory_buddySeparation => '与潜伴失散';
+
+  @override
+  String get incidentCategory_marineLife => '海洋生物';
+
+  @override
+  String get incidentCategory_boatSurface => '船只/水面';
+
+  @override
+  String get incidentCategory_medical => '医疗';
+
+  @override
+  String get incidentCategory_planning => '计划';
+
+  @override
+  String get incidentCategory_other => '其他';
+
+  @override
+  String get safetyHub_incidentsLink => '未遂事件日志';
+
+  @override
+  String get safetyHub_incidentsLink_subtitle => '私密、非惩罚性的事件记录';
+
+  @override
+  String get diveLog_detail_menu_logNearMiss => '记录未遂事件';
+
+  @override
+  String diveLog_detail_linkedIncidents(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 起未遂事件与此次潜水关联',
+      one: '1 起未遂事件与此次潜水关联',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get planning_card_noFly_subtitle => '基于最近潜水的指导倒计时';
+
+  @override
+  String get settings_section_safety_title => '安全';
+
+  @override
+  String get settings_section_safety_subtitle => '回顾规则与潜水后飞行';
 }

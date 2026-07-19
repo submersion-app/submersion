@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
@@ -11,16 +10,16 @@ import 'package:submersion/features/safety/presentation/providers/no_fly_provide
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Safety hub: current no-fly status plus entry points to the safety
-/// tooling (emergency card and near-miss log arrive in later phases).
-class SafetyHubPage extends ConsumerStatefulWidget {
-  const SafetyHubPage({super.key});
+/// Flying-after-diving status: the DAN/UHMS guideline countdown from the
+/// most recent dives. Lives in the Planning section.
+class NoFlyPage extends ConsumerStatefulWidget {
+  const NoFlyPage({super.key});
 
   @override
-  ConsumerState<SafetyHubPage> createState() => _SafetyHubPageState();
+  ConsumerState<NoFlyPage> createState() => _NoFlyPageState();
 }
 
-class _SafetyHubPageState extends ConsumerState<SafetyHubPage> {
+class _NoFlyPageState extends ConsumerState<NoFlyPage> {
   Timer? _ticker;
 
   @override
@@ -44,7 +43,7 @@ class _SafetyHubPageState extends ConsumerState<SafetyHubPage> {
     final statusAsync = ref.watch(noFlyStatusProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.safetyHub_title)),
+      appBar: AppBar(title: Text(l10n.safetySettings_noFlyHeader)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -54,7 +53,7 @@ class _SafetyHubPageState extends ConsumerState<SafetyHubPage> {
           // "no restriction" -- misleading for a safety readout. A refresh
           // after data exists keeps the retained value (no flicker).
           if (statusAsync.hasValue)
-            _NoFlyCard(status: statusAsync.value)
+            NoFlyStatusCard(status: statusAsync.value)
           else if (statusAsync.hasError)
             _NoFlyStatusPlaceholder(
               icon: Icons.error_outline,
@@ -65,46 +64,17 @@ class _SafetyHubPageState extends ConsumerState<SafetyHubPage> {
               icon: Icons.hourglass_empty,
               text: l10n.common_label_loading,
             ),
-          const SizedBox(height: 16),
-          Card(
-            child: ListTile(
-              leading: Icon(
-                Icons.emergency_outlined,
-                color: Theme.of(context).colorScheme.error,
-              ),
-              title: Text(l10n.safetyHub_emergencyCardLink),
-              subtitle: Text(l10n.safetyHub_emergencyCardLink_subtitle),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => context.push('/safety/emergency-card'),
-            ),
-          ),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.hourglass_bottom),
-              title: Text(l10n.safetyHub_surfaceIntervalLink),
-              subtitle: Text(l10n.safetyHub_surfaceIntervalLink_subtitle),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => context.push('/planning/surface-interval'),
-            ),
-          ),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.settings_outlined),
-              title: Text(l10n.safetyHub_settingsLink),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => context.push('/settings/safety'),
-            ),
-          ),
         ],
       ),
     );
   }
 }
 
-class _NoFlyCard extends StatelessWidget {
+/// The no-fly countdown card (also usable on other surfaces).
+class NoFlyStatusCard extends StatelessWidget {
   final NoFlyStatus? status;
 
-  const _NoFlyCard({required this.status});
+  const NoFlyStatusCard({required this.status, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -191,7 +161,7 @@ class _NoFlyCard extends StatelessWidget {
 }
 
 /// Neutral placeholder shown while the no-fly status is still loading or has
-/// failed to load, so the hub never implies "no restriction" before it knows.
+/// failed to load, so the page never implies "no restriction" before it knows.
 class _NoFlyStatusPlaceholder extends StatelessWidget {
   final IconData icon;
   final String text;

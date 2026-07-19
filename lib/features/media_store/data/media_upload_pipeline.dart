@@ -164,8 +164,17 @@ class MediaUploadPipeline {
       await _queue.markFailed(entry.id, e.toString());
       return UploadOutcome.failed;
     } finally {
-      if (staged != null && await staged.exists()) {
-        await staged.delete();
+      // Best-effort cleanup of the staging temp file. Delete atomically and
+      // tolerate a missing file rather than racing a separate exists() check:
+      // the file may already be gone (a concurrent drain, a temp-dir teardown,
+      // or OS reaping), and cleanup must never turn a successful upload into an
+      // uncaught error.
+      if (staged != null) {
+        try {
+          await staged.delete();
+        } on PathNotFoundException {
+          // Already removed -- nothing to clean up.
+        }
       }
     }
   }

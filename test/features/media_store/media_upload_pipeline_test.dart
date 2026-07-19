@@ -401,14 +401,12 @@ void main() {
     final worker = MediaStoreWorker(queue: queue, pipeline: pipeline);
 
     await worker.enqueueAndKick(created.id);
-    // enqueueAndKick fires the drain without awaiting; poll for completion.
-    for (var i = 0; i < 100; i++) {
-      if ((await mediaRepository.getMediaById(created.id))!.remoteUploadedAt !=
-          null) {
-        break;
-      }
-      await Future<void>.delayed(const Duration(milliseconds: 10));
-    }
+    // enqueueAndKick fires the drain in the background. Await it to full
+    // completion (including each entry's post-upload staging cleanup) so no
+    // async work outlives the test and races teardown's temp-dir deletion --
+    // that race surfaced as an intermittent "failed after test completion"
+    // PathNotFoundException.
+    await worker.activeDrain;
     expect(
       (await mediaRepository.getMediaById(created.id))!.remoteUploadedAt,
       isNotNull,

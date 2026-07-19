@@ -20852,9 +20852,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Richttijden na een enkele duik zonder deco, herhalingsduiken en decoduiken';
 
   @override
-  String get safetyHub_title => 'Veiligheid';
-
-  @override
   String safetyHub_noFly_active_title(String remaining) {
     return 'Vliegverbod: nog $remaining';
   }
@@ -20888,16 +20885,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get safetyHub_noFly_disclaimer =>
       'DAN/UHMS-richtlijnen vanaf je laatste duik. Geen vervanging voor de no-fly-tijd van je duikcomputer.';
-
-  @override
-  String get safetyHub_surfaceIntervalLink => 'Oppervlakte-interval-tool';
-
-  @override
-  String get safetyHub_surfaceIntervalLink_subtitle =>
-      'Educatief model van weefselontzadiging';
-
-  @override
-  String get safetyHub_settingsLink => 'Veiligheidsinstellingen';
 
   @override
   String get diveLog_detail_altitudeMismatch_title => 'Duikstek ligt op hoogte';
@@ -21036,4 +21023,132 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get dashboard_quickAction_emergency => 'Noodkaart';
+
+  @override
+  String get incidents_title => 'Bijna-ongevallenlog';
+
+  @override
+  String get incidents_empty =>
+      'Geen bijna-ongevallen vastgelegd. Noteren wat bijna misging - zonder oordeel - maakt patronen zichtbaar voordat het ongelukken worden.';
+
+  @override
+  String get incidents_add => 'Bijna-ongeval vastleggen';
+
+  @override
+  String get incidents_linkedDive => 'Gekoppeld aan een duik';
+
+  @override
+  String get incidents_delete_confirm =>
+      'Dit bijna-ongevalrapport verwijderen?';
+
+  @override
+  String get incidents_notFound => 'Bijna-ongevalrapport niet gevonden';
+
+  @override
+  String get incidentEdit_title_new => 'Bijna-ongeval vastleggen';
+
+  @override
+  String get incidentEdit_title_edit => 'Bijna-ongeval bewerken';
+
+  @override
+  String get incidentEdit_category => 'Categorie';
+
+  @override
+  String get incidentEdit_severity => 'Ernst';
+
+  @override
+  String get incidentEdit_severity_minor => 'Licht';
+
+  @override
+  String get incidentEdit_severity_moderate => 'Matig';
+
+  @override
+  String get incidentEdit_severity_serious => 'Ernstig';
+
+  @override
+  String get incidentEdit_date => 'Wanneer het gebeurde';
+
+  @override
+  String get incidentEdit_narrative => 'Wat er gebeurde';
+
+  @override
+  String get incidentEdit_narrative_hint =>
+      'Alleen de feiten, in je eigen woorden. Dit blijft privé.';
+
+  @override
+  String get incidentEdit_narrative_required => 'Beschrijf wat er gebeurde';
+
+  @override
+  String get incidentEdit_contributingFactors =>
+      'Wat eraan bijdroeg (optioneel)';
+
+  @override
+  String get incidentEdit_lessonsLearned =>
+      'Wat de volgende keer zou helpen (optioneel)';
+
+  @override
+  String get incidentEdit_save => 'Opslaan';
+
+  @override
+  String get incidentEdit_privacyNote =>
+      'Bijna-ongevalrapporten synchroniseren tussen je apparaten en zitten in je back-ups, maar nooit in exports of gedeelde logboekpagina\'s.';
+
+  @override
+  String get incidentCategory_buoyancy => 'Trim/drijfvermogen';
+
+  @override
+  String get incidentCategory_gasSupply => 'Gastoevoer';
+
+  @override
+  String get incidentCategory_equipment => 'Uitrusting';
+
+  @override
+  String get incidentCategory_buddySeparation => 'Buddyscheiding';
+
+  @override
+  String get incidentCategory_marineLife => 'Zeeleven';
+
+  @override
+  String get incidentCategory_boatSurface => 'Boot / oppervlak';
+
+  @override
+  String get incidentCategory_medical => 'Medisch';
+
+  @override
+  String get incidentCategory_planning => 'Planning';
+
+  @override
+  String get incidentCategory_other => 'Overig';
+
+  @override
+  String get safetyHub_incidentsLink => 'Bijna-ongevallenlog';
+
+  @override
+  String get safetyHub_incidentsLink_subtitle =>
+      'Privé, niet-bestraffende incidentnotities';
+
+  @override
+  String get diveLog_detail_menu_logNearMiss => 'Bijna-ongeval vastleggen';
+
+  @override
+  String diveLog_detail_linkedIncidents(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bijna-ongevallen gekoppeld aan deze duik',
+      one: '1 bijna-ongeval gekoppeld aan deze duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get planning_card_noFly_subtitle =>
+      'Richtlijn-aftelling vanaf je laatste duiken';
+
+  @override
+  String get settings_section_safety_title => 'Veiligheid';
+
+  @override
+  String get settings_section_safety_subtitle =>
+      'Controleregels & vliegen na het duiken';
 }

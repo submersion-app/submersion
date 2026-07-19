@@ -49,6 +49,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_secti
 import 'package:submersion/features/dive_log/presentation/widgets/collapsible_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/safety_review_section.dart';
 import 'package:submersion/features/safety/domain/services/altitude_flag.dart';
+import 'package:submersion/features/safety/presentation/widgets/linked_incidents_row.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_locations_map.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/surface_gps_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/data_sources_section.dart';
@@ -293,10 +294,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         ];
       },
       DiveDetailSectionId.safetyReview: () {
-        if (dive.profile.isEmpty) return [];
-        // The widget collapses to nothing when there are no findings, so a
-        // plain SizedBox spacer would double up; let the widget own it.
-        return [SafetyReviewSection(diveId: dive.id)];
+        // The widgets collapse to nothing when empty, so plain SizedBox
+        // spacers would double up; each widget owns its own spacing.
+        return [
+          if (dive.profile.isNotEmpty) SafetyReviewSection(diveId: dive.id),
+          LinkedIncidentsRow(diveId: dive.id),
+        ];
       },
       DiveDetailSectionId.sacSegments: () {
         if (dive.profile.isEmpty) return [];
@@ -743,6 +746,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 case 'reparse':
                   _reparseDive(context, ref, dive);
                   break;
+                case 'logNearMiss':
+                  context.push('/incidents/new?diveId=$diveId');
+                  break;
                 case 'delete':
                   _showDeleteConfirmation(context, ref);
                   break;
@@ -754,6 +760,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 child: ListTile(
                   leading: const Icon(Icons.download),
                   title: Text(context.l10n.diveLog_detail_menu_export),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              PopupMenuItem(
+                value: 'logNearMiss',
+                child: ListTile(
+                  leading: const Icon(Icons.flag_outlined),
+                  title: Text(context.l10n.diveLog_detail_menu_logNearMiss),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
@@ -895,6 +909,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 case 'reparse':
                   _reparseDive(context, ref, dive);
                   break;
+                case 'logNearMiss':
+                  context.push('/incidents/new?diveId=$diveId');
+                  break;
                 case 'delete':
                   _showDeleteConfirmation(context, ref);
                   break;
@@ -918,6 +935,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 child: ListTile(
                   leading: const Icon(Icons.download),
                   title: Text(context.l10n.diveLog_detail_menu_export),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              PopupMenuItem(
+                value: 'logNearMiss',
+                child: ListTile(
+                  leading: const Icon(Icons.flag_outlined),
+                  title: Text(context.l10n.diveLog_detail_menu_logNearMiss),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),

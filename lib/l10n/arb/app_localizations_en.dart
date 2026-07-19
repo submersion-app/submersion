@@ -20662,9 +20662,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Guideline intervals after a single no-deco dive, repetitive dives, and deco dives';
 
   @override
-  String get safetyHub_title => 'Safety';
-
-  @override
   String safetyHub_noFly_active_title(String remaining) {
     return 'No-fly: $remaining remaining';
   }
@@ -20698,16 +20695,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get safetyHub_noFly_disclaimer =>
       'DAN/UHMS guideline intervals from your last dive. Not a substitute for your dive computer\'s no-fly time.';
-
-  @override
-  String get safetyHub_surfaceIntervalLink => 'Surface interval tool';
-
-  @override
-  String get safetyHub_surfaceIntervalLink_subtitle =>
-      'Educational tissue desaturation model';
-
-  @override
-  String get safetyHub_settingsLink => 'Safety settings';
 
   @override
   String get diveLog_detail_altitudeMismatch_title => 'Site is at altitude';
@@ -20846,4 +20833,130 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dashboard_quickAction_emergency => 'Emergency card';
+
+  @override
+  String get incidents_title => 'Near-miss log';
+
+  @override
+  String get incidents_empty =>
+      'No near-misses logged. Recording what almost went wrong - without judgment - is how patterns become visible before they become accidents.';
+
+  @override
+  String get incidents_add => 'Log near-miss';
+
+  @override
+  String get incidents_linkedDive => 'Linked to a dive';
+
+  @override
+  String get incidents_delete_confirm => 'Delete this near-miss report?';
+
+  @override
+  String get incidents_notFound => 'Near-miss report not found';
+
+  @override
+  String get incidentEdit_title_new => 'Log near-miss';
+
+  @override
+  String get incidentEdit_title_edit => 'Edit near-miss';
+
+  @override
+  String get incidentEdit_category => 'Category';
+
+  @override
+  String get incidentEdit_severity => 'Severity';
+
+  @override
+  String get incidentEdit_severity_minor => 'Minor';
+
+  @override
+  String get incidentEdit_severity_moderate => 'Moderate';
+
+  @override
+  String get incidentEdit_severity_serious => 'Serious';
+
+  @override
+  String get incidentEdit_date => 'When it happened';
+
+  @override
+  String get incidentEdit_narrative => 'What happened';
+
+  @override
+  String get incidentEdit_narrative_hint =>
+      'Just the facts, in your own words. This stays private.';
+
+  @override
+  String get incidentEdit_narrative_required => 'Describe what happened';
+
+  @override
+  String get incidentEdit_contributingFactors => 'What contributed (optional)';
+
+  @override
+  String get incidentEdit_lessonsLearned =>
+      'What would help next time (optional)';
+
+  @override
+  String get incidentEdit_save => 'Save';
+
+  @override
+  String get incidentEdit_privacyNote =>
+      'Near-miss reports sync between your devices and are included in your backups, but are never included in exports or shared logbook pages.';
+
+  @override
+  String get incidentCategory_buoyancy => 'Buoyancy';
+
+  @override
+  String get incidentCategory_gasSupply => 'Gas supply';
+
+  @override
+  String get incidentCategory_equipment => 'Equipment';
+
+  @override
+  String get incidentCategory_buddySeparation => 'Buddy separation';
+
+  @override
+  String get incidentCategory_marineLife => 'Marine life';
+
+  @override
+  String get incidentCategory_boatSurface => 'Boat / surface';
+
+  @override
+  String get incidentCategory_medical => 'Medical';
+
+  @override
+  String get incidentCategory_planning => 'Planning';
+
+  @override
+  String get incidentCategory_other => 'Other';
+
+  @override
+  String get safetyHub_incidentsLink => 'Near-miss log';
+
+  @override
+  String get safetyHub_incidentsLink_subtitle =>
+      'Private, non-punitive incident notes';
+
+  @override
+  String get diveLog_detail_menu_logNearMiss => 'Log near-miss';
+
+  @override
+  String diveLog_detail_linkedIncidents(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count near-misses linked to this dive',
+      one: '1 near-miss linked to this dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get planning_card_noFly_subtitle =>
+      'Guideline countdown from your last dives';
+
+  @override
+  String get settings_section_safety_title => 'Safety';
+
+  @override
+  String get settings_section_safety_subtitle =>
+      'Review rules & flying after diving';
 }

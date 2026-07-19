@@ -157,6 +157,18 @@ Future<void> _seedRichLibrary() async {
     'updatedAt': 1700000000000,
   });
 
+  // Near-miss incident (HLC parent added in safety phase 4).
+  await serializer.upsertRecord('incidents', {
+    'id': 'incident-1',
+    'diveId': 'd1',
+    'occurredAt': 1700000000000,
+    'category': 'buoyancy',
+    'severity': 'minor',
+    'narrative': 'Runaway ascent from 5 m caught by buddy.',
+    'createdAt': 1700000000000,
+    'updatedAt': 1700000000000,
+  });
+
   // A tombstone so the deletions pass is exercised (best-effort: deleteDive
   // logs a deletion if the repository does so).
   await dives.createDive(

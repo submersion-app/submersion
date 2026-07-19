@@ -187,6 +187,13 @@ List<_PlanningTool> _planningToolsOf(BuildContext context) {
       subtitle: context.l10n.planning_card_surfaceInterval_subtitle,
       route: '/planning/surface-interval',
     ),
+    _PlanningTool(
+      icon: Icons.airplanemode_inactive,
+      color: colorScheme.error,
+      title: context.l10n.safetySettings_noFlyHeader,
+      subtitle: context.l10n.planning_card_noFly_subtitle,
+      route: '/planning/no-fly',
+    ),
   ];
 }
 

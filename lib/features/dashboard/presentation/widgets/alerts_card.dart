@@ -61,7 +61,7 @@ class _CompactAlertsBannerState extends State<_CompactAlertsBanner> {
   }
 
   /// The no-fly label is derived from `DateTime.now()`, so refresh it once a
-  /// minute while a restriction is active (matching SafetyHubPage). No ticker
+  /// minute while a restriction is active (matching NoFlyPage). No ticker
   /// runs when there is no countdown to update.
   void _syncTicker() {
     // Drive off hasActiveNoFly (not just non-null): a cached-but-elapsed status
@@ -125,7 +125,7 @@ class _CompactAlertsBannerState extends State<_CompactAlertsBanner> {
   void _onTap(BuildContext context) {
     final alerts = widget.alerts;
     if (alerts.hasActiveNoFly) {
-      context.push('/safety');
+      context.push('/planning/no-fly');
       return;
     }
     if (alerts.alertCount == 1) {

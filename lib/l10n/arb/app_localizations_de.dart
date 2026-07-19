@@ -20983,9 +20983,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Richtwerte nach einem einzelnen Nullzeit-Tauchgang, Wiederholungstauchgängen und Deko-Tauchgängen';
 
   @override
-  String get safetyHub_title => 'Sicherheit';
-
-  @override
   String safetyHub_noFly_active_title(String remaining) {
     return 'Flugverbot: noch $remaining';
   }
@@ -21019,16 +21016,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get safetyHub_noFly_disclaimer =>
       'DAN/UHMS-Richtwerte ab dem letzten Tauchgang. Kein Ersatz für die Flugverbotszeit Ihres Tauchcomputers.';
-
-  @override
-  String get safetyHub_surfaceIntervalLink => 'Oberflächenpausen-Tool';
-
-  @override
-  String get safetyHub_surfaceIntervalLink_subtitle =>
-      'Lehrreiches Modell der Gewebeentsättigung';
-
-  @override
-  String get safetyHub_settingsLink => 'Sicherheitseinstellungen';
 
   @override
   String get diveLog_detail_altitudeMismatch_title =>
@@ -21168,4 +21155,133 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get dashboard_quickAction_emergency => 'Notfallkarte';
+
+  @override
+  String get incidents_title => 'Beinahe-Unfall-Log';
+
+  @override
+  String get incidents_empty =>
+      'Keine Beinahe-Unfälle erfasst. Festzuhalten, was beinahe schiefging - ohne Wertung - macht Muster sichtbar, bevor daraus Unfälle werden.';
+
+  @override
+  String get incidents_add => 'Beinahe-Unfall erfassen';
+
+  @override
+  String get incidents_linkedDive => 'Mit einem Tauchgang verknüpft';
+
+  @override
+  String get incidents_delete_confirm =>
+      'Diesen Beinahe-Unfall-Bericht löschen?';
+
+  @override
+  String get incidents_notFound => 'Beinahe-Unfall-Bericht nicht gefunden';
+
+  @override
+  String get incidentEdit_title_new => 'Beinahe-Unfall erfassen';
+
+  @override
+  String get incidentEdit_title_edit => 'Beinahe-Unfall bearbeiten';
+
+  @override
+  String get incidentEdit_category => 'Kategorie';
+
+  @override
+  String get incidentEdit_severity => 'Schweregrad';
+
+  @override
+  String get incidentEdit_severity_minor => 'Gering';
+
+  @override
+  String get incidentEdit_severity_moderate => 'Mittel';
+
+  @override
+  String get incidentEdit_severity_serious => 'Ernst';
+
+  @override
+  String get incidentEdit_date => 'Zeitpunkt';
+
+  @override
+  String get incidentEdit_narrative => 'Was ist passiert';
+
+  @override
+  String get incidentEdit_narrative_hint =>
+      'Nur die Fakten, in eigenen Worten. Das bleibt privat.';
+
+  @override
+  String get incidentEdit_narrative_required =>
+      'Beschreiben Sie, was passiert ist';
+
+  @override
+  String get incidentEdit_contributingFactors =>
+      'Was dazu beigetragen hat (optional)';
+
+  @override
+  String get incidentEdit_lessonsLearned =>
+      'Was beim nächsten Mal helfen würde (optional)';
+
+  @override
+  String get incidentEdit_save => 'Speichern';
+
+  @override
+  String get incidentEdit_privacyNote =>
+      'Beinahe-Unfall-Berichte synchronisieren sich zwischen deinen Geräten und sind in Backups enthalten, aber niemals in Exporten oder geteilten Logbuchseiten.';
+
+  @override
+  String get incidentCategory_buoyancy => 'Tarierung';
+
+  @override
+  String get incidentCategory_gasSupply => 'Gasversorgung';
+
+  @override
+  String get incidentCategory_equipment => 'Ausrüstung';
+
+  @override
+  String get incidentCategory_buddySeparation => 'Buddy-Trennung';
+
+  @override
+  String get incidentCategory_marineLife => 'Meereslebewesen';
+
+  @override
+  String get incidentCategory_boatSurface => 'Boot / Oberfläche';
+
+  @override
+  String get incidentCategory_medical => 'Medizinisch';
+
+  @override
+  String get incidentCategory_planning => 'Planung';
+
+  @override
+  String get incidentCategory_other => 'Sonstiges';
+
+  @override
+  String get safetyHub_incidentsLink => 'Beinahe-Unfall-Log';
+
+  @override
+  String get safetyHub_incidentsLink_subtitle =>
+      'Private, nicht wertende Vorfallnotizen';
+
+  @override
+  String get diveLog_detail_menu_logNearMiss => 'Beinahe-Unfall erfassen';
+
+  @override
+  String diveLog_detail_linkedIncidents(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Beinahe-Unfälle mit diesem Tauchgang verknüpft',
+      one: '1 Beinahe-Unfall mit diesem Tauchgang verknüpft',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get planning_card_noFly_subtitle =>
+      'Richtwert-Countdown ab deinen letzten Tauchgängen';
+
+  @override
+  String get settings_section_safety_title => 'Sicherheit';
+
+  @override
+  String get settings_section_safety_subtitle =>
+      'Überprüfungsregeln & Fliegen nach dem Tauchen';
 }

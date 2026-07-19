@@ -70,6 +70,7 @@ class SyncRepository {
     'species': (table: 'species', pk: 'id'),
     'fieldPresets': (table: 'field_presets', pk: 'id'),
     'emergencyChambers': (table: 'emergency_chambers', pk: 'id'),
+    'incidents': (table: 'incidents', pk: 'id'),
   };
 
   // ============================================================================

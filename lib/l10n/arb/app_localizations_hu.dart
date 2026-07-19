@@ -20951,9 +20951,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Irányadó időközök egyetlen nullidős merülés, ismétlő merülések és dekós merülések után';
 
   @override
-  String get safetyHub_title => 'Biztonság';
-
-  @override
   String safetyHub_noFly_active_title(String remaining) {
     return 'Repülési tilalom: $remaining van hátra';
   }
@@ -20988,16 +20985,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get safetyHub_noFly_disclaimer =>
       'DAN/UHMS irányelvek az utolsó merüléstől számítva. Nem helyettesíti a búvárkomputer no-fly idejét.';
-
-  @override
-  String get safetyHub_surfaceIntervalLink => 'Felszíni intervallum eszköz';
-
-  @override
-  String get safetyHub_surfaceIntervalLink_subtitle =>
-      'Oktató jellegű szöveti telítettségcsökkenési modell';
-
-  @override
-  String get safetyHub_settingsLink => 'Biztonsági beállítások';
 
   @override
   String get diveLog_detail_altitudeMismatch_title =>
@@ -21137,4 +21124,131 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get dashboard_quickAction_emergency => 'Vészhelyzeti kártya';
+
+  @override
+  String get incidents_title => 'Kvázibaleset-napló';
+
+  @override
+  String get incidents_empty =>
+      'Nincs rögzített kvázibaleset. Annak feljegyzése, ami majdnem balul sült el - ítélkezés nélkül - láthatóvá teszi a mintázatokat, mielőtt balesetté válnának.';
+
+  @override
+  String get incidents_add => 'Kvázibaleset rögzítése';
+
+  @override
+  String get incidents_linkedDive => 'Merüléshez kapcsolva';
+
+  @override
+  String get incidents_delete_confirm => 'Törlöd ezt a kvázibaleset-jelentést?';
+
+  @override
+  String get incidents_notFound => 'Kvázibaleset-jelentés nem található';
+
+  @override
+  String get incidentEdit_title_new => 'Kvázibaleset rögzítése';
+
+  @override
+  String get incidentEdit_title_edit => 'Kvázibaleset szerkesztése';
+
+  @override
+  String get incidentEdit_category => 'Kategória';
+
+  @override
+  String get incidentEdit_severity => 'Súlyosság';
+
+  @override
+  String get incidentEdit_severity_minor => 'Enyhe';
+
+  @override
+  String get incidentEdit_severity_moderate => 'Közepes';
+
+  @override
+  String get incidentEdit_severity_serious => 'Súlyos';
+
+  @override
+  String get incidentEdit_date => 'Mikor történt';
+
+  @override
+  String get incidentEdit_narrative => 'Mi történt';
+
+  @override
+  String get incidentEdit_narrative_hint =>
+      'Csak a tények, a saját szavaiddal. Ez privát marad.';
+
+  @override
+  String get incidentEdit_narrative_required => 'Írja le, mi történt';
+
+  @override
+  String get incidentEdit_contributingFactors =>
+      'Mi játszott közre (opcionális)';
+
+  @override
+  String get incidentEdit_lessonsLearned =>
+      'Mi segítene legközelebb (opcionális)';
+
+  @override
+  String get incidentEdit_save => 'Mentés';
+
+  @override
+  String get incidentEdit_privacyNote =>
+      'A kvázibaleset-jelentések szinkronizálódnak az eszközeid között és a mentésekben is szerepelnek, de exportokba vagy megosztott naplóoldalakra soha nem kerülnek.';
+
+  @override
+  String get incidentCategory_buoyancy => 'Lebegés';
+
+  @override
+  String get incidentCategory_gasSupply => 'Gázellátás';
+
+  @override
+  String get incidentCategory_equipment => 'Felszerelés';
+
+  @override
+  String get incidentCategory_buddySeparation => 'Elszakadás a társtól';
+
+  @override
+  String get incidentCategory_marineLife => 'Tengeri élővilág';
+
+  @override
+  String get incidentCategory_boatSurface => 'Hajó / felszín';
+
+  @override
+  String get incidentCategory_medical => 'Egészségügyi';
+
+  @override
+  String get incidentCategory_planning => 'Tervezés';
+
+  @override
+  String get incidentCategory_other => 'Egyéb';
+
+  @override
+  String get safetyHub_incidentsLink => 'Kvázibaleset-napló';
+
+  @override
+  String get safetyHub_incidentsLink_subtitle =>
+      'Privát, nem büntető jellegű eseményjegyzetek';
+
+  @override
+  String get diveLog_detail_menu_logNearMiss => 'Kvázibaleset rögzítése';
+
+  @override
+  String diveLog_detail_linkedIncidents(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count kvázibaleset kapcsolódik ehhez a merüléshez',
+      one: '1 kvázibaleset kapcsolódik ehhez a merüléshez',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get planning_card_noFly_subtitle =>
+      'Irányadó visszaszámlálás az utolsó merüléseidtől';
+
+  @override
+  String get settings_section_safety_title => 'Biztonság';
+
+  @override
+  String get settings_section_safety_subtitle =>
+      'Áttekintési szabályok és repülés merülés után';
 }

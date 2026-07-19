@@ -70,7 +70,9 @@ class QuickActionsCard extends StatelessWidget {
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
-                      onPressed: () => context.push('/safety/emergency-card'),
+                      onPressed: () => context.push(
+                        '/settings/diver-profile/emergency-card',
+                      ),
                       icon: const Icon(Icons.emergency_outlined),
                       label: Text(context.l10n.dashboard_quickAction_emergency),
                     ),

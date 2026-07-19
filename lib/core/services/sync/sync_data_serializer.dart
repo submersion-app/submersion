@@ -267,6 +267,7 @@ class SyncData {
   final List<Map<String, dynamic>> diveSafetyReviews;
   final List<Map<String, dynamic>> diveSafetyFindings;
   final List<Map<String, dynamic>> emergencyChambers;
+  final List<Map<String, dynamic>> incidents;
   final List<Map<String, dynamic>> gasSwitches;
   final List<Map<String, dynamic>> diveCustomFields;
   final List<Map<String, dynamic>> diveDataSources;
@@ -332,6 +333,7 @@ class SyncData {
     this.diveSafetyReviews = const [],
     this.diveSafetyFindings = const [],
     this.emergencyChambers = const [],
+    this.incidents = const [],
     this.gasSwitches = const [],
     this.diveCustomFields = const [],
     this.diveDataSources = const [],
@@ -398,6 +400,7 @@ class SyncData {
     'diveSafetyReviews': diveSafetyReviews,
     'diveSafetyFindings': diveSafetyFindings,
     'emergencyChambers': emergencyChambers,
+    'incidents': incidents,
     'gasSwitches': gasSwitches,
     'diveCustomFields': diveCustomFields,
     'diveDataSources': diveDataSources,
@@ -465,6 +468,7 @@ class SyncData {
       diveSafetyReviews: _parseList(json['diveSafetyReviews']),
       diveSafetyFindings: _parseList(json['diveSafetyFindings']),
       emergencyChambers: _parseList(json['emergencyChambers']),
+      incidents: _parseList(json['incidents']),
       gasSwitches: _parseList(json['gasSwitches']),
       diveCustomFields: _parseList(json['diveCustomFields']),
       diveDataSources: _parseList(json['diveDataSources']),
@@ -795,6 +799,7 @@ class SyncDataSerializer {
       blob: false,
       full: null,
     ),
+    (key: 'incidents', table: _db.incidents, blob: false, full: null),
     (key: 'gasSwitches', table: _db.gasSwitches, blob: false, full: null),
     (
       key: 'diveCustomFields',
@@ -1237,6 +1242,10 @@ class SyncDataSerializer {
         'emergencyChambers',
         () => _exportEmergencyChambers(hlcSince),
       ),
+      incidents: await _safeExport(
+        'incidents',
+        () => _exportIncidents(hlcSince),
+      ),
       gasSwitches: await _safeExport(
         'gasSwitches',
         () => _exportGasSwitches(hlcSince),
@@ -1678,6 +1687,11 @@ class SyncDataSerializer {
       case 'emergencyChambers':
         final row = await (_db.select(
           _db.emergencyChambers,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'incidents':
+        final row = await (_db.select(
+          _db.incidents,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
       case 'gasSwitches':
@@ -2336,6 +2350,11 @@ class SyncDataSerializer {
             .into(_db.emergencyChambers)
             .insertOnConflictUpdate(EmergencyChamber.fromJson(data));
         return;
+      case 'incidents':
+        await _db
+            .into(_db.incidents)
+            .insertOnConflictUpdate(Incident.fromJson(data));
+        return;
       case 'gasSwitches':
         await _db
             .into(_db.gasSwitches)
@@ -2943,6 +2962,14 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'incidents':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.incidents,
+            records.map((r) => Incident.fromJson(r)).toList(),
+          ),
+        );
+        return;
       case 'gasSwitches':
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
@@ -3179,6 +3206,8 @@ class SyncDataSerializer {
         return plain(_db.diveSafetyFindings, _db.diveSafetyFindings.id);
       case 'emergencyChambers':
         return plain(_db.emergencyChambers, _db.emergencyChambers.id);
+      case 'incidents':
+        return plain(_db.incidents, _db.incidents.id);
       case 'gasSwitches':
         return plain(_db.gasSwitches, _db.gasSwitches.id);
       case 'diveCustomFields':
@@ -3371,6 +3400,8 @@ class SyncDataSerializer {
         return _db.diveSafetyFindings;
       case 'emergencyChambers':
         return _db.emergencyChambers;
+      case 'incidents':
+        return _db.incidents;
       case 'gasSwitches':
         return _db.gasSwitches;
       case 'diveCustomFields':
@@ -3694,6 +3725,11 @@ class SyncDataSerializer {
       case 'emergencyChambers':
         await (_db.delete(
           _db.emergencyChambers,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'incidents':
+        await (_db.delete(
+          _db.incidents,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'gasSwitches':
@@ -4595,6 +4631,17 @@ class SyncDataSerializer {
       return rows.map((r) => r.toJson()).toList();
     }
     final rows = await _db.select(_db.emergencyChambers).get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportIncidents(String? hlcSince) async {
+    if (hlcSince != null) {
+      final rows = await (_db.select(
+        _db.incidents,
+      )..where((t) => t.hlc.isBiggerThanValue(hlcSince))).get();
+      return rows.map((r) => r.toJson()).toList();
+    }
+    final rows = await _db.select(_db.incidents).get();
     return rows.map((r) => r.toJson()).toList();
   }
 

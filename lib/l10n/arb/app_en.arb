@@ -13121,7 +13121,6 @@
   "safetySettings_noFlyPreset_standard": "Standard (12/18/24 h)",
   "safetySettings_noFlyPreset_strict": "Strict (18/24/48 h)",
   "safetySettings_noFlyPreset_subtitle": "Guideline intervals after a single no-deco dive, repetitive dives, and deco dives",
-  "safetyHub_title": "Safety",
   "safetyHub_noFly_active_title": "No-fly: {remaining} remaining",
   "@safetyHub_noFly_active_title": {
     "placeholders": {
@@ -13165,9 +13164,6 @@
     }
   },
   "safetyHub_noFly_disclaimer": "DAN/UHMS guideline intervals from your last dive. Not a substitute for your dive computer's no-fly time.",
-  "safetyHub_surfaceIntervalLink": "Surface interval tool",
-  "safetyHub_surfaceIntervalLink_subtitle": "Educational tissue desaturation model",
-  "safetyHub_settingsLink": "Safety settings",
   "diveLog_detail_altitudeMismatch_title": "Site is at altitude",
   "diveLog_detail_altitudeMismatch_subtitle": "This site records an altitude but the dive has none set, so decompression analysis assumed sea level. Set the dive's altitude to correct it.",
   "safetyHub_alert_noFly": "No-fly: {remaining} remaining",
@@ -13268,5 +13264,49 @@
   "addChamber_phoneRequired": "Phone number is required",
   "safetyHub_emergencyCardLink": "Emergency card",
   "safetyHub_emergencyCardLink_subtitle": "Offline: hotline, EMS, chambers, your medical and insurance details",
-  "dashboard_quickAction_emergency": "Emergency card"
+  "dashboard_quickAction_emergency": "Emergency card",
+  "incidents_title": "Near-miss log",
+  "incidents_empty": "No near-misses logged. Recording what almost went wrong - without judgment - is how patterns become visible before they become accidents.",
+  "incidents_add": "Log near-miss",
+  "incidents_linkedDive": "Linked to a dive",
+  "incidents_delete_confirm": "Delete this near-miss report?",
+  "incidents_notFound": "Near-miss report not found",
+  "incidentEdit_title_new": "Log near-miss",
+  "incidentEdit_title_edit": "Edit near-miss",
+  "incidentEdit_category": "Category",
+  "incidentEdit_severity": "Severity",
+  "incidentEdit_severity_minor": "Minor",
+  "incidentEdit_severity_moderate": "Moderate",
+  "incidentEdit_severity_serious": "Serious",
+  "incidentEdit_date": "When it happened",
+  "incidentEdit_narrative": "What happened",
+  "incidentEdit_narrative_hint": "Just the facts, in your own words. This stays private.",
+  "incidentEdit_narrative_required": "Describe what happened",
+  "incidentEdit_contributingFactors": "What contributed (optional)",
+  "incidentEdit_lessonsLearned": "What would help next time (optional)",
+  "incidentEdit_save": "Save",
+  "incidentEdit_privacyNote": "Near-miss reports sync between your devices and are included in your backups, but are never included in exports or shared logbook pages.",
+  "incidentCategory_buoyancy": "Buoyancy",
+  "incidentCategory_gasSupply": "Gas supply",
+  "incidentCategory_equipment": "Equipment",
+  "incidentCategory_buddySeparation": "Buddy separation",
+  "incidentCategory_marineLife": "Marine life",
+  "incidentCategory_boatSurface": "Boat / surface",
+  "incidentCategory_medical": "Medical",
+  "incidentCategory_planning": "Planning",
+  "incidentCategory_other": "Other",
+  "safetyHub_incidentsLink": "Near-miss log",
+  "safetyHub_incidentsLink_subtitle": "Private, non-punitive incident notes",
+  "diveLog_detail_menu_logNearMiss": "Log near-miss",
+  "diveLog_detail_linkedIncidents": "{count, plural, =1{1 near-miss linked to this dive} other{{count} near-misses linked to this dive}}",
+  "@diveLog_detail_linkedIncidents": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "planning_card_noFly_subtitle": "Guideline countdown from your last dives",
+  "settings_section_safety_title": "Safety",
+  "settings_section_safety_subtitle": "Review rules & flying after diving"
 }

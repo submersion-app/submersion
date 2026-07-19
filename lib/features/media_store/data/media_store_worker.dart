@@ -36,6 +36,13 @@ class MediaStoreWorker {
 
   final _log = LoggerService.forClass(MediaStoreWorker);
   bool _running = false;
+  Future<void>? _activeDrain;
+
+  /// The drain kicked by [enqueueAndKick], if any. Completes only when the
+  /// queue has been fully drained, including each entry's post-upload cleanup.
+  /// [enqueueAndKick] fires the drain in the background, so callers (and tests)
+  /// that need to observe completion await this instead of racing it.
+  Future<void>? get activeDrain => _activeDrain;
 
   Future<void> drain() async {
     if (_running) return;
@@ -70,6 +77,7 @@ class MediaStoreWorker {
 
   Future<void> enqueueAndKick(String mediaId) async {
     await _queue.enqueueUpload(mediaId: mediaId);
-    unawaited(drain());
+    _activeDrain = drain();
+    unawaited(_activeDrain!);
   }
 }

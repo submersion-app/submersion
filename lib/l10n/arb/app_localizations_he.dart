@@ -20488,9 +20488,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'מרווחים מנחים אחרי צלילה בודדת ללא דקו, צלילות חוזרות וצלילות דקומפרסיה';
 
   @override
-  String get safetyHub_title => 'בטיחות';
-
-  @override
   String safetyHub_noFly_active_title(String remaining) {
     return 'איסור טיסה: נותרו $remaining';
   }
@@ -20524,16 +20521,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get safetyHub_noFly_disclaimer =>
       'הנחיות DAN/UHMS מאז הצלילה האחרונה. אינו תחליף לזמן איסור הטיסה של מחשב הצלילה שלך.';
-
-  @override
-  String get safetyHub_surfaceIntervalLink => 'כלי מרווח פני השטח';
-
-  @override
-  String get safetyHub_surfaceIntervalLink_subtitle =>
-      'מודל לימודי של פליטת גזים מהרקמות';
-
-  @override
-  String get safetyHub_settingsLink => 'הגדרות בטיחות';
 
   @override
   String get diveLog_detail_altitudeMismatch_title => 'אתר הצלילה נמצא בגובה';
@@ -20672,4 +20659,128 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get dashboard_quickAction_emergency => 'כרטיס חירום';
+
+  @override
+  String get incidents_title => 'יומן כמעט-תאונות';
+
+  @override
+  String get incidents_empty =>
+      'לא נרשמו כמעט-תאונות. תיעוד של מה שכמעט השתבש - ללא שיפוטיות - חושף דפוסים לפני שהם הופכים לתאונות.';
+
+  @override
+  String get incidents_add => 'רישום כמעט-תאונה';
+
+  @override
+  String get incidents_linkedDive => 'מקושר לצלילה';
+
+  @override
+  String get incidents_delete_confirm => 'למחוק דוח כמעט-תאונה זה?';
+
+  @override
+  String get incidents_notFound => 'דוח כמעט-תאונה לא נמצא';
+
+  @override
+  String get incidentEdit_title_new => 'רישום כמעט-תאונה';
+
+  @override
+  String get incidentEdit_title_edit => 'עריכת כמעט-תאונה';
+
+  @override
+  String get incidentEdit_category => 'קטגוריה';
+
+  @override
+  String get incidentEdit_severity => 'חומרה';
+
+  @override
+  String get incidentEdit_severity_minor => 'קלה';
+
+  @override
+  String get incidentEdit_severity_moderate => 'בינונית';
+
+  @override
+  String get incidentEdit_severity_serious => 'חמורה';
+
+  @override
+  String get incidentEdit_date => 'מתי זה קרה';
+
+  @override
+  String get incidentEdit_narrative => 'מה קרה';
+
+  @override
+  String get incidentEdit_narrative_hint =>
+      'רק העובדות, במילים שלך. זה נשאר פרטי.';
+
+  @override
+  String get incidentEdit_narrative_required => 'תאר מה קרה';
+
+  @override
+  String get incidentEdit_contributingFactors => 'מה תרם (אופציונלי)';
+
+  @override
+  String get incidentEdit_lessonsLearned => 'מה יעזור בפעם הבאה (אופציונלי)';
+
+  @override
+  String get incidentEdit_save => 'שמור';
+
+  @override
+  String get incidentEdit_privacyNote =>
+      'דוחות כמעט-תאונה מסתנכרנים בין המכשירים שלך ונכללים בגיבויים, אך לעולם לא בייצוא או בדפי יומן משותפים.';
+
+  @override
+  String get incidentCategory_buoyancy => 'ציפה';
+
+  @override
+  String get incidentCategory_gasSupply => 'אספקת גז';
+
+  @override
+  String get incidentCategory_equipment => 'ציוד';
+
+  @override
+  String get incidentCategory_buddySeparation => 'היפרדות מהבן זוג';
+
+  @override
+  String get incidentCategory_marineLife => 'חיים ימיים';
+
+  @override
+  String get incidentCategory_boatSurface => 'סירה / פני השטח';
+
+  @override
+  String get incidentCategory_medical => 'רפואי';
+
+  @override
+  String get incidentCategory_planning => 'תכנון';
+
+  @override
+  String get incidentCategory_other => 'אחר';
+
+  @override
+  String get safetyHub_incidentsLink => 'יומן כמעט-תאונות';
+
+  @override
+  String get safetyHub_incidentsLink_subtitle =>
+      'הערות אירועים פרטיות ולא ענישתיות';
+
+  @override
+  String get diveLog_detail_menu_logNearMiss => 'רישום כמעט-תאונה';
+
+  @override
+  String diveLog_detail_linkedIncidents(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count כמעט-תאונות מקושרות לצלילה זו',
+      one: 'כמעט-תאונה אחת מקושרת לצלילה זו',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get planning_card_noFly_subtitle =>
+      'ספירה לאחור מנחה מהצלילות האחרונות שלך';
+
+  @override
+  String get settings_section_safety_title => 'בטיחות';
+
+  @override
+  String get settings_section_safety_subtitle => 'כללי סקירה וטיסה אחרי צלילה';
 }

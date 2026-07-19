@@ -21090,9 +21090,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Intervalles indicatifs après une plongée unique sans déco, des plongées successives et des plongées avec déco';
 
   @override
-  String get safetyHub_title => 'Sécurité';
-
-  @override
   String safetyHub_noFly_active_title(String remaining) {
     return 'Interdiction de vol : $remaining restant';
   }
@@ -21127,16 +21124,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get safetyHub_noFly_disclaimer =>
       'Recommandations DAN/UHMS depuis votre dernière plongée. Ne remplace pas le temps d\'interdiction de vol de votre ordinateur de plongée.';
-
-  @override
-  String get safetyHub_surfaceIntervalLink => 'Outil d\'intervalle de surface';
-
-  @override
-  String get safetyHub_surfaceIntervalLink_subtitle =>
-      'Modèle pédagogique de désaturation des tissus';
-
-  @override
-  String get safetyHub_settingsLink => 'Réglages de sécurité';
 
   @override
   String get diveLog_detail_altitudeMismatch_title => 'Le site est en altitude';
@@ -21275,4 +21262,132 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get dashboard_quickAction_emergency => 'Carte d\'urgence';
+
+  @override
+  String get incidents_title => 'Journal des presque-accidents';
+
+  @override
+  String get incidents_empty =>
+      'Aucun presque-accident enregistré. Noter ce qui a failli mal tourner - sans jugement - rend les schémas visibles avant qu\'ils ne deviennent des accidents.';
+
+  @override
+  String get incidents_add => 'Consigner un presque-accident';
+
+  @override
+  String get incidents_linkedDive => 'Lié à une plongée';
+
+  @override
+  String get incidents_delete_confirm =>
+      'Supprimer ce rapport de presque-accident ?';
+
+  @override
+  String get incidents_notFound => 'Rapport de presque-accident introuvable';
+
+  @override
+  String get incidentEdit_title_new => 'Consigner un presque-accident';
+
+  @override
+  String get incidentEdit_title_edit => 'Modifier le presque-accident';
+
+  @override
+  String get incidentEdit_category => 'Catégorie';
+
+  @override
+  String get incidentEdit_severity => 'Gravité';
+
+  @override
+  String get incidentEdit_severity_minor => 'Mineur';
+
+  @override
+  String get incidentEdit_severity_moderate => 'Modéré';
+
+  @override
+  String get incidentEdit_severity_serious => 'Sérieux';
+
+  @override
+  String get incidentEdit_date => 'Quand c\'est arrivé';
+
+  @override
+  String get incidentEdit_narrative => 'Ce qui s\'est passé';
+
+  @override
+  String get incidentEdit_narrative_hint =>
+      'Juste les faits, avec vos mots. Cela reste privé.';
+
+  @override
+  String get incidentEdit_narrative_required => 'Décrivez ce qui s\'est passé';
+
+  @override
+  String get incidentEdit_contributingFactors =>
+      'Facteurs contributifs (facultatif)';
+
+  @override
+  String get incidentEdit_lessonsLearned =>
+      'Ce qui aiderait la prochaine fois (facultatif)';
+
+  @override
+  String get incidentEdit_save => 'Enregistrer';
+
+  @override
+  String get incidentEdit_privacyNote =>
+      'Les rapports de presque-accidents se synchronisent entre vos appareils et figurent dans vos sauvegardes, mais jamais dans les exports ni les pages de carnet partagées.';
+
+  @override
+  String get incidentCategory_buoyancy => 'Flottabilité';
+
+  @override
+  String get incidentCategory_gasSupply => 'Alimentation en gaz';
+
+  @override
+  String get incidentCategory_equipment => 'Équipement';
+
+  @override
+  String get incidentCategory_buddySeparation => 'Séparation du binôme';
+
+  @override
+  String get incidentCategory_marineLife => 'Vie marine';
+
+  @override
+  String get incidentCategory_boatSurface => 'Bateau / surface';
+
+  @override
+  String get incidentCategory_medical => 'Médical';
+
+  @override
+  String get incidentCategory_planning => 'Planification';
+
+  @override
+  String get incidentCategory_other => 'Autre';
+
+  @override
+  String get safetyHub_incidentsLink => 'Journal des presque-accidents';
+
+  @override
+  String get safetyHub_incidentsLink_subtitle =>
+      'Notes d\'incidents privées et non punitives';
+
+  @override
+  String get diveLog_detail_menu_logNearMiss => 'Consigner un presque-accident';
+
+  @override
+  String diveLog_detail_linkedIncidents(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count presque-accidents liés à cette plongée',
+      one: '1 presque-accident lié à cette plongée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get planning_card_noFly_subtitle =>
+      'Compte à rebours indicatif depuis vos dernières plongées';
+
+  @override
+  String get settings_section_safety_title => 'Sécurité';
+
+  @override
+  String get settings_section_safety_subtitle =>
+      'Règles du bilan et vol après la plongée';
 }

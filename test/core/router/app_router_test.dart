@@ -8,6 +8,8 @@ import 'package:submersion/core/router/app_router.dart';
 import 'package:submersion/features/checklists/presentation/pages/checklist_template_edit_page.dart';
 import 'package:submersion/features/checklists/presentation/pages/checklist_templates_page.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/safety/presentation/pages/incident_edit_page.dart';
+import 'package:submersion/features/safety/presentation/pages/incidents_list_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
 
@@ -480,6 +482,66 @@ void main() {
             editRoute!.builder!(context, editState)
                 as ChecklistTemplateEditPage;
         expect(editWidget.templateId, 'tpl-1');
+      },
+    );
+  });
+
+  group('app_router near-miss incident routes', () {
+    testWidgets(
+      'incidents, incidentNew, and incidentEdit builders return the right '
+      'pages and thread through the dive/incident ids',
+      (tester) async {
+        await tester.pumpWidget(const MaterialApp(home: SizedBox()));
+        final context = tester.element(find.byType(SizedBox));
+        final config = router.configuration;
+
+        final listRoute = _findRouteByName(config.routes, 'incidents');
+        expect(listRoute, isNotNull);
+        expect(listRoute!.path, '/incidents');
+        final listState = GoRouterState(
+          config,
+          uri: Uri.parse('/incidents'),
+          matchedLocation: '/incidents',
+          fullPath: '/incidents',
+          pathParameters: const {},
+          pageKey: const ValueKey('/incidents'),
+        );
+        expect(
+          listRoute.builder!(context, listState),
+          isA<IncidentsListPage>(),
+        );
+
+        // A new incident prefilled from a dive carries the diveId query param.
+        final newRoute = _findRouteByName(config.routes, 'incidentNew');
+        expect(newRoute, isNotNull);
+        final newState = GoRouterState(
+          config,
+          uri: Uri.parse('/incidents/new?diveId=dive-9'),
+          matchedLocation: '/incidents/new',
+          fullPath: '/incidents/new',
+          pathParameters: const {},
+          pageKey: const ValueKey('/incidents/new'),
+        );
+        final newWidget =
+            newRoute!.builder!(context, newState) as IncidentEditPage;
+        expect(newWidget.incidentId, isNull);
+        expect(newWidget.diveId, 'dive-9');
+
+        // Editing an existing incident threads the path param through.
+        final editRoute = _findRouteByName(config.routes, 'incidentEdit');
+        expect(editRoute, isNotNull);
+        final editState = GoRouterState(
+          config,
+          uri: Uri.parse('/incidents/inc-1'),
+          matchedLocation: '/incidents/inc-1',
+          fullPath: '/incidents/:incidentId',
+          pathParameters: const {'incidentId': 'inc-1'},
+          pageKey: const ValueKey('/incidents/inc-1'),
+        );
+        final editWidget =
+            editRoute!.builder!(context, editState) as IncidentEditPage;
+        expect(editWidget.incidentId, 'inc-1');
+        expect(editWidget.diveId, isNull);
       },
     );
   });

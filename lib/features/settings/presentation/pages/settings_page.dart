@@ -9,6 +9,7 @@ import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
+import 'package:submersion/features/settings/presentation/pages/safety_settings_page.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
@@ -127,6 +128,8 @@ class SettingsPage extends ConsumerWidget {
     switch (sectionId) {
       case 'profile':
         return const DiverProfileHubPage();
+      case 'safety':
+        return const SafetySettingsPage();
       case 'units':
         return _UnitsSectionContent(ref: ref);
       case 'decompression':
@@ -252,6 +255,8 @@ class _SettingsSectionDetailPage extends ConsumerWidget {
     switch (sectionId) {
       case 'profile':
         return const DiverProfileHubPage();
+      case 'safety':
+        return const SafetySettingsPage();
       case 'units':
         return _UnitsSectionContent(ref: ref);
       case 'decompression':
@@ -328,6 +333,7 @@ class _MobileSettingsTile extends StatelessWidget {
       'about' => context.l10n.settings_section_about_title,
       'dataSources' => context.l10n.settings_section_dataSources_title,
       'sharedData' => context.l10n.settings_sharedData_sectionTitle,
+      'safety' => context.l10n.settings_section_safety_title,
       _ => section.title,
     };
   }
@@ -343,6 +349,7 @@ class _MobileSettingsTile extends StatelessWidget {
       'data' => context.l10n.settings_section_data_subtitle,
       'about' => context.l10n.settings_section_about_subtitle,
       'dataSources' => context.l10n.settings_section_dataSources_subtitle,
+      'safety' => context.l10n.settings_section_safety_subtitle,
       _ => section.subtitle,
     };
   }
@@ -901,16 +908,6 @@ class _DecompressionSectionContent extends ConsumerWidget {
               ),
               trailing: const Icon(Icons.edit),
               onTap: () => _showGradientFactorPicker(context, ref, settings),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.health_and_safety_outlined),
-              title: Text(context.l10n.safetySettings_title),
-              subtitle: Text(context.l10n.safetySettings_entry_subtitle),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => context.push('/settings/safety'),
             ),
           ),
           const SizedBox(height: 16),
@@ -1983,6 +1980,14 @@ class _ManageSectionContent extends StatelessWidget {
                   ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/checklist-templates'),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.flag_outlined),
+                  title: Text(context.l10n.safetyHub_incidentsLink),
+                  subtitle: Text(context.l10n.safetyHub_incidentsLink_subtitle),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/incidents'),
                 ),
                 const Divider(height: 1),
                 ListTile(

@@ -125,54 +125,55 @@ void main() {
       expect(find.text('1'), findsWidgets);
     });
 
-    testWidgets('active no-fly renders the countdown and taps to /safety', (
-      tester,
-    ) async {
-      final overrides = await getBaseOverrides();
+    testWidgets(
+      'active no-fly renders the countdown and taps to /planning/no-fly',
+      (tester) async {
+        final overrides = await getBaseOverrides();
 
-      final router = GoRouter(
-        routes: [
-          GoRoute(
-            path: '/',
-            builder: (_, _) => const Scaffold(body: AlertsCard()),
-          ),
-          GoRoute(
-            path: '/safety',
-            builder: (_, _) => const Scaffold(body: Text('safety-hub-reached')),
-          ),
-        ],
-      );
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            ...overrides,
-            serviceDueEquipmentProvider.overrideWith((ref) async => []),
-            dueClocksProvider.overrideWith((ref) async => []),
-            currentDiverProvider.overrideWith((ref) async => null),
-            noFlyStatusProvider.overrideWith(
-              (ref) async => NoFlyStatus(
-                until: DateTime.now().toUtc().add(const Duration(hours: 5)),
-                category: NoFlyCategory.single,
-                interval: const Duration(hours: 12),
-              ),
+        final router = GoRouter(
+          routes: [
+            GoRoute(
+              path: '/',
+              builder: (_, _) => const Scaffold(body: AlertsCard()),
             ),
-          ].cast(),
-          child: MaterialApp.router(
-            locale: const Locale('en'),
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            routerConfig: router,
+            GoRoute(
+              path: '/planning/no-fly',
+              builder: (_, _) => const Scaffold(body: Text('no-fly-reached')),
+            ),
+          ],
+        );
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              ...overrides,
+              serviceDueEquipmentProvider.overrideWith((ref) async => []),
+              dueClocksProvider.overrideWith((ref) async => []),
+              currentDiverProvider.overrideWith((ref) async => null),
+              noFlyStatusProvider.overrideWith(
+                (ref) async => NoFlyStatus(
+                  until: DateTime.now().toUtc().add(const Duration(hours: 5)),
+                  category: NoFlyCategory.single,
+                  interval: const Duration(hours: 12),
+                ),
+              ),
+            ].cast(),
+            child: MaterialApp.router(
+              locale: const Locale('en'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              routerConfig: router,
+            ),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
+        );
+        await tester.pumpAndSettle();
 
-      expect(find.textContaining('No-fly:'), findsOneWidget);
+        expect(find.textContaining('No-fly:'), findsOneWidget);
 
-      await tester.tap(find.byType(AlertsCard));
-      await tester.pumpAndSettle();
-      expect(find.text('safety-hub-reached'), findsOneWidget);
-    });
+        await tester.tap(find.byType(AlertsCard));
+        await tester.pumpAndSettle();
+        expect(find.text('no-fly-reached'), findsOneWidget);
+      },
+    );
   });
 }
