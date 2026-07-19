@@ -62,6 +62,9 @@ class _MapCompassButtonState extends State<MapCompassButton>
   void didUpdateWidget(covariant MapCompassButton oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.controller != widget.controller) {
+      // Abandon any reset in flight on the old controller before switching, so
+      // its animation can never drive the newly swapped-in controller.
+      _resetController.stop();
       _eventSub?.cancel();
       _subscribe();
     }
@@ -104,6 +107,10 @@ class _MapCompassButtonState extends State<MapCompassButton>
   }
 
   Future<void> _resetToNorth() async {
+    // Capture the controller this reset targets: if the widget is rebuilt with
+    // a different controller mid-glide, the frames must keep driving the
+    // original one, never the newly swapped-in controller.
+    final controller = widget.controller;
     final start = _rotation;
     // Snap to the nearest multiple of 360 so the needle takes the shortest
     // path home (e.g. 350 degrees glides forward to 360, not back through 0).
@@ -119,7 +126,7 @@ class _MapCompassButtonState extends State<MapCompassButton>
     );
     void applyFrame() {
       if (!mounted) return;
-      widget.controller.rotate(start + (end - start) * animation.value);
+      controller.rotate(start + (end - start) * animation.value);
     }
 
     animation.addListener(applyFrame);
