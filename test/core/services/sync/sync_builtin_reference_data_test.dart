@@ -133,7 +133,9 @@ void main() {
         // pre_dive_checklist_templates is seeded with built-in child items that
         // reference it (RESTRICT FK); clear them before wiping the parents.
         if (table == 'pre_dive_checklist_templates') {
-          await db.customStatement('DELETE FROM pre_dive_checklist_template_items');
+          await db.customStatement(
+            'DELETE FROM pre_dive_checklist_template_items',
+          );
         }
         await db.customStatement('DELETE FROM $table');
         await db.customStatement(_insert(table, id: 'b1', builtIn: true));
