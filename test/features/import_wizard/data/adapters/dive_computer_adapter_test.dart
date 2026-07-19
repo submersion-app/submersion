@@ -783,6 +783,30 @@ void main() {
       ).called(1);
     });
 
+    test(
+      'an interrupted download imports dives but keeps the old fingerprint',
+      () async {
+        // Dives are delivered newest-first (issue #621), so a partial
+        // delivery is a newest-suffix of the logbook. Advancing the resume
+        // fingerprint from it would strand every older dive that was never
+        // delivered (issue #480), so the fingerprint must not move.
+        final dive = makeDownloadedDive(fingerprint: 'fp-newest');
+        adapter.setDownloadedDives([dive], downloadComplete: false);
+        final bundle = await adapter.buildBundle();
+
+        final result = await adapter.performImport(bundle, {
+          ImportEntityType.dives: {0},
+        }, {});
+
+        expect(result.importedCounts[ImportEntityType.dives], 1);
+        verify(
+          mockComputerRepo.incrementDiveCount('computer-1', by: 1),
+        ).called(1);
+        verify(mockComputerRepo.updateLastDownload('computer-1')).called(1);
+        verifyNever(mockComputerRepo.updateLastFingerprint(any, any));
+      },
+    );
+
     test('returns error result when no computer is available', () async {
       final adapterNoComputer = DiveComputerAdapter(
         importService: mockImportService,

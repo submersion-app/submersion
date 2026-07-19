@@ -121,6 +121,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
   bool get forceFullDownload => _forceFullDownload;
 
   List<DownloadedDive> _downloadedDives = [];
+  bool _downloadWasComplete = true;
   DiveComputer? _computer;
   String? _customDeviceName;
 
@@ -146,10 +147,23 @@ class DiveComputerAdapter implements ImportSourceAdapter {
 
   /// Load the list of downloaded dives into this adapter.
   ///
-  /// Called by the download step widget when the download completes.
-  /// Must be called before [buildBundle].
-  void setDownloadedDives(List<DownloadedDive> dives) {
+  /// Called by the wizard when the download completes, or when the user
+  /// imports the dives delivered before an interrupted download. Must be
+  /// called before [buildBundle].
+  ///
+  /// [downloadComplete] records whether the native download ran to
+  /// completion. Dive computers deliver dives newest-first (issue #621:
+  /// real Shearwater hardware rejects any other request order), so a
+  /// partial delivery is a newest-suffix of the logbook: advancing the
+  /// resume fingerprint from it would strand every older dive that was
+  /// never delivered (issue #480). Partial imports therefore keep the
+  /// previous fingerprint.
+  void setDownloadedDives(
+    List<DownloadedDive> dives, {
+    bool downloadComplete = true,
+  }) {
     _downloadedDives = List.unmodifiable(dives);
+    _downloadWasComplete = downloadComplete;
   }
 
   /// Set the computer after discovery completes.
@@ -552,12 +566,18 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     // Normal completion uses ALL downloaded dives so skipped/consolidated
     // dives aren't re-downloaded next session. On cancellation we only advance
     // the fingerprint for the dives we actually processed, so the user can
-    // re-import the remainder next time.
+    // re-import the remainder next time (the import loop is chronological, so
+    // the processed set is an oldest-prefix of a complete delivery and its
+    // newest fingerprint is a safe resume point). A download that was itself
+    // interrupted must not advance the fingerprint at all: delivery is
+    // newest-first, so the partial set's newest fingerprint would strand the
+    // never-delivered older dives (issues #480/#621).
     final wasCancelled = cancelToken?.isCancelled ?? false;
     await _updateComputerAfterImport(
       comp,
       imported,
       wasCancelled ? processedDives : _downloadedDives,
+      advanceFingerprint: _downloadWasComplete,
     );
 
     return UnifiedImportResult(
@@ -677,23 +697,30 @@ class DiveComputerAdapter implements ImportSourceAdapter {
   }
 
   /// Update computer dive count, last download, and fingerprint after import.
+  ///
+  /// [advanceFingerprint] must be false when the native download was
+  /// interrupted: dives arrive newest-first, so a partial delivery's newest
+  /// fingerprint is not a valid resume point (issues #480/#621).
   Future<void> _updateComputerAfterImport(
     DiveComputer comp,
     int importedCount,
-    List<DownloadedDive> importedDives,
-  ) async {
+    List<DownloadedDive> importedDives, {
+    required bool advanceFingerprint,
+  }) async {
     if (importedCount > 0) {
       await _computerRepository.incrementDiveCount(comp.id, by: importedCount);
     }
 
     await _computerRepository.updateLastDownload(comp.id);
 
-    final newestFingerprint = selectNewestFingerprint(importedDives);
-    if (newestFingerprint != null) {
-      await _computerRepository.updateLastFingerprint(
-        comp.id,
-        newestFingerprint,
-      );
+    if (advanceFingerprint) {
+      final newestFingerprint = selectNewestFingerprint(importedDives);
+      if (newestFingerprint != null) {
+        await _computerRepository.updateLastFingerprint(
+          comp.id,
+          newestFingerprint,
+        );
+      }
     }
   }
 }
