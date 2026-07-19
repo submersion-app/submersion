@@ -133,14 +133,19 @@ class GearFeature extends Equatable {
         if (mm == null) return null;
         return (0.12 * mm).clamp(0.0, 2.0);
       case EquipmentType.bcd:
-        if (t.bcdStyle == null && t.liftCapacityKg == null) return null;
-        final base = switch (t.bcdStyle) {
+        // Unknown/future style keys map to null (no signal) so they fall
+        // through to the type default rather than claiming attribute-level
+        // strength off the switch's fallback.
+        final styleOffset = switch (t.bcdStyle) {
           'jacket' => 0.5,
           'back_inflate' => 0.0,
           'wing' => -0.5,
           'sidemount' => -0.3,
-          _ => -0.5,
+          _ => null,
         };
+        if (styleOffset == null && t.liftCapacityKg == null) return null;
+        // An absent or unknown style contributes the absent-style base.
+        final base = styleOffset ?? -0.5;
         final bladder = 0.01 * (t.liftCapacityKg ?? 0.0);
         return (base + bladder).clamp(-2.0, 2.0);
       default:

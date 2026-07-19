@@ -37,7 +37,9 @@ class GearBuoyancyTraits extends Equatable {
       final match = _number.firstMatch(segment);
       if (match == null) continue;
       final value = double.tryParse(match.group(1)!);
-      if (value != null) panels.add(value);
+      // Guard against overflow: a very long digit run parses to a non-finite
+      // double, which would propagate NaN/Infinity into buoyancy predictions.
+      if (value != null && value.isFinite) panels.add(value);
     }
     return panels;
   }

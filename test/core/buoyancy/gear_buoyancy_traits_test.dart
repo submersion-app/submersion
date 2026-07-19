@@ -19,6 +19,15 @@ void main() {
     expect(GearBuoyancyTraits.parsePanelsMm(' 7 / 5 '), [7.0, 5.0]);
   });
 
+  test('parsePanelsMm drops non-finite (overflowing) values', () {
+    // A digit run that overflows the double range parses to Infinity;
+    // it must never reach the panel list or it propagates into predictions.
+    final overflow = '1${'0' * 400}';
+    expect(double.tryParse(overflow)?.isFinite, isFalse);
+    expect(GearBuoyancyTraits.parsePanelsMm(overflow), isEmpty);
+    expect(GearBuoyancyTraits.parsePanelsMm('5/$overflow/3'), [5.0, 3.0]);
+  });
+
   test('value equality', () {
     const a = GearBuoyancyTraits(
       primaryThicknessMm: 5,

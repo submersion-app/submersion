@@ -269,6 +269,25 @@ void main() {
       // No attributes -> unchanged default.
       expect(bcd().priorKg, -0.5);
       expect(bcd().priorStrength, 2.0);
+      // An unknown/future style key with no lift is not a usable attribute
+      // signal: it falls through to the type default, not the strength-4.0
+      // ladder.
+      final unknownStyle = bcd(
+        traits: const GearBuoyancyTraits(bcdStyle: 'no_such_style'),
+      );
+      expect(unknownStyle.priorKg, -0.5);
+      expect(unknownStyle.priorStrength, 2.0);
+      // An unknown style paired with a real lift capacity still counts (the
+      // lift is the signal); the unknown style contributes the absent-style
+      // base, matching lift-only.
+      final unknownWithLift = bcd(
+        traits: const GearBuoyancyTraits(
+          bcdStyle: 'no_such_style',
+          liftCapacityKg: 30,
+        ),
+      );
+      expect(unknownWithLift.priorKg, closeTo(-0.5 + 0.3, 0.001));
+      expect(unknownWithLift.priorStrength, 4.0);
     });
 
     test('explicit buoyancy still wins over traits', () {
