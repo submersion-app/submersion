@@ -80,7 +80,7 @@ class DivePreDiveSection extends ConsumerWidget {
                 icon: const Icon(Icons.fact_check),
                 label: Text(l10n.preDive_section_run),
                 onPressed: () =>
-                    showStartSessionSheet(context, ref, diveId: dive.id),
+                    showStartSessionSheet(context, diveId: dive.id),
               )
             else
               TextButton.icon(

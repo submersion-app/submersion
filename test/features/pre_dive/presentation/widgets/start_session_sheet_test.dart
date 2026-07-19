@@ -122,7 +122,7 @@ void main() {
         child: Builder(
           builder: (context) => Consumer(
             builder: (context, ref, _) => ElevatedButton(
-              onPressed: () => showStartSessionSheet(context, ref),
+              onPressed: () => showStartSessionSheet(context),
               child: const Text('Open'),
             ),
           ),
@@ -181,7 +181,7 @@ void main() {
           builder: (_, _) => Scaffold(
             body: Consumer(
               builder: (context, ref, _) => ElevatedButton(
-                onPressed: () => showStartSessionSheet(context, ref),
+                onPressed: () => showStartSessionSheet(context),
                 child: const Text('Open'),
               ),
             ),

@@ -30,7 +30,7 @@ class PreDiveSessionsPage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.preDive_sessions_title)),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => showStartSessionSheet(context, ref),
+        onPressed: () => showStartSessionSheet(context),
         icon: const Icon(Icons.play_arrow),
         label: Text(l10n.preDive_sessions_start),
       ),

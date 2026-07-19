@@ -171,11 +171,8 @@ class _TripDetailContent extends ConsumerWidget {
                         child: OutlinedButton.icon(
                           icon: const Icon(Icons.fact_check),
                           label: Text(context.l10n.trips_detail_preDive_action),
-                          onPressed: () => showStartSessionSheet(
-                            context,
-                            ref,
-                            tripId: trip.id,
-                          ),
+                          onPressed: () =>
+                              showStartSessionSheet(context, tripId: trip.id),
                         ),
                       ),
                       const SizedBox(height: 12),

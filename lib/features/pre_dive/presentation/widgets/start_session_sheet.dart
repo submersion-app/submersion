@@ -16,8 +16,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// optionally pick an equipment set (only offered when the template has an
 /// equipmentSet item), then compose the snapshot and open the runner.
 Future<void> showStartSessionSheet(
-  BuildContext context,
-  WidgetRef ref, {
+  BuildContext context, {
   String? diveId,
   String? tripId,
 }) {
