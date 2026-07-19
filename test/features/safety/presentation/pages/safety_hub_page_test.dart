@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/safety/presentation/pages/safety_hub_page.dart';
 import 'package:submersion/features/safety/presentation/providers/no_fly_providers.dart';
+import 'package:submersion/features/safety/presentation/utils/no_fly_format.dart';
 
 import '../../../../helpers/l10n_test_helpers.dart';
 

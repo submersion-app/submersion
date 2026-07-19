@@ -1,10 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
-import 'package:submersion/features/safety/presentation/pages/safety_hub_page.dart'
-    show formatNoFlyRemaining;
+import 'package:submersion/features/safety/presentation/utils/no_fly_format.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A compact single-line banner showing alerts and reminders.
@@ -28,12 +29,53 @@ class AlertsCard extends ConsumerWidget {
   }
 }
 
-class _CompactAlertsBanner extends StatelessWidget {
+class _CompactAlertsBanner extends StatefulWidget {
   final DashboardAlerts alerts;
 
   const _CompactAlertsBanner({required this.alerts});
 
+  @override
+  State<_CompactAlertsBanner> createState() => _CompactAlertsBannerState();
+}
+
+class _CompactAlertsBannerState extends State<_CompactAlertsBanner> {
+  Timer? _ticker;
+
+  @override
+  void initState() {
+    super.initState();
+    _syncTicker();
+  }
+
+  @override
+  void didUpdateWidget(covariant _CompactAlertsBanner oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _syncTicker();
+  }
+
+  @override
+  void dispose() {
+    _ticker?.cancel();
+    super.dispose();
+  }
+
+  /// The no-fly label is derived from `DateTime.now()`, so refresh it once a
+  /// minute while a restriction is active (matching SafetyHubPage). No ticker
+  /// runs when there is no countdown to update.
+  void _syncTicker() {
+    final active = widget.alerts.noFlyStatus != null;
+    if (active && _ticker == null) {
+      _ticker = Timer.periodic(const Duration(minutes: 1), (_) {
+        if (mounted) setState(() {});
+      });
+    } else if (!active && _ticker != null) {
+      _ticker!.cancel();
+      _ticker = null;
+    }
+  }
+
   String _alertText(BuildContext context) {
+    final alerts = widget.alerts;
     final noFly = alerts.noFlyStatus;
     if (noFly != null) {
       return context.l10n.safetyHub_alert_noFly(
@@ -55,6 +97,7 @@ class _CompactAlertsBanner extends StatelessWidget {
   }
 
   void _onTap(BuildContext context) {
+    final alerts = widget.alerts;
     if (alerts.noFlyStatus != null) {
       context.push('/safety');
       return;
@@ -77,6 +120,7 @@ class _CompactAlertsBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final alerts = widget.alerts;
     final alertText = _alertText(context);
 
     return GestureDetector(

@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/safety/presentation/providers/no_fly_providers.dart';
+import 'package:submersion/features/safety/presentation/utils/no_fly_format.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -197,12 +198,4 @@ class _NoFlyCard extends StatelessWidget {
       NoFlyCategory.deco => l10n.safetyHub_noFly_category_deco(hours),
     };
   }
-}
-
-/// "14h 20m" style remaining-time label shared by hub and dashboard.
-String formatNoFlyRemaining(Duration remaining) {
-  final hours = remaining.inHours;
-  final minutes = remaining.inMinutes % 60;
-  if (hours == 0) return '${minutes}m';
-  return '${hours}h ${minutes}m';
 }

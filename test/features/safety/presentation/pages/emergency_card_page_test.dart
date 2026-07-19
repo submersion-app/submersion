@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart' show Locale, MaterialApp, Size;
+import 'package:flutter/material.dart'
+    show IconButton, Icons, Locale, MaterialApp, Size;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -47,7 +48,7 @@ void main() {
     ),
   );
 
-  Future<void> pump(WidgetTester tester) async {
+  Future<void> pump(WidgetTester tester, {bool includeDiver = true}) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -57,7 +58,7 @@ void main() {
               countryCode: 'AU',
               hotline: hotline,
               emsNumber: '000',
-              diver: diver,
+              diver: includeDiver ? diver : null,
               chambers: [chamber],
             ),
           ),
@@ -91,5 +92,25 @@ void main() {
     expect(find.textContaining('DAN World'), findsOneWidget);
     expect(find.textContaining('Townsville'), findsWidgets);
     expect(find.textContaining('verified'), findsOneWidget);
+  });
+
+  testWidgets('add-chamber action is enabled when a diver is loaded', (
+    tester,
+  ) async {
+    await pump(tester);
+    final button = tester.widget<IconButton>(
+      find.widgetWithIcon(IconButton, Icons.add_location_alt_outlined),
+    );
+    expect(button.onPressed, isNotNull);
+  });
+
+  testWidgets('add-chamber action is disabled with no diver profile', (
+    tester,
+  ) async {
+    await pump(tester, includeDiver: false);
+    final button = tester.widget<IconButton>(
+      find.widgetWithIcon(IconButton, Icons.add_location_alt_outlined),
+    );
+    expect(button.onPressed, isNull);
   });
 }

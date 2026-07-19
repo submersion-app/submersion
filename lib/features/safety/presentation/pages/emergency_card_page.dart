@@ -20,6 +20,10 @@ class EmergencyCardPage extends ConsumerWidget {
     final l10n = context.l10n;
     final dataAsync = ref.watch(emergencyCardDataProvider);
 
+    // A new chamber is stamped with the active diver id; with no diver profile
+    // loaded it would create a null-diver (global) row, so gate the action.
+    final canAddChamber = dataAsync.value?.diver != null;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.emergencyCard_title),
@@ -27,7 +31,9 @@ class EmergencyCardPage extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.add_location_alt_outlined),
             tooltip: l10n.emergencyCard_addChamber,
-            onPressed: () => context.push('/safety/emergency-card/add-chamber'),
+            onPressed: canAddChamber
+                ? () => context.push('/safety/emergency-card/add-chamber')
+                : null,
           ),
         ],
       ),
