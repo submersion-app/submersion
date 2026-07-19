@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -22,6 +23,7 @@ class _SafetySettingsPageState extends ConsumerState<SafetySettingsPage> {
   bool _analyzing = false;
   int _analyzeDone = 0;
   int _analyzeTotal = 0;
+  int _analyzeFailed = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +40,11 @@ class _SafetySettingsPageState extends ConsumerState<SafetySettingsPage> {
             title: Text(l10n.safetySettings_masterToggle),
             subtitle: Text(l10n.safetySettings_masterToggle_subtitle),
             value: enabled,
-            onChanged: (value) => notifier.setSafetyReviewEnabled(value),
+            // Locked during a backfill sweep: toggling off mid-run would leave
+            // the progress UI counting to a misleading "Analysis complete".
+            onChanged: _analyzing
+                ? null
+                : (value) => notifier.setSafetyReviewEnabled(value),
           ),
           const Divider(height: 1),
           Padding(
@@ -54,7 +60,9 @@ class _SafetySettingsPageState extends ConsumerState<SafetySettingsPage> {
             SwitchListTile(
               title: Text(_ruleLabel(l10n, rule)),
               value: !settings.safetyReviewDisabledRules.contains(rule.dbValue),
-              onChanged: enabled
+              // Same gating as the master toggle: keep the active rule set
+              // fixed while a sweep is computing over it.
+              onChanged: enabled && !_analyzing
                   ? (value) => notifier.setSafetyRuleEnabled(rule, value)
                   : null,
             ),
@@ -139,12 +147,18 @@ class _SafetySettingsPageState extends ConsumerState<SafetySettingsPage> {
   }
 
   Future<void> _analyzeAllDives() async {
-    final diveIds = await ref.read(diveRepositoryProvider).getOrderedDiveIds();
+    // Scope the sweep to the active diver's logbook so "Analyze all dives"
+    // only touches the current diver's dives, not every diver on the device.
+    final diverId = ref.read(currentDiverIdProvider);
+    final diveIds = await ref
+        .read(diveRepositoryProvider)
+        .getOrderedDiveIds(diverId: diverId);
     if (!mounted) return;
     setState(() {
       _analyzing = true;
       _analyzeDone = 0;
       _analyzeTotal = diveIds.length;
+      _analyzeFailed = 0;
     });
 
     for (final diveId in diveIds) {
@@ -155,16 +169,27 @@ class _SafetySettingsPageState extends ConsumerState<SafetySettingsPage> {
         await ref.read(safetyReviewProvider(diveId).future);
       } catch (_) {
         // A dive that fails analysis (corrupt profile) must not abort the
-        // sweep; it simply stays unanalyzed.
+        // sweep; it simply stays unanalyzed. Count it so completion can report
+        // failures honestly rather than implying every dive was analyzed.
+        _analyzeFailed++;
       }
       if (!mounted) return;
+      // _analyzeDone tracks dives swept (the progress bar's position), so it
+      // advances on failure too; the failure count is surfaced separately.
       setState(() => _analyzeDone++);
     }
 
     if (!mounted) return;
+    final failed = _analyzeFailed;
     setState(() => _analyzing = false);
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(context.l10n.safetySettings_analyzeAll_done)),
+      SnackBar(
+        content: Text(
+          failed == 0
+              ? context.l10n.safetySettings_analyzeAll_done
+              : context.l10n.safetySettings_analyzeAll_doneWithErrors(failed),
+        ),
+      ),
     );
   }
 }

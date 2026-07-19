@@ -49,6 +49,42 @@ void main() {
       expect(rapid.first.engineVersion, SafetyReviewService.engineVersion);
       expect(rapid.first.diveId, 'dive-1');
     });
+
+    test(
+      'uses fixed design thresholds, not the diver ascent-rate settings',
+      () {
+        final profile = rapidAscentProfile();
+        // Diver has configured very lax ascent-rate alarms, so the profile
+        // analysis itself reports no violation for the 18 m/min ascent.
+        final laxAnalysis = analyzeFixture(
+          depths: profile.depths,
+          timestamps: profile.timestamps,
+          ascentRateWarning: 20,
+          ascentRateCritical: 25,
+        );
+        expect(
+          laxAnalysis.ascentRateViolations,
+          isEmpty,
+          reason: 'lax settings should not flag 18 m/min in the analysis',
+        );
+
+        // The safety rule re-derives against the fixed 9/12 design thresholds,
+        // so the finding is produced regardless of the diver's settings. This
+        // keeps the engineVersion re-grading contract honest.
+        final findings = const SafetyReviewService().review(
+          diveId: 'dive-1',
+          analysis: laxAnalysis,
+          now: now,
+          idGenerator: nextId,
+        );
+        final rapid = findings
+            .where((f) => f.ruleId == SafetyRuleId.rapidAscent)
+            .toList();
+        expect(rapid, isNotEmpty);
+        expect(rapid.first.severity, SafetySeverity.significant);
+        expect(rapid.first.value, greaterThan(12));
+      },
+    );
   });
 
   group('missed deco stop rule', () {

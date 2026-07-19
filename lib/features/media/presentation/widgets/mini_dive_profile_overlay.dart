@@ -85,12 +85,19 @@ class MiniDiveProfileOverlay extends StatelessWidget {
           color: Colors.white.withValues(alpha: 0.7),
         ),
         const SizedBox(width: 4),
-        Text(
-          context.l10n.media_miniProfile_headerLabel,
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.7),
-            fontSize: 10,
-            fontWeight: FontWeight.w500,
+        // Flexible + ellipsis: the card is a fixed 160 px, so a long
+        // translation (or the wide test font) must truncate instead of
+        // overflowing the row.
+        Flexible(
+          child: Text(
+            context.l10n.media_miniProfile_headerLabel,
+            softWrap: false,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.7),
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ),
         const Spacer(),

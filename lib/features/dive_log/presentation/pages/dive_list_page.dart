@@ -2,42 +2,41 @@ import 'dart:math' as math;
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
-
 import 'package:submersion/core/constants/card_color.dart';
+import 'package:submersion/core/constants/dive_field.dart';
+import 'package:submersion/core/constants/dive_search.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/constants/map_tile_config.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
-import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
-import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/tags/domain/entities/tag.dart';
-import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
-import 'package:submersion/core/constants/dive_field.dart';
-import 'package:submersion/core/constants/dive_search.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
+import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
+import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
-import 'package:submersion/shared/widgets/debounced_search_results.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_filter_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_content.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_map_content.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_numbering_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_summary_widget.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_numbering_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/table_column_picker.dart';
-import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
-import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
-import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
-import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
-import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
+import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/debounced_search_results.dart';
+import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
+import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
+import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
 
 /// Compute a single map tile URL for the given lat/lng at [zoom].
 ///
@@ -157,14 +156,33 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
         sectionKey: 'dives',
         appBarTitle: context.l10n.nav_dives,
         tableContent: const DiveListContent(showAppBar: false),
-        detailBuilder: (context, id) => DiveDetailPage(
-          diveId: id,
-          embedded: true,
-          onDeleted: () {
-            final state = GoRouterState.of(context);
-            context.go(state.uri.path);
-          },
-        ),
+        detailBuilder: (context, id) {
+          final state = GoRouterState.of(context);
+          final rawSiteId = state.uri.queryParameters['site'];
+          final siteId = (rawSiteId == null || rawSiteId.isEmpty)
+              ? null
+              : rawSiteId;
+          return DiveDetailPage(
+            diveId: id,
+            embedded: true,
+            embeddedSiteId: siteId,
+            onCloseEmbeddedSite: () {
+              final router = GoRouter.of(context);
+              final state = GoRouterState.of(context);
+              final params = Map<String, String>.from(
+                state.uri.queryParameters,
+              );
+              params.remove('site');
+              router.go(
+                Uri(path: state.uri.path, queryParameters: params).toString(),
+              );
+            },
+            onDeleted: () {
+              final state = GoRouterState.of(context);
+              context.go(state.uri.path);
+            },
+          );
+        },
         summaryBuilder: (context) => const DiveSummaryWidget(),
         editBuilder: (context, id, onSaved, onCancel) => DiveEditPage(
           diveId: id,
@@ -305,16 +323,35 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
           isMapViewActive: _isMapView,
           onMapViewToggle: _toggleMapView,
         ),
-        detailBuilder: (context, diveId) => DiveDetailPage(
-          diveId: diveId,
-          embedded: true,
-          onDeleted: () {
-            // Clear selection when dive is deleted
-            final router = GoRouter.of(context);
-            final state = GoRouterState.of(context);
-            router.go(state.uri.path);
-          },
-        ),
+        detailBuilder: (context, diveId) {
+          final state = GoRouterState.of(context);
+          final rawSiteId = state.uri.queryParameters['site'];
+          final siteId = (rawSiteId == null || rawSiteId.isEmpty)
+              ? null
+              : rawSiteId;
+          return DiveDetailPage(
+            diveId: diveId,
+            embedded: true,
+            embeddedSiteId: siteId,
+            onCloseEmbeddedSite: () {
+              final router = GoRouter.of(context);
+              final state = GoRouterState.of(context);
+              final params = Map<String, String>.from(
+                state.uri.queryParameters,
+              );
+              params.remove('site');
+              router.go(
+                Uri(path: state.uri.path, queryParameters: params).toString(),
+              );
+            },
+            onDeleted: () {
+              // Clear selection when dive is deleted
+              final router = GoRouter.of(context);
+              final state = GoRouterState.of(context);
+              router.go(state.uri.path);
+            },
+          );
+        },
         summaryBuilder: (context) => const DiveSummaryWidget(),
         mapBuilder: (context, selectedId, onItemSelected) => DiveMapContent(
           selectedId: selectedId,

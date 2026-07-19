@@ -60,6 +60,8 @@ void main() {
     'service_records': 'serviceRecords',
     'settings': 'settings',
     'media': 'media',
+    'course_requirements': 'courseRequirements',
+    'course_requirement_dives': 'courseRequirementDives',
   };
 
   // Parent table -> entityType for parents a user can delete (and thus

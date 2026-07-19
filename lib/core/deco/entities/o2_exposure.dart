@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:equatable/equatable.dart';
 
+import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
+
 /// Represents oxygen toxicity exposure during a dive.
 ///
 /// Tracks both CNS (Central Nervous System) toxicity percentage and
@@ -125,31 +127,23 @@ class O2Exposure extends Equatable {
 ///
 /// Based on NOAA Diving Manual oxygen exposure limits.
 class CnsTable {
-  /// Get CNS% accumulation per minute at given ppO2
+  /// CNS %/min at [ppO2] using [method] (default: Shearwater-style).
   ///
-  /// Returns 0 if ppO2 is below 0.5 bar (no CNS accumulation).
-  /// Returns high value for ppO2 > 1.6 (immediate danger zone).
-  static double cnsPerMinute(double ppO2) {
-    if (ppO2 <= 0.5) return 0.0;
-    if (ppO2 <= 0.6) return 100.0 / 720.0; // 720 min limit
-    if (ppO2 <= 0.7) return 100.0 / 570.0; // 570 min limit
-    if (ppO2 <= 0.8) return 100.0 / 450.0; // 450 min limit
-    if (ppO2 <= 0.9) return 100.0 / 360.0; // 360 min limit
-    if (ppO2 <= 1.0) return 100.0 / 300.0; // 300 min limit
-    if (ppO2 <= 1.1) return 100.0 / 240.0; // 240 min limit
-    if (ppO2 <= 1.2) return 100.0 / 210.0; // 210 min limit
-    if (ppO2 <= 1.3) return 100.0 / 180.0; // 180 min limit
-    if (ppO2 <= 1.4) return 100.0 / 150.0; // 150 min limit
-    if (ppO2 <= 1.5) return 100.0 / 120.0; // 120 min limit
-    if (ppO2 <= 1.6) return 100.0 / 45.0; // 45 min limit
-    // Above 1.6 bar is extremely dangerous
-    return 100.0 / 10.0; // Rapid accumulation
+  /// Returns 0 if ppO2 is at or below 0.5 bar (no CNS accumulation).
+  static double cnsPerMinute(
+    double ppO2, {
+    CnsCalculationMethod method = CnsCalculationMethod.shearwater,
+  }) {
+    return method.cnsPerMinute(ppO2);
   }
 
-  /// Calculate CNS% for a time segment at constant ppO2
-  static double cnsForSegment(double ppO2, int durationSeconds) {
-    final minutes = durationSeconds / 60.0;
-    return cnsPerMinute(ppO2) * minutes;
+  /// CNS% for a segment of [durationSeconds] at constant [ppO2].
+  static double cnsForSegment(
+    double ppO2,
+    int durationSeconds, {
+    CnsCalculationMethod method = CnsCalculationMethod.shearwater,
+  }) {
+    return cnsPerMinute(ppO2, method: method) * (durationSeconds / 60.0);
   }
 
   /// Half-time for CNS recovery at surface (approximately 90 minutes)

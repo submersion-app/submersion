@@ -399,6 +399,59 @@ class BuddyRepository {
     ];
   }
 
+  /// Lean batch load of buddies for many dives at once, for list/table views.
+  ///
+  /// Returns a map keyed by dive id (dives with no buddies are simply absent).
+  /// Unlike [getBuddiesForDive] this skips the primary-certification hydration
+  /// ([_withPrimaryCerts]) because list/table views only render names and
+  /// roles -- keeping it to two queries total (the junction join plus
+  /// dive_roles) regardless of how many dives are passed. Uses the same
+  /// `isIn(diveIds)` batching as the other related-data loads in
+  /// [DiveRepository.getAllDives].
+  Future<Map<String, List<domain.BuddyWithRole>>> getBuddiesForDives(
+    List<String> diveIds,
+  ) async {
+    if (diveIds.isEmpty) return {};
+
+    final joinRows =
+        await (_db.select(_db.buddies).join([
+                innerJoin(
+                  _db.diveBuddies,
+                  _db.diveBuddies.buddyId.equalsExp(_db.buddies.id),
+                ),
+              ])
+              ..where(_db.diveBuddies.diveId.isIn(diveIds))
+              ..orderBy([OrderingTerm.asc(_db.buddies.name)]))
+            .get();
+
+    // Resolve role ids against dive_roles once; unknown slugs stay visible as
+    // synthetic roles instead of silently coercing to Buddy.
+    final roleRows = await _db.select(_db.diveRoles).get();
+    final rolesById = {for (final r in roleRows) r.id: mapDiveRoleRow(r)};
+
+    final byDive = <String, List<domain.BuddyWithRole>>{};
+    for (final jr in joinRows) {
+      final b = jr.readTable(_db.buddies);
+      final link = jr.readTable(_db.diveBuddies);
+      final buddy = domain.Buddy(
+        id: b.id,
+        diverId: b.diverId,
+        name: b.name,
+        email: b.email,
+        phone: b.phone,
+        photoPath: b.photoPath,
+        notes: b.notes,
+        createdAt: DateTime.fromMillisecondsSinceEpoch(b.createdAt),
+        updatedAt: DateTime.fromMillisecondsSinceEpoch(b.updatedAt),
+      );
+      final role = rolesById[link.role] ?? DiveRole.synthetic(link.role);
+      byDive
+          .putIfAbsent(link.diveId, () => [])
+          .add(domain.BuddyWithRole(buddy: buddy, role: role));
+    }
+    return byDive;
+  }
+
   /// Set buddies for a dive (replaces existing)
   Future<void> setBuddiesForDive(
     String diveId,

@@ -46,6 +46,7 @@ void main() {
       final pastDate = DateTime.now().subtract(const Duration(days: 400));
       await tester.pumpWidget(
         testApp(
+          locale: const Locale('en'),
           child: DenseEquipmentListTile(
             item: _makeItem(
               name: 'Old Regulator',
@@ -65,6 +66,7 @@ void main() {
       final recentDate = DateTime.now().subtract(const Duration(days: 10));
       await tester.pumpWidget(
         testApp(
+          locale: const Locale('en'),
           child: DenseEquipmentListTile(
             item: _makeItem(
               name: 'Recent Service',
@@ -75,8 +77,8 @@ void main() {
         ),
       );
 
-      // Should show "In X days" text
-      final serviceFinder = find.textContaining('In ');
+      // Should show the localized "Service in X days" countdown.
+      final serviceFinder = find.textContaining('Service in');
       expect(serviceFinder, findsOneWidget);
     });
 

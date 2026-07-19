@@ -4,14 +4,14 @@
 
 **Goal:** DAN/UHMS guideline no-fly countdown surfaced on the dashboard and a new Safety hub, plus the altitude-UX flag from the spec.
 
-**Architecture:** Pure `NoFlyService` classifier over a lightweight trailing-window dive query (end time + had-deco flag from `dive_profiles.deco_type`/`ceiling` aggregates). New `lib/features/safety/` slice hosts the hub page. Settings gain a conservatism preset (schema v117). Spec: `docs/superpowers/specs/2026-07-16-safety-features-design.md` Phase 2.
+**Architecture:** Pure `NoFlyService` classifier over a lightweight trailing-window dive query (end time + had-deco flag from `dive_profiles.deco_type`/`ceiling` aggregates). New `lib/features/safety/` slice hosts the hub page. Settings gain a conservatism preset (schema v125, renumbered from v117/v124 as main advanced past it at merge time). Spec: `docs/superpowers/specs/2026-07-16-safety-features-design.md` Phase 2.
 
 **Tech Stack:** Flutter, Drift, Riverpod, go_router. Branch `safety-phase2-no-fly` stacked on `worktree-safety-features`.
 
 ## Global Constraints
 
 - Same as Phase 1 plan (worktree-only, `dart format .` before commits, tests by file, no emojis, l10n all 11 locales, units respect diver settings, commit per task, no attribution lines).
-- Schema: claim **v117** (v116 = phase 1). Update the exact-latest tripwire and `migrationVersions`.
+- Schema: **v125** (renumbered from the originally-claimed v117 as main advanced past it at merge time; v123 = phase 1 safety review, v124 = equipment attributes). Update the exact-latest tripwire and `migrationVersions`.
 - Spec deviations (documented in spec): the educational tissue view is a labeled link to the existing Surface Interval tool (its chart is hardwired to its own input providers; seeding from a recorded dive is a follow-up). Planner altitude surfacing already exists (`plan_settings_panel.dart` `_AltitudeInput`); no planner change needed. No-fly expiry notification (stretch, off by default) is deferred.
 
 ## Tasks

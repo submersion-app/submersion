@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -16,6 +17,7 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:submersion/features/trips/presentation/widgets/trip_itinerary_tab.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_overview_tab.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_photo_section.dart';
+import 'package:submersion/features/trips/presentation/widgets/trip_service_alert_banner.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
@@ -116,6 +118,7 @@ class _TripDetailContent extends ConsumerWidget {
       return Column(
         children: [
           _buildEmbeddedHeader(context, ref, trip),
+          TripServiceAlertBanner(trip: trip),
           Expanded(child: body),
         ],
       );
@@ -126,7 +129,12 @@ class _TripDetailContent extends ConsumerWidget {
         title: Text(trip.name),
         actions: _buildAppBarActions(context, ref, trip),
       ),
-      body: body,
+      body: Column(
+        children: [
+          TripServiceAlertBanner(trip: trip),
+          Expanded(child: body),
+        ],
+      ),
     );
   }
 
@@ -175,6 +183,7 @@ class _TripDetailContent extends ConsumerWidget {
       return Column(
         children: [
           _buildEmbeddedHeader(context, ref, trip),
+          TripServiceAlertBanner(trip: trip),
           Expanded(child: tabbedBody),
         ],
       );
@@ -185,7 +194,12 @@ class _TripDetailContent extends ConsumerWidget {
         title: Text(trip.name),
         actions: _buildAppBarActions(context, ref, trip),
       ),
-      body: tabbedBody,
+      body: Column(
+        children: [
+          TripServiceAlertBanner(trip: trip),
+          Expanded(child: tabbedBody),
+        ],
+      ),
     );
   }
 
@@ -405,8 +419,9 @@ class _TripDetailContent extends ConsumerWidget {
     // Read this during build, not inside itemBuilder: itemBuilder runs when the
     // menu opens (outside this consumer's build phase), where ref.watch would
     // register a dependency outside Riverpod's build lifecycle.
+    // Lightroom scan hidden pending Adobe review (lightroomUiEnabled).
     final hasLightroomAccount =
-        ref.watch(lightroomAccountProvider).value != null;
+        lightroomUiEnabled && ref.watch(lightroomAccountProvider).value != null;
     return PopupMenuButton<String>(
       tooltip: context.l10n.trips_detail_tooltip_moreOptions,
       onSelected: (value) async {

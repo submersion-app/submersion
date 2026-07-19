@@ -10,6 +10,7 @@ import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -151,6 +152,9 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setDecoStopIncrement(double value) async =>
       state = state.copyWith(decoStopIncrement: value);
   @override
+  Future<void> setPscrRatio(double value) async =>
+      state = state.copyWith(pscrRatio: value);
+  @override
   Future<void> setO2Narcotic(bool value) async =>
       state = state.copyWith(o2Narcotic: value);
   @override
@@ -171,6 +175,9 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setDefaultCnsSource(MetricDataSource value) async =>
       state = state.copyWith(defaultCnsSource: value);
+  @override
+  Future<void> setCnsCalculationMethod(CnsCalculationMethod value) async =>
+      state = state.copyWith(cnsCalculationMethod: value);
   @override
   Future<void> setCardColorAttribute(CardColorAttribute attribute) async =>
       state = state.copyWith(cardColorAttribute: attribute);
@@ -245,6 +252,9 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setReminderTime(TimeOfDay time) async =>
       state = state.copyWith(reminderTime: time);
+  @override
+  Future<void> setTripServiceLeadDays(int days) async =>
+      state = state.copyWith(tripServiceLeadDays: days);
   @override
   Future<void> toggleReminderDay(int days) async {
     final current = List<int>.from(state.serviceReminderDays);
@@ -367,6 +377,19 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
       state = state.copyWith(
         fullscreenReadoutCardX: x,
         fullscreenReadoutCardY: y,
+      );
+
+  @override
+  Future<void> setPerdixOverlayEnabled(bool value) async =>
+      state = state.copyWith(perdixOverlayEnabled: value);
+
+  @override
+  Future<void> setPerdixOverlayPosition(double x, double y) async =>
+      state = state.copyWith(
+        // Mirror SettingsNotifier: clamp to the 0..1 fraction contract and
+        // canonicalize non-finite values to the top-right default corner.
+        perdixOverlayX: x.isFinite ? x.clamp(0.0, 1.0) : 1.0,
+        perdixOverlayY: y.isFinite ? y.clamp(0.0, 1.0) : 0.0,
       );
 }
 

@@ -3,6 +3,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 
 import '../../../helpers/test_database.dart';
@@ -21,12 +22,22 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  EquipmentItem suit() => const EquipmentItem(
+  EquipmentItem suit() => EquipmentItem(
     id: '',
     name: '7mm Wetsuit',
     type: EquipmentType.wetsuit,
-    buoyancyKg: -2.5,
-    weightKg: 3.0,
+    attributes: [
+      EquipmentAttribute.curated(
+        equipmentId: '',
+        key: 'buoyancy_kg',
+        valueNum: -2.5,
+      ),
+      EquipmentAttribute.curated(
+        equipmentId: '',
+        key: 'dry_weight_kg',
+        valueNum: 3.0,
+      ),
+    ],
   );
 
   test('buoyancyKg and weightKg round-trip through create/getById', () async {
@@ -39,7 +50,20 @@ void main() {
   test('fields survive updateEquipment', () async {
     final created = await repository.createEquipment(suit());
     await repository.updateEquipment(
-      created.copyWith(buoyancyKg: 4.0, weightKg: 2.0),
+      created.copyWith(
+        attributes: [
+          EquipmentAttribute.curated(
+            equipmentId: created.id,
+            key: 'buoyancy_kg',
+            valueNum: 4.0,
+          ),
+          EquipmentAttribute.curated(
+            equipmentId: created.id,
+            key: 'dry_weight_kg',
+            valueNum: 2.0,
+          ),
+        ],
+      ),
     );
     final loaded = await repository.getEquipmentById(created.id);
     expect(loaded!.buoyancyKg, 4.0);

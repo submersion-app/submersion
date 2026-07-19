@@ -38,7 +38,11 @@ class SafetyFindingsRepository {
       diveId: diveId,
       engineVersion: marker.engineVersion,
       reviewedAt: DateTime.fromMillisecondsSinceEpoch(marker.reviewedAt),
-      findings: [for (final row in rows) _toDomain(row)],
+      // Skip rows whose rule_id does not round-trip to a known SafetyRuleId:
+      // an unknown value can only come from a newer app/sync payload, and
+      // coercing it to a default rule would surface misleading UI text
+      // (_toDomain returns null for such rows).
+      findings: [for (final row in rows) ?_toDomain(row)],
     );
   }
 
@@ -68,6 +72,18 @@ class SafetyFindingsRepository {
           );
       await _syncRepository.markRecordPending(
         entityType: 'diveSafetyReviews',
+        recordId: review.diveId,
+        localUpdatedAt: reviewedAtMs,
+      );
+      // Both safety exporters gate incremental export on the parent dive's
+      // HLC (dives.hlc > hlcSince). A review computed lazily on first view
+      // never touches the dive, so its rows (and their device-local random
+      // ids) would never sync; a later dismiss/restore on another device
+      // would then reference finding ids it never received. Bump the parent
+      // dive's HLC so the freshly computed review propagates and all devices
+      // converge on one set of finding ids, mirroring setDismissed.
+      await _syncRepository.markRecordPending(
+        entityType: 'dives',
         recordId: review.diveId,
         localUpdatedAt: reviewedAtMs,
       );
@@ -103,18 +119,34 @@ class SafetyFindingsRepository {
     required bool dismissed,
     required DateTime now,
   }) async {
-    await (_db.update(
-      _db.diveSafetyFindings,
-    )..where((t) => t.id.equals(findingId))).write(
-      DiveSafetyFindingsCompanion(
-        dismissedAt: Value(dismissed ? now.millisecondsSinceEpoch : null),
-      ),
-    );
-    await _syncRepository.markRecordPending(
-      entityType: 'diveSafetyFindings',
-      recordId: findingId,
-      localUpdatedAt: now.millisecondsSinceEpoch,
-    );
+    final nowMs = now.millisecondsSinceEpoch;
+    await _db.transaction(() async {
+      final finding = await (_db.select(
+        _db.diveSafetyFindings,
+      )..where((t) => t.id.equals(findingId))).getSingleOrNull();
+      if (finding == null) return;
+      await (_db.update(
+        _db.diveSafetyFindings,
+      )..where((t) => t.id.equals(findingId))).write(
+        DiveSafetyFindingsCompanion(
+          dismissedAt: Value(dismissed ? nowMs : null),
+        ),
+      );
+      await _syncRepository.markRecordPending(
+        entityType: 'diveSafetyFindings',
+        recordId: findingId,
+        localUpdatedAt: nowMs,
+      );
+      // dive_safety_findings has no HLC of its own; the incremental exporter
+      // pulls findings for dives whose parent HLC advanced. A standalone
+      // dismiss/restore never touches the dive, so bump the parent dive's HLC
+      // here too or the change is stranded and never reaches other devices.
+      await _syncRepository.markRecordPending(
+        entityType: 'dives',
+        recordId: finding.diveId,
+        localUpdatedAt: nowMs,
+      );
+    });
     SyncEventBus.notifyLocalChange();
   }
 
@@ -146,11 +178,16 @@ class SafetyFindingsRepository {
     }
   }
 
-  SafetyFinding _toDomain(DiveSafetyFinding row) {
+  /// Maps a stored finding row to its domain entity, or null when the row's
+  /// rule_id does not correspond to a known [SafetyRuleId]. Callers drop null
+  /// rows rather than surface a coerced (misleading) rule.
+  SafetyFinding? _toDomain(DiveSafetyFinding row) {
+    final ruleId = SafetyRuleId.fromDbValue(row.ruleId);
+    if (ruleId == null) return null;
     return SafetyFinding(
       id: row.id,
       diveId: row.diveId,
-      ruleId: SafetyRuleId.fromDbValue(row.ruleId) ?? SafetyRuleId.rapidAscent,
+      ruleId: ruleId,
       severity: SafetySeverity.fromDbValue(row.severity),
       startTimestamp: row.startTimestamp,
       endTimestamp: row.endTimestamp,

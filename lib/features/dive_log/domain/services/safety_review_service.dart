@@ -41,14 +41,38 @@ class SafetyReviewService {
   static const int _minViolationSeconds = 10;
   static const double _ceilingToleranceMeters = 0.5;
 
+  /// Fixed design thresholds for the rapid-ascent rule (9 m/min caution,
+  /// 12 m/min significant). Deliberately independent of the diver's
+  /// configurable ascent-rate alarm settings so that changing those settings
+  /// cannot silently alter safety findings without an [engineVersion] bump.
+  static const AscentRateCalculator _rapidAscentCalculator =
+      AscentRateCalculator(
+        warningThreshold: AscentRateCalculator.defaultWarningThreshold,
+        criticalThreshold: AscentRateCalculator.defaultCriticalThreshold,
+      );
+
   List<SafetyFinding> _rapidAscentFindings(
     String diveId,
     ProfileAnalysis analysis,
     DateTime now,
     String Function() nextId,
   ) {
+    // Re-derive violations from the (threshold-independent) smoothed rates
+    // using the fixed design thresholds, rather than reusing
+    // analysis.ascentRateViolations which was categorized with the diver's
+    // configurable settings.
+    final recategorized = [
+      for (final point in analysis.ascentRates)
+        AscentRatePoint(
+          timestamp: point.timestamp,
+          depth: point.depth,
+          rateMetersPerMin: point.rateMetersPerMin,
+          category: _rapidAscentCalculator.categorize(point.rateMetersPerMin),
+        ),
+    ];
+    final violations = _rapidAscentCalculator.findViolations(recategorized);
     return [
-      for (final violation in analysis.ascentRateViolations)
+      for (final violation in violations)
         SafetyFinding(
           id: nextId(),
           diveId: diveId,

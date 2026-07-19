@@ -62,4 +62,20 @@ void main() {
     await store.clear();
     expect(await store.load(), isNull);
   });
+
+  test('round-trips a Native App blob with no refresh token and a redirect '
+      'uri', () async {
+    final store = LightroomAuthStore(storage: InMemoryKeychain());
+    const data = LightroomAuthData(
+      clientId: 'cid',
+      redirectUri: 'adobe+hash://adobeid/cid',
+      catalogId: 'cat1',
+    );
+    await store.save(data);
+    final loaded = (await store.load())!;
+    expect(loaded.clientId, 'cid');
+    expect(loaded.refreshToken, isNull);
+    expect(loaded.redirectUri, 'adobe+hash://adobeid/cid');
+    expect(loaded.catalogId, 'cat1');
+  });
 }

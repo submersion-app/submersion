@@ -823,10 +823,16 @@
   "common_label_loading": "加载中",
   "common_placeholder_noValue": "--",
   "courses_action_add": "添加课程",
+  "courses_action_addFromTemplate": "从模板添加",
+  "courses_action_addRequirement": "添加要求",
   "courses_action_create": "创建课程",
+  "courses_action_deleteRequirement": "删除要求",
   "courses_action_edit": "编辑课程",
+  "courses_action_editRequirement": "编辑要求",
   "courses_action_exportTrainingLog": "导出训练日志",
+  "courses_action_linkDive": "关联",
   "courses_action_markCompleted": "标记为已完成",
+  "courses_action_unlinkDive": "取消关联潜水",
   "courses_action_moreOptions": "更多选项",
   "courses_action_retry": "重试",
   "courses_action_saveChanges": "保存更改",
@@ -879,16 +885,26 @@
   "courses_picker_selectTitle": "选择训练课程",
   "courses_picker_selected": "已选择",
   "courses_picker_tapToLink": "点击关联培训课程",
+  "courses_requirement_diveProgress": "{count}/{target} 次潜水",
+  "courses_requirement_field_name": "名称",
+  "courses_requirement_field_targetCount": "所需潜水次数",
+  "courses_requirement_kind_checklist": "核对项",
+  "courses_requirement_kind_dive": "潜水要求",
+  "courses_requirement_suggestions": "建议的潜水",
+  "courses_requirements_empty": "跟踪此课程的探险潜水、先决条件和核对项。",
+  "courses_requirements_progress": "{satisfied}/{total} 已完成",
   "courses_section_details": "课程详情",
   "courses_section_earnedCertification": "获得的证书",
   "courses_section_instructor": "教练",
   "courses_section_notes": "备注",
+  "courses_section_requirements": "要求",
   "courses_section_trainingDives": "培训潜水",
   "courses_status_completed": "已完成",
   "courses_status_daysSinceStart": "开始后 {days} 天",
   "courses_status_durationDays": "{days} 天",
   "courses_status_inProgress": "在进度",
   "courses_status_semanticLabel": "{status}，{duration}",
+  "courses_template_addsCount": "添加 {count} 项要求",
   "courses_summary_overview": "概览",
   "courses_summary_quickActions": "快捷操作",
   "courses_summary_recentCourses": "最近的课程",
@@ -900,6 +916,7 @@
   "courses_title_new": "新课程",
   "courses_title_singular": "课程",
   "courses_validation_nameRequired": "请输入课程名称",
+  "dashboard_activeCourses_title": "进行中的课程",
   "dashboard_activity_daySinceDiving": "距上次潜水天数",
   "dashboard_activity_daysSinceDiving": "距上次潜水天数",
   "dashboard_activity_diveInYear": "{year}年潜水",
@@ -1677,6 +1694,12 @@
   "diveLog_edit_noMarineLife": "未记录海洋生物",
   "diveLog_edit_notSpecified": "未指定",
   "diveLog_edit_notesHint": "添加关于此次潜水的备注...",
+  "diveLog_edit_overline_tanks": "气瓶",
+  "diveLog_edit_profile_draw": "绘制潜水曲线",
+  "diveLog_edit_profile_none": "未记录",
+  "diveLog_edit_profile_outliers": "{count, plural, other{检测到 {count} 个可能的异常点}}",
+  "diveLog_edit_profile_points": "{count, plural, other{{count} 个点}}",
+  "diveLog_edit_row_diveProfile": "潜水曲线",
   "diveLog_edit_row_addSite": "添加潜点",
   "diveLog_edit_row_diveCenter": "潜水中心",
   "diveLog_edit_row_entry": "入水",
@@ -2513,6 +2536,7 @@
   "diveSites_edit_section_gpsCoordinates": "GPS 坐标",
   "diveSites_edit_section_hazards": "危险 & 安全",
   "diveSites_edit_section_rating": "评分",
+  "diveSites_edit_section_waterType": "水体类型",
   "diveSites_edit_snackbar_errorDeleting": "删除潜水点出错：{error}",
   "diveSites_edit_snackbar_errorSaving": "保存潜水点出错：{error}",
   "diveSites_edit_snackbar_locationCaptured": "位置已获取",
@@ -3130,6 +3154,61 @@
   "equipment_detail_retiredChip": "已退役",
   "equipment_detail_serialNumberLabel": "序列编号",
   "equipment_detail_serviceInfoTitle": "维护信息",
+  "equipment_serviceClocks_title": "维护倒计时",
+  "equipment_serviceClocks_addClock": "添加倒计时",
+  "equipment_serviceClocks_logService": "记录维护",
+  "equipment_serviceClocks_edit": "编辑间隔",
+  "equipment_serviceClocks_pause": "暂停",
+  "equipment_serviceClocks_resume": "恢复",
+  "equipment_serviceClocks_remove": "移除",
+  "equipment_serviceClocks_paused": "已暂停",
+  "equipment_serviceClocks_empty": "暂无维护倒计时",
+  "equipment_serviceClocks_dueOn": "{date} 到期",
+  "equipment_serviceClocks_overdueSince": "自 {date} 起逾期",
+  "equipment_serviceClocks_overdue": "已逾期",
+  "equipment_serviceClocks_divesLeft": "剩余 {remaining}/{total} 次潜水",
+  "equipment_serviceClocks_hoursLeft": "剩余 {remaining}/{total} 小时",
+  "equipment_serviceClocks_manageKinds": "管理维护类型",
+  "equipment_serviceClocks_appliesToClock": "适用的倒计时",
+  "equipment_serviceClocks_noClockOption": "不关联倒计时",
+  "equipment_scheduleDialog_title": "编辑倒计时",
+  "equipment_scheduleDialog_intervalDays": "间隔（天）",
+  "equipment_scheduleDialog_intervalDives": "间隔（潜水次数）",
+  "equipment_scheduleDialog_intervalHours": "间隔（小时）",
+  "equipment_scheduleDialog_inheritHint": "默认：{value}",
+  "equipment_scheduleDialog_anchorDate": "基准日期",
+  "equipment_scheduleDialog_anchorHint": "在尚无此类维护记录时使用",
+  "equipment_scheduleDialog_clearAnchor": "清除基准日期",
+  "equipment_scheduleDialog_save": "保存",
+  "equipment_scheduleDialog_cancel": "取消",
+  "equipment_serviceKinds_title": "维护类型",
+  "equipment_serviceKinds_builtIn": "内置",
+  "equipment_serviceKinds_custom": "自定义",
+  "equipment_serviceKinds_add": "添加维护类型",
+  "equipment_serviceKinds_editTitle": "编辑维护类型",
+  "equipment_serviceKinds_nameLabel": "名称",
+  "equipment_serviceKinds_nameRequired": "名称为必填项",
+  "equipment_serviceKinds_appliesTo": "适用于",
+  "equipment_serviceKinds_autoAttach": "自动附加到新装备",
+  "equipment_serviceKinds_deleteConfirmTitle": "删除维护类型？",
+  "equipment_serviceKinds_deleteConfirmBody": "使用此维护类型的倒计时将被移除。",
+  "equipment_serviceKinds_delete": "删除",
+  "equipment_serviceKinds_cancel": "取消",
+  "equipment_serviceKinds_save": "保存",
+  "equipment_serviceKinds_emptyCustom": "暂无自定义维护类型",
+  "equipment_serviceKinds_everyDays": "每 {days} 天",
+  "equipment_serviceKinds_everyDives": "每 {dives} 次潜水",
+  "equipment_serviceKinds_everyHours": "每 {hours} 小时",
+  "dashboard_serviceDue_title": "维护到期",
+  "dashboard_serviceDue_more": "+{count} 项",
+  "dashboard_alerts_clockDue": "{name}：{kind}到期",
+  "dashboard_alerts_clockOverdue": "{name}：{kind}已逾期",
+  "equipment_list_worstClock": "{kind}已逾期",
+  "trips_serviceAlert_count": "{count, plural, other{{count} 件装备需要在此行程前维护}}",
+  "trips_serviceAlert_dueBefore": "{kind}将于 {date} 到期",
+  "trips_serviceAlert_overdue": "{kind}已逾期",
+  "settings_notifications_tripLeadTitle": "行程维护提前提醒",
+  "settings_notifications_tripLeadDays": "行程前 {days} 天",
   "equipment_detail_serviceIntervalLabel": "维护间隔",
   "equipment_detail_serviceIntervalValue": "{days} 天",
   "equipment_detail_serviceOverdue": "维护已逾期！",
@@ -3193,6 +3272,7 @@
   "equipment_edit_snackbar_error": "保存装备出错：{error}",
   "equipment_edit_snackbar_updated": "装备已更新",
   "equipment_edit_statusLabel": "状态",
+  "equipment_edit_thicknessDesignationHint": "例如：5, 5/4, 7/5/3",
   "equipment_edit_thicknessHint": "例如：5mm, 7mm",
   "equipment_edit_thicknessLabel": "厚度",
   "equipment_edit_typeLabel": "类型 *",
@@ -3218,6 +3298,7 @@
   "equipment_list_sortTitle": "排序装备",
   "equipment_list_sortTooltip": "排序",
   "equipment_list_tile_daysCount": "{days} 天",
+  "equipment_list_tile_serviceInDays": "{days, plural, =1{维护在 1 天} other{维护在 {days} 天}}",
   "equipment_list_tile_serviceDueChip": "需要维护",
   "equipment_list_tile_serviceIn": "维护在",
   "equipment_menu_delete": "删除",
@@ -3455,6 +3536,8 @@
   "gas_tmx2135_description": "常氧三混气 21/35",
   "gas_tmx2135_displayName": "Tx 21/35",
   "importWizard_tagsLabel": "标签",
+  "maps_compass_resetLabel": "将地图方向重置为正北",
+  "maps_compass_resetTooltip": "正北朝上",
   "maps_heatMap_hide": "隐藏热力图",
   "maps_heatMap_overlayOff": "热力图叠加层已关闭",
   "maps_heatMap_overlayOn": "热力图叠加层已开启",
@@ -3619,6 +3702,9 @@
   "media_miniProfile_headerLabel": "潜水轮廓",
   "media_miniProfile_semanticLabel": "迷你潜水轮廓图",
   "media_photoPicker_appBarTitle": "选择照片",
+  "media_photoPicker_tab_gallery": "图库",
+  "media_photoPicker_tab_files": "文件",
+  "media_photoPicker_tab_url": "URL",
   "media_photoPicker_clearSelectionButton": "清除",
   "media_photoPicker_closeTooltip": "关闭照片选择器",
   "media_photoPicker_doneButton": "完成",
@@ -3636,6 +3722,18 @@
   "media_photoPicker_thumbnailAlreadyLinkedLabel": "照片已关联到此次潜水",
   "media_photoPicker_thumbnailToggleLabel": "切换照片选择",
   "media_photoPicker_thumbnailToggleSelectedLabel": "切换照片选择，已选中",
+  "media_perdixOverlay_labelCns": "CNS",
+  "media_perdixOverlay_labelDepth": "深度",
+  "media_perdixOverlay_labelGas": "GAS",
+  "media_perdixOverlay_labelMax": "MAX",
+  "media_perdixOverlay_labelNdl": "NDL",
+  "media_perdixOverlay_labelPpo2": "PPO2",
+  "media_perdixOverlay_labelStop": "STOP",
+  "media_perdixOverlay_labelTank": "TANK",
+  "media_perdixOverlay_labelTemp": "温度",
+  "media_perdixOverlay_labelTime": "时间",
+  "media_perdixOverlay_labelTts": "TTS",
+  "media_perdixOverlay_toggleTooltip": "潜水电脑叠加层",
   "media_photoViewer_cannotShare": "无法分享此照片",
   "media_photoViewer_cannotWriteMetadata": "无法写入元数据 - 媒体未关联到图库",
   "media_photoViewer_closeTooltip": "关闭照片查看器",
@@ -3725,6 +3823,8 @@
   "plannerCanvas_ccr_setpointHigh": "高设定点（bar）",
   "plannerCanvas_ccr_setpointLow": "低设定点（bar）",
   "plannerCanvas_ccr_switchDepth": "设定点切换深度",
+  "plannerCanvas_pscr_ratio": "pSCR 比率",
+  "plannerCanvas_pscr_ratio_hint": "越大 = 新鲜气体越多，氧分压下降越小",
   "plannerCanvas_chip_cns": "CNS {value}%",
   "plannerCanvas_chip_issues": "{count, plural, other{{count} 个问题}}",
   "plannerCanvas_compare_action": "比较",
@@ -3734,6 +3834,14 @@
   "plannerCanvas_contingency_depthDelta": "额外深度",
   "plannerCanvas_contingency_lostGas": "失去 {gas}",
   "plannerCanvas_contingency_timeDelta": "额外分钟",
+  "plannerCanvas_chart_meanDepth": "平均 {depth}",
+  "@plannerCanvas_chart_meanDepth": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      }
+    }
+  },
   "plannerCanvas_contingency_title": "应急计划",
   "plannerCanvas_contingency_turnFraction": "折返比例",
   "plannerCanvas_contingency_turnRule": "折返压力规则",
@@ -3753,6 +3861,13 @@
   "plannerCanvas_issue_noDecoGas": "需要减压但未携带减压气体",
   "plannerCanvas_range_base": "基准",
   "plannerCanvas_range_legend": "单元格显示到达水面所需时间；红色 = 无法按计划潜水",
+  "plannerCanvas_pane_collapse": "折叠面板",
+  "plannerCanvas_pane_expand": "展开面板",
+  "plannerCanvas_tab_setup": "设置",
+  "plannerCanvas_o2Narcotic": "将氧气视为麻醉性",
+  "plannerCanvas_rates_ascent": "上升速率",
+  "plannerCanvas_rates_descent": "下降速率",
+  "plannerCanvas_rates_title": "速率",
   "plannerCanvas_range_title": "范围表",
   "plannerCanvas_results_noDeco": "无需减压",
   "plannerCanvas_saved_deleteConfirmBody": "永久删除“{name}”？",
@@ -3905,7 +4020,7 @@
   "settings_navCustomization_subtitlePreview": "{first} · {second} · {third}",
   "settings_navCustomization_saveError": "Could not save navigation layout. Please try again.",
   "settings_backToSettings_tooltip": "返回设置",
-  "settings_cloudSync_appBar_title": "云同步",
+  "settings_cloudSync_appBar_title": "数据库云同步",
   "settings_cloudSync_autoSync": "自动同步",
   "settings_cloudSync_autoSync_subtitle": "更改后自动同步",
   "settings_cloudSync_conflictItems": "{count, plural, =1{1 个项目需要处理} other{{count} 个项目需要处理}}",
@@ -4030,7 +4145,7 @@
   "settings_data_appDefaultLocation": "应用默认位置",
   "settings_data_backup": "备份与恢复",
   "settings_data_backup_subtitle": "创建数据备份",
-  "settings_data_cloudSync": "云同步",
+  "settings_data_cloudSync": "数据库云同步",
   "settings_data_customFolder": "自定义文件夹",
   "settings_data_databaseStorage": "数据库存储",
   "settings_data_export_completed": "导出完成",
@@ -4069,9 +4184,26 @@
   "settings_decompression_dialog_title": "梯度因子",
   "settings_decompression_endLimit": "END 限制",
   "settings_decompression_endLimit_dialog_title": "END 限制",
+  "settings_decompression_cnsMethodTitle": "CNS 计算",
+  "settings_decompression_cnsMethodClassic": "NOAA 表格，分级（经典）",
+  "settings_decompression_cnsMethodClassicDesc": "在每个 0.1 bar 区间按其更严格的边缘计算。Submersion 最初采用的方法。",
+  "settings_decompression_cnsMethodShearwater": "线性插值（Shearwater 风格）",
+  "settings_decompression_cnsMethodShearwaterDesc": "按照 Shearwater 的记载在 NOAA 限值之间进行插值。与大多数潜水电脑一致。",
+  "settings_decompression_cnsMethodSubsurface": "指数拟合（与 Subsurface 相同）",
+  "settings_decompression_cnsMethodSubsurfaceDesc": "对 NOAA 表格进行平滑曲线拟合。与 Subsurface 计算的 CNS 一致。",
+  "settings_decompression_cnsMethodAboutTitle": "关于这些方法",
+  "settings_decompression_cnsMethodAboutBody": "这三种方法都基于 NOAA 潜水手册中的氧气暴露限值（ppO2 为 1.0 bar 时 300 分钟，1.6 bar 时 45 分钟）。该表格仅以 0.1 bar 为步长定义限值：经典方法将某一区间内的所有情况都按该区间更严格的边缘计算，这会系统性地高估各条目之间的暴露量。Shearwater 的潜水电脑记载了在 NOAA 限值之间进行线性插值，并在 1.65 bar 以上采用固定的每分钟 15%。Subsurface 于 2019 年将其表格查找替换为对同一 NOAA 数据的平滑两段式指数拟合（Robert C. Helling），该拟合在 1.6 bar 以上也能自然延伸。在各表格条目之间，两种平滑方法的结果相差约一个 CNS 点以内；经典方法给出的数值更高。",
+  "settings_decompression_cnsMethodDisclaimer": "这些名称指相应项目和制造商已公开发布的方法，并不暗示任何隶属或认可关系。计算得出的数值可能与潜水电脑的实际读数有所不同。",
+  "settings_decompression_cnsMethodSourcesTitle": "资料来源",
+  "settings_linkOpenFailed": "无法打开链接。",
+  "settings_decompression_cnsMethodSourceNoaa": "NOAA: Diving Program（NOAA Diving Manual 出版方）",
+  "settings_decompression_cnsMethodSourceShearwater": "Shearwater：CNS 氧钟",
+  "settings_decompression_cnsMethodSourceTheoreticalDiver": "The Theoretical Diver：计算氧气 CNS 毒性",
+  "settings_decompression_cnsMethodSourceSubsurface": "Subsurface：实现（divelist.cpp）",
   "settings_decompression_endLimit_subtitle": "用于最大麻醉深度计算的最大等效麻醉深度",
   "settings_decompression_gfValue": "GF {gfLow}/{gfHigh}",
   "settings_decompression_header_gradientFactors": "梯度因子",
+  "settings_decompression_header_oxygenToxicity": "氧中毒",
   "settings_decompression_header_narcosis": "麻醉",
   "settings_decompression_o2Narcotic": "O2 有麻醉性",
   "settings_decompression_o2Narcotic_subtitle": "启用后，氧气和氮气均被视为具有麻醉性（更保守）。禁用后，仅氮气导致麻醉。",
@@ -4133,10 +4265,13 @@
   "settings_lightroom_albumFilter_all": "整个目录",
   "settings_lightroom_albumFilter_title": "要扫描的相册",
   "settings_lightroom_autoPoll_title": "自动检查新照片",
-  "settings_lightroom_clientId_help": "在 Adobe Developer Console 中使用 Lightroom Services API 创建集成，并选择支持 PKCE 的凭据类型。将重定向 URI 设置为 {redirectUri}。",
+  "settings_lightroom_clientId_help": "在 Adobe Developer Console 中使用 Lightroom Services API 创建集成，并选择支持 PKCE 的凭据类型。在下方输入您凭据的重定向 URI（Native App 凭据使用自定义方案），或留空以使用 {redirectUri}。",
   "settings_lightroom_clientId_label": "Adobe 客户端 ID",
   "settings_lightroom_clientSecret_label": "客户端密钥（可选）",
+  "settings_lightroom_redirectUri_label": "重定向 URI（可选）",
   "settings_lightroom_connect": "连接 Lightroom",
+  "settings_lightroom_connectEmbedded": "使用 Adobe 连接",
+  "settings_lightroom_advancedByo": "使用您自己的 Adobe 凭据",
   "settings_lightroom_connect_codeLabel": "重定向的网址或代码",
   "settings_lightroom_connect_emptyCode": "粘贴重定向的网址或授权码",
   "settings_lightroom_connect_failed": "无法连接到 Lightroom：{error}",
@@ -5760,27 +5895,194 @@
   "settings_setupGuide_open": "打开",
   "settings_connectedAccounts_loadError": "无法加载账户",
   "media_unavailablePlaceholder_volumeOffline": "卷未挂载",
+  "attrLabel_size": "尺码",
+  "attrLabel_thickness_mm": "厚度（毫米）",
+  "attrLabel_suit_style": "潜水服款式",
+  "attrLabel_shell_material": "外壳材质",
+  "attrLabel_seal_type": "密封类型",
+  "attrLabel_volume_l": "容积",
+  "attrLabel_working_pressure_bar": "工作压力",
+  "attrLabel_tank_material": "材质",
+  "attrLabel_valve_type": "阀门",
+  "attrLabel_tank_identifier": "标识",
+  "attrLabel_last_visual_inspection": "上次目视检查",
+  "attrLabel_last_hydro_test": "上次水压测试",
+  "attrLabel_connection": "接口",
+  "attrLabel_cold_water_rated": "适用于冷水",
+  "attrLabel_bcd_style": "款式",
+  "attrLabel_lift_capacity_kg": "浮力提升量",
+  "attrLabel_heel_type": "脚跟类型",
+  "attrLabel_blade_style": "蹼叶",
+  "attrLabel_mount": "佩戴方式",
+  "attrLabel_connectivity": "连接方式",
+  "attrLabel_lens_config": "镜片",
+  "attrLabel_prescription": "度数镜片",
+  "attrLabel_weight_style": "款式",
+  "attrLabel_lumens": "流明",
+  "attrLabel_beam_type": "光束",
+  "attrLabel_depth_rating_m": "防水深度",
+  "attrLabel_smb_type": "类型",
+  "attrLabel_length_m": "长度",
+  "attrLabel_reel_type": "类型",
+  "attrLabel_line_length_m": "线长",
+  "attrLabel_blade_material": "刀刃材质",
+  "attrLabel_tip_type": "刀尖",
+  "attrLabel_glove_type": "类型",
+  "attrLabel_sole_type": "鞋底",
+  "attrLabel_buoyancy_kg": "浮力",
+  "attrLabel_dry_weight_kg": "干重",
+  "attrChoice_suit_style_full": "全身湿衣",
+  "attrChoice_suit_style_shorty": "短款湿衣",
+  "attrChoice_suit_style_two_piece": "两件式",
+  "attrChoice_suit_style_semi_dry": "半干式",
+  "attrChoice_shell_material_trilaminate": "三层复合",
+  "attrChoice_shell_material_neoprene": "氯丁橡胶",
+  "attrChoice_shell_material_crushed_neoprene": "压缩氯丁橡胶",
+  "attrChoice_shell_material_vulcanized_rubber": "硫化橡胶",
+  "attrChoice_seal_type_latex": "乳胶",
+  "attrChoice_seal_type_silicone": "硅胶",
+  "attrChoice_seal_type_neoprene": "氯丁橡胶",
+  "attrChoice_tank_material_aluminum": "铝",
+  "attrChoice_tank_material_steel": "钢",
+  "attrChoice_tank_material_carbon_composite": "碳纤维复合",
+  "attrChoice_valve_type_din": "DIN",
+  "attrChoice_valve_type_yoke": "卡箍式 (INT)",
+  "attrChoice_valve_type_convertible": "两用式",
+  "attrChoice_connection_din": "DIN",
+  "attrChoice_connection_yoke": "卡箍式 (INT)",
+  "attrChoice_bcd_style_jacket": "夹克式",
+  "attrChoice_bcd_style_back_inflate": "背囊式",
+  "attrChoice_bcd_style_wing": "翼式",
+  "attrChoice_bcd_style_sidemount": "侧挂式",
+  "attrChoice_heel_type_open_heel": "开放式脚跟",
+  "attrChoice_heel_type_full_foot": "全包脚",
+  "attrChoice_blade_style_paddle": "桨式",
+  "attrChoice_blade_style_split": "分叉式",
+  "attrChoice_blade_style_vented": "导流式",
+  "attrChoice_mount_wrist": "腕戴式",
+  "attrChoice_mount_console": "表盘式",
+  "attrChoice_mount_hud": "HUD",
+  "attrChoice_connectivity_ble": "蓝牙 (BLE)",
+  "attrChoice_connectivity_usb": "USB",
+  "attrChoice_connectivity_infrared": "红外",
+  "attrChoice_connectivity_none": "无",
+  "attrChoice_lens_config_single": "单镜片",
+  "attrChoice_lens_config_twin": "双镜片",
+  "attrChoice_lens_config_frameless": "无框",
+  "attrChoice_weight_style_belt": "配重带",
+  "attrChoice_weight_style_integrated": "集成式",
+  "attrChoice_weight_style_trim": "配平",
+  "attrChoice_weight_style_ankle": "脚踝",
+  "attrChoice_beam_type_spot": "聚光",
+  "attrChoice_beam_type_flood": "泛光",
+  "attrChoice_beam_type_adjustable": "可调",
+  "attrChoice_smb_type_open": "开放式",
+  "attrChoice_smb_type_closed": "封闭式",
+  "attrChoice_reel_type_spool": "线轴",
+  "attrChoice_reel_type_ratchet": "棘轮卷线器",
+  "attrChoice_blade_material_stainless": "不锈钢",
+  "attrChoice_blade_material_titanium": "钛",
+  "attrChoice_tip_type_pointed": "尖头",
+  "attrChoice_tip_type_blunt": "钝头",
+  "attrChoice_tip_type_line_cutter": "割线器",
+  "attrChoice_glove_type_five_finger": "五指",
+  "attrChoice_glove_type_mitt": "连指",
+  "attrChoice_glove_type_dry": "干式",
+  "attrChoice_sole_type_hard": "硬底",
+  "attrChoice_sole_type_soft": "软底",
+  "equipment_edit_customFieldsTitle": "自定义字段",
+  "equipment_edit_addCustomField": "添加自定义字段",
+  "attr_flagYes": "是",
+  "attr_flagNo": "否",
+  "equipment_edit_invalidThickness": "请输入 5、5/4 或 7/5/3",
+  "statistics_progression_divesBySuitThickness_title": "按潜水服厚度统计",
+  "statistics_progression_divesBySuitThickness_subtitle": "您潜水时所穿潜水服的主要厚度",
+  "statistics_progression_divesBySuitThickness_empty": "没有记录潜水服厚度的潜水",
+  "statistics_progression_divesBySuitThickness_error": "无法加载潜水服厚度数据",
+  "diveLog_filter_sectionSuitThickness": "潜水服厚度（毫米）",
+  "diveLog_filter_thicknessMin": "最小",
+  "diveLog_filter_thicknessMax": "最大",
   "diveDetailSection_safetyReview_name": "安全回顾",
   "diveDetailSection_safetyReview_description": "潜水后自动生成的剖面观察",
   "safetyReview_sectionTitle": "安全回顾",
   "safetyReview_findingCount": "{count, plural, =1{1 条观察} other{{count} 条观察}}",
-  "@safetyReview_findingCount": {"placeholders": {"count": {"type": "int"}}},
+  "@safetyReview_findingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "safetyReview_rapidAscent_title": "上升速度超过 {rate},持续 {duration}",
-  "@safetyReview_rapidAscent_title": {"placeholders": {"rate": {"type": "String"}, "duration": {"type": "String"}}},
+  "@safetyReview_rapidAscent_title": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
   "safetyReview_missedDecoStop_title": "深度高于所需停留天花板 {excess},持续 {duration}",
-  "@safetyReview_missedDecoStop_title": {"placeholders": {"excess": {"type": "String"}, "duration": {"type": "String"}}},
+  "@safetyReview_missedDecoStop_title": {
+    "placeholders": {
+      "excess": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
   "safetyReview_omittedSafetyStop_title": "建议的安全停留缩短了 {remaining}",
-  "@safetyReview_omittedSafetyStop_title": {"placeholders": {"remaining": {"type": "String"}}},
+  "@safetyReview_omittedSafetyStop_title": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
   "safetyReview_sawtoothProfile_title": "潜水期间出现 {count} 次反复的上下深度变化",
-  "@safetyReview_sawtoothProfile_title": {"placeholders": {"count": {"type": "int"}}},
+  "@safetyReview_sawtoothProfile_title": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "safetyReview_highSurfaceGf_title": "出水时梯度因子为 {gf},高于设定的 {gfHigh}",
-  "@safetyReview_highSurfaceGf_title": {"placeholders": {"gf": {"type": "String"}, "gfHigh": {"type": "String"}}},
+  "@safetyReview_highSurfaceGf_title": {
+    "placeholders": {
+      "gf": {
+        "type": "String"
+      },
+      "gfHigh": {
+        "type": "String"
+      }
+    }
+  },
   "safetyReview_timeRange": "于 {start}–{end}",
-  "@safetyReview_timeRange": {"placeholders": {"start": {"type": "String"}, "end": {"type": "String"}}},
+  "@safetyReview_timeRange": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
   "safetyReview_dismiss": "忽略",
   "safetyReview_restore": "恢复",
   "safetyReview_showDismissed": "{count, plural, =1{显示 1 条已忽略} other{显示 {count} 条已忽略}}",
-  "@safetyReview_showDismissed": {"placeholders": {"count": {"type": "int"}}},
+  "@safetyReview_showDismissed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "safetySettings_title": "安全回顾",
   "safetySettings_entry_subtitle": "潜水后的观察与规则",
   "safetySettings_masterToggle": "潜水后安全回顾",
@@ -5794,61 +6096,162 @@
   "safetySettings_analyzeAll": "分析所有潜水",
   "safetySettings_analyzeAll_subtitle": "对所有具有剖面且尚未分析的潜水运行安全回顾",
   "safetySettings_analyzeAll_progress": "已分析 {done}/{total}",
-  "@safetySettings_analyzeAll_progress": {"placeholders": {"done": {"type": "int"}, "total": {"type": "int"}}},
+  "@safetySettings_analyzeAll_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "safetySettings_analyzeAll_done": "分析完成",
+  "safetySettings_analyzeAll_doneWithErrors": "分析完成 — {count, plural, =1{有 1 次潜水无法分析} other{有 {count} 次潜水无法分析}}",
+  "@safetySettings_analyzeAll_doneWithErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "safetySettings_noFlyHeader": "潜水后飞行",
   "safetySettings_noFlyPreset_standard": "标准(12/18/24 小时)",
   "safetySettings_noFlyPreset_strict": "严格(18/24/48 小时)",
   "safetySettings_noFlyPreset_subtitle": "单次免减压潜水、重复潜水和减压潜水后的指导间隔",
   "safetyHub_title": "安全",
   "safetyHub_noFly_active_title": "禁飞:剩余 {remaining}",
-  "@safetyHub_noFly_active_title": {"placeholders": {"remaining": {"type": "String"}}},
+  "@safetyHub_noFly_active_title": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
   "safetyHub_noFly_until": "直到 {time}",
-  "@safetyHub_noFly_until": {"placeholders": {"time": {"type": "String"}}},
+  "@safetyHub_noFly_until": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "safetyHub_noFly_clear_title": "无飞行限制",
-  "safetyHub_noFly_clear_subtitle": "过去 48 小时内没有潜水",
+  "safetyHub_noFly_clear_subtitle": "无活动的飞行限制",
   "safetyHub_noFly_category_single": "单次免减压潜水后:{hours} 小时指导值",
-  "@safetyHub_noFly_category_single": {"placeholders": {"hours": {"type": "int"}}},
+  "@safetyHub_noFly_category_single": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
   "safetyHub_noFly_category_repetitive": "重复潜水后:{hours} 小时指导值",
-  "@safetyHub_noFly_category_repetitive": {"placeholders": {"hours": {"type": "int"}}},
+  "@safetyHub_noFly_category_repetitive": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
   "safetyHub_noFly_category_deco": "减压潜水后:{hours} 小时指导值",
-  "@safetyHub_noFly_category_deco": {"placeholders": {"hours": {"type": "int"}}},
+  "@safetyHub_noFly_category_deco": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
   "safetyHub_noFly_disclaimer": "自最后一次潜水起的 DAN/UHMS 指导值。不能替代潜水电脑的禁飞时间。",
   "safetyHub_surfaceIntervalLink": "水面间隔工具",
   "safetyHub_surfaceIntervalLink_subtitle": "组织脱饱和教学模型",
   "safetyHub_settingsLink": "安全设置",
   "safetyHub_alert_noFly": "禁飞:剩余 {remaining}",
-  "@safetyHub_alert_noFly": {"placeholders": {"remaining": {"type": "String"}}},
+  "@safetyHub_alert_noFly": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_detail_altitudeMismatch_title": "潜点位于高海拔",
   "diveLog_detail_altitudeMismatch_subtitle": "该潜点记录了海拔,但此次潜水未设置海拔,因此减压分析按海平面计算。请设置潜水海拔以更正。",
   "emergencyCard_title": "紧急情况",
   "emergencyCard_callDan": "呼叫 {name}",
-  "@emergencyCard_callDan": {"placeholders": {"name": {"type": "String"}}},
+  "@emergencyCard_callDan": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "emergencyCard_callDan_subtitle": "潜水员紧急热线。请先拨打:他们负责协调撤离和减压舱转诊。",
   "emergencyCard_ems": "当地急救电话:{number}",
-  "@emergencyCard_ems": {"placeholders": {"number": {"type": "String"}}},
+  "@emergencyCard_ems": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
   "emergencyCard_diverSection": "潜水员",
   "emergencyCard_bloodType": "血型:{value}",
-  "@emergencyCard_bloodType": {"placeholders": {"value": {"type": "String"}}},
+  "@emergencyCard_bloodType": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "emergencyCard_allergies": "过敏:{value}",
-  "@emergencyCard_allergies": {"placeholders": {"value": {"type": "String"}}},
+  "@emergencyCard_allergies": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "emergencyCard_medications": "用药:{value}",
-  "@emergencyCard_medications": {"placeholders": {"value": {"type": "String"}}},
+  "@emergencyCard_medications": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "emergencyCard_contactsSection": "紧急联系人",
   "emergencyCard_insuranceSection": "潜水保险",
   "emergencyCard_insurancePolicy": "保单 {number}",
-  "@emergencyCard_insurancePolicy": {"placeholders": {"number": {"type": "String"}}},
+  "@emergencyCard_insurancePolicy": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
   "emergencyCard_chambersSection": "高压氧舱",
   "emergencyCard_chambersNote": "可用性会变化。转诊请务必先拨打潜水员紧急热线。",
   "emergencyCard_chamberVerified": "信息核实于 {date}",
-  "@emergencyCard_chamberVerified": {"placeholders": {"date": {"type": "String"}}},
+  "@emergencyCard_chamberVerified": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "emergencyCard_hideChamber": "隐藏",
   "emergencyCard_chamberHidden": "已隐藏氧舱",
   "emergencyCard_undo": "撤消",
   "emergencyCard_addChamber": "添加减压舱",
   "emergencyCard_deleteChamber": "删除",
   "emergencyCard_regionLabel": "区域:{region}",
-  "@emergencyCard_regionLabel": {"placeholders": {"region": {"type": "String"}}},
+  "@emergencyCard_regionLabel": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },
   "emergencyCard_regionUnknown": "区域未知 - 使用全球热线",
   "emergencyCard_noDiverData": "无潜水员资料。请在潜水员资料设置中添加紧急联系人、医疗和保险信息。",
   "addChamber_title": "添加减压舱",

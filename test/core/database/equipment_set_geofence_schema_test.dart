@@ -74,8 +74,15 @@ void main() {
     },
   );
 
-  test('v118 is the current schema version (exact-latest tripwire)', () {
-    expect(AppDatabase.currentSchemaVersion, 118);
-    expect(AppDatabase.migrationVersions, contains(118));
+  test('v112+ objects are present at the current schema version', () {
+    // v112: equipment.thickness (main). v113: diver_settings.cns_calculation_method
+    // (main). v114: deletion_log unique index + sync_peer_cursors.applied_hlc_high
+    // (fleet-acked tombstone GC). The exact-latest tripwire moved to
+    // migration_v120_planner_parity_test when the planner-parity migration
+    // (v120) landed on top of these.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(114));
+    expect(AppDatabase.migrationVersions, contains(112));
+    expect(AppDatabase.migrationVersions, contains(113));
+    expect(AppDatabase.migrationVersions, contains(114));
   });
 }

@@ -22,6 +22,7 @@ void main() {
     DateTime? exitTime,
     DateTime? entryTime,
     int? runtimeSeconds,
+    String? diverId,
   }) async {
     final created = now.millisecondsSinceEpoch;
     await db
@@ -29,6 +30,7 @@ void main() {
         .insert(
           DivesCompanion(
             id: Value(id),
+            diverId: Value(diverId),
             diveDateTime: Value(
               (entryTime ?? exitTime ?? now).millisecondsSinceEpoch,
             ),
@@ -115,5 +117,26 @@ void main() {
       since: now.subtract(const Duration(hours: 48)),
     );
     expect(inputs.single.hadDecoObligation, isFalse);
+  });
+
+  test('passing a diverId scopes the query to that diver', () async {
+    // A dive with no diver assigned must not surface when the query is scoped
+    // to a specific diver (exercises the diver_id WHERE clause).
+    await insertDive(
+      'unowned',
+      exitTime: now.subtract(const Duration(hours: 1)),
+    );
+
+    final scoped = await repository.getNoFlyDiveInputs(
+      since: now.subtract(const Duration(hours: 48)),
+      diverId: 'diver-1',
+    );
+    expect(scoped, isEmpty);
+
+    // Without a diver filter the same dive is returned.
+    final unscoped = await repository.getNoFlyDiveInputs(
+      since: now.subtract(const Duration(hours: 48)),
+    );
+    expect(unscoped, hasLength(1));
   });
 }

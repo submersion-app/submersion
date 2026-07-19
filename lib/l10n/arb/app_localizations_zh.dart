@@ -2069,16 +2069,34 @@ class AppLocalizationsZh extends AppLocalizations {
   String get courses_action_add => '添加课程';
 
   @override
+  String get courses_action_addFromTemplate => '从模板添加';
+
+  @override
+  String get courses_action_addRequirement => '添加要求';
+
+  @override
   String get courses_action_create => '创建课程';
+
+  @override
+  String get courses_action_deleteRequirement => '删除要求';
 
   @override
   String get courses_action_edit => '编辑课程';
 
   @override
+  String get courses_action_editRequirement => '编辑要求';
+
+  @override
   String get courses_action_exportTrainingLog => '导出训练日志';
 
   @override
+  String get courses_action_linkDive => '关联';
+
+  @override
   String get courses_action_markCompleted => '标记为已完成';
+
+  @override
+  String get courses_action_unlinkDive => '取消关联潜水';
 
   @override
   String get courses_action_moreOptions => '更多选项';
@@ -2251,6 +2269,34 @@ class AppLocalizationsZh extends AppLocalizations {
   String get courses_picker_tapToLink => '点击关联培训课程';
 
   @override
+  String courses_requirement_diveProgress(int count, int target) {
+    return '$count/$target 次潜水';
+  }
+
+  @override
+  String get courses_requirement_field_name => '名称';
+
+  @override
+  String get courses_requirement_field_targetCount => '所需潜水次数';
+
+  @override
+  String get courses_requirement_kind_checklist => '核对项';
+
+  @override
+  String get courses_requirement_kind_dive => '潜水要求';
+
+  @override
+  String get courses_requirement_suggestions => '建议的潜水';
+
+  @override
+  String get courses_requirements_empty => '跟踪此课程的探险潜水、先决条件和核对项。';
+
+  @override
+  String courses_requirements_progress(int satisfied, int total) {
+    return '$satisfied/$total 已完成';
+  }
+
+  @override
   String get courses_section_details => '课程详情';
 
   @override
@@ -2261,6 +2307,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get courses_section_notes => '备注';
+
+  @override
+  String get courses_section_requirements => '要求';
 
   @override
   String get courses_section_trainingDives => '培训潜水';
@@ -2284,6 +2333,11 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String courses_status_semanticLabel(Object status, Object duration) {
     return '$status，$duration';
+  }
+
+  @override
+  String courses_template_addsCount(int count) {
+    return '添加 $count 项要求';
   }
 
   @override
@@ -2318,6 +2372,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get courses_validation_nameRequired => '请输入课程名称';
+
+  @override
+  String get dashboard_activeCourses_title => '进行中的课程';
 
   @override
   String get dashboard_activity_daySinceDiving => '距上次潜水天数';
@@ -4152,10 +4209,42 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_edit_notesHint => '添加关于此次潜水的备注...';
 
   @override
+  String get diveLog_edit_overline_tanks => '气瓶';
+
+  @override
+  String get diveLog_edit_profile_draw => '绘制潜水曲线';
+
+  @override
+  String get diveLog_edit_profile_none => '未记录';
+
+  @override
+  String diveLog_edit_profile_outliers(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '检测到 $count 个可能的异常点',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_edit_profile_points(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个点',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_row_addSite => '添加潜点';
 
   @override
   String get diveLog_edit_row_diveCenter => '潜水中心';
+
+  @override
+  String get diveLog_edit_row_diveProfile => '潜水曲线';
 
   @override
   String get diveLog_edit_row_entry => '入水';
@@ -7018,6 +7107,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_edit_section_rating => '评分';
 
   @override
+  String get diveSites_edit_section_waterType => '水体类型';
+
+  @override
   String diveSites_edit_snackbar_errorDeleting(Object error) {
     return '删除潜水点出错：$error';
   }
@@ -8996,6 +9088,208 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_detail_serviceInfoTitle => '维护信息';
 
   @override
+  String get equipment_serviceClocks_title => '维护倒计时';
+
+  @override
+  String get equipment_serviceClocks_addClock => '添加倒计时';
+
+  @override
+  String get equipment_serviceClocks_logService => '记录维护';
+
+  @override
+  String get equipment_serviceClocks_edit => '编辑间隔';
+
+  @override
+  String get equipment_serviceClocks_pause => '暂停';
+
+  @override
+  String get equipment_serviceClocks_resume => '恢复';
+
+  @override
+  String get equipment_serviceClocks_remove => '移除';
+
+  @override
+  String get equipment_serviceClocks_paused => '已暂停';
+
+  @override
+  String get equipment_serviceClocks_empty => '暂无维护倒计时';
+
+  @override
+  String equipment_serviceClocks_dueOn(String date) {
+    return '$date 到期';
+  }
+
+  @override
+  String equipment_serviceClocks_overdueSince(String date) {
+    return '自 $date 起逾期';
+  }
+
+  @override
+  String get equipment_serviceClocks_overdue => '已逾期';
+
+  @override
+  String equipment_serviceClocks_divesLeft(int remaining, int total) {
+    return '剩余 $remaining/$total 次潜水';
+  }
+
+  @override
+  String equipment_serviceClocks_hoursLeft(String remaining, String total) {
+    return '剩余 $remaining/$total 小时';
+  }
+
+  @override
+  String get equipment_serviceClocks_manageKinds => '管理维护类型';
+
+  @override
+  String get equipment_serviceClocks_appliesToClock => '适用的倒计时';
+
+  @override
+  String get equipment_serviceClocks_noClockOption => '不关联倒计时';
+
+  @override
+  String get equipment_scheduleDialog_title => '编辑倒计时';
+
+  @override
+  String get equipment_scheduleDialog_intervalDays => '间隔（天）';
+
+  @override
+  String get equipment_scheduleDialog_intervalDives => '间隔（潜水次数）';
+
+  @override
+  String get equipment_scheduleDialog_intervalHours => '间隔（小时）';
+
+  @override
+  String equipment_scheduleDialog_inheritHint(String value) {
+    return '默认：$value';
+  }
+
+  @override
+  String get equipment_scheduleDialog_anchorDate => '基准日期';
+
+  @override
+  String get equipment_scheduleDialog_anchorHint => '在尚无此类维护记录时使用';
+
+  @override
+  String get equipment_scheduleDialog_clearAnchor => '清除基准日期';
+
+  @override
+  String get equipment_scheduleDialog_save => '保存';
+
+  @override
+  String get equipment_scheduleDialog_cancel => '取消';
+
+  @override
+  String get equipment_serviceKinds_title => '维护类型';
+
+  @override
+  String get equipment_serviceKinds_builtIn => '内置';
+
+  @override
+  String get equipment_serviceKinds_custom => '自定义';
+
+  @override
+  String get equipment_serviceKinds_add => '添加维护类型';
+
+  @override
+  String get equipment_serviceKinds_editTitle => '编辑维护类型';
+
+  @override
+  String get equipment_serviceKinds_nameLabel => '名称';
+
+  @override
+  String get equipment_serviceKinds_nameRequired => '名称为必填项';
+
+  @override
+  String get equipment_serviceKinds_appliesTo => '适用于';
+
+  @override
+  String get equipment_serviceKinds_autoAttach => '自动附加到新装备';
+
+  @override
+  String get equipment_serviceKinds_deleteConfirmTitle => '删除维护类型？';
+
+  @override
+  String get equipment_serviceKinds_deleteConfirmBody => '使用此维护类型的倒计时将被移除。';
+
+  @override
+  String get equipment_serviceKinds_delete => '删除';
+
+  @override
+  String get equipment_serviceKinds_cancel => '取消';
+
+  @override
+  String get equipment_serviceKinds_save => '保存';
+
+  @override
+  String get equipment_serviceKinds_emptyCustom => '暂无自定义维护类型';
+
+  @override
+  String equipment_serviceKinds_everyDays(int days) {
+    return '每 $days 天';
+  }
+
+  @override
+  String equipment_serviceKinds_everyDives(int dives) {
+    return '每 $dives 次潜水';
+  }
+
+  @override
+  String equipment_serviceKinds_everyHours(String hours) {
+    return '每 $hours 小时';
+  }
+
+  @override
+  String get dashboard_serviceDue_title => '维护到期';
+
+  @override
+  String dashboard_serviceDue_more(int count) {
+    return '+$count 项';
+  }
+
+  @override
+  String dashboard_alerts_clockDue(String name, String kind) {
+    return '$name：$kind到期';
+  }
+
+  @override
+  String dashboard_alerts_clockOverdue(String name, String kind) {
+    return '$name：$kind已逾期';
+  }
+
+  @override
+  String equipment_list_worstClock(String kind) {
+    return '$kind已逾期';
+  }
+
+  @override
+  String trips_serviceAlert_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 件装备需要在此行程前维护',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_serviceAlert_dueBefore(String kind, String date) {
+    return '$kind将于 $date 到期';
+  }
+
+  @override
+  String trips_serviceAlert_overdue(String kind) {
+    return '$kind已逾期';
+  }
+
+  @override
+  String get settings_notifications_tripLeadTitle => '行程维护提前提醒';
+
+  @override
+  String settings_notifications_tripLeadDays(int days) {
+    return '行程前 $days 天';
+  }
+
+  @override
   String get equipment_detail_serviceIntervalLabel => '维护间隔';
 
   @override
@@ -9197,6 +9491,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_edit_statusLabel => '状态';
 
   @override
+  String get equipment_edit_thicknessDesignationHint => '例如：5, 5/4, 7/5/3';
+
+  @override
   String get equipment_edit_thicknessHint => '例如：5mm, 7mm';
 
   @override
@@ -9277,6 +9574,17 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String equipment_list_tile_daysCount(Object days) {
     return '$days 天';
+  }
+
+  @override
+  String equipment_list_tile_serviceInDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '维护在 $days 天',
+      one: '维护在 1 天',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -10398,6 +10706,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_photoPicker_appBarTitle => '选择照片';
 
   @override
+  String get media_photoPicker_tab_gallery => '图库';
+
+  @override
+  String get media_photoPicker_tab_files => '文件';
+
+  @override
+  String get media_photoPicker_tab_url => 'URL';
+
+  @override
   String get media_photoPicker_clearSelectionButton => '清除';
 
   @override
@@ -10462,6 +10779,42 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get media_photoPicker_thumbnailAlreadyLinkedLabel => '照片已关联到此次潜水';
+
+  @override
+  String get media_perdixOverlay_labelCns => 'CNS';
+
+  @override
+  String get media_perdixOverlay_labelDepth => '深度';
+
+  @override
+  String get media_perdixOverlay_labelGas => 'GAS';
+
+  @override
+  String get media_perdixOverlay_labelMax => 'MAX';
+
+  @override
+  String get media_perdixOverlay_labelNdl => 'NDL';
+
+  @override
+  String get media_perdixOverlay_labelPpo2 => 'PPO2';
+
+  @override
+  String get media_perdixOverlay_labelStop => 'STOP';
+
+  @override
+  String get media_perdixOverlay_labelTank => 'TANK';
+
+  @override
+  String get media_perdixOverlay_labelTemp => '温度';
+
+  @override
+  String get media_perdixOverlay_labelTime => '时间';
+
+  @override
+  String get media_perdixOverlay_labelTts => 'TTS';
+
+  @override
+  String get media_perdixOverlay_toggleTooltip => '潜水电脑叠加层';
 
   @override
   String get media_photoViewer_cannotShare => '无法分享此照片';
@@ -10763,6 +11116,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerCanvas_ccr_switchDepth => '设定点切换深度';
 
   @override
+  String get plannerCanvas_pscr_ratio => 'pSCR 比率';
+
+  @override
+  String get plannerCanvas_pscr_ratio_hint => '越大 = 新鲜气体越多，氧分压下降越小';
+
+  @override
   String plannerCanvas_chip_cns(String value) {
     return 'CNS $value%';
   }
@@ -10799,6 +11158,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get plannerCanvas_contingency_timeDelta => '额外分钟';
+
+  @override
+  String plannerCanvas_chart_meanDepth(String depth) {
+    return '平均 $depth';
+  }
 
   @override
   String get plannerCanvas_contingency_title => '应急计划';
@@ -10870,6 +11234,27 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get plannerCanvas_range_legend => '单元格显示到达水面所需时间；红色 = 无法按计划潜水';
+
+  @override
+  String get plannerCanvas_pane_collapse => '折叠面板';
+
+  @override
+  String get plannerCanvas_pane_expand => '展开面板';
+
+  @override
+  String get plannerCanvas_tab_setup => '设置';
+
+  @override
+  String get plannerCanvas_o2Narcotic => '将氧气视为麻醉性';
+
+  @override
+  String get plannerCanvas_rates_ascent => '上升速率';
+
+  @override
+  String get plannerCanvas_rates_descent => '下降速率';
+
+  @override
+  String get plannerCanvas_rates_title => '速率';
 
   @override
   String get plannerCanvas_range_title => '范围表';
@@ -11309,195 +11694,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get safetySettings_analyzeAll_done => '分析完成';
 
   @override
-  String get safetySettings_noFlyHeader => '潜水后飞行';
-
-  @override
-  String get safetySettings_noFlyPreset_standard => '标准(12/18/24 小时)';
-
-  @override
-  String get safetySettings_noFlyPreset_strict => '严格(18/24/48 小时)';
-
-  @override
-  String get safetySettings_noFlyPreset_subtitle => '单次免减压潜水、重复潜水和减压潜水后的指导间隔';
-
-  @override
-  String get safetyHub_title => '安全';
-
-  @override
-  String safetyHub_noFly_active_title(String remaining) {
-    return '禁飞:剩余 $remaining';
-  }
-
-  @override
-  String safetyHub_noFly_until(String time) {
-    return '直到 $time';
-  }
-
-  @override
-  String get safetyHub_noFly_clear_title => '无飞行限制';
-
-  @override
-  String get safetyHub_noFly_clear_subtitle => '过去 48 小时内没有潜水';
-
-  @override
-  String safetyHub_noFly_category_single(int hours) {
-    return '单次免减压潜水后:$hours 小时指导值';
-  }
-
-  @override
-  String safetyHub_noFly_category_repetitive(int hours) {
-    return '重复潜水后:$hours 小时指导值';
-  }
-
-  @override
-  String safetyHub_noFly_category_deco(int hours) {
-    return '减压潜水后:$hours 小时指导值';
-  }
-
-  @override
-  String get safetyHub_noFly_disclaimer =>
-      '自最后一次潜水起的 DAN/UHMS 指导值。不能替代潜水电脑的禁飞时间。';
-
-  @override
-  String get safetyHub_surfaceIntervalLink => '水面间隔工具';
-
-  @override
-  String get safetyHub_surfaceIntervalLink_subtitle => '组织脱饱和教学模型';
-
-  @override
-  String get safetyHub_settingsLink => '安全设置';
-
-  @override
-  String get emergencyCard_title => '紧急情况';
-
-  @override
-  String emergencyCard_callDan(String name) {
-    return '呼叫 $name';
-  }
-
-  @override
-  String get emergencyCard_callDan_subtitle => '潜水员紧急热线。请先拨打:他们负责协调撤离和减压舱转诊。';
-
-  @override
-  String emergencyCard_ems(String number) {
-    return '当地急救电话:$number';
-  }
-
-  @override
-  String get emergencyCard_diverSection => '潜水员';
-
-  @override
-  String emergencyCard_bloodType(String value) {
-    return '血型:$value';
-  }
-
-  @override
-  String emergencyCard_allergies(String value) {
-    return '过敏:$value';
-  }
-
-  @override
-  String emergencyCard_medications(String value) {
-    return '用药:$value';
-  }
-
-  @override
-  String get emergencyCard_contactsSection => '紧急联系人';
-
-  @override
-  String get emergencyCard_insuranceSection => '潜水保险';
-
-  @override
-  String emergencyCard_insurancePolicy(String number) {
-    return '保单 $number';
-  }
-
-  @override
-  String get emergencyCard_chambersSection => '高压氧舱';
-
-  @override
-  String get emergencyCard_chambersNote => '可用性会变化。转诊请务必先拨打潜水员紧急热线。';
-
-  @override
-  String emergencyCard_chamberVerified(String date) {
-    return '信息核实于 $date';
-  }
-
-  @override
-  String get emergencyCard_hideChamber => '隐藏';
-
-  @override
-  String get emergencyCard_chamberHidden => '已隐藏氧舱';
-
-  @override
-  String get emergencyCard_undo => '撤消';
-
-  @override
-  String get emergencyCard_addChamber => '添加减压舱';
-
-  @override
-  String get emergencyCard_deleteChamber => '删除';
-
-  @override
-  String emergencyCard_regionLabel(String region) {
-    return '区域:$region';
-  }
-
-  @override
-  String get emergencyCard_regionUnknown => '区域未知 - 使用全球热线';
-
-  @override
-  String get emergencyCard_noDiverData => '无潜水员资料。请在潜水员资料设置中添加紧急联系人、医疗和保险信息。';
-
-  @override
-  String get addChamber_title => '添加减压舱';
-
-  @override
-  String get addChamber_name => '名称';
-
-  @override
-  String get addChamber_country => '国家代码(如 CN)';
-
-  @override
-  String get addChamber_city => '城市';
-
-  @override
-  String get addChamber_phone => '电话';
-
-  @override
-  String get addChamber_notes => '备注';
-
-  @override
-  String get addChamber_save => '保存';
-
-  @override
-  String get addChamber_nameRequired => '名称为必填项';
-
-  @override
-  String get addChamber_countryRequired => '国家代码为必填项';
-
-  @override
-  String get addChamber_phoneRequired => '电话号码为必填项';
-
-  @override
-  String get safetyHub_emergencyCardLink => '紧急卡片';
-
-  @override
-  String get safetyHub_emergencyCardLink_subtitle => '离线可用:热线、急救、减压舱、你的医疗和保险信息';
-
-  @override
-  String get dashboard_quickAction_emergency => '紧急卡片';
-
-  @override
-  String get diveLog_detail_altitudeMismatch_title => '潜点位于高海拔';
-
-  @override
-  String get diveLog_detail_altitudeMismatch_subtitle =>
-      '该潜点记录了海拔,但此次潜水未设置海拔,因此减压分析按海平面计算。请设置潜水海拔以更正。';
-
-  @override
-  String safetyHub_alert_noFly(String remaining) {
-    return '禁飞:剩余 $remaining';
+  String safetySettings_analyzeAll_doneWithErrors(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '有 $count 次潜水无法分析',
+      one: '有 1 次潜水无法分析',
+    );
+    return '分析完成 — $_temp0';
   }
 
   @override
@@ -11852,7 +12056,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_backToSettings_tooltip => '返回设置';
 
   @override
-  String get settings_cloudSync_appBar_title => '云同步';
+  String get settings_cloudSync_appBar_title => '数据库云同步';
 
   @override
   String get settings_cloudSync_autoSync => '自动同步';
@@ -12290,7 +12494,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_data_backup_subtitle => '创建数据备份';
 
   @override
-  String get settings_data_cloudSync => '云同步';
+  String get settings_data_cloudSync => '数据库云同步';
 
   @override
   String get settings_data_customFolder => '自定义文件夹';
@@ -12425,6 +12629,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_decompression_header_gradientFactors => '梯度因子';
 
   @override
+  String get settings_decompression_header_oxygenToxicity => '氧中毒';
+
+  @override
   String settings_decompression_preset_selectLabel(Object presetName) {
     return '选择 $presetName 保守程度预设';
   }
@@ -12447,6 +12654,65 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_decompression_endLimit_dialog_title => 'END 限制';
+
+  @override
+  String get settings_decompression_cnsMethodTitle => 'CNS 计算';
+
+  @override
+  String get settings_decompression_cnsMethodClassic => 'NOAA 表格，分级（经典）';
+
+  @override
+  String get settings_decompression_cnsMethodClassicDesc =>
+      '在每个 0.1 bar 区间按其更严格的边缘计算。Submersion 最初采用的方法。';
+
+  @override
+  String get settings_decompression_cnsMethodShearwater =>
+      '线性插值（Shearwater 风格）';
+
+  @override
+  String get settings_decompression_cnsMethodShearwaterDesc =>
+      '按照 Shearwater 的记载在 NOAA 限值之间进行插值。与大多数潜水电脑一致。';
+
+  @override
+  String get settings_decompression_cnsMethodSubsurface =>
+      '指数拟合（与 Subsurface 相同）';
+
+  @override
+  String get settings_decompression_cnsMethodSubsurfaceDesc =>
+      '对 NOAA 表格进行平滑曲线拟合。与 Subsurface 计算的 CNS 一致。';
+
+  @override
+  String get settings_decompression_cnsMethodAboutTitle => '关于这些方法';
+
+  @override
+  String get settings_decompression_cnsMethodAboutBody =>
+      '这三种方法都基于 NOAA 潜水手册中的氧气暴露限值（ppO2 为 1.0 bar 时 300 分钟，1.6 bar 时 45 分钟）。该表格仅以 0.1 bar 为步长定义限值：经典方法将某一区间内的所有情况都按该区间更严格的边缘计算，这会系统性地高估各条目之间的暴露量。Shearwater 的潜水电脑记载了在 NOAA 限值之间进行线性插值，并在 1.65 bar 以上采用固定的每分钟 15%。Subsurface 于 2019 年将其表格查找替换为对同一 NOAA 数据的平滑两段式指数拟合（Robert C. Helling），该拟合在 1.6 bar 以上也能自然延伸。在各表格条目之间，两种平滑方法的结果相差约一个 CNS 点以内；经典方法给出的数值更高。';
+
+  @override
+  String get settings_decompression_cnsMethodDisclaimer =>
+      '这些名称指相应项目和制造商已公开发布的方法，并不暗示任何隶属或认可关系。计算得出的数值可能与潜水电脑的实际读数有所不同。';
+
+  @override
+  String get settings_decompression_cnsMethodSourcesTitle => '资料来源';
+
+  @override
+  String get settings_linkOpenFailed => '无法打开链接。';
+
+  @override
+  String get settings_decompression_cnsMethodSourceNoaa =>
+      'NOAA: Diving Program（NOAA Diving Manual 出版方）';
+
+  @override
+  String get settings_decompression_cnsMethodSourceShearwater =>
+      'Shearwater：CNS 氧钟';
+
+  @override
+  String get settings_decompression_cnsMethodSourceTheoreticalDiver =>
+      'The Theoretical Diver：计算氧气 CNS 毒性';
+
+  @override
+  String get settings_decompression_cnsMethodSourceSubsurface =>
+      'Subsurface：实现（divelist.cpp）';
 
   @override
   String get settings_existingDb_cancel => '取消';
@@ -12619,7 +12885,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String settings_lightroom_clientId_help(String redirectUri) {
-    return '在 Adobe Developer Console 中使用 Lightroom Services API 创建集成，并选择支持 PKCE 的凭据类型。将重定向 URI 设置为 $redirectUri。';
+    return '在 Adobe Developer Console 中使用 Lightroom Services API 创建集成，并选择支持 PKCE 的凭据类型。在下方输入您凭据的重定向 URI（Native App 凭据使用自定义方案），或留空以使用 $redirectUri。';
   }
 
   @override
@@ -12629,7 +12895,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_lightroom_clientSecret_label => '客户端密钥（可选）';
 
   @override
+  String get settings_lightroom_redirectUri_label => '重定向 URI（可选）';
+
+  @override
   String get settings_lightroom_connect => '连接 Lightroom';
+
+  @override
+  String get settings_lightroom_connectEmbedded => '使用 Adobe 连接';
+
+  @override
+  String get settings_lightroom_advancedByo => '使用您自己的 Adobe 凭据';
 
   @override
   String get settings_lightroom_connect_codeLabel => '重定向的网址或代码';
@@ -17544,6 +17819,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gpsLogger_tracksHeader => '已记录的轨迹';
 
   @override
+  String get maps_compass_resetLabel => '将地图方向重置为正北';
+
+  @override
+  String get maps_compass_resetTooltip => '正北朝上';
+
+  @override
   String get maps_heatMap_hide => '隐藏热力图';
 
   @override
@@ -19208,4 +19489,519 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get media_unavailablePlaceholder_volumeOffline => '卷未挂载';
+
+  @override
+  String get attrLabel_size => '尺码';
+
+  @override
+  String get attrLabel_thickness_mm => '厚度（毫米）';
+
+  @override
+  String get attrLabel_suit_style => '潜水服款式';
+
+  @override
+  String get attrLabel_shell_material => '外壳材质';
+
+  @override
+  String get attrLabel_seal_type => '密封类型';
+
+  @override
+  String get attrLabel_volume_l => '容积';
+
+  @override
+  String get attrLabel_working_pressure_bar => '工作压力';
+
+  @override
+  String get attrLabel_tank_material => '材质';
+
+  @override
+  String get attrLabel_valve_type => '阀门';
+
+  @override
+  String get attrLabel_tank_identifier => '标识';
+
+  @override
+  String get attrLabel_last_visual_inspection => '上次目视检查';
+
+  @override
+  String get attrLabel_last_hydro_test => '上次水压测试';
+
+  @override
+  String get attrLabel_connection => '接口';
+
+  @override
+  String get attrLabel_cold_water_rated => '适用于冷水';
+
+  @override
+  String get attrLabel_bcd_style => '款式';
+
+  @override
+  String get attrLabel_lift_capacity_kg => '浮力提升量';
+
+  @override
+  String get attrLabel_heel_type => '脚跟类型';
+
+  @override
+  String get attrLabel_blade_style => '蹼叶';
+
+  @override
+  String get attrLabel_mount => '佩戴方式';
+
+  @override
+  String get attrLabel_connectivity => '连接方式';
+
+  @override
+  String get attrLabel_lens_config => '镜片';
+
+  @override
+  String get attrLabel_prescription => '度数镜片';
+
+  @override
+  String get attrLabel_weight_style => '款式';
+
+  @override
+  String get attrLabel_lumens => '流明';
+
+  @override
+  String get attrLabel_beam_type => '光束';
+
+  @override
+  String get attrLabel_depth_rating_m => '防水深度';
+
+  @override
+  String get attrLabel_smb_type => '类型';
+
+  @override
+  String get attrLabel_length_m => '长度';
+
+  @override
+  String get attrLabel_reel_type => '类型';
+
+  @override
+  String get attrLabel_line_length_m => '线长';
+
+  @override
+  String get attrLabel_blade_material => '刀刃材质';
+
+  @override
+  String get attrLabel_tip_type => '刀尖';
+
+  @override
+  String get attrLabel_glove_type => '类型';
+
+  @override
+  String get attrLabel_sole_type => '鞋底';
+
+  @override
+  String get attrLabel_buoyancy_kg => '浮力';
+
+  @override
+  String get attrLabel_dry_weight_kg => '干重';
+
+  @override
+  String get attrChoice_suit_style_full => '全身湿衣';
+
+  @override
+  String get attrChoice_suit_style_shorty => '短款湿衣';
+
+  @override
+  String get attrChoice_suit_style_two_piece => '两件式';
+
+  @override
+  String get attrChoice_suit_style_semi_dry => '半干式';
+
+  @override
+  String get attrChoice_shell_material_trilaminate => '三层复合';
+
+  @override
+  String get attrChoice_shell_material_neoprene => '氯丁橡胶';
+
+  @override
+  String get attrChoice_shell_material_crushed_neoprene => '压缩氯丁橡胶';
+
+  @override
+  String get attrChoice_shell_material_vulcanized_rubber => '硫化橡胶';
+
+  @override
+  String get attrChoice_seal_type_latex => '乳胶';
+
+  @override
+  String get attrChoice_seal_type_silicone => '硅胶';
+
+  @override
+  String get attrChoice_seal_type_neoprene => '氯丁橡胶';
+
+  @override
+  String get attrChoice_tank_material_aluminum => '铝';
+
+  @override
+  String get attrChoice_tank_material_steel => '钢';
+
+  @override
+  String get attrChoice_tank_material_carbon_composite => '碳纤维复合';
+
+  @override
+  String get attrChoice_valve_type_din => 'DIN';
+
+  @override
+  String get attrChoice_valve_type_yoke => '卡箍式 (INT)';
+
+  @override
+  String get attrChoice_valve_type_convertible => '两用式';
+
+  @override
+  String get attrChoice_connection_din => 'DIN';
+
+  @override
+  String get attrChoice_connection_yoke => '卡箍式 (INT)';
+
+  @override
+  String get attrChoice_bcd_style_jacket => '夹克式';
+
+  @override
+  String get attrChoice_bcd_style_back_inflate => '背囊式';
+
+  @override
+  String get attrChoice_bcd_style_wing => '翼式';
+
+  @override
+  String get attrChoice_bcd_style_sidemount => '侧挂式';
+
+  @override
+  String get attrChoice_heel_type_open_heel => '开放式脚跟';
+
+  @override
+  String get attrChoice_heel_type_full_foot => '全包脚';
+
+  @override
+  String get attrChoice_blade_style_paddle => '桨式';
+
+  @override
+  String get attrChoice_blade_style_split => '分叉式';
+
+  @override
+  String get attrChoice_blade_style_vented => '导流式';
+
+  @override
+  String get attrChoice_mount_wrist => '腕戴式';
+
+  @override
+  String get attrChoice_mount_console => '表盘式';
+
+  @override
+  String get attrChoice_mount_hud => 'HUD';
+
+  @override
+  String get attrChoice_connectivity_ble => '蓝牙 (BLE)';
+
+  @override
+  String get attrChoice_connectivity_usb => 'USB';
+
+  @override
+  String get attrChoice_connectivity_infrared => '红外';
+
+  @override
+  String get attrChoice_connectivity_none => '无';
+
+  @override
+  String get attrChoice_lens_config_single => '单镜片';
+
+  @override
+  String get attrChoice_lens_config_twin => '双镜片';
+
+  @override
+  String get attrChoice_lens_config_frameless => '无框';
+
+  @override
+  String get attrChoice_weight_style_belt => '配重带';
+
+  @override
+  String get attrChoice_weight_style_integrated => '集成式';
+
+  @override
+  String get attrChoice_weight_style_trim => '配平';
+
+  @override
+  String get attrChoice_weight_style_ankle => '脚踝';
+
+  @override
+  String get attrChoice_beam_type_spot => '聚光';
+
+  @override
+  String get attrChoice_beam_type_flood => '泛光';
+
+  @override
+  String get attrChoice_beam_type_adjustable => '可调';
+
+  @override
+  String get attrChoice_smb_type_open => '开放式';
+
+  @override
+  String get attrChoice_smb_type_closed => '封闭式';
+
+  @override
+  String get attrChoice_reel_type_spool => '线轴';
+
+  @override
+  String get attrChoice_reel_type_ratchet => '棘轮卷线器';
+
+  @override
+  String get attrChoice_blade_material_stainless => '不锈钢';
+
+  @override
+  String get attrChoice_blade_material_titanium => '钛';
+
+  @override
+  String get attrChoice_tip_type_pointed => '尖头';
+
+  @override
+  String get attrChoice_tip_type_blunt => '钝头';
+
+  @override
+  String get attrChoice_tip_type_line_cutter => '割线器';
+
+  @override
+  String get attrChoice_glove_type_five_finger => '五指';
+
+  @override
+  String get attrChoice_glove_type_mitt => '连指';
+
+  @override
+  String get attrChoice_glove_type_dry => '干式';
+
+  @override
+  String get attrChoice_sole_type_hard => '硬底';
+
+  @override
+  String get attrChoice_sole_type_soft => '软底';
+
+  @override
+  String get equipment_edit_customFieldsTitle => '自定义字段';
+
+  @override
+  String get equipment_edit_addCustomField => '添加自定义字段';
+
+  @override
+  String get attr_flagYes => '是';
+
+  @override
+  String get attr_flagNo => '否';
+
+  @override
+  String get equipment_edit_invalidThickness => '请输入 5、5/4 或 7/5/3';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_title => '按潜水服厚度统计';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_subtitle =>
+      '您潜水时所穿潜水服的主要厚度';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_empty =>
+      '没有记录潜水服厚度的潜水';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_error => '无法加载潜水服厚度数据';
+
+  @override
+  String get diveLog_filter_sectionSuitThickness => '潜水服厚度（毫米）';
+
+  @override
+  String get diveLog_filter_thicknessMin => '最小';
+
+  @override
+  String get diveLog_filter_thicknessMax => '最大';
+
+  @override
+  String get safetySettings_noFlyHeader => '潜水后飞行';
+
+  @override
+  String get safetySettings_noFlyPreset_standard => '标准(12/18/24 小时)';
+
+  @override
+  String get safetySettings_noFlyPreset_strict => '严格(18/24/48 小时)';
+
+  @override
+  String get safetySettings_noFlyPreset_subtitle => '单次免减压潜水、重复潜水和减压潜水后的指导间隔';
+
+  @override
+  String get safetyHub_title => '安全';
+
+  @override
+  String safetyHub_noFly_active_title(String remaining) {
+    return '禁飞:剩余 $remaining';
+  }
+
+  @override
+  String safetyHub_noFly_until(String time) {
+    return '直到 $time';
+  }
+
+  @override
+  String get safetyHub_noFly_clear_title => '无飞行限制';
+
+  @override
+  String get safetyHub_noFly_clear_subtitle => '无活动的飞行限制';
+
+  @override
+  String safetyHub_noFly_category_single(int hours) {
+    return '单次免减压潜水后:$hours 小时指导值';
+  }
+
+  @override
+  String safetyHub_noFly_category_repetitive(int hours) {
+    return '重复潜水后:$hours 小时指导值';
+  }
+
+  @override
+  String safetyHub_noFly_category_deco(int hours) {
+    return '减压潜水后:$hours 小时指导值';
+  }
+
+  @override
+  String get safetyHub_noFly_disclaimer =>
+      '自最后一次潜水起的 DAN/UHMS 指导值。不能替代潜水电脑的禁飞时间。';
+
+  @override
+  String get safetyHub_surfaceIntervalLink => '水面间隔工具';
+
+  @override
+  String get safetyHub_surfaceIntervalLink_subtitle => '组织脱饱和教学模型';
+
+  @override
+  String get safetyHub_settingsLink => '安全设置';
+
+  @override
+  String get diveLog_detail_altitudeMismatch_title => '潜点位于高海拔';
+
+  @override
+  String get diveLog_detail_altitudeMismatch_subtitle =>
+      '该潜点记录了海拔,但此次潜水未设置海拔,因此减压分析按海平面计算。请设置潜水海拔以更正。';
+
+  @override
+  String safetyHub_alert_noFly(String remaining) {
+    return '禁飞:剩余 $remaining';
+  }
+
+  @override
+  String get emergencyCard_title => '紧急情况';
+
+  @override
+  String emergencyCard_callDan(String name) {
+    return '呼叫 $name';
+  }
+
+  @override
+  String get emergencyCard_callDan_subtitle => '潜水员紧急热线。请先拨打:他们负责协调撤离和减压舱转诊。';
+
+  @override
+  String emergencyCard_ems(String number) {
+    return '当地急救电话:$number';
+  }
+
+  @override
+  String get emergencyCard_diverSection => '潜水员';
+
+  @override
+  String emergencyCard_bloodType(String value) {
+    return '血型:$value';
+  }
+
+  @override
+  String emergencyCard_allergies(String value) {
+    return '过敏:$value';
+  }
+
+  @override
+  String emergencyCard_medications(String value) {
+    return '用药:$value';
+  }
+
+  @override
+  String get emergencyCard_contactsSection => '紧急联系人';
+
+  @override
+  String get emergencyCard_insuranceSection => '潜水保险';
+
+  @override
+  String emergencyCard_insurancePolicy(String number) {
+    return '保单 $number';
+  }
+
+  @override
+  String get emergencyCard_chambersSection => '高压氧舱';
+
+  @override
+  String get emergencyCard_chambersNote => '可用性会变化。转诊请务必先拨打潜水员紧急热线。';
+
+  @override
+  String emergencyCard_chamberVerified(String date) {
+    return '信息核实于 $date';
+  }
+
+  @override
+  String get emergencyCard_hideChamber => '隐藏';
+
+  @override
+  String get emergencyCard_chamberHidden => '已隐藏氧舱';
+
+  @override
+  String get emergencyCard_undo => '撤消';
+
+  @override
+  String get emergencyCard_addChamber => '添加减压舱';
+
+  @override
+  String get emergencyCard_deleteChamber => '删除';
+
+  @override
+  String emergencyCard_regionLabel(String region) {
+    return '区域:$region';
+  }
+
+  @override
+  String get emergencyCard_regionUnknown => '区域未知 - 使用全球热线';
+
+  @override
+  String get emergencyCard_noDiverData => '无潜水员资料。请在潜水员资料设置中添加紧急联系人、医疗和保险信息。';
+
+  @override
+  String get addChamber_title => '添加减压舱';
+
+  @override
+  String get addChamber_name => '名称';
+
+  @override
+  String get addChamber_country => '国家代码(如 CN)';
+
+  @override
+  String get addChamber_city => '城市';
+
+  @override
+  String get addChamber_phone => '电话';
+
+  @override
+  String get addChamber_notes => '备注';
+
+  @override
+  String get addChamber_save => '保存';
+
+  @override
+  String get addChamber_nameRequired => '名称为必填项';
+
+  @override
+  String get addChamber_countryRequired => '国家代码为必填项';
+
+  @override
+  String get addChamber_phoneRequired => '电话号码为必填项';
+
+  @override
+  String get safetyHub_emergencyCardLink => '紧急卡片';
+
+  @override
+  String get safetyHub_emergencyCardLink_subtitle => '离线可用:热线、急救、减压舱、你的医疗和保险信息';
+
+  @override
+  String get dashboard_quickAction_emergency => '紧急卡片';
 }

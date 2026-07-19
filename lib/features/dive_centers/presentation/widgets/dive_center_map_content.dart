@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_centers/domain/entities/dive_center.dar
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_compass_button.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/shared/widgets/map_list_layout/map_info_card.dart';
@@ -265,6 +266,14 @@ class _DiveCenterMapContentState extends ConsumerState<DiveCenterMapContent>
               const MapAttribution(),
             ],
           ),
+        ),
+
+        // Reset-to-north compass (hidden until the map is rotated), tucked
+        // below the fit-all control so the two controls stack rather than overlap.
+        Positioned(
+          top: 64,
+          right: 8,
+          child: MapCompassButton(controller: _mapController),
         ),
 
         // Empty state overlay

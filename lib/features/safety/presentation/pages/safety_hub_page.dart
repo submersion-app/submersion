@@ -6,8 +6,8 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
+import 'package:submersion/features/safety/presentation/formatters/no_fly_format.dart';
 import 'package:submersion/features/safety/presentation/providers/no_fly_providers.dart';
-import 'package:submersion/features/safety/presentation/utils/no_fly_format.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -48,33 +48,23 @@ class _SafetyHubPageState extends ConsumerState<SafetyHubPage> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Only render the all-clear/active card from real data. During
-          // loading or on error, show an explicit state instead of letting a
-          // null value read as "no flying restriction" on a safety banner.
-          statusAsync.when(
-            data: (status) => _NoFlyCard(status: status),
-            loading: () => const Card(
-              child: Padding(
-                padding: EdgeInsets.all(16),
-                child: Center(
-                  child: SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                ),
-              ),
+          // Only render the all-clear/active card once we actually have a
+          // result. During the very first load or an error with no prior
+          // value, show an explicit placeholder instead of silently implying
+          // "no restriction" -- misleading for a safety readout. A refresh
+          // after data exists keeps the retained value (no flicker).
+          if (statusAsync.hasValue)
+            _NoFlyCard(status: statusAsync.value)
+          else if (statusAsync.hasError)
+            _NoFlyStatusPlaceholder(
+              icon: Icons.error_outline,
+              text: l10n.common_label_error,
+            )
+          else
+            _NoFlyStatusPlaceholder(
+              icon: Icons.hourglass_empty,
+              text: l10n.common_label_loading,
             ),
-            error: (_, _) => Card(
-              child: ListTile(
-                leading: Icon(
-                  Icons.error_outline,
-                  color: Theme.of(context).colorScheme.error,
-                ),
-                title: Text(l10n.common_error_tryAgain),
-              ),
-            ),
-          ),
           const SizedBox(height: 16),
           Card(
             child: ListTile(
@@ -121,7 +111,7 @@ class _NoFlyCard extends StatelessWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final now = DateTime.now().toUtc();
-    final active = status != null && status!.until.isAfter(now);
+    final active = status != null && status!.isActiveAt(now);
 
     if (!active) {
       return Card(
@@ -197,5 +187,25 @@ class _NoFlyCard extends StatelessWidget {
       ),
       NoFlyCategory.deco => l10n.safetyHub_noFly_category_deco(hours),
     };
+  }
+}
+
+/// Neutral placeholder shown while the no-fly status is still loading or has
+/// failed to load, so the hub never implies "no restriction" before it knows.
+class _NoFlyStatusPlaceholder extends StatelessWidget {
+  final IconData icon;
+  final String text;
+
+  const _NoFlyStatusPlaceholder({required this.icon, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Card(
+      child: ListTile(
+        leading: Icon(icon, color: theme.colorScheme.onSurfaceVariant),
+        title: Text(text),
+      ),
+    );
   }
 }

@@ -18,15 +18,56 @@ class DiveModeSelector extends StatelessWidget {
   /// Whether the selector is enabled.
   final bool enabled;
 
+  /// Renders only the segmented button (no title, no description) so the
+  /// selector can sit on the trailing side of a form row.
+  final bool dense;
+
   const DiveModeSelector({
     super.key,
     required this.selectedMode,
     required this.onChanged,
     this.enabled = true,
+    this.dense = false,
   });
+
+  /// Localized one-line description of [mode], for captions outside this
+  /// widget (e.g. under a dense mode row).
+  static String descriptionFor(BuildContext context, DiveMode mode) {
+    switch (mode) {
+      case DiveMode.oc:
+        return context.l10n.diveLog_diveMode_ocDescription;
+      case DiveMode.ccr:
+        return context.l10n.diveLog_diveMode_ccrDescription;
+      case DiveMode.scr:
+        return context.l10n.diveLog_diveMode_scrDescription;
+      case DiveMode.gauge:
+        return context.l10n.diveLog_diveMode_gaugeDescription;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final selector = SegmentedButton<DiveMode>(
+      style: const ButtonStyle(visualDensity: VisualDensity.compact),
+      segments: DiveMode.values.map((mode) {
+        return ButtonSegment<DiveMode>(
+          value: mode,
+          label: Text(mode.name.toUpperCase()),
+          tooltip: mode.displayName,
+          icon: Icon(_getIconForMode(mode), size: 18),
+        );
+      }).toList(),
+      selected: {selectedMode},
+      onSelectionChanged: enabled
+          ? (selection) {
+              if (selection.isNotEmpty) {
+                onChanged(selection.first);
+              }
+            }
+          : null,
+      showSelectedIcon: false,
+    );
+    if (dense) return selector;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -35,31 +76,13 @@ class DiveModeSelector extends StatelessWidget {
           style: Theme.of(context).textTheme.titleSmall,
         ),
         const SizedBox(height: 8),
-        SegmentedButton<DiveMode>(
-          segments: DiveMode.values.map((mode) {
-            return ButtonSegment<DiveMode>(
-              value: mode,
-              label: Text(mode.name.toUpperCase()),
-              tooltip: mode.displayName,
-              icon: Icon(_getIconForMode(mode), size: 18),
-            );
-          }).toList(),
-          selected: {selectedMode},
-          onSelectionChanged: enabled
-              ? (selection) {
-                  if (selection.isNotEmpty) {
-                    onChanged(selection.first);
-                  }
-                }
-              : null,
-          showSelectedIcon: false,
-        ),
+        selector,
         const SizedBox(height: 4),
         Semantics(
           label:
-              'Selected mode: ${selectedMode.name.toUpperCase()}, ${_getDescriptionForMode(context, selectedMode)}',
+              'Selected mode: ${selectedMode.name.toUpperCase()}, ${descriptionFor(context, selectedMode)}',
           child: Text(
-            _getDescriptionForMode(context, selectedMode),
+            descriptionFor(context, selectedMode),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -79,19 +102,6 @@ class DiveModeSelector extends StatelessWidget {
         return Icons.sync_alt; // Semi-closed - partial loop
       case DiveMode.gauge:
         return Icons.timer_outlined; // Gauge / bottom timer - depth & time only
-    }
-  }
-
-  String _getDescriptionForMode(BuildContext context, DiveMode mode) {
-    switch (mode) {
-      case DiveMode.oc:
-        return context.l10n.diveLog_diveMode_ocDescription;
-      case DiveMode.ccr:
-        return context.l10n.diveLog_diveMode_ccrDescription;
-      case DiveMode.scr:
-        return context.l10n.diveLog_diveMode_scrDescription;
-      case DiveMode.gauge:
-        return context.l10n.diveLog_diveMode_gaugeDescription;
     }
   }
 }

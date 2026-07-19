@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_field.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -19,8 +20,14 @@ void main() {
     brand: 'Apeks',
     model: 'XTX 200',
     serialNumber: 'SN-12345',
-    size: 'DIN',
     status: EquipmentStatus.active,
+    attributes: [
+      EquipmentAttribute.curated(
+        equipmentId: 'equip-1',
+        key: 'size',
+        valueText: 'DIN',
+      ),
+    ],
     isActive: true,
     purchaseDate: DateTime(2023, 1, 15),
     purchasePrice: 599.99,

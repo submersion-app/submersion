@@ -43,6 +43,12 @@ class NoFlyStatus {
 
   Duration remaining(DateTime now) =>
       until.isAfter(now) ? until.difference(now) : Duration.zero;
+
+  /// Whether the restriction is still in effect at [now]. A [NoFlyStatus] is a
+  /// snapshot: once computed it can be cached past its deadline (e.g. on the
+  /// dashboard), so consumers must re-check against the clock rather than
+  /// treating a non-null status as active.
+  bool isActiveAt(DateTime now) => until.isAfter(now);
 }
 
 /// Classifies the trailing dive window per DAN/UHMS flying-after-diving

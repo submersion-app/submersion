@@ -36,6 +36,7 @@ final planCalculatorServiceProvider = Provider<PlanCalculatorService>((ref) {
     ppO2Warning: ppO2MaxWorking,
     ppO2Critical: ppO2MaxDeco,
     cnsWarningThreshold: cnsWarningThreshold,
+    cnsMethod: ref.watch(cnsCalculationMethodProvider),
   );
 });
 
@@ -155,6 +156,23 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     final segments = state.segments.map((s) {
       return s.id == id ? segment : s;
     }).toList();
+    state = state.copyWith(
+      segments: segments,
+      isDirty: true,
+      updatedAt: DateTime.now(),
+    );
+  }
+
+  /// Replace one segment with one or more segments in place (used by the
+  /// chart's split gesture). Orders are renumbered.
+  void replaceSegment(String id, List<PlanSegment> replacements) {
+    final segments = List<PlanSegment>.from(state.segments);
+    final index = segments.indexWhere((s) => s.id == id);
+    if (index < 0) return;
+    segments
+      ..removeAt(index)
+      ..insertAll(index, replacements);
+    _updateSegmentOrders(segments);
     state = state.copyWith(
       segments: segments,
       isDirty: true,
@@ -328,6 +346,16 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   void updateSacRate(double sacRate) {
     state = state.copyWith(
       sacRate: sacRate,
+      isDirty: true,
+      updatedAt: DateTime.now(),
+    );
+  }
+
+  /// Update ascent and/or descent rate in meters per minute.
+  void updateRates({double? ascent, double? descent}) {
+    state = state.copyWith(
+      ascentRate: ascent,
+      descentRate: descent,
       isDirty: true,
       updatedAt: DateTime.now(),
     );

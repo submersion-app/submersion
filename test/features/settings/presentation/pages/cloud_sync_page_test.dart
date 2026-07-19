@@ -589,7 +589,7 @@ void main() {
     ) async {
       await pumpPage(tester);
 
-      expect(find.text('Cloud Sync'), findsOneWidget);
+      expect(find.text('Database Cloud Sync'), findsOneWidget);
       // Provider section header and provider tiles. Google Drive is hidden
       // until its integration is fully implemented.
       expect(find.text('Cloud Provider'), findsOneWidget);

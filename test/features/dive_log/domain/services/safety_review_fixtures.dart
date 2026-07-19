@@ -2,11 +2,20 @@ import 'package:submersion/features/dive_log/data/services/profile_analysis_serv
 
 /// Runs the real profile analysis over a synthetic profile.
 /// Default settings: air, GF 30/70, sea level.
+///
+/// [ascentRateWarning] / [ascentRateCritical] mirror the diver's configurable
+/// ascent-rate alarm thresholds; they let tests prove the safety rule ignores
+/// them in favour of its own fixed design thresholds.
 ProfileAnalysis analyzeFixture({
   required List<double> depths,
   required List<int> timestamps,
+  double ascentRateWarning = 9.0,
+  double ascentRateCritical = 12.0,
 }) {
-  final service = ProfileAnalysisService();
+  final service = ProfileAnalysisService(
+    ascentRateWarning: ascentRateWarning,
+    ascentRateCritical: ascentRateCritical,
+  );
   return service.analyze(
     diveId: 'fixture-dive',
     depths: depths,

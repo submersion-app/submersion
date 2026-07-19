@@ -729,10 +729,16 @@
   "common_label_loading": "Carregando",
   "common_placeholder_noValue": "--",
   "courses_action_add": "Adicionar Curso",
+  "courses_action_addFromTemplate": "Adicionar a partir de modelo",
+  "courses_action_addRequirement": "Adicionar requisito",
   "courses_action_create": "Criar Curso",
+  "courses_action_deleteRequirement": "Excluir requisito",
   "courses_action_edit": "Editar curso",
+  "courses_action_editRequirement": "Editar requisito",
   "courses_action_exportTrainingLog": "Exportar Registro de Treinamento",
+  "courses_action_linkDive": "Vincular",
   "courses_action_markCompleted": "Marcar como Concluído",
+  "courses_action_unlinkDive": "Desvincular mergulho",
   "courses_action_moreOptions": "Mais opções",
   "courses_action_retry": "Tentar novamente",
   "courses_action_saveChanges": "Salvar Alterações",
@@ -785,16 +791,26 @@
   "courses_picker_selectTitle": "Selecionar Curso de Treinamento",
   "courses_picker_selected": "selecionado",
   "courses_picker_tapToLink": "Toque para vincular a um curso de treinamento",
+  "courses_requirement_diveProgress": "{count} de {target} mergulhos",
+  "courses_requirement_field_name": "Nome",
+  "courses_requirement_field_targetCount": "Mergulhos necessários",
+  "courses_requirement_kind_checklist": "Item de verificação",
+  "courses_requirement_kind_dive": "Requisito de mergulho",
+  "courses_requirement_suggestions": "Mergulhos sugeridos",
+  "courses_requirements_empty": "Acompanhe mergulhos de aventura, pré-requisitos e itens de verificação deste curso.",
+  "courses_requirements_progress": "{satisfied} de {total} concluídos",
   "courses_section_details": "Detalhes do Curso",
   "courses_section_earnedCertification": "Certificação Obtida",
   "courses_section_instructor": "Instrutor",
   "courses_section_notes": "Notas",
+  "courses_section_requirements": "Requisitos",
   "courses_section_trainingDives": "Mergulhos de Treinamento",
   "courses_status_completed": "Concluído",
   "courses_status_daysSinceStart": "{days} dias desde o início",
   "courses_status_durationDays": "{days} dias",
   "courses_status_inProgress": "Em Andamento",
   "courses_status_semanticLabel": "{status}, {duration}",
+  "courses_template_addsCount": "Adiciona {count} requisitos",
   "courses_summary_overview": "Visão Geral",
   "courses_summary_quickActions": "Ações Rápidas",
   "courses_summary_recentCourses": "Cursos Recentes",
@@ -806,6 +822,7 @@
   "courses_title_new": "Novo Curso",
   "courses_title_singular": "Curso",
   "courses_validation_nameRequired": "Digite um nome para o curso",
+  "dashboard_activeCourses_title": "Cursos em andamento",
   "dashboard_activity_daySinceDiving": "Dia sem mergulhar",
   "dashboard_activity_daysSinceDiving": "Dias sem mergulhar",
   "dashboard_activity_diveInYear": "Mergulho em {year}",
@@ -1553,6 +1570,12 @@
   "diveLog_edit_noMarineLife": "Nenhuma vida marinha registrada",
   "diveLog_edit_notSpecified": "Nao especificado",
   "diveLog_edit_notesHint": "Adicione anotacoes sobre este mergulho...",
+  "diveLog_edit_overline_tanks": "Cilindros",
+  "diveLog_edit_profile_draw": "Desenhar um perfil",
+  "diveLog_edit_profile_none": "Nao registrado",
+  "diveLog_edit_profile_outliers": "{count, plural, one{1 possivel valor atipico detectado} other{{count} possiveis valores atipicos detectados}}",
+  "diveLog_edit_profile_points": "{count, plural, one{1 ponto} other{{count} pontos}}",
+  "diveLog_edit_row_diveProfile": "Perfil de mergulho",
   "diveLog_edit_row_addSite": "Adicionar ponto",
   "diveLog_edit_row_diveCenter": "Operadora de mergulho",
   "diveLog_edit_row_entry": "Entrada",
@@ -2383,6 +2406,7 @@
   "diveSites_edit_section_gpsCoordinates": "Coordenadas GPS",
   "diveSites_edit_section_hazards": "Perigos e Seguranca",
   "diveSites_edit_section_rating": "Avaliacao",
+  "diveSites_edit_section_waterType": "Tipo de água",
   "diveSites_edit_snackbar_errorDeleting": "Erro ao excluir ponto: {error}",
   "diveSites_edit_snackbar_errorSaving": "Erro ao salvar ponto: {error}",
   "diveSites_edit_snackbar_locationCaptured": "Localizacao capturada",
@@ -2988,6 +3012,61 @@
   "equipment_detail_retiredChip": "Aposentado",
   "equipment_detail_serialNumberLabel": "Numero de Serie",
   "equipment_detail_serviceInfoTitle": "Informacoes de Manutencao",
+  "equipment_serviceClocks_title": "Prazos de manutenção",
+  "equipment_serviceClocks_addClock": "Adicionar prazo",
+  "equipment_serviceClocks_logService": "Registrar manutenção",
+  "equipment_serviceClocks_edit": "Editar intervalos",
+  "equipment_serviceClocks_pause": "Pausar",
+  "equipment_serviceClocks_resume": "Retomar",
+  "equipment_serviceClocks_remove": "Remover",
+  "equipment_serviceClocks_paused": "Pausado",
+  "equipment_serviceClocks_empty": "Nenhum prazo de manutenção",
+  "equipment_serviceClocks_dueOn": "Vence em {date}",
+  "equipment_serviceClocks_overdueSince": "Atrasado desde {date}",
+  "equipment_serviceClocks_overdue": "Atrasado",
+  "equipment_serviceClocks_divesLeft": "Restam {remaining} de {total} mergulhos",
+  "equipment_serviceClocks_hoursLeft": "Restam {remaining} de {total} horas",
+  "equipment_serviceClocks_manageKinds": "Gerenciar tipos de manutenção",
+  "equipment_serviceClocks_appliesToClock": "Aplica-se ao prazo",
+  "equipment_serviceClocks_noClockOption": "Não vinculado a um prazo",
+  "equipment_scheduleDialog_title": "Editar prazo",
+  "equipment_scheduleDialog_intervalDays": "Intervalo (dias)",
+  "equipment_scheduleDialog_intervalDives": "Intervalo (mergulhos)",
+  "equipment_scheduleDialog_intervalHours": "Intervalo (horas)",
+  "equipment_scheduleDialog_inheritHint": "Padrão: {value}",
+  "equipment_scheduleDialog_anchorDate": "Data de referência",
+  "equipment_scheduleDialog_anchorHint": "Usada quando ainda não existe nenhum registro de manutenção deste tipo",
+  "equipment_scheduleDialog_clearAnchor": "Limpar data de referência",
+  "equipment_scheduleDialog_save": "Salvar",
+  "equipment_scheduleDialog_cancel": "Cancelar",
+  "equipment_serviceKinds_title": "Tipos de manutenção",
+  "equipment_serviceKinds_builtIn": "Integrados",
+  "equipment_serviceKinds_custom": "Personalizados",
+  "equipment_serviceKinds_add": "Adicionar tipo de manutenção",
+  "equipment_serviceKinds_editTitle": "Editar tipo de manutenção",
+  "equipment_serviceKinds_nameLabel": "Nome",
+  "equipment_serviceKinds_nameRequired": "O nome é obrigatório",
+  "equipment_serviceKinds_appliesTo": "Aplica-se a",
+  "equipment_serviceKinds_autoAttach": "Associar automaticamente a equipamentos novos",
+  "equipment_serviceKinds_deleteConfirmTitle": "Excluir tipo de manutenção?",
+  "equipment_serviceKinds_deleteConfirmBody": "Os prazos que usam este tipo de manutenção serão removidos.",
+  "equipment_serviceKinds_delete": "Excluir",
+  "equipment_serviceKinds_cancel": "Cancelar",
+  "equipment_serviceKinds_save": "Salvar",
+  "equipment_serviceKinds_emptyCustom": "Ainda não há tipos de manutenção personalizados",
+  "equipment_serviceKinds_everyDays": "a cada {days} dias",
+  "equipment_serviceKinds_everyDives": "a cada {dives} mergulhos",
+  "equipment_serviceKinds_everyHours": "a cada {hours} horas",
+  "dashboard_serviceDue_title": "Manutenção pendente",
+  "dashboard_serviceDue_more": "+{count} mais",
+  "dashboard_alerts_clockDue": "{name}: {kind} pendente",
+  "dashboard_alerts_clockOverdue": "{name}: {kind} em atraso",
+  "equipment_list_worstClock": "{kind} em atraso",
+  "trips_serviceAlert_count": "{count, plural, =1{1 equipamento precisa de manutenção antes desta viagem} other{{count} equipamentos precisam de manutenção antes desta viagem}}",
+  "trips_serviceAlert_dueBefore": "{kind} vence em {date}",
+  "trips_serviceAlert_overdue": "{kind} em atraso",
+  "settings_notifications_tripLeadTitle": "Antecedência do aviso de manutenção para viagens",
+  "settings_notifications_tripLeadDays": "{days} dias antes de uma viagem",
   "equipment_detail_serviceIntervalLabel": "Intervalo de Manutencao",
   "equipment_detail_serviceIntervalValue": "{days} dias",
   "equipment_detail_serviceOverdue": "Manutencao em atraso!",
@@ -3051,6 +3130,7 @@
   "equipment_edit_snackbar_error": "Erro ao salvar equipamento: {error}",
   "equipment_edit_snackbar_updated": "Equipamento atualizado",
   "equipment_edit_statusLabel": "Status",
+  "equipment_edit_thicknessDesignationHint": "ex: 5, 5/4, 7/5/3",
   "equipment_edit_thicknessHint": "ex: 5mm, 7mm",
   "equipment_edit_thicknessLabel": "Espessura",
   "equipment_edit_typeLabel": "Tipo *",
@@ -3076,6 +3156,7 @@
   "equipment_list_sortTitle": "Ordenar Equipamento",
   "equipment_list_sortTooltip": "Ordenar",
   "equipment_list_tile_daysCount": "{days} dias",
+  "equipment_list_tile_serviceInDays": "{days, plural, =1{Manutencao em 1 dia} other{Manutencao em {days} dias}}",
   "equipment_list_tile_serviceDueChip": "Manutencao Pendente",
   "equipment_list_tile_serviceIn": "Manutencao em",
   "equipment_menu_delete": "Excluir",
@@ -3312,6 +3393,8 @@
   "gas_tmx1845_displayName": "Tx 18/45",
   "gas_tmx2135_description": "Trimix normoxico 21/35",
   "gas_tmx2135_displayName": "Tx 21/35",
+  "maps_compass_resetLabel": "Redefinir a orientação do mapa para o norte",
+  "maps_compass_resetTooltip": "Norte para cima",
   "maps_heatMap_hide": "Ocultar Mapa de Calor",
   "maps_heatMap_overlayOff": "Sobreposicao do mapa de calor desativada",
   "maps_heatMap_overlayOn": "Sobreposicao do mapa de calor ativada",
@@ -3468,6 +3551,9 @@
   "media_miniProfile_headerLabel": "Perfil do Mergulho",
   "media_miniProfile_semanticLabel": "Grafico mini do perfil de mergulho",
   "media_photoPicker_appBarTitle": "Selecionar Fotos",
+  "media_photoPicker_tab_gallery": "Galeria",
+  "media_photoPicker_tab_files": "Arquivos",
+  "media_photoPicker_tab_url": "URL",
   "media_photoPicker_clearSelectionButton": "Limpar",
   "media_photoPicker_closeTooltip": "Fechar seletor de fotos",
   "media_photoPicker_doneButton": "Concluido",
@@ -3485,6 +3571,18 @@
   "media_photoPicker_thumbnailAlreadyLinkedLabel": "Foto ja vinculada a este mergulho",
   "media_photoPicker_thumbnailToggleLabel": "Alternar selecao da foto",
   "media_photoPicker_thumbnailToggleSelectedLabel": "Alternar selecao da foto, selecionada",
+  "media_perdixOverlay_labelCns": "CNS",
+  "media_perdixOverlay_labelDepth": "PROF",
+  "media_perdixOverlay_labelGas": "GAS",
+  "media_perdixOverlay_labelMax": "MAX",
+  "media_perdixOverlay_labelNdl": "NDL",
+  "media_perdixOverlay_labelPpo2": "PPO2",
+  "media_perdixOverlay_labelStop": "STOP",
+  "media_perdixOverlay_labelTank": "TANK",
+  "media_perdixOverlay_labelTemp": "TEMP",
+  "media_perdixOverlay_labelTime": "TEMPO",
+  "media_perdixOverlay_labelTts": "TTS",
+  "media_perdixOverlay_toggleTooltip": "Sobreposição de computador de mergulho",
   "media_photoViewer_cannotShare": "Nao e possivel compartilhar esta foto",
   "media_photoViewer_cannotWriteMetadata": "Nao e possivel gravar metadados - midia nao vinculada a biblioteca",
   "media_photoViewer_closeTooltip": "Fechar visualizador de fotos",
@@ -3574,6 +3672,8 @@
   "plannerCanvas_ccr_setpointHigh": "Setpoint alto (bar)",
   "plannerCanvas_ccr_setpointLow": "Setpoint baixo (bar)",
   "plannerCanvas_ccr_switchDepth": "Profundidade de troca do setpoint",
+  "plannerCanvas_pscr_ratio": "Razão pSCR",
+  "plannerCanvas_pscr_ratio_hint": "Maior = mais gás fresco, menor queda de O₂",
   "plannerCanvas_chip_cns": "CNS {value}%",
   "plannerCanvas_chip_issues": "{count, plural, =1{1 problema} other{{count} problemas}}",
   "plannerCanvas_compare_action": "Comparar",
@@ -3583,6 +3683,14 @@
   "plannerCanvas_contingency_depthDelta": "Profundidade extra",
   "plannerCanvas_contingency_lostGas": "{gas} perdido",
   "plannerCanvas_contingency_timeDelta": "Minutos extras",
+  "plannerCanvas_chart_meanDepth": "média {depth}",
+  "@plannerCanvas_chart_meanDepth": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      }
+    }
+  },
   "plannerCanvas_contingency_title": "Contingências",
   "plannerCanvas_contingency_turnFraction": "Fração de retorno",
   "plannerCanvas_contingency_turnRule": "Regra de pressão de retorno",
@@ -3602,6 +3710,13 @@
   "plannerCanvas_issue_noDecoGas": "Descompressão necessária mas sem gás de deco a bordo",
   "plannerCanvas_range_base": "Base",
   "plannerCanvas_range_legend": "As células mostram o tempo até a superfície; vermelho = não mergulhável como planejado",
+  "plannerCanvas_pane_collapse": "Recolher painel",
+  "plannerCanvas_pane_expand": "Expandir painel",
+  "plannerCanvas_tab_setup": "Configuração",
+  "plannerCanvas_o2Narcotic": "Tratar o O₂ como narcótico",
+  "plannerCanvas_rates_ascent": "Taxa de subida",
+  "plannerCanvas_rates_descent": "Taxa de descida",
+  "plannerCanvas_rates_title": "Taxas",
   "plannerCanvas_range_title": "Tabela de variações",
   "plannerCanvas_results_noDeco": "Nenhuma descompressão necessária",
   "plannerCanvas_saved_deleteConfirmBody": "Excluir permanentemente \"{name}\"?",
@@ -3752,7 +3867,7 @@
   "settings_navCustomization_subtitlePreview": "{first} · {second} · {third}",
   "settings_navCustomization_saveError": "Could not save navigation layout. Please try again.",
   "settings_backToSettings_tooltip": "Voltar para configuracoes",
-  "settings_cloudSync_appBar_title": "Sincronizacao na Nuvem",
+  "settings_cloudSync_appBar_title": "Sincronizacao na Nuvem do Banco de Dados",
   "settings_cloudSync_autoSync": "Sincronizacao Automatica",
   "settings_cloudSync_autoSync_subtitle": "Sincronizar automaticamente apos alteracoes",
   "settings_cloudSync_conflictItems": "{count, plural, =1{1 item precisa de atencao} other{{count} itens precisam de atencao}}",
@@ -3863,7 +3978,7 @@
   "settings_data_appDefaultLocation": "Local padrao do aplicativo",
   "settings_data_backup": "Backup e restauracao",
   "settings_data_backup_subtitle": "Criar um backup dos seus dados",
-  "settings_data_cloudSync": "Sincronizacao na Nuvem",
+  "settings_data_cloudSync": "Sincronizacao na Nuvem do Banco de Dados",
   "settings_data_customFolder": "Pasta personalizada",
   "settings_data_databaseStorage": "Armazenamento do Banco de Dados",
   "settings_data_export_completed": "Exportacao concluida",
@@ -3902,9 +4017,26 @@
   "settings_decompression_dialog_title": "Fatores de Gradiente",
   "settings_decompression_endLimit": "Limite END",
   "settings_decompression_endLimit_dialog_title": "Limite END",
+  "settings_decompression_cnsMethodTitle": "Cálculo de CNS",
+  "settings_decompression_cnsMethodClassic": "Tabela NOAA, em degraus (clássico)",
+  "settings_decompression_cnsMethodClassicDesc": "Calcula cada faixa de 0,1 bar em sua borda mais rigorosa. Método original do Submersion.",
+  "settings_decompression_cnsMethodShearwater": "Interpolação linear (estilo Shearwater)",
+  "settings_decompression_cnsMethodShearwaterDesc": "Interpola entre os limites da NOAA conforme documentado pela Shearwater. Corresponde à maioria dos computadores de mergulho.",
+  "settings_decompression_cnsMethodSubsurface": "Ajuste exponencial (como o Subsurface)",
+  "settings_decompression_cnsMethodSubsurfaceDesc": "Ajuste de curva suave à tabela NOAA. Corresponde ao CNS calculado pelo Subsurface.",
+  "settings_decompression_cnsMethodAboutTitle": "Sobre esses métodos",
+  "settings_decompression_cnsMethodAboutBody": "Os três métodos se baseiam nos limites de exposição ao oxigênio do NOAA Diving Manual (300 minutos com ppO2 de 1,0 bar, 45 minutos a 1,6 bar). A tabela define limites apenas em passos de 0,1 bar: o método clássico calcula tudo o que está dentro de uma faixa na borda mais rigorosa da faixa, o que superestima sistematicamente a exposição entre as entradas. Os computadores de mergulho da Shearwater documentam uma interpolação linear entre os limites da NOAA, com um valor fixo de 15% por minuto acima de 1,65 bar. Em 2019, o Subsurface substituiu sua consulta em tabela por um ajuste exponencial suave de dois segmentos aos mesmos dados da NOAA (Robert C. Helling), que também se estende naturalmente além de 1,6 bar. Entre as entradas da tabela, os dois métodos suaves concordam dentro de cerca de um ponto de CNS; o método clássico exibe valores mais altos.",
+  "settings_decompression_cnsMethodDisclaimer": "Os nomes se referem aos métodos publicados dos respectivos projetos e fabricantes; nenhuma afiliação ou endosso está implícito. Os valores calculados podem diferir das leituras reais do computador de mergulho.",
+  "settings_decompression_cnsMethodSourcesTitle": "Fontes",
+  "settings_linkOpenFailed": "Não foi possível abrir o link.",
+  "settings_decompression_cnsMethodSourceNoaa": "NOAA: Diving Program (editora do NOAA Diving Manual)",
+  "settings_decompression_cnsMethodSourceShearwater": "Shearwater: o relógio de oxigénio CNS",
+  "settings_decompression_cnsMethodSourceTheoreticalDiver": "The Theoretical Diver: cálculo da toxicidade CNS do oxigénio",
+  "settings_decompression_cnsMethodSourceSubsurface": "Subsurface: implementação (divelist.cpp)",
   "settings_decompression_endLimit_subtitle": "Profundidade narcotica equivalente maxima usada para calculos de MND",
   "settings_decompression_gfValue": "GF {gfLow}/{gfHigh}",
   "settings_decompression_header_gradientFactors": "Fatores de Gradiente",
+  "settings_decompression_header_oxygenToxicity": "Toxicidade do oxigênio",
   "settings_decompression_header_narcosis": "Narcose",
   "settings_decompression_o2Narcotic": "O2 e narcotico",
   "settings_decompression_o2Narcotic_subtitle": "Quando ativado, tanto O2 quanto N2 sao considerados narcoticos (mais conservador). Quando desativado, apenas N2 contribui para a narcose.",
@@ -3966,10 +4098,13 @@
   "settings_lightroom_albumFilter_all": "Catálogo inteiro",
   "settings_lightroom_albumFilter_title": "Álbuns a analisar",
   "settings_lightroom_autoPoll_title": "Verificar novas fotos automaticamente",
-  "settings_lightroom_clientId_help": "Crie uma integração na Adobe Developer Console com a API Lightroom Services e um tipo de credencial compatível com PKCE. Defina a URI de redirecionamento como {redirectUri}.",
+  "settings_lightroom_clientId_help": "Crie uma integração na Adobe Developer Console com a API Lightroom Services e um tipo de credencial compatível com PKCE. Insira abaixo a URI de redirecionamento da sua credencial — as credenciais de Native App usam um esquema personalizado — ou deixe em branco para usar {redirectUri}.",
   "settings_lightroom_clientId_label": "ID de cliente da Adobe",
   "settings_lightroom_clientSecret_label": "Segredo do cliente (opcional)",
+  "settings_lightroom_redirectUri_label": "URI de redirecionamento (opcional)",
   "settings_lightroom_connect": "Conectar Lightroom",
+  "settings_lightroom_connectEmbedded": "Conectar com a Adobe",
+  "settings_lightroom_advancedByo": "Usar suas próprias credenciais da Adobe",
   "settings_lightroom_connect_codeLabel": "URL redirecionada ou código",
   "settings_lightroom_connect_emptyCode": "Cole a URL redirecionada ou o código de autorização",
   "settings_lightroom_connect_failed": "Não foi possível conectar ao Lightroom: {error}",
@@ -5237,15 +5372,15 @@
   "diveComputer_download_newDivesOnlySubtitle": "Baixa apenas mergulhos adicionados desde a última sincronização",
   "diveComputer_download_newDivesOnlyTitle": "Baixar apenas novos mergulhos",
   "diveComputer_download_upToDate": "Nenhum mergulho novo encontrado -- seu registro está atualizado",
-  "diveLog_edit_section_environment": "Environment",
-  "diveLog_edit_subsection_weather": "Weather",
-  "diveLog_edit_subsection_diveConditions": "Dive Conditions",
-  "diveLog_edit_label_windSpeed": "Wind Speed",
-  "diveLog_edit_label_windDirection": "Wind Direction",
-  "diveLog_edit_label_cloudCover": "Cloud Cover",
-  "diveLog_edit_label_precipitation": "Precipitation",
-  "diveLog_edit_label_humidity": "Humidity",
-  "diveLog_edit_label_weatherDescription": "Weather Description",
+  "diveLog_edit_section_environment": "Ambiente",
+  "diveLog_edit_subsection_weather": "Clima",
+  "diveLog_edit_subsection_diveConditions": "Condições de mergulho",
+  "diveLog_edit_label_windSpeed": "Velocidade do vento",
+  "diveLog_edit_label_windDirection": "Direção do vento",
+  "diveLog_edit_label_cloudCover": "Cobertura de nuvens",
+  "diveLog_edit_label_precipitation": "Precipitação",
+  "diveLog_edit_label_humidity": "Umidade",
+  "diveLog_edit_label_weatherDescription": "Descrição do clima",
   "diveLog_edit_button_fetchWeather": "Fetch Weather",
   "diveLog_edit_fetchingWeather": "Fetching weather...",
   "diveLog_edit_weatherFetched": "Weather data loaded",
@@ -5254,28 +5389,28 @@
   "diveLog_edit_fetchWeatherNotYetAvailable": "Weather data not yet available for this date",
   "diveLog_edit_fetchWeatherHint": "Add a date and dive site first",
   "diveLog_edit_fetchWeatherConfirm": "Replace existing weather data with fetched data?",
-  "diveLog_detail_section_environment": "Environment",
-  "diveLog_detail_subsection_weather": "Weather",
-  "diveLog_detail_subsection_diveConditions": "Dive Conditions",
-  "diveLog_detail_label_windSpeed": "Wind Speed",
-  "diveLog_detail_label_windDirection": "Wind Direction",
-  "diveLog_detail_label_cloudCover": "Cloud Cover",
-  "diveLog_detail_label_precipitation": "Precipitation",
-  "diveLog_detail_label_humidity": "Humidity",
-  "diveLog_detail_label_weatherDescription": "Description",
+  "diveLog_detail_section_environment": "Ambiente",
+  "diveLog_detail_subsection_weather": "Clima",
+  "diveLog_detail_subsection_diveConditions": "Condições de mergulho",
+  "diveLog_detail_label_windSpeed": "Velocidade do vento",
+  "diveLog_detail_label_windDirection": "Direção do vento",
+  "diveLog_detail_label_cloudCover": "Cobertura de nuvens",
+  "diveLog_detail_label_precipitation": "Precipitação",
+  "diveLog_detail_label_humidity": "Umidade",
+  "diveLog_detail_label_weatherDescription": "Descrição",
   "diveLog_detail_weatherSourceOpenMeteo": "via Open-Meteo",
-  "enum_cloudCover_clear": "Clear",
-  "enum_cloudCover_partlyCloudy": "Partly Cloudy",
-  "enum_cloudCover_mostlyCloudy": "Mostly Cloudy",
-  "enum_cloudCover_overcast": "Overcast",
-  "enum_precipitation_none": "None",
-  "enum_precipitation_drizzle": "Drizzle",
-  "enum_precipitation_lightRain": "Light Rain",
-  "enum_precipitation_rain": "Rain",
-  "enum_precipitation_heavyRain": "Heavy Rain",
-  "enum_precipitation_snow": "Snow",
-  "enum_precipitation_sleet": "Sleet",
-  "enum_precipitation_hail": "Hail",
+  "enum_cloudCover_clear": "Limpo",
+  "enum_cloudCover_partlyCloudy": "Parcialmente nublado",
+  "enum_cloudCover_mostlyCloudy": "Predominantemente nublado",
+  "enum_cloudCover_overcast": "Encoberto",
+  "enum_precipitation_none": "Nenhuma",
+  "enum_precipitation_drizzle": "Chuvisco",
+  "enum_precipitation_lightRain": "Chuva fraca",
+  "enum_precipitation_rain": "Chuva",
+  "enum_precipitation_heavyRain": "Chuva forte",
+  "enum_precipitation_snow": "Neve",
+  "enum_precipitation_sleet": "Granizo miúdo",
+  "enum_precipitation_hail": "Granizo",
   "dashboard_activityStats_divesInYear": "mergulhos em {year}",
   "dashboard_hero_daysSinceLabel": "dias desde o último mergulho",
   "dashboard_hero_diverFallbackName": "Mergulhador",
@@ -5760,27 +5895,194 @@
   "settings_setupGuide_open": "Abrir",
   "settings_connectedAccounts_loadError": "Não foi possível carregar as contas",
   "media_unavailablePlaceholder_volumeOffline": "Volume não montado",
+  "attrLabel_size": "Tamanho",
+  "attrLabel_thickness_mm": "Espessura (mm)",
+  "attrLabel_suit_style": "Tipo de roupa",
+  "attrLabel_shell_material": "Material externo",
+  "attrLabel_seal_type": "Tipo de vedação",
+  "attrLabel_volume_l": "Volume",
+  "attrLabel_working_pressure_bar": "Pressão de trabalho",
+  "attrLabel_tank_material": "Material",
+  "attrLabel_valve_type": "Válvula",
+  "attrLabel_tank_identifier": "Identificador",
+  "attrLabel_last_visual_inspection": "Última inspeção visual",
+  "attrLabel_last_hydro_test": "Último teste hidrostático",
+  "attrLabel_connection": "Conexão",
+  "attrLabel_cold_water_rated": "Adequado para água fria",
+  "attrLabel_bcd_style": "Estilo",
+  "attrLabel_lift_capacity_kg": "Capacidade de elevação",
+  "attrLabel_heel_type": "Calcanhar",
+  "attrLabel_blade_style": "Lâmina",
+  "attrLabel_mount": "Fixação",
+  "attrLabel_connectivity": "Conectividade",
+  "attrLabel_lens_config": "Lente",
+  "attrLabel_prescription": "Lentes graduadas",
+  "attrLabel_weight_style": "Estilo",
+  "attrLabel_lumens": "Lúmens",
+  "attrLabel_beam_type": "Feixe",
+  "attrLabel_depth_rating_m": "Profundidade máxima",
+  "attrLabel_smb_type": "Tipo",
+  "attrLabel_length_m": "Comprimento",
+  "attrLabel_reel_type": "Tipo",
+  "attrLabel_line_length_m": "Comprimento da linha",
+  "attrLabel_blade_material": "Material da lâmina",
+  "attrLabel_tip_type": "Ponta",
+  "attrLabel_glove_type": "Tipo",
+  "attrLabel_sole_type": "Sola",
+  "attrLabel_buoyancy_kg": "Flutuabilidade",
+  "attrLabel_dry_weight_kg": "Peso seco",
+  "attrChoice_suit_style_full": "Roupa inteira",
+  "attrChoice_suit_style_shorty": "Shorty",
+  "attrChoice_suit_style_two_piece": "Duas peças",
+  "attrChoice_suit_style_semi_dry": "Semisseca",
+  "attrChoice_shell_material_trilaminate": "Trilaminado",
+  "attrChoice_shell_material_neoprene": "Neoprene",
+  "attrChoice_shell_material_crushed_neoprene": "Neoprene comprimido",
+  "attrChoice_shell_material_vulcanized_rubber": "Borracha vulcanizada",
+  "attrChoice_seal_type_latex": "Látex",
+  "attrChoice_seal_type_silicone": "Silicone",
+  "attrChoice_seal_type_neoprene": "Neoprene",
+  "attrChoice_tank_material_aluminum": "Alumínio",
+  "attrChoice_tank_material_steel": "Aço",
+  "attrChoice_tank_material_carbon_composite": "Compósito de carbono",
+  "attrChoice_valve_type_din": "DIN",
+  "attrChoice_valve_type_yoke": "Garra (INT)",
+  "attrChoice_valve_type_convertible": "Convertível",
+  "attrChoice_connection_din": "DIN",
+  "attrChoice_connection_yoke": "Garra (INT)",
+  "attrChoice_bcd_style_jacket": "Colete",
+  "attrChoice_bcd_style_back_inflate": "Inflagem traseira",
+  "attrChoice_bcd_style_wing": "Asa",
+  "attrChoice_bcd_style_sidemount": "Sidemount",
+  "attrChoice_heel_type_open_heel": "Calcanhar aberto",
+  "attrChoice_heel_type_full_foot": "Pé inteiro",
+  "attrChoice_blade_style_paddle": "Pá",
+  "attrChoice_blade_style_split": "Dividida",
+  "attrChoice_blade_style_vented": "Ventilada",
+  "attrChoice_mount_wrist": "Pulso",
+  "attrChoice_mount_console": "Console",
+  "attrChoice_mount_hud": "HUD",
+  "attrChoice_connectivity_ble": "Bluetooth (BLE)",
+  "attrChoice_connectivity_usb": "USB",
+  "attrChoice_connectivity_infrared": "Infravermelho",
+  "attrChoice_connectivity_none": "Nenhuma",
+  "attrChoice_lens_config_single": "Lente única",
+  "attrChoice_lens_config_twin": "Lentes duplas",
+  "attrChoice_lens_config_frameless": "Sem armação",
+  "attrChoice_weight_style_belt": "Cinto",
+  "attrChoice_weight_style_integrated": "Integrado",
+  "attrChoice_weight_style_trim": "Trim",
+  "attrChoice_weight_style_ankle": "Tornozelo",
+  "attrChoice_beam_type_spot": "Foco",
+  "attrChoice_beam_type_flood": "Difuso",
+  "attrChoice_beam_type_adjustable": "Ajustável",
+  "attrChoice_smb_type_open": "Aberta",
+  "attrChoice_smb_type_closed": "Fechada",
+  "attrChoice_reel_type_spool": "Carretel simples",
+  "attrChoice_reel_type_ratchet": "Carretilha com catraca",
+  "attrChoice_blade_material_stainless": "Aço inoxidável",
+  "attrChoice_blade_material_titanium": "Titânio",
+  "attrChoice_tip_type_pointed": "Pontiaguda",
+  "attrChoice_tip_type_blunt": "Romba",
+  "attrChoice_tip_type_line_cutter": "Cortador de linha",
+  "attrChoice_glove_type_five_finger": "Cinco dedos",
+  "attrChoice_glove_type_mitt": "Mitene",
+  "attrChoice_glove_type_dry": "Seco",
+  "attrChoice_sole_type_hard": "Sola rígida",
+  "attrChoice_sole_type_soft": "Sola macia",
+  "equipment_edit_customFieldsTitle": "Campos personalizados",
+  "equipment_edit_addCustomField": "Adicionar campo personalizado",
+  "attr_flagYes": "Sim",
+  "attr_flagNo": "Não",
+  "equipment_edit_invalidThickness": "Use 5, 5/4 ou 7/5/3",
+  "statistics_progression_divesBySuitThickness_title": "Mergulhos por espessura da roupa",
+  "statistics_progression_divesBySuitThickness_subtitle": "Espessura principal da roupa nos seus mergulhos",
+  "statistics_progression_divesBySuitThickness_empty": "Nenhum mergulho com espessura de roupa registrada",
+  "statistics_progression_divesBySuitThickness_error": "Não foi possível carregar os dados de espessura",
+  "diveLog_filter_sectionSuitThickness": "Espessura da roupa (mm)",
+  "diveLog_filter_thicknessMin": "Mín",
+  "diveLog_filter_thicknessMax": "Máx",
   "diveDetailSection_safetyReview_name": "Revisão de segurança",
   "diveDetailSection_safetyReview_description": "Observações automáticas do perfil após o mergulho",
   "safetyReview_sectionTitle": "Revisão de segurança",
   "safetyReview_findingCount": "{count, plural, =1{1 observação} other{{count} observações}}",
-  "@safetyReview_findingCount": {"placeholders": {"count": {"type": "int"}}},
+  "@safetyReview_findingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "safetyReview_rapidAscent_title": "A subida excedeu {rate} durante {duration}",
-  "@safetyReview_rapidAscent_title": {"placeholders": {"rate": {"type": "String"}, "duration": {"type": "String"}}},
+  "@safetyReview_rapidAscent_title": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
   "safetyReview_missedDecoStop_title": "A profundidade ficou {excess} acima do teto de parada exigido durante {duration}",
-  "@safetyReview_missedDecoStop_title": {"placeholders": {"excess": {"type": "String"}, "duration": {"type": "String"}}},
+  "@safetyReview_missedDecoStop_title": {
+    "placeholders": {
+      "excess": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
   "safetyReview_omittedSafetyStop_title": "A parada de segurança recomendada foi encurtada em {remaining}",
-  "@safetyReview_omittedSafetyStop_title": {"placeholders": {"remaining": {"type": "String"}}},
+  "@safetyReview_omittedSafetyStop_title": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
   "safetyReview_sawtoothProfile_title": "{count} variações repetidas de profundidade para cima e para baixo durante o mergulho",
-  "@safetyReview_sawtoothProfile_title": {"placeholders": {"count": {"type": "int"}}},
+  "@safetyReview_sawtoothProfile_title": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "safetyReview_highSurfaceGf_title": "Chegou à superfície com fator de gradiente {gf}, acima do {gfHigh} configurado",
-  "@safetyReview_highSurfaceGf_title": {"placeholders": {"gf": {"type": "String"}, "gfHigh": {"type": "String"}}},
+  "@safetyReview_highSurfaceGf_title": {
+    "placeholders": {
+      "gf": {
+        "type": "String"
+      },
+      "gfHigh": {
+        "type": "String"
+      }
+    }
+  },
   "safetyReview_timeRange": "Em {start}–{end}",
-  "@safetyReview_timeRange": {"placeholders": {"start": {"type": "String"}, "end": {"type": "String"}}},
+  "@safetyReview_timeRange": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
   "safetyReview_dismiss": "Dispensar",
   "safetyReview_restore": "Restaurar",
   "safetyReview_showDismissed": "{count, plural, =1{Mostrar 1 dispensada} other{Mostrar {count} dispensadas}}",
-  "@safetyReview_showDismissed": {"placeholders": {"count": {"type": "int"}}},
+  "@safetyReview_showDismissed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "safetySettings_title": "Revisão de segurança",
   "safetySettings_entry_subtitle": "Observações e regras pós-mergulho",
   "safetySettings_masterToggle": "Revisão de segurança pós-mergulho",
@@ -5794,61 +6096,162 @@
   "safetySettings_analyzeAll": "Analisar todos os mergulhos",
   "safetySettings_analyzeAll_subtitle": "Executar a revisão de segurança em todos os mergulhos com perfil ainda não analisados",
   "safetySettings_analyzeAll_progress": "Analisados {done} de {total}",
-  "@safetySettings_analyzeAll_progress": {"placeholders": {"done": {"type": "int"}, "total": {"type": "int"}}},
+  "@safetySettings_analyzeAll_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "safetySettings_analyzeAll_done": "Análise concluída",
+  "safetySettings_analyzeAll_doneWithErrors": "Análise concluída — {count, plural, =1{Não foi possível analisar 1 mergulho} other{Não foi possível analisar {count} mergulhos}}",
+  "@safetySettings_analyzeAll_doneWithErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "safetySettings_noFlyHeader": "Voar depois de mergulhar",
   "safetySettings_noFlyPreset_standard": "Padrão (12/18/24 h)",
   "safetySettings_noFlyPreset_strict": "Rigoroso (18/24/48 h)",
   "safetySettings_noFlyPreset_subtitle": "Intervalos orientativos após um único mergulho sem deco, mergulhos repetitivos e mergulhos com deco",
   "safetyHub_title": "Segurança",
   "safetyHub_noFly_active_title": "Não voar: faltam {remaining}",
-  "@safetyHub_noFly_active_title": {"placeholders": {"remaining": {"type": "String"}}},
+  "@safetyHub_noFly_active_title": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
   "safetyHub_noFly_until": "Até {time}",
-  "@safetyHub_noFly_until": {"placeholders": {"time": {"type": "String"}}},
+  "@safetyHub_noFly_until": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "safetyHub_noFly_clear_title": "Sem restrição de voo",
-  "safetyHub_noFly_clear_subtitle": "Sem mergulhos nas últimas 48 horas",
+  "safetyHub_noFly_clear_subtitle": "Nenhuma restrição de voo ativa",
   "safetyHub_noFly_category_single": "Após um único mergulho sem deco: orientação de {hours} h",
-  "@safetyHub_noFly_category_single": {"placeholders": {"hours": {"type": "int"}}},
+  "@safetyHub_noFly_category_single": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
   "safetyHub_noFly_category_repetitive": "Após mergulhos repetitivos: orientação de {hours} h",
-  "@safetyHub_noFly_category_repetitive": {"placeholders": {"hours": {"type": "int"}}},
+  "@safetyHub_noFly_category_repetitive": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
   "safetyHub_noFly_category_deco": "Após um mergulho com descompressão: orientação de {hours} h",
-  "@safetyHub_noFly_category_deco": {"placeholders": {"hours": {"type": "int"}}},
+  "@safetyHub_noFly_category_deco": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
   "safetyHub_noFly_disclaimer": "Orientações DAN/UHMS desde o último mergulho. Não substitui o tempo de não voar do seu computador de mergulho.",
   "safetyHub_surfaceIntervalLink": "Ferramenta de intervalo de superfície",
   "safetyHub_surfaceIntervalLink_subtitle": "Modelo educativo de dessaturação dos tecidos",
   "safetyHub_settingsLink": "Configurações de segurança",
   "safetyHub_alert_noFly": "Não voar: faltam {remaining}",
-  "@safetyHub_alert_noFly": {"placeholders": {"remaining": {"type": "String"}}},
+  "@safetyHub_alert_noFly": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_detail_altitudeMismatch_title": "O ponto de mergulho fica em altitude",
   "diveLog_detail_altitudeMismatch_subtitle": "Este ponto registra uma altitude, mas o mergulho não tem nenhuma, então a análise de descompressão assumiu o nível do mar. Defina a altitude do mergulho para corrigir.",
   "emergencyCard_title": "Emergência",
   "emergencyCard_callDan": "Ligar para {name}",
-  "@emergencyCard_callDan": {"placeholders": {"name": {"type": "String"}}},
+  "@emergencyCard_callDan": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "emergencyCard_callDan_subtitle": "Linha de emergência para mergulhadores. Ligue primeiro: eles coordenam a evacuação e o encaminhamento para câmara.",
   "emergencyCard_ems": "Emergência local: {number}",
-  "@emergencyCard_ems": {"placeholders": {"number": {"type": "String"}}},
+  "@emergencyCard_ems": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
   "emergencyCard_diverSection": "Mergulhador",
   "emergencyCard_bloodType": "Tipo sanguíneo: {value}",
-  "@emergencyCard_bloodType": {"placeholders": {"value": {"type": "String"}}},
+  "@emergencyCard_bloodType": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "emergencyCard_allergies": "Alergias: {value}",
-  "@emergencyCard_allergies": {"placeholders": {"value": {"type": "String"}}},
+  "@emergencyCard_allergies": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "emergencyCard_medications": "Medicamentos: {value}",
-  "@emergencyCard_medications": {"placeholders": {"value": {"type": "String"}}},
+  "@emergencyCard_medications": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "emergencyCard_contactsSection": "Contatos de emergência",
   "emergencyCard_insuranceSection": "Seguro de mergulho",
   "emergencyCard_insurancePolicy": "Apólice {number}",
-  "@emergencyCard_insurancePolicy": {"placeholders": {"number": {"type": "String"}}},
+  "@emergencyCard_insurancePolicy": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
   "emergencyCard_chambersSection": "Câmaras hiperbáricas",
   "emergencyCard_chambersNote": "A disponibilidade muda. Ligue sempre primeiro para a linha de emergência de mergulhadores para encaminhamento.",
   "emergencyCard_chamberVerified": "Dados verificados em {date}",
-  "@emergencyCard_chamberVerified": {"placeholders": {"date": {"type": "String"}}},
+  "@emergencyCard_chamberVerified": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "emergencyCard_hideChamber": "Ocultar",
   "emergencyCard_chamberHidden": "Câmara ocultada",
   "emergencyCard_undo": "Desfazer",
   "emergencyCard_addChamber": "Adicionar câmara",
   "emergencyCard_deleteChamber": "Excluir",
   "emergencyCard_regionLabel": "Região: {region}",
-  "@emergencyCard_regionLabel": {"placeholders": {"region": {"type": "String"}}},
+  "@emergencyCard_regionLabel": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },
   "emergencyCard_regionUnknown": "Região desconhecida - usando a linha mundial",
   "emergencyCard_noDiverData": "Sem dados do perfil do mergulhador. Adicione contatos de emergência, dados médicos e seguro no perfil do mergulhador.",
   "addChamber_title": "Adicionar câmara",

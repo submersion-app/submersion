@@ -176,6 +176,18 @@ final divesPerYearProvider = FutureProvider<List<({int year, int count})>>((
   return repository.getDivesPerYear(diverId: currentDiverId, filter: filter);
 });
 
+final divesBySuitThicknessProvider =
+    FutureProvider<List<({double mm, int count})>>((ref) async {
+      _keepAliveWithExpiry(ref);
+      final repository = ref.watch(statisticsRepositoryProvider);
+      final currentDiverId = ref.watch(currentDiverIdProvider);
+      final filter = ref.watch(statisticsFilterProvider);
+      return repository.getDivesBySuitThickness(
+        diverId: currentDiverId,
+        filter: filter,
+      );
+    });
+
 final cumulativeDiveCountProvider = FutureProvider<List<TrendDataPoint>>((
   ref,
 ) async {

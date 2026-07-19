@@ -729,10 +729,16 @@
   "common_label_loading": "טוען",
   "common_placeholder_noValue": "--",
   "courses_action_add": "הוסף קורס",
+  "courses_action_addFromTemplate": "הוסף מתבנית",
+  "courses_action_addRequirement": "הוסף דרישה",
   "courses_action_create": "צור קורס",
+  "courses_action_deleteRequirement": "מחק דרישה",
   "courses_action_edit": "ערוך קורס",
+  "courses_action_editRequirement": "ערוך דרישה",
   "courses_action_exportTrainingLog": "ייצא יומן אימונים",
+  "courses_action_linkDive": "קשר",
   "courses_action_markCompleted": "סמן כהושלם",
+  "courses_action_unlinkDive": "בטל קישור צלילה",
   "courses_action_moreOptions": "אפשרויות נוספות",
   "courses_action_retry": "נסה שוב",
   "courses_action_saveChanges": "שמור שינויים",
@@ -785,16 +791,26 @@
   "courses_picker_selectTitle": "בחר קורס אימון",
   "courses_picker_selected": "נבחר",
   "courses_picker_tapToLink": "לחץ כדי לקשר לקורס אימון",
+  "courses_requirement_diveProgress": "{count} מתוך {target} צלילות",
+  "courses_requirement_field_name": "שם",
+  "courses_requirement_field_targetCount": "צלילות נדרשות",
+  "courses_requirement_kind_checklist": "פריט לסימון",
+  "courses_requirement_kind_dive": "דרישת צלילה",
+  "courses_requirement_suggestions": "צלילות מוצעות",
+  "courses_requirements_empty": "עקוב אחר צלילות הרפתקה, דרישות קדם ופריטים לסימון עבור קורס זה.",
+  "courses_requirements_progress": "{satisfied} מתוך {total} הושלמו",
   "courses_section_details": "פרטי הקורס",
   "courses_section_earnedCertification": "הסמכה שהושגה",
   "courses_section_instructor": "מדריך",
   "courses_section_notes": "הערות",
+  "courses_section_requirements": "דרישות",
   "courses_section_trainingDives": "צלילות אימון",
   "courses_status_completed": "הושלם",
   "courses_status_daysSinceStart": "{days} ימים מאז ההתחלה",
   "courses_status_durationDays": "{days} ימים",
   "courses_status_inProgress": "בתהליך",
   "courses_status_semanticLabel": "{status}, {duration}",
+  "courses_template_addsCount": "מוסיף {count} דרישות",
   "courses_summary_overview": "סקירה כללית",
   "courses_summary_quickActions": "פעולות מהירות",
   "courses_summary_recentCourses": "קורסים אחרונים",
@@ -806,6 +822,7 @@
   "courses_title_new": "קורס חדש",
   "courses_title_singular": "קורס",
   "courses_validation_nameRequired": "נא להזין שם קורס",
+  "dashboard_activeCourses_title": "קורסים בתהליך",
   "dashboard_activity_daySinceDiving": "יום מאז הצלילה האחרונה",
   "dashboard_activity_daysSinceDiving": "ימים מאז הצלילה האחרונה",
   "dashboard_activity_diveInYear": "צלילה ב-{year}",
@@ -1519,6 +1536,12 @@
   "diveLog_edit_noMarineLife": "לא נרשמו חיים ימיים",
   "diveLog_edit_notSpecified": "לא צוין",
   "diveLog_edit_notesHint": "הוסף הערות לצלילה זו...",
+  "diveLog_edit_overline_tanks": "מיכלים",
+  "diveLog_edit_profile_draw": "שרטוט פרופיל",
+  "diveLog_edit_profile_none": "לא הוקלט",
+  "diveLog_edit_profile_outliers": "{count, plural, one{זוהתה חריגה אפשרית אחת} other{זוהו {count} חריגות אפשריות}}",
+  "diveLog_edit_profile_points": "{count, plural, one{נקודה אחת} other{{count} נקודות}}",
+  "diveLog_edit_row_diveProfile": "פרופיל צלילה",
   "diveLog_edit_row_addSite": "הוספת אתר",
   "diveLog_edit_row_diveCenter": "מרכז צלילה",
   "diveLog_edit_row_entry": "כניסה",
@@ -2349,6 +2372,7 @@
   "diveSites_edit_section_gpsCoordinates": "קואורדינטות GPS",
   "diveSites_edit_section_hazards": "סכנות ובטיחות",
   "diveSites_edit_section_rating": "דירוג",
+  "diveSites_edit_section_waterType": "סוג מים",
   "diveSites_edit_snackbar_errorDeleting": "שגיאה במחיקת אתר: {error}",
   "diveSites_edit_snackbar_errorSaving": "שגיאה בשמירת אתר: {error}",
   "diveSites_edit_snackbar_locationCaptured": "המיקום נקלט",
@@ -2954,6 +2978,61 @@
   "equipment_detail_retiredChip": "הוצא משימוש",
   "equipment_detail_serialNumberLabel": "מספר סידורי",
   "equipment_detail_serviceInfoTitle": "מידע טיפול",
+  "equipment_serviceClocks_title": "שעוני טיפולים",
+  "equipment_serviceClocks_addClock": "הוספת שעון",
+  "equipment_serviceClocks_logService": "רישום טיפול",
+  "equipment_serviceClocks_edit": "עריכת מרווחים",
+  "equipment_serviceClocks_pause": "השהיה",
+  "equipment_serviceClocks_resume": "המשך",
+  "equipment_serviceClocks_remove": "הסרה",
+  "equipment_serviceClocks_paused": "מושהה",
+  "equipment_serviceClocks_empty": "אין שעוני טיפולים",
+  "equipment_serviceClocks_dueOn": "לביצוע עד {date}",
+  "equipment_serviceClocks_overdueSince": "באיחור מאז {date}",
+  "equipment_serviceClocks_overdue": "באיחור",
+  "equipment_serviceClocks_divesLeft": "נותרו {remaining} מתוך {total} צלילות",
+  "equipment_serviceClocks_hoursLeft": "נותרו {remaining} מתוך {total} שעות",
+  "equipment_serviceClocks_manageKinds": "ניהול סוגי טיפול",
+  "equipment_serviceClocks_appliesToClock": "חל על שעון",
+  "equipment_serviceClocks_noClockOption": "לא משויך לשעון",
+  "equipment_scheduleDialog_title": "עריכת שעון",
+  "equipment_scheduleDialog_intervalDays": "מרווח (ימים)",
+  "equipment_scheduleDialog_intervalDives": "מרווח (צלילות)",
+  "equipment_scheduleDialog_intervalHours": "מרווח (שעות)",
+  "equipment_scheduleDialog_inheritHint": "ברירת מחדל: {value}",
+  "equipment_scheduleDialog_anchorDate": "תאריך בסיס",
+  "equipment_scheduleDialog_anchorHint": "בשימוש כאשר עדיין אין רשומת טיפול מסוג זה",
+  "equipment_scheduleDialog_clearAnchor": "ניקוי תאריך הבסיס",
+  "equipment_scheduleDialog_save": "שמירה",
+  "equipment_scheduleDialog_cancel": "ביטול",
+  "equipment_serviceKinds_title": "סוגי טיפול",
+  "equipment_serviceKinds_builtIn": "מובנה",
+  "equipment_serviceKinds_custom": "מותאם אישית",
+  "equipment_serviceKinds_add": "הוספת סוג טיפול",
+  "equipment_serviceKinds_editTitle": "עריכת סוג טיפול",
+  "equipment_serviceKinds_nameLabel": "שם",
+  "equipment_serviceKinds_nameRequired": "נדרש שם",
+  "equipment_serviceKinds_appliesTo": "חל על",
+  "equipment_serviceKinds_autoAttach": "צירוף אוטומטי לציוד חדש",
+  "equipment_serviceKinds_deleteConfirmTitle": "למחוק את סוג הטיפול?",
+  "equipment_serviceKinds_deleteConfirmBody": "שעונים המשתמשים בסוג טיפול זה יוסרו.",
+  "equipment_serviceKinds_delete": "מחיקה",
+  "equipment_serviceKinds_cancel": "ביטול",
+  "equipment_serviceKinds_save": "שמירה",
+  "equipment_serviceKinds_emptyCustom": "אין עדיין סוגי טיפול מותאמים אישית",
+  "equipment_serviceKinds_everyDays": "כל {days} ימים",
+  "equipment_serviceKinds_everyDives": "כל {dives} צלילות",
+  "equipment_serviceKinds_everyHours": "כל {hours} שעות",
+  "dashboard_serviceDue_title": "טיפול נדרש",
+  "dashboard_serviceDue_more": "+{count} נוספים",
+  "dashboard_alerts_clockDue": "{name}: {kind} נדרש",
+  "dashboard_alerts_clockOverdue": "{name}: {kind} באיחור",
+  "equipment_list_worstClock": "{kind} באיחור",
+  "trips_serviceAlert_count": "{count, plural, one{פריט ציוד אחד זקוק לטיפול לפני הטיול הזה} two{שני פריטי ציוד זקוקים לטיפול לפני הטיול הזה} many{{count} פריטי ציוד זקוקים לטיפול לפני הטיול הזה} other{{count} פריטי ציוד זקוקים לטיפול לפני הטיול הזה}}",
+  "trips_serviceAlert_dueBefore": "{kind} לביצוע עד {date}",
+  "trips_serviceAlert_overdue": "{kind} באיחור",
+  "settings_notifications_tripLeadTitle": "זמן התראה לטיפול לפני טיול",
+  "settings_notifications_tripLeadDays": "{days} ימים לפני טיול",
   "equipment_detail_serviceIntervalLabel": "מרווח טיפול",
   "equipment_detail_serviceIntervalValue": "{days} ימים",
   "equipment_detail_serviceOverdue": "הטיפול באיחור!",
@@ -3017,6 +3096,7 @@
   "equipment_edit_snackbar_error": "שגיאה בשמירת ציוד: {error}",
   "equipment_edit_snackbar_updated": "הציוד עודכן",
   "equipment_edit_statusLabel": "סטטוס",
+  "equipment_edit_thicknessDesignationHint": "למשל, 5, 5/4, 7/5/3",
   "equipment_edit_thicknessHint": "למשל, 5 מ\"מ, 7 מ\"מ",
   "equipment_edit_thicknessLabel": "עובי",
   "equipment_edit_typeLabel": "סוג *",
@@ -3042,6 +3122,7 @@
   "equipment_list_sortTitle": "מיין ציוד",
   "equipment_list_sortTooltip": "מיין",
   "equipment_list_tile_daysCount": "{days} ימים",
+  "equipment_list_tile_serviceInDays": "{days, plural, =1{טיפול בעוד יום אחד} other{טיפול בעוד {days} ימים}}",
   "equipment_list_tile_serviceDueChip": "טיפול נדרש",
   "equipment_list_tile_serviceIn": "טיפול בעוד",
   "equipment_menu_delete": "מחק",
@@ -3278,6 +3359,8 @@
   "gas_tmx1845_displayName": "Tx 18/45",
   "gas_tmx2135_description": "טרימיקס נורמוקסי 21/35",
   "gas_tmx2135_displayName": "Tx 21/35",
+  "maps_compass_resetLabel": "איפוס כיוון המפה לצפון",
+  "maps_compass_resetTooltip": "צפון למעלה",
   "maps_heatMap_hide": "הסתר מפת חום",
   "maps_heatMap_overlayOff": "שכבת מפת חום כבויה",
   "maps_heatMap_overlayOn": "שכבת מפת חום פעילה",
@@ -3434,6 +3517,9 @@
   "media_miniProfile_headerLabel": "פרופיל צלילה",
   "media_miniProfile_semanticLabel": "תרשים מיני של פרופיל צלילה",
   "media_photoPicker_appBarTitle": "בחר תמונות",
+  "media_photoPicker_tab_gallery": "גלריה",
+  "media_photoPicker_tab_files": "קבצים",
+  "media_photoPicker_tab_url": "URL",
   "media_photoPicker_clearSelectionButton": "נקה",
   "media_photoPicker_closeTooltip": "סגור בורר תמונות",
   "media_photoPicker_doneButton": "סיום",
@@ -3451,6 +3537,18 @@
   "media_photoPicker_thumbnailAlreadyLinkedLabel": "תמונה כבר מקושרת לצלילה זו",
   "media_photoPicker_thumbnailToggleLabel": "החלף מצב בחירה לתמונה",
   "media_photoPicker_thumbnailToggleSelectedLabel": "החלף מצב בחירה לתמונה, נבחרה",
+  "media_perdixOverlay_labelCns": "CNS",
+  "media_perdixOverlay_labelDepth": "עומק",
+  "media_perdixOverlay_labelGas": "GAS",
+  "media_perdixOverlay_labelMax": "MAX",
+  "media_perdixOverlay_labelNdl": "NDL",
+  "media_perdixOverlay_labelPpo2": "PPO2",
+  "media_perdixOverlay_labelStop": "STOP",
+  "media_perdixOverlay_labelTank": "TANK",
+  "media_perdixOverlay_labelTemp": "טמפ",
+  "media_perdixOverlay_labelTime": "זמן",
+  "media_perdixOverlay_labelTts": "TTS",
+  "media_perdixOverlay_toggleTooltip": "שכבת מחשב צלילה",
   "media_photoViewer_cannotShare": "לא ניתן לשתף תמונה זו",
   "media_photoViewer_cannotWriteMetadata": "לא ניתן לכתוב מטא-נתונים - המדיה אינה מקושרת לספרייה",
   "media_photoViewer_closeTooltip": "סגור מציג תמונות",
@@ -3540,6 +3638,8 @@
   "plannerCanvas_ccr_setpointHigh": "נקודת כיוון גבוהה (bar)",
   "plannerCanvas_ccr_setpointLow": "נקודת כיוון נמוכה (bar)",
   "plannerCanvas_ccr_switchDepth": "עומק החלפת נקודת הכיוון",
+  "plannerCanvas_pscr_ratio": "יחס pSCR",
+  "plannerCanvas_pscr_ratio_hint": "גדול יותר = יותר גז טרי, ירידת חמצן קטנה יותר",
   "plannerCanvas_chip_cns": "CNS {value}%",
   "plannerCanvas_chip_issues": "{count, plural, =1{בעיה אחת} other{{count} בעיות}}",
   "plannerCanvas_compare_action": "השוואה",
@@ -3549,6 +3649,14 @@
   "plannerCanvas_contingency_depthDelta": "עומק נוסף",
   "plannerCanvas_contingency_lostGas": "אבדן {gas}",
   "plannerCanvas_contingency_timeDelta": "דקות נוספות",
+  "plannerCanvas_chart_meanDepth": "ממוצע {depth}",
+  "@plannerCanvas_chart_meanDepth": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      }
+    }
+  },
   "plannerCanvas_contingency_title": "תוכניות חירום",
   "plannerCanvas_contingency_turnFraction": "שבר פנייה",
   "plannerCanvas_contingency_turnRule": "כלל לחץ פנייה",
@@ -3568,6 +3676,13 @@
   "plannerCanvas_issue_noDecoGas": "נדרשת דקומפרסיה אך לא נלקח גז דקו",
   "plannerCanvas_range_base": "בסיס",
   "plannerCanvas_range_legend": "התאים מציגים את זמן העלייה לפני המים; אדום = לא ניתן לצלול כמתוכנן",
+  "plannerCanvas_pane_collapse": "כווץ חלונית",
+  "plannerCanvas_pane_expand": "הרחב חלונית",
+  "plannerCanvas_tab_setup": "הגדרה",
+  "plannerCanvas_o2Narcotic": "התייחס לחמצן כמשכר",
+  "plannerCanvas_rates_ascent": "קצב עלייה",
+  "plannerCanvas_rates_descent": "קצב ירידה",
+  "plannerCanvas_rates_title": "קצבים",
   "plannerCanvas_range_title": "טבלת טווחים",
   "plannerCanvas_results_noDeco": "לא נדרשת דקומפרסיה",
   "plannerCanvas_saved_deleteConfirmBody": "למחוק לצמיתות את \"{name}\"?",
@@ -3756,7 +3871,7 @@
   "settings_navCustomization_subtitlePreview": "{first} · {second} · {third}",
   "settings_navCustomization_saveError": "Could not save navigation layout. Please try again.",
   "settings_backToSettings_tooltip": "חזרה להגדרות",
-  "settings_cloudSync_appBar_title": "סנכרון ענן",
+  "settings_cloudSync_appBar_title": "סנכרון ענן של מסד נתונים",
   "settings_cloudSync_autoSync": "סנכרון אוטומטי",
   "settings_cloudSync_autoSync_subtitle": "סנכרן אוטומטית לאחר שינויים",
   "settings_cloudSync_conflictItems": "{count, plural, =1{פריט אחד דורש תשומת לב} other{{count} פריטים דורשים תשומת לב}}",
@@ -3867,7 +3982,7 @@
   "settings_data_appDefaultLocation": "מיקום ברירת מחדל של האפליקציה",
   "settings_data_backup": "גיבוי ושחזור",
   "settings_data_backup_subtitle": "צור גיבוי של הנתונים שלך",
-  "settings_data_cloudSync": "סנכרון ענן",
+  "settings_data_cloudSync": "סנכרון ענן של מסד נתונים",
   "settings_data_customFolder": "תיקייה מותאמת אישית",
   "settings_data_databaseStorage": "אחסון מסד נתונים",
   "settings_data_export_completed": "הייצוא הושלם",
@@ -3906,9 +4021,26 @@
   "settings_decompression_dialog_title": "גורמי שיפוע",
   "settings_decompression_endLimit": "מגבלת END",
   "settings_decompression_endLimit_dialog_title": "מגבלת END",
+  "settings_decompression_cnsMethodTitle": "חישוב CNS",
+  "settings_decompression_cnsMethodClassic": "טבלת NOAA, מדורגת (קלאסי)",
+  "settings_decompression_cnsMethodClassicDesc": "מחשב כל תחום של 0.1 bar לפי הקצה המחמיר שלו. השיטה המקורית של Submersion.",
+  "settings_decompression_cnsMethodShearwater": "אינטרפולציה לינארית (בסגנון Shearwater)",
+  "settings_decompression_cnsMethodShearwaterDesc": "מבצע אינטרפולציה בין גבולות NOAA כפי שמתועד על ידי Shearwater. תואם את רוב מחשבי הצלילה.",
+  "settings_decompression_cnsMethodSubsurface": "התאמה מעריכית (כמו Subsurface)",
+  "settings_decompression_cnsMethodSubsurfaceDesc": "התאמת עקומה חלקה לטבלת NOAA. תואם את ה-CNS המחושב של Subsurface.",
+  "settings_decompression_cnsMethodAboutTitle": "אודות שיטות אלה",
+  "settings_decompression_cnsMethodAboutBody": "שלוש השיטות מבוססות על גבולות החשיפה לחמצן שבמדריך הצלילה של NOAA (300 דקות ב-ppO2 של 1.0 bar, 45 דקות ב-1.6 bar). הטבלה מגדירה גבולות רק בצעדים של 0.1 bar: השיטה הקלאסית מחשבת את כל מה שנמצא בתוך תחום לפי הקצה המחמיר של התחום, ובכך מעריכה ביתר באופן שיטתי את החשיפה שבין הערכים. מחשבי הצלילה של Shearwater מתעדים אינטרפולציה לינארית בין גבולות NOAA, עם 15% קבועים לדקה מעל 1.65 bar. בשנת 2019 החליפה Subsurface את חיפוש הטבלה שלה בהתאמה מעריכית חלקה בשני מקטעים לאותם נתוני NOAA (Robert C. Helling), שגם מתרחבת באופן טבעי מעבר ל-1.6 bar. בין ערכי הטבלה שתי השיטות החלקות תואמות זו את זו בהפרש של כנקודת CNS אחת בקירוב; השיטה הקלאסית מציגה ערכים גבוהים יותר.",
+  "settings_decompression_cnsMethodDisclaimer": "השמות מתייחסים לשיטות שפורסמו של הפרויקטים והיצרנים המתאימים; אין בכך כדי לרמז על שיוך או חסות. ערכים מחושבים עשויים להיות שונים מהקריאות בפועל של מחשב הצלילה.",
+  "settings_decompression_cnsMethodSourcesTitle": "מקורות",
+  "settings_linkOpenFailed": "לא ניתן לפתוח את הקישור.",
+  "settings_decompression_cnsMethodSourceNoaa": "NOAA: Diving Program (המוציא לאור של NOAA Diving Manual)",
+  "settings_decompression_cnsMethodSourceShearwater": "Shearwater: שעון החמצן של CNS",
+  "settings_decompression_cnsMethodSourceTheoreticalDiver": "The Theoretical Diver: חישוב רעילות חמצן CNS",
+  "settings_decompression_cnsMethodSourceSubsurface": "Subsurface: מימוש (divelist.cpp)",
   "settings_decompression_endLimit_subtitle": "עומק נרקוטי שווה ערך מרבי המשמש לחישובי MND",
   "settings_decompression_gfValue": "GF {gfLow}/{gfHigh}",
   "settings_decompression_header_gradientFactors": "גורמי שיפוע",
+  "settings_decompression_header_oxygenToxicity": "רעילות חמצן",
   "settings_decompression_header_narcosis": "נרקוזה",
   "settings_decompression_o2Narcotic": "O2 נרקוטי",
   "settings_decompression_o2Narcotic_subtitle": "כאשר מופעל, גם O2 וגם N2 נחשבים נרקוטיים (שמרני יותר). כאשר מושבת, רק N2 תורם לנרקוזה.",
@@ -3966,10 +4098,13 @@
   "settings_lightroom_albumFilter_all": "כל הקטלוג",
   "settings_lightroom_albumFilter_title": "אלבומים לסריקה",
   "settings_lightroom_autoPoll_title": "בדיקה אוטומטית של תמונות חדשות",
-  "settings_lightroom_clientId_help": "צרו אינטגרציה ב-Adobe Developer Console עם Lightroom Services API וסוג אישור התומך ב-PKCE. הגדירו את כתובת ההפניה ל-{redirectUri}.",
+  "settings_lightroom_clientId_help": "צרו אינטגרציה ב-Adobe Developer Console עם Lightroom Services API וסוג אישור התומך ב-PKCE. הזינו למטה את כתובת ההפניה של האישור שלכם — אישורי Native App משתמשים בסכימה מותאמת אישית — או השאירו ריק כדי להשתמש ב-{redirectUri}.",
   "settings_lightroom_clientId_label": "מזהה לקוח של Adobe",
   "settings_lightroom_clientSecret_label": "סוד לקוח (אופציונלי)",
+  "settings_lightroom_redirectUri_label": "כתובת הפניה (אופציונלי)",
   "settings_lightroom_connect": "חיבור Lightroom",
+  "settings_lightroom_connectEmbedded": "התחברות עם Adobe",
+  "settings_lightroom_advancedByo": "שימוש בפרטי הכניסה שלך ב-Adobe",
   "settings_lightroom_connect_codeLabel": "כתובת URL מופנית או קוד",
   "settings_lightroom_connect_emptyCode": "הדביקו את כתובת ה-URL המופנית או את קוד ההרשאה",
   "settings_lightroom_connect_failed": "לא ניתן להתחבר ל-Lightroom: {error}",
@@ -5237,15 +5372,15 @@
   "diveComputer_download_newDivesOnlySubtitle": "מוריד רק צלילות שנוספו מאז הסנכרון האחרון",
   "diveComputer_download_newDivesOnlyTitle": "הורד צלילות חדשות בלבד",
   "diveComputer_download_upToDate": "לא נמצאו צלילות חדשות -- היומן שלך מעודכן",
-  "diveLog_edit_section_environment": "Environment",
-  "diveLog_edit_subsection_weather": "Weather",
-  "diveLog_edit_subsection_diveConditions": "Dive Conditions",
-  "diveLog_edit_label_windSpeed": "Wind Speed",
-  "diveLog_edit_label_windDirection": "Wind Direction",
-  "diveLog_edit_label_cloudCover": "Cloud Cover",
-  "diveLog_edit_label_precipitation": "Precipitation",
-  "diveLog_edit_label_humidity": "Humidity",
-  "diveLog_edit_label_weatherDescription": "Weather Description",
+  "diveLog_edit_section_environment": "סביבה",
+  "diveLog_edit_subsection_weather": "מזג אוויר",
+  "diveLog_edit_subsection_diveConditions": "תנאי צלילה",
+  "diveLog_edit_label_windSpeed": "מהירות רוח",
+  "diveLog_edit_label_windDirection": "כיוון רוח",
+  "diveLog_edit_label_cloudCover": "כיסוי עננים",
+  "diveLog_edit_label_precipitation": "משקעים",
+  "diveLog_edit_label_humidity": "לחות",
+  "diveLog_edit_label_weatherDescription": "תיאור מזג האוויר",
   "diveLog_edit_button_fetchWeather": "Fetch Weather",
   "diveLog_edit_fetchingWeather": "Fetching weather...",
   "diveLog_edit_weatherFetched": "Weather data loaded",
@@ -5254,28 +5389,28 @@
   "diveLog_edit_fetchWeatherNotYetAvailable": "Weather data not yet available for this date",
   "diveLog_edit_fetchWeatherHint": "Add a date and dive site first",
   "diveLog_edit_fetchWeatherConfirm": "Replace existing weather data with fetched data?",
-  "diveLog_detail_section_environment": "Environment",
-  "diveLog_detail_subsection_weather": "Weather",
-  "diveLog_detail_subsection_diveConditions": "Dive Conditions",
-  "diveLog_detail_label_windSpeed": "Wind Speed",
-  "diveLog_detail_label_windDirection": "Wind Direction",
-  "diveLog_detail_label_cloudCover": "Cloud Cover",
-  "diveLog_detail_label_precipitation": "Precipitation",
-  "diveLog_detail_label_humidity": "Humidity",
-  "diveLog_detail_label_weatherDescription": "Description",
+  "diveLog_detail_section_environment": "סביבה",
+  "diveLog_detail_subsection_weather": "מזג אוויר",
+  "diveLog_detail_subsection_diveConditions": "תנאי צלילה",
+  "diveLog_detail_label_windSpeed": "מהירות רוח",
+  "diveLog_detail_label_windDirection": "כיוון רוח",
+  "diveLog_detail_label_cloudCover": "כיסוי עננים",
+  "diveLog_detail_label_precipitation": "משקעים",
+  "diveLog_detail_label_humidity": "לחות",
+  "diveLog_detail_label_weatherDescription": "תיאור",
   "diveLog_detail_weatherSourceOpenMeteo": "via Open-Meteo",
-  "enum_cloudCover_clear": "Clear",
-  "enum_cloudCover_partlyCloudy": "Partly Cloudy",
-  "enum_cloudCover_mostlyCloudy": "Mostly Cloudy",
-  "enum_cloudCover_overcast": "Overcast",
-  "enum_precipitation_none": "None",
-  "enum_precipitation_drizzle": "Drizzle",
-  "enum_precipitation_lightRain": "Light Rain",
-  "enum_precipitation_rain": "Rain",
-  "enum_precipitation_heavyRain": "Heavy Rain",
-  "enum_precipitation_snow": "Snow",
-  "enum_precipitation_sleet": "Sleet",
-  "enum_precipitation_hail": "Hail",
+  "enum_cloudCover_clear": "בהיר",
+  "enum_cloudCover_partlyCloudy": "מעונן חלקית",
+  "enum_cloudCover_mostlyCloudy": "מעונן ברובו",
+  "enum_cloudCover_overcast": "מעונן",
+  "enum_precipitation_none": "ללא",
+  "enum_precipitation_drizzle": "טפטוף",
+  "enum_precipitation_lightRain": "גשם קל",
+  "enum_precipitation_rain": "גשם",
+  "enum_precipitation_heavyRain": "גשם כבד",
+  "enum_precipitation_snow": "שלג",
+  "enum_precipitation_sleet": "גשם קפוא",
+  "enum_precipitation_hail": "ברד",
   "dashboard_activityStats_divesInYear": "צלילות ב-{year}",
   "dashboard_hero_daysSinceLabel": "ימים מהצלילה האחרונה",
   "dashboard_hero_diverFallbackName": "צוללן",
@@ -5760,27 +5895,194 @@
   "settings_setupGuide_open": "פתח",
   "settings_connectedAccounts_loadError": "לא ניתן לטעון חשבונות",
   "media_unavailablePlaceholder_volumeOffline": "הכונן אינו מחובר",
+  "attrLabel_size": "מידה",
+  "attrLabel_thickness_mm": "עובי (מ\"מ)",
+  "attrLabel_suit_style": "סוג חליפה",
+  "attrLabel_shell_material": "חומר מעטפת",
+  "attrLabel_seal_type": "סוג אטמים",
+  "attrLabel_volume_l": "נפח",
+  "attrLabel_working_pressure_bar": "לחץ עבודה",
+  "attrLabel_tank_material": "חומר",
+  "attrLabel_valve_type": "שסתום",
+  "attrLabel_tank_identifier": "מזהה",
+  "attrLabel_last_visual_inspection": "בדיקה חזותית אחרונה",
+  "attrLabel_last_hydro_test": "מבחן הידרוסטטי אחרון",
+  "attrLabel_connection": "חיבור",
+  "attrLabel_cold_water_rated": "מתאים למים קרים",
+  "attrLabel_bcd_style": "סגנון",
+  "attrLabel_lift_capacity_kg": "כושר הרמה",
+  "attrLabel_heel_type": "עקב",
+  "attrLabel_blade_style": "להב",
+  "attrLabel_mount": "התקנה",
+  "attrLabel_connectivity": "קישוריות",
+  "attrLabel_lens_config": "עדשה",
+  "attrLabel_prescription": "עדשות אופטיות",
+  "attrLabel_weight_style": "סגנון",
+  "attrLabel_lumens": "לומן",
+  "attrLabel_beam_type": "אלומה",
+  "attrLabel_depth_rating_m": "דירוג עומק",
+  "attrLabel_smb_type": "סוג",
+  "attrLabel_length_m": "אורך",
+  "attrLabel_reel_type": "סוג",
+  "attrLabel_line_length_m": "אורך חוט",
+  "attrLabel_blade_material": "חומר להב",
+  "attrLabel_tip_type": "קצה",
+  "attrLabel_glove_type": "סוג",
+  "attrLabel_sole_type": "סוליה",
+  "attrLabel_buoyancy_kg": "ציפה",
+  "attrLabel_dry_weight_kg": "משקל יבש",
+  "attrChoice_suit_style_full": "חליפה מלאה",
+  "attrChoice_suit_style_shorty": "שורטי",
+  "attrChoice_suit_style_two_piece": "שני חלקים",
+  "attrChoice_suit_style_semi_dry": "חצי יבשה",
+  "attrChoice_shell_material_trilaminate": "טרילמינט",
+  "attrChoice_shell_material_neoprene": "ניאופרן",
+  "attrChoice_shell_material_crushed_neoprene": "ניאופרן דחוס",
+  "attrChoice_shell_material_vulcanized_rubber": "גומי מגופר",
+  "attrChoice_seal_type_latex": "לטקס",
+  "attrChoice_seal_type_silicone": "סיליקון",
+  "attrChoice_seal_type_neoprene": "ניאופרן",
+  "attrChoice_tank_material_aluminum": "אלומיניום",
+  "attrChoice_tank_material_steel": "פלדה",
+  "attrChoice_tank_material_carbon_composite": "מרוכב פחמן",
+  "attrChoice_valve_type_din": "DIN",
+  "attrChoice_valve_type_yoke": "יוק (INT)",
+  "attrChoice_valve_type_convertible": "הפיך",
+  "attrChoice_connection_din": "DIN",
+  "attrChoice_connection_yoke": "יוק (INT)",
+  "attrChoice_bcd_style_jacket": "ז'קט",
+  "attrChoice_bcd_style_back_inflate": "ניפוח גב",
+  "attrChoice_bcd_style_wing": "כנף",
+  "attrChoice_bcd_style_sidemount": "סייד-מאונט",
+  "attrChoice_heel_type_open_heel": "עקב פתוח",
+  "attrChoice_heel_type_full_foot": "רגל מלאה",
+  "attrChoice_blade_style_paddle": "חתירה",
+  "attrChoice_blade_style_split": "מפוצל",
+  "attrChoice_blade_style_vented": "מאוורר",
+  "attrChoice_mount_wrist": "פרק יד",
+  "attrChoice_mount_console": "קונסולה",
+  "attrChoice_mount_hud": "HUD",
+  "attrChoice_connectivity_ble": "Bluetooth (BLE)",
+  "attrChoice_connectivity_usb": "USB",
+  "attrChoice_connectivity_infrared": "אינפרא אדום",
+  "attrChoice_connectivity_none": "ללא",
+  "attrChoice_lens_config_single": "עדשה אחת",
+  "attrChoice_lens_config_twin": "שתי עדשות",
+  "attrChoice_lens_config_frameless": "ללא מסגרת",
+  "attrChoice_weight_style_belt": "חגורה",
+  "attrChoice_weight_style_integrated": "משולב",
+  "attrChoice_weight_style_trim": "טרים",
+  "attrChoice_weight_style_ankle": "קרסול",
+  "attrChoice_beam_type_spot": "ספוט",
+  "attrChoice_beam_type_flood": "רחב",
+  "attrChoice_beam_type_adjustable": "מתכוונן",
+  "attrChoice_smb_type_open": "פתוח",
+  "attrChoice_smb_type_closed": "סגור",
+  "attrChoice_reel_type_spool": "סליל",
+  "attrChoice_reel_type_ratchet": "רצ'ט",
+  "attrChoice_blade_material_stainless": "פלדת אל-חלד",
+  "attrChoice_blade_material_titanium": "טיטניום",
+  "attrChoice_tip_type_pointed": "מחודד",
+  "attrChoice_tip_type_blunt": "קהה",
+  "attrChoice_tip_type_line_cutter": "חותך חוטים",
+  "attrChoice_glove_type_five_finger": "חמש אצבעות",
+  "attrChoice_glove_type_mitt": "כפפת אגרוף",
+  "attrChoice_glove_type_dry": "יבש",
+  "attrChoice_sole_type_hard": "סוליה קשה",
+  "attrChoice_sole_type_soft": "סוליה רכה",
+  "equipment_edit_customFieldsTitle": "שדות מותאמים אישית",
+  "equipment_edit_addCustomField": "הוספת שדה מותאם אישית",
+  "attr_flagYes": "כן",
+  "attr_flagNo": "לא",
+  "equipment_edit_invalidThickness": "השתמשו ב-5, 5/4 או 7/5/3",
+  "statistics_progression_divesBySuitThickness_title": "צלילות לפי עובי חליפה",
+  "statistics_progression_divesBySuitThickness_subtitle": "העובי העיקרי של חליפת הצלילה על פני הצלילות",
+  "statistics_progression_divesBySuitThickness_empty": "אין צלילות עם עובי חליפה מתועד",
+  "statistics_progression_divesBySuitThickness_error": "לא ניתן לטעון נתוני עובי חליפה",
+  "diveLog_filter_sectionSuitThickness": "עובי חליפה (מ\"מ)",
+  "diveLog_filter_thicknessMin": "מינ'",
+  "diveLog_filter_thicknessMax": "מקס'",
   "diveDetailSection_safetyReview_name": "סקירת בטיחות",
   "diveDetailSection_safetyReview_description": "תצפיות אוטומטיות על פרופיל הצלילה לאחר הצלילה",
   "safetyReview_sectionTitle": "סקירת בטיחות",
   "safetyReview_findingCount": "{count, plural, =1{תצפית אחת} other{{count} תצפיות}}",
-  "@safetyReview_findingCount": {"placeholders": {"count": {"type": "int"}}},
+  "@safetyReview_findingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "safetyReview_rapidAscent_title": "העלייה חרגה מ-{rate} למשך {duration}",
-  "@safetyReview_rapidAscent_title": {"placeholders": {"rate": {"type": "String"}, "duration": {"type": "String"}}},
+  "@safetyReview_rapidAscent_title": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
   "safetyReview_missedDecoStop_title": "העומק היה {excess} מעל תקרת העצירה הנדרשת למשך {duration}",
-  "@safetyReview_missedDecoStop_title": {"placeholders": {"excess": {"type": "String"}, "duration": {"type": "String"}}},
+  "@safetyReview_missedDecoStop_title": {
+    "placeholders": {
+      "excess": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
   "safetyReview_omittedSafetyStop_title": "עצירת הבטיחות המומלצת קוצרה ב-{remaining}",
-  "@safetyReview_omittedSafetyStop_title": {"placeholders": {"remaining": {"type": "String"}}},
+  "@safetyReview_omittedSafetyStop_title": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
   "safetyReview_sawtoothProfile_title": "{count} שינויי עומק חוזרים מעלה ומטה במהלך הצלילה",
-  "@safetyReview_sawtoothProfile_title": {"placeholders": {"count": {"type": "int"}}},
+  "@safetyReview_sawtoothProfile_title": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "safetyReview_highSurfaceGf_title": "עלייה לפני השטח עם פקטור גרדיאנט {gf}, מעל {gfHigh} שהוגדר",
-  "@safetyReview_highSurfaceGf_title": {"placeholders": {"gf": {"type": "String"}, "gfHigh": {"type": "String"}}},
+  "@safetyReview_highSurfaceGf_title": {
+    "placeholders": {
+      "gf": {
+        "type": "String"
+      },
+      "gfHigh": {
+        "type": "String"
+      }
+    }
+  },
   "safetyReview_timeRange": "ב-{start}–{end}",
-  "@safetyReview_timeRange": {"placeholders": {"start": {"type": "String"}, "end": {"type": "String"}}},
+  "@safetyReview_timeRange": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
   "safetyReview_dismiss": "התעלם",
   "safetyReview_restore": "שחזר",
   "safetyReview_showDismissed": "{count, plural, =1{הצג תצפית אחת שהוסתרה} other{הצג {count} תצפיות שהוסתרו}}",
-  "@safetyReview_showDismissed": {"placeholders": {"count": {"type": "int"}}},
+  "@safetyReview_showDismissed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "safetySettings_title": "סקירת בטיחות",
   "safetySettings_entry_subtitle": "תצפיות וכללים לאחר הצלילה",
   "safetySettings_masterToggle": "סקירת בטיחות לאחר הצלילה",
@@ -5794,61 +6096,162 @@
   "safetySettings_analyzeAll": "נתח את כל הצלילות",
   "safetySettings_analyzeAll_subtitle": "הרצת סקירת הבטיחות על כל צלילה עם פרופיל שטרם נותחה",
   "safetySettings_analyzeAll_progress": "נותחו {done} מתוך {total}",
-  "@safetySettings_analyzeAll_progress": {"placeholders": {"done": {"type": "int"}, "total": {"type": "int"}}},
+  "@safetySettings_analyzeAll_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "safetySettings_analyzeAll_done": "הניתוח הושלם",
+  "safetySettings_analyzeAll_doneWithErrors": "הניתוח הושלם — {count, plural, =1{לא ניתן היה לנתח צלילה אחת} other{לא ניתן היה לנתח {count} צלילות}}",
+  "@safetySettings_analyzeAll_doneWithErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "safetySettings_noFlyHeader": "טיסה אחרי צלילה",
   "safetySettings_noFlyPreset_standard": "רגיל (12/18/24 ש')",
   "safetySettings_noFlyPreset_strict": "מחמיר (18/24/48 ש')",
   "safetySettings_noFlyPreset_subtitle": "מרווחים מנחים אחרי צלילה בודדת ללא דקו, צלילות חוזרות וצלילות דקומפרסיה",
   "safetyHub_title": "בטיחות",
   "safetyHub_noFly_active_title": "איסור טיסה: נותרו {remaining}",
-  "@safetyHub_noFly_active_title": {"placeholders": {"remaining": {"type": "String"}}},
+  "@safetyHub_noFly_active_title": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
   "safetyHub_noFly_until": "עד {time}",
-  "@safetyHub_noFly_until": {"placeholders": {"time": {"type": "String"}}},
+  "@safetyHub_noFly_until": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "safetyHub_noFly_clear_title": "אין הגבלת טיסה",
-  "safetyHub_noFly_clear_subtitle": "לא היו צלילות ב-48 השעות האחרונות",
+  "safetyHub_noFly_clear_subtitle": "אין הגבלת טיסה פעילה",
   "safetyHub_noFly_category_single": "אחרי צלילה בודדת ללא דקו: הנחיה של {hours} שעות",
-  "@safetyHub_noFly_category_single": {"placeholders": {"hours": {"type": "int"}}},
+  "@safetyHub_noFly_category_single": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
   "safetyHub_noFly_category_repetitive": "אחרי צלילות חוזרות: הנחיה של {hours} שעות",
-  "@safetyHub_noFly_category_repetitive": {"placeholders": {"hours": {"type": "int"}}},
+  "@safetyHub_noFly_category_repetitive": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
   "safetyHub_noFly_category_deco": "אחרי צלילת דקומפרסיה: הנחיה של {hours} שעות",
-  "@safetyHub_noFly_category_deco": {"placeholders": {"hours": {"type": "int"}}},
+  "@safetyHub_noFly_category_deco": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
   "safetyHub_noFly_disclaimer": "הנחיות DAN/UHMS מאז הצלילה האחרונה. אינו תחליף לזמן איסור הטיסה של מחשב הצלילה שלך.",
   "safetyHub_surfaceIntervalLink": "כלי מרווח פני השטח",
   "safetyHub_surfaceIntervalLink_subtitle": "מודל לימודי של פליטת גזים מהרקמות",
   "safetyHub_settingsLink": "הגדרות בטיחות",
   "safetyHub_alert_noFly": "איסור טיסה: נותרו {remaining}",
-  "@safetyHub_alert_noFly": {"placeholders": {"remaining": {"type": "String"}}},
+  "@safetyHub_alert_noFly": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_detail_altitudeMismatch_title": "אתר הצלילה נמצא בגובה",
   "diveLog_detail_altitudeMismatch_subtitle": "לאתר זה רשום גובה אך לצלילה אין, ולכן ניתוח הדקומפרסיה הניח גובה פני הים. הגדר את גובה הצלילה כדי לתקן.",
   "emergencyCard_title": "חירום",
   "emergencyCard_callDan": "התקשר אל {name}",
-  "@emergencyCard_callDan": {"placeholders": {"name": {"type": "String"}}},
+  "@emergencyCard_callDan": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "emergencyCard_callDan_subtitle": "קו חירום לצוללים. התקשר אליו קודם: הם מתאמים פינוי והפניה לתא לחץ.",
   "emergencyCard_ems": "שירותי חירום מקומיים: {number}",
-  "@emergencyCard_ems": {"placeholders": {"number": {"type": "String"}}},
+  "@emergencyCard_ems": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
   "emergencyCard_diverSection": "צולל",
   "emergencyCard_bloodType": "סוג דם: {value}",
-  "@emergencyCard_bloodType": {"placeholders": {"value": {"type": "String"}}},
+  "@emergencyCard_bloodType": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "emergencyCard_allergies": "אלרגיות: {value}",
-  "@emergencyCard_allergies": {"placeholders": {"value": {"type": "String"}}},
+  "@emergencyCard_allergies": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "emergencyCard_medications": "תרופות: {value}",
-  "@emergencyCard_medications": {"placeholders": {"value": {"type": "String"}}},
+  "@emergencyCard_medications": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "emergencyCard_contactsSection": "אנשי קשר לחירום",
   "emergencyCard_insuranceSection": "ביטוח צלילה",
   "emergencyCard_insurancePolicy": "פוליסה {number}",
-  "@emergencyCard_insurancePolicy": {"placeholders": {"number": {"type": "String"}}},
+  "@emergencyCard_insurancePolicy": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
   "emergencyCard_chambersSection": "תאי לחץ",
   "emergencyCard_chambersNote": "הזמינות משתנה. תמיד התקשר קודם לקו החירום לצוללים להפניה.",
   "emergencyCard_chamberVerified": "הפרטים אומתו {date}",
-  "@emergencyCard_chamberVerified": {"placeholders": {"date": {"type": "String"}}},
+  "@emergencyCard_chamberVerified": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "emergencyCard_hideChamber": "הסתר",
   "emergencyCard_chamberHidden": "התא הוסתר",
   "emergencyCard_undo": "בטל",
   "emergencyCard_addChamber": "הוסף תא לחץ",
   "emergencyCard_deleteChamber": "מחק",
   "emergencyCard_regionLabel": "אזור: {region}",
-  "@emergencyCard_regionLabel": {"placeholders": {"region": {"type": "String"}}},
+  "@emergencyCard_regionLabel": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },
   "emergencyCard_regionUnknown": "אזור לא ידוע - נעשה שימוש בקו העולמי",
   "emergencyCard_noDiverData": "אין נתוני פרופיל צולל. הוסף אנשי קשר לחירום, נתונים רפואיים וביטוח בפרופיל הצולל.",
   "addChamber_title": "הוסף תא לחץ",

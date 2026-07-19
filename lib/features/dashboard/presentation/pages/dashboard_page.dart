@@ -4,12 +4,16 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
+import 'package:submersion/features/courses/presentation/providers/course_requirement_providers.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/active_course_progress_card.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/activity_stats_bar.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/alerts_card.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/hero_header.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/personal_records_card.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/quick_actions_card.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/recent_dives_card.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/service_due_card.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 
 /// Dashboard home page showing dive statistics and alerts
 class DashboardPage extends ConsumerWidget {
@@ -29,6 +33,8 @@ class DashboardPage extends ConsumerWidget {
             ref.invalidate(yearToDateDiveCountProvider);
             ref.invalidate(personalRecordsProvider);
             ref.invalidate(certificationListNotifierProvider);
+            ref.invalidate(dueClocksProvider);
+            ref.invalidate(activeCoursesProgressProvider);
           },
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
@@ -42,6 +48,9 @@ class DashboardPage extends ConsumerWidget {
                 const SizedBox(height: 12),
                 const AlertsCard(),
                 const SizedBox(height: 12),
+                const ServiceDueCard(),
+                const SizedBox(height: 12),
+                const ActiveCourseProgressCard(),
                 const RecentDivesCard(),
                 const SizedBox(height: 12),
                 _buildBottomRow(context, ref),
