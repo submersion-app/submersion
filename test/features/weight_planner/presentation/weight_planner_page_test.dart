@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/buoyancy/buoyancy_twin.dart';
 import 'package:submersion/core/buoyancy/weight_observation.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
@@ -70,6 +71,7 @@ void main() {
     final base = await getBaseOverrides();
     await tester.pumpWidget(
       testApp(
+        locale: const Locale('en'),
         overrides: [
           ...base,
           weightObservationsProvider.overrideWith((ref) async => observations),
@@ -252,5 +254,34 @@ void main() {
     await tester.pumpAndSettle();
     // Panel still renders its summary after the depth change.
     expect(find.text('Buoyancy swing'), findsOneWidget);
+  });
+
+  group('squareDiveProfile', () {
+    void expectStrictlyIncreasing(List<TwinProfileSample> profile) {
+      for (var i = 1; i < profile.length; i++) {
+        expect(
+          profile[i].timestamp,
+          greaterThan(profile[i - 1].timestamp),
+          reason: 'sample $i duplicates or reverses the previous timestamp',
+        );
+      }
+    }
+
+    test('has strictly increasing timestamps at the 5 m slider minimum', () {
+      // At 5 m the ascent-to-5 m leg is zero-length; the transition sample
+      // must be skipped so it does not duplicate the bottom-end timestamp.
+      expectStrictlyIncreasing(
+        squareDiveProfile(maxDepthM: 5, bottomMinutes: 45),
+      );
+    });
+
+    test('has strictly increasing timestamps for a typical dive', () {
+      final profile = squareDiveProfile(maxDepthM: 30, bottomMinutes: 20);
+      expectStrictlyIncreasing(profile);
+      final deepest = profile
+          .map((s) => s.depthM)
+          .reduce((a, b) => a > b ? a : b);
+      expect(deepest, 30);
+    });
   });
 }

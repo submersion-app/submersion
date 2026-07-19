@@ -90,30 +90,8 @@ class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
     );
   }
 
-  /// Square synthetic profile: descent at 18 m/min, bottom, ascent at
-  /// 9 m/min with a 3 min stop at 5 m.
-  List<TwinProfileSample> _squareProfile() {
-    final samples = <TwinProfileSample>[
-      const TwinProfileSample(timestamp: 0, depthM: 0),
-    ];
-    var t = (_maxDepthM / 18.0 * 60).round();
-    samples.add(TwinProfileSample(timestamp: t, depthM: _maxDepthM));
-    final bottomS = _bottomMinutes * 60;
-    for (var s = 30; s < bottomS; s += 30) {
-      samples.add(TwinProfileSample(timestamp: t + s, depthM: _maxDepthM));
-    }
-    t += bottomS;
-    samples.add(TwinProfileSample(timestamp: t, depthM: _maxDepthM));
-    t += ((_maxDepthM - 5).clamp(0, 100) / 9.0 * 60).round();
-    samples.add(TwinProfileSample(timestamp: t, depthM: 5));
-    for (var s = 30; s < 180; s += 30) {
-      samples.add(TwinProfileSample(timestamp: t + s, depthM: 5));
-    }
-    t += 180;
-    samples.add(TwinProfileSample(timestamp: t, depthM: 5));
-    samples.add(TwinProfileSample(timestamp: t + 33, depthM: 0));
-    return samples;
-  }
+  List<TwinProfileSample> _squareProfile() =>
+      squareDiveProfile(maxDepthM: _maxDepthM, bottomMinutes: _bottomMinutes);
 
   BuoyancyTwinOutcome? _buoyancyOutcome(
     FittedWeightModel? model,
@@ -405,4 +383,42 @@ class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
       ),
     );
   }
+}
+
+/// Square synthetic dive profile for the weight-planner tool: descent at
+/// 18 m/min, [bottomMinutes] at [maxDepthM], ascent at 9 m/min, a 3 min stop
+/// at 5 m, then the surface.
+///
+/// Timestamps are strictly increasing. When [maxDepthM] is at (or below) the
+/// 5 m stop the ascent leg has zero duration, so its transition sample is
+/// skipped -- emitting it would duplicate the previous sample's timestamp and
+/// hand the simulator a zero-`dt` step.
+@visibleForTesting
+List<TwinProfileSample> squareDiveProfile({
+  required double maxDepthM,
+  required int bottomMinutes,
+}) {
+  final samples = <TwinProfileSample>[
+    const TwinProfileSample(timestamp: 0, depthM: 0),
+  ];
+  var t = (maxDepthM / 18.0 * 60).round();
+  samples.add(TwinProfileSample(timestamp: t, depthM: maxDepthM));
+  final bottomS = bottomMinutes * 60;
+  for (var s = 30; s < bottomS; s += 30) {
+    samples.add(TwinProfileSample(timestamp: t + s, depthM: maxDepthM));
+  }
+  t += bottomS;
+  samples.add(TwinProfileSample(timestamp: t, depthM: maxDepthM));
+  final ascentS = ((maxDepthM - 5).clamp(0, 100) / 9.0 * 60).round();
+  if (ascentS > 0) {
+    t += ascentS;
+    samples.add(TwinProfileSample(timestamp: t, depthM: 5));
+  }
+  for (var s = 30; s < 180; s += 30) {
+    samples.add(TwinProfileSample(timestamp: t + s, depthM: 5));
+  }
+  t += 180;
+  samples.add(TwinProfileSample(timestamp: t, depthM: 5));
+  samples.add(TwinProfileSample(timestamp: t + 33, depthM: 0));
+  return samples;
 }
