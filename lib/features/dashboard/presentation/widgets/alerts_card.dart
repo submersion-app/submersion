@@ -64,10 +64,19 @@ class _CompactAlertsBannerState extends State<_CompactAlertsBanner> {
   /// minute while a restriction is active (matching SafetyHubPage). No ticker
   /// runs when there is no countdown to update.
   void _syncTicker() {
-    final active = widget.alerts.noFlyStatus != null;
+    // Drive off hasActiveNoFly (not just non-null): a cached-but-elapsed status
+    // needs no countdown refresh.
+    final active = widget.alerts.hasActiveNoFly;
     if (active && _ticker == null) {
       _ticker = Timer.periodic(const Duration(minutes: 1), (_) {
-        if (mounted) setState(() {});
+        if (!mounted) return;
+        // Stop waking up once the restriction elapses; the provider re-emit
+        // removes the banner shortly after, but don't tick until then.
+        if (!widget.alerts.hasActiveNoFly) {
+          _ticker?.cancel();
+          _ticker = null;
+        }
+        setState(() {});
       });
     } else if (!active && _ticker != null) {
       _ticker!.cancel();
