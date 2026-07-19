@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/merge_field_extras.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -23,9 +24,12 @@ class DiveInfoSection extends StatelessWidget {
     required this.rating,
     required this.onRatingChanged,
     required this.onRatingCleared,
+    required this.waterType,
+    required this.onWaterTypeChanged,
     this.mergeExtras,
     this.difficultyExtras,
     this.ratingExtras,
+    this.waterTypeExtras,
   });
 
   final bool expanded;
@@ -40,9 +44,12 @@ class DiveInfoSection extends StatelessWidget {
   final int rating;
   final ValueChanged<int> onRatingChanged;
   final VoidCallback onRatingCleared;
+  final WaterType? waterType;
+  final ValueChanged<WaterType?> onWaterTypeChanged;
   final MergeFieldExtras? Function(String key)? mergeExtras;
   final MergeFieldExtras? difficultyExtras;
   final MergeFieldExtras? ratingExtras;
+  final MergeFieldExtras? waterTypeExtras;
 
   Widget _depthRow(
     BuildContext context, {
@@ -108,6 +115,34 @@ class DiveInfoSection extends StatelessWidget {
                     visualDensity: VisualDensity.compact,
                     onSelected: (selected) =>
                         onDifficultyChanged(selected ? value : null),
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
+        ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (waterTypeExtras != null)
+              MergeSourceRow(
+                sourceLabel: waterTypeExtras!.sourceLabel,
+                onCycle: waterTypeExtras!.onCycle,
+              ),
+            FormRow.custom(
+              label: l10n.diveSites_edit_section_waterType,
+              child: Wrap(
+                alignment: WrapAlignment.end,
+                spacing: 6,
+                runSpacing: 4,
+                children: WaterType.values.map((value) {
+                  final isSelected = waterType == value;
+                  return ChoiceChip(
+                    label: Text(value.displayName),
+                    selected: isSelected,
+                    visualDensity: VisualDensity.compact,
+                    onSelected: (selected) =>
+                        onWaterTypeChanged(selected ? value : null),
                   );
                 }).toList(),
               ),

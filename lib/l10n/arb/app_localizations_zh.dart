@@ -7107,6 +7107,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_edit_section_rating => '评分';
 
   @override
+  String get diveSites_edit_section_waterType => '水体类型';
+
+  @override
   String diveSites_edit_snackbar_errorDeleting(Object error) {
     return '删除潜水点出错：$error';
   }

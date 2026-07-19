@@ -7327,6 +7327,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_edit_section_rating => 'التقييم';
 
   @override
+  String get diveSites_edit_section_waterType => 'نوع المياه';
+
+  @override
   String diveSites_edit_snackbar_errorDeleting(Object error) {
     return 'خطأ في حذف الموقع: $error';
   }

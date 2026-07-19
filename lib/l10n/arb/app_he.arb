@@ -2372,6 +2372,7 @@
   "diveSites_edit_section_gpsCoordinates": "קואורדינטות GPS",
   "diveSites_edit_section_hazards": "סכנות ובטיחות",
   "diveSites_edit_section_rating": "דירוג",
+  "diveSites_edit_section_waterType": "סוג מים",
   "diveSites_edit_snackbar_errorDeleting": "שגיאה במחיקת אתר: {error}",
   "diveSites_edit_snackbar_errorSaving": "שגיאה בשמירת אתר: {error}",
   "diveSites_edit_snackbar_locationCaptured": "המיקום נקלט",

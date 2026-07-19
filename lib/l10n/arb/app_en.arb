@@ -4104,6 +4104,7 @@
   "diveSites_edit_section_gpsCoordinates": "GPS Coordinates",
   "diveSites_edit_section_hazards": "Hazards & Safety",
   "diveSites_edit_section_rating": "Rating",
+  "diveSites_edit_section_waterType": "Water Type",
   "diveSites_edit_snackbar_errorDeleting": "Error deleting site: {error}",
   "diveSites_edit_snackbar_errorSaving": "Error saving site: {error}",
   "diveSites_edit_snackbar_locationCaptured": "Location captured",

@@ -374,6 +374,39 @@ void main() {
         isFalse,
       );
     });
+
+    testWidgets('selecting a water type chip updates state', (tester) async {
+      tester.view.physicalSize = const Size(900, 3200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        _buildHarness(prefs: prefs, divers: const [], shareByDefault: false),
+      );
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('Water Type'),
+        100,
+        scrollable: find.byType(Scrollable).first,
+      );
+      // Tap the Brackish chip.
+      await tester.tap(find.widgetWithText(ChoiceChip, 'Brackish'));
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<ChoiceChip>(find.widgetWithText(ChoiceChip, 'Brackish'))
+            .selected,
+        isTrue,
+      );
+      // Tap again to deselect.
+      await tester.tap(find.widgetWithText(ChoiceChip, 'Brackish'));
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<ChoiceChip>(find.widgetWithText(ChoiceChip, 'Brackish'))
+            .selected,
+        isFalse,
+      );
+    });
   });
 
   group('edit existing site', () {

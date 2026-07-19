@@ -7458,6 +7458,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveSites_edit_section_rating => 'Ertekeles';
 
   @override
+  String get diveSites_edit_section_waterType => 'Víztípus';
+
+  @override
   String diveSites_edit_snackbar_errorDeleting(Object error) {
     return 'Hiba a helyszin torlesekor: $error';
   }

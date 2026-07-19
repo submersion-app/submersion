@@ -60,6 +60,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/pickers/edit_s
 import 'package:submersion/features/dive_log/presentation/widgets/bulk_membership_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_set_picker_sheet.dart';
+import 'package:submersion/features/dive_log/presentation/utils/water_type_autofill.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/site_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/species_picker_sheet.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -451,7 +452,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     }
     if (p.notes != null) _notesController.text = p.notes!;
     if (p.rating != null) _rating = p.rating!;
-    if (p.site != null) _selectedSite = p.site;
+    if (p.site != null) _assignSite(p.site);
     if (p.weightKg != null) {
       // Paper logs record a total; the carry type is unknown.
       _weights = [
@@ -1733,7 +1734,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       onPickSite: _showSitePicker,
       onClearSite: () {
         _markDirty();
-        setState(() => _selectedSite = null);
+        setState(() => _assignSite(null));
       },
       maxDepthSuggestion: hasProfile
           ? _depthSuggestion(
@@ -1918,7 +1919,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       final createdSite = await siteNotifier.addSite(newSite);
 
       setState(() {
-        _selectedSite = createdSite;
+        _assignSite(createdSite);
         _gpsSuggestionDismissed = true;
       });
 
@@ -1959,6 +1960,15 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     }
   }
 
+  /// Assigns [site] to the dive and snaps the water type from it (manual
+  /// overrides survive when the site has none). Use for user-initiated
+  /// assignments and new-dive prefill — NOT the load path, which restores the
+  /// dive's own saved water type.
+  void _assignSite(DiveSite? site) {
+    _selectedSite = site;
+    _waterType = waterTypeAfterSiteAssign(_waterType, site);
+  }
+
   Future<void> _showSitePicker() async {
     final anchor = _existingDive?.entryLocation ?? _existingDive?.exitLocation;
     final result = await showModalBottomSheet<String>(
@@ -1976,7 +1986,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           diveLocation: anchor,
           onSiteSelected: (site) {
             _markDirty();
-            setState(() => _selectedSite = site);
+            setState(() => _assignSite(site));
             _reevaluateGeofenceForSite();
             Navigator.of(sheetContext).pop();
           },
@@ -1994,7 +2004,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         final site = await repo.getSiteById(siteId);
         if (site != null && mounted) {
           _markDirty();
-          setState(() => _selectedSite = site);
+          setState(() => _assignSite(site));
           _reevaluateGeofenceForSite();
         }
       }

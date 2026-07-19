@@ -2372,6 +2372,7 @@
   "diveSites_edit_section_gpsCoordinates": "Coordinate GPS",
   "diveSites_edit_section_hazards": "Pericoli e sicurezza",
   "diveSites_edit_section_rating": "Valutazione",
+  "diveSites_edit_section_waterType": "Tipo di acqua",
   "diveSites_edit_snackbar_errorDeleting": "Errore nell'eliminazione del sito: {error}",
   "diveSites_edit_snackbar_errorSaving": "Errore nel salvataggio del sito: {error}",
   "diveSites_edit_snackbar_locationCaptured": "Posizione acquisita",

@@ -2406,6 +2406,7 @@
   "diveSites_edit_section_gpsCoordinates": "إحداثيات GPS",
   "diveSites_edit_section_hazards": "المخاطر والسلامة",
   "diveSites_edit_section_rating": "التقييم",
+  "diveSites_edit_section_waterType": "نوع المياه",
   "diveSites_edit_snackbar_errorDeleting": "خطأ في حذف الموقع: {error}",
   "diveSites_edit_snackbar_errorSaving": "خطأ في حفظ الموقع: {error}",
   "diveSites_edit_snackbar_locationCaptured": "تم التقاط الموقع",

@@ -7472,6 +7472,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveSites_edit_section_rating => 'Avaliacao';
 
   @override
+  String get diveSites_edit_section_waterType => 'Tipo de água';
+
+  @override
   String diveSites_edit_snackbar_errorDeleting(Object error) {
     return 'Erro ao excluir ponto: $error';
   }

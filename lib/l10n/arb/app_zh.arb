@@ -2536,6 +2536,7 @@
   "diveSites_edit_section_gpsCoordinates": "GPS 坐标",
   "diveSites_edit_section_hazards": "危险 & 安全",
   "diveSites_edit_section_rating": "评分",
+  "diveSites_edit_section_waterType": "水体类型",
   "diveSites_edit_snackbar_errorDeleting": "删除潜水点出错：{error}",
   "diveSites_edit_snackbar_errorSaving": "保存潜水点出错：{error}",
   "diveSites_edit_snackbar_locationCaptured": "位置已获取",

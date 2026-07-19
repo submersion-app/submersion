@@ -2372,6 +2372,7 @@
   "diveSites_edit_section_gpsCoordinates": "GPS koordinatak",
   "diveSites_edit_section_hazards": "Veszelyek es biztonsag",
   "diveSites_edit_section_rating": "Ertekeles",
+  "diveSites_edit_section_waterType": "Víztípus",
   "diveSites_edit_snackbar_errorDeleting": "Hiba a helyszin torlesekor: {error}",
   "diveSites_edit_snackbar_errorSaving": "Hiba a helyszin mentesekor: {error}",
   "diveSites_edit_snackbar_locationCaptured": "Helyzet rogzitve",

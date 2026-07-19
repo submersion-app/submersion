@@ -7418,6 +7418,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveSites_edit_section_rating => 'Beoordeling';
 
   @override
+  String get diveSites_edit_section_waterType => 'Watertype';
+
+  @override
   String diveSites_edit_snackbar_errorDeleting(Object error) {
     return 'Fout bij verwijderen van stek: $error';
   }

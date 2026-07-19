@@ -7283,6 +7283,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_edit_section_rating => 'דירוג';
 
   @override
+  String get diveSites_edit_section_waterType => 'סוג מים';
+
+  @override
   String diveSites_edit_snackbar_errorDeleting(Object error) {
     return 'שגיאה במחיקת אתר: $error';
   }

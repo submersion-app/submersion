@@ -7471,6 +7471,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveSites_edit_section_rating => 'Bewertung';
 
   @override
+  String get diveSites_edit_section_waterType => 'Gewässertyp';
+
+  @override
   String diveSites_edit_snackbar_errorDeleting(Object error) {
     return 'Fehler beim Löschen des Tauchplatzes: $error';
   }

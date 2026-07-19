@@ -2406,6 +2406,7 @@
   "diveSites_edit_section_gpsCoordinates": "GPS-coordinaten",
   "diveSites_edit_section_hazards": "Gevaren & veiligheid",
   "diveSites_edit_section_rating": "Beoordeling",
+  "diveSites_edit_section_waterType": "Watertype",
   "diveSites_edit_snackbar_errorDeleting": "Fout bij verwijderen van stek: {error}",
   "diveSites_edit_snackbar_errorSaving": "Fout bij opslaan van stek: {error}",
   "diveSites_edit_snackbar_locationCaptured": "Locatie vastgelegd",

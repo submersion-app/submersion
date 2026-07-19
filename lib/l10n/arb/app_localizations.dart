@@ -12673,6 +12673,12 @@ abstract class AppLocalizations {
   /// **'Rating'**
   String get diveSites_edit_section_rating;
 
+  /// No description provided for @diveSites_edit_section_waterType.
+  ///
+  /// In en, this message translates to:
+  /// **'Water Type'**
+  String get diveSites_edit_section_waterType;
+
   /// No description provided for @diveSites_edit_snackbar_errorDeleting.
   ///
   /// In en, this message translates to:

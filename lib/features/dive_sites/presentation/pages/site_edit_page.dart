@@ -2,6 +2,7 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/providers/location_service_provider.dart';
 import 'package:go_router/go_router.dart';
@@ -81,6 +82,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
 
   double _rating = 0;
   SiteDifficulty? _difficulty;
+  WaterType? _waterType;
   bool _isLoading = false;
   bool _isInitialized = false;
   bool _hasChanges = false;
@@ -94,6 +96,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
       {};
   final Map<String, int> _mergeFieldIndices = {};
   List<_MergeFieldCandidate<SiteDifficulty?>> _difficultyCandidates = [];
+  List<_MergeFieldCandidate<WaterType?>> _waterTypeCandidates = [];
   List<_MergeFieldCandidate<double>> _ratingCandidates = [];
   List<_MergeFieldCandidate<_CoordinateCandidate>> _coordinateCandidates = [];
 
@@ -217,6 +220,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     _parkingInfoController.text = site.parkingInfo ?? '';
     _rating = site.rating ?? 0;
     _difficulty = site.difficulty;
+    _waterType = site.waterType;
     _isShared = site.isShared;
     _altitudeController.text = site.altitude != null
         ? units.convertAltitude(site.altitude!).toStringAsFixed(0)
@@ -359,6 +363,18 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     );
     _difficulty =
         _difficultyCandidates[_mergeFieldIndices['difficulty'] ?? 0].value;
+
+    _waterTypeCandidates = _buildDistinctCandidates<WaterType?>(
+      data.sites,
+      (site) => site.waterType,
+      equals: (a, b) => a == b,
+    );
+    _mergeFieldIndices['waterType'] = _firstMeaningfulIndex(
+      _waterTypeCandidates,
+      (value) => value != null,
+    );
+    _waterType =
+        _waterTypeCandidates[_mergeFieldIndices['waterType'] ?? 0].value;
 
     _ratingCandidates = _buildDistinctCandidates<double>(
       data.sites,
@@ -650,6 +666,19 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     );
   }
 
+  MergeFieldExtras? _waterTypeExtras() {
+    if (!widget.isMerging || _waterTypeCandidates.length < 2) return null;
+    final index = _mergeFieldIndices['waterType'] ?? 0;
+    return MergeFieldExtras(
+      sourceLabel: context.l10n.diveSites_edit_merge_fieldSourceLabel(
+        _waterTypeCandidates[index].siteName,
+        index + 1,
+        _waterTypeCandidates.length,
+      ),
+      onCycle: _cycleWaterType,
+    );
+  }
+
   MergeFieldExtras? _ratingExtras() {
     if (!widget.isMerging || _ratingCandidates.length < 2) return null;
     final index = _mergeFieldIndices['rating'] ?? 0;
@@ -692,6 +721,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
       '${_minDepthController.text.isEmpty ? '?' : _minDepthController.text}'
           '-${_maxDepthController.text.isEmpty ? '?' : _maxDepthController.text}',
     if (_difficulty != null) _difficulty!.displayName,
+    if (_waterType != null) _waterType!.displayName,
     if (_rating > 0) '★' * _rating.round(),
   ].join(' · ');
 
@@ -794,9 +824,15 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
               _rating = 0;
               _hasChanges = true;
             }),
+            waterType: _waterType,
+            onWaterTypeChanged: (value) => setState(() {
+              _waterType = value;
+              _hasChanges = true;
+            }),
             mergeExtras: widget.isMerging ? _mergeExtras : null,
             difficultyExtras: _difficultyExtras(),
             ratingExtras: _ratingExtras(),
+            waterTypeExtras: _waterTypeExtras(),
           ),
           AccessSafetySection(
             expanded: _siteSectionExpanded('access'),
@@ -1023,6 +1059,18 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
           _difficultyCandidates.length;
       _mergeFieldIndices['difficulty'] = nextIndex;
       _difficulty = _difficultyCandidates[nextIndex].value;
+      _hasChanges = true;
+    });
+  }
+
+  void _cycleWaterType() {
+    if (_waterTypeCandidates.length < 2) return;
+    setState(() {
+      final nextIndex =
+          ((_mergeFieldIndices['waterType'] ?? 0) + 1) %
+          _waterTypeCandidates.length;
+      _mergeFieldIndices['waterType'] = nextIndex;
+      _waterType = _waterTypeCandidates[nextIndex].value;
       _hasChanges = true;
     });
   }
@@ -1317,6 +1365,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             ? null
             : _parkingInfoController.text.trim(),
         altitude: altitudeMeters,
+        waterType: _waterType,
         isShared: _isShared,
       );
 
