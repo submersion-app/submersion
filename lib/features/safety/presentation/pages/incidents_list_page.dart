@@ -68,7 +68,9 @@ class _IncidentTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final dateText = DateFormat.yMMMd().format(incident.occurredAt.toLocal());
+    // occurredAt is a wall-clock UTC date; format its components directly (no
+    // toLocal) so the shown day is stable across synced devices/timezones.
+    final dateText = DateFormat.yMMMd().format(incident.occurredAt);
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),

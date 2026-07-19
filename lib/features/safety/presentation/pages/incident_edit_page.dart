@@ -33,9 +33,18 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
   Incident? _existing;
   var _category = IncidentCategory.other;
   var _severity = IncidentSeverity.minor;
-  DateTime _occurredAt = DateTime.now();
+  // A timezone-stable wall-clock date (stored as UTC), so the chosen day does
+  // not shift when the synced incident is viewed in another timezone.
+  DateTime _occurredAt = _todayWallClockUtc();
   var _loaded = false;
   var _loadFailed = false;
+
+  /// Today's wall-clock date as a UTC value (no time-of-day), matching how the
+  /// date picker and storage treat [_occurredAt].
+  static DateTime _todayWallClockUtc() {
+    final now = DateTime.now();
+    return DateTime.utc(now.year, now.month, now.day);
+  }
 
   @override
   void initState() {
@@ -160,7 +169,9 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.event),
               title: Text(l10n.incidentEdit_date),
-              subtitle: Text(DateFormat.yMMMd().format(_occurredAt.toLocal())),
+              // Format the wall-clock UTC components directly (no toLocal), so
+              // the shown day is identical on every synced device.
+              subtitle: Text(DateFormat.yMMMd().format(_occurredAt)),
               onTap: _pickDate,
             ),
             TextFormField(
@@ -207,13 +218,25 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
   }
 
   Future<void> _pickDate() async {
+    // Drive the picker in local calendar days (its native mode), seeding it
+    // from _occurredAt's wall-clock Y/M/D, then normalize the chosen day back
+    // to a timezone-stable UTC wall-clock date.
+    final now = DateTime.now();
     final picked = await showDatePicker(
       context: context,
-      initialDate: _occurredAt,
+      initialDate: DateTime(
+        _occurredAt.year,
+        _occurredAt.month,
+        _occurredAt.day,
+      ),
       firstDate: DateTime(1970),
-      lastDate: DateTime.now(),
+      lastDate: DateTime(now.year, now.month, now.day),
     );
-    if (picked != null && mounted) setState(() => _occurredAt = picked);
+    if (picked != null && mounted) {
+      setState(
+        () => _occurredAt = DateTime.utc(picked.year, picked.month, picked.day),
+      );
+    }
   }
 
   Future<void> _save() async {

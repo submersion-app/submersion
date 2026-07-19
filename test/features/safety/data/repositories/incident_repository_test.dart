@@ -59,6 +59,10 @@ void main() {
     final listed = await repo.getIncidents();
     expect(listed, hasLength(1));
     expect(listed.single.category, IncidentCategory.gasSupply);
+    // occurredAt round-trips as a timezone-stable wall-clock UTC value, so the
+    // calendar day is identical on every synced device.
+    expect(listed.single.occurredAt, when);
+    expect(listed.single.occurredAt.isUtc, isTrue);
 
     await repo.updateIncident(
       created.copyWith(severity: IncidentSeverity.serious),

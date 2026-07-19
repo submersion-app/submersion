@@ -117,7 +117,13 @@ class IncidentRepository {
       id: row.id,
       diverId: row.diverId,
       diveId: row.diveId,
-      occurredAt: DateTime.fromMillisecondsSinceEpoch(row.occurredAt),
+      // occurredAt is a timezone-stable wall-clock date (stored as UTC), so it
+      // shows the same calendar day on every synced device. Mirror the dive
+      // log, which reads its wall-clock timestamps with isUtc: true.
+      occurredAt: DateTime.fromMillisecondsSinceEpoch(
+        row.occurredAt,
+        isUtc: true,
+      ),
       category: IncidentCategory.fromDbValue(row.category),
       severity: IncidentSeverity.fromDbValue(row.severity),
       narrative: row.narrative,

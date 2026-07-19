@@ -268,6 +268,8 @@ void main() {
       expect(repo.created!.narrative, 'Ran low on gas on the safety stop.');
       expect(repo.created!.diverId, 'diver-1');
       expect(repo.created!.diveId, 'dive-9');
+      // The default occurred-at is a timezone-stable wall-clock UTC date.
+      expect(repo.created!.occurredAt.isUtc, isTrue);
       expect(repo.updated, isNull);
       expect(find.text('LIST'), findsOneWidget);
     },

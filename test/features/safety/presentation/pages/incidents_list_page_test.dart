@@ -75,6 +75,9 @@ void main() {
     expect(find.textContaining('Gas supply'), findsOneWidget);
     expect(find.textContaining('Moderate'), findsOneWidget);
     expect(find.textContaining('Linked to a dive'), findsOneWidget);
+    // The wall-clock UTC date renders directly (no toLocal), so the shown day
+    // is stable regardless of the host timezone.
+    expect(find.textContaining('Jul 10, 2026'), findsOneWidget);
   });
 
   testWidgets('a serious incident renders the highlighted tile icon', (
