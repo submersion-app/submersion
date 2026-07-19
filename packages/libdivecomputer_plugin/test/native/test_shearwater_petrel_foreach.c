@@ -1,29 +1,37 @@
-// Regression test for issue #480: large Shearwater logbook downloads over BLE
-// time out and cannot resume, and dives behind deleted records are never
-// imported.
+// Regression test for issue #621: shearwater_petrel_device_foreach must
+// request dive payloads newest-first, in manifest order, exactly as upstream
+// libdivecomputer has always done.
 //
-// Root causes, all in shearwater_petrel_device_foreach:
+// Build 114 shipped fork commits 714a2e5 (deliver dives oldest to newest)
+// and 7e8fd9a (download records behind deleted 0x5A23 manifest entries) to
+// fix issue #480's resume problem. Both changed the request pattern sent to
+// real Petrel-family firmware in ways no Shearwater client had ever issued,
+// and were validated only against this file's mocked transport. On real
+// devices (Teric, Perdix 2 AI, Petrel 3; Android and Windows) every download
+// failed right after the manifest transfer: the first rejected dive request
+// aborts the whole pass, so zero dives were ever delivered. The commits were
+// reverted for #621; these tests now lock the restored upstream behavior.
 //
-// 1. The profile-download loop walked the manifest front to back, i.e. newest
-//    dive first. Submersion persists the newest imported dive's fingerprint as
-//    the resume point, so after a partial (timed out or cancelled) run the
-//    next attempt's manifest stop-check matched at the newest dive and every
-//    older dive was stranded forever. Delivering the dives oldest first makes
-//    a partial run leave a contiguous oldest prefix, so the newest imported
-//    fingerprint is a correct high-water mark and resume works.
-// 2. The manifest phase appended only count * RECORD_SIZE bytes per page, but
-//    the record walk advances past deleted (0x5A23) records without counting
-//    them into count. A deleted dive interspersed among not-yet-downloaded
-//    dives pushed the trailing valid record(s) past the appended prefix; those
-//    dives were silently never downloaded.
-// 3. Deleted records were counted into the progress maximum but never credited
-//    to current, so progress never reached 100% on devices with deleted dives.
+// Two upstream limitations are deliberately restored and documented below
+// rather than "fixed", because changing them alters the on-device request
+// pattern and therefore requires hardware validation first (see #480):
+//
+// 1. The manifest phase appends only count * RECORD_SIZE bytes per page, so
+//    a valid record pushed past that prefix by interspersed deleted records
+//    is silently never downloaded.
+// 2. Deleted records are counted into the progress maximum but never credited
+//    to current, so progress does not reach 100% on devices with deleted
+//    dives.
+//
+// Issue #480's resume goal is handled app-side instead: the resume
+// fingerprint only advances after a download that ran to completion, so a
+// partial newest-first delivery can no longer strand the older dives.
 //
 // shearwater_petrel_device_foreach is static, so this test #includes the
 // translation unit. The shearwater_common_* transport layer is mocked here
 // (shearwater_common.c is not linked): the mock serves scripted manifest pages
-// and dive payloads by address, and can fail a specific dive to simulate the
-// BLE timeouts from the issue.
+// and dive payloads by address, and can fail a specific dive to simulate BLE
+// timeouts.
 
 #include <assert.h>
 #include <stdio.h>
@@ -302,9 +310,11 @@ static void print_order(const cb_state_t *s) {
   printf("\n");
 }
 
-// The manifest lists dives newest first (slot 0 is the newest); delivery must
-// be oldest first so a partial run leaves a resumable oldest prefix.
-static void check_oldest_first(void) {
+// The manifest lists dives newest first (slot 0 is the newest); dive payloads
+// must be requested in exactly that order. Real Petrel-family firmware broke
+// when payloads were requested oldest-first (#621), so newest-first is a
+// hardware contract, not a preference.
+static void check_newest_first(void) {
   script_reset();
   g_script.npages = 1;
   set_record(0, 0, 0, 3);  // newest
@@ -316,24 +326,30 @@ static void check_oldest_first(void) {
 
   cb_state_t s;
   dc_status_t rc = run_foreach(NULL, &s);
-  const unsigned char want[] = {1, 2, 3};
+  const unsigned char want[] = {3, 2, 1};
   expect(rc == DC_STATUS_SUCCESS, "a full download succeeds");
-  expect(order_is(&s, want, 3), "dives are delivered oldest first");
+  expect(order_is(&s, want, 3),
+         "dives are delivered newest first, in manifest order");
   if (s.n != 3 || memcmp(s.order, want, 3) != 0) print_order(&s);
   expect(s.contract_ok, "the fingerprint is buf + 12 of each dive's data");
 }
 
-// Valid records behind deleted (0x5A23) records must still be downloaded: the
-// manifest phase must preserve every walked record, not a count-sized prefix.
-static void check_deleted_records_preserved(void) {
+// Deleted (0x5A23) records are skipped without a download request. Upstream
+// truncates each page's append at count * RECORD_SIZE, so valid records
+// pushed past that prefix by interspersed deleted records are NOT requested:
+// here dives 2 and 1 are silently dropped. This is a known upstream data-loss
+// limitation (#480), deliberately restored by the #621 revert because
+// requesting those records is an untested on-device pattern; a re-fix needs
+// hardware validation first.
+static void check_deleted_records_skipped(void) {
   script_reset();
   g_script.npages = 1;
   set_record(0, 0, 0, 4);  // newest
   set_record(0, 1, 1, 0);  // deleted
   set_record(0, 2, 0, 3);
   set_record(0, 3, 1, 0);  // deleted
-  set_record(0, 4, 0, 2);
-  set_record(0, 5, 0, 1);  // oldest
+  set_record(0, 4, 0, 2);  // beyond the count-sized prefix: never requested
+  set_record(0, 5, 0, 1);  // oldest, also never requested
   script_add_dive(1, 0);
   script_add_dive(2, 0);
   script_add_dive(3, 0);
@@ -341,17 +357,19 @@ static void check_deleted_records_preserved(void) {
 
   cb_state_t s;
   dc_status_t rc = run_foreach(NULL, &s);
-  const unsigned char want[] = {1, 2, 3, 4};
+  const unsigned char want[] = {4, 3};
   expect(rc == DC_STATUS_SUCCESS,
          "a download with deleted records succeeds");
-  expect(order_is(&s, want, 4),
-         "dives behind deleted records are still delivered, oldest first");
-  if (s.n != 4 || memcmp(s.order, want, 4) != 0) print_order(&s);
+  expect(order_is(&s, want, 2),
+         "deleted records are skipped; records past the count-sized prefix "
+         "are not requested (known upstream limitation)");
+  if (s.n != 2 || memcmp(s.order, want, 2) != 0) print_order(&s);
 }
 
-// A failed dive download aborts the pass; everything delivered before it must
-// be a contiguous oldest prefix so the newest imported fingerprint resumes
-// correctly on the next attempt.
+// A failed dive download aborts the pass. With newest-first delivery the
+// delivered set is a newest prefix; the app must therefore NOT advance its
+// resume fingerprint from a partial delivery (that would strand the older
+// dives, issue #480) — completeness gating lives app-side.
 static void check_stop_on_failure(void) {
   script_reset();
   g_script.npages = 1;
@@ -364,15 +382,16 @@ static void check_stop_on_failure(void) {
 
   cb_state_t s;
   dc_status_t rc = run_foreach(NULL, &s);
-  const unsigned char want[] = {1};
+  const unsigned char want[] = {3};
   expect(rc == DC_STATUS_TIMEOUT, "the dive failure is propagated");
   expect(order_is(&s, want, 1),
-         "a failed download leaves a contiguous oldest prefix");
-  if (s.n != 1 || s.order[0] != 1) print_order(&s);
+         "a failed download leaves the newest prefix delivered before it");
+  if (s.n != 1 || s.order[0] != 3) print_order(&s);
 }
 
-// Resume: with the newest imported dive's fingerprint set, only newer dives
-// are downloaded, oldest first, even across interspersed deleted records.
+// Resume: with the newest imported dive's fingerprint set, the manifest walk
+// stops at the fingerprint record, so only newer dives are downloaded,
+// newest first.
 static void check_fingerprint_resume(void) {
   script_reset();
   g_script.npages = 1;
@@ -387,21 +406,23 @@ static void check_fingerprint_resume(void) {
   const unsigned char resume[4] = {0xF0, 0, 0, 2};
   cb_state_t s;
   dc_status_t rc = run_foreach(resume, &s);
-  const unsigned char want[] = {3, 4};
+  const unsigned char want[] = {4, 3};
   expect(rc == DC_STATUS_SUCCESS, "a resumed download succeeds");
   expect(order_is(&s, want, 2),
-         "resume downloads only the dives newer than the fingerprint, oldest first");
+         "resume downloads only the dives newer than the fingerprint");
   if (s.n != 2 || memcmp(s.order, want, 2) != 0) print_order(&s);
 }
 
-// Deleted records must not be counted into the progress maximum: the final
-// progress event has to reach exactly 100%.
+// Upstream counts deleted records into the progress maximum but never credits
+// them to current, and the count-truncated append drops the valid record
+// behind the deleted one, so the final progress falls short of 100%. Locked
+// here as the restored upstream behavior (cosmetic; see #621).
 static void check_progress_accounting(void) {
   script_reset();
   g_script.npages = 1;
   set_record(0, 0, 0, 2);  // newest
   set_record(0, 1, 1, 0);  // deleted
-  set_record(0, 2, 0, 1);  // oldest
+  set_record(0, 2, 0, 1);  // oldest; behind the deleted record, not requested
   script_add_dive(1, 0);
   script_add_dive(2, 0);
 
@@ -409,21 +430,21 @@ static void check_progress_accounting(void) {
   dc_status_t rc = run_foreach(NULL, &s);
   expect(rc == DC_STATUS_SUCCESS, "a download with a deleted record succeeds");
   expect(g_last_progress.maximum != 0, "a final progress event was emitted");
-  expect(g_last_progress.current == g_last_progress.maximum,
-         "final progress reaches 100% despite deleted records");
-  // 1 manifest page + 2 dives, NSTEPS each; the deleted record contributes
-  // nothing to either side.
-  expect(g_last_progress.maximum == 3 * NSTEPS,
-         "the progress maximum counts only the page and the real dives");
-  if (g_last_progress.current != g_last_progress.maximum ||
-      g_last_progress.maximum != 3 * NSTEPS)
+  // Maximum = 1 manifest page + count (2, incl. the truncated-away dive) +
+  // deleted (1); current = 1 page + the single dive actually downloaded.
+  expect(g_last_progress.maximum == 4 * NSTEPS,
+         "the progress maximum counts the page, walked records, and deleted");
+  expect(g_last_progress.current == 2 * NSTEPS,
+         "progress credits only the page and the dive actually downloaded");
+  if (g_last_progress.maximum != 4 * NSTEPS ||
+      g_last_progress.current != 2 * NSTEPS)
     printf("  final progress %u / %u\n", g_last_progress.current,
            g_last_progress.maximum);
 }
 
 // A full first manifest page (48 valid records) makes the driver fetch a
-// second page; ordering must hold across the page boundary: the oldest dive
-// lives on the LAST page.
+// second page; newest-first ordering must hold across the page boundary: the
+// oldest dive lives on the LAST page and is requested last.
 static void check_multi_page(void) {
   script_reset();
   g_script.npages = 2;
@@ -438,16 +459,16 @@ static void check_multi_page(void) {
   cb_state_t s;
   dc_status_t rc = run_foreach(NULL, &s);
   unsigned char want[49];
-  for (int i = 0; i < 49; i++) want[i] = (unsigned char)(i + 1);
+  for (int i = 0; i < 49; i++) want[i] = (unsigned char)(49 - i);
   expect(rc == DC_STATUS_SUCCESS, "a two-page download succeeds");
   expect(order_is(&s, want, 49),
-         "oldest-first ordering holds across manifest pages");
+         "newest-first ordering holds across manifest pages");
   if (s.n != 49 || memcmp(s.order, want, 49) != 0) print_order(&s);
 }
 
 int main(void) {
-  check_oldest_first();
-  check_deleted_records_preserved();
+  check_newest_first();
+  check_deleted_records_skipped();
   check_stop_on_failure();
   check_fingerprint_resume();
   check_progress_accounting();

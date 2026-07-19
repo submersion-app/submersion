@@ -83,12 +83,13 @@ target_include_directories(test_hw_ostc3_read PRIVATE
     ${CONFIG_DIR}
 )
 
-# Regression test for issue #480: shearwater_petrel_device_foreach must
-# deliver dives oldest first (so the newest-fingerprint resume point works
-# after a partial BLE download), preserve manifest records behind deleted
-# (0x5A23) entries, and keep exact progress accounting. The test #includes
-# shearwater_petrel.c to reach the static foreach and mocks the whole
-# shearwater_common transport layer, so only leaf dependencies are linked.
+# Regression test for issue #621: shearwater_petrel_device_foreach must
+# request dive payloads newest-first, in manifest order — the oldest-first
+# ordering shipped for #480 broke downloads on real Shearwater hardware
+# (the #480 resume goal is handled app-side by gating the resume fingerprint
+# on download completeness). The test #includes shearwater_petrel.c to reach
+# the static foreach and mocks the whole shearwater_common transport layer,
+# so only leaf dependencies are linked.
 add_executable(test_shearwater_petrel_foreach
     test_shearwater_petrel_foreach.c
     ${LIBDC_DIR}/src/array.c
