@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -7,6 +8,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_dive_list_tile.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dense_dive_list_tile.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
+import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -65,7 +67,7 @@ void main() {
   );
 
   Widget harness({
-    required Widget child,
+    required Widget Function(DiveTypeLabelResolver resolve) builder,
     required Locale locale,
     List<DiveTypeEntity>? types,
   }) {
@@ -75,7 +77,12 @@ void main() {
         settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
         diveTypesProvider.overrideWith((ref) async => types ?? loadedTypes),
       ],
-      child: child,
+      // The resolver is built through the production helper, so these cases
+      // still cover the provider -> label seam the tiles no longer own.
+      child: Consumer(
+        builder: (context, ref, _) =>
+            builder(watchDiveTypeLabelResolver(ref, context.l10n)),
+      ),
     );
   }
 
@@ -90,7 +97,7 @@ void main() {
     }) => harness(
       locale: locale,
       types: types,
-      child: CompactDiveListTile(
+      builder: (resolve) => CompactDiveListTile(
         diveId: 'd1',
         diveNumber: 7,
         dateTime: DateTime(2026, 3, 15),
@@ -102,6 +109,7 @@ void main() {
         dateField: dateField,
         stat1Field: stat1Field,
         onTap: () {},
+        diveTypeLabelResolver: resolve,
       ),
     );
 
@@ -202,7 +210,7 @@ void main() {
         harness(
           locale: const Locale('de'),
           types: const [],
-          child: CompactDiveListTile(
+          builder: (resolve) => CompactDiveListTile(
             diveId: 'd1',
             diveNumber: 7,
             dateTime: DateTime(2026, 3, 15),
@@ -210,6 +218,7 @@ void main() {
             summary: summaryWith(['wreck']),
             stat1Field: DiveField.diveTypeName,
             onTap: () {},
+            diveTypeLabelResolver: resolve,
           ),
         ),
       );
@@ -250,7 +259,7 @@ void main() {
       await tester.pumpWidget(
         harness(
           locale: const Locale('de'),
-          child: CompactDiveListTile(
+          builder: (resolve) => CompactDiveListTile(
             diveId: 'd1',
             diveNumber: 7,
             dateTime: DateTime(2026, 3, 15),
@@ -259,6 +268,7 @@ void main() {
             duration: const Duration(minutes: 30),
             stat1Field: DiveField.waterTemp,
             onTap: () {},
+            diveTypeLabelResolver: resolve,
           ),
         ),
       );
@@ -279,7 +289,7 @@ void main() {
     }) => harness(
       locale: locale,
       types: types,
-      child: DenseDiveListTile(
+      builder: (resolve) => DenseDiveListTile(
         diveId: 'd1',
         diveNumber: 7,
         dateTime: DateTime(2026, 3, 15),
@@ -291,6 +301,7 @@ void main() {
         slot2Field: slot2Field,
         slot3Field: slot3Field,
         onTap: () {},
+        diveTypeLabelResolver: resolve,
       ),
     );
 
@@ -372,7 +383,7 @@ void main() {
       await tester.pumpWidget(
         harness(
           locale: const Locale('de'),
-          child: DenseDiveListTile(
+          builder: (resolve) => DenseDiveListTile(
             diveId: 'd1',
             diveNumber: 7,
             dateTime: DateTime(2026, 3, 15),
@@ -382,12 +393,85 @@ void main() {
             slot1Field: DiveField.diveTypeName,
             slot3Field: DiveField.waterTemp,
             onTap: () {},
+            diveTypeLabelResolver: resolve,
           ),
         ),
       );
       await tester.pumpAndSettle();
 
       expect(find.text('Blue Hole'), findsNothing);
+    });
+  });
+
+  group('resolver threading', () {
+    testWidgets('a tile does not subscribe to the dive-type list', (
+      tester,
+    ) async {
+      // The point of threading the resolver in as a parameter: a tile must not
+      // watch diveTypesProvider itself, or every row rebuilds its own lookup
+      // map and re-renders whenever the dive_types table is touched -- which a
+      // sync does even when it re-applies unchanged rows.
+      late ProviderContainer container;
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('de'),
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+            diveTypesProvider.overrideWith((ref) async => loadedTypes),
+          ],
+          child: Builder(
+            builder: (context) {
+              container = ProviderScope.containerOf(context);
+              return CompactDiveListTile(
+                diveId: 'd1',
+                diveNumber: 7,
+                dateTime: DateTime(2026, 3, 15),
+                siteName: 'Blue Hole',
+                maxDepth: 20.0,
+                duration: const Duration(minutes: 30),
+                summary: summaryWith(['wreck']),
+                stat1Field: DiveField.diveTypeName,
+                onTap: () {},
+              );
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(container.exists(diveTypesProvider), isFalse);
+    });
+
+    testWidgets('watchDiveTypeLabelResolver resolves from the provider', (
+      tester,
+    ) async {
+      late DiveTypeLabelResolver resolve;
+      late ProviderContainer container;
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('de'),
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+            diveTypesProvider.overrideWith((ref) async => loadedTypes),
+          ],
+          child: Consumer(
+            builder: (context, ref, _) {
+              container = ProviderScope.containerOf(context);
+              resolve = watchDiveTypeLabelResolver(ref, context.l10n);
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // The positive half of the probe above: a widget that does watch the
+      // provider makes it exist in the container, so the isFalse assertion
+      // there is testing something real.
+      expect(container.exists(diveTypesProvider), isTrue);
+      expect(resolve('wreck'), 'Wracktauchen');
+      expect(resolve('muck_x1'), 'Muck');
+      expect(resolve('deep_wreck'), 'Deep wreck');
     });
   });
 }

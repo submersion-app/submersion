@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -9,6 +10,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
+import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -97,15 +99,20 @@ void main() {
         ),
         diveTypesProvider.overrideWith((ref) async => types ?? loadedTypes),
       ],
-      child: DiveListTile(
-        diveId: 'd1',
-        diveNumber: 7,
-        dateTime: DateTime(2026, 3, 15),
-        siteName: summary.siteName,
-        maxDepth: 30.0,
-        duration: const Duration(minutes: 40),
-        summary: summary,
-        fullDive: fullDive,
+      // The resolver is built through the production helper, so these cases
+      // still cover the provider -> label seam the tile no longer owns.
+      child: Consumer(
+        builder: (context, ref, _) => DiveListTile(
+          diveId: 'd1',
+          diveNumber: 7,
+          dateTime: DateTime(2026, 3, 15),
+          siteName: summary.siteName,
+          maxDepth: 30.0,
+          duration: const Duration(minutes: 40),
+          summary: summary,
+          fullDive: fullDive,
+          diveTypeLabelResolver: watchDiveTypeLabelResolver(ref, context.l10n),
+        ),
       ),
     );
   }

@@ -6,9 +6,7 @@ import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
-import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label.dart';
-import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
-import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
+import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -45,6 +43,14 @@ class DenseDiveListTile extends ConsumerWidget {
   final DiveField slot3Field;
   final DiveField slot4Field;
 
+  /// Resolves a dive-type slug to its localized label (issue #643).
+  ///
+  /// Built once per list by [watchDiveTypeLabelResolver] and threaded down, so
+  /// the tile neither watches `diveTypesProvider` nor rebuilds a lookup map per
+  /// row. When omitted, a Dive Type slot falls back to the English slug
+  /// capitalization, matching the locale-independent export path.
+  final DiveTypeLabelResolver? diveTypeLabelResolver;
+
   const DenseDiveListTile({
     super.key,
     required this.diveId,
@@ -69,6 +75,7 @@ class DenseDiveListTile extends ConsumerWidget {
     this.slot2Field = DiveField.dateTime,
     this.slot3Field = DiveField.maxDepth,
     this.slot4Field = DiveField.bottomTime,
+    this.diveTypeLabelResolver,
   });
 
   Color? _getAttributeBackgroundColor() {
@@ -100,12 +107,11 @@ class DenseDiveListTile extends ConsumerWidget {
     DiveField defaultField,
     UnitFormatter units,
     BuildContext context,
-    String Function(String id) typeLabel,
   ) {
     if (summary != null && field != defaultField) {
       final value = field.extractFromSummary(
         summary!,
-        diveTypeLabel: typeLabel,
+        diveTypeLabel: diveTypeLabelResolver,
       );
       return field.formatValue(value, units);
     }
@@ -116,7 +122,10 @@ class DenseDiveListTile extends ConsumerWidget {
       return _formatShortDate(dateTime);
     }
     final value = summary != null
-        ? field.extractFromSummary(summary!, diveTypeLabel: typeLabel)
+        ? field.extractFromSummary(
+            summary!,
+            diveTypeLabel: diveTypeLabelResolver,
+          )
         : null;
     return field.formatValue(value, units);
   }
@@ -126,12 +135,11 @@ class DenseDiveListTile extends ConsumerWidget {
     DiveField field,
     DiveField defaultField,
     UnitFormatter units,
-    String Function(String id) typeLabel,
   ) {
     if (summary != null && field != defaultField) {
       final value = field.extractFromSummary(
         summary!,
-        diveTypeLabel: typeLabel,
+        diveTypeLabel: diveTypeLabelResolver,
       );
       return field.formatValue(value, units);
     }
@@ -142,7 +150,10 @@ class DenseDiveListTile extends ConsumerWidget {
       return duration != null ? '${duration!.inMinutes} min' : '--';
     }
     final value = summary != null
-        ? field.extractFromSummary(summary!, diveTypeLabel: typeLabel)
+        ? field.extractFromSummary(
+            summary!,
+            diveTypeLabel: diveTypeLabelResolver,
+          )
         : null;
     return field.formatValue(value, units);
   }
@@ -206,42 +217,30 @@ class DenseDiveListTile extends ConsumerWidget {
         ? Colors.cyan.shade200
         : Colors.teal.shade800;
 
-    // Resolve slot text values. The dive-type list is watched once here and
-    // shared by every slot, so a Dive Type column honors the active locale
-    // (issue #643) and keeps a custom type's own name.
-    final typesById = {
-      for (final t
-          in ref.watch(diveTypesProvider).value ?? const <DiveTypeEntity>[])
-        t.id: t,
-    };
-    String typeLabel(String id) =>
-        diveTypeLabel(context.l10n, id, typesById: typesById);
-
+    // Resolve slot text values. The dive-type resolver arrives as a parameter
+    // so a Dive Type slot honors the active locale (issue #643) and keeps a
+    // custom type's own name, without this tile subscribing to the type list.
     final slot1Text = _buildTextSlotValue(
       slot1Field,
       DiveField.siteName,
       units,
       context,
-      typeLabel,
     );
     final slot2Text = _buildTextSlotValue(
       slot2Field,
       DiveField.dateTime,
       units,
       context,
-      typeLabel,
     );
     final slot3Text = _buildStatSlotValue(
       slot3Field,
       DiveField.maxDepth,
       units,
-      typeLabel,
     );
     final slot4Text = _buildStatSlotValue(
       slot4Field,
       DiveField.bottomTime,
       units,
-      typeLabel,
     );
 
     // Determine if stat values are present
