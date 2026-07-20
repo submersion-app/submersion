@@ -600,19 +600,31 @@ class SyncService {
       }
 
       _reportProgress(SyncPhase.complete, 1.0, 'Sync complete');
-      final skippedPeerMessage = pullResult.skippedPeerDeviceIds.isEmpty
+      final resultMessages = <String>[];
+      if (recordsFailed > 0) {
+        final recordWord = recordsFailed == 1 ? 'record' : 'records';
+        resultMessages.add('$recordsFailed $recordWord failed to apply');
+      } else {
+        final skippedCount = pullResult.skippedPeerDeviceIds.length;
+        if (skippedCount > 0) {
+          final deviceWord = skippedCount == 1 ? 'device' : 'devices';
+          final verb = skippedCount == 1 ? 'has' : 'have';
+          resultMessages.add(
+            '$skippedCount $deviceWord still $verb an older or unknown '
+            'library version and were not merged. Those devices must adopt '
+            'the current library.',
+          );
+        }
+        if (adoptedFreshIdentity) {
+          resultMessages.add(
+            'Another device was syncing with this device\'s identity. '
+            'This device adopted a new identity and merged the cloud data.',
+          );
+        }
+      }
+      final resultMessage = resultMessages.isEmpty
           ? null
-          : '${pullResult.skippedPeerDeviceIds.length} device(s) still have '
-                'an older or unknown library version and were not merged. '
-                'Those devices must adopt the current library.';
-      final resultMessage = recordsFailed > 0
-          ? '$recordsFailed record(s) failed to apply'
-          : skippedPeerMessage ??
-                (adoptedFreshIdentity
-                    ? 'Another device was syncing with this device\'s '
-                          'identity. This device adopted a new identity and '
-                          'merged the cloud data.'
-                    : null);
+          : resultMessages.join(' ');
       return SyncResult(
         status: recordsFailed > 0
             ? SyncResultStatus.error
