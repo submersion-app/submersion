@@ -21508,4 +21508,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get dataQuality_detail_chip => 'مراجعة';
+
+  @override
+  String dataQuality_detail_chipCount(int count) {
+    return 'مراجعة ($count)';
+  }
 }

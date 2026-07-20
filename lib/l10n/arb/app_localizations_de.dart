@@ -21877,4 +21877,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get dataQuality_detail_chip => 'Überprüfen';
+
+  @override
+  String dataQuality_detail_chipCount(int count) {
+    return 'Überprüfen ($count)';
+  }
 }

@@ -13763,5 +13763,13 @@
     }
   },
   "dataQuality_summary_review": "Review",
-  "dataQuality_detail_chip": "Review"
+  "dataQuality_detail_chip": "Review",
+  "dataQuality_detail_chipCount": "Review ({count})",
+  "@dataQuality_detail_chipCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

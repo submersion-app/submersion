@@ -21844,4 +21844,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get dataQuality_detail_chip => 'Áttekintés';
+
+  @override
+  String dataQuality_detail_chipCount(int count) {
+    return 'Áttekintés ($count)';
+  }
 }

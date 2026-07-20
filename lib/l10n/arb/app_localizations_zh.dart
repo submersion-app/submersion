@@ -20800,4 +20800,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get dataQuality_detail_chip => '审查';
+
+  @override
+  String dataQuality_detail_chipCount(int count) {
+    return '审查 ($count)';
+  }
 }

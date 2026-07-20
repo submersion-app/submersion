@@ -6537,5 +6537,6 @@
   "dataQuality_settings_subtitle": "اختر الفحوصات التي تُجرى أثناء الفحص",
   "dataQuality_summary_flagged": "{count, plural, =1{عنصر واحد مُعلَّم للمراجعة} other{{count} عناصر مُعلَّمة للمراجعة}}",
   "dataQuality_summary_review": "مراجعة",
-  "dataQuality_detail_chip": "مراجعة"
+  "dataQuality_detail_chip": "مراجعة",
+  "dataQuality_detail_chipCount": "مراجعة ({count})"
 }

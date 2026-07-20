@@ -6537,5 +6537,6 @@
   "dataQuality_settings_subtitle": "Válaszd ki, mely ellenőrzések fussanak átvizsgáláskor",
   "dataQuality_summary_flagged": "{count, plural, =1{1 elem megjelölve ellenőrzésre} other{{count} elem megjelölve ellenőrzésre}}",
   "dataQuality_summary_review": "Áttekintés",
-  "dataQuality_detail_chip": "Áttekintés"
+  "dataQuality_detail_chip": "Áttekintés",
+  "dataQuality_detail_chipCount": "Áttekintés ({count})"
 }

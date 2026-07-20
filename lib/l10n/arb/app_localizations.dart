@@ -36641,6 +36641,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Review'**
   String get dataQuality_detail_chip;
+
+  /// No description provided for @dataQuality_detail_chipCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Review ({count})'**
+  String dataQuality_detail_chipCount(int count);
 }
 
 class _AppLocalizationsDelegate

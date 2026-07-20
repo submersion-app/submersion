@@ -21983,4 +21983,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get dataQuality_detail_chip => 'Vérifier';
+
+  @override
+  String dataQuality_detail_chipCount(int count) {
+    return 'Vérifier ($count)';
+  }
 }

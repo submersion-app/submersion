@@ -21735,4 +21735,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get dataQuality_detail_chip => 'Controleren';
+
+  @override
+  String dataQuality_detail_chipCount(int count) {
+    return 'Controleren ($count)';
+  }
 }

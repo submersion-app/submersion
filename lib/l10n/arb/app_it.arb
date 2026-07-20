@@ -6537,5 +6537,6 @@
   "dataQuality_settings_subtitle": "Scegli quali controlli eseguire durante la scansione",
   "dataQuality_summary_flagged": "{count, plural, =1{1 elemento segnalato da rivedere} other{{count} elementi segnalati da rivedere}}",
   "dataQuality_summary_review": "Rivedi",
-  "dataQuality_detail_chip": "Rivedi"
+  "dataQuality_detail_chip": "Rivedi",
+  "dataQuality_detail_chipCount": "Rivedi ({count})"
 }

@@ -1044,7 +1044,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                               color: colorScheme.tertiary,
                             ),
                             label: Text(
-                              '${context.l10n.dataQuality_detail_chip} ($count)',
+                              context.l10n.dataQuality_detail_chipCount(count),
                             ),
                             onPressed: () =>
                                 context.push('/dives/quality?dive=${dive.id}'),

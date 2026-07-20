@@ -6537,5 +6537,6 @@
   "dataQuality_settings_subtitle": "Elige qué comprobaciones se ejecutan al analizar",
   "dataQuality_summary_flagged": "{count, plural, =1{1 elemento marcado para revisar} other{{count} elementos marcados para revisar}}",
   "dataQuality_summary_review": "Revisar",
-  "dataQuality_detail_chip": "Revisar"
+  "dataQuality_detail_chip": "Revisar",
+  "dataQuality_detail_chipCount": "Revisar ({count})"
 }

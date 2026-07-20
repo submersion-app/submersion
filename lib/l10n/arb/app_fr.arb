@@ -6537,5 +6537,6 @@
   "dataQuality_settings_subtitle": "Choisir les contrôles exécutés lors de l'analyse",
   "dataQuality_summary_flagged": "{count, plural, =1{1 élément signalé à vérifier} other{{count} éléments signalés à vérifier}}",
   "dataQuality_summary_review": "Vérifier",
-  "dataQuality_detail_chip": "Vérifier"
+  "dataQuality_detail_chip": "Vérifier",
+  "dataQuality_detail_chipCount": "Vérifier ({count})"
 }

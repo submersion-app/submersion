@@ -6537,5 +6537,6 @@
   "dataQuality_settings_subtitle": "Wählen, welche Prüfungen beim Scannen ausgeführt werden",
   "dataQuality_summary_flagged": "{count, plural, =1{1 Element zur Prüfung markiert} other{{count} Elemente zur Prüfung markiert}}",
   "dataQuality_summary_review": "Überprüfen",
-  "dataQuality_detail_chip": "Überprüfen"
+  "dataQuality_detail_chip": "Überprüfen",
+  "dataQuality_detail_chipCount": "Überprüfen ({count})"
 }

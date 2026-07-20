@@ -6537,5 +6537,6 @@
   "dataQuality_settings_subtitle": "בחירת הבדיקות שירוצו בעת הסריקה",
   "dataQuality_summary_flagged": "{count, plural, =1{פריט אחד סומן לבדיקה} other{{count} פריטים סומנו לבדיקה}}",
   "dataQuality_summary_review": "סקירה",
-  "dataQuality_detail_chip": "סקירה"
+  "dataQuality_detail_chip": "סקירה",
+  "dataQuality_detail_chipCount": "סקירה ({count})"
 }

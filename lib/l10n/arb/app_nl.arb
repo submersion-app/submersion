@@ -6537,5 +6537,6 @@
   "dataQuality_settings_subtitle": "Kiezen welke controles worden uitgevoerd bij het scannen",
   "dataQuality_summary_flagged": "{count, plural, =1{1 item gemarkeerd voor controle} other{{count} items gemarkeerd voor controle}}",
   "dataQuality_summary_review": "Controleren",
-  "dataQuality_detail_chip": "Controleren"
+  "dataQuality_detail_chip": "Controleren",
+  "dataQuality_detail_chipCount": "Controleren ({count})"
 }

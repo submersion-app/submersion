@@ -21355,4 +21355,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get dataQuality_detail_chip => 'סקירה';
+
+  @override
+  String dataQuality_detail_chipCount(int count) {
+    return 'סקירה ($count)';
+  }
 }
