@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/data_quality/data/services/quality_prefilters.dart';
 import 'package:submersion/features/data_quality/domain/detectors/quality_detector_registry.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -8,11 +9,12 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
 import '../../../helpers/test_database.dart';
 
 void main() {
+  late AppDatabase db;
   late DiveRepository diveRepo;
   late QualityPrefilters prefilters;
 
   setUp(() async {
-    await setUpTestDatabase();
+    db = await setUpTestDatabase();
     diveRepo = DiveRepository();
     prefilters = QualityPrefilters();
   });
@@ -60,6 +62,22 @@ void main() {
     expect(candidates['sample_gap'], contains('with-profile'));
     expect(candidates['sample_gap'], isNot(contains('bare')));
     expect(candidates['depth_spike'], contains('with-profile'));
+  });
+
+  test('a dive with only non-primary profile rows is not a profile '
+      'candidate (matches the context builder)', () async {
+    final entry = DateTime.utc(2026, 7, 1, 10);
+    await diveRepo.createDive(domain.Dive(id: 'np-only', dateTime: entry));
+    // A demoted/secondary source leaves only non-primary samples; the context
+    // builder loads is_primary=1 only, so this dive has no series to detect on.
+    await db.customStatement(
+      'INSERT INTO dive_profiles (id, dive_id, timestamp, depth, is_primary) '
+      "VALUES ('np-1', 'np-only', 0, 12.0, 0)",
+    );
+    final candidates = await prefilters.candidatesByDetector();
+    expect(candidates['sample_gap'], isNot(contains('np-only')));
+    expect(candidates['depth_spike'], isNot(contains('np-only')));
+    expect(candidates['impossible_rate'], isNot(contains('np-only')));
   });
 
   test('pair window selects both members of a close pair', () async {

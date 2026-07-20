@@ -24,9 +24,14 @@ class QualityPrefilters {
       return {for (final r in rows) r.read<String>('id')};
     }
 
+    // Match QualityContextBuilder, which loads only primary samples: a dive
+    // with just non-primary rows yields an empty series, so it structurally
+    // cannot flag the profile detectors and must stay out of their candidate
+    // sets (or its old findings would never retire).
     final withProfiles = await ids(
       'SELECT d.id AS id FROM dives d WHERE EXISTS '
-      '(SELECT 1 FROM dive_profiles p WHERE p.dive_id = d.id)',
+      '(SELECT 1 FROM dive_profiles p WHERE p.dive_id = d.id '
+      'AND p.is_primary = 1)',
     );
     final withPressures = await ids(
       'SELECT d.id AS id FROM dives d WHERE EXISTS '
