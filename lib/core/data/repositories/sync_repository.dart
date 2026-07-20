@@ -77,6 +77,7 @@ class SyncRepository {
     'csvPresets': (table: 'csv_presets', pk: 'id'),
     'viewConfigs': (table: 'view_configs', pk: 'id'),
     'media': (table: 'media', pk: 'id'),
+    'mediaEnrichment': (table: 'media_enrichment', pk: 'id'),
     'species': (table: 'species', pk: 'id'),
     'fieldPresets': (table: 'field_presets', pk: 'id'),
     'qualityFindings': (table: 'quality_findings', pk: 'id'),

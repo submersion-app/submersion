@@ -62,6 +62,7 @@ void main() {
     'service_records': 'serviceRecords',
     'settings': 'settings',
     'media': 'media',
+    'media_enrichment': 'mediaEnrichment',
     'course_requirements': 'courseRequirements',
     'course_requirement_dives': 'courseRequirementDives',
     'emergency_chambers': 'emergencyChambers',
@@ -85,6 +86,7 @@ void main() {
     'species': 'species',
     'dive_computers': 'diveComputers',
     'checklist_templates': 'checklistTemplates',
+    'media': 'media',
   };
 
   String camel(String snake) {
