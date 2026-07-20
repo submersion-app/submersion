@@ -21017,4 +21017,347 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_section_safety_subtitle => 'כללי סקירה וטיסה אחרי צלילה';
+
+  @override
+  String get dataQuality_inbox_title => 'איכות הנתונים';
+
+  @override
+  String get dataQuality_badge_tooltip => 'בדיקת איכות הנתונים';
+
+  @override
+  String get dataQuality_scan_start => 'סריקת הספרייה';
+
+  @override
+  String dataQuality_scan_progress(int done, int total) {
+    return 'נבדקו $done מתוך $total צלילות';
+  }
+
+  @override
+  String get dataQuality_scan_cancel => 'ביטול';
+
+  @override
+  String dataQuality_scan_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'הסריקה הושלמה - $count פריטים לבדיקה',
+      one: 'הסריקה הושלמה - פריט אחד לבדיקה',
+      zero: 'הסריקה הושלמה - אין ממצאים חדשים',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_scan_errors(int count) {
+    return 'לא ניתן היה לבדוק במלואן $count צלילות';
+  }
+
+  @override
+  String dataQuality_lastScan(String when) {
+    return 'סריקה אחרונה: $when';
+  }
+
+  @override
+  String get dataQuality_neverScanned => 'יומן הצלילה שלך עדיין לא נסרק';
+
+  @override
+  String get dataQuality_empty_title => 'הכול תקין';
+
+  @override
+  String get dataQuality_empty_subtitle =>
+      'אין ממצאים לגבי איכות הנתונים. סרוק את הספרייה כדי לבדוק אם יש בעיות בצלילות המיובאות.';
+
+  @override
+  String get dataQuality_banner_newChecks => 'זמינות בדיקות איכות חדשות';
+
+  @override
+  String get dataQuality_banner_rescan => 'סריקה מחדש';
+
+  @override
+  String get dataQuality_action_dismiss => 'התעלם';
+
+  @override
+  String get dataQuality_action_dismissFiltered => 'התעלם מכל המוצגים';
+
+  @override
+  String get dataQuality_action_goToDive => 'מעבר לצלילה';
+
+  @override
+  String get dataQuality_action_undo => 'בטל';
+
+  @override
+  String get dataQuality_repair_applied => 'התיקון הוחל';
+
+  @override
+  String get dataQuality_repair_failed => 'התיקון נכשל';
+
+  @override
+  String get dataQuality_chip_all => 'הכול';
+
+  @override
+  String get dataQuality_chip_time => 'זמן';
+
+  @override
+  String get dataQuality_chip_profile => 'פרופיל';
+
+  @override
+  String get dataQuality_chip_gas => 'גז';
+
+  @override
+  String get dataQuality_chip_tanks => 'בלונים';
+
+  @override
+  String get dataQuality_chip_duplicates => 'כפילויות';
+
+  @override
+  String get dataQuality_chip_sources => 'מקורות';
+
+  @override
+  String get dataQuality_detector_clock_offset => 'שעון ואזור זמן';
+
+  @override
+  String get dataQuality_detector_duplicate => 'כפילות סבירה';
+
+  @override
+  String get dataQuality_detector_split_pair => 'פיצול בשוגג';
+
+  @override
+  String get dataQuality_detector_sample_gap => 'פערים בדגימות';
+
+  @override
+  String get dataQuality_detector_depth_spike => 'קפיצת עומק';
+
+  @override
+  String get dataQuality_detector_impossible_rate => 'קצב בלתי אפשרי';
+
+  @override
+  String get dataQuality_detector_temp_anomaly => 'חריגת טמפרטורה';
+
+  @override
+  String get dataQuality_detector_pressure_anomaly => 'חריגת לחץ';
+
+  @override
+  String get dataQuality_detector_gas_mod => 'אי-התאמה בין גז ל-MOD';
+
+  @override
+  String get dataQuality_detector_tank_assignment => 'בלון שגוי';
+
+  @override
+  String get dataQuality_detector_source_conflict => 'מקורות סותרים';
+
+  @override
+  String dataQuality_msg_clock_future(String date) {
+    return 'הצלילה מתוארכת לעתיד ($date)';
+  }
+
+  @override
+  String dataQuality_msg_clock_ancient(String date) {
+    return 'הצלילה מתוארכת לפני 1950 ($date)';
+  }
+
+  @override
+  String dataQuality_msg_clock_offset(int hours) {
+    return 'שעון של מקור אחד שונה ב-$hours שעות';
+  }
+
+  @override
+  String dataQuality_msg_clock_overlap(int minutes) {
+    return 'חופפת לצלילה אחרת ב-$minutes דק׳';
+  }
+
+  @override
+  String dataQuality_msg_duplicate(int percent, int minutes) {
+    return 'התאמה של $percent% לצלילה במרחק $minutes דק׳';
+  }
+
+  @override
+  String dataQuality_msg_split(int minutes) {
+    return 'אותו מחשב חודש לאחר מרווח פני שטח של $minutes דק׳';
+  }
+
+  @override
+  String dataQuality_msg_gap(int count, String longest) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פערים בדגימות',
+      one: 'פער אחד בדגימות',
+    );
+    return '$_temp0, הארוך ביותר $longest';
+  }
+
+  @override
+  String dataQuality_msg_spike(String depth, String time) {
+    return 'קפיצת עומק אל $depth בשעה $time';
+  }
+
+  @override
+  String dataQuality_msg_negativeDepth(int count) {
+    return '$count דגימות עומק שליליות';
+  }
+
+  @override
+  String dataQuality_msg_maxDepthMismatch(String stored, String profile) {
+    return 'העומק המרבי שנרשם $stored, אך הפרופיל מציג $profile';
+  }
+
+  @override
+  String dataQuality_msg_rate(String rate, int seconds) {
+    return 'קצב אנכי של $rate נשמר במשך $seconds שנ׳';
+  }
+
+  @override
+  String dataQuality_msg_tempRange(String min, String max) {
+    return 'טמפרטורת המים מחוץ לטווח הסביר ($min עד $max)';
+  }
+
+  @override
+  String get dataQuality_msg_tempUnitBug =>
+      'הערכים נראים כמו תקלה ביחידת הטמפרטורה';
+
+  @override
+  String dataQuality_msg_tempJump(String delta) {
+    return 'הטמפרטורה קפצה ב-$delta בדגימה אחת';
+  }
+
+  @override
+  String dataQuality_msg_tempScalar(String temp) {
+    return 'טמפרטורת המים שנרשמה $temp אינה סבירה';
+  }
+
+  @override
+  String dataQuality_msg_pressureSwap(String end, String start) {
+    return 'לחץ הסיום $end גבוה מלחץ ההתחלה $start';
+  }
+
+  @override
+  String dataQuality_msg_pressureEndpoint(String record, String series) {
+    return 'רשומת הבלון מציינת $record, אך סדרת החיישן מציגה $series';
+  }
+
+  @override
+  String dataQuality_msg_pressureRise(String rise) {
+    return 'הלחץ עלה ב-$rise באמצע הצלילה ללא החלפת גז';
+  }
+
+  @override
+  String dataQuality_msg_sac(String sac) {
+    return 'צריכת פני השטח המשתמעת של $sac אינה סבירה';
+  }
+
+  @override
+  String dataQuality_msg_ppo2(String ppo2, String gas, String depth) {
+    return 'ה-ppO2 הגיע ל-$ppo2 עם $gas בעומק $depth';
+  }
+
+  @override
+  String dataQuality_msg_hypoxic(String gas) {
+    return 'תערובת היפוקסית ($gas) מוצגת כבשימוש בפני השטח';
+  }
+
+  @override
+  String dataQuality_msg_switchMod(String depth, String mod) {
+    return 'החלפת הגז בעומק $depth חורגת מה-MOD של אותו גז שהוא $mod';
+  }
+
+  @override
+  String dataQuality_msg_tankInactive(String drop) {
+    return 'בלון זה איבד $drop בעוד ציר הזמן של הגז מציין שהוא לא היה בשימוש';
+  }
+
+  @override
+  String get dataQuality_msg_twinTanks => 'שני בלונים נושאים סדרת לחץ כמעט זהה';
+
+  @override
+  String dataQuality_msg_sourceDepth(String primary, String source) {
+    return 'המקורות חלוקים לגבי העומק המרבי: $primary מול $source';
+  }
+
+  @override
+  String get dataQuality_msg_salinityHint =>
+      'היחס הקבוע מרמז על הבדל בהגדרת מים מלוחים/מתוקים';
+
+  @override
+  String get dataQuality_msg_sourceDuration => 'המקורות חלוקים לגבי משך הצלילה';
+
+  @override
+  String get dataQuality_msg_sourceTemp => 'המקורות חלוקים לגבי טמפרטורת המים';
+
+  @override
+  String dataQuality_repairLabel_shiftTime(String offset) {
+    return 'הסטת הזמן ב-$offset';
+  }
+
+  @override
+  String get dataQuality_repairLabel_shiftImport => 'הסטת כל הצלילות מייבוא זה';
+
+  @override
+  String get dataQuality_repairLabel_consolidate => 'איחוד';
+
+  @override
+  String get dataQuality_repairLabel_combine => 'מיזוג לצלילה אחת';
+
+  @override
+  String get dataQuality_repairLabel_despike => 'הסרת הקפיצה';
+
+  @override
+  String get dataQuality_repairLabel_fillGaps => 'מילוי הפערים';
+
+  @override
+  String get dataQuality_repairLabel_smoothTemp => 'החלקת הטמפרטורה';
+
+  @override
+  String get dataQuality_repairLabel_convertTemp => 'המרת הטמפרטורה';
+
+  @override
+  String get dataQuality_repairLabel_recompute => 'חישוב מחדש מהפרופיל';
+
+  @override
+  String get dataQuality_repairLabel_swapPressures => 'החלפת לחץ התחלה/סיום';
+
+  @override
+  String get dataQuality_repairLabel_setFromSeries => 'שימוש בערכי החיישן';
+
+  @override
+  String get dataQuality_repairLabel_swapSeries => 'החלפת סדרות הבלונים';
+
+  @override
+  String get dataQuality_repairLabel_reassignSeries => 'העברת הסדרה לבלון אחר';
+
+  @override
+  String get dataQuality_repairLabel_setPrimary => 'הגדרת מקור זה כראשי';
+
+  @override
+  String get dataQuality_repairLabel_split => 'פיצול לצלילות נפרדות';
+
+  @override
+  String get dataQuality_repairLabel_compare => 'השוואת פרופילים';
+
+  @override
+  String get dataQuality_settings_title => 'איכות הנתונים';
+
+  @override
+  String get dataQuality_settings_subtitle => 'בחירת הבדיקות שירוצו בעת הסריקה';
+
+  @override
+  String dataQuality_summary_flagged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים סומנו לבדיקה',
+      one: 'פריט אחד סומן לבדיקה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_summary_review => 'סקירה';
+
+  @override
+  String get dataQuality_detail_chip => 'סקירה';
+
+  @override
+  String dataQuality_detail_chipCount(int count) {
+    return 'סקירה ($count)';
+  }
 }

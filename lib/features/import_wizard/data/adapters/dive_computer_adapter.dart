@@ -7,6 +7,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 import 'package:submersion/features/dive_computer/data/services/fingerprint_utils.dart';
@@ -559,6 +560,9 @@ class DiveComputerAdapter implements ImportSourceAdapter {
       imported,
       wasCancelled ? processedDives : _downloadedDives,
     );
+
+    // Queue a data-quality scan of the imported dives (fire-and-forget).
+    scheduleQualityScan(importedDiveIds);
 
     return UnifiedImportResult(
       importedCounts: {ImportEntityType.dives: imported},

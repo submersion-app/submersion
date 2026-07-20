@@ -5,6 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/map_style.dart';
+import 'package:submersion/features/data_quality/presentation/providers/data_quality_providers.dart';
+import 'package:submersion/features/data_quality/presentation/providers/quality_inbox_providers.dart';
 import 'package:submersion/features/dive_sites/domain/matching/site_match_sensitivity.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
@@ -446,5 +448,14 @@ Future<List<Override>> getBaseOverrides() async {
     sharedPreferencesProvider.overrideWithValue(prefs),
     settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
     currentDiverIdProvider.overrideWith((ref) => MockCurrentDiverIdNotifier()),
+    // The Dives app-bar data-quality badge watches a live Drift stream; stub
+    // it with a static count so widget tests don't leave a pending timer.
+    openQualityFindingsCountProvider.overrideWith((ref) => Stream.value(0)),
+    // The dive-detail per-dive findings badge watches a live Drift stream too;
+    // stub the family so DiveDetailPage-rendering tests don't strand its close
+    // timer at teardown.
+    diveOpenFindingsCountProvider.overrideWith(
+      (ref, diveId) => Stream.value(0),
+    ),
   ];
 }

@@ -21165,4 +21165,352 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_section_safety_subtitle =>
       'قواعد المراجعة والطيران بعد الغوص';
+
+  @override
+  String get dataQuality_inbox_title => 'جودة البيانات';
+
+  @override
+  String get dataQuality_badge_tooltip => 'مراجعة جودة البيانات';
+
+  @override
+  String get dataQuality_scan_start => 'فحص المكتبة';
+
+  @override
+  String dataQuality_scan_progress(int done, int total) {
+    return 'تم فحص $done من $total غوصة';
+  }
+
+  @override
+  String get dataQuality_scan_cancel => 'إلغاء';
+
+  @override
+  String dataQuality_scan_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'اكتمل الفحص - $count عناصر للمراجعة',
+      one: 'اكتمل الفحص - عنصر واحد للمراجعة',
+      zero: 'اكتمل الفحص - لا توجد نتائج جديدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_scan_errors(int count) {
+    return 'تعذّر فحص $count غوصة بالكامل';
+  }
+
+  @override
+  String dataQuality_lastScan(String when) {
+    return 'آخر فحص: $when';
+  }
+
+  @override
+  String get dataQuality_neverScanned => 'لم يتم فحص سجل الغوص الخاص بك بعد';
+
+  @override
+  String get dataQuality_empty_title => 'كل شيء على ما يرام';
+
+  @override
+  String get dataQuality_empty_subtitle =>
+      'لا توجد نتائج تخص جودة البيانات. افحص مكتبتك للتحقق من مشكلات الغوصات المستوردة.';
+
+  @override
+  String get dataQuality_banner_newChecks => 'تتوفر فحوصات جودة جديدة';
+
+  @override
+  String get dataQuality_banner_rescan => 'إعادة الفحص';
+
+  @override
+  String get dataQuality_action_dismiss => 'تجاهل';
+
+  @override
+  String get dataQuality_action_dismissFiltered => 'تجاهل كل ما هو معروض';
+
+  @override
+  String get dataQuality_action_goToDive => 'الانتقال إلى الغوصة';
+
+  @override
+  String get dataQuality_action_undo => 'تراجع';
+
+  @override
+  String get dataQuality_repair_applied => 'تم تطبيق الإصلاح';
+
+  @override
+  String get dataQuality_repair_failed => 'فشل الإصلاح';
+
+  @override
+  String get dataQuality_chip_all => 'الكل';
+
+  @override
+  String get dataQuality_chip_time => 'الوقت';
+
+  @override
+  String get dataQuality_chip_profile => 'المخطط';
+
+  @override
+  String get dataQuality_chip_gas => 'الغاز';
+
+  @override
+  String get dataQuality_chip_tanks => 'الأسطوانات';
+
+  @override
+  String get dataQuality_chip_duplicates => 'التكرارات';
+
+  @override
+  String get dataQuality_chip_sources => 'المصادر';
+
+  @override
+  String get dataQuality_detector_clock_offset => 'الساعة والمنطقة الزمنية';
+
+  @override
+  String get dataQuality_detector_duplicate => 'تكرار محتمل';
+
+  @override
+  String get dataQuality_detector_split_pair => 'تقسيم غير مقصود';
+
+  @override
+  String get dataQuality_detector_sample_gap => 'فجوات في العينات';
+
+  @override
+  String get dataQuality_detector_depth_spike => 'قفزة في العمق';
+
+  @override
+  String get dataQuality_detector_impossible_rate => 'معدل مستحيل';
+
+  @override
+  String get dataQuality_detector_temp_anomaly => 'خلل في درجة الحرارة';
+
+  @override
+  String get dataQuality_detector_pressure_anomaly => 'خلل في الضغط';
+
+  @override
+  String get dataQuality_detector_gas_mod => 'تعارض بين الغاز وMOD';
+
+  @override
+  String get dataQuality_detector_tank_assignment => 'أسطوانة خاطئة';
+
+  @override
+  String get dataQuality_detector_source_conflict => 'مصادر متعارضة';
+
+  @override
+  String dataQuality_msg_clock_future(String date) {
+    return 'تاريخ الغوصة في المستقبل ($date)';
+  }
+
+  @override
+  String dataQuality_msg_clock_ancient(String date) {
+    return 'تاريخ الغوصة قبل عام 1950 ($date)';
+  }
+
+  @override
+  String dataQuality_msg_clock_offset(int hours) {
+    return 'تختلف ساعة أحد المصادر بمقدار $hours ساعة';
+  }
+
+  @override
+  String dataQuality_msg_clock_overlap(int minutes) {
+    return 'تتداخل مع غوصة أخرى بمقدار $minutes دقيقة';
+  }
+
+  @override
+  String dataQuality_msg_duplicate(int percent, int minutes) {
+    return 'تطابق بنسبة $percent% مع غوصة تفصلها $minutes دقيقة';
+  }
+
+  @override
+  String dataQuality_msg_split(int minutes) {
+    return 'استؤنف الكمبيوتر نفسه بعد فترة سطح مدتها $minutes دقيقة';
+  }
+
+  @override
+  String dataQuality_msg_gap(int count, String longest) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count فجوات في العينات',
+      one: 'فجوة واحدة في العينات',
+    );
+    return '$_temp0، أطولها $longest';
+  }
+
+  @override
+  String dataQuality_msg_spike(String depth, String time) {
+    return 'قفزة في العمق إلى $depth عند $time';
+  }
+
+  @override
+  String dataQuality_msg_negativeDepth(int count) {
+    return '$count عينات عمق سالبة';
+  }
+
+  @override
+  String dataQuality_msg_maxDepthMismatch(String stored, String profile) {
+    return 'العمق الأقصى المسجّل $stored لكن المخطط يُظهر $profile';
+  }
+
+  @override
+  String dataQuality_msg_rate(String rate, int seconds) {
+    return 'معدل رأسي قدره $rate استمر لمدة $seconds ثانية';
+  }
+
+  @override
+  String dataQuality_msg_tempRange(String min, String max) {
+    return 'درجة حرارة الماء خارج النطاق المعقول ($min إلى $max)';
+  }
+
+  @override
+  String get dataQuality_msg_tempUnitBug =>
+      'تبدو القيم وكأنها خطأ في وحدة درجة الحرارة';
+
+  @override
+  String dataQuality_msg_tempJump(String delta) {
+    return 'قفزت درجة الحرارة $delta في عينة واحدة';
+  }
+
+  @override
+  String dataQuality_msg_tempScalar(String temp) {
+    return 'درجة حرارة الماء المسجّلة $temp غير معقولة';
+  }
+
+  @override
+  String dataQuality_msg_pressureSwap(String end, String start) {
+    return 'ضغط النهاية $end أعلى من ضغط البداية $start';
+  }
+
+  @override
+  String dataQuality_msg_pressureEndpoint(String record, String series) {
+    return 'يذكر سجل الأسطوانة $record لكن سلسلة المستشعر تُظهر $series';
+  }
+
+  @override
+  String dataQuality_msg_pressureRise(String rise) {
+    return 'ارتفع الضغط $rise في منتصف الغوصة دون تبديل للغاز';
+  }
+
+  @override
+  String dataQuality_msg_sac(String sac) {
+    return 'معدل الاستهلاك السطحي الضمني $sac غير معقول';
+  }
+
+  @override
+  String dataQuality_msg_ppo2(String ppo2, String gas, String depth) {
+    return 'بلغ ppO2 القيمة $ppo2 على $gas عند $depth';
+  }
+
+  @override
+  String dataQuality_msg_hypoxic(String gas) {
+    return 'يظهر خليط ناقص الأكسجين ($gas) قيد الاستخدام عند السطح';
+  }
+
+  @override
+  String dataQuality_msg_switchMod(String depth, String mod) {
+    return 'تبديل الغاز عند $depth يتجاوز الحد الأقصى للعمق (MOD) لذلك الغاز البالغ $mod';
+  }
+
+  @override
+  String dataQuality_msg_tankInactive(String drop) {
+    return 'فقدت هذه الأسطوانة $drop بينما يشير الخط الزمني للغاز إلى أنها لم تكن قيد الاستخدام';
+  }
+
+  @override
+  String get dataQuality_msg_twinTanks =>
+      'تحمل أسطوانتان سلسلة ضغط شبه متطابقة';
+
+  @override
+  String dataQuality_msg_sourceDepth(String primary, String source) {
+    return 'تختلف المصادر حول العمق الأقصى: $primary مقابل $source';
+  }
+
+  @override
+  String get dataQuality_msg_salinityHint =>
+      'تشير النسبة الثابتة إلى اختلاف في إعداد الماء المالح/العذب';
+
+  @override
+  String get dataQuality_msg_sourceDuration => 'تختلف المصادر حول مدة الغوصة';
+
+  @override
+  String get dataQuality_msg_sourceTemp => 'تختلف المصادر حول درجة حرارة الماء';
+
+  @override
+  String dataQuality_repairLabel_shiftTime(String offset) {
+    return 'إزاحة الوقت بمقدار $offset';
+  }
+
+  @override
+  String get dataQuality_repairLabel_shiftImport =>
+      'إزاحة كل الغوصات من هذا الاستيراد';
+
+  @override
+  String get dataQuality_repairLabel_consolidate => 'توحيد';
+
+  @override
+  String get dataQuality_repairLabel_combine => 'دمج في غوصة واحدة';
+
+  @override
+  String get dataQuality_repairLabel_despike => 'إزالة القفزة';
+
+  @override
+  String get dataQuality_repairLabel_fillGaps => 'ملء الفجوات';
+
+  @override
+  String get dataQuality_repairLabel_smoothTemp => 'تنعيم درجة الحرارة';
+
+  @override
+  String get dataQuality_repairLabel_convertTemp => 'تحويل درجة الحرارة';
+
+  @override
+  String get dataQuality_repairLabel_recompute => 'إعادة الحساب من المخطط';
+
+  @override
+  String get dataQuality_repairLabel_swapPressures =>
+      'تبديل ضغط البداية/النهاية';
+
+  @override
+  String get dataQuality_repairLabel_setFromSeries => 'استخدام قيم المستشعر';
+
+  @override
+  String get dataQuality_repairLabel_swapSeries => 'تبديل سلاسل الأسطوانات';
+
+  @override
+  String get dataQuality_repairLabel_reassignSeries =>
+      'نقل السلسلة إلى أسطوانة أخرى';
+
+  @override
+  String get dataQuality_repairLabel_setPrimary => 'جعل هذا المصدر أساسيًا';
+
+  @override
+  String get dataQuality_repairLabel_split => 'التقسيم إلى غوصات منفصلة';
+
+  @override
+  String get dataQuality_repairLabel_compare => 'مقارنة المخططات';
+
+  @override
+  String get dataQuality_settings_title => 'جودة البيانات';
+
+  @override
+  String get dataQuality_settings_subtitle =>
+      'اختر الفحوصات التي تُجرى أثناء الفحص';
+
+  @override
+  String dataQuality_summary_flagged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عناصر مُعلَّمة للمراجعة',
+      one: 'عنصر واحد مُعلَّم للمراجعة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_summary_review => 'مراجعة';
+
+  @override
+  String get dataQuality_detail_chip => 'مراجعة';
+
+  @override
+  String dataQuality_detail_chipCount(int count) {
+    return 'مراجعة ($count)';
+  }
 }

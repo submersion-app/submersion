@@ -15,6 +15,7 @@ import 'package:submersion/core/domain/entities/storage_config.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/security_scoped_bookmark_service.dart';
 import 'package:submersion/core/presentation/pages/startup_page.dart';
+import 'package:submersion/features/data_quality/presentation/providers/quality_detector_toggles.dart';
 import 'package:submersion/features/media/data/network_cache_config.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -59,6 +60,10 @@ Future<void> _bootstrap() async {
 
   // Initialize SharedPreferences first (needed for storage config)
   final prefs = await SharedPreferences.getInstance();
+
+  // Hydrate the process-wide data-quality detector toggles from prefs so
+  // fire-and-forget scans honor saved toggles before the settings page opens.
+  QualityDetectorTogglesNotifier.hydrateFromPrefs(prefs);
 
   // Initialize log file service (always created so it's ready when needed)
   final appSupportDir = await getApplicationSupportDirectory();

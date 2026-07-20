@@ -1042,6 +1042,48 @@ class EquipmentSetGeofences extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Data-quality findings produced by the Data Quality Assistant detectors.
+/// One row per (dive, detector, discriminator). Ids are deterministic
+/// UUIDv5 values so independent scans on two devices converge on the same
+/// row. A user dismissal is a status update, never a delete -- deterministic
+/// ids would otherwise resurrect a dismissed finding on the next rescan. (The
+/// scan pipeline itself may still delete a finding that no longer reproduces;
+/// that path writes a sync tombstone.)
+@DataClassName('QualityFindingRow')
+class QualityFindings extends Table {
+  TextColumn get id => text()();
+  TextColumn get diveId =>
+      text().references(Dives, #id, onDelete: KeyAction.cascade)();
+
+  /// The other dive for cross-dive findings (duplicates, splits, overlaps).
+  TextColumn get relatedDiveId =>
+      text().nullable().references(Dives, #id, onDelete: KeyAction.setNull)();
+
+  /// Source computer for source-scoped findings.
+  TextColumn get computerId => text().nullable().references(
+    DiveComputers,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+  TextColumn get detectorId => text()();
+  IntColumn get detectorVersion => integer()();
+  TextColumn get category => text()();
+  TextColumn get severity => text()();
+  TextColumn get status => text().withDefault(const Constant('open'))();
+
+  /// JSON object of numeric arguments; the UI renders localized messages
+  /// from these. Never store prose.
+  TextColumn get params => text().withDefault(const Constant('{}'))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution.
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Catalog of service kinds (hydro, VIP, regulator service, ...).
 /// Built-ins are reference data: seeded on create/upgrade/open, skipped by
 /// sync export, undeletable through the repository. Custom kinds sync.
@@ -2682,6 +2724,7 @@ class FieldPresets extends Table {
     EquipmentSets,
     EquipmentSetItems,
     EquipmentSetGeofences,
+    QualityFindings,
     EquipmentAttributes,
     Species,
     Sightings,
@@ -2771,7 +2814,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 128;
+  static const int currentSchemaVersion = 129;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -2917,6 +2960,9 @@ class AppDatabase extends _$AppDatabase {
     // v128: pre-dive checklist tables + built-in template seeds (renumbered
     // from v117/v127 as main advanced past it at merge time).
     128,
+    // v129: quality_findings table for the Data Quality Assistant (renumbered
+    // from v118 as main advanced past it at merge time).
+    129,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -3144,6 +3190,37 @@ class AppDatabase extends _$AppDatabase {
     if (cols.isNotEmpty && !hasThickness) {
       await customStatement('ALTER TABLE equipment ADD COLUMN thickness TEXT');
     }
+  }
+
+  /// v129: quality_findings table for the Data Quality Assistant.
+  /// Idempotent so it is safe to call from both onUpgrade and the
+  /// beforeOpen backstop.
+  Future<void> _assertQualityFindingsSchema() async {
+    await customStatement('''
+      CREATE TABLE IF NOT EXISTS quality_findings (
+        id TEXT NOT NULL PRIMARY KEY,
+        dive_id TEXT NOT NULL REFERENCES dives (id) ON DELETE CASCADE,
+        related_dive_id TEXT REFERENCES dives (id) ON DELETE SET NULL,
+        computer_id TEXT REFERENCES dive_computers (id) ON DELETE SET NULL,
+        detector_id TEXT NOT NULL,
+        detector_version INTEGER NOT NULL,
+        category TEXT NOT NULL,
+        severity TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'open',
+        params TEXT NOT NULL DEFAULT '{}',
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        hlc TEXT
+      )
+    ''');
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_quality_findings_dive '
+      'ON quality_findings (dive_id)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_quality_findings_status '
+      'ON quality_findings (status)',
+    );
   }
 
   /// v127: pre-dive checklist tables. Migrator.createTable is IF NOT EXISTS,
@@ -3537,6 +3614,7 @@ class AppDatabase extends _$AppDatabase {
     'media',
     'species',
     'field_presets',
+    'quality_findings',
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
@@ -6613,6 +6691,12 @@ class AppDatabase extends _$AppDatabase {
           await _seedBuiltInPreDiveTemplates();
         }
         if (from < 128) await reportProgress();
+        // v129: quality_findings table for the Data Quality Assistant
+        // (renumbered from v118 as main advanced past it at merge time).
+        if (from < 129) {
+          await _assertQualityFindingsSchema();
+        }
+        if (from < 129) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
@@ -6699,6 +6783,9 @@ class AppDatabase extends _$AppDatabase {
         // built-in templates (same rationale as the dive-types re-seed).
         await _assertPreDiveChecklistSchema();
         await _seedBuiltInPreDiveTemplates();
+
+        // v129 backstop: re-assert quality_findings schema.
+        await _assertQualityFindingsSchema();
 
         // Built-in dive types are reference data: identical on every device and
         // undeletable through DiveTypeRepository. Nothing else restores them --

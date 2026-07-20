@@ -13,6 +13,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
+import 'package:submersion/features/data_quality/presentation/providers/data_quality_providers.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -250,6 +251,8 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
                 context.push('/dives/match-sites');
               } else if (value == 'numbering') {
                 showDiveNumberingDialog(context);
+              } else if (value == 'data_quality') {
+                context.push('/dives/quality');
               } else if (value.startsWith('view_')) {
                 final mode = ListViewMode.fromName(
                   value.replaceFirst('view_', ''),
@@ -300,6 +303,32 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
                         child: Text(
                           context.l10n.diveLog_listPage_menuMatchSites,
                         ),
+                      ),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'data_quality',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.rule, size: 20),
+                      const SizedBox(width: 12),
+                      Flexible(
+                        child: Text(context.l10n.dataQuality_badge_tooltip),
+                      ),
+                      Builder(
+                        builder: (context) {
+                          final count =
+                              ref
+                                  .watch(openQualityFindingsCountProvider)
+                                  .value ??
+                              0;
+                          if (count == 0) return const SizedBox.shrink();
+                          return Padding(
+                            padding: const EdgeInsets.only(left: 8),
+                            child: Badge(label: Text('$count')),
+                          );
+                        },
                       ),
                     ],
                   ),

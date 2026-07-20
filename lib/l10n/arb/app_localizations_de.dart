@@ -21526,4 +21526,360 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_section_safety_subtitle =>
       'Überprüfungsregeln & Fliegen nach dem Tauchen';
+
+  @override
+  String get dataQuality_inbox_title => 'Datenqualität';
+
+  @override
+  String get dataQuality_badge_tooltip => 'Datenqualitätsprüfung';
+
+  @override
+  String get dataQuality_scan_start => 'Bibliothek scannen';
+
+  @override
+  String dataQuality_scan_progress(int done, int total) {
+    return '$done von $total Tauchgängen geprüft';
+  }
+
+  @override
+  String get dataQuality_scan_cancel => 'Abbrechen';
+
+  @override
+  String dataQuality_scan_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Scan abgeschlossen - $count Elemente zu prüfen',
+      one: 'Scan abgeschlossen - 1 Element zu prüfen',
+      zero: 'Scan abgeschlossen - keine neuen Auffälligkeiten',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_scan_errors(int count) {
+    return '$count Tauchgänge konnten nicht vollständig geprüft werden';
+  }
+
+  @override
+  String dataQuality_lastScan(String when) {
+    return 'Letzter Scan: $when';
+  }
+
+  @override
+  String get dataQuality_neverScanned =>
+      'Dein Logbuch wurde noch nicht gescannt';
+
+  @override
+  String get dataQuality_empty_title => 'Alles in Ordnung';
+
+  @override
+  String get dataQuality_empty_subtitle =>
+      'Keine Auffälligkeiten bei der Datenqualität. Scanne deine Bibliothek, um importierte Tauchgänge auf Probleme zu prüfen.';
+
+  @override
+  String get dataQuality_banner_newChecks =>
+      'Neue Qualitätsprüfungen sind verfügbar';
+
+  @override
+  String get dataQuality_banner_rescan => 'Erneut scannen';
+
+  @override
+  String get dataQuality_action_dismiss => 'Verwerfen';
+
+  @override
+  String get dataQuality_action_dismissFiltered => 'Alle angezeigten verwerfen';
+
+  @override
+  String get dataQuality_action_goToDive => 'Zum Tauchgang';
+
+  @override
+  String get dataQuality_action_undo => 'Rückgängig';
+
+  @override
+  String get dataQuality_repair_applied => 'Korrektur angewendet';
+
+  @override
+  String get dataQuality_repair_failed => 'Korrektur fehlgeschlagen';
+
+  @override
+  String get dataQuality_chip_all => 'Alle';
+
+  @override
+  String get dataQuality_chip_time => 'Zeit';
+
+  @override
+  String get dataQuality_chip_profile => 'Profil';
+
+  @override
+  String get dataQuality_chip_gas => 'Gas';
+
+  @override
+  String get dataQuality_chip_tanks => 'Flaschen';
+
+  @override
+  String get dataQuality_chip_duplicates => 'Duplikate';
+
+  @override
+  String get dataQuality_chip_sources => 'Quellen';
+
+  @override
+  String get dataQuality_detector_clock_offset => 'Uhr & Zeitzone';
+
+  @override
+  String get dataQuality_detector_duplicate => 'Wahrscheinliches Duplikat';
+
+  @override
+  String get dataQuality_detector_split_pair => 'Versehentliche Aufteilung';
+
+  @override
+  String get dataQuality_detector_sample_gap => 'Lücken in den Messpunkten';
+
+  @override
+  String get dataQuality_detector_depth_spike => 'Tiefenausreißer';
+
+  @override
+  String get dataQuality_detector_impossible_rate => 'Unmögliche Rate';
+
+  @override
+  String get dataQuality_detector_temp_anomaly => 'Temperaturanomalie';
+
+  @override
+  String get dataQuality_detector_pressure_anomaly => 'Druckanomalie';
+
+  @override
+  String get dataQuality_detector_gas_mod => 'Gas/MOD-Widerspruch';
+
+  @override
+  String get dataQuality_detector_tank_assignment => 'Falsche Flasche';
+
+  @override
+  String get dataQuality_detector_source_conflict => 'Widersprüchliche Quellen';
+
+  @override
+  String dataQuality_msg_clock_future(String date) {
+    return 'Tauchgang liegt in der Zukunft ($date)';
+  }
+
+  @override
+  String dataQuality_msg_clock_ancient(String date) {
+    return 'Tauchgang ist vor 1950 datiert ($date)';
+  }
+
+  @override
+  String dataQuality_msg_clock_offset(int hours) {
+    return 'Eine Quellenuhr weicht um $hours Stunden ab';
+  }
+
+  @override
+  String dataQuality_msg_clock_overlap(int minutes) {
+    return 'Überschneidet einen anderen Tauchgang um $minutes Min.';
+  }
+
+  @override
+  String dataQuality_msg_duplicate(int percent, int minutes) {
+    return '$percent % Übereinstimmung mit einem Tauchgang im Abstand von $minutes Min.';
+  }
+
+  @override
+  String dataQuality_msg_split(int minutes) {
+    return 'Derselbe Computer wurde nach einem Oberflächenintervall von $minutes Min. fortgesetzt';
+  }
+
+  @override
+  String dataQuality_msg_gap(int count, String longest) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Lücken in den Messpunkten',
+      one: '1 Lücke in den Messpunkten',
+    );
+    return '$_temp0, längste $longest';
+  }
+
+  @override
+  String dataQuality_msg_spike(String depth, String time) {
+    return 'Tiefenausreißer auf $depth um $time';
+  }
+
+  @override
+  String dataQuality_msg_negativeDepth(int count) {
+    return '$count negative Tiefenmesspunkte';
+  }
+
+  @override
+  String dataQuality_msg_maxDepthMismatch(String stored, String profile) {
+    return 'Erfasste maximale Tiefe $stored, aber das Profil zeigt $profile';
+  }
+
+  @override
+  String dataQuality_msg_rate(String rate, int seconds) {
+    return 'Vertikalrate von $rate über $seconds s gehalten';
+  }
+
+  @override
+  String dataQuality_msg_tempRange(String min, String max) {
+    return 'Wassertemperatur außerhalb des plausiblen Bereichs ($min bis $max)';
+  }
+
+  @override
+  String get dataQuality_msg_tempUnitBug =>
+      'Die Werte deuten auf einen Fehler bei der Temperatureinheit hin';
+
+  @override
+  String dataQuality_msg_tempJump(String delta) {
+    return 'Temperatur sprang $delta in einem Messpunkt';
+  }
+
+  @override
+  String dataQuality_msg_tempScalar(String temp) {
+    return 'Erfasste Wassertemperatur $temp ist unplausibel';
+  }
+
+  @override
+  String dataQuality_msg_pressureSwap(String end, String start) {
+    return 'Enddruck $end liegt über dem Anfangsdruck $start';
+  }
+
+  @override
+  String dataQuality_msg_pressureEndpoint(String record, String series) {
+    return 'Der Flaschendatensatz nennt $record, aber die Sensorreihe zeigt $series';
+  }
+
+  @override
+  String dataQuality_msg_pressureRise(String rise) {
+    return 'Druck stieg mitten im Tauchgang um $rise ohne Gaswechsel';
+  }
+
+  @override
+  String dataQuality_msg_sac(String sac) {
+    return 'Der abgeleitete Oberflächenverbrauch von $sac ist unplausibel';
+  }
+
+  @override
+  String dataQuality_msg_ppo2(String ppo2, String gas, String depth) {
+    return 'ppO2 erreichte $ppo2 mit $gas auf $depth';
+  }
+
+  @override
+  String dataQuality_msg_hypoxic(String gas) {
+    return 'Hypoxisches Gemisch ($gas) an der Oberfläche in Verwendung angezeigt';
+  }
+
+  @override
+  String dataQuality_msg_switchMod(String depth, String mod) {
+    return 'Gaswechsel auf $depth liegt über der MOD dieses Gases von $mod';
+  }
+
+  @override
+  String dataQuality_msg_tankInactive(String drop) {
+    return 'Diese Flasche verlor $drop, obwohl die Gas-Zeitleiste sie als nicht in Verwendung ausweist';
+  }
+
+  @override
+  String get dataQuality_msg_twinTanks =>
+      'Zwei Flaschen weisen eine nahezu identische Druckreihe auf';
+
+  @override
+  String dataQuality_msg_sourceDepth(String primary, String source) {
+    return 'Quellen widersprechen sich bei der maximalen Tiefe: $primary vs. $source';
+  }
+
+  @override
+  String get dataQuality_msg_salinityHint =>
+      'Das konstante Verhältnis deutet auf eine unterschiedliche Salz-/Süßwasser-Einstellung hin';
+
+  @override
+  String get dataQuality_msg_sourceDuration =>
+      'Quellen widersprechen sich bei der Tauchzeit';
+
+  @override
+  String get dataQuality_msg_sourceTemp =>
+      'Quellen widersprechen sich bei der Wassertemperatur';
+
+  @override
+  String dataQuality_repairLabel_shiftTime(String offset) {
+    return 'Zeit um $offset verschieben';
+  }
+
+  @override
+  String get dataQuality_repairLabel_shiftImport =>
+      'Alle Tauchgänge aus diesem Import verschieben';
+
+  @override
+  String get dataQuality_repairLabel_consolidate => 'Konsolidieren';
+
+  @override
+  String get dataQuality_repairLabel_combine =>
+      'Zu einem Tauchgang kombinieren';
+
+  @override
+  String get dataQuality_repairLabel_despike => 'Ausreißer entfernen';
+
+  @override
+  String get dataQuality_repairLabel_fillGaps => 'Lücken füllen';
+
+  @override
+  String get dataQuality_repairLabel_smoothTemp => 'Temperatur glätten';
+
+  @override
+  String get dataQuality_repairLabel_convertTemp => 'Temperatur umrechnen';
+
+  @override
+  String get dataQuality_repairLabel_recompute =>
+      'Aus dem Profil neu berechnen';
+
+  @override
+  String get dataQuality_repairLabel_swapPressures =>
+      'Anfangs-/Enddruck tauschen';
+
+  @override
+  String get dataQuality_repairLabel_setFromSeries => 'Sensorwerte verwenden';
+
+  @override
+  String get dataQuality_repairLabel_swapSeries => 'Flaschenreihen tauschen';
+
+  @override
+  String get dataQuality_repairLabel_reassignSeries =>
+      'Reihe einer anderen Flasche zuordnen';
+
+  @override
+  String get dataQuality_repairLabel_setPrimary =>
+      'Diese Quelle als primär festlegen';
+
+  @override
+  String get dataQuality_repairLabel_split =>
+      'In separate Tauchgänge aufteilen';
+
+  @override
+  String get dataQuality_repairLabel_compare => 'Profile vergleichen';
+
+  @override
+  String get dataQuality_settings_title => 'Datenqualität';
+
+  @override
+  String get dataQuality_settings_subtitle =>
+      'Wählen, welche Prüfungen beim Scannen ausgeführt werden';
+
+  @override
+  String dataQuality_summary_flagged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Elemente zur Prüfung markiert',
+      one: '1 Element zur Prüfung markiert',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_summary_review => 'Überprüfen';
+
+  @override
+  String get dataQuality_detail_chip => 'Überprüfen';
+
+  @override
+  String dataQuality_detail_chipCount(int count) {
+    return 'Überprüfen ($count)';
+  }
 }

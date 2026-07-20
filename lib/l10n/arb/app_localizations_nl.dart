@@ -21386,4 +21386,358 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_section_safety_subtitle =>
       'Controleregels & vliegen na het duiken';
+
+  @override
+  String get dataQuality_inbox_title => 'Datakwaliteit';
+
+  @override
+  String get dataQuality_badge_tooltip => 'Controle van datakwaliteit';
+
+  @override
+  String get dataQuality_scan_start => 'Bibliotheek scannen';
+
+  @override
+  String dataQuality_scan_progress(int done, int total) {
+    return '$done van $total duiken gecontroleerd';
+  }
+
+  @override
+  String get dataQuality_scan_cancel => 'Annuleren';
+
+  @override
+  String dataQuality_scan_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Scan voltooid - $count items om te bekijken',
+      one: 'Scan voltooid - 1 item om te bekijken',
+      zero: 'Scan voltooid - geen nieuwe bevindingen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_scan_errors(int count) {
+    return '$count duiken konden niet volledig worden gecontroleerd';
+  }
+
+  @override
+  String dataQuality_lastScan(String when) {
+    return 'Laatste scan: $when';
+  }
+
+  @override
+  String get dataQuality_neverScanned => 'Je logboek is nog niet gescand';
+
+  @override
+  String get dataQuality_empty_title => 'Alles in orde';
+
+  @override
+  String get dataQuality_empty_subtitle =>
+      'Geen bevindingen over datakwaliteit. Scan je bibliotheek om geïmporteerde duiken op problemen te controleren.';
+
+  @override
+  String get dataQuality_banner_newChecks =>
+      'Er zijn nieuwe kwaliteitscontroles beschikbaar';
+
+  @override
+  String get dataQuality_banner_rescan => 'Opnieuw scannen';
+
+  @override
+  String get dataQuality_action_dismiss => 'Negeren';
+
+  @override
+  String get dataQuality_action_dismissFiltered => 'Alle getoonde negeren';
+
+  @override
+  String get dataQuality_action_goToDive => 'Naar duik';
+
+  @override
+  String get dataQuality_action_undo => 'Ongedaan maken';
+
+  @override
+  String get dataQuality_repair_applied => 'Herstel toegepast';
+
+  @override
+  String get dataQuality_repair_failed => 'Herstel mislukt';
+
+  @override
+  String get dataQuality_chip_all => 'Alle';
+
+  @override
+  String get dataQuality_chip_time => 'Tijd';
+
+  @override
+  String get dataQuality_chip_profile => 'Profiel';
+
+  @override
+  String get dataQuality_chip_gas => 'Gas';
+
+  @override
+  String get dataQuality_chip_tanks => 'Flessen';
+
+  @override
+  String get dataQuality_chip_duplicates => 'Duplicaten';
+
+  @override
+  String get dataQuality_chip_sources => 'Bronnen';
+
+  @override
+  String get dataQuality_detector_clock_offset => 'Klok en tijdzone';
+
+  @override
+  String get dataQuality_detector_duplicate => 'Waarschijnlijk duplicaat';
+
+  @override
+  String get dataQuality_detector_split_pair => 'Onbedoelde splitsing';
+
+  @override
+  String get dataQuality_detector_sample_gap => 'Hiaten in metingen';
+
+  @override
+  String get dataQuality_detector_depth_spike => 'Dieptepiek';
+
+  @override
+  String get dataQuality_detector_impossible_rate => 'Onmogelijke snelheid';
+
+  @override
+  String get dataQuality_detector_temp_anomaly => 'Temperatuuranomalie';
+
+  @override
+  String get dataQuality_detector_pressure_anomaly => 'Drukanomalie';
+
+  @override
+  String get dataQuality_detector_gas_mod => 'Gas/MOD-inconsistentie';
+
+  @override
+  String get dataQuality_detector_tank_assignment => 'Verkeerde fles';
+
+  @override
+  String get dataQuality_detector_source_conflict => 'Tegenstrijdige bronnen';
+
+  @override
+  String dataQuality_msg_clock_future(String date) {
+    return 'De duik is gedateerd in de toekomst ($date)';
+  }
+
+  @override
+  String dataQuality_msg_clock_ancient(String date) {
+    return 'De duik is gedateerd voor 1950 ($date)';
+  }
+
+  @override
+  String dataQuality_msg_clock_offset(int hours) {
+    return 'De klok van een bron wijkt $hours uur af';
+  }
+
+  @override
+  String dataQuality_msg_clock_overlap(int minutes) {
+    return 'Overlapt een andere duik met $minutes min';
+  }
+
+  @override
+  String dataQuality_msg_duplicate(int percent, int minutes) {
+    return '$percent% overeenkomst met een duik $minutes min ervandaan';
+  }
+
+  @override
+  String dataQuality_msg_split(int minutes) {
+    return 'Dezelfde computer hervatte na een oppervlakte-interval van $minutes min';
+  }
+
+  @override
+  String dataQuality_msg_gap(int count, String longest) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hiaten in metingen',
+      one: '1 hiaat in metingen',
+    );
+    return '$_temp0, langste $longest';
+  }
+
+  @override
+  String dataQuality_msg_spike(String depth, String time) {
+    return 'Dieptepiek tot $depth om $time';
+  }
+
+  @override
+  String dataQuality_msg_negativeDepth(int count) {
+    return '$count metingen met negatieve diepte';
+  }
+
+  @override
+  String dataQuality_msg_maxDepthMismatch(String stored, String profile) {
+    return 'Geregistreerde maximale diepte $stored, maar het profiel toont $profile';
+  }
+
+  @override
+  String dataQuality_msg_rate(String rate, int seconds) {
+    return 'Verticale snelheid van $rate aangehouden gedurende $seconds s';
+  }
+
+  @override
+  String dataQuality_msg_tempRange(String min, String max) {
+    return 'Watertemperatuur buiten het aannemelijke bereik ($min tot $max)';
+  }
+
+  @override
+  String get dataQuality_msg_tempUnitBug =>
+      'De waarden lijken op een fout in de temperatuureenheid';
+
+  @override
+  String dataQuality_msg_tempJump(String delta) {
+    return 'Temperatuur sprong $delta in één meting';
+  }
+
+  @override
+  String dataQuality_msg_tempScalar(String temp) {
+    return 'Geregistreerde watertemperatuur $temp is onaannemelijk';
+  }
+
+  @override
+  String dataQuality_msg_pressureSwap(String end, String start) {
+    return 'Einddruk $end is hoger dan begindruk $start';
+  }
+
+  @override
+  String dataQuality_msg_pressureEndpoint(String record, String series) {
+    return 'Het flesrecord vermeldt $record, maar de sensorreeks toont $series';
+  }
+
+  @override
+  String dataQuality_msg_pressureRise(String rise) {
+    return 'Druk steeg $rise midden in de duik zonder gaswisseling';
+  }
+
+  @override
+  String dataQuality_msg_sac(String sac) {
+    return 'Het afgeleide oppervlakteverbruik van $sac is onaannemelijk';
+  }
+
+  @override
+  String dataQuality_msg_ppo2(String ppo2, String gas, String depth) {
+    return 'ppO2 bereikte $ppo2 op $gas bij $depth';
+  }
+
+  @override
+  String dataQuality_msg_hypoxic(String gas) {
+    return 'Hypoxisch mengsel ($gas) weergegeven als in gebruik aan de oppervlakte';
+  }
+
+  @override
+  String dataQuality_msg_switchMod(String depth, String mod) {
+    return 'Gaswisseling op $depth ligt voorbij de MOD van dat gas van $mod';
+  }
+
+  @override
+  String dataQuality_msg_tankInactive(String drop) {
+    return 'Deze fles verloor $drop terwijl de gastijdlijn aangeeft dat ze niet in gebruik was';
+  }
+
+  @override
+  String get dataQuality_msg_twinTanks =>
+      'Twee flessen hebben een vrijwel identieke drukreeks';
+
+  @override
+  String dataQuality_msg_sourceDepth(String primary, String source) {
+    return 'Bronnen zijn het oneens over de maximale diepte: $primary versus $source';
+  }
+
+  @override
+  String get dataQuality_msg_salinityHint =>
+      'De constante verhouding wijst op een verschil in de zout-/zoetwaterinstelling';
+
+  @override
+  String get dataQuality_msg_sourceDuration =>
+      'Bronnen zijn het oneens over de duikduur';
+
+  @override
+  String get dataQuality_msg_sourceTemp =>
+      'Bronnen zijn het oneens over de watertemperatuur';
+
+  @override
+  String dataQuality_repairLabel_shiftTime(String offset) {
+    return 'Tijd verschuiven met $offset';
+  }
+
+  @override
+  String get dataQuality_repairLabel_shiftImport =>
+      'Alle duiken uit deze import verschuiven';
+
+  @override
+  String get dataQuality_repairLabel_consolidate => 'Consolideren';
+
+  @override
+  String get dataQuality_repairLabel_combine => 'Samenvoegen tot één duik';
+
+  @override
+  String get dataQuality_repairLabel_despike => 'Piek verwijderen';
+
+  @override
+  String get dataQuality_repairLabel_fillGaps => 'Hiaten opvullen';
+
+  @override
+  String get dataQuality_repairLabel_smoothTemp => 'Temperatuur effenen';
+
+  @override
+  String get dataQuality_repairLabel_convertTemp => 'Temperatuur omrekenen';
+
+  @override
+  String get dataQuality_repairLabel_recompute =>
+      'Opnieuw berekenen op basis van profiel';
+
+  @override
+  String get dataQuality_repairLabel_swapPressures =>
+      'Begin-/einddruk verwisselen';
+
+  @override
+  String get dataQuality_repairLabel_setFromSeries => 'Sensorwaarden gebruiken';
+
+  @override
+  String get dataQuality_repairLabel_swapSeries => 'Flesreeksen verwisselen';
+
+  @override
+  String get dataQuality_repairLabel_reassignSeries =>
+      'Reeks naar een andere fles verplaatsen';
+
+  @override
+  String get dataQuality_repairLabel_setPrimary =>
+      'Deze bron als primair instellen';
+
+  @override
+  String get dataQuality_repairLabel_split =>
+      'Splitsen in afzonderlijke duiken';
+
+  @override
+  String get dataQuality_repairLabel_compare => 'Profielen vergelijken';
+
+  @override
+  String get dataQuality_settings_title => 'Datakwaliteit';
+
+  @override
+  String get dataQuality_settings_subtitle =>
+      'Kiezen welke controles worden uitgevoerd bij het scannen';
+
+  @override
+  String dataQuality_summary_flagged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items gemarkeerd voor controle',
+      one: '1 item gemarkeerd voor controle',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_summary_review => 'Controleren';
+
+  @override
+  String get dataQuality_detail_chip => 'Controleren';
+
+  @override
+  String dataQuality_detail_chipCount(int count) {
+    return 'Controleren ($count)';
+  }
 }

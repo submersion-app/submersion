@@ -588,9 +588,17 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // The filter button with Badge indicator should be present
+      // The filter button with Badge indicator should be present. (The
+      // data-quality review button also wears a Badge, so scope the check to
+      // the Badge wrapping the filter icon.)
       expect(find.byIcon(Icons.filter_list), findsOneWidget);
-      expect(find.byType(Badge), findsOneWidget);
+      expect(
+        find.ancestor(
+          of: find.byIcon(Icons.filter_list),
+          matching: find.byType(Badge),
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('table mode profile toggle button is present when enabled', (

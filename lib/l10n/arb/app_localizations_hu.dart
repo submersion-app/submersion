@@ -21493,4 +21493,360 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_section_safety_subtitle =>
       'Áttekintési szabályok és repülés merülés után';
+
+  @override
+  String get dataQuality_inbox_title => 'Adatminőség';
+
+  @override
+  String get dataQuality_badge_tooltip => 'Adatminőség-ellenőrzés';
+
+  @override
+  String get dataQuality_scan_start => 'Könyvtár átvizsgálása';
+
+  @override
+  String dataQuality_scan_progress(int done, int total) {
+    return '$done / $total merülés ellenőrizve';
+  }
+
+  @override
+  String get dataQuality_scan_cancel => 'Mégse';
+
+  @override
+  String dataQuality_scan_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Az átvizsgálás kész - $count elem ellenőrzésre vár',
+      one: 'Az átvizsgálás kész - 1 elem ellenőrzésre vár',
+      zero: 'Az átvizsgálás kész - nincs új észlelés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_scan_errors(int count) {
+    return '$count merülést nem sikerült teljesen ellenőrizni';
+  }
+
+  @override
+  String dataQuality_lastScan(String when) {
+    return 'Utolsó átvizsgálás: $when';
+  }
+
+  @override
+  String get dataQuality_neverScanned =>
+      'A merülési naplódat még nem vizsgáltuk át';
+
+  @override
+  String get dataQuality_empty_title => 'Minden rendben';
+
+  @override
+  String get dataQuality_empty_subtitle =>
+      'Nincs adatminőségi észlelés. Vizsgáld át a könyvtáradat, hogy ellenőrizd az importált merüléseket.';
+
+  @override
+  String get dataQuality_banner_newChecks =>
+      'Új minőségi ellenőrzések érhetők el';
+
+  @override
+  String get dataQuality_banner_rescan => 'Újraellenőrzés';
+
+  @override
+  String get dataQuality_action_dismiss => 'Elvetés';
+
+  @override
+  String get dataQuality_action_dismissFiltered =>
+      'Az összes megjelenített elvetése';
+
+  @override
+  String get dataQuality_action_goToDive => 'Ugrás a merüléshez';
+
+  @override
+  String get dataQuality_action_undo => 'Visszavonás';
+
+  @override
+  String get dataQuality_repair_applied => 'Javítás alkalmazva';
+
+  @override
+  String get dataQuality_repair_failed => 'A javítás sikertelen';
+
+  @override
+  String get dataQuality_chip_all => 'Mind';
+
+  @override
+  String get dataQuality_chip_time => 'Idő';
+
+  @override
+  String get dataQuality_chip_profile => 'Profil';
+
+  @override
+  String get dataQuality_chip_gas => 'Gáz';
+
+  @override
+  String get dataQuality_chip_tanks => 'Palackok';
+
+  @override
+  String get dataQuality_chip_duplicates => 'Duplikátumok';
+
+  @override
+  String get dataQuality_chip_sources => 'Források';
+
+  @override
+  String get dataQuality_detector_clock_offset => 'Óra és időzóna';
+
+  @override
+  String get dataQuality_detector_duplicate => 'Valószínű duplikátum';
+
+  @override
+  String get dataQuality_detector_split_pair => 'Véletlen szétválás';
+
+  @override
+  String get dataQuality_detector_sample_gap => 'Hézagok a mintákban';
+
+  @override
+  String get dataQuality_detector_depth_spike => 'Mélységi kiugrás';
+
+  @override
+  String get dataQuality_detector_impossible_rate => 'Lehetetlen sebesség';
+
+  @override
+  String get dataQuality_detector_temp_anomaly => 'Hőmérsékleti rendellenesség';
+
+  @override
+  String get dataQuality_detector_pressure_anomaly => 'Nyomásrendellenesség';
+
+  @override
+  String get dataQuality_detector_gas_mod => 'Gáz/MOD-ellentmondás';
+
+  @override
+  String get dataQuality_detector_tank_assignment => 'Rossz palack';
+
+  @override
+  String get dataQuality_detector_source_conflict => 'Ütköző források';
+
+  @override
+  String dataQuality_msg_clock_future(String date) {
+    return 'A merülés dátuma a jövőben van ($date)';
+  }
+
+  @override
+  String dataQuality_msg_clock_ancient(String date) {
+    return 'A merülés dátuma 1950 előtti ($date)';
+  }
+
+  @override
+  String dataQuality_msg_clock_offset(int hours) {
+    return 'Az egyik forrás órája $hours órával eltér';
+  }
+
+  @override
+  String dataQuality_msg_clock_overlap(int minutes) {
+    return '$minutes perccel átfed egy másik merülést';
+  }
+
+  @override
+  String dataQuality_msg_duplicate(int percent, int minutes) {
+    return '$percent%-os egyezés egy $minutes perccel eltérő merüléssel';
+  }
+
+  @override
+  String dataQuality_msg_split(int minutes) {
+    return 'Ugyanaz a számítógép $minutes perces felszíni szünet után folytatódott';
+  }
+
+  @override
+  String dataQuality_msg_gap(int count, String longest) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hézag a mintákban',
+      one: '1 hézag a mintákban',
+    );
+    return '$_temp0, a leghosszabb $longest';
+  }
+
+  @override
+  String dataQuality_msg_spike(String depth, String time) {
+    return 'Mélységi kiugrás $depth értékig $time időpontban';
+  }
+
+  @override
+  String dataQuality_msg_negativeDepth(int count) {
+    return '$count negatív mélységű minta';
+  }
+
+  @override
+  String dataQuality_msg_maxDepthMismatch(String stored, String profile) {
+    return 'A rögzített maximális mélység $stored, de a profil $profile értéket mutat';
+  }
+
+  @override
+  String dataQuality_msg_rate(String rate, int seconds) {
+    return '$rate függőleges sebesség $seconds másodpercen át fennmaradt';
+  }
+
+  @override
+  String dataQuality_msg_tempRange(String min, String max) {
+    return 'A vízhőmérséklet a hihető tartományon kívül esik ($min - $max)';
+  }
+
+  @override
+  String get dataQuality_msg_tempUnitBug =>
+      'Az értékek hőmérséklet-mértékegységi hibára utalnak';
+
+  @override
+  String dataQuality_msg_tempJump(String delta) {
+    return 'A hőmérséklet $delta értéket ugrott egyetlen mintában';
+  }
+
+  @override
+  String dataQuality_msg_tempScalar(String temp) {
+    return 'A rögzített vízhőmérséklet $temp nem hihető';
+  }
+
+  @override
+  String dataQuality_msg_pressureSwap(String end, String start) {
+    return 'A $end végnyomás magasabb, mint a $start kezdőnyomás';
+  }
+
+  @override
+  String dataQuality_msg_pressureEndpoint(String record, String series) {
+    return 'A palack rekordja $record értéket jelez, de az érzékelősorozat $series értéket mutat';
+  }
+
+  @override
+  String dataQuality_msg_pressureRise(String rise) {
+    return 'A nyomás $rise értékkel emelkedett a merülés közben gázcsere nélkül';
+  }
+
+  @override
+  String dataQuality_msg_sac(String sac) {
+    return 'A becsült felszíni fogyasztás ($sac) nem hihető';
+  }
+
+  @override
+  String dataQuality_msg_ppo2(String ppo2, String gas, String depth) {
+    return 'A ppO2 elérte a(z) $ppo2 értéket $gas gázzal $depth mélységben';
+  }
+
+  @override
+  String dataQuality_msg_hypoxic(String gas) {
+    return 'Hipoxikus keverék ($gas) használatban a felszínen';
+  }
+
+  @override
+  String dataQuality_msg_switchMod(String depth, String mod) {
+    return 'A gázcsere $depth mélységben meghaladja az adott gáz $mod MOD-értékét';
+  }
+
+  @override
+  String dataQuality_msg_tankInactive(String drop) {
+    return 'Ez a palack $drop nyomást veszített, miközben a gáz-idővonal szerint nem volt használatban';
+  }
+
+  @override
+  String get dataQuality_msg_twinTanks =>
+      'Két palack majdnem azonos nyomássorozatot mutat';
+
+  @override
+  String dataQuality_msg_sourceDepth(String primary, String source) {
+    return 'A források nem egyeznek a maximális mélységben: $primary vs. $source';
+  }
+
+  @override
+  String get dataQuality_msg_salinityHint =>
+      'Az állandó arány a sós/édesvíz beállítás eltérésére utal';
+
+  @override
+  String get dataQuality_msg_sourceDuration =>
+      'A források nem egyeznek a merülés időtartamában';
+
+  @override
+  String get dataQuality_msg_sourceTemp =>
+      'A források nem egyeznek a vízhőmérsékletben';
+
+  @override
+  String dataQuality_repairLabel_shiftTime(String offset) {
+    return 'Idő eltolása ennyivel: $offset';
+  }
+
+  @override
+  String get dataQuality_repairLabel_shiftImport =>
+      'Az import összes merülésének eltolása';
+
+  @override
+  String get dataQuality_repairLabel_consolidate => 'Konszolidálás';
+
+  @override
+  String get dataQuality_repairLabel_combine => 'Összevonás egy merüléssé';
+
+  @override
+  String get dataQuality_repairLabel_despike => 'Kiugrás eltávolítása';
+
+  @override
+  String get dataQuality_repairLabel_fillGaps => 'Hézagok kitöltése';
+
+  @override
+  String get dataQuality_repairLabel_smoothTemp => 'Hőmérséklet simítása';
+
+  @override
+  String get dataQuality_repairLabel_convertTemp => 'Hőmérséklet átváltása';
+
+  @override
+  String get dataQuality_repairLabel_recompute => 'Újraszámítás a profilból';
+
+  @override
+  String get dataQuality_repairLabel_swapPressures =>
+      'Kezdő-/végnyomás felcserélése';
+
+  @override
+  String get dataQuality_repairLabel_setFromSeries =>
+      'Érzékelőértékek használata';
+
+  @override
+  String get dataQuality_repairLabel_swapSeries =>
+      'Palacksorozatok felcserélése';
+
+  @override
+  String get dataQuality_repairLabel_reassignSeries =>
+      'Sorozat áthelyezése másik palackra';
+
+  @override
+  String get dataQuality_repairLabel_setPrimary =>
+      'Beállítás elsődleges forrásként';
+
+  @override
+  String get dataQuality_repairLabel_split => 'Szétválasztás külön merülésekre';
+
+  @override
+  String get dataQuality_repairLabel_compare => 'Profilok összehasonlítása';
+
+  @override
+  String get dataQuality_settings_title => 'Adatminőség';
+
+  @override
+  String get dataQuality_settings_subtitle =>
+      'Válaszd ki, mely ellenőrzések fussanak átvizsgáláskor';
+
+  @override
+  String dataQuality_summary_flagged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elem megjelölve ellenőrzésre',
+      one: '1 elem megjelölve ellenőrzésre',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_summary_review => 'Áttekintés';
+
+  @override
+  String get dataQuality_detail_chip => 'Áttekintés';
+
+  @override
+  String dataQuality_detail_chipCount(int count) {
+    return 'Áttekintés ($count)';
+  }
 }

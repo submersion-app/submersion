@@ -17,6 +17,7 @@ import 'package:submersion/features/dive_import/data/services/uddf_entity_import
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -588,6 +589,9 @@ class UniversalAdapter implements ImportSourceAdapter {
           ),
       ];
     }
+
+    // Queue a data-quality scan of the imported dives (fire-and-forget).
+    scheduleQualityScan(netImportedDiveIds);
 
     return UnifiedImportResult(
       importedCounts: counts,

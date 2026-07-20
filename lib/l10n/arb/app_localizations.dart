@@ -36125,6 +36125,528 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Review rules & flying after diving'**
   String get settings_section_safety_subtitle;
+
+  /// No description provided for @dataQuality_inbox_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Data quality'**
+  String get dataQuality_inbox_title;
+
+  /// No description provided for @dataQuality_badge_tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Data quality review'**
+  String get dataQuality_badge_tooltip;
+
+  /// No description provided for @dataQuality_scan_start.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan library'**
+  String get dataQuality_scan_start;
+
+  /// No description provided for @dataQuality_scan_progress.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked {done} of {total} dives'**
+  String dataQuality_scan_progress(int done, int total);
+
+  /// No description provided for @dataQuality_scan_cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get dataQuality_scan_cancel;
+
+  /// No description provided for @dataQuality_scan_done.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Scan complete - no new findings} =1{Scan complete - 1 item to review} other{Scan complete - {count} items to review}}'**
+  String dataQuality_scan_done(int count);
+
+  /// No description provided for @dataQuality_scan_errors.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} dives could not be fully checked'**
+  String dataQuality_scan_errors(int count);
+
+  /// No description provided for @dataQuality_lastScan.
+  ///
+  /// In en, this message translates to:
+  /// **'Last scan: {when}'**
+  String dataQuality_lastScan(String when);
+
+  /// No description provided for @dataQuality_neverScanned.
+  ///
+  /// In en, this message translates to:
+  /// **'Your logbook has not been scanned yet'**
+  String get dataQuality_neverScanned;
+
+  /// No description provided for @dataQuality_empty_title.
+  ///
+  /// In en, this message translates to:
+  /// **'All clear'**
+  String get dataQuality_empty_title;
+
+  /// No description provided for @dataQuality_empty_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No data quality findings. Scan your library to check imported dives for problems.'**
+  String get dataQuality_empty_subtitle;
+
+  /// No description provided for @dataQuality_banner_newChecks.
+  ///
+  /// In en, this message translates to:
+  /// **'New quality checks are available'**
+  String get dataQuality_banner_newChecks;
+
+  /// No description provided for @dataQuality_banner_rescan.
+  ///
+  /// In en, this message translates to:
+  /// **'Rescan'**
+  String get dataQuality_banner_rescan;
+
+  /// No description provided for @dataQuality_action_dismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get dataQuality_action_dismiss;
+
+  /// No description provided for @dataQuality_action_dismissFiltered.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss all shown'**
+  String get dataQuality_action_dismissFiltered;
+
+  /// No description provided for @dataQuality_action_goToDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to dive'**
+  String get dataQuality_action_goToDive;
+
+  /// No description provided for @dataQuality_action_undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get dataQuality_action_undo;
+
+  /// No description provided for @dataQuality_repair_applied.
+  ///
+  /// In en, this message translates to:
+  /// **'Repair applied'**
+  String get dataQuality_repair_applied;
+
+  /// No description provided for @dataQuality_repair_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Repair failed'**
+  String get dataQuality_repair_failed;
+
+  /// No description provided for @dataQuality_chip_all.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get dataQuality_chip_all;
+
+  /// No description provided for @dataQuality_chip_time.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get dataQuality_chip_time;
+
+  /// No description provided for @dataQuality_chip_profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get dataQuality_chip_profile;
+
+  /// No description provided for @dataQuality_chip_gas.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas'**
+  String get dataQuality_chip_gas;
+
+  /// No description provided for @dataQuality_chip_tanks.
+  ///
+  /// In en, this message translates to:
+  /// **'Tanks'**
+  String get dataQuality_chip_tanks;
+
+  /// No description provided for @dataQuality_chip_duplicates.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicates'**
+  String get dataQuality_chip_duplicates;
+
+  /// No description provided for @dataQuality_chip_sources.
+  ///
+  /// In en, this message translates to:
+  /// **'Sources'**
+  String get dataQuality_chip_sources;
+
+  /// No description provided for @dataQuality_detector_clock_offset.
+  ///
+  /// In en, this message translates to:
+  /// **'Clock & timezone'**
+  String get dataQuality_detector_clock_offset;
+
+  /// No description provided for @dataQuality_detector_duplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'Likely duplicate'**
+  String get dataQuality_detector_duplicate;
+
+  /// No description provided for @dataQuality_detector_split_pair.
+  ///
+  /// In en, this message translates to:
+  /// **'Accidental split'**
+  String get dataQuality_detector_split_pair;
+
+  /// No description provided for @dataQuality_detector_sample_gap.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample gaps'**
+  String get dataQuality_detector_sample_gap;
+
+  /// No description provided for @dataQuality_detector_depth_spike.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth spike'**
+  String get dataQuality_detector_depth_spike;
+
+  /// No description provided for @dataQuality_detector_impossible_rate.
+  ///
+  /// In en, this message translates to:
+  /// **'Impossible rate'**
+  String get dataQuality_detector_impossible_rate;
+
+  /// No description provided for @dataQuality_detector_temp_anomaly.
+  ///
+  /// In en, this message translates to:
+  /// **'Temperature anomaly'**
+  String get dataQuality_detector_temp_anomaly;
+
+  /// No description provided for @dataQuality_detector_pressure_anomaly.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure anomaly'**
+  String get dataQuality_detector_pressure_anomaly;
+
+  /// No description provided for @dataQuality_detector_gas_mod.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas/MOD inconsistency'**
+  String get dataQuality_detector_gas_mod;
+
+  /// No description provided for @dataQuality_detector_tank_assignment.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong cylinder'**
+  String get dataQuality_detector_tank_assignment;
+
+  /// No description provided for @dataQuality_detector_source_conflict.
+  ///
+  /// In en, this message translates to:
+  /// **'Conflicting sources'**
+  String get dataQuality_detector_source_conflict;
+
+  /// No description provided for @dataQuality_msg_clock_future.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive is dated in the future ({date})'**
+  String dataQuality_msg_clock_future(String date);
+
+  /// No description provided for @dataQuality_msg_clock_ancient.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive is dated before 1950 ({date})'**
+  String dataQuality_msg_clock_ancient(String date);
+
+  /// No description provided for @dataQuality_msg_clock_offset.
+  ///
+  /// In en, this message translates to:
+  /// **'A source clock differs by {hours} hours'**
+  String dataQuality_msg_clock_offset(int hours);
+
+  /// No description provided for @dataQuality_msg_clock_overlap.
+  ///
+  /// In en, this message translates to:
+  /// **'Overlaps another dive by {minutes} min'**
+  String dataQuality_msg_clock_overlap(int minutes);
+
+  /// No description provided for @dataQuality_msg_duplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% match with a dive {minutes} min apart'**
+  String dataQuality_msg_duplicate(int percent, int minutes);
+
+  /// No description provided for @dataQuality_msg_split.
+  ///
+  /// In en, this message translates to:
+  /// **'Same computer resumed after a {minutes} min surface interval'**
+  String dataQuality_msg_split(int minutes);
+
+  /// No description provided for @dataQuality_msg_gap.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 gap in samples} other{{count} gaps in samples}}, longest {longest}'**
+  String dataQuality_msg_gap(int count, String longest);
+
+  /// No description provided for @dataQuality_msg_spike.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth spike to {depth} at {time}'**
+  String dataQuality_msg_spike(String depth, String time);
+
+  /// No description provided for @dataQuality_msg_negativeDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} negative depth samples'**
+  String dataQuality_msg_negativeDepth(int count);
+
+  /// No description provided for @dataQuality_msg_maxDepthMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged max depth {stored} but the profile shows {profile}'**
+  String dataQuality_msg_maxDepthMismatch(String stored, String profile);
+
+  /// No description provided for @dataQuality_msg_rate.
+  ///
+  /// In en, this message translates to:
+  /// **'Vertical rate of {rate} sustained for {seconds} s'**
+  String dataQuality_msg_rate(String rate, int seconds);
+
+  /// No description provided for @dataQuality_msg_tempRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Water temperature outside the plausible range ({min} to {max})'**
+  String dataQuality_msg_tempRange(String min, String max);
+
+  /// No description provided for @dataQuality_msg_tempUnitBug.
+  ///
+  /// In en, this message translates to:
+  /// **'Values look like a temperature unit bug'**
+  String get dataQuality_msg_tempUnitBug;
+
+  /// No description provided for @dataQuality_msg_tempJump.
+  ///
+  /// In en, this message translates to:
+  /// **'Temperature jumped {delta} in one sample'**
+  String dataQuality_msg_tempJump(String delta);
+
+  /// No description provided for @dataQuality_msg_tempScalar.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged water temperature {temp} is implausible'**
+  String dataQuality_msg_tempScalar(String temp);
+
+  /// No description provided for @dataQuality_msg_pressureSwap.
+  ///
+  /// In en, this message translates to:
+  /// **'End pressure {end} is above start pressure {start}'**
+  String dataQuality_msg_pressureSwap(String end, String start);
+
+  /// No description provided for @dataQuality_msg_pressureEndpoint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tank record says {record} but the sensor series shows {series}'**
+  String dataQuality_msg_pressureEndpoint(String record, String series);
+
+  /// No description provided for @dataQuality_msg_pressureRise.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure rose {rise} mid-dive with no gas switch'**
+  String dataQuality_msg_pressureRise(String rise);
+
+  /// No description provided for @dataQuality_msg_sac.
+  ///
+  /// In en, this message translates to:
+  /// **'Implied surface consumption of {sac} is implausible'**
+  String dataQuality_msg_sac(String sac);
+
+  /// No description provided for @dataQuality_msg_ppo2.
+  ///
+  /// In en, this message translates to:
+  /// **'ppO2 reached {ppo2} on {gas} at {depth}'**
+  String dataQuality_msg_ppo2(String ppo2, String gas, String depth);
+
+  /// No description provided for @dataQuality_msg_hypoxic.
+  ///
+  /// In en, this message translates to:
+  /// **'Hypoxic mix ({gas}) shown in use at the surface'**
+  String dataQuality_msg_hypoxic(String gas);
+
+  /// No description provided for @dataQuality_msg_switchMod.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas switch at {depth} is beyond that gas\'s MOD of {mod}'**
+  String dataQuality_msg_switchMod(String depth, String mod);
+
+  /// No description provided for @dataQuality_msg_tankInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'This tank lost {drop} while the gas timeline says it was not in use'**
+  String dataQuality_msg_tankInactive(String drop);
+
+  /// No description provided for @dataQuality_msg_twinTanks.
+  ///
+  /// In en, this message translates to:
+  /// **'Two tanks carry a near-identical pressure series'**
+  String get dataQuality_msg_twinTanks;
+
+  /// No description provided for @dataQuality_msg_sourceDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Sources disagree on max depth: {primary} vs {source}'**
+  String dataQuality_msg_sourceDepth(String primary, String source);
+
+  /// No description provided for @dataQuality_msg_salinityHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The consistent ratio suggests a salt/fresh water setting difference'**
+  String get dataQuality_msg_salinityHint;
+
+  /// No description provided for @dataQuality_msg_sourceDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Sources disagree on dive duration'**
+  String get dataQuality_msg_sourceDuration;
+
+  /// No description provided for @dataQuality_msg_sourceTemp.
+  ///
+  /// In en, this message translates to:
+  /// **'Sources disagree on water temperature'**
+  String get dataQuality_msg_sourceTemp;
+
+  /// No description provided for @dataQuality_repairLabel_shiftTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift time by {offset}'**
+  String dataQuality_repairLabel_shiftTime(String offset);
+
+  /// No description provided for @dataQuality_repairLabel_shiftImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift all dives from this import'**
+  String get dataQuality_repairLabel_shiftImport;
+
+  /// No description provided for @dataQuality_repairLabel_consolidate.
+  ///
+  /// In en, this message translates to:
+  /// **'Consolidate'**
+  String get dataQuality_repairLabel_consolidate;
+
+  /// No description provided for @dataQuality_repairLabel_combine.
+  ///
+  /// In en, this message translates to:
+  /// **'Combine into one dive'**
+  String get dataQuality_repairLabel_combine;
+
+  /// No description provided for @dataQuality_repairLabel_despike.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove spike'**
+  String get dataQuality_repairLabel_despike;
+
+  /// No description provided for @dataQuality_repairLabel_fillGaps.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill gaps'**
+  String get dataQuality_repairLabel_fillGaps;
+
+  /// No description provided for @dataQuality_repairLabel_smoothTemp.
+  ///
+  /// In en, this message translates to:
+  /// **'Smooth temperature'**
+  String get dataQuality_repairLabel_smoothTemp;
+
+  /// No description provided for @dataQuality_repairLabel_convertTemp.
+  ///
+  /// In en, this message translates to:
+  /// **'Convert temperature'**
+  String get dataQuality_repairLabel_convertTemp;
+
+  /// No description provided for @dataQuality_repairLabel_recompute.
+  ///
+  /// In en, this message translates to:
+  /// **'Recalculate from profile'**
+  String get dataQuality_repairLabel_recompute;
+
+  /// No description provided for @dataQuality_repairLabel_swapPressures.
+  ///
+  /// In en, this message translates to:
+  /// **'Swap start/end pressure'**
+  String get dataQuality_repairLabel_swapPressures;
+
+  /// No description provided for @dataQuality_repairLabel_setFromSeries.
+  ///
+  /// In en, this message translates to:
+  /// **'Use sensor values'**
+  String get dataQuality_repairLabel_setFromSeries;
+
+  /// No description provided for @dataQuality_repairLabel_swapSeries.
+  ///
+  /// In en, this message translates to:
+  /// **'Swap tank series'**
+  String get dataQuality_repairLabel_swapSeries;
+
+  /// No description provided for @dataQuality_repairLabel_reassignSeries.
+  ///
+  /// In en, this message translates to:
+  /// **'Move series to another tank'**
+  String get dataQuality_repairLabel_reassignSeries;
+
+  /// No description provided for @dataQuality_repairLabel_setPrimary.
+  ///
+  /// In en, this message translates to:
+  /// **'Make this source primary'**
+  String get dataQuality_repairLabel_setPrimary;
+
+  /// No description provided for @dataQuality_repairLabel_split.
+  ///
+  /// In en, this message translates to:
+  /// **'Split into separate dives'**
+  String get dataQuality_repairLabel_split;
+
+  /// No description provided for @dataQuality_repairLabel_compare.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare profiles'**
+  String get dataQuality_repairLabel_compare;
+
+  /// No description provided for @dataQuality_settings_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Data quality'**
+  String get dataQuality_settings_title;
+
+  /// No description provided for @dataQuality_settings_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose which checks run when scanning'**
+  String get dataQuality_settings_subtitle;
+
+  /// No description provided for @dataQuality_summary_flagged.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 item flagged for review} other{{count} items flagged for review}}'**
+  String dataQuality_summary_flagged(int count);
+
+  /// No description provided for @dataQuality_summary_review.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get dataQuality_summary_review;
+
+  /// No description provided for @dataQuality_detail_chip.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get dataQuality_detail_chip;
+
+  /// No description provided for @dataQuality_detail_chipCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Review ({count})'**
+  String dataQuality_detail_chipCount(int count);
 }
 
 class _AppLocalizationsDelegate

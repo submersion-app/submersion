@@ -148,6 +148,71 @@ class TankPressureRepository {
     });
   }
 
+  /// Move every pressure row of [fromTankId] onto [toTankId] (wrong-cylinder
+  /// repair). No transaction/notify -- the repair executor owns those.
+  Future<void> reassignTankPressureSeries({
+    required String diveId,
+    required String fromTankId,
+    required String toTankId,
+  }) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await (_db.update(_db.tankPressureProfiles)
+          ..where((t) => t.diveId.equals(diveId) & t.tankId.equals(fromTankId)))
+        .write(TankPressureProfilesCompanion(tankId: Value(toTankId)));
+    await _touchDive(diveId, now);
+  }
+
+  /// Exchange the pressure series of two tanks (swapped-transmitter repair).
+  Future<void> swapTankPressureSeries({
+    required String diveId,
+    required String tankIdA,
+    required String tankIdB,
+  }) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final aIds = [
+      for (final r
+          in await (_db.select(_db.tankPressureProfiles)..where(
+                (t) => t.diveId.equals(diveId) & t.tankId.equals(tankIdA),
+              ))
+              .get())
+        r.id,
+    ];
+    final bIds = [
+      for (final r
+          in await (_db.select(_db.tankPressureProfiles)..where(
+                (t) => t.diveId.equals(diveId) & t.tankId.equals(tankIdB),
+              ))
+              .get())
+        r.id,
+    ];
+    // Snapshot the row ids first so the two writes can't feed into each other.
+    // Guard empty lists: skip the write when a tank has no pressure series
+    // rather than issuing an update whose id filter matches no rows.
+    if (aIds.isNotEmpty) {
+      await (_db.update(_db.tankPressureProfiles)
+            ..where((t) => t.id.isIn(aIds)))
+          .write(TankPressureProfilesCompanion(tankId: Value(tankIdB)));
+    }
+    if (bIds.isNotEmpty) {
+      await (_db.update(_db.tankPressureProfiles)
+            ..where((t) => t.id.isIn(bIds)))
+          .write(TankPressureProfilesCompanion(tankId: Value(tankIdA)));
+    }
+    await _touchDive(diveId, now);
+  }
+
+  /// Child rows sync with the parent dive: bump + mark it pending.
+  Future<void> _touchDive(String diveId, int now) async {
+    await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+      DivesCompanion(updatedAt: Value(now)),
+    );
+    await _syncRepository.markRecordPending(
+      entityType: 'dives',
+      recordId: diveId,
+      localUpdatedAt: now,
+    );
+  }
+
   /// Check if a dive has any per-tank pressure data
   Future<bool> hasTankPressures(String diveId) async {
     final count =

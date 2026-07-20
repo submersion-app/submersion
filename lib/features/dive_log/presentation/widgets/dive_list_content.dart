@@ -26,6 +26,7 @@ import 'package:submersion/features/dive_centers/presentation/providers/dive_cen
 import 'package:submersion/features/dive_log/data/services/dive_merge_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
+import 'package:submersion/features/data_quality/presentation/providers/data_quality_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
@@ -782,6 +783,8 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               context.go('/dives/search');
             } else if (value == 'match_sites') {
               context.push('/dives/match-sites');
+            } else if (value == 'data_quality') {
+              context.push('/dives/quality');
             } else if (value.startsWith('view_')) {
               final mode = ListViewMode.fromName(
                 value.replaceFirst('view_', ''),
@@ -830,6 +833,30 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                     const SizedBox(width: 12),
                     Flexible(
                       child: Text(context.l10n.diveLog_listPage_menuMatchSites),
+                    ),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'data_quality',
+                child: Row(
+                  children: [
+                    const Icon(Icons.rule),
+                    const SizedBox(width: 12),
+                    Flexible(
+                      child: Text(context.l10n.dataQuality_badge_tooltip),
+                    ),
+                    Builder(
+                      builder: (context) {
+                        final count =
+                            ref.watch(openQualityFindingsCountProvider).value ??
+                            0;
+                        if (count == 0) return const SizedBox.shrink();
+                        return Padding(
+                          padding: const EdgeInsets.only(left: 8),
+                          child: Badge(label: Text('$count')),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -912,6 +939,8 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 context.go('/dives/search');
               } else if (value == 'match_sites') {
                 context.push('/dives/match-sites');
+              } else if (value == 'data_quality') {
+                context.push('/dives/quality');
               } else if (value.startsWith('view_')) {
                 final mode = ListViewMode.fromName(
                   value.replaceFirst('view_', ''),
@@ -962,6 +991,32 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                         child: Text(
                           context.l10n.diveLog_listPage_menuMatchSites,
                         ),
+                      ),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'data_quality',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.rule, size: 20),
+                      const SizedBox(width: 12),
+                      Flexible(
+                        child: Text(context.l10n.dataQuality_badge_tooltip),
+                      ),
+                      Builder(
+                        builder: (context) {
+                          final count =
+                              ref
+                                  .watch(openQualityFindingsCountProvider)
+                                  .value ??
+                              0;
+                          if (count == 0) return const SizedBox.shrink();
+                          return Padding(
+                            padding: const EdgeInsets.only(left: 8),
+                            child: Badge(label: Text('$count')),
+                          );
+                        },
                       ),
                     ],
                   ),

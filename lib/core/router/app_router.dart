@@ -39,6 +39,8 @@ import 'package:submersion/features/dive_centers/presentation/pages/dive_center_
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_list_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_map_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
+import 'package:submersion/features/data_quality/presentation/pages/data_quality_inbox_page.dart';
+import 'package:submersion/features/data_quality/presentation/pages/data_quality_settings_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
 import 'package:submersion/features/ocr_import/presentation/pages/ocr_scan_page.dart';
@@ -354,6 +356,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                       const <String>[];
                   return CompareDives3dPage(diveIds: ids);
                 },
+              ),
+              GoRoute(
+                path: 'quality',
+                name: 'dataQuality',
+                builder: (context, state) => DataQualityInboxPage(
+                  filterDiveId: state.uri.queryParameters['dive'],
+                ),
               ),
               GoRoute(
                 path: ':diveId',
@@ -849,6 +858,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'storage',
                 name: 'storageSettings',
                 builder: (context, state) => const StorageSettingsPage(),
+              ),
+              GoRoute(
+                path: 'data-quality',
+                name: 'dataQualitySettings',
+                builder: (context, state) => const DataQualitySettingsPage(),
               ),
               GoRoute(
                 path: 'appearance',

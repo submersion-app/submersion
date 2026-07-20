@@ -7,6 +7,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/marine_life/presentation/utils/species_category_color.dart';
 import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
@@ -1604,6 +1605,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           ops: ops,
         ),
       );
+      // Queue a data-quality rescan of the edited dives (fire-and-forget).
+      scheduleQualityScan(ids);
       if (!mounted) return;
       final messenger = ScaffoldMessenger.of(context);
       if (widget.embedded) {
@@ -4594,6 +4597,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           // Silently fail - tide recording is optional enhancement
           debugPrint('Failed to record tide data: $e');
         }
+      }
+
+      // Queue a data-quality rescan of the saved dive (fire-and-forget).
+      if (savedDiveId != null) {
+        scheduleQualityScan([savedDiveId]);
       }
 
       if (mounted && savedDiveId != null) {

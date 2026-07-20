@@ -7140,15 +7140,23 @@
   "buoyancy_verdictBuoyant": "At your final stop (~{depth}) you were about {amount} buoyant",
   "@buoyancy_verdictBuoyant": {
     "placeholders": {
-      "depth": { "type": "String" },
-      "amount": { "type": "String" }
+      "depth": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
     }
   },
   "buoyancy_verdictHeavy": "At your final stop (~{depth}) you were about {amount} heavy",
   "@buoyancy_verdictHeavy": {
     "placeholders": {
-      "depth": { "type": "String" },
-      "amount": { "type": "String" }
+      "depth": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
     }
   },
   "buoyancy_verdictNeutral": "Your rig was close to neutral at the final stop",
@@ -7175,11 +7183,19 @@
   "buoyancy_historyModeled": "Modeled",
   "buoyancy_historyMore": "You typically carry {delta} more than the model suggests",
   "@buoyancy_historyMore": {
-    "placeholders": { "delta": { "type": "String" } }
+    "placeholders": {
+      "delta": {
+        "type": "String"
+      }
+    }
   },
   "buoyancy_historyLess": "You typically carry {delta} less than the model suggests",
   "@buoyancy_historyLess": {
-    "placeholders": { "delta": { "type": "String" } }
+    "placeholders": {
+      "delta": {
+        "type": "String"
+      }
+    }
   },
   "buoyancy_throughDive": "Through the dive",
   "buoyancy_adjust": "Adjust",
@@ -7189,7 +7205,11 @@
   "buoyancy_whatIfReset": "Reset",
   "buoyancy_whatIfDelta": "{delta} vs. actual",
   "@buoyancy_whatIfDelta": {
-    "placeholders": { "delta": { "type": "String" } }
+    "placeholders": {
+      "delta": {
+        "type": "String"
+      }
+    }
   },
   "diveDetailSection_tanks_name": "Cylinders",
   "diveDetailSection_tanks_description": "Cylinder list, gas mixes, pressures, MOD/MND, per-tank SAC",
@@ -13415,5 +13435,341 @@
   },
   "planning_card_noFly_subtitle": "Guideline countdown from your last dives",
   "settings_section_safety_title": "Safety",
-  "settings_section_safety_subtitle": "Review rules & flying after diving"
+  "settings_section_safety_subtitle": "Review rules & flying after diving",
+  "dataQuality_inbox_title": "Data quality",
+  "dataQuality_badge_tooltip": "Data quality review",
+  "dataQuality_scan_start": "Scan library",
+  "dataQuality_scan_progress": "Checked {done} of {total} dives",
+  "@dataQuality_scan_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_scan_cancel": "Cancel",
+  "dataQuality_scan_done": "{count, plural, =0{Scan complete - no new findings} =1{Scan complete - 1 item to review} other{Scan complete - {count} items to review}}",
+  "@dataQuality_scan_done": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_scan_errors": "{count} dives could not be fully checked",
+  "@dataQuality_scan_errors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_lastScan": "Last scan: {when}",
+  "@dataQuality_lastScan": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_neverScanned": "Your logbook has not been scanned yet",
+  "dataQuality_empty_title": "All clear",
+  "dataQuality_empty_subtitle": "No data quality findings. Scan your library to check imported dives for problems.",
+  "dataQuality_banner_newChecks": "New quality checks are available",
+  "dataQuality_banner_rescan": "Rescan",
+  "dataQuality_action_dismiss": "Dismiss",
+  "dataQuality_action_dismissFiltered": "Dismiss all shown",
+  "dataQuality_action_goToDive": "Go to dive",
+  "dataQuality_action_undo": "Undo",
+  "dataQuality_repair_applied": "Repair applied",
+  "dataQuality_repair_failed": "Repair failed",
+  "dataQuality_chip_all": "All",
+  "dataQuality_chip_time": "Time",
+  "dataQuality_chip_profile": "Profile",
+  "dataQuality_chip_gas": "Gas",
+  "dataQuality_chip_tanks": "Tanks",
+  "dataQuality_chip_duplicates": "Duplicates",
+  "dataQuality_chip_sources": "Sources",
+  "dataQuality_detector_clock_offset": "Clock & timezone",
+  "dataQuality_detector_duplicate": "Likely duplicate",
+  "dataQuality_detector_split_pair": "Accidental split",
+  "dataQuality_detector_sample_gap": "Sample gaps",
+  "dataQuality_detector_depth_spike": "Depth spike",
+  "dataQuality_detector_impossible_rate": "Impossible rate",
+  "dataQuality_detector_temp_anomaly": "Temperature anomaly",
+  "dataQuality_detector_pressure_anomaly": "Pressure anomaly",
+  "dataQuality_detector_gas_mod": "Gas/MOD inconsistency",
+  "dataQuality_detector_tank_assignment": "Wrong cylinder",
+  "dataQuality_detector_source_conflict": "Conflicting sources",
+  "dataQuality_msg_clock_future": "Dive is dated in the future ({date})",
+  "@dataQuality_msg_clock_future": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_clock_ancient": "Dive is dated before 1950 ({date})",
+  "@dataQuality_msg_clock_ancient": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_clock_offset": "A source clock differs by {hours} hours",
+  "@dataQuality_msg_clock_offset": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_msg_clock_overlap": "Overlaps another dive by {minutes} min",
+  "@dataQuality_msg_clock_overlap": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_msg_duplicate": "{percent}% match with a dive {minutes} min apart",
+  "@dataQuality_msg_duplicate": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_msg_split": "Same computer resumed after a {minutes} min surface interval",
+  "@dataQuality_msg_split": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_msg_gap": "{count, plural, =1{1 gap in samples} other{{count} gaps in samples}}, longest {longest}",
+  "@dataQuality_msg_gap": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "longest": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_spike": "Depth spike to {depth} at {time}",
+  "@dataQuality_msg_spike": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_negativeDepth": "{count} negative depth samples",
+  "@dataQuality_msg_negativeDepth": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_msg_maxDepthMismatch": "Logged max depth {stored} but the profile shows {profile}",
+  "@dataQuality_msg_maxDepthMismatch": {
+    "placeholders": {
+      "stored": {
+        "type": "String"
+      },
+      "profile": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_rate": "Vertical rate of {rate} sustained for {seconds} s",
+  "@dataQuality_msg_rate": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      },
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_msg_tempRange": "Water temperature outside the plausible range ({min} to {max})",
+  "@dataQuality_msg_tempRange": {
+    "placeholders": {
+      "min": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_tempUnitBug": "Values look like a temperature unit bug",
+  "dataQuality_msg_tempJump": "Temperature jumped {delta} in one sample",
+  "@dataQuality_msg_tempJump": {
+    "placeholders": {
+      "delta": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_tempScalar": "Logged water temperature {temp} is implausible",
+  "@dataQuality_msg_tempScalar": {
+    "placeholders": {
+      "temp": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_pressureSwap": "End pressure {end} is above start pressure {start}",
+  "@dataQuality_msg_pressureSwap": {
+    "placeholders": {
+      "end": {
+        "type": "String"
+      },
+      "start": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_pressureEndpoint": "Tank record says {record} but the sensor series shows {series}",
+  "@dataQuality_msg_pressureEndpoint": {
+    "placeholders": {
+      "record": {
+        "type": "String"
+      },
+      "series": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_pressureRise": "Pressure rose {rise} mid-dive with no gas switch",
+  "@dataQuality_msg_pressureRise": {
+    "placeholders": {
+      "rise": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_sac": "Implied surface consumption of {sac} is implausible",
+  "@dataQuality_msg_sac": {
+    "placeholders": {
+      "sac": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_ppo2": "ppO2 reached {ppo2} on {gas} at {depth}",
+  "@dataQuality_msg_ppo2": {
+    "placeholders": {
+      "ppo2": {
+        "type": "String"
+      },
+      "gas": {
+        "type": "String"
+      },
+      "depth": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_hypoxic": "Hypoxic mix ({gas}) shown in use at the surface",
+  "@dataQuality_msg_hypoxic": {
+    "placeholders": {
+      "gas": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_switchMod": "Gas switch at {depth} is beyond that gas's MOD of {mod}",
+  "@dataQuality_msg_switchMod": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      },
+      "mod": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_tankInactive": "This tank lost {drop} while the gas timeline says it was not in use",
+  "@dataQuality_msg_tankInactive": {
+    "placeholders": {
+      "drop": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_twinTanks": "Two tanks carry a near-identical pressure series",
+  "dataQuality_msg_sourceDepth": "Sources disagree on max depth: {primary} vs {source}",
+  "@dataQuality_msg_sourceDepth": {
+    "placeholders": {
+      "primary": {
+        "type": "String"
+      },
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_salinityHint": "The consistent ratio suggests a salt/fresh water setting difference",
+  "dataQuality_msg_sourceDuration": "Sources disagree on dive duration",
+  "dataQuality_msg_sourceTemp": "Sources disagree on water temperature",
+  "dataQuality_repairLabel_shiftTime": "Shift time by {offset}",
+  "@dataQuality_repairLabel_shiftTime": {
+    "placeholders": {
+      "offset": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_repairLabel_shiftImport": "Shift all dives from this import",
+  "dataQuality_repairLabel_consolidate": "Consolidate",
+  "dataQuality_repairLabel_combine": "Combine into one dive",
+  "dataQuality_repairLabel_despike": "Remove spike",
+  "dataQuality_repairLabel_fillGaps": "Fill gaps",
+  "dataQuality_repairLabel_smoothTemp": "Smooth temperature",
+  "dataQuality_repairLabel_convertTemp": "Convert temperature",
+  "dataQuality_repairLabel_recompute": "Recalculate from profile",
+  "dataQuality_repairLabel_swapPressures": "Swap start/end pressure",
+  "dataQuality_repairLabel_setFromSeries": "Use sensor values",
+  "dataQuality_repairLabel_swapSeries": "Swap tank series",
+  "dataQuality_repairLabel_reassignSeries": "Move series to another tank",
+  "dataQuality_repairLabel_setPrimary": "Make this source primary",
+  "dataQuality_repairLabel_split": "Split into separate dives",
+  "dataQuality_repairLabel_compare": "Compare profiles",
+  "dataQuality_settings_title": "Data quality",
+  "dataQuality_settings_subtitle": "Choose which checks run when scanning",
+  "dataQuality_summary_flagged": "{count, plural, =1{1 item flagged for review} other{{count} items flagged for review}}",
+  "@dataQuality_summary_flagged": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_summary_review": "Review",
+  "dataQuality_detail_chip": "Review",
+  "dataQuality_detail_chipCount": "Review ({count})",
+  "@dataQuality_detail_chipCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

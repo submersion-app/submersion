@@ -1085,6 +1085,13 @@ class SyncService {
           // so a future read of this list still tells the dependency story.)
           (type: 'courses', records: data.courses, hasUpdatedAt: true),
           (type: 'dives', records: data.dives, hasUpdatedAt: true),
+          // Quality findings FK dives + diveComputers (both applied above);
+          // deferred FKs cover ordering, but keep the logical sequence.
+          (
+            type: 'qualityFindings',
+            records: data.qualityFindings,
+            hasUpdatedAt: true,
+          ),
           // Requirements before their junction rows (parent-first apply).
           (
             type: 'courseRequirements',
@@ -1712,6 +1719,7 @@ class SyncService {
     'equipmentSets': true,
     'equipmentSetItems': false,
     'equipmentSetGeofences': true,
+    'qualityFindings': true,
     'equipmentAttributes': true,
     'divePlanEquipment': false,
     'diverWeightEntries': true,
@@ -1780,6 +1788,11 @@ class SyncService {
       (field: 'courseId', parent: 'courses', nullable: true),
       (field: 'computerId', parent: 'diveComputers', nullable: true),
       (field: 'diveCenterId', parent: 'diveCenters', nullable: true),
+    ],
+    'qualityFindings': [
+      (field: 'diveId', parent: 'dives', nullable: false),
+      (field: 'relatedDiveId', parent: 'dives', nullable: true),
+      (field: 'computerId', parent: 'diveComputers', nullable: true),
     ],
     'diveProfiles': [
       (field: 'diveId', parent: 'dives', nullable: false),

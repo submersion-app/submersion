@@ -20465,4 +20465,344 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_section_safety_subtitle => '回顾规则与潜水后飞行';
+
+  @override
+  String get dataQuality_inbox_title => '数据质量';
+
+  @override
+  String get dataQuality_badge_tooltip => '数据质量审查';
+
+  @override
+  String get dataQuality_scan_start => '扫描库';
+
+  @override
+  String dataQuality_scan_progress(int done, int total) {
+    return '已检查 $total 次潜水中的 $done 次';
+  }
+
+  @override
+  String get dataQuality_scan_cancel => '取消';
+
+  @override
+  String dataQuality_scan_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '扫描完成 - $count 个待审查项',
+      one: '扫描完成 - 1 个待审查项',
+      zero: '扫描完成 - 没有新发现',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_scan_errors(int count) {
+    return '有 $count 次潜水无法完全检查';
+  }
+
+  @override
+  String dataQuality_lastScan(String when) {
+    return '上次扫描：$when';
+  }
+
+  @override
+  String get dataQuality_neverScanned => '你的潜水日志尚未扫描';
+
+  @override
+  String get dataQuality_empty_title => '一切正常';
+
+  @override
+  String get dataQuality_empty_subtitle => '没有数据质量问题。扫描你的库以检查导入的潜水是否存在问题。';
+
+  @override
+  String get dataQuality_banner_newChecks => '有新的质量检查可用';
+
+  @override
+  String get dataQuality_banner_rescan => '重新扫描';
+
+  @override
+  String get dataQuality_action_dismiss => '忽略';
+
+  @override
+  String get dataQuality_action_dismissFiltered => '忽略所有显示项';
+
+  @override
+  String get dataQuality_action_goToDive => '前往潜水';
+
+  @override
+  String get dataQuality_action_undo => '撤消';
+
+  @override
+  String get dataQuality_repair_applied => '已应用修复';
+
+  @override
+  String get dataQuality_repair_failed => '修复失败';
+
+  @override
+  String get dataQuality_chip_all => '全部';
+
+  @override
+  String get dataQuality_chip_time => '时间';
+
+  @override
+  String get dataQuality_chip_profile => '剖面';
+
+  @override
+  String get dataQuality_chip_gas => '气体';
+
+  @override
+  String get dataQuality_chip_tanks => '气瓶';
+
+  @override
+  String get dataQuality_chip_duplicates => '重复';
+
+  @override
+  String get dataQuality_chip_sources => '来源';
+
+  @override
+  String get dataQuality_detector_clock_offset => '时钟与时区';
+
+  @override
+  String get dataQuality_detector_duplicate => '可能的重复';
+
+  @override
+  String get dataQuality_detector_split_pair => '意外拆分';
+
+  @override
+  String get dataQuality_detector_sample_gap => '采样缺口';
+
+  @override
+  String get dataQuality_detector_depth_spike => '深度尖峰';
+
+  @override
+  String get dataQuality_detector_impossible_rate => '不可能的速率';
+
+  @override
+  String get dataQuality_detector_temp_anomaly => '温度异常';
+
+  @override
+  String get dataQuality_detector_pressure_anomaly => '压力异常';
+
+  @override
+  String get dataQuality_detector_gas_mod => '气体/MOD 不一致';
+
+  @override
+  String get dataQuality_detector_tank_assignment => '气瓶错误';
+
+  @override
+  String get dataQuality_detector_source_conflict => '来源冲突';
+
+  @override
+  String dataQuality_msg_clock_future(String date) {
+    return '潜水日期在未来（$date）';
+  }
+
+  @override
+  String dataQuality_msg_clock_ancient(String date) {
+    return '潜水日期早于 1950 年（$date）';
+  }
+
+  @override
+  String dataQuality_msg_clock_offset(int hours) {
+    return '某个来源的时钟相差 $hours 小时';
+  }
+
+  @override
+  String dataQuality_msg_clock_overlap(int minutes) {
+    return '与另一次潜水重叠 $minutes 分钟';
+  }
+
+  @override
+  String dataQuality_msg_duplicate(int percent, int minutes) {
+    return '与相隔 $minutes 分钟的一次潜水有 $percent% 匹配';
+  }
+
+  @override
+  String dataQuality_msg_split(int minutes) {
+    return '同一台电脑在 $minutes 分钟的水面间隔后恢复';
+  }
+
+  @override
+  String dataQuality_msg_gap(int count, String longest) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '采样中有 $count 处缺口',
+      one: '采样中有 1 处缺口',
+    );
+    return '$_temp0，最长 $longest';
+  }
+
+  @override
+  String dataQuality_msg_spike(String depth, String time) {
+    return '在 $time 深度尖峰至 $depth';
+  }
+
+  @override
+  String dataQuality_msg_negativeDepth(int count) {
+    return '$count 个负深度采样';
+  }
+
+  @override
+  String dataQuality_msg_maxDepthMismatch(String stored, String profile) {
+    return '记录的最大深度为 $stored，但剖面显示为 $profile';
+  }
+
+  @override
+  String dataQuality_msg_rate(String rate, int seconds) {
+    return '$rate 的垂直速率持续了 $seconds 秒';
+  }
+
+  @override
+  String dataQuality_msg_tempRange(String min, String max) {
+    return '水温超出合理范围（$min 至 $max）';
+  }
+
+  @override
+  String get dataQuality_msg_tempUnitBug => '这些数值看起来像温度单位错误';
+
+  @override
+  String dataQuality_msg_tempJump(String delta) {
+    return '温度在一次采样中跳变了 $delta';
+  }
+
+  @override
+  String dataQuality_msg_tempScalar(String temp) {
+    return '记录的水温 $temp 不合理';
+  }
+
+  @override
+  String dataQuality_msg_pressureSwap(String end, String start) {
+    return '结束压力 $end 高于起始压力 $start';
+  }
+
+  @override
+  String dataQuality_msg_pressureEndpoint(String record, String series) {
+    return '气瓶记录为 $record，但传感器序列显示为 $series';
+  }
+
+  @override
+  String dataQuality_msg_pressureRise(String rise) {
+    return '潜水途中压力在没有气体切换的情况下上升了 $rise';
+  }
+
+  @override
+  String dataQuality_msg_sac(String sac) {
+    return '推算的水面消耗量 $sac 不合理';
+  }
+
+  @override
+  String dataQuality_msg_ppo2(String ppo2, String gas, String depth) {
+    return 'ppO2 在 $depth 使用 $gas 时达到 $ppo2';
+  }
+
+  @override
+  String dataQuality_msg_hypoxic(String gas) {
+    return '低氧混合气（$gas）显示在水面处于使用状态';
+  }
+
+  @override
+  String dataQuality_msg_switchMod(String depth, String mod) {
+    return '在 $depth 的气体切换超出了该气体的 MOD $mod';
+  }
+
+  @override
+  String dataQuality_msg_tankInactive(String drop) {
+    return '该气瓶损失了 $drop，而气体时间线显示它未在使用';
+  }
+
+  @override
+  String get dataQuality_msg_twinTanks => '两个气瓶的压力序列几乎完全相同';
+
+  @override
+  String dataQuality_msg_sourceDepth(String primary, String source) {
+    return '各来源对最大深度存在分歧：$primary 对 $source';
+  }
+
+  @override
+  String get dataQuality_msg_salinityHint => '这一恒定比值表明盐水/淡水设置存在差异';
+
+  @override
+  String get dataQuality_msg_sourceDuration => '各来源对潜水时长存在分歧';
+
+  @override
+  String get dataQuality_msg_sourceTemp => '各来源对水温存在分歧';
+
+  @override
+  String dataQuality_repairLabel_shiftTime(String offset) {
+    return '将时间平移 $offset';
+  }
+
+  @override
+  String get dataQuality_repairLabel_shiftImport => '平移此次导入的所有潜水';
+
+  @override
+  String get dataQuality_repairLabel_consolidate => '整合';
+
+  @override
+  String get dataQuality_repairLabel_combine => '合并为一次潜水';
+
+  @override
+  String get dataQuality_repairLabel_despike => '移除尖峰';
+
+  @override
+  String get dataQuality_repairLabel_fillGaps => '填补缺口';
+
+  @override
+  String get dataQuality_repairLabel_smoothTemp => '平滑温度';
+
+  @override
+  String get dataQuality_repairLabel_convertTemp => '转换温度';
+
+  @override
+  String get dataQuality_repairLabel_recompute => '根据剖面重新计算';
+
+  @override
+  String get dataQuality_repairLabel_swapPressures => '交换起始/结束压力';
+
+  @override
+  String get dataQuality_repairLabel_setFromSeries => '使用传感器数值';
+
+  @override
+  String get dataQuality_repairLabel_swapSeries => '交换气瓶序列';
+
+  @override
+  String get dataQuality_repairLabel_reassignSeries => '将序列移到另一个气瓶';
+
+  @override
+  String get dataQuality_repairLabel_setPrimary => '将此来源设为主要来源';
+
+  @override
+  String get dataQuality_repairLabel_split => '拆分为单独的潜水';
+
+  @override
+  String get dataQuality_repairLabel_compare => '比较剖面';
+
+  @override
+  String get dataQuality_settings_title => '数据质量';
+
+  @override
+  String get dataQuality_settings_subtitle => '选择扫描时运行哪些检查';
+
+  @override
+  String dataQuality_summary_flagged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个项目已标记待审查',
+      one: '1 个项目已标记待审查',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_summary_review => '审查';
+
+  @override
+  String get dataQuality_detail_chip => '审查';
+
+  @override
+  String dataQuality_detail_chipCount(int count) {
+    return '审查 ($count)';
+  }
 }
