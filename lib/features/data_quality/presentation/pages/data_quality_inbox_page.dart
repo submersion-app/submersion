@@ -38,15 +38,17 @@ QualityUnitFormatters buildQualityUnitFormatters(WidgetRef ref) {
 typedef _DiveGroup = ({String diveId, List<QualityFinding> findings});
 
 List<_DiveGroup> _groupByDive(List<QualityFinding> findings) {
-  final groups = <_DiveGroup>[];
+  // findings arrive ordered by updatedAt (not diveId), so a dive's findings
+  // can be interleaved with others. Accumulate by diveId in a map (insertion
+  // order = each dive's newest finding) so every dive gets exactly one header.
+  final byDive = <String, List<QualityFinding>>{};
   for (final f in findings) {
-    if (groups.isNotEmpty && groups.last.diveId == f.diveId) {
-      groups.last.findings.add(f);
-    } else {
-      groups.add((diveId: f.diveId, findings: [f]));
-    }
+    (byDive[f.diveId] ??= []).add(f);
   }
-  return groups;
+  return [
+    for (final entry in byDive.entries)
+      (diveId: entry.key, findings: entry.value),
+  ];
 }
 
 class DataQualityInboxPage extends ConsumerStatefulWidget {
@@ -458,13 +460,13 @@ class _ChipRow extends ConsumerWidget {
   }
 }
 
-class _EmptyState extends StatelessWidget {
+class _EmptyState extends ConsumerWidget {
   const _EmptyState({required this.lastScanAt, required this.onScan});
   final DateTime? lastScanAt;
   final VoidCallback onScan;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final scheme = Theme.of(context).colorScheme;
     return Center(
@@ -496,7 +498,11 @@ class _EmptyState extends StatelessWidget {
           Text(
             lastScanAt == null
                 ? l10n.dataQuality_neverScanned
-                : l10n.dataQuality_lastScan('$lastScanAt'),
+                : l10n.dataQuality_lastScan(
+                    UnitFormatter(
+                      ref.watch(settingsProvider),
+                    ).formatDateTime(lastScanAt, l10n: l10n),
+                  ),
             style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: 8),

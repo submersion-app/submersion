@@ -397,6 +397,46 @@ void main() {
     },
   );
 
+  testWidgets('one dive gets one header even when findings interleave', (
+    tester,
+  ) async {
+    final prefs = await _prefs();
+    await tester.pumpWidget(
+      _scope(
+        prefs,
+        // watchFindings emits in updatedAt order (not by dive), so d1's two
+        // findings straddle d2's. Grouping must still yield a single d1 header
+        // (no dive seeded -> the header falls back to rendering the dive id).
+        findings: [
+          _f(
+            id: 'd1-gap',
+            detectorId: 'sample_gap',
+            category: QualityCategory.profile,
+            params: const {'gapCount': 1, 'longestGapSeconds': 30},
+          ),
+          _f(
+            id: 'd2-clock',
+            diveId: 'd2',
+            detectorId: 'clock_offset',
+            category: QualityCategory.time,
+            params: const {'offsetHours': 2},
+          ),
+          _f(
+            id: 'd1-spike',
+            detectorId: 'depth_spike',
+            category: QualityCategory.profile,
+            params: const {'depth': 55.0, 'atSeconds': 120},
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Exactly one header per dive despite the interleaving.
+    expect(find.text('d1'), findsOneWidget);
+    expect(find.text('d2'), findsOneWidget);
+  });
+
   // --- Empty state variants + library scan flow ----------------------------
 
   testWidgets('empty state shows last-scan line and scans on tap', (
