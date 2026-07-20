@@ -9,9 +9,10 @@ import 'package:submersion/core/services/sync/changeset_log/base_part_file_sourc
 import 'package:submersion/core/services/sync/changeset_log/changeset_codec.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
 import 'package:submersion/core/services/sync/changeset_log/publish_state_store.dart';
+import 'package:submersion/core/services/sync/changeset_log/sync_liveness.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_manifest.dart';
 
-enum ChangesetWriteKind { base, changeset, compacted, noop }
+enum ChangesetWriteKind { base, changeset, compacted, heartbeat, noop }
 
 class ChangesetWriteResult {
   const ChangesetWriteResult(this.kind, [this.seq]);
@@ -32,6 +33,7 @@ class ChangesetWriter {
     this._publishState, {
     this.compactionByteRatio = 0.30,
     this.compactionMaxChangesets = 200,
+    this.heartbeatMaxAgeMillis = SyncLiveness.heartbeatMaxAgeMillis,
   });
 
   final SyncDataSerializer _serializer;
@@ -39,6 +41,7 @@ class ChangesetWriter {
   final PublishStateStore _publishState;
   final double compactionByteRatio;
   final int compactionMaxChangesets;
+  final int heartbeatMaxAgeMillis;
 
   Future<ChangesetWriteResult> publish({
     required CloudStorageProvider provider,
@@ -47,6 +50,7 @@ class ChangesetWriter {
     required List<DeletionLogData> deletions,
     String? epochId,
     String? uploadNonce,
+    Map<String, String> appliedPeerHlc = const {},
   }) async {
     final providerId = provider.providerId;
     final ownManifest = await _readOwnManifest(provider, folderId, deviceId);
@@ -117,6 +121,7 @@ class ChangesetWriter {
           publishedHlcHigh: base.toHlc,
           epochId: epochId,
           uploadNonce: uploadNonce,
+          appliedPeerHlc: appliedPeerHlc,
           updatedAt: now,
         );
         await _writeManifest(provider, folderId, deviceId, manifest);
@@ -155,6 +160,34 @@ class ChangesetWriter {
       uploadNonce: uploadNonce,
     );
     if (_isEmpty(payload)) {
+      // Nothing to publish -- but a manifest that goes stale reads as a dead
+      // device to peers (retirement) and its acks stop advancing tombstone
+      // GC. Rewrite it (contents unchanged, fresh updatedAt + acks) once it
+      // ages past the threshold. The nonce is preserved: a heartbeat is not
+      // an upload event and must not disturb twin detection.
+      if (ownManifest != null &&
+          now - ownManifest.updatedAt > heartbeatMaxAgeMillis) {
+        final beat = SyncManifest(
+          deviceId: ownManifest.deviceId,
+          provider: ownManifest.provider,
+          baseSeq: ownManifest.baseSeq,
+          basePartCount: ownManifest.basePartCount,
+          baseBytes: ownManifest.baseBytes,
+          baseChecksum: ownManifest.baseChecksum,
+          basePartChecksums: ownManifest.basePartChecksums,
+          headSeq: ownManifest.headSeq,
+          publishedHlcHigh: ownManifest.publishedHlcHigh,
+          epochId: ownManifest.epochId,
+          uploadNonce: ownManifest.uploadNonce,
+          appliedPeerHlc: appliedPeerHlc,
+          updatedAt: now,
+        );
+        await _writeManifest(provider, folderId, deviceId, beat);
+        return ChangesetWriteResult(
+          ChangesetWriteKind.heartbeat,
+          ownManifest.headSeq,
+        );
+      }
       return const ChangesetWriteResult(ChangesetWriteKind.noop);
     }
     final bytes = _codec.encodeChangeset(payload);
@@ -176,6 +209,7 @@ class ChangesetWriter {
       publishedHlcHigh: publishedHigh,
       epochId: epochId,
       uploadNonce: uploadNonce,
+      appliedPeerHlc: appliedPeerHlc,
       updatedAt: now,
     );
     await _writeManifest(provider, folderId, deviceId, manifest);
@@ -212,6 +246,7 @@ class ChangesetWriter {
         deletions: deletions,
         epochId: epochId,
         uploadNonce: uploadNonce,
+        appliedPeerHlc: appliedPeerHlc,
       );
       return ChangesetWriteResult(ChangesetWriteKind.compacted, compSeq);
     }
@@ -276,6 +311,7 @@ class ChangesetWriter {
     required String providerId,
     required int afterSeq,
     required List<DeletionLogData> deletions,
+    required Map<String, String> appliedPeerHlc,
     String? epochId,
     String? uploadNonce,
   }) async {
@@ -321,6 +357,7 @@ class ChangesetWriter {
       publishedHlcHigh: base.toHlc,
       epochId: epochId,
       uploadNonce: uploadNonce,
+      appliedPeerHlc: appliedPeerHlc,
       updatedAt: now,
     );
     await _writeManifest(provider, folderId, deviceId, manifest);

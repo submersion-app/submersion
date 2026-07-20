@@ -31,13 +31,15 @@ class SegmentList extends ConsumerWidget {
               children: [
                 Icon(Icons.timeline, color: theme.colorScheme.primary),
                 const SizedBox(width: 8),
-                Text(
-                  context.l10n.divePlanner_segmentList_title,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: theme.colorScheme.primary,
+                Expanded(
+                  child: Text(
+                    context.l10n.divePlanner_segmentList_title,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: theme.colorScheme.primary,
+                    ),
                   ),
                 ),
-                const Spacer(),
                 IconButton(
                   icon: const Icon(Icons.add),
                   tooltip: context.l10n.divePlanner_segmentList_addSegment,
@@ -68,6 +70,11 @@ class SegmentList extends ConsumerWidget {
                     segment: segment,
                     units: units,
                     index: index,
+                    selected:
+                        ref.watch(selectedSegmentIdProvider) == segment.id,
+                    onSelect: () =>
+                        ref.read(selectedSegmentIdProvider.notifier).state =
+                            segment.id,
                     onEdit: () => _showEditSegmentDialog(context, ref, segment),
                     onDelete: () => ref
                         .read(divePlanNotifierProvider.notifier)
@@ -128,6 +135,8 @@ class _SegmentTile extends StatelessWidget {
   final PlanSegment segment;
   final UnitFormatter units;
   final int index;
+  final bool selected;
+  final VoidCallback onSelect;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
@@ -136,6 +145,8 @@ class _SegmentTile extends StatelessWidget {
     required this.segment,
     required this.units,
     required this.index,
+    required this.selected,
+    required this.onSelect,
     required this.onEdit,
     required this.onDelete,
   });
@@ -144,9 +155,24 @@ class _SegmentTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
+    // Compact trailing controls so the description keeps its width inside
+    // a 320px editor pane; tapping selects (mirrors the chart), the pencil
+    // edits.
+    const compactButton = BoxConstraints.tightFor(width: 32, height: 32);
     return ListTile(
+      contentPadding: const EdgeInsets.only(left: 12, right: 8),
+      horizontalTitleGap: 10,
+      selected: selected,
+      selectedTileColor: theme.colorScheme.primaryContainer.withValues(
+        alpha: 0.35,
+      ),
+      onTap: onSelect,
       leading: _SegmentIcon(type: segment.type),
-      title: Text(_formatDescription()),
+      title: Text(
+        _formatDescription(),
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+      ),
       subtitle: Text(
         '${segment.durationFormatted} • ${segment.gasMix.name}',
         style: theme.textTheme.bodySmall,
@@ -155,18 +181,27 @@ class _SegmentTile extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
-            icon: const Icon(Icons.edit, size: 20),
+            icon: const Icon(Icons.edit, size: 18),
+            padding: EdgeInsets.zero,
+            constraints: compactButton,
+            visualDensity: VisualDensity.compact,
             tooltip: context.l10n.divePlanner_segmentList_editSegment,
             onPressed: onEdit,
           ),
           IconButton(
-            icon: const Icon(Icons.delete, size: 20),
+            icon: const Icon(Icons.delete, size: 18),
+            padding: EdgeInsets.zero,
+            constraints: compactButton,
+            visualDensity: VisualDensity.compact,
             tooltip: context.l10n.divePlanner_segmentList_deleteSegment,
             onPressed: onDelete,
           ),
           ReorderableDragStartListener(
             index: index,
-            child: const Icon(Icons.drag_handle),
+            child: const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 4),
+              child: Icon(Icons.drag_handle, size: 20),
+            ),
           ),
         ],
       ),

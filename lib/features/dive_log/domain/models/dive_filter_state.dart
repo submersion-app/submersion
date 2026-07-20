@@ -1,4 +1,6 @@
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 
 /// Filter state for dive list.
 ///
@@ -30,6 +32,13 @@ class DiveFilterState {
   final String? customFieldKey;
   final String? customFieldValue;
 
+  // Equipment-attribute axis (curated keys only). key selects the attribute;
+  // choice matches value_text; min/max bound value_num (canonical metric).
+  final String? equipmentAttrKey;
+  final String? equipmentAttrChoice;
+  final double? equipmentAttrMin;
+  final double? equipmentAttrMax;
+
   const DiveFilterState({
     this.startDate,
     this.endDate,
@@ -53,6 +62,10 @@ class DiveFilterState {
     this.computerSerial,
     this.customFieldKey,
     this.customFieldValue,
+    this.equipmentAttrKey,
+    this.equipmentAttrChoice,
+    this.equipmentAttrMin,
+    this.equipmentAttrMax,
   });
 
   bool get hasActiveFilters =>
@@ -76,7 +89,8 @@ class DiveFilterState {
       minBottomTimeMinutes != null ||
       maxBottomTimeMinutes != null ||
       computerSerial != null ||
-      (customFieldKey != null && customFieldKey!.isNotEmpty);
+      (customFieldKey != null && customFieldKey!.isNotEmpty) ||
+      equipmentAttrKey != null;
 
   DiveFilterState copyWith({
     DateTime? startDate,
@@ -101,6 +115,10 @@ class DiveFilterState {
     String? computerSerial,
     String? customFieldKey,
     String? customFieldValue,
+    String? equipmentAttrKey,
+    String? equipmentAttrChoice,
+    double? equipmentAttrMin,
+    double? equipmentAttrMax,
     bool clearStartDate = false,
     bool clearEndDate = false,
     bool clearDiveType = false,
@@ -123,6 +141,7 @@ class DiveFilterState {
     bool clearComputerSerial = false,
     bool clearCustomFieldKey = false,
     bool clearCustomFieldValue = false,
+    bool clearEquipmentAttr = false,
   }) {
     return DiveFilterState(
       startDate: clearStartDate ? null : (startDate ?? this.startDate),
@@ -169,11 +188,29 @@ class DiveFilterState {
       customFieldValue: clearCustomFieldValue
           ? null
           : (customFieldValue ?? this.customFieldValue),
+      equipmentAttrKey: clearEquipmentAttr
+          ? null
+          : (equipmentAttrKey ?? this.equipmentAttrKey),
+      equipmentAttrChoice: clearEquipmentAttr
+          ? null
+          : (equipmentAttrChoice ?? this.equipmentAttrChoice),
+      equipmentAttrMin: clearEquipmentAttr
+          ? null
+          : (equipmentAttrMin ?? this.equipmentAttrMin),
+      equipmentAttrMax: clearEquipmentAttr
+          ? null
+          : (equipmentAttrMax ?? this.equipmentAttrMax),
     );
   }
 
   /// Filter a list of dives based on current filter state.
-  /// Used as a fallback for non-paginated code paths (e.g., export).
+  /// Used as a fallback for non-paginated code paths (e.g., export, table/map
+  /// views).
+  ///
+  /// equipmentAttr* is applied in-memory here to mirror the SQL axis (see
+  /// buildFilteredDiveIdSubquery), so non-paginated views stay consistent with
+  /// the SQL-backed list. It relies on dive.equipment being hydrated with its
+  /// curated attributes (getAllDives does this).
   List<Dive> apply(List<Dive> dives) {
     return dives.where((dive) {
       if (startDate != null && dive.dateTime.isBefore(startDate!)) {
@@ -266,6 +303,38 @@ class DiveFilterState {
           return true;
         });
         if (!hasMatch) return false;
+      }
+      // Equipment-attribute axis: mirror the SQL subquery (curated rows only,
+      // value_text exact-matches choice, value_num bounded by min/max).
+      if (equipmentAttrKey != null) {
+        // "Suit thickness" (thickness_mm) matches only exposure suits, mirroring
+        // getDivesBySuitThickness() and the SQL axis; hoods/gloves/boots also
+        // carry thickness_mm but are not suits.
+        final suitOnly = equipmentAttrKey == EquipmentAttrKeys.thicknessMm;
+        final matches = dive.equipment.any((item) {
+          if (suitOnly &&
+              item.type != EquipmentType.wetsuit &&
+              item.type != EquipmentType.drysuit) {
+            return false;
+          }
+          return item.attributes.any((attr) {
+            if (attr.isCustom || attr.key != equipmentAttrKey) return false;
+            if (equipmentAttrChoice != null &&
+                attr.valueText != equipmentAttrChoice) {
+              return false;
+            }
+            if (equipmentAttrMin != null &&
+                (attr.valueNum == null || attr.valueNum! < equipmentAttrMin!)) {
+              return false;
+            }
+            if (equipmentAttrMax != null &&
+                (attr.valueNum == null || attr.valueNum! > equipmentAttrMax!)) {
+              return false;
+            }
+            return true;
+          });
+        });
+        if (!matches) return false;
       }
       return true;
     }).toList();

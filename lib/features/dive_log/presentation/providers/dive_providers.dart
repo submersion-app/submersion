@@ -23,6 +23,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 
 // Re-export DiveFilterState so existing imports continue to work
@@ -293,6 +294,7 @@ final diveSearchProvider = FutureProvider.family<List<DiveSummary>, String>((
     query,
     diverId: validatedDiverId,
     limit: kDiveSearchResultLimit + 1,
+    disabledSafetyRules: ref.watch(safetyReviewDisabledRulesProvider),
   );
 });
 
@@ -548,6 +550,17 @@ class PaginatedDiveListNotifier
         loadFirstPage();
       }
     });
+    // The per-page safety-finding count excludes disabled rules, so a rule
+    // toggle changes the badge counts. Reload silently (no spinner) to keep the
+    // list badges aligned with SafetyReviewSection without a visible flicker.
+    _ref.listen<Set<String>>(safetyReviewDisabledRulesProvider, (
+      previous,
+      next,
+    ) {
+      if (previous != next) {
+        _silentReloadFirstPage();
+      }
+    });
     loadFirstPage();
 
     // Reload silently when the `dives` table is written directly (e.g. a sync
@@ -576,6 +589,7 @@ class PaginatedDiveListNotifier
           filter: filter,
           sort: sort,
           limit: _pageSize,
+          disabledSafetyRules: _ref.read(safetyReviewDisabledRulesProvider),
         ),
         _repository.getDiveCount(diverId: _currentDiverId, filter: filter),
       ]);
@@ -613,6 +627,7 @@ class PaginatedDiveListNotifier
         cursor: _isDateSort ? current.nextCursor : null,
         offset: _isDateSort ? null : _currentOffset,
         limit: _pageSize,
+        disabledSafetyRules: _ref.read(safetyReviewDisabledRulesProvider),
       );
       _currentOffset += newDives.length;
 
@@ -666,6 +681,7 @@ class PaginatedDiveListNotifier
           filter: filter,
           sort: sort,
           limit: _pageSize,
+          disabledSafetyRules: _ref.read(safetyReviewDisabledRulesProvider),
         ),
         _repository.getDiveCount(diverId: _currentDiverId, filter: filter),
       ]);

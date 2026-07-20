@@ -1,12 +1,15 @@
+import 'package:submersion/core/buoyancy/gear_buoyancy_traits.dart';
 import 'package:submersion/core/buoyancy/gear_feature.dart';
 import 'package:submersion/core/buoyancy/weight_observation.dart';
 import 'package:submersion/core/buoyancy/weight_prediction_engine.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_weight_entry_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/weight_planner/data/repositories/weight_history_repository.dart';
@@ -19,14 +22,33 @@ GearFeature? gearFeatureFor(EquipmentItem item) {
   if (item.type == EquipmentType.weights || item.type == EquipmentType.tank) {
     return null;
   }
+  // Index the curated attributes once. attrText/attrNum are each an O(n)
+  // scan, and reading them individually would rescan thickness_mm three
+  // times; putIfAbsent preserves their first-match semantics.
+  final attrs = <String, EquipmentAttribute>{};
+  for (final a in item.attributes) {
+    if (!a.isCustom) attrs.putIfAbsent(a.key, () => a);
+  }
+  final thicknessText = attrs[EquipmentAttrKeys.thicknessMm]?.valueText;
   return GearFeature.fromEquipment(
     id: item.id,
     type: item.type,
     name: item.name,
-    size: item.size,
-    thickness: item.thickness,
-    buoyancyKg: item.buoyancyKg,
-    weightKg: item.weightKg,
+    size: attrs[EquipmentAttrKeys.size]?.valueText,
+    thickness: thicknessText,
+    buoyancyKg: attrs[EquipmentAttrKeys.buoyancyKg]?.valueNum,
+    weightKg: attrs[EquipmentAttrKeys.dryWeightKg]?.valueNum,
+    traits: GearBuoyancyTraits(
+      primaryThicknessMm: attrs[EquipmentAttrKeys.thicknessMm]?.valueNum,
+      panelThicknessesMm: thicknessText == null
+          ? const []
+          : GearBuoyancyTraits.parsePanelsMm(thicknessText),
+      suitStyle: attrs[EquipmentAttrKeys.suitStyle]?.valueText,
+      shellMaterial: attrs[EquipmentAttrKeys.shellMaterial]?.valueText,
+      bcdStyle: attrs[EquipmentAttrKeys.bcdStyle]?.valueText,
+      liftCapacityKg: attrs[EquipmentAttrKeys.liftCapacityKg]?.valueNum,
+      gloveType: attrs[EquipmentAttrKeys.gloveType]?.valueText,
+    ),
   );
 }
 

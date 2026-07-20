@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -139,6 +140,10 @@ void main() {
     // Exercises the overflow-menu scan actions and the Lightroom item, which
     // only shows when a Lightroom account is connected.
     testWidgets('overflow menu runs scan actions', (tester) async {
+      // The Lightroom menu item is gated behind lightroomUiEnabled (default
+      // false while pending Adobe review); enable it to verify the wiring.
+      lightroomUiEnabled = true;
+      addTearDown(() => lightroomUiEnabled = false);
       _setMobileTestSurfaceSize(tester);
       final story = buildTripStory(
         trip: testTrip,

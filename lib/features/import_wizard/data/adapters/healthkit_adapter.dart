@@ -7,6 +7,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/dive_import/domain/entities/imported_dive.dart';
 import 'package:submersion/features/equipment/data/services/dive_equipment_defaulter.dart';
+import 'package:submersion/features/pre_dive/data/services/checklist_dive_linker.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/dive_import/domain/services/health_import_service.dart';
 import 'package:submersion/features/dive_import/domain/services/imported_dive_converter.dart';
@@ -270,6 +271,7 @@ class HealthKitAdapter implements ImportSourceAdapter {
       final dive = _converter.convert(importedDive, diverId: _diverId);
       await _diveRepository.createDive(dive);
       await DiveEquipmentDefaulter().applyForImportedDive(dive);
+      await ChecklistDiveLinker().applyForImportedDive(dive);
 
       imported++;
       importedDiveIds.add(dive.id);

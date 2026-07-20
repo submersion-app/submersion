@@ -1,0 +1,20 @@
+{
+  "datasetVersion": "2026-07",
+  "note": "Starter directory of long-established hyperbaric facilities that historically accept diving casualties. Chamber availability changes: ALWAYS call the diver emergency hotline first for referral. Each entry carries the date its details were last verified against public listings.",
+  "chambers": [
+    {"id": "us-duke", "name": "Duke Center for Hyperbaric Medicine", "country": "US", "city": "Durham, NC", "phone": "+1-919-684-8111", "latitude": 36.0076, "longitude": -78.9382, "lastVerified": "2026-07-01"},
+    {"id": "us-catalina", "name": "USC Catalina Hyperbaric Chamber", "country": "US", "city": "Avalon, CA", "phone": "+1-310-510-1053", "latitude": 33.4456, "longitude": -118.4849, "lastVerified": "2026-07-01"},
+    {"id": "au-townsville", "name": "Townsville University Hospital Hyperbaric Unit", "country": "AU", "city": "Townsville, QLD", "phone": "+61-7-4433-1111", "latitude": -19.3204, "longitude": 146.7626, "lastVerified": "2026-07-01"},
+    {"id": "au-fionastanley", "name": "Fiona Stanley Hospital Hyperbaric Medicine Unit", "country": "AU", "city": "Perth, WA", "phone": "+61-8-6152-2222", "latitude": -32.0716, "longitude": 115.8347, "lastVerified": "2026-07-01"},
+    {"id": "nz-slark", "name": "Slark Hyperbaric Unit, North Shore Hospital", "country": "NZ", "city": "Auckland", "phone": "+64-9-486-8920", "latitude": -36.7796, "longitude": 174.7559, "lastVerified": "2026-07-01"},
+    {"id": "gb-ddrc", "name": "DDRC Healthcare (Diving Diseases Research Centre)", "country": "GB", "city": "Plymouth", "phone": "+44-1752-209999", "latitude": 50.4169, "longitude": -4.1097, "lastVerified": "2026-07-01"},
+    {"id": "mt-gozo", "name": "Gozo General Hospital Hyperbaric Unit", "country": "MT", "city": "Victoria, Gozo", "phone": "+356-2156-1600", "latitude": 36.0443, "longitude": 14.2419, "lastVerified": "2026-07-01"},
+    {"id": "eg-sharm", "name": "Sharm el-Sheikh Hyperbaric Medical Center", "country": "EG", "city": "Sharm el-Sheikh", "phone": "+20-69-366-0922", "latitude": 27.8617, "longitude": 34.2988, "lastVerified": "2026-07-01"},
+    {"id": "th-samui", "name": "SSS Recompression Chamber Network Koh Samui", "country": "TH", "city": "Koh Samui", "phone": "+66-77-427-427", "latitude": 9.5357, "longitude": 100.0629, "lastVerified": "2026-07-01"},
+    {"id": "ph-batangas", "name": "St. Patrick's Hospital Hyperbaric Unit", "country": "PH", "city": "Batangas City", "phone": "+63-43-723-8388", "latitude": 13.7565, "longitude": 121.0583, "lastVerified": "2026-07-01"},
+    {"id": "id-bali", "name": "Sanglah General Hospital Hyperbaric Chamber", "country": "ID", "city": "Denpasar, Bali", "phone": "+62-361-227-911", "latitude": -8.6705, "longitude": 115.2126, "lastVerified": "2026-07-01"},
+    {"id": "mv-bandos", "name": "Bandos Hyperbaric & Medical Clinic", "country": "MV", "city": "Bandos Island", "phone": "+960-664-0088", "latitude": 4.2762, "longitude": 73.4903, "lastVerified": "2026-07-01"},
+    {"id": "mx-cozumel", "name": "Cozumel Hyperbarics (Costamed)", "country": "MX", "city": "Cozumel", "phone": "+52-987-872-9400", "latitude": 20.5083, "longitude": -86.9458, "lastVerified": "2026-07-01"},
+    {"id": "za-capetown", "name": "Tygerberg Hospital Hyperbaric Unit", "country": "ZA", "city": "Cape Town", "phone": "+27-21-938-4911", "latitude": -33.9096, "longitude": 18.6089, "lastVerified": "2026-07-01"}
+  ]
+}

@@ -173,6 +173,10 @@ jobs:
           flutter-version: ${{ steps.flutter-version.outputs.version }}
 
       - name: Install Linux dependencies
+        # libwebkit2gtk-4.1-dev: required since flutter_web_auth_2 pulled in
+        # desktop_webview_window, whose Linux plugin links webkit2gtk (4.1 on
+        # Ubuntu 24.04; its CMake falls back to the 4.0 name only on older
+        # distros). Matches the ci.yaml build-linux dependency list.
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -183,7 +187,8 @@ jobs:
             libgtk-3-dev \
             libglib2.0-dev \
             libdbus-1-dev \
-            libsecret-1-dev
+            libsecret-1-dev \
+            libwebkit2gtk-4.1-dev
 
       - name: Run code generation
         run: dart run build_runner build --delete-conflicting-outputs

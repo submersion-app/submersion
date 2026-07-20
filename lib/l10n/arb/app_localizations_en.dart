@@ -2117,6 +2117,240 @@ class AppLocalizationsEn extends AppLocalizations {
   String get checklists_template_addItem => 'Add item';
 
   @override
+  String get preDive_templates_title => 'Pre-Dive Checklists';
+
+  @override
+  String get preDive_templates_empty => 'No pre-dive checklists yet';
+
+  @override
+  String get preDive_templates_builtInBadge => 'Built-in';
+
+  @override
+  String get preDive_templates_clone => 'Clone';
+
+  @override
+  String get preDive_templates_cloneSuffix => ' (copy)';
+
+  @override
+  String get preDive_templates_delete => 'Delete';
+
+  @override
+  String get preDive_templates_deleteConfirm =>
+      'Delete this checklist template?';
+
+  @override
+  String get preDive_templates_strictOrderBadge => 'Strict order';
+
+  @override
+  String get preDive_edit_titleNew => 'New Pre-Dive Checklist';
+
+  @override
+  String get preDive_edit_titleEdit => 'Edit Pre-Dive Checklist';
+
+  @override
+  String get preDive_edit_name => 'Name';
+
+  @override
+  String get preDive_edit_description => 'Description';
+
+  @override
+  String get preDive_edit_category => 'Category';
+
+  @override
+  String get preDive_edit_strictOrder => 'Strict order';
+
+  @override
+  String get preDive_edit_strictOrderHelp =>
+      'Items must be completed top to bottom';
+
+  @override
+  String get preDive_edit_addItem => 'Add item';
+
+  @override
+  String get preDive_edit_nameRequired => 'Enter a name';
+
+  @override
+  String get preDive_item_title => 'Title';
+
+  @override
+  String get preDive_item_section => 'Section';
+
+  @override
+  String get preDive_item_notes => 'Notes';
+
+  @override
+  String get preDive_item_required => 'Required';
+
+  @override
+  String get preDive_item_type_check => 'Checkbox';
+
+  @override
+  String get preDive_item_type_value => 'Recorded value';
+
+  @override
+  String get preDive_item_type_equipmentSet => 'Equipment set items';
+
+  @override
+  String get preDive_item_valueLabel => 'Value label';
+
+  @override
+  String get preDive_item_valueUnit => 'Unit';
+
+  @override
+  String get preDive_item_valueMin => 'Min (warning)';
+
+  @override
+  String get preDive_item_valueMax => 'Max (warning)';
+
+  @override
+  String preDive_runner_progress(int done, int total) {
+    return '$done of $total';
+  }
+
+  @override
+  String get preDive_runner_complete => 'Complete';
+
+  @override
+  String preDive_runner_completeFlagged(int count) {
+    return 'Complete with $count flagged items?';
+  }
+
+  @override
+  String get preDive_runner_abort => 'Abort checklist';
+
+  @override
+  String get preDive_runner_abortConfirm =>
+      'Abort this checklist? It will be kept in history as aborted.';
+
+  @override
+  String get preDive_runner_skip => 'Skip';
+
+  @override
+  String get preDive_runner_flag => 'Flag';
+
+  @override
+  String get preDive_runner_undo => 'Reset to pending';
+
+  @override
+  String get preDive_runner_serviceOverdue => 'Service overdue';
+
+  @override
+  String get preDive_runner_addNote => 'Add note';
+
+  @override
+  String get preDive_runner_enterValue => 'Enter value';
+
+  @override
+  String preDive_runner_flaggedBadge(int count) {
+    return '$count flagged';
+  }
+
+  @override
+  String get preDive_runner_locked => 'This checklist is locked';
+
+  @override
+  String get preDive_sessions_title => 'Pre-Dive Checklists';
+
+  @override
+  String get preDive_sessions_empty => 'No checklist runs yet';
+
+  @override
+  String get preDive_sessions_resume => 'Resume';
+
+  @override
+  String get preDive_sessions_start => 'Start checklist';
+
+  @override
+  String get preDive_sessions_statusCompleted => 'Completed';
+
+  @override
+  String get preDive_sessions_statusAborted => 'Aborted';
+
+  @override
+  String get preDive_sessions_statusInProgress => 'In progress';
+
+  @override
+  String get preDive_sessions_linkedDive => 'Linked dive';
+
+  @override
+  String get preDive_sessions_delete => 'Delete';
+
+  @override
+  String get preDive_sessions_deleteConfirm => 'Delete this checklist record?';
+
+  @override
+  String get preDive_start_title => 'Start pre-dive checklist';
+
+  @override
+  String get preDive_start_template => 'Checklist';
+
+  @override
+  String get preDive_start_equipmentSet => 'Equipment set';
+
+  @override
+  String get preDive_start_noEquipmentSet => 'None';
+
+  @override
+  String get preDive_start_begin => 'Begin';
+
+  @override
+  String get preDive_section_title => 'Pre-Dive Check';
+
+  @override
+  String get preDive_section_link => 'Link a checklist session';
+
+  @override
+  String get preDive_section_unlink => 'Unlink';
+
+  @override
+  String get preDive_section_run => 'Run pre-dive checklist';
+
+  @override
+  String get preDive_section_noUnlinked => 'No unlinked checklist sessions';
+
+  @override
+  String get diveDetailSection_preDiveChecklist_name => 'Pre-Dive Check';
+
+  @override
+  String get diveDetailSection_preDiveChecklist_description =>
+      'Linked pre-dive checklist session';
+
+  @override
+  String get diveLog_listPage_bottomSheet_preDiveChecklist =>
+      'Start pre-dive checklist';
+
+  @override
+  String get preDive_dashboard_title => 'Pre-Dive Check';
+
+  @override
+  String preDive_dashboard_resume(int done, int total) {
+    return 'Resume - $done of $total';
+  }
+
+  @override
+  String get preDive_dashboard_start => 'Start pre-dive check';
+
+  @override
+  String get tools_preDive_title => 'Pre-Dive Checklists';
+
+  @override
+  String get tools_preDive_subtitle => 'Run and review checklist sessions';
+
+  @override
+  String get tools_preDive_description =>
+      'Buddy checks, CCR build lists, and gear packing with an audit trail';
+
+  @override
+  String get trips_detail_preDive_action => 'Pre-dive checklist';
+
+  @override
+  String get settings_manage_preDiveChecklists => 'Pre-Dive Checklists';
+
+  @override
+  String get settings_manage_preDiveChecklists_subtitle =>
+      'Buddy checks, CCR build lists, gear packing';
+
+  @override
   String get common_action_back => 'Back';
 
   @override
@@ -2162,16 +2396,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get courses_action_add => 'Add Course';
 
   @override
+  String get courses_action_addFromTemplate => 'Add from template';
+
+  @override
+  String get courses_action_addRequirement => 'Add requirement';
+
+  @override
   String get courses_action_create => 'Create Course';
+
+  @override
+  String get courses_action_deleteRequirement => 'Delete requirement';
 
   @override
   String get courses_action_edit => 'Edit course';
 
   @override
+  String get courses_action_editRequirement => 'Edit requirement';
+
+  @override
   String get courses_action_exportTrainingLog => 'Export Training Log';
 
   @override
+  String get courses_action_linkDive => 'Link';
+
+  @override
   String get courses_action_markCompleted => 'Mark as Completed';
+
+  @override
+  String get courses_action_unlinkDive => 'Unlink dive';
 
   @override
   String get courses_action_moreOptions => 'More options';
@@ -2347,6 +2599,35 @@ class AppLocalizationsEn extends AppLocalizations {
   String get courses_picker_tapToLink => 'Tap to link to a training course';
 
   @override
+  String courses_requirement_diveProgress(int count, int target) {
+    return '$count of $target dives';
+  }
+
+  @override
+  String get courses_requirement_field_name => 'Name';
+
+  @override
+  String get courses_requirement_field_targetCount => 'Required dives';
+
+  @override
+  String get courses_requirement_kind_checklist => 'Check-off item';
+
+  @override
+  String get courses_requirement_kind_dive => 'Dive requirement';
+
+  @override
+  String get courses_requirement_suggestions => 'Suggested dives';
+
+  @override
+  String get courses_requirements_empty =>
+      'Track adventure dives, prerequisites, and check-offs for this course.';
+
+  @override
+  String courses_requirements_progress(int satisfied, int total) {
+    return '$satisfied of $total complete';
+  }
+
+  @override
   String get courses_section_details => 'Course Details';
 
   @override
@@ -2357,6 +2638,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get courses_section_notes => 'Notes';
+
+  @override
+  String get courses_section_requirements => 'Requirements';
 
   @override
   String get courses_section_trainingDives => 'Training Dives';
@@ -2380,6 +2664,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String courses_status_semanticLabel(Object status, Object duration) {
     return '$status, $duration';
+  }
+
+  @override
+  String courses_template_addsCount(int count) {
+    return 'Adds $count requirements';
   }
 
   @override
@@ -2415,6 +2704,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get courses_validation_nameRequired => 'Please enter a course name';
+
+  @override
+  String get dashboard_activeCourses_title => 'Courses in progress';
 
   @override
   String get dashboard_activity_daySinceDiving => 'Day since diving';
@@ -4303,10 +4595,44 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_edit_notesHint => 'Add notes about this dive...';
 
   @override
+  String get diveLog_edit_overline_tanks => 'Tanks';
+
+  @override
+  String get diveLog_edit_profile_draw => 'Draw a profile';
+
+  @override
+  String get diveLog_edit_profile_none => 'Not recorded';
+
+  @override
+  String diveLog_edit_profile_outliers(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count potential outliers detected',
+      one: '1 potential outlier detected',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_edit_profile_points(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count points',
+      one: '1 point',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_row_addSite => 'Add site';
 
   @override
   String get diveLog_edit_row_diveCenter => 'Dive center';
+
+  @override
+  String get diveLog_edit_row_diveProfile => 'Dive profile';
 
   @override
   String get diveLog_edit_row_entry => 'Entry';
@@ -7258,6 +7584,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveSites_edit_section_rating => 'Rating';
 
   @override
+  String get diveSites_edit_section_waterType => 'Water Type';
+
+  @override
   String diveSites_edit_snackbar_errorDeleting(Object error) {
     return 'Error deleting site: $error';
   }
@@ -9271,6 +9600,214 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_detail_serviceInfoTitle => 'Service Information';
 
   @override
+  String get equipment_serviceClocks_title => 'Service clocks';
+
+  @override
+  String get equipment_serviceClocks_addClock => 'Add clock';
+
+  @override
+  String get equipment_serviceClocks_logService => 'Log service';
+
+  @override
+  String get equipment_serviceClocks_edit => 'Edit intervals';
+
+  @override
+  String get equipment_serviceClocks_pause => 'Pause';
+
+  @override
+  String get equipment_serviceClocks_resume => 'Resume';
+
+  @override
+  String get equipment_serviceClocks_remove => 'Remove';
+
+  @override
+  String get equipment_serviceClocks_paused => 'Paused';
+
+  @override
+  String get equipment_serviceClocks_empty => 'No service clocks';
+
+  @override
+  String equipment_serviceClocks_dueOn(String date) {
+    return 'Due $date';
+  }
+
+  @override
+  String equipment_serviceClocks_overdueSince(String date) {
+    return 'Overdue since $date';
+  }
+
+  @override
+  String get equipment_serviceClocks_overdue => 'Overdue';
+
+  @override
+  String equipment_serviceClocks_divesLeft(int remaining, int total) {
+    return '$remaining of $total dives left';
+  }
+
+  @override
+  String equipment_serviceClocks_hoursLeft(String remaining, String total) {
+    return '$remaining of $total hours left';
+  }
+
+  @override
+  String get equipment_serviceClocks_manageKinds => 'Manage service types';
+
+  @override
+  String get equipment_serviceClocks_appliesToClock => 'Applies to clock';
+
+  @override
+  String get equipment_serviceClocks_noClockOption => 'Not tied to a clock';
+
+  @override
+  String get equipment_scheduleDialog_title => 'Edit clock';
+
+  @override
+  String get equipment_scheduleDialog_intervalDays => 'Interval (days)';
+
+  @override
+  String get equipment_scheduleDialog_intervalDives => 'Interval (dives)';
+
+  @override
+  String get equipment_scheduleDialog_intervalHours => 'Interval (hours)';
+
+  @override
+  String equipment_scheduleDialog_inheritHint(String value) {
+    return 'Default: $value';
+  }
+
+  @override
+  String get equipment_scheduleDialog_anchorDate => 'Baseline date';
+
+  @override
+  String get equipment_scheduleDialog_anchorHint =>
+      'Used when no service record of this kind exists yet';
+
+  @override
+  String get equipment_scheduleDialog_clearAnchor => 'Clear baseline date';
+
+  @override
+  String get equipment_scheduleDialog_save => 'Save';
+
+  @override
+  String get equipment_scheduleDialog_cancel => 'Cancel';
+
+  @override
+  String get equipment_serviceKinds_title => 'Service types';
+
+  @override
+  String get equipment_serviceKinds_builtIn => 'Built-in';
+
+  @override
+  String get equipment_serviceKinds_custom => 'Custom';
+
+  @override
+  String get equipment_serviceKinds_add => 'Add service type';
+
+  @override
+  String get equipment_serviceKinds_editTitle => 'Edit service type';
+
+  @override
+  String get equipment_serviceKinds_nameLabel => 'Name';
+
+  @override
+  String get equipment_serviceKinds_nameRequired => 'A name is required';
+
+  @override
+  String get equipment_serviceKinds_appliesTo => 'Applies to';
+
+  @override
+  String get equipment_serviceKinds_autoAttach =>
+      'Attach automatically to new gear';
+
+  @override
+  String get equipment_serviceKinds_deleteConfirmTitle =>
+      'Delete service type?';
+
+  @override
+  String get equipment_serviceKinds_deleteConfirmBody =>
+      'Clocks using this service type will be removed.';
+
+  @override
+  String get equipment_serviceKinds_delete => 'Delete';
+
+  @override
+  String get equipment_serviceKinds_cancel => 'Cancel';
+
+  @override
+  String get equipment_serviceKinds_save => 'Save';
+
+  @override
+  String get equipment_serviceKinds_emptyCustom =>
+      'No custom service types yet';
+
+  @override
+  String equipment_serviceKinds_everyDays(int days) {
+    return 'every $days days';
+  }
+
+  @override
+  String equipment_serviceKinds_everyDives(int dives) {
+    return 'every $dives dives';
+  }
+
+  @override
+  String equipment_serviceKinds_everyHours(String hours) {
+    return 'every $hours hours';
+  }
+
+  @override
+  String get dashboard_serviceDue_title => 'Service due';
+
+  @override
+  String dashboard_serviceDue_more(int count) {
+    return '+$count more';
+  }
+
+  @override
+  String dashboard_alerts_clockDue(String name, String kind) {
+    return '$name: $kind due';
+  }
+
+  @override
+  String dashboard_alerts_clockOverdue(String name, String kind) {
+    return '$name: $kind overdue';
+  }
+
+  @override
+  String equipment_list_worstClock(String kind) {
+    return '$kind overdue';
+  }
+
+  @override
+  String trips_serviceAlert_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items need service before this trip',
+      one: '1 item needs service before this trip',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_serviceAlert_dueBefore(String kind, String date) {
+    return '$kind due $date';
+  }
+
+  @override
+  String trips_serviceAlert_overdue(String kind) {
+    return '$kind overdue';
+  }
+
+  @override
+  String get settings_notifications_tripLeadTitle => 'Trip service lead time';
+
+  @override
+  String settings_notifications_tripLeadDays(int days) {
+    return '$days days before a trip';
+  }
+
+  @override
   String get equipment_detail_serviceIntervalLabel => 'Service Interval';
 
   @override
@@ -9481,6 +10018,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_edit_statusLabel => 'Status';
 
   @override
+  String get equipment_edit_thicknessDesignationHint => 'e.g., 5, 5/4, 7/5/3';
+
+  @override
   String get equipment_edit_thicknessHint => 'e.g., 5mm, 7mm';
 
   @override
@@ -9567,6 +10107,17 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String equipment_list_tile_daysCount(Object days) {
     return '$days days';
+  }
+
+  @override
+  String equipment_list_tile_serviceInDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Service in $days days',
+      one: 'Service in 1 day',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -10721,6 +11272,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_photoPicker_appBarTitle => 'Select Photos';
 
   @override
+  String get media_photoPicker_tab_gallery => 'Gallery';
+
+  @override
+  String get media_photoPicker_tab_files => 'Files';
+
+  @override
+  String get media_photoPicker_tab_url => 'URL';
+
+  @override
   String get media_photoPicker_clearSelectionButton => 'Clear';
 
   @override
@@ -10788,6 +11348,42 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get media_photoPicker_thumbnailAlreadyLinkedLabel =>
       'Photo already linked to this dive';
+
+  @override
+  String get media_perdixOverlay_labelCns => 'CNS';
+
+  @override
+  String get media_perdixOverlay_labelDepth => 'DEPTH';
+
+  @override
+  String get media_perdixOverlay_labelGas => 'GAS';
+
+  @override
+  String get media_perdixOverlay_labelMax => 'MAX';
+
+  @override
+  String get media_perdixOverlay_labelNdl => 'NDL';
+
+  @override
+  String get media_perdixOverlay_labelPpo2 => 'PPO2';
+
+  @override
+  String get media_perdixOverlay_labelStop => 'STOP';
+
+  @override
+  String get media_perdixOverlay_labelTank => 'TANK';
+
+  @override
+  String get media_perdixOverlay_labelTemp => 'TEMP';
+
+  @override
+  String get media_perdixOverlay_labelTime => 'TIME';
+
+  @override
+  String get media_perdixOverlay_labelTts => 'TTS';
+
+  @override
+  String get media_perdixOverlay_toggleTooltip => 'Dive computer overlay';
 
   @override
   String get media_photoViewer_cannotShare => 'Cannot share this photo';
@@ -11100,6 +11696,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannerCanvas_ccr_switchDepth => 'Setpoint switch depth';
 
   @override
+  String get plannerCanvas_pscr_ratio => 'pSCR ratio';
+
+  @override
+  String get plannerCanvas_pscr_ratio_hint =>
+      'Larger adds more fresh gas and lowers the O₂ drop';
+
+  @override
   String plannerCanvas_chip_cns(String value) {
     return 'CNS $value%';
   }
@@ -11138,6 +11741,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get plannerCanvas_contingency_timeDelta => 'Extra minutes';
+
+  @override
+  String plannerCanvas_chart_meanDepth(String depth) {
+    return 'mean $depth';
+  }
 
   @override
   String get plannerCanvas_contingency_title => 'Contingencies';
@@ -11213,6 +11821,27 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get plannerCanvas_range_legend =>
       'Cells show time to surface; red = not diveable as planned';
+
+  @override
+  String get plannerCanvas_pane_collapse => 'Collapse panel';
+
+  @override
+  String get plannerCanvas_pane_expand => 'Expand panel';
+
+  @override
+  String get plannerCanvas_tab_setup => 'Setup';
+
+  @override
+  String get plannerCanvas_o2Narcotic => 'Treat O₂ as narcotic';
+
+  @override
+  String get plannerCanvas_rates_ascent => 'Ascent rate';
+
+  @override
+  String get plannerCanvas_rates_descent => 'Descent rate';
+
+  @override
+  String get plannerCanvas_rates_title => 'Rates';
 
   @override
   String get plannerCanvas_range_title => 'Range table';
@@ -11573,6 +12202,134 @@ class AppLocalizationsEn extends AppLocalizations {
       'NDL, ceiling, tissue heat map, O2 toxicity';
 
   @override
+  String get diveDetailSection_safetyReview_name => 'Safety Review';
+
+  @override
+  String get diveDetailSection_safetyReview_description =>
+      'Automatic post-dive profile observations';
+
+  @override
+  String get safetyReview_sectionTitle => 'Safety review';
+
+  @override
+  String safetyReview_findingCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count observations',
+      one: '1 observation',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String safetyReview_rapidAscent_title(String rate, String duration) {
+    return 'Ascent exceeded $rate for $duration';
+  }
+
+  @override
+  String safetyReview_missedDecoStop_title(String excess, String duration) {
+    return 'Depth was $excess above the required stop ceiling for $duration';
+  }
+
+  @override
+  String safetyReview_omittedSafetyStop_title(String remaining) {
+    return 'The recommended safety stop was cut short by $remaining';
+  }
+
+  @override
+  String safetyReview_sawtoothProfile_title(int count) {
+    return '$count repeated up-and-down depth changes during the dive';
+  }
+
+  @override
+  String safetyReview_highSurfaceGf_title(String gf, String gfHigh) {
+    return 'Surfaced at gradient factor $gf, above the configured $gfHigh';
+  }
+
+  @override
+  String safetyReview_timeRange(String start, String end) {
+    return 'At $start–$end';
+  }
+
+  @override
+  String get safetyReview_dismiss => 'Dismiss';
+
+  @override
+  String get safetyReview_restore => 'Restore';
+
+  @override
+  String get safetySettings_title => 'Safety review';
+
+  @override
+  String get safetySettings_entry_subtitle =>
+      'Post-dive observations and rules';
+
+  @override
+  String get safetySettings_masterToggle => 'Post-dive safety review';
+
+  @override
+  String get safetySettings_masterToggle_subtitle =>
+      'Automatically note ascent, stop, and profile observations on analyzed dives';
+
+  @override
+  String get safetySettings_rulesHeader => 'Rules';
+
+  @override
+  String get safetySettings_rule_rapidAscent => 'Rapid ascents';
+
+  @override
+  String get safetySettings_rule_missedDecoStop =>
+      'Missed or shortened deco stops';
+
+  @override
+  String get safetySettings_rule_omittedSafetyStop => 'Omitted safety stops';
+
+  @override
+  String get safetySettings_rule_sawtoothProfile => 'Sawtooth profiles';
+
+  @override
+  String get safetySettings_rule_highSurfaceGf =>
+      'High surfacing gradient factor';
+
+  @override
+  String get safetySettings_analyzeAll => 'Analyze all dives';
+
+  @override
+  String get safetySettings_analyzeAll_subtitle =>
+      'Run the safety review over every dive with a profile that has not been analyzed yet';
+
+  @override
+  String safetySettings_analyzeAll_progress(int done, int total) {
+    return 'Analyzed $done of $total';
+  }
+
+  @override
+  String get safetySettings_analyzeAll_done => 'Analysis complete';
+
+  @override
+  String safetySettings_analyzeAll_doneWithErrors(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives could not be analyzed',
+      one: '1 dive could not be analyzed',
+    );
+    return 'Analysis complete — $_temp0';
+  }
+
+  @override
+  String safetyReview_showDismissed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Show $count dismissed',
+      one: 'Show 1 dismissed',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveDetailSection_sacSegments_name => 'SAC Rate by Segment';
 
   @override
@@ -11651,6 +12408,129 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveDetailSection_weights_description =>
       'Weight breakdown, total weight';
+
+  @override
+  String get diveDetailSection_buoyancy_name => 'Buoyancy';
+
+  @override
+  String get diveDetailSection_buoyancy_description =>
+      'Buoyancy through the dive, swing, ditchable weight';
+
+  @override
+  String get buoyancy_tooltip =>
+      'Modeled net buoyancy through the dive from your profile, gas use, and gear.';
+
+  @override
+  String buoyancy_verdictBuoyant(String depth, String amount) {
+    return 'At your final stop (~$depth) you were about $amount buoyant';
+  }
+
+  @override
+  String buoyancy_verdictHeavy(String depth, String amount) {
+    return 'At your final stop (~$depth) you were about $amount heavy';
+  }
+
+  @override
+  String get buoyancy_verdictNeutral =>
+      'Your rig was close to neutral at the final stop';
+
+  @override
+  String get buoyancy_verdictConvention =>
+      'Estimated at the 5 m safety-stop convention';
+
+  @override
+  String get buoyancy_breakdownTitle => 'Term breakdown';
+
+  @override
+  String get buoyancy_suitTerm => 'Suit';
+
+  @override
+  String get buoyancy_leadTerm => 'Lead';
+
+  @override
+  String get buoyancy_beginNet => 'Start of dive';
+
+  @override
+  String get buoyancy_endNet => 'End of dive';
+
+  @override
+  String get buoyancy_swing => 'Buoyancy swing';
+
+  @override
+  String get buoyancy_peakLift => 'Peak lift needed';
+
+  @override
+  String get buoyancy_wingWarning => 'Exceeds your wing\'s rated lift';
+
+  @override
+  String get buoyancy_minDitchable => 'Min ditchable weight';
+
+  @override
+  String get buoyancy_droppable => 'You can ditch';
+
+  @override
+  String get buoyancy_ditchWarning => 'More than you can ditch';
+
+  @override
+  String get buoyancy_drysuitGas => 'Drysuit gas added';
+
+  @override
+  String get buoyancy_estimatedPressures => 'Tank pressures are estimated';
+
+  @override
+  String get buoyancy_linkSuitHint =>
+      'Link an exposure suit to this dive for a fuller picture';
+
+  @override
+  String get buoyancy_chartNet => 'Net';
+
+  @override
+  String get buoyancy_chartRig => 'Rig + lead';
+
+  @override
+  String get buoyancy_chartMinutes => 'Time (min)';
+
+  @override
+  String get buoyancy_historyTitle => 'Weighting history';
+
+  @override
+  String get buoyancy_historyCarried => 'Carried';
+
+  @override
+  String get buoyancy_historyModeled => 'Modeled';
+
+  @override
+  String buoyancy_historyMore(String delta) {
+    return 'You typically carry $delta more than the model suggests';
+  }
+
+  @override
+  String buoyancy_historyLess(String delta) {
+    return 'You typically carry $delta less than the model suggests';
+  }
+
+  @override
+  String get buoyancy_throughDive => 'Through the dive';
+
+  @override
+  String get buoyancy_adjust => 'Adjust';
+
+  @override
+  String get buoyancy_whatIfTitle => 'Adjust this dive';
+
+  @override
+  String get buoyancy_whatIfLead => 'Lead';
+
+  @override
+  String get buoyancy_whatIfSuit => 'Suit buoyancy';
+
+  @override
+  String get buoyancy_whatIfReset => 'Reset';
+
+  @override
+  String buoyancy_whatIfDelta(String delta) {
+    return '$delta vs. actual';
+  }
 
   @override
   String get diveDetailSection_tanks_name => 'Cylinders';
@@ -11938,7 +12818,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_backToSettings_tooltip => 'Back to settings';
 
   @override
-  String get settings_cloudSync_appBar_title => 'Cloud Sync';
+  String get settings_cloudSync_appBar_title => 'Database Cloud Sync';
 
   @override
   String get settings_cloudSync_autoSync => 'Auto Sync';
@@ -12391,7 +13271,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_data_backup_subtitle => 'Create a backup of your data';
 
   @override
-  String get settings_data_cloudSync => 'Cloud Sync';
+  String get settings_data_cloudSync => 'Database Cloud Sync';
 
   @override
   String get settings_data_customFolder => 'Custom folder';
@@ -12528,6 +13408,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Gradient Factors';
 
   @override
+  String get settings_decompression_header_oxygenToxicity => 'Oxygen Toxicity';
+
+  @override
   String settings_decompression_preset_selectLabel(Object presetName) {
     return 'Select $presetName conservatism preset';
   }
@@ -12551,6 +13434,67 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_decompression_endLimit_dialog_title => 'END Limit';
+
+  @override
+  String get settings_decompression_cnsMethodTitle => 'CNS calculation';
+
+  @override
+  String get settings_decompression_cnsMethodClassic =>
+      'NOAA table, stepped (classic)';
+
+  @override
+  String get settings_decompression_cnsMethodClassicDesc =>
+      'Charges each 0.1 bar band at its harsher edge. Submersion\'s original method.';
+
+  @override
+  String get settings_decompression_cnsMethodShearwater =>
+      'Linear interpolation (Shearwater-style)';
+
+  @override
+  String get settings_decompression_cnsMethodShearwaterDesc =>
+      'Interpolates between the NOAA limits as documented by Shearwater. Matches most dive computers.';
+
+  @override
+  String get settings_decompression_cnsMethodSubsurface =>
+      'Exponential fit (as Subsurface)';
+
+  @override
+  String get settings_decompression_cnsMethodSubsurfaceDesc =>
+      'Smooth curve fit to the NOAA table. Matches Subsurface\'s calculated CNS.';
+
+  @override
+  String get settings_decompression_cnsMethodAboutTitle =>
+      'About these methods';
+
+  @override
+  String get settings_decompression_cnsMethodAboutBody =>
+      'All three methods are built on the oxygen exposure limits of the NOAA Diving Manual (300 minutes at a ppO2 of 1.0 bar, 45 minutes at 1.6 bar). The table only defines limits in 0.1 bar steps: the classic method charges everything in a band at the band\'s harsher edge, which systematically overstates exposure between entries. Shearwater\'s dive computers document interpolating linearly between the NOAA limits, with a fixed 15% per minute above 1.65 bar. Subsurface replaced its table lookup in 2019 with a smooth two-line exponential fit to the same NOAA data (Robert C. Helling), which also extends naturally beyond 1.6 bar. Between table entries the two smooth methods agree within about one CNS point; the classic method reads higher.';
+
+  @override
+  String get settings_decompression_cnsMethodDisclaimer =>
+      'Names refer to the published methods of the respective projects and manufacturers; no affiliation or endorsement is implied. Computed values may differ from actual dive computer readings.';
+
+  @override
+  String get settings_decompression_cnsMethodSourcesTitle => 'Sources';
+
+  @override
+  String get settings_linkOpenFailed => 'Could not open the link.';
+
+  @override
+  String get settings_decompression_cnsMethodSourceNoaa =>
+      'NOAA: Diving Program (publisher of the NOAA Diving Manual)';
+
+  @override
+  String get settings_decompression_cnsMethodSourceShearwater =>
+      'Shearwater: The CNS Oxygen Clock';
+
+  @override
+  String get settings_decompression_cnsMethodSourceTheoreticalDiver =>
+      'The Theoretical Diver: Calculating oxygen CNS toxicity';
+
+  @override
+  String get settings_decompression_cnsMethodSourceSubsurface =>
+      'Subsurface: implementation (divelist.cpp)';
 
   @override
   String get settings_existingDb_cancel => 'Cancel';
@@ -12732,7 +13676,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String settings_lightroom_clientId_help(String redirectUri) {
-    return 'Create an integration in the Adobe Developer Console with the Lightroom Services API and a credential type that supports PKCE. Set the redirect URI to $redirectUri.';
+    return 'Create an integration in the Adobe Developer Console with the Lightroom Services API and a credential type that supports PKCE. Enter your credential\'s redirect URI below — Native App credentials use a custom scheme — or leave it blank to use $redirectUri.';
   }
 
   @override
@@ -12743,7 +13687,16 @@ class AppLocalizationsEn extends AppLocalizations {
       'Client secret (optional)';
 
   @override
+  String get settings_lightroom_redirectUri_label => 'Redirect URI (optional)';
+
+  @override
   String get settings_lightroom_connect => 'Connect Lightroom';
+
+  @override
+  String get settings_lightroom_connectEmbedded => 'Connect with Adobe';
+
+  @override
+  String get settings_lightroom_advancedByo => 'Use your own Adobe credentials';
 
   @override
   String get settings_lightroom_connect_codeLabel => 'Redirected URL or code';
@@ -17869,6 +18822,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gpsLogger_tracksHeader => 'Recorded tracks';
 
   @override
+  String get maps_compass_resetLabel => 'Reset map orientation to north';
+
+  @override
+  String get maps_compass_resetTooltip => 'North up';
+
+  @override
   String get maps_heatMap_hide => 'Hide Heat Map';
 
   @override
@@ -19177,6 +20136,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String equipment_edit_liftCapacityLabel(String unit) {
+    return 'Lift capacity ($unit)';
+  }
+
+  @override
+  String get equipment_edit_liftCapacityHint => 'Wing or BCD rated lift';
+
+  @override
   String get planner_gearWeights_accept => 'Use as planned weight';
 
   @override
@@ -19589,6 +20556,643 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get media_unavailablePlaceholder_volumeOffline => 'Volume not mounted';
+
+  @override
+  String get attrLabel_size => 'Size';
+
+  @override
+  String get attrLabel_thickness_mm => 'Thickness (mm)';
+
+  @override
+  String get attrLabel_suit_style => 'Suit style';
+
+  @override
+  String get attrLabel_shell_material => 'Shell material';
+
+  @override
+  String get attrLabel_seal_type => 'Seal type';
+
+  @override
+  String get attrLabel_volume_l => 'Volume';
+
+  @override
+  String get attrLabel_working_pressure_bar => 'Working pressure';
+
+  @override
+  String get attrLabel_tank_material => 'Material';
+
+  @override
+  String get attrLabel_valve_type => 'Valve';
+
+  @override
+  String get attrLabel_tank_identifier => 'Identifier';
+
+  @override
+  String get attrLabel_last_visual_inspection => 'Last visual inspection';
+
+  @override
+  String get attrLabel_last_hydro_test => 'Last hydrostatic test';
+
+  @override
+  String get attrLabel_connection => 'Connection';
+
+  @override
+  String get attrLabel_cold_water_rated => 'Cold-water rated';
+
+  @override
+  String get attrLabel_bcd_style => 'Style';
+
+  @override
+  String get attrLabel_lift_capacity_kg => 'Lift capacity';
+
+  @override
+  String get attrLabel_heel_type => 'Heel';
+
+  @override
+  String get attrLabel_blade_style => 'Blade';
+
+  @override
+  String get attrLabel_mount => 'Mount';
+
+  @override
+  String get attrLabel_connectivity => 'Connectivity';
+
+  @override
+  String get attrLabel_lens_config => 'Lens';
+
+  @override
+  String get attrLabel_prescription => 'Prescription lenses';
+
+  @override
+  String get attrLabel_weight_style => 'Style';
+
+  @override
+  String get attrLabel_lumens => 'Lumens';
+
+  @override
+  String get attrLabel_beam_type => 'Beam';
+
+  @override
+  String get attrLabel_depth_rating_m => 'Depth rating';
+
+  @override
+  String get attrLabel_smb_type => 'Type';
+
+  @override
+  String get attrLabel_length_m => 'Length';
+
+  @override
+  String get attrLabel_reel_type => 'Type';
+
+  @override
+  String get attrLabel_line_length_m => 'Line length';
+
+  @override
+  String get attrLabel_blade_material => 'Blade material';
+
+  @override
+  String get attrLabel_tip_type => 'Tip';
+
+  @override
+  String get attrLabel_glove_type => 'Type';
+
+  @override
+  String get attrLabel_sole_type => 'Sole';
+
+  @override
+  String get attrLabel_buoyancy_kg => 'Buoyancy';
+
+  @override
+  String get attrLabel_dry_weight_kg => 'Dry weight';
+
+  @override
+  String get attrChoice_suit_style_full => 'Full suit';
+
+  @override
+  String get attrChoice_suit_style_shorty => 'Shorty';
+
+  @override
+  String get attrChoice_suit_style_two_piece => 'Two-piece';
+
+  @override
+  String get attrChoice_suit_style_semi_dry => 'Semi-dry';
+
+  @override
+  String get attrChoice_shell_material_trilaminate => 'Trilaminate';
+
+  @override
+  String get attrChoice_shell_material_neoprene => 'Neoprene';
+
+  @override
+  String get attrChoice_shell_material_crushed_neoprene => 'Crushed neoprene';
+
+  @override
+  String get attrChoice_shell_material_vulcanized_rubber => 'Vulcanized rubber';
+
+  @override
+  String get attrChoice_seal_type_latex => 'Latex';
+
+  @override
+  String get attrChoice_seal_type_silicone => 'Silicone';
+
+  @override
+  String get attrChoice_seal_type_neoprene => 'Neoprene';
+
+  @override
+  String get attrChoice_tank_material_aluminum => 'Aluminum';
+
+  @override
+  String get attrChoice_tank_material_steel => 'Steel';
+
+  @override
+  String get attrChoice_tank_material_carbon_composite => 'Carbon composite';
+
+  @override
+  String get attrChoice_valve_type_din => 'DIN';
+
+  @override
+  String get attrChoice_valve_type_yoke => 'Yoke (INT)';
+
+  @override
+  String get attrChoice_valve_type_convertible => 'Convertible';
+
+  @override
+  String get attrChoice_connection_din => 'DIN';
+
+  @override
+  String get attrChoice_connection_yoke => 'Yoke (INT)';
+
+  @override
+  String get attrChoice_bcd_style_jacket => 'Jacket';
+
+  @override
+  String get attrChoice_bcd_style_back_inflate => 'Back-inflate';
+
+  @override
+  String get attrChoice_bcd_style_wing => 'Wing';
+
+  @override
+  String get attrChoice_bcd_style_sidemount => 'Sidemount';
+
+  @override
+  String get attrChoice_heel_type_open_heel => 'Open heel';
+
+  @override
+  String get attrChoice_heel_type_full_foot => 'Full foot';
+
+  @override
+  String get attrChoice_blade_style_paddle => 'Paddle';
+
+  @override
+  String get attrChoice_blade_style_split => 'Split';
+
+  @override
+  String get attrChoice_blade_style_vented => 'Vented';
+
+  @override
+  String get attrChoice_mount_wrist => 'Wrist';
+
+  @override
+  String get attrChoice_mount_console => 'Console';
+
+  @override
+  String get attrChoice_mount_hud => 'HUD';
+
+  @override
+  String get attrChoice_connectivity_ble => 'Bluetooth (BLE)';
+
+  @override
+  String get attrChoice_connectivity_usb => 'USB';
+
+  @override
+  String get attrChoice_connectivity_infrared => 'Infrared';
+
+  @override
+  String get attrChoice_connectivity_none => 'None';
+
+  @override
+  String get attrChoice_lens_config_single => 'Single lens';
+
+  @override
+  String get attrChoice_lens_config_twin => 'Twin lens';
+
+  @override
+  String get attrChoice_lens_config_frameless => 'Frameless';
+
+  @override
+  String get attrChoice_weight_style_belt => 'Belt';
+
+  @override
+  String get attrChoice_weight_style_integrated => 'Integrated';
+
+  @override
+  String get attrChoice_weight_style_trim => 'Trim';
+
+  @override
+  String get attrChoice_weight_style_ankle => 'Ankle';
+
+  @override
+  String get attrChoice_beam_type_spot => 'Spot';
+
+  @override
+  String get attrChoice_beam_type_flood => 'Flood';
+
+  @override
+  String get attrChoice_beam_type_adjustable => 'Adjustable';
+
+  @override
+  String get attrChoice_smb_type_open => 'Open';
+
+  @override
+  String get attrChoice_smb_type_closed => 'Closed';
+
+  @override
+  String get attrChoice_reel_type_spool => 'Spool';
+
+  @override
+  String get attrChoice_reel_type_ratchet => 'Ratchet';
+
+  @override
+  String get attrChoice_blade_material_stainless => 'Stainless steel';
+
+  @override
+  String get attrChoice_blade_material_titanium => 'Titanium';
+
+  @override
+  String get attrChoice_tip_type_pointed => 'Pointed';
+
+  @override
+  String get attrChoice_tip_type_blunt => 'Blunt';
+
+  @override
+  String get attrChoice_tip_type_line_cutter => 'Line cutter';
+
+  @override
+  String get attrChoice_glove_type_five_finger => 'Five-finger';
+
+  @override
+  String get attrChoice_glove_type_mitt => 'Mitt';
+
+  @override
+  String get attrChoice_glove_type_dry => 'Dry';
+
+  @override
+  String get attrChoice_sole_type_hard => 'Hard sole';
+
+  @override
+  String get attrChoice_sole_type_soft => 'Soft sole';
+
+  @override
+  String get equipment_edit_customFieldsTitle => 'Custom fields';
+
+  @override
+  String get equipment_edit_addCustomField => 'Add custom field';
+
+  @override
+  String get attr_flagYes => 'Yes';
+
+  @override
+  String get attr_flagNo => 'No';
+
+  @override
+  String get equipment_edit_invalidThickness => 'Use 5, 5/4 or 7/5/3';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_title =>
+      'Dives by Suit Thickness';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_subtitle =>
+      'Exposure suit primary thickness across your dives';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_empty =>
+      'No dives with a suit thickness recorded';
+
+  @override
+  String get statistics_progression_divesBySuitThickness_error =>
+      'Could not load suit thickness data';
+
+  @override
+  String get diveLog_filter_sectionSuitThickness => 'Suit thickness (mm)';
+
+  @override
+  String get diveLog_filter_thicknessMin => 'Min';
+
+  @override
+  String get diveLog_filter_thicknessMax => 'Max';
+
+  @override
+  String get safetySettings_noFlyHeader => 'Flying after diving';
+
+  @override
+  String get safetySettings_noFlyPreset_standard => 'Standard (12/18/24 h)';
+
+  @override
+  String get safetySettings_noFlyPreset_strict => 'Strict (18/24/48 h)';
+
+  @override
+  String get safetySettings_noFlyPreset_subtitle =>
+      'Guideline intervals after a single no-deco dive, repetitive dives, and deco dives';
+
+  @override
+  String safetyHub_noFly_active_title(String remaining) {
+    return 'No-fly: $remaining remaining';
+  }
+
+  @override
+  String safetyHub_noFly_until(String time) {
+    return 'Until $time';
+  }
+
+  @override
+  String get safetyHub_noFly_clear_title => 'No flying restriction';
+
+  @override
+  String get safetyHub_noFly_clear_subtitle => 'No active flying restriction';
+
+  @override
+  String safetyHub_noFly_category_single(int hours) {
+    return 'After a single no-deco dive: $hours h guideline';
+  }
+
+  @override
+  String safetyHub_noFly_category_repetitive(int hours) {
+    return 'After repetitive dives: $hours h guideline';
+  }
+
+  @override
+  String safetyHub_noFly_category_deco(int hours) {
+    return 'After a decompression dive: $hours h guideline';
+  }
+
+  @override
+  String get safetyHub_noFly_disclaimer =>
+      'DAN/UHMS guideline intervals from your last dive. Not a substitute for your dive computer\'s no-fly time.';
+
+  @override
+  String get diveLog_detail_altitudeMismatch_title => 'Site is at altitude';
+
+  @override
+  String get diveLog_detail_altitudeMismatch_subtitle =>
+      'This site records an altitude but the dive has none set, so decompression analysis assumed sea level. Set the dive\'s altitude to correct it.';
+
+  @override
+  String safetyHub_alert_noFly(String remaining) {
+    return 'No-fly: $remaining remaining';
+  }
+
+  @override
+  String get emergencyCard_title => 'Emergency';
+
+  @override
+  String emergencyCard_callDan(String name) {
+    return 'Call $name';
+  }
+
+  @override
+  String get emergencyCard_callDan_subtitle =>
+      'Diver emergency hotline. Call first: they coordinate evacuation and chamber referral.';
+
+  @override
+  String emergencyCard_ems(String number) {
+    return 'Local emergency services: $number';
+  }
+
+  @override
+  String get emergencyCard_diverSection => 'Diver';
+
+  @override
+  String emergencyCard_bloodType(String value) {
+    return 'Blood type: $value';
+  }
+
+  @override
+  String emergencyCard_allergies(String value) {
+    return 'Allergies: $value';
+  }
+
+  @override
+  String emergencyCard_medications(String value) {
+    return 'Medications: $value';
+  }
+
+  @override
+  String get emergencyCard_contactsSection => 'Emergency contacts';
+
+  @override
+  String get emergencyCard_insuranceSection => 'Dive insurance';
+
+  @override
+  String emergencyCard_insurancePolicy(String number) {
+    return 'Policy $number';
+  }
+
+  @override
+  String get emergencyCard_chambersSection => 'Hyperbaric chambers';
+
+  @override
+  String get emergencyCard_chambersNote =>
+      'Availability changes. Always call the diver emergency hotline first for referral.';
+
+  @override
+  String emergencyCard_chamberVerified(String date) {
+    return 'Details verified $date';
+  }
+
+  @override
+  String get emergencyCard_hideChamber => 'Hide';
+
+  @override
+  String get emergencyCard_chamberHidden => 'Chamber hidden';
+
+  @override
+  String get emergencyCard_undo => 'Undo';
+
+  @override
+  String get emergencyCard_addChamber => 'Add chamber';
+
+  @override
+  String get emergencyCard_deleteChamber => 'Delete';
+
+  @override
+  String emergencyCard_regionLabel(String region) {
+    return 'Region: $region';
+  }
+
+  @override
+  String get emergencyCard_regionUnknown =>
+      'Region unknown - using worldwide hotline';
+
+  @override
+  String get emergencyCard_noDiverData =>
+      'No diver profile data. Add emergency contacts, medical and insurance details in Diver Profile settings.';
+
+  @override
+  String get addChamber_title => 'Add chamber';
+
+  @override
+  String get addChamber_name => 'Name';
+
+  @override
+  String get addChamber_country => 'Country code (e.g. US)';
+
+  @override
+  String get addChamber_city => 'City';
+
+  @override
+  String get addChamber_phone => 'Phone';
+
+  @override
+  String get addChamber_notes => 'Notes';
+
+  @override
+  String get addChamber_save => 'Save';
+
+  @override
+  String get addChamber_nameRequired => 'Name is required';
+
+  @override
+  String get addChamber_countryRequired => 'Country code is required';
+
+  @override
+  String get addChamber_phoneRequired => 'Phone number is required';
+
+  @override
+  String get safetyHub_emergencyCardLink => 'Emergency card';
+
+  @override
+  String get safetyHub_emergencyCardLink_subtitle =>
+      'Offline: hotline, EMS, chambers, your medical and insurance details';
+
+  @override
+  String get dashboard_quickAction_emergency => 'Emergency card';
+
+  @override
+  String get incidents_title => 'Near-miss log';
+
+  @override
+  String get incidents_empty =>
+      'No near-misses logged. Recording what almost went wrong - without judgment - is how patterns become visible before they become accidents.';
+
+  @override
+  String get incidents_add => 'Log near-miss';
+
+  @override
+  String get incidents_linkedDive => 'Linked to a dive';
+
+  @override
+  String get incidents_delete_confirm => 'Delete this near-miss report?';
+
+  @override
+  String get incidents_notFound => 'Near-miss report not found';
+
+  @override
+  String get incidentEdit_title_new => 'Log near-miss';
+
+  @override
+  String get incidentEdit_title_edit => 'Edit near-miss';
+
+  @override
+  String get incidentEdit_category => 'Category';
+
+  @override
+  String get incidentEdit_severity => 'Severity';
+
+  @override
+  String get incidentEdit_severity_minor => 'Minor';
+
+  @override
+  String get incidentEdit_severity_moderate => 'Moderate';
+
+  @override
+  String get incidentEdit_severity_serious => 'Serious';
+
+  @override
+  String get incidentEdit_date => 'When it happened';
+
+  @override
+  String get incidentEdit_narrative => 'What happened';
+
+  @override
+  String get incidentEdit_narrative_hint =>
+      'Just the facts, in your own words. This stays private.';
+
+  @override
+  String get incidentEdit_narrative_required => 'Describe what happened';
+
+  @override
+  String get incidentEdit_contributingFactors => 'What contributed (optional)';
+
+  @override
+  String get incidentEdit_lessonsLearned =>
+      'What would help next time (optional)';
+
+  @override
+  String get incidentEdit_save => 'Save';
+
+  @override
+  String get incidentEdit_privacyNote =>
+      'Near-miss reports sync between your devices and are included in your backups, but are never included in exports or shared logbook pages.';
+
+  @override
+  String get incidentCategory_buoyancy => 'Buoyancy';
+
+  @override
+  String get incidentCategory_gasSupply => 'Gas supply';
+
+  @override
+  String get incidentCategory_equipment => 'Equipment';
+
+  @override
+  String get incidentCategory_buddySeparation => 'Buddy separation';
+
+  @override
+  String get incidentCategory_marineLife => 'Marine life';
+
+  @override
+  String get incidentCategory_boatSurface => 'Boat / surface';
+
+  @override
+  String get incidentCategory_medical => 'Medical';
+
+  @override
+  String get incidentCategory_planning => 'Planning';
+
+  @override
+  String get incidentCategory_other => 'Other';
+
+  @override
+  String get safetyHub_incidentsLink => 'Near-miss log';
+
+  @override
+  String get safetyHub_incidentsLink_subtitle =>
+      'Private, non-punitive incident notes';
+
+  @override
+  String get diveLog_detail_menu_logNearMiss => 'Log near-miss';
+
+  @override
+  String diveLog_detail_linkedIncidents(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count near-misses linked to this dive',
+      one: '1 near-miss linked to this dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get planning_card_noFly_subtitle =>
+      'Guideline countdown from your last dives';
+
+  @override
+  String get settings_section_safety_title => 'Safety';
+
+  @override
+  String get settings_section_safety_subtitle =>
+      'Review rules & flying after diving';
 
   @override
   String get dataQuality_inbox_title => 'Data quality';

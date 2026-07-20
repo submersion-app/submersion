@@ -717,6 +717,113 @@
   "checklists_template_descriptionLabel": "Leírás",
   "checklists_template_itemsHeader": "Tételek",
   "checklists_template_addItem": "Tétel hozzáadása",
+  "preDive_templates_title": "Merülés előtti ellenőrzőlisták",
+  "preDive_templates_empty": "Még nincsenek merülés előtti ellenőrzőlisták",
+  "preDive_templates_builtInBadge": "Beépített",
+  "preDive_templates_clone": "Duplikálás",
+  "preDive_templates_cloneSuffix": " (másolat)",
+  "preDive_templates_delete": "Törlés",
+  "preDive_templates_deleteConfirm": "Törli ezt az ellenőrzőlista-sablont?",
+  "preDive_templates_strictOrderBadge": "Kötött sorrend",
+  "preDive_edit_titleNew": "Új merülés előtti ellenőrzőlista",
+  "preDive_edit_titleEdit": "Merülés előtti ellenőrzőlista szerkesztése",
+  "preDive_edit_name": "Név",
+  "preDive_edit_description": "Leírás",
+  "preDive_edit_category": "Kategória",
+  "preDive_edit_strictOrder": "Kötött sorrend",
+  "preDive_edit_strictOrderHelp": "A tételeket fentről lefelé haladva kell elvégezni",
+  "preDive_edit_addItem": "Tétel hozzáadása",
+  "preDive_edit_nameRequired": "Adjon meg egy nevet",
+  "preDive_item_title": "Cím",
+  "preDive_item_section": "Szakasz",
+  "preDive_item_notes": "Megjegyzések",
+  "preDive_item_required": "Kötelező",
+  "preDive_item_type_check": "Jelölőnégyzet",
+  "preDive_item_type_value": "Rögzített érték",
+  "preDive_item_type_equipmentSet": "Felszereléskészlet tételei",
+  "preDive_item_valueLabel": "Érték címkéje",
+  "preDive_item_valueUnit": "Mértékegység",
+  "preDive_item_valueMin": "Minimum (figyelmeztetés)",
+  "preDive_item_valueMax": "Maximum (figyelmeztetés)",
+  "preDive_runner_progress": "{done} / {total}",
+  "@preDive_runner_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_runner_complete": "Befejezés",
+  "preDive_runner_completeFlagged": "Befejezi {count} megjelölt tétellel?",
+  "@preDive_runner_completeFlagged": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_runner_abort": "Ellenőrzőlista megszakítása",
+  "preDive_runner_abortConfirm": "Megszakítja ezt az ellenőrzőlistát? Megszakítottként megmarad az előzményekben.",
+  "preDive_runner_skip": "Kihagyás",
+  "preDive_runner_flag": "Megjelölés",
+  "preDive_runner_undo": "Visszaállítás függő állapotba",
+  "preDive_runner_serviceOverdue": "A karbantartás lejárt",
+  "preDive_runner_addNote": "Megjegyzés hozzáadása",
+  "preDive_runner_enterValue": "Érték megadása",
+  "preDive_runner_flaggedBadge": "{count} megjelölve",
+  "@preDive_runner_flaggedBadge": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_runner_locked": "Ez az ellenőrzőlista zárolva van",
+  "preDive_sessions_title": "Merülés előtti ellenőrzőlisták",
+  "preDive_sessions_empty": "Még nincsenek ellenőrzőlista-futtatások",
+  "preDive_sessions_resume": "Folytatás",
+  "preDive_sessions_start": "Ellenőrzőlista indítása",
+  "preDive_sessions_statusCompleted": "Befejezve",
+  "preDive_sessions_statusAborted": "Megszakítva",
+  "preDive_sessions_statusInProgress": "Folyamatban",
+  "preDive_sessions_linkedDive": "Kapcsolt merülés",
+  "preDive_sessions_delete": "Törlés",
+  "preDive_sessions_deleteConfirm": "Törli ezt az ellenőrzőlista-bejegyzést?",
+  "preDive_start_title": "Merülés előtti ellenőrzőlista indítása",
+  "preDive_start_template": "Ellenőrzőlista",
+  "preDive_start_equipmentSet": "Felszereléskészlet",
+  "preDive_start_noEquipmentSet": "Nincs",
+  "preDive_start_begin": "Kezdés",
+  "preDive_section_title": "Merülés előtti ellenőrzés",
+  "preDive_section_link": "Ellenőrzőlista-munkamenet csatolása",
+  "preDive_section_unlink": "Csatolás megszüntetése",
+  "preDive_section_run": "Merülés előtti ellenőrzőlista futtatása",
+  "preDive_section_noUnlinked": "Nincsenek nem csatolt ellenőrzőlista-munkamenetek",
+  "diveDetailSection_preDiveChecklist_name": "Merülés előtti ellenőrzés",
+  "diveDetailSection_preDiveChecklist_description": "Kapcsolt merülés előtti ellenőrzőlista-munkamenet",
+  "diveLog_listPage_bottomSheet_preDiveChecklist": "Merülés előtti ellenőrzőlista indítása",
+  "preDive_dashboard_title": "Merülés előtti ellenőrzés",
+  "preDive_dashboard_resume": "Folytatás - {done} / {total}",
+  "@preDive_dashboard_resume": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_dashboard_start": "Merülés előtti ellenőrzés indítása",
+  "tools_preDive_title": "Merülés előtti ellenőrzőlisták",
+  "tools_preDive_subtitle": "Ellenőrzőlista-munkamenetek futtatása és áttekintése",
+  "tools_preDive_description": "Társellenőrzések, CCR összeszerelési listák és felszereléscsomagolás naplózott előzményekkel",
+  "trips_detail_preDive_action": "Merülés előtti ellenőrzőlista",
+  "settings_manage_preDiveChecklists": "Merülés előtti ellenőrzőlisták",
+  "settings_manage_preDiveChecklists_subtitle": "Társellenőrzések, CCR összeszerelési listák, felszereléscsomagolás",
   "common_action_back": "Vissza",
   "common_action_cancel": "Megse",
   "common_action_close": "Bezaras",
@@ -729,10 +836,16 @@
   "common_label_loading": "Betoltes",
   "common_placeholder_noValue": "--",
   "courses_action_add": "Tanfolyam hozzáadása",
+  "courses_action_addFromTemplate": "Hozzáadás sablonból",
+  "courses_action_addRequirement": "Követelmény hozzáadása",
   "courses_action_create": "Tanfolyam létrehozása",
+  "courses_action_deleteRequirement": "Követelmény törlése",
   "courses_action_edit": "Tanfolyam szerkesztése",
+  "courses_action_editRequirement": "Követelmény szerkesztése",
   "courses_action_exportTrainingLog": "Képzési napló exportálása",
+  "courses_action_linkDive": "Csatolás",
   "courses_action_markCompleted": "Megjelölés befejezettként",
+  "courses_action_unlinkDive": "Merülés leválasztása",
   "courses_action_moreOptions": "További lehetőségek",
   "courses_action_retry": "Újra",
   "courses_action_saveChanges": "Módosítások mentése",
@@ -785,16 +898,26 @@
   "courses_picker_selectTitle": "Képzési tanfolyam kiválasztása",
   "courses_picker_selected": "kiválasztva",
   "courses_picker_tapToLink": "Koppints a képzési tanfolyamhoz való csatoláshoz",
+  "courses_requirement_diveProgress": "{count} / {target} merülés",
+  "courses_requirement_field_name": "Név",
+  "courses_requirement_field_targetCount": "Szükséges merülések",
+  "courses_requirement_kind_checklist": "Kipipálandó elem",
+  "courses_requirement_kind_dive": "Merülési követelmény",
+  "courses_requirement_suggestions": "Javasolt merülések",
+  "courses_requirements_empty": "Kövesd nyomon a kalandmerüléseket, előfeltételeket és kipipálandó elemeket ehhez a tanfolyamhoz.",
+  "courses_requirements_progress": "{satisfied} / {total} teljesítve",
   "courses_section_details": "Tanfolyam részletei",
   "courses_section_earnedCertification": "Megszerzett képesítés",
   "courses_section_instructor": "Oktató",
   "courses_section_notes": "Jegyzetek",
+  "courses_section_requirements": "Követelmények",
   "courses_section_trainingDives": "Képzési merülések",
   "courses_status_completed": "Befejezve",
   "courses_status_daysSinceStart": "{days} nap a kezdés óta",
   "courses_status_durationDays": "{days} nap",
   "courses_status_inProgress": "Folyamatban",
   "courses_status_semanticLabel": "{status}, {duration}",
+  "courses_template_addsCount": "{count} követelményt ad hozzá",
   "courses_summary_overview": "Áttekintés",
   "courses_summary_quickActions": "Gyors műveletek",
   "courses_summary_recentCourses": "Legutóbbi tanfolyamok",
@@ -806,6 +929,7 @@
   "courses_title_new": "Új tanfolyam",
   "courses_title_singular": "Tanfolyam",
   "courses_validation_nameRequired": "Adj meg tanfolyamnevet",
+  "dashboard_activeCourses_title": "Folyamatban lévő tanfolyamok",
   "dashboard_activity_daySinceDiving": "Napja nem merult",
   "dashboard_activity_daysSinceDiving": "Napja nem merult",
   "dashboard_activity_diveInYear": "Merules {year}-ben",
@@ -1519,6 +1643,12 @@
   "diveLog_edit_noMarineLife": "Nincs rogzitett tengeri elet",
   "diveLog_edit_notSpecified": "Nincs megadva",
   "diveLog_edit_notesHint": "Jegyzetek hozzaadasa ehhez a meruleshez...",
+  "diveLog_edit_overline_tanks": "Palackok",
+  "diveLog_edit_profile_draw": "Profil rajzolása",
+  "diveLog_edit_profile_none": "Nincs rögzítve",
+  "diveLog_edit_profile_outliers": "{count, plural, one{1 lehetséges kiugró érték észlelve} other{{count} lehetséges kiugró érték észlelve}}",
+  "diveLog_edit_profile_points": "{count, plural, one{1 pont} other{{count} pont}}",
+  "diveLog_edit_row_diveProfile": "Merülési profil",
   "diveLog_edit_row_addSite": "Merülőhely hozzáadása",
   "diveLog_edit_row_diveCenter": "Búvárközpont",
   "diveLog_edit_row_entry": "Beszállás",
@@ -2349,6 +2479,7 @@
   "diveSites_edit_section_gpsCoordinates": "GPS koordinatak",
   "diveSites_edit_section_hazards": "Veszelyek es biztonsag",
   "diveSites_edit_section_rating": "Ertekeles",
+  "diveSites_edit_section_waterType": "Víztípus",
   "diveSites_edit_snackbar_errorDeleting": "Hiba a helyszin torlesekor: {error}",
   "diveSites_edit_snackbar_errorSaving": "Hiba a helyszin mentesekor: {error}",
   "diveSites_edit_snackbar_locationCaptured": "Helyzet rogzitve",
@@ -2954,6 +3085,61 @@
   "equipment_detail_retiredChip": "Kivont",
   "equipment_detail_serialNumberLabel": "Sorozatszam",
   "equipment_detail_serviceInfoTitle": "Szerviz informaciok",
+  "equipment_serviceClocks_title": "Szervizintervallumok",
+  "equipment_serviceClocks_addClock": "Intervallum hozzáadása",
+  "equipment_serviceClocks_logService": "Szerviz rögzítése",
+  "equipment_serviceClocks_edit": "Intervallumok szerkesztése",
+  "equipment_serviceClocks_pause": "Szüneteltetés",
+  "equipment_serviceClocks_resume": "Folytatás",
+  "equipment_serviceClocks_remove": "Eltávolítás",
+  "equipment_serviceClocks_paused": "Szüneteltetve",
+  "equipment_serviceClocks_empty": "Nincsenek szervizintervallumok",
+  "equipment_serviceClocks_dueOn": "Esedékes: {date}",
+  "equipment_serviceClocks_overdueSince": "{date} óta esedékes",
+  "equipment_serviceClocks_overdue": "Lejárt",
+  "equipment_serviceClocks_divesLeft": "{remaining} / {total} merülés van hátra",
+  "equipment_serviceClocks_hoursLeft": "{remaining} / {total} óra van hátra",
+  "equipment_serviceClocks_manageKinds": "Szerviztípusok kezelése",
+  "equipment_serviceClocks_appliesToClock": "Kapcsolódó intervallum",
+  "equipment_serviceClocks_noClockOption": "Nem tartozik intervallumhoz",
+  "equipment_scheduleDialog_title": "Intervallum szerkesztése",
+  "equipment_scheduleDialog_intervalDays": "Intervallum (nap)",
+  "equipment_scheduleDialog_intervalDives": "Intervallum (merülés)",
+  "equipment_scheduleDialog_intervalHours": "Intervallum (óra)",
+  "equipment_scheduleDialog_inheritHint": "Alapértelmezés: {value}",
+  "equipment_scheduleDialog_anchorDate": "Kiindulási dátum",
+  "equipment_scheduleDialog_anchorHint": "Akkor használjuk, ha még nincs ilyen típusú szervizbejegyzés",
+  "equipment_scheduleDialog_clearAnchor": "Kiindulási dátum törlése",
+  "equipment_scheduleDialog_save": "Mentés",
+  "equipment_scheduleDialog_cancel": "Mégse",
+  "equipment_serviceKinds_title": "Szerviztípusok",
+  "equipment_serviceKinds_builtIn": "Beépített",
+  "equipment_serviceKinds_custom": "Egyéni",
+  "equipment_serviceKinds_add": "Szerviztípus hozzáadása",
+  "equipment_serviceKinds_editTitle": "Szerviztípus szerkesztése",
+  "equipment_serviceKinds_nameLabel": "Név",
+  "equipment_serviceKinds_nameRequired": "A név megadása kötelező",
+  "equipment_serviceKinds_appliesTo": "Vonatkozik erre",
+  "equipment_serviceKinds_autoAttach": "Automatikus hozzáadás új felszereléshez",
+  "equipment_serviceKinds_deleteConfirmTitle": "Törli a szerviztípust?",
+  "equipment_serviceKinds_deleteConfirmBody": "Az ezt a szerviztípust használó intervallumok eltávolításra kerülnek.",
+  "equipment_serviceKinds_delete": "Törlés",
+  "equipment_serviceKinds_cancel": "Mégse",
+  "equipment_serviceKinds_save": "Mentés",
+  "equipment_serviceKinds_emptyCustom": "Még nincsenek egyéni szerviztípusok",
+  "equipment_serviceKinds_everyDays": "{days} naponta",
+  "equipment_serviceKinds_everyDives": "{dives} merülésenként",
+  "equipment_serviceKinds_everyHours": "{hours} óránként",
+  "dashboard_serviceDue_title": "Esedékes szerviz",
+  "dashboard_serviceDue_more": "+{count} további",
+  "dashboard_alerts_clockDue": "{name}: {kind} esedékes",
+  "dashboard_alerts_clockOverdue": "{name}: {kind} lejárt",
+  "equipment_list_worstClock": "{kind} lejárt",
+  "trips_serviceAlert_count": "{count, plural, =1{1 felszerelés szervizt igényel az utazás előtt} other{{count} felszerelés szervizt igényel az utazás előtt}}",
+  "trips_serviceAlert_dueBefore": "{kind} esedékes: {date}",
+  "trips_serviceAlert_overdue": "{kind} lejárt",
+  "settings_notifications_tripLeadTitle": "Utazás előtti szervizértesítési idő",
+  "settings_notifications_tripLeadDays": "{days} nappal az utazás előtt",
   "equipment_detail_serviceIntervalLabel": "Szerviz intervallum",
   "equipment_detail_serviceIntervalValue": "{days} nap",
   "equipment_detail_serviceOverdue": "A szerviz lejartt!",
@@ -3017,6 +3203,7 @@
   "equipment_edit_snackbar_error": "Hiba a felszereles mentesekor: {error}",
   "equipment_edit_snackbar_updated": "Felszereles frissitve",
   "equipment_edit_statusLabel": "Allapot",
+  "equipment_edit_thicknessDesignationHint": "pl. 5, 5/4, 7/5/3",
   "equipment_edit_thicknessHint": "pl. 5mm, 7mm",
   "equipment_edit_thicknessLabel": "Vastagság",
   "equipment_edit_typeLabel": "Tipus *",
@@ -3042,6 +3229,7 @@
   "equipment_list_sortTitle": "Felszereles rendezese",
   "equipment_list_sortTooltip": "Rendezes",
   "equipment_list_tile_daysCount": "{days} nap",
+  "equipment_list_tile_serviceInDays": "{days, plural, =1{Szerviz 1 nap} other{Szerviz {days} nap}}",
   "equipment_list_tile_serviceDueChip": "Szerviz esedek",
   "equipment_list_tile_serviceIn": "Szerviz",
   "equipment_menu_delete": "Torles",
@@ -3278,6 +3466,8 @@
   "gas_tmx1845_displayName": "Tx 18/45",
   "gas_tmx2135_description": "Normoxikus trimix 21/35",
   "gas_tmx2135_displayName": "Tx 21/35",
+  "maps_compass_resetLabel": "Terkep tajolasanak visszaallitasa eszakra",
+  "maps_compass_resetTooltip": "Eszak felul",
   "maps_heatMap_hide": "Hoterkep elrejtese",
   "maps_heatMap_overlayOff": "A hoterkep reteg ki van kapcsolva",
   "maps_heatMap_overlayOn": "A hoterkep reteg be van kapcsolva",
@@ -3434,6 +3624,9 @@
   "media_miniProfile_headerLabel": "Merülesi profil",
   "media_miniProfile_semanticLabel": "Mini merülesi profil diagram",
   "media_photoPicker_appBarTitle": "Fotok kivalasztasa",
+  "media_photoPicker_tab_gallery": "Galeria",
+  "media_photoPicker_tab_files": "Fajlok",
+  "media_photoPicker_tab_url": "URL",
   "media_photoPicker_clearSelectionButton": "Törlés",
   "media_photoPicker_closeTooltip": "Fotoválaszto bezarasa",
   "media_photoPicker_doneButton": "Kesz",
@@ -3451,6 +3644,18 @@
   "media_photoPicker_thumbnailAlreadyLinkedLabel": "A fotó már hozzá van kapcsolva ehhez a merüléshez",
   "media_photoPicker_thumbnailToggleLabel": "Foto kivalasztasanak valtoztatas",
   "media_photoPicker_thumbnailToggleSelectedLabel": "Foto kivalasztasanak valtoztatas, kivalasztva",
+  "media_perdixOverlay_labelCns": "CNS",
+  "media_perdixOverlay_labelDepth": "MÉLYS",
+  "media_perdixOverlay_labelGas": "GAS",
+  "media_perdixOverlay_labelMax": "MAX",
+  "media_perdixOverlay_labelNdl": "NDL",
+  "media_perdixOverlay_labelPpo2": "PPO2",
+  "media_perdixOverlay_labelStop": "STOP",
+  "media_perdixOverlay_labelTank": "TANK",
+  "media_perdixOverlay_labelTemp": "HŐM",
+  "media_perdixOverlay_labelTime": "IDŐ",
+  "media_perdixOverlay_labelTts": "TTS",
+  "media_perdixOverlay_toggleTooltip": "Búvárszámítógép-réteg",
   "media_photoViewer_cannotShare": "Nem oszthato meg ez a foto",
   "media_photoViewer_cannotWriteMetadata": "Nem irhato metaadat - a media nincs a konyvtarhoz csatolva",
   "media_photoViewer_closeTooltip": "Foto megtekintobezerarasa",
@@ -3540,6 +3745,8 @@
   "plannerCanvas_ccr_setpointHigh": "Magas setpoint (bar)",
   "plannerCanvas_ccr_setpointLow": "Alacsony setpoint (bar)",
   "plannerCanvas_ccr_switchDepth": "Setpoint váltási mélység",
+  "plannerCanvas_pscr_ratio": "pSCR arány",
+  "plannerCanvas_pscr_ratio_hint": "Nagyobb = több friss gáz, kisebb O₂-esés",
   "plannerCanvas_chip_cns": "CNS {value}%",
   "plannerCanvas_chip_issues": "{count, plural, =1{1 probléma} other{{count} probléma}}",
   "plannerCanvas_compare_action": "Összehasonlítás",
@@ -3549,6 +3756,14 @@
   "plannerCanvas_contingency_depthDelta": "Extra mélység",
   "plannerCanvas_contingency_lostGas": "{gas} elveszett",
   "plannerCanvas_contingency_timeDelta": "Extra percek",
+  "plannerCanvas_chart_meanDepth": "átlag {depth}",
+  "@plannerCanvas_chart_meanDepth": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      }
+    }
+  },
   "plannerCanvas_contingency_title": "Vészhelyzeti tervek",
   "plannerCanvas_contingency_turnFraction": "Fordulási hányad",
   "plannerCanvas_contingency_turnRule": "Fordulónyomás-szabály",
@@ -3568,6 +3783,13 @@
   "plannerCanvas_issue_noDecoGas": "Dekompresszió szükséges, de nincs deco gáz",
   "plannerCanvas_range_base": "Alap",
   "plannerCanvas_range_legend": "A cellák a felszínre érés idejét mutatják; piros = a terv szerint nem merülhető",
+  "plannerCanvas_pane_collapse": "Panel összecsukása",
+  "plannerCanvas_pane_expand": "Panel kibontása",
+  "plannerCanvas_tab_setup": "Beállítás",
+  "plannerCanvas_o2Narcotic": "O₂ kezelése kábítóként",
+  "plannerCanvas_rates_ascent": "Emelkedési ütem",
+  "plannerCanvas_rates_descent": "Merülési ütem",
+  "plannerCanvas_rates_title": "Ütemek",
   "plannerCanvas_range_title": "Tartománytáblázat",
   "plannerCanvas_results_noDeco": "Nincs szükség dekompresszióra",
   "plannerCanvas_saved_deleteConfirmBody": "Véglegesen törli a(z) „{name}” tervet?",
@@ -3718,7 +3940,7 @@
   "settings_navCustomization_subtitlePreview": "{first} · {second} · {third}",
   "settings_navCustomization_saveError": "Could not save navigation layout. Please try again.",
   "settings_backToSettings_tooltip": "Vissza a beallitasokhoz",
-  "settings_cloudSync_appBar_title": "Felho szinkronizalas",
+  "settings_cloudSync_appBar_title": "Adatbazis felho szinkronizalas",
   "settings_cloudSync_autoSync": "Automatikus szinkronizalas",
   "settings_cloudSync_autoSync_subtitle": "Automatikus szinkronizalas valtoztatasok utan",
   "settings_cloudSync_conflictItems": "{count, plural, =1{1 elem figyelmet igenyel} other{{count} elem figyelmet igenyel}}",
@@ -3829,7 +4051,7 @@
   "settings_data_appDefaultLocation": "Alkalmazas alapertelmezett helye",
   "settings_data_backup": "Biztonsagi mentes es visszaallitas",
   "settings_data_backup_subtitle": "Biztonsagi mentes keszitese az adatokrol",
-  "settings_data_cloudSync": "Felho szinkronizalas",
+  "settings_data_cloudSync": "Adatbazis felho szinkronizalas",
   "settings_data_customFolder": "Egyedi mappa",
   "settings_data_databaseStorage": "Adatbazis tarolas",
   "settings_data_export_completed": "Exportalas befejezve",
@@ -3868,9 +4090,26 @@
   "settings_decompression_dialog_title": "Gradiens Faktorok",
   "settings_decompression_endLimit": "END határ",
   "settings_decompression_endLimit_dialog_title": "END határ",
+  "settings_decompression_cnsMethodTitle": "CNS-számítás",
+  "settings_decompression_cnsMethodClassic": "NOAA-táblázat, lépcsős (klasszikus)",
+  "settings_decompression_cnsMethodClassicDesc": "Minden 0,1 bar-os sávot a szigorúbb szélén számol. A Submersion eredeti módszere.",
+  "settings_decompression_cnsMethodShearwater": "Lineáris interpoláció (Shearwater-stílus)",
+  "settings_decompression_cnsMethodShearwaterDesc": "A NOAA-határértékek között lineárisan interpolál, ahogyan a Shearwater dokumentálja. A legtöbb búvárcomputerrel megegyezik.",
+  "settings_decompression_cnsMethodSubsurface": "Exponenciális illesztés (mint a Subsurface)",
+  "settings_decompression_cnsMethodSubsurfaceDesc": "Sima görbeillesztés a NOAA-táblázatra. Megegyezik a Subsurface által számított CNS-értékkel.",
+  "settings_decompression_cnsMethodAboutTitle": "Ezekről a módszerekről",
+  "settings_decompression_cnsMethodAboutBody": "Mindhárom módszer a NOAA Diving Manual oxigénterhelési határértékein alapul (300 perc 1,0 bar ppO2 mellett, 45 perc 1,6 bar mellett). A táblázat csak 0,1 bar-os lépésekben határoz meg határértékeket: a klasszikus módszer egy sávon belül mindent a sáv szigorúbb szélén számol, ami a bejegyzések közötti terhelést rendszeresen túlbecsüli. A Shearwater búvárcomputerei a NOAA-határértékek közötti lineáris interpolációt dokumentálják, 1,65 bar felett rögzített, percenkénti 15%-kal. A Subsurface 2019-ben a táblázatos kikeresést egy sima, kétszakaszos exponenciális illesztésre cserélte ugyanazokra a NOAA-adatokra (Robert C. Helling), amely 1,6 bar felett is természetesen kiterjed. A táblázat bejegyzései között a két sima módszer körülbelül egy CNS-ponton belül megegyezik; a klasszikus módszer magasabb értéket mutat.",
+  "settings_decompression_cnsMethodDisclaimer": "A nevek a megfelelő projektek és gyártók közzétett módszereire utalnak; ez nem jelent semmilyen kapcsolatot vagy támogatást. A számított értékek eltérhetnek a búvárcomputer tényleges kijelzéseitől.",
+  "settings_decompression_cnsMethodSourcesTitle": "Források",
+  "settings_linkOpenFailed": "A hivatkozást nem sikerült megnyitni.",
+  "settings_decompression_cnsMethodSourceNoaa": "NOAA: Diving Program (a NOAA Diving Manual kiadója)",
+  "settings_decompression_cnsMethodSourceShearwater": "Shearwater: A CNS oxigénórája",
+  "settings_decompression_cnsMethodSourceTheoreticalDiver": "The Theoretical Diver: A CNS oxigéntoxicitás számítása",
+  "settings_decompression_cnsMethodSourceSubsurface": "Subsurface: megvalósítás (divelist.cpp)",
   "settings_decompression_endLimit_subtitle": "MND számításokhoz használt maximális ekvivalens narkotikus mélység",
   "settings_decompression_gfValue": "GF {gfLow}/{gfHigh}",
   "settings_decompression_header_gradientFactors": "Gradiens Faktorok",
+  "settings_decompression_header_oxygenToxicity": "Oxigéntoxicitás",
   "settings_decompression_header_narcosis": "Narkózis",
   "settings_decompression_o2Narcotic": "O2 narkotikus",
   "settings_decompression_o2Narcotic_subtitle": "Ha be van kapcsolva, az O2 és az N2 egyaránt narkotikusnak számít (konzervatívabb). Ha ki van kapcsolva, csak az N2 járul hozzá a narkózishoz.",
@@ -3932,10 +4171,13 @@
   "settings_lightroom_albumFilter_all": "Teljes katalógus",
   "settings_lightroom_albumFilter_title": "Vizsgálandó albumok",
   "settings_lightroom_autoPoll_title": "Új fotók automatikus keresése",
-  "settings_lightroom_clientId_help": "Hozz létre egy integrációt az Adobe Developer Console-ban a Lightroom Services API-val és egy PKCE-t támogató hitelesítőtípussal. Az átirányítási URI legyen {redirectUri}.",
+  "settings_lightroom_clientId_help": "Hozz létre egy integrációt az Adobe Developer Console-ban a Lightroom Services API-val és egy PKCE-t támogató hitelesítőtípussal. Add meg alább a hitelesítő adatod átirányítási URI-jét — a Native App hitelesítők egyedi sémát használnak —, vagy hagyd üresen a(z) {redirectUri} használatához.",
   "settings_lightroom_clientId_label": "Adobe kliensazonosító",
   "settings_lightroom_clientSecret_label": "Klienstitok (nem kötelező)",
+  "settings_lightroom_redirectUri_label": "Átirányítási URI (nem kötelező)",
   "settings_lightroom_connect": "Lightroom csatlakoztatása",
+  "settings_lightroom_connectEmbedded": "Csatlakozás az Adobe-hoz",
+  "settings_lightroom_advancedByo": "Saját Adobe hitelesítő adatok használata",
   "settings_lightroom_connect_codeLabel": "Átirányított URL vagy kód",
   "settings_lightroom_connect_emptyCode": "Illeszd be az átirányított URL-t vagy az engedélyezési kódot",
   "settings_lightroom_connect_failed": "Nem sikerült csatlakozni a Lightroomhoz: {error}",
@@ -5236,16 +5478,52 @@
   "diveDetailSection_tide_description": "Árapály-ciklus grafikon és időzítés",
   "diveDetailSection_tide_name": "Árapály",
   "diveDetailSection_weights_description": "Súly lebontás, teljes súly",
+  "diveDetailSection_buoyancy_name": "Felhajtóerő",
+  "diveDetailSection_buoyancy_description": "Felhajtóerő a merülés során, ingadozás, ledobható ólom",
+  "buoyancy_tooltip": "Modellezett nettó felhajtóerő a merülés során a profilból, gázfogyasztásból és felszerelésből.",
+  "buoyancy_verdictBuoyant": "Az utolsó megállónál (~{depth}) körülbelül {amount} felhajtóerőd volt",
+  "buoyancy_verdictHeavy": "Az utolsó megállónál (~{depth}) körülbelül {amount}-mal nehezebb voltál",
+  "buoyancy_verdictNeutral": "A konfigurációd közel semleges volt az utolsó megállónál",
+  "buoyancy_verdictConvention": "Az 5 m-es biztonsági megálló konvenciója szerint becsülve",
+  "buoyancy_breakdownTitle": "Tételek részletezése",
+  "buoyancy_suitTerm": "Ruha",
+  "buoyancy_leadTerm": "Ólom",
+  "buoyancy_beginNet": "Merülés kezdete",
+  "buoyancy_endNet": "Merülés vége",
+  "buoyancy_swing": "Felhajtóerő-ingadozás",
+  "buoyancy_peakLift": "Max. szükséges felhajtóerő",
+  "buoyancy_wingWarning": "Meghaladja a szárnyad névleges felhajtóerejét",
+  "buoyancy_minDitchable": "Min. ledobható ólom",
+  "buoyancy_droppable": "Ledobható",
+  "buoyancy_ditchWarning": "Több, mint amennyit ledobhatsz",
+  "buoyancy_drysuitGas": "Hozzáadott szárazruha-gáz",
+  "buoyancy_estimatedPressures": "A palacknyomások becsültek",
+  "buoyancy_linkSuitHint": "Kapcsolj egy búvárruhát ehhez a merüléshez a teljesebb képért",
+  "buoyancy_chartNet": "Nettó",
+  "buoyancy_chartRig": "Felszerelés + ólom",
+  "buoyancy_chartMinutes": "Idő (perc)",
+  "buoyancy_historyTitle": "Ólomelőzmények",
+  "buoyancy_historyCarried": "Vitt",
+  "buoyancy_historyModeled": "Modellezett",
+  "buoyancy_historyMore": "Általában {delta}-mal többet viszel, mint amit a modell javasol",
+  "buoyancy_historyLess": "Általában {delta}-mal kevesebbet viszel, mint amit a modell javasol",
+  "buoyancy_throughDive": "A merülés során",
+  "buoyancy_adjust": "Módosítás",
+  "buoyancy_whatIfTitle": "Merülés módosítása",
+  "buoyancy_whatIfLead": "Ólom",
+  "buoyancy_whatIfSuit": "Ruha felhajtóereje",
+  "buoyancy_whatIfReset": "Visszaállítás",
+  "buoyancy_whatIfDelta": "{delta} a ténylegeshez",
   "diveDetailSection_weights_name": "Súlyok",
-  "diveLog_edit_section_environment": "Environment",
-  "diveLog_edit_subsection_weather": "Weather",
-  "diveLog_edit_subsection_diveConditions": "Dive Conditions",
-  "diveLog_edit_label_windSpeed": "Wind Speed",
-  "diveLog_edit_label_windDirection": "Wind Direction",
-  "diveLog_edit_label_cloudCover": "Cloud Cover",
-  "diveLog_edit_label_precipitation": "Precipitation",
-  "diveLog_edit_label_humidity": "Humidity",
-  "diveLog_edit_label_weatherDescription": "Weather Description",
+  "diveLog_edit_section_environment": "Környezet",
+  "diveLog_edit_subsection_weather": "Időjárás",
+  "diveLog_edit_subsection_diveConditions": "Merülési körülmények",
+  "diveLog_edit_label_windSpeed": "Szélsebesség",
+  "diveLog_edit_label_windDirection": "Szélirány",
+  "diveLog_edit_label_cloudCover": "Felhőzet",
+  "diveLog_edit_label_precipitation": "Csapadék",
+  "diveLog_edit_label_humidity": "Páratartalom",
+  "diveLog_edit_label_weatherDescription": "Időjárás leírása",
   "diveLog_edit_button_fetchWeather": "Fetch Weather",
   "diveLog_edit_fetchingWeather": "Fetching weather...",
   "diveLog_edit_weatherFetched": "Weather data loaded",
@@ -5254,28 +5532,28 @@
   "diveLog_edit_fetchWeatherNotYetAvailable": "Weather data not yet available for this date",
   "diveLog_edit_fetchWeatherHint": "Add a date and dive site first",
   "diveLog_edit_fetchWeatherConfirm": "Replace existing weather data with fetched data?",
-  "diveLog_detail_section_environment": "Environment",
-  "diveLog_detail_subsection_weather": "Weather",
-  "diveLog_detail_subsection_diveConditions": "Dive Conditions",
-  "diveLog_detail_label_windSpeed": "Wind Speed",
-  "diveLog_detail_label_windDirection": "Wind Direction",
-  "diveLog_detail_label_cloudCover": "Cloud Cover",
-  "diveLog_detail_label_precipitation": "Precipitation",
-  "diveLog_detail_label_humidity": "Humidity",
-  "diveLog_detail_label_weatherDescription": "Description",
+  "diveLog_detail_section_environment": "Környezet",
+  "diveLog_detail_subsection_weather": "Időjárás",
+  "diveLog_detail_subsection_diveConditions": "Merülési körülmények",
+  "diveLog_detail_label_windSpeed": "Szélsebesség",
+  "diveLog_detail_label_windDirection": "Szélirány",
+  "diveLog_detail_label_cloudCover": "Felhőzet",
+  "diveLog_detail_label_precipitation": "Csapadék",
+  "diveLog_detail_label_humidity": "Páratartalom",
+  "diveLog_detail_label_weatherDescription": "Leírás",
   "diveLog_detail_weatherSourceOpenMeteo": "via Open-Meteo",
-  "enum_cloudCover_clear": "Clear",
-  "enum_cloudCover_partlyCloudy": "Partly Cloudy",
-  "enum_cloudCover_mostlyCloudy": "Mostly Cloudy",
-  "enum_cloudCover_overcast": "Overcast",
-  "enum_precipitation_none": "None",
-  "enum_precipitation_drizzle": "Drizzle",
-  "enum_precipitation_lightRain": "Light Rain",
-  "enum_precipitation_rain": "Rain",
-  "enum_precipitation_heavyRain": "Heavy Rain",
-  "enum_precipitation_snow": "Snow",
-  "enum_precipitation_sleet": "Sleet",
-  "enum_precipitation_hail": "Hail",
+  "enum_cloudCover_clear": "Tiszta",
+  "enum_cloudCover_partlyCloudy": "Részben felhős",
+  "enum_cloudCover_mostlyCloudy": "Többnyire felhős",
+  "enum_cloudCover_overcast": "Borult",
+  "enum_precipitation_none": "Nincs",
+  "enum_precipitation_drizzle": "Szitálás",
+  "enum_precipitation_lightRain": "Gyenge eső",
+  "enum_precipitation_rain": "Eső",
+  "enum_precipitation_heavyRain": "Erős eső",
+  "enum_precipitation_snow": "Hó",
+  "enum_precipitation_sleet": "Ónos eső",
+  "enum_precipitation_hail": "Jégeső",
   "dashboard_activityStats_divesInYear": "merülések {year}-ben",
   "dashboard_hero_daysSinceLabel": "napja volt az utolsó merülés",
   "dashboard_hero_diverFallbackName": "Búvár",
@@ -5550,6 +5828,8 @@
   "equipment_edit_buoyancyHint_tank": "Hagyd üresen - a palackok saját adataikat használják",
   "equipment_edit_buoyancyLabel": "Felhajtóerő ({unit})",
   "equipment_edit_dryWeightLabel": "Száraz tömeg ({unit})",
+  "equipment_edit_liftCapacityLabel": "Emelőkapacitás ({unit})",
+  "equipment_edit_liftCapacityHint": "A szárny vagy BCD névleges felhajtóereje",
   "planner_gearWeights_accept": "Használat tervezett súlyként",
   "planner_gearWeights_addGear": "Felszerelés hozzáadása",
   "planner_gearWeights_empty": "Adj hozzá felszerelést a súlyozás előrejelzéséhez",
@@ -5760,6 +6040,418 @@
   "settings_setupGuide_open": "Megnyitás",
   "settings_connectedAccounts_loadError": "A fiókok nem tölthetők be",
   "media_unavailablePlaceholder_volumeOffline": "A kötet nincs csatlakoztatva",
+  "attrLabel_size": "Méret",
+  "attrLabel_thickness_mm": "Vastagság (mm)",
+  "attrLabel_suit_style": "Ruha fazonja",
+  "attrLabel_shell_material": "Külső anyag",
+  "attrLabel_seal_type": "Mandzsetta típusa",
+  "attrLabel_volume_l": "Térfogat",
+  "attrLabel_working_pressure_bar": "Üzemi nyomás",
+  "attrLabel_tank_material": "Anyag",
+  "attrLabel_valve_type": "Szelep",
+  "attrLabel_tank_identifier": "Azonosító",
+  "attrLabel_last_visual_inspection": "Utolsó szemrevételezés",
+  "attrLabel_last_hydro_test": "Utolsó hidrosztatikai vizsgálat",
+  "attrLabel_connection": "Csatlakozás",
+  "attrLabel_cold_water_rated": "Hidegvízre minősített",
+  "attrLabel_bcd_style": "Fazon",
+  "attrLabel_lift_capacity_kg": "Emelőkapacitás",
+  "attrLabel_heel_type": "Sarok",
+  "attrLabel_blade_style": "Lapát",
+  "attrLabel_mount": "Rögzítés",
+  "attrLabel_connectivity": "Kapcsolat",
+  "attrLabel_lens_config": "Lencse",
+  "attrLabel_prescription": "Dioptriás lencsék",
+  "attrLabel_weight_style": "Fazon",
+  "attrLabel_lumens": "Lumen",
+  "attrLabel_beam_type": "Fénysugár",
+  "attrLabel_depth_rating_m": "Mélységi besorolás",
+  "attrLabel_smb_type": "Típus",
+  "attrLabel_length_m": "Hossz",
+  "attrLabel_reel_type": "Típus",
+  "attrLabel_line_length_m": "Zsinór hossza",
+  "attrLabel_blade_material": "Penge anyaga",
+  "attrLabel_tip_type": "Hegy",
+  "attrLabel_glove_type": "Típus",
+  "attrLabel_sole_type": "Talp",
+  "attrLabel_buoyancy_kg": "Felhajtóerő",
+  "attrLabel_dry_weight_kg": "Száraz tömeg",
+  "attrChoice_suit_style_full": "Egész ruha",
+  "attrChoice_suit_style_shorty": "Shorty",
+  "attrChoice_suit_style_two_piece": "Kétrészes",
+  "attrChoice_suit_style_semi_dry": "Félszáraz",
+  "attrChoice_shell_material_trilaminate": "Trilaminát",
+  "attrChoice_shell_material_neoprene": "Neoprén",
+  "attrChoice_shell_material_crushed_neoprene": "Préselt neoprén",
+  "attrChoice_shell_material_vulcanized_rubber": "Vulkanizált gumi",
+  "attrChoice_seal_type_latex": "Latex",
+  "attrChoice_seal_type_silicone": "Szilikon",
+  "attrChoice_seal_type_neoprene": "Neoprén",
+  "attrChoice_tank_material_aluminum": "Alumínium",
+  "attrChoice_tank_material_steel": "Acél",
+  "attrChoice_tank_material_carbon_composite": "Karbon kompozit",
+  "attrChoice_valve_type_din": "DIN",
+  "attrChoice_valve_type_yoke": "Kengyel (INT)",
+  "attrChoice_valve_type_convertible": "Átalakítható",
+  "attrChoice_connection_din": "DIN",
+  "attrChoice_connection_yoke": "Kengyel (INT)",
+  "attrChoice_bcd_style_jacket": "Mellény",
+  "attrChoice_bcd_style_back_inflate": "Háti kamrás",
+  "attrChoice_bcd_style_wing": "Wing",
+  "attrChoice_bcd_style_sidemount": "Sidemount",
+  "attrChoice_heel_type_open_heel": "Nyitott sarkú",
+  "attrChoice_heel_type_full_foot": "Zárt sarkú",
+  "attrChoice_blade_style_paddle": "Lapátos",
+  "attrChoice_blade_style_split": "Osztott",
+  "attrChoice_blade_style_vented": "Szellőzős",
+  "attrChoice_mount_wrist": "Csukló",
+  "attrChoice_mount_console": "Konzol",
+  "attrChoice_mount_hud": "HUD",
+  "attrChoice_connectivity_ble": "Bluetooth (BLE)",
+  "attrChoice_connectivity_usb": "USB",
+  "attrChoice_connectivity_infrared": "Infravörös",
+  "attrChoice_connectivity_none": "Nincs",
+  "attrChoice_lens_config_single": "Egylencsés",
+  "attrChoice_lens_config_twin": "Kétlencsés",
+  "attrChoice_lens_config_frameless": "Keret nélküli",
+  "attrChoice_weight_style_belt": "Öv",
+  "attrChoice_weight_style_integrated": "Integrált",
+  "attrChoice_weight_style_trim": "Trimm",
+  "attrChoice_weight_style_ankle": "Boka",
+  "attrChoice_beam_type_spot": "Pont",
+  "attrChoice_beam_type_flood": "Széles",
+  "attrChoice_beam_type_adjustable": "Állítható",
+  "attrChoice_smb_type_open": "Nyitott",
+  "attrChoice_smb_type_closed": "Zárt",
+  "attrChoice_reel_type_spool": "Orsó",
+  "attrChoice_reel_type_ratchet": "Racsnis",
+  "attrChoice_blade_material_stainless": "Rozsdamentes acél",
+  "attrChoice_blade_material_titanium": "Titán",
+  "attrChoice_tip_type_pointed": "Hegyes",
+  "attrChoice_tip_type_blunt": "Tompa",
+  "attrChoice_tip_type_line_cutter": "Zsinórvágó",
+  "attrChoice_glove_type_five_finger": "Ötujjas",
+  "attrChoice_glove_type_mitt": "Egyujjas",
+  "attrChoice_glove_type_dry": "Száraz",
+  "attrChoice_sole_type_hard": "Kemény talp",
+  "attrChoice_sole_type_soft": "Puha talp",
+  "equipment_edit_customFieldsTitle": "Egyéni mezők",
+  "equipment_edit_addCustomField": "Egyéni mező hozzáadása",
+  "attr_flagYes": "Igen",
+  "attr_flagNo": "Nem",
+  "equipment_edit_invalidThickness": "Formátum: 5, 5/4 vagy 7/5/3",
+  "statistics_progression_divesBySuitThickness_title": "Merülések ruhavastagság szerint",
+  "statistics_progression_divesBySuitThickness_subtitle": "A ruha fő vastagsága a merüléseid során",
+  "statistics_progression_divesBySuitThickness_empty": "Nincs merülés rögzített ruhavastagsággal",
+  "statistics_progression_divesBySuitThickness_error": "Nem sikerült betölteni a vastagsági adatokat",
+  "diveLog_filter_sectionSuitThickness": "Ruhavastagság (mm)",
+  "diveLog_filter_thicknessMin": "Min",
+  "diveLog_filter_thicknessMax": "Max",
+  "diveDetailSection_safetyReview_name": "Biztonsági áttekintés",
+  "diveDetailSection_safetyReview_description": "Automatikus profilmegfigyelések a merülés után",
+  "safetyReview_sectionTitle": "Biztonsági áttekintés",
+  "safetyReview_findingCount": "{count, plural, =1{1 megfigyelés} other{{count} megfigyelés}}",
+  "@safetyReview_findingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "safetyReview_rapidAscent_title": "A felemelkedés {duration} ideig meghaladta a(z) {rate} értéket",
+  "@safetyReview_rapidAscent_title": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyReview_missedDecoStop_title": "A mélység {duration} ideig {excess} értékkel az előírt megállási plafon felett volt",
+  "@safetyReview_missedDecoStop_title": {
+    "placeholders": {
+      "excess": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyReview_omittedSafetyStop_title": "Az ajánlott biztonsági megálló {remaining} idővel rövidült",
+  "@safetyReview_omittedSafetyStop_title": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyReview_sawtoothProfile_title": "{count} ismételt fel-le mélységváltozás a merülés során",
+  "@safetyReview_sawtoothProfile_title": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "safetyReview_highSurfaceGf_title": "Felszínre érkezés {gf} gradiens faktorral, a beállított {gfHigh} felett",
+  "@safetyReview_highSurfaceGf_title": {
+    "placeholders": {
+      "gf": {
+        "type": "String"
+      },
+      "gfHigh": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyReview_timeRange": "{start}–{end} időpontban",
+  "@safetyReview_timeRange": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyReview_dismiss": "Elvetés",
+  "safetyReview_restore": "Visszaállítás",
+  "safetyReview_showDismissed": "{count, plural, =1{1 elvetett megjelenítése} other{{count} elvetett megjelenítése}}",
+  "@safetyReview_showDismissed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "safetySettings_title": "Biztonsági áttekintés",
+  "safetySettings_entry_subtitle": "Merülés utáni megfigyelések és szabályok",
+  "safetySettings_masterToggle": "Merülés utáni biztonsági áttekintés",
+  "safetySettings_masterToggle_subtitle": "Felemelkedési, megállási és profilmegfigyelések automatikus rögzítése az elemzett merüléseknél",
+  "safetySettings_rulesHeader": "Szabályok",
+  "safetySettings_rule_rapidAscent": "Gyors felemelkedések",
+  "safetySettings_rule_missedDecoStop": "Kihagyott vagy lerövidített deko megállók",
+  "safetySettings_rule_omittedSafetyStop": "Kihagyott biztonsági megállók",
+  "safetySettings_rule_sawtoothProfile": "Fűrészfog-profilok",
+  "safetySettings_rule_highSurfaceGf": "Magas gradiens faktor felszínre érkezéskor",
+  "safetySettings_analyzeAll": "Összes merülés elemzése",
+  "safetySettings_analyzeAll_subtitle": "A biztonsági áttekintés futtatása minden olyan profillal rendelkező merülésen, amely még nincs elemezve",
+  "safetySettings_analyzeAll_progress": "{done} / {total} elemezve",
+  "@safetySettings_analyzeAll_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "safetySettings_analyzeAll_done": "Elemzés kész",
+  "safetySettings_analyzeAll_doneWithErrors": "Elemzés kész — {count, plural, =1{1 merülést nem sikerült elemezni} other{{count} merülést nem sikerült elemezni}}",
+  "@safetySettings_analyzeAll_doneWithErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "safetySettings_noFlyHeader": "Repülés merülés után",
+  "safetySettings_noFlyPreset_standard": "Normál (12/18/24 ó)",
+  "safetySettings_noFlyPreset_strict": "Szigorú (18/24/48 ó)",
+  "safetySettings_noFlyPreset_subtitle": "Irányadó időközök egyetlen nullidős merülés, ismétlő merülések és dekós merülések után",
+  "safetyHub_noFly_active_title": "Repülési tilalom: {remaining} van hátra",
+  "@safetyHub_noFly_active_title": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyHub_noFly_until": "Eddig: {time}",
+  "@safetyHub_noFly_until": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyHub_noFly_clear_title": "Nincs repülési korlátozás",
+  "safetyHub_noFly_clear_subtitle": "Nincs aktív repülési korlátozás",
+  "safetyHub_noFly_category_single": "Egyetlen nullidős merülés után: {hours} ó irányelv",
+  "@safetyHub_noFly_category_single": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "safetyHub_noFly_category_repetitive": "Ismétlő merülések után: {hours} ó irányelv",
+  "@safetyHub_noFly_category_repetitive": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "safetyHub_noFly_category_deco": "Dekompressziós merülés után: {hours} ó irányelv",
+  "@safetyHub_noFly_category_deco": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "safetyHub_noFly_disclaimer": "DAN/UHMS irányelvek az utolsó merüléstől számítva. Nem helyettesíti a búvárkomputer no-fly idejét.",
+  "safetyHub_alert_noFly": "Repülési tilalom: {remaining} van hátra",
+  "@safetyHub_alert_noFly": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_detail_altitudeMismatch_title": "A merülőhely magaslaton fekszik",
+  "diveLog_detail_altitudeMismatch_subtitle": "Ehhez a helyhez magasság van rögzítve, a merüléshez azonban nincs, így a dekompressziós elemzés tengerszintet feltételezett. A javításhoz állítsd be a merülés magasságát.",
+  "emergencyCard_title": "Vészhelyzet",
+  "emergencyCard_callDan": "{name} hívása",
+  "@emergencyCard_callDan": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_callDan_subtitle": "Búvár segélyvonal. Először ezt hívd: ők koordinálják az evakuálást és a kamrába irányítást.",
+  "emergencyCard_ems": "Helyi segélyhívó: {number}",
+  "@emergencyCard_ems": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_diverSection": "Búvár",
+  "emergencyCard_bloodType": "Vércsoport: {value}",
+  "@emergencyCard_bloodType": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_allergies": "Allergiák: {value}",
+  "@emergencyCard_allergies": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_medications": "Gyógyszerek: {value}",
+  "@emergencyCard_medications": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_contactsSection": "Vészhelyzeti kapcsolatok",
+  "emergencyCard_insuranceSection": "Búvárbiztosítás",
+  "emergencyCard_insurancePolicy": "Kötvény: {number}",
+  "@emergencyCard_insurancePolicy": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_chambersSection": "Hiperbárikus kamrák",
+  "emergencyCard_chambersNote": "Az elérhetőség változik. Irányításért mindig először a búvár segélyvonalat hívd.",
+  "emergencyCard_chamberVerified": "Adatok ellenőrizve: {date}",
+  "@emergencyCard_chamberVerified": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_hideChamber": "Elrejtés",
+  "emergencyCard_chamberHidden": "Kamra elrejtve",
+  "emergencyCard_undo": "Visszavonás",
+  "emergencyCard_addChamber": "Kamra hozzáadása",
+  "emergencyCard_deleteChamber": "Törlés",
+  "emergencyCard_regionLabel": "Régió: {region}",
+  "@emergencyCard_regionLabel": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_regionUnknown": "Ismeretlen régió - a világméretű segélyvonal használata",
+  "emergencyCard_noDiverData": "Nincsenek búvárprofil-adatok. Add meg a vészhelyzeti kapcsolatokat, egészségügyi és biztosítási adatokat a búvárprofilban.",
+  "addChamber_title": "Kamra hozzáadása",
+  "addChamber_name": "Név",
+  "addChamber_country": "Országkód (pl. HU)",
+  "addChamber_city": "Város",
+  "addChamber_phone": "Telefon",
+  "addChamber_notes": "Jegyzetek",
+  "addChamber_save": "Mentés",
+  "addChamber_nameRequired": "A név megadása kötelező",
+  "addChamber_countryRequired": "Az országkód megadása kötelező",
+  "addChamber_phoneRequired": "A telefonszám megadása kötelező",
+  "safetyHub_emergencyCardLink": "Vészhelyzeti kártya",
+  "safetyHub_emergencyCardLink_subtitle": "Offline: segélyvonal, segélyhívó, kamrák, egészségügyi és biztosítási adataid",
+  "dashboard_quickAction_emergency": "Vészhelyzeti kártya",
+  "incidents_title": "Kvázibaleset-napló",
+  "incidents_empty": "Nincs rögzített kvázibaleset. Annak feljegyzése, ami majdnem balul sült el - ítélkezés nélkül - láthatóvá teszi a mintázatokat, mielőtt balesetté válnának.",
+  "incidents_add": "Kvázibaleset rögzítése",
+  "incidents_linkedDive": "Merüléshez kapcsolva",
+  "incidents_delete_confirm": "Törlöd ezt a kvázibaleset-jelentést?",
+  "incidents_notFound": "Kvázibaleset-jelentés nem található",
+  "incidentEdit_title_new": "Kvázibaleset rögzítése",
+  "incidentEdit_title_edit": "Kvázibaleset szerkesztése",
+  "incidentEdit_category": "Kategória",
+  "incidentEdit_severity": "Súlyosság",
+  "incidentEdit_severity_minor": "Enyhe",
+  "incidentEdit_severity_moderate": "Közepes",
+  "incidentEdit_severity_serious": "Súlyos",
+  "incidentEdit_date": "Mikor történt",
+  "incidentEdit_narrative": "Mi történt",
+  "incidentEdit_narrative_hint": "Csak a tények, a saját szavaiddal. Ez privát marad.",
+  "incidentEdit_narrative_required": "Írja le, mi történt",
+  "incidentEdit_contributingFactors": "Mi játszott közre (opcionális)",
+  "incidentEdit_lessonsLearned": "Mi segítene legközelebb (opcionális)",
+  "incidentEdit_save": "Mentés",
+  "incidentEdit_privacyNote": "A kvázibaleset-jelentések szinkronizálódnak az eszközeid között és a mentésekben is szerepelnek, de exportokba vagy megosztott naplóoldalakra soha nem kerülnek.",
+  "incidentCategory_buoyancy": "Lebegés",
+  "incidentCategory_gasSupply": "Gázellátás",
+  "incidentCategory_equipment": "Felszerelés",
+  "incidentCategory_buddySeparation": "Elszakadás a társtól",
+  "incidentCategory_marineLife": "Tengeri élővilág",
+  "incidentCategory_boatSurface": "Hajó / felszín",
+  "incidentCategory_medical": "Egészségügyi",
+  "incidentCategory_planning": "Tervezés",
+  "incidentCategory_other": "Egyéb",
+  "safetyHub_incidentsLink": "Kvázibaleset-napló",
+  "safetyHub_incidentsLink_subtitle": "Privát, nem büntető jellegű eseményjegyzetek",
+  "diveLog_detail_menu_logNearMiss": "Kvázibaleset rögzítése",
+  "diveLog_detail_linkedIncidents": "{count, plural, =1{1 kvázibaleset kapcsolódik ehhez a merüléshez} other{{count} kvázibaleset kapcsolódik ehhez a merüléshez}}",
+  "@diveLog_detail_linkedIncidents": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "planning_card_noFly_subtitle": "Irányadó visszaszámlálás az utolsó merüléseidtől",
+  "settings_section_safety_title": "Biztonság",
+  "settings_section_safety_subtitle": "Áttekintési szabályok és repülés merülés után",
   "dataQuality_inbox_title": "Adatminőség",
   "dataQuality_badge_tooltip": "Adatminőség-ellenőrzés",
   "dataQuality_scan_start": "Könyvtár átvizsgálása",

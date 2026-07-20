@@ -1,0 +1,70 @@
+{
+  "datasetVersion": "2026-07",
+  "note": "Diver emergency hotlines and general emergency numbers. Always call the diver emergency hotline first: they coordinate evacuation and chamber referral. Verify before relying on any entry.",
+  "regions": [
+    {
+      "id": "dan-america",
+      "name": "DAN America",
+      "phone": "+1-919-684-9111",
+      "countries": ["US", "CA", "MX", "BS", "KY", "TC", "BM", "CR", "PA", "BZ", "HN", "CO", "EC", "BR", "AR", "CL", "PE"]
+    },
+    {
+      "id": "dan-europe",
+      "name": "DAN Europe",
+      "phone": "+39-06-4211-8685",
+      "countries": ["IT", "FR", "ES", "PT", "DE", "AT", "CH", "NL", "BE", "GB", "IE", "MT", "HR", "GR", "CY", "EG", "TR", "NO", "SE", "DK", "FI", "PL", "CZ", "HU", "IL"]
+    },
+    {
+      "id": "dan-world",
+      "name": "DAN World",
+      "phone": "+1-919-684-9111",
+      "countries": []
+    },
+    {
+      "id": "des-australia",
+      "name": "DES Australia (Divers Emergency Service)",
+      "phone": "1800-088-200",
+      "countries": ["AU"]
+    },
+    {
+      "id": "des-newzealand",
+      "name": "DES New Zealand",
+      "phone": "0800-4-337-111",
+      "countries": ["NZ"]
+    },
+    {
+      "id": "dan-southernafrica",
+      "name": "DAN Southern Africa",
+      "phone": "+27-828-10-60-10",
+      "countries": ["ZA", "MZ", "TZ", "KE", "SC", "MU"]
+    },
+    {
+      "id": "dan-japan",
+      "name": "DAN Japan",
+      "phone": "+81-3-3812-4999",
+      "countries": ["JP"]
+    },
+    {
+      "id": "dan-asiapacific",
+      "name": "DAN Asia-Pacific",
+      "phone": "+61-8-8212-9242",
+      "countries": ["ID", "MY", "TH", "PH", "SG", "FJ", "PG", "VU", "MV", "LK", "KR", "TW", "VN", "KH", "MM", "PW", "FM", "MH"]
+    }
+  ],
+  "ems": {
+    "default": "112",
+    "byCountry": {
+      "US": "911", "CA": "911", "MX": "911",
+      "AU": "000", "NZ": "111",
+      "GB": "999", "IE": "112",
+      "JP": "119", "KR": "119", "TW": "119",
+      "CN": "120", "HK": "999", "SG": "995", "MY": "999", "TH": "1669",
+      "PH": "911", "ID": "118", "IN": "112", "LK": "110", "MV": "102",
+      "ZA": "10177", "EG": "123", "IL": "101",
+      "BR": "192", "AR": "107", "CL": "131", "CO": "123", "PE": "106",
+      "CR": "911", "PA": "911", "BZ": "911", "HN": "195",
+      "BS": "919", "KY": "911", "TC": "911", "BM": "911",
+      "FJ": "911", "PG": "111", "VU": "112"
+    }
+  }
+}

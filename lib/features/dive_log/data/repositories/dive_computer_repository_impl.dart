@@ -18,9 +18,11 @@ import 'package:submersion/core/database/database.dart'
         DiveProfileEvent,
         TankPressureProfilesCompanion;
 import 'package:submersion/core/matching/match_scorer.dart';
+import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     show GeoPoint;
 import 'package:submersion/features/equipment/data/services/dive_equipment_defaulter.dart';
+import 'package:submersion/features/pre_dive/data/services/checklist_dive_linker.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
@@ -936,6 +938,14 @@ class DiveComputerRepository {
           divePoints: defaultPoints,
         );
 
+        // Auto-link a pre-dive checklist session started shortly before
+        // this dive's entry time.
+        await ChecklistDiveLinker().autoLinkForDive(
+          diveId: diveId,
+          diverId: diverId,
+          diveStart: DateTime.fromMillisecondsSinceEpoch(entryTimeMs),
+        );
+
         // Create a data source record for provenance tracking.
         // Derive water temp and CNS from profile samples when not provided
         // as top-level values (e.g. Shearwater).
@@ -1060,6 +1070,15 @@ class DiveComputerRepository {
           );
         }
       });
+
+      // Profile data changed (new source added or re-imported): drop any
+      // stored safety review so it recomputes against the new profile.
+      // No-op for a brand-new dive.
+      await SafetyFindingsRepository.clearReviewForDive(
+        _db,
+        _syncRepository,
+        diveId,
+      );
 
       // Map to track tank index → tank ID for pressure data
       final tankIdsByIndex = <int, String>{};

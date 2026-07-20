@@ -4,34 +4,49 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
+import 'package:submersion/features/safety/presentation/providers/no_fly_providers.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 
 /// Dashboard alerts data class
 class DashboardAlerts {
-  final List<EquipmentItem> equipmentServiceDue;
+  /// Per-clock service alerts from the service ledger (overdue/due-soon).
+  final List<DueClock> serviceClocksDue;
   final bool insuranceExpiringSoon;
   final bool insuranceExpired;
   final DateTime? insuranceExpiryDate;
   final String? insuranceProvider;
 
+  /// Active flying-after-diving restriction (null when clear).
+  final NoFlyStatus? noFlyStatus;
+
   const DashboardAlerts({
-    required this.equipmentServiceDue,
+    this.serviceClocksDue = const [],
     required this.insuranceExpiringSoon,
     required this.insuranceExpired,
     this.insuranceExpiryDate,
     this.insuranceProvider,
+    this.noFlyStatus,
   });
 
+  /// Whether an unexpired flying-after-diving restriction is in effect right
+  /// now. [noFlyStatus] is a cached snapshot that can elapse while the
+  /// dashboard stays mounted, so every consumer must re-check it against the
+  /// clock instead of treating a non-null value as active.
+  bool get hasActiveNoFly =>
+      noFlyStatus != null && noFlyStatus!.isActiveAt(DateTime.now().toUtc());
+
   bool get hasAlerts =>
-      equipmentServiceDue.isNotEmpty ||
+      serviceClocksDue.isNotEmpty ||
       insuranceExpiringSoon ||
-      insuranceExpired;
+      insuranceExpired ||
+      hasActiveNoFly;
 
   int get alertCount {
-    int count = equipmentServiceDue.length;
+    int count = serviceClocksDue.length;
     if (insuranceExpiringSoon || insuranceExpired) count++;
+    if (hasActiveNoFly) count++;
     return count;
   }
 }
@@ -82,15 +97,17 @@ final recentDivesProvider = FutureProvider<List<Dive>>((ref) async {
 
 /// Dashboard alerts provider - combines equipment and insurance alerts
 final dashboardAlertsProvider = FutureProvider<DashboardAlerts>((ref) async {
-  final serviceDue = await ref.watch(serviceDueEquipmentProvider.future);
+  final clocksDue = await ref.watch(dueClocksProvider.future);
   final diver = await ref.watch(currentDiverProvider.future);
+  final noFlyStatus = await ref.watch(noFlyStatusProvider.future);
 
   return DashboardAlerts(
-    equipmentServiceDue: serviceDue,
+    serviceClocksDue: clocksDue,
     insuranceExpiringSoon: diver?.insurance.isExpiringSoon ?? false,
     insuranceExpired: diver?.insurance.isExpired ?? false,
     insuranceExpiryDate: diver?.insurance.expiryDate,
     insuranceProvider: diver?.insurance.provider,
+    noFlyStatus: noFlyStatus,
   );
 });
 

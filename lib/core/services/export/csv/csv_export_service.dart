@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 
@@ -243,14 +244,29 @@ class CsvExportService {
       'Brand',
       'Model',
       'Serial Number',
+      'Size',
+      'Thickness',
       'Purchase Date',
       'Last Service',
       'Next Service Due',
       'Buoyancy (kg)',
       'Dry Weight (kg)',
+      'Attributes',
       'Active',
       'Notes',
     ];
+
+    // Curated keys already covered by dedicated columns; excluded from the
+    // combined Attributes column to avoid duplication. Custom fields are never
+    // excluded even if their key collides with one of these, because the
+    // dedicated columns read curated attributes only -- so a custom "size"
+    // would otherwise be dropped from the export entirely.
+    const dedicatedAttrKeys = {
+      EquipmentAttrKeys.size,
+      EquipmentAttrKeys.thicknessMm,
+      EquipmentAttrKeys.buoyancyKg,
+      EquipmentAttrKeys.dryWeightKg,
+    };
 
     final rows = <List<dynamic>>[headers];
 
@@ -261,6 +277,8 @@ class CsvExportService {
         item.brand ?? '',
         item.model ?? '',
         item.serialNumber ?? '',
+        item.size ?? '',
+        item.thickness ?? '',
         item.purchaseDate != null ? _dateFormat.format(item.purchaseDate!) : '',
         item.lastServiceDate != null
             ? _dateFormat.format(item.lastServiceDate!)
@@ -270,6 +288,14 @@ class CsvExportService {
             : '',
         item.buoyancyKg?.toString() ?? '',
         item.weightKg?.toString() ?? '',
+        item.attributes
+            .where(
+              (a) =>
+                  a.hasValue &&
+                  (a.isCustom || !dedicatedAttrKeys.contains(a.key)),
+            )
+            .map((a) => '${a.key}=${a.valueText ?? a.valueNum}')
+            .join('; '),
         item.isActive ? 'Yes' : 'No',
         item.notes.replaceAll('\n', ' '),
       ]);

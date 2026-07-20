@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -9,6 +10,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_list_content.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 
@@ -359,6 +361,70 @@ void main() {
 
       // Verify the widget rebuilt successfully (no crash)
       expect(find.text('My Regulator'), findsOneWidget);
+    });
+  });
+
+  group('EquipmentListTile avatar (legacy service-due fallback)', () {
+    // A legacy item whose only signal is the old single interval: no ledger
+    // clock exists, so equipmentWorstClockProvider has no entry for it, yet
+    // isServiceDue is true. Avatar must still read overdue, matching the
+    // "Service Due" trailing chip.
+    final legacyDueItem = EquipmentItem(
+      id: 'legacy1',
+      name: 'Old Reg',
+      type: EquipmentType.regulator,
+      lastServiceDate: DateTime(2020, 1, 1),
+      serviceIntervalDays: 365,
+    );
+
+    Widget buildTile(EquipmentItem item, ColorScheme scheme) {
+      return ProviderScope(
+        overrides: [
+          // Ledger map resolved but empty -> worstClock is null for this item.
+          equipmentWorstClockProvider.overrideWith((ref) async => {}),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          theme: ThemeData(colorScheme: scheme),
+          home: Scaffold(body: EquipmentListTile(item: item)),
+        ),
+      );
+    }
+
+    testWidgets('renders overdue avatar when worstClock is absent', (
+      tester,
+    ) async {
+      expect(legacyDueItem.isServiceDue, isTrue); // guard the fixture
+      final scheme = ColorScheme.fromSeed(seedColor: Colors.blue);
+
+      await tester.pumpWidget(buildTile(legacyDueItem, scheme));
+      await tester.pumpAndSettle();
+
+      final avatar = tester.widget<CircleAvatar>(find.byType(CircleAvatar));
+      expect(avatar.backgroundColor, scheme.errorContainer);
+      expect(avatar.backgroundColor, isNot(scheme.tertiaryContainer));
+      expect(find.text('Service Due'), findsOneWidget);
+    });
+
+    testWidgets('renders non-overdue avatar when nothing is due', (
+      tester,
+    ) async {
+      final upToDate = EquipmentItem(
+        id: 'ok1',
+        name: 'Fresh Reg',
+        type: EquipmentType.regulator,
+        lastServiceDate: DateTime.now(),
+        serviceIntervalDays: 365,
+      );
+      final scheme = ColorScheme.fromSeed(seedColor: Colors.blue);
+
+      await tester.pumpWidget(buildTile(upToDate, scheme));
+      await tester.pumpAndSettle();
+
+      final avatar = tester.widget<CircleAvatar>(find.byType(CircleAvatar));
+      expect(avatar.backgroundColor, scheme.tertiaryContainer);
     });
   });
 

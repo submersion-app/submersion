@@ -4,6 +4,7 @@ import 'package:submersion/core/database/database.dart'
     show DiveDataSourcesCompanion, DiveSitesCompanion, DivesCompanion;
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/features/equipment/data/services/dive_equipment_defaulter.dart';
+import 'package:submersion/features/pre_dive/data/services/checklist_dive_linker.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/number_utils.dart';
@@ -29,6 +30,8 @@ import 'package:submersion/features/dive_roles/data/repositories/dive_role_repos
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
@@ -488,7 +491,6 @@ class UddfEntityImporter {
         brand: equipData['brand'] as String?,
         model: equipData['model'] as String?,
         serialNumber: equipData['serialNumber'] as String?,
-        size: equipData['size'] as String?,
         status: equipStatus,
         purchaseDate: equipData['purchaseDate'] as DateTime?,
         purchasePrice: equipData['purchasePrice'] as double?,
@@ -497,6 +499,14 @@ class UddfEntityImporter {
         serviceIntervalDays: equipData['serviceIntervalDays'] as int?,
         notes: equipData['notes'] as String? ?? '',
         isActive: equipData['isActive'] as bool? ?? true,
+        attributes: [
+          if ((equipData['size'] as String?)?.trim().isNotEmpty ?? false)
+            EquipmentAttribute.curated(
+              equipmentId: newId,
+              key: EquipmentAttrKeys.size,
+              valueText: (equipData['size'] as String).trim(),
+            ),
+        ],
       );
 
       await repository.createEquipment(item);
@@ -1298,6 +1308,7 @@ class UddfEntityImporter {
 
       await repos.diveRepository.createDive(dive);
       await DiveEquipmentDefaulter().applyForImportedDive(dive);
+      await ChecklistDiveLinker().applyForImportedDive(dive);
       importedDiveIds.add(diveId);
       diveIdByIndex[i] = diveId;
 

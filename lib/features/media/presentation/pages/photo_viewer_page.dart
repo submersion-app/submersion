@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -10,10 +11,14 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 
+import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/lightroom/lightroom_api_client.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/media/data/services/metadata_write_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
@@ -21,6 +26,8 @@ import 'package:submersion/features/media/presentation/providers/lightroom_provi
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
+import 'package:submersion/features/media/presentation/widgets/perdix_overlay/draggable_perdix_overlay.dart';
+import 'package:submersion/features/media/presentation/widgets/perdix_overlay/perdix_face_resolver.dart';
 import 'package:submersion/features/media/presentation/widgets/write_metadata_dialog.dart';
 import 'package:submersion/features/media/presentation/widgets/mini_dive_profile_overlay.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -51,6 +58,30 @@ class _PhotoViewerPageState extends ConsumerState<PhotoViewerPage> {
   late PageController _pageController;
   int _currentIndex = 0;
   bool _showOverlay = true;
+
+  /// Live video controllers hoisted from _VideoItem, keyed by media id, so
+  /// the Perdix overlay (mounted at page level) can follow playback. Entries
+  /// come and go as gallery pages initialize/dispose.
+  final Map<String, VideoPlayerController> _videoControllers = {};
+
+  void _onVideoControllerChanged(
+    String mediaId,
+    VideoPlayerController? controller,
+  ) {
+    if (!mounted) return;
+    if (controller == null) {
+      // The removal path runs from _VideoItemState.dispose, which can fire
+      // while the tree is locked (viewer teardown, page eviction). Drop the
+      // dead controller immediately so nothing reads it, but defer the
+      // rebuild to the next frame.
+      _videoControllers.remove(mediaId);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() {});
+      });
+    } else {
+      setState(() => _videoControllers[mediaId] = controller);
+    }
+  }
 
   @override
   void initState() {
@@ -111,6 +142,61 @@ class _PhotoViewerPageState extends ConsumerState<PhotoViewerPage> {
             data: (dive) => dive?.profile ?? [],
           );
 
+          final dive = diveAsync.value;
+          // Same source-aware profile/analysis pairing as the fullscreen
+          // profile page: analysis curves are read by index, so the profile
+          // passed to the resolver must be the one the analysis was computed
+          // over (multi-computer dives).
+          final activeSourceId = ref.watch(
+            activeDiveSourceProvider(widget.diveId),
+          );
+          final analysis = ref
+              .watch(
+                sourceProfileAnalysisProvider((
+                  diveId: widget.diveId,
+                  sourceId: activeSourceId,
+                )),
+              )
+              .value;
+          final sourceProfiles =
+              ref.watch(sourceProfilesProvider(widget.diveId)).value ??
+              const {};
+          final dataSources =
+              ref.watch(diveDataSourcesProvider(widget.diveId)).value ??
+              const [];
+          final gasSwitches =
+              ref.watch(gasSwitchesProvider(widget.diveId)).value ?? const [];
+          final tankPressures = ref
+              .watch(tankPressuresProvider(widget.diveId))
+              .value;
+          final primarySource =
+              dataSources.where((s) => s.isPrimary).firstOrNull ??
+              dataSources.firstOrNull;
+          final activeSource = activeSourceId == null
+              ? primarySource
+              : dataSources.where((s) => s.id == activeSourceId).firstOrNull ??
+                    primarySource;
+          final activeProfile = activeSource == null
+              ? null
+              : sourceProfiles[activeSource.id];
+          final perdixProfile =
+              (dataSources.length >= 2 && activeProfile != null)
+              ? activeProfile.points
+              : dive?.profile ?? const [];
+          // Rebuilt only on page-level setState (page swipes, toggles), not
+          // per video frame; prefix-max and gas segments precompute here.
+          final perdixResolver = PerdixFaceResolver(
+            profile: perdixProfile,
+            analysis: analysis,
+            tanks: dive?.tanks ?? const [],
+            gasSwitches: gasSwitches,
+            tankPressures: tankPressures,
+          );
+          final perdixAvailable =
+              enrichment?.elapsedSeconds != null &&
+              enrichment!.matchConfidence != MatchConfidence.noProfile &&
+              perdixResolver.isAvailable;
+
           return GestureDetector(
             // Swipe down to close (common pattern for fullscreen viewers)
             onVerticalDragEnd: (details) {
@@ -132,6 +218,7 @@ class _PhotoViewerPageState extends ConsumerState<PhotoViewerPage> {
                   onToggleOverlay: () =>
                       setState(() => _showOverlay = !_showOverlay),
                   onSetOverlay: (value) => setState(() => _showOverlay = value),
+                  onVideoControllerChanged: _onVideoControllerChanged,
                   currentIndex: _currentIndex,
                 ),
 
@@ -150,6 +237,51 @@ class _PhotoViewerPageState extends ConsumerState<PhotoViewerPage> {
                     ),
                   ),
 
+                // Perdix dive computer overlay. Deliberately independent of
+                // the _showOverlay chrome (which auto-hides during video
+                // playback, exactly when this must stay up) and mounted
+                // BELOW it so the toolbar keeps hit-test priority when the
+                // chrome is visible (the default corner overlaps the top
+                // bar). The face absorbs pointer events over its own bounds
+                // (drags move it, taps do nothing); chrome-toggle and video
+                // play/pause taps work anywhere outside it.
+                if (perdixAvailable && settings.perdixOverlayEnabled)
+                  DraggablePerdixOverlay(
+                    // Re-key when the persisted seed first arrives so a late
+                    // settings load re-seeds the position (same trick as the
+                    // fullscreen readout card).
+                    key: ValueKey(
+                      'perdix-${currentItem.id}-'
+                      '${settings.perdixOverlayX}-${settings.perdixOverlayY}',
+                    ),
+                    resolver: perdixResolver,
+                    baseElapsedSeconds: enrichment.elapsedSeconds!,
+                    settings: settings,
+                    playback: currentItem.isVideo
+                        ? _videoControllers[currentItem.id]
+                        : null,
+                    positionGetter:
+                        currentItem.isVideo &&
+                            _videoControllers[currentItem.id] != null
+                        ? () =>
+                              _videoControllers[currentItem.id]
+                                  ?.value
+                                  .position ??
+                              Duration.zero
+                        : null,
+                    initialFraction:
+                        (settings.perdixOverlayX != null &&
+                            settings.perdixOverlayY != null)
+                        ? Offset(
+                            settings.perdixOverlayX!,
+                            settings.perdixOverlayY!,
+                          )
+                        : null,
+                    onDragEnd: (fraction) => ref
+                        .read(settingsProvider.notifier)
+                        .setPerdixOverlayPosition(fraction.dx, fraction.dy),
+                  ),
+
                 // Overlay controls (app bar and metadata)
                 if (_showOverlay) ...[
                   // Top app bar
@@ -160,11 +292,20 @@ class _PhotoViewerPageState extends ConsumerState<PhotoViewerPage> {
                     onShare: () => _shareCurrentPhoto(currentItem),
                     onWriteMetadata: () => _writeMetadataToPhoto(currentItem),
                     hasEnrichment: enrichment?.depthMeters != null,
+                    showPerdixToggle: perdixAvailable,
+                    perdixEnabled: settings.perdixOverlayEnabled,
+                    onTogglePerdix: () => ref
+                        .read(settingsProvider.notifier)
+                        .setPerdixOverlayEnabled(
+                          !settings.perdixOverlayEnabled,
+                        ),
                     onOpenInLightroom: _lightroomWebUrl(currentItem) == null
                         ? null
-                        : () => launchUrl(
-                            Uri.parse(_lightroomWebUrl(currentItem)!),
-                            mode: LaunchMode.externalApplication,
+                        : () => unawaited(
+                            launchUrl(
+                              Uri.parse(_lightroomWebUrl(currentItem)!),
+                              mode: LaunchMode.externalApplication,
+                            ),
                           ),
                   ),
 
@@ -209,6 +350,10 @@ class _PhotoViewerPageState extends ConsumerState<PhotoViewerPage> {
   /// item is not Lightroom-linked or this device has no connected account
   /// (the catalog id lives only on the connected device).
   String? _lightroomWebUrl(MediaItem item) {
+    // Lightroom "Open in Lightroom" action hidden pending Adobe review
+    // (lightroomUiEnabled). Returning null here suppresses both the toolbar
+    // button and the video-poster overlay, which are gated on this URL.
+    if (!lightroomUiEnabled) return null;
     if (item.sourceType != MediaSourceType.serviceConnector ||
         item.remoteAssetId == null) {
       return null;
@@ -391,6 +536,8 @@ class _PhotoGallery extends ConsumerWidget {
   final bool showOverlay;
   final VoidCallback onToggleOverlay;
   final ValueChanged<bool> onSetOverlay;
+  final void Function(String mediaId, VideoPlayerController? controller)
+  onVideoControllerChanged;
   final int currentIndex;
 
   const _PhotoGallery({
@@ -400,6 +547,7 @@ class _PhotoGallery extends ConsumerWidget {
     required this.showOverlay,
     required this.onToggleOverlay,
     required this.onSetOverlay,
+    required this.onVideoControllerChanged,
     required this.currentIndex,
   });
 
@@ -416,6 +564,17 @@ class _PhotoGallery extends ConsumerWidget {
 
         // Videos use custom player, photos use PhotoView
         if (item.isVideo) {
+          // Lightroom-linked videos are poster-only (the original is never
+          // downloaded), so show the poster with an Open-in-Lightroom play
+          // affordance instead of the local player, which would otherwise
+          // fail with "video file not found".
+          if (item.sourceType == MediaSourceType.serviceConnector) {
+            return PhotoViewGalleryPageOptions.customChild(
+              minScale: PhotoViewComputedScale.contained,
+              maxScale: PhotoViewComputedScale.contained,
+              child: _ConnectorVideoItem(item: item),
+            );
+          }
           return PhotoViewGalleryPageOptions.customChild(
             minScale: PhotoViewComputedScale.contained,
             maxScale: PhotoViewComputedScale.contained, // No zoom for videos
@@ -423,6 +582,7 @@ class _PhotoGallery extends ConsumerWidget {
               item: item,
               showOverlay: showOverlay,
               onSetOverlay: onSetOverlay,
+              onControllerChanged: onVideoControllerChanged,
             ),
           );
         }
@@ -451,16 +611,95 @@ class _PhotoItem extends StatelessWidget {
   }
 }
 
+/// A Lightroom-linked video: the original is never downloaded (only a poster
+/// rendition is stored), so this shows the poster with a play badge that
+/// opens the video in Lightroom rather than attempting local playback.
+class _ConnectorVideoItem extends ConsumerWidget {
+  final MediaItem item;
+
+  const _ConnectorVideoItem({required this.item});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final catalogId = ref
+        .watch(lightroomAccountProvider)
+        .value
+        ?.accountIdentifier;
+    final url = (catalogId != null && item.remoteAssetId != null)
+        ? LightroomApiClient.assetWebUrl(catalogId, item.remoteAssetId!)
+        : null;
+    // Shared open action: drives both the pointer tap (GestureDetector) and the
+    // semantic activation on the labeled play button so screen readers can
+    // actually trigger it, not just announce it.
+    final onOpen = url == null
+        ? null
+        : () => unawaited(
+            launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication),
+          );
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onOpen,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          MediaItemView(item: item, fit: BoxFit.contain),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Semantics(
+                button: url != null,
+                label: context.l10n.media_lightroom_openInLightroom,
+                onTap: onOpen,
+                child: Container(
+                  width: 72,
+                  height: 72,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.5),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.play_arrow,
+                    color: Colors.white,
+                    size: 48,
+                  ),
+                ),
+              ),
+              if (url != null) ...[
+                const SizedBox(height: 12),
+                // Label already voiced by the Semantics button above.
+                ExcludeSemantics(
+                  child: Text(
+                    context.l10n.media_lightroom_openInLightroom,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.85),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// Video player item that loads and plays video files.
 class _VideoItem extends ConsumerStatefulWidget {
   final MediaItem item;
   final bool showOverlay;
   final ValueChanged<bool> onSetOverlay;
 
+  /// Reports the live controller (or null on dispose) so the page can drive
+  /// page-level overlays from playback position.
+  final void Function(String mediaId, VideoPlayerController? controller)
+  onControllerChanged;
+
   const _VideoItem({
     required this.item,
     required this.showOverlay,
     required this.onSetOverlay,
+    required this.onControllerChanged,
   });
 
   @override
@@ -514,6 +753,7 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
         _isInitialized = true;
         _isLoading = false;
       });
+      widget.onControllerChanged(widget.item.id, controller);
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -526,6 +766,11 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
 
   @override
   void dispose() {
+    if (_controller != null) {
+      // Unregister before disposing so the page never holds a dead
+      // controller; guarded by mounted on the page side.
+      widget.onControllerChanged(widget.item.id, null);
+    }
     _controller?.dispose();
     _focusNode.dispose();
     super.dispose();
@@ -814,6 +1059,14 @@ class _TopOverlay extends StatelessWidget {
   final VoidCallback onWriteMetadata;
   final bool hasEnrichment;
 
+  /// Whether the Perdix overlay toggle is shown (media synced to a profile).
+  final bool showPerdixToggle;
+
+  /// Whether the Perdix overlay is currently enabled (tints the icon).
+  final bool perdixEnabled;
+
+  final VoidCallback onTogglePerdix;
+
   /// Non-null only for Lightroom-linked items on the connected device.
   final VoidCallback? onOpenInLightroom;
 
@@ -824,6 +1077,9 @@ class _TopOverlay extends StatelessWidget {
     required this.onShare,
     required this.onWriteMetadata,
     required this.hasEnrichment,
+    required this.showPerdixToggle,
+    required this.perdixEnabled,
+    required this.onTogglePerdix,
     this.onOpenInLightroom,
   });
 
@@ -874,6 +1130,19 @@ class _TopOverlay extends StatelessWidget {
                     tooltip:
                         context.l10n.media_photoViewer_writeDiveDataTooltip,
                     onPressed: onWriteMetadata,
+                  ),
+                // Perdix dive computer overlay toggle (only when the media
+                // can be synced to the dive profile)
+                if (showPerdixToggle)
+                  IconButton(
+                    icon: Icon(
+                      Icons.watch,
+                      color: perdixEnabled
+                          ? Theme.of(context).colorScheme.primary
+                          : Colors.white,
+                    ),
+                    tooltip: context.l10n.media_perdixOverlay_toggleTooltip,
+                    onPressed: onTogglePerdix,
                   ),
                 if (onOpenInLightroom != null)
                   IconButton(

@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
@@ -305,7 +306,10 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                       tooltip: context.l10n.media_diveScan_scanTooltip,
                       onPressed: widget.onScanPressed,
                     ),
-                  if (ref.watch(lightroomAccountProvider).value != null)
+                  // Lightroom scan hidden pending Adobe review
+                  // (lightroomUiEnabled).
+                  if (lightroomUiEnabled &&
+                      ref.watch(lightroomAccountProvider).value != null)
                     IconButton(
                       icon: Icon(
                         Icons.cloud_sync_outlined,
@@ -402,7 +406,10 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                 style: textTheme.bodyMedium?.copyWith(color: colorScheme.error),
               ),
             ),
-            LightroomSuggestionsRow(diveId: widget.diveId),
+            // Lightroom suggestions hidden pending Adobe review
+            // (lightroomUiEnabled).
+            if (lightroomUiEnabled)
+              LightroomSuggestionsRow(diveId: widget.diveId),
           ],
         ),
       ),

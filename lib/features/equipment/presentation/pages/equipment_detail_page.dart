@@ -13,9 +13,14 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:collection/collection.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_l10n.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_units.dart';
+import 'package:submersion/features/equipment/presentation/widgets/service_clocks_card.dart';
 
 class EquipmentDetailPage extends ConsumerStatefulWidget {
   final String equipmentId;
@@ -136,10 +141,16 @@ class _EquipmentDetailContent extends ConsumerWidget {
           _buildHeaderSection(context, equipment),
           const SizedBox(height: 24),
           _buildDetailsSection(context, ref, equipment, units),
-          if (equipment.serviceIntervalDays != null) ...[
-            const SizedBox(height: 24),
-            _buildServiceSection(context, equipment, units),
-          ],
+          const SizedBox(height: 24),
+          ServiceClocksCard(
+            equipmentId: equipmentId,
+            equipmentType: equipment.type,
+            onLogService: (status) => _showAddServiceDialogForKind(
+              context,
+              ref,
+              serviceKindId: status.kind.id,
+            ),
+          ),
           const SizedBox(height: 24),
           _ServiceHistorySection(equipmentId: equipmentId),
           if (equipment.notes.isNotEmpty) ...[
@@ -560,18 +571,24 @@ class _EquipmentDetailContent extends ConsumerWidget {
                 context.l10n.equipment_detail_serialNumberLabel,
                 equipment.serialNumber!,
               ),
-            if (equipment.size != null)
-              _buildDetailRow(
-                context,
-                context.l10n.equipment_detail_sizeLabel,
-                equipment.size!,
-              ),
-            if (equipment.thickness != null)
-              _buildDetailRow(
-                context,
-                context.l10n.equipment_detail_thicknessLabel,
-                equipment.thickness!,
-              ),
+            // Curated attributes in catalog order, then custom fields.
+            for (final def in EquipmentAttributeCatalog.attributesFor(
+              equipment.type,
+            ))
+              if (equipment.attributes.firstWhereOrNull(
+                    (a) => !a.isCustom && a.key == def.key,
+                  )
+                  case final attr? when attr.hasValue)
+                _buildDetailRow(
+                  context,
+                  attributeLabel(context.l10n, def.key),
+                  formatAttributeValue(attr, def, units, context.l10n),
+                ),
+            for (final attr
+                in equipment.attributes.where((a) => a.isCustom).toList()
+                  ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder)))
+              if (attr.hasValue)
+                _buildDetailRow(context, attr.key, attr.valueText ?? ''),
             if (equipment.purchaseDate != null)
               _buildDetailRow(
                 context,
@@ -596,98 +613,23 @@ class _EquipmentDetailContent extends ConsumerWidget {
     );
   }
 
-  Widget _buildServiceSection(
+  /// Opens the add-service dialog pre-tagged with a clock's kind so the
+  /// saved record resets that clock.
+  void _showAddServiceDialogForKind(
     BuildContext context,
-    EquipmentItem equipment,
-    UnitFormatter units,
-  ) {
-    final daysUntil = equipment.daysUntilService;
-    final isOverdue = daysUntil != null && daysUntil < 0;
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.build, color: Theme.of(context).colorScheme.primary),
-                const SizedBox(width: 8),
-                Text(
-                  context.l10n.equipment_detail_serviceInfoTitle,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ],
-            ),
-            const Divider(),
-            _buildDetailRow(
-              context,
-              context.l10n.equipment_detail_serviceIntervalLabel,
-              context.l10n.equipment_detail_serviceIntervalValue(
-                equipment.serviceIntervalDays!,
-              ),
-            ),
-            if (equipment.lastServiceDate != null)
-              _buildDetailRow(
-                context,
-                context.l10n.equipment_detail_lastServiceLabel,
-                units.formatDate(equipment.lastServiceDate),
-              ),
-            if (equipment.nextServiceDue != null)
-              _buildDetailRow(
-                context,
-                context.l10n.equipment_detail_nextServiceDueLabel,
-                units.formatDate(equipment.nextServiceDue),
-              ),
-            if (daysUntil != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isOverdue
-                        ? Theme.of(context).colorScheme.errorContainer
-                        : daysUntil < 30
-                        ? Theme.of(context).colorScheme.tertiaryContainer
-                        : Theme.of(context).colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        isOverdue ? Icons.warning : Icons.schedule,
-                        size: 16,
-                        color: isOverdue
-                            ? Theme.of(context).colorScheme.onErrorContainer
-                            : Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        isOverdue
-                            ? context.l10n.equipment_detail_daysOverdue(
-                                daysUntil.abs(),
-                              )
-                            : context.l10n.equipment_detail_daysUntilService(
-                                daysUntil,
-                              ),
-                        style: TextStyle(
-                          color: isOverdue
-                              ? Theme.of(context).colorScheme.onErrorContainer
-                              : Theme.of(context).colorScheme.onSurfaceVariant,
-                          fontWeight: isOverdue ? FontWeight.bold : null,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-          ],
-        ),
+    WidgetRef ref, {
+    required String serviceKindId,
+  }) {
+    showDialog(
+      context: context,
+      builder: (context) => ServiceRecordDialog(
+        equipmentId: equipmentId,
+        serviceKindId: serviceKindId,
+        onSave: (record) async {
+          await ref
+              .read(serviceRecordNotifierProvider(equipmentId).notifier)
+              .addRecord(record);
+        },
       ),
     );
   }
@@ -736,7 +678,16 @@ class _EquipmentDetailContent extends ConsumerWidget {
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
-          Text(value, style: Theme.of(context).textTheme.bodyMedium),
+          const SizedBox(width: 16),
+          // Flexible so long values (e.g. free-text custom fields) wrap
+          // instead of overflowing the row.
+          Flexible(
+            child: Text(
+              value,
+              style: Theme.of(context).textTheme.bodyMedium,
+              textAlign: TextAlign.end,
+            ),
+          ),
         ],
       ),
     );
@@ -885,6 +836,8 @@ class _EquipmentDetailContent extends ConsumerWidget {
         return Icons.flashlight_on;
       case EquipmentType.camera:
         return Icons.camera_alt;
+      case EquipmentType.transmitter:
+        return Icons.sensors;
       default:
         return Icons.backpack;
     }
@@ -1218,12 +1171,16 @@ class _ServiceRecordTile extends ConsumerWidget {
 class ServiceRecordDialog extends ConsumerStatefulWidget {
   final String equipmentId;
   final ServiceRecord? existingRecord;
+
+  /// Pre-selects which service clock this record fulfills.
+  final String? serviceKindId;
   final Future<void> Function(ServiceRecord) onSave;
 
   const ServiceRecordDialog({
     super.key,
     required this.equipmentId,
     this.existingRecord,
+    this.serviceKindId,
     required this.onSave,
   });
 
@@ -1240,6 +1197,7 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
   final _costController = TextEditingController();
   final _notesController = TextEditingController();
   DateTime? _nextServiceDue;
+  String? _serviceKindId;
   bool _isSaving = false;
 
   bool get isEditing => widget.existingRecord != null;
@@ -1255,9 +1213,11 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
       _costController.text = record.cost?.toString() ?? '';
       _notesController.text = record.notes;
       _nextServiceDue = record.nextServiceDue;
+      _serviceKindId = record.serviceKindId;
     } else {
       _serviceType = ServiceType.annual;
       _serviceDate = DateTime.now();
+      _serviceKindId = widget.serviceKindId;
     }
   }
 
@@ -1309,6 +1269,49 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
                   },
                 ),
                 const SizedBox(height: 16),
+
+                // Service clock this record fulfills (resets that clock)
+                ref
+                    .watch(serviceKindsProvider)
+                    .maybeWhen(
+                      data: (kinds) => Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          DropdownButtonFormField<String?>(
+                            initialValue:
+                                kinds.any((k) => k.id == _serviceKindId)
+                                ? _serviceKindId
+                                : null,
+                            decoration: InputDecoration(
+                              labelText: context
+                                  .l10n
+                                  .equipment_serviceClocks_appliesToClock,
+                              prefixIcon: const Icon(Icons.av_timer),
+                            ),
+                            items: [
+                              DropdownMenuItem<String?>(
+                                value: null,
+                                child: Text(
+                                  context
+                                      .l10n
+                                      .equipment_serviceClocks_noClockOption,
+                                ),
+                              ),
+                              for (final kind in kinds)
+                                DropdownMenuItem<String?>(
+                                  value: kind.id,
+                                  child: Text(kind.name),
+                                ),
+                            ],
+                            onChanged: (value) {
+                              setState(() => _serviceKindId = value);
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                      ),
+                      orElse: () => const SizedBox.shrink(),
+                    ),
 
                 // Service date picker
                 Semantics(
@@ -1484,6 +1487,7 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
         id: widget.existingRecord?.id ?? '',
         equipmentId: widget.equipmentId,
         serviceType: _serviceType,
+        serviceKindId: _serviceKindId,
         serviceDate: _serviceDate,
         provider: _providerController.text.trim().isEmpty
             ? null

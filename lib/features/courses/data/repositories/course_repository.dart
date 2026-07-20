@@ -337,26 +337,60 @@ class CourseRepository {
   }
 
   /// Delete a course
+  ///
+  /// The FK clears, the course delete, and every tombstone are wrapped in a
+  /// single transaction (TripRepository.deleteTrip pattern). The requirement
+  /// and link children are removed by FK cascade the moment the course row is
+  /// deleted, but sync needs per-row tombstones (issue #466) or peers
+  /// resurrect them; a non-atomic delete that failed after the cascade but
+  /// before the tombstones would leave the children permanently gone locally
+  /// yet un-tombstoned, so a peer would re-send them.
   Future<void> deleteCourse(String id) async {
     try {
       _log.info('Deleting course: $id');
 
-      // First, clear courseId from any linked dives
-      await _db.customStatement(
-        'UPDATE dives SET course_id = NULL WHERE course_id = ?',
-        [id],
-      );
+      await _db.transaction(() async {
+        // First, clear courseId from any linked dives
+        await _db.customStatement(
+          'UPDATE dives SET course_id = NULL WHERE course_id = ?',
+          [id],
+        );
 
-      // Clear courseId from any linked certifications
-      await _db.customStatement(
-        'UPDATE certifications SET course_id = NULL WHERE course_id = ?',
-        [id],
-      );
+        // Clear courseId from any linked certifications
+        await _db.customStatement(
+          'UPDATE certifications SET course_id = NULL WHERE course_id = ?',
+          [id],
+        );
 
-      // Delete the course
-      await (_db.delete(_db.courses)..where((t) => t.id.equals(id))).go();
+        // Collect requirement/link ids before the cascade removes the rows.
+        final requirements = await (_db.select(
+          _db.courseRequirements,
+        )..where((t) => t.courseId.equals(id))).get();
+        final requirementIds = requirements.map((r) => r.id).toList();
+        final links = requirementIds.isEmpty
+            ? <CourseRequirementDiveRow>[]
+            : await (_db.select(
+                _db.courseRequirementDives,
+              )..where((t) => t.requirementId.isIn(requirementIds))).get();
 
-      await _syncRepository.logDeletion(entityType: 'courses', recordId: id);
+        // Delete the course (FK cascade removes requirements and links)
+        await (_db.delete(_db.courses)..where((t) => t.id.equals(id))).go();
+
+        await _syncRepository.logDeletion(entityType: 'courses', recordId: id);
+        for (final requirement in requirements) {
+          await _syncRepository.logDeletion(
+            entityType: 'courseRequirements',
+            recordId: requirement.id,
+          );
+        }
+        for (final link in links) {
+          await _syncRepository.logDeletion(
+            entityType: 'courseRequirementDives',
+            recordId: link.id,
+          );
+        }
+      });
+
       SyncEventBus.notifyLocalChange();
       _log.info('Deleted course: $id');
     } catch (e, stackTrace) {

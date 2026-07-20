@@ -28,6 +28,11 @@ void main() {
     200,
   );
 
+  final tokenNoRefresh = http.Response(
+    jsonEncode({'access_token': 'at1', 'expires_in': 3600}),
+    200,
+  );
+
   test('beginAuthorization builds IMS PKCE URL', () {
     final m = manager(MockClient((_) async => http.Response('', 500)));
     final uri = m.beginAuthorization(clientId: 'cid');
@@ -219,5 +224,53 @@ void main() {
     );
     await m.disconnect();
     expect(await store.load(), isNull);
+  });
+
+  test('completeAuthorization succeeds with no refresh token and no '
+      'secret', () async {
+    final requests = <http.Request>[];
+    final mock = MockClient((req) async {
+      requests.add(req);
+      return tokenNoRefresh;
+    });
+    final m = manager(
+      mock,
+      store: LightroomAuthStore(storage: InMemoryKeychain()),
+    );
+    m.beginAuthorization(
+      clientId: 'cid',
+      redirectUri: 'adobe+hash://adobeid/cid',
+    );
+    final data = await m.completeAuthorization(
+      'adobe+hash://adobeid/cid?code=thecode',
+    );
+    expect(data.refreshToken, isNull);
+    expect(data.redirectUri, 'adobe+hash://adobeid/cid');
+    final body = Uri.splitQueryString(requests.single.body);
+    expect(body.containsKey('client_secret'), isFalse);
+    expect(body['redirect_uri'], 'adobe+hash://adobeid/cid');
+    expect(await m.loadAuth(), isNotNull);
+  });
+
+  test('getAccessToken caches the access token from a refresh-less '
+      'exchange', () async {
+    final m = manager(MockClient((_) async => tokenNoRefresh));
+    m.beginAuthorization(
+      clientId: 'cid',
+      redirectUri: 'adobe+hash://adobeid/cid',
+    );
+    await m.completeAuthorization('adobe+hash://adobeid/cid?code=thecode');
+    expect(await m.getAccessToken(), 'at1');
+  });
+
+  test('getAccessToken raises reauth-required when expired with no refresh '
+      'token', () async {
+    final store = LightroomAuthStore(storage: InMemoryKeychain());
+    await store.save(const LightroomAuthData(clientId: 'cid'));
+    final m = manager(MockClient((_) async => tokenNoRefresh), store: store);
+    await expectLater(
+      m.getAccessToken(),
+      throwsA(isA<LightroomReauthRequiredException>()),
+    );
   });
 }

@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -41,8 +42,15 @@ void main() {
       brand: brand,
       model: model,
       serialNumber: serialNumber,
-      size: size,
       status: status,
+      attributes: [
+        if (size != null)
+          EquipmentAttribute.curated(
+            equipmentId: id,
+            key: 'size',
+            valueText: size,
+          ),
+      ],
       purchaseDate: purchaseDate,
       purchasePrice: purchasePrice,
       purchaseCurrency: purchaseCurrency,

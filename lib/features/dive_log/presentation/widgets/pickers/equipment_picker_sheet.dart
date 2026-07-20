@@ -140,6 +140,8 @@ class EquipmentPickerSheet extends ConsumerWidget {
         return Icons.face;
       case EquipmentType.tank:
         return MdiIcons.divingScubaTank;
+      case EquipmentType.transmitter:
+        return Icons.sensors;
       case EquipmentType.weights:
         return Icons.fitness_center;
       case EquipmentType.computer:

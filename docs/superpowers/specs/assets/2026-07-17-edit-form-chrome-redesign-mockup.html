@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Edit Form Chrome Redesign - Design-Freeze Mockup (2026-07-17)</title>
+<style>
+  :root, :root[data-theme="light"] {
+    --bg: #f5f7fb; --card: #eceff5; --card-border: #d7dce4;
+    --divider: #dde2ea; --text: #1a1c1e; --muted: #5b6470; --faint: #8a919c;
+    --primary: #00639a; --on-primary: #ffffff; --chip: #dee4ed;
+    --chip-on: #cee5ff; --chip-on-text: #00344f; --error: #ba1a1a;
+    --seg: #dee4ed; --amber: #e8a812;
+  }
+  :root[data-theme="dark"] {
+    --bg: #101417; --card: #1a1f24; --card-border: #2c333b;
+    --divider: #272e35; --text: #e2e5ea; --muted: #98a1ab; --faint: #6d757f;
+    --primary: #8fcdf4; --on-primary: #06344f; --chip: #262d34;
+    --chip-on: #0d4a71; --chip-on-text: #cde9ff; --error: #ffb4ab;
+    --seg: #262d34; --amber: #f0b429;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #101417; --card: #1a1f24; --card-border: #2c333b;
+      --divider: #272e35; --text: #e2e5ea; --muted: #98a1ab; --faint: #6d757f;
+      --primary: #8fcdf4; --on-primary: #06344f; --chip: #262d34;
+      --chip-on: #0d4a71; --chip-on-text: #cde9ff; --error: #ffb4ab;
+      --seg: #262d34; --amber: #f0b429;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg); color: var(--text);
+    max-width: 1160px; margin: 0 auto; padding: 24px 20px 60px;
+  }
+  h2 { font-size: 1.25rem; margin: 0 0 4px; }
+  .subtitle { color: var(--muted); font-size: 0.85rem; margin: 0 0 18px; max-width: 70ch; }
+  .toolbar { display: flex; gap: 8px; margin-bottom: 20px; }
+  .toolbar button {
+    font: inherit; font-size: 0.78rem; font-weight: 600; cursor: pointer;
+    padding: 6px 14px; border-radius: 999px; border: 1px solid var(--card-border);
+    background: var(--card); color: var(--text);
+  }
+  .toolbar button.on { background: var(--primary); color: var(--on-primary); border-color: transparent; }
+  .panes { display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start; }
+
+  /* ------- pane (the master-detail edit pane) ------- */
+  .pane { flex: 1; min-width: 380px; max-width: 520px; }
+  .pane-caption { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em;
+                  text-transform: uppercase; color: var(--faint); margin: 0 0 8px 2px; }
+  .appbar { display: flex; align-items: center; gap: 8px; padding: 4px 2px 14px; }
+  .appbar .title { font-size: 16px; font-weight: 700; flex: 1; display: flex; align-items: center; gap: 8px; }
+  .appbar .cancel { color: var(--muted); font-size: 13px; font-weight: 500; }
+  .appbar .save { background: var(--primary); color: var(--on-primary); font-size: 13px;
+                  font-weight: 600; padding: 6px 16px; border-radius: 999px; }
+
+  .stack { display: flex; flex-direction: column; gap: 12px; }
+
+  /* ------- FormSection v2: header-in-card ------- */
+  .card { background: var(--card); border: 1px solid var(--card-border); border-radius: 13px; }
+  .card.error-edge { box-shadow: inset 3px 0 0 var(--error); }
+  .card-header {
+    display: flex; align-items: center; gap: 10px; padding: 12px 14px;
+    cursor: default; user-select: none;
+  }
+  .card.toggleable .card-header { cursor: pointer; }
+  .card-header svg.section-icon { width: 18px; height: 18px; flex: none; color: var(--primary); }
+  .card-header .h-title { font-size: 15.5px; font-weight: 600; flex: none; }
+  .card-header .h-summary {
+    flex: 1; text-align: right; font-size: 12.5px; color: var(--muted);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;
+    opacity: 0; transition: opacity 0.15s;
+  }
+  .card.collapsed .card-header .h-summary { opacity: 1; }
+  .card-header .h-summary.invite { color: var(--faint); }
+  .card-header .h-summary.issues { color: var(--error); font-weight: 600; }
+  .card-header .chevron { flex: none; width: 18px; height: 18px; color: var(--faint);
+                          transition: transform 0.2s; transform: rotate(180deg); }
+  .card.collapsed .card-header .chevron { transform: rotate(0deg); }
+  .card:not(.toggleable) .card-header .h-summary { flex: 1; }
+
+  .card-body-clip { display: grid; grid-template-rows: 1fr; transition: grid-template-rows 0.2s ease; }
+  .card.collapsed .card-body-clip { grid-template-rows: 0fr; }
+  .card-body { overflow: hidden; min-height: 0; }
+  .card-body-inner { border-top: 1px solid var(--divider); }
+
+  /* ------- rows ------- */
+  .row {
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    padding: 11px 14px; font-size: 13px;
+  }
+  .row + .row, .row + .append, .overline + .row, .row + .overline,
+  .append + .overline, .empty-row + .overline, .overline + .empty-row,
+  .row + .actions-row, .actions-row + .row, .tank + .append {
+    border-top: 1px solid var(--divider);
+  }
+  .row .k { color: var(--text); white-space: nowrap; }
+  .row .v { color: var(--muted); text-align: right; white-space: nowrap;
+            overflow: hidden; text-overflow: ellipsis; display: flex;
+            align-items: center; gap: 6px; min-width: 0; }
+  .row .v.placeholder { color: var(--faint); }
+  .row .v .link { color: var(--primary); font-weight: 500; }
+  .row .v svg { width: 14px; height: 14px; color: var(--faint); flex: none; }
+  .row .v .stars { color: var(--amber); font-size: 15px; letter-spacing: 2px; }
+  .row .v .stars .off { color: var(--faint); }
+
+  .seg { display: inline-flex; background: var(--seg); border-radius: 8px; padding: 2px; gap: 2px; }
+  .seg i { font-style: normal; font-size: 12px; padding: 3px 12px; border-radius: 6px; color: var(--muted); }
+  .seg i.on { background: var(--primary); color: var(--on-primary); font-weight: 600; }
+
+  .chips { display: flex; gap: 6px; }
+  .chips i { font-style: normal; font-size: 11.5px; padding: 4px 10px; border-radius: 999px;
+             background: var(--chip); color: var(--muted); }
+  .chips i.on { background: var(--chip-on); color: var(--chip-on-text); font-weight: 600; }
+
+  /* two-line rows (tanks, profile) */
+  .tank { display: flex; align-items: center; gap: 12px; padding: 10px 14px; }
+  .tank + .tank { border-top: 1px solid var(--divider); }
+  .tank .lines { flex: 1; min-width: 0; }
+  .tank .l1 { font-size: 13px; font-weight: 500; }
+  .tank .l2 { font-size: 12px; color: var(--muted); margin-top: 1px; }
+  .tank svg { width: 14px; height: 14px; color: var(--faint); flex: none; }
+
+  /* sub-header overline with docked actions */
+  .overline { display: flex; align-items: baseline; justify-content: space-between;
+              gap: 12px; padding: 12px 14px 4px; }
+  .overline .o-label { font-size: 10.5px; font-weight: 700; letter-spacing: 0.09em;
+                       text-transform: uppercase; color: var(--faint); }
+  .overline .o-actions { display: flex; gap: 14px; }
+  .overline .o-actions span { font-size: 12px; font-weight: 600; color: var(--primary); }
+
+  /* append + empty + actions rows */
+  .append { padding: 10px 14px; font-size: 12.5px; font-weight: 600; color: var(--primary); }
+  .empty-row { padding: 8px 14px 12px; font-size: 12.5px; color: var(--faint); }
+  .actions-row { display: flex; gap: 18px; padding: 10px 14px; }
+  .actions-row span { font-size: 12.5px; font-weight: 600; color: var(--primary); }
+
+  .loose-append { padding: 8px 14px; font-size: 12.5px; font-weight: 600; color: var(--primary); }
+
+  /* ------- reference strip ------- */
+  .ref { margin-top: 36px; }
+  .ref h3 { font-size: 0.95rem; margin: 0 0 10px; }
+  .ref-grid { display: flex; gap: 14px; flex-wrap: wrap; }
+  .ref-grid .card { flex: 1; min-width: 250px; max-width: 350px; align-self: flex-start; }
+  .ref-note { font-size: 0.78rem; color: var(--muted); margin-top: 14px; max-width: 78ch; line-height: 1.5; }
+  .type-scale { margin-top: 18px; background: var(--card); border: 1px solid var(--card-border);
+                border-radius: 13px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+  .type-scale .t1 { font-size: 15.5px; font-weight: 600; }
+  .type-scale .t2 { font-size: 10.5px; font-weight: 700; letter-spacing: 0.09em;
+                    text-transform: uppercase; color: var(--faint); }
+  .type-scale .t3 { font-size: 13px; }
+  .type-scale .t4 { font-size: 12.5px; color: var(--muted); }
+  .type-scale span i { font-style: normal; color: var(--faint); font-size: 11px; font-weight: 400;
+                       letter-spacing: 0; text-transform: none; margin-left: 10px; }
+</style>
+</head>
+<body>
+
+<h2>Edit form chrome redesign &mdash; design freeze</h2>
+<p class="subtitle">
+  Header-in-card sections: the title is a permanent row inside the card, the chevron never
+  moves, collapsed sections are just the header with an inline summary. One flat row language
+  everywhere; tanks at row scale, identity first; hero stat cells retired.
+  Click any chevroned header to toggle it.
+</p>
+<div class="toolbar">
+  <button id="btn-light" onclick="setTheme('light')">Light</button>
+  <button id="btn-dark" onclick="setTheme('dark')">Dark</button>
+</div>
+
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <g id="i-chevron"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g>
+    <g id="i-right"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g>
+    <g id="i-activity"><path d="M22 12h-4l-3 9L9 3l-3 9H2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></g>
+    <g id="i-tank"><rect x="8" y="6" width="8" height="15" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 6V3M9.5 3h5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></g>
+    <g id="i-waves"><path d="M2 8c2.5-2.5 5-2.5 7.5 0s5 2.5 7.5 0 3.5-1.8 5 0M2 15c2.5-2.5 5-2.5 7.5 0s5 2.5 7.5 0 3.5-1.8 5 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></g>
+    <g id="i-send"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></g>
+    <g id="i-users"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="7" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></g>
+    <g id="i-star"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></g>
+    <g id="i-bookmark"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></g>
+    <g id="i-pin"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="10" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/></g>
+    <g id="i-info"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 16v-4M12 8h.01" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></g>
+    <g id="i-shield"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></g>
+    <g id="i-book"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></g>
+  </defs>
+</svg>
+
+<div class="panes">
+
+  <!-- ============================== DIVE EDIT ============================== -->
+  <div class="pane">
+    <p class="pane-caption">Dive edit</p>
+    <div class="appbar">
+      <span class="title">Edit Dive</span>
+      <span class="cancel">Cancel</span><span class="save">Save</span>
+    </div>
+    <div class="stack">
+
+      <div class="card">
+        <div class="card-header">
+          <svg class="section-icon" viewBox="0 0 24 24"><use href="#i-activity"/></svg>
+          <span class="h-title">The Dive</span>
+          <span class="h-summary"></span>
+        </div>
+        <div class="card-body-clip"><div class="card-body"><div class="card-body-inner">
+          <div class="row"><span class="k">Name</span><span class="v placeholder">Optional name for this dive</span></div>
+          <div class="row"><span class="k">Dive #</span><span class="v">42</span></div>
+          <div class="row"><span class="k">Entry</span><span class="v">May 7, 2026, 2:06 PM<svg viewBox="0 0 24 24"><use href="#i-right"/></svg></span></div>
+          <div class="row"><span class="k">Exit</span><span class="v">May 7, 2026, 3:02 PM<svg viewBox="0 0 24 24"><use href="#i-right"/></svg></span></div>
+          <div class="row"><span class="k">Surface interval</span><span class="v placeholder">1h 13m</span></div>
+          <div class="row"><span class="k">Max depth</span><span class="v">71.6 ft</span></div>
+          <div class="row"><span class="k">Avg depth</span><span class="v">33.0 ft</span></div>
+          <div class="row"><span class="k">Bottom time</span><span class="v">52 min</span></div>
+          <div class="row"><span class="k">Runtime</span><span class="v">56 min</span></div>
+          <div class="row"><span class="k">Site</span><span class="v"><span class="link">Invisibles</span><svg viewBox="0 0 24 24"><use href="#i-right"/></svg></span></div>
+          <div class="row"><span class="k">Dive profile</span><span class="v">1,719 points<svg viewBox="0 0 24 24"><use href="#i-right"/></svg></span></div>
+        </div></div></div>
+      </div>
+
+      <div class="card toggleable" id="gas">
+        <div class="card-header" onclick="toggle('gas')">
+          <svg class="section-icon" viewBox="0 0 24 24"><use href="#i-tank"/></svg>
+          <span class="h-title">Gas &amp; Gear</span>
+          <span class="h-summary">1 tank &middot; Air &middot; 1 item</span>
+          <svg class="chevron" viewBox="0 0 24 24"><use href="#i-chevron"/></svg>
+        </div>
+        <div class="card-body-clip"><div class="card-body"><div class="card-body-inner">
+          <div class="row"><span class="k">Dive mode</span><span class="v"><span class="seg"><i class="on">OC</i><i>CCR</i><i>SCR</i></span></span></div>
+          <div class="overline"><span class="o-label">Tanks</span></div>
+          <div class="tank">
+            <div class="lines">
+              <div class="l1">Tank 1 &middot; Back Gas</div>
+              <div class="l2">Air &middot; 11 L &middot; 200 &rarr; 50 bar</div>
+            </div>
+            <svg viewBox="0 0 24 24"><use href="#i-right"/></svg>
+          </div>
+          <div class="append">+ Add tank</div>
+          <div class="overline"><span class="o-label">Equipment</span><span class="o-actions"><span>Use set</span><span>+ Add</span></span></div>
+          <div class="empty-row">No equipment yet</div>
+          <div class="overline"><span class="o-label">Weight</span></div>
+          <div class="row"><span class="k">Weight</span><span class="v">4.0 kg</span></div>
+        </div></div></div>
+      </div>
+
+      <div class="card toggleable collapsed" id="cond">
+        <div class="card-header" onclick="toggle('cond')">
+          <svg class="section-icon" viewBox="0 0 24 24"><use href="#i-waves"/></svg>
+          <span class="h-title">Conditions</span>
+          <span class="h-summary">Salt water &middot; 81&deg;F &middot; Excellent</span>
+          <svg class="chevron" viewBox="0 0 24 24"><use href="#i-chevron"/></svg>
+        </div>
+        <div class="card-body-clip"><div class="card-body"><div class="card-body-inner">
+          <div class="row"><span class="k">Water temp</span><span class="v">81 &deg;F</span></div>
+          <div class="row"><span class="k">Air temp</span><span class="v">84 &deg;F</span></div>
+          <div class="row"><span class="k">Visibility</span><span class="v">Excellent (&gt;100 ft)<svg viewBox="0 0 24 24"><use href="#i-right"/></svg></span></div>
+          <div class="row"><span class="k">Water type</span><span class="v">Salt<svg viewBox="0 0 24 24"><use href="#i-right"/></svg></span></div>
+          <div class="row"><span class="k">Current</span><span class="v placeholder">Add<svg viewBox="0 0 24 24"><use href="#i-right"/></svg></span></div>
+          <div class="row"><span class="k">Entry method</span><span class="v">Shore<svg viewBox="0 0 24 24"><use href="#i-right"/></svg></span></div>
+          <div class="overline"><span class="o-label">Weather</span><span class="o-actions"><span>Fetch</span></span></div>
+          <div class="row"><span class="k">Wind</span><span class="v placeholder">Add</span></div>
+          <div class="row"><span class="k">Cloud cover</span><span class="v placeholder">Add</span></div>
+        </div></div></div>
+      </div>
+
+      <div class="card toggleable collapsed" id="trip">
+        <div class="card-header" onclick="toggle('trip')">
+          <svg class="section-icon" viewBox="0 0 24 24"><use href="#i-send"/></svg>
+          <span class="h-title">Trip</span>
+          <span class="h-summary">Bonaire May 2026</span>
+          <svg class="chevron" viewBox="0 0 24 24"><use href="#i-chevron"/></svg>
+        </div>
+        <div class="card-body-clip"><div class="card-body"><div class="card-body-inner">
+          <div class="row"><span class="k">Trip</span><span class="v"><span class="link">Bonaire May 2026</span><svg viewBox="0 0 24 24"><use href="#i-right"/></svg></span></div>
+          <div class="row"><span class="k">Dive center</span><span class="v placeholder">Add<svg viewBox="0 0 24 24"><use href="#i-right"/></svg></span></div>
+        </div></div></div>
+      </div>
+
+      <div class="card toggleable collapsed" id="buddies">
+        <div class="card-header" onclick="toggle('buddies')">
+          <svg class="section-icon" viewBox="0 0 24 24"><use href="#i-users"/></svg>
+          <span class="h-title">Buddies</span>
+          <span class="h-summary">Brad Vansellous</span>
+          <svg class="chevron" viewBox="0 0 24 24"><use href="#i-chevron"/></svg>
+        </div>
+        <div class="card-body-clip"><div class="card-body"><div class="card-body-inner">
+          <div class="row"><span class="k">Brad Vansellous</span><span class="v">Buddy<svg viewBox="0 0 24 24"><use href="#i-right"/></svg></span></div>
+          <div class="append">+ Add buddy</div>
+        </div></div></div>
+      </div>
+
+      <div class="card toggleable collapsed" id="exp">
+        <div class="card-header" onclick="toggle('exp')">
+          <svg class="section-icon" viewBox="0 0 24 24"><use href="#i-star"/></svg>
+          <span class="h-title">Experience</span>
+          <span class="h-summary invite">Add rating, notes or tags</span>
+          <svg class="chevron" viewBox="0 0 24 24"><use href="#i-chevron"/></svg>
+        </div>
+        <div class="card-body-clip"><div class="card-body"><div class="card-body-inner">
+          <div class="row"><span class="k">Rating</span><span class="v"><span class="stars"><span class="off">&#9733;&#9733;&#9733;&#9733;&#9733;</span></span></span></div>
+          <div class="row"><span class="k">Notes</span><span class="v placeholder">Add notes</span></div>
+          <div class="row"><span class="k">Tags</span><span class="v placeholder">Add tags</span></div>
+        </div></div></div>
+      </div>
+
+      <div class="loose-append">+ Add: Training course &middot; Custom fields</div>
+    </div>
+  </div>
+
+  <!-- ============================== SITE EDIT ============================== -->
+  <div class="pane">
+    <p class="pane-caption">Site edit</p>
+    <div class="appbar">
+      <span class="title">Edit Site</span>
+      <span class="cancel">Cancel</span><span class="save">Save</span>
+    </div>
+    <div class="stack">
+
+      <div class="card">
+        <div class="card-header">
+          <svg class="section-icon" viewBox="0 0 24 24"><use href="#i-bookmark"/></svg>
+          <span class="h-title">Identity</span>
+          <span class="h-summary"></span>
+        </div>
+        <div class="card-body-clip"><div class="card-body"><div class="card-body-inner">
+          <div class="row"><span class="k">Name</span><span class="v">Alice in Wonderland</span></div>
+          <div class="row"><span class="k">Description</span><span class="v placeholder">Add a description</span></div>
+          <div class="row"><span class="k">Country</span><span class="v">Nederland</span></div>
+          <div class="row"><span class="k">Region</span><span class="v">Bonaire</span></div>
+          <div class="row"><span class="k">City</span><span class="v placeholder">Add</span></div>
+          <div class="row"><span class="k">Island</span><span class="v placeholder">Add</span></div>
+          <div class="row"><span class="k">Body of water</span><span class="v placeholder">Add</span></div>
+        </div></div></div>
+      </div>
+
+      <div class="card toggleable" id="loc">
+        <div class="card-header" onclick="toggle('loc')">
+          <svg class="section-icon" viewBox="0 0 24 24"><use href="#i-pin"/></svg>
+          <span class="h-title">Location</span>
+          <span class="h-summary">12.099804, -68.285293</span>
+          <svg class="chevron" viewBox="0 0 24 24"><use href="#i-chevron"/></svg>
+        </div>
+        <div class="card-body-clip"><div class="card-body"><div class="card-body-inner">
+          <div class="row"><span class="k">Latitude</span><span class="v">12.099804</span></div>
+          <div class="row"><span class="k">Longitude</span><span class="v">-68.285293</span></div>
+          <div class="actions-row"><span>Use my location</span><span>Pick from map</span></div>
+          <div class="row"><span class="k">Altitude</span><span class="v placeholder">Add</span></div>
+        </div></div></div>
+      </div>
+
+      <div class="card toggleable" id="info">
+        <div class="card-header" onclick="toggle('info')">
+          <svg class="section-icon" viewBox="0 0 24 24"><use href="#i-info"/></svg>
+          <span class="h-title">Dive Info</span>
+          <span class="h-summary">25&ndash;98 ft &middot; Intermediate &middot; 4.0</span>
+          <svg class="chevron" viewBox="0 0 24 24"><use href="#i-chevron"/></svg>
+        </div>
+        <div class="card-body-clip"><div class="card-body"><div class="card-body-inner">
+          <div class="row"><span class="k">Min depth</span><span class="v">25 ft</span></div>
+          <div class="row"><span class="k">Max depth</span><span class="v">98 ft</span></div>
+          <div class="row"><span class="k">Difficulty</span><span class="v"><span class="chips"><i>Beginner</i><i class="on">Intermediate</i><i>Advanced</i></span></span></div>
+          <div class="row"><span class="k">Rating</span><span class="v"><span class="stars">&#9733;&#9733;&#9733;&#9733;<span class="off">&#9733;</span></span></span></div>
+        </div></div></div>
+      </div>
+
+      <div class="card toggleable collapsed" id="access">
+        <div class="card-header" onclick="toggle('access')">
+          <svg class="section-icon" viewBox="0 0 24 24"><use href="#i-shield"/></svg>
+          <span class="h-title">Access &amp; Safety</span>
+          <span class="h-summary invite">Add access, parking, mooring or hazards</span>
+          <svg class="chevron" viewBox="0 0 24 24"><use href="#i-chevron"/></svg>
+        </div>
+        <div class="card-body-clip"><div class="card-body"><div class="card-body-inner">
+          <div class="row"><span class="k">Access notes</span><span class="v placeholder">Add</span></div>
+          <div class="row"><span class="k">Mooring number</span><span class="v placeholder">Add</span></div>
+          <div class="row"><span class="k">Parking</span><span class="v placeholder">Add</span></div>
+          <div class="row"><span class="k">Hazards</span><span class="v placeholder">Add</span></div>
+        </div></div></div>
+      </div>
+
+      <div class="card toggleable collapsed" id="life">
+        <div class="card-header" onclick="toggle('life')">
+          <svg class="section-icon" viewBox="0 0 24 24"><use href="#i-book"/></svg>
+          <span class="h-title">Life &amp; Notes</span>
+          <span class="h-summary">3 species &middot; notes</span>
+          <svg class="chevron" viewBox="0 0 24 24"><use href="#i-chevron"/></svg>
+        </div>
+        <div class="card-body-clip"><div class="card-body"><div class="card-body-inner">
+          <div class="row"><span class="k">Expected marine life</span><span class="v"><span class="chips"><i>Turtle</i><i>Tarpon</i><i>Seahorse</i></span></span></div>
+          <div class="row"><span class="k">Notes</span><span class="v">notes</span></div>
+        </div></div></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ============================== STATE REFERENCE ============================== -->
+<div class="ref">
+  <h3>Header state reference</h3>
+  <div class="ref-grid">
+    <div class="card">
+      <div class="card-header">
+        <svg class="section-icon" viewBox="0 0 24 24"><use href="#i-waves"/></svg>
+        <span class="h-title">Expanded</span>
+        <span class="h-summary"></span>
+        <svg class="chevron" viewBox="0 0 24 24"><use href="#i-chevron"/></svg>
+      </div>
+      <div class="card-body-clip"><div class="card-body"><div class="card-body-inner">
+        <div class="row"><span class="k">Row</span><span class="v">Value</span></div>
+      </div></div></div>
+    </div>
+    <div class="card collapsed">
+      <div class="card-header">
+        <svg class="section-icon" viewBox="0 0 24 24"><use href="#i-waves"/></svg>
+        <span class="h-title">Has data</span>
+        <span class="h-summary">Salt water &middot; 81&deg;F</span>
+        <svg class="chevron" viewBox="0 0 24 24"><use href="#i-chevron"/></svg>
+      </div>
+    </div>
+    <div class="card collapsed">
+      <div class="card-header">
+        <svg class="section-icon" viewBox="0 0 24 24"><use href="#i-waves"/></svg>
+        <span class="h-title">Empty</span>
+        <span class="h-summary invite">Add conditions</span>
+        <svg class="chevron" viewBox="0 0 24 24"><use href="#i-chevron"/></svg>
+      </div>
+    </div>
+    <div class="card collapsed error-edge">
+      <div class="card-header">
+        <svg class="section-icon" viewBox="0 0 24 24"><use href="#i-waves"/></svg>
+        <span class="h-title">Has issues</span>
+        <span class="h-summary issues">2 issues</span>
+        <svg class="chevron" viewBox="0 0 24 24"><use href="#i-chevron"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="type-scale">
+    <span class="t1">Section header<i>15.5px semibold, onSurface, inside the card</i></span>
+    <span class="t2">Sub-header overline<i>10.5px bold, letter-spaced, muted</i></span>
+    <span class="t3">Row label<i>13px regular, onSurface</i></span>
+    <span class="t4">Row value / summary<i>12.5&ndash;13px, muted; placeholder fainter</i></span>
+  </div>
+
+  <p class="ref-note">
+    Cards use the tonal section fill plus a hairline border so sections stay discernible in
+    light themes. Always-open sections (The Dive, Identity) render the same header with no
+    chevron. The summary lives in the header, so collapsing a section removes only the body;
+    nothing else moves. Empty states are a single muted line; add/append actions are accent
+    text rows; sub-header actions dock to the overline.
+  </p>
+</div>
+
+<script>
+  function setTheme(t) {
+    document.documentElement.setAttribute('data-theme', t);
+    document.getElementById('btn-light').classList.toggle('on', t === 'light');
+    document.getElementById('btn-dark').classList.toggle('on', t === 'dark');
+  }
+  function toggle(id) {
+    document.getElementById(id).classList.toggle('collapsed');
+  }
+  setTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+</script>
+</body>
+</html>

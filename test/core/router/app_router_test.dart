@@ -3,10 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/router/app_router.dart';
 import 'package:submersion/features/checklists/presentation/pages/checklist_template_edit_page.dart';
 import 'package:submersion/features/checklists/presentation/pages/checklist_templates_page.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/safety/presentation/pages/incident_edit_page.dart';
+import 'package:submersion/features/safety/presentation/pages/incidents_list_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
 
@@ -483,6 +486,66 @@ void main() {
     );
   });
 
+  group('app_router near-miss incident routes', () {
+    testWidgets(
+      'incidents, incidentNew, and incidentEdit builders return the right '
+      'pages and thread through the dive/incident ids',
+      (tester) async {
+        await tester.pumpWidget(const MaterialApp(home: SizedBox()));
+        final context = tester.element(find.byType(SizedBox));
+        final config = router.configuration;
+
+        final listRoute = _findRouteByName(config.routes, 'incidents');
+        expect(listRoute, isNotNull);
+        expect(listRoute!.path, '/incidents');
+        final listState = GoRouterState(
+          config,
+          uri: Uri.parse('/incidents'),
+          matchedLocation: '/incidents',
+          fullPath: '/incidents',
+          pathParameters: const {},
+          pageKey: const ValueKey('/incidents'),
+        );
+        expect(
+          listRoute.builder!(context, listState),
+          isA<IncidentsListPage>(),
+        );
+
+        // A new incident prefilled from a dive carries the diveId query param.
+        final newRoute = _findRouteByName(config.routes, 'incidentNew');
+        expect(newRoute, isNotNull);
+        final newState = GoRouterState(
+          config,
+          uri: Uri.parse('/incidents/new?diveId=dive-9'),
+          matchedLocation: '/incidents/new',
+          fullPath: '/incidents/new',
+          pathParameters: const {},
+          pageKey: const ValueKey('/incidents/new'),
+        );
+        final newWidget =
+            newRoute!.builder!(context, newState) as IncidentEditPage;
+        expect(newWidget.incidentId, isNull);
+        expect(newWidget.diveId, 'dive-9');
+
+        // Editing an existing incident threads the path param through.
+        final editRoute = _findRouteByName(config.routes, 'incidentEdit');
+        expect(editRoute, isNotNull);
+        final editState = GoRouterState(
+          config,
+          uri: Uri.parse('/incidents/inc-1'),
+          matchedLocation: '/incidents/inc-1',
+          fullPath: '/incidents/:incidentId',
+          pathParameters: const {'incidentId': 'inc-1'},
+          pageKey: const ValueKey('/incidents/inc-1'),
+        );
+        final editWidget =
+            editRoute!.builder!(context, editState) as IncidentEditPage;
+        expect(editWidget.incidentId, 'inc-1');
+        expect(editWidget.diveId, isNull);
+      },
+    );
+  });
+
   group('app_router initialLocation', () {
     test('initial location is /dashboard', () {
       expect(
@@ -494,6 +557,57 @@ void main() {
       );
       // The GoRouter initialLocation is /dashboard
       // which is resolved via the shell route
+    });
+  });
+
+  group('app_router lightroom route (pending Adobe review)', () {
+    test('lightroom route stays defined so navigation degrades gracefully', () {
+      // The route is intentionally kept (not removed) while the UI is hidden so
+      // deep links and PendingSetupService's '/settings/lightroom' target
+      // redirect instead of hitting an unknown-route error screen.
+      final route = _findRouteByName(router.configuration.routes, 'lightroom');
+      expect(route, isNotNull);
+      expect(route!.path, 'lightroom');
+      expect(route.redirect, isNotNull);
+    });
+
+    testWidgets('redirects to media sources when lightroomUiEnabled is false, '
+        'and passes through when true', (tester) async {
+      final config = router.configuration;
+      final route = _findRouteByName(config.routes, 'lightroom');
+      expect(route, isNotNull);
+
+      late BuildContext capturedContext;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              capturedContext = context;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+
+      final state = GoRouterState(
+        config,
+        uri: Uri.parse('/settings/lightroom'),
+        matchedLocation: '/settings/lightroom',
+        fullPath: '/settings/lightroom',
+        pathParameters: const {},
+        pageKey: const ValueKey('/settings/lightroom'),
+      );
+
+      addTearDown(() => lightroomUiEnabled = false);
+
+      lightroomUiEnabled = false;
+      expect(
+        await route!.redirect!(capturedContext, state),
+        '/settings/media-sources',
+      );
+
+      lightroomUiEnabled = true;
+      expect(await route.redirect!(capturedContext, state), isNull);
     });
   });
 }

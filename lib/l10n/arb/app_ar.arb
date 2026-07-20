@@ -717,6 +717,113 @@
   "checklists_template_descriptionLabel": "الوصف",
   "checklists_template_itemsHeader": "العناصر",
   "checklists_template_addItem": "إضافة عنصر",
+  "preDive_templates_title": "قوائم تحقق ما قبل الغوص",
+  "preDive_templates_empty": "لا توجد قوائم تحقق ما قبل الغوص بعد",
+  "preDive_templates_builtInBadge": "مدمجة",
+  "preDive_templates_clone": "استنساخ",
+  "preDive_templates_cloneSuffix": " (نسخة)",
+  "preDive_templates_delete": "حذف",
+  "preDive_templates_deleteConfirm": "هل تريد حذف قالب قائمة التحقق هذا؟",
+  "preDive_templates_strictOrderBadge": "ترتيب صارم",
+  "preDive_edit_titleNew": "قائمة تحقق جديدة لما قبل الغوص",
+  "preDive_edit_titleEdit": "تعديل قائمة تحقق ما قبل الغوص",
+  "preDive_edit_name": "الاسم",
+  "preDive_edit_description": "الوصف",
+  "preDive_edit_category": "الفئة",
+  "preDive_edit_strictOrder": "ترتيب صارم",
+  "preDive_edit_strictOrderHelp": "يجب إكمال العناصر من الأعلى إلى الأسفل",
+  "preDive_edit_addItem": "إضافة عنصر",
+  "preDive_edit_nameRequired": "أدخل اسمًا",
+  "preDive_item_title": "العنوان",
+  "preDive_item_section": "القسم",
+  "preDive_item_notes": "ملاحظات",
+  "preDive_item_required": "مطلوب",
+  "preDive_item_type_check": "خانة اختيار",
+  "preDive_item_type_value": "قيمة مسجَّلة",
+  "preDive_item_type_equipmentSet": "عناصر طقم المعدات",
+  "preDive_item_valueLabel": "تسمية القيمة",
+  "preDive_item_valueUnit": "الوحدة",
+  "preDive_item_valueMin": "الحد الأدنى (تحذير)",
+  "preDive_item_valueMax": "الحد الأقصى (تحذير)",
+  "preDive_runner_progress": "{done} من {total}",
+  "@preDive_runner_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_runner_complete": "إكمال",
+  "preDive_runner_completeFlagged": "هل تريد الإكمال مع {count} من العناصر المعلَّمة؟",
+  "@preDive_runner_completeFlagged": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_runner_abort": "إلغاء قائمة التحقق",
+  "preDive_runner_abortConfirm": "هل تريد إلغاء قائمة التحقق هذه؟ سيتم الاحتفاظ بها في السجل كملغاة.",
+  "preDive_runner_skip": "تخطي",
+  "preDive_runner_flag": "وضع علامة",
+  "preDive_runner_undo": "إعادة إلى قيد الانتظار",
+  "preDive_runner_serviceOverdue": "الصيانة متأخرة",
+  "preDive_runner_addNote": "إضافة ملاحظة",
+  "preDive_runner_enterValue": "أدخل القيمة",
+  "preDive_runner_flaggedBadge": "{count} معلَّمة",
+  "@preDive_runner_flaggedBadge": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_runner_locked": "قائمة التحقق هذه مقفلة",
+  "preDive_sessions_title": "قوائم تحقق ما قبل الغوص",
+  "preDive_sessions_empty": "لم يتم تنفيذ أي قائمة تحقق بعد",
+  "preDive_sessions_resume": "استئناف",
+  "preDive_sessions_start": "بدء قائمة التحقق",
+  "preDive_sessions_statusCompleted": "مكتملة",
+  "preDive_sessions_statusAborted": "ملغاة",
+  "preDive_sessions_statusInProgress": "قيد التنفيذ",
+  "preDive_sessions_linkedDive": "الغطسة المرتبطة",
+  "preDive_sessions_delete": "حذف",
+  "preDive_sessions_deleteConfirm": "هل تريد حذف سجل قائمة التحقق هذا؟",
+  "preDive_start_title": "بدء قائمة تحقق ما قبل الغوص",
+  "preDive_start_template": "قائمة التحقق",
+  "preDive_start_equipmentSet": "طقم المعدات",
+  "preDive_start_noEquipmentSet": "بدون",
+  "preDive_start_begin": "بدء",
+  "preDive_section_title": "فحص ما قبل الغوص",
+  "preDive_section_link": "ربط جلسة قائمة تحقق",
+  "preDive_section_unlink": "إلغاء الربط",
+  "preDive_section_run": "تشغيل قائمة تحقق ما قبل الغوص",
+  "preDive_section_noUnlinked": "لا توجد جلسات قوائم تحقق غير مرتبطة",
+  "diveDetailSection_preDiveChecklist_name": "فحص ما قبل الغوص",
+  "diveDetailSection_preDiveChecklist_description": "جلسة قائمة تحقق ما قبل الغوص المرتبطة",
+  "diveLog_listPage_bottomSheet_preDiveChecklist": "بدء قائمة تحقق ما قبل الغوص",
+  "preDive_dashboard_title": "فحص ما قبل الغوص",
+  "preDive_dashboard_resume": "استئناف - {done} من {total}",
+  "@preDive_dashboard_resume": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_dashboard_start": "بدء فحص ما قبل الغوص",
+  "tools_preDive_title": "قوائم تحقق ما قبل الغوص",
+  "tools_preDive_subtitle": "تشغيل جلسات قوائم التحقق ومراجعتها",
+  "tools_preDive_description": "فحوصات رفيق الغوص، وقوائم تجهيز CCR، وتوضيب المعدات مع سجل تدقيق",
+  "trips_detail_preDive_action": "قائمة تحقق ما قبل الغوص",
+  "settings_manage_preDiveChecklists": "قوائم تحقق ما قبل الغوص",
+  "settings_manage_preDiveChecklists_subtitle": "فحوصات رفيق الغوص، قوائم تجهيز CCR، توضيب المعدات",
   "common_action_back": "رجوع",
   "common_action_cancel": "إلغاء",
   "common_action_close": "إغلاق",
@@ -729,10 +836,16 @@
   "common_label_loading": "جارٍ التحميل",
   "common_placeholder_noValue": "--",
   "courses_action_add": "إضافة دورة",
+  "courses_action_addFromTemplate": "إضافة من قالب",
+  "courses_action_addRequirement": "إضافة متطلب",
   "courses_action_create": "إنشاء دورة",
+  "courses_action_deleteRequirement": "حذف المتطلب",
   "courses_action_edit": "تعديل الدورة",
+  "courses_action_editRequirement": "تعديل المتطلب",
   "courses_action_exportTrainingLog": "تصدير سجل التدريب",
+  "courses_action_linkDive": "ربط",
   "courses_action_markCompleted": "وضع علامة كمكتمل",
+  "courses_action_unlinkDive": "إلغاء ربط الغطسة",
   "courses_action_moreOptions": "المزيد من الخيارات",
   "courses_action_retry": "إعادة المحاولة",
   "courses_action_saveChanges": "حفظ التغييرات",
@@ -785,16 +898,26 @@
   "courses_picker_selectTitle": "اختيار دورة تدريبية",
   "courses_picker_selected": "محدد",
   "courses_picker_tapToLink": "اضغط للربط بدورة تدريبية",
+  "courses_requirement_diveProgress": "{count} من {target} غطسات",
+  "courses_requirement_field_name": "الاسم",
+  "courses_requirement_field_targetCount": "الغطسات المطلوبة",
+  "courses_requirement_kind_checklist": "عنصر تحقق",
+  "courses_requirement_kind_dive": "متطلب غطس",
+  "courses_requirement_suggestions": "غطسات مقترحة",
+  "courses_requirements_empty": "تتبع غطسات المغامرة والمتطلبات المسبقة وعناصر التحقق لهذه الدورة.",
+  "courses_requirements_progress": "{satisfied} من {total} مكتملة",
   "courses_section_details": "تفاصيل الدورة",
   "courses_section_earnedCertification": "الاعتماد المكتسب",
   "courses_section_instructor": "المدرب",
   "courses_section_notes": "ملاحظات",
+  "courses_section_requirements": "المتطلبات",
   "courses_section_trainingDives": "الغطسات التدريبية",
   "courses_status_completed": "مكتمل",
   "courses_status_daysSinceStart": "{days} يوم منذ البدء",
   "courses_status_durationDays": "{days} يوم",
   "courses_status_inProgress": "قيد التنفيذ",
   "courses_status_semanticLabel": "{status}، {duration}",
+  "courses_template_addsCount": "يضيف {count} متطلبات",
   "courses_summary_overview": "نظرة عامة",
   "courses_summary_quickActions": "إجراءات سريعة",
   "courses_summary_recentCourses": "الدورات الأخيرة",
@@ -806,6 +929,7 @@
   "courses_title_new": "دورة جديدة",
   "courses_title_singular": "دورة",
   "courses_validation_nameRequired": "الرجاء إدخال اسم الدورة",
+  "dashboard_activeCourses_title": "الدورات قيد التنفيذ",
   "dashboard_activity_daySinceDiving": "يوم منذ آخر غوصة",
   "dashboard_activity_daysSinceDiving": "أيام منذ آخر غوصة",
   "dashboard_activity_diveInYear": "غوصة في {year}",
@@ -1074,6 +1198,42 @@
   "diveDetailSection_tide_description": "رسم بياني لدورة المد والجزر والتوقيت",
   "diveDetailSection_tide_name": "المد والجزر",
   "diveDetailSection_weights_description": "تفصيل الأوزان، إجمالي الوزن",
+  "diveDetailSection_buoyancy_name": "الطفو",
+  "diveDetailSection_buoyancy_description": "الطفو خلال الغطسة، التغيّر، والوزن القابل للإسقاط",
+  "buoyancy_tooltip": "الطفو الصافي المُنمذَج خلال الغطسة من المخطط واستهلاك الغاز والمعدات.",
+  "buoyancy_verdictBuoyant": "عند محطتك الأخيرة (~{depth}) كان لديك نحو {amount} من الطفو",
+  "buoyancy_verdictHeavy": "عند محطتك الأخيرة (~{depth}) كنت أثقل بنحو {amount}",
+  "buoyancy_verdictNeutral": "كانت تهيئتك قريبة من التعادل عند المحطة الأخيرة",
+  "buoyancy_verdictConvention": "مُقدَّر وفق اصطلاح محطة الأمان عند 5 أمتار",
+  "buoyancy_breakdownTitle": "تفصيل العناصر",
+  "buoyancy_suitTerm": "البدلة",
+  "buoyancy_leadTerm": "الرصاص",
+  "buoyancy_beginNet": "بداية الغطسة",
+  "buoyancy_endNet": "نهاية الغطسة",
+  "buoyancy_swing": "تغيّر الطفو",
+  "buoyancy_peakLift": "أقصى رفع مطلوب",
+  "buoyancy_wingWarning": "يتجاوز قدرة الرفع الاسمية لجناحك",
+  "buoyancy_minDitchable": "أدنى وزن قابل للإسقاط",
+  "buoyancy_droppable": "يمكنك إسقاط",
+  "buoyancy_ditchWarning": "أكثر مما يمكنك إسقاطه",
+  "buoyancy_drysuitGas": "غاز البدلة الجافة المُضاف",
+  "buoyancy_estimatedPressures": "ضغوط الأسطوانات تقديرية",
+  "buoyancy_linkSuitHint": "اربط بدلة تعرّض بهذه الغطسة للحصول على صورة أوفى",
+  "buoyancy_chartNet": "الصافي",
+  "buoyancy_chartRig": "المعدات + الرصاص",
+  "buoyancy_chartMinutes": "الزمن (دقيقة)",
+  "buoyancy_historyTitle": "سجل الترصيص",
+  "buoyancy_historyCarried": "المحمول",
+  "buoyancy_historyModeled": "المُنمذَج",
+  "buoyancy_historyMore": "عادةً ما تحمل {delta} أكثر مما يقترحه النموذج",
+  "buoyancy_historyLess": "عادةً ما تحمل {delta} أقل مما يقترحه النموذج",
+  "buoyancy_throughDive": "خلال الغطسة",
+  "buoyancy_adjust": "تعديل",
+  "buoyancy_whatIfTitle": "تعديل هذه الغطسة",
+  "buoyancy_whatIfLead": "الرصاص",
+  "buoyancy_whatIfSuit": "طفو البدلة",
+  "buoyancy_whatIfReset": "إعادة تعيين",
+  "buoyancy_whatIfDelta": "{delta} مقابل الفعلي",
   "diveDetailSection_weights_name": "الأوزان",
   "diveComputer_action_setFavorite": "تعيين كمفضل",
   "diveComputer_discovery_chooseDifferentDevice": "اختيار جهاز آخر",
@@ -1553,6 +1713,12 @@
   "diveLog_edit_noMarineLife": "لم يتم تسجيل حياة بحرية",
   "diveLog_edit_notSpecified": "غير محدد",
   "diveLog_edit_notesHint": "أضف ملاحظات حول هذه الغوصة...",
+  "diveLog_edit_overline_tanks": "الأسطوانات",
+  "diveLog_edit_profile_draw": "رسم ملف الغوص",
+  "diveLog_edit_profile_none": "غير مسجل",
+  "diveLog_edit_profile_outliers": "{count, plural, one{تم اكتشاف قيمة شاذة محتملة واحدة} other{تم اكتشاف {count} قيم شاذة محتملة}}",
+  "diveLog_edit_profile_points": "{count, plural, one{نقطة واحدة} other{{count} نقاط}}",
+  "diveLog_edit_row_diveProfile": "ملف الغوص",
   "diveLog_edit_row_addSite": "إضافة موقع",
   "diveLog_edit_row_diveCenter": "مركز الغوص",
   "diveLog_edit_row_entry": "الدخول",
@@ -2383,6 +2549,7 @@
   "diveSites_edit_section_gpsCoordinates": "إحداثيات GPS",
   "diveSites_edit_section_hazards": "المخاطر والسلامة",
   "diveSites_edit_section_rating": "التقييم",
+  "diveSites_edit_section_waterType": "نوع المياه",
   "diveSites_edit_snackbar_errorDeleting": "خطأ في حذف الموقع: {error}",
   "diveSites_edit_snackbar_errorSaving": "خطأ في حفظ الموقع: {error}",
   "diveSites_edit_snackbar_locationCaptured": "تم التقاط الموقع",
@@ -2988,6 +3155,61 @@
   "equipment_detail_retiredChip": "متقاعد",
   "equipment_detail_serialNumberLabel": "الرقم التسلسلي",
   "equipment_detail_serviceInfoTitle": "معلومات الصيانة",
+  "equipment_serviceClocks_title": "عدادات الصيانة",
+  "equipment_serviceClocks_addClock": "إضافة عداد",
+  "equipment_serviceClocks_logService": "تسجيل صيانة",
+  "equipment_serviceClocks_edit": "تعديل الفترات",
+  "equipment_serviceClocks_pause": "إيقاف مؤقت",
+  "equipment_serviceClocks_resume": "استئناف",
+  "equipment_serviceClocks_remove": "إزالة",
+  "equipment_serviceClocks_paused": "متوقف مؤقتًا",
+  "equipment_serviceClocks_empty": "لا توجد عدادات صيانة",
+  "equipment_serviceClocks_dueOn": "مستحق في {date}",
+  "equipment_serviceClocks_overdueSince": "متأخر منذ {date}",
+  "equipment_serviceClocks_overdue": "متأخر",
+  "equipment_serviceClocks_divesLeft": "متبقٍ {remaining} من {total} غوصة",
+  "equipment_serviceClocks_hoursLeft": "متبقٍ {remaining} من {total} ساعة",
+  "equipment_serviceClocks_manageKinds": "إدارة أنواع الصيانة",
+  "equipment_serviceClocks_appliesToClock": "ينطبق على العداد",
+  "equipment_serviceClocks_noClockOption": "غير مرتبط بعداد",
+  "equipment_scheduleDialog_title": "تعديل العداد",
+  "equipment_scheduleDialog_intervalDays": "الفترة (أيام)",
+  "equipment_scheduleDialog_intervalDives": "الفترة (غوصات)",
+  "equipment_scheduleDialog_intervalHours": "الفترة (ساعات)",
+  "equipment_scheduleDialog_inheritHint": "الافتراضي: {value}",
+  "equipment_scheduleDialog_anchorDate": "تاريخ الأساس",
+  "equipment_scheduleDialog_anchorHint": "يُستخدم عندما لا يوجد بعد سجل صيانة من هذا النوع",
+  "equipment_scheduleDialog_clearAnchor": "مسح تاريخ الأساس",
+  "equipment_scheduleDialog_save": "حفظ",
+  "equipment_scheduleDialog_cancel": "إلغاء",
+  "equipment_serviceKinds_title": "أنواع الصيانة",
+  "equipment_serviceKinds_builtIn": "مدمج",
+  "equipment_serviceKinds_custom": "مخصص",
+  "equipment_serviceKinds_add": "إضافة نوع صيانة",
+  "equipment_serviceKinds_editTitle": "تعديل نوع الصيانة",
+  "equipment_serviceKinds_nameLabel": "الاسم",
+  "equipment_serviceKinds_nameRequired": "الاسم مطلوب",
+  "equipment_serviceKinds_appliesTo": "ينطبق على",
+  "equipment_serviceKinds_autoAttach": "إرفاق تلقائيًا بالمعدات الجديدة",
+  "equipment_serviceKinds_deleteConfirmTitle": "حذف نوع الصيانة؟",
+  "equipment_serviceKinds_deleteConfirmBody": "ستتم إزالة العدادات التي تستخدم هذا النوع من الصيانة.",
+  "equipment_serviceKinds_delete": "حذف",
+  "equipment_serviceKinds_cancel": "إلغاء",
+  "equipment_serviceKinds_save": "حفظ",
+  "equipment_serviceKinds_emptyCustom": "لا توجد أنواع صيانة مخصصة بعد",
+  "equipment_serviceKinds_everyDays": "كل {days} يوم",
+  "equipment_serviceKinds_everyDives": "كل {dives} غوصة",
+  "equipment_serviceKinds_everyHours": "كل {hours} ساعة",
+  "dashboard_serviceDue_title": "صيانة مستحقة",
+  "dashboard_serviceDue_more": "+{count} أخرى",
+  "dashboard_alerts_clockDue": "{name}: {kind} مستحقة",
+  "dashboard_alerts_clockOverdue": "{name}: {kind} متأخرة",
+  "equipment_list_worstClock": "{kind} متأخرة",
+  "trips_serviceAlert_count": "{count, plural, zero{لا توجد معدات تحتاج إلى صيانة قبل هذه الرحلة} one{قطعة معدات واحدة تحتاج إلى صيانة قبل هذه الرحلة} two{قطعتا معدات تحتاجان إلى صيانة قبل هذه الرحلة} few{{count} قطع معدات تحتاج إلى صيانة قبل هذه الرحلة} many{{count} قطعة معدات تحتاج إلى صيانة قبل هذه الرحلة} other{{count} قطعة معدات تحتاج إلى صيانة قبل هذه الرحلة}}",
+  "trips_serviceAlert_dueBefore": "{kind} مستحقة في {date}",
+  "trips_serviceAlert_overdue": "{kind} متأخرة",
+  "settings_notifications_tripLeadTitle": "مهلة التنبيه لصيانة الرحلة",
+  "settings_notifications_tripLeadDays": "{days} أيام قبل الرحلة",
   "equipment_detail_serviceIntervalLabel": "فترة الصيانة",
   "equipment_detail_serviceIntervalValue": "{days} يوم",
   "equipment_detail_serviceOverdue": "الصيانة متأخرة!",
@@ -3051,6 +3273,7 @@
   "equipment_edit_snackbar_error": "خطأ في حفظ المعدات: {error}",
   "equipment_edit_snackbar_updated": "تم تحديث المعدات",
   "equipment_edit_statusLabel": "الحالة",
+  "equipment_edit_thicknessDesignationHint": "مثلاً 5، 5/4، 7/5/3",
   "equipment_edit_thicknessHint": "مثلاً 5 مم، 7 مم",
   "equipment_edit_thicknessLabel": "السُمك",
   "equipment_edit_typeLabel": "النوع *",
@@ -3076,6 +3299,7 @@
   "equipment_list_sortTitle": "ترتيب المعدات",
   "equipment_list_sortTooltip": "ترتيب",
   "equipment_list_tile_daysCount": "{days} يوم",
+  "equipment_list_tile_serviceInDays": "{days, plural, =1{الصيانة خلال يوم واحد} other{الصيانة خلال {days} يوم}}",
   "equipment_list_tile_serviceDueChip": "الصيانة مستحقة",
   "equipment_list_tile_serviceIn": "الصيانة خلال",
   "equipment_menu_delete": "حذف",
@@ -3312,6 +3536,8 @@
   "gas_tmx1845_displayName": "Tx 18/45",
   "gas_tmx2135_description": "ترايمكس طبيعي الأكسجين 21/35",
   "gas_tmx2135_displayName": "Tx 21/35",
+  "maps_compass_resetLabel": "إعادة ضبط اتجاه الخريطة نحو الشمال",
+  "maps_compass_resetTooltip": "الشمال للأعلى",
   "maps_heatMap_hide": "إخفاء خريطة الحرارة",
   "maps_heatMap_overlayOff": "طبقة خريطة الحرارة معطلة",
   "maps_heatMap_overlayOn": "طبقة خريطة الحرارة مفعلة",
@@ -3468,6 +3694,9 @@
   "media_miniProfile_headerLabel": "ملف الغوصة",
   "media_miniProfile_semanticLabel": "مخطط ملف الغوصة المصغر",
   "media_photoPicker_appBarTitle": "اختيار الصور",
+  "media_photoPicker_tab_gallery": "المعرض",
+  "media_photoPicker_tab_files": "الملفات",
+  "media_photoPicker_tab_url": "URL",
   "media_photoPicker_clearSelectionButton": "مسح",
   "media_photoPicker_closeTooltip": "إغلاق منتقي الصور",
   "media_photoPicker_doneButton": "تم",
@@ -3485,6 +3714,18 @@
   "media_photoPicker_thumbnailAlreadyLinkedLabel": "الصورة مرتبطة بالفعل بهذه الغوصة",
   "media_photoPicker_thumbnailToggleLabel": "تبديل اختيار الصورة",
   "media_photoPicker_thumbnailToggleSelectedLabel": "تبديل اختيار الصورة، محددة",
+  "media_perdixOverlay_labelCns": "CNS",
+  "media_perdixOverlay_labelDepth": "العمق",
+  "media_perdixOverlay_labelGas": "GAS",
+  "media_perdixOverlay_labelMax": "MAX",
+  "media_perdixOverlay_labelNdl": "NDL",
+  "media_perdixOverlay_labelPpo2": "PPO2",
+  "media_perdixOverlay_labelStop": "STOP",
+  "media_perdixOverlay_labelTank": "TANK",
+  "media_perdixOverlay_labelTemp": "الحرارة",
+  "media_perdixOverlay_labelTime": "الوقت",
+  "media_perdixOverlay_labelTts": "TTS",
+  "media_perdixOverlay_toggleTooltip": "طبقة كمبيوتر الغوص",
   "media_photoViewer_cannotShare": "لا يمكن مشاركة هذه الصورة",
   "media_photoViewer_cannotWriteMetadata": "لا يمكن كتابة البيانات الوصفية - الوسائط غير مرتبطة بالمكتبة",
   "media_photoViewer_closeTooltip": "إغلاق عارض الصور",
@@ -3574,6 +3815,8 @@
   "plannerCanvas_ccr_setpointHigh": "نقطة الضبط العليا (bar)",
   "plannerCanvas_ccr_setpointLow": "نقطة الضبط الدنيا (bar)",
   "plannerCanvas_ccr_switchDepth": "عمق تبديل نقطة الضبط",
+  "plannerCanvas_pscr_ratio": "نسبة pSCR",
+  "plannerCanvas_pscr_ratio_hint": "أكبر = غاز طازج أكثر وانخفاض أقل في الأكسجين",
   "plannerCanvas_chip_cns": "CNS {value}%",
   "plannerCanvas_chip_issues": "{count, plural, =1{مشكلة واحدة} other{{count} مشكلات}}",
   "plannerCanvas_compare_action": "مقارنة",
@@ -3583,6 +3826,14 @@
   "plannerCanvas_contingency_depthDelta": "عمق إضافي",
   "plannerCanvas_contingency_lostGas": "فقدان {gas}",
   "plannerCanvas_contingency_timeDelta": "دقائق إضافية",
+  "plannerCanvas_chart_meanDepth": "المتوسط {depth}",
+  "@plannerCanvas_chart_meanDepth": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      }
+    }
+  },
   "plannerCanvas_contingency_title": "خطط الطوارئ",
   "plannerCanvas_contingency_turnFraction": "نسبة العودة",
   "plannerCanvas_contingency_turnRule": "قاعدة ضغط العودة",
@@ -3602,6 +3853,13 @@
   "plannerCanvas_issue_noDecoGas": "يلزم تخفيف الضغط ولكن لا يوجد غاز تخفيف",
   "plannerCanvas_range_base": "أساسي",
   "plannerCanvas_range_legend": "تعرض الخلايا زمن الصعود إلى السطح؛ الأحمر = غير قابلة للغطس كما هو مخطط",
+  "plannerCanvas_pane_collapse": "طي اللوحة",
+  "plannerCanvas_pane_expand": "توسيع اللوحة",
+  "plannerCanvas_tab_setup": "الإعداد",
+  "plannerCanvas_o2Narcotic": "اعتبار الأكسجين مخدرًا",
+  "plannerCanvas_rates_ascent": "معدل الصعود",
+  "plannerCanvas_rates_descent": "معدل النزول",
+  "plannerCanvas_rates_title": "المعدلات",
   "plannerCanvas_range_title": "جدول النطاقات",
   "plannerCanvas_results_noDeco": "لا يلزم تخفيف الضغط",
   "plannerCanvas_saved_deleteConfirmBody": "حذف \"{name}\" نهائيًا؟",
@@ -3752,7 +4010,7 @@
   "settings_navCustomization_subtitlePreview": "{first} · {second} · {third}",
   "settings_navCustomization_saveError": "Could not save navigation layout. Please try again.",
   "settings_backToSettings_tooltip": "العودة إلى الإعدادات",
-  "settings_cloudSync_appBar_title": "المزامنة السحابية",
+  "settings_cloudSync_appBar_title": "المزامنة السحابية لقاعدة البيانات",
   "settings_cloudSync_autoSync": "المزامنة التلقائية",
   "settings_cloudSync_autoSync_subtitle": "المزامنة تلقائيًا بعد التغييرات",
   "settings_cloudSync_conflictItems": "{count, plural, =1{عنصر واحد يحتاج اهتمامًا} other{{count} عناصر تحتاج اهتمامًا}}",
@@ -3863,7 +4121,7 @@
   "settings_data_appDefaultLocation": "موقع التطبيق الافتراضي",
   "settings_data_backup": "نسخ احتياطي واستعادة",
   "settings_data_backup_subtitle": "إنشاء نسخة احتياطية من بياناتك",
-  "settings_data_cloudSync": "المزامنة السحابية",
+  "settings_data_cloudSync": "المزامنة السحابية لقاعدة البيانات",
   "settings_data_customFolder": "مجلد مخصص",
   "settings_data_databaseStorage": "تخزين قاعدة البيانات",
   "settings_data_export_completed": "اكتمل التصدير",
@@ -3902,9 +4160,26 @@
   "settings_decompression_dialog_title": "عوامل التدرج",
   "settings_decompression_endLimit": "حد END",
   "settings_decompression_endLimit_dialog_title": "حد END",
+  "settings_decompression_cnsMethodTitle": "حساب الـ CNS",
+  "settings_decompression_cnsMethodClassic": "جدول NOAA، متدرّج (كلاسيكي)",
+  "settings_decompression_cnsMethodClassicDesc": "يحسب كل نطاق 0.1 bar عند حدّه الأكثر صرامة. الطريقة الأصلية في Submersion.",
+  "settings_decompression_cnsMethodShearwater": "استيفاء خطي (بأسلوب Shearwater)",
+  "settings_decompression_cnsMethodShearwaterDesc": "يستوفي بين حدود NOAA كما توثّقها Shearwater. يتوافق مع معظم حواسيب الغوص.",
+  "settings_decompression_cnsMethodSubsurface": "ملاءمة أسّية (مثل Subsurface)",
+  "settings_decompression_cnsMethodSubsurfaceDesc": "ملاءمة منحنى سلس لجدول NOAA. يتوافق مع الـ CNS المحسوب في Subsurface.",
+  "settings_decompression_cnsMethodAboutTitle": "حول هذه الطرق",
+  "settings_decompression_cnsMethodAboutBody": "تستند الطرق الثلاث جميعها إلى حدود التعرض للأكسجين في دليل الغوص من NOAA (300 دقيقة عند ppO2 يبلغ 1.0 bar، و45 دقيقة عند 1.6 bar). لا يحدد الجدول الحدود إلا بخطوات مقدارها 0.1 bar: تحسب الطريقة الكلاسيكية كل ما يقع ضمن نطاق عند حدّه الأكثر صرامة، مما يبالغ بشكل منهجي في تقدير التعرض بين القيم. توثّق حواسيب الغوص من Shearwater استيفاءً خطيًا بين حدود NOAA، بمعدل ثابت قدره 15% في الدقيقة فوق 1.65 bar. استبدلت Subsurface في عام 2019 بحثها في الجدول بملاءمة أسّية سلسة من جزأين على البيانات نفسها من NOAA (Robert C. Helling)، وهي تمتد أيضًا بشكل طبيعي إلى ما بعد 1.6 bar. بين قيم الجدول، تتوافق الطريقتان السلستان في حدود نقطة CNS واحدة تقريبًا؛ بينما تعطي الطريقة الكلاسيكية قيمًا أعلى.",
+  "settings_decompression_cnsMethodDisclaimer": "تشير الأسماء إلى الطرق المنشورة للمشاريع والمصنّعين المعنيين؛ ولا يتضمن ذلك أي انتماء أو تأييد. قد تختلف القيم المحسوبة عن القراءات الفعلية لحاسوب الغوص.",
+  "settings_decompression_cnsMethodSourcesTitle": "المصادر",
+  "settings_linkOpenFailed": "تعذر فتح الرابط.",
+  "settings_decompression_cnsMethodSourceNoaa": "NOAA: Diving Program (ناشر دليل الغوص NOAA Diving Manual)",
+  "settings_decompression_cnsMethodSourceShearwater": "Shearwater: ساعة أكسجين CNS",
+  "settings_decompression_cnsMethodSourceTheoreticalDiver": "The Theoretical Diver: حساب سمّية أكسجين CNS",
+  "settings_decompression_cnsMethodSourceSubsurface": "Subsurface: التنفيذ (divelist.cpp)",
   "settings_decompression_endLimit_subtitle": "أقصى عمق مخدر مكافئ مستخدم في حسابات MND",
   "settings_decompression_gfValue": "GF {gfLow}/{gfHigh}",
   "settings_decompression_header_gradientFactors": "عوامل التدرج",
+  "settings_decompression_header_oxygenToxicity": "سمية الأكسجين",
   "settings_decompression_header_narcosis": "التخدير",
   "settings_decompression_o2Narcotic": "O2 مخدر",
   "settings_decompression_o2Narcotic_subtitle": "عند التفعيل، يُعتبر كل من O2 و N2 مخدرين (أكثر تحفظاً). عند التعطيل، يساهم N2 فقط في التخدير.",
@@ -3966,10 +4241,13 @@
   "settings_lightroom_albumFilter_all": "الكتالوج بأكمله",
   "settings_lightroom_albumFilter_title": "الألبومات المراد فحصها",
   "settings_lightroom_autoPoll_title": "التحقق من الصور الجديدة تلقائيًا",
-  "settings_lightroom_clientId_help": "أنشئ تكاملًا في Adobe Developer Console باستخدام واجهة Lightroom Services API ونوع اعتماد يدعم PKCE. عيّن عنوان إعادة التوجيه إلى {redirectUri}.",
+  "settings_lightroom_clientId_help": "أنشئ تكاملًا في Adobe Developer Console باستخدام واجهة Lightroom Services API ونوع اعتماد يدعم PKCE. أدخل عنوان إعادة التوجيه الخاص باعتمادك أدناه (تستخدم اعتمادات Native App مخططًا مخصصًا) أو اتركه فارغًا لاستخدام {redirectUri}.",
   "settings_lightroom_clientId_label": "معرّف عميل Adobe",
   "settings_lightroom_clientSecret_label": "سر العميل (اختياري)",
+  "settings_lightroom_redirectUri_label": "عنوان إعادة التوجيه (اختياري)",
   "settings_lightroom_connect": "ربط Lightroom",
+  "settings_lightroom_connectEmbedded": "الاتصال عبر Adobe",
+  "settings_lightroom_advancedByo": "استخدم بيانات اعتماد Adobe الخاصة بك",
   "settings_lightroom_connect_codeLabel": "عنوان URL المُعاد توجيهه أو الرمز",
   "settings_lightroom_connect_emptyCode": "الصق عنوان URL المُعاد توجيهه أو رمز التفويض",
   "settings_lightroom_connect_failed": "تعذّر الاتصال بـ Lightroom: {error}",
@@ -5237,15 +5515,15 @@
   "diveComputer_download_newDivesOnlySubtitle": "يتم تنزيل الغطسات المضافة منذ آخر مزامنة فقط",
   "diveComputer_download_newDivesOnlyTitle": "تنزيل الغطسات الجديدة فقط",
   "diveComputer_download_upToDate": "لم يتم العثور على غطسات جديدة -- سجلك محدّث",
-  "diveLog_edit_section_environment": "Environment",
-  "diveLog_edit_subsection_weather": "Weather",
-  "diveLog_edit_subsection_diveConditions": "Dive Conditions",
-  "diveLog_edit_label_windSpeed": "Wind Speed",
-  "diveLog_edit_label_windDirection": "Wind Direction",
-  "diveLog_edit_label_cloudCover": "Cloud Cover",
-  "diveLog_edit_label_precipitation": "Precipitation",
-  "diveLog_edit_label_humidity": "Humidity",
-  "diveLog_edit_label_weatherDescription": "Weather Description",
+  "diveLog_edit_section_environment": "البيئة",
+  "diveLog_edit_subsection_weather": "الطقس",
+  "diveLog_edit_subsection_diveConditions": "ظروف الغوص",
+  "diveLog_edit_label_windSpeed": "سرعة الرياح",
+  "diveLog_edit_label_windDirection": "اتجاه الرياح",
+  "diveLog_edit_label_cloudCover": "الغطاء السحابي",
+  "diveLog_edit_label_precipitation": "هطول الأمطار",
+  "diveLog_edit_label_humidity": "الرطوبة",
+  "diveLog_edit_label_weatherDescription": "وصف الطقس",
   "diveLog_edit_button_fetchWeather": "Fetch Weather",
   "diveLog_edit_fetchingWeather": "Fetching weather...",
   "diveLog_edit_weatherFetched": "Weather data loaded",
@@ -5254,28 +5532,28 @@
   "diveLog_edit_fetchWeatherNotYetAvailable": "Weather data not yet available for this date",
   "diveLog_edit_fetchWeatherHint": "Add a date and dive site first",
   "diveLog_edit_fetchWeatherConfirm": "Replace existing weather data with fetched data?",
-  "diveLog_detail_section_environment": "Environment",
-  "diveLog_detail_subsection_weather": "Weather",
-  "diveLog_detail_subsection_diveConditions": "Dive Conditions",
-  "diveLog_detail_label_windSpeed": "Wind Speed",
-  "diveLog_detail_label_windDirection": "Wind Direction",
-  "diveLog_detail_label_cloudCover": "Cloud Cover",
-  "diveLog_detail_label_precipitation": "Precipitation",
-  "diveLog_detail_label_humidity": "Humidity",
-  "diveLog_detail_label_weatherDescription": "Description",
+  "diveLog_detail_section_environment": "البيئة",
+  "diveLog_detail_subsection_weather": "الطقس",
+  "diveLog_detail_subsection_diveConditions": "ظروف الغوص",
+  "diveLog_detail_label_windSpeed": "سرعة الرياح",
+  "diveLog_detail_label_windDirection": "اتجاه الرياح",
+  "diveLog_detail_label_cloudCover": "الغطاء السحابي",
+  "diveLog_detail_label_precipitation": "هطول الأمطار",
+  "diveLog_detail_label_humidity": "الرطوبة",
+  "diveLog_detail_label_weatherDescription": "الوصف",
   "diveLog_detail_weatherSourceOpenMeteo": "via Open-Meteo",
-  "enum_cloudCover_clear": "Clear",
-  "enum_cloudCover_partlyCloudy": "Partly Cloudy",
-  "enum_cloudCover_mostlyCloudy": "Mostly Cloudy",
-  "enum_cloudCover_overcast": "Overcast",
-  "enum_precipitation_none": "None",
-  "enum_precipitation_drizzle": "Drizzle",
-  "enum_precipitation_lightRain": "Light Rain",
-  "enum_precipitation_rain": "Rain",
-  "enum_precipitation_heavyRain": "Heavy Rain",
-  "enum_precipitation_snow": "Snow",
-  "enum_precipitation_sleet": "Sleet",
-  "enum_precipitation_hail": "Hail",
+  "enum_cloudCover_clear": "صافٍ",
+  "enum_cloudCover_partlyCloudy": "غائم جزئياً",
+  "enum_cloudCover_mostlyCloudy": "غائم في الغالب",
+  "enum_cloudCover_overcast": "ملبد بالغيوم",
+  "enum_precipitation_none": "لا يوجد",
+  "enum_precipitation_drizzle": "رذاذ",
+  "enum_precipitation_lightRain": "مطر خفيف",
+  "enum_precipitation_rain": "مطر",
+  "enum_precipitation_heavyRain": "مطر غزير",
+  "enum_precipitation_snow": "ثلج",
+  "enum_precipitation_sleet": "مطر متجمد",
+  "enum_precipitation_hail": "بَرَد",
   "dashboard_activityStats_divesInYear": "غطسات في {year}",
   "dashboard_hero_daysSinceLabel": "أيام منذ آخر غوصة",
   "dashboard_hero_diverFallbackName": "غواص",
@@ -5550,6 +5828,8 @@
   "equipment_edit_buoyancyHint_tank": "اتركه فارغا - تستخدم الأسطوانات مواصفاتها الخاصة",
   "equipment_edit_buoyancyLabel": "الطفو ({unit})",
   "equipment_edit_dryWeightLabel": "الوزن الجاف ({unit})",
+  "equipment_edit_liftCapacityLabel": "سعة الرفع ({unit})",
+  "equipment_edit_liftCapacityHint": "قوة رفع الجناح أو منظم الطفو",
   "planner_gearWeights_accept": "استخدام كوزن مخطط",
   "planner_gearWeights_addGear": "إضافة معدات",
   "planner_gearWeights_empty": "أضف معدات للتنبؤ بأوزانك",
@@ -5760,6 +6040,418 @@
   "settings_setupGuide_open": "فتح",
   "settings_connectedAccounts_loadError": "تعذر تحميل الحسابات",
   "media_unavailablePlaceholder_volumeOffline": "وحدة التخزين غير مثبتة",
+  "attrLabel_size": "المقاس",
+  "attrLabel_thickness_mm": "السماكة (مم)",
+  "attrLabel_suit_style": "نوع البدلة",
+  "attrLabel_shell_material": "مادة الغلاف",
+  "attrLabel_seal_type": "نوع العزل",
+  "attrLabel_volume_l": "السعة",
+  "attrLabel_working_pressure_bar": "ضغط التشغيل",
+  "attrLabel_tank_material": "المادة",
+  "attrLabel_valve_type": "الصمام",
+  "attrLabel_tank_identifier": "المعرف",
+  "attrLabel_last_visual_inspection": "آخر فحص بصري",
+  "attrLabel_last_hydro_test": "آخر اختبار هيدروستاتيكي",
+  "attrLabel_connection": "التوصيل",
+  "attrLabel_cold_water_rated": "مخصص للمياه الباردة",
+  "attrLabel_bcd_style": "النمط",
+  "attrLabel_lift_capacity_kg": "قوة الرفع",
+  "attrLabel_heel_type": "الكعب",
+  "attrLabel_blade_style": "الزعنفة",
+  "attrLabel_mount": "التثبيت",
+  "attrLabel_connectivity": "الاتصال",
+  "attrLabel_lens_config": "العدسة",
+  "attrLabel_prescription": "عدسات طبية",
+  "attrLabel_weight_style": "النمط",
+  "attrLabel_lumens": "لومن",
+  "attrLabel_beam_type": "الشعاع",
+  "attrLabel_depth_rating_m": "تصنيف العمق",
+  "attrLabel_smb_type": "النوع",
+  "attrLabel_length_m": "الطول",
+  "attrLabel_reel_type": "النوع",
+  "attrLabel_line_length_m": "طول الخيط",
+  "attrLabel_blade_material": "مادة النصل",
+  "attrLabel_tip_type": "الطرف",
+  "attrLabel_glove_type": "النوع",
+  "attrLabel_sole_type": "النعل",
+  "attrLabel_buoyancy_kg": "الطفو",
+  "attrLabel_dry_weight_kg": "الوزن الجاف",
+  "attrChoice_suit_style_full": "بدلة كاملة",
+  "attrChoice_suit_style_shorty": "شورتي",
+  "attrChoice_suit_style_two_piece": "قطعتان",
+  "attrChoice_suit_style_semi_dry": "شبه جافة",
+  "attrChoice_shell_material_trilaminate": "ثلاثي الطبقات",
+  "attrChoice_shell_material_neoprene": "نيوبرين",
+  "attrChoice_shell_material_crushed_neoprene": "نيوبرين مضغوط",
+  "attrChoice_shell_material_vulcanized_rubber": "مطاط مفلكن",
+  "attrChoice_seal_type_latex": "لاتكس",
+  "attrChoice_seal_type_silicone": "سيليكون",
+  "attrChoice_seal_type_neoprene": "نيوبرين",
+  "attrChoice_tank_material_aluminum": "ألومنيوم",
+  "attrChoice_tank_material_steel": "فولاذ",
+  "attrChoice_tank_material_carbon_composite": "مركب كربوني",
+  "attrChoice_valve_type_din": "DIN",
+  "attrChoice_valve_type_yoke": "يوك (INT)",
+  "attrChoice_valve_type_convertible": "قابل للتحويل",
+  "attrChoice_connection_din": "DIN",
+  "attrChoice_connection_yoke": "يوك (INT)",
+  "attrChoice_bcd_style_jacket": "جاكيت",
+  "attrChoice_bcd_style_back_inflate": "نفخ خلفي",
+  "attrChoice_bcd_style_wing": "وينغ",
+  "attrChoice_bcd_style_sidemount": "تثبيت جانبي",
+  "attrChoice_heel_type_open_heel": "كعب مفتوح",
+  "attrChoice_heel_type_full_foot": "قدم كاملة",
+  "attrChoice_blade_style_paddle": "مجداف",
+  "attrChoice_blade_style_split": "مشقوق",
+  "attrChoice_blade_style_vented": "مهوى",
+  "attrChoice_mount_wrist": "معصم",
+  "attrChoice_mount_console": "كونسول",
+  "attrChoice_mount_hud": "HUD",
+  "attrChoice_connectivity_ble": "بلوتوث (BLE)",
+  "attrChoice_connectivity_usb": "USB",
+  "attrChoice_connectivity_infrared": "الأشعة تحت الحمراء",
+  "attrChoice_connectivity_none": "بدون",
+  "attrChoice_lens_config_single": "عدسة واحدة",
+  "attrChoice_lens_config_twin": "عدستان",
+  "attrChoice_lens_config_frameless": "بدون إطار",
+  "attrChoice_weight_style_belt": "حزام",
+  "attrChoice_weight_style_integrated": "مدمج",
+  "attrChoice_weight_style_trim": "موازنة",
+  "attrChoice_weight_style_ankle": "كاحل",
+  "attrChoice_beam_type_spot": "سبوت",
+  "attrChoice_beam_type_flood": "فيضي",
+  "attrChoice_beam_type_adjustable": "قابل للتعديل",
+  "attrChoice_smb_type_open": "مفتوح",
+  "attrChoice_smb_type_closed": "مغلق",
+  "attrChoice_reel_type_spool": "بكرة",
+  "attrChoice_reel_type_ratchet": "بكرة بسقاطة",
+  "attrChoice_blade_material_stainless": "فولاذ مقاوم للصدأ",
+  "attrChoice_blade_material_titanium": "تيتانيوم",
+  "attrChoice_tip_type_pointed": "مدبب",
+  "attrChoice_tip_type_blunt": "غير حاد",
+  "attrChoice_tip_type_line_cutter": "قاطع خيوط",
+  "attrChoice_glove_type_five_finger": "خمسة أصابع",
+  "attrChoice_glove_type_mitt": "قفاز كفي",
+  "attrChoice_glove_type_dry": "جاف",
+  "attrChoice_sole_type_hard": "نعل صلب",
+  "attrChoice_sole_type_soft": "نعل لين",
+  "equipment_edit_customFieldsTitle": "حقول مخصصة",
+  "equipment_edit_addCustomField": "إضافة حقل مخصص",
+  "attr_flagYes": "نعم",
+  "attr_flagNo": "لا",
+  "equipment_edit_invalidThickness": "استخدم 5 أو 5/4 أو 7/5/3",
+  "statistics_progression_divesBySuitThickness_title": "الغطسات حسب سماكة البدلة",
+  "statistics_progression_divesBySuitThickness_subtitle": "السماكة الأساسية لبدلة الغطس عبر غطساتك",
+  "statistics_progression_divesBySuitThickness_empty": "لا توجد غطسات مسجلة بسماكة بدلة",
+  "statistics_progression_divesBySuitThickness_error": "تعذر تحميل بيانات سماكة البدلة",
+  "diveLog_filter_sectionSuitThickness": "سماكة البدلة (مم)",
+  "diveLog_filter_thicknessMin": "الأدنى",
+  "diveLog_filter_thicknessMax": "الأقصى",
+  "diveDetailSection_safetyReview_name": "مراجعة السلامة",
+  "diveDetailSection_safetyReview_description": "ملاحظات تلقائية على ملف الغوص بعد الغطسة",
+  "safetyReview_sectionTitle": "مراجعة السلامة",
+  "safetyReview_findingCount": "{count, plural, =1{ملاحظة واحدة} other{{count} ملاحظات}}",
+  "@safetyReview_findingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "safetyReview_rapidAscent_title": "تجاوز الصعود {rate} لمدة {duration}",
+  "@safetyReview_rapidAscent_title": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyReview_missedDecoStop_title": "كان العمق أعلى من سقف التوقف المطلوب بمقدار {excess} لمدة {duration}",
+  "@safetyReview_missedDecoStop_title": {
+    "placeholders": {
+      "excess": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyReview_omittedSafetyStop_title": "تم تقصير توقف السلامة الموصى به بمقدار {remaining}",
+  "@safetyReview_omittedSafetyStop_title": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyReview_sawtoothProfile_title": "{count} تغيرات متكررة في العمق صعودًا وهبوطًا أثناء الغطسة",
+  "@safetyReview_sawtoothProfile_title": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "safetyReview_highSurfaceGf_title": "الصعود إلى السطح بعامل تدرج {gf}، أعلى من {gfHigh} المُعد",
+  "@safetyReview_highSurfaceGf_title": {
+    "placeholders": {
+      "gf": {
+        "type": "String"
+      },
+      "gfHigh": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyReview_timeRange": "عند {start}–{end}",
+  "@safetyReview_timeRange": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyReview_dismiss": "تجاهل",
+  "safetyReview_restore": "استعادة",
+  "safetyReview_showDismissed": "{count, plural, =1{إظهار ملاحظة متجاهلة واحدة} other{إظهار {count} ملاحظات متجاهلة}}",
+  "@safetyReview_showDismissed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "safetySettings_title": "مراجعة السلامة",
+  "safetySettings_entry_subtitle": "ملاحظات وقواعد ما بعد الغطسة",
+  "safetySettings_masterToggle": "مراجعة السلامة بعد الغطسة",
+  "safetySettings_masterToggle_subtitle": "تدوين ملاحظات الصعود والتوقفات والملف تلقائيًا للغطسات المحللة",
+  "safetySettings_rulesHeader": "القواعد",
+  "safetySettings_rule_rapidAscent": "صعود سريع",
+  "safetySettings_rule_missedDecoStop": "توقفات تخفيف الضغط الفائتة أو المختصرة",
+  "safetySettings_rule_omittedSafetyStop": "توقفات السلامة المُغفلة",
+  "safetySettings_rule_sawtoothProfile": "ملفات بنمط سن المنشار",
+  "safetySettings_rule_highSurfaceGf": "عامل تدرج مرتفع عند الصعود",
+  "safetySettings_analyzeAll": "تحليل جميع الغطسات",
+  "safetySettings_analyzeAll_subtitle": "تشغيل مراجعة السلامة على كل غطسة ذات ملف لم تُحلل بعد",
+  "safetySettings_analyzeAll_progress": "تم تحليل {done} من {total}",
+  "@safetySettings_analyzeAll_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "safetySettings_analyzeAll_done": "اكتمل التحليل",
+  "safetySettings_analyzeAll_doneWithErrors": "اكتمل التحليل — {count, plural, =1{تعذّر تحليل غوصة واحدة} other{تعذّر تحليل {count} غوصات}}",
+  "@safetySettings_analyzeAll_doneWithErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "safetySettings_noFlyHeader": "الطيران بعد الغوص",
+  "safetySettings_noFlyPreset_standard": "قياسي (12/18/24 س)",
+  "safetySettings_noFlyPreset_strict": "صارم (18/24/48 س)",
+  "safetySettings_noFlyPreset_subtitle": "فترات إرشادية بعد غطسة واحدة بلا توقفات، وغطسات متكررة، وغطسات بتخفيف الضغط",
+  "safetyHub_noFly_active_title": "حظر الطيران: متبقٍ {remaining}",
+  "@safetyHub_noFly_active_title": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyHub_noFly_until": "حتى {time}",
+  "@safetyHub_noFly_until": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyHub_noFly_clear_title": "لا قيود على الطيران",
+  "safetyHub_noFly_clear_subtitle": "لا يوجد قيد نشط على الطيران",
+  "safetyHub_noFly_category_single": "بعد غطسة واحدة بلا توقفات: إرشاد {hours} ساعة",
+  "@safetyHub_noFly_category_single": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "safetyHub_noFly_category_repetitive": "بعد غطسات متكررة: إرشاد {hours} ساعة",
+  "@safetyHub_noFly_category_repetitive": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "safetyHub_noFly_category_deco": "بعد غطسة بتخفيف الضغط: إرشاد {hours} ساعة",
+  "@safetyHub_noFly_category_deco": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "safetyHub_noFly_disclaimer": "إرشادات DAN/UHMS منذ آخر غطسة. ليست بديلاً عن وقت حظر الطيران في حاسوب الغوص الخاص بك.",
+  "safetyHub_alert_noFly": "حظر الطيران: متبقٍ {remaining}",
+  "@safetyHub_alert_noFly": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_detail_altitudeMismatch_title": "موقع الغوص على ارتفاع",
+  "diveLog_detail_altitudeMismatch_subtitle": "هذا الموقع مسجل له ارتفاع لكن الغطسة بلا ارتفاع، لذا افترض تحليل تخفيف الضغط مستوى سطح البحر. عيّن ارتفاع الغطسة للتصحيح.",
+  "emergencyCard_title": "الطوارئ",
+  "emergencyCard_callDan": "اتصل بـ {name}",
+  "@emergencyCard_callDan": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_callDan_subtitle": "خط طوارئ الغواصين. اتصل به أولاً: فهم ينسقون الإخلاء والإحالة إلى غرفة الضغط.",
+  "emergencyCard_ems": "خدمات الطوارئ المحلية: {number}",
+  "@emergencyCard_ems": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_diverSection": "الغواص",
+  "emergencyCard_bloodType": "فصيلة الدم: {value}",
+  "@emergencyCard_bloodType": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_allergies": "الحساسية: {value}",
+  "@emergencyCard_allergies": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_medications": "الأدوية: {value}",
+  "@emergencyCard_medications": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_contactsSection": "جهات اتصال الطوارئ",
+  "emergencyCard_insuranceSection": "تأمين الغوص",
+  "emergencyCard_insurancePolicy": "وثيقة {number}",
+  "@emergencyCard_insurancePolicy": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_chambersSection": "غرف الضغط العالي",
+  "emergencyCard_chambersNote": "التوفر يتغير. اتصل دائمًا بخط طوارئ الغواصين أولاً للإحالة.",
+  "emergencyCard_chamberVerified": "تم التحقق من البيانات {date}",
+  "@emergencyCard_chamberVerified": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_hideChamber": "إخفاء",
+  "emergencyCard_chamberHidden": "تم إخفاء الغرفة",
+  "emergencyCard_undo": "تراجع",
+  "emergencyCard_addChamber": "إضافة غرفة",
+  "emergencyCard_deleteChamber": "حذف",
+  "emergencyCard_regionLabel": "المنطقة: {region}",
+  "@emergencyCard_regionLabel": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_regionUnknown": "المنطقة غير معروفة - يُستخدم الخط العالمي",
+  "emergencyCard_noDiverData": "لا توجد بيانات ملف الغواص. أضف جهات اتصال الطوارئ والبيانات الطبية والتأمين في ملف الغواص.",
+  "addChamber_title": "إضافة غرفة",
+  "addChamber_name": "الاسم",
+  "addChamber_country": "رمز الدولة (مثل EG)",
+  "addChamber_city": "المدينة",
+  "addChamber_phone": "الهاتف",
+  "addChamber_notes": "ملاحظات",
+  "addChamber_save": "حفظ",
+  "addChamber_nameRequired": "الاسم مطلوب",
+  "addChamber_countryRequired": "رمز الدولة مطلوب",
+  "addChamber_phoneRequired": "رقم الهاتف مطلوب",
+  "safetyHub_emergencyCardLink": "بطاقة الطوارئ",
+  "safetyHub_emergencyCardLink_subtitle": "دون اتصال: الخط الساخن، الطوارئ، الغرف، بياناتك الطبية والتأمينية",
+  "dashboard_quickAction_emergency": "بطاقة الطوارئ",
+  "incidents_title": "سجل الحوادث الوشيكة",
+  "incidents_empty": "لا حوادث وشيكة مسجلة. تدوين ما كاد أن يسوء - دون إصدار أحكام - يجعل الأنماط مرئية قبل أن تتحول إلى حوادث.",
+  "incidents_add": "تسجيل حادث وشيك",
+  "incidents_linkedDive": "مرتبط بغطسة",
+  "incidents_delete_confirm": "حذف تقرير الحادث الوشيك هذا؟",
+  "incidents_notFound": "لم يتم العثور على تقرير الحادث الوشيك",
+  "incidentEdit_title_new": "تسجيل حادث وشيك",
+  "incidentEdit_title_edit": "تعديل الحادث الوشيك",
+  "incidentEdit_category": "الفئة",
+  "incidentEdit_severity": "الخطورة",
+  "incidentEdit_severity_minor": "طفيف",
+  "incidentEdit_severity_moderate": "متوسط",
+  "incidentEdit_severity_serious": "خطير",
+  "incidentEdit_date": "متى حدث",
+  "incidentEdit_narrative": "ماذا حدث",
+  "incidentEdit_narrative_hint": "الحقائق فقط، بكلماتك. يبقى هذا خاصًا.",
+  "incidentEdit_narrative_required": "صف ما حدث",
+  "incidentEdit_contributingFactors": "ما الذي ساهم (اختياري)",
+  "incidentEdit_lessonsLearned": "ما الذي سيساعد المرة القادمة (اختياري)",
+  "incidentEdit_save": "حفظ",
+  "incidentEdit_privacyNote": "تتزامن تقارير الحوادث الوشيكة بين أجهزتك وتُضمَّن في النسخ الاحتياطية، لكنها لا تُضمَّن أبدًا في التصدير أو صفحات السجل المشتركة.",
+  "incidentCategory_buoyancy": "الطفو",
+  "incidentCategory_gasSupply": "إمداد الغاز",
+  "incidentCategory_equipment": "المعدات",
+  "incidentCategory_buddySeparation": "الانفصال عن الرفيق",
+  "incidentCategory_marineLife": "الحياة البحرية",
+  "incidentCategory_boatSurface": "القارب / السطح",
+  "incidentCategory_medical": "طبي",
+  "incidentCategory_planning": "التخطيط",
+  "incidentCategory_other": "أخرى",
+  "safetyHub_incidentsLink": "سجل الحوادث الوشيكة",
+  "safetyHub_incidentsLink_subtitle": "ملاحظات حوادث خاصة وغير عقابية",
+  "diveLog_detail_menu_logNearMiss": "تسجيل حادث وشيك",
+  "diveLog_detail_linkedIncidents": "{count, plural, =1{حادث وشيك واحد مرتبط بهذه الغطسة} other{{count} حوادث وشيكة مرتبطة بهذه الغطسة}}",
+  "@diveLog_detail_linkedIncidents": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "planning_card_noFly_subtitle": "عدّاد إرشادي منذ آخر غطساتك",
+  "settings_section_safety_title": "السلامة",
+  "settings_section_safety_subtitle": "قواعد المراجعة والطيران بعد الغوص",
   "dataQuality_inbox_title": "جودة البيانات",
   "dataQuality_badge_tooltip": "مراجعة جودة البيانات",
   "dataQuality_scan_start": "فحص المكتبة",

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/equipment/data/services/dive_equipment_defaulter.dart';
+import 'package:submersion/features/pre_dive/data/services/checklist_dive_linker.dart';
 import 'package:submersion/features/dive_import/data/services/fit_parser_service.dart';
 import 'package:submersion/features/dive_import/data/services/healthkit_service.dart';
 import 'package:submersion/features/dive_import/domain/entities/imported_dive.dart';
@@ -381,6 +382,7 @@ class DiveImportNotifier extends StateNotifier<DiveImportState> {
 
         await repository.createDive(dive);
         await DiveEquipmentDefaulter().applyForImportedDive(dive);
+        await ChecklistDiveLinker().applyForImportedDive(dive);
         imported++;
       }
 

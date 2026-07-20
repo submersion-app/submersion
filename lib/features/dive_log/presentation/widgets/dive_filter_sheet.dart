@@ -52,6 +52,8 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
   late int? _minDurationMinutes;
   late int? _maxDurationMinutes;
   late String? _computerSerial;
+  double? _suitThicknessMin;
+  double? _suitThicknessMax;
 
   final _minDepthController = TextEditingController();
   final _maxDepthController = TextEditingController();
@@ -83,6 +85,10 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
     _minDurationMinutes = filter.minBottomTimeMinutes;
     _maxDurationMinutes = filter.maxBottomTimeMinutes;
     _computerSerial = filter.computerSerial;
+    if (filter.equipmentAttrKey == 'thickness_mm') {
+      _suitThicknessMin = filter.equipmentAttrMin;
+      _suitThicknessMax = filter.equipmentAttrMax;
+    }
     _minDurationController.text = _minDurationMinutes?.toString() ?? '';
     _maxDurationController.text = _maxDurationMinutes?.toString() ?? '';
   }
@@ -95,6 +101,23 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
     _minDurationController.dispose();
     _maxDurationController.dispose();
     super.dispose();
+  }
+
+  /// Suit thickness can be fractional (e.g. 2.5 mm), so keep decimals rather
+  /// than truncating with toStringAsFixed(0); integers still render cleanly.
+  String _formatThicknessBound(double? value) {
+    if (value == null) return '';
+    return value == value.roundToDouble()
+        ? value.toStringAsFixed(0)
+        : value.toString();
+  }
+
+  /// Parse a user-entered thickness bound, tolerating a comma decimal
+  /// separator (common in many locales). Empty/invalid input clears the bound.
+  double? _parseThicknessBound(String value) {
+    final trimmed = value.trim().replaceAll(',', '.');
+    if (trimmed.isEmpty) return null;
+    return double.tryParse(trimmed);
   }
 
   @override
@@ -447,6 +470,47 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
               ),
               const SizedBox(height: 24),
 
+              // Suit Thickness Section (equipment-attribute axis)
+              Text(
+                context.l10n.diveLog_filter_sectionSuitThickness,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      initialValue: _formatThicknessBound(_suitThicknessMin),
+                      decoration: InputDecoration(
+                        labelText: context.l10n.diveLog_filter_thicknessMin,
+                      ),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      onChanged: (value) => setState(
+                        () => _suitThicknessMin = _parseThicknessBound(value),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: TextFormField(
+                      initialValue: _formatThicknessBound(_suitThicknessMax),
+                      decoration: InputDecoration(
+                        labelText: context.l10n.diveLog_filter_thicknessMax,
+                      ),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      onChanged: (value) => setState(
+                        () => _suitThicknessMax = _parseThicknessBound(value),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+
               // Tags Section
               Text(
                 context.l10n.diveLog_filter_sectionTags,
@@ -733,6 +797,11 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
       minBottomTimeMinutes: _minDurationMinutes,
       maxBottomTimeMinutes: _maxDurationMinutes,
       computerSerial: _computerSerial,
+      equipmentAttrKey: (_suitThicknessMin != null || _suitThicknessMax != null)
+          ? 'thickness_mm'
+          : null,
+      equipmentAttrMin: _suitThicknessMin,
+      equipmentAttrMax: _suitThicknessMax,
     );
     Navigator.of(context).pop();
   }

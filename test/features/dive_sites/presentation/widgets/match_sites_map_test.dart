@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_sites/data/services/site_matching_servi
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/match_sites_map.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
@@ -21,6 +22,9 @@ void main() {
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
         ],
         child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: MatchSitesMap(
               divePoint: const GeoPoint(0, 0),
@@ -58,6 +62,9 @@ void main() {
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
         ],
         child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: MatchSitesMap(
               divePoint: const GeoPoint(0, 0),

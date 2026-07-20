@@ -13,8 +13,20 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/core/providers/location_service_provider.dart';
 import 'package:submersion/core/services/location_service.dart';
+import 'package:submersion/shared/widgets/forms/suggestion_form_row.dart';
 
 import '../../../../helpers/test_database.dart';
+
+/// The v2 chrome renders row labels outside the text field, so
+/// widgetWithText(TextFormField, label) no longer matches; resolve the
+/// field through its SuggestionFormRow instead.
+Finder _rowField(String label) => find.descendant(
+  of: find.ancestor(
+    of: find.text(label),
+    matching: find.byType(SuggestionFormRow),
+  ),
+  matching: find.byType(TextFormField),
+);
 
 /// A [LocationService] returning fixed [country]/[region] for both geocoding
 /// entry points, so tests can (a) prove the edit form never re-imposes geocoded
@@ -280,14 +292,14 @@ void main() {
         _buildHarness(prefs: prefs, divers: const [], shareByDefault: false),
       );
       await tester.pumpAndSettle();
-      // Depth now renders as the Dive info hero stat strip.
+      // Depth renders as ordinary rows in the Dive Info section.
       await tester.scrollUntilVisible(
-        find.text('MIN DEPTH'),
+        find.textContaining('Minimum Depth'),
         100,
         scrollable: find.byType(Scrollable).first,
       );
-      expect(find.text('MIN DEPTH'), findsOneWidget);
-      expect(find.text('MAX DEPTH'), findsOneWidget);
+      expect(find.textContaining('Minimum Depth'), findsOneWidget);
+      expect(find.textContaining('Maximum Depth'), findsOneWidget);
       await tester.scrollUntilVisible(
         find.text('Difficulty Level'),
         100,
@@ -322,10 +334,10 @@ void main() {
       await tester.pumpAndSettle();
       // Should now show 4 filled stars.
       expect(find.byIcon(Icons.star), findsNWidgets(4));
-      // Clear button appears when rating > 0.
-      expect(find.text('Clear Rating'), findsOneWidget);
+      // Clear affordance appears on the rating row when rating > 0.
+      expect(find.byIcon(Icons.clear), findsOneWidget);
       // Clear it.
-      await tester.tap(find.text('Clear Rating'));
+      await tester.tap(find.byIcon(Icons.clear));
       await tester.pumpAndSettle();
       expect(find.byIcon(Icons.star), findsNothing);
     });
@@ -358,6 +370,39 @@ void main() {
       expect(
         tester
             .widget<ChoiceChip>(find.widgetWithText(ChoiceChip, 'Intermediate'))
+            .selected,
+        isFalse,
+      );
+    });
+
+    testWidgets('selecting a water type chip updates state', (tester) async {
+      tester.view.physicalSize = const Size(900, 3200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        _buildHarness(prefs: prefs, divers: const [], shareByDefault: false),
+      );
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('Water Type'),
+        100,
+        scrollable: find.byType(Scrollable).first,
+      );
+      // Tap the Brackish chip.
+      await tester.tap(find.widgetWithText(ChoiceChip, 'Brackish'));
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<ChoiceChip>(find.widgetWithText(ChoiceChip, 'Brackish'))
+            .selected,
+        isTrue,
+      );
+      // Tap again to deselect.
+      await tester.tap(find.widgetWithText(ChoiceChip, 'Brackish'));
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<ChoiceChip>(find.widgetWithText(ChoiceChip, 'Brackish'))
             .selected,
         isFalse,
       );
@@ -577,10 +622,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'Site Name *'),
-        'changed',
-      );
+      await tester.enterText(_rowField('Site Name *'), 'changed');
       await tester.pumpAndSettle();
       await tester.tap(find.text('Cancel'));
       await tester.pumpAndSettle();
@@ -666,10 +708,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('OPEN_EDIT'));
       await tester.pumpAndSettle();
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'Site Name *'),
-        'Brand New Site',
-      );
+      await tester.enterText(_rowField('Site Name *'), 'Brand New Site');
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
       // Save flow either completes (pop to list) or surfaces a snackbar,
@@ -704,10 +743,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'Site Name *'),
-        'Embedded Save Site',
-      );
+      await tester.enterText(_rowField('Site Name *'), 'Embedded Save Site');
       await tester.tap(find.text('Save'));
       // Use pump with duration since onSaved doesn't reset _isLoading.
       await tester.pump();
@@ -885,22 +921,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'Site Name *'),
-        'Locality Site',
-      );
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'City'),
-        'Cebu City',
-      );
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'Island'),
-        'Malapascua',
-      );
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'Body of Water'),
-        'Visayan Sea',
-      );
+      await tester.enterText(_rowField('Site Name *'), 'Locality Site');
+      await tester.enterText(_rowField('City'), 'Cebu City');
+      await tester.enterText(_rowField('Island'), 'Malapascua');
+      await tester.enterText(_rowField('Body of Water'), 'Visayan Sea');
       await tester.tap(find.text('Save'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
@@ -968,10 +992,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Remove the auto-suggested region the user does not want.
-        await tester.enterText(
-          find.widgetWithText(TextFormField, 'Region'),
-          '',
-        );
+        await tester.enterText(_rowField('Region'), '');
         await tester.tap(find.text('Save'));
         await tester.pumpAndSettle();
 
@@ -1037,10 +1058,7 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        await tester.enterText(
-          find.widgetWithText(TextFormField, 'Country'),
-          '',
-        );
+        await tester.enterText(_rowField('Country'), '');
         await tester.tap(find.text('Save'));
         await tester.pumpAndSettle();
 

@@ -67,6 +67,16 @@ class QuickActionsCard extends StatelessWidget {
                       label: Text(context.l10n.tools_gpsLogger_title),
                     ),
                   ),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () => context.push(
+                        '/settings/diver-profile/emergency-card',
+                      ),
+                      icon: const Icon(Icons.emergency_outlined),
+                      label: Text(context.l10n.dashboard_quickAction_emergency),
+                    ),
+                  ),
                 ],
               ),
             ),
