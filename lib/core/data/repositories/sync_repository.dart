@@ -472,6 +472,30 @@ class SyncRepository {
     }
   }
 
+  /// One-time self-heal for enrichment rows written before schema v130, when
+  /// media_enrichment had no `hlc` column and never synced. Such rows carry
+  /// `hlc IS NULL` and are invisible to the incremental export (which filters
+  /// `hlc > watermark`; SQL `NULL > x` is false). markRecordPending stamps a
+  /// fresh HLC (above every peer watermark) so they replicate on the next sync
+  /// and heal peers that lost the depth/time association.
+  ///
+  /// Self-limiting: rows written by saveEnrichment always get an HLC, so once
+  /// every legacy row is stamped this finds nothing.
+  Future<void> backfillMediaEnrichmentHlc() async {
+    final rows = await _db
+        .customSelect(
+          'SELECT id, created_at FROM media_enrichment WHERE hlc IS NULL',
+        )
+        .get();
+    for (final row in rows) {
+      await markRecordPending(
+        entityType: 'mediaEnrichment',
+        recordId: row.read<String>('id'),
+        localUpdatedAt: row.read<int>('created_at'),
+      );
+    }
+  }
+
   /// Stamp a fresh Hybrid Logical Clock onto the just-written entity row, if
   /// the entity is conflict-capable and the clock is configured. Centralised
   /// here (the write choke point) rather than in every repository companion.

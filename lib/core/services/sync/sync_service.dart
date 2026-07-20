@@ -389,6 +389,10 @@ class SyncService {
       );
       await _syncRepository.ensureSyncClockConfigured();
 
+      // Self-heal: stamp an HLC on pre-v130 enrichment rows so the depth/time
+      // association replicates and repairs peers that lost it (schema v130).
+      await _syncRepository.backfillMediaEnrichmentHlc();
+
       // ---- Library epoch gate (restore Replace mode) ----
       // A pending replace runs INSTEAD of a merge, and a marker from an
       // unaccepted epoch halts everything until the user adopts.
