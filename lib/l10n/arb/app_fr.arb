@@ -717,6 +717,113 @@
   "checklists_template_descriptionLabel": "Description",
   "checklists_template_itemsHeader": "Éléments",
   "checklists_template_addItem": "Ajouter un élément",
+  "preDive_templates_title": "Checklists pré-plongée",
+  "preDive_templates_empty": "Aucune checklist pré-plongée pour le moment",
+  "preDive_templates_builtInBadge": "Intégrée",
+  "preDive_templates_clone": "Dupliquer",
+  "preDive_templates_cloneSuffix": " (copie)",
+  "preDive_templates_delete": "Supprimer",
+  "preDive_templates_deleteConfirm": "Supprimer ce modèle de checklist ?",
+  "preDive_templates_strictOrderBadge": "Ordre strict",
+  "preDive_edit_titleNew": "Nouvelle checklist pré-plongée",
+  "preDive_edit_titleEdit": "Modifier la checklist pré-plongée",
+  "preDive_edit_name": "Nom",
+  "preDive_edit_description": "Description",
+  "preDive_edit_category": "Catégorie",
+  "preDive_edit_strictOrder": "Ordre strict",
+  "preDive_edit_strictOrderHelp": "Les éléments doivent être complétés de haut en bas",
+  "preDive_edit_addItem": "Ajouter un élément",
+  "preDive_edit_nameRequired": "Saisissez un nom",
+  "preDive_item_title": "Titre",
+  "preDive_item_section": "Section",
+  "preDive_item_notes": "Notes",
+  "preDive_item_required": "Obligatoire",
+  "preDive_item_type_check": "Case à cocher",
+  "preDive_item_type_value": "Valeur enregistrée",
+  "preDive_item_type_equipmentSet": "Éléments de l'ensemble d'équipement",
+  "preDive_item_valueLabel": "Libellé de la valeur",
+  "preDive_item_valueUnit": "Unité",
+  "preDive_item_valueMin": "Min (avertissement)",
+  "preDive_item_valueMax": "Max (avertissement)",
+  "preDive_runner_progress": "{done} sur {total}",
+  "@preDive_runner_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_runner_complete": "Terminer",
+  "preDive_runner_completeFlagged": "Terminer avec {count} éléments signalés ?",
+  "@preDive_runner_completeFlagged": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_runner_abort": "Abandonner la checklist",
+  "preDive_runner_abortConfirm": "Abandonner cette checklist ? Elle sera conservée dans l'historique comme abandonnée.",
+  "preDive_runner_skip": "Passer",
+  "preDive_runner_flag": "Signaler",
+  "preDive_runner_undo": "Remettre en attente",
+  "preDive_runner_serviceOverdue": "Entretien en retard",
+  "preDive_runner_addNote": "Ajouter une note",
+  "preDive_runner_enterValue": "Saisir une valeur",
+  "preDive_runner_flaggedBadge": "{count} signalés",
+  "@preDive_runner_flaggedBadge": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_runner_locked": "Cette checklist est verrouillée",
+  "preDive_sessions_title": "Checklists pré-plongée",
+  "preDive_sessions_empty": "Aucune checklist effectuée pour le moment",
+  "preDive_sessions_resume": "Reprendre",
+  "preDive_sessions_start": "Démarrer la checklist",
+  "preDive_sessions_statusCompleted": "Terminée",
+  "preDive_sessions_statusAborted": "Abandonnée",
+  "preDive_sessions_statusInProgress": "En cours",
+  "preDive_sessions_linkedDive": "Plongée liée",
+  "preDive_sessions_delete": "Supprimer",
+  "preDive_sessions_deleteConfirm": "Supprimer cet enregistrement de checklist ?",
+  "preDive_start_title": "Démarrer la checklist pré-plongée",
+  "preDive_start_template": "Checklist",
+  "preDive_start_equipmentSet": "Ensemble d'équipement",
+  "preDive_start_noEquipmentSet": "Aucun",
+  "preDive_start_begin": "Commencer",
+  "preDive_section_title": "Vérification pré-plongée",
+  "preDive_section_link": "Lier une session de checklist",
+  "preDive_section_unlink": "Dissocier",
+  "preDive_section_run": "Lancer la checklist pré-plongée",
+  "preDive_section_noUnlinked": "Aucune session de checklist non liée",
+  "diveDetailSection_preDiveChecklist_name": "Vérification pré-plongée",
+  "diveDetailSection_preDiveChecklist_description": "Session de checklist pré-plongée liée",
+  "diveLog_listPage_bottomSheet_preDiveChecklist": "Démarrer la checklist pré-plongée",
+  "preDive_dashboard_title": "Vérification pré-plongée",
+  "preDive_dashboard_resume": "Reprendre - {done} sur {total}",
+  "@preDive_dashboard_resume": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_dashboard_start": "Démarrer la vérification pré-plongée",
+  "tools_preDive_title": "Checklists pré-plongée",
+  "tools_preDive_subtitle": "Lancez et consultez les sessions de checklist",
+  "tools_preDive_description": "Vérifications entre binômes, listes de montage CCR et préparation du matériel avec traçabilité",
+  "trips_detail_preDive_action": "Checklist pré-plongée",
+  "settings_manage_preDiveChecklists": "Checklists pré-plongée",
+  "settings_manage_preDiveChecklists_subtitle": "Vérifications entre binômes, listes de montage CCR, préparation du matériel",
   "common_action_back": "Retour",
   "common_action_cancel": "Annuler",
   "common_action_close": "Fermer",

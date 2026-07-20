@@ -7,6 +7,7 @@ import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/checklists/presentation/widgets/trip_checklist_section.dart';
+import 'package:submersion/features/pre_dive/presentation/widgets/start_session_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
@@ -170,7 +171,22 @@ class _TripDetailContent extends ConsumerWidget {
                 _buildDivesTab(context, ref, trip),
                 SingleChildScrollView(
                   padding: const EdgeInsets.all(16),
-                  child: TripChecklistSection(trip: tripWithStats.trip),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: OutlinedButton.icon(
+                          icon: const Icon(Icons.fact_check),
+                          label: Text(context.l10n.trips_detail_preDive_action),
+                          onPressed: () =>
+                              showStartSessionSheet(context, tripId: trip.id),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TripChecklistSection(trip: tripWithStats.trip),
+                    ],
+                  ),
                 ),
               ],
             ),

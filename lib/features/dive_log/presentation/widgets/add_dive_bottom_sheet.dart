@@ -64,6 +64,18 @@ void showAddDiveBottomSheet({
                   context.push('/dives/scan');
                 },
               ),
+              ListTile(
+                leading: const Icon(Icons.fact_check),
+                title: Text(
+                  sheetContext
+                      .l10n
+                      .diveLog_listPage_bottomSheet_preDiveChecklist,
+                ),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  context.push('/pre-dive-sessions');
+                },
+              ),
             ],
           ),
         ),

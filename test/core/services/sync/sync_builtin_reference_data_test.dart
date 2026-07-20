@@ -22,6 +22,11 @@ const _entityForTable = {
   'species': 'species',
   'field_presets': 'fieldPresets',
   'service_kinds': 'serviceKinds',
+  // Built-in pre-dive templates are re-seeded in beforeOpen; the exporter and
+  // deleteAllRecords both keep isBuiltIn rows out of the refill (the child
+  // items table has no is_built_in column of its own -- its built-ins are
+  // gated through the parent template).
+  'pre_dive_checklist_templates': 'preDiveChecklistTemplates',
 };
 
 const _diverId = 'diver-1';
@@ -46,6 +51,9 @@ String _insert(String table, {required String id, required bool builtIn}) {
     case 'service_kinds':
       return "INSERT INTO service_kinds (id, name, created_at, updated_at, "
           "is_built_in) VALUES ('$id', '$id', 0, 0, $b)";
+    case 'pre_dive_checklist_templates':
+      return "INSERT INTO pre_dive_checklist_templates (id, name, created_at, "
+          "updated_at, is_built_in) VALUES ('$id', '$id', 0, 0, $b)";
     default:
       throw ArgumentError('no insert template for $table');
   }
@@ -111,6 +119,7 @@ void main() {
     expect(data.species, isEmpty);
     expect(data.fieldPresets, isEmpty);
     expect(data.serviceKinds, isEmpty);
+    expect(data.preDiveChecklistTemplates, isEmpty);
   });
 
   for (final entry in _entityForTable.entries) {
@@ -121,6 +130,13 @@ void main() {
       'deleteAllRecords($entity) clears custom rows but keeps built-ins',
       () async {
         final db = DatabaseService.instance.database;
+        // pre_dive_checklist_templates is seeded with built-in child items that
+        // reference it (RESTRICT FK); clear them before wiping the parents.
+        if (table == 'pre_dive_checklist_templates') {
+          await db.customStatement(
+            'DELETE FROM pre_dive_checklist_template_items',
+          );
+        }
         await db.customStatement('DELETE FROM $table');
         await db.customStatement(_insert(table, id: 'b1', builtIn: true));
         await db.customStatement(_insert(table, id: 'c1', builtIn: false));

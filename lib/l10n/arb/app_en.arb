@@ -1295,6 +1295,113 @@
   "checklists_template_descriptionLabel": "Description",
   "checklists_template_itemsHeader": "Items",
   "checklists_template_addItem": "Add item",
+  "preDive_templates_title": "Pre-Dive Checklists",
+  "preDive_templates_empty": "No pre-dive checklists yet",
+  "preDive_templates_builtInBadge": "Built-in",
+  "preDive_templates_clone": "Clone",
+  "preDive_templates_cloneSuffix": " (copy)",
+  "preDive_templates_delete": "Delete",
+  "preDive_templates_deleteConfirm": "Delete this checklist template?",
+  "preDive_templates_strictOrderBadge": "Strict order",
+  "preDive_edit_titleNew": "New Pre-Dive Checklist",
+  "preDive_edit_titleEdit": "Edit Pre-Dive Checklist",
+  "preDive_edit_name": "Name",
+  "preDive_edit_description": "Description",
+  "preDive_edit_category": "Category",
+  "preDive_edit_strictOrder": "Strict order",
+  "preDive_edit_strictOrderHelp": "Items must be completed top to bottom",
+  "preDive_edit_addItem": "Add item",
+  "preDive_edit_nameRequired": "Enter a name",
+  "preDive_item_title": "Title",
+  "preDive_item_section": "Section",
+  "preDive_item_notes": "Notes",
+  "preDive_item_required": "Required",
+  "preDive_item_type_check": "Checkbox",
+  "preDive_item_type_value": "Recorded value",
+  "preDive_item_type_equipmentSet": "Equipment set items",
+  "preDive_item_valueLabel": "Value label",
+  "preDive_item_valueUnit": "Unit",
+  "preDive_item_valueMin": "Min (warning)",
+  "preDive_item_valueMax": "Max (warning)",
+  "preDive_runner_progress": "{done} of {total}",
+  "@preDive_runner_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_runner_complete": "Complete",
+  "preDive_runner_completeFlagged": "Complete with {count} flagged items?",
+  "@preDive_runner_completeFlagged": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_runner_abort": "Abort checklist",
+  "preDive_runner_abortConfirm": "Abort this checklist? It will be kept in history as aborted.",
+  "preDive_runner_skip": "Skip",
+  "preDive_runner_flag": "Flag",
+  "preDive_runner_undo": "Reset to pending",
+  "preDive_runner_serviceOverdue": "Service overdue",
+  "preDive_runner_addNote": "Add note",
+  "preDive_runner_enterValue": "Enter value",
+  "preDive_runner_flaggedBadge": "{count} flagged",
+  "@preDive_runner_flaggedBadge": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_runner_locked": "This checklist is locked",
+  "preDive_sessions_title": "Pre-Dive Checklists",
+  "preDive_sessions_empty": "No checklist runs yet",
+  "preDive_sessions_resume": "Resume",
+  "preDive_sessions_start": "Start checklist",
+  "preDive_sessions_statusCompleted": "Completed",
+  "preDive_sessions_statusAborted": "Aborted",
+  "preDive_sessions_statusInProgress": "In progress",
+  "preDive_sessions_linkedDive": "Linked dive",
+  "preDive_sessions_delete": "Delete",
+  "preDive_sessions_deleteConfirm": "Delete this checklist record?",
+  "preDive_start_title": "Start pre-dive checklist",
+  "preDive_start_template": "Checklist",
+  "preDive_start_equipmentSet": "Equipment set",
+  "preDive_start_noEquipmentSet": "None",
+  "preDive_start_begin": "Begin",
+  "preDive_section_title": "Pre-Dive Check",
+  "preDive_section_link": "Link a checklist session",
+  "preDive_section_unlink": "Unlink",
+  "preDive_section_run": "Run pre-dive checklist",
+  "preDive_section_noUnlinked": "No unlinked checklist sessions",
+  "diveDetailSection_preDiveChecklist_name": "Pre-Dive Check",
+  "diveDetailSection_preDiveChecklist_description": "Linked pre-dive checklist session",
+  "diveLog_listPage_bottomSheet_preDiveChecklist": "Start pre-dive checklist",
+  "preDive_dashboard_title": "Pre-Dive Check",
+  "preDive_dashboard_resume": "Resume - {done} of {total}",
+  "@preDive_dashboard_resume": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_dashboard_start": "Start pre-dive check",
+  "tools_preDive_title": "Pre-Dive Checklists",
+  "tools_preDive_subtitle": "Run and review checklist sessions",
+  "tools_preDive_description": "Buddy checks, CCR build lists, and gear packing with an audit trail",
+  "trips_detail_preDive_action": "Pre-dive checklist",
+  "settings_manage_preDiveChecklists": "Pre-Dive Checklists",
+  "settings_manage_preDiveChecklists_subtitle": "Buddy checks, CCR build lists, gear packing",
   "common_action_back": "Back",
   "common_action_cancel": "Cancel",
   "common_action_close": "Close",

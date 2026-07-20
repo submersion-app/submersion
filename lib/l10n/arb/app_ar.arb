@@ -717,6 +717,113 @@
   "checklists_template_descriptionLabel": "الوصف",
   "checklists_template_itemsHeader": "العناصر",
   "checklists_template_addItem": "إضافة عنصر",
+  "preDive_templates_title": "قوائم تحقق ما قبل الغوص",
+  "preDive_templates_empty": "لا توجد قوائم تحقق ما قبل الغوص بعد",
+  "preDive_templates_builtInBadge": "مدمجة",
+  "preDive_templates_clone": "استنساخ",
+  "preDive_templates_cloneSuffix": " (نسخة)",
+  "preDive_templates_delete": "حذف",
+  "preDive_templates_deleteConfirm": "هل تريد حذف قالب قائمة التحقق هذا؟",
+  "preDive_templates_strictOrderBadge": "ترتيب صارم",
+  "preDive_edit_titleNew": "قائمة تحقق جديدة لما قبل الغوص",
+  "preDive_edit_titleEdit": "تعديل قائمة تحقق ما قبل الغوص",
+  "preDive_edit_name": "الاسم",
+  "preDive_edit_description": "الوصف",
+  "preDive_edit_category": "الفئة",
+  "preDive_edit_strictOrder": "ترتيب صارم",
+  "preDive_edit_strictOrderHelp": "يجب إكمال العناصر من الأعلى إلى الأسفل",
+  "preDive_edit_addItem": "إضافة عنصر",
+  "preDive_edit_nameRequired": "أدخل اسمًا",
+  "preDive_item_title": "العنوان",
+  "preDive_item_section": "القسم",
+  "preDive_item_notes": "ملاحظات",
+  "preDive_item_required": "مطلوب",
+  "preDive_item_type_check": "خانة اختيار",
+  "preDive_item_type_value": "قيمة مسجَّلة",
+  "preDive_item_type_equipmentSet": "عناصر طقم المعدات",
+  "preDive_item_valueLabel": "تسمية القيمة",
+  "preDive_item_valueUnit": "الوحدة",
+  "preDive_item_valueMin": "الحد الأدنى (تحذير)",
+  "preDive_item_valueMax": "الحد الأقصى (تحذير)",
+  "preDive_runner_progress": "{done} من {total}",
+  "@preDive_runner_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_runner_complete": "إكمال",
+  "preDive_runner_completeFlagged": "هل تريد الإكمال مع {count} من العناصر المعلَّمة؟",
+  "@preDive_runner_completeFlagged": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_runner_abort": "إلغاء قائمة التحقق",
+  "preDive_runner_abortConfirm": "هل تريد إلغاء قائمة التحقق هذه؟ سيتم الاحتفاظ بها في السجل كملغاة.",
+  "preDive_runner_skip": "تخطي",
+  "preDive_runner_flag": "وضع علامة",
+  "preDive_runner_undo": "إعادة إلى قيد الانتظار",
+  "preDive_runner_serviceOverdue": "الصيانة متأخرة",
+  "preDive_runner_addNote": "إضافة ملاحظة",
+  "preDive_runner_enterValue": "أدخل القيمة",
+  "preDive_runner_flaggedBadge": "{count} معلَّمة",
+  "@preDive_runner_flaggedBadge": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_runner_locked": "قائمة التحقق هذه مقفلة",
+  "preDive_sessions_title": "قوائم تحقق ما قبل الغوص",
+  "preDive_sessions_empty": "لم يتم تنفيذ أي قائمة تحقق بعد",
+  "preDive_sessions_resume": "استئناف",
+  "preDive_sessions_start": "بدء قائمة التحقق",
+  "preDive_sessions_statusCompleted": "مكتملة",
+  "preDive_sessions_statusAborted": "ملغاة",
+  "preDive_sessions_statusInProgress": "قيد التنفيذ",
+  "preDive_sessions_linkedDive": "الغطسة المرتبطة",
+  "preDive_sessions_delete": "حذف",
+  "preDive_sessions_deleteConfirm": "هل تريد حذف سجل قائمة التحقق هذا؟",
+  "preDive_start_title": "بدء قائمة تحقق ما قبل الغوص",
+  "preDive_start_template": "قائمة التحقق",
+  "preDive_start_equipmentSet": "طقم المعدات",
+  "preDive_start_noEquipmentSet": "بدون",
+  "preDive_start_begin": "بدء",
+  "preDive_section_title": "فحص ما قبل الغوص",
+  "preDive_section_link": "ربط جلسة قائمة تحقق",
+  "preDive_section_unlink": "إلغاء الربط",
+  "preDive_section_run": "تشغيل قائمة تحقق ما قبل الغوص",
+  "preDive_section_noUnlinked": "لا توجد جلسات قوائم تحقق غير مرتبطة",
+  "diveDetailSection_preDiveChecklist_name": "فحص ما قبل الغوص",
+  "diveDetailSection_preDiveChecklist_description": "جلسة قائمة تحقق ما قبل الغوص المرتبطة",
+  "diveLog_listPage_bottomSheet_preDiveChecklist": "بدء قائمة تحقق ما قبل الغوص",
+  "preDive_dashboard_title": "فحص ما قبل الغوص",
+  "preDive_dashboard_resume": "استئناف - {done} من {total}",
+  "@preDive_dashboard_resume": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_dashboard_start": "بدء فحص ما قبل الغوص",
+  "tools_preDive_title": "قوائم تحقق ما قبل الغوص",
+  "tools_preDive_subtitle": "تشغيل جلسات قوائم التحقق ومراجعتها",
+  "tools_preDive_description": "فحوصات رفيق الغوص، وقوائم تجهيز CCR، وتوضيب المعدات مع سجل تدقيق",
+  "trips_detail_preDive_action": "قائمة تحقق ما قبل الغوص",
+  "settings_manage_preDiveChecklists": "قوائم تحقق ما قبل الغوص",
+  "settings_manage_preDiveChecklists_subtitle": "فحوصات رفيق الغوص، قوائم تجهيز CCR، توضيب المعدات",
   "common_action_back": "رجوع",
   "common_action_cancel": "إلغاء",
   "common_action_close": "إغلاق",

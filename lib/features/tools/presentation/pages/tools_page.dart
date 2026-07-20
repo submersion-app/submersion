@@ -32,6 +32,17 @@ class ToolsPage extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
+          // Pre-Dive Checklists Card
+          _ToolCard(
+            icon: Icons.fact_check,
+            iconColor: colorScheme.primary,
+            title: context.l10n.tools_preDive_title,
+            subtitle: context.l10n.tools_preDive_subtitle,
+            description: context.l10n.tools_preDive_description,
+            onTap: () => context.push('/pre-dive-sessions'),
+          ),
+          const SizedBox(height: 12),
+
           // Gas Calculators Card
           _ToolCard(
             icon: Icons.science,

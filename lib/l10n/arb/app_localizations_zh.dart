@@ -2024,6 +2024,233 @@ class AppLocalizationsZh extends AppLocalizations {
   String get checklists_template_addItem => '添加事项';
 
   @override
+  String get preDive_templates_title => '潜前检查清单';
+
+  @override
+  String get preDive_templates_empty => '还没有潜前检查清单';
+
+  @override
+  String get preDive_templates_builtInBadge => '内置';
+
+  @override
+  String get preDive_templates_clone => '复制';
+
+  @override
+  String get preDive_templates_cloneSuffix => '（副本）';
+
+  @override
+  String get preDive_templates_delete => '删除';
+
+  @override
+  String get preDive_templates_deleteConfirm => '要删除此检查清单模板吗？';
+
+  @override
+  String get preDive_templates_strictOrderBadge => '严格顺序';
+
+  @override
+  String get preDive_edit_titleNew => '新建潜前检查清单';
+
+  @override
+  String get preDive_edit_titleEdit => '编辑潜前检查清单';
+
+  @override
+  String get preDive_edit_name => '名称';
+
+  @override
+  String get preDive_edit_description => '描述';
+
+  @override
+  String get preDive_edit_category => '类别';
+
+  @override
+  String get preDive_edit_strictOrder => '严格顺序';
+
+  @override
+  String get preDive_edit_strictOrderHelp => '各事项必须从上到下依次完成';
+
+  @override
+  String get preDive_edit_addItem => '添加事项';
+
+  @override
+  String get preDive_edit_nameRequired => '请输入名称';
+
+  @override
+  String get preDive_item_title => '标题';
+
+  @override
+  String get preDive_item_section => '分组';
+
+  @override
+  String get preDive_item_notes => '备注';
+
+  @override
+  String get preDive_item_required => '必需';
+
+  @override
+  String get preDive_item_type_check => '复选框';
+
+  @override
+  String get preDive_item_type_value => '记录数值';
+
+  @override
+  String get preDive_item_type_equipmentSet => '装备套装事项';
+
+  @override
+  String get preDive_item_valueLabel => '数值标签';
+
+  @override
+  String get preDive_item_valueUnit => '单位';
+
+  @override
+  String get preDive_item_valueMin => '最小值（警告）';
+
+  @override
+  String get preDive_item_valueMax => '最大值（警告）';
+
+  @override
+  String preDive_runner_progress(int done, int total) {
+    return '$done/$total';
+  }
+
+  @override
+  String get preDive_runner_complete => '完成';
+
+  @override
+  String preDive_runner_completeFlagged(int count) {
+    return '有 $count 个已标记事项，仍要完成吗？';
+  }
+
+  @override
+  String get preDive_runner_abort => '中止检查清单';
+
+  @override
+  String get preDive_runner_abortConfirm => '要中止此检查清单吗？它将以已中止状态保留在历史记录中。';
+
+  @override
+  String get preDive_runner_skip => '跳过';
+
+  @override
+  String get preDive_runner_flag => '标记';
+
+  @override
+  String get preDive_runner_undo => '重置为待办';
+
+  @override
+  String get preDive_runner_serviceOverdue => '维护已逾期';
+
+  @override
+  String get preDive_runner_addNote => '添加备注';
+
+  @override
+  String get preDive_runner_enterValue => '输入数值';
+
+  @override
+  String preDive_runner_flaggedBadge(int count) {
+    return '$count 个已标记';
+  }
+
+  @override
+  String get preDive_runner_locked => '此检查清单已锁定';
+
+  @override
+  String get preDive_sessions_title => '潜前检查清单';
+
+  @override
+  String get preDive_sessions_empty => '还没有检查清单执行记录';
+
+  @override
+  String get preDive_sessions_resume => '继续';
+
+  @override
+  String get preDive_sessions_start => '开始检查清单';
+
+  @override
+  String get preDive_sessions_statusCompleted => '已完成';
+
+  @override
+  String get preDive_sessions_statusAborted => '已中止';
+
+  @override
+  String get preDive_sessions_statusInProgress => '进行中';
+
+  @override
+  String get preDive_sessions_linkedDive => '关联潜水';
+
+  @override
+  String get preDive_sessions_delete => '删除';
+
+  @override
+  String get preDive_sessions_deleteConfirm => '要删除此检查清单记录吗？';
+
+  @override
+  String get preDive_start_title => '开始潜前检查清单';
+
+  @override
+  String get preDive_start_template => '检查清单';
+
+  @override
+  String get preDive_start_equipmentSet => '装备套装';
+
+  @override
+  String get preDive_start_noEquipmentSet => '无';
+
+  @override
+  String get preDive_start_begin => '开始';
+
+  @override
+  String get preDive_section_title => '潜前检查';
+
+  @override
+  String get preDive_section_link => '关联检查清单记录';
+
+  @override
+  String get preDive_section_unlink => '取消关联';
+
+  @override
+  String get preDive_section_run => '执行潜前检查清单';
+
+  @override
+  String get preDive_section_noUnlinked => '没有未关联的检查清单记录';
+
+  @override
+  String get diveDetailSection_preDiveChecklist_name => '潜前检查';
+
+  @override
+  String get diveDetailSection_preDiveChecklist_description => '已关联的潜前检查清单记录';
+
+  @override
+  String get diveLog_listPage_bottomSheet_preDiveChecklist => '开始潜前检查清单';
+
+  @override
+  String get preDive_dashboard_title => '潜前检查';
+
+  @override
+  String preDive_dashboard_resume(int done, int total) {
+    return '继续 - $done/$total';
+  }
+
+  @override
+  String get preDive_dashboard_start => '开始潜前检查';
+
+  @override
+  String get tools_preDive_title => '潜前检查清单';
+
+  @override
+  String get tools_preDive_subtitle => '执行并查看检查清单记录';
+
+  @override
+  String get tools_preDive_description => '潜伴检查、CCR 组装清单和装备打包，并保留审核记录';
+
+  @override
+  String get trips_detail_preDive_action => '潜前检查清单';
+
+  @override
+  String get settings_manage_preDiveChecklists => '潜前检查清单';
+
+  @override
+  String get settings_manage_preDiveChecklists_subtitle => '潜伴检查、CCR 组装清单、装备打包';
+
+  @override
   String get common_action_back => '返回';
 
   @override

@@ -717,6 +717,113 @@
   "checklists_template_descriptionLabel": "Descrição",
   "checklists_template_itemsHeader": "Itens",
   "checklists_template_addItem": "Adicionar item",
+  "preDive_templates_title": "Listas de Verificação Pré-Mergulho",
+  "preDive_templates_empty": "Ainda não há listas de verificação pré-mergulho",
+  "preDive_templates_builtInBadge": "Integrada",
+  "preDive_templates_clone": "Duplicar",
+  "preDive_templates_cloneSuffix": " (cópia)",
+  "preDive_templates_delete": "Excluir",
+  "preDive_templates_deleteConfirm": "Excluir este modelo de lista de verificação?",
+  "preDive_templates_strictOrderBadge": "Ordem estrita",
+  "preDive_edit_titleNew": "Nova Lista de Verificação Pré-Mergulho",
+  "preDive_edit_titleEdit": "Editar Lista de Verificação Pré-Mergulho",
+  "preDive_edit_name": "Nome",
+  "preDive_edit_description": "Descrição",
+  "preDive_edit_category": "Categoria",
+  "preDive_edit_strictOrder": "Ordem estrita",
+  "preDive_edit_strictOrderHelp": "Os itens devem ser concluídos de cima para baixo",
+  "preDive_edit_addItem": "Adicionar item",
+  "preDive_edit_nameRequired": "Insira um nome",
+  "preDive_item_title": "Título",
+  "preDive_item_section": "Seção",
+  "preDive_item_notes": "Notas",
+  "preDive_item_required": "Obrigatório",
+  "preDive_item_type_check": "Caixa de seleção",
+  "preDive_item_type_value": "Valor registrado",
+  "preDive_item_type_equipmentSet": "Itens do conjunto de equipamentos",
+  "preDive_item_valueLabel": "Rótulo do valor",
+  "preDive_item_valueUnit": "Unidade",
+  "preDive_item_valueMin": "Mín (aviso)",
+  "preDive_item_valueMax": "Máx (aviso)",
+  "preDive_runner_progress": "{done} de {total}",
+  "@preDive_runner_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_runner_complete": "Concluir",
+  "preDive_runner_completeFlagged": "Concluir com {count} itens sinalizados?",
+  "@preDive_runner_completeFlagged": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_runner_abort": "Interromper lista de verificação",
+  "preDive_runner_abortConfirm": "Interromper esta lista de verificação? Ela será mantida no histórico como interrompida.",
+  "preDive_runner_skip": "Pular",
+  "preDive_runner_flag": "Sinalizar",
+  "preDive_runner_undo": "Redefinir como pendente",
+  "preDive_runner_serviceOverdue": "Manutenção vencida",
+  "preDive_runner_addNote": "Adicionar nota",
+  "preDive_runner_enterValue": "Inserir valor",
+  "preDive_runner_flaggedBadge": "{count} sinalizados",
+  "@preDive_runner_flaggedBadge": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_runner_locked": "Esta lista de verificação está bloqueada",
+  "preDive_sessions_title": "Listas de Verificação Pré-Mergulho",
+  "preDive_sessions_empty": "Ainda não há execuções de lista de verificação",
+  "preDive_sessions_resume": "Retomar",
+  "preDive_sessions_start": "Iniciar lista de verificação",
+  "preDive_sessions_statusCompleted": "Concluída",
+  "preDive_sessions_statusAborted": "Interrompida",
+  "preDive_sessions_statusInProgress": "Em andamento",
+  "preDive_sessions_linkedDive": "Mergulho vinculado",
+  "preDive_sessions_delete": "Excluir",
+  "preDive_sessions_deleteConfirm": "Excluir este registro de lista de verificação?",
+  "preDive_start_title": "Iniciar lista de verificação pré-mergulho",
+  "preDive_start_template": "Lista de verificação",
+  "preDive_start_equipmentSet": "Conjunto de equipamentos",
+  "preDive_start_noEquipmentSet": "Nenhum",
+  "preDive_start_begin": "Começar",
+  "preDive_section_title": "Verificação Pré-Mergulho",
+  "preDive_section_link": "Vincular uma sessão de lista de verificação",
+  "preDive_section_unlink": "Desvincular",
+  "preDive_section_run": "Executar lista de verificação pré-mergulho",
+  "preDive_section_noUnlinked": "Nenhuma sessão de lista de verificação desvinculada",
+  "diveDetailSection_preDiveChecklist_name": "Verificação Pré-Mergulho",
+  "diveDetailSection_preDiveChecklist_description": "Sessão de lista de verificação pré-mergulho vinculada",
+  "diveLog_listPage_bottomSheet_preDiveChecklist": "Iniciar lista de verificação pré-mergulho",
+  "preDive_dashboard_title": "Verificação Pré-Mergulho",
+  "preDive_dashboard_resume": "Retomar - {done} de {total}",
+  "@preDive_dashboard_resume": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_dashboard_start": "Iniciar verificação pré-mergulho",
+  "tools_preDive_title": "Listas de Verificação Pré-Mergulho",
+  "tools_preDive_subtitle": "Executar e revisar sessões de lista de verificação",
+  "tools_preDive_description": "Verificações de dupla, listas de montagem de CCR e preparação de equipamento com trilha de auditoria",
+  "trips_detail_preDive_action": "Lista de verificação pré-mergulho",
+  "settings_manage_preDiveChecklists": "Listas de Verificação Pré-Mergulho",
+  "settings_manage_preDiveChecklists_subtitle": "Verificações de dupla, listas de montagem de CCR, preparação de equipamento",
   "common_action_back": "Voltar",
   "common_action_cancel": "Cancelar",
   "common_action_close": "Fechar",

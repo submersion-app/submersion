@@ -2117,6 +2117,240 @@ class AppLocalizationsEn extends AppLocalizations {
   String get checklists_template_addItem => 'Add item';
 
   @override
+  String get preDive_templates_title => 'Pre-Dive Checklists';
+
+  @override
+  String get preDive_templates_empty => 'No pre-dive checklists yet';
+
+  @override
+  String get preDive_templates_builtInBadge => 'Built-in';
+
+  @override
+  String get preDive_templates_clone => 'Clone';
+
+  @override
+  String get preDive_templates_cloneSuffix => ' (copy)';
+
+  @override
+  String get preDive_templates_delete => 'Delete';
+
+  @override
+  String get preDive_templates_deleteConfirm =>
+      'Delete this checklist template?';
+
+  @override
+  String get preDive_templates_strictOrderBadge => 'Strict order';
+
+  @override
+  String get preDive_edit_titleNew => 'New Pre-Dive Checklist';
+
+  @override
+  String get preDive_edit_titleEdit => 'Edit Pre-Dive Checklist';
+
+  @override
+  String get preDive_edit_name => 'Name';
+
+  @override
+  String get preDive_edit_description => 'Description';
+
+  @override
+  String get preDive_edit_category => 'Category';
+
+  @override
+  String get preDive_edit_strictOrder => 'Strict order';
+
+  @override
+  String get preDive_edit_strictOrderHelp =>
+      'Items must be completed top to bottom';
+
+  @override
+  String get preDive_edit_addItem => 'Add item';
+
+  @override
+  String get preDive_edit_nameRequired => 'Enter a name';
+
+  @override
+  String get preDive_item_title => 'Title';
+
+  @override
+  String get preDive_item_section => 'Section';
+
+  @override
+  String get preDive_item_notes => 'Notes';
+
+  @override
+  String get preDive_item_required => 'Required';
+
+  @override
+  String get preDive_item_type_check => 'Checkbox';
+
+  @override
+  String get preDive_item_type_value => 'Recorded value';
+
+  @override
+  String get preDive_item_type_equipmentSet => 'Equipment set items';
+
+  @override
+  String get preDive_item_valueLabel => 'Value label';
+
+  @override
+  String get preDive_item_valueUnit => 'Unit';
+
+  @override
+  String get preDive_item_valueMin => 'Min (warning)';
+
+  @override
+  String get preDive_item_valueMax => 'Max (warning)';
+
+  @override
+  String preDive_runner_progress(int done, int total) {
+    return '$done of $total';
+  }
+
+  @override
+  String get preDive_runner_complete => 'Complete';
+
+  @override
+  String preDive_runner_completeFlagged(int count) {
+    return 'Complete with $count flagged items?';
+  }
+
+  @override
+  String get preDive_runner_abort => 'Abort checklist';
+
+  @override
+  String get preDive_runner_abortConfirm =>
+      'Abort this checklist? It will be kept in history as aborted.';
+
+  @override
+  String get preDive_runner_skip => 'Skip';
+
+  @override
+  String get preDive_runner_flag => 'Flag';
+
+  @override
+  String get preDive_runner_undo => 'Reset to pending';
+
+  @override
+  String get preDive_runner_serviceOverdue => 'Service overdue';
+
+  @override
+  String get preDive_runner_addNote => 'Add note';
+
+  @override
+  String get preDive_runner_enterValue => 'Enter value';
+
+  @override
+  String preDive_runner_flaggedBadge(int count) {
+    return '$count flagged';
+  }
+
+  @override
+  String get preDive_runner_locked => 'This checklist is locked';
+
+  @override
+  String get preDive_sessions_title => 'Pre-Dive Checklists';
+
+  @override
+  String get preDive_sessions_empty => 'No checklist runs yet';
+
+  @override
+  String get preDive_sessions_resume => 'Resume';
+
+  @override
+  String get preDive_sessions_start => 'Start checklist';
+
+  @override
+  String get preDive_sessions_statusCompleted => 'Completed';
+
+  @override
+  String get preDive_sessions_statusAborted => 'Aborted';
+
+  @override
+  String get preDive_sessions_statusInProgress => 'In progress';
+
+  @override
+  String get preDive_sessions_linkedDive => 'Linked dive';
+
+  @override
+  String get preDive_sessions_delete => 'Delete';
+
+  @override
+  String get preDive_sessions_deleteConfirm => 'Delete this checklist record?';
+
+  @override
+  String get preDive_start_title => 'Start pre-dive checklist';
+
+  @override
+  String get preDive_start_template => 'Checklist';
+
+  @override
+  String get preDive_start_equipmentSet => 'Equipment set';
+
+  @override
+  String get preDive_start_noEquipmentSet => 'None';
+
+  @override
+  String get preDive_start_begin => 'Begin';
+
+  @override
+  String get preDive_section_title => 'Pre-Dive Check';
+
+  @override
+  String get preDive_section_link => 'Link a checklist session';
+
+  @override
+  String get preDive_section_unlink => 'Unlink';
+
+  @override
+  String get preDive_section_run => 'Run pre-dive checklist';
+
+  @override
+  String get preDive_section_noUnlinked => 'No unlinked checklist sessions';
+
+  @override
+  String get diveDetailSection_preDiveChecklist_name => 'Pre-Dive Check';
+
+  @override
+  String get diveDetailSection_preDiveChecklist_description =>
+      'Linked pre-dive checklist session';
+
+  @override
+  String get diveLog_listPage_bottomSheet_preDiveChecklist =>
+      'Start pre-dive checklist';
+
+  @override
+  String get preDive_dashboard_title => 'Pre-Dive Check';
+
+  @override
+  String preDive_dashboard_resume(int done, int total) {
+    return 'Resume - $done of $total';
+  }
+
+  @override
+  String get preDive_dashboard_start => 'Start pre-dive check';
+
+  @override
+  String get tools_preDive_title => 'Pre-Dive Checklists';
+
+  @override
+  String get tools_preDive_subtitle => 'Run and review checklist sessions';
+
+  @override
+  String get tools_preDive_description =>
+      'Buddy checks, CCR build lists, and gear packing with an audit trail';
+
+  @override
+  String get trips_detail_preDive_action => 'Pre-dive checklist';
+
+  @override
+  String get settings_manage_preDiveChecklists => 'Pre-Dive Checklists';
+
+  @override
+  String get settings_manage_preDiveChecklists_subtitle =>
+      'Buddy checks, CCR build lists, gear packing';
+
+  @override
   String get common_action_back => 'Back';
 
   @override

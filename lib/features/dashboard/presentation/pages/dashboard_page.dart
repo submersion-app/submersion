@@ -12,6 +12,7 @@ import 'package:submersion/features/dashboard/presentation/widgets/hero_header.d
 import 'package:submersion/features/dashboard/presentation/widgets/personal_records_card.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/quick_actions_card.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/recent_dives_card.dart';
+import 'package:submersion/features/pre_dive/presentation/widgets/pre_dive_dashboard_card.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/service_due_card.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 
@@ -48,6 +49,9 @@ class DashboardPage extends ConsumerWidget {
                 const SizedBox(height: 12),
                 const AlertsCard(),
                 const SizedBox(height: 12),
+                // Self-spacing: renders SizedBox.shrink until the feature
+                // has been used, so hidden means zero height.
+                const PreDiveDashboardCard(),
                 const ServiceDueCard(),
                 const SizedBox(height: 12),
                 const ActiveCourseProgressCard(),

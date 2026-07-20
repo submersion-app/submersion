@@ -717,6 +717,113 @@
   "checklists_template_descriptionLabel": "Descrizione",
   "checklists_template_itemsHeader": "Elementi",
   "checklists_template_addItem": "Aggiungi elemento",
+  "preDive_templates_title": "Checklist pre-immersione",
+  "preDive_templates_empty": "Ancora nessuna checklist pre-immersione",
+  "preDive_templates_builtInBadge": "Predefinita",
+  "preDive_templates_clone": "Duplica",
+  "preDive_templates_cloneSuffix": " (copia)",
+  "preDive_templates_delete": "Elimina",
+  "preDive_templates_deleteConfirm": "Eliminare questo modello di checklist?",
+  "preDive_templates_strictOrderBadge": "Ordine rigoroso",
+  "preDive_edit_titleNew": "Nuova checklist pre-immersione",
+  "preDive_edit_titleEdit": "Modifica checklist pre-immersione",
+  "preDive_edit_name": "Nome",
+  "preDive_edit_description": "Descrizione",
+  "preDive_edit_category": "Categoria",
+  "preDive_edit_strictOrder": "Ordine rigoroso",
+  "preDive_edit_strictOrderHelp": "Gli elementi devono essere completati dall'alto verso il basso",
+  "preDive_edit_addItem": "Aggiungi elemento",
+  "preDive_edit_nameRequired": "Inserisci un nome",
+  "preDive_item_title": "Titolo",
+  "preDive_item_section": "Sezione",
+  "preDive_item_notes": "Note",
+  "preDive_item_required": "Obbligatorio",
+  "preDive_item_type_check": "Casella di controllo",
+  "preDive_item_type_value": "Valore registrato",
+  "preDive_item_type_equipmentSet": "Elementi del set di attrezzatura",
+  "preDive_item_valueLabel": "Etichetta del valore",
+  "preDive_item_valueUnit": "Unità",
+  "preDive_item_valueMin": "Min (avviso)",
+  "preDive_item_valueMax": "Max (avviso)",
+  "preDive_runner_progress": "{done} di {total}",
+  "@preDive_runner_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_runner_complete": "Completa",
+  "preDive_runner_completeFlagged": "Completare con {count} elementi segnalati?",
+  "@preDive_runner_completeFlagged": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_runner_abort": "Interrompi checklist",
+  "preDive_runner_abortConfirm": "Interrompere questa checklist? Verrà conservata nella cronologia come interrotta.",
+  "preDive_runner_skip": "Salta",
+  "preDive_runner_flag": "Segnala",
+  "preDive_runner_undo": "Reimposta come in sospeso",
+  "preDive_runner_serviceOverdue": "Manutenzione scaduta",
+  "preDive_runner_addNote": "Aggiungi nota",
+  "preDive_runner_enterValue": "Inserisci valore",
+  "preDive_runner_flaggedBadge": "{count} segnalati",
+  "@preDive_runner_flaggedBadge": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_runner_locked": "Questa checklist è bloccata",
+  "preDive_sessions_title": "Checklist pre-immersione",
+  "preDive_sessions_empty": "Ancora nessuna esecuzione di checklist",
+  "preDive_sessions_resume": "Riprendi",
+  "preDive_sessions_start": "Avvia checklist",
+  "preDive_sessions_statusCompleted": "Completata",
+  "preDive_sessions_statusAborted": "Interrotta",
+  "preDive_sessions_statusInProgress": "In corso",
+  "preDive_sessions_linkedDive": "Immersione collegata",
+  "preDive_sessions_delete": "Elimina",
+  "preDive_sessions_deleteConfirm": "Eliminare questo record di checklist?",
+  "preDive_start_title": "Avvia checklist pre-immersione",
+  "preDive_start_template": "Checklist",
+  "preDive_start_equipmentSet": "Set di attrezzatura",
+  "preDive_start_noEquipmentSet": "Nessuno",
+  "preDive_start_begin": "Inizia",
+  "preDive_section_title": "Controllo pre-immersione",
+  "preDive_section_link": "Collega una sessione di checklist",
+  "preDive_section_unlink": "Scollega",
+  "preDive_section_run": "Esegui checklist pre-immersione",
+  "preDive_section_noUnlinked": "Nessuna sessione di checklist non collegata",
+  "diveDetailSection_preDiveChecklist_name": "Controllo pre-immersione",
+  "diveDetailSection_preDiveChecklist_description": "Sessione di checklist pre-immersione collegata",
+  "diveLog_listPage_bottomSheet_preDiveChecklist": "Avvia checklist pre-immersione",
+  "preDive_dashboard_title": "Controllo pre-immersione",
+  "preDive_dashboard_resume": "Riprendi - {done} di {total}",
+  "@preDive_dashboard_resume": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_dashboard_start": "Avvia controllo pre-immersione",
+  "tools_preDive_title": "Checklist pre-immersione",
+  "tools_preDive_subtitle": "Esegui e rivedi le sessioni di checklist",
+  "tools_preDive_description": "Buddy check, liste di montaggio CCR e preparazione dell'attrezzatura con registro delle verifiche",
+  "trips_detail_preDive_action": "Checklist pre-immersione",
+  "settings_manage_preDiveChecklists": "Checklist pre-immersione",
+  "settings_manage_preDiveChecklists_subtitle": "Buddy check, liste di montaggio CCR, preparazione attrezzatura",
   "common_action_back": "Indietro",
   "common_action_cancel": "Annulla",
   "common_action_close": "Chiudi",

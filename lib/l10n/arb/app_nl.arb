@@ -717,6 +717,113 @@
   "checklists_template_descriptionLabel": "Beschrijving",
   "checklists_template_itemsHeader": "Items",
   "checklists_template_addItem": "Item toevoegen",
+  "preDive_templates_title": "Pre-dive checklists",
+  "preDive_templates_empty": "Nog geen pre-dive checklists",
+  "preDive_templates_builtInBadge": "Ingebouwd",
+  "preDive_templates_clone": "Dupliceren",
+  "preDive_templates_cloneSuffix": " (kopie)",
+  "preDive_templates_delete": "Verwijderen",
+  "preDive_templates_deleteConfirm": "Dit checklistsjabloon verwijderen?",
+  "preDive_templates_strictOrderBadge": "Vaste volgorde",
+  "preDive_edit_titleNew": "Nieuwe pre-dive checklist",
+  "preDive_edit_titleEdit": "Pre-dive checklist bewerken",
+  "preDive_edit_name": "Naam",
+  "preDive_edit_description": "Beschrijving",
+  "preDive_edit_category": "Categorie",
+  "preDive_edit_strictOrder": "Vaste volgorde",
+  "preDive_edit_strictOrderHelp": "Items moeten van boven naar beneden worden afgewerkt",
+  "preDive_edit_addItem": "Item toevoegen",
+  "preDive_edit_nameRequired": "Voer een naam in",
+  "preDive_item_title": "Titel",
+  "preDive_item_section": "Sectie",
+  "preDive_item_notes": "Notities",
+  "preDive_item_required": "Verplicht",
+  "preDive_item_type_check": "Selectievakje",
+  "preDive_item_type_value": "Geregistreerde waarde",
+  "preDive_item_type_equipmentSet": "Items uit uitrustingsset",
+  "preDive_item_valueLabel": "Waardelabel",
+  "preDive_item_valueUnit": "Eenheid",
+  "preDive_item_valueMin": "Min (waarschuwing)",
+  "preDive_item_valueMax": "Max (waarschuwing)",
+  "preDive_runner_progress": "{done} van {total}",
+  "@preDive_runner_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_runner_complete": "Voltooien",
+  "preDive_runner_completeFlagged": "Voltooien met {count} gemarkeerde items?",
+  "@preDive_runner_completeFlagged": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_runner_abort": "Checklist afbreken",
+  "preDive_runner_abortConfirm": "Deze checklist afbreken? Deze blijft in de geschiedenis bewaard als afgebroken.",
+  "preDive_runner_skip": "Overslaan",
+  "preDive_runner_flag": "Markeren",
+  "preDive_runner_undo": "Terugzetten naar openstaand",
+  "preDive_runner_serviceOverdue": "Onderhoud verlopen",
+  "preDive_runner_addNote": "Notitie toevoegen",
+  "preDive_runner_enterValue": "Waarde invoeren",
+  "preDive_runner_flaggedBadge": "{count} gemarkeerd",
+  "@preDive_runner_flaggedBadge": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_runner_locked": "Deze checklist is vergrendeld",
+  "preDive_sessions_title": "Pre-dive checklists",
+  "preDive_sessions_empty": "Nog geen uitgevoerde checklists",
+  "preDive_sessions_resume": "Hervatten",
+  "preDive_sessions_start": "Checklist starten",
+  "preDive_sessions_statusCompleted": "Voltooid",
+  "preDive_sessions_statusAborted": "Afgebroken",
+  "preDive_sessions_statusInProgress": "Bezig",
+  "preDive_sessions_linkedDive": "Gekoppelde duik",
+  "preDive_sessions_delete": "Verwijderen",
+  "preDive_sessions_deleteConfirm": "Deze checklistregistratie verwijderen?",
+  "preDive_start_title": "Pre-dive checklist starten",
+  "preDive_start_template": "Checklist",
+  "preDive_start_equipmentSet": "Uitrustingsset",
+  "preDive_start_noEquipmentSet": "Geen",
+  "preDive_start_begin": "Beginnen",
+  "preDive_section_title": "Pre-dive check",
+  "preDive_section_link": "Checklistsessie koppelen",
+  "preDive_section_unlink": "Ontkoppelen",
+  "preDive_section_run": "Pre-dive checklist uitvoeren",
+  "preDive_section_noUnlinked": "Geen ontkoppelde checklistsessies",
+  "diveDetailSection_preDiveChecklist_name": "Pre-dive check",
+  "diveDetailSection_preDiveChecklist_description": "Gekoppelde pre-dive checklistsessie",
+  "diveLog_listPage_bottomSheet_preDiveChecklist": "Pre-dive checklist starten",
+  "preDive_dashboard_title": "Pre-dive check",
+  "preDive_dashboard_resume": "Hervatten - {done} van {total}",
+  "@preDive_dashboard_resume": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_dashboard_start": "Pre-dive check starten",
+  "tools_preDive_title": "Pre-dive checklists",
+  "tools_preDive_subtitle": "Checklistsessies uitvoeren en bekijken",
+  "tools_preDive_description": "Buddychecks, CCR-opbouwlijsten en het inpakken van uitrusting, met een audittrail",
+  "trips_detail_preDive_action": "Pre-dive checklist",
+  "settings_manage_preDiveChecklists": "Pre-dive checklists",
+  "settings_manage_preDiveChecklists_subtitle": "Buddychecks, CCR-opbouwlijsten, uitrusting inpakken",
   "common_action_back": "Terug",
   "common_action_cancel": "Annuleren",
   "common_action_close": "Sluiten",

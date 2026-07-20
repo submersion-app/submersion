@@ -2146,6 +2146,248 @@ class AppLocalizationsHu extends AppLocalizations {
   String get checklists_template_addItem => 'Tétel hozzáadása';
 
   @override
+  String get preDive_templates_title => 'Merülés előtti ellenőrzőlisták';
+
+  @override
+  String get preDive_templates_empty =>
+      'Még nincsenek merülés előtti ellenőrzőlisták';
+
+  @override
+  String get preDive_templates_builtInBadge => 'Beépített';
+
+  @override
+  String get preDive_templates_clone => 'Duplikálás';
+
+  @override
+  String get preDive_templates_cloneSuffix => ' (másolat)';
+
+  @override
+  String get preDive_templates_delete => 'Törlés';
+
+  @override
+  String get preDive_templates_deleteConfirm =>
+      'Törli ezt az ellenőrzőlista-sablont?';
+
+  @override
+  String get preDive_templates_strictOrderBadge => 'Kötött sorrend';
+
+  @override
+  String get preDive_edit_titleNew => 'Új merülés előtti ellenőrzőlista';
+
+  @override
+  String get preDive_edit_titleEdit =>
+      'Merülés előtti ellenőrzőlista szerkesztése';
+
+  @override
+  String get preDive_edit_name => 'Név';
+
+  @override
+  String get preDive_edit_description => 'Leírás';
+
+  @override
+  String get preDive_edit_category => 'Kategória';
+
+  @override
+  String get preDive_edit_strictOrder => 'Kötött sorrend';
+
+  @override
+  String get preDive_edit_strictOrderHelp =>
+      'A tételeket fentről lefelé haladva kell elvégezni';
+
+  @override
+  String get preDive_edit_addItem => 'Tétel hozzáadása';
+
+  @override
+  String get preDive_edit_nameRequired => 'Adjon meg egy nevet';
+
+  @override
+  String get preDive_item_title => 'Cím';
+
+  @override
+  String get preDive_item_section => 'Szakasz';
+
+  @override
+  String get preDive_item_notes => 'Megjegyzések';
+
+  @override
+  String get preDive_item_required => 'Kötelező';
+
+  @override
+  String get preDive_item_type_check => 'Jelölőnégyzet';
+
+  @override
+  String get preDive_item_type_value => 'Rögzített érték';
+
+  @override
+  String get preDive_item_type_equipmentSet => 'Felszereléskészlet tételei';
+
+  @override
+  String get preDive_item_valueLabel => 'Érték címkéje';
+
+  @override
+  String get preDive_item_valueUnit => 'Mértékegység';
+
+  @override
+  String get preDive_item_valueMin => 'Minimum (figyelmeztetés)';
+
+  @override
+  String get preDive_item_valueMax => 'Maximum (figyelmeztetés)';
+
+  @override
+  String preDive_runner_progress(int done, int total) {
+    return '$done / $total';
+  }
+
+  @override
+  String get preDive_runner_complete => 'Befejezés';
+
+  @override
+  String preDive_runner_completeFlagged(int count) {
+    return 'Befejezi $count megjelölt tétellel?';
+  }
+
+  @override
+  String get preDive_runner_abort => 'Ellenőrzőlista megszakítása';
+
+  @override
+  String get preDive_runner_abortConfirm =>
+      'Megszakítja ezt az ellenőrzőlistát? Megszakítottként megmarad az előzményekben.';
+
+  @override
+  String get preDive_runner_skip => 'Kihagyás';
+
+  @override
+  String get preDive_runner_flag => 'Megjelölés';
+
+  @override
+  String get preDive_runner_undo => 'Visszaállítás függő állapotba';
+
+  @override
+  String get preDive_runner_serviceOverdue => 'A karbantartás lejárt';
+
+  @override
+  String get preDive_runner_addNote => 'Megjegyzés hozzáadása';
+
+  @override
+  String get preDive_runner_enterValue => 'Érték megadása';
+
+  @override
+  String preDive_runner_flaggedBadge(int count) {
+    return '$count megjelölve';
+  }
+
+  @override
+  String get preDive_runner_locked => 'Ez az ellenőrzőlista zárolva van';
+
+  @override
+  String get preDive_sessions_title => 'Merülés előtti ellenőrzőlisták';
+
+  @override
+  String get preDive_sessions_empty =>
+      'Még nincsenek ellenőrzőlista-futtatások';
+
+  @override
+  String get preDive_sessions_resume => 'Folytatás';
+
+  @override
+  String get preDive_sessions_start => 'Ellenőrzőlista indítása';
+
+  @override
+  String get preDive_sessions_statusCompleted => 'Befejezve';
+
+  @override
+  String get preDive_sessions_statusAborted => 'Megszakítva';
+
+  @override
+  String get preDive_sessions_statusInProgress => 'Folyamatban';
+
+  @override
+  String get preDive_sessions_linkedDive => 'Kapcsolt merülés';
+
+  @override
+  String get preDive_sessions_delete => 'Törlés';
+
+  @override
+  String get preDive_sessions_deleteConfirm =>
+      'Törli ezt az ellenőrzőlista-bejegyzést?';
+
+  @override
+  String get preDive_start_title => 'Merülés előtti ellenőrzőlista indítása';
+
+  @override
+  String get preDive_start_template => 'Ellenőrzőlista';
+
+  @override
+  String get preDive_start_equipmentSet => 'Felszereléskészlet';
+
+  @override
+  String get preDive_start_noEquipmentSet => 'Nincs';
+
+  @override
+  String get preDive_start_begin => 'Kezdés';
+
+  @override
+  String get preDive_section_title => 'Merülés előtti ellenőrzés';
+
+  @override
+  String get preDive_section_link => 'Ellenőrzőlista-munkamenet csatolása';
+
+  @override
+  String get preDive_section_unlink => 'Csatolás megszüntetése';
+
+  @override
+  String get preDive_section_run => 'Merülés előtti ellenőrzőlista futtatása';
+
+  @override
+  String get preDive_section_noUnlinked =>
+      'Nincsenek nem csatolt ellenőrzőlista-munkamenetek';
+
+  @override
+  String get diveDetailSection_preDiveChecklist_name =>
+      'Merülés előtti ellenőrzés';
+
+  @override
+  String get diveDetailSection_preDiveChecklist_description =>
+      'Kapcsolt merülés előtti ellenőrzőlista-munkamenet';
+
+  @override
+  String get diveLog_listPage_bottomSheet_preDiveChecklist =>
+      'Merülés előtti ellenőrzőlista indítása';
+
+  @override
+  String get preDive_dashboard_title => 'Merülés előtti ellenőrzés';
+
+  @override
+  String preDive_dashboard_resume(int done, int total) {
+    return 'Folytatás - $done / $total';
+  }
+
+  @override
+  String get preDive_dashboard_start => 'Merülés előtti ellenőrzés indítása';
+
+  @override
+  String get tools_preDive_title => 'Merülés előtti ellenőrzőlisták';
+
+  @override
+  String get tools_preDive_subtitle =>
+      'Ellenőrzőlista-munkamenetek futtatása és áttekintése';
+
+  @override
+  String get tools_preDive_description =>
+      'Társellenőrzések, CCR összeszerelési listák és felszereléscsomagolás naplózott előzményekkel';
+
+  @override
+  String get trips_detail_preDive_action => 'Merülés előtti ellenőrzőlista';
+
+  @override
+  String get settings_manage_preDiveChecklists =>
+      'Merülés előtti ellenőrzőlisták';
+
+  @override
+  String get settings_manage_preDiveChecklists_subtitle =>
+      'Társellenőrzések, CCR összeszerelési listák, felszereléscsomagolás';
+
+  @override
   String get common_action_back => 'Vissza';
 
   @override

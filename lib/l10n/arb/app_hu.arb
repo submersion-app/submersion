@@ -717,6 +717,113 @@
   "checklists_template_descriptionLabel": "Leírás",
   "checklists_template_itemsHeader": "Tételek",
   "checklists_template_addItem": "Tétel hozzáadása",
+  "preDive_templates_title": "Merülés előtti ellenőrzőlisták",
+  "preDive_templates_empty": "Még nincsenek merülés előtti ellenőrzőlisták",
+  "preDive_templates_builtInBadge": "Beépített",
+  "preDive_templates_clone": "Duplikálás",
+  "preDive_templates_cloneSuffix": " (másolat)",
+  "preDive_templates_delete": "Törlés",
+  "preDive_templates_deleteConfirm": "Törli ezt az ellenőrzőlista-sablont?",
+  "preDive_templates_strictOrderBadge": "Kötött sorrend",
+  "preDive_edit_titleNew": "Új merülés előtti ellenőrzőlista",
+  "preDive_edit_titleEdit": "Merülés előtti ellenőrzőlista szerkesztése",
+  "preDive_edit_name": "Név",
+  "preDive_edit_description": "Leírás",
+  "preDive_edit_category": "Kategória",
+  "preDive_edit_strictOrder": "Kötött sorrend",
+  "preDive_edit_strictOrderHelp": "A tételeket fentről lefelé haladva kell elvégezni",
+  "preDive_edit_addItem": "Tétel hozzáadása",
+  "preDive_edit_nameRequired": "Adjon meg egy nevet",
+  "preDive_item_title": "Cím",
+  "preDive_item_section": "Szakasz",
+  "preDive_item_notes": "Megjegyzések",
+  "preDive_item_required": "Kötelező",
+  "preDive_item_type_check": "Jelölőnégyzet",
+  "preDive_item_type_value": "Rögzített érték",
+  "preDive_item_type_equipmentSet": "Felszereléskészlet tételei",
+  "preDive_item_valueLabel": "Érték címkéje",
+  "preDive_item_valueUnit": "Mértékegység",
+  "preDive_item_valueMin": "Minimum (figyelmeztetés)",
+  "preDive_item_valueMax": "Maximum (figyelmeztetés)",
+  "preDive_runner_progress": "{done} / {total}",
+  "@preDive_runner_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_runner_complete": "Befejezés",
+  "preDive_runner_completeFlagged": "Befejezi {count} megjelölt tétellel?",
+  "@preDive_runner_completeFlagged": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_runner_abort": "Ellenőrzőlista megszakítása",
+  "preDive_runner_abortConfirm": "Megszakítja ezt az ellenőrzőlistát? Megszakítottként megmarad az előzményekben.",
+  "preDive_runner_skip": "Kihagyás",
+  "preDive_runner_flag": "Megjelölés",
+  "preDive_runner_undo": "Visszaállítás függő állapotba",
+  "preDive_runner_serviceOverdue": "A karbantartás lejárt",
+  "preDive_runner_addNote": "Megjegyzés hozzáadása",
+  "preDive_runner_enterValue": "Érték megadása",
+  "preDive_runner_flaggedBadge": "{count} megjelölve",
+  "@preDive_runner_flaggedBadge": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_runner_locked": "Ez az ellenőrzőlista zárolva van",
+  "preDive_sessions_title": "Merülés előtti ellenőrzőlisták",
+  "preDive_sessions_empty": "Még nincsenek ellenőrzőlista-futtatások",
+  "preDive_sessions_resume": "Folytatás",
+  "preDive_sessions_start": "Ellenőrzőlista indítása",
+  "preDive_sessions_statusCompleted": "Befejezve",
+  "preDive_sessions_statusAborted": "Megszakítva",
+  "preDive_sessions_statusInProgress": "Folyamatban",
+  "preDive_sessions_linkedDive": "Kapcsolt merülés",
+  "preDive_sessions_delete": "Törlés",
+  "preDive_sessions_deleteConfirm": "Törli ezt az ellenőrzőlista-bejegyzést?",
+  "preDive_start_title": "Merülés előtti ellenőrzőlista indítása",
+  "preDive_start_template": "Ellenőrzőlista",
+  "preDive_start_equipmentSet": "Felszereléskészlet",
+  "preDive_start_noEquipmentSet": "Nincs",
+  "preDive_start_begin": "Kezdés",
+  "preDive_section_title": "Merülés előtti ellenőrzés",
+  "preDive_section_link": "Ellenőrzőlista-munkamenet csatolása",
+  "preDive_section_unlink": "Csatolás megszüntetése",
+  "preDive_section_run": "Merülés előtti ellenőrzőlista futtatása",
+  "preDive_section_noUnlinked": "Nincsenek nem csatolt ellenőrzőlista-munkamenetek",
+  "diveDetailSection_preDiveChecklist_name": "Merülés előtti ellenőrzés",
+  "diveDetailSection_preDiveChecklist_description": "Kapcsolt merülés előtti ellenőrzőlista-munkamenet",
+  "diveLog_listPage_bottomSheet_preDiveChecklist": "Merülés előtti ellenőrzőlista indítása",
+  "preDive_dashboard_title": "Merülés előtti ellenőrzés",
+  "preDive_dashboard_resume": "Folytatás - {done} / {total}",
+  "@preDive_dashboard_resume": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_dashboard_start": "Merülés előtti ellenőrzés indítása",
+  "tools_preDive_title": "Merülés előtti ellenőrzőlisták",
+  "tools_preDive_subtitle": "Ellenőrzőlista-munkamenetek futtatása és áttekintése",
+  "tools_preDive_description": "Társellenőrzések, CCR összeszerelési listák és felszereléscsomagolás naplózott előzményekkel",
+  "trips_detail_preDive_action": "Merülés előtti ellenőrzőlista",
+  "settings_manage_preDiveChecklists": "Merülés előtti ellenőrzőlisták",
+  "settings_manage_preDiveChecklists_subtitle": "Társellenőrzések, CCR összeszerelési listák, felszereléscsomagolás",
   "common_action_back": "Vissza",
   "common_action_cancel": "Megse",
   "common_action_close": "Bezaras",

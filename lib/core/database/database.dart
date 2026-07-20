@@ -201,6 +201,162 @@ class TripChecklistItems extends Table {
   // coverage:ignore-end
 }
 
+/// Pre-dive checklist templates (spec 2026-07-16-pre-dive-checklist).
+/// Built-ins (isBuiltIn) are seeded by kSeedBuiltInPreDiveTemplate* SQL,
+/// re-asserted in beforeOpen, and skipped by sync export.
+class PreDiveChecklistTemplates extends Table {
+  // coverage:ignore-start
+  TextColumn get id => text()();
+  TextColumn get diverId => text().nullable().references(Divers, #id)();
+  TextColumn get name => text()();
+  TextColumn get description => text().withDefault(const Constant(''))();
+  TextColumn get category => text().nullable()();
+
+  /// Enforce item order during sessions (CCR-build style).
+  BoolColumn get strictOrder => boolean().withDefault(const Constant(false))();
+  BoolColumn get isBuiltIn => boolean().withDefault(const Constant(false))();
+
+  /// Stable identity for built-in re-seeding and content upgrades.
+  TextColumn get builtinKey => text().nullable()();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+  // coverage:ignore-end
+}
+
+/// Items belonging to a pre-dive checklist template.
+class PreDiveChecklistTemplateItems extends Table {
+  // coverage:ignore-start
+  TextColumn get id => text()();
+  TextColumn get templateId =>
+      text().references(PreDiveChecklistTemplates, #id)();
+
+  /// Visual grouping header (e.g. "Cells", "Bailout").
+  TextColumn get section => text().nullable()();
+  TextColumn get title => text()();
+  TextColumn get notes => text().withDefault(const Constant(''))();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+
+  /// 'check' | 'value' | 'equipmentSet' (PreDiveItemType.name).
+  TextColumn get itemType => text().withDefault(const Constant('check'))();
+  TextColumn get valueLabel => text().nullable()();
+  TextColumn get valueUnit => text().nullable()();
+
+  /// Warning thresholds for value items — advisory, never blocking.
+  RealColumn get valueMin => real().nullable()();
+  RealColumn get valueMax => real().nullable()();
+
+  /// Required items must end Done or Flagged (never Skipped).
+  BoolColumn get isRequired => boolean().withDefault(const Constant(false))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution.
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+  // coverage:ignore-end
+}
+
+/// A pre-dive checklist run. Snapshots everything at start; completed and
+/// aborted sessions are immutable audit records (repository-enforced).
+class PreDiveSessions extends Table {
+  // coverage:ignore-start
+  TextColumn get id => text()();
+  TextColumn get diverId => text().nullable().references(Divers, #id)();
+  TextColumn get templateId => text().nullable().references(
+    PreDiveChecklistTemplates,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+
+  /// Snapshot; survives template deletion.
+  TextColumn get templateName => text()();
+
+  /// Snapshot of the template's strictOrder at session start.
+  BoolColumn get strictOrder => boolean().withDefault(const Constant(false))();
+  TextColumn get diveId =>
+      text().nullable().references(Dives, #id, onDelete: KeyAction.setNull)();
+  TextColumn get tripId =>
+      text().nullable().references(Trips, #id, onDelete: KeyAction.setNull)();
+  IntColumn get startedAt => integer()();
+  IntColumn get completedAt => integer().nullable()();
+
+  /// 'inProgress' | 'completed' | 'aborted' (PreDiveSessionStatus.name).
+  TextColumn get status => text().withDefault(const Constant('inProgress'))();
+  TextColumn get equipmentSetId => text().nullable().references(
+    EquipmentSets,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+
+  /// Display snapshot; survives set deletion.
+  TextColumn get equipmentSetName => text().nullable()();
+  TextColumn get notes => text().withDefault(const Constant(''))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution.
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+  // coverage:ignore-end
+}
+
+/// Per-session checklist items: a full snapshot of the template item plus
+/// run state. Mutated individually during a run, so first-class HLC rows.
+class PreDiveSessionItems extends Table {
+  // coverage:ignore-start
+  TextColumn get id => text()();
+  TextColumn get sessionId =>
+      text().references(PreDiveSessions, #id, onDelete: KeyAction.cascade)();
+  TextColumn get section => text().nullable()();
+  TextColumn get title => text()();
+  TextColumn get notes => text().withDefault(const Constant(''))();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  TextColumn get itemType => text().withDefault(const Constant('check'))();
+  TextColumn get valueLabel => text().nullable()();
+  TextColumn get valueUnit => text().nullable()();
+  RealColumn get valueMin => real().nullable()();
+  RealColumn get valueMax => real().nullable()();
+  BoolColumn get isRequired => boolean().withDefault(const Constant(false))();
+
+  /// 'pending' | 'done' | 'skipped' | 'flagged' (PreDiveItemState.name).
+  TextColumn get state => text().withDefault(const Constant('pending'))();
+  RealColumn get valueNumber => real().nullable()();
+  TextColumn get valueText => text().nullable()();
+
+  /// Diver note recorded during the run (e.g. "cell 2 sluggish").
+  TextColumn get note => text().withDefault(const Constant(''))();
+
+  /// Stamped at tap time — audit evidence, never backfilled.
+  IntColumn get completedAt => integer().nullable()();
+
+  /// Set for equipment-expanded rows; navigation only.
+  TextColumn get equipmentId => text().nullable().references(
+    Equipment,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution.
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+  // coverage:ignore-end
+}
+
 /// GPS surface tracks recorded by the phone during a dive day (spec
 /// 2026-07-06-gps-track-logging). One row per recording session; points
 /// live in a gzipped JSON blob because matching always reads whole tracks
@@ -1752,6 +1908,109 @@ class DiveRoles extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Built-in pre-dive checklist templates. INSERT OR IGNORE keyed on stable
+/// ids so re-seeding on every open is idempotent and restores replace-adopt
+/// wipes. Built-ins are read-only in the UI and skipped by sync export.
+/// Timestamps are the constant 0: built-ins are device-local reference data,
+/// never synced, and deterministic values keep the statement idempotent.
+const String kSeedBuiltInPreDiveTemplatesSql = '''
+  INSERT OR IGNORE INTO pre_dive_checklist_templates
+    (id, name, description, category, strict_order, is_built_in,
+     builtin_key, created_at, updated_at)
+  VALUES
+    ('builtin-predive-bwraf', 'BWRAF Buddy Check',
+     'Standard recreational pre-dive safety check',
+     'Safety', 0, 1, 'builtin-predive-bwraf', 0, 0),
+    ('builtin-predive-gue-edge', 'GUE EDGE',
+     'Team pre-dive sequence',
+     'Safety', 0, 1, 'builtin-predive-gue-edge', 0, 0),
+    ('builtin-predive-ccr-build', 'CCR Build (generic)',
+     'Generic rebreather assembly and pre-breathe checklist',
+     'CCR', 1, 1, 'builtin-predive-ccr-build', 0, 0),
+    ('builtin-predive-gear-packing', 'Gear Packing',
+     'Pack and stage everything before leaving for the site',
+     'Packing', 0, 1, 'builtin-predive-gear-packing', 0, 0)
+''';
+
+/// Items for the built-in pre-dive templates. Same idempotence contract as
+/// [kSeedBuiltInPreDiveTemplatesSql].
+const String kSeedBuiltInPreDiveTemplateItemsSql = '''
+  INSERT OR IGNORE INTO pre_dive_checklist_template_items
+    (id, template_id, section, title, notes, sort_order, item_type,
+     value_label, value_unit, value_min, value_max, is_required,
+     created_at, updated_at)
+  VALUES
+    ('builtin-predive-bwraf-0', 'builtin-predive-bwraf', NULL,
+     'BCD / Buoyancy: inflate, deflate, dump valves', '', 0, 'check',
+     NULL, NULL, NULL, NULL, 1, 0, 0),
+    ('builtin-predive-bwraf-1', 'builtin-predive-bwraf', NULL,
+     'Weights: in place, releases clear', '', 1, 'check',
+     NULL, NULL, NULL, NULL, 1, 0, 0),
+    ('builtin-predive-bwraf-2', 'builtin-predive-bwraf', NULL,
+     'Releases: locate and check all buckles', '', 2, 'check',
+     NULL, NULL, NULL, NULL, 1, 0, 0),
+    ('builtin-predive-bwraf-3', 'builtin-predive-bwraf', NULL,
+     'Air: valve open, breathe both regs, check gauge', '', 3, 'check',
+     NULL, NULL, NULL, NULL, 1, 0, 0),
+    ('builtin-predive-bwraf-4', 'builtin-predive-bwraf', NULL,
+     'Final OK: mask, fins, computer set, buddy signal', '', 4, 'check',
+     NULL, NULL, NULL, NULL, 1, 0, 0),
+    ('builtin-predive-gue-0', 'builtin-predive-gue-edge', NULL,
+     'Equipment: full gear check head to toe', '', 0, 'check',
+     NULL, NULL, NULL, NULL, 1, 0, 0),
+    ('builtin-predive-gue-1', 'builtin-predive-gue-edge', NULL,
+     'Descent: agree on descent method and reference', '', 1, 'check',
+     NULL, NULL, NULL, NULL, 1, 0, 0),
+    ('builtin-predive-gue-2', 'builtin-predive-gue-edge', NULL,
+     'Gas: analyze, label, confirm MOD and turn pressure', '', 2, 'check',
+     NULL, NULL, NULL, NULL, 1, 0, 0),
+    ('builtin-predive-gue-3', 'builtin-predive-gue-edge', NULL,
+     'Environment: conditions, entry/exit, hazards', '', 3, 'check',
+     NULL, NULL, NULL, NULL, 1, 0, 0),
+    ('builtin-predive-ccr-0', 'builtin-predive-ccr-build', 'Assembly',
+     'Scrubber packed and within duration limits', '', 0, 'check',
+     NULL, NULL, NULL, NULL, 1, 0, 0),
+    ('builtin-predive-ccr-1', 'builtin-predive-ccr-build', 'Assembly',
+     'Loop assembled, mushroom valves checked', '', 1, 'check',
+     NULL, NULL, NULL, NULL, 1, 0, 0),
+    ('builtin-predive-ccr-2', 'builtin-predive-ccr-build', 'Tests',
+     'Negative pressure test held 60 s', '', 2, 'check',
+     NULL, NULL, NULL, NULL, 1, 0, 0),
+    ('builtin-predive-ccr-3', 'builtin-predive-ccr-build', 'Tests',
+     'Positive pressure test held 60 s', '', 3, 'check',
+     NULL, NULL, NULL, NULL, 1, 0, 0),
+    ('builtin-predive-ccr-4', 'builtin-predive-ccr-build', 'Cells',
+     'Cell 1 mV in air', '', 4, 'value',
+     'Cell 1', 'mV', 8.5, 13.0, 1, 0, 0),
+    ('builtin-predive-ccr-5', 'builtin-predive-ccr-build', 'Cells',
+     'Cell 2 mV in air', '', 5, 'value',
+     'Cell 2', 'mV', 8.5, 13.0, 1, 0, 0),
+    ('builtin-predive-ccr-6', 'builtin-predive-ccr-build', 'Cells',
+     'Cell 3 mV in air', '', 6, 'value',
+     'Cell 3', 'mV', 8.5, 13.0, 1, 0, 0),
+    ('builtin-predive-ccr-7', 'builtin-predive-ccr-build', 'Gas',
+     'Diluent and O2 analyzed, MOD labels on', '', 7, 'check',
+     NULL, NULL, NULL, NULL, 1, 0, 0),
+    ('builtin-predive-ccr-8', 'builtin-predive-ccr-build', 'Pre-breathe',
+     'Five-minute pre-breathe, setpoint holds', '', 8, 'check',
+     NULL, NULL, NULL, NULL, 1, 0, 0),
+    ('builtin-predive-ccr-9', 'builtin-predive-ccr-build', 'Bailout',
+     'Bailout analyzed, pressurized, clipped', '', 9, 'check',
+     NULL, NULL, NULL, NULL, 1, 0, 0),
+    ('builtin-predive-pack-0', 'builtin-predive-gear-packing', NULL,
+     'Certification card and insurance', '', 0, 'check',
+     NULL, NULL, NULL, NULL, 0, 0, 0),
+    ('builtin-predive-pack-1', 'builtin-predive-gear-packing', NULL,
+     'Equipment set', '', 1, 'equipmentSet',
+     NULL, NULL, NULL, NULL, 0, 0, 0),
+    ('builtin-predive-pack-2', 'builtin-predive-gear-packing', NULL,
+     'Save-a-dive kit and spares', '', 2, 'check',
+     NULL, NULL, NULL, NULL, 0, 0, 0),
+    ('builtin-predive-pack-3', 'builtin-predive-gear-packing', NULL,
+     'Water, sun protection, logbook', '', 3, 'check',
+     NULL, NULL, NULL, NULL, 0, 0, 0)
+''';
+
 /// Seeds the nine built-in dive roles. Mirrors [kSeedBuiltInDiveTypesSql]:
 /// INSERT OR IGNORE keyed on stable slug ids keeps it idempotent, and the
 /// seed is re-asserted in beforeOpen so replace-adopt flows that clear the
@@ -2478,6 +2737,11 @@ class FieldPresets extends Table {
     ChecklistTemplates,
     ChecklistTemplateItems,
     TripChecklistItems,
+    // Pre-dive checklists (spec 2026-07-16-pre-dive-checklist)
+    PreDiveChecklistTemplates,
+    PreDiveChecklistTemplateItems,
+    PreDiveSessions,
+    PreDiveSessionItems,
     // GPS surface track logging (discussion #289)
     GpsTracks,
     GpsTrackPointsLocal,
@@ -2507,7 +2771,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 127;
+  static const int currentSchemaVersion = 128;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -2650,6 +2914,9 @@ class AppDatabase extends _$AppDatabase {
     // v127: incidents table (near-miss log, safety phase 4). Renumbered from
     // v119 as main advanced past it at merge time.
     127,
+    // v128: pre-dive checklist tables + built-in template seeds (renumbered
+    // from v117/v127 as main advanced past it at merge time).
+    128,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -2877,6 +3144,46 @@ class AppDatabase extends _$AppDatabase {
     if (cols.isNotEmpty && !hasThickness) {
       await customStatement('ALTER TABLE equipment ADD COLUMN thickness TEXT');
     }
+  }
+
+  /// v127: pre-dive checklist tables. Migrator.createTable is IF NOT EXISTS,
+  /// so this is safe to call from both onUpgrade and the beforeOpen backstop
+  /// (parallel-branch version-collision self-heal).
+  Future<void> _assertPreDiveChecklistSchema() async {
+    final m = createMigrator();
+    await m.createTable(preDiveChecklistTemplates);
+    await m.createTable(preDiveChecklistTemplateItems);
+    await m.createTable(preDiveSessions);
+    await m.createTable(preDiveSessionItems);
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_pre_dive_template_items_template_id '
+      'ON pre_dive_checklist_template_items(template_id)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_pre_dive_sessions_dive_id '
+      'ON pre_dive_sessions(dive_id)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_pre_dive_session_items_session_id '
+      'ON pre_dive_session_items(session_id)',
+    );
+  }
+
+  /// Seeds the built-in pre-dive templates and their items, but only when the
+  /// FK parent `divers` table exists. pre_dive_checklist_templates.diver_id
+  /// references divers, so with foreign_keys=ON the seed cannot even prepare
+  /// when that table is absent. Minimal migration-test fixtures upgrade an old
+  /// schema without the full table set and legitimately lack it -- skipping
+  /// the seed there is correct (the tables are still created). Real databases
+  /// always have divers, so they always seed. Mirrors the guarded dive_types
+  /// re-seed in beforeOpen.
+  Future<void> _seedBuiltInPreDiveTemplates() async {
+    final diversTable = await customSelect(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='divers'",
+    ).get();
+    if (diversTable.isEmpty) return;
+    await customStatement(kSeedBuiltInPreDiveTemplatesSql);
+    await customStatement(kSeedBuiltInPreDiveTemplateItemsSql);
   }
 
   /// v120: planner Subsurface-parity columns - plan start time, per-segment
@@ -3365,6 +3672,10 @@ class AppDatabase extends _$AppDatabase {
         // Seed built-in dive roles (the v103 migration backfills these for
         // upgraded databases).
         await customStatement(kSeedBuiltInDiveRolesSql);
+
+        // Seed built-in pre-dive checklist templates (the v127 migration
+        // backfills these for upgraded databases).
+        await _seedBuiltInPreDiveTemplates();
 
         // Seed built-in service kinds (the v122 migration backfills these
         // for upgraded databases; beforeOpen re-asserts).
@@ -6295,6 +6606,13 @@ class AppDatabase extends _$AppDatabase {
           await _assertIncidentsSchema();
         }
         if (from < 127) await reportProgress();
+        // v128: pre-dive checklist tables + built-in template seeds
+        // (renumbered from v117/v127 as main advanced past it at merge time).
+        if (from < 128) {
+          await _assertPreDiveChecklistSchema();
+          await _seedBuiltInPreDiveTemplates();
+        }
+        if (from < 128) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
@@ -6376,6 +6694,11 @@ class AppDatabase extends _$AppDatabase {
 
         // v127 backstop: re-assert incidents table.
         await _assertIncidentsSchema();
+
+        // v128 backstop: re-assert the pre-dive checklist tables and their
+        // built-in templates (same rationale as the dive-types re-seed).
+        await _assertPreDiveChecklistSchema();
+        await _seedBuiltInPreDiveTemplates();
 
         // Built-in dive types are reference data: identical on every device and
         // undeletable through DiveTypeRepository. Nothing else restores them --

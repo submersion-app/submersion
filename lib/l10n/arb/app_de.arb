@@ -717,6 +717,113 @@
   "checklists_template_descriptionLabel": "Beschreibung",
   "checklists_template_itemsHeader": "Einträge",
   "checklists_template_addItem": "Eintrag hinzufügen",
+  "preDive_templates_title": "Checklisten vor dem Tauchgang",
+  "preDive_templates_empty": "Noch keine Checklisten vor dem Tauchgang",
+  "preDive_templates_builtInBadge": "Integriert",
+  "preDive_templates_clone": "Duplizieren",
+  "preDive_templates_cloneSuffix": " (Kopie)",
+  "preDive_templates_delete": "Löschen",
+  "preDive_templates_deleteConfirm": "Diese Checklisten-Vorlage löschen?",
+  "preDive_templates_strictOrderBadge": "Feste Reihenfolge",
+  "preDive_edit_titleNew": "Neue Checkliste vor dem Tauchgang",
+  "preDive_edit_titleEdit": "Checkliste vor dem Tauchgang bearbeiten",
+  "preDive_edit_name": "Name",
+  "preDive_edit_description": "Beschreibung",
+  "preDive_edit_category": "Kategorie",
+  "preDive_edit_strictOrder": "Feste Reihenfolge",
+  "preDive_edit_strictOrderHelp": "Einträge müssen von oben nach unten abgearbeitet werden",
+  "preDive_edit_addItem": "Eintrag hinzufügen",
+  "preDive_edit_nameRequired": "Namen eingeben",
+  "preDive_item_title": "Titel",
+  "preDive_item_section": "Abschnitt",
+  "preDive_item_notes": "Notizen",
+  "preDive_item_required": "Erforderlich",
+  "preDive_item_type_check": "Kontrollkästchen",
+  "preDive_item_type_value": "Erfasster Wert",
+  "preDive_item_type_equipmentSet": "Einträge aus dem Ausrüstungsset",
+  "preDive_item_valueLabel": "Wertbezeichnung",
+  "preDive_item_valueUnit": "Einheit",
+  "preDive_item_valueMin": "Min. (Warnung)",
+  "preDive_item_valueMax": "Max. (Warnung)",
+  "preDive_runner_progress": "{done} von {total}",
+  "@preDive_runner_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_runner_complete": "Abschließen",
+  "preDive_runner_completeFlagged": "Mit {count} markierten Einträgen abschließen?",
+  "@preDive_runner_completeFlagged": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_runner_abort": "Checkliste abbrechen",
+  "preDive_runner_abortConfirm": "Diese Checkliste abbrechen? Sie wird im Verlauf als abgebrochen gespeichert.",
+  "preDive_runner_skip": "Überspringen",
+  "preDive_runner_flag": "Markieren",
+  "preDive_runner_undo": "Auf ausstehend zurücksetzen",
+  "preDive_runner_serviceOverdue": "Wartung überfällig",
+  "preDive_runner_addNote": "Notiz hinzufügen",
+  "preDive_runner_enterValue": "Wert eingeben",
+  "preDive_runner_flaggedBadge": "{count} markiert",
+  "@preDive_runner_flaggedBadge": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_runner_locked": "Diese Checkliste ist gesperrt",
+  "preDive_sessions_title": "Checklisten vor dem Tauchgang",
+  "preDive_sessions_empty": "Noch keine Checklisten-Durchläufe",
+  "preDive_sessions_resume": "Fortsetzen",
+  "preDive_sessions_start": "Checkliste starten",
+  "preDive_sessions_statusCompleted": "Abgeschlossen",
+  "preDive_sessions_statusAborted": "Abgebrochen",
+  "preDive_sessions_statusInProgress": "In Bearbeitung",
+  "preDive_sessions_linkedDive": "Verknüpfter Tauchgang",
+  "preDive_sessions_delete": "Löschen",
+  "preDive_sessions_deleteConfirm": "Diesen Checklisten-Eintrag löschen?",
+  "preDive_start_title": "Checkliste vor dem Tauchgang starten",
+  "preDive_start_template": "Checkliste",
+  "preDive_start_equipmentSet": "Ausrüstungsset",
+  "preDive_start_noEquipmentSet": "Keines",
+  "preDive_start_begin": "Beginnen",
+  "preDive_section_title": "Check vor dem Tauchgang",
+  "preDive_section_link": "Checklisten-Durchlauf verknüpfen",
+  "preDive_section_unlink": "Verknüpfung aufheben",
+  "preDive_section_run": "Checkliste vor dem Tauchgang durchführen",
+  "preDive_section_noUnlinked": "Keine unverknüpften Checklisten-Durchläufe",
+  "diveDetailSection_preDiveChecklist_name": "Check vor dem Tauchgang",
+  "diveDetailSection_preDiveChecklist_description": "Verknüpfter Checklisten-Durchlauf vor dem Tauchgang",
+  "diveLog_listPage_bottomSheet_preDiveChecklist": "Checkliste vor dem Tauchgang starten",
+  "preDive_dashboard_title": "Check vor dem Tauchgang",
+  "preDive_dashboard_resume": "Fortsetzen - {done} von {total}",
+  "@preDive_dashboard_resume": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_dashboard_start": "Check vor dem Tauchgang starten",
+  "tools_preDive_title": "Checklisten vor dem Tauchgang",
+  "tools_preDive_subtitle": "Checklisten-Durchläufe starten und einsehen",
+  "tools_preDive_description": "Buddy-Checks, CCR-Aufbaulisten und Ausrüstungspacken mit Prüfprotokoll",
+  "trips_detail_preDive_action": "Checkliste vor dem Tauchgang",
+  "settings_manage_preDiveChecklists": "Checklisten vor dem Tauchgang",
+  "settings_manage_preDiveChecklists_subtitle": "Buddy-Checks, CCR-Aufbaulisten, Ausrüstungspacken",
   "common_action_back": "Zurück",
   "common_action_cancel": "Abbrechen",
   "common_action_close": "Schließen",

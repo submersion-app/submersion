@@ -26,6 +26,7 @@ enum DiveDetailSectionId {
   tags,
   notes,
   customFields,
+  preDiveChecklist,
   dataSources;
 
   /// Human-readable name shown in the settings UI (English fallback).
@@ -50,6 +51,7 @@ enum DiveDetailSectionId {
       tags => 'Tags',
       notes => 'Notes',
       customFields => 'Custom Fields',
+      preDiveChecklist => 'Pre-Dive Check',
       dataSources => 'Data Sources',
     };
   }
@@ -77,6 +79,7 @@ enum DiveDetailSectionId {
       tags => 'Dive tags',
       notes => 'Dive notes/description',
       customFields => 'User-defined custom fields',
+      preDiveChecklist => 'Linked pre-dive checklist session',
       dataSources => 'Connected dive computers, source management',
     };
   }
@@ -103,6 +106,7 @@ enum DiveDetailSectionId {
       tags => l10n.diveDetailSection_tags_name,
       notes => l10n.diveDetailSection_notes_name,
       customFields => l10n.diveDetailSection_customFields_name,
+      preDiveChecklist => l10n.diveDetailSection_preDiveChecklist_name,
       dataSources => l10n.diveDetailSection_dataSources_name,
     };
   }
@@ -129,6 +133,7 @@ enum DiveDetailSectionId {
       tags => l10n.diveDetailSection_tags_description,
       notes => l10n.diveDetailSection_notes_description,
       customFields => l10n.diveDetailSection_customFields_description,
+      preDiveChecklist => l10n.diveDetailSection_preDiveChecklist_description,
       dataSources => l10n.diveDetailSection_dataSources_description,
     };
   }
@@ -195,6 +200,10 @@ class DiveDetailSectionConfig {
     DiveDetailSectionConfig(id: DiveDetailSectionId.notes, visible: true),
     DiveDetailSectionConfig(
       id: DiveDetailSectionId.customFields,
+      visible: true,
+    ),
+    DiveDetailSectionConfig(
+      id: DiveDetailSectionId.preDiveChecklist,
       visible: true,
     ),
     DiveDetailSectionConfig(id: DiveDetailSectionId.dataSources, visible: true),

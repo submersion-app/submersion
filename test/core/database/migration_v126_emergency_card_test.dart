@@ -54,6 +54,7 @@ void main() {
   test('v126 emergency card migration is present', () {
     // The exact-latest tripwire moved to migration_v127_incidents_test when the
     // incidents migration (v127) landed on top of v126.
+
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(126));
     expect(AppDatabase.migrationVersions, contains(126));
   });

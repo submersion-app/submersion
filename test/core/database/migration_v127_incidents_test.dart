@@ -65,11 +65,11 @@ void main() {
     expect(byColumn['diver_id'], 'CASCADE');
   });
 
-  test('v127 is the current schema version (exact-latest tripwire)', () {
-    // Exact assertion: the newest migration owns the tripwire, so the next
-    // schema bump must move it forward. Relax to greaterThanOrEqualTo and add
-    // a fresh exact test when a later migration lands on top of v127.
-    expect(AppDatabase.currentSchemaVersion, 127);
+  test('v127 is on the migration ladder', () {
+    // Relaxed from the exact-latest tripwire: the pre-dive checklist migration
+    // (v128) landed on top of v127 at merge time, so v127 no longer owns the
+    // latest slot. The exact-latest assertion now lives in the v128 test.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(127));
     expect(AppDatabase.migrationVersions, contains(127));
   });
 }

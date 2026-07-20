@@ -717,6 +717,113 @@
   "checklists_template_descriptionLabel": "תיאור",
   "checklists_template_itemsHeader": "פריטים",
   "checklists_template_addItem": "הוסף פריט",
+  "preDive_templates_title": "רשימות בדיקה לפני צלילה",
+  "preDive_templates_empty": "עדיין אין רשימות בדיקה לפני צלילה",
+  "preDive_templates_builtInBadge": "מובנית",
+  "preDive_templates_clone": "שכפול",
+  "preDive_templates_cloneSuffix": " (עותק)",
+  "preDive_templates_delete": "מחיקה",
+  "preDive_templates_deleteConfirm": "למחוק את תבנית רשימת הבדיקה הזו?",
+  "preDive_templates_strictOrderBadge": "סדר מחייב",
+  "preDive_edit_titleNew": "רשימת בדיקה חדשה לפני צלילה",
+  "preDive_edit_titleEdit": "עריכת רשימת בדיקה לפני צלילה",
+  "preDive_edit_name": "שם",
+  "preDive_edit_description": "תיאור",
+  "preDive_edit_category": "קטגוריה",
+  "preDive_edit_strictOrder": "סדר מחייב",
+  "preDive_edit_strictOrderHelp": "יש להשלים את הפריטים מלמעלה למטה",
+  "preDive_edit_addItem": "הוסף פריט",
+  "preDive_edit_nameRequired": "הזן שם",
+  "preDive_item_title": "כותרת",
+  "preDive_item_section": "מקטע",
+  "preDive_item_notes": "הערות",
+  "preDive_item_required": "חובה",
+  "preDive_item_type_check": "תיבת סימון",
+  "preDive_item_type_value": "ערך מתועד",
+  "preDive_item_type_equipmentSet": "פריטי סט ציוד",
+  "preDive_item_valueLabel": "תווית ערך",
+  "preDive_item_valueUnit": "יחידה",
+  "preDive_item_valueMin": "מינימום (אזהרה)",
+  "preDive_item_valueMax": "מקסימום (אזהרה)",
+  "preDive_runner_progress": "{done} מתוך {total}",
+  "@preDive_runner_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_runner_complete": "סיום",
+  "preDive_runner_completeFlagged": "לסיים עם {count} פריטים מסומנים בדגל?",
+  "@preDive_runner_completeFlagged": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_runner_abort": "ביטול רשימת הבדיקה",
+  "preDive_runner_abortConfirm": "לבטל את רשימת הבדיקה הזו? היא תישמר בהיסטוריה כמבוטלת.",
+  "preDive_runner_skip": "דלג",
+  "preDive_runner_flag": "סמן בדגל",
+  "preDive_runner_undo": "אפס לממתין",
+  "preDive_runner_serviceOverdue": "פג תוקף הטיפול",
+  "preDive_runner_addNote": "הוסף הערה",
+  "preDive_runner_enterValue": "הזן ערך",
+  "preDive_runner_flaggedBadge": "{count} מסומנים בדגל",
+  "@preDive_runner_flaggedBadge": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_runner_locked": "רשימת הבדיקה הזו נעולה",
+  "preDive_sessions_title": "רשימות בדיקה לפני צלילה",
+  "preDive_sessions_empty": "עדיין אין הרצות של רשימות בדיקה",
+  "preDive_sessions_resume": "המשך",
+  "preDive_sessions_start": "התחל רשימת בדיקה",
+  "preDive_sessions_statusCompleted": "הושלמה",
+  "preDive_sessions_statusAborted": "בוטלה",
+  "preDive_sessions_statusInProgress": "בתהליך",
+  "preDive_sessions_linkedDive": "צלילה מקושרת",
+  "preDive_sessions_delete": "מחיקה",
+  "preDive_sessions_deleteConfirm": "למחוק את רשומת רשימת הבדיקה הזו?",
+  "preDive_start_title": "התחלת רשימת בדיקה לפני צלילה",
+  "preDive_start_template": "רשימת בדיקה",
+  "preDive_start_equipmentSet": "סט ציוד",
+  "preDive_start_noEquipmentSet": "ללא",
+  "preDive_start_begin": "התחל",
+  "preDive_section_title": "בדיקה לפני צלילה",
+  "preDive_section_link": "קשר הרצת רשימת בדיקה",
+  "preDive_section_unlink": "בטל קישור",
+  "preDive_section_run": "הרץ רשימת בדיקה לפני צלילה",
+  "preDive_section_noUnlinked": "אין הרצות רשימת בדיקה לא מקושרות",
+  "diveDetailSection_preDiveChecklist_name": "בדיקה לפני צלילה",
+  "diveDetailSection_preDiveChecklist_description": "הרצת רשימת בדיקה לפני צלילה מקושרת",
+  "diveLog_listPage_bottomSheet_preDiveChecklist": "התחל רשימת בדיקה לפני צלילה",
+  "preDive_dashboard_title": "בדיקה לפני צלילה",
+  "preDive_dashboard_resume": "המשך - {done} מתוך {total}",
+  "@preDive_dashboard_resume": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "preDive_dashboard_start": "התחל בדיקה לפני צלילה",
+  "tools_preDive_title": "רשימות בדיקה לפני צלילה",
+  "tools_preDive_subtitle": "הרץ וסקור הרצות של רשימות בדיקה",
+  "tools_preDive_description": "בדיקות באדי, רשימות הרכבת CCR ואריזת ציוד עם תיעוד ביקורת",
+  "trips_detail_preDive_action": "רשימת בדיקה לפני צלילה",
+  "settings_manage_preDiveChecklists": "רשימות בדיקה לפני צלילה",
+  "settings_manage_preDiveChecklists_subtitle": "בדיקות באדי, רשימות הרכבת CCR, אריזת ציוד",
   "common_action_back": "חזרה",
   "common_action_cancel": "ביטול",
   "common_action_close": "סגירה",

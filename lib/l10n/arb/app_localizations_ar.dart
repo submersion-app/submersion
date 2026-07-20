@@ -2110,6 +2110,242 @@ class AppLocalizationsAr extends AppLocalizations {
   String get checklists_template_addItem => 'إضافة عنصر';
 
   @override
+  String get preDive_templates_title => 'قوائم تحقق ما قبل الغوص';
+
+  @override
+  String get preDive_templates_empty => 'لا توجد قوائم تحقق ما قبل الغوص بعد';
+
+  @override
+  String get preDive_templates_builtInBadge => 'مدمجة';
+
+  @override
+  String get preDive_templates_clone => 'استنساخ';
+
+  @override
+  String get preDive_templates_cloneSuffix => ' (نسخة)';
+
+  @override
+  String get preDive_templates_delete => 'حذف';
+
+  @override
+  String get preDive_templates_deleteConfirm =>
+      'هل تريد حذف قالب قائمة التحقق هذا؟';
+
+  @override
+  String get preDive_templates_strictOrderBadge => 'ترتيب صارم';
+
+  @override
+  String get preDive_edit_titleNew => 'قائمة تحقق جديدة لما قبل الغوص';
+
+  @override
+  String get preDive_edit_titleEdit => 'تعديل قائمة تحقق ما قبل الغوص';
+
+  @override
+  String get preDive_edit_name => 'الاسم';
+
+  @override
+  String get preDive_edit_description => 'الوصف';
+
+  @override
+  String get preDive_edit_category => 'الفئة';
+
+  @override
+  String get preDive_edit_strictOrder => 'ترتيب صارم';
+
+  @override
+  String get preDive_edit_strictOrderHelp =>
+      'يجب إكمال العناصر من الأعلى إلى الأسفل';
+
+  @override
+  String get preDive_edit_addItem => 'إضافة عنصر';
+
+  @override
+  String get preDive_edit_nameRequired => 'أدخل اسمًا';
+
+  @override
+  String get preDive_item_title => 'العنوان';
+
+  @override
+  String get preDive_item_section => 'القسم';
+
+  @override
+  String get preDive_item_notes => 'ملاحظات';
+
+  @override
+  String get preDive_item_required => 'مطلوب';
+
+  @override
+  String get preDive_item_type_check => 'خانة اختيار';
+
+  @override
+  String get preDive_item_type_value => 'قيمة مسجَّلة';
+
+  @override
+  String get preDive_item_type_equipmentSet => 'عناصر طقم المعدات';
+
+  @override
+  String get preDive_item_valueLabel => 'تسمية القيمة';
+
+  @override
+  String get preDive_item_valueUnit => 'الوحدة';
+
+  @override
+  String get preDive_item_valueMin => 'الحد الأدنى (تحذير)';
+
+  @override
+  String get preDive_item_valueMax => 'الحد الأقصى (تحذير)';
+
+  @override
+  String preDive_runner_progress(int done, int total) {
+    return '$done من $total';
+  }
+
+  @override
+  String get preDive_runner_complete => 'إكمال';
+
+  @override
+  String preDive_runner_completeFlagged(int count) {
+    return 'هل تريد الإكمال مع $count من العناصر المعلَّمة؟';
+  }
+
+  @override
+  String get preDive_runner_abort => 'إلغاء قائمة التحقق';
+
+  @override
+  String get preDive_runner_abortConfirm =>
+      'هل تريد إلغاء قائمة التحقق هذه؟ سيتم الاحتفاظ بها في السجل كملغاة.';
+
+  @override
+  String get preDive_runner_skip => 'تخطي';
+
+  @override
+  String get preDive_runner_flag => 'وضع علامة';
+
+  @override
+  String get preDive_runner_undo => 'إعادة إلى قيد الانتظار';
+
+  @override
+  String get preDive_runner_serviceOverdue => 'الصيانة متأخرة';
+
+  @override
+  String get preDive_runner_addNote => 'إضافة ملاحظة';
+
+  @override
+  String get preDive_runner_enterValue => 'أدخل القيمة';
+
+  @override
+  String preDive_runner_flaggedBadge(int count) {
+    return '$count معلَّمة';
+  }
+
+  @override
+  String get preDive_runner_locked => 'قائمة التحقق هذه مقفلة';
+
+  @override
+  String get preDive_sessions_title => 'قوائم تحقق ما قبل الغوص';
+
+  @override
+  String get preDive_sessions_empty => 'لم يتم تنفيذ أي قائمة تحقق بعد';
+
+  @override
+  String get preDive_sessions_resume => 'استئناف';
+
+  @override
+  String get preDive_sessions_start => 'بدء قائمة التحقق';
+
+  @override
+  String get preDive_sessions_statusCompleted => 'مكتملة';
+
+  @override
+  String get preDive_sessions_statusAborted => 'ملغاة';
+
+  @override
+  String get preDive_sessions_statusInProgress => 'قيد التنفيذ';
+
+  @override
+  String get preDive_sessions_linkedDive => 'الغطسة المرتبطة';
+
+  @override
+  String get preDive_sessions_delete => 'حذف';
+
+  @override
+  String get preDive_sessions_deleteConfirm =>
+      'هل تريد حذف سجل قائمة التحقق هذا؟';
+
+  @override
+  String get preDive_start_title => 'بدء قائمة تحقق ما قبل الغوص';
+
+  @override
+  String get preDive_start_template => 'قائمة التحقق';
+
+  @override
+  String get preDive_start_equipmentSet => 'طقم المعدات';
+
+  @override
+  String get preDive_start_noEquipmentSet => 'بدون';
+
+  @override
+  String get preDive_start_begin => 'بدء';
+
+  @override
+  String get preDive_section_title => 'فحص ما قبل الغوص';
+
+  @override
+  String get preDive_section_link => 'ربط جلسة قائمة تحقق';
+
+  @override
+  String get preDive_section_unlink => 'إلغاء الربط';
+
+  @override
+  String get preDive_section_run => 'تشغيل قائمة تحقق ما قبل الغوص';
+
+  @override
+  String get preDive_section_noUnlinked =>
+      'لا توجد جلسات قوائم تحقق غير مرتبطة';
+
+  @override
+  String get diveDetailSection_preDiveChecklist_name => 'فحص ما قبل الغوص';
+
+  @override
+  String get diveDetailSection_preDiveChecklist_description =>
+      'جلسة قائمة تحقق ما قبل الغوص المرتبطة';
+
+  @override
+  String get diveLog_listPage_bottomSheet_preDiveChecklist =>
+      'بدء قائمة تحقق ما قبل الغوص';
+
+  @override
+  String get preDive_dashboard_title => 'فحص ما قبل الغوص';
+
+  @override
+  String preDive_dashboard_resume(int done, int total) {
+    return 'استئناف - $done من $total';
+  }
+
+  @override
+  String get preDive_dashboard_start => 'بدء فحص ما قبل الغوص';
+
+  @override
+  String get tools_preDive_title => 'قوائم تحقق ما قبل الغوص';
+
+  @override
+  String get tools_preDive_subtitle => 'تشغيل جلسات قوائم التحقق ومراجعتها';
+
+  @override
+  String get tools_preDive_description =>
+      'فحوصات رفيق الغوص، وقوائم تجهيز CCR، وتوضيب المعدات مع سجل تدقيق';
+
+  @override
+  String get trips_detail_preDive_action => 'قائمة تحقق ما قبل الغوص';
+
+  @override
+  String get settings_manage_preDiveChecklists => 'قوائم تحقق ما قبل الغوص';
+
+  @override
+  String get settings_manage_preDiveChecklists_subtitle =>
+      'فحوصات رفيق الغوص، قوائم تجهيز CCR، توضيب المعدات';
+
+  @override
   String get common_action_back => 'رجوع';
 
   @override
