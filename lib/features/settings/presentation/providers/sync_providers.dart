@@ -73,6 +73,11 @@ final isApplePlatformProvider = Provider<bool>(
   (ref) => Platform.isIOS || Platform.isMacOS,
 );
 
+/// Whether the host is Linux, where video transcoding depends on a system
+/// ffmpeg. A provider (not Platform.isLinux inline) so widget tests can
+/// simulate Linux on any CI host — same pattern as [isApplePlatformProvider].
+final isLinuxPlatformProvider = Provider<bool>((ref) => Platform.isLinux);
+
 /// Sync preferences provider
 final syncPreferencesProvider = Provider<SyncPreferences>((ref) {
   final prefs = ref.watch(sharedPreferencesProvider);
