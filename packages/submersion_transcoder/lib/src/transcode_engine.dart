@@ -33,10 +33,14 @@ abstract class TranscodeEngine {
 }
 
 /// The engine for the current platform, or null when none exists yet.
-/// Apple (iOS/macOS) = AVFoundation and Android = Media3, both via the shared
-/// [ChannelTranscodeEngine]; Linux = system ffmpeg; Windows arrives in B4.
+/// Apple (iOS/macOS) = AVFoundation, Android = Media3, and Windows = Media
+/// Foundation via WinRT, all through the shared [ChannelTranscodeEngine];
+/// Linux = system ffmpeg.
 TranscodeEngine? engineForThisPlatform() {
-  if (Platform.isIOS || Platform.isMacOS || Platform.isAndroid) {
+  if (Platform.isIOS ||
+      Platform.isMacOS ||
+      Platform.isAndroid ||
+      Platform.isWindows) {
     return ChannelTranscodeEngine();
   }
   if (Platform.isLinux) return LinuxFfmpegEngine();
