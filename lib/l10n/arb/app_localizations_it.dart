@@ -9819,6 +9819,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Nessuna scadenza di manutenzione';
 
   @override
+  String get equipment_serviceClocks_unconfigured =>
+      'Nessun intervallo impostato - tocca per configurare';
+
+  @override
   String equipment_serviceClocks_dueOn(String date) {
     return 'Scade il $date';
   }

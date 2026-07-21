@@ -16,6 +16,7 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:collection/collection.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_l10n.dart';
@@ -131,6 +132,14 @@ class _EquipmentDetailContent extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
+    // Service state now derives from the clock engine, not the legacy
+    // isServiceDue getter: any overdue clock lights the header.
+    final isServiceOverdue =
+        ref
+            .watch(serviceClockStatusesProvider(equipmentId))
+            .value
+            ?.any((s) => s.severity == ServiceClockSeverity.overdue) ??
+        false;
 
     final body = SingleChildScrollView(
       controller: DetailScrollController.maybeOf(context),
@@ -138,7 +147,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildHeaderSection(context, equipment),
+          _buildHeaderSection(context, equipment, isServiceOverdue),
           const SizedBox(height: 24),
           _buildDetailsSection(context, ref, equipment, units),
           const SizedBox(height: 24),
@@ -164,7 +173,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
     if (embedded) {
       return Column(
         children: [
-          _buildEmbeddedHeader(context, ref, equipment),
+          _buildEmbeddedHeader(context, ref, equipment, isServiceOverdue),
           Expanded(child: body),
         ],
       );
@@ -194,6 +203,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     EquipmentItem equipment,
+    bool isServiceOverdue,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -209,13 +219,13 @@ class _EquipmentDetailContent extends ConsumerWidget {
         children: [
           CircleAvatar(
             radius: 20,
-            backgroundColor: equipment.isServiceDue
+            backgroundColor: isServiceOverdue
                 ? colorScheme.errorContainer
                 : colorScheme.tertiaryContainer,
             child: Icon(
               _getIconForType(equipment.type),
               size: 20,
-              color: equipment.isServiceDue
+              color: isServiceOverdue
                   ? colorScheme.onErrorContainer
                   : colorScheme.onTertiaryContainer,
             ),
@@ -266,15 +276,6 @@ class _EquipmentDetailContent extends ConsumerWidget {
     EquipmentItem equipment,
   ) {
     return [
-      if (equipment.isActive)
-        PopupMenuItem(
-          value: 'service',
-          child: ListTile(
-            leading: const Icon(Icons.build),
-            title: Text(context.l10n.equipment_menu_markAsServiced),
-            contentPadding: EdgeInsets.zero,
-          ),
-        ),
       PopupMenuItem(
         value: equipment.isActive ? 'retire' : 'reactivate',
         child: ListTile(
@@ -301,7 +302,11 @@ class _EquipmentDetailContent extends ConsumerWidget {
     ];
   }
 
-  Widget _buildHeaderSection(BuildContext context, EquipmentItem equipment) {
+  Widget _buildHeaderSection(
+    BuildContext context,
+    EquipmentItem equipment,
+    bool isServiceOverdue,
+  ) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -311,13 +316,13 @@ class _EquipmentDetailContent extends ConsumerWidget {
               children: [
                 CircleAvatar(
                   radius: 32,
-                  backgroundColor: equipment.isServiceDue
+                  backgroundColor: isServiceOverdue
                       ? Theme.of(context).colorScheme.errorContainer
                       : Theme.of(context).colorScheme.tertiaryContainer,
                   child: Icon(
                     _getIconForType(equipment.type),
                     size: 32,
-                    color: equipment.isServiceDue
+                    color: isServiceOverdue
                         ? Theme.of(context).colorScheme.onErrorContainer
                         : Theme.of(context).colorScheme.onTertiaryContainer,
                   ),
@@ -356,7 +361,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
                 ),
               ],
             ),
-            if (equipment.isServiceDue) ...[
+            if (isServiceOverdue) ...[
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.all(12),
@@ -740,18 +745,6 @@ class _EquipmentDetailContent extends ConsumerWidget {
     final notifier = ref.read(equipmentListNotifierProvider.notifier);
 
     switch (action) {
-      case 'service':
-        await notifier.markAsServiced(equipmentId);
-        ref.invalidate(equipmentItemProvider(equipmentId));
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(context.l10n.equipment_snackbar_markedAsServiced),
-            ),
-          );
-        }
-        break;
-
       case 'retire':
         await notifier.retireEquipment(equipmentId);
         ref.invalidate(equipmentItemProvider(equipmentId));

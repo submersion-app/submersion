@@ -3321,6 +3321,7 @@
   "equipment_serviceClocks_remove": "移除",
   "equipment_serviceClocks_paused": "已暂停",
   "equipment_serviceClocks_empty": "暂无维护倒计时",
+  "equipment_serviceClocks_unconfigured": "未设置间隔 - 点按进行配置",
   "equipment_serviceClocks_dueOn": "{date} 到期",
   "equipment_serviceClocks_overdueSince": "自 {date} 起逾期",
   "equipment_serviceClocks_overdue": "已逾期",

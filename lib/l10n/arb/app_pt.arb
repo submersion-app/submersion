@@ -3179,6 +3179,7 @@
   "equipment_serviceClocks_remove": "Remover",
   "equipment_serviceClocks_paused": "Pausado",
   "equipment_serviceClocks_empty": "Nenhum prazo de manutenção",
+  "equipment_serviceClocks_unconfigured": "Nenhum intervalo definido - toque para configurar",
   "equipment_serviceClocks_dueOn": "Vence em {date}",
   "equipment_serviceClocks_overdueSince": "Atrasado desde {date}",
   "equipment_serviceClocks_overdue": "Atrasado",

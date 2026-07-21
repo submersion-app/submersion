@@ -5302,6 +5302,7 @@
   "equipment_serviceClocks_remove": "Remove",
   "equipment_serviceClocks_paused": "Paused",
   "equipment_serviceClocks_empty": "No service clocks",
+  "equipment_serviceClocks_unconfigured": "No interval set - tap to configure",
   "equipment_serviceClocks_dueOn": "Due {date}",
   "@equipment_serviceClocks_dueOn": {
     "placeholders": {

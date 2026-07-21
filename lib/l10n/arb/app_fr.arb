@@ -3109,6 +3109,7 @@
   "equipment_serviceClocks_remove": "Supprimer",
   "equipment_serviceClocks_paused": "Suspendu",
   "equipment_serviceClocks_empty": "Aucun compteur d'entretien",
+  "equipment_serviceClocks_unconfigured": "Aucun intervalle défini - appuyez pour configurer",
   "equipment_serviceClocks_dueOn": "Échéance le {date}",
   "equipment_serviceClocks_overdueSince": "En retard depuis le {date}",
   "equipment_serviceClocks_overdue": "En retard",

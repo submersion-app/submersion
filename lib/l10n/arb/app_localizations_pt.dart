@@ -9819,6 +9819,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get equipment_serviceClocks_empty => 'Nenhum prazo de manutenção';
 
   @override
+  String get equipment_serviceClocks_unconfigured =>
+      'Nenhum intervalo definido - toque para configurar';
+
+  @override
   String equipment_serviceClocks_dueOn(String date) {
     return 'Vence em $date';
   }

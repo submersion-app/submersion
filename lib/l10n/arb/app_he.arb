@@ -3109,6 +3109,7 @@
   "equipment_serviceClocks_remove": "הסרה",
   "equipment_serviceClocks_paused": "מושהה",
   "equipment_serviceClocks_empty": "אין שעוני טיפולים",
+  "equipment_serviceClocks_unconfigured": "לא הוגדר מרווח - הקישו כדי להגדיר",
   "equipment_serviceClocks_dueOn": "לביצוע עד {date}",
   "equipment_serviceClocks_overdueSince": "באיחור מאז {date}",
   "equipment_serviceClocks_overdue": "באיחור",

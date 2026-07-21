@@ -9825,6 +9825,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_serviceClocks_empty => 'Keine Wartungsintervalle';
 
   @override
+  String get equipment_serviceClocks_unconfigured =>
+      'Kein Intervall festgelegt - zum Konfigurieren tippen';
+
+  @override
   String equipment_serviceClocks_dueOn(String date) {
     return 'Fällig am $date';
   }

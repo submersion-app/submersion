@@ -3179,6 +3179,7 @@
   "equipment_serviceClocks_remove": "إزالة",
   "equipment_serviceClocks_paused": "متوقف مؤقتًا",
   "equipment_serviceClocks_empty": "لا توجد عدادات صيانة",
+  "equipment_serviceClocks_unconfigured": "لم يتم تعيين فترة - انقر للإعداد",
   "equipment_serviceClocks_dueOn": "مستحق في {date}",
   "equipment_serviceClocks_overdueSince": "متأخر منذ {date}",
   "equipment_serviceClocks_overdue": "متأخر",

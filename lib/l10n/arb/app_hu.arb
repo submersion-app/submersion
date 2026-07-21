@@ -3109,6 +3109,7 @@
   "equipment_serviceClocks_remove": "Eltávolítás",
   "equipment_serviceClocks_paused": "Szüneteltetve",
   "equipment_serviceClocks_empty": "Nincsenek szervizintervallumok",
+  "equipment_serviceClocks_unconfigured": "Nincs beállított időköz - koppintson a beállításhoz",
   "equipment_serviceClocks_dueOn": "Esedékes: {date}",
   "equipment_serviceClocks_overdueSince": "{date} óta esedékes",
   "equipment_serviceClocks_overdue": "Lejárt",

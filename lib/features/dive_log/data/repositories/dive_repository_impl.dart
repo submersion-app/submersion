@@ -103,6 +103,12 @@ class DiveRepository {
   /// + dive_computers, plus dive_sites/dive_centers/trips/courses) so a synced
   /// edit to a tag/buddy/species/equipment/site/center/trip/computer NAME also
   /// refreshes the rendered detail, not just changes to the link rows.
+  ///
+  /// Also watches the two post-dive safety-review tables (dive_safety_reviews +
+  /// dive_safety_findings). They carry no HLC of their own, so a sync imports
+  /// them with a raw insertOnConflictUpdate straight into the tables; the one-
+  /// shot safetyReviewProvider self-invalidates on this stream so a freshly
+  /// synced (or batch-analyzed) review becomes visible without an app restart.
   Stream<void> watchDiveDetailChanges() => _db
       .tableUpdates(
         TableUpdateQuery.allOf([
@@ -127,6 +133,8 @@ class DiveRepository {
           TableUpdateQuery.onTable(_db.species),
           TableUpdateQuery.onTable(_db.media),
           TableUpdateQuery.onTable(_db.tideRecords),
+          TableUpdateQuery.onTable(_db.diveSafetyReviews),
+          TableUpdateQuery.onTable(_db.diveSafetyFindings),
         ]),
       )
       .debounce(changeTickDebounce);

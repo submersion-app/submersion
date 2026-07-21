@@ -9672,6 +9672,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_serviceClocks_empty => 'No service clocks';
 
   @override
+  String get equipment_serviceClocks_unconfigured =>
+      'No interval set - tap to configure';
+
+  @override
   String equipment_serviceClocks_dueOn(String date) {
     return 'Due $date';
   }

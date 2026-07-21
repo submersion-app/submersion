@@ -16876,6 +16876,12 @@ abstract class AppLocalizations {
   /// **'No service clocks'**
   String get equipment_serviceClocks_empty;
 
+  /// No description provided for @equipment_serviceClocks_unconfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'No interval set - tap to configure'**
+  String get equipment_serviceClocks_unconfigured;
+
   /// No description provided for @equipment_serviceClocks_dueOn.
   ///
   /// In en, this message translates to:

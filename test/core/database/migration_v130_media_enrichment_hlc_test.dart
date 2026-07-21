@@ -34,9 +34,10 @@ void main() {
     );
   });
 
-  test('v130 is present in the schema-version ladder', () {
-    // Relaxed from an exact-latest tripwire when the v132 bottom-time backfill
-    // superseded v130 as the newest migration (superseded-tripwire convention).
+  test('v130 media_enrichment migration is present', () {
+    // Membership only: later migrations (v131 service reconcile, v132
+    // bottom-time backfill) landed on top, so the exact-latest tripwire lives
+    // in the newest migration's test, not here.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(130));
     expect(AppDatabase.migrationVersions, contains(130));
   });

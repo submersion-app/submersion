@@ -9387,6 +9387,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_serviceClocks_empty => '暂无维护倒计时';
 
   @override
+  String get equipment_serviceClocks_unconfigured => '未设置间隔 - 点按进行配置';
+
+  @override
   String equipment_serviceClocks_dueOn(String date) {
     return '$date 到期';
   }

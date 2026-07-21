@@ -3179,6 +3179,7 @@
   "equipment_serviceClocks_remove": "Verwijderen",
   "equipment_serviceClocks_paused": "Gepauzeerd",
   "equipment_serviceClocks_empty": "Geen serviceintervallen",
+  "equipment_serviceClocks_unconfigured": "Geen interval ingesteld - tik om te configureren",
   "equipment_serviceClocks_dueOn": "Vervalt op {date}",
   "equipment_serviceClocks_overdueSince": "Achterstallig sinds {date}",
   "equipment_serviceClocks_overdue": "Te laat",

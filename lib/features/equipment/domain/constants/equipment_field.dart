@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/shared/constants/entity_field.dart';
 
 /// Enumeration of every field from the [EquipmentItem] entity that can appear
@@ -194,8 +195,14 @@ enum EquipmentField implements EntityField {
 /// generic table infrastructure.
 class EquipmentFieldAdapter
     extends EntityFieldAdapter<EquipmentItem, EquipmentField> {
-  static final instance = EquipmentFieldAdapter._();
-  EquipmentFieldAdapter._();
+  /// Most-urgent clock per equipment id (from equipmentServiceUrgencyProvider).
+  /// Empty for the shared [instance], which is used only for config
+  /// deserialization; views construct their own instance with the current map.
+  final Map<String, ServiceClockStatus> worstClocks;
+
+  EquipmentFieldAdapter({this.worstClocks = const {}});
+
+  static final instance = EquipmentFieldAdapter();
 
   static const List<EquipmentField> _allFields = EquipmentField.values;
 
@@ -228,8 +235,9 @@ class EquipmentFieldAdapter
       EquipmentField.purchaseDate => entity.purchaseDate,
       EquipmentField.purchasePrice => entity.purchasePrice,
       EquipmentField.lastServiceDate => entity.lastServiceDate,
-      EquipmentField.nextServiceDue => entity.nextServiceDue,
-      EquipmentField.daysUntilService => entity.daysUntilService,
+      // Forecast columns come from the clock ledger, not the legacy interval.
+      EquipmentField.nextServiceDue => worstClocks[entity.id]?.dueDate,
+      EquipmentField.daysUntilService => worstClocks[entity.id]?.daysUntilDue,
       EquipmentField.serviceIntervalDays => entity.serviceIntervalDays,
       EquipmentField.notes => entity.notes,
     };
