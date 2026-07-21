@@ -97,6 +97,7 @@ class MediaUploadPipeline {
     }
 
     File? staged;
+    CompressionResult? rendition;
     try {
       staged = await _materialize(item);
       if (staged == null) {
@@ -160,7 +161,7 @@ class MediaUploadPipeline {
       final level =
           (isOverride ? _tryParseQuality(entry.overrideLevel!) : null) ??
           await _policies.qualityFor(item.mediaType);
-      final rendition = await _renditionFor(item, staged, level);
+      rendition = await _renditionFor(item, staged, level, digest.hash);
       if (rendition != null) {
         final renditionKey = StoreKeys.renditionKey(
           digest.hash,
@@ -191,7 +192,10 @@ class MediaUploadPipeline {
           // level).
           sizeBytes: existingRendition?.sizeBytes ?? rendition.sizeBytes,
         );
-        await _cleanupRendition(rendition.file);
+        if (item.mediaType != MediaType.video) {
+          // Photos re-compress cheaply, so drop the temp rendition now.
+          await _cleanupRendition(rendition.file);
+        }
         // Namespace switch (override original -> compressed): drop the now
         // unreferenced original object.
         if (hadOriginal) {
@@ -207,6 +211,14 @@ class MediaUploadPipeline {
           }
         }
         await _queue.markDone(entry.id);
+        // Spec section 8: delete the deterministic transcode (and any stale
+        // same-hash siblings from a level change) only AFTER markDone. It is
+        // expensive to recreate, so removing it before the upload is committed
+        // would force a re-transcode on retry if any step above threw. The
+        // helper is best-effort and never throws.
+        if (item.mediaType == MediaType.video) {
+          await _cache.deleteTranscodeArtifacts(digest.hash);
+        }
         return UploadOutcome.uploaded;
       }
 
@@ -250,6 +262,14 @@ class MediaUploadPipeline {
         }
       }
       await _queue.markDone(entry.id);
+      // Transcode-once cleanup (spec section 8): a video that uploads its
+      // original still clears any deterministic transcode left for this hash
+      // (e.g. a prior attempt's rendition, then a switch to Original or a lost
+      // engine) so it can't be stranded. Mirrors the rendition branch above;
+      // best-effort and never throws.
+      if (item.mediaType == MediaType.video) {
+        await _cache.deleteTranscodeArtifacts(digest.hash);
+      }
       return (isOverride || existing == null)
           ? UploadOutcome.uploaded
           : UploadOutcome.deduplicated;
@@ -260,6 +280,13 @@ class MediaUploadPipeline {
         stackTrace: stackTrace,
       );
       await _queue.markFailed(entry.id, e.toString());
+      // Photos re-compress cheaply, so their rendition staging file is
+      // discarded on failure (Phase A leaked it). Video renditions are
+      // deterministic and PRESERVED for the retry (spec section 8).
+      final failedRendition = rendition;
+      if (failedRendition != null && item.mediaType != MediaType.video) {
+        await _cleanupRendition(failedRendition.file);
+      }
       return UploadOutcome.failed;
     } finally {
       // Best-effort cleanup of the staging temp file. Delete atomically and
@@ -305,15 +332,28 @@ class MediaUploadPipeline {
 
   /// Chooses the compressor by media type; returns null for the Original
   /// level, when the compressor declines (ceiling/undecodable), or when a
-  /// video has no transcoder registered (Phase A -> upload the original).
+  /// video has no transcoder registered (upload the original).
   Future<CompressionResult?> _renditionFor(
     MediaItem item,
     File source,
     MediaUploadQuality level,
+    String contentHash,
   ) async {
     if (level == MediaUploadQuality.original) return null;
     if (item.mediaType == MediaType.video) {
-      return _videoTranscoder?.transcode(item, source, level);
+      final transcoder = _videoTranscoder;
+      if (transcoder == null) return null;
+      final output = await _cache.transcodeFile(contentHash, level.name);
+      if (await output.exists()) {
+        // Transcode-once: a completed rendition survives retries and app
+        // restarts; only markDone deletes it.
+        return CompressionResult(
+          file: output,
+          ext: 'mp4',
+          sizeBytes: await output.length(),
+        );
+      }
+      return transcoder.transcode(item, source, level, output: output);
     }
     return _imageCompressor.compress(item, source, level);
   }

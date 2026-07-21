@@ -21824,4 +21824,8 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_mediaStorage_quality_reuploadQueued =>
       'Opnieuw uploaden in wachtrij';
+
+  @override
+  String get settings_mediaStorage_quality_linuxFfmpegHint =>
+      'Installeer ffmpeg om videocompressie in te schakelen. Tot die tijd worden originelen geüpload.';
 }

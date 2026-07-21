@@ -21999,4 +21999,8 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_mediaStorage_quality_reuploadQueued =>
       'Novo envio na fila';
+
+  @override
+  String get settings_mediaStorage_quality_linuxFfmpegHint =>
+      'Instale o ffmpeg para ativar a compressão de vídeo. Até lá, os originais são enviados.';
 }

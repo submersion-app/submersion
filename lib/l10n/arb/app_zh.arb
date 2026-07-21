@@ -6565,5 +6565,6 @@
   "settings_mediaStorage_quality_balanced": "均衡",
   "settings_mediaStorage_quality_small": "小",
   "settings_mediaStorage_quality_caveat": "设置压缩级别后，不会上传全分辨率原图，它们仅保留在本设备上。",
-  "settings_mediaStorage_quality_reuploadQueued": "重新上传已加入队列"
+  "settings_mediaStorage_quality_reuploadQueued": "重新上传已加入队列",
+  "settings_mediaStorage_quality_linuxFfmpegHint": "安装 ffmpeg 以启用视频压缩。在此之前将上传原始文件。"
 }

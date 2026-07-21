@@ -73,6 +73,8 @@ dependencies:
     path: packages/submersion_saf
   submersion_ocr:
     path: packages/submersion_ocr
+  submersion_transcoder:
+    path: packages/submersion_transcoder
   permission_handler: ^12.0.1
   file_picker: ^11.0.2
   image_picker: ^1.1.2

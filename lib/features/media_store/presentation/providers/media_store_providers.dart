@@ -25,6 +25,7 @@ import 'package:submersion/features/media_store/data/media_store_worker.dart';
 import 'package:submersion/features/media_store/data/media_stores_repository.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/media_store/data/media_upload_pipeline.dart';
+import 'package:submersion/features/media_store/data/platform_video_transcoder.dart';
 import 'package:submersion/features/media_store/domain/media_upload_quality.dart';
 import 'package:submersion/features/media_store/presentation/widgets/media_store_badge.dart';
 
@@ -183,6 +184,7 @@ final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
         store: store,
         registry: ref.watch(mediaSourceResolverRegistryProvider),
         cache: cache,
+        videoTranscoder: PlatformVideoTranscoder(),
       );
       final worker = MediaStoreWorker(
         queue: MediaTransferQueueRepository(),
@@ -264,3 +266,14 @@ final mediaStoreReuploadProvider =
         await runtime?.worker?.reuploadAndKick(mediaId, level);
       };
     });
+
+/// Whether this device can transcode video right now (spec section 12).
+/// Drives the Linux settings hint; false on platforms without an engine.
+///
+/// autoDispose so it re-checks each time Settings is re-entered: a plain
+/// FutureProvider would cache a `false` (ffmpeg not yet installed) for the
+/// container's lifetime, leaving the "install ffmpeg" hint stale after the
+/// user installs ffmpeg and comes back.
+final videoTranscodeAvailableProvider = FutureProvider.autoDispose<bool>(
+  (ref) => PlatformVideoTranscoder().isAvailable(),
+);

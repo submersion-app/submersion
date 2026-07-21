@@ -21933,4 +21933,8 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_mediaStorage_quality_reuploadQueued =>
       'Újratöltés sorba állítva';
+
+  @override
+  String get settings_mediaStorage_quality_linuxFfmpegHint =>
+      'Telepítse az ffmpeg-et a videótömörítés engedélyezéséhez. Addig az eredetik kerülnek feltöltésre.';
 }

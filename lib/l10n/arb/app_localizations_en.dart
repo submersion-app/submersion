@@ -21626,4 +21626,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_mediaStorage_quality_reuploadQueued => 'Re-upload queued';
+
+  @override
+  String get settings_mediaStorage_quality_linuxFfmpegHint =>
+      'Install ffmpeg to enable video compression. Originals are uploaded until then.';
 }

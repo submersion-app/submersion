@@ -36809,6 +36809,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Re-upload queued'**
   String get settings_mediaStorage_quality_reuploadQueued;
+
+  /// No description provided for @settings_mediaStorage_quality_linuxFfmpegHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Install ffmpeg to enable video compression. Originals are uploaded until then.'**
+  String get settings_mediaStorage_quality_linuxFfmpegHint;
 }
 
 class _AppLocalizationsDelegate

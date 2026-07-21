@@ -147,6 +147,40 @@ class MediaCacheStore {
     );
   }
 
+  /// Deterministic transcode output path (spec section 8):
+  /// `<root>/transcode/<hash>_<level>.mp4`. Engines write `<path>.tmp` and
+  /// rename, so an existing file here is always a COMPLETE rendition; it
+  /// survives upload retries and app restarts and is removed only via
+  /// [deleteTranscodeArtifacts] on markDone.
+  Future<File> transcodeFile(String contentHash, String levelName) async {
+    final dir = Directory(p.join(_root.path, 'transcode'));
+    await dir.create(recursive: true);
+    return File(p.join(dir.path, '${contentHash}_$levelName.mp4'));
+  }
+
+  /// Removes every transcode artifact for [contentHash]: all levels'
+  /// renditions plus any .tmp debris. Best-effort.
+  Future<void> deleteTranscodeArtifacts(String contentHash) async {
+    final dir = Directory(p.join(_root.path, 'transcode'));
+    try {
+      if (!await dir.exists()) return;
+      await for (final entity in dir.list()) {
+        if (entity is File &&
+            p.basename(entity.path).startsWith('${contentHash}_')) {
+          try {
+            await entity.delete();
+          } on FileSystemException {
+            // A single locked/vanished file must not abort the sweep.
+          }
+        }
+      }
+    } on FileSystemException {
+      // exists()/list() can race with other writers or hit a permission
+      // error; this cleanup is best-effort and must never surface (it now
+      // runs after markDone, where throwing would flip a committed upload).
+    }
+  }
+
   Future<int> totalBytes(MediaCacheKind kind) async {
     final sum = _db.mediaCacheEntries.sizeBytes.sum();
     final query = _db.selectOnly(_db.mediaCacheEntries)

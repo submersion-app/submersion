@@ -22011,4 +22011,8 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_mediaStorage_quality_reuploadQueued => 'Resubida en cola';
+
+  @override
+  String get settings_mediaStorage_quality_linuxFfmpegHint =>
+      'Instala ffmpeg para habilitar la compresión de vídeo. Hasta entonces se suben los originales.';
 }

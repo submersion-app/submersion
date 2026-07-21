@@ -660,6 +660,20 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
                     items: _qualityItems(l10n),
                   ),
                 ),
+                if (ref.watch(isLinuxPlatformProvider) &&
+                    _videoQuality != null &&
+                    _videoQuality != MediaUploadQuality.original &&
+                    !(ref.watch(videoTranscodeAvailableProvider).value ?? true))
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                    child: Text(
+                      l10n.settings_mediaStorage_quality_linuxFfmpegHint,
+                      key: const Key('media-quality-linux-ffmpeg-hint'),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                  ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                   child: Text(

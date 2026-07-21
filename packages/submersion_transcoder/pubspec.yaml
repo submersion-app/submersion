@@ -1,0 +1,7 @@
+name: submersion_transcoder
+description: Video transcoding engines for Submersion's adjustable upload quality.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.10.0

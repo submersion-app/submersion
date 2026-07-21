@@ -6565,5 +6565,6 @@
   "settings_mediaStorage_quality_balanced": "متوازنة",
   "settings_mediaStorage_quality_small": "صغيرة",
   "settings_mediaStorage_quality_caveat": "عند تعيين مستوى ضغط، لا يتم رفع النسخ الأصلية بالدقة الكاملة؛ فهي تبقى على هذا الجهاز فقط.",
-  "settings_mediaStorage_quality_reuploadQueued": "تمت إضافة إعادة الرفع إلى قائمة الانتظار"
+  "settings_mediaStorage_quality_reuploadQueued": "تمت إضافة إعادة الرفع إلى قائمة الانتظار",
+  "settings_mediaStorage_quality_linuxFfmpegHint": "ثبّت ffmpeg لتمكين ضغط الفيديو. حتى ذلك الحين يتم رفع النسخ الأصلية."
 }
