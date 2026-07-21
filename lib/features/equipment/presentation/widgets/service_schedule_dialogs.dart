@@ -14,6 +14,11 @@ void invalidateServiceClockProviders(WidgetRef ref, String equipmentId) {
   ref.invalidate(serviceSchedulesForEquipmentProvider(equipmentId));
   ref.invalidate(dueClocksProvider);
   ref.invalidate(equipmentWorstClockProvider);
+  // Schedule writes hit service_schedules, not the equipment table, so the
+  // urgency provider's invalidateSelfWhen(watchEquipmentChanges) never fires
+  // for them -- invalidate it here or the Service Due sort/table forecast
+  // columns stay stale until an unrelated equipment change.
+  ref.invalidate(equipmentServiceUrgencyProvider);
 }
 
 /// Bottom sheet listing service kinds that apply to [equipmentType] and are
