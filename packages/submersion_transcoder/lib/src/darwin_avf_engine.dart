@@ -27,6 +27,15 @@ class DarwinAvfEngine implements TranscodeEngine {
   // concurrently, misattributing progress events.
   static int _seq = 0;
 
+  // One broadcast subscription over the progress channel, shared by every
+  // transcode() call. Calling receiveBroadcastStream() per transcode triggers
+  // a fresh native onListen each time; the Swift side keeps a single sink, so
+  // a later listen would overwrite the earlier and misroute progress for
+  // overlapping transcodes. One shared stream = one onListen; per-call
+  // listeners filter by progressId.
+  late final Stream<dynamic> _progressStream = _progress
+      .receiveBroadcastStream();
+
   @override
   Future<bool> isAvailable() async {
     try {
@@ -69,7 +78,7 @@ class DarwinAvfEngine implements TranscodeEngine {
     final progressId = 'p${_seq++}';
     StreamSubscription<dynamic>? sub;
     if (onProgress != null) {
-      sub = _progress.receiveBroadcastStream().listen((event) {
+      sub = _progressStream.listen((event) {
         if (event is Map && event['progressId'] == progressId) {
           final f = (event['fraction'] as num).toDouble();
           onProgress(f.clamp(0.0, 1.0));

@@ -50,7 +50,11 @@ public class SubmersionTranscoderPlugin: NSObject, FlutterPlugin, FlutterStreamH
         let progressId = a["progressId"] as? String
       else {
         result(
-          FlutterError(code: "bad_args", message: "transcode args", details: nil))
+          FlutterError(
+            code: "bad_args",
+            message: "transcode requires: source, output, maxHeight, "
+              + "videoBitrateKbps, audioBitrateKbps, progressId",
+            details: nil))
         return
       }
       DispatchQueue.global(qos: .userInitiated).async { [weak self] in

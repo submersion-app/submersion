@@ -186,7 +186,18 @@ final class AvfTranscoder {
         writer.error?.localizedDescription ?? "writer incomplete")
     }
     onProgress(1.0)
-    try FileManager.default.moveItem(
-      at: tmpURL, to: URL(fileURLWithPath: output))
+    // Finalize atomically. moveItem throws if the destination exists, so
+    // remove any stale output first; on any failure, delete the .tmp so we
+    // never leave debris (contract: never leave a "<output>.tmp") and rethrow
+    // a descriptive error that reaches Dart via localizedDescription.
+    let outputURL = URL(fileURLWithPath: output)
+    do {
+      try? FileManager.default.removeItem(at: outputURL)
+      try FileManager.default.moveItem(at: tmpURL, to: outputURL)
+    } catch {
+      try? FileManager.default.removeItem(at: tmpURL)
+      throw AvfTranscodeError.writerFailed(
+        "finalize: \(error.localizedDescription)")
+    }
   }
 }
