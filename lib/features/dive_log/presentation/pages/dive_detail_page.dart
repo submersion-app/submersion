@@ -1628,6 +1628,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         diveDuration: dive.effectiveRuntime,
                         maxDepth: dive.maxDepth,
                         ceilingCurve: analysis?.ceilingCurve,
+                        decoStopCurve: analysis?.decoStopCurve,
                         ascentRates: analysis?.ascentRates,
                         events: analysis?.events,
                         ndlCurve: analysis?.ndlCurve,

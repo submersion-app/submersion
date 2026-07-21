@@ -20,6 +20,7 @@ import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/chart_series_cache.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/deco_stop_band.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_legend.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_decimator.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
@@ -77,6 +78,10 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// Ceiling curve in meters, same length as profile
   final List<double>? ceilingCurve;
 
+  /// Deco stop levels in meters, same length as profile. Drawn as a stepped
+  /// band from the stop depth up to the surface.
+  final List<double>? decoStopCurve;
+
   /// Ascent rate data for each profile point
   final List<AscentRatePoint>? ascentRates;
 
@@ -97,6 +102,9 @@ class DiveProfileChart extends ConsumerStatefulWidget {
 
   /// Whether to show ceiling by default
   final bool showCeiling;
+
+  /// Whether to show the stepped deco stop band by default
+  final bool showDecoStops;
 
   /// Whether to color depth line by ascent rate
   final bool showAscentRateColors;
@@ -439,6 +447,7 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.showPressure = false,
     this.onPointSelected,
     this.ceilingCurve,
+    this.decoStopCurve,
     this.ascentRates,
     this.events,
     this.ndlCurve,
@@ -446,6 +455,7 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.tankVolume,
     this.sacNormalizationFactor = 1.0,
     this.showCeiling = true,
+    this.showDecoStops = true,
     this.showAscentRateColors = false,
     this.showEvents = true,
     this.showSac = false,
@@ -499,6 +509,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
   // Decompression visualization toggles
   bool _showCeiling = true;
+  bool _showDecoStops = true;
   bool _showAscentRateColors = false;
   bool _showAscentRateLine = false;
   bool _showEvents = true;
@@ -925,6 +936,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showTemperature = widget.showTemperature;
     _showSac = widget.showSac;
     _showCeiling = widget.showCeiling;
+    _showDecoStops = widget.showDecoStops;
     _showAscentRateColors = widget.showAscentRateColors;
     _showEvents = widget.showEvents;
     _scheduleTankPressureVisibilityInitialization();
@@ -1056,6 +1068,21 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           label: 'Ceiling',
           value: ceiling > 0 ? units.formatDepth(ceiling) : '-',
           bulletColor: const Color(0xFFD32F2F),
+        ),
+      );
+    }
+
+    // Deco stop. Mirrors the in-chart tooltip row so the panel and fullscreen
+    // readouts report the band they are already drawing.
+    if (_showDecoStops &&
+        widget.decoStopCurve != null &&
+        spot.spotIndex < widget.decoStopCurve!.length) {
+      final stop = widget.decoStopCurve![spot.spotIndex];
+      rows.add(
+        TooltipRow(
+          label: 'Deco stop',
+          value: stop > 0 ? units.formatDepth(stop) : '-',
+          bulletColor: decoStopBandColor,
         ),
       );
     }
@@ -1549,6 +1576,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _analysisSig = _sigOf([
       commonSig,
       identityHashCode(widget.ceilingCurve),
+      identityHashCode(widget.decoStopCurve),
       identityHashCode(widget.ndlCurve),
       identityHashCode(widget.ppO2Curve),
       identityHashCode(widget.ppN2Curve),
@@ -2329,6 +2357,16 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   'analysis',
                   _analysisSig,
                   () => [
+                    // Deco stop band, drawn before the ceiling line so the
+                    // dashed curve stays legible on top of the fill.
+                    if (_showDecoStops && widget.decoStopCurve != null)
+                      buildDecoStopBand(
+                        decoStopCurve: widget.decoStopCurve!,
+                        timestamps: [
+                          for (final p in widget.profile) p.timestamp,
+                        ],
+                        units: units,
+                      ),
                     // Ceiling line (if showing and data available)
                     if (_showCeiling && widget.ceilingCurve != null)
                       _buildCeilingLine(units),
@@ -2742,6 +2780,23 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                         context.l10n.diveLog_tooltip_ceiling,
                         ceilingValue,
                         const Color(0xFFD32F2F),
+                      );
+                    }
+
+                    // Deco stop (if enabled - always show row)
+                    if (_showDecoStops) {
+                      String stopValue = '—';
+                      if (widget.decoStopCurve != null &&
+                          spot.spotIndex < widget.decoStopCurve!.length) {
+                        final stop = widget.decoStopCurve![spot.spotIndex];
+                        if (stop > 0) {
+                          stopValue = units.formatDepth(stop);
+                        }
+                      }
+                      addRow(
+                        context.l10n.diveLog_tooltip_decoStop,
+                        stopValue,
+                        decoStopBandColor,
                       );
                     }
 

@@ -8948,6 +8948,12 @@ abstract class AppLocalizations {
   /// **'Ceiling'**
   String get diveLog_legend_label_ceiling;
 
+  /// No description provided for @diveLog_legend_label_decoStops.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco stops'**
+  String get diveLog_legend_label_decoStops;
+
   /// No description provided for @diveLog_legend_label_cns.
   ///
   /// In en, this message translates to:
@@ -11539,6 +11545,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Ceiling'**
   String get diveLog_tooltip_ceiling;
+
+  /// No description provided for @diveLog_tooltip_decoStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco stop'**
+  String get diveLog_tooltip_decoStop;
 
   /// No description provided for @diveLog_tooltip_cns.
   ///

@@ -5195,6 +5195,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_legend_label_ceiling => 'תקרה';
 
   @override
+  String get diveLog_legend_label_decoStops => 'Deco stops';
+
+  @override
   String get diveLog_legend_label_cns => 'CNS%';
 
   @override
@@ -6629,6 +6632,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_tooltip_ceiling => 'תקרה';
+
+  @override
+  String get diveLog_tooltip_decoStop => 'Deco stop';
 
   @override
   String get diveLog_tooltip_cns => 'CNS';
