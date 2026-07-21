@@ -1175,8 +1175,30 @@ class SyncNotifier extends StateNotifier<SyncState> {
   /// The cloud library itself is left intact -- reconnecting sync re-adopts
   /// it -- so this is a local-only reset, not a fleet-wide wipe.
   Future<void> disableForDatabaseReset() async {
-    await _ref.read(syncBehaviorProvider.notifier).setAutoSyncEnabled(false);
-    await signOut();
+    // Two independent guards against the post-reset re-pull: disabling
+    // auto-sync closes the launch/resume sync, and signing out disconnects the
+    // provider so a manual sync cannot pull either. Attempt BOTH even if one
+    // throws -- either surviving still helps the reset stick -- then surface
+    // the first failure so the caller can log it.
+    Object? firstError;
+    StackTrace? firstStack;
+    Future<void> attempt(Future<void> Function() op) async {
+      try {
+        await op();
+      } catch (e, st) {
+        firstError ??= e;
+        firstStack ??= st;
+      }
+    }
+
+    await attempt(
+      () => _ref.read(syncBehaviorProvider.notifier).setAutoSyncEnabled(false),
+    );
+    await attempt(signOut);
+
+    if (firstError != null) {
+      Error.throwWithStackTrace(firstError!, firstStack!);
+    }
   }
 
   /// Reset sync state
