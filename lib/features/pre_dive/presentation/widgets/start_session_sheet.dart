@@ -83,17 +83,18 @@ class _StartSessionSheetState extends ConsumerState<_StartSessionSheet> {
         );
         gear = all.where((g) => chosenSet.equipmentIds.contains(g.id)).toList();
         // Overdue gear is flagged from the service-clock ledger, evaluated only
-        // for the chosen set (proportional to the set, not all active gear).
-        final overdue = <String>{};
-        for (final g in gear) {
-          final statuses = await ref.read(
-            serviceClockStatusesProvider(g.id).future,
-          );
-          if (statuses.any((s) => s.severity == ServiceClockSeverity.overdue)) {
-            overdue.add(g.id);
-          }
-        }
-        overdueEquipmentIds = overdue;
+        // for the chosen set (proportional to the set) and in parallel so total
+        // latency is the slowest item, not the sum.
+        final statusesPerGear = await Future.wait(
+          gear.map((g) => ref.read(serviceClockStatusesProvider(g.id).future)),
+        );
+        overdueEquipmentIds = {
+          for (var i = 0; i < gear.length; i++)
+            if (statusesPerGear[i].any(
+              (s) => s.severity == ServiceClockSeverity.overdue,
+            ))
+              gear[i].id,
+        };
       }
       final items = SessionItemComposer.compose(
         templateItems: _templateItems,
