@@ -19,6 +19,8 @@ import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
+import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
+import 'package:submersion/features/dive_types/presentation/dive_type_display.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
@@ -1270,6 +1272,10 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       customEnd: settings.cardColorGradientEnd,
     );
 
+    // Built once for the whole list, not per row: the lookup map is shared by
+    // every tile and only this widget subscribes to the dive-type list.
+    final diveTypeLabelResolver = watchDiveTypeLabelResolver(ref, context.l10n);
+
     // Check if detailed mode needs full Dive objects for non-summary fields
     final detailedConfig = ref.watch(detailedCardConfigProvider);
     final needsFullDive =
@@ -1321,6 +1327,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 // config, and keeps the home Recent dives list in sync (#506).
                 return DiveListItem(
                   summary: dive,
+                  diveTypeLabelResolver: diveTypeLabelResolver,
                   fullDive: fullDiveLookup[dive.id],
                   diveNumber: dive.diveNumber ?? index + 1,
                   colorValue: getCardColorValue(dive, colorAttribute),
@@ -1382,7 +1389,11 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
 
     if (filter.diveTypeId != null) {
       final diveTypeName =
-          ref.watch(diveTypeProvider(filter.diveTypeId!)).value?.name ??
+          ref
+              .watch(diveTypeProvider(filter.diveTypeId!))
+              .value
+              ?.localizedName(context.l10n) ??
+          builtInDiveTypeName(context.l10n, filter.diveTypeId!) ??
           filter.diveTypeId!;
       chips.add(
         _buildFilterChip(context, diveTypeName, () {

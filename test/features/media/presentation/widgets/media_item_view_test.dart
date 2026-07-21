@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -153,7 +154,37 @@ final _pngBytes = Uint8List.fromList([
   0x82,
 ]);
 
+MediaItem _videoItem({String id = 'v'}) => MediaItem(
+  id: id,
+  mediaType: MediaType.video,
+  sourceType: MediaSourceType.localFile,
+  takenAt: DateTime.utc(2024, 1, 1),
+  createdAt: DateTime.utc(2024, 1, 1),
+  updatedAt: DateTime.utc(2024, 1, 1),
+);
+
 void main() {
+  testWidgets('renders a video placeholder for a video FileData', (
+    tester,
+  ) async {
+    // A local video resolves to the raw video file, which Image.file cannot
+    // decode ("Invalid image data"). The view must show a video placeholder
+    // instead of feeding the file to Image.file.
+    final stub = _StubResolver(
+      FileData(file: File('/tmp/no-such-clip.mp4')),
+      MediaSourceType.localFile,
+    );
+    await tester.pumpWidget(
+      _wrap(
+        child: MediaItemView(item: _videoItem()),
+        resolver: stub,
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byIcon(Icons.movie_outlined), findsOneWidget);
+    expect(find.byType(Image), findsNothing);
+  });
+
   testWidgets('renders Image.memory for BytesData', (tester) async {
     final stub = _StubResolver(
       BytesData(bytes: _pngBytes),

@@ -49,9 +49,9 @@ void main() {
     expect(names, contains('idx_quality_findings_status'));
   });
 
-  test('v129 is in the schema ladder', () {
-    // Membership only: v130 landed on top, so the exact-latest tripwire now
-    // lives in migration_v130_service_reconcile_test.dart.
+  test('v129 quality_findings migration is present', () {
+    // The exact-latest tripwire moved to migration_v130 when v130 landed on
+    // top of v129; this test now only asserts v129 still has its migration.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(129));
     expect(AppDatabase.migrationVersions, contains(129));
   });

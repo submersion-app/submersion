@@ -4493,7 +4493,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_label_diveType => 'סוג צלילה';
 
   @override
-  String get diveLog_edit_label_diveTypes => 'Dive Types';
+  String get diveLog_edit_label_diveTypes => 'סוגי צלילה';
 
   @override
   String get diveLog_edit_label_diveNumber => 'מס\' צלילה';
@@ -8114,6 +8114,51 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveSites_summary_stat_withGps => 'עם GPS';
+
+  @override
+  String get diveType_builtin_altitude => 'גובה רב';
+
+  @override
+  String get diveType_builtin_boat => 'מסירה';
+
+  @override
+  String get diveType_builtin_cave => 'מערה';
+
+  @override
+  String get diveType_builtin_cavern => 'מערה פתוחה';
+
+  @override
+  String get diveType_builtin_deep => 'עמוקה';
+
+  @override
+  String get diveType_builtin_drift => 'סחף';
+
+  @override
+  String get diveType_builtin_freedive => 'צלילה חופשית';
+
+  @override
+  String get diveType_builtin_ice => 'קרח';
+
+  @override
+  String get diveType_builtin_liveaboard => 'שייט צלילה';
+
+  @override
+  String get diveType_builtin_night => 'לילה';
+
+  @override
+  String get diveType_builtin_recreational => 'ספורטיבי';
+
+  @override
+  String get diveType_builtin_shore => 'מהחוף';
+
+  @override
+  String get diveType_builtin_technical => 'טכני';
+
+  @override
+  String get diveType_builtin_training => 'הכשרה';
+
+  @override
+  String get diveType_builtin_wreck => 'ספינה טבועה';
 
   @override
   String get diveTypes_addDialog_addButton => 'הוסף';

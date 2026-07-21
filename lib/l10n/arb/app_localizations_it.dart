@@ -4613,7 +4613,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_edit_label_diveType => 'Tipo di immersione';
 
   @override
-  String get diveLog_edit_label_diveTypes => 'Dive Types';
+  String get diveLog_edit_label_diveTypes => 'Tipi di immersione';
 
   @override
   String get diveLog_edit_label_diveNumber => 'N. immersione';
@@ -8325,6 +8325,51 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveSites_summary_stat_withGps => 'Con GPS';
+
+  @override
+  String get diveType_builtin_altitude => 'Altitudine';
+
+  @override
+  String get diveType_builtin_boat => 'Da barca';
+
+  @override
+  String get diveType_builtin_cave => 'Grotta';
+
+  @override
+  String get diveType_builtin_cavern => 'Caverna';
+
+  @override
+  String get diveType_builtin_deep => 'Profonda';
+
+  @override
+  String get diveType_builtin_drift => 'Corrente';
+
+  @override
+  String get diveType_builtin_freedive => 'Apnea';
+
+  @override
+  String get diveType_builtin_ice => 'Sotto ghiaccio';
+
+  @override
+  String get diveType_builtin_liveaboard => 'Crociera subacquea';
+
+  @override
+  String get diveType_builtin_night => 'Notturna';
+
+  @override
+  String get diveType_builtin_recreational => 'Ricreativa';
+
+  @override
+  String get diveType_builtin_shore => 'Da riva';
+
+  @override
+  String get diveType_builtin_technical => 'Tecnica';
+
+  @override
+  String get diveType_builtin_training => 'Addestramento';
+
+  @override
+  String get diveType_builtin_wreck => 'Relitto';
 
   @override
   String get diveTypes_addDialog_addButton => 'Aggiungi';

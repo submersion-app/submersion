@@ -4621,7 +4621,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_edit_label_diveType => 'Tauchgangart';
 
   @override
-  String get diveLog_edit_label_diveTypes => 'Dive Types';
+  String get diveLog_edit_label_diveTypes => 'Tauchgangstypen';
 
   @override
   String get diveLog_edit_label_diveNumber => 'Tauchgang-Nr.';
@@ -8331,6 +8331,51 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveSites_summary_stat_withGps => 'Mit GPS';
+
+  @override
+  String get diveType_builtin_altitude => 'Bergseetauchen';
+
+  @override
+  String get diveType_builtin_boat => 'Bootstauchgang';
+
+  @override
+  String get diveType_builtin_cave => 'Höhlentauchen';
+
+  @override
+  String get diveType_builtin_cavern => 'Cavern';
+
+  @override
+  String get diveType_builtin_deep => 'Tieftauchen';
+
+  @override
+  String get diveType_builtin_drift => 'Strömungstauchen';
+
+  @override
+  String get diveType_builtin_freedive => 'Apnoetauchen';
+
+  @override
+  String get diveType_builtin_ice => 'Eistauchen';
+
+  @override
+  String get diveType_builtin_liveaboard => 'Tauchsafari';
+
+  @override
+  String get diveType_builtin_night => 'Nachttauchen';
+
+  @override
+  String get diveType_builtin_recreational => 'Sporttauchen';
+
+  @override
+  String get diveType_builtin_shore => 'Ufertauchgang';
+
+  @override
+  String get diveType_builtin_technical => 'Technisches Tauchen';
+
+  @override
+  String get diveType_builtin_training => 'Ausbildung';
+
+  @override
+  String get diveType_builtin_wreck => 'Wracktauchen';
 
   @override
   String get diveTypes_addDialog_addButton => 'Hinzufügen';

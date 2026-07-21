@@ -3,7 +3,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
-/// v130 reconciliation: legacy service intervals edited after the v122 backfill
+/// v131 reconciliation: legacy service intervals edited after the v122 backfill
 /// (so never mirrored into a clock) get a deterministic `legacy-svc-<id>`
 /// "General service" clock, unless the user already deleted that clock.
 void main() {
@@ -78,12 +78,12 @@ void main() {
     expect(await scheduleIntervals('legacy-svc-e3'), [999]);
   });
 
-  test('v130 is the current schema version (exact-latest tripwire)', () {
+  test('v131 is the current schema version (exact-latest tripwire)', () {
     // Exact assertion: the newest migration owns the tripwire, so the next
     // schema bump must move it forward. Relax to greaterThanOrEqualTo and add
-    // a fresh exact test when a later migration lands on top of v130.
-    expect(AppDatabase.currentSchemaVersion, 130);
-    expect(AppDatabase.migrationVersions, contains(130));
+    // a fresh exact test when a later migration lands on top of v131.
+    expect(AppDatabase.currentSchemaVersion, 131);
+    expect(AppDatabase.migrationVersions, contains(131));
   });
 }
 

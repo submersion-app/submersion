@@ -78,6 +78,7 @@ class _FakeEncryptionService implements SyncEncryptionService {
       libraryKeyId: _keyId,
       mlkBytes: await _mlk().extractBytes(),
     );
+    await _preferences.setSyncEncryptionEnabled(true);
     return UnlockedKey(libraryKeyId: _keyId, mlk: _mlk());
   }
 

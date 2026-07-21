@@ -4373,7 +4373,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_edit_label_diveType => '潜水类型';
 
   @override
-  String get diveLog_edit_label_diveTypes => 'Dive Types';
+  String get diveLog_edit_label_diveTypes => '潜水类型';
 
   @override
   String get diveLog_edit_label_diveNumber => '潜水编号';
@@ -7920,6 +7920,51 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveSites_summary_stat_withGps => '与 GPS';
+
+  @override
+  String get diveType_builtin_altitude => '高原潜水';
+
+  @override
+  String get diveType_builtin_boat => '船潜';
+
+  @override
+  String get diveType_builtin_cave => '洞穴潜水';
+
+  @override
+  String get diveType_builtin_cavern => '洞厅潜水';
+
+  @override
+  String get diveType_builtin_deep => '深潜';
+
+  @override
+  String get diveType_builtin_drift => '流潜';
+
+  @override
+  String get diveType_builtin_freedive => '自由潜水';
+
+  @override
+  String get diveType_builtin_ice => '冰潜';
+
+  @override
+  String get diveType_builtin_liveaboard => '船宿潜水';
+
+  @override
+  String get diveType_builtin_night => '夜潜';
+
+  @override
+  String get diveType_builtin_recreational => '休闲潜水';
+
+  @override
+  String get diveType_builtin_shore => '岸潜';
+
+  @override
+  String get diveType_builtin_technical => '技术潜水';
+
+  @override
+  String get diveType_builtin_training => '训练潜水';
+
+  @override
+  String get diveType_builtin_wreck => '沉船潜水';
 
   @override
   String get diveTypes_addDialog_addButton => '添加';

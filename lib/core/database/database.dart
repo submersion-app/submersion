@@ -1256,6 +1256,10 @@ class MediaEnrichment extends Table {
   )(); // exact, interpolated, estimated, no_profile
   IntColumn get timestampOffsetSeconds => integer().nullable()();
   IntColumn get createdAt => integer()();
+  // v130: sync replication. media_enrichment is the depth/time association for
+  // a linked photo; without an hlc it never travelled through sync and was
+  // lost on other devices / after restore.
+  TextColumn get hlc => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -2707,6 +2711,19 @@ class FieldPresets extends Table {
 // Database Class
 // ============================================================================
 
+/// Prefix of the deterministic id for a synthesized/backfilled primary data
+/// source -- the row a dive gets when it has profile samples but no
+/// dive_data_sources row (older file imports). Shared by the beforeOpen
+/// backfill ([AppDatabase._backfillMissingDataSources]) and the read-time
+/// synthesis ([DiveRepository.getProfilesByDataSource]) so the id a consumer
+/// sees before the heal equals the id persisted afterward. Never change it:
+/// existing databases already carry rows with this exact prefix.
+const String kLegacyDataSourceIdPrefix = 'legacy-src-';
+
+/// Full deterministic data-source id for [diveId]. See
+/// [kLegacyDataSourceIdPrefix].
+String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
+
 @DriftDatabase(
   tables: [
     Divers,
@@ -2814,7 +2831,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 130;
+  static const int currentSchemaVersion = 131;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -2963,9 +2980,11 @@ class AppDatabase extends _$AppDatabase {
     // v129: quality_findings table for the Data Quality Assistant (renumbered
     // from v118 as main advanced past it at merge time).
     129,
-    // v130: reconcile legacy service intervals edited after the v122 backfill
-    // into General service clocks (deletion-log guarded).
+    // v130: media_enrichment.hlc so a photo's depth/time association syncs.
     130,
+    // v131: reconcile legacy service intervals edited after the v122 backfill
+    // into General service clocks (deletion-log guarded).
+    131,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -3492,7 +3511,7 @@ class AppDatabase extends _$AppDatabase {
     ''');
   }
 
-  /// v130 one-time reconciliation: items whose legacy interval was set via the
+  /// v131 one-time reconciliation: items whose legacy interval was set via the
   /// edit form AFTER the v122 backfill ran have an interval column but no
   /// clock. Create the same deterministic `legacy-svc-<id>` "General service"
   /// clock for them so removing the legacy edit field does not drop their due
@@ -3545,6 +3564,52 @@ class AppDatabase extends _$AppDatabase {
   /// Test-only hook exercising the v130 reconciliation directly.
   Future<void> reconcileLegacyServiceSchedulesForTest() =>
       _reconcileLegacyServiceSchedules();
+
+  /// Data self-heal: synthesize a primary [DiveDataSources] row for any dive
+  /// that has profile samples but no data-source row. Older file imports (and
+  /// any import path predating dive_data_sources) wrote dive_profiles without
+  /// the metadata row, which stranded the grouped-by-source view that the 3D
+  /// scene, spatial map, and computer-compare all read -- they spun forever on
+  /// a null scene. The 2D chart survived because it reads dive.profile directly.
+  ///
+  /// Runs on every open; a cheap no-op once healed (the NOT EXISTS guard leaves
+  /// nothing to insert). Local-only by design: the id is deterministic
+  /// (`legacy-src-<diveId>`), so every device heals to the identical row
+  /// without syncing, and a device on an older build simply heals itself after
+  /// upgrade. It never touches the parent dive's HLC, so it does not trigger a
+  /// fleet re-sync of the healed dives. imported_at/created_at are Drift
+  /// dateTime() columns stored as unix SECONDS (unlike the dives table's plain
+  /// millisecond int columns), hence strftime('%s') without the *1000.
+  Future<void> _backfillMissingDataSources() async {
+    // Self-guard for partial/legacy schemas (migration tests and databases
+    // caught mid-upgrade): skip unless all three tables exist. beforeOpen runs
+    // for every open, including old-version fixtures where these tables may not
+    // exist yet.
+    final tables = await customSelect(
+      "SELECT name FROM sqlite_master WHERE type='table' "
+      "AND name IN ('dives', 'dive_profiles', 'dive_data_sources')",
+    ).get();
+    final present = tables.map((r) => r.read<String>('name')).toSet();
+    if (!present.containsAll({'dives', 'dive_profiles', 'dive_data_sources'})) {
+      return;
+    }
+    await customStatement('''
+      INSERT OR IGNORE INTO dive_data_sources
+        (id, dive_id, is_primary, imported_at, created_at)
+      SELECT '$kLegacyDataSourceIdPrefix' || d.id, d.id, 1, n.now_s, n.now_s
+      FROM dives d
+      CROSS JOIN (
+        SELECT CAST(strftime('%s','now') AS INTEGER) AS now_s
+      ) n
+      WHERE EXISTS (
+        SELECT 1 FROM dive_profiles p
+        WHERE p.dive_id = d.id AND p.is_primary = 1
+      )
+      AND NOT EXISTS (
+        SELECT 1 FROM dive_data_sources s WHERE s.dive_id = d.id
+      )
+    ''');
+  }
 
   /// Copy each buddy's inline certification into a certifications row owned by
   /// that buddy (issue #553). Invoked from the onUpgrade blocks only (v109
@@ -3600,6 +3665,20 @@ class AppDatabase extends _$AppDatabase {
           orElse: () => CertificationAgency.other,
         )
         .displayName;
+  }
+
+  /// v130: media_enrichment.hlc column. Self-guarding when the table is absent
+  /// (partial-schema migration fixtures) and PRAGMA-guarded so it is safe to
+  /// call from both onUpgrade and the beforeOpen backstop (parallel-branch
+  /// collision self-heal).
+  Future<void> _assertMediaEnrichmentHlcColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('media_enrichment')",
+    ).get();
+    final hasColumn = cols.any((c) => c.read<String>('name') == 'hlc');
+    if (cols.isNotEmpty && !hasColumn) {
+      await customStatement('ALTER TABLE media_enrichment ADD COLUMN hlc TEXT');
+    }
   }
 
   /// Idempotent DDL for the v103 media store objects. Called from the v103
@@ -6754,12 +6833,18 @@ class AppDatabase extends _$AppDatabase {
           await _assertQualityFindingsSchema();
         }
         if (from < 129) await reportProgress();
-        // v130: reconcile legacy service intervals edited after the v122
-        // backfill into General service clocks (deletion-log guarded).
+        // v130: media_enrichment.hlc so a photo's depth/time association
+        // replicates through sync (it was local-only before).
         if (from < 130) {
-          await _reconcileLegacyServiceSchedules();
+          await _assertMediaEnrichmentHlcColumn();
         }
         if (from < 130) await reportProgress();
+        // v131: reconcile legacy service intervals edited after the v122
+        // backfill into General service clocks (deletion-log guarded).
+        if (from < 131) {
+          await _reconcileLegacyServiceSchedules();
+        }
+        if (from < 131) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
@@ -6768,6 +6853,9 @@ class AppDatabase extends _$AppDatabase {
         // v103 backstop: re-assert media store schema (the helper is
         // self-guarding when the media table is absent).
         await _assertMediaStoreSchema();
+
+        // v130 backstop: re-assert the media_enrichment.hlc column.
+        await _assertMediaEnrichmentHlcColumn();
 
         // v106 backstop: re-assert connector-suggestion columns (the helper
         // is self-guarding when the suggestions table is absent).
@@ -6979,6 +7067,15 @@ class AppDatabase extends _$AppDatabase {
           }
           return true;
         }());
+
+        // Data self-heal: backfill a primary dive_data_sources row for dives
+        // that have profile samples but no source row (legacy file imports).
+        // Without it, the 3D/spatial/compare views spin forever on those dives.
+        // Idempotent and local-only (deterministic ids, no HLC bump). Runs
+        // AFTER ensurePerformanceIndexes so its per-dive EXISTS/NOT EXISTS
+        // subqueries hit idx_dive_profiles_dive_id / idx_dive_data_sources_dive_id
+        // instead of full-scanning million-row tables on a fresh/restored DB.
+        await _backfillMissingDataSources();
       },
     );
   }

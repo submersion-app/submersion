@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
+import 'package:submersion/features/dive_types/presentation/dive_type_display.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -61,8 +62,13 @@ class DiveTypeMultiSelectField extends ConsumerWidget {
       return const LinearProgressIndicator();
     }
 
-    final nameById = {for (final t in types) t.id: t.name};
-    String nameOf(String id) => nameById[id] ?? Dive.diveTypeDisplayName(id);
+    final nameById = {
+      for (final t in types) t.id: t.localizedName(context.l10n),
+    };
+    String nameOf(String id) =>
+        nameById[id] ??
+        builtInDiveTypeName(context.l10n, id) ??
+        Dive.diveTypeDisplayName(id);
 
     return InkWell(
       onTap: () => _openPicker(context, types, label),
@@ -182,7 +188,7 @@ class _DiveTypePickerSheetState extends State<_DiveTypePickerSheet> {
                     CheckboxListTile(
                       value: _working.contains(t.id),
                       onChanged: (v) => _toggle(t.id, v ?? false),
-                      title: Text(t.name),
+                      title: Text(t.localizedName(context.l10n)),
                     ),
                 ],
               ),

@@ -4521,7 +4521,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_label_diveType => 'نوع الغوصة';
 
   @override
-  String get diveLog_edit_label_diveTypes => 'Dive Types';
+  String get diveLog_edit_label_diveTypes => 'أنواع الغوص';
 
   @override
   String get diveLog_edit_label_diveNumber => 'رقم الغوصة';
@@ -8166,6 +8166,51 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveSites_summary_stat_withGps => 'مع GPS';
+
+  @override
+  String get diveType_builtin_altitude => 'ارتفاع';
+
+  @override
+  String get diveType_builtin_boat => 'من القارب';
+
+  @override
+  String get diveType_builtin_cave => 'كهف';
+
+  @override
+  String get diveType_builtin_cavern => 'كهف ضحل';
+
+  @override
+  String get diveType_builtin_deep => 'عميق';
+
+  @override
+  String get diveType_builtin_drift => 'انجراف';
+
+  @override
+  String get diveType_builtin_freedive => 'غطس حر';
+
+  @override
+  String get diveType_builtin_ice => 'جليد';
+
+  @override
+  String get diveType_builtin_liveaboard => 'رحلة غوص بحرية';
+
+  @override
+  String get diveType_builtin_night => 'ليلي';
+
+  @override
+  String get diveType_builtin_recreational => 'ترفيهي';
+
+  @override
+  String get diveType_builtin_shore => 'من الشاطئ';
+
+  @override
+  String get diveType_builtin_technical => 'تقني';
+
+  @override
+  String get diveType_builtin_training => 'تدريب';
+
+  @override
+  String get diveType_builtin_wreck => 'حطام';
 
   @override
   String get diveTypes_addDialog_addButton => 'إضافة';

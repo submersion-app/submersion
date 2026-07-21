@@ -4597,7 +4597,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_edit_label_diveType => 'Merules tipusa';
 
   @override
-  String get diveLog_edit_label_diveTypes => 'Dive Types';
+  String get diveLog_edit_label_diveTypes => 'Merülés típusok';
 
   @override
   String get diveLog_edit_label_diveNumber => 'Merules sz.';
@@ -8312,6 +8312,51 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveSites_summary_stat_withGps => 'GPS-szel';
+
+  @override
+  String get diveType_builtin_altitude => 'Magaslati';
+
+  @override
+  String get diveType_builtin_boat => 'Hajóról';
+
+  @override
+  String get diveType_builtin_cave => 'Barlang';
+
+  @override
+  String get diveType_builtin_cavern => 'Barlangbejárat';
+
+  @override
+  String get diveType_builtin_deep => 'Mély';
+
+  @override
+  String get diveType_builtin_drift => 'Sodrásos';
+
+  @override
+  String get diveType_builtin_freedive => 'Szabadtüdős';
+
+  @override
+  String get diveType_builtin_ice => 'Jég';
+
+  @override
+  String get diveType_builtin_liveaboard => 'Búvárhajós';
+
+  @override
+  String get diveType_builtin_night => 'Éjszakai';
+
+  @override
+  String get diveType_builtin_recreational => 'Szabadidős';
+
+  @override
+  String get diveType_builtin_shore => 'Partról';
+
+  @override
+  String get diveType_builtin_technical => 'Technikai';
+
+  @override
+  String get diveType_builtin_training => 'Képzés';
+
+  @override
+  String get diveType_builtin_wreck => 'Roncs';
 
   @override
   String get diveTypes_addDialog_addButton => 'Hozzáadás';
