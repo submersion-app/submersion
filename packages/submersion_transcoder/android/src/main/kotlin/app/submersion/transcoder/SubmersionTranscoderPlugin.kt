@@ -1,6 +1,8 @@
 package app.submersion.transcoder
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
@@ -38,6 +40,56 @@ class SubmersionTranscoderPlugin :
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
             "isAvailable" -> result.success(true)
+            "probe" -> {
+                val path = call.argument<String>("path")
+                if (path == null) {
+                    result.success(null)
+                    return
+                }
+                result.success(Media3Transcoder.probe(path))
+            }
+            "transcode" -> {
+                val source = call.argument<String>("source")
+                val output = call.argument<String>("output")
+                val maxHeight = call.argument<Int>("maxHeight")
+                val videoBitrateKbps = call.argument<Int>("videoBitrateKbps")
+                val audioBitrateKbps = call.argument<Int>("audioBitrateKbps")
+                val progressId = call.argument<String>("progressId")
+                if (source == null || output == null || maxHeight == null ||
+                    videoBitrateKbps == null || audioBitrateKbps == null ||
+                    progressId == null
+                ) {
+                    result.error("bad_args", "missing transcode arguments", null)
+                    return
+                }
+                // Transformer must run on a Looper thread; the listener resolves
+                // the Flutter result on that same (main) thread.
+                Handler(Looper.getMainLooper()).post {
+                    Media3Transcoder.transcode(
+                        context = context,
+                        source = source,
+                        output = output,
+                        maxHeight = maxHeight,
+                        videoBitrateKbps = videoBitrateKbps,
+                        audioBitrateKbps = audioBitrateKbps,
+                        onProgress = { fraction ->
+                            progressSink?.success(
+                                mapOf(
+                                    "progressId" to progressId,
+                                    "fraction" to fraction,
+                                ),
+                            )
+                        },
+                        onDone = { error ->
+                            if (error == null) {
+                                result.success(null)
+                            } else {
+                                result.error("transcode_failed", error, null)
+                            }
+                        },
+                    )
+                }
+            }
             else -> result.notImplemented()
         }
     }
