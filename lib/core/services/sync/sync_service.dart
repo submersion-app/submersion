@@ -2022,7 +2022,7 @@ class SyncService {
         // or resurrect an orphan. A NOT NULL (cascade) child is skipped; a
         // nullable (set-null) reference is cleared so the row survives detached
         // (e.g. a photo whose dive was deleted keeps the photo, sans dive link).
-        var recordToApply = record;
+        var recordToApply = _withoutDeviceLocalFields(entityType, record);
         var droppedByParent = false;
         for (final ref in entityParentRefs) {
           final parentId = record[ref.field];
@@ -2117,7 +2117,7 @@ class SyncService {
           await _syncRepository.markRecordConflict(
             entityType: entityType,
             recordId: recordId,
-            conflictDataJson: jsonEncode(record),
+            conflictDataJson: jsonEncode(recordToApply),
             localUpdatedAt: localUpdatedAt,
           );
           continue;
@@ -2179,6 +2179,20 @@ class SyncService {
     Map<String, dynamic> remote,
     Map<String, dynamic>? local,
   ) => local == null ? remote : {...local, ...remote};
+
+  /// BLE identifiers are host-specific and must never cross the sync boundary.
+  static Map<String, dynamic> _withoutDeviceLocalFields(
+    String entityType,
+    Map<String, dynamic> data,
+  ) {
+    if (entityType != 'diveComputers' ||
+        !data.containsKey('bluetoothAddress')) {
+      return data;
+    }
+    final copy = Map<String, dynamic>.from(data);
+    copy.remove('bluetoothAddress');
+    return copy;
+  }
 
   Future<Map<String, Set<String>>> _pendingRecordMap() async {
     final records = await _syncRepository.getPendingRecords();
@@ -2281,7 +2295,10 @@ class SyncService {
       return;
     }
 
-    final remoteData = _parseConflictData(match.conflictData!);
+    final remoteData = _withoutDeviceLocalFields(
+      entityType,
+      _parseConflictData(match.conflictData!),
+    );
     final isDeletion = remoteData['_deleted'] == true;
     final deletedAt = remoteData['deletedAt'] is int
         ? remoteData['deletedAt'] as int

@@ -144,6 +144,46 @@ class DiveComputerRepository {
     }
   }
 
+  /// Find a computer by its stable hardware identity.
+  ///
+  /// BLE identifiers are host-specific and are therefore only useful for a
+  /// local connection. The serial number, together with manufacturer/model,
+  /// identifies the physical computer across devices.
+  Future<domain.DiveComputer?> findByHardwareIdentity({
+    required String manufacturer,
+    required String model,
+    required String serialNumber,
+    String? diverId,
+  }) async {
+    try {
+      final query = _db.select(_db.diveComputers)
+        ..where((t) => t.serialNumber.equals(serialNumber.trim()))
+        ..orderBy([(t) => OrderingTerm.desc(t.updatedAt)]);
+      final normalizedDiverId = diverId?.trim();
+      if (normalizedDiverId != null && normalizedDiverId.isNotEmpty) {
+        query.where((t) => t.diverId.equals(normalizedDiverId));
+      }
+
+      final rows = await query.get();
+      final normalizedManufacturer = manufacturer.trim().toLowerCase();
+      final normalizedModel = model.trim().toLowerCase();
+      for (final row in rows) {
+        if (row.manufacturer?.trim().toLowerCase() == normalizedManufacturer &&
+            row.model?.trim().toLowerCase() == normalizedModel) {
+          return _mapRowToComputer(row);
+        }
+      }
+      return null;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to find dive computer by hardware identity',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Create a new dive computer
   Future<domain.DiveComputer> createComputer(
     domain.DiveComputer computer,
