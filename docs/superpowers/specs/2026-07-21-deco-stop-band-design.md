@@ -85,9 +85,11 @@ maximum in CLAUDE.md. The chart calls the builder next to `_buildCeilingLine`.
   changes. This is lossless for a piecewise-constant curve and produces far
   fewer points than the raw profile.
 - **Color:** the ceiling's red family — a translucent fill at roughly 0.18 alpha
-  with a thin solid step outline. The existing smooth dashed red ceiling line
-  stays and is drawn on top. This reads as a single "deco region" concept.
-  Green was rejected because it already belongs to NDL in this app's palette.
+  and no stroke at all. The band is a background zone, not a second curve, so
+  drawing an outline along its upper edge would compete with the ceiling line
+  drawn over it. The existing smooth dashed red ceiling line stays and is drawn
+  on top. Green was rejected because it already belongs to NDL in this app's
+  palette.
 - **Layering:** band first, smooth ceiling line second, so the dashed curve
   stays legible against the fill.
 - **Tooltip:** a "Deco stop" row alongside the existing Ceiling row, showing the

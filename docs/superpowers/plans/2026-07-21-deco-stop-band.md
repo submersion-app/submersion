@@ -1148,8 +1148,8 @@ LineChartBarData buildDecoStopBand({
     // 0 holds each stop value forward from its sample until the next
     // transition, so the vertical edge lands where the level actually changes.
     lineChartStepData: const LineChartStepData(stepDirection: 0),
-    color: decoStopBandColor,
-    barWidth: 1.5,
+    color: Colors.transparent,
+    barWidth: _decoStopStrokeWidth,
     isStrokeCapRound: false,
     dotData: const FlDotData(show: false),
     belowBarData: BarAreaData(
