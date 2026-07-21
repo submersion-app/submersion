@@ -478,6 +478,73 @@ void main() {
     });
 
     testWidgets(
+      'a profile starting after t=0 draws the depth line from the surface',
+      (tester) async {
+        // Subsurface/DC-XML profiles begin at the first sample (10s), leaving a
+        // gap against the t=0 axis origin (issue #684).
+        final profile = [
+          for (var i = 1; i <= 8; i++)
+            DiveProfilePoint(timestamp: i * 10, depth: i * 2.0),
+        ];
+        await tester.pumpWidget(_buildChart(profile: profile));
+        await tester.pumpAndSettle();
+
+        final depthBar = tester
+            .widget<LineChart>(find.byType(LineChart).first)
+            .data
+            .lineBarsData
+            .first;
+
+        expect(depthBar.spots.first.x, 0);
+        expect(depthBar.spots.first.y, 0);
+        // The synthetic vertex is additive: every real sample is still drawn.
+        expect(depthBar.spots.length, profile.length + 1);
+        expect(depthBar.spots[1].x, 10);
+      },
+    );
+
+    testWidgets('a profile already starting at t=0 gains no extra vertex', (
+      tester,
+    ) async {
+      // Garmin FIT samples at zero, so there is no gap and nothing to add.
+      final profile = _makeProfile(points: 8);
+      expect(profile.first.timestamp, 0);
+
+      await tester.pumpWidget(_buildChart(profile: profile));
+      await tester.pumpAndSettle();
+
+      final depthBar = tester
+          .widget<LineChart>(find.byType(LineChart).first)
+          .data
+          .lineBarsData
+          .first;
+
+      expect(depthBar.spots.length, profile.length);
+      expect(depthBar.spots.first.x, 0);
+    });
+
+    testWidgets('a trimmed profile keeps its gap rather than inventing a '
+        'descent', (tester) async {
+      // First sample far beyond one interval: drawing from the surface would
+      // fabricate dive time that was never recorded.
+      final profile = [
+        for (var i = 0; i < 8; i++)
+          DiveProfilePoint(timestamp: 600 + i * 10, depth: 20.0 + i),
+      ];
+      await tester.pumpWidget(_buildChart(profile: profile));
+      await tester.pumpAndSettle();
+
+      final depthBar = tester
+          .widget<LineChart>(find.byType(LineChart).first)
+          .data
+          .lineBarsData
+          .first;
+
+      expect(depthBar.spots.length, profile.length);
+      expect(depthBar.spots.first.x, 600);
+    });
+
+    testWidgets(
       'tooltip rows label overlay depth and temperature with the metric',
       (tester) async {
         final active = [
@@ -1672,6 +1739,113 @@ void main() {
           multiComputer: true,
         ),
         -1,
+      );
+    });
+
+    test('a surface lead-in vertex does not shift the sample mapping', () {
+      // With a lead-in, bar 0's spots are [synthetic, p0, p1, ...], so
+      // _depthBarStartIndices reports -1 for that bar to keep
+      // `start + spotIndex` addressing the right sample. The synthetic vertex
+      // itself resolves to the first sample rather than a negative index.
+      const starts = [-1];
+      expect(
+        DiveProfileChart.depthSpotProfileIndex(
+          profile: profile,
+          depthBarStarts: starts,
+          barIndex: 0,
+          spotIndex: 0, // the synthetic (0, 0m) vertex
+          spotX: 0.0,
+          multiComputer: false,
+        ),
+        0,
+      );
+      expect(
+        DiveProfileChart.depthSpotProfileIndex(
+          profile: profile,
+          depthBarStarts: starts,
+          barIndex: 0,
+          spotIndex: 1, // the first real sample
+          spotX: 0.0,
+          multiComputer: false,
+        ),
+        0,
+      );
+      expect(
+        DiveProfileChart.depthSpotProfileIndex(
+          profile: profile,
+          depthBarStarts: starts,
+          barIndex: 0,
+          spotIndex: 3,
+          spotX: 20.0,
+          multiComputer: false,
+        ),
+        2,
+      );
+    });
+  });
+
+  group('DiveProfileChart.shouldDrawSurfaceLeadIn', () {
+    List<DiveProfilePoint> profileFrom(List<int> timestamps) => [
+      for (final t in timestamps) DiveProfilePoint(timestamp: t, depth: 1.0),
+    ];
+
+    test('true when the first sample sits one interval in', () {
+      // The Subsurface/DC-XML case from #679: 10s sampling, first sample at 10.
+      expect(
+        DiveProfileChart.shouldDrawSurfaceLeadIn(profileFrom([10, 20, 30, 40])),
+        isTrue,
+      );
+    });
+
+    test('false when the profile already starts at zero', () {
+      // Garmin FIT samples at t=0, so there is no gap to close.
+      expect(
+        DiveProfileChart.shouldDrawSurfaceLeadIn(profileFrom([0, 1, 2, 3])),
+        isFalse,
+      );
+    });
+
+    test('true for a one-second sampling computer', () {
+      expect(
+        DiveProfileChart.shouldDrawSurfaceLeadIn(profileFrom([1, 2, 3, 4])),
+        isTrue,
+      );
+    });
+
+    test('false when the gap exceeds one sample interval', () {
+      // A trimmed or merged profile starting well after t=0: drawing a descent
+      // across that span would fabricate dive time that was never recorded.
+      expect(
+        DiveProfileChart.shouldDrawSurfaceLeadIn(
+          profileFrom([600, 610, 620, 630]),
+        ),
+        isFalse,
+      );
+    });
+
+    test('boundary: exactly one interval yes, one second more no', () {
+      expect(
+        DiveProfileChart.shouldDrawSurfaceLeadIn(profileFrom([10, 20, 30])),
+        isTrue,
+      );
+      expect(
+        DiveProfileChart.shouldDrawSurfaceLeadIn(profileFrom([11, 21, 31])),
+        isFalse,
+      );
+    });
+
+    test('false for profiles too short to establish an interval', () {
+      expect(DiveProfileChart.shouldDrawSurfaceLeadIn(const []), isFalse);
+      expect(
+        DiveProfileChart.shouldDrawSurfaceLeadIn(profileFrom([10])),
+        isFalse,
+      );
+    });
+
+    test('false when samples share a timestamp (no usable interval)', () {
+      expect(
+        DiveProfileChart.shouldDrawSurfaceLeadIn(profileFrom([10, 10, 20])),
+        isFalse,
       );
     });
   });

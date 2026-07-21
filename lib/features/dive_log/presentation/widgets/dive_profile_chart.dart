@@ -330,6 +330,11 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// ([_DiveProfileChartState._buildVelocityColoredDepthLines]) and mapping a
   /// touched depth spot back to its global profile index: a spot on bar `b` at
   /// local `spotIndex` addresses profile point `runs[b].start + spotIndex`.
+  ///
+  /// [_DiveProfileChartState._depthBarStartIndices] applies one further
+  /// adjustment on top of these runs: when a surface lead-in vertex is drawn
+  /// (see [shouldDrawSurfaceLeadIn]) the first run's start is decremented to
+  /// absorb it, so the identity above continues to hold.
   @visibleForTesting
   static List<({int start, int end, AscentRateCategory category})>
   velocityBandRuns(int profileLength, List<AscentRatePoint> ascentRates) {
@@ -395,6 +400,26 @@ class DiveProfileChart extends ConsumerStatefulWidget {
         .toList();
   }
 
+  /// Whether the depth line should be extended back to the surface at t=0.
+  ///
+  /// Dive computers do not sample at t=0, so a profile whose first sample sits
+  /// one interval in leaves a gap between the chart's t=0 origin and the start
+  /// of the trace. Drawing the descent from `(0, 0m)` closes it truthfully: the
+  /// diver was at the surface before the first sample was taken (issue #684).
+  ///
+  /// Deliberately limited to a gap of at most one sample interval. A profile
+  /// that starts later than that has been trimmed or merged, and inventing a
+  /// descent across it would fabricate dive time that was never recorded --
+  /// worse than the gap it would close.
+  @visibleForTesting
+  static bool shouldDrawSurfaceLeadIn(List<DiveProfilePoint> profile) {
+    if (profile.length < 2) return false;
+    final firstSample = profile.first.timestamp;
+    if (firstSample <= 0) return false;
+    final interval = profile[1].timestamp - firstSample;
+    return interval > 0 && firstSample <= interval;
+  }
+
   /// Resolve a touched depth spot to an index into [profile].
   ///
   /// fl_chart reports a touched spot as `(barIndex, spotIndex)`, where
@@ -423,7 +448,10 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     required bool multiComputer,
   }) {
     if (!multiComputer) {
-      return depthBarStarts[barIndex] + spotIndex;
+      // A surface lead-in vertex makes the first bar's start -1 (see
+      // [shouldDrawSurfaceLeadIn]); touching that synthetic vertex resolves to
+      // the first real sample rather than a negative index.
+      return math.max(0, depthBarStarts[barIndex] + spotIndex);
     }
     if (profile.isEmpty) return -1;
     var best = 0;
@@ -984,9 +1012,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     final touched = touchedSpots
         .where((s) => s.barIndex < starts.length)
         .firstOrNull;
+    // Clamped for the same reason as [DiveProfileChart.depthSpotProfileIndex]:
+    // the surface lead-in makes the first bar's start -1, and hovering that
+    // synthetic vertex should read the first sample, not suppress the tooltip.
     final index = touched == null
         ? -1
-        : starts[touched.barIndex] + touched.spotIndex;
+        : math.max(0, starts[touched.barIndex] + touched.spotIndex);
     if (touched == null || index < 0 || index >= widget.profile.length) {
       widget.onTooltipData!(null);
       return;
@@ -3532,17 +3563,25 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// colouring splits it into one bar per band. Mirrors the branching in
   /// [_buildGasColoredDepthLines].
   List<int> _depthBarStartIndices() {
+    // The surface lead-in prepends one synthetic spot to the bar that owns the
+    // first sample, shifting that bar's local spotIndex by one. Reporting a
+    // start of -1 keeps `start + spotIndex` addressing the right sample.
+    final leadIn = DiveProfileChart.shouldDrawSurfaceLeadIn(widget.profile)
+        ? 1
+        : 0;
     final ascentRates = widget.ascentRates;
     if (_showAscentRateColors &&
         ascentRates != null &&
         ascentRates.length == widget.profile.length &&
         widget.profile.length >= 2) {
-      return DiveProfileChart.velocityBandRuns(
+      final runs = DiveProfileChart.velocityBandRuns(
         widget.profile.length,
         ascentRates,
       ).map((run) => run.start).toList();
+      if (leadIn > 0 && runs.isNotEmpty) runs[0] -= leadIn;
+      return runs;
     }
-    return const [0];
+    return [0 - leadIn];
   }
 
   /// Whether the built-in focus indicator for [barData]'s spot at [index]
@@ -3727,12 +3766,20 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     bool showFill = false,
   }) {
     return LineChartBarData(
-      spots: widget.profile
-          .sublist(startIndex, endIndex)
-          .map(
-            (p) => FlSpot(p.timestamp.toDouble(), -units.convertDepth(p.depth)),
-          )
-          .toList(),
+      spots: [
+        // Close the gap between the t=0 axis origin and the first sample by
+        // descending from the surface. Only the bar that owns the first sample
+        // carries it, so the later velocity-band bars are untouched.
+        if (startIndex == 0 &&
+            DiveProfileChart.shouldDrawSurfaceLeadIn(widget.profile))
+          const FlSpot(0, 0),
+        ...widget.profile
+            .sublist(startIndex, endIndex)
+            .map(
+              (p) =>
+                  FlSpot(p.timestamp.toDouble(), -units.convertDepth(p.depth)),
+            ),
+      ],
       isCurved: true,
       curveSmoothness: 0.2,
       color: color,
