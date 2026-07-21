@@ -20,12 +20,104 @@ env:
   DART_DEFINES: '--dart-define=flutter.flutter_map.unblockOSM=Our tile servers are not.'
 
 jobs:
+  # Cheap gate: does this push/PR touch anything that can change a Flutter
+  # analyze/test/build outcome? Pure docs / CI-meta changes (markdown, images,
+  # .github/ workflow edits, LICENSE, git-hooks, etc.) set code=false, which
+  # lets codegen - and every job that hangs off it - skip. The ci-success gate
+  # still runs and reports green because skipped jobs are acceptable there.
+  # Bias is FAIL-SAFE: any path not explicitly recognized as inert, and any
+  # inability to compute the diff, yields code=true (run the full pipeline).
+  # Escape hatch: put [full-ci] in the PR title or a commit message to force the
+  # full pipeline even for a docs/CI-only change (e.g. to validate a ci.yaml edit).
+  changes:
+    name: Detect code changes
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.detect.outputs.code }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Detect build/test-affecting changes
+        id: detect
+        env:
+          EVENT: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PUSH_BEFORE: ${{ github.event.before }}
+          PUSH_AFTER: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT" = "pull_request" ]; then
+            base="$PR_BASE"; head="$PR_HEAD"
+          else
+            base="$PUSH_BEFORE"; head="$PUSH_AFTER"
+          fi
+          # Fail-safe: if the base commit is missing/unknown (first push, force
+          # push, shallow clone), run the full pipeline rather than guess.
+          if [ -z "$base" ] || ! git rev-parse --verify --quiet "${base}^{commit}" >/dev/null; then
+            echo "Base commit unavailable ('$base'); running the full pipeline."
+            echo "code=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # Two ranges with different semantics:
+          #   diff_range - three-dot on PRs so `git diff` compares merge-base vs
+          #     head (only the PR's own file changes); plain endpoint diff on push.
+          #   log_range  - always two-dot (base..head) = ONLY the commits this
+          #     push/PR adds. NOT three-dot: `git log base...head` is a symmetric
+          #     difference that would also scan base-branch commits main gained
+          #     since the branch forked, so a [full-ci] in an unrelated main
+          #     commit could falsely force a full run.
+          if [ "$EVENT" = "pull_request" ]; then
+            diff_range="${base}...${head}"
+          else
+            diff_range="${base}..${head}"
+          fi
+          log_range="${base}..${head}"
+          # Escape hatch: a [full-ci] marker in the PR title or any commit
+          # message in log_range forces the full pipeline. Lets CI/meta-only
+          # changes (e.g. editing this very workflow), which otherwise skip the
+          # heavy jobs, opt in to exercising the whole DAG. Only ever forces
+          # MORE work, so it cannot cause a false skip.
+          if printf '%s\n%s' "$PR_TITLE" "$(git log --format=%B "$log_range")" \
+               | grep -qiF '[full-ci]'; then
+            echo "[full-ci] override found; running the full pipeline."
+            echo "code=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          files="$(git diff --name-only "$diff_range")"
+          echo "Changed files:"
+          printf '%s\n' "$files"
+          # code=true unless EVERY changed file matches an inert pattern below.
+          # NB: these are `case` globs, not filesystem globs - in `case`, `*`
+          # matches `/` too, so `docs/*` and `.github/*` DO match nested paths
+          # (docs/img/x.png, .github/workflows/ci.yaml). No globstar/`**` needed.
+          code=false
+          while IFS= read -r f; do
+            [ -n "$f" ] || continue
+            case "$f" in
+              .github/flutter-version.txt) code=true ;;   # SDK bump affects all
+              .github/*) ;;                                # other CI/meta: inert
+              *.md|docs/*|LICENSE*|.gitignore|.gitattributes|.editorconfig|codecov.yml|hooks/*) ;;
+              *.png|*.jpg|*.jpeg|*.gif|*.svg|*.webp|*.ico) ;;
+              *) code=true ;;
+            esac
+          done <<< "$files"
+          echo "Result: code=$code"
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+
   # Producer job: runs build_runner ONCE and publishes the generated sources as
   # an artifact. Everything else (analyze, test, builds) gates on this ~3 min
   # job instead of the full analyze job, so flutter analyze + format run in
   # PARALLEL with the test shards and builds rather than as a serial prefix.
+  # Gated on `changes`: when no build/test-affecting file changed, codegen skips
+  # and the whole downstream DAG (analyze, test, builds) skips with it.
   codegen:
     name: Code Generation
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -832,10 +924,14 @@ jobs:
   # NOTE: codegen MUST be listed here - if it fails, every downstream job is
   # SKIPPED, and skipped is treated as acceptable below, so without codegen in
   # the needs list a codegen failure would report a false green.
+  # `changes` is likewise listed: on a docs/CI-only change it reports code=false
+  # and the whole pipeline SKIPS (an accepted green), but if the detector itself
+  # FAILS we must not silently skip-then-green, so its failure must reach here.
   ci-success:
     name: CI Success
     if: always()
     needs:
+      - changes
       - codegen
       - analyze
       - test
