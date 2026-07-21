@@ -45,10 +45,18 @@ class _SavedPlansSheetState extends ConsumerState<SavedPlansSheet> {
     // Render stale data during a reload rather than flashing a spinner.
     final plans = summaries.valueOrNull;
 
-    // The compare-mode toggle only renders with >=2 plans; if an in-mode delete
-    // drops the count below that, fall back to normal rows so the user is never
-    // stranded in a mode whose exit control has disappeared.
-    final selecting = _selecting && (plans?.length ?? 0) >= 2;
+    // The compare-mode toggle only renders with >=2 plans. If an in-mode delete
+    // drops the count below that, actually leave compare mode (not merely hide
+    // it) so the sheet can't silently re-enter it when the count later climbs
+    // back to >=2 (e.g. via Import while the sheet is still open).
+    ref.listen(divePlanSummariesProvider, (_, next) {
+      if (_selecting && (next.valueOrNull?.length ?? 0) < 2) {
+        setState(() {
+          _selecting = false;
+          _selected.clear();
+        });
+      }
+    });
 
     return SafeArea(
       child: Padding(
@@ -109,7 +117,7 @@ class _SavedPlansSheetState extends ConsumerState<SavedPlansSheet> {
                 child: ListView.builder(
                   shrinkWrap: true,
                   itemCount: plans.length,
-                  itemBuilder: (context, i) => selecting
+                  itemBuilder: (context, i) => _selecting
                       ? CheckboxListTile(
                           contentPadding: EdgeInsets.zero,
                           controlAffinity: ListTileControlAffinity.leading,
@@ -139,7 +147,7 @@ class _SavedPlansSheetState extends ConsumerState<SavedPlansSheet> {
                       : _PlanTile(summary: plans[i], units: units),
                 ),
               ),
-            if (selecting)
+            if (_selecting)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: FilledButton(
