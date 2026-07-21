@@ -128,7 +128,9 @@ void main() {
       expect(find.text('Hydrostatic test'), findsOneWidget);
     });
 
-    testWidgets('legacy overdue fallback when no ledger data', (tester) async {
+    testWidgets('no badge when the ledger has no entry (legacy ignored)', (
+      tester,
+    ) async {
       final item = EquipmentItem(
         id: 'e1',
         name: 'Old Reg',
@@ -139,21 +141,8 @@ void main() {
       await tester.pumpWidget(wrap(EquipmentListTile(item: item)));
       await tester.pumpAndSettle();
 
-      expect(find.text('Service Due'), findsOneWidget);
-    });
-
-    testWidgets('legacy days-until fallback', (tester) async {
-      final item = EquipmentItem(
-        id: 'e1',
-        name: 'Fresh Reg',
-        type: EquipmentType.regulator,
-        lastServiceDate: DateTime.now().subtract(const Duration(days: 10)),
-        serviceIntervalDays: 365,
-      );
-      await tester.pumpWidget(wrap(EquipmentListTile(item: item)));
-      await tester.pumpAndSettle();
-
-      expect(find.textContaining('Service in '), findsOneWidget);
+      expect(find.text('Service Due'), findsNothing);
+      expect(find.textContaining('Service in '), findsNothing);
     });
 
     testWidgets('non-active status renders when nothing is due', (

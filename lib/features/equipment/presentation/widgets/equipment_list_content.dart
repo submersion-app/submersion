@@ -559,13 +559,8 @@ class EquipmentListTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final worstClock = ref.watch(equipmentWorstClockProvider).value?[item.id];
-    // Mirror the trailing's fallback: when the ledger map is still loading or
-    // the item only has a legacy interval, worstClock is null but the trailing
-    // still shows "Service Due" from item.isServiceDue -- so the avatar must
-    // read as overdue too, otherwise the two disagree.
-    final isOverdue = worstClock != null
-        ? worstClock.status.severity == ServiceClockSeverity.overdue
-        : item.isServiceDue;
+    final isOverdue =
+        worstClock?.status.severity == ServiceClockSeverity.overdue;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -622,44 +617,6 @@ class EquipmentListTile extends ConsumerWidget {
                   ? theme.colorScheme.error
                   : theme.colorScheme.tertiary,
               fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      );
-    }
-
-    // Legacy single-clock fallback (before the ledger map loads, or for
-    // items whose only signal is the legacy interval).
-    if (item.isServiceDue) {
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          typeLabel,
-          const SizedBox(height: 2),
-          Text(
-            context.l10n.equipment_list_tile_serviceDueChip,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.error,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      );
-    }
-
-    if (item.daysUntilService != null) {
-      final days = item.daysUntilService!;
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          typeLabel,
-          const SizedBox(height: 2),
-          Text(
-            context.l10n.equipment_list_tile_serviceInDays(days),
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
         ],
