@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/media_store/data/media_upload_pipeline.dart';
+import 'package:submersion/features/media_store/domain/media_upload_quality.dart';
 
 /// Per-entry admission decision made just before processing.
 enum WorkerGate { proceed, deferEntry, stopDraining }
@@ -77,6 +78,14 @@ class MediaStoreWorker {
 
   Future<void> enqueueAndKick(String mediaId) async {
     await _queue.enqueueUpload(mediaId: mediaId);
+    _activeDrain = drain();
+    unawaited(_activeDrain!);
+  }
+
+  /// Enqueues a forced re-upload of [mediaId] at [level] (per-item override)
+  /// and kicks a background drain.
+  Future<void> reuploadAndKick(String mediaId, MediaUploadQuality level) async {
+    await _queue.enqueueReupload(mediaId: mediaId, overrideLevel: level.name);
     _activeDrain = drain();
     unawaited(_activeDrain!);
   }

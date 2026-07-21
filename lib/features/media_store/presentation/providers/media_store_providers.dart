@@ -25,6 +25,7 @@ import 'package:submersion/features/media_store/data/media_store_worker.dart';
 import 'package:submersion/features/media_store/data/media_stores_repository.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/media_store/data/media_upload_pipeline.dart';
+import 'package:submersion/features/media_store/domain/media_upload_quality.dart';
 import 'package:submersion/features/media_store/presentation/widgets/media_store_badge.dart';
 
 /// Everything a configured media store needs at runtime. Built once per
@@ -254,3 +255,12 @@ final mediaStoreEnqueueImplProvider = Provider<void Function(String)>((ref) {
     }());
   };
 });
+
+/// Per-item re-upload at a chosen quality (settings override action).
+final mediaStoreReuploadProvider =
+    Provider<Future<void> Function(String, MediaUploadQuality)>((ref) {
+      return (mediaId, level) async {
+        final runtime = await ref.read(mediaStoreRuntimeProvider.future);
+        await runtime?.worker?.reuploadAndKick(mediaId, level);
+      };
+    });
