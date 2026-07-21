@@ -119,6 +119,83 @@ void main() {
     });
   });
 
+  group('HEIC/HEIF EXIF', () {
+    List<int> u16(int v) => [(v >> 8) & 0xff, v & 0xff];
+
+    // A real TIFF/EXIF block: encode a JPEG with the tag, then lift its APP1
+    // payload. `image` can't encode HEIC, but a HEIC `Exif` item carries the
+    // same "Exif\0\0" + TIFF payload, prefixed by a 4-byte tiff-header offset.
+    List<int> exifItemPayload(String date) {
+      final image = img.Image(width: 2, height: 2);
+      image.exif.exifIfd['DateTimeOriginal'] = date;
+      final jpg = img.encodeJpg(image);
+      for (var i = 0; i + 3 < jpg.length; i++) {
+        if (jpg[i] == 0xFF && jpg[i + 1] == 0xE1) {
+          final segLen = (jpg[i + 2] << 8) | jpg[i + 3];
+          return [0, 0, 0, 6, ...jpg.sublist(i + 4, i + 2 + segLen)];
+        }
+      }
+      throw StateError('no APP1 EXIF segment in encoded JPEG');
+    }
+
+    // Minimal HEIC: ftyp, mdat holding the Exif payload, then meta whose
+    // iinf declares an 'Exif' item and iloc points at the payload's absolute
+    // offset (base_offset_size 0, construction_method 0).
+    List<int> heicFile(String date) {
+      final ftyp = _box('ftyp', 'heic'.codeUnits);
+      final payload = exifItemPayload(date);
+      final mdat = _box('mdat', payload);
+      final payloadOffset = ftyp.length + 8; // just past the mdat box header
+
+      final infe = _box('infe', [
+        2, 0, 0, 0, // version 2 + flags
+        ...u16(1), // item_ID
+        ...u16(0), // protection_index
+        ...'Exif'.codeUnits, // item_type
+        0, // item_name (empty)
+      ]);
+      final iinf = _box('iinf', [0, 0, 0, 0, ...u16(1), ...infe]);
+      final iloc = _box('iloc', [
+        1, 0, 0, 0, // version 1 + flags
+        0x44, // offset_size=4, length_size=4
+        0x00, // base_offset_size=0, index_size=0
+        ...u16(1), // item_count
+        ...u16(1), // item_ID
+        ...u16(0), // construction_method
+        ...u16(0), // data_reference_index
+        ...u16(1), // extent_count
+        ..._u32(payloadOffset), // extent_offset
+        ..._u32(payload.length), // extent_length
+      ]);
+      final meta = _box('meta', [0, 0, 0, 0, ...iinf, ...iloc]);
+      return [...ftyp, ...mdat, ...meta];
+    }
+
+    test('reads DateTimeOriginal from a HEIC Exif item', () async {
+      final f = File('${tempDir.path}/photo.heic')
+        ..writeAsBytesSync(heicFile('2026:05:06 17:35:39'));
+      expect(
+        readLocalCaptureTime(f, 'image/heic'),
+        DateTime.utc(2026, 5, 6, 17, 35, 39),
+      );
+    });
+
+    test('image/heif mime is also handled', () async {
+      final f = File('${tempDir.path}/photo.heif')
+        ..writeAsBytesSync(heicFile('2026:05:06 17:35:39'));
+      expect(
+        readLocalCaptureTime(f, 'image/heif'),
+        DateTime.utc(2026, 5, 6, 17, 35, 39),
+      );
+    });
+
+    test('non-HEIC bytes for a heic mime return null (no throw)', () async {
+      final f = File('${tempDir.path}/bad.heic')
+        ..writeAsBytesSync([0, 1, 2, 3]);
+      expect(readLocalCaptureTime(f, 'image/heic'), isNull);
+    });
+  });
+
   group('JPEG EXIF (shared reader)', () {
     test('reads DateTimeOriginal from JPEG bytes', () async {
       final image = img.Image(width: 4, height: 4);
