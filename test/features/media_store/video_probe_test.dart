@@ -20,6 +20,17 @@ void main() {
     expect(probe.overallBitrateKbps, 9600);
   });
 
+  test('derives bitrate from size and duration when bit_rate is N/A', () {
+    // ffprobe emits bit_rate "N/A" for some containers; a 0 here would make
+    // the ceiling rule skip transcoding a high-bitrate clip.
+    final probe = parseFfprobeJson(
+      '{"streams": [{"codec_type": "video", "width": 1920, "height": 1080}], '
+      '"format": {"duration": "10", "bit_rate": "N/A", "size": "12500000"}}',
+    )!;
+    // 12500000 bytes * 8 / 10s = 10_000_000 bps = 10000 kbps.
+    expect(probe.overallBitrateKbps, 10000);
+  });
+
   test('returns null when no video stream exists', () {
     expect(
       parseFfprobeJson('{"streams": [], "format": {"duration": "1"}}'),

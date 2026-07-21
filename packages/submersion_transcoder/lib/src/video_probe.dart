@@ -50,7 +50,16 @@ VideoProbe? parseFfprobeJson(String json) {
       ? format
       : const <String, dynamic>{};
   final durationSec = double.tryParse('${formatMap['duration']}') ?? 0;
-  final bitRateBps = int.tryParse('${formatMap['bit_rate']}') ?? 0;
+  var bitRateBps = int.tryParse('${formatMap['bit_rate']}') ?? 0;
+  if (bitRateBps <= 0 && durationSec > 0) {
+    // ffprobe reports bit_rate as "N/A" for some containers; derive it from
+    // total size / duration so a high-bitrate source isn't read as 0 and
+    // wrongly judged already-within-ceiling (which would skip transcoding).
+    final sizeBytes = int.tryParse('${formatMap['size']}') ?? 0;
+    if (sizeBytes > 0) {
+      bitRateBps = (sizeBytes * 8 / durationSec).round();
+    }
+  }
   return VideoProbe(
     width: width,
     height: height,
