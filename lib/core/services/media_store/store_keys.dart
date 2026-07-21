@@ -19,6 +19,12 @@ class StoreKeys {
   static String thumbKey(String contentHash) =>
       'smv1/thumbs/${contentHash.substring(0, 2)}/$contentHash.jpg';
 
+  /// Compressed rendition, keyed by the ORIGINAL's hash (like [thumbKey]);
+  /// [ext] is the rendition's own output format (jpg for photos, mp4 for
+  /// video), not the original's extension. NOT hash-verified on read.
+  static String renditionKey(String contentHash, {required String ext}) =>
+      'smv1/renditions/${contentHash.substring(0, 2)}/$contentHash.$ext';
+
   /// Lowercased extension of [originalFilename] without the dot, or 'bin'
   /// when absent or unusual. Identical bytes imply identical format, so the
   /// hash-to-extension mapping is stable across devices.
