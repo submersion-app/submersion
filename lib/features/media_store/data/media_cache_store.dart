@@ -132,7 +132,7 @@ class MediaCacheStore {
   }
 
   /// Deterministic transcode output path (spec section 8):
-  /// <root>/transcode/<hash>_<level>.mp4. Engines write '<path>.tmp' and
+  /// `<root>/transcode/<hash>_<level>.mp4`. Engines write `<path>.tmp` and
   /// rename, so an existing file here is always a COMPLETE rendition; it
   /// survives upload retries and app restarts and is removed only via
   /// [deleteTranscodeArtifacts] on markDone.
