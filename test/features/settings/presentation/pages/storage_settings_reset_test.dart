@@ -30,12 +30,16 @@ class _FakePathProvider extends PathProviderPlatform
 /// Records whether the reset handler asked to turn cloud sync off.
 class _SpySyncNotifier extends StateNotifier<SyncState>
     implements SyncNotifier {
-  _SpySyncNotifier() : super(const SyncState());
+  _SpySyncNotifier({this.throwOnDisable = false}) : super(const SyncState());
 
+  final bool throwOnDisable;
   bool disableCalled = false;
 
   @override
-  Future<void> disableForDatabaseReset() async => disableCalled = true;
+  Future<void> disableForDatabaseReset() async {
+    disableCalled = true;
+    if (throwOnDisable) throw StateError('sync off failed');
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -54,7 +58,6 @@ class _FakeStorageConfig extends StateNotifier<StorageConfigState>
 
 void main() {
   late SharedPreferences prefs;
-  late _SpySyncNotifier spySync;
 
   setUp(() async {
     await setUpTestDatabase();
@@ -63,14 +66,13 @@ void main() {
     PathProviderPlatform.instance = _FakePathProvider(
       Directory.systemTemp.createTempSync('storage_reset_test').path,
     );
-    spySync = _SpySyncNotifier();
   });
 
   tearDown(() => DatabaseService.instance.resetForTesting());
 
-  testWidgets('Reset Database turns cloud sync off before wiping', (
-    tester,
-  ) async {
+  /// Pumps the storage page and drives the Reset Database confirm flow with
+  /// [spy] wired in as the sync notifier.
+  Future<void> tapReset(WidgetTester tester, _SpySyncNotifier spy) async {
     tester.view.physicalSize = const Size(1400, 3200);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(() {
@@ -81,7 +83,7 @@ void main() {
     final app = ProviderScope(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
-        syncStateProvider.overrideWith((ref) => spySync),
+        syncStateProvider.overrideWith((ref) => spy),
         storageConfigNotifierProvider.overrideWith(
           (ref) => _FakeStorageConfig(),
         ),
@@ -121,7 +123,23 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 50));
     });
     await tester.pumpAndSettle();
+  }
 
-    expect(spySync.disableCalled, isTrue);
+  testWidgets('Reset Database turns cloud sync off before wiping', (
+    tester,
+  ) async {
+    final spy = _SpySyncNotifier();
+    await tapReset(tester, spy);
+    expect(spy.disableCalled, isTrue);
+  });
+
+  testWidgets('reset proceeds even if turning sync off throws', (tester) async {
+    // The sync-disable is best-effort: a failure must be swallowed (logged),
+    // not abort the reset.
+    final spy = _SpySyncNotifier(throwOnDisable: true);
+    await tapReset(tester, spy);
+    expect(spy.disableCalled, isTrue);
+    // The page did not crash; the reset flow continued past the failure.
+    expect(tester.takeException(), isNull);
   });
 }
