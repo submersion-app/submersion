@@ -4,8 +4,9 @@ import 'package:submersion/features/media_store/presentation/providers/media_sto
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 
 void main() {
-  // On Apple hosts engineForThisPlatform() now returns DarwinAvfEngine, whose
-  // isAvailable() invokes a MethodChannel — that needs the services binding.
+  // On Apple/Android hosts engineForThisPlatform() returns a
+  // ChannelTranscodeEngine, whose isAvailable() invokes a MethodChannel —
+  // that needs the services binding.
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test('videoTranscodeAvailableProvider resolves to a bool', () async {

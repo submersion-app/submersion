@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:submersion_transcoder/src/darwin_avf_engine.dart';
+import 'package:submersion_transcoder/src/channel_transcode_engine.dart';
 import 'package:submersion_transcoder/src/linux_ffmpeg_engine.dart';
 import 'package:submersion_transcoder/src/transcode_target.dart';
 import 'package:submersion_transcoder/src/video_probe.dart';
@@ -33,10 +33,12 @@ abstract class TranscodeEngine {
 }
 
 /// The engine for the current platform, or null when none exists yet.
-/// Apple (iOS/macOS) = AVFoundation; Linux = system ffmpeg; Android/Windows
-/// arrive in later plans (B3/B4).
+/// Apple (iOS/macOS) = AVFoundation and Android = Media3, both via the shared
+/// [ChannelTranscodeEngine]; Linux = system ffmpeg; Windows arrives in B4.
 TranscodeEngine? engineForThisPlatform() {
-  if (Platform.isIOS || Platform.isMacOS) return DarwinAvfEngine();
+  if (Platform.isIOS || Platform.isMacOS || Platform.isAndroid) {
+    return ChannelTranscodeEngine();
+  }
   if (Platform.isLinux) return LinuxFfmpegEngine();
   return null;
 }

@@ -7,12 +7,14 @@ import 'package:submersion_transcoder/src/transcode_engine.dart';
 import 'package:submersion_transcoder/src/transcode_target.dart';
 import 'package:submersion_transcoder/src/video_probe.dart';
 
-/// AVFoundation engine (iOS + macOS). A thin Dart client over the plugin's
-/// channels; the real work is in Swift. Degrades to "unavailable" when the
-/// plugin is not registered (e.g. `flutter test`), so absence is a normal
-/// state that maps onto the pipeline's upload-the-original fallback.
-class DarwinAvfEngine implements TranscodeEngine {
-  DarwinAvfEngine({MethodChannel? methods, EventChannel? progress})
+/// Channel client for native transcoder plugins (iOS/macOS via AVFoundation,
+/// Android via Media3). A thin Dart shim over the plugin's method + event
+/// channels; the real work lives in the platform's native code. Degrades to
+/// "unavailable" when the plugin is not registered (e.g. `flutter test`), so
+/// absence is a normal state that maps onto the pipeline's upload-the-original
+/// fallback.
+class ChannelTranscodeEngine implements TranscodeEngine {
+  ChannelTranscodeEngine({MethodChannel? methods, EventChannel? progress})
     : _methods =
           methods ?? const MethodChannel('submersion_transcoder/methods'),
       _progress =
