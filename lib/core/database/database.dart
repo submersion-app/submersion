@@ -1505,6 +1505,12 @@ class DiverSettings extends Table {
   // CNS calculation method: 'classic' | 'shearwater' | 'subsurface' (v113)
   TextColumn get cnsCalculationMethod =>
       text().withDefault(const Constant('shearwater'))();
+  // Deco stop band on the profile chart (v133). Source is a MetricDataSource
+  // index: 0 = computer, 1 = calculated.
+  BoolColumn get showDecoStopsOnProfile =>
+      boolean().withDefault(const Constant(true))();
+  IntColumn get defaultDecoStopSource =>
+      integer().withDefault(const Constant(1))();
   // Post-dive safety review (safety features phase 1, v123)
   BoolColumn get safetyReviewEnabled =>
       boolean().withDefault(const Constant(true))();
@@ -2831,7 +2837,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 132;
+  static const int currentSchemaVersion = 133;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -2988,6 +2994,9 @@ class AppDatabase extends _$AppDatabase {
     // v132: backfill dives whose bottom_time was wrongly stored equal to
     // runtime by older imports, recomputing it from the primary profile.
     132,
+    // v133: deco stop band columns on diver_settings (renumbered from v130 as
+    // main advanced past it at merge time).
+    133,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -3499,6 +3508,30 @@ class AppDatabase extends _$AppDatabase {
   /// beforeOpen backstop use.
   Future<void> _assertIncidentsSchema() async {
     await createMigrator().createTable(incidents);
+  }
+
+  /// v133: diver_settings deco stop band columns. PRAGMA-guarded and
+  /// idempotent so it is safe to call from both onUpgrade and the beforeOpen
+  /// backstop. The guard on cols.isNotEmpty keeps partial-schema migration
+  /// tests, which open databases without this table, from crashing on DDL.
+  Future<void> _assertDecoStopSettingsColumns() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (cols.isNotEmpty && !names.contains('show_deco_stops_on_profile')) {
+      await customStatement(
+        'ALTER TABLE diver_settings ADD COLUMN show_deco_stops_on_profile '
+        'INTEGER NOT NULL DEFAULT 1 '
+        'CHECK (show_deco_stops_on_profile IN (0, 1))',
+      );
+    }
+    if (cols.isNotEmpty && !names.contains('default_deco_stop_source')) {
+      await customStatement(
+        'ALTER TABLE diver_settings ADD COLUMN default_deco_stop_source '
+        'INTEGER NOT NULL DEFAULT 1',
+      );
+    }
   }
 
   /// v111: equipment_sets.is_default column + equipment_set_geofences table.
@@ -6962,6 +6995,12 @@ class AppDatabase extends _$AppDatabase {
           await _backfillBottomTimeFromProfile();
         }
         if (from < 132) await reportProgress();
+        // v133: deco stop band columns on diver_settings (renumbered from v130
+        // as main advanced past it at merge time).
+        if (from < 133) {
+          await _assertDecoStopSettingsColumns();
+        }
+        if (from < 133) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
@@ -7054,6 +7093,9 @@ class AppDatabase extends _$AppDatabase {
 
         // v129 backstop: re-assert quality_findings schema.
         await _assertQualityFindingsSchema();
+
+        // v133 backstop: re-assert the deco stop band settings columns.
+        await _assertDecoStopSettingsColumns();
 
         // Built-in dive types are reference data: identical on every device and
         // undeletable through DiveTypeRepository. Nothing else restores them --

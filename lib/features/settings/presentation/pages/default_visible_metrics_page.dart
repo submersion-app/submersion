@@ -69,6 +69,11 @@ class DefaultVisibleMetricsPage extends ConsumerWidget {
             onChanged: notifier.setShowCeilingOnProfile,
           ),
           SwitchListTile(
+            title: Text(context.l10n.diveLog_legend_label_decoStops),
+            value: settings.showDecoStopsOnProfile,
+            onChanged: notifier.setShowDecoStopsOnProfile,
+          ),
+          SwitchListTile(
             title: Text(context.l10n.diveLog_legend_label_ascentRate),
             value: settings.showAscentRateColors,
             onChanged: notifier.setShowAscentRateColors,
