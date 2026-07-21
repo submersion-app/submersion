@@ -2707,6 +2707,19 @@ class FieldPresets extends Table {
 // Database Class
 // ============================================================================
 
+/// Prefix of the deterministic id for a synthesized/backfilled primary data
+/// source -- the row a dive gets when it has profile samples but no
+/// dive_data_sources row (older file imports). Shared by the beforeOpen
+/// backfill ([AppDatabase._backfillMissingDataSources]) and the read-time
+/// synthesis ([DiveRepository.getProfilesByDataSource]) so the id a consumer
+/// sees before the heal equals the id persisted afterward. Never change it:
+/// existing databases already carry rows with this exact prefix.
+const String kLegacyDataSourceIdPrefix = 'legacy-src-';
+
+/// Full deterministic data-source id for [diveId]. See
+/// [kLegacyDataSourceIdPrefix].
+String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
+
 @DriftDatabase(
   tables: [
     Divers,
@@ -2807,19 +2820,6 @@ class FieldPresets extends Table {
     ServiceSchedules,
   ],
 )
-/// Prefix of the deterministic id for a synthesized/backfilled primary data
-/// source -- the row a dive gets when it has profile samples but no
-/// dive_data_sources row (older file imports). Shared by the beforeOpen
-/// backfill ([AppDatabase._backfillMissingDataSources]) and the read-time
-/// synthesis ([DiveRepository.getProfilesByDataSource]) so the id a consumer
-/// sees before the heal equals the id persisted afterward. Never change it:
-/// existing databases already carry rows with this exact prefix.
-const String kLegacyDataSourceIdPrefix = 'legacy-src-';
-
-/// Full deterministic data-source id for [diveId]. See
-/// [kLegacyDataSourceIdPrefix].
-String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
-
 class AppDatabase extends _$AppDatabase {
   final void Function(int currentStep, int totalSteps)? onMigrationProgress;
 
