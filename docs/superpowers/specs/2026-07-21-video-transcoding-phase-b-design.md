@@ -226,8 +226,10 @@ packages/submersion_transcoder/
   debris is discarded; markDone deletes; failure preserves); ceiling-rule
   tests against a fake prober seam; Linux argument-construction tests
   (preset -> ffmpeg args) with a fake `Process` runner.
-- **Fixture:** one tiny checked-in test video (~seconds, small resolution,
-  generated once with ffmpeg and committed) under `test/fixtures/`.
+- **Fixture:** the smoke test synthesizes its own input clip with ffmpeg's
+  `lavfi testsrc` (it already requires ffmpeg and skips without it), so no
+  binary fixture is committed. (Revised from the original checked-in-fixture
+  plan during B1 implementation.)
 - **Real-engine smoke in CI:** macOS runner (AVFoundation), Linux runner
   (`apt-get install ffmpeg`), Windows runner (Media Foundation) each run one
   real transcode of the fixture and assert the output is a playable H.264 mp4
