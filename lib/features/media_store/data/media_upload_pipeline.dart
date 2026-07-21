@@ -169,7 +169,10 @@ class MediaUploadPipeline {
         );
         // Override forces a rewrite (the key ignores quality, so a level
         // change lands at the same key); otherwise head() dedups.
-        if (isOverride || await _store.head(renditionKey) == null) {
+        final existingRendition = isOverride
+            ? null
+            : await _store.head(renditionKey);
+        if (existingRendition == null) {
           await _store.putFile(
             renditionKey,
             rendition.file,
@@ -180,7 +183,14 @@ class MediaUploadPipeline {
           item.id,
           uploadedAt: _now(),
           level: level.name,
-          sizeBytes: rendition.sizeBytes,
+          // First-writer-wins: on the dedup path the stored object was written
+          // by the first uploader and may differ from this device's local
+          // rendition (renditions are not hash-verified and can vary by level),
+          // so record the authoritative stored size, not our local bytes. The
+          // stored object's level is not recoverable, so it stays this device's
+          // best signal (the design keeps one rendition per hash, not one per
+          // level).
+          sizeBytes: existingRendition?.sizeBytes ?? rendition.sizeBytes,
         );
         if (item.mediaType != MediaType.video) {
           // Photos re-compress cheaply, so drop the temp rendition now.
