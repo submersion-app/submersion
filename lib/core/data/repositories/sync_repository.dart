@@ -487,13 +487,20 @@ class SyncRepository {
           'SELECT id, created_at FROM media_enrichment WHERE hlc IS NULL',
         )
         .get();
-    for (final row in rows) {
-      await markRecordPending(
-        entityType: 'mediaEnrichment',
-        recordId: row.read<String>('id'),
-        localUpdatedAt: row.read<int>('created_at'),
-      );
-    }
+    if (rows.isEmpty) return;
+    // One transaction for the whole backfill: markRecordPending's own
+    // per-row transaction nests as a savepoint, so a library with many
+    // linked photos commits once instead of once per row (the per-row fsync
+    // was the sync-start cost flagged in review).
+    await _db.transaction(() async {
+      for (final row in rows) {
+        await markRecordPending(
+          entityType: 'mediaEnrichment',
+          recordId: row.read<String>('id'),
+          localUpdatedAt: row.read<int>('created_at'),
+        );
+      }
+    });
   }
 
   /// Stamp a fresh Hybrid Logical Clock onto the just-written entity row, if
