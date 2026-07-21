@@ -21538,4 +21538,8 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_mediaStorage_quality_caveat =>
       'عند تعيين مستوى ضغط، لا يتم رفع النسخ الأصلية بالدقة الكاملة؛ فهي تبقى على هذا الجهاز فقط.';
+
+  @override
+  String get settings_mediaStorage_quality_reuploadQueued =>
+      'تمت إضافة إعادة الرفع إلى قائمة الانتظار';
 }

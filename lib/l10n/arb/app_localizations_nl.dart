@@ -21765,4 +21765,8 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_mediaStorage_quality_caveat =>
       'Als er een compressieniveau is ingesteld, worden originelen op volledige resolutie niet geüpload; ze blijven alleen op dit apparaat.';
+
+  @override
+  String get settings_mediaStorage_quality_reuploadQueued =>
+      'Opnieuw uploaden in wachtrij';
 }

@@ -21907,4 +21907,8 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_mediaStorage_quality_caveat =>
       'Wenn eine Komprimierungsstufe festgelegt ist, werden Originale in voller Auflösung nicht hochgeladen — sie verbleiben nur auf diesem Gerät.';
+
+  @override
+  String get settings_mediaStorage_quality_reuploadQueued =>
+      'Erneuter Upload in Warteschlange';
 }

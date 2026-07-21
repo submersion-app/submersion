@@ -21385,4 +21385,7 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_mediaStorage_quality_caveat =>
       'כאשר נקבעת רמת דחיסה, קבצי המקור ברזולוציה מלאה אינם מועלים; הם נשארים במכשיר זה בלבד.';
+
+  @override
+  String get settings_mediaStorage_quality_reuploadQueued => 'העלאה מחדש בתור';
 }

@@ -21940,4 +21940,8 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_mediaStorage_quality_caveat =>
       'Com um nível de compressão definido, os originais em resolução total não são enviados; permanecem apenas neste dispositivo.';
+
+  @override
+  String get settings_mediaStorage_quality_reuploadQueued =>
+      'Novo envio na fila';
 }

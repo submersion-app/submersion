@@ -21874,4 +21874,8 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_mediaStorage_quality_caveat =>
       'Ha be van állítva tömörítési szint, a teljes felbontású eredetik nem töltődnek fel — csak ezen az eszközön maradnak meg.';
+
+  @override
+  String get settings_mediaStorage_quality_reuploadQueued =>
+      'Újratöltés sorba állítva';
 }

@@ -6546,5 +6546,6 @@
   "settings_mediaStorage_quality_high": "Élevée",
   "settings_mediaStorage_quality_balanced": "Équilibrée",
   "settings_mediaStorage_quality_small": "Petite",
-  "settings_mediaStorage_quality_caveat": "Lorsqu'un niveau de compression est défini, les originaux en pleine résolution ne sont pas téléversés ; ils restent uniquement sur cet appareil."
+  "settings_mediaStorage_quality_caveat": "Lorsqu'un niveau de compression est défini, les originaux en pleine résolution ne sont pas téléversés ; ils restent uniquement sur cet appareil.",
+  "settings_mediaStorage_quality_reuploadQueued": "Nouveau téléversement en file d'attente"
 }

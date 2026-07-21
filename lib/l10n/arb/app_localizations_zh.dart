@@ -20830,4 +20830,7 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get settings_mediaStorage_quality_caveat =>
       '设置压缩级别后，不会上传全分辨率原图，它们仅保留在本设备上。';
+
+  @override
+  String get settings_mediaStorage_quality_reuploadQueued => '重新上传已加入队列';
 }

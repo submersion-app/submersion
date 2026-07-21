@@ -22014,4 +22014,8 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_mediaStorage_quality_caveat =>
       'Lorsqu\'un niveau de compression est défini, les originaux en pleine résolution ne sont pas téléversés ; ils restent uniquement sur cet appareil.';
+
+  @override
+  String get settings_mediaStorage_quality_reuploadQueued =>
+      'Nouveau téléversement en file d\'attente';
 }

@@ -30,6 +30,7 @@ import 'package:submersion/features/media/presentation/widgets/perdix_overlay/dr
 import 'package:submersion/features/media/presentation/widgets/perdix_overlay/perdix_face_resolver.dart';
 import 'package:submersion/features/media/presentation/widgets/write_metadata_dialog.dart';
 import 'package:submersion/features/media/presentation/widgets/mini_dive_profile_overlay.dart';
+import 'package:submersion/features/media_store/presentation/widgets/media_reupload_button.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -286,6 +287,7 @@ class _PhotoViewerPageState extends ConsumerState<PhotoViewerPage> {
                 if (_showOverlay) ...[
                   // Top app bar
                   _TopOverlay(
+                    item: currentItem,
                     currentIndex: _currentIndex,
                     totalCount: mediaList.length,
                     onClose: () => Navigator.of(context).pop(),
@@ -1052,6 +1054,7 @@ class _VideoControlsOverlayState extends State<_VideoControlsOverlay> {
 
 /// Top overlay with close button, page indicator, share, and write metadata.
 class _TopOverlay extends StatelessWidget {
+  final MediaItem item;
   final int currentIndex;
   final int totalCount;
   final VoidCallback onClose;
@@ -1071,6 +1074,7 @@ class _TopOverlay extends StatelessWidget {
   final VoidCallback? onOpenInLightroom;
 
   const _TopOverlay({
+    required this.item,
     required this.currentIndex,
     required this.totalCount,
     required this.onClose,
@@ -1155,6 +1159,7 @@ class _TopOverlay extends StatelessWidget {
                   tooltip: context.l10n.media_photoViewer_shareTooltip,
                   onPressed: onShare,
                 ),
+                MediaReuploadButton(item: item, color: Colors.white),
               ],
             ),
           ),

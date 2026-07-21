@@ -6546,5 +6546,6 @@
   "settings_mediaStorage_quality_high": "גבוהה",
   "settings_mediaStorage_quality_balanced": "מאוזנת",
   "settings_mediaStorage_quality_small": "קטנה",
-  "settings_mediaStorage_quality_caveat": "כאשר נקבעת רמת דחיסה, קבצי המקור ברזולוציה מלאה אינם מועלים; הם נשארים במכשיר זה בלבד."
+  "settings_mediaStorage_quality_caveat": "כאשר נקבעת רמת דחיסה, קבצי המקור ברזולוציה מלאה אינם מועלים; הם נשארים במכשיר זה בלבד.",
+  "settings_mediaStorage_quality_reuploadQueued": "העלאה מחדש בתור"
 }

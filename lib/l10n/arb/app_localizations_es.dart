@@ -21953,4 +21953,7 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_mediaStorage_quality_caveat =>
       'Con un nivel de compresión establecido, los originales a resolución completa no se suben; permanecen solo en este dispositivo.';
+
+  @override
+  String get settings_mediaStorage_quality_reuploadQueued => 'Resubida en cola';
 }

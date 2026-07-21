@@ -36695,6 +36695,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'With a compression level set, full-resolution originals are not uploaded — they remain only on this device.'**
   String get settings_mediaStorage_quality_caveat;
+
+  /// No description provided for @settings_mediaStorage_quality_reuploadQueued.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-upload queued'**
+  String get settings_mediaStorage_quality_reuploadQueued;
 }
 
 class _AppLocalizationsDelegate
