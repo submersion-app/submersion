@@ -971,6 +971,15 @@ class _DecompressionSectionContent extends ConsumerWidget {
                 const Divider(height: 1),
                 _buildSourceDropdownTile(
                   context,
+                  title: 'Deco Stop Source',
+                  value: settings.defaultDecoStopSource,
+                  onChanged: (source) => ref
+                      .read(settingsProvider.notifier)
+                      .setDefaultDecoStopSource(source),
+                ),
+                const Divider(height: 1),
+                _buildSourceDropdownTile(
+                  context,
                   title: 'TTS Source',
                   value: settings.defaultTtsSource,
                   onChanged: (source) => ref

@@ -1525,6 +1525,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showHeartRate = legendState.showHeartRate;
     _showSac = legendState.showSac;
     _showCeiling = legendState.showCeiling;
+    _showDecoStops = legendState.showDecoStops;
     _showAscentRateColors = legendState.showAscentRateColors;
     _showAscentRateLine = legendState.showAscentRateLine;
     _showEvents = legendState.showEvents;
@@ -1625,6 +1626,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       hasHeartRateData: hasHeartRateData,
       hasSacCurve: widget.sacCurve != null && widget.sacCurve!.isNotEmpty,
       hasCeilingCurve: widget.ceilingCurve != null,
+      hasDecoStopCurve:
+          widget.decoStopCurve != null && widget.decoStopCurve!.isNotEmpty,
       hasAscentRates: widget.ascentRates != null,
       hasEvents: widget.events != null && widget.events!.isNotEmpty,
       hasMaxDepthMarker: widget.showMaxDepthMarker && _hasMaxDepthMarker,

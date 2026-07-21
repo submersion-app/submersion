@@ -937,6 +937,9 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
     final cnsSource = ref.watch(
       profileLegendProvider.select((s) => s.cnsSource),
     );
+    final decoStopSource = ref.watch(
+      profileLegendProvider.select((s) => s.decoStopSource),
+    );
 
     final useComputerCns = cnsSource == MetricDataSource.computer;
     final computerCns = useComputerCns ? extractComputerCns(profile) : null;
@@ -1035,6 +1038,7 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
       ceilingSource: ceilingSource,
       ttsSource: ttsSource,
       cnsSource: cnsSource,
+      decoStopSource: decoStopSource,
       rebreatherPpO2: rebreatherPpO2,
     );
 
@@ -1523,6 +1527,7 @@ final diveProfileAnalysisProvider = Provider.family<ProfileAnalysis?, Dive>((
       ceilingSource: MetricDataSource.computer,
       ttsSource: MetricDataSource.computer,
       cnsSource: MetricDataSource.computer,
+      decoStopSource: MetricDataSource.computer,
       rebreatherPpO2: rebreatherPpO2,
     );
     return overlaid;

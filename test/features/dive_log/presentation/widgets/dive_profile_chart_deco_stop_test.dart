@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -119,14 +120,23 @@ void main() {
     });
 
     testWidgets('omits the band when showDecoStops is false', (tester) async {
+      // The widget's showDecoStops constructor param only seeds initState;
+      // once mounted, visibility is driven by profileLegendProvider (see the
+      // legend-sync block in dive_profile_chart.dart), so toggling it off
+      // there is what actually exercises this path.
       await tester.pumpWidget(
         _buildChartHarness(
           profile: _sampleProfileWithDeco(),
           ceilingCurve: const [0.0, 4.2, 4.2, 0.0],
           decoStopCurve: const [0.0, 6.0, 6.0, 0.0],
-          showDecoStops: false,
         ),
       );
+      await tester.pumpAndSettle();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DiveProfileChart)),
+      );
+      container.read(profileLegendProvider.notifier).toggleDecoStops();
       await tester.pumpAndSettle();
 
       final chart = tester.widget<LineChart>(find.byType(LineChart));
