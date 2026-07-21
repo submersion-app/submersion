@@ -1175,6 +1175,13 @@ class SyncNotifier extends StateNotifier<SyncState> {
   /// The cloud library itself is left intact -- reconnecting sync re-adopts
   /// it -- so this is a local-only reset, not a fleet-wide wipe.
   Future<void> disableForDatabaseReset() async {
+    // Cancel any in-flight auto-sync debounce first. Its callback calls
+    // performSync(auto: true) WITHOUT re-checking autoSyncEnabled, so a timer
+    // scheduled by a write just before the reset would otherwise still fire and
+    // race the DB wipe (or re-pull). Flipping autoSyncEnabled below only stops
+    // NEW timers from being scheduled.
+    _autoSyncTimer?.cancel();
+
     // Two independent guards against the post-reset re-pull: disabling
     // auto-sync closes the launch/resume sync, and signing out disconnects the
     // provider so a manual sync cannot pull either. Attempt BOTH even if one
