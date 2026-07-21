@@ -1,6 +1,7 @@
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/data/services/dive_media_enricher.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 
 /// Repository provider (singleton)
@@ -18,6 +19,19 @@ final mediaForDiveProvider = FutureProvider.family<List<MediaItem>, String>((
     ref.watch(diveRepositoryProvider).watchDiveDetailChanges(),
   );
   return repository.getMediaForDive(diveId);
+});
+
+/// Positions a dive's linked media on the profile chart by backfilling any
+/// missing [MediaEnrichment] rows. Idempotent; wired to a dive-with-profile
+/// loader and the media repository's read/save.
+final diveMediaEnricherProvider = Provider<DiveMediaEnricher>((ref) {
+  final mediaRepo = ref.watch(mediaRepositoryProvider);
+  final diveRepo = ref.watch(diveRepositoryProvider);
+  return DiveMediaEnricher(
+    loadDive: diveRepo.getDiveById,
+    loadMediaForDive: mediaRepo.getMediaForDive,
+    saveEnrichment: mediaRepo.saveEnrichment,
+  );
 });
 
 /// Get single media by ID

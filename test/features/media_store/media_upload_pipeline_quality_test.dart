@@ -108,6 +108,48 @@ void main() {
     expect(got.compressedLevel, 'balanced');
   });
 
+  test(
+    'a deduped rendition records the stored size, not local bytes',
+    () async {
+      final policies = MediaStorePolicies(
+        prefs: await SharedPreferences.getInstance(),
+      );
+      await policies.setPhotoUploadQuality(MediaUploadQuality.balanced);
+      MediaUploadPipeline build() => MediaUploadPipeline(
+        mediaRepository: mediaRepository,
+        queue: queue,
+        store: fakeStore,
+        registry: registry,
+        cache: cache,
+        policies: policies,
+        now: () => DateTime(2026, 7, 20, 12),
+      );
+
+      // First writer uploads the rendition for these bytes.
+      resolver.data = FileData(file: await bigPng());
+      await mediaRepository.createMedia(photo('m1'));
+      await build().process(await enqueue('m1'));
+      final renditionKey = fakeStore.objects.keys.firstWhere(
+        (k) => k.startsWith('smv1/renditions/'),
+      );
+
+      // Simulate the stored object differing from this device's local rendition
+      // (renditions are not hash-verified and can vary by level/encoder).
+      fakeStore.objects[renditionKey] = List<int>.filled(123456, 7);
+
+      // A second item with identical source bytes hits the same rendition key
+      // and dedups (skips putFile) -- it must record the authoritative stored
+      // size, not the size of the rendition it produced locally.
+      resolver.data = FileData(file: await bigPng());
+      await mediaRepository.createMedia(photo('m2'));
+      final outcome = await build().process(await enqueue('m2'));
+
+      expect(outcome, UploadOutcome.uploaded);
+      final got = await mediaRepository.getMediaById('m2');
+      expect(got!.compressedSizeBytes, 123456);
+    },
+  );
+
   test('the Original level uploads the original object', () async {
     resolver.data = FileData(file: await bigPng());
     // Default policy (empty prefs) is original.

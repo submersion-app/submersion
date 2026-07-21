@@ -111,8 +111,9 @@ class ServiceKindListPage extends ConsumerWidget {
     if (confirmed != true) return;
     await ref.read(serviceKindRepositoryProvider).deleteKind(kind.id);
     ref.invalidate(serviceKindsProvider);
-    ref.invalidate(dueClocksProvider);
-    ref.invalidate(equipmentWorstClockProvider);
+    // Deleting a kind cascade-deletes its schedules; dueClocks/worstClock and
+    // the urgency map all derive from this base, so re-evaluate once.
+    ref.invalidate(activeEquipmentClocksProvider);
   }
 
   Future<void> _showEditDialog(

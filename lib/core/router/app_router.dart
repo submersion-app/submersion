@@ -249,13 +249,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     name: 'noFly',
                     builder: (context, state) => const NoFlyPage(),
                   ),
-                  GoRoute(
-                    path: ':planId',
-                    name: 'editPlan',
-                    builder: (context, state) =>
-                        PlanCanvasPage(planId: state.pathParameters['planId']),
-                  ),
                 ],
+              ),
+              // Editing a saved plan is a SIBLING of the new-plan canvas, not a
+              // child. Nesting it under 'dive-planner' made go_router build the
+              // parent PlanCanvasPage() *and* the PlanCanvasPage(planId): since
+              // both read the same shared divePlanNotifierProvider, the first
+              // Back press only revealed the identical parent canvas, forcing a
+              // second press. Declared after the divePlanner subtree so its
+              // static children (compare/chart/no-fly) still win route matching.
+              GoRoute(
+                path: 'dive-planner/:planId',
+                name: 'editPlan',
+                builder: (context, state) =>
+                    PlanCanvasPage(planId: state.pathParameters['planId']),
               ),
               GoRoute(
                 path: 'deco-calculator',

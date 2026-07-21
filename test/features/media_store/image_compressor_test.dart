@@ -6,6 +6,7 @@ import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
+import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
 import 'package:submersion/features/media_store/data/image_compressor.dart';
 import 'package:submersion/features/media_store/data/media_cache_store.dart';
 import 'package:submersion/features/media_store/domain/media_upload_quality.dart';
@@ -83,5 +84,66 @@ void main() {
       MediaUploadQuality.original,
     );
     expect(result, isNull);
+  });
+
+  group('gallery ceiling rule', () {
+    late FakeLocalFileResolver galleryResolver;
+    late ImageCompressor galleryCompressor;
+
+    setUp(() {
+      // Registered under the platformGallery key; its resolveThumbnail serves
+      // a real JPEG, so WITHOUT the ceiling short-circuit an under-cap photo
+      // would still get a (lossy) rendition -- this is what makes the test
+      // below discriminating.
+      galleryResolver = FakeLocalFileResolver(
+        BytesData(bytes: img.encodeJpg(img.Image(width: 64, height: 64))),
+      );
+      galleryCompressor = ImageCompressor(
+        registry: MediaSourceResolverRegistry({
+          MediaSourceType.platformGallery: galleryResolver,
+        }),
+        cache: cache,
+      );
+    });
+
+    MediaItem galleryPhoto({int? width, int? height}) => MediaItem(
+      id: 'g1',
+      mediaType: MediaType.photo,
+      sourceType: MediaSourceType.platformGallery,
+      originalFilename: 'IMG_0001.HEIC',
+      width: width,
+      height: height,
+      takenAt: DateTime(2026, 1, 1),
+      createdAt: DateTime(2026, 1, 1),
+      updatedAt: DateTime(2026, 1, 1),
+    );
+
+    test('under-ceiling gallery photo uploads the original', () async {
+      final result = await galleryCompressor.compress(
+        galleryPhoto(width: 1600, height: 1200),
+        await stagedPng(1600, 1200),
+        MediaUploadQuality.balanced, // 2048 cap
+      );
+      expect(result, isNull, reason: 'known dims below cap: no re-encode');
+    });
+
+    test('over-ceiling gallery photo still renders a rendition', () async {
+      final result = await galleryCompressor.compress(
+        galleryPhoto(width: 5000, height: 4000),
+        await stagedPng(5000, 4000),
+        MediaUploadQuality.balanced,
+      );
+      expect(result, isNotNull);
+      expect(result!.ext, 'jpg');
+    });
+
+    test('unknown dimensions fall through to the thumbnail path', () async {
+      final result = await galleryCompressor.compress(
+        galleryPhoto(),
+        await stagedPng(1600, 1200),
+        MediaUploadQuality.balanced,
+      );
+      expect(result, isNotNull, reason: 'cannot prove under cap: compress');
+    });
   });
 }

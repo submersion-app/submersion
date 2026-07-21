@@ -80,6 +80,9 @@ void main() {
       expect(args, containsAllInOrder(['-c:v', 'libx264', '-b:v', '4000k']));
       expect(args, containsAllInOrder(['-c:a', 'aac', '-b:a', '128k']));
       expect(args, containsAllInOrder(['-movflags', '+faststart']));
+      // Muxer forced to mp4 (the tmp output ends in ".tmp", so ffmpeg can't
+      // infer the format from the extension) -- and it must precede the path.
+      expect(args, containsAllInOrder(['-f', 'mp4', '${output.path}.tmp']));
       expect(args.join(' '), contains("scale=w=-2:h='min(720,ih)'"));
       expect(await output.exists(), isTrue);
       expect(await File('${output.path}.tmp').exists(), isFalse);

@@ -1169,6 +1169,50 @@ class SyncNotifier extends StateNotifier<SyncState> {
     state = const SyncState();
   }
 
+  /// Turns cloud sync off as part of a database reset.
+  ///
+  /// Without this, wiping the local database is immediately undone: the
+  /// post-reset launch sync ([SubmersionApp]'s `_maybeSyncOnLaunch`) merges
+  /// the entire cloud library back in, resurrecting the data the user just
+  /// cleared. Disabling auto-sync closes that launch/resume path and signing
+  /// out disconnects the provider so a manual sync cannot re-pull either.
+  ///
+  /// The cloud library itself is left intact -- reconnecting sync re-adopts
+  /// it -- so this is a local-only reset, not a fleet-wide wipe.
+  Future<void> disableForDatabaseReset() async {
+    // Cancel any in-flight auto-sync debounce first. Its callback calls
+    // performSync(auto: true) WITHOUT re-checking autoSyncEnabled, so a timer
+    // scheduled by a write just before the reset would otherwise still fire and
+    // race the DB wipe (or re-pull). Flipping autoSyncEnabled below only stops
+    // NEW timers from being scheduled.
+    _autoSyncTimer?.cancel();
+
+    // Two independent guards against the post-reset re-pull: disabling
+    // auto-sync closes the launch/resume sync, and signing out disconnects the
+    // provider so a manual sync cannot pull either. Attempt BOTH even if one
+    // throws -- either surviving still helps the reset stick -- then surface
+    // the first failure so the caller can log it.
+    Object? firstError;
+    StackTrace? firstStack;
+    Future<void> attempt(Future<void> Function() op) async {
+      try {
+        await op();
+      } catch (e, st) {
+        firstError ??= e;
+        firstStack ??= st;
+      }
+    }
+
+    await attempt(
+      () => _ref.read(syncBehaviorProvider.notifier).setAutoSyncEnabled(false),
+    );
+    await attempt(signOut);
+
+    if (firstError != null) {
+      Error.throwWithStackTrace(firstError!, firstStack!);
+    }
+  }
+
   /// Reset sync state
   ///
   /// Also adopts a brand-new device identity. Reset is the user-facing

@@ -163,6 +163,9 @@ class _FakeSyncNotifier extends StateNotifier<SyncState>
   Future<void> performSync({bool auto = false}) async => performSyncCalls++;
 
   @override
+  Future<void> disableForDatabaseReset() async {}
+
+  @override
   Future<FirstSyncMergeInfo?> firstSyncMergeInfo() async => firstSyncInfo;
 
   @override

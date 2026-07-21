@@ -4581,7 +4581,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_edit_label_diveType => 'Duiktype';
 
   @override
-  String get diveLog_edit_label_diveTypes => 'Dive Types';
+  String get diveLog_edit_label_diveTypes => 'Duiktypes';
 
   @override
   String get diveLog_edit_label_diveNumber => 'Duik nr.';
@@ -8263,6 +8263,51 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveSites_summary_stat_withGps => 'Met GPS';
 
   @override
+  String get diveType_builtin_altitude => 'Hoogte';
+
+  @override
+  String get diveType_builtin_boat => 'Vanaf boot';
+
+  @override
+  String get diveType_builtin_cave => 'Grot';
+
+  @override
+  String get diveType_builtin_cavern => 'Cavern';
+
+  @override
+  String get diveType_builtin_deep => 'Diep';
+
+  @override
+  String get diveType_builtin_drift => 'Stroming';
+
+  @override
+  String get diveType_builtin_freedive => 'Vrijduiken';
+
+  @override
+  String get diveType_builtin_ice => 'IJs';
+
+  @override
+  String get diveType_builtin_liveaboard => 'Liveaboard';
+
+  @override
+  String get diveType_builtin_night => 'Nacht';
+
+  @override
+  String get diveType_builtin_recreational => 'Recreatief';
+
+  @override
+  String get diveType_builtin_shore => 'Vanaf de kant';
+
+  @override
+  String get diveType_builtin_technical => 'Technisch';
+
+  @override
+  String get diveType_builtin_training => 'Opleiding';
+
+  @override
+  String get diveType_builtin_wreck => 'Wrak';
+
+  @override
   String get diveTypes_addDialog_addButton => 'Toevoegen';
 
   @override
@@ -9702,6 +9747,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_serviceClocks_empty => 'Geen serviceintervallen';
+
+  @override
+  String get equipment_serviceClocks_unconfigured =>
+      'Geen interval ingesteld - tik om te configureren';
 
   @override
   String equipment_serviceClocks_dueOn(String date) {

@@ -15,9 +15,16 @@ extension DiveFieldExtractor on DiveField {
   /// is correct. Defaults to [SacUnit.pressurePerMin] to match the AppSettings
   /// default, so an omitted argument stays consistent with default settings.
   /// Other fields ignore it.
+  ///
+  /// [diveTypeLabel] resolves a dive-type slug to its display label for
+  /// [DiveField.diveTypeName]. On-screen callers pass the localizing resolver
+  /// (`diveTypeLabel` in `dive_log/presentation/formatters/`) so the column
+  /// honors the active locale (issue #643). Omitting it keeps the English slug
+  /// capitalization, which is what locale-independent consumers want.
   dynamic extractFromDive(
     Dive dive, {
     SacUnit sacUnit = SacUnit.pressurePerMin,
+    String Function(String id)? diveTypeLabel,
   }) {
     switch (this) {
       case DiveField.diveNumber:
@@ -133,7 +140,9 @@ extension DiveFieldExtractor on DiveField {
       case DiveField.importSource:
         return dive.importSource;
       case DiveField.diveTypeName:
-        return dive.diveTypeNames.join(', ');
+        return diveTypeLabel == null
+            ? dive.diveTypeNames.join(', ')
+            : dive.diveTypeIds.map(diveTypeLabel).join(', ');
       case DiveField.surfaceInterval:
         return dive.surfaceInterval;
     }
@@ -142,7 +151,12 @@ extension DiveFieldExtractor on DiveField {
   /// Extract the raw value for this field from a [DiveSummary].
   ///
   /// Returns null for fields not available on [DiveSummary].
-  dynamic extractFromSummary(DiveSummary summary) {
+  ///
+  /// See [extractFromDive] for [diveTypeLabel].
+  dynamic extractFromSummary(
+    DiveSummary summary, {
+    String Function(String id)? diveTypeLabel,
+  }) {
     switch (this) {
       case DiveField.diveNumber:
         return summary.diveNumber;
@@ -167,7 +181,9 @@ extension DiveFieldExtractor on DiveField {
       case DiveField.isFavorite:
         return summary.isFavorite;
       case DiveField.diveTypeName:
-        return summary.diveTypeIds.map(Dive.diveTypeDisplayName).join(', ');
+        return summary.diveTypeIds
+            .map(diveTypeLabel ?? Dive.diveTypeDisplayName)
+            .join(', ');
       case DiveField.tags:
         return summary.tags.map((t) => t.name).toList();
       case DiveField.siteLocation:

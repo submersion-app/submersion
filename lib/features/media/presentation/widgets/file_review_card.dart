@@ -26,19 +26,7 @@ class FileReviewCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // TODO(media): l10n
     return ListTile(
-      leading: Image.file(
-        file.file,
-        width: 48,
-        height: 48,
-        fit: BoxFit.cover,
-        // coverage:ignore-start
-        // FileImage failure is dispatched on the async decoder isolate and
-        // doesn't fire deterministically under `flutter test` without a real
-        // image-decoding pipeline. Exercised by manual desktop smoke tests.
-        errorBuilder: (_, _, _) =>
-            const Icon(Icons.broken_image_outlined, size: 32),
-        // coverage:ignore-end
-      ),
+      leading: _buildLeading(),
       title: Text(
         p.basename(file.sourcePath),
         maxLines: 1,
@@ -54,6 +42,31 @@ class FileReviewCard extends ConsumerWidget {
             .read(filesTabNotifierProvider.notifier)
             .removeFile(file.sourcePath),
       ),
+    );
+  }
+
+  /// A 48x48 leading preview. Videos can't be decoded by [Image.file], so they
+  /// get an explicit video icon rather than the broken-image error fallback.
+  Widget _buildLeading() {
+    if (file.metadata.mimeType.startsWith('video/')) {
+      return const SizedBox(
+        width: 48,
+        height: 48,
+        child: Center(child: Icon(Icons.movie_outlined, size: 32)),
+      );
+    }
+    return Image.file(
+      file.file,
+      width: 48,
+      height: 48,
+      fit: BoxFit.cover,
+      // coverage:ignore-start
+      // FileImage failure is dispatched on the async decoder isolate and
+      // doesn't fire deterministically under `flutter test` without a real
+      // image-decoding pipeline. Exercised by manual desktop smoke tests.
+      errorBuilder: (_, _, _) =>
+          const Icon(Icons.broken_image_outlined, size: 32),
+      // coverage:ignore-end
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image/image.dart' as img;
 import 'package:submersion/features/media/data/services/exif_extractor.dart';
 
 void main() {
@@ -265,6 +266,66 @@ void main() {
         expect(meta!.takenAt, isNotNull); // mtime fallback
       },
     );
+  });
+
+  group('pure-Dart image fallback (native_exif unavailable)', () {
+    // No mocked native_exif channel in this group: Exif.fromPath throws
+    // MissingPluginException, exactly as it does on macOS/Windows/Linux where
+    // native_exif has no platform implementation. The extractor must then
+    // recover the shutter time from the JPEG's own EXIF bytes via the pure-Dart
+    // `image` package instead of silently falling back to the file mtime (which
+    // is the copy-to-disk time and never matches the dive window).
+    Uint8List jpegWithDateTimeOriginal(String exifDate) {
+      final image = img.Image(width: 4, height: 4);
+      image.exif.exifIfd['DateTimeOriginal'] = exifDate;
+      return img.encodeJpg(image);
+    }
+
+    test(
+      'reads DateTimeOriginal from JPEG bytes when native_exif is absent',
+      () async {
+        final f = File('${tempDir.path}/gopro.jpg')
+          ..writeAsBytesSync(jpegWithDateTimeOriginal('2025:12:27 12:08:19'));
+        final meta = await ExifExtractor().extract(f);
+        expect(meta, isNotNull);
+        // The real shutter time from EXIF, not the file's copy-to-disk mtime.
+        expect(meta!.takenAt, DateTime.utc(2025, 12, 27, 12, 8, 19));
+        // Wall-clock-UTC convention so the matcher compares against dive times.
+        expect(meta.takenAt!.isUtc, isTrue);
+      },
+    );
+
+    test('falls back to DateTime when DateTimeOriginal is absent', () async {
+      final image = img.Image(width: 4, height: 4);
+      image.exif.imageIfd['DateTime'] = '2025:12:27 12:08:19';
+      final f = File('${tempDir.path}/only_datetime.jpg')
+        ..writeAsBytesSync(img.encodeJpg(image));
+      final meta = await ExifExtractor().extract(f);
+      expect(meta!.takenAt, DateTime.utc(2025, 12, 27, 12, 8, 19));
+    });
+
+    test('non-JPEG with no EXIF still falls back to mtime', () async {
+      // A .png (or any non-JPEG) has no readable EXIF via decodeJpgExif; the
+      // extractor must not crash and should return the mtime fallback.
+      final f = File('${tempDir.path}/plain.png')
+        ..writeAsBytesSync([0x89, 0x50, 0x4e, 0x47, 0, 1, 2, 3]);
+      final meta = await ExifExtractor().extract(f);
+      expect(meta, isNotNull);
+      expect(meta!.takenAt, isNotNull); // mtime fallback, close to now
+      final now = DateTime.now();
+      final nowAsWallUtc = DateTime.utc(
+        now.year,
+        now.month,
+        now.day,
+        now.hour,
+        now.minute,
+        now.second,
+      );
+      expect(
+        meta.takenAt!.difference(nowAsWallUtc).abs(),
+        lessThan(const Duration(minutes: 5)),
+      );
+    });
   });
 
   test('large files (>5 MB) take the compute() isolate path', () async {

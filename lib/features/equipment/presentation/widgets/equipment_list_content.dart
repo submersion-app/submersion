@@ -117,6 +117,16 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
   Widget build(BuildContext context) {
     final sort = ref.watch(equipmentSortProvider);
     final viewMode = ref.watch(equipmentListViewModeProvider);
+    // The urgency map drives the Service Due sort and (in table mode) the
+    // forecast columns, and it evaluates clocks for all active gear -- so only
+    // watch it when needed, not on the common name/type list sorts.
+    final needsUrgency =
+        viewMode == ListViewMode.table ||
+        sort.field == EquipmentSortField.serviceDue;
+    final serviceUrgency = needsUrgency
+        ? (ref.watch(equipmentServiceUrgencyProvider).value ??
+              const <String, ServiceClockStatus>{})
+        : const <String, ServiceClockStatus>{};
 
     final AsyncValue<List<EquipmentItem>> equipmentAsync;
     if (_selectedFilter == _serviceDueFilter) {
@@ -129,14 +139,22 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     // Table mode uses a dedicated scaffold with column configuration support.
     if (viewMode == ListViewMode.table) {
       final sortedAsync = equipmentAsync.whenData(
-        (equipment) => applyEquipmentSorting(equipment, sort),
+        (equipment) => applyEquipmentSorting(
+          equipment,
+          sort,
+          serviceUrgency: serviceUrgency,
+        ),
       );
       return _buildTableModeScaffold(context, sortedAsync);
     }
 
     final content = equipmentAsync.when(
       data: (equipment) {
-        final sorted = applyEquipmentSorting(equipment, sort);
+        final sorted = applyEquipmentSorting(
+          equipment,
+          sort,
+          serviceUrgency: serviceUrgency,
+        );
         return sorted.isEmpty
             ? _buildEmptyState(context, ref)
             : _buildEquipmentList(context, ref, sorted);
@@ -245,11 +263,13 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
         final notifier = ref.read(equipmentTableConfigProvider.notifier);
         final settings = ref.watch(settingsProvider);
         final units = UnitFormatter(settings);
+        final serviceUrgency =
+            ref.watch(equipmentServiceUrgencyProvider).value ?? const {};
 
         return EntityTableView<EquipmentItem, EquipmentField>(
           entities: equipment,
           idExtractor: (e) => e.id,
-          adapter: EquipmentFieldAdapter.instance,
+          adapter: EquipmentFieldAdapter(worstClocks: serviceUrgency),
           config: config,
           units: units,
           onSortFieldChanged: notifier.setSortField,
@@ -559,13 +579,8 @@ class EquipmentListTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final worstClock = ref.watch(equipmentWorstClockProvider).value?[item.id];
-    // Mirror the trailing's fallback: when the ledger map is still loading or
-    // the item only has a legacy interval, worstClock is null but the trailing
-    // still shows "Service Due" from item.isServiceDue -- so the avatar must
-    // read as overdue too, otherwise the two disagree.
-    final isOverdue = worstClock != null
-        ? worstClock.status.severity == ServiceClockSeverity.overdue
-        : item.isServiceDue;
+    final isOverdue =
+        worstClock?.status.severity == ServiceClockSeverity.overdue;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -622,44 +637,6 @@ class EquipmentListTile extends ConsumerWidget {
                   ? theme.colorScheme.error
                   : theme.colorScheme.tertiary,
               fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      );
-    }
-
-    // Legacy single-clock fallback (before the ledger map loads, or for
-    // items whose only signal is the legacy interval).
-    if (item.isServiceDue) {
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          typeLabel,
-          const SizedBox(height: 2),
-          Text(
-            context.l10n.equipment_list_tile_serviceDueChip,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.error,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      );
-    }
-
-    if (item.daysUntilService != null) {
-      final days = item.daysUntilService!;
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          typeLabel,
-          const SizedBox(height: 2),
-          Text(
-            context.l10n.equipment_list_tile_serviceInDays(days),
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
         ],

@@ -68,6 +68,11 @@ class LinuxFfmpegEngine implements TranscodeEngine {
         '-progress',
         'pipe:1',
         '-nostats',
+        // Force the MP4 muxer: the temp file ends in ".tmp", so ffmpeg cannot
+        // infer the format from the extension (it would error "Unable to
+        // choose an output format"). Explicit -f keeps the tmp-rename reliable.
+        '-f',
+        'mp4',
         tmp.path,
       ],
       onStdoutLine: (line) {

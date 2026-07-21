@@ -106,7 +106,10 @@ class SyncEncryptionService {
   }
 
   /// Unlock this device against the cloud keyslot file with a passphrase or
-  /// recovery code. Persists key + mirror on success.
+  /// recovery code. Persists key + mirror and flags encryption on so the
+  /// session survives a relaunch (EncryptionKeyNotifier gates the provider
+  /// wrap on the flag; without it the device reverts to plaintext and
+  /// re-prompts on the next sync).
   Future<UnlockedKey> unlock({
     required CloudStorageProvider rawProvider,
     required String secret,
@@ -125,6 +128,7 @@ class SyncEncryptionService {
       mlkBytes: await mlk.extractBytes(),
     );
     await _keyStore.saveKeyslotMirror(fileBytes);
+    await _preferences.setSyncEncryptionEnabled(true);
     _log.info('Unlocked encrypted library ${keyslotFile.libraryKeyId}');
     return UnlockedKey(libraryKeyId: keyslotFile.libraryKeyId, mlk: mlk);
   }

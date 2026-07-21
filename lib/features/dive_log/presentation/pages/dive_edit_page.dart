@@ -32,6 +32,7 @@ import 'package:submersion/features/dive_centers/presentation/providers/dive_cen
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_picker.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
+import 'package:submersion/features/dive_types/presentation/dive_type_display.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
@@ -3052,7 +3053,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     if (!mounted) return;
 
     final tagName = {for (final t in allTags) t.id: t.name};
-    final typeName = {for (final t in allTypes) t.id: t.name};
+    final typeName = {
+      for (final t in allTypes) t.id: t.localizedName(context.l10n),
+    };
     final buddyMap = {for (final b in allBuddies) b.id: b};
     // The count queries group by id with no ORDER BY, so sort each member list
     // by label to keep the bulk editor's row order stable across loads/devices.

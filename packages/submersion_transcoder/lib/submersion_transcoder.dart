@@ -1,4 +1,5 @@
 export 'src/darwin_avf_engine.dart';
+export 'src/engine_factory.dart';
 export 'src/linux_ffmpeg_engine.dart';
 export 'src/process_runner.dart';
 export 'src/transcode_engine.dart';

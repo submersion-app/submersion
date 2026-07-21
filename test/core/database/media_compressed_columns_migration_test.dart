@@ -18,11 +18,12 @@ void main() {
     );
   });
 
-  test('v130 is the current schema version (exact-latest tripwire)', () {
+  test('v133 is the current schema version (exact-latest tripwire)', () {
     // Exact assertion: the newest migration owns the tripwire, so the next
     // schema bump must move it forward. Relax to greaterThanOrEqualTo and add
-    // a fresh exact test when a later migration lands on top of v130.
-    expect(AppDatabase.currentSchemaVersion, 130);
-    expect(AppDatabase.migrationVersions, contains(130));
+    // a fresh exact test when a later migration lands on top of v133.
+    // (Renumbered from v130 as main advanced past it at merge time.)
+    expect(AppDatabase.currentSchemaVersion, 133);
+    expect(AppDatabase.migrationVersions, contains(133));
   });
 }

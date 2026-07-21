@@ -79,6 +79,9 @@ import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_roles/presentation/dive_role_display.dart';
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
+import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label.dart';
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
+import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
@@ -2798,7 +2801,16 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             _buildDetailRow(
               context,
               context.l10n.diveLog_detail_label_diveType,
-              dive.diveTypeNames.join(', '),
+              diveTypeLabels(
+                context.l10n,
+                dive.diveTypeIds,
+                typesById: {
+                  for (final t
+                      in ref.watch(diveTypesProvider).value ??
+                          const <DiveTypeEntity>[])
+                    t.id: t,
+                },
+              ),
             ),
             _buildDetailRow(
               context,

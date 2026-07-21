@@ -29,6 +29,9 @@ class _DrivableSyncNotifier extends StateNotifier<SyncState>
   Future<void> performSync({bool auto = false}) async {}
 
   @override
+  Future<void> disableForDatabaseReset() async {}
+
+  @override
   Future<FirstSyncMergeInfo?> firstSyncMergeInfo() async => null;
 
   @override

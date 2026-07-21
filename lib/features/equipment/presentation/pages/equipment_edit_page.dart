@@ -42,13 +42,11 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
   final _serialController = TextEditingController();
   final _purchasePriceController = TextEditingController();
   final _purchaseCurrencyController = TextEditingController(text: 'USD');
-  final _serviceIntervalController = TextEditingController();
   final _notesController = TextEditingController();
 
   EquipmentType _selectedType = EquipmentType.regulator;
   EquipmentStatus _selectedStatus = EquipmentStatus.active;
   DateTime? _purchaseDate;
-  DateTime? _lastServiceDate;
   bool _isLoading = false;
   bool _isInitialized = false;
   bool _hasChanges = false;
@@ -64,7 +62,6 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     _serialController.addListener(_onFieldChanged);
     _purchasePriceController.addListener(_onFieldChanged);
     _purchaseCurrencyController.addListener(_onFieldChanged);
-    _serviceIntervalController.addListener(_onFieldChanged);
     _notesController.addListener(_onFieldChanged);
   }
 
@@ -82,7 +79,6 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     _serialController.dispose();
     _purchasePriceController.dispose();
     _purchaseCurrencyController.dispose();
-    _serviceIntervalController.dispose();
     _notesController.dispose();
     super.dispose();
   }
@@ -110,13 +106,10 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     _serialController.text = equipment.serialNumber ?? '';
     _purchasePriceController.text = equipment.purchasePrice?.toString() ?? '';
     _purchaseCurrencyController.text = equipment.purchaseCurrency;
-    _serviceIntervalController.text =
-        equipment.serviceIntervalDays?.toString() ?? '';
     _notesController.text = equipment.notes;
     _selectedType = equipment.type;
     _selectedStatus = equipment.status;
     _purchaseDate = equipment.purchaseDate;
-    _lastServiceDate = equipment.lastServiceDate;
     _customReminderEnabled = equipment.customReminderEnabled;
     _customReminderDays = equipment.customReminderDays ?? const [7, 14, 30];
   }
@@ -313,14 +306,6 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
           // Purchase Date
           _buildDateSection(context),
           const SizedBox(height: 24),
-
-          // Service Settings (legacy single clock). New items get service
-          // clocks auto-attached on create and manage them from the detail
-          // page, so the legacy section only shows when editing.
-          if (widget.isEditing) ...[
-            _buildServiceSection(context),
-            const SizedBox(height: 24),
-          ],
 
           // Notes
           TextFormField(
@@ -603,67 +588,6 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     );
   }
 
-  Widget _buildServiceSection(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.build, color: Theme.of(context).colorScheme.primary),
-                const SizedBox(width: 8),
-                Text(
-                  context.l10n.equipment_edit_serviceSettingsTitle,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _serviceIntervalController,
-              decoration: InputDecoration(
-                labelText: context.l10n.equipment_edit_serviceIntervalLabel,
-                prefixIcon: const Icon(Icons.schedule),
-                hintText: context.l10n.equipment_edit_serviceIntervalHint,
-              ),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              context.l10n.equipment_edit_lastServiceDateLabel,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 8),
-            OutlinedButton.icon(
-              onPressed: _selectLastServiceDate,
-              icon: const Icon(Icons.calendar_today),
-              label: Text(
-                _lastServiceDate != null
-                    ? '${_lastServiceDate!.month}/${_lastServiceDate!.day}/${_lastServiceDate!.year}'
-                    : context.l10n.equipment_edit_selectDate,
-              ),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 48),
-              ),
-            ),
-            if (_lastServiceDate != null)
-              TextButton(
-                onPressed: () => setState(() {
-                  _lastServiceDate = null;
-                  _hasChanges = true;
-                }),
-                child: Text(context.l10n.equipment_edit_clearDate),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildAdvancedSection(BuildContext context) {
     return Card(
       child: Padding(
@@ -804,21 +728,6 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     }
   }
 
-  Future<void> _selectLastServiceDate() async {
-    final date = await showDatePicker(
-      context: context,
-      initialDate: _lastServiceDate ?? DateTime.now(),
-      firstDate: DateTime(1950),
-      lastDate: DateTime.now(),
-    );
-    if (date != null) {
-      setState(() {
-        _lastServiceDate = date;
-        _hasChanges = true;
-      });
-    }
-  }
-
   Future<void> _saveEquipment(EquipmentItem? existingEquipment) async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -867,10 +776,10 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
         purchaseCurrency: _purchaseCurrencyController.text.trim().isEmpty
             ? 'USD'
             : _purchaseCurrencyController.text.trim(),
-        lastServiceDate: _lastServiceDate,
-        serviceIntervalDays: _serviceIntervalController.text.isNotEmpty
-            ? int.tryParse(_serviceIntervalController.text)
-            : null,
+        // Legacy service fields are frozen: service is managed via clocks on
+        // the detail page. Preserve any existing values for export/import.
+        lastServiceDate: existingEquipment?.lastServiceDate,
+        serviceIntervalDays: existingEquipment?.serviceIntervalDays,
         notes: _notesController.text.trim(),
         isActive: existingEquipment?.isActive ?? true,
         // Only attributes in the SELECTED type's catalog are kept: switching
