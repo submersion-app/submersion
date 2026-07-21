@@ -20,12 +20,77 @@ env:
   DART_DEFINES: '--dart-define=flutter.flutter_map.unblockOSM=Our tile servers are not.'
 
 jobs:
+  # Cheap gate: does this push/PR touch anything that can change a Flutter
+  # analyze/test/build outcome? Pure docs / CI-meta changes (markdown, images,
+  # .github/ workflow edits, LICENSE, git-hooks, etc.) set code=false, which
+  # lets codegen - and every job that hangs off it - skip. The ci-success gate
+  # still runs and reports green because skipped jobs are acceptable there.
+  # Bias is FAIL-SAFE: any path not explicitly recognized as inert, and any
+  # inability to compute the diff, yields code=true (run the full pipeline).
+  changes:
+    name: Detect code changes
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.detect.outputs.code }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Detect build/test-affecting changes
+        id: detect
+        env:
+          EVENT: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+          PUSH_AFTER: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT" = "pull_request" ]; then
+            base="$PR_BASE"; head="$PR_HEAD"
+          else
+            base="$PUSH_BEFORE"; head="$PUSH_AFTER"
+          fi
+          # Fail-safe: if the base commit is missing/unknown (first push, force
+          # push, shallow clone), run the full pipeline rather than guess.
+          if [ -z "$base" ] || ! git rev-parse --verify --quiet "${base}^{commit}" >/dev/null; then
+            echo "Base commit unavailable ('$base'); running the full pipeline."
+            echo "code=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ "$EVENT" = "pull_request" ]; then
+            files="$(git diff --name-only "${base}...${head}")"
+          else
+            files="$(git diff --name-only "$base" "$head")"
+          fi
+          echo "Changed files:"
+          printf '%s\n' "$files"
+          # code=true unless EVERY changed file matches an inert pattern below.
+          code=false
+          while IFS= read -r f; do
+            [ -n "$f" ] || continue
+            case "$f" in
+              .github/flutter-version.txt) code=true ;;   # SDK bump affects all
+              .github/*) ;;                                # other CI/meta: inert
+              *.md|docs/*|LICENSE*|.gitignore|.gitattributes|.editorconfig|codecov.yml|hooks/*) ;;
+              *.png|*.jpg|*.jpeg|*.gif|*.svg|*.webp|*.ico) ;;
+              *) code=true ;;
+            esac
+          done <<< "$files"
+          echo "Result: code=$code"
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+
   # Producer job: runs build_runner ONCE and publishes the generated sources as
   # an artifact. Everything else (analyze, test, builds) gates on this ~3 min
   # job instead of the full analyze job, so flutter analyze + format run in
   # PARALLEL with the test shards and builds rather than as a serial prefix.
+  # Gated on `changes`: when no build/test-affecting file changed, codegen skips
+  # and the whole downstream DAG (analyze, test, builds) skips with it.
   codegen:
     name: Code Generation
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -832,10 +897,14 @@ jobs:
   # NOTE: codegen MUST be listed here - if it fails, every downstream job is
   # SKIPPED, and skipped is treated as acceptable below, so without codegen in
   # the needs list a codegen failure would report a false green.
+  # `changes` is likewise listed: on a docs/CI-only change it reports code=false
+  # and the whole pipeline SKIPS (an accepted green), but if the detector itself
+  # FAILS we must not silently skip-then-green, so its failure must reach here.
   ci-success:
     name: CI Success
     if: always()
     needs:
+      - changes
       - codegen
       - analyze
       - test
