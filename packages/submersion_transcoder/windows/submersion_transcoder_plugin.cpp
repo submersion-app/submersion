@@ -79,6 +79,93 @@ void ProbeOnWorker(
   }
 }
 
+// Transcodes on a worker thread. `sink` may be null if Dart never subscribed
+// to the progress channel.
+void TranscodeOnWorker(
+    std::string source, std::string output, int max_height, int video_kbps,
+    int /*audio_kbps*/, std::string progress_id,
+    std::shared_ptr<flutter::EventSink<EncodableValue>> sink,
+    std::shared_ptr<flutter::MethodResult<EncodableValue>> result) {
+  namespace WS = winrt::Windows::Storage;
+  namespace WMP = winrt::Windows::Media::MediaProperties;
+  namespace WMT = winrt::Windows::Media::Transcoding;
+  try {
+    winrt::init_apartment(winrt::apartment_type::multi_threaded);
+
+    auto src_file =
+        WS::StorageFile::GetFileFromPathAsync(winrt::hstring(Wide(source)))
+            .get();
+
+    // Never upscale: clamp the target height to the source height.
+    auto vprops = src_file.Properties().GetVideoPropertiesAsync().get();
+    const int32_t src_h = static_cast<int32_t>(vprops.Height());
+    const int32_t src_w = static_cast<int32_t>(vprops.Width());
+    int32_t out_h = max_height < src_h ? max_height : src_h;
+    if (out_h <= 0) out_h = src_h;
+    // Preserve aspect ratio, keep both dimensions even.
+    int32_t out_w = src_h > 0
+                        ? static_cast<int32_t>((int64_t)src_w * out_h / src_h)
+                        : src_w;
+    out_w -= (out_w % 2);
+    out_h -= (out_h % 2);
+
+    // Destination folder + <name>.tmp file (replace any stale temp).
+    std::wstring wout = Wide(output);
+    size_t slash = wout.find_last_of(L"\\/");
+    std::wstring dir = slash == std::wstring::npos ? L"" : wout.substr(0, slash);
+    std::wstring name =
+        slash == std::wstring::npos ? wout : wout.substr(slash + 1);
+    auto folder =
+        WS::StorageFolder::GetFolderFromPathAsync(winrt::hstring(dir)).get();
+    auto tmp_file =
+        folder
+            .CreateFileAsync(winrt::hstring(name + L".tmp"),
+                             WS::CreationCollisionOption::ReplaceExisting)
+            .get();
+
+    auto profile =
+        WMP::MediaEncodingProfile::CreateMp4(WMP::VideoEncodingQuality::Auto);
+    profile.Video().Width(static_cast<uint32_t>(out_w));
+    profile.Video().Height(static_cast<uint32_t>(out_h));
+    profile.Video().Bitrate(static_cast<uint32_t>(video_kbps) * 1000);
+
+    WMT::MediaTranscoder transcoder;
+    auto prep =
+        transcoder.PrepareFileTranscodeAsync(src_file, tmp_file, profile).get();
+    if (!prep.CanTranscode()) {
+      result->Error("transcode_failed", "source cannot be transcoded");
+      return;
+    }
+
+    auto op = prep.TranscodeAsync();
+    op.Progress([sink, progress_id](auto const&, double percent) {
+      if (!sink) return;
+      sink->Success(EncodableValue(EncodableMap{
+          {EncodableValue("progressId"), EncodableValue(progress_id)},
+          {EncodableValue("fraction"), EncodableValue(percent / 100.0)},
+      }));
+    });
+    op.get();  // blocks until complete or throws on failure
+
+    // Success: rename <name>.tmp -> <name>.
+    tmp_file
+        .RenameAsync(winrt::hstring(name),
+                     WS::NameCollisionOption::ReplaceExisting)
+        .get();
+    if (sink) {
+      sink->Success(EncodableValue(EncodableMap{
+          {EncodableValue("progressId"), EncodableValue(progress_id)},
+          {EncodableValue("fraction"), EncodableValue(1.0)},
+      }));
+    }
+    result->Success(EncodableValue());
+  } catch (winrt::hresult_error const& e) {
+    result->Error("transcode_failed", Utf8(std::wstring(e.message())));
+  } catch (...) {
+    result->Error("transcode_failed", "unknown transcode error");
+  }
+}
+
 }  // namespace
 
 // static
@@ -146,6 +233,44 @@ void SubmersionTranscoderPlugin::HandleMethodCall(
     std::shared_ptr<flutter::MethodResult<EncodableValue>> shared(
         std::move(result));
     std::thread(ProbeOnWorker, *path, shared).detach();
+    return;
+  }
+  if (method == "transcode") {
+    const auto* args = std::get_if<EncodableMap>(method_call.arguments());
+    if (!args) {
+      result->Error("bad_args", "missing transcode arguments");
+      return;
+    }
+    auto get_str = [&](const char* k) -> const std::string* {
+      auto it = args->find(EncodableValue(k));
+      return it == args->end() ? nullptr
+                               : std::get_if<std::string>(&it->second);
+    };
+    auto get_int = [&](const char* k) -> const int32_t* {
+      auto it = args->find(EncodableValue(k));
+      return it == args->end() ? nullptr : std::get_if<int32_t>(&it->second);
+    };
+    const auto* source = get_str("source");
+    const auto* output = get_str("output");
+    const auto* max_height = get_int("maxHeight");
+    const auto* video_kbps = get_int("videoBitrateKbps");
+    const auto* audio_kbps = get_int("audioBitrateKbps");
+    const auto* progress_id = get_str("progressId");
+    if (!source || !output || !max_height || !video_kbps || !audio_kbps ||
+        !progress_id) {
+      result->Error("bad_args", "missing transcode arguments");
+      return;
+    }
+    std::shared_ptr<flutter::EventSink<EncodableValue>> sink;
+    {
+      std::lock_guard<std::mutex> lock(progress_mutex_);
+      sink = progress_sink_;
+    }
+    std::shared_ptr<flutter::MethodResult<EncodableValue>> shared(
+        std::move(result));
+    std::thread(TranscodeOnWorker, *source, *output, *max_height, *video_kbps,
+                *audio_kbps, *progress_id, sink, shared)
+        .detach();
     return;
   }
   result->NotImplemented();
