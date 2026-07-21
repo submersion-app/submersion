@@ -62,23 +62,32 @@ jobs:
             echo "code=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
+          # Two ranges with different semantics:
+          #   diff_range - three-dot on PRs so `git diff` compares merge-base vs
+          #     head (only the PR's own file changes); plain endpoint diff on push.
+          #   log_range  - always two-dot (base..head) = ONLY the commits this
+          #     push/PR adds. NOT three-dot: `git log base...head` is a symmetric
+          #     difference that would also scan base-branch commits main gained
+          #     since the branch forked, so a [full-ci] in an unrelated main
+          #     commit could falsely force a full run.
+          if [ "$EVENT" = "pull_request" ]; then
+            diff_range="${base}...${head}"
+          else
+            diff_range="${base}..${head}"
+          fi
+          log_range="${base}..${head}"
           # Escape hatch: a [full-ci] marker in the PR title or any commit
-          # message in the range forces the full pipeline. Lets CI/meta-only
+          # message in log_range forces the full pipeline. Lets CI/meta-only
           # changes (e.g. editing this very workflow), which otherwise skip the
           # heavy jobs, opt in to exercising the whole DAG. Only ever forces
           # MORE work, so it cannot cause a false skip.
-          if [ "$EVENT" = "pull_request" ]; then
-            range="${base}...${head}"
-          else
-            range="${base}..${head}"
-          fi
-          if printf '%s\n%s' "$PR_TITLE" "$(git log --format=%B "$range")" \
+          if printf '%s\n%s' "$PR_TITLE" "$(git log --format=%B "$log_range")" \
                | grep -qiF '[full-ci]'; then
             echo "[full-ci] override found; running the full pipeline."
             echo "code=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          files="$(git diff --name-only "$range")"
+          files="$(git diff --name-only "$diff_range")"
           echo "Changed files:"
           printf '%s\n' "$files"
           # code=true unless EVERY changed file matches an inert pattern below.
