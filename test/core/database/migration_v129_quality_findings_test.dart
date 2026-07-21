@@ -49,11 +49,11 @@ void main() {
     expect(names, contains('idx_quality_findings_status'));
   });
 
-  test('v129 is the current schema version (exact-latest tripwire)', () {
-    // Exact assertion: the newest migration owns the tripwire, so the next
-    // schema bump must move it forward. Relax to greaterThanOrEqualTo and add
-    // a fresh exact test when a later migration lands on top of v129.
-    expect(AppDatabase.currentSchemaVersion, 129);
+  test('v129 migration stays in the schema ladder', () {
+    // v130 (media compressed rendition columns) now owns the exact-latest
+    // tripwire in media_compressed_columns_migration_test.dart; relaxed per
+    // the original tripwire instructions.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(129));
     expect(AppDatabase.migrationVersions, contains(129));
   });
 }
