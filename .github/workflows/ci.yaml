@@ -395,6 +395,10 @@ jobs:
     name: Integration Test (macOS)
     needs: codegen
     runs-on: macos-26
+    # This job normally finishes in ~10 min; without a bound a hung UI test
+    # (perpetual pumpAndSettle, window focus, platform-channel wait) would hold
+    # a macOS runner for GitHub's 6-hour default. Fail fast instead.
+    timeout-minutes: 25
     if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v7
