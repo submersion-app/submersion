@@ -97,6 +97,7 @@ class MediaUploadPipeline {
     }
 
     File? staged;
+    CompressionResult? rendition;
     try {
       staged = await _materialize(item);
       if (staged == null) {
@@ -158,7 +159,7 @@ class MediaUploadPipeline {
       final level = isOverride
           ? MediaUploadQuality.values.byName(entry.overrideLevel!)
           : await _policies.qualityFor(item.mediaType);
-      final rendition = await _renditionFor(item, staged, level);
+      rendition = await _renditionFor(item, staged, level, digest.hash);
       if (rendition != null) {
         final renditionKey = StoreKeys.renditionKey(
           digest.hash,
@@ -179,7 +180,14 @@ class MediaUploadPipeline {
           level: level.name,
           sizeBytes: rendition.sizeBytes,
         );
-        await _cleanupRendition(rendition.file);
+        if (item.mediaType == MediaType.video) {
+          // Spec section 8: the deterministic rendition (and any stale
+          // same-hash siblings from a level change) go away only once the
+          // upload is confirmed.
+          await _cache.deleteTranscodeArtifacts(digest.hash);
+        } else {
+          await _cleanupRendition(rendition.file);
+        }
         // Namespace switch (override original -> compressed): drop the now
         // unreferenced original object.
         if (hadOriginal) {
@@ -246,6 +254,13 @@ class MediaUploadPipeline {
         stackTrace: stackTrace,
       );
       await _queue.markFailed(entry.id, e.toString());
+      // Photos re-compress cheaply, so their rendition staging file is
+      // discarded on failure (Phase A leaked it). Video renditions are
+      // deterministic and PRESERVED for the retry (spec section 8).
+      final failedRendition = rendition;
+      if (failedRendition != null && item.mediaType != MediaType.video) {
+        await _cleanupRendition(failedRendition.file);
+      }
       return UploadOutcome.failed;
     } finally {
       // Best-effort cleanup of the staging temp file. Delete atomically and
@@ -291,15 +306,28 @@ class MediaUploadPipeline {
 
   /// Chooses the compressor by media type; returns null for the Original
   /// level, when the compressor declines (ceiling/undecodable), or when a
-  /// video has no transcoder registered (Phase A -> upload the original).
+  /// video has no transcoder registered (upload the original).
   Future<CompressionResult?> _renditionFor(
     MediaItem item,
     File source,
     MediaUploadQuality level,
+    String contentHash,
   ) async {
     if (level == MediaUploadQuality.original) return null;
     if (item.mediaType == MediaType.video) {
-      return _videoTranscoder?.transcode(item, source, level);
+      final transcoder = _videoTranscoder;
+      if (transcoder == null) return null;
+      final output = await _cache.transcodeFile(contentHash, level.name);
+      if (await output.exists()) {
+        // Transcode-once: a completed rendition survives retries and app
+        // restarts; only markDone deletes it.
+        return CompressionResult(
+          file: output,
+          ext: 'mp4',
+          sizeBytes: await output.length(),
+        );
+      }
+      return transcoder.transcode(item, source, level, output: output);
     }
     return _imageCompressor.compress(item, source, level);
   }
