@@ -152,9 +152,17 @@ jobs:
       fail-fast: false
       matrix:
         # 0-based shard indices; keep TOTAL_SHARDS below in sync with the count.
-        shard: [0, 1, 2, 3]
+        # NOTE: the shard count is coupled to codecov.yml `after_n_builds`, which
+        # must equal (shard count + 1) for the scripts job -- Codecov holds the
+        # patch/project status until every partial lcov arrives (see codecov.yml).
+        # It is also bounded by the account-wide concurrent-job cap: this workflow
+        # already fans out ~9-10 non-test jobs (analyze + 5 builds + scripts +
+        # integration) that share the pool AND gate ci-success, so oversharding
+        # queues the builds and makes total CI slower, not faster. 8 keeps us
+        # under the cap while roughly halving test wall-clock.
+        shard: [0, 1, 2, 3, 4, 5, 6, 7]
     env:
-      TOTAL_SHARDS: 4
+      TOTAL_SHARDS: 8
     steps:
       - uses: actions/checkout@v7
         with:
