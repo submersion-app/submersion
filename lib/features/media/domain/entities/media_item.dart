@@ -95,6 +95,9 @@ class MediaItem extends Equatable {
   final int? contentSizeBytes;
   final DateTime? remoteUploadedAt;
   final DateTime? remoteThumbUploadedAt;
+  final String? compressedLevel;
+  final int? compressedSizeBytes;
+  final DateTime? remoteCompressedUploadedAt;
   final DateTime createdAt;
   final DateTime updatedAt;
   final MediaEnrichment? enrichment;
@@ -135,6 +138,9 @@ class MediaItem extends Equatable {
     this.contentSizeBytes,
     this.remoteUploadedAt,
     this.remoteThumbUploadedAt,
+    this.compressedLevel,
+    this.compressedSizeBytes,
+    this.remoteCompressedUploadedAt,
     required this.createdAt,
     required this.updatedAt,
     this.enrichment,
@@ -190,6 +196,9 @@ class MediaItem extends Equatable {
     Object? contentSizeBytes = _undefined,
     Object? remoteUploadedAt = _undefined,
     Object? remoteThumbUploadedAt = _undefined,
+    Object? compressedLevel = _undefined,
+    Object? compressedSizeBytes = _undefined,
+    Object? remoteCompressedUploadedAt = _undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
     Object? enrichment = _undefined,
@@ -268,6 +277,15 @@ class MediaItem extends Equatable {
       remoteThumbUploadedAt: remoteThumbUploadedAt == _undefined
           ? this.remoteThumbUploadedAt
           : remoteThumbUploadedAt as DateTime?,
+      compressedLevel: compressedLevel == _undefined
+          ? this.compressedLevel
+          : compressedLevel as String?,
+      compressedSizeBytes: compressedSizeBytes == _undefined
+          ? this.compressedSizeBytes
+          : compressedSizeBytes as int?,
+      remoteCompressedUploadedAt: remoteCompressedUploadedAt == _undefined
+          ? this.remoteCompressedUploadedAt
+          : remoteCompressedUploadedAt as DateTime?,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       enrichment: enrichment == _undefined
@@ -313,6 +331,9 @@ class MediaItem extends Equatable {
     contentSizeBytes,
     remoteUploadedAt,
     remoteThumbUploadedAt,
+    compressedLevel,
+    compressedSizeBytes,
+    remoteCompressedUploadedAt,
     createdAt,
     updatedAt,
     enrichment,
