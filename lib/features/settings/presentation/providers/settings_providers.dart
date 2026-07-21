@@ -67,6 +67,8 @@ class SettingsKeys {
   static const String ascentRateWarning = 'ascent_rate_warning';
   static const String ascentRateCritical = 'ascent_rate_critical';
   static const String showCeilingOnProfile = 'show_ceiling_on_profile';
+  static const String showDecoStopsOnProfile = 'show_deco_stops_on_profile';
+  static const String defaultDecoStopSource = 'default_deco_stop_source';
   static const String showAscentRateColors = 'show_ascent_rate_colors';
   static const String showNdlOnProfile = 'show_ndl_on_profile';
   static const String lastStopDepth = 'last_stop_depth';
@@ -132,6 +134,9 @@ class AppSettings {
   /// Show ceiling curve on dive profile
   final bool showCeilingOnProfile;
 
+  /// Show deco stop band on dive profile
+  final bool showDecoStopsOnProfile;
+
   /// Master toggle for the post-dive safety review
   final bool safetyReviewEnabled;
 
@@ -178,6 +183,9 @@ class AppSettings {
 
   /// Default data source for ceiling metric (computer or calculated)
   final MetricDataSource defaultCeilingSource;
+
+  /// Default data source for deco stop band (computer or calculated)
+  final MetricDataSource defaultDecoStopSource;
 
   /// Default data source for TTS metric (computer or calculated)
   final MetricDataSource defaultTtsSource;
@@ -387,6 +395,7 @@ class AppSettings {
     this.ascentRateWarning = 9.0,
     this.ascentRateCritical = 12.0,
     this.showCeilingOnProfile = true,
+    this.showDecoStopsOnProfile = true,
     this.safetyReviewEnabled = true,
     this.safetyReviewDisabledRules = const {},
     this.noFlyPreset = NoFlyPreset.standard,
@@ -402,6 +411,7 @@ class AppSettings {
     this.endLimit = 30.0,
     this.defaultNdlSource = MetricDataSource.calculated,
     this.defaultCeilingSource = MetricDataSource.calculated,
+    this.defaultDecoStopSource = MetricDataSource.calculated,
     this.defaultTtsSource = MetricDataSource.calculated,
     this.defaultCnsSource = MetricDataSource.calculated,
     this.cnsCalculationMethod = CnsCalculationMethod.shearwater,
@@ -531,6 +541,7 @@ class AppSettings {
     double? ascentRateWarning,
     double? ascentRateCritical,
     bool? showCeilingOnProfile,
+    bool? showDecoStopsOnProfile,
     bool? safetyReviewEnabled,
     Set<String>? safetyReviewDisabledRules,
     NoFlyPreset? noFlyPreset,
@@ -547,6 +558,7 @@ class AppSettings {
     double? endLimit,
     MetricDataSource? defaultNdlSource,
     MetricDataSource? defaultCeilingSource,
+    MetricDataSource? defaultDecoStopSource,
     MetricDataSource? defaultTtsSource,
     MetricDataSource? defaultCnsSource,
     CnsCalculationMethod? cnsCalculationMethod,
@@ -643,6 +655,8 @@ class AppSettings {
       ascentRateWarning: ascentRateWarning ?? this.ascentRateWarning,
       ascentRateCritical: ascentRateCritical ?? this.ascentRateCritical,
       showCeilingOnProfile: showCeilingOnProfile ?? this.showCeilingOnProfile,
+      showDecoStopsOnProfile:
+          showDecoStopsOnProfile ?? this.showDecoStopsOnProfile,
       safetyReviewEnabled: safetyReviewEnabled ?? this.safetyReviewEnabled,
       safetyReviewDisabledRules:
           safetyReviewDisabledRules ?? this.safetyReviewDisabledRules,
@@ -661,6 +675,8 @@ class AppSettings {
       endLimit: endLimit ?? this.endLimit,
       defaultNdlSource: defaultNdlSource ?? this.defaultNdlSource,
       defaultCeilingSource: defaultCeilingSource ?? this.defaultCeilingSource,
+      defaultDecoStopSource:
+          defaultDecoStopSource ?? this.defaultDecoStopSource,
       defaultTtsSource: defaultTtsSource ?? this.defaultTtsSource,
       defaultCnsSource: defaultCnsSource ?? this.defaultCnsSource,
       cnsCalculationMethod: cnsCalculationMethod ?? this.cnsCalculationMethod,
@@ -1104,6 +1120,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
+  Future<void> setShowDecoStopsOnProfile(bool value) async {
+    state = state.copyWith(showDecoStopsOnProfile: value);
+    await _saveSettings();
+  }
+
   Future<void> setSafetyReviewEnabled(bool value) async {
     state = state.copyWith(safetyReviewEnabled: value);
     await _saveSettings();
@@ -1194,6 +1215,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setDefaultCeilingSource(MetricDataSource value) async {
     state = state.copyWith(defaultCeilingSource: value);
+    await _saveSettings();
+  }
+
+  Future<void> setDefaultDecoStopSource(MetricDataSource value) async {
+    state = state.copyWith(defaultDecoStopSource: value);
     await _saveSettings();
   }
 
@@ -1639,6 +1665,10 @@ final ascentRateCriticalProvider = Provider<double>((ref) {
 
 final showCeilingOnProfileProvider = Provider<bool>((ref) {
   return ref.watch(settingsProvider.select((s) => s.showCeilingOnProfile));
+});
+
+final showDecoStopsOnProfileProvider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.showDecoStopsOnProfile));
 });
 
 final safetyReviewEnabledProvider = Provider<bool>((ref) {

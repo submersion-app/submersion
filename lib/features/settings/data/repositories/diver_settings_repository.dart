@@ -86,6 +86,7 @@ class DiverSettingsRepository {
               ascentRateWarning: Value(s.ascentRateWarning),
               ascentRateCritical: Value(s.ascentRateCritical),
               showCeilingOnProfile: Value(s.showCeilingOnProfile),
+              showDecoStopsOnProfile: Value(s.showDecoStopsOnProfile),
               safetyReviewEnabled: Value(s.safetyReviewEnabled),
               safetyReviewDisabledRules: Value(
                 _encodeDisabledRules(s.safetyReviewDisabledRules),
@@ -102,6 +103,7 @@ class DiverSettingsRepository {
               endLimit: Value(s.endLimit),
               defaultNdlSource: Value(s.defaultNdlSource.toInt()),
               defaultCeilingSource: Value(s.defaultCeilingSource.toInt()),
+              defaultDecoStopSource: Value(s.defaultDecoStopSource.toInt()),
               defaultTtsSource: Value(s.defaultTtsSource.toInt()),
               defaultCnsSource: Value(s.defaultCnsSource.toInt()),
               cnsCalculationMethod: Value(s.cnsCalculationMethod.dbValue),
@@ -232,6 +234,7 @@ class DiverSettingsRepository {
           ascentRateWarning: Value(settings.ascentRateWarning),
           ascentRateCritical: Value(settings.ascentRateCritical),
           showCeilingOnProfile: Value(settings.showCeilingOnProfile),
+          showDecoStopsOnProfile: Value(settings.showDecoStopsOnProfile),
           safetyReviewEnabled: Value(settings.safetyReviewEnabled),
           safetyReviewDisabledRules: Value(
             _encodeDisabledRules(settings.safetyReviewDisabledRules),
@@ -250,6 +253,7 @@ class DiverSettingsRepository {
           endLimit: Value(settings.endLimit),
           defaultNdlSource: Value(settings.defaultNdlSource.toInt()),
           defaultCeilingSource: Value(settings.defaultCeilingSource.toInt()),
+          defaultDecoStopSource: Value(settings.defaultDecoStopSource.toInt()),
           defaultTtsSource: Value(settings.defaultTtsSource.toInt()),
           defaultCnsSource: Value(settings.defaultCnsSource.toInt()),
           cnsCalculationMethod: Value(settings.cnsCalculationMethod.dbValue),
@@ -420,6 +424,7 @@ class DiverSettingsRepository {
       ascentRateWarning: row.ascentRateWarning,
       ascentRateCritical: row.ascentRateCritical,
       showCeilingOnProfile: row.showCeilingOnProfile,
+      showDecoStopsOnProfile: row.showDecoStopsOnProfile,
       safetyReviewEnabled: row.safetyReviewEnabled,
       safetyReviewDisabledRules: _decodeDisabledRules(
         row.safetyReviewDisabledRules,
@@ -439,6 +444,9 @@ class DiverSettingsRepository {
       endLimit: row.endLimit,
       defaultNdlSource: MetricDataSource.fromInt(row.defaultNdlSource),
       defaultCeilingSource: MetricDataSource.fromInt(row.defaultCeilingSource),
+      defaultDecoStopSource: MetricDataSource.fromInt(
+        row.defaultDecoStopSource,
+      ),
       defaultTtsSource: MetricDataSource.fromInt(row.defaultTtsSource),
       defaultCnsSource: MetricDataSource.fromInt(row.defaultCnsSource),
       cnsCalculationMethod: CnsCalculationMethod.fromDbValue(

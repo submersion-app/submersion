@@ -106,4 +106,45 @@ void main() {
       expect(row.cnsCalculationMethod, 'shearwater');
     },
   );
+
+  test(
+    'applies a pre-v133 diver_settings payload missing deco stop keys',
+    () async {
+      await db.customStatement('PRAGMA foreign_keys = OFF');
+
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await db
+          .into(db.diverSettings)
+          .insert(
+            DiverSettingsCompanion.insert(
+              id: 'ds3',
+              diverId: 'diver-3',
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+      final exported = await serializer.fetchRecord('diverSettings', 'ds3');
+      expect(exported, isNotNull);
+
+      // A payload exported before v133 has neither key. Both columns are NOT
+      // NULL, so an unseeded import would throw in DiverSetting.fromJson.
+      final legacy = Map<String, dynamic>.from(exported!)
+        ..remove('showDecoStopsOnProfile')
+        ..remove('defaultDecoStopSource');
+
+      await (db.delete(
+        db.diverSettings,
+      )..where((t) => t.id.equals('ds3'))).go();
+
+      // Must not throw on the missing non-nullable columns.
+      await serializer.upsertRecord('diverSettings', legacy);
+
+      final row = await (db.select(
+        db.diverSettings,
+      )..where((t) => t.id.equals('ds3'))).getSingle();
+      // The v133 columns hydrate to their defaults rather than throwing.
+      expect(row.showDecoStopsOnProfile, isTrue);
+      expect(row.defaultDecoStopSource, 1);
+    },
+  );
 }
