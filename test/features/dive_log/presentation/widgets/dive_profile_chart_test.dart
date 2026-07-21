@@ -6,6 +6,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/deco/ascent_rate_calculator.dart';
+import 'package:submersion/features/dive_log/data/services/profile_surface_lead_in.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/app_colors.dart';
 
@@ -521,6 +522,39 @@ void main() {
 
       expect(depthBar.spots.length, profile.length);
       expect(depthBar.spots.first.x, 0);
+    });
+
+    testWidgets('a profile starting at t=0 keeps its original smoothing', (
+      tester,
+    ) async {
+      // The lead-in changes curve smoothing to stop the spline overshooting
+      // that vertex. A dive that needs no lead-in must be rendered exactly as
+      // before, so the fix cannot alter dives it does not apply to.
+      final atZero = _makeProfile(points: 8);
+      expect(atZero.first.timestamp, 0);
+
+      await tester.pumpWidget(_buildChart(profile: atZero));
+      await tester.pumpAndSettle();
+      final zeroBars = tester
+          .widget<LineChart>(find.byType(LineChart).first)
+          .data
+          .lineBarsData;
+      for (final bar in zeroBars) {
+        expect(bar.preventCurveOverShooting, isFalse);
+      }
+
+      // The same chart on a profile that does need one turns it on.
+      final offset = [
+        for (var i = 1; i <= 8; i++)
+          DiveProfilePoint(timestamp: i * 30, depth: i * 2.0),
+      ];
+      await tester.pumpWidget(_buildChart(profile: offset));
+      await tester.pumpAndSettle();
+      final offsetBars = tester
+          .widget<LineChart>(find.byType(LineChart).first)
+          .data
+          .lineBarsData;
+      expect(offsetBars.any((b) => b.preventCurveOverShooting), isTrue);
     });
 
     testWidgets('analysis curves are extended to t=0 at their first value', (
@@ -1820,69 +1854,46 @@ void main() {
     });
   });
 
-  group('DiveProfileChart.shouldDrawSurfaceLeadIn', () {
+  group('shouldDrawSurfaceLeadIn', () {
     List<DiveProfilePoint> profileFrom(List<int> timestamps) => [
       for (final t in timestamps) DiveProfilePoint(timestamp: t, depth: 1.0),
     ];
 
     test('true when the first sample sits one interval in', () {
       // The Subsurface/DC-XML case from #679: 10s sampling, first sample at 10.
-      expect(
-        DiveProfileChart.shouldDrawSurfaceLeadIn(profileFrom([10, 20, 30, 40])),
-        isTrue,
-      );
+      expect(shouldDrawSurfaceLeadIn(profileFrom([10, 20, 30, 40])), isTrue);
     });
 
     test('false when the profile already starts at zero', () {
       // Garmin FIT samples at t=0, so there is no gap to close.
-      expect(
-        DiveProfileChart.shouldDrawSurfaceLeadIn(profileFrom([0, 1, 2, 3])),
-        isFalse,
-      );
+      expect(shouldDrawSurfaceLeadIn(profileFrom([0, 1, 2, 3])), isFalse);
     });
 
     test('true for a one-second sampling computer', () {
-      expect(
-        DiveProfileChart.shouldDrawSurfaceLeadIn(profileFrom([1, 2, 3, 4])),
-        isTrue,
-      );
+      expect(shouldDrawSurfaceLeadIn(profileFrom([1, 2, 3, 4])), isTrue);
     });
 
     test('false when the gap exceeds one sample interval', () {
       // A trimmed or merged profile starting well after t=0: drawing a descent
       // across that span would fabricate dive time that was never recorded.
       expect(
-        DiveProfileChart.shouldDrawSurfaceLeadIn(
-          profileFrom([600, 610, 620, 630]),
-        ),
+        shouldDrawSurfaceLeadIn(profileFrom([600, 610, 620, 630])),
         isFalse,
       );
     });
 
     test('boundary: exactly one interval yes, one second more no', () {
-      expect(
-        DiveProfileChart.shouldDrawSurfaceLeadIn(profileFrom([10, 20, 30])),
-        isTrue,
-      );
-      expect(
-        DiveProfileChart.shouldDrawSurfaceLeadIn(profileFrom([11, 21, 31])),
-        isFalse,
-      );
+      expect(shouldDrawSurfaceLeadIn(profileFrom([10, 20, 30])), isTrue);
+      expect(shouldDrawSurfaceLeadIn(profileFrom([11, 21, 31])), isFalse);
     });
 
     test('false for profiles too short to establish an interval', () {
-      expect(DiveProfileChart.shouldDrawSurfaceLeadIn(const []), isFalse);
-      expect(
-        DiveProfileChart.shouldDrawSurfaceLeadIn(profileFrom([10])),
-        isFalse,
-      );
+      expect(shouldDrawSurfaceLeadIn(const []), isFalse);
+      expect(shouldDrawSurfaceLeadIn(profileFrom([10])), isFalse);
     });
 
     test('false when samples share a timestamp (no usable interval)', () {
-      expect(
-        DiveProfileChart.shouldDrawSurfaceLeadIn(profileFrom([10, 10, 20])),
-        isFalse,
-      );
+      expect(shouldDrawSurfaceLeadIn(profileFrom([10, 10, 20])), isFalse);
     });
   });
 
