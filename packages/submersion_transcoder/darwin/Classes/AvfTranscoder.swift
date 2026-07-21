@@ -1,7 +1,9 @@
 import AVFoundation
 import CoreMedia
 
-enum AvfTranscodeError: Error { case noVideoTrack, readerFailed, writerFailed(String) }
+enum AvfTranscodeError: Error {
+  case noVideoTrack, readerFailed(String), writerFailed(String)
+}
 
 // LocalizedError so the message that reaches Dart (via localizedDescription)
 // carries the associated detail; a bare Swift enum's localizedDescription is a
@@ -10,7 +12,7 @@ extension AvfTranscodeError: LocalizedError {
   var errorDescription: String? {
     switch self {
     case .noVideoTrack: return "No video track in the source asset"
-    case .readerFailed: return "AVAssetReader failed to start"
+    case .readerFailed(let detail): return "AVAssetReader failed: \(detail)"
     case .writerFailed(let detail): return "AVAssetWriter failed: \(detail)"
     }
   }
@@ -119,8 +121,8 @@ final class AvfTranscoder {
     }
 
     guard reader.startReading() else {
-      throw AvfTranscodeError.writerFailed(
-        "reader: \(reader.error?.localizedDescription ?? "unknown")")
+      throw AvfTranscodeError.readerFailed(
+        "start: \(reader.error?.localizedDescription ?? "unknown")")
     }
     guard writer.startWriting() else {
       throw AvfTranscodeError.writerFailed(
@@ -174,8 +176,8 @@ final class AvfTranscoder {
 
     group.wait()
     if reader.status == .failed {
-      throw AvfTranscodeError.writerFailed(
-        "reader failed: \(reader.error?.localizedDescription ?? "unknown")")
+      throw AvfTranscodeError.readerFailed(
+        reader.error?.localizedDescription ?? "unknown")
     }
     let sem = DispatchSemaphore(value: 0)
     writer.finishWriting { sem.signal() }
