@@ -70,7 +70,17 @@ class _SyncConnectStepState extends ConsumerState<SyncConnectStep> {
       await realignActiveDiverAfterDataReplace(
         ref.read(sharedPreferencesProvider),
       );
-      final hasDivers = await ref.read(hasAnyDiversProvider.future);
+      // The pull wrote divers straight into the DB. Consult the repository
+      // directly for the "did a library arrive?" decision: the cached diver
+      // providers can still report empty here because their pause-aware
+      // self-invalidation (Ref.invalidateSelfWhen) does not fire while nothing
+      // is listening to them in the wizard, so ref.read(hasAnyDiversProvider)
+      // would return the stale startup value and wrongly show "no library".
+      // Invalidate the cache too, so the dashboard redirect's later
+      // hasAnyDiversProvider read reflects the freshly pulled rows.
+      ref.invalidate(allDiversProvider);
+      final hasDivers =
+          (await ref.read(diverRepositoryProvider).getAllDivers()).isNotEmpty;
       if (mounted) {
         setState(() => _phase = hasDivers ? _PullPhase.done : _PullPhase.empty);
       }

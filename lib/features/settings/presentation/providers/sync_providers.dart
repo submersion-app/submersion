@@ -1164,6 +1164,21 @@ class SyncNotifier extends StateNotifier<SyncState> {
     state = const SyncState();
   }
 
+  /// Turns cloud sync off as part of a database reset.
+  ///
+  /// Without this, wiping the local database is immediately undone: the
+  /// post-reset launch sync ([SubmersionApp]'s `_maybeSyncOnLaunch`) merges
+  /// the entire cloud library back in, resurrecting the data the user just
+  /// cleared. Disabling auto-sync closes that launch/resume path and signing
+  /// out disconnects the provider so a manual sync cannot re-pull either.
+  ///
+  /// The cloud library itself is left intact -- reconnecting sync re-adopts
+  /// it -- so this is a local-only reset, not a fleet-wide wipe.
+  Future<void> disableForDatabaseReset() async {
+    await _ref.read(syncBehaviorProvider.notifier).setAutoSyncEnabled(false);
+    await signOut();
+  }
+
   /// Reset sync state
   ///
   /// Also adopts a brand-new device identity. Reset is the user-facing
