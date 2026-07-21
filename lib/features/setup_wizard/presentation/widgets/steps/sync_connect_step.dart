@@ -70,6 +70,9 @@ class _SyncConnectStepState extends ConsumerState<SyncConnectStep> {
       await realignActiveDiverAfterDataReplace(
         ref.read(sharedPreferencesProvider),
       );
+      // The step can be disposed mid-pull (user backs out during the spinner);
+      // touching ref after that throws, so bail before invalidating/reading.
+      if (!mounted) return;
       // The pull wrote divers straight into the DB. Consult the repository
       // directly for the "did a library arrive?" decision: the cached diver
       // providers can still report empty here because their pause-aware
