@@ -88,4 +88,29 @@ void main() {
       throwsA(isA<TranscodeException>()),
     );
   });
+
+  test('a null-message PlatformException falls back to details', () async {
+    messenger.setMockMethodCallHandler(methods, (call) async {
+      throw PlatformException(
+        code: 'transcode_failed',
+        message: null,
+        details: 'writer failed: disk full',
+      );
+    });
+    try {
+      await DarwinAvfEngine().transcode(
+        source: File('/in.mov'),
+        output: File('/out.mp4'),
+        target: const TranscodeTarget(
+          maxHeight: 720,
+          videoBitrateKbps: 4000,
+          audioBitrateKbps: 128,
+        ),
+      );
+      fail('expected a TranscodeException');
+    } on TranscodeException catch (e) {
+      expect(e.message, contains('writer failed: disk full'));
+      expect(e.message, isNot(contains('null')));
+    }
+  });
 }

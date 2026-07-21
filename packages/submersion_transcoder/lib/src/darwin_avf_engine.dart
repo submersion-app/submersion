@@ -81,7 +81,10 @@ class DarwinAvfEngine implements TranscodeEngine {
         'progressId': progressId,
       });
     } on PlatformException catch (e) {
-      throw TranscodeException('AVFoundation transcode failed: ${e.message}');
+      // message can be null; fall back to details/code so the failure always
+      // carries something identifying rather than "... failed: null".
+      final detail = e.message ?? e.details?.toString() ?? e.code;
+      throw TranscodeException('AVFoundation transcode failed: $detail');
     } on MissingPluginException {
       throw const TranscodeException('transcoder plugin not registered');
     } finally {

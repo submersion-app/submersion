@@ -34,7 +34,12 @@ public class SubmersionTranscoderPlugin: NSObject, FlutterPlugin, FlutterStreamH
         result(nil)
         return
       }
-      result(AvfTranscoder.probe(path: path))
+      // Building an AVAsset and reading track metadata can be slow for large
+      // videos; keep it off the platform (main) thread so the UI never blocks.
+      DispatchQueue.global(qos: .userInitiated).async {
+        let probe = AvfTranscoder.probe(path: path)
+        DispatchQueue.main.async { result(probe) }
+      }
     case "transcode":
       guard let a = call.arguments as? [String: Any],
         let source = a["source"] as? String,

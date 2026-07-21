@@ -3,6 +3,19 @@ import CoreMedia
 
 enum AvfTranscodeError: Error { case noVideoTrack, readerFailed, writerFailed(String) }
 
+// LocalizedError so the message that reaches Dart (via localizedDescription)
+// carries the associated detail; a bare Swift enum's localizedDescription is a
+// generic "operation couldn't be completed" string that drops the payload.
+extension AvfTranscodeError: LocalizedError {
+  var errorDescription: String? {
+    switch self {
+    case .noVideoTrack: return "No video track in the source asset"
+    case .readerFailed: return "AVAssetReader failed to start"
+    case .writerFailed(let detail): return "AVAssetWriter failed: \(detail)"
+    }
+  }
+}
+
 final class AvfTranscoder {
   /// AVAsset-based probe (no ffprobe on Apple). Returns nil for a
   /// non-video / unreadable asset.
@@ -114,7 +127,11 @@ final class AvfTranscoder {
       group.enter()
       input.requestMediaDataWhenReady(on: queue) {
         while input.isReadyForMoreMediaData {
-          guard reader.status == .reading,
+          // Any terminal condition -- writer error, reader error, or
+          // end-of-samples -- must finish the input and leave the group, or
+          // requestMediaDataWhenReady stops calling back and group.wait()
+          // deadlocks.
+          guard writer.status == .writing, reader.status == .reading,
             let sample = out.copyNextSampleBuffer()
           else {
             input.markAsFinished()
@@ -126,7 +143,14 @@ final class AvfTranscoder {
               CMSampleBufferGetPresentationTimeStamp(sample))
             onProgress(min(1.0, pts / durationSec))
           }
-          input.append(sample)
+          // A false return means the writer failed; stop pumping so the group
+          // completes and writer.status surfaces the error below (ignoring it
+          // would silently drop samples until finishWriting).
+          if !input.append(sample) {
+            input.markAsFinished()
+            group.leave()
+            return
+          }
         }
       }
     }
