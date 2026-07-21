@@ -83,14 +83,17 @@ class MediaUploadPipeline {
       await _queue.markDone(entry.id);
       return UploadOutcome.skippedIneligible;
     }
-    final alreadyUploaded =
-        item.remoteUploadedAt != null ||
-        item.remoteCompressedUploadedAt != null;
-    if (_isThumbOnly(item)
-        ? item.remoteThumbUploadedAt != null
-        : alreadyUploaded) {
-      await _queue.markDone(entry.id);
-      return UploadOutcome.deduplicated;
+    final isOverride = entry.overrideLevel != null;
+    if (!isOverride) {
+      final alreadyUploaded =
+          item.remoteUploadedAt != null ||
+          item.remoteCompressedUploadedAt != null;
+      if (_isThumbOnly(item)
+          ? item.remoteThumbUploadedAt != null
+          : alreadyUploaded) {
+        await _queue.markDone(entry.id);
+        return UploadOutcome.deduplicated;
+      }
     }
 
     File? staged;
@@ -148,14 +151,22 @@ class MediaUploadPipeline {
       // instead of the original. A null rendition (Original level, already
       // under the ceiling, undecodable, or a video with no transcoder in
       // Phase A) falls through to the untouched-original upload below.
-      final level = await _policies.qualityFor(item.mediaType);
+      // An override entry forces its chosen level and replaces whatever the
+      // store currently holds for this item.
+      final hadOriginal = item.remoteUploadedAt != null;
+      final hadCompressed = item.remoteCompressedUploadedAt != null;
+      final level = isOverride
+          ? MediaUploadQuality.values.byName(entry.overrideLevel!)
+          : await _policies.qualityFor(item.mediaType);
       final rendition = await _renditionFor(item, staged, level);
       if (rendition != null) {
         final renditionKey = StoreKeys.renditionKey(
           digest.hash,
           ext: rendition.ext,
         );
-        if (await _store.head(renditionKey) == null) {
+        // Override forces a rewrite (the key ignores quality, so a level
+        // change lands at the same key); otherwise head() dedups.
+        if (isOverride || await _store.head(renditionKey) == null) {
           await _store.putFile(
             renditionKey,
             rendition.file,
@@ -169,6 +180,19 @@ class MediaUploadPipeline {
           sizeBytes: rendition.sizeBytes,
         );
         await _cleanupRendition(rendition.file);
+        // Namespace switch (override original -> compressed): drop the now
+        // unreferenced original object.
+        if (hadOriginal) {
+          await _mediaRepository.clearRemoteUploaded(item.id);
+          if (await _mediaRepository.countRowsWithOriginal(digest.hash) == 0) {
+            await _store.delete(
+              StoreKeys.objectKey(
+                digest.hash,
+                extension: StoreKeys.extensionFor(item.originalFilename),
+              ),
+            );
+          }
+        }
         await _queue.markDone(entry.id);
         return UploadOutcome.uploaded;
       }
@@ -176,7 +200,7 @@ class MediaUploadPipeline {
       final extension = StoreKeys.extensionFor(item.originalFilename);
       final key = StoreKeys.objectKey(digest.hash, extension: extension);
       final existing = await _store.head(key);
-      if (existing == null) {
+      if (isOverride || existing == null) {
         // Resume state survives failures on the queue row; content
         // addressing makes replaying it against a re-materialized staging
         // copy safe (identical bytes, identical part boundaries).
@@ -198,8 +222,21 @@ class MediaUploadPipeline {
       }
 
       await _mediaRepository.stampRemoteUploaded(item.id, uploadedAt: _now());
+      // Namespace switch (override compressed -> original): drop the now
+      // unreferenced rendition object.
+      if (hadCompressed) {
+        await _mediaRepository.clearRemoteCompressed(item.id);
+        if (await _mediaRepository.countRowsWithRendition(digest.hash) == 0) {
+          await _store.delete(
+            StoreKeys.renditionKey(
+              digest.hash,
+              ext: item.mediaType == MediaType.video ? 'mp4' : 'jpg',
+            ),
+          );
+        }
+      }
       await _queue.markDone(entry.id);
-      return existing == null
+      return (isOverride || existing == null)
           ? UploadOutcome.uploaded
           : UploadOutcome.deduplicated;
     } on Exception catch (e, stackTrace) {
