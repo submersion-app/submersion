@@ -30,4 +30,36 @@ void main() {
   test('returns null on malformed json', () {
     expect(parseFfprobeJson('not json'), isNull);
   });
+
+  test('returns null on an unexpected json shape rather than throwing', () {
+    // Valid JSON, wrong shapes: each must fall back (upload original), never
+    // throw a TypeError/CastError.
+    expect(parseFfprobeJson('[]'), isNull, reason: 'root is a list');
+    expect(parseFfprobeJson('42'), isNull, reason: 'root is a scalar');
+    expect(
+      parseFfprobeJson('{"streams": {"0": {}}}'),
+      isNull,
+      reason: 'streams is an object, not a list',
+    );
+    expect(
+      parseFfprobeJson('{"streams": ["not-an-object"]}'),
+      isNull,
+      reason: 'stream entry is not a map',
+    );
+    expect(
+      parseFfprobeJson(
+        '{"streams": [{"codec_type": "video", "width": "1920", "height": 1080}]}',
+      ),
+      isNull,
+      reason: 'width is a string, not an int',
+    );
+    expect(
+      parseFfprobeJson(
+        '{"streams": [{"codec_type": "video", "width": 1920, "height": 1080}], '
+        '"format": "not-a-map"}',
+      ),
+      isNotNull,
+      reason: 'a non-map format degrades to zero duration/bitrate, not a throw',
+    );
+  });
 }

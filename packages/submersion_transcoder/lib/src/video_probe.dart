@@ -16,29 +16,43 @@ class VideoProbe {
 
 /// Parses `ffprobe -print_format json -show_format -show_streams` output.
 /// Returns null for anything that is not a probeable video (malformed JSON,
-/// no video stream, missing dimensions) — the caller uploads the original.
+/// an unexpected JSON shape, no video stream, missing dimensions) — the
+/// caller uploads the original. Parsed defensively with type checks so an
+/// unexpected shape falls back rather than throwing TypeError/CastError.
 VideoProbe? parseFfprobeJson(String json) {
+  final Object? decoded;
   try {
-    final root = jsonDecode(json) as Map<String, dynamic>;
-    final streams = (root['streams'] as List<dynamic>? ?? const [])
-        .cast<Map<String, dynamic>>();
-    final video = streams.firstWhere(
-      (s) => s['codec_type'] == 'video',
-      orElse: () => const {},
-    );
-    final width = video['width'] as int?;
-    final height = video['height'] as int?;
-    if (width == null || height == null) return null;
-    final format = root['format'] as Map<String, dynamic>? ?? const {};
-    final durationSec = double.tryParse('${format['duration']}') ?? 0;
-    final bitRateBps = int.tryParse('${format['bit_rate']}') ?? 0;
-    return VideoProbe(
-      width: width,
-      height: height,
-      durationMs: (durationSec * 1000).round(),
-      overallBitrateKbps: (bitRateBps / 1000).round(),
-    );
+    decoded = jsonDecode(json);
   } on FormatException {
     return null;
   }
+  if (decoded is! Map<String, dynamic>) return null;
+
+  final streams = decoded['streams'];
+  if (streams is! List) return null;
+  Map<String, dynamic>? video;
+  for (final stream in streams) {
+    if (stream is Map<String, dynamic> && stream['codec_type'] == 'video') {
+      video = stream;
+      break;
+    }
+  }
+  if (video == null) return null;
+
+  final width = video['width'];
+  final height = video['height'];
+  if (width is! int || height is! int) return null;
+
+  final format = decoded['format'];
+  final formatMap = format is Map<String, dynamic>
+      ? format
+      : const <String, dynamic>{};
+  final durationSec = double.tryParse('${formatMap['duration']}') ?? 0;
+  final bitRateBps = int.tryParse('${formatMap['bit_rate']}') ?? 0;
+  return VideoProbe(
+    width: width,
+    height: height,
+    durationMs: (durationSec * 1000).round(),
+    overallBitrateKbps: (bitRateBps / 1000).round(),
+  );
 }

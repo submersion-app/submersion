@@ -10,6 +10,9 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/database_version_exception.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart'
+    as domain;
 
 class _FakeLocation implements DatabaseLocationService {
   _FakeLocation(this.path);
@@ -179,6 +182,27 @@ void main() {
       expect(diveTypes.read<int>('c'), greaterThan(0));
     },
   );
+
+  test('resetDatabase wipes user rows (divers), not just re-seeds', () async {
+    await DatabaseService.instance.initialize(
+      locationService: _FakeLocation(dbPath),
+    );
+    await DatabaseService.instance.database
+        .customSelect('SELECT 1')
+        .getSingle();
+
+    final now = DateTime.now();
+    await DiverRepository().createDiver(
+      domain.Diver(id: '', name: 'Old Profile', createdAt: now, updatedAt: now),
+    );
+    expect(await DiverRepository().getAllDivers(), isNotEmpty);
+
+    final backupPath = p.join(tempDir.path, 'reset-backup.db');
+    await DatabaseService.instance.resetDatabase(backupPath: backupPath);
+
+    // After a reset the old profiles must be gone.
+    expect(await DiverRepository().getAllDivers(), isEmpty);
+  });
 
   test('a failing migration ladder closes the migrator and rethrows', () async {
     // Seed a current-schema file, then rewind user_version far back so the

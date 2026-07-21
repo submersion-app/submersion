@@ -26,16 +26,8 @@ void main() {
     updatedAt: now,
   );
 
-  EquipmentItem gear(String id, String name, {bool overdue = false}) =>
-      EquipmentItem(
-        id: id,
-        name: name,
-        type: EquipmentType.values.first,
-        lastServiceDate: overdue
-            ? now.subtract(const Duration(days: 400))
-            : null,
-        serviceIntervalDays: overdue ? 365 : null,
-      );
+  EquipmentItem gear(String id, String name) =>
+      EquipmentItem(id: id, name: name, type: EquipmentType.values.first);
 
   test('check and value items snapshot 1:1 with blank id/sessionId', () {
     final out = SessionItemComposer.compose(
@@ -99,9 +91,10 @@ void main() {
     final out = SessionItemComposer.compose(
       templateItems: [tItem(0, type: PreDiveItemType.equipmentSet)],
       equipmentSet: set,
-      equipmentItems: [gear('g1', 'Old Reg', overdue: true)],
+      equipmentItems: [gear('g1', 'Old Reg')],
       now: now,
       serviceOverdueNote: 'Service overdue',
+      overdueEquipmentIds: {'g1'},
     );
     expect(out.single.state, PreDiveItemState.flagged);
     expect(out.single.note, 'Service overdue');

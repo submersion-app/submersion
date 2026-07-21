@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:submersion_transcoder/src/linux_ffmpeg_engine.dart';
 import 'package:submersion_transcoder/src/transcode_target.dart';
 import 'package:submersion_transcoder/src/video_probe.dart';
 
@@ -30,8 +29,3 @@ abstract class TranscodeEngine {
     void Function(double fraction)? onProgress,
   });
 }
-
-/// The engine for the current platform, or null when none exists yet.
-/// B1 ships Linux only; darwin/Android/Windows arrive in later plans.
-TranscodeEngine? engineForThisPlatform() =>
-    Platform.isLinux ? LinuxFfmpegEngine() : null;

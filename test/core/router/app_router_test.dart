@@ -8,6 +8,7 @@ import 'package:submersion/core/router/app_router.dart';
 import 'package:submersion/features/checklists/presentation/pages/checklist_template_edit_page.dart';
 import 'package:submersion/features/checklists/presentation/pages/checklist_templates_page.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/planner/presentation/pages/plan_canvas_page.dart';
 import 'package:submersion/features/safety/presentation/pages/incident_edit_page.dart';
 import 'package:submersion/features/safety/presentation/pages/incidents_list_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
@@ -542,6 +543,104 @@ void main() {
             editRoute!.builder!(context, editState) as IncidentEditPage;
         expect(editWidget.incidentId, 'inc-1');
         expect(editWidget.diveId, isNull);
+      },
+    );
+  });
+
+  group('dive planner back-navigation (editPlan not nested)', () {
+    // Regression: opening a saved plan navigated to
+    // /planning/dive-planner/:planId, which was declared as a CHILD of the
+    // 'dive-planner' route. go_router builds one page per matched route
+    // segment, so the stack became [PlanningPage, PlanCanvasPage(),
+    // PlanCanvasPage(planId)] -- two canvas pages. Both read the same shared
+    // divePlanNotifierProvider, so the first Back press only revealed the
+    // identical parent canvas, forcing a second press. The fix makes editPlan
+    // a SIBLING of divePlanner (path 'dive-planner/:planId') so exactly one
+    // canvas page is built.
+
+    test('editPlan is a sibling of divePlanner, not a nested child', () {
+      final planning = _findRouteByName(
+        router.configuration.routes,
+        'planning',
+      );
+      expect(planning, isNotNull);
+
+      // editPlan lives directly under /planning (sibling of divePlanner).
+      final editPlan = planning!.routes.whereType<GoRoute>().firstWhere(
+        (r) => r.name == 'editPlan',
+        orElse: () =>
+            throw StateError('editPlan not a direct child of planning'),
+      );
+      expect(editPlan.path, 'dive-planner/:planId');
+
+      // The divePlanner subtree must NOT contain the plan-id route anymore.
+      final divePlanner = _findRouteByName(
+        router.configuration.routes,
+        'divePlanner',
+      );
+      expect(divePlanner, isNotNull);
+      final nestedNames = _collectRouteNames(divePlanner!.routes);
+      expect(nestedNames, isNot(contains('editPlan')));
+      final nestedPaths = _collectRoutePaths(divePlanner.routes);
+      expect(nestedPaths, isNot(contains(':planId')));
+    });
+
+    test('opening a saved plan matches only editPlan (single canvas page)', () {
+      final match = router.configuration.findMatch(
+        Uri.parse('/planning/dive-planner/plan-123'),
+      );
+      expect(match.fullPath, '/planning/dive-planner/:planId');
+    });
+
+    test('static sub-routes still win over the :planId sibling', () {
+      // Precedence guard: 'compare' / 'chart' / 'no-fly' remain children of
+      // divePlanner and must resolve before the dynamic sibling.
+      expect(
+        router.configuration
+            .findMatch(Uri.parse('/planning/dive-planner/compare?ids=a,b'))
+            .fullPath,
+        '/planning/dive-planner/compare',
+      );
+      expect(
+        router.configuration
+            .findMatch(Uri.parse('/planning/dive-planner/chart'))
+            .fullPath,
+        '/planning/dive-planner/chart',
+      );
+    });
+
+    testWidgets(
+      'editPlan builder threads planId; divePlanner builds a new plan',
+      (tester) async {
+        await tester.pumpWidget(const MaterialApp(home: SizedBox()));
+        final context = tester.element(find.byType(SizedBox));
+        final config = router.configuration;
+
+        final editPlan = _findRouteByName(config.routes, 'editPlan');
+        final editState = GoRouterState(
+          config,
+          uri: Uri.parse('/planning/dive-planner/plan-123'),
+          matchedLocation: '/planning/dive-planner/plan-123',
+          fullPath: '/planning/dive-planner/:planId',
+          pathParameters: const {'planId': 'plan-123'},
+          pageKey: const ValueKey('/planning/dive-planner/plan-123'),
+        );
+        final editWidget =
+            editPlan!.builder!(context, editState) as PlanCanvasPage;
+        expect(editWidget.planId, 'plan-123');
+
+        final divePlanner = _findRouteByName(config.routes, 'divePlanner');
+        final newState = GoRouterState(
+          config,
+          uri: Uri.parse('/planning/dive-planner'),
+          matchedLocation: '/planning/dive-planner',
+          fullPath: '/planning/dive-planner',
+          pathParameters: const {},
+          pageKey: const ValueKey('/planning/dive-planner'),
+        );
+        final newWidget =
+            divePlanner!.builder!(context, newState) as PlanCanvasPage;
+        expect(newWidget.planId, isNull);
       },
     );
   });

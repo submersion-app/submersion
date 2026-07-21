@@ -4634,7 +4634,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_edit_label_diveType => 'Type de plongee';
 
   @override
-  String get diveLog_edit_label_diveTypes => 'Dive Types';
+  String get diveLog_edit_label_diveTypes => 'Types de plongée';
 
   @override
   String get diveLog_edit_label_diveNumber => 'No. de plongee';
@@ -8360,6 +8360,51 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveSites_summary_stat_withGps => 'Avec GPS';
 
   @override
+  String get diveType_builtin_altitude => 'Altitude';
+
+  @override
+  String get diveType_builtin_boat => 'Depuis un bateau';
+
+  @override
+  String get diveType_builtin_cave => 'Grotte';
+
+  @override
+  String get diveType_builtin_cavern => 'Caverne';
+
+  @override
+  String get diveType_builtin_deep => 'Profonde';
+
+  @override
+  String get diveType_builtin_drift => 'Dérive';
+
+  @override
+  String get diveType_builtin_freedive => 'Apnée';
+
+  @override
+  String get diveType_builtin_ice => 'Sous glace';
+
+  @override
+  String get diveType_builtin_liveaboard => 'Croisière plongée';
+
+  @override
+  String get diveType_builtin_night => 'Nuit';
+
+  @override
+  String get diveType_builtin_recreational => 'Loisir';
+
+  @override
+  String get diveType_builtin_shore => 'Depuis la côte';
+
+  @override
+  String get diveType_builtin_technical => 'Technique';
+
+  @override
+  String get diveType_builtin_training => 'Formation';
+
+  @override
+  String get diveType_builtin_wreck => 'Épave';
+
+  @override
   String get diveTypes_addDialog_addButton => 'Ajouter';
 
   @override
@@ -9805,6 +9850,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_serviceClocks_empty => 'Aucun compteur d\'entretien';
+
+  @override
+  String get equipment_serviceClocks_unconfigured =>
+      'Aucun intervalle défini - appuyez pour configurer';
 
   @override
   String equipment_serviceClocks_dueOn(String date) {

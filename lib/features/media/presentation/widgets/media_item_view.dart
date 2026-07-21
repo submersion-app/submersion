@@ -127,7 +127,17 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
         }
         final data = snapshot.data!;
         return switch (data) {
-          FileData(file: final f) => Image.file(f, fit: widget.fit),
+          // A local video resolves to the raw video file, which Image.file
+          // cannot decode. Show a placeholder instead of surfacing an
+          // "Invalid image data" exception. (Connector video posters arrive as
+          // BytesData JPEGs below and render normally.)
+          FileData() when widget.item.isVideo =>
+            const _VideoThumbnailPlaceholder(),
+          FileData(file: final f) => Image.file(
+            f,
+            fit: widget.fit,
+            errorBuilder: _imageError,
+          ),
           NetworkData(url: final u, headers: final h) => CachedNetworkImage(
             imageUrl: u.toString(),
             httpHeaders: h,
@@ -137,7 +147,11 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
               data: UnavailableData(kind: UnavailableKind.networkError),
             ),
           ),
-          BytesData(bytes: final b) => Image.memory(b, fit: widget.fit),
+          BytesData(bytes: final b) => Image.memory(
+            b,
+            fit: widget.fit,
+            errorBuilder: _imageError,
+          ),
           UnavailableData() => UnavailableMediaPlaceholder(data: data),
         };
       },
@@ -153,4 +167,35 @@ class _ShimmerThumbnail extends StatelessWidget {
       color: Theme.of(context).colorScheme.surfaceContainerHighest,
     );
   }
+}
+
+/// Neutral tile shown in place of a decodable image for local videos (whose
+/// raw bytes Image.file/Image.memory cannot render). The grid stacks its own
+/// videocam badge over this.
+class _VideoThumbnailPlaceholder extends StatelessWidget {
+  const _VideoThumbnailPlaceholder();
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return ColoredBox(
+      color: scheme.surfaceContainerHighest,
+      child: Center(
+        child: Icon(Icons.movie_outlined, color: scheme.onSurfaceVariant),
+      ),
+    );
+  }
+}
+
+/// Graceful fallback when image bytes fail to decode (corrupt/unsupported), so
+/// the raw "Invalid image data" exception never reaches the UI. Shows a
+/// broken-image tile rather than the "file not found" placeholder: the file is
+/// present, it just couldn't be rendered.
+Widget _imageError(BuildContext context, Object error, StackTrace? stack) {
+  final scheme = Theme.of(context).colorScheme;
+  return ColoredBox(
+    color: scheme.surfaceContainerHighest,
+    child: Center(
+      child: Icon(Icons.broken_image_outlined, color: scheme.onSurfaceVariant),
+    ),
+  );
 }

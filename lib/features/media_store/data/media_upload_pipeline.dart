@@ -156,9 +156,11 @@ class MediaUploadPipeline {
       // store currently holds for this item.
       final hadOriginal = item.remoteUploadedAt != null;
       final hadCompressed = item.remoteCompressedUploadedAt != null;
-      final level = isOverride
-          ? MediaUploadQuality.values.byName(entry.overrideLevel!)
-          : await _policies.qualityFor(item.mediaType);
+      // A corrupt or future-enum override string must not fail the upload:
+      // fall back to the device's configured level so the item still uploads.
+      final level =
+          (isOverride ? _tryParseQuality(entry.overrideLevel!) : null) ??
+          await _policies.qualityFor(item.mediaType);
       rendition = await _renditionFor(item, staged, level, digest.hash);
       if (rendition != null) {
         final renditionKey = StoreKeys.renditionKey(
@@ -180,12 +182,8 @@ class MediaUploadPipeline {
           level: level.name,
           sizeBytes: rendition.sizeBytes,
         );
-        if (item.mediaType == MediaType.video) {
-          // Spec section 8: the deterministic rendition (and any stale
-          // same-hash siblings from a level change) go away only once the
-          // upload is confirmed.
-          await _cache.deleteTranscodeArtifacts(digest.hash);
-        } else {
+        if (item.mediaType != MediaType.video) {
+          // Photos re-compress cheaply, so drop the temp rendition now.
           await _cleanupRendition(rendition.file);
         }
         // Namespace switch (override original -> compressed): drop the now
@@ -193,15 +191,24 @@ class MediaUploadPipeline {
         if (hadOriginal) {
           await _mediaRepository.clearRemoteUploaded(item.id);
           if (await _mediaRepository.countRowsWithOriginal(digest.hash) == 0) {
-            await _store.delete(
+            await _bestEffortDelete(
               StoreKeys.objectKey(
                 digest.hash,
                 extension: StoreKeys.extensionFor(item.originalFilename),
               ),
+              'abandoned original',
             );
           }
         }
         await _queue.markDone(entry.id);
+        // Spec section 8: delete the deterministic transcode (and any stale
+        // same-hash siblings from a level change) only AFTER markDone. It is
+        // expensive to recreate, so removing it before the upload is committed
+        // would force a re-transcode on retry if any step above threw. The
+        // helper is best-effort and never throws.
+        if (item.mediaType == MediaType.video) {
+          await _cache.deleteTranscodeArtifacts(digest.hash);
+        }
         return UploadOutcome.uploaded;
       }
 
@@ -235,11 +242,12 @@ class MediaUploadPipeline {
       if (hadCompressed) {
         await _mediaRepository.clearRemoteCompressed(item.id);
         if (await _mediaRepository.countRowsWithRendition(digest.hash) == 0) {
-          await _store.delete(
+          await _bestEffortDelete(
             StoreKeys.renditionKey(
               digest.hash,
               ext: item.mediaType == MediaType.video ? 'mp4' : 'jpg',
             ),
+            'abandoned rendition',
           );
         }
       }
@@ -337,6 +345,34 @@ class MediaUploadPipeline {
       await file.delete();
     } on PathNotFoundException {
       // Already gone -- best-effort.
+    }
+  }
+
+  /// Parses a persisted override level name, tolerating a corrupt or
+  /// future-enum string (returns null so the caller can fall back) rather
+  /// than throwing ArgumentError and failing the whole upload.
+  MediaUploadQuality? _tryParseQuality(String name) {
+    for (final quality in MediaUploadQuality.values) {
+      if (quality.name == name) return quality;
+    }
+    _log.warning('Ignoring unrecognized override upload level "$name"');
+    return null;
+  }
+
+  /// Deletes a now-unreferenced store object as best-effort cleanup after a
+  /// namespace switch. The primary upload has already succeeded, so a
+  /// transient/auth failure here must not turn the outcome into a failure
+  /// (which would endlessly retry an upload whose bytes are already stored).
+  Future<void> _bestEffortDelete(String key, String label) async {
+    try {
+      await _store.delete(key);
+    } on Exception catch (e, stackTrace) {
+      _log.warning(
+        'Best-effort cleanup of $label object failed for $key '
+        '(upload already succeeded)',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
   }
 }

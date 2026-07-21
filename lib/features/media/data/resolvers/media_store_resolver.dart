@@ -86,7 +86,12 @@ class MediaStoreResolver {
       if (cached != null) return FileData(file: cached);
       staging = await _cache.stagingFile();
       await _store.getFile(StoreKeys.renditionKey(hash, ext: ext), staging);
-      final file = await _cache.put(hash, MediaCacheKind.rendition, staging);
+      final file = await _cache.put(
+        hash,
+        MediaCacheKind.rendition,
+        staging,
+        sourceVersion: item.remoteCompressedUploadedAt?.millisecondsSinceEpoch,
+      );
       return FileData(file: file);
     } on Exception catch (e) {
       _log.warning('Rendition fetch failed for ${item.id}: $e');

@@ -226,6 +226,7 @@ class SyncData {
   final List<Map<String, dynamic>> qualityFindings;
   final List<Map<String, dynamic>> equipmentAttributes;
   final List<Map<String, dynamic>> media;
+  final List<Map<String, dynamic>> mediaEnrichment;
   final List<Map<String, dynamic>> buddies;
   final List<Map<String, dynamic>> buddyRoles;
   final List<Map<String, dynamic>> mediaStores;
@@ -297,6 +298,7 @@ class SyncData {
     this.qualityFindings = const [],
     this.equipmentAttributes = const [],
     this.media = const [],
+    this.mediaEnrichment = const [],
     this.buddies = const [],
     this.buddyRoles = const [],
     this.mediaStores = const [],
@@ -369,6 +371,7 @@ class SyncData {
     'qualityFindings': qualityFindings,
     'equipmentAttributes': equipmentAttributes,
     'media': media,
+    'mediaEnrichment': mediaEnrichment,
     'buddies': buddies,
     'buddyRoles': buddyRoles,
     'mediaStores': mediaStores,
@@ -442,6 +445,7 @@ class SyncData {
       qualityFindings: _parseList(json['qualityFindings']),
       equipmentAttributes: _parseList(json['equipmentAttributes']),
       media: _parseList(json['media']),
+      mediaEnrichment: _parseList(json['mediaEnrichment']),
       buddies: _parseList(json['buddies']),
       buddyRoles: _parseList(json['buddyRoles']),
       mediaStores: _parseList(json['mediaStores']),
@@ -664,6 +668,12 @@ class SyncDataSerializer {
       full: null,
     ),
     (key: 'media', table: _db.media, blob: true, full: null),
+    (
+      key: 'mediaEnrichment',
+      table: _db.mediaEnrichment,
+      blob: false,
+      full: null,
+    ),
     (key: 'buddies', table: _db.buddies, blob: false, full: null),
     (key: 'buddyRoles', table: _db.buddyRoles, blob: false, full: null),
     (key: 'mediaStores', table: _db.mediaStores, blob: false, full: null),
@@ -1156,6 +1166,10 @@ class SyncDataSerializer {
         () => _exportEquipmentAttributes(hlcSince),
       ),
       media: await _safeExport('media', () => _exportMedia(hlcSince)),
+      mediaEnrichment: await _safeExport(
+        'mediaEnrichment',
+        () => _exportMediaEnrichment(hlcSince),
+      ),
       buddies: await _safeExport('buddies', () => _exportBuddies(hlcSince)),
       buddyRoles: await _safeExport(
         'buddyRoles',
@@ -1570,6 +1584,11 @@ class SyncDataSerializer {
           _db.mediaStores,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
+      case 'mediaEnrichment':
+        final row = await (_db.select(
+          _db.mediaEnrichment,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
       case 'connectedAccounts':
         final row = await (_db.select(
           _db.connectedAccounts,
@@ -1921,6 +1940,11 @@ class SyncDataSerializer {
           _db.mediaStores,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
+      case 'mediaEnrichment':
+        final rows = await (_db.select(
+          _db.mediaEnrichment,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
       case 'connectedAccounts':
         final rows = await (_db.select(
           _db.connectedAccounts,
@@ -2226,6 +2250,13 @@ class SyncDataSerializer {
             .into(_db.mediaStores)
             .insertOnConflictUpdate(
               MediaStore.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'mediaEnrichment':
+        await _db
+            .into(_db.mediaEnrichment)
+            .insertOnConflictUpdate(
+              MediaEnrichmentData.fromJson(data).toCompanion(false),
             );
         return;
       case 'connectedAccounts':
@@ -2743,6 +2774,16 @@ class SyncDataSerializer {
             _db.mediaStores,
             records
                 .map((r) => MediaStore.fromJson(r).toCompanion(false))
+                .toList(),
+          ),
+        );
+        return;
+      case 'mediaEnrichment':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.mediaEnrichment,
+            records
+                .map((r) => MediaEnrichmentData.fromJson(r).toCompanion(false))
                 .toList(),
           ),
         );
@@ -3346,6 +3387,8 @@ class SyncDataSerializer {
         return plain(_db.buddyRoles, _db.buddyRoles.id);
       case 'mediaStores':
         return plain(_db.mediaStores, _db.mediaStores.id);
+      case 'mediaEnrichment':
+        return plain(_db.mediaEnrichment, _db.mediaEnrichment.id);
       case 'connectedAccounts':
         return plain(_db.connectedAccounts, _db.connectedAccounts.id);
       case 'mediaSubscriptions':
@@ -3574,6 +3617,8 @@ class SyncDataSerializer {
         return _db.buddyRoles;
       case 'mediaStores':
         return _db.mediaStores;
+      case 'mediaEnrichment':
+        return _db.mediaEnrichment;
       case 'connectedAccounts':
         return _db.connectedAccounts;
       case 'mediaSubscriptions':
@@ -3804,6 +3849,11 @@ class SyncDataSerializer {
       case 'mediaStores':
         await (_db.delete(
           _db.mediaStores,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'mediaEnrichment':
+        await (_db.delete(
+          _db.mediaEnrichment,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'connectedAccounts':
@@ -4320,6 +4370,17 @@ class SyncDataSerializer {
     String? hlcSince,
   ) async {
     final query = _db.select(_db.mediaStores);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportMediaEnrichment(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.mediaEnrichment);
     if (hlcSince != null) {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }

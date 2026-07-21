@@ -8190,6 +8190,51 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveSites_summary_stat_withGps => 'With GPS';
 
   @override
+  String get diveType_builtin_altitude => 'Altitude';
+
+  @override
+  String get diveType_builtin_boat => 'Boat';
+
+  @override
+  String get diveType_builtin_cave => 'Cave';
+
+  @override
+  String get diveType_builtin_cavern => 'Cavern';
+
+  @override
+  String get diveType_builtin_deep => 'Deep';
+
+  @override
+  String get diveType_builtin_drift => 'Drift';
+
+  @override
+  String get diveType_builtin_freedive => 'Freedive';
+
+  @override
+  String get diveType_builtin_ice => 'Ice';
+
+  @override
+  String get diveType_builtin_liveaboard => 'Liveaboard';
+
+  @override
+  String get diveType_builtin_night => 'Night';
+
+  @override
+  String get diveType_builtin_recreational => 'Recreational';
+
+  @override
+  String get diveType_builtin_shore => 'Shore';
+
+  @override
+  String get diveType_builtin_technical => 'Technical';
+
+  @override
+  String get diveType_builtin_training => 'Training';
+
+  @override
+  String get diveType_builtin_wreck => 'Wreck';
+
+  @override
   String get diveTypes_addDialog_addButton => 'Add';
 
   @override
@@ -9625,6 +9670,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_serviceClocks_empty => 'No service clocks';
+
+  @override
+  String get equipment_serviceClocks_unconfigured =>
+      'No interval set - tap to configure';
 
   @override
   String equipment_serviceClocks_dueOn(String date) {

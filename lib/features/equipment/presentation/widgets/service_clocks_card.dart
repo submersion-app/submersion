@@ -122,13 +122,21 @@ class ServiceClocksCard extends ConsumerWidget {
               error: (e, _) =>
                   Padding(padding: const EdgeInsets.all(8), child: Text('$e')),
               data: (statuses) {
-                final paused =
-                    schedulesAsync.value?.where((s) => !s.enabled).toList() ??
-                    const [];
+                final schedules = schedulesAsync.value ?? const [];
+                final paused = schedules.where((s) => !s.enabled).toList();
                 final kindsById = {
                   for (final k in kindsAsync.value ?? []) k.id: k,
                 };
-                if (statuses.isEmpty && paused.isEmpty) {
+                // Enabled schedules the engine emitted no status for have no
+                // effective interval (no override, no kind default). They are
+                // invisible otherwise; surface them so the user can configure.
+                final evaluatedIds = {for (final s in statuses) s.schedule.id};
+                final unconfigured = schedules
+                    .where((s) => s.enabled && !evaluatedIds.contains(s.id))
+                    .toList();
+                if (statuses.isEmpty &&
+                    paused.isEmpty &&
+                    unconfigured.isEmpty) {
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     child: Text(
@@ -175,6 +183,36 @@ class ServiceClocksCard extends ConsumerWidget {
                             ),
                           ],
                         ),
+                      ),
+                    for (final schedule in unconfigured)
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: Icon(
+                          Icons.circle_outlined,
+                          size: 14,
+                          color: Theme.of(context).colorScheme.outline,
+                        ),
+                        title: Text(
+                          kindsById[schedule.serviceKindId]?.name ??
+                              schedule.serviceKindId,
+                        ),
+                        subtitle: Text(
+                          l10n.equipment_serviceClocks_unconfigured,
+                        ),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () async {
+                          final kind = kindsById[schedule.serviceKindId];
+                          if (kind == null) return;
+                          // The dialog invalidates the clock providers itself on
+                          // Save (and on Cancel nothing changed), so no extra
+                          // invalidation here -- matches the 'edit' action.
+                          await showScheduleOverrideDialog(
+                            context,
+                            ref,
+                            schedule: schedule,
+                            kind: kind,
+                          );
+                        },
                       ),
                     for (final schedule in paused)
                       ListTile(
@@ -224,7 +262,12 @@ class ServiceClocksCard extends ConsumerWidget {
       case 'log':
         onLogService?.call(status);
       case 'edit':
-        await showScheduleOverrideDialog(context, ref, status: status);
+        await showScheduleOverrideDialog(
+          context,
+          ref,
+          schedule: status.schedule,
+          kind: status.kind,
+        );
       case 'pause':
         await ref
             .read(serviceScheduleRepositoryProvider)
