@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
+import 'package:submersion/core/services/media_store/media_store_policies.dart';
 import 'package:submersion/core/services/media_store/store_keys.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
@@ -11,7 +12,11 @@ import 'package:submersion/features/media/domain/entities/media_source_type.dart
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
 import 'package:submersion/features/media_store/data/media_cache_store.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
+import 'package:submersion/features/media_store/data/image_compressor.dart';
+import 'package:submersion/features/media_store/data/media_compressor.dart';
 import 'package:submersion/features/media_store/data/thumbnail_generator.dart';
+import 'package:submersion/features/media_store/data/video_transcoder.dart';
+import 'package:submersion/features/media_store/domain/media_upload_quality.dart';
 
 enum UploadOutcome { uploaded, deduplicated, skippedIneligible, failed }
 
@@ -27,6 +32,9 @@ class MediaUploadPipeline {
     required MediaSourceResolverRegistry registry,
     required MediaCacheStore cache,
     ThumbnailGenerator? thumbnails,
+    MediaStorePolicies? policies,
+    MediaCompressor? imageCompressor,
+    VideoTranscoder? videoTranscoder,
     DateTime Function()? now,
   }) : _mediaRepository = mediaRepository,
        _queue = queue,
@@ -35,6 +43,10 @@ class MediaUploadPipeline {
        _cache = cache,
        _thumbnails =
            thumbnails ?? ThumbnailGenerator(registry: registry, cache: cache),
+       _policies = policies ?? MediaStorePolicies(),
+       _imageCompressor =
+           imageCompressor ?? ImageCompressor(registry: registry, cache: cache),
+       _videoTranscoder = videoTranscoder,
        _now = now ?? DateTime.now;
 
   final MediaRepository _mediaRepository;
@@ -43,6 +55,9 @@ class MediaUploadPipeline {
   final MediaSourceResolverRegistry _registry;
   final MediaCacheStore _cache;
   final ThumbnailGenerator _thumbnails;
+  final MediaStorePolicies _policies;
+  final MediaCompressor _imageCompressor;
+  final VideoTranscoder? _videoTranscoder;
   final DateTime Function() _now;
   final _log = LoggerService.forClass(MediaUploadPipeline);
 
@@ -68,9 +83,12 @@ class MediaUploadPipeline {
       await _queue.markDone(entry.id);
       return UploadOutcome.skippedIneligible;
     }
+    final alreadyUploaded =
+        item.remoteUploadedAt != null ||
+        item.remoteCompressedUploadedAt != null;
     if (_isThumbOnly(item)
         ? item.remoteThumbUploadedAt != null
-        : item.remoteUploadedAt != null) {
+        : alreadyUploaded) {
       await _queue.markDone(entry.id);
       return UploadOutcome.deduplicated;
     }
@@ -122,6 +140,35 @@ class MediaUploadPipeline {
       }
 
       if (_isThumbOnly(item)) {
+        await _queue.markDone(entry.id);
+        return UploadOutcome.uploaded;
+      }
+
+      // Quality branch: a non-Original level uploads a compressed rendition
+      // instead of the original. A null rendition (Original level, already
+      // under the ceiling, undecodable, or a video with no transcoder in
+      // Phase A) falls through to the untouched-original upload below.
+      final level = await _policies.qualityFor(item.mediaType);
+      final rendition = await _renditionFor(item, staged, level);
+      if (rendition != null) {
+        final renditionKey = StoreKeys.renditionKey(
+          digest.hash,
+          ext: rendition.ext,
+        );
+        if (await _store.head(renditionKey) == null) {
+          await _store.putFile(
+            renditionKey,
+            rendition.file,
+            contentType: StoreKeys.contentTypeFor(rendition.ext),
+          );
+        }
+        await _mediaRepository.stampRemoteCompressedUploaded(
+          item.id,
+          uploadedAt: _now(),
+          level: level.name,
+          sizeBytes: rendition.sizeBytes,
+        );
+        await _cleanupRendition(rendition.file);
         await _queue.markDone(entry.id);
         return UploadOutcome.uploaded;
       }
@@ -202,6 +249,29 @@ class MediaUploadPipeline {
       case NetworkData():
       case UnavailableData():
         return null;
+    }
+  }
+
+  /// Chooses the compressor by media type; returns null for the Original
+  /// level, when the compressor declines (ceiling/undecodable), or when a
+  /// video has no transcoder registered (Phase A -> upload the original).
+  Future<CompressionResult?> _renditionFor(
+    MediaItem item,
+    File source,
+    MediaUploadQuality level,
+  ) async {
+    if (level == MediaUploadQuality.original) return null;
+    if (item.mediaType == MediaType.video) {
+      return _videoTranscoder?.transcode(item, source, level);
+    }
+    return _imageCompressor.compress(item, source, level);
+  }
+
+  Future<void> _cleanupRendition(File file) async {
+    try {
+      await file.delete();
+    } on PathNotFoundException {
+      // Already gone -- best-effort.
     }
   }
 }

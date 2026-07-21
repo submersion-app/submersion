@@ -7,6 +7,7 @@ import 'dart:ui' show Size;
 
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/media_store/store_keys.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
@@ -89,6 +90,7 @@ void main() {
   late MediaUploadPipeline pipeline;
 
   setUp(() async {
+    SharedPreferences.setMockInitialValues({});
     await setUpTestDatabase();
     mediaRepository = MediaRepository();
     cacheDb = LocalCacheDatabase(NativeDatabase.memory());
