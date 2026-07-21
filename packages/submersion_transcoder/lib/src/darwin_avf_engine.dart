@@ -20,7 +20,12 @@ class DarwinAvfEngine implements TranscodeEngine {
 
   final MethodChannel _methods;
   final EventChannel _progress;
-  int _seq = 0;
+
+  // Static so progressIds are unique across ALL engine instances in this
+  // isolate -- an instance-local counter would emit p0, p1, ... per instance
+  // and collide on the shared progress EventChannel when two engines run
+  // concurrently, misattributing progress events.
+  static int _seq = 0;
 
   @override
   Future<bool> isAvailable() async {

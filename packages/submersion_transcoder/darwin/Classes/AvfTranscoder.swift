@@ -25,9 +25,21 @@ final class AvfTranscoder {
     let size = v.naturalSize.applying(v.preferredTransform)
     let w = Int(abs(size.width)), h = Int(abs(size.height))
     if w == 0 || h == 0 { return nil }
-    let durationMs = Int(CMTimeGetSeconds(asset.duration) * 1000)
-    // Overall bitrate: sum of track data rates (bits/s) -> kbps.
-    let bps = asset.tracks.reduce(Float(0)) { $0 + $1.estimatedDataRate }
+    // Duration can be indefinite -> CMTimeGetSeconds returns NaN/inf, and
+    // Int(NaN) traps at runtime. Guard it.
+    let rawDuration = CMTimeGetSeconds(asset.duration)
+    let durationSec = (rawDuration.isFinite && rawDuration > 0) ? rawDuration : 0
+    let durationMs = Int(durationSec * 1000)
+    // Overall bitrate: sum of track data rates (bits/s) -> kbps. When that is
+    // unknown (0), estimate from file size / duration so the ceiling rule
+    // doesn't read a high-bitrate clip as 0 and skip transcoding.
+    var bps = asset.tracks.reduce(Float(0)) { $0 + $1.estimatedDataRate }
+    if bps <= 0, durationSec > 0,
+      let attrs = try? FileManager.default.attributesOfItem(atPath: path),
+      let fileSize = attrs[.size] as? Int, fileSize > 0
+    {
+      bps = Float(fileSize * 8) / Float(durationSec)
+    }
     return [
       "width": w, "height": h,
       "durationMs": durationMs,

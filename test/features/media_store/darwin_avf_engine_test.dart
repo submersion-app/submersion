@@ -71,6 +71,35 @@ void main() {
     expect(seen!['progressId'], isA<String>());
   });
 
+  test('progressIds are unique across engine instances', () async {
+    final ids = <String>[];
+    messenger.setMockMethodCallHandler(methods, (call) async {
+      if (call.method == 'transcode') {
+        ids.add((call.arguments as Map)['progressId'] as String);
+      }
+      return null;
+    });
+    const target = TranscodeTarget(
+      maxHeight: 720,
+      videoBitrateKbps: 4000,
+      audioBitrateKbps: 128,
+    );
+    // Two separate engine instances: an instance-local counter would emit 'p0'
+    // for both and collide on the shared progress channel.
+    await DarwinAvfEngine().transcode(
+      source: File('/a.mov'),
+      output: File('/a.mp4'),
+      target: target,
+    );
+    await DarwinAvfEngine().transcode(
+      source: File('/b.mov'),
+      output: File('/b.mp4'),
+      target: target,
+    );
+    expect(ids.length, 2);
+    expect(ids[0], isNot(ids[1]));
+  });
+
   test('a PlatformException becomes a TranscodeException', () async {
     messenger.setMockMethodCallHandler(methods, (call) async {
       throw PlatformException(code: 'transcode_failed', message: 'boom');
