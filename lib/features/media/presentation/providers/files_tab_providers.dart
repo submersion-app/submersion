@@ -154,17 +154,14 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
   /// returns the list of created IDs. Pass the list back to [undoCommit]
   /// to roll back. State is reset via [clear] before returning.
   ///
-  /// Video MIME files are skipped: Phase 2 has no local-file video playback
-  /// path. The picker / folder enumerator both restrict to images already;
-  /// this guard is belt-and-suspenders against a future regression at the
-  /// pick layer (see [FilesTab] class doc).
+  /// Both photos and videos are persisted; [_persistOne] tags each row with
+  /// the right [MediaType] from its MIME. On desktop a local-file video
+  /// resolves by localPath and plays via `VideoPlayerController.file`
+  /// (see [FilesTab] class doc for the iOS caveat).
   Future<List<String>> commit() async {
     final created = <String>[];
     for (final entry in state.match.matched.entries) {
       for (final file in entry.value) {
-        if (file.metadata.mimeType.startsWith('video/')) {
-          continue;
-        }
         final id = await _persistOne(file, entry.key);
         created.add(id);
       }
