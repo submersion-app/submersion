@@ -426,8 +426,8 @@ class _StorageSettingsPageState extends ConsumerState<StorageSettingsPage> {
     // must not block the reset -- the worst case is the old re-pull behaviour.
     try {
       await ref.read(syncStateProvider.notifier).disableForDatabaseReset();
-    } catch (e) {
-      debugPrint('Could not disable cloud sync during reset: $e');
+    } catch (e, st) {
+      debugPrint('Could not disable cloud sync during reset: $e\n$st');
     }
     if (!mounted) return;
 

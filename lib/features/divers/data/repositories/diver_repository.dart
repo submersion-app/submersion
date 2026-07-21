@@ -59,10 +59,15 @@ class DiverRepository {
   /// its emergency contacts, insurance, etc.) just to call `isNotEmpty` is
   /// wasted work after a pull that may have brought in a large library.
   Future<int> getDiverCount() async {
-    final result = await _db
-        .customSelect('SELECT COUNT(*) AS count FROM divers')
-        .getSingle();
-    return result.read<int>('count');
+    try {
+      final result = await _db
+          .customSelect('SELECT COUNT(*) AS count FROM divers')
+          .getSingle();
+      return result.read<int>('count');
+    } catch (e, stackTrace) {
+      _log.error('Failed to get diver count', error: e, stackTrace: stackTrace);
+      rethrow;
+    }
   }
 
   /// Emits whenever the `divers` table changes so list providers can
