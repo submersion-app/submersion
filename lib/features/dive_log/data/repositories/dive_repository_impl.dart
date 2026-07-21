@@ -690,9 +690,9 @@ class DiveRepository {
         // (AppDatabase.beforeOpen) will persist, so the synthesized-on-read
         // source and the later backfilled row expose the SAME id. Otherwise a
         // consumer that keeps a selected source id (activeDiveSourceProvider)
-        // would see it change out from under it when the heal runs. Keep this
-        // prefix in sync with that helper's `legacy-src-` id.
-        final syntheticSourceId = 'legacy-src-$diveId';
+        // would see it change out from under it when the heal runs. The id
+        // format is shared via [legacyDataSourceId] so the two can't drift.
+        final syntheticSourceId = legacyDataSourceId(diveId);
         return {
           syntheticSourceId: domain.SourceProfile(
             sourceId: syntheticSourceId,

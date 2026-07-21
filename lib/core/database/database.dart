@@ -2807,6 +2807,19 @@ class FieldPresets extends Table {
     ServiceSchedules,
   ],
 )
+/// Prefix of the deterministic id for a synthesized/backfilled primary data
+/// source -- the row a dive gets when it has profile samples but no
+/// dive_data_sources row (older file imports). Shared by the beforeOpen
+/// backfill ([AppDatabase._backfillMissingDataSources]) and the read-time
+/// synthesis ([DiveRepository.getProfilesByDataSource]) so the id a consumer
+/// sees before the heal equals the id persisted afterward. Never change it:
+/// existing databases already carry rows with this exact prefix.
+const String kLegacyDataSourceIdPrefix = 'legacy-src-';
+
+/// Full deterministic data-source id for [diveId]. See
+/// [kLegacyDataSourceIdPrefix].
+String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
+
 class AppDatabase extends _$AppDatabase {
   final void Function(int currentStep, int totalSteps)? onMigrationProgress;
 
@@ -3520,7 +3533,7 @@ class AppDatabase extends _$AppDatabase {
     await customStatement('''
       INSERT OR IGNORE INTO dive_data_sources
         (id, dive_id, is_primary, imported_at, created_at)
-      SELECT 'legacy-src-' || d.id, d.id, 1, n.now_s, n.now_s
+      SELECT '$kLegacyDataSourceIdPrefix' || d.id, d.id, 1, n.now_s, n.now_s
       FROM dives d
       CROSS JOIN (
         SELECT CAST(strftime('%s','now') AS INTEGER) AS now_s
