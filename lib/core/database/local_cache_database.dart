@@ -71,7 +71,9 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
         await m.addColumn(mediaTransferQueue, mediaTransferQueue.progressBytes);
         await m.addColumn(mediaTransferQueue, mediaTransferQueue.totalBytes);
       }
-      if (from < 4) {
+      // Only v2/v3 stored schemas lack this column; a v1 upgrade already
+      // created the table with the full current schema above.
+      if (from >= 2 && from < 4) {
         await m.addColumn(mediaTransferQueue, mediaTransferQueue.overrideLevel);
       }
     },
