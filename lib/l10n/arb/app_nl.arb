@@ -6538,5 +6538,13 @@
   "dataQuality_summary_flagged": "{count, plural, =1{1 item gemarkeerd voor controle} other{{count} items gemarkeerd voor controle}}",
   "dataQuality_summary_review": "Controleren",
   "dataQuality_detail_chip": "Controleren",
-  "dataQuality_detail_chipCount": "Controleren ({count})"
+  "dataQuality_detail_chipCount": "Controleren ({count})",
+  "settings_mediaStorage_quality_section": "Uploadkwaliteit",
+  "settings_mediaStorage_quality_photos": "Foto's",
+  "settings_mediaStorage_quality_video": "Video",
+  "settings_mediaStorage_quality_original": "Origineel",
+  "settings_mediaStorage_quality_high": "Hoog",
+  "settings_mediaStorage_quality_balanced": "Gebalanceerd",
+  "settings_mediaStorage_quality_small": "Klein",
+  "settings_mediaStorage_quality_caveat": "Als er een compressieniveau is ingesteld, worden originelen op volledige resolutie niet geüpload; ze blijven alleen op dit apparaat."
 }

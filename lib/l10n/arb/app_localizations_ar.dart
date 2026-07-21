@@ -21513,4 +21513,29 @@ class AppLocalizationsAr extends AppLocalizations {
   String dataQuality_detail_chipCount(int count) {
     return 'مراجعة ($count)';
   }
+
+  @override
+  String get settings_mediaStorage_quality_section => 'جودة الرفع';
+
+  @override
+  String get settings_mediaStorage_quality_photos => 'الصور';
+
+  @override
+  String get settings_mediaStorage_quality_video => 'الفيديو';
+
+  @override
+  String get settings_mediaStorage_quality_original => 'الأصلية';
+
+  @override
+  String get settings_mediaStorage_quality_high => 'عالية';
+
+  @override
+  String get settings_mediaStorage_quality_balanced => 'متوازنة';
+
+  @override
+  String get settings_mediaStorage_quality_small => 'صغيرة';
+
+  @override
+  String get settings_mediaStorage_quality_caveat =>
+      'عند تعيين مستوى ضغط، لا يتم رفع النسخ الأصلية بالدقة الكاملة؛ فهي تبقى على هذا الجهاز فقط.';
 }

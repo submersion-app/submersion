@@ -21915,4 +21915,29 @@ class AppLocalizationsPt extends AppLocalizations {
   String dataQuality_detail_chipCount(int count) {
     return 'Revisar ($count)';
   }
+
+  @override
+  String get settings_mediaStorage_quality_section => 'Qualidade de envio';
+
+  @override
+  String get settings_mediaStorage_quality_photos => 'Fotos';
+
+  @override
+  String get settings_mediaStorage_quality_video => 'Vídeo';
+
+  @override
+  String get settings_mediaStorage_quality_original => 'Original';
+
+  @override
+  String get settings_mediaStorage_quality_high => 'Alta';
+
+  @override
+  String get settings_mediaStorage_quality_balanced => 'Equilibrada';
+
+  @override
+  String get settings_mediaStorage_quality_small => 'Pequena';
+
+  @override
+  String get settings_mediaStorage_quality_caveat =>
+      'Com um nível de compressão definido, os originais em resolução total não são enviados; permanecem apenas neste dispositivo.';
 }

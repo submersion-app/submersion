@@ -20805,4 +20805,29 @@ class AppLocalizationsZh extends AppLocalizations {
   String dataQuality_detail_chipCount(int count) {
     return '审查 ($count)';
   }
+
+  @override
+  String get settings_mediaStorage_quality_section => '上传质量';
+
+  @override
+  String get settings_mediaStorage_quality_photos => '照片';
+
+  @override
+  String get settings_mediaStorage_quality_video => '视频';
+
+  @override
+  String get settings_mediaStorage_quality_original => '原始';
+
+  @override
+  String get settings_mediaStorage_quality_high => '高';
+
+  @override
+  String get settings_mediaStorage_quality_balanced => '均衡';
+
+  @override
+  String get settings_mediaStorage_quality_small => '小';
+
+  @override
+  String get settings_mediaStorage_quality_caveat =>
+      '设置压缩级别后，不会上传全分辨率原图，它们仅保留在本设备上。';
 }

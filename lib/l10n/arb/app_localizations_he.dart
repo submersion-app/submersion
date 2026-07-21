@@ -21360,4 +21360,29 @@ class AppLocalizationsHe extends AppLocalizations {
   String dataQuality_detail_chipCount(int count) {
     return 'סקירה ($count)';
   }
+
+  @override
+  String get settings_mediaStorage_quality_section => 'איכות העלאה';
+
+  @override
+  String get settings_mediaStorage_quality_photos => 'תמונות';
+
+  @override
+  String get settings_mediaStorage_quality_video => 'וידאו';
+
+  @override
+  String get settings_mediaStorage_quality_original => 'מקורי';
+
+  @override
+  String get settings_mediaStorage_quality_high => 'גבוהה';
+
+  @override
+  String get settings_mediaStorage_quality_balanced => 'מאוזנת';
+
+  @override
+  String get settings_mediaStorage_quality_small => 'קטנה';
+
+  @override
+  String get settings_mediaStorage_quality_caveat =>
+      'כאשר נקבעת רמת דחיסה, קבצי המקור ברזולוציה מלאה אינם מועלים; הם נשארים במכשיר זה בלבד.';
 }

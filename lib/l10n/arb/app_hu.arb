@@ -6538,5 +6538,13 @@
   "dataQuality_summary_flagged": "{count, plural, =1{1 elem megjelölve ellenőrzésre} other{{count} elem megjelölve ellenőrzésre}}",
   "dataQuality_summary_review": "Áttekintés",
   "dataQuality_detail_chip": "Áttekintés",
-  "dataQuality_detail_chipCount": "Áttekintés ({count})"
+  "dataQuality_detail_chipCount": "Áttekintés ({count})",
+  "settings_mediaStorage_quality_section": "Feltöltési minőség",
+  "settings_mediaStorage_quality_photos": "Fényképek",
+  "settings_mediaStorage_quality_video": "Videó",
+  "settings_mediaStorage_quality_original": "Eredeti",
+  "settings_mediaStorage_quality_high": "Magas",
+  "settings_mediaStorage_quality_balanced": "Kiegyensúlyozott",
+  "settings_mediaStorage_quality_small": "Kicsi",
+  "settings_mediaStorage_quality_caveat": "Ha be van állítva tömörítési szint, a teljes felbontású eredetik nem töltődnek fel — csak ezen az eszközön maradnak meg."
 }

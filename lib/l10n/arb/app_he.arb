@@ -6538,5 +6538,13 @@
   "dataQuality_summary_flagged": "{count, plural, =1{פריט אחד סומן לבדיקה} other{{count} פריטים סומנו לבדיקה}}",
   "dataQuality_summary_review": "סקירה",
   "dataQuality_detail_chip": "סקירה",
-  "dataQuality_detail_chipCount": "סקירה ({count})"
+  "dataQuality_detail_chipCount": "סקירה ({count})",
+  "settings_mediaStorage_quality_section": "איכות העלאה",
+  "settings_mediaStorage_quality_photos": "תמונות",
+  "settings_mediaStorage_quality_video": "וידאו",
+  "settings_mediaStorage_quality_original": "מקורי",
+  "settings_mediaStorage_quality_high": "גבוהה",
+  "settings_mediaStorage_quality_balanced": "מאוזנת",
+  "settings_mediaStorage_quality_small": "קטנה",
+  "settings_mediaStorage_quality_caveat": "כאשר נקבעת רמת דחיסה, קבצי המקור ברזולוציה מלאה אינם מועלים; הם נשארים במכשיר זה בלבד."
 }

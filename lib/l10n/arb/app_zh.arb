@@ -6538,5 +6538,13 @@
   "dataQuality_summary_flagged": "{count, plural, =1{1 个项目已标记待审查} other{{count} 个项目已标记待审查}}",
   "dataQuality_summary_review": "审查",
   "dataQuality_detail_chip": "审查",
-  "dataQuality_detail_chipCount": "审查 ({count})"
+  "dataQuality_detail_chipCount": "审查 ({count})",
+  "settings_mediaStorage_quality_section": "上传质量",
+  "settings_mediaStorage_quality_photos": "照片",
+  "settings_mediaStorage_quality_video": "视频",
+  "settings_mediaStorage_quality_original": "原始",
+  "settings_mediaStorage_quality_high": "高",
+  "settings_mediaStorage_quality_balanced": "均衡",
+  "settings_mediaStorage_quality_small": "小",
+  "settings_mediaStorage_quality_caveat": "设置压缩级别后，不会上传全分辨率原图，它们仅保留在本设备上。"
 }

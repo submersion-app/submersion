@@ -6538,5 +6538,13 @@
   "dataQuality_summary_flagged": "{count, plural, =1{عنصر واحد مُعلَّم للمراجعة} other{{count} عناصر مُعلَّمة للمراجعة}}",
   "dataQuality_summary_review": "مراجعة",
   "dataQuality_detail_chip": "مراجعة",
-  "dataQuality_detail_chipCount": "مراجعة ({count})"
+  "dataQuality_detail_chipCount": "مراجعة ({count})",
+  "settings_mediaStorage_quality_section": "جودة الرفع",
+  "settings_mediaStorage_quality_photos": "الصور",
+  "settings_mediaStorage_quality_video": "الفيديو",
+  "settings_mediaStorage_quality_original": "الأصلية",
+  "settings_mediaStorage_quality_high": "عالية",
+  "settings_mediaStorage_quality_balanced": "متوازنة",
+  "settings_mediaStorage_quality_small": "صغيرة",
+  "settings_mediaStorage_quality_caveat": "عند تعيين مستوى ضغط، لا يتم رفع النسخ الأصلية بالدقة الكاملة؛ فهي تبقى على هذا الجهاز فقط."
 }

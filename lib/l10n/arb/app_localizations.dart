@@ -36647,6 +36647,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Review ({count})'**
   String dataQuality_detail_chipCount(int count);
+
+  /// No description provided for @settings_mediaStorage_quality_section.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload quality'**
+  String get settings_mediaStorage_quality_section;
+
+  /// No description provided for @settings_mediaStorage_quality_photos.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos'**
+  String get settings_mediaStorage_quality_photos;
+
+  /// No description provided for @settings_mediaStorage_quality_video.
+  ///
+  /// In en, this message translates to:
+  /// **'Video'**
+  String get settings_mediaStorage_quality_video;
+
+  /// No description provided for @settings_mediaStorage_quality_original.
+  ///
+  /// In en, this message translates to:
+  /// **'Original'**
+  String get settings_mediaStorage_quality_original;
+
+  /// No description provided for @settings_mediaStorage_quality_high.
+  ///
+  /// In en, this message translates to:
+  /// **'High'**
+  String get settings_mediaStorage_quality_high;
+
+  /// No description provided for @settings_mediaStorage_quality_balanced.
+  ///
+  /// In en, this message translates to:
+  /// **'Balanced'**
+  String get settings_mediaStorage_quality_balanced;
+
+  /// No description provided for @settings_mediaStorage_quality_small.
+  ///
+  /// In en, this message translates to:
+  /// **'Small'**
+  String get settings_mediaStorage_quality_small;
+
+  /// No description provided for @settings_mediaStorage_quality_caveat.
+  ///
+  /// In en, this message translates to:
+  /// **'With a compression level set, full-resolution originals are not uploaded — they remain only on this device.'**
+  String get settings_mediaStorage_quality_caveat;
 }
 
 class _AppLocalizationsDelegate

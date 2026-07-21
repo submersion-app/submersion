@@ -21849,4 +21849,29 @@ class AppLocalizationsHu extends AppLocalizations {
   String dataQuality_detail_chipCount(int count) {
     return 'Áttekintés ($count)';
   }
+
+  @override
+  String get settings_mediaStorage_quality_section => 'Feltöltési minőség';
+
+  @override
+  String get settings_mediaStorage_quality_photos => 'Fényképek';
+
+  @override
+  String get settings_mediaStorage_quality_video => 'Videó';
+
+  @override
+  String get settings_mediaStorage_quality_original => 'Eredeti';
+
+  @override
+  String get settings_mediaStorage_quality_high => 'Magas';
+
+  @override
+  String get settings_mediaStorage_quality_balanced => 'Kiegyensúlyozott';
+
+  @override
+  String get settings_mediaStorage_quality_small => 'Kicsi';
+
+  @override
+  String get settings_mediaStorage_quality_caveat =>
+      'Ha be van állítva tömörítési szint, a teljes felbontású eredetik nem töltődnek fel — csak ezen az eszközön maradnak meg.';
 }

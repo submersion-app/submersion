@@ -6538,5 +6538,13 @@
   "dataQuality_summary_flagged": "{count, plural, =1{1 elemento marcado para revisar} other{{count} elementos marcados para revisar}}",
   "dataQuality_summary_review": "Revisar",
   "dataQuality_detail_chip": "Revisar",
-  "dataQuality_detail_chipCount": "Revisar ({count})"
+  "dataQuality_detail_chipCount": "Revisar ({count})",
+  "settings_mediaStorage_quality_section": "Calidad de subida",
+  "settings_mediaStorage_quality_photos": "Fotos",
+  "settings_mediaStorage_quality_video": "Vídeo",
+  "settings_mediaStorage_quality_original": "Original",
+  "settings_mediaStorage_quality_high": "Alta",
+  "settings_mediaStorage_quality_balanced": "Equilibrada",
+  "settings_mediaStorage_quality_small": "Pequeña",
+  "settings_mediaStorage_quality_caveat": "Con un nivel de compresión establecido, los originales a resolución completa no se suben; permanecen solo en este dispositivo."
 }

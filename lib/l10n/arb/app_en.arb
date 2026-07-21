@@ -13771,5 +13771,13 @@
         "type": "int"
       }
     }
-  }
+  },
+  "settings_mediaStorage_quality_section": "Upload quality",
+  "settings_mediaStorage_quality_photos": "Photos",
+  "settings_mediaStorage_quality_video": "Video",
+  "settings_mediaStorage_quality_original": "Original",
+  "settings_mediaStorage_quality_high": "High",
+  "settings_mediaStorage_quality_balanced": "Balanced",
+  "settings_mediaStorage_quality_small": "Small",
+  "settings_mediaStorage_quality_caveat": "With a compression level set, full-resolution originals are not uploaded — they remain only on this device."
 }

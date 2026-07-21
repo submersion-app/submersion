@@ -21988,4 +21988,30 @@ class AppLocalizationsFr extends AppLocalizations {
   String dataQuality_detail_chipCount(int count) {
     return 'Vérifier ($count)';
   }
+
+  @override
+  String get settings_mediaStorage_quality_section =>
+      'Qualité de téléversement';
+
+  @override
+  String get settings_mediaStorage_quality_photos => 'Photos';
+
+  @override
+  String get settings_mediaStorage_quality_video => 'Vidéo';
+
+  @override
+  String get settings_mediaStorage_quality_original => 'Original';
+
+  @override
+  String get settings_mediaStorage_quality_high => 'Élevée';
+
+  @override
+  String get settings_mediaStorage_quality_balanced => 'Équilibrée';
+
+  @override
+  String get settings_mediaStorage_quality_small => 'Petite';
+
+  @override
+  String get settings_mediaStorage_quality_caveat =>
+      'Lorsqu\'un niveau de compression est défini, les originaux en pleine résolution ne sont pas téléversés ; ils restent uniquement sur cet appareil.';
 }
