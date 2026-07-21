@@ -138,6 +138,7 @@ void main() {
           isApplePlatformProvider.overrideWithValue(apple),
         ],
         child: const MaterialApp(
+          locale: Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: MediaStoragePage(),
@@ -600,6 +601,7 @@ void main() {
             isApplePlatformProvider.overrideWithValue(true),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: MediaStoragePage(),
@@ -644,6 +646,7 @@ void main() {
             isApplePlatformProvider.overrideWithValue(true),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: MediaStoragePage(),
@@ -675,6 +678,7 @@ void main() {
             isApplePlatformProvider.overrideWithValue(true),
           ],
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: MediaStoragePage(),

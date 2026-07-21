@@ -39,6 +39,17 @@ class ImageCompressor implements MediaCompressor {
     if (preset == null) return null; // original: no compression
     try {
       if (item.sourceType == MediaSourceType.platformGallery) {
+        // Ceiling rule: a gallery photo already under the long-edge cap uploads
+        // its untouched original rather than a needlessly re-encoded (lossy)
+        // JPEG. Only when the item's known dimensions clear the cap; unknown
+        // dimensions fall through to the sized-thumbnail path below.
+        final width = item.width;
+        final height = item.height;
+        if (width != null &&
+            height != null &&
+            (width > height ? width : height) <= preset.maxDimension) {
+          return null;
+        }
         // photo_manager returns a sized, JPEG-encoded rendition; HEIC-safe.
         final data = await _registry
             .resolverFor(item.sourceType)
