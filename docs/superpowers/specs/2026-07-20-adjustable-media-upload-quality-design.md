@@ -274,16 +274,24 @@ Small` for one item and **replace** what is stored.
 
 ## 13. Deletion and GC
 
-Extends the existing fast-path + Verify Library sweep (media-store spec
-section 12) to the rendition tier:
+**Important correction (found during planning):** the Media Store's general
+deletion fast-path and Verify Library sweep, described in its own spec's
+section 12, were specified for a Phase 5 that was never built. The shipped code
+has no content-hash refcount, no delete queue, and no store-listing sweep. This
+feature therefore does NOT build a general sweep. Two scopes:
 
-- **Fast path.** When a row is deleted and its `content_hash` refcount across
-  remaining rows hits zero, enqueue idempotent deletes for original **+ thumb +
-  rendition**.
-- **Verify Library.** List `smv1/renditions/` alongside objects/thumbs; delete
-  unreferenced renditions older than the grace window; reverse-repair rows
-  claiming `remoteCompressedUploadedAt` whose rendition is missing (clear the
-  stamp; re-enqueue if bytes are locally resolvable).
+- **Now (Phase A): targeted override delete only.** The per-item re-upload
+  override (section 12) reclaims space by deleting the specific abandoned object
+  (the old original or old rendition) when a precise guard proves no remaining
+  `media` row wants it -- `countRowsWithOriginal` / `countRowsWithRendition`
+  over the shared `content_hash`. This is a direct, idempotent `store.delete`,
+  not a queued sweep.
+- **Future (Media-Store Phase 5): general GC.** When the store's deletion
+  fast-path and Verify Library sweep are eventually built, they must also cover
+  `smv1/renditions/`: delete renditions unreferenced past the grace window, and
+  reverse-repair rows whose `remoteCompressedUploadedAt` points at a missing
+  object (clear the stamp; re-enqueue if bytes are locally resolvable). The
+  rendition tier is designed to slot into that sweep unchanged.
 
 ## 14. Multi-device semantics
 
