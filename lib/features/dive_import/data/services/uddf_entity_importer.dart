@@ -1184,8 +1184,16 @@ class UddfEntityImporter {
       final dateTime = diveData['dateTime'] as DateTime? ?? now;
       // CSV imports provide only 'duration' (used as bottomTime); fall back
       // to it for runtime so the total dive time is populated.
-      final runtime =
-          diveData['runtime'] as Duration? ?? diveData['duration'] as Duration?;
+      final durationValue = diveData['duration'] as Duration?;
+      final runtime = diveData['runtime'] as Duration? ?? durationValue;
+      // `duration` is ambiguous across import formats: some parsers (FIT) put a
+      // genuine bottom time here, while others (Subsurface) put total runtime,
+      // which would make bottom time equal runtime. Only trust `duration` as a
+      // real bottom time when it differs from runtime; otherwise leave it null
+      // so the profile-based auto-calculation below can derive it.
+      final bottomTimeSeed = durationValue != null && durationValue != runtime
+          ? durationValue
+          : null;
       final parsedEntryTime = diveData['entryTime'] as DateTime?;
       final entryTime = parsedEntryTime ?? dateTime;
       final exitTime = runtime != null ? dateTime.add(runtime) : null;
@@ -1229,7 +1237,7 @@ class UddfEntityImporter {
         dateTime: dateTime,
         entryTime: entryTime,
         exitTime: exitTime,
-        bottomTime: diveData['duration'] as Duration?,
+        bottomTime: bottomTimeSeed,
         runtime: runtime,
         maxDepth: asDoubleOrNull(diveData['maxDepth']),
         avgDepth: asDoubleOrNull(diveData['avgDepth']),
@@ -1304,6 +1312,12 @@ class UddfEntityImporter {
         if (calculatedBottomTime != null) {
           dive = dive.copyWith(bottomTime: calculatedBottomTime);
         }
+      }
+      // If bottom time still could not be derived (no profile, or a profile the
+      // heuristic could not resolve), fall back to the source duration so the
+      // field is not left empty for minimal imports such as CSV.
+      if (dive.bottomTime == null && durationValue != null) {
+        dive = dive.copyWith(bottomTime: durationValue);
       }
 
       await repos.diveRepository.createDive(dive);

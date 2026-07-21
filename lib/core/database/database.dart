@@ -2831,7 +2831,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 130;
+  static const int currentSchemaVersion = 132;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -2982,6 +2982,11 @@ class AppDatabase extends _$AppDatabase {
     129,
     // v130: media_enrichment.hlc so a photo's depth/time association syncs.
     130,
+    // v131 is reserved by an in-flight branch (equipment service clock
+    // unification); this branch's next migration is v132.
+    // v132: backfill dives whose bottom_time was wrongly stored equal to
+    // runtime by older imports, recomputing it from the primary profile.
+    132,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -3153,6 +3158,111 @@ class AppDatabase extends _$AppDatabase {
              weight_kg, 0, created_at, updated_at, NULL
       FROM equipment WHERE weight_kg IS NOT NULL
     ''');
+  }
+
+  /// v132 data fix: older imports (Subsurface/MacDive/CSV routed through the
+  /// UDDF entity importer) seeded `bottom_time` from the total-time `duration`,
+  /// so bottom time was stored equal to `runtime`. For any such dive that also
+  /// carries a profile, recompute bottom time from the PRIMARY profile the same
+  /// way [Dive.calculateBottomTimeFromProfile] does (time at/above 85% of max
+  /// depth) and correct it only when the derived value is shorter than runtime.
+  ///
+  /// Deterministic on every device, so `hlc` is left untouched and no sync
+  /// traffic is needed to converge (LWW falls back to the existing hlc /
+  /// updated_at, exactly like the v124 legacy-attribute copy). PRAGMA-guarded
+  /// for minimal old-schema fixtures. onUpgrade only -- never beforeOpen -- so
+  /// a dive a user deliberately left with bottom_time == runtime (and no
+  /// profile to prove otherwise) is never re-touched.
+  Future<void> _backfillBottomTimeFromProfile() async {
+    // PRAGMA-guarded like every other migration helper: minimal old-schema
+    // test fixtures (and any DB that reached this block through a guarded
+    // path) may lack the tables or the specific columns this reads, in which
+    // case there is simply nothing to backfill.
+    final diveCols = await customSelect(
+      "PRAGMA table_info('dives')",
+    ).get();
+    final diveColNames = diveCols.map((c) => c.read<String>('name')).toSet();
+    if (!diveColNames.contains('bottom_time') ||
+        !diveColNames.contains('runtime')) {
+      return;
+    }
+    final profileCols = await customSelect(
+      "PRAGMA table_info('dive_profiles')",
+    ).get();
+    final profileColNames = profileCols
+        .map((c) => c.read<String>('name'))
+        .toSet();
+    if (!profileColNames.contains('is_primary') ||
+        !profileColNames.contains('timestamp') ||
+        !profileColNames.contains('depth')) {
+      return;
+    }
+
+    final candidates = await customSelect(
+      'SELECT id, runtime FROM dives '
+      'WHERE bottom_time IS NOT NULL AND runtime IS NOT NULL '
+      'AND bottom_time = runtime',
+    ).get();
+
+    for (final candidate in candidates) {
+      final diveId = candidate.read<String>('id');
+      final runtimeSeconds = candidate.read<int>('runtime');
+
+      // Primary profile rows only, mirroring the domain profile hydration in
+      // DiveRepositoryImpl (is_primary = 1); mixing a secondary computer's rows
+      // would compute the wrong bottom window.
+      final points = await customSelect(
+        'SELECT timestamp, depth FROM dive_profiles '
+        'WHERE dive_id = ? AND is_primary = 1 '
+        'ORDER BY timestamp ASC',
+        variables: [Variable<String>(diveId)],
+      ).get();
+
+      final bottomSeconds = _bottomTimeSecondsFromProfileRows(points);
+      if (bottomSeconds != null && bottomSeconds < runtimeSeconds) {
+        await customStatement('UPDATE dives SET bottom_time = ? WHERE id = ?', [
+          bottomSeconds,
+          diveId,
+        ]);
+      }
+    }
+  }
+
+  /// Bottom time in seconds from timestamp-ordered profile rows, replicating
+  /// [Dive.calculateBottomTimeFromProfile]: the span between the first and last
+  /// samples at/above 85% of max depth. Returns null when the profile is too
+  /// small or lacks a clear bottom window.
+  int? _bottomTimeSecondsFromProfileRows(List<QueryRow> points) {
+    if (points.length < 3) return null;
+
+    var maxDepth = 0.0;
+    for (final point in points) {
+      final depth = point.read<double>('depth');
+      if (depth > maxDepth) maxDepth = depth;
+    }
+    if (maxDepth <= 0) return null;
+
+    final threshold = maxDepth * 0.85;
+
+    int? descentEnd;
+    for (final point in points) {
+      if (point.read<double>('depth') >= threshold) {
+        descentEnd = point.read<int>('timestamp');
+        break;
+      }
+    }
+
+    int? ascentStart;
+    for (var i = points.length - 1; i >= 0; i--) {
+      if (points[i].read<double>('depth') >= threshold) {
+        ascentStart = points[i].read<int>('timestamp');
+        break;
+      }
+    }
+
+    if (descentEnd == null || ascentStart == null) return null;
+    if (ascentStart <= descentEnd) return null;
+    return ascentStart - descentEnd;
   }
 
   /// v114: collapse duplicate tombstones (newest deleted_at per entity_type +
@@ -6782,6 +6892,17 @@ class AppDatabase extends _$AppDatabase {
           await _assertMediaEnrichmentHlcColumn();
         }
         if (from < 130) await reportProgress();
+        // v132: correct dives whose bottom_time was stored equal to runtime by
+        // older imports (Subsurface/MacDive/CSV via the UDDF entity importer,
+        // which seeded bottom_time from the total-time `duration`). onUpgrade
+        // only -- a deterministic local recompute, never beforeOpen, so a
+        // profile-less dive a user deliberately left with bottom_time==runtime
+        // is not re-touched on every open. (v131 is reserved by an in-flight
+        // branch.)
+        if (from < 132) {
+          await _backfillBottomTimeFromProfile();
+        }
+        if (from < 132) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
