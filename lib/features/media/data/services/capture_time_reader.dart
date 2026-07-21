@@ -57,8 +57,10 @@ DateTime? _dateFromExif(img.ExifData exif) {
   return parseExifDateTimeOriginal(raw?.toString());
 }
 
-// Upper bound on a HEIC `Exif` item read. Real items are a few KB (tens of KB
-// with an embedded thumbnail); this only exists to cap a corrupt/crafted length.
+// Upper bounds on HEIC reads. Real `meta` boxes and `Exif` items are tens of KB
+// (the meta box carries no pixel data); these caps only exist to reject a
+// corrupt/crafted length before it triggers a large allocation.
+const _maxMetaBytes = 64 * 1024 * 1024;
 const _maxExifItemBytes = 64 * 1024 * 1024;
 
 /// Reads EXIF from a HEIC/HEIF file. HEIC is ISO-BMFF: the EXIF lives in a
@@ -74,8 +76,14 @@ DateTime? _readHeicExifDate(File file) {
     final meta = _findBox(raf, 0, end, 'meta');
     if (meta == null) return null;
     // `meta` is a FullBox: its child boxes start 4 (version+flags) bytes in.
+    // Bound the read: reject a too-small box (nothing to parse / underflow) or
+    // an absurdly large one (a crafted meta could be huge yet within EOF) so we
+    // fall back to mtime rather than risk a large allocation. The meta box holds
+    // only metadata, never pixel data, so it is small in practice.
+    final metaLen = meta.end - meta.start - 4;
+    if (metaLen <= 0 || metaLen > _maxMetaBytes) return null;
     raf.setPositionSync(meta.start + 4);
-    final metaBytes = raf.readSync(meta.end - meta.start - 4);
+    final metaBytes = raf.readSync(metaLen);
 
     final iinf = _findBoxInBytes(metaBytes, 0, metaBytes.length, 'iinf');
     final iloc = _findBoxInBytes(metaBytes, 0, metaBytes.length, 'iloc');

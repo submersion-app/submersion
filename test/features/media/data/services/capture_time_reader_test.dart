@@ -217,6 +217,17 @@ void main() {
       expect(readLocalCaptureTime(f, 'image/heic'), isNull);
     });
 
+    test('meta box too small to hold version/flags returns null', () async {
+      // An 8-byte meta box has no room for the 4 version/flags bytes; the
+      // reader must reject it (no negative-length read) and fall back.
+      final bytes = [
+        ..._box('ftyp', 'heic'.codeUnits),
+        ..._box('meta', <int>[]),
+      ];
+      final f = File('${tempDir.path}/tinymeta.heic')..writeAsBytesSync(bytes);
+      expect(readLocalCaptureTime(f, 'image/heic'), isNull);
+    });
+
     test(
       'falls back to scanning when the declared TIFF offset is bogus',
       () async {
