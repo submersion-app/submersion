@@ -54,6 +54,32 @@ class MediaTransferQueueRepository {
     });
   }
 
+  /// Forces a fresh upload of [mediaId] at [overrideLevel], replacing any
+  /// existing upload row (any state). Used by the per-item re-upload
+  /// override; unlike enqueueUpload it bypasses the terminal-state guard.
+  Future<int> enqueueReupload({
+    required String mediaId,
+    required String overrideLevel,
+  }) {
+    return _db.transaction(() async {
+      await (_db.delete(_db.mediaTransferQueue)..where(
+            (t) => t.mediaId.equals(mediaId) & t.direction.equals('upload'),
+          ))
+          .go();
+      final now = DateTime.now().millisecondsSinceEpoch;
+      return _db
+          .into(_db.mediaTransferQueue)
+          .insert(
+            MediaTransferQueueCompanion.insert(
+              mediaId: mediaId,
+              overrideLevel: Value(overrideLevel),
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+    });
+  }
+
   Future<MediaTransferQueueEntry?> nextPending(DateTime now) {
     final nowMs = now.millisecondsSinceEpoch;
     return (_db.select(_db.mediaTransferQueue)

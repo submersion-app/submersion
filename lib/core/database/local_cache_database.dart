@@ -33,6 +33,8 @@ class MediaTransferQueue extends Table {
   // Transfer progress (v3), surfaced in the Transfers view.
   IntColumn get progressBytes => integer().nullable()();
   IntColumn get totalBytes => integer().nullable()();
+  // Adjustable upload quality: a per-item re-upload override level (v4).
+  TextColumn get overrideLevel => text().nullable()();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 }
@@ -55,7 +57,7 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
   LocalCacheDatabase(super.e);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -68,6 +70,9 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
       if (from >= 2 && from < 3) {
         await m.addColumn(mediaTransferQueue, mediaTransferQueue.progressBytes);
         await m.addColumn(mediaTransferQueue, mediaTransferQueue.totalBytes);
+      }
+      if (from < 4) {
+        await m.addColumn(mediaTransferQueue, mediaTransferQueue.overrideLevel);
       }
     },
   );
