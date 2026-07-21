@@ -845,4 +845,57 @@ void main() {
       reason: 'a path in the endpoint is invalid',
     );
   });
+
+  testWidgets('Linux hint shows when video level set and ffmpeg missing', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(800, 2600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    SharedPreferences.setMockInitialValues({
+      'media_store_video_quality': 'small',
+    });
+    await tester.runAsync(() async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            mediaStoreRuntimeProvider.overrideWith((ref) async => null),
+            mediaStoreCredentialsStoreProvider.overrideWithValue(
+              MediaStoreCredentialsStore(storage: InMemoryKeychain()),
+            ),
+            mediaStoreServiceProvider.overrideWithValue(service),
+            mediaBackfillServiceProvider.overrideWithValue(backfill),
+            mediaStoreStatusHintProvider.overrideWith(
+              (ref) async => 'dive-media @ minio',
+            ),
+            mediaTransferActiveCountProvider.overrideWith(
+              (ref) => Stream.value(0),
+            ),
+            isApplePlatformProvider.overrideWithValue(false),
+            isLinuxPlatformProvider.overrideWithValue(true),
+            videoTranscodeAvailableProvider.overrideWith((ref) async => false),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: MediaStoragePage(),
+          ),
+        ),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await tester.pump(); // policy load applies; video level becomes 'small'
+      // The availability provider is only watched once _videoQuality is set
+      // (the if-condition short-circuits before it), so a second cycle lets
+      // that provider resolve and the hint render.
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await tester.pump();
+    });
+    await tester.ensureVisible(
+      find.byKey(const Key('media-quality-linux-ffmpeg-hint')),
+    );
+    expect(
+      find.byKey(const Key('media-quality-linux-ffmpeg-hint')),
+      findsOneWidget,
+    );
+  });
 }

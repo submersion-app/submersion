@@ -6547,5 +6547,6 @@
   "settings_mediaStorage_quality_balanced": "Kiegyensúlyozott",
   "settings_mediaStorage_quality_small": "Kicsi",
   "settings_mediaStorage_quality_caveat": "Ha be van állítva tömörítési szint, a teljes felbontású eredetik nem töltődnek fel — csak ezen az eszközön maradnak meg.",
-  "settings_mediaStorage_quality_reuploadQueued": "Újratöltés sorba állítva"
+  "settings_mediaStorage_quality_reuploadQueued": "Újratöltés sorba állítva",
+  "settings_mediaStorage_quality_linuxFfmpegHint": "Telepítse az ffmpeg-et a videótömörítés engedélyezéséhez. Addig az eredetik kerülnek feltöltésre."
 }

@@ -21943,4 +21943,8 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_mediaStorage_quality_reuploadQueued =>
       'Ricaricamento in coda';
+
+  @override
+  String get settings_mediaStorage_quality_linuxFfmpegHint =>
+      'Installa ffmpeg per abilitare la compressione video. Fino ad allora vengono caricati gli originali.';
 }

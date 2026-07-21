@@ -22018,4 +22018,8 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_mediaStorage_quality_reuploadQueued =>
       'Nouveau téléversement en file d\'attente';
+
+  @override
+  String get settings_mediaStorage_quality_linuxFfmpegHint =>
+      'Installez ffmpeg pour activer la compression vidéo. Les originaux sont téléversés d\'ici là.';
 }

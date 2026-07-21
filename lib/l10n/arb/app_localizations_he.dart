@@ -21388,4 +21388,8 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_mediaStorage_quality_reuploadQueued => 'העלאה מחדש בתור';
+
+  @override
+  String get settings_mediaStorage_quality_linuxFfmpegHint =>
+      'התקן ffmpeg כדי לאפשר דחיסת וידאו. עד אז מועלים קבצי המקור.';
 }

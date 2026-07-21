@@ -20833,4 +20833,8 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_mediaStorage_quality_reuploadQueued => '重新上传已加入队列';
+
+  @override
+  String get settings_mediaStorage_quality_linuxFfmpegHint =>
+      '安装 ffmpeg 以启用视频压缩。在此之前将上传原始文件。';
 }

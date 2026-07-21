@@ -6547,5 +6547,6 @@
   "settings_mediaStorage_quality_balanced": "Ausgewogen",
   "settings_mediaStorage_quality_small": "Klein",
   "settings_mediaStorage_quality_caveat": "Wenn eine Komprimierungsstufe festgelegt ist, werden Originale in voller Auflösung nicht hochgeladen — sie verbleiben nur auf diesem Gerät.",
-  "settings_mediaStorage_quality_reuploadQueued": "Erneuter Upload in Warteschlange"
+  "settings_mediaStorage_quality_reuploadQueued": "Erneuter Upload in Warteschlange",
+  "settings_mediaStorage_quality_linuxFfmpegHint": "Installieren Sie ffmpeg, um Videokomprimierung zu aktivieren. Bis dahin werden Originale hochgeladen."
 }
