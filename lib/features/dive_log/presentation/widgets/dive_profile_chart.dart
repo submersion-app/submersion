@@ -1007,7 +1007,15 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     }
     final spot = (spotIndex: index);
 
-    final point = widget.profile[spot.spotIndex];
+    // On the lead-in vertex the cursor is before the first sample, so the
+    // readout must describe t=0 rather than repeat the first sample's values.
+    final onLeadIn =
+        touched.spotIndex == 0 &&
+        starts[touched.barIndex] < 0 &&
+        shouldDrawSurfaceLeadIn(widget.profile);
+    final point = onLeadIn
+        ? _surfaceReadoutPoint()
+        : widget.profile[spot.spotIndex];
     final rows = <TooltipRow>[];
     final onSurface = colorScheme.onInverseSurface;
 
@@ -1200,7 +1208,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           label: widget.ppO2FromSensorAverage
               ? '${context.l10n.diveLog_tooltip_ppO2} ${context.l10n.diveLog_tooltip_avgCalculated}'
               : context.l10n.diveLog_tooltip_ppO2,
-          value: '${widget.ppO2Curve![spot.spotIndex].toStringAsFixed(2)} bar',
+          value:
+              '${_readoutValue(widget.ppO2Curve![spot.spotIndex], onLeadIn).toStringAsFixed(2)} bar',
           bulletColor: const Color(0xFF00ACC1),
         ),
       );
@@ -1229,7 +1238,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       rows.add(
         TooltipRow(
           label: 'ppN2',
-          value: '${widget.ppN2Curve![spot.spotIndex].toStringAsFixed(2)} bar',
+          value:
+              '${_readoutValue(widget.ppN2Curve![spot.spotIndex], onLeadIn).toStringAsFixed(2)} bar',
           bulletColor: Colors.indigo,
         ),
       );
@@ -1424,7 +1434,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       }
     }
 
-    widget.onTooltipData!(rows);
+    widget.onTooltipData!(
+      onLeadIn
+          ? _markInterpolatedRows(rows, _exactAtSurfaceLabels(context))
+          : rows,
+    );
   }
 
   /// The plot-rect insets (reserved axis gutters) for the current build, so a
@@ -3762,6 +3776,63 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// Lead-in for curves that barely change across one sample interval
   /// (temperature, partial pressures, MOD, density, SAC, tank pressure, heart
   /// rate): hold the first reading flat back to t=0.
+  /// The sample the readout describes when the cursor sits on the lead-in.
+  ///
+  /// Time and depth are exact rather than interpolated: the dive begins at
+  /// t=0 with the diver at the surface. Temperature carries over from the
+  /// first reading and is marked interpolated by [_markInterpolatedRows].
+  DiveProfilePoint _surfaceReadoutPoint() => DiveProfilePoint(
+    timestamp: 0,
+    depth: 0,
+    temperature: widget.profile.isEmpty
+        ? null
+        : widget.profile.first.temperature,
+  );
+
+  /// Labels whose value at t=0 is known or calculated rather than carried over
+  /// from the first sample, and so must not be marked interpolated.
+  ///
+  /// Time and depth are exact. The partial pressures and gas density are
+  /// computed from the ambient pressure at the surface (see
+  /// [surfaceValueAtOneBar]). MOD is a property of the gas, so it does not
+  /// change between the surface and the first sample.
+  /// Built at the call site because some labels are localized: matching
+  /// hardcoded English would silently mark them interpolated in other locales.
+  Set<String> _exactAtSurfaceLabels(BuildContext context) => {
+    'Time',
+    'Depth',
+    'ppN2',
+    'ppHe',
+    'Density',
+    'MOD',
+    context.l10n.diveLog_tooltip_ppO2,
+    '${context.l10n.diveLog_tooltip_ppO2} '
+        '${context.l10n.diveLog_tooltip_avgCalculated}',
+  };
+
+  /// Mark every readout row whose value was carried over from the first sample
+  /// rather than known or calculated at t=0, so the lead-in never presents a
+  /// held value as if it had been measured there.
+  List<TooltipRow> _markInterpolatedRows(
+    List<TooltipRow> rows,
+    Set<String> exactLabels,
+  ) => [
+    for (final row in rows)
+      if (exactLabels.contains(row.label) || row.label.startsWith('Depth ·'))
+        row
+      else
+        TooltipRow(
+          label: row.label,
+          value: '${row.value} (interpolated)',
+          bulletColor: row.bulletColor,
+        ),
+  ];
+
+  /// A readout value for a pressure-proportional quantity: computed at the
+  /// surface while on the lead-in, otherwise the sampled value as-is.
+  double _readoutValue(double sampled, bool onLeadIn) =>
+      onLeadIn ? _surfaceValueOf(sampled) : sampled;
+
   /// [surfaceValueAtOneBar] applied at the dive's first sample.
   double _surfaceValueOf(double valueAtFirstSample) => widget.profile.isEmpty
       ? valueAtFirstSample
