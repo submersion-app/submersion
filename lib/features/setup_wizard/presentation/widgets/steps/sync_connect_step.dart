@@ -74,8 +74,9 @@ class _SyncConnectStepState extends ConsumerState<SyncConnectStep> {
       // directly for the "did a library arrive?" decision: the cached diver
       // providers can still report empty here because their pause-aware
       // self-invalidation (Ref.invalidateSelfWhen) does not fire while nothing
-      // is listening to them in the wizard, so ref.read(hasAnyDiversProvider)
-      // would return the stale startup value and wrongly show "no library".
+      // is listening to them in the wizard, so ref.read(hasAnyDiversProvider
+      // .future) would return the stale startup value and wrongly show
+      // "no library".
       // Invalidate the cache too, so the dashboard redirect's later
       // hasAnyDiversProvider read reflects the freshly pulled rows.
       ref.invalidate(allDiversProvider);
