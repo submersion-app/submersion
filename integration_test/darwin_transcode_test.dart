@@ -24,7 +24,7 @@ void main() {
     }
 
     final engine = engineForThisPlatform()!;
-    expect(engine, isA<DarwinAvfEngine>());
+    expect(engine, isA<ChannelTranscodeEngine>());
     expect(await engine.isAvailable(), isTrue);
 
     final dir = await Directory.systemTemp.createTemp('avf_it');
