@@ -83,6 +83,9 @@ class DatabaseService {
     _locationService = null;
     _currentDatabasePath = null;
     lastOpenMode = null;
+    // The service is a singleton, so a restore seam set by one test would
+    // otherwise leak into the next and fire unexpectedly.
+    debugOnRestoreWindowOpen = null;
   }
 
   /// Initialize the database with optional location service for custom paths
@@ -368,6 +371,10 @@ class DatabaseService {
   /// closed during [restore] — i.e. when the "database unavailable" window
   /// opens — with the staging path. Lets tests assert the backup was fully
   /// staged BEFORE the window opened.
+  ///
+  /// One-shot: [restore] captures and clears it before firing, and
+  /// [resetForTesting] also clears it, so a callback never leaks across tests
+  /// (the service is a singleton).
   @visibleForTesting
   void Function(String stagingPath)? debugOnRestoreWindowOpen;
 
@@ -405,7 +412,12 @@ class DatabaseService {
     // timed out mid-close and still holds the file must throw here rather than
     // race the rename.
     await close(strict: true);
-    debugOnRestoreWindowOpen?.call(stagingPath);
+    // Fire the test seam one-shot: capture and clear it before invoking so a
+    // callback set by one test cannot leak into a later restore (the service is
+    // a singleton).
+    final onWindowOpen = debugOnRestoreWindowOpen;
+    debugOnRestoreWindowOpen = null;
+    onWindowOpen?.call(stagingPath);
 
     // Safe swap: move the live file ASIDE (never delete it before the new file
     // is in place), move the staged file IN, and only then drop the old copy.

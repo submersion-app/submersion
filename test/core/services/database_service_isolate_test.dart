@@ -325,6 +325,31 @@ void main() {
     },
   );
 
+  test(
+    'the restore window seam is one-shot and does not leak across restores',
+    () async {
+      // The service is a singleton, so a seam left set by one restore must not
+      // fire on the next. restore() captures+clears it, so it fires exactly once.
+      final defaultPath = p.join(tempDir.path, 'Submersion', 'submersion.db');
+      await DatabaseService.instance.initialize(
+        locationService: _FakeLocation(defaultPath),
+      );
+      await DatabaseService.instance.database
+          .customSelect('SELECT 1')
+          .getSingle();
+      final backupPath = p.join(tempDir.path, 'backup.db');
+      await DatabaseService.instance.backup(backupPath);
+
+      var fireCount = 0;
+      DatabaseService.instance.debugOnRestoreWindowOpen = (_) => fireCount++;
+
+      await DatabaseService.instance.restore(backupPath);
+      await DatabaseService.instance.restore(backupPath);
+
+      expect(fireCount, 1);
+    },
+  );
+
   test('restore with a missing backup file leaves the live DB open', () async {
     // A restore pointed at a nonexistent file must be a true no-op: it must
     // NOT close the database (which would open an unavailable window for
