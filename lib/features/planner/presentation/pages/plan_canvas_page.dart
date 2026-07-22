@@ -30,6 +30,13 @@ import 'package:submersion/features/planner/presentation/widgets/saved_plans_she
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
+/// Whether [id] refers to a plan that already exists in the store. Drives the
+/// visibility of the destructive "Delete plan" action: a brand-new, never-saved
+/// plan has nothing to delete (Reset covers clearing it).
+@visibleForTesting
+bool planIsPersisted(String id, List<domain.DivePlanSummary> summaries) =>
+    summaries.any((s) => s.id == id);
+
 /// Mission Control: a thin layout router over the planner's three panes.
 /// Editing state lives on [divePlanNotifierProvider]; every displayed number
 /// comes from the PlanEngine via [planOutcomeProvider].
@@ -39,13 +46,6 @@ import 'package:submersion/l10n/l10n_extension.dart';
 ///   collapsible with remembered state)
 /// - 760-1160 px: chart column + results pane; the editor lives in a drawer
 /// - < 760 px: phone Chart + Tab Deck (Plan / Tanks / Setup / Results)
-/// Whether [id] refers to a plan that already exists in the store. Drives the
-/// visibility of the destructive "Delete plan" action: a brand-new, never-saved
-/// plan has nothing to delete (Reset covers clearing it).
-@visibleForTesting
-bool planIsPersisted(String id, List<domain.DivePlanSummary> summaries) =>
-    summaries.any((s) => s.id == id);
-
 class PlanCanvasPage extends ConsumerStatefulWidget {
   const PlanCanvasPage({super.key, this.planId});
 
@@ -250,6 +250,8 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
         _sharePlanFile();
       case 'reset':
         _resetPlan();
+      case 'delete':
+        _deletePlan();
     }
   }
 
@@ -601,6 +603,67 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     }
     final total = profile.last.timeSeconds - profile.first.timeSeconds;
     return total > 0 ? weighted / total : 0;
+  }
+
+  Future<void> _deletePlan() async {
+    final planId = ref.read(divePlanNotifierProvider).id;
+    final name = ref.read(divePlanNotifierProvider).name;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(context.l10n.divePlanner_action_deletePlan),
+        content: Text(
+          context.l10n.divePlanner_message_deleteConfirmation(name),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(context.l10n.common_action_cancel),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(dialogContext).colorScheme.error,
+            ),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(context.l10n.common_action_delete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    final repository = ref.read(divePlanRepositoryProvider);
+    final outcome = ref.read(planOutcomeProvider);
+
+    // Capture the full plan before deleting so undo can re-save it verbatim.
+    final captured = await repository.getPlan(planId);
+    if (captured == null || !mounted) return;
+    final capturedSummary = PlanSummaryData(
+      maxDepth: outcome.maxDepth,
+      runtimeSeconds: outcome.runtimeSeconds,
+      ttsSeconds: outcome.ttsAtBottom,
+    );
+
+    await repository.deletePlan(planId);
+    if (!mounted) return;
+
+    // Capture messenger + strings before navigating; this page is about to be
+    // disposed and its context becomes defunct.
+    final messenger = ScaffoldMessenger.of(context);
+    final deletedLabel = context.l10n.divePlanner_message_planDeleted;
+    final undoLabel = context.l10n.divePlanner_undo;
+    context.go('/planning');
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(deletedLabel),
+        action: SnackBarAction(
+          label: undoLabel,
+          onPressed: () =>
+              repository.savePlan(captured, summary: capturedSummary),
+        ),
+      ),
+    );
   }
 
   void _resetPlan() {
