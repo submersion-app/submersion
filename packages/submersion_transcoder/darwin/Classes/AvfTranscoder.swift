@@ -102,17 +102,33 @@ final class AvfTranscoder {
     var audioOut: AVAssetReaderTrackOutput?
     var audioIn: AVAssetWriterInput?
     if let audioTrack = asset.tracks(withMediaType: .audio).first {
+      // The reader must decode PCM at exactly the rate/channel count the AAC
+      // writer expects. If we leave the reader at the source's native format
+      // (e.g. 48 kHz from a phone), the writer input -- pinned to 44.1 kHz
+      // stereo -- gets mismatched buffers, append() starts returning false,
+      // and the whole transcode fails back to uploading the original. The
+      // reader resamples/remixes to these settings for us.
+      let audioSampleRate = 44100
+      let audioChannels = 2
       let ao = AVAssetReaderTrackOutput(
         track: audioTrack,
-        outputSettings: [AVFormatIDKey: kAudioFormatLinearPCM])
+        outputSettings: [
+          AVFormatIDKey: kAudioFormatLinearPCM,
+          AVSampleRateKey: audioSampleRate,
+          AVNumberOfChannelsKey: audioChannels,
+          AVLinearPCMBitDepthKey: 16,
+          AVLinearPCMIsFloatKey: false,
+          AVLinearPCMIsBigEndianKey: false,
+          AVLinearPCMIsNonInterleaved: false,
+        ])
       reader.add(ao)
       audioOut = ao
       let ai = AVAssetWriterInput(
         mediaType: .audio,
         outputSettings: [
           AVFormatIDKey: kAudioFormatMPEG4AAC,
-          AVNumberOfChannelsKey: 2,
-          AVSampleRateKey: 44100,
+          AVNumberOfChannelsKey: audioChannels,
+          AVSampleRateKey: audioSampleRate,
           AVEncoderBitRateKey: audioBitrateKbps * 1000,
         ])
       ai.expectsMediaDataInRealTime = false
