@@ -49,7 +49,14 @@ class SubmersionTranscoderPlugin :
                     result.success(null)
                     return
                 }
-                result.success(Media3Transcoder.probe(path))
+                // MediaMetadataRetriever can be slow on large clips; keep it off
+                // the platform (main) thread so the UI never blocks. The result
+                // must still be delivered on the main thread.
+                val mainHandler = Handler(Looper.getMainLooper())
+                Thread {
+                    val probe = Media3Transcoder.probe(path)
+                    mainHandler.post { result.success(probe) }
+                }.start()
             }
             "transcode" -> {
                 val source = call.argument<String>("source")
