@@ -713,6 +713,127 @@ void main() {
       expect(dive.diverId, diverId);
     });
 
+    // Subsurface (and similar) parsers set 'duration' and 'runtime' to the same
+    // total-time value; that duration is the runtime, not a distinct bottom
+    // time. When a profile exists, bottom time must be derived from it, not left
+    // equal to runtime. Regression guard for the "bottom time == runtime" bug.
+    test(
+      'derives bottom time from profile when duration equals runtime',
+      () async {
+        when(mockDiveRepo.createDive(any)).thenAnswer(
+          (invocation) async => invocation.positionalArguments[0] as Dive,
+        );
+
+        final data = UddfImportResult(
+          dives: [
+            {
+              'dateTime': now,
+              'maxDepth': 30.0,
+              // Total dive time in both keys, as Subsurface reports it.
+              'duration': const Duration(seconds: 1320),
+              'runtime': const Duration(seconds: 1320),
+              'profile': [
+                {'timestamp': 0, 'depth': 0.0},
+                {'timestamp': 60, 'depth': 30.0},
+                {'timestamp': 120, 'depth': 30.0},
+                {'timestamp': 1200, 'depth': 30.0},
+                {'timestamp': 1260, 'depth': 5.0},
+                {'timestamp': 1320, 'depth': 0.0},
+              ],
+            },
+          ],
+        );
+
+        await importer.import(
+          data: data,
+          selections: const UddfImportSelections(dives: {0}),
+          repositories: repos,
+          diverId: diverId,
+        );
+
+        final dive =
+            verify(mockDiveRepo.createDive(captureAny)).captured.single as Dive;
+        // Bottom threshold is 85% of 30 m = 25.5 m; the diver is at/above it from
+        // t=60 to t=1200, so bottom time is 1140 s, not the 1320 s runtime.
+        expect(dive.runtime, const Duration(seconds: 1320));
+        expect(dive.bottomTime, const Duration(seconds: 1140));
+        expect(dive.bottomTime!, lessThan(dive.runtime!));
+      },
+    );
+
+    // FIT parsers put a genuine, device-reported bottom time in 'duration'
+    // (distinct from 'runtime'). That real value must be preserved, not
+    // overwritten by the profile heuristic.
+    test(
+      'keeps a genuine bottom time when duration differs from runtime',
+      () async {
+        when(mockDiveRepo.createDive(any)).thenAnswer(
+          (invocation) async => invocation.positionalArguments[0] as Dive,
+        );
+
+        final data = UddfImportResult(
+          dives: [
+            {
+              'dateTime': now,
+              'maxDepth': 30.0,
+              'duration': const Duration(seconds: 3263), // real bottom time
+              'runtime': const Duration(seconds: 3600), // total elapsed
+              'profile': [
+                {'timestamp': 0, 'depth': 0.0},
+                {'timestamp': 60, 'depth': 30.0},
+                {'timestamp': 1200, 'depth': 30.0},
+                {'timestamp': 1320, 'depth': 0.0},
+              ],
+            },
+          ],
+        );
+
+        await importer.import(
+          data: data,
+          selections: const UddfImportSelections(dives: {0}),
+          repositories: repos,
+          diverId: diverId,
+        );
+
+        final dive =
+            verify(mockDiveRepo.createDive(captureAny)).captured.single as Dive;
+        expect(dive.bottomTime, const Duration(seconds: 3263));
+        expect(dive.runtime, const Duration(seconds: 3600));
+      },
+    );
+
+    // Minimal CSV imports carry only a single 'duration' with no profile; that
+    // value must still populate bottom time so the field is not left empty.
+    test(
+      'falls back to duration for bottom time when there is no profile',
+      () async {
+        when(mockDiveRepo.createDive(any)).thenAnswer(
+          (invocation) async => invocation.positionalArguments[0] as Dive,
+        );
+
+        final data = UddfImportResult(
+          dives: [
+            {
+              'dateTime': now,
+              'maxDepth': 18.0,
+              'duration': const Duration(minutes: 42),
+            },
+          ],
+        );
+
+        await importer.import(
+          data: data,
+          selections: const UddfImportSelections(dives: {0}),
+          repositories: repos,
+          diverId: diverId,
+        );
+
+        final dive =
+            verify(mockDiveRepo.createDive(captureAny)).captured.single as Dive;
+        expect(dive.bottomTime, const Duration(minutes: 42));
+      },
+    );
+
     test('links dive to imported site via ID mapping', () async {
       when(mockSiteRepo.createSite(any)).thenAnswer((invocation) async {
         final site = invocation.positionalArguments[0] as DiveSite;

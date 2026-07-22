@@ -6,6 +6,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/dive_types/presentation/dive_type_display.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
@@ -294,7 +295,7 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                         ...diveTypes.map((type) {
                           return DropdownMenuItem(
                             value: type.id,
-                            child: Text(type.name),
+                            child: Text(type.localizedName(context.l10n)),
                           );
                         }),
                       ],

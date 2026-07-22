@@ -78,6 +78,30 @@ void main() {
     expect(find.byTooltip('Remove from selection'), findsOneWidget);
   });
 
+  testWidgets('renders a video icon (not Image.file) for video MIME', (
+    tester,
+  ) async {
+    final file = _ef(
+      '/tmp/clip.mp4',
+      metadata: const MediaSourceMetadata(mimeType: 'video/mp4'),
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          home: Scaffold(
+            body: FileReviewCard(file: file, targetDiveId: 'd1'),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    // Videos can't be decoded as images; show an explicit video icon rather
+    // than Image.file's broken-image fallback (which reads as an error).
+    expect(find.byIcon(Icons.movie_outlined), findsOneWidget);
+    expect(find.byType(Image), findsNothing);
+  });
+
   // Note: the `errorBuilder` for `Image.file` in `FileReviewCard` is the
   // broken-image fallback. It is not exercised here because `FileImage`'s
   // load failure is dispatched on the asynchronous decoder isolate and

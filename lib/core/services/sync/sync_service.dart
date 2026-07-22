@@ -60,6 +60,11 @@ class SyncResult {
   final DateTime? lastSyncTime;
   final bool adoptedFreshIdentity;
 
+  /// Peers skipped because their manifests are from an older or unknown
+  /// library epoch. They must adopt the current library before their changes
+  /// can be safely merged.
+  final Set<String> skippedPeerDeviceIds;
+
   /// Set with [SyncResultStatus.awaitingAdoption]: the cloud library was
   /// replaced under this marker's epoch and the user must adopt (or defer)
   /// before any sync can proceed.
@@ -72,6 +77,7 @@ class SyncResult {
     this.conflictsFound = 0,
     this.lastSyncTime,
     this.adoptedFreshIdentity = false,
+    this.skippedPeerDeviceIds = const {},
     this.replaceMarker,
   });
 
@@ -389,6 +395,10 @@ class SyncService {
       );
       await _syncRepository.ensureSyncClockConfigured();
 
+      // Self-heal: stamp an HLC on pre-v130 enrichment rows so the depth/time
+      // association replicates and repairs peers that lost it (schema v130).
+      await _syncRepository.backfillMediaEnrichmentHlc();
+
       // ---- Library epoch gate (restore Replace mode) ----
       // A pending replace runs INSTEAD of a merge, and a marker from an
       // unaccepted epoch halts everything until the user adopts.
@@ -594,23 +604,43 @@ class SyncService {
       }
 
       _reportProgress(SyncPhase.complete, 1.0, 'Sync complete');
+      final resultMessages = <String>[];
+      if (recordsFailed > 0) {
+        final recordWord = recordsFailed == 1 ? 'record' : 'records';
+        resultMessages.add('$recordsFailed $recordWord failed to apply');
+      } else {
+        final skippedCount = pullResult.skippedPeerDeviceIds.length;
+        if (skippedCount > 0) {
+          final deviceWord = skippedCount == 1 ? 'device' : 'devices';
+          final verb = skippedCount == 1 ? 'has' : 'have';
+          resultMessages.add(
+            '$skippedCount $deviceWord still $verb an older or unknown '
+            'library version and were not merged. Those devices must adopt '
+            'the current library.',
+          );
+        }
+        if (adoptedFreshIdentity) {
+          resultMessages.add(
+            'Another device was syncing with this device\'s identity. '
+            'This device adopted a new identity and merged the cloud data.',
+          );
+        }
+      }
+      final resultMessage = resultMessages.isEmpty
+          ? null
+          : resultMessages.join(' ');
       return SyncResult(
         status: recordsFailed > 0
             ? SyncResultStatus.error
             : (conflictsFound > 0
                   ? SyncResultStatus.hasConflicts
                   : SyncResultStatus.success),
-        message: recordsFailed > 0
-            ? '$recordsFailed record(s) failed to apply'
-            : (adoptedFreshIdentity
-                  ? 'Another device was syncing with this device\'s '
-                        'identity. This device adopted a new identity and '
-                        'merged the cloud data.'
-                  : null),
+        message: resultMessage,
         recordsSynced: recordsSynced,
         conflictsFound: conflictsFound,
         lastSyncTime: recordsFailed == 0 ? now : null,
         adoptedFreshIdentity: adoptedFreshIdentity,
+        skippedPeerDeviceIds: pullResult.skippedPeerDeviceIds,
       );
     } on TimeoutException {
       _log.warning('Sync timed out');
@@ -1192,6 +1222,11 @@ class SyncService {
           ),
           (type: 'settings', records: data.settings, hasUpdatedAt: true),
           (type: 'media', records: data.media, hasUpdatedAt: false),
+          (
+            type: 'mediaEnrichment',
+            records: data.mediaEnrichment,
+            hasUpdatedAt: false,
+          ),
           (type: 'mediaStores', records: data.mediaStores, hasUpdatedAt: false),
           (
             type: 'connectedAccounts',
@@ -1762,6 +1797,7 @@ class SyncService {
     'serviceSchedules': true,
     'settings': true,
     'media': false,
+    'mediaEnrichment': false,
     'mediaStores': false,
     'connectedAccounts': true,
     'mediaSubscriptions': true,
@@ -1813,6 +1849,10 @@ class SyncService {
       (field: 'buddyId', parent: 'buddies', nullable: false),
     ],
     'buddyRoles': [(field: 'buddyId', parent: 'buddies', nullable: false)],
+    'mediaEnrichment': [
+      (field: 'mediaId', parent: 'media', nullable: false),
+      (field: 'diveId', parent: 'dives', nullable: false),
+    ],
     'diveTags': [
       (field: 'diveId', parent: 'dives', nullable: false),
       (field: 'tagId', parent: 'tags', nullable: false),

@@ -6,6 +6,7 @@ import 'package:submersion/core/theme/app_colors.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/deco_stop_band.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
 
 /// Configuration for what data is available in the chart.
@@ -16,6 +17,7 @@ class ProfileLegendConfig {
   final bool hasHeartRateData;
   final bool hasSacCurve;
   final bool hasCeilingCurve;
+  final bool hasDecoStopCurve;
   final bool hasAscentRates;
   final bool hasEvents;
   final bool hasMaxDepthMarker;
@@ -50,6 +52,7 @@ class ProfileLegendConfig {
     this.hasHeartRateData = false,
     this.hasSacCurve = false,
     this.hasCeilingCurve = false,
+    this.hasDecoStopCurve = false,
     this.hasAscentRates = false,
     this.hasEvents = false,
     this.hasMaxDepthMarker = false,
@@ -81,6 +84,7 @@ class ProfileLegendConfig {
   /// Whether any secondary toggles should be shown
   bool get hasSecondaryToggles =>
       hasCeilingCurve ||
+      hasDecoStopCurve ||
       hasHeartRateData ||
       hasSacCurve ||
       hasAscentRates ||
@@ -304,6 +308,7 @@ class _MoreOptionsButton extends ConsumerWidget {
 
     // Advanced deco/gas toggles
     if (config.hasCeilingCurve && legendState.showCeiling) count++;
+    if (config.hasDecoStopCurve && legendState.showDecoStops) count++;
     if (config.hasNdlData && legendState.showNdl) count++;
     if (config.hasPpO2Data && legendState.showPpO2) count++;
     if (config.hasPpN2Data && legendState.showPpN2) count++;
@@ -625,6 +630,17 @@ class _ChartOptionsDialog extends StatelessWidget {
 
     // Decompression section
     final decoItems = <Widget>[
+      if (config.hasDecoStopCurve)
+        _buildToggleWithSource(
+          context,
+          label: context.l10n.diveLog_legend_label_decoStops,
+          color: decoStopBandColor,
+          isEnabled: legendState.showDecoStops,
+          onTap: legendNotifier.toggleDecoStops,
+          currentSource: legendState.decoStopSource,
+          onSourceChanged: legendNotifier.setDecoStopSource,
+          isAreaSwatch: true,
+        ),
       if (config.hasCeilingCurve)
         _buildToggleWithSource(
           context,
@@ -824,6 +840,7 @@ class _ChartOptionsDialog extends StatelessWidget {
     required VoidCallback onTap,
     required MetricDataSource currentSource,
     required ValueChanged<MetricDataSource> onSourceChanged,
+    bool isAreaSwatch = false,
   }) {
     return InkWell(
       onTap: onTap,
@@ -839,14 +856,34 @@ class _ChartOptionsDialog extends StatelessWidget {
                   : Theme.of(context).colorScheme.onSurfaceVariant,
             ),
             const SizedBox(width: 8),
-            Container(
-              width: 16,
-              height: 4,
-              decoration: BoxDecoration(
-                color: isEnabled ? color : color.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(2),
+            // Area metrics are drawn on the chart as a translucent shaded
+            // region rather than a stroked curve, so their swatch is a filled
+            // block in the same wash instead of a line.
+            if (isAreaSwatch)
+              Container(
+                width: 16,
+                height: 12,
+                decoration: BoxDecoration(
+                  color: color.withValues(
+                    alpha: isEnabled
+                        ? decoStopFillAlpha
+                        : decoStopFillAlpha / 2,
+                  ),
+                  border: Border.all(
+                    color: color.withValues(alpha: isEnabled ? 0.5 : 0.2),
+                  ),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              )
+            else
+              Container(
+                width: 16,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: isEnabled ? color : color.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
-            ),
             const SizedBox(width: 8),
             Expanded(child: Text(label)),
             GestureDetector(

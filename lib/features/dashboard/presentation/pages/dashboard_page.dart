@@ -34,7 +34,9 @@ class DashboardPage extends ConsumerWidget {
             ref.invalidate(yearToDateDiveCountProvider);
             ref.invalidate(personalRecordsProvider);
             ref.invalidate(certificationListNotifierProvider);
-            ref.invalidate(dueClocksProvider);
+            // dueClocksProvider derives from this; invalidating the base forces
+            // a fresh per-item clock evaluation on pull-to-refresh.
+            ref.invalidate(activeEquipmentClocksProvider);
             ref.invalidate(activeCoursesProgressProvider);
           },
           child: SingleChildScrollView(

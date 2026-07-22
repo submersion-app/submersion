@@ -40,9 +40,11 @@ void main() {
       expect(find.byIcon(Icons.chevron_right), findsOneWidget);
     });
 
-    testWidgets('shows Service Due in error color when service is overdue', (
+    testWidgets('ignores the legacy interval: no badge without a clock', (
       tester,
     ) async {
+      // Under the unified model the service badge comes only from the ledger.
+      // A legacy-overdue item with no ledger clock shows no badge at all.
       final pastDate = DateTime.now().subtract(const Duration(days: 400));
       await tester.pumpWidget(
         testApp(
@@ -57,29 +59,8 @@ void main() {
         ),
       );
 
-      expect(find.text('Service Due'), findsOneWidget);
-    });
-
-    testWidgets('shows days until service when service is upcoming', (
-      tester,
-    ) async {
-      final recentDate = DateTime.now().subtract(const Duration(days: 10));
-      await tester.pumpWidget(
-        testApp(
-          locale: const Locale('en'),
-          child: DenseEquipmentListTile(
-            item: _makeItem(
-              name: 'Recent Service',
-              lastServiceDate: recentDate,
-              serviceIntervalDays: 365,
-            ),
-          ),
-        ),
-      );
-
-      // Should show the localized "Service in X days" countdown.
-      final serviceFinder = find.textContaining('Service in');
-      expect(serviceFinder, findsOneWidget);
+      expect(find.text('Service Due'), findsNothing);
+      expect(find.textContaining('Service in'), findsNothing);
     });
 
     testWidgets('shows non-active status when no service info', (tester) async {

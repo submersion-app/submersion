@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
+import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_item.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
@@ -34,6 +35,9 @@ class TripStoryDayCard extends ConsumerWidget {
     final theme = Theme.of(context);
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
+
+    // Built once for the day's dives rather than per row.
+    final diveTypeLabelResolver = watchDiveTypeLabelResolver(ref, context.l10n);
 
     if (!day.hasContent && day.kind != TripStoryDayKind.future) {
       return _SurfaceDayRow(day: day);
@@ -66,6 +70,7 @@ class TripStoryDayCard extends ConsumerWidget {
                       Expanded(
                         child: DiveListItem(
                           summary: DiveSummary.fromDive(dive),
+                          diveTypeLabelResolver: diveTypeLabelResolver,
                           // The story already holds the full Dive; pass it so the
                           // configurable card can resolve fields absent from the
                           // summary (tanks, SAC, buddies, weights).

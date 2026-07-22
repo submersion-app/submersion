@@ -47,7 +47,7 @@ class LinuxFfmpegEngine implements TranscodeEngine {
   }) async {
     final tmp = File('${output.path}.tmp');
     final durationMs = probe?.durationMs ?? 0;
-    final exitCode = await _runner.stream(
+    final result = await _runner.stream(
       'ffmpeg',
       [
         '-y',
@@ -68,6 +68,11 @@ class LinuxFfmpegEngine implements TranscodeEngine {
         '-progress',
         'pipe:1',
         '-nostats',
+        // Force the MP4 muxer: the temp file ends in ".tmp", so ffmpeg cannot
+        // infer the format from the extension (it would error "Unable to
+        // choose an output format"). Explicit -f keeps the tmp-rename reliable.
+        '-f',
+        'mp4',
         tmp.path,
       ],
       onStdoutLine: (line) {
@@ -82,17 +87,30 @@ class LinuxFfmpegEngine implements TranscodeEngine {
         }
       },
     );
-    if (exitCode != 0) {
+    if (result.exitCode != 0) {
       try {
         await tmp.delete();
       } on FileSystemException {
         // Nothing to clean.
       }
-      final stderr = _runner is SystemProcessRunner ? _runner.lastStderr : '';
+      final stderr = result.stderr;
       throw TranscodeException(
-        'ffmpeg exited $exitCode${stderr.isEmpty ? '' : ': $stderr'}',
+        'ffmpeg exited ${result.exitCode}${stderr.isEmpty ? '' : ': $stderr'}',
       );
     }
-    await tmp.rename(output.path);
+    // The final rename can still fail (permission/IO); surface it as a
+    // TranscodeException (contract: engine failures throw TranscodeException,
+    // never a raw FileSystemException) so PlatformVideoTranscoder's
+    // fallback-to-original path catches it, and leave no .tmp behind.
+    try {
+      await tmp.rename(output.path);
+    } on FileSystemException catch (e) {
+      try {
+        await tmp.delete();
+      } on FileSystemException {
+        // Nothing to clean.
+      }
+      throw TranscodeException('failed to finalize output: ${e.message}');
+    }
   }
 }

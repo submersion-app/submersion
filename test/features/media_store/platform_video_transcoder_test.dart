@@ -114,9 +114,12 @@ void main() {
     expect(result, isNull);
   });
 
-  test('engine failure propagates as an exception', () async {
+  test('a transcode failure falls back to uploading the original', () async {
+    // A TranscodeException (e.g. ffmpeg present on PATH but built without the
+    // H.264 encoder) must not fail the upload or retry forever -- it degrades
+    // to uploading the original, matching the "no engine -> original" path.
     engine.throwOnTranscode = true;
-    await expectLater(run(), throwsA(isA<TranscodeException>()));
+    expect((await run()).ext, isNull);
   });
 
   test('a null engine (no platform support) yields null', () async {

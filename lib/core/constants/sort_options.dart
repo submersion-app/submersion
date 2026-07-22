@@ -56,7 +56,8 @@ enum EquipmentSortField {
   name('Name', Icons.sort_by_alpha),
   type('Type', Icons.category),
   purchaseDate('Purchase Date', Icons.shopping_bag),
-  lastServiceDate('Last Service', Icons.build);
+  lastServiceDate('Last Service', Icons.build),
+  serviceDue('Service Due', Icons.av_timer);
 
   final String displayName;
   final IconData icon;

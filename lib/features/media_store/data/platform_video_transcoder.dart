@@ -49,17 +49,26 @@ class PlatformVideoTranscoder implements VideoTranscoder {
       return null;
     }
     if (videoWithinCeiling(probe, preset)) return null;
-    await engine.transcode(
-      source: source,
-      output: output,
-      target: TranscodeTarget(
-        maxHeight: preset.maxHeight,
-        videoBitrateKbps: preset.videoBitrateKbps,
-        audioBitrateKbps: preset.audioBitrateKbps,
-      ),
-      probe: probe,
-      onProgress: onProgress,
-    );
+    try {
+      await engine.transcode(
+        source: source,
+        output: output,
+        target: TranscodeTarget(
+          maxHeight: preset.maxHeight,
+          videoBitrateKbps: preset.videoBitrateKbps,
+          audioBitrateKbps: preset.audioBitrateKbps,
+        ),
+        probe: probe,
+        onProgress: onProgress,
+      );
+    } on TranscodeException catch (e) {
+      // isAvailable() only proves ffmpeg is on PATH -- it may lack the H.264
+      // encoder (libx264), so transcode always throws. Falling back to the
+      // original (spec: "platforms without their engine upload originals")
+      // keeps the media flowing instead of failing the queue entry forever.
+      _log.warning('Transcode failed for ${item.id}; uploading original: $e');
+      return null;
+    }
     return CompressionResult(
       file: output,
       ext: 'mp4',

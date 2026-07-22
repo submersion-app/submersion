@@ -18,6 +18,9 @@ class SessionItemComposer {
     // from the UI call site so this domain service stays pure and free of
     // hard-coded English (the note is displayed verbatim in the runner).
     required String serviceOverdueNote,
+    // Ids of gear whose service is overdue, derived from the clock engine by
+    // the caller so this domain service stays pure (no legacy isServiceDue).
+    Set<String> overdueEquipmentIds = const {},
   }) {
     final byId = {for (final g in equipmentItems) g.id: g};
     final sorted = [...templateItems]
@@ -30,7 +33,7 @@ class SessionItemComposer {
         for (final gearId in equipmentSet.equipmentIds) {
           final gear = byId[gearId];
           if (gear == null) continue;
-          final overdue = gear.isServiceDue;
+          final overdue = overdueEquipmentIds.contains(gear.id);
           out.add(
             PreDiveSessionItem(
               id: '',

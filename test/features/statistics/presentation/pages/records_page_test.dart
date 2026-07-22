@@ -137,6 +137,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setShowCeilingOnProfile(bool value) async =>
       state = state.copyWith(showCeilingOnProfile: value);
   @override
+  Future<void> setShowDecoStopsOnProfile(bool value) async =>
+      state = state.copyWith(showDecoStopsOnProfile: value);
+  @override
   Future<void> setSafetyReviewEnabled(bool value) async =>
       state = state.copyWith(safetyReviewEnabled: value);
   @override
@@ -183,6 +186,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setDefaultCeilingSource(MetricDataSource value) async =>
       state = state.copyWith(defaultCeilingSource: value);
+  @override
+  Future<void> setDefaultDecoStopSource(MetricDataSource value) async =>
+      state = state.copyWith(defaultDecoStopSource: value);
   @override
   Future<void> setDefaultTtsSource(MetricDataSource value) async =>
       state = state.copyWith(defaultTtsSource: value);

@@ -164,6 +164,15 @@ class _SafetySettingsPageState extends ConsumerState<SafetySettingsPage> {
     for (final diveId in diveIds) {
       if (!mounted) return;
       try {
+        // Force a rebuild before reading: safetyReviewProvider is not
+        // autoDispose, so any dive whose detail page was already opened this
+        // session holds a cached AsyncValue. A bare `ref.read(...future)` would
+        // return that cached value -- including a null cached when the dive was
+        // opened mid-sync before its profile arrived -- and never run the
+        // compute-through-cache, so the review would stay missing until an app
+        // restart. Invalidating first guarantees the engine runs (and persists)
+        // for every dive in the sweep.
+        ref.invalidate(safetyReviewProvider(diveId));
         // Compute-through-cache: already-analyzed dives return after a cheap
         // marker-row read; only unanalyzed dives run the profile replay.
         await ref.read(safetyReviewProvider(diveId).future);

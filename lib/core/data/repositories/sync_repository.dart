@@ -77,6 +77,7 @@ class SyncRepository {
     'csvPresets': (table: 'csv_presets', pk: 'id'),
     'viewConfigs': (table: 'view_configs', pk: 'id'),
     'media': (table: 'media', pk: 'id'),
+    'mediaEnrichment': (table: 'media_enrichment', pk: 'id'),
     'species': (table: 'species', pk: 'id'),
     'fieldPresets': (table: 'field_presets', pk: 'id'),
     'qualityFindings': (table: 'quality_findings', pk: 'id'),
@@ -469,6 +470,37 @@ class SyncRepository {
       );
       rethrow;
     }
+  }
+
+  /// One-time self-heal for enrichment rows written before schema v130, when
+  /// media_enrichment had no `hlc` column and never synced. Such rows carry
+  /// `hlc IS NULL` and are invisible to the incremental export (which filters
+  /// `hlc > watermark`; SQL `NULL > x` is false). markRecordPending stamps a
+  /// fresh HLC (above every peer watermark) so they replicate on the next sync
+  /// and heal peers that lost the depth/time association.
+  ///
+  /// Self-limiting: rows written by saveEnrichment always get an HLC, so once
+  /// every legacy row is stamped this finds nothing.
+  Future<void> backfillMediaEnrichmentHlc() async {
+    final rows = await _db
+        .customSelect(
+          'SELECT id, created_at FROM media_enrichment WHERE hlc IS NULL',
+        )
+        .get();
+    if (rows.isEmpty) return;
+    // One transaction for the whole backfill: markRecordPending's own
+    // per-row transaction nests as a savepoint, so a library with many
+    // linked photos commits once instead of once per row (the per-row fsync
+    // was the sync-start cost flagged in review).
+    await _db.transaction(() async {
+      for (final row in rows) {
+        await markRecordPending(
+          entityType: 'mediaEnrichment',
+          recordId: row.read<String>('id'),
+          localUpdatedAt: row.read<int>('created_at'),
+        );
+      }
+    });
   }
 
   /// Stamp a fresh Hybrid Logical Clock onto the just-written entity row, if

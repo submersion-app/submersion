@@ -6,6 +6,8 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
+import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
 import 'package:submersion/features/pre_dive/domain/services/session_item_composer.dart';
@@ -74,11 +76,25 @@ class _StartSessionSheetState extends ConsumerState<_StartSessionSheet> {
       final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
       final chosenSet = _needsEquipmentSet ? _equipmentSet : null;
       List<EquipmentItem> gear = const [];
+      Set<String> overdueEquipmentIds = const {};
       if (chosenSet != null) {
         final all = await EquipmentRepository().getAllEquipment(
           diverId: diverId,
         );
         gear = all.where((g) => chosenSet.equipmentIds.contains(g.id)).toList();
+        // Overdue gear is flagged from the service-clock ledger, evaluated only
+        // for the chosen set (proportional to the set) and in parallel so total
+        // latency is the slowest item, not the sum.
+        final statusesPerGear = await Future.wait(
+          gear.map((g) => ref.read(serviceClockStatusesProvider(g.id).future)),
+        );
+        overdueEquipmentIds = {
+          for (var i = 0; i < gear.length; i++)
+            if (statusesPerGear[i].any(
+              (s) => s.severity == ServiceClockSeverity.overdue,
+            ))
+              gear[i].id,
+        };
       }
       final items = SessionItemComposer.compose(
         templateItems: _templateItems,
@@ -86,6 +102,7 @@ class _StartSessionSheetState extends ConsumerState<_StartSessionSheet> {
         equipmentItems: gear,
         now: DateTime.now(),
         serviceOverdueNote: serviceOverdueNote,
+        overdueEquipmentIds: overdueEquipmentIds,
       );
       final session = await ref
           .read(preDiveSessionRepositoryProvider)

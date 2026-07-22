@@ -5,6 +5,7 @@ import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
+import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -42,6 +43,14 @@ class CompactDiveListTile extends ConsumerWidget {
   final DiveField stat1Field;
   final DiveField stat2Field;
 
+  /// Resolves a dive-type slug to its localized label (issue #643).
+  ///
+  /// Built once per list by [watchDiveTypeLabelResolver] and threaded down, so
+  /// the tile neither watches `diveTypesProvider` nor rebuilds a lookup map per
+  /// row. When omitted, a Dive Type slot falls back to the English slug
+  /// capitalization, matching the locale-independent export path.
+  final DiveTypeLabelResolver? diveTypeLabelResolver;
+
   const CompactDiveListTile({
     super.key,
     required this.diveId,
@@ -66,6 +75,7 @@ class CompactDiveListTile extends ConsumerWidget {
     this.dateField = DiveField.dateTime,
     this.stat1Field = DiveField.maxDepth,
     this.stat2Field = DiveField.bottomTime,
+    this.diveTypeLabelResolver,
   });
 
   Color? _getAttributeBackgroundColor() {
@@ -85,7 +95,10 @@ class CompactDiveListTile extends ConsumerWidget {
   /// Returns the display string for the title slot.
   String _buildTitleText(UnitFormatter units, BuildContext context) {
     if (summary != null && titleField != DiveField.siteName) {
-      final value = titleField.extractFromSummary(summary!);
+      final value = titleField.extractFromSummary(
+        summary!,
+        diveTypeLabel: diveTypeLabelResolver,
+      );
       return titleField.formatValue(value, units);
     }
     return siteName ?? context.l10n.diveLog_listPage_unknownSite;
@@ -94,7 +107,10 @@ class CompactDiveListTile extends ConsumerWidget {
   /// Returns the display string for the date slot.
   String _buildDateText(UnitFormatter units) {
     if (summary != null && dateField != DiveField.dateTime) {
-      final value = dateField.extractFromSummary(summary!);
+      final value = dateField.extractFromSummary(
+        summary!,
+        diveTypeLabel: diveTypeLabelResolver,
+      );
       return dateField.formatValue(value, units);
     }
     return units.formatDateTime(dateTime, l10n: null);
@@ -107,7 +123,10 @@ class CompactDiveListTile extends ConsumerWidget {
     UnitFormatter units,
   ) {
     if (summary != null && field != defaultField) {
-      final value = field.extractFromSummary(summary!);
+      final value = field.extractFromSummary(
+        summary!,
+        diveTypeLabel: diveTypeLabelResolver,
+      );
       return field.formatValue(value, units);
     }
     // Use legacy parameters for default fields
@@ -118,7 +137,12 @@ class CompactDiveListTile extends ConsumerWidget {
       return duration != null ? '${duration!.inMinutes} min' : '--';
     }
     // Fallback for any other field value
-    final value = summary != null ? field.extractFromSummary(summary!) : null;
+    final value = summary != null
+        ? field.extractFromSummary(
+            summary!,
+            diveTypeLabel: diveTypeLabelResolver,
+          )
+        : null;
     return field.formatValue(value, units);
   }
 
@@ -182,7 +206,9 @@ class CompactDiveListTile extends ConsumerWidget {
         ? Colors.cyan.shade200
         : Colors.teal.shade800;
 
-    // Resolve slot text values
+    // Resolve slot text values. The dive-type resolver arrives as a parameter
+    // so a Dive Type slot honors the active locale (issue #643) and keeps a
+    // custom type's own name, without this tile subscribing to the type list.
     final titleText = _buildTitleText(units, context);
     final dateText = _buildDateText(units);
     final stat1Text = _buildStatText(stat1Field, DiveField.maxDepth, units);
