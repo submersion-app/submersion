@@ -69,7 +69,6 @@ object Media3Transcoder {
      * (the caller posts to the main looper). [onDone] receives null on success
      * or an error message; [onProgress] receives 0..1 fractions.
      */
-    @androidx.annotation.OptIn(markerClass = [UnstableApi::class])
     fun transcode(
         context: Context,
         source: String,
@@ -83,70 +82,133 @@ object Media3Transcoder {
         val tmp = File("$output.tmp")
         if (tmp.exists()) tmp.delete()
 
-        // Never upscale: only resize when the source is taller than the cap.
-        val srcHeight = probe(source)?.get("height") as? Int ?: maxHeight
-        val effectiveHeight = minOf(maxHeight, srcHeight)
-        val videoEffects: List<Effect> =
-            if (effectiveHeight < srcHeight) {
-                listOf(Presentation.createForHeight(effectiveHeight))
-            } else {
-                emptyList()
-            }
-
-        val encoderFactory = DefaultEncoderFactory.Builder(context)
-            .setRequestedVideoEncoderSettings(
-                VideoEncoderSettings.Builder()
-                    .setBitrate(videoBitrateKbps * 1000)
-                    .build())
-            .build()
-
-        val edited = EditedMediaItem.Builder(
-            MediaItem.fromUri(Uri.fromFile(File(source))))
-            .setEffects(Effects(/* audioProcessors= */ emptyList(), videoEffects))
-            .build()
-
         val handler = Handler(Looper.getMainLooper())
-        val progressHolder = ProgressHolder()
-        lateinit var transformer: Transformer
 
-        val poll = object : Runnable {
-            override fun run() {
-                if (transformer.getProgress(progressHolder)
-                    == Transformer.PROGRESS_STATE_AVAILABLE) {
-                    onProgress(progressHolder.progress / 100.0)
-                }
-                handler.postDelayed(this, 200)
+        // probe() uses MediaMetadataRetriever, which can be slow on large
+        // clips, so read the source height off the main thread. The Transformer
+        // itself is Looper-bound (it delivers listener callbacks and reports
+        // progress on the thread it is started on), so hop back to the main
+        // looper for all Transformer work once the height is known.
+        Thread {
+            val srcHeight = probe(source)?.get("height") as? Int ?: maxHeight
+            handler.post {
+                startTransform(
+                    context = context,
+                    source = source,
+                    output = output,
+                    tmp = tmp,
+                    handler = handler,
+                    srcHeight = srcHeight,
+                    maxHeight = maxHeight,
+                    videoBitrateKbps = videoBitrateKbps,
+                    onProgress = onProgress,
+                    onDone = onDone,
+                )
             }
+        }.start()
+    }
+
+    /**
+     * Builds and starts the Media3 [Transformer]. Must run on a Looper thread
+     * (the caller posts it to the main looper); the listener resolves [onDone]
+     * on that same thread.
+     */
+    @androidx.annotation.OptIn(markerClass = [UnstableApi::class])
+    private fun startTransform(
+        context: Context,
+        source: String,
+        output: String,
+        tmp: File,
+        handler: Handler,
+        srcHeight: Int,
+        maxHeight: Int,
+        videoBitrateKbps: Int,
+        onProgress: (Double) -> Unit,
+        onDone: (String?) -> Unit,
+    ) {
+        try {
+            // Never upscale: only resize when the source is taller than the cap.
+            val effectiveHeight = minOf(maxHeight, srcHeight)
+            val videoEffects: List<Effect> =
+                if (effectiveHeight < srcHeight) {
+                    listOf(Presentation.createForHeight(effectiveHeight))
+                } else {
+                    emptyList()
+                }
+
+            val encoderFactory = DefaultEncoderFactory.Builder(context)
+                .setRequestedVideoEncoderSettings(
+                    VideoEncoderSettings.Builder()
+                        .setBitrate(videoBitrateKbps * 1000)
+                        .build())
+                .build()
+
+            val edited = EditedMediaItem.Builder(
+                MediaItem.fromUri(Uri.fromFile(File(source))))
+                .setEffects(Effects(/* audioProcessors= */ emptyList(), videoEffects))
+                .build()
+
+            val progressHolder = ProgressHolder()
+            lateinit var transformer: Transformer
+
+            val poll = object : Runnable {
+                override fun run() {
+                    if (transformer.getProgress(progressHolder)
+                        == Transformer.PROGRESS_STATE_AVAILABLE) {
+                        onProgress(progressHolder.progress / 100.0)
+                    }
+                    handler.postDelayed(this, 200)
+                }
+            }
+
+            transformer = Transformer.Builder(context)
+                .setVideoMimeType(MimeTypes.VIDEO_H264)
+                .setAudioMimeType(MimeTypes.AUDIO_AAC)
+                .setEncoderFactory(encoderFactory)
+                .addListener(object : Transformer.Listener {
+                    override fun onCompleted(
+                        composition: Composition,
+                        exportResult: ExportResult,
+                    ) {
+                        handler.removeCallbacks(poll)
+                        onProgress(1.0)
+                        // Finalize atomically. renameTo fails if the destination
+                        // exists, so remove any stale output first (tmp is a
+                        // complete rendition at this point); if the rename still
+                        // fails, delete the .tmp so we never leave debris
+                        // (contract: never leave a "<output>.tmp" behind).
+                        val outputFile = File(output)
+                        outputFile.delete()
+                        if (tmp.renameTo(outputFile)) {
+                            onDone(null)
+                        } else {
+                            tmp.delete()
+                            onDone("rename failed")
+                        }
+                    }
+
+                    override fun onError(
+                        composition: Composition,
+                        exportResult: ExportResult,
+                        exportException: ExportException,
+                    ) {
+                        handler.removeCallbacks(poll)
+                        tmp.delete()
+                        onDone(exportException.message ?: "transform failed")
+                    }
+                })
+                .build()
+
+            transformer.start(edited, tmp.absolutePath)
+            handler.postDelayed(poll, 200)
+        } catch (e: Exception) {
+            // A synchronous failure setting up or starting the Transformer
+            // (invalid input, unsupported format) would otherwise never invoke
+            // onDone, hanging the awaiting Dart caller. Stop any poll, clean up
+            // the tmp so we leave no debris, and report the failure.
+            handler.removeCallbacksAndMessages(null)
+            tmp.delete()
+            onDone(e.message ?: "transcode setup failed")
         }
-
-        transformer = Transformer.Builder(context)
-            .setVideoMimeType(MimeTypes.VIDEO_H264)
-            .setAudioMimeType(MimeTypes.AUDIO_AAC)
-            .setEncoderFactory(encoderFactory)
-            .addListener(object : Transformer.Listener {
-                override fun onCompleted(
-                    composition: Composition,
-                    exportResult: ExportResult,
-                ) {
-                    handler.removeCallbacks(poll)
-                    onProgress(1.0)
-                    val renamed = tmp.renameTo(File(output))
-                    onDone(if (renamed) null else "rename failed")
-                }
-
-                override fun onError(
-                    composition: Composition,
-                    exportResult: ExportResult,
-                    exportException: ExportException,
-                ) {
-                    handler.removeCallbacks(poll)
-                    tmp.delete()
-                    onDone(exportException.message ?: "transform failed")
-                }
-            })
-            .build()
-
-        transformer.start(edited, tmp.absolutePath)
-        handler.postDelayed(poll, 200)
     }
 }

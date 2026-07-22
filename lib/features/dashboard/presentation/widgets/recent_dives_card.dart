@@ -6,6 +6,7 @@ import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_item.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -71,6 +72,12 @@ class RecentDivesCard extends ConsumerWidget {
               customEnd: settings.cardColorGradientEnd,
             );
 
+            // Built once for the whole list rather than per row.
+            final diveTypeLabelResolver = watchDiveTypeLabelResolver(
+              ref,
+              context.l10n,
+            );
+
             return Column(
               children: dives.asMap().entries.map((entry) {
                 final index = entry.key;
@@ -81,6 +88,7 @@ class RecentDivesCard extends ConsumerWidget {
                 // fields; the summary drives title/date/stat slots.
                 return DiveListItem(
                   summary: DiveSummary.fromDive(dive),
+                  diveTypeLabelResolver: diveTypeLabelResolver,
                   fullDive: dive,
                   diveNumber: dive.diveNumber ?? index + 1,
                   colorValue: getCardColorValueFromDive(dive, colorAttribute),

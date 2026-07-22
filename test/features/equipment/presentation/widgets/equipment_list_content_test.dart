@@ -364,11 +364,11 @@ void main() {
     });
   });
 
-  group('EquipmentListTile avatar (legacy service-due fallback)', () {
-    // A legacy item whose only signal is the old single interval: no ledger
-    // clock exists, so equipmentWorstClockProvider has no entry for it, yet
-    // isServiceDue is true. Avatar must still read overdue, matching the
-    // "Service Due" trailing chip.
+  group('EquipmentListTile avatar (clocks only)', () {
+    // Under the unified model the avatar reads overdue only from the ledger.
+    // A legacy item whose only signal is the old single interval has no ledger
+    // clock, so it must render as NOT overdue -- the legacy isServiceDue is
+    // ignored.
     final legacyDueItem = EquipmentItem(
       id: 'legacy1',
       name: 'Old Reg',
@@ -393,19 +393,19 @@ void main() {
       );
     }
 
-    testWidgets('renders overdue avatar when worstClock is absent', (
+    testWidgets('legacy overdue item renders non-overdue without a clock', (
       tester,
     ) async {
-      expect(legacyDueItem.isServiceDue, isTrue); // guard the fixture
+      expect(legacyDueItem.isServiceDue, isTrue); // legacy getter still true
       final scheme = ColorScheme.fromSeed(seedColor: Colors.blue);
 
       await tester.pumpWidget(buildTile(legacyDueItem, scheme));
       await tester.pumpAndSettle();
 
       final avatar = tester.widget<CircleAvatar>(find.byType(CircleAvatar));
-      expect(avatar.backgroundColor, scheme.errorContainer);
-      expect(avatar.backgroundColor, isNot(scheme.tertiaryContainer));
-      expect(find.text('Service Due'), findsOneWidget);
+      expect(avatar.backgroundColor, scheme.tertiaryContainer);
+      expect(avatar.backgroundColor, isNot(scheme.errorContainer));
+      expect(find.text('Service Due'), findsNothing);
     });
 
     testWidgets('renders non-overdue avatar when nothing is due', (

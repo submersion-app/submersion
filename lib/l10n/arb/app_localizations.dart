@@ -8948,6 +8948,12 @@ abstract class AppLocalizations {
   /// **'Ceiling'**
   String get diveLog_legend_label_ceiling;
 
+  /// No description provided for @diveLog_legend_label_decoStops.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco stops'**
+  String get diveLog_legend_label_decoStops;
+
   /// No description provided for @diveLog_legend_label_cns.
   ///
   /// In en, this message translates to:
@@ -11540,6 +11546,12 @@ abstract class AppLocalizations {
   /// **'Ceiling'**
   String get diveLog_tooltip_ceiling;
 
+  /// No description provided for @diveLog_tooltip_decoStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco stop'**
+  String get diveLog_tooltip_decoStop;
+
   /// No description provided for @diveLog_tooltip_cns.
   ///
   /// In en, this message translates to:
@@ -14085,6 +14097,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'With GPS'**
   String get diveSites_summary_stat_withGps;
+
+  /// No description provided for @diveType_builtin_altitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Altitude'**
+  String get diveType_builtin_altitude;
+
+  /// No description provided for @diveType_builtin_boat.
+  ///
+  /// In en, this message translates to:
+  /// **'Boat'**
+  String get diveType_builtin_boat;
+
+  /// No description provided for @diveType_builtin_cave.
+  ///
+  /// In en, this message translates to:
+  /// **'Cave'**
+  String get diveType_builtin_cave;
+
+  /// No description provided for @diveType_builtin_cavern.
+  ///
+  /// In en, this message translates to:
+  /// **'Cavern'**
+  String get diveType_builtin_cavern;
+
+  /// No description provided for @diveType_builtin_deep.
+  ///
+  /// In en, this message translates to:
+  /// **'Deep'**
+  String get diveType_builtin_deep;
+
+  /// No description provided for @diveType_builtin_drift.
+  ///
+  /// In en, this message translates to:
+  /// **'Drift'**
+  String get diveType_builtin_drift;
+
+  /// No description provided for @diveType_builtin_freedive.
+  ///
+  /// In en, this message translates to:
+  /// **'Freedive'**
+  String get diveType_builtin_freedive;
+
+  /// No description provided for @diveType_builtin_ice.
+  ///
+  /// In en, this message translates to:
+  /// **'Ice'**
+  String get diveType_builtin_ice;
+
+  /// No description provided for @diveType_builtin_liveaboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Liveaboard'**
+  String get diveType_builtin_liveaboard;
+
+  /// No description provided for @diveType_builtin_night.
+  ///
+  /// In en, this message translates to:
+  /// **'Night'**
+  String get diveType_builtin_night;
+
+  /// No description provided for @diveType_builtin_recreational.
+  ///
+  /// In en, this message translates to:
+  /// **'Recreational'**
+  String get diveType_builtin_recreational;
+
+  /// No description provided for @diveType_builtin_shore.
+  ///
+  /// In en, this message translates to:
+  /// **'Shore'**
+  String get diveType_builtin_shore;
+
+  /// No description provided for @diveType_builtin_technical.
+  ///
+  /// In en, this message translates to:
+  /// **'Technical'**
+  String get diveType_builtin_technical;
+
+  /// No description provided for @diveType_builtin_training.
+  ///
+  /// In en, this message translates to:
+  /// **'Training'**
+  String get diveType_builtin_training;
+
+  /// No description provided for @diveType_builtin_wreck.
+  ///
+  /// In en, this message translates to:
+  /// **'Wreck'**
+  String get diveType_builtin_wreck;
 
   /// No description provided for @diveTypes_addDialog_addButton.
   ///
@@ -16785,6 +16887,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No service clocks'**
   String get equipment_serviceClocks_empty;
+
+  /// No description provided for @equipment_serviceClocks_unconfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'No interval set - tap to configure'**
+  String get equipment_serviceClocks_unconfigured;
 
   /// No description provided for @equipment_serviceClocks_dueOn.
   ///

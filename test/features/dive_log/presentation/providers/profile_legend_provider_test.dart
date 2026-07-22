@@ -110,6 +110,7 @@ void main() {
       test('includes showCeiling in count', () {
         const isolatedState = ProfileLegendState(
           showCeiling: true,
+          showDecoStops: false,
           showAscentRateColors: false,
           showEvents: false,
           showMaxDepthMarker: false,
@@ -129,6 +130,7 @@ void main() {
           showGasSwitchMarkers: false,
           showPhotoMarkers: false,
           showCeiling: false,
+          showDecoStops: false,
         );
         expect(state.activeSecondaryCount, 0);
       });
@@ -263,6 +265,7 @@ void main() {
       const state = ProfileLegendState(
         showAscentRateLine: true,
         showCeiling: false,
+        showDecoStops: false,
         showAscentRateColors: false,
         showMaxDepthMarker: false,
         showPressureMarkers: false,

@@ -155,4 +155,57 @@ void main() {
       );
     },
   );
+
+  test(
+    'a corrupt override level falls back to the device policy, not failure',
+    () async {
+      resolver.data = FileData(file: await bigPng());
+      final policies = MediaStorePolicies(
+        prefs: await SharedPreferences.getInstance(),
+      );
+      await policies.setPhotoUploadQuality(MediaUploadQuality.small);
+      await mediaRepository.createMedia(photo('m3'));
+
+      // A stored override string that maps to no enum value (corruption or a
+      // level written by a newer app version) must not throw ArgumentError.
+      final id = await queue.enqueueReupload(
+        mediaId: 'm3',
+        overrideLevel: 'not_a_real_level',
+      );
+      final entry = (await queue.allForTesting()).firstWhere((e) => e.id == id);
+      final outcome = await (await buildPipeline(
+        policies: policies,
+      )).process(entry);
+
+      expect(outcome, UploadOutcome.uploaded);
+      expect(hasRenditions(), isTrue);
+      final got = await mediaRepository.getMediaById('m3');
+      expect(
+        got!.compressedLevel,
+        'small',
+        reason: 'fell back to the device policy level',
+      );
+    },
+  );
+
+  test(
+    'a best-effort GC delete failure does not fail the override upload',
+    () async {
+      resolver.data = FileData(file: await bigPng());
+      await mediaRepository.createMedia(photo('m4'));
+      await processUpload('m4'); // Original level -> objects/<hash>
+      expect(hasObjects(), isTrue);
+
+      // The abandoned-original cleanup delete throws, but the rendition
+      // upload already succeeded: the outcome must stay uploaded.
+      fakeStore.failDeleteWith = Exception('transient delete failure');
+      final outcome = await processOverride('m4', MediaUploadQuality.small);
+
+      expect(outcome, UploadOutcome.uploaded);
+      expect(hasRenditions(), isTrue);
+      final got = await mediaRepository.getMediaById('m4');
+      expect(got!.remoteCompressedUploadedAt, isNotNull);
+      expect(got.remoteUploadedAt, isNull);
+    },
+  );
 }

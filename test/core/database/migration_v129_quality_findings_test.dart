@@ -49,10 +49,10 @@ void main() {
     expect(names, contains('idx_quality_findings_status'));
   });
 
-  test('v129 migration stays in the schema ladder', () {
-    // v130 (media compressed rendition columns) now owns the exact-latest
-    // tripwire in media_compressed_columns_migration_test.dart; relaxed per
-    // the original tripwire instructions.
+  test('v129 quality_findings migration stays in the schema ladder', () {
+    // The exact-latest tripwire lives in
+    // media_compressed_columns_migration_test.dart (v133); this test now only
+    // asserts v129 still has its migration.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(129));
     expect(AppDatabase.migrationVersions, contains(129));
   });

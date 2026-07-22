@@ -214,9 +214,9 @@ packages/submersion_transcoder/
 | --- | --- |
 | Engine unavailable (Linux w/o ffmpeg) | `transcode` returns null -> original uploads (Phase A contract) |
 | Probe failure / unsupported input | null -> original uploads |
-| Engine failure mid-transcode (codec error, OOM, MF/Transformer error) | throw -> queue markFailed -> normal backoff/retry; `.tmp` deleted on next attempt |
-| Repeated terminal failure | entry terminally 'failed'; `retry()` re-arms; user can per-item override to `Original` to upload the raw clip instead |
-| Disk full while writing rendition | throw -> markFailed with the OS message |
+| Engine failure mid-transcode (codec error, OOM, MF/Transformer error) | engine throws `TranscodeException` -> `PlatformVideoTranscoder` catches it -> null -> **original uploads** (graceful degradation; a capability failure such as ffmpeg-without-libx264 must never retry the transcode forever). `.tmp` deleted on next attempt |
+| Disk full while writing rendition | same: transcode throws -> caught -> original uploads (a genuine storage failure then surfaces through the normal original-upload path) |
+| Upload failure (original or rendition; network/store error) | queue `markFailed` -> normal backoff/retry; `retry()` re-arms; entry can terminally 'fail', and the user can per-item override the level |
 | App quit mid-transcode | `.tmp` debris deleted on next attempt; transcode restarts |
 
 ## 14. Testing strategy

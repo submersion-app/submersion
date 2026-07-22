@@ -42,11 +42,18 @@ class MediaTransferQueue extends Table {
 /// Per-device index of content-addressed cache files (media store Phase 1).
 class MediaCacheEntries extends Table {
   TextColumn get contentHash => text()();
-  TextColumn get kind => text()(); // 'original' | 'thumb'
+  TextColumn get kind => text()(); // 'original' | 'thumb' | 'rendition'
   TextColumn get relativePath => text()();
   IntColumn get sizeBytes => integer()();
   IntColumn get lastAccessedAt => integer()();
   IntColumn get createdAt => integer()();
+  // The authoritative store-object version this copy was fetched for, as
+  // epoch millis (a rendition's synced remoteCompressedUploadedAt). Freshness
+  // compares this against the item's current stamp -- both the uploading
+  // device's clock -- so device clock skew cannot strand or thrash the cache.
+  // Null for kinds that are not version-checked (original/thumb) and for
+  // rendition entries cached before v5 (treated as stale on the next read).
+  IntColumn get sourceVersion => integer().nullable()();
 
   @override
   Set<Column> get primaryKey => {contentHash, kind};
@@ -57,7 +64,7 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
   LocalCacheDatabase(super.e);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -75,6 +82,11 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
       // created the table with the full current schema above.
       if (from >= 2 && from < 4) {
         await m.addColumn(mediaTransferQueue, mediaTransferQueue.overrideLevel);
+      }
+      // v5: rendition cache freshness token. Only v2..v4 stored schemas lack
+      // it; the v1 create path above already includes the current schema.
+      if (from >= 2 && from < 5) {
+        await m.addColumn(mediaCacheEntries, mediaCacheEntries.sourceVersion);
       }
     },
   );

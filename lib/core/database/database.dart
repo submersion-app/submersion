@@ -1231,7 +1231,7 @@ class Media extends Table {
   IntColumn get remoteUploadedAt => integer().nullable()();
   IntColumn get remoteThumbUploadedAt => integer().nullable()();
 
-  // Adjustable upload quality (v130): a compressed rendition, keyed by the
+  // Adjustable upload quality (v133): a compressed rendition, keyed by the
   // original's content hash, may be uploaded instead of the original.
   TextColumn get compressedLevel => text().nullable()();
   IntColumn get compressedSizeBytes => integer().nullable()();
@@ -1262,6 +1262,10 @@ class MediaEnrichment extends Table {
   )(); // exact, interpolated, estimated, no_profile
   IntColumn get timestampOffsetSeconds => integer().nullable()();
   IntColumn get createdAt => integer()();
+  // v130: sync replication. media_enrichment is the depth/time association for
+  // a linked photo; without an hlc it never travelled through sync and was
+  // lost on other devices / after restore.
+  TextColumn get hlc => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -1507,6 +1511,12 @@ class DiverSettings extends Table {
   // CNS calculation method: 'classic' | 'shearwater' | 'subsurface' (v113)
   TextColumn get cnsCalculationMethod =>
       text().withDefault(const Constant('shearwater'))();
+  // Deco stop band on the profile chart (v133). Source is a MetricDataSource
+  // index: 0 = computer, 1 = calculated.
+  BoolColumn get showDecoStopsOnProfile =>
+      boolean().withDefault(const Constant(true))();
+  IntColumn get defaultDecoStopSource =>
+      integer().withDefault(const Constant(1))();
   // Post-dive safety review (safety features phase 1, v123)
   BoolColumn get safetyReviewEnabled =>
       boolean().withDefault(const Constant(true))();
@@ -2713,6 +2723,19 @@ class FieldPresets extends Table {
 // Database Class
 // ============================================================================
 
+/// Prefix of the deterministic id for a synthesized/backfilled primary data
+/// source -- the row a dive gets when it has profile samples but no
+/// dive_data_sources row (older file imports). Shared by the beforeOpen
+/// backfill ([AppDatabase._backfillMissingDataSources]) and the read-time
+/// synthesis ([DiveRepository.getProfilesByDataSource]) so the id a consumer
+/// sees before the heal equals the id persisted afterward. Never change it:
+/// existing databases already carry rows with this exact prefix.
+const String kLegacyDataSourceIdPrefix = 'legacy-src-';
+
+/// Full deterministic data-source id for [diveId]. See
+/// [kLegacyDataSourceIdPrefix].
+String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
+
 @DriftDatabase(
   tables: [
     Divers,
@@ -2820,7 +2843,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 130;
+  static const int currentSchemaVersion = 134;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -2969,7 +2992,20 @@ class AppDatabase extends _$AppDatabase {
     // v129: quality_findings table for the Data Quality Assistant (renumbered
     // from v118 as main advanced past it at merge time).
     129,
+    // v130: media_enrichment.hlc so a photo's depth/time association syncs.
     130,
+    // v131: reconcile legacy service intervals edited after the v122 backfill
+    // into General service clocks (deletion-log guarded).
+    131,
+    // v132: backfill dives whose bottom_time was wrongly stored equal to
+    // runtime by older imports, recomputing it from the primary profile.
+    132,
+    // v133: deco stop band columns on diver_settings (renumbered from v130 as
+    // main advanced past it at merge time).
+    133,
+    // v134: media compressed-rendition columns (adjustable upload quality
+    // Phase A). Renumbered from v130 as main advanced past it at merge time.
+    134,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -3141,6 +3177,110 @@ class AppDatabase extends _$AppDatabase {
              weight_kg, 0, created_at, updated_at, NULL
       FROM equipment WHERE weight_kg IS NOT NULL
     ''');
+  }
+
+  /// v132 data fix: older imports (Subsurface/MacDive/CSV routed through the
+  /// UDDF entity importer) seeded `bottom_time` from the total-time `duration`,
+  /// so bottom time was stored equal to `runtime`. For any such dive that also
+  /// carries a profile, recompute bottom time from the PRIMARY profile the same
+  /// way [Dive.calculateBottomTimeFromProfile] does (time at/above 85% of max
+  /// depth) and correct it only when the derived value is shorter than runtime.
+  ///
+  /// Deterministic on every device, so `hlc` is left untouched and no sync
+  /// traffic is needed to converge (LWW falls back to the existing hlc /
+  /// updated_at, exactly like the v124 legacy-attribute copy). PRAGMA-guarded
+  /// for minimal old-schema fixtures. onUpgrade only -- never beforeOpen -- so
+  /// a dive a user deliberately left with bottom_time == runtime (and no
+  /// profile to prove otherwise) is never re-touched.
+  Future<void> _backfillBottomTimeFromProfile() async {
+    // PRAGMA-guarded like every other migration helper: minimal old-schema
+    // test fixtures (and any DB that reached this block through a guarded
+    // path) may lack the tables or the specific columns this reads, in which
+    // case there is simply nothing to backfill.
+    final diveCols = await customSelect("PRAGMA table_info('dives')").get();
+    final diveColNames = diveCols.map((c) => c.read<String>('name')).toSet();
+    if (!diveColNames.contains('bottom_time') ||
+        !diveColNames.contains('runtime')) {
+      return;
+    }
+    final profileCols = await customSelect(
+      "PRAGMA table_info('dive_profiles')",
+    ).get();
+    final profileColNames = profileCols
+        .map((c) => c.read<String>('name'))
+        .toSet();
+    if (!profileColNames.contains('dive_id') ||
+        !profileColNames.contains('is_primary') ||
+        !profileColNames.contains('timestamp') ||
+        !profileColNames.contains('depth')) {
+      return;
+    }
+
+    final candidates = await customSelect(
+      'SELECT id, runtime FROM dives '
+      'WHERE bottom_time IS NOT NULL AND runtime IS NOT NULL '
+      'AND bottom_time = runtime',
+    ).get();
+
+    for (final candidate in candidates) {
+      final diveId = candidate.read<String>('id');
+      final runtimeSeconds = candidate.read<int>('runtime');
+
+      // Primary profile rows only, mirroring the domain profile hydration in
+      // DiveRepositoryImpl (is_primary = 1); mixing a secondary computer's rows
+      // would compute the wrong bottom window.
+      final points = await customSelect(
+        'SELECT timestamp, depth FROM dive_profiles '
+        'WHERE dive_id = ? AND is_primary = 1 '
+        'ORDER BY timestamp ASC',
+        variables: [Variable<String>(diveId)],
+      ).get();
+
+      final bottomSeconds = _bottomTimeSecondsFromProfileRows(points);
+      if (bottomSeconds != null && bottomSeconds < runtimeSeconds) {
+        await customStatement('UPDATE dives SET bottom_time = ? WHERE id = ?', [
+          bottomSeconds,
+          diveId,
+        ]);
+      }
+    }
+  }
+
+  /// Bottom time in seconds from timestamp-ordered profile rows, replicating
+  /// [Dive.calculateBottomTimeFromProfile]: the span between the first and last
+  /// samples at/above 85% of max depth. Returns null when the profile is too
+  /// small or lacks a clear bottom window.
+  int? _bottomTimeSecondsFromProfileRows(List<QueryRow> points) {
+    if (points.length < 3) return null;
+
+    var maxDepth = 0.0;
+    for (final point in points) {
+      final depth = point.read<double>('depth');
+      if (depth > maxDepth) maxDepth = depth;
+    }
+    if (maxDepth <= 0) return null;
+
+    final threshold = maxDepth * 0.85;
+
+    int? descentEnd;
+    for (final point in points) {
+      if (point.read<double>('depth') >= threshold) {
+        descentEnd = point.read<int>('timestamp');
+        break;
+      }
+    }
+
+    int? ascentStart;
+    for (var i = points.length - 1; i >= 0; i--) {
+      if (points[i].read<double>('depth') >= threshold) {
+        ascentStart = points[i].read<int>('timestamp');
+        break;
+      }
+    }
+
+    if (descentEnd == null || ascentStart == null) return null;
+    if (ascentStart <= descentEnd) return null;
+    return ascentStart - descentEnd;
   }
 
   /// v114: collapse duplicate tombstones (newest deleted_at per entity_type +
@@ -3379,6 +3519,30 @@ class AppDatabase extends _$AppDatabase {
     await createMigrator().createTable(incidents);
   }
 
+  /// v133: diver_settings deco stop band columns. PRAGMA-guarded and
+  /// idempotent so it is safe to call from both onUpgrade and the beforeOpen
+  /// backstop. The guard on cols.isNotEmpty keeps partial-schema migration
+  /// tests, which open databases without this table, from crashing on DDL.
+  Future<void> _assertDecoStopSettingsColumns() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (cols.isNotEmpty && !names.contains('show_deco_stops_on_profile')) {
+      await customStatement(
+        'ALTER TABLE diver_settings ADD COLUMN show_deco_stops_on_profile '
+        'INTEGER NOT NULL DEFAULT 1 '
+        'CHECK (show_deco_stops_on_profile IN (0, 1))',
+      );
+    }
+    if (cols.isNotEmpty && !names.contains('default_deco_stop_source')) {
+      await customStatement(
+        'ALTER TABLE diver_settings ADD COLUMN default_deco_stop_source '
+        'INTEGER NOT NULL DEFAULT 1',
+      );
+    }
+  }
+
   /// v111: equipment_sets.is_default column + equipment_set_geofences table.
   /// Idempotent (createTable is IF NOT EXISTS; the ALTER is PRAGMA-guarded) so
   /// it is safe to call from both onUpgrade and the beforeOpen backstop.
@@ -3496,6 +3660,106 @@ class AppDatabase extends _$AppDatabase {
     ''');
   }
 
+  /// v131 one-time reconciliation: items whose legacy interval was set via the
+  /// edit form AFTER the v122 backfill ran have an interval column but no
+  /// clock. Create the same deterministic `legacy-svc-<id>` "General service"
+  /// clock for them so removing the legacy edit field does not drop their due
+  /// signal. Guarded by the deletion log so a clock the user deleted is never
+  /// resurrected. onUpgrade only, never beforeOpen (re-running would resurrect
+  /// a user-deleted clock; mirrors [_backfillLegacyServiceSchedules]).
+  Future<void> _reconcileLegacyServiceSchedules() async {
+    // Self-guard for partial fixture databases (old-migration tests): skip
+    // unless every table the copy reads exists. Real databases always have
+    // deletion_log; a minimal fixture that omits it must not crash the copy.
+    final tables = await customSelect(
+      "SELECT name FROM sqlite_master WHERE type='table'",
+    ).get();
+    final tableNames = tables.map((t) => t.read<String>('name')).toSet();
+    if (!tableNames.containsAll({
+      'equipment',
+      'service_schedules',
+      'deletion_log',
+    })) {
+      return;
+    }
+    final eqCols = await customSelect("PRAGMA table_info('equipment')").get();
+    final names = eqCols.map((c) => c.read<String>('name')).toSet();
+    if (!names.containsAll({'service_interval_days', 'last_service_date'})) {
+      return;
+    }
+    await customStatement('''
+      INSERT OR IGNORE INTO service_schedules
+        (id, equipment_id, service_kind_id, interval_days, anchor_date,
+         enabled, created_at, updated_at)
+      SELECT 'legacy-svc-' || e.id, e.id, 'general-service',
+             e.service_interval_days, e.last_service_date, 1,
+             n.now_ms, n.now_ms
+      FROM equipment e
+      CROSS JOIN (
+        SELECT CAST(strftime('%s','now') AS INTEGER) * 1000 AS now_ms
+      ) n
+      WHERE e.service_interval_days IS NOT NULL
+        AND NOT EXISTS (
+          SELECT 1 FROM service_schedules s WHERE s.id = 'legacy-svc-' || e.id
+        )
+        AND NOT EXISTS (
+          SELECT 1 FROM deletion_log d
+          WHERE d.entity_type = 'serviceSchedules'
+            AND d.record_id = 'legacy-svc-' || e.id
+        )
+    ''');
+  }
+
+  /// Test-only hook exercising the v131 reconciliation directly.
+  Future<void> reconcileLegacyServiceSchedulesForTest() =>
+      _reconcileLegacyServiceSchedules();
+
+  /// Data self-heal: synthesize a primary [DiveDataSources] row for any dive
+  /// that has profile samples but no data-source row. Older file imports (and
+  /// any import path predating dive_data_sources) wrote dive_profiles without
+  /// the metadata row, which stranded the grouped-by-source view that the 3D
+  /// scene, spatial map, and computer-compare all read -- they spun forever on
+  /// a null scene. The 2D chart survived because it reads dive.profile directly.
+  ///
+  /// Runs on every open; a cheap no-op once healed (the NOT EXISTS guard leaves
+  /// nothing to insert). Local-only by design: the id is deterministic
+  /// (`legacy-src-<diveId>`), so every device heals to the identical row
+  /// without syncing, and a device on an older build simply heals itself after
+  /// upgrade. It never touches the parent dive's HLC, so it does not trigger a
+  /// fleet re-sync of the healed dives. imported_at/created_at are Drift
+  /// dateTime() columns stored as unix SECONDS (unlike the dives table's plain
+  /// millisecond int columns), hence strftime('%s') without the *1000.
+  Future<void> _backfillMissingDataSources() async {
+    // Self-guard for partial/legacy schemas (migration tests and databases
+    // caught mid-upgrade): skip unless all three tables exist. beforeOpen runs
+    // for every open, including old-version fixtures where these tables may not
+    // exist yet.
+    final tables = await customSelect(
+      "SELECT name FROM sqlite_master WHERE type='table' "
+      "AND name IN ('dives', 'dive_profiles', 'dive_data_sources')",
+    ).get();
+    final present = tables.map((r) => r.read<String>('name')).toSet();
+    if (!present.containsAll({'dives', 'dive_profiles', 'dive_data_sources'})) {
+      return;
+    }
+    await customStatement('''
+      INSERT OR IGNORE INTO dive_data_sources
+        (id, dive_id, is_primary, imported_at, created_at)
+      SELECT '$kLegacyDataSourceIdPrefix' || d.id, d.id, 1, n.now_s, n.now_s
+      FROM dives d
+      CROSS JOIN (
+        SELECT CAST(strftime('%s','now') AS INTEGER) AS now_s
+      ) n
+      WHERE EXISTS (
+        SELECT 1 FROM dive_profiles p
+        WHERE p.dive_id = d.id AND p.is_primary = 1
+      )
+      AND NOT EXISTS (
+        SELECT 1 FROM dive_data_sources s WHERE s.dive_id = d.id
+      )
+    ''');
+  }
+
   /// Copy each buddy's inline certification into a certifications row owned by
   /// that buddy (issue #553). Invoked from the onUpgrade blocks only (v109
   /// expand + the v110 contract safety-net), NEVER the beforeOpen backstop --
@@ -3552,6 +3816,20 @@ class AppDatabase extends _$AppDatabase {
         .displayName;
   }
 
+  /// v130: media_enrichment.hlc column. Self-guarding when the table is absent
+  /// (partial-schema migration fixtures) and PRAGMA-guarded so it is safe to
+  /// call from both onUpgrade and the beforeOpen backstop (parallel-branch
+  /// collision self-heal).
+  Future<void> _assertMediaEnrichmentHlcColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('media_enrichment')",
+    ).get();
+    final hasColumn = cols.any((c) => c.read<String>('name') == 'hlc');
+    if (cols.isNotEmpty && !hasColumn) {
+      await customStatement('ALTER TABLE media_enrichment ADD COLUMN hlc TEXT');
+    }
+  }
+
   /// Idempotent DDL for the v103 media store objects. Called from the v103
   /// onUpgrade block and from the beforeOpen backstop so a parallel-branch
   /// schema-version collision cannot strand a database without them.
@@ -3584,8 +3862,8 @@ class AppDatabase extends _$AppDatabase {
     ''');
   }
 
-  /// Idempotent DDL for the v130 compressed-rendition columns. Called from the
-  /// v130 onUpgrade step and the beforeOpen backstop, matching the
+  /// Idempotent DDL for the v133 compressed-rendition columns. Called from the
+  /// v133 onUpgrade step and the beforeOpen backstop, matching the
   /// _assertMediaStoreSchema pattern so a schema-version collision cannot
   /// strand a database without them.
   Future<void> _assertMediaCompressedRenditionColumns() async {
@@ -6723,10 +7001,40 @@ class AppDatabase extends _$AppDatabase {
           await _assertQualityFindingsSchema();
         }
         if (from < 129) await reportProgress();
+        // v130: media_enrichment.hlc so a photo's depth/time association
+        // replicates through sync (it was local-only before).
         if (from < 130) {
-          await _assertMediaCompressedRenditionColumns();
+          await _assertMediaEnrichmentHlcColumn();
         }
         if (from < 130) await reportProgress();
+        // v131: reconcile legacy service intervals edited after the v122
+        // backfill into General service clocks (deletion-log guarded).
+        if (from < 131) {
+          await _reconcileLegacyServiceSchedules();
+        }
+        if (from < 131) await reportProgress();
+        // v132: correct dives whose bottom_time was stored equal to runtime by
+        // older imports (Subsurface/MacDive/CSV via the UDDF entity importer,
+        // which seeded bottom_time from the total-time `duration`). onUpgrade
+        // only -- a deterministic local recompute, never beforeOpen, so a
+        // profile-less dive a user deliberately left with bottom_time==runtime
+        // is not re-touched on every open.
+        if (from < 132) {
+          await _backfillBottomTimeFromProfile();
+        }
+        if (from < 132) await reportProgress();
+        // v133: deco stop band columns on diver_settings (renumbered from v130
+        // as main advanced past it at merge time).
+        if (from < 133) {
+          await _assertDecoStopSettingsColumns();
+        }
+        if (from < 133) await reportProgress();
+        // v134: media compressed-rendition columns (adjustable upload quality
+        // Phase A). Renumbered from v130 as main advanced past it at merge time.
+        if (from < 134) {
+          await _assertMediaCompressedRenditionColumns();
+        }
+        if (from < 134) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
@@ -6736,7 +7044,10 @@ class AppDatabase extends _$AppDatabase {
         // self-guarding when the media table is absent).
         await _assertMediaStoreSchema();
 
-        // v130 backstop: re-assert compressed-rendition columns.
+        // v130 backstop: re-assert the media_enrichment.hlc column.
+        await _assertMediaEnrichmentHlcColumn();
+
+        // v134 backstop: re-assert compressed-rendition columns.
         await _assertMediaCompressedRenditionColumns();
 
         // v106 backstop: re-assert connector-suggestion columns (the helper
@@ -6819,6 +7130,9 @@ class AppDatabase extends _$AppDatabase {
 
         // v129 backstop: re-assert quality_findings schema.
         await _assertQualityFindingsSchema();
+
+        // v133 backstop: re-assert the deco stop band settings columns.
+        await _assertDecoStopSettingsColumns();
 
         // Built-in dive types are reference data: identical on every device and
         // undeletable through DiveTypeRepository. Nothing else restores them --
@@ -6949,6 +7263,15 @@ class AppDatabase extends _$AppDatabase {
           }
           return true;
         }());
+
+        // Data self-heal: backfill a primary dive_data_sources row for dives
+        // that have profile samples but no source row (legacy file imports).
+        // Without it, the 3D/spatial/compare views spin forever on those dives.
+        // Idempotent and local-only (deterministic ids, no HLC bump). Runs
+        // AFTER ensurePerformanceIndexes so its per-dive EXISTS/NOT EXISTS
+        // subqueries hit idx_dive_profiles_dive_id / idx_dive_data_sources_dive_id
+        // instead of full-scanning million-row tables on a fresh/restored DB.
+        await _backfillMissingDataSources();
       },
     );
   }

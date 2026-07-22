@@ -10,6 +10,7 @@ import 'package:submersion/core/services/database_migration_service.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/settings/presentation/pages/reset_complete_page.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/existing_database_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/migration_confirmation_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/migration_progress_dialog.dart';
@@ -418,6 +419,17 @@ class _StorageSettingsPageState extends ConsumerState<StorageSettingsPage> {
   Future<void> _handleResetDatabase() async {
     final confirmed = await ResetDatabaseDialog.show(context);
     if (!confirmed || !mounted) return;
+
+    // Turn cloud sync off before wiping. Otherwise the post-reset launch sync
+    // re-pulls the entire cloud library and resurrects the data the user just
+    // cleared (the reset appears to do nothing). Best-effort: a failure here
+    // must not block the reset -- the worst case is the old re-pull behaviour.
+    try {
+      await ref.read(syncStateProvider.notifier).disableForDatabaseReset();
+    } catch (e, st) {
+      debugPrint('Could not disable cloud sync during reset: $e\n$st');
+    }
+    if (!mounted) return;
 
     // Generate a timestamped backup path
     final appDir = await getApplicationDocumentsDirectory();

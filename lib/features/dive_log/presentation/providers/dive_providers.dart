@@ -1045,6 +1045,9 @@ final estimatedTankPressuresProvider =
         diveDurationSeconds: dive.profile.isEmpty
             ? 0
             : dive.profile.last.timestamp,
+        firstSampleSeconds: dive.profile.isEmpty
+            ? 0
+            : dive.profile.first.timestamp,
       );
     });
 

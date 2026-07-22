@@ -13,6 +13,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
+import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
 import 'package:submersion/features/data_quality/presentation/providers/data_quality_providers.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
@@ -658,6 +659,14 @@ class DiveListTile extends ConsumerWidget {
   /// slots and extra fields, giving access to all fields.
   final Dive? fullDive;
 
+  /// Resolves a dive-type slug to its localized label (issue #643).
+  ///
+  /// Built once per list by [watchDiveTypeLabelResolver] and threaded down, so
+  /// the card neither watches `diveTypesProvider` nor rebuilds a lookup map per
+  /// row. When omitted, a Dive Type slot or extra field falls back to the
+  /// English slug capitalization, matching the locale-independent export path.
+  final DiveTypeLabelResolver? diveTypeLabelResolver;
+
   const DiveListTile({
     super.key,
     required this.diveId,
@@ -687,6 +696,7 @@ class DiveListTile extends ConsumerWidget {
     this.margin,
     this.summary,
     this.fullDive,
+    this.diveTypeLabelResolver,
   });
 
   /// Calculate background color based on the active color attribute
@@ -773,7 +783,10 @@ class DiveListTile extends ConsumerWidget {
     // CompactDiveListTile).
     String buildTitleText() {
       if (summary != null && titleField != DiveField.siteName) {
-        final value = titleField.extractFromSummary(summary!);
+        final value = titleField.extractFromSummary(
+          summary!,
+          diveTypeLabel: diveTypeLabelResolver,
+        );
         return titleField.formatValue(value, units);
       }
       return siteName ?? context.l10n.diveLog_listPage_unknownSite;
@@ -781,7 +794,10 @@ class DiveListTile extends ConsumerWidget {
 
     String buildDateText() {
       if (summary != null && dateField != DiveField.dateTime) {
-        final value = dateField.extractFromSummary(summary!);
+        final value = dateField.extractFromSummary(
+          summary!,
+          diveTypeLabel: diveTypeLabelResolver,
+        );
         return dateField.formatValue(value, units);
       }
       return units.formatDateTime(dateTime, l10n: context.l10n);
@@ -1000,8 +1016,12 @@ class DiveListTile extends ConsumerWidget {
                                 ? field.extractFromDive(
                                     fullDive!,
                                     sacUnit: units.sacUnit,
+                                    diveTypeLabel: diveTypeLabelResolver,
                                   )
-                                : (field.extractFromSummary(summary!) ??
+                                : (field.extractFromSummary(
+                                        summary!,
+                                        diveTypeLabel: diveTypeLabelResolver,
+                                      ) ??
                                       _fallbackValue(field));
                             final formatted = field.formatValue(value, units);
                             return SizedBox(
@@ -1147,9 +1167,16 @@ class DiveListTile extends ConsumerWidget {
   ) {
     // Use full Dive when available (has all fields), otherwise try summary
     dynamic value = fullDive != null
-        ? field.extractFromDive(fullDive!, sacUnit: units.sacUnit)
+        ? field.extractFromDive(
+            fullDive!,
+            sacUnit: units.sacUnit,
+            diveTypeLabel: diveTypeLabelResolver,
+          )
         : summary != null
-        ? field.extractFromSummary(summary)
+        ? field.extractFromSummary(
+            summary,
+            diveTypeLabel: diveTypeLabelResolver,
+          )
         : null;
     value ??= _fallbackValue(field);
     final formatted = field.formatValue(value, units);

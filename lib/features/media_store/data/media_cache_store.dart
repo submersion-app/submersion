@@ -62,8 +62,13 @@ class MediaCacheStore {
             .getSingleOrNull();
     if (row == null) return null;
     if (freshAfter != null &&
-        row.createdAt < freshAfter.millisecondsSinceEpoch) {
-      // Stale: the store object was overwritten after we cached it.
+        (row.sourceVersion == null ||
+            row.sourceVersion! < freshAfter.millisecondsSinceEpoch)) {
+      // Stale: the store object carries a newer version than the one we
+      // cached (or we cached it before the version token was tracked).
+      // Both sides are the uploading device's remoteCompressedUploadedAt
+      // stamp, so this comparison is immune to local clock skew -- unlike a
+      // local createdAt wall-clock, which could strand or thrash the cache.
       final stale = File(p.join(_root.path, row.relativePath));
       if (await stale.exists()) await stale.delete();
       await _deleteEntry(contentHash, kind);
@@ -88,7 +93,17 @@ class MediaCacheStore {
   }
 
   /// Moves [source] into the cache under [contentHash] and indexes it.
-  Future<File> put(String contentHash, MediaCacheKind kind, File source) async {
+  ///
+  /// [sourceVersion] records the authoritative store-object version these
+  /// bytes were fetched for (a rendition's synced remoteCompressedUploadedAt,
+  /// epoch millis) so [get]'s freshAfter check can detect an overwrite
+  /// without relying on this device's wall clock.
+  Future<File> put(
+    String contentHash,
+    MediaCacheKind kind,
+    File source, {
+    int? sourceVersion,
+  }) async {
     final relative = _relativePath(contentHash, kind);
     final dest = File(p.join(_root.path, relative));
     await dest.parent.create(recursive: true);
@@ -111,6 +126,7 @@ class MediaCacheStore {
             sizeBytes: size,
             lastAccessedAt: now,
             createdAt: now,
+            sourceVersion: Value(sourceVersion),
           ),
         );
     await evictIfNeeded();
@@ -146,16 +162,22 @@ class MediaCacheStore {
   /// renditions plus any .tmp debris. Best-effort.
   Future<void> deleteTranscodeArtifacts(String contentHash) async {
     final dir = Directory(p.join(_root.path, 'transcode'));
-    if (!await dir.exists()) return;
-    await for (final entity in dir.list()) {
-      if (entity is File &&
-          p.basename(entity.path).startsWith('${contentHash}_')) {
-        try {
-          await entity.delete();
-        } on FileSystemException {
-          // Best-effort cleanup.
+    try {
+      if (!await dir.exists()) return;
+      await for (final entity in dir.list()) {
+        if (entity is File &&
+            p.basename(entity.path).startsWith('${contentHash}_')) {
+          try {
+            await entity.delete();
+          } on FileSystemException {
+            // A single locked/vanished file must not abort the sweep.
+          }
         }
       }
+    } on FileSystemException {
+      // exists()/list() can race with other writers or hit a permission
+      // error; this cleanup is best-effort and must never surface (it now
+      // runs after markDone, where throwing would flip a committed upload).
     }
   }
 

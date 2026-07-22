@@ -14,14 +14,24 @@ class ProcessRunResult {
   final String stderr;
 }
 
+/// Result of a streamed process run: the exit code plus the captured stderr
+/// (stdout is forwarded line-by-line during the run, not buffered here).
+class StreamRunResult {
+  const StreamRunResult({required this.exitCode, required this.stderr});
+  final int exitCode;
+  final String stderr;
+}
+
 /// Injectable seam over dart:io Process so engines are unit-testable
 /// without external binaries.
 abstract class TranscoderProcessRunner {
   Future<ProcessRunResult> run(String executable, List<String> arguments);
 
   /// Starts the process, forwarding each stdout line, and returns the exit
-  /// code. Stderr is collected internally by implementations for error text.
-  Future<int> stream(
+  /// code together with the captured stderr. Returning stderr through the
+  /// contract keeps engines from having to know the concrete runner type to
+  /// get diagnostics.
+  Future<StreamRunResult> stream(
     String executable,
     List<String> arguments, {
     void Function(String line)? onStdoutLine,
@@ -29,9 +39,6 @@ abstract class TranscoderProcessRunner {
 }
 
 class SystemProcessRunner implements TranscoderProcessRunner {
-  /// Stderr of the last [stream] call, for error messages.
-  String lastStderr = '';
-
   @override
   Future<ProcessRunResult> run(
     String executable,
@@ -50,7 +57,7 @@ class SystemProcessRunner implements TranscoderProcessRunner {
   }
 
   @override
-  Future<int> stream(
+  Future<StreamRunResult> stream(
     String executable,
     List<String> arguments, {
     void Function(String line)? onStdoutLine,
@@ -59,8 +66,7 @@ class SystemProcessRunner implements TranscoderProcessRunner {
     try {
       process = await Process.start(executable, arguments);
     } on ProcessException catch (e) {
-      lastStderr = e.message;
-      return 127;
+      return StreamRunResult(exitCode: 127, stderr: e.message);
     }
     final stderrBuf = StringBuffer();
     final stdoutDone = process.stdout
@@ -73,7 +79,6 @@ class SystemProcessRunner implements TranscoderProcessRunner {
     final code = await process.exitCode;
     await stdoutDone;
     await stderrDone;
-    lastStderr = stderrBuf.toString();
-    return code;
+    return StreamRunResult(exitCode: code, stderr: stderrBuf.toString());
   }
 }

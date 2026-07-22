@@ -7,6 +7,7 @@ class _FakeRunner implements TranscoderProcessRunner {
   final List<(String, List<String>)> runCalls = [];
   final List<(String, List<String>)> streamCalls = [];
   int streamExitCode = 0;
+  String streamStderr = '';
   List<String> streamStdoutLines = [];
   void Function(String exe, List<String> args)? onStream;
 
@@ -21,7 +22,7 @@ class _FakeRunner implements TranscoderProcessRunner {
   }
 
   @override
-  Future<int> stream(
+  Future<StreamRunResult> stream(
     String executable,
     List<String> arguments, {
     void Function(String line)? onStdoutLine,
@@ -31,7 +32,7 @@ class _FakeRunner implements TranscoderProcessRunner {
     for (final line in streamStdoutLines) {
       onStdoutLine?.call(line);
     }
-    return streamExitCode;
+    return StreamRunResult(exitCode: streamExitCode, stderr: streamStderr);
   }
 }
 
@@ -80,6 +81,9 @@ void main() {
       expect(args, containsAllInOrder(['-c:v', 'libx264', '-b:v', '4000k']));
       expect(args, containsAllInOrder(['-c:a', 'aac', '-b:a', '128k']));
       expect(args, containsAllInOrder(['-movflags', '+faststart']));
+      // Muxer forced to mp4 (the tmp output ends in ".tmp", so ffmpeg can't
+      // infer the format from the extension) -- and it must precede the path.
+      expect(args, containsAllInOrder(['-f', 'mp4', '${output.path}.tmp']));
       expect(args.join(' '), contains("scale=w=-2:h='min(720,ih)'"));
       expect(await output.exists(), isTrue);
       expect(await File('${output.path}.tmp').exists(), isFalse);
@@ -89,16 +93,44 @@ void main() {
   test('non-zero exit throws TranscodeException and leaves no tmp', () async {
     final output = File('${dir.path}/out.mp4');
     runner.streamExitCode = 1;
+    // stderr comes back through the runner contract, so even this custom
+    // (non-SystemProcessRunner) fake surfaces it in the error message.
+    runner.streamStderr = 'Unknown encoder libx264';
     await expectLater(
       engine.transcode(
         source: File('${dir.path}/in.mov'),
         output: output,
         target: target,
       ),
-      throwsA(isA<TranscodeException>()),
+      throwsA(
+        isA<TranscodeException>().having(
+          (e) => e.message,
+          'message',
+          contains('Unknown encoder libx264'),
+        ),
+      ),
     );
     expect(await File('${output.path}.tmp').exists(), isFalse);
     expect(await output.exists(), isFalse);
+  });
+
+  test('a rename failure becomes a TranscodeException, no tmp left', () async {
+    // Make the output path an existing directory so the final tmp->output
+    // rename fails with a FileSystemException; the engine must convert that to
+    // a TranscodeException (contract) so the adapter can fall back to original.
+    await Directory('${dir.path}/out.mp4').create();
+    runner.onStream = (exe, args) {
+      File(args.last).writeAsBytesSync([1, 2, 3]);
+    };
+    await expectLater(
+      engine.transcode(
+        source: File('${dir.path}/in.mov'),
+        output: File('${dir.path}/out.mp4'),
+        target: target,
+      ),
+      throwsA(isA<TranscodeException>()),
+    );
+    expect(await File('${dir.path}/out.mp4.tmp').exists(), isFalse);
   });
 
   test(

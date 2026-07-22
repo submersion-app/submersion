@@ -18,11 +18,38 @@ class ChannelTranscodeEngine implements TranscodeEngine {
     : _methods =
           methods ?? const MethodChannel('submersion_transcoder/methods'),
       _progress =
-          progress ?? const EventChannel('submersion_transcoder/progress');
+          progress ?? const EventChannel('submersion_transcoder/progress'),
+      _usesDefaultProgress = progress == null;
 
   final MethodChannel _methods;
   final EventChannel _progress;
-  int _seq = 0;
+
+  // True when no EventChannel was injected, i.e. we're on the default
+  // production channel. Tests that inject their own channel get an isolated,
+  // per-instance stream instead of the shared static one.
+  final bool _usesDefaultProgress;
+
+  // Static so progressIds are unique across ALL engine instances in this
+  // isolate -- an instance-local counter would emit p0, p1, ... per instance
+  // and collide on the shared progress EventChannel when two engines run
+  // concurrently, misattributing progress events.
+  static int _seq = 0;
+
+  // One broadcast stream over the DEFAULT progress channel, shared by every
+  // engine instance in this isolate. receiveBroadcastStream() triggers a
+  // native onListen each time it's first listened to, and the Swift side keeps
+  // a single progressSink -- so a per-instance stream would let a second
+  // engine's onListen overwrite the first engine's sink and starve its
+  // progress. One shared stream = exactly one native onListen; per-call
+  // listeners filter by progressId.
+  static Stream<dynamic>? _sharedDefaultProgressStream;
+
+  // The default channel resolves to the shared static stream (one onListen for
+  // the whole isolate); an injected test channel gets its own stream so tests
+  // stay isolated from each other and from production.
+  late final Stream<dynamic> _progressStream = _usesDefaultProgress
+      ? (_sharedDefaultProgressStream ??= _progress.receiveBroadcastStream())
+      : _progress.receiveBroadcastStream();
 
   @override
   Future<bool> isAvailable() async {
@@ -66,7 +93,7 @@ class ChannelTranscodeEngine implements TranscodeEngine {
     final progressId = 'p${_seq++}';
     StreamSubscription<dynamic>? sub;
     if (onProgress != null) {
-      sub = _progress.receiveBroadcastStream().listen((event) {
+      sub = _progressStream.listen((event) {
         if (event is Map && event['progressId'] == progressId) {
           final f = (event['fraction'] as num).toDouble();
           onProgress(f.clamp(0.0, 1.0));
@@ -83,7 +110,10 @@ class ChannelTranscodeEngine implements TranscodeEngine {
         'progressId': progressId,
       });
     } on PlatformException catch (e) {
-      throw TranscodeException('AVFoundation transcode failed: ${e.message}');
+      // message can be null; fall back to details/code so the failure always
+      // carries something identifying rather than "... failed: null".
+      final detail = e.message ?? e.details?.toString() ?? e.code;
+      throw TranscodeException('AVFoundation transcode failed: $detail');
     } on MissingPluginException {
       throw const TranscodeException('transcoder plugin not registered');
     } finally {

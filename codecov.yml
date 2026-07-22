@@ -3,22 +3,27 @@
 
 codecov:
   notify:
-    # Coverage arrives as 5 separate uploads: the 4 file-sharded test jobs
-    # (flags shard-0..3) plus the scripts job (flag scripts). Tests are sharded
+    # Coverage arrives as 9 separate uploads: the 8 file-sharded test jobs
+    # (flags shard-0..7) plus the scripts job (flag scripts). Tests are sharded
     # BY FILE (ci.yaml), so each shard's lcov only marks the lines its subset
     # executed and Codecov must union them. Without waiting, Codecov computes
     # the patch/project STATUS after the first upload lands -- and a shard that
     # touched only part of a PR's diff then posts a misleadingly low patch %
     # (e.g. 12.5% when the fully-merged coverage is 100%), which sticks. Hold
-    # the status until all 5 uploads arrive, then compute once on the merge.
+    # the status until all 9 uploads arrive, then compute once on the merge.
     # Both upload steps run `if: always()` (empty shards upload an empty lcov),
-    # so exactly 5 uploads occur -- keep this in sync with the shard count.
-    after_n_builds: 5
+    # so exactly 9 uploads occur.
+    #
+    # THIS MUST EQUAL (ci.yaml shard count + 1) for the scripts job. If the
+    # `codecov/patch` status is made a REQUIRED check in branch protection, a
+    # stale count here means the status never settles and NO PR can merge --
+    # so bump this in lockstep whenever you change the shard matrix.
+    after_n_builds: 9
     wait_for_ci: true
 
 comment:
   # Same rationale: don't post/update the PR comment until every upload is in.
-  after_n_builds: 5
+  after_n_builds: 9
 
 coverage:
   status:

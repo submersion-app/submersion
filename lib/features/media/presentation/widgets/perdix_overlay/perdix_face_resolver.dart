@@ -58,6 +58,7 @@ class PerdixFaceResolver {
                tanks: tanks,
                gasSwitches: gasSwitches,
                diveDurationSeconds: profile.last.timestamp,
+               firstSampleSeconds: profile.first.timestamp,
              ),
        _activeTankIntervals = profile.isEmpty
            ? const {}
@@ -65,6 +66,7 @@ class PerdixFaceResolver {
                tanks: tanks,
                gasSwitches: gasSwitches,
                diveDurationSeconds: profile.last.timestamp,
+               firstSampleSeconds: profile.first.timestamp,
              );
 
   final List<DiveProfilePoint> _profile;

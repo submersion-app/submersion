@@ -27,11 +27,18 @@ import 'package:submersion/features/media/presentation/widgets/file_review_pane.
 ///
 /// Commit flow (Task 13) layers on top.
 ///
-/// Photos only — local-file video imports are out of scope for Phase 2:
-/// `PhotoViewerPage` does not yet resolve playable file paths for
-/// `MediaSourceType.localFile` videos. The picker is filtered to
-/// `FileType.image`, the folder enumerator excludes video extensions, and
-/// the commit loop drops any video MIME defensively.
+/// Photos and videos: the picker uses `FileType.media`, the folder enumerator
+/// admits `.mp4/.mov/.m4v`, and the commit loop persists each with its
+/// [MediaType]. A picked file's capture time comes from its own metadata
+/// (JPEG EXIF or the MP4/MOV `mvhd`) via the `ExifExtractor`, so both match
+/// dives on every platform.
+///
+/// Playback caveat: `PhotoViewerPage` resolves a local-file video by
+/// `localPath`, which is populated on macOS/Windows/Linux but null on iOS
+/// (where only a security-scoped bookmark is stored). Local-file video
+/// playback on iOS therefore still needs bookmark->path resolution; until
+/// then an iOS-imported video matches and stores but shows the viewer's
+/// video-unavailable state rather than playing.
 class FilesTab extends ConsumerWidget {
   const FilesTab({super.key});
 
@@ -43,10 +50,11 @@ class FilesTab extends ConsumerWidget {
   // build() rendering branches that this method drives — extraction
   // progress, empty/non-empty file lists — are tested via `files_tab_test`.
   Future<void> _pickFiles(WidgetRef ref) async {
-    // FileType.image excludes video extensions at the OS picker layer.
-    // Phase 2 has no local-file video playback yet; see class doc.
+    // FileType.media admits both images and videos at the OS picker layer.
+    // Their capture time is recovered by ExifExtractor (JPEG EXIF or the
+    // MP4/MOV mvhd) so both match dives; see class doc.
     final result = await FilePicker.pickFiles(
-      type: FileType.image,
+      type: FileType.media,
       allowMultiple: true,
     );
     if (result == null) return;
@@ -190,7 +198,7 @@ class FilesTab extends ConsumerWidget {
                     .toggleAutoMatch(),
               ),
               const Expanded(
-                child: Text('Auto-match photos to dives by EXIF date'),
+                child: Text('Auto-match photos and videos to dives by date'),
               ),
             ],
           ),
@@ -242,9 +250,16 @@ class FilesTab extends ConsumerWidget {
   // exercised by manual desktop smoke tests + by the notifier unit tests.
   Future<void> _commit(BuildContext context, WidgetRef ref) async {
     final notifier = ref.read(filesTabNotifierProvider.notifier);
+    // The picker uses a bare Scaffold, so this resolves to the root
+    // ScaffoldMessenger, which outlives the pop below and shows the snackbar
+    // on the dive-detail view we return to.
     final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
     final created = await notifier.commit();
     if (!context.mounted) return;
+    // Return to the dive-detail view now that the files are linked; the grid
+    // refreshes reactively via mediaForDiveProvider's watchDiveDetailChanges.
+    navigator.pop();
     // TODO(media): l10n, pluralization
     messenger.showSnackBar(
       SnackBar(
@@ -273,8 +288,20 @@ class FilesTab extends ConsumerWidget {
 /// Caps at 5,000 files per the Phase 2 spec to bound memory and the
 /// subsequent EXIF extraction loop.
 Future<List<String>> _enumerateMediaFiles(String rootPath) async {
-  // Photos only in Phase 2; see [FilesTab] class doc.
-  const exts = {'.jpg', '.jpeg', '.heic', '.heif', '.png', '.webp', '.gif'};
+  // Images plus the video containers whose mvhd creation_time the capture-time
+  // reader understands (see [FilesTab] class doc).
+  const exts = {
+    '.jpg',
+    '.jpeg',
+    '.heic',
+    '.heif',
+    '.png',
+    '.webp',
+    '.gif',
+    '.mp4',
+    '.mov',
+    '.m4v',
+  };
   final results = <String>[];
   final dir = Directory(rootPath);
   if (!dir.existsSync()) return results;

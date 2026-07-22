@@ -156,6 +156,36 @@ void main() {
     );
   });
 
+  test('an original video upload sweeps a stranded transcode', () async {
+    // A deterministic transcode left by a prior attempt must not linger when
+    // the next successful run uploads the original instead (e.g. the user
+    // switched the level to Original, or the engine became unavailable).
+    await policies.setVideoUploadQuality(MediaUploadQuality.original);
+
+    resolver.data = FileData(file: await sourceClip());
+    await mediaRepository.createMedia(video('v1'));
+    await pipeline().process(await enqueue('v1'));
+    final hash = (await mediaRepository.getMediaById('v1'))!.contentHash!;
+    expect(transcoder.calls, 0, reason: 'Original level never transcodes');
+
+    // Simulate a stranded transcode artifact for this hash.
+    final stray = await cache.transcodeFile(hash, 'balanced');
+    await stray.writeAsBytes([1, 2, 3, 4], flush: true);
+    expect(await stray.exists(), isTrue);
+
+    // A second item with the same bytes uploads its original; the markDone
+    // cleanup on the original path must sweep the stranded transcode.
+    resolver.data = FileData(file: await sourceClip());
+    await mediaRepository.createMedia(video('v2'));
+    await pipeline().process(await enqueue('v2'));
+
+    expect(
+      await stray.exists(),
+      isFalse,
+      reason: 'stranded transcode swept on the original-upload markDone',
+    );
+  });
+
   test('upload failure preserves the video rendition for retry', () async {
     resolver.data = FileData(file: await sourceClip());
     await mediaRepository.createMedia(video('v3'));

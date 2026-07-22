@@ -269,6 +269,11 @@ final mediaStoreReuploadProvider =
 
 /// Whether this device can transcode video right now (spec section 12).
 /// Drives the Linux settings hint; false on platforms without an engine.
-final videoTranscodeAvailableProvider = FutureProvider<bool>(
+///
+/// autoDispose so it re-checks each time Settings is re-entered: a plain
+/// FutureProvider would cache a `false` (ffmpeg not yet installed) for the
+/// container's lifetime, leaving the "install ffmpeg" hint stale after the
+/// user installs ffmpeg and comes back.
+final videoTranscodeAvailableProvider = FutureProvider.autoDispose<bool>(
   (ref) => PlatformVideoTranscoder().isAvailable(),
 );

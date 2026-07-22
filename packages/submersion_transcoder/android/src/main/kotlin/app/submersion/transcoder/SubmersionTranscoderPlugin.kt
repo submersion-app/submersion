@@ -35,6 +35,9 @@ class SubmersionTranscoderPlugin :
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         methods.setMethodCallHandler(null)
         progress.setStreamHandler(null)
+        // Drop any active sink so we never retain a stale reference or emit
+        // progress after the engine is gone.
+        progressSink = null
     }
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
@@ -46,7 +49,14 @@ class SubmersionTranscoderPlugin :
                     result.success(null)
                     return
                 }
-                result.success(Media3Transcoder.probe(path))
+                // MediaMetadataRetriever can be slow on large clips; keep it off
+                // the platform (main) thread so the UI never blocks. The result
+                // must still be delivered on the main thread.
+                val mainHandler = Handler(Looper.getMainLooper())
+                Thread {
+                    val probe = Media3Transcoder.probe(path)
+                    mainHandler.post { result.success(probe) }
+                }.start()
             }
             "transcode" -> {
                 val source = call.argument<String>("source")
@@ -65,29 +75,40 @@ class SubmersionTranscoderPlugin :
                 // Transformer must run on a Looper thread; the listener resolves
                 // the Flutter result on that same (main) thread.
                 Handler(Looper.getMainLooper()).post {
-                    Media3Transcoder.transcode(
-                        context = context,
-                        source = source,
-                        output = output,
-                        maxHeight = maxHeight,
-                        videoBitrateKbps = videoBitrateKbps,
-                        audioBitrateKbps = audioBitrateKbps,
-                        onProgress = { fraction ->
-                            progressSink?.success(
-                                mapOf(
-                                    "progressId" to progressId,
-                                    "fraction" to fraction,
-                                ),
-                            )
-                        },
-                        onDone = { error ->
-                            if (error == null) {
-                                result.success(null)
-                            } else {
-                                result.error("transcode_failed", error, null)
-                            }
-                        },
-                    )
+                    try {
+                        Media3Transcoder.transcode(
+                            context = context,
+                            source = source,
+                            output = output,
+                            maxHeight = maxHeight,
+                            videoBitrateKbps = videoBitrateKbps,
+                            audioBitrateKbps = audioBitrateKbps,
+                            onProgress = { fraction ->
+                                progressSink?.success(
+                                    mapOf(
+                                        "progressId" to progressId,
+                                        "fraction" to fraction,
+                                    ),
+                                )
+                            },
+                            onDone = { error ->
+                                if (error == null) {
+                                    result.success(null)
+                                } else {
+                                    result.error("transcode_failed", error, null)
+                                }
+                            },
+                        )
+                    } catch (e: Exception) {
+                        // Any synchronous throw escaping the posted Runnable would
+                        // crash the app and leave the MethodChannel result
+                        // unresolved. Surface it as a channel error instead.
+                        result.error(
+                            "transcode_failed",
+                            e.message ?: "transcode failed",
+                            null,
+                        )
+                    }
                 }
             }
             else -> result.notImplemented()

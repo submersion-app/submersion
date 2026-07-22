@@ -5,7 +5,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
-import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Single-row flat tile for the equipment list (maximum density).
 ///
@@ -105,32 +104,6 @@ class DenseEquipmentListTile extends ConsumerWidget {
         style: theme.textTheme.labelSmall?.copyWith(
           color: overdue ? theme.colorScheme.error : theme.colorScheme.tertiary,
           fontWeight: FontWeight.w600,
-        ),
-        textAlign: TextAlign.right,
-        overflow: TextOverflow.ellipsis,
-      );
-    }
-
-    // Legacy single-clock fallback (before the ledger map loads, or for
-    // items whose only signal is the legacy interval).
-    if (item.isServiceDue) {
-      return Text(
-        context.l10n.equipment_list_tile_serviceDueChip,
-        style: theme.textTheme.labelSmall?.copyWith(
-          color: theme.colorScheme.error,
-          fontWeight: FontWeight.w600,
-        ),
-        textAlign: TextAlign.right,
-        overflow: TextOverflow.ellipsis,
-      );
-    }
-
-    if (item.daysUntilService != null) {
-      final days = item.daysUntilService!;
-      return Text(
-        context.l10n.equipment_list_tile_serviceInDays(days),
-        style: theme.textTheme.labelSmall?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
         ),
         textAlign: TextAlign.right,
         overflow: TextOverflow.ellipsis,

@@ -57,6 +57,9 @@ void main() {
         throwsA(anything),
       );
 
+      // getDiverCount - rethrows
+      await expectLater(repository.getDiverCount(), throwsA(anything));
+
       // getTotalBottomTimeForDiver - rethrows
       await expectLater(
         repository.getTotalBottomTimeForDiver('d1'),

@@ -103,6 +103,12 @@ class DiveRepository {
   /// + dive_computers, plus dive_sites/dive_centers/trips/courses) so a synced
   /// edit to a tag/buddy/species/equipment/site/center/trip/computer NAME also
   /// refreshes the rendered detail, not just changes to the link rows.
+  ///
+  /// Also watches the two post-dive safety-review tables (dive_safety_reviews +
+  /// dive_safety_findings). They carry no HLC of their own, so a sync imports
+  /// them with a raw insertOnConflictUpdate straight into the tables; the one-
+  /// shot safetyReviewProvider self-invalidates on this stream so a freshly
+  /// synced (or batch-analyzed) review becomes visible without an app restart.
   Stream<void> watchDiveDetailChanges() => _db
       .tableUpdates(
         TableUpdateQuery.allOf([
@@ -127,6 +133,8 @@ class DiveRepository {
           TableUpdateQuery.onTable(_db.species),
           TableUpdateQuery.onTable(_db.media),
           TableUpdateQuery.onTable(_db.tideRecords),
+          TableUpdateQuery.onTable(_db.diveSafetyReviews),
+          TableUpdateQuery.onTable(_db.diveSafetyFindings),
         ]),
       )
       .debounce(changeTickDebounce);
@@ -671,7 +679,44 @@ class DiveRepository {
                   (t) => OrderingTerm.asc(t.createdAt),
                 ]))
               .get();
-      if (sourceRows.isEmpty) return {};
+      if (sourceRows.isEmpty) {
+        // Legacy/imported dives can carry dive_profiles rows without a
+        // dive_data_sources metadata row (older import paths predate that
+        // table). The profile is real -- the 2D chart renders it via
+        // dive.profile -- so synthesize a single primary source from the
+        // primary rows. Without this, every profile-consuming feature that
+        // reads only the grouped view (3D scene, spatial, computer compare,
+        // profile analysis) sees an empty map and stalls on a null scene.
+        final allRows =
+            await (_db.select(_db.diveProfiles)
+                  ..where((t) => t.diveId.equals(diveId))
+                  ..orderBy([(t) => OrderingTerm.asc(t.timestamp)]))
+                .get();
+        final primaryRows = allRows.where((r) => r.isPrimary).toList();
+        if (primaryRows.isEmpty) return {};
+        // Key/sourceId must equal the row that _backfillMissingDataSources
+        // (AppDatabase.beforeOpen) will persist, so the synthesized-on-read
+        // source and the later backfilled row expose the SAME id. Otherwise a
+        // consumer that keeps a selected source id (activeDiveSourceProvider)
+        // would see it change out from under it when the heal runs. The id
+        // format is shared via [legacyDataSourceId] so the two can't drift.
+        final syntheticSourceId = legacyDataSourceId(diveId);
+        // With no dive_data_sources row there is a single conceptual source
+        // (the imported file), so any demoted (isPrimary=false) rows can only
+        // be originals a profile edit left behind -- the same signal the
+        // non-fallback path uses for hasEditedProfile. Surface it so an edited
+        // legacy dive keeps its "(edited)" label even in the window before the
+        // backfill promotes it to the normal path.
+        final isEdited = allRows.any((r) => !r.isPrimary);
+        return {
+          syntheticSourceId: domain.SourceProfile(
+            sourceId: syntheticSourceId,
+            computerId: primaryRows.first.computerId,
+            isEdited: isEdited,
+            points: primaryRows.map(_profilePointFromRow).toList(),
+          ),
+        };
+      }
 
       final primary = sourceRows.first;
       final sourceIdByComputer = <String, String>{
