@@ -78,10 +78,12 @@ final mediaTransferQueueRepositoryProvider =
 /// at process start, so running reclamation once before the first drain
 /// recovers every real orphan without ever touching a live worker's row.
 /// This provider is never invalidated: its cached result makes the reclaim
-/// idempotent for the process lifetime.
+/// idempotent for the process lifetime. Uses ref.read, not ref.watch, so an
+/// invalidation/override of the repository provider (e.g. in a nested test
+/// scope) cannot recompute this future and trigger a second reclaim pass.
 final FutureProvider<void> mediaTransferQueueReclaimProvider =
     FutureProvider<void>((ref) async {
-      await ref.watch(mediaTransferQueueRepositoryProvider).requeueStale();
+      await ref.read(mediaTransferQueueRepositoryProvider).requeueStale();
     });
 
 final mediaBackfillServiceProvider = Provider<MediaBackfillService>(
