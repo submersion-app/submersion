@@ -67,7 +67,18 @@ void ProbeOnWorker(
     const int32_t durationMs = static_cast<int32_t>(
         std::chrono::duration_cast<std::chrono::milliseconds>(props.Duration())
             .count());
-    const int32_t kbps = static_cast<int32_t>(props.Bitrate() / 1000);
+    // Overall bitrate (bits/s) -> kbps. When the metadata bitrate is unknown
+    // (0), estimate from file size / duration so the ceiling rule doesn't read a
+    // high-bitrate clip as 0 and skip transcoding. Mirrors the Darwin/Linux
+    // probes.
+    int64_t bps = static_cast<int64_t>(props.Bitrate());
+    if (bps <= 0 && durationMs > 0) {
+      const uint64_t sizeBytes = file.GetBasicPropertiesAsync().get().Size();
+      if (sizeBytes > 0) {
+        bps = static_cast<int64_t>(sizeBytes) * 8 * 1000 / durationMs;
+      }
+    }
+    const int32_t kbps = static_cast<int32_t>(bps / 1000);
     result->Success(EncodableValue(EncodableMap{
         {EncodableValue("width"), EncodableValue(w)},
         {EncodableValue("height"), EncodableValue(h)},

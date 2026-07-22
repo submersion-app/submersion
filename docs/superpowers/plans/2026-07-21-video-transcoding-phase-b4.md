@@ -21,7 +21,7 @@
 ### Task 1: Dart — return the shared engine on Windows
 
 **Files:**
-- Modify: `packages/submersion_transcoder/lib/src/transcode_engine.dart` (`engineForThisPlatform`: add `Platform.isWindows`)
+- Modify: `packages/submersion_transcoder/lib/src/engine_factory.dart` (`engineForThisPlatform`: add `Platform.isWindows`)
 - Modify: `test/features/media_store/engine_for_platform_test.dart` (Windows arm)
 
 **Interfaces:**
@@ -29,7 +29,7 @@
 
 - [ ] **Step 1: Add the Windows arm**
 
-In `transcode_engine.dart`, extend the native-channel branch:
+In `engine_factory.dart`, extend the native-channel branch:
 ```dart
   if (Platform.isIOS ||
       Platform.isMacOS ||
@@ -53,7 +53,7 @@ In `engine_for_platform_test.dart`, add `|| Platform.isWindows` to the `ChannelT
 
 - [ ] **Step 3: Run + format + analyze**
 
-Run: `dart format packages/submersion_transcoder/lib/src/transcode_engine.dart test/features/media_store/engine_for_platform_test.dart` then `flutter test test/features/media_store/engine_for_platform_test.dart`
+Run: `dart format packages/submersion_transcoder/lib/src/engine_factory.dart test/features/media_store/engine_for_platform_test.dart` then `flutter test test/features/media_store/engine_for_platform_test.dart`
 Expected: PASS (on macOS the Windows arm is inert; the test still asserts the macOS branch).
 
 - [ ] **Step 4: Commit**

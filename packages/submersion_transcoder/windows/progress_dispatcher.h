@@ -42,16 +42,17 @@ class ProgressDispatcher {
   // runs (no view), in which case Emit() silently drops progress.
   void SetWindow(HWND hwnd) { hwnd_.store(hwnd); }
 
-  // Worker thread: enqueue an event and wake the platform thread.
+  // Worker thread: enqueue an event and wake the platform thread. With no
+  // window (headless run) nothing would ever drain the queue, so drop the event
+  // rather than let it accumulate unbounded.
   void Emit(flutter::EncodableValue event) {
+    HWND hwnd = hwnd_.load();
+    if (hwnd == nullptr) return;
     {
       std::lock_guard<std::mutex> lock(mutex_);
       queue_.push(std::move(event));
     }
-    HWND hwnd = hwnd_.load();
-    if (hwnd != nullptr) {
-      PostMessage(hwnd, WM_APP_TRANSCODE_PROGRESS, 0, 0);
-    }
+    PostMessage(hwnd, WM_APP_TRANSCODE_PROGRESS, 0, 0);
   }
 
   // Platform thread: deliver all queued events through the sink.

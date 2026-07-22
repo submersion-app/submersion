@@ -47,8 +47,11 @@ void main() {
     );
 
     expect(await output.exists(), isTrue);
+    expect(await File('${output.path}.tmp').exists(), isFalse);
     final outProbe = (await engine.probe(output))!;
     expect(outProbe.height, lessThanOrEqualTo(240));
     expect(await output.length(), lessThan(await input.length()));
+    expect(fractions, isNotEmpty);
+    expect(fractions.last, 1.0);
   });
 }
