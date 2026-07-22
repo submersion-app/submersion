@@ -10,6 +10,7 @@ set(PLUGIN_NAME "submersion_transcoder_plugin")
 list(APPEND PLUGIN_SOURCES
   "submersion_transcoder_plugin.cpp"
   "submersion_transcoder_plugin.h"
+  "progress_dispatcher.h"
 )
 
 add_library(${PLUGIN_NAME} SHARED

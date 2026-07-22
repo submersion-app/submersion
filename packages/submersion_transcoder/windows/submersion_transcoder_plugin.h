@@ -10,8 +10,8 @@
 #include <flutter/plugin_registrar_windows.h>
 
 #include <memory>
-#include <mutex>
-#include <string>
+
+#include "progress_dispatcher.h"
 
 namespace submersion_transcoder {
 
@@ -19,7 +19,8 @@ class SubmersionTranscoderPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrarWindows* registrar);
 
-  SubmersionTranscoderPlugin();
+  explicit SubmersionTranscoderPlugin(
+      flutter::PluginRegistrarWindows* registrar);
   virtual ~SubmersionTranscoderPlugin();
 
   SubmersionTranscoderPlugin(const SubmersionTranscoderPlugin&) = delete;
@@ -30,9 +31,15 @@ class SubmersionTranscoderPlugin : public flutter::Plugin {
       const flutter::MethodCall<flutter::EncodableValue>& method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
 
-  // Progress sink shared with worker threads; guarded by progress_mutex_.
-  std::shared_ptr<flutter::EventSink<flutter::EncodableValue>> progress_sink_;
-  std::mutex progress_mutex_;
+  // Marshals worker-thread progress onto the platform thread. Shared with the
+  // detached transcode worker so it outlives the plugin if a transcode is still
+  // running at teardown.
+  std::shared_ptr<ProgressDispatcher> dispatcher_ =
+      std::make_shared<ProgressDispatcher>();
+
+ private:
+  flutter::PluginRegistrarWindows* registrar_ = nullptr;
+  int window_proc_delegate_id_ = 0;
 };
 
 }  // namespace submersion_transcoder

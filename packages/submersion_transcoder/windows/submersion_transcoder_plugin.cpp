@@ -15,7 +15,7 @@
 #include <chrono>
 #include <cstdint>
 #include <memory>
-#include <mutex>
+#include <optional>
 #include <string>
 #include <thread>
 #include <utility>
@@ -79,12 +79,13 @@ void ProbeOnWorker(
   }
 }
 
-// Transcodes on a worker thread. `sink` may be null if Dart never subscribed
-// to the progress channel.
+// Transcodes on a worker thread. Progress is routed through `dispatcher`, which
+// marshals each event onto the platform thread (EventSink::Success must not be
+// called from this worker thread).
 void TranscodeOnWorker(
     std::string source, std::string output, int max_height, int video_kbps,
     int /*audio_kbps*/, std::string progress_id,
-    std::shared_ptr<flutter::EventSink<EncodableValue>> sink,
+    std::shared_ptr<ProgressDispatcher> dispatcher,
     std::shared_ptr<flutter::MethodResult<EncodableValue>> result) {
   namespace WS = winrt::Windows::Storage;
   namespace WMP = winrt::Windows::Media::MediaProperties;
@@ -108,11 +109,18 @@ void TranscodeOnWorker(
                         : src_w;
     out_w -= (out_w % 2);
     out_h -= (out_h % 2);
+    // A tiny target (or an odd 1px source) can round to 0, which MediaEncoding
+    // rejects. Clamp to the smallest valid even dimension.
+    if (out_w < 2) out_w = 2;
+    if (out_h < 2) out_h = 2;
 
     // Destination folder + <name>.tmp file (replace any stale temp).
     std::wstring wout = Wide(output);
     size_t slash = wout.find_last_of(L"\\/");
     std::wstring dir = slash == std::wstring::npos ? L"" : wout.substr(0, slash);
+    // A drive-root output ("C:\\out.mp4") leaves dir == "C:"; GetFolderFromPath
+    // needs the trailing separator ("C:\\") to resolve the root folder.
+    if (!dir.empty() && dir.back() == L':') dir.push_back(L'\\');
     std::wstring name =
         slash == std::wstring::npos ? wout : wout.substr(slash + 1);
     auto folder =
@@ -138,9 +146,8 @@ void TranscodeOnWorker(
     }
 
     auto op = prep.TranscodeAsync();
-    op.Progress([sink, progress_id](auto const&, double percent) {
-      if (!sink) return;
-      sink->Success(EncodableValue(EncodableMap{
+    op.Progress([dispatcher, progress_id](auto const&, double percent) {
+      dispatcher->Emit(EncodableValue(EncodableMap{
           {EncodableValue("progressId"), EncodableValue(progress_id)},
           {EncodableValue("fraction"), EncodableValue(percent / 100.0)},
       }));
@@ -152,12 +159,10 @@ void TranscodeOnWorker(
         .RenameAsync(winrt::hstring(name),
                      WS::NameCollisionOption::ReplaceExisting)
         .get();
-    if (sink) {
-      sink->Success(EncodableValue(EncodableMap{
-          {EncodableValue("progressId"), EncodableValue(progress_id)},
-          {EncodableValue("fraction"), EncodableValue(1.0)},
-      }));
-    }
+    dispatcher->Emit(EncodableValue(EncodableMap{
+        {EncodableValue("progressId"), EncodableValue(progress_id)},
+        {EncodableValue("fraction"), EncodableValue(1.0)},
+    }));
     result->Success(EncodableValue());
   } catch (winrt::hresult_error const& e) {
     result->Error("transcode_failed", Utf8(std::wstring(e.message())));
@@ -179,7 +184,7 @@ void SubmersionTranscoderPlugin::RegisterWithRegistrar(
       registrar->messenger(), "submersion_transcoder/progress",
       &flutter::StandardMethodCodec::GetInstance());
 
-  auto plugin = std::make_unique<SubmersionTranscoderPlugin>();
+  auto plugin = std::make_unique<SubmersionTranscoderPlugin>(registrar);
 
   methods->SetMethodCallHandler(
       [p = plugin.get()](const auto& call, auto result) {
@@ -192,24 +197,42 @@ void SubmersionTranscoderPlugin::RegisterWithRegistrar(
               const EncodableValue*,
               std::unique_ptr<flutter::EventSink<EncodableValue>>&& events)
               -> std::unique_ptr<flutter::StreamHandlerError<EncodableValue>> {
-            std::lock_guard<std::mutex> lock(p->progress_mutex_);
-            p->progress_sink_ =
+            p->dispatcher_->SetSink(
                 std::shared_ptr<flutter::EventSink<EncodableValue>>(
-                    std::move(events));
+                    std::move(events)));
             return nullptr;
           },
           [p = plugin.get()](const EncodableValue*)
               -> std::unique_ptr<flutter::StreamHandlerError<EncodableValue>> {
-            std::lock_guard<std::mutex> lock(p->progress_mutex_);
-            p->progress_sink_.reset();
+            p->dispatcher_->SetSink(nullptr);
             return nullptr;
           }));
 
   registrar->AddPlugin(std::move(plugin));
 }
 
-SubmersionTranscoderPlugin::SubmersionTranscoderPlugin() {}
-SubmersionTranscoderPlugin::~SubmersionTranscoderPlugin() {}
+SubmersionTranscoderPlugin::SubmersionTranscoderPlugin(
+    flutter::PluginRegistrarWindows* registrar)
+    : registrar_(registrar) {
+  // The transcode worker signals progress with PostMessage to the platform
+  // window; capture its HWND so ProgressDispatcher::Emit can reach it.
+  if (auto* view = registrar_->GetView()) {
+    dispatcher_->SetWindow(view->GetNativeWindow());
+  }
+  // Drain queued progress on the platform thread whenever the worker signals.
+  window_proc_delegate_id_ = registrar_->RegisterTopLevelWindowProcDelegate(
+      [this](HWND, UINT message, WPARAM, LPARAM) -> std::optional<LRESULT> {
+        if (message == WM_APP_TRANSCODE_PROGRESS) {
+          dispatcher_->Drain();
+          return 0;
+        }
+        return std::nullopt;
+      });
+}
+
+SubmersionTranscoderPlugin::~SubmersionTranscoderPlugin() {
+  registrar_->UnregisterTopLevelWindowProcDelegate(window_proc_delegate_id_);
+}
 
 void SubmersionTranscoderPlugin::HandleMethodCall(
     const flutter::MethodCall<EncodableValue>& method_call,
@@ -261,15 +284,10 @@ void SubmersionTranscoderPlugin::HandleMethodCall(
       result->Error("bad_args", "missing transcode arguments");
       return;
     }
-    std::shared_ptr<flutter::EventSink<EncodableValue>> sink;
-    {
-      std::lock_guard<std::mutex> lock(progress_mutex_);
-      sink = progress_sink_;
-    }
     std::shared_ptr<flutter::MethodResult<EncodableValue>> shared(
         std::move(result));
     std::thread(TranscodeOnWorker, *source, *output, *max_height, *video_kbps,
-                *audio_kbps, *progress_id, sink, shared)
+                *audio_kbps, *progress_id, dispatcher_, shared)
         .detach();
     return;
   }
