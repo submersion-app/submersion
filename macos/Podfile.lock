@@ -120,6 +120,9 @@ PODS:
   - submersion_ocr (0.1.0):
     - Flutter
     - FlutterMacOS
+  - submersion_transcoder (0.1.0):
+    - Flutter
+    - FlutterMacOS
   - url_launcher_macos (0.0.1):
     - FlutterMacOS
   - video_player_avfoundation (0.0.1):
@@ -155,6 +158,7 @@ DEPENDENCIES:
   - sqflite_darwin (from `Flutter/ephemeral/.symlinks/plugins/sqflite_darwin/darwin`)
   - sqlite3_flutter_libs (from `Flutter/ephemeral/.symlinks/plugins/sqlite3_flutter_libs/darwin`)
   - submersion_ocr (from `Flutter/ephemeral/.symlinks/plugins/submersion_ocr/darwin`)
+  - submersion_transcoder (from `Flutter/ephemeral/.symlinks/plugins/submersion_transcoder/darwin`)
   - url_launcher_macos (from `Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos`)
   - video_player_avfoundation (from `Flutter/ephemeral/.symlinks/plugins/video_player_avfoundation/darwin`)
   - window_to_front (from `Flutter/ephemeral/.symlinks/plugins/window_to_front/macos`)
@@ -225,6 +229,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/sqlite3_flutter_libs/darwin
   submersion_ocr:
     :path: Flutter/ephemeral/.symlinks/plugins/submersion_ocr/darwin
+  submersion_transcoder:
+    :path: Flutter/ephemeral/.symlinks/plugins/submersion_transcoder/darwin
   url_launcher_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos
   video_player_avfoundation:
@@ -269,6 +275,7 @@ SPEC CHECKSUMS:
   sqlite3: a51c07cf16e023d6c48abd5e5791a61a47354921
   sqlite3_flutter_libs: b3e120efe9a82017e5552a620f696589ed4f62ab
   submersion_ocr: c16e8aa86fee22293c92688fcf97c5293b6b159f
+  submersion_transcoder: c0bc7bb59ce039c73dcd24cb7797b390cfd2dab6
   url_launcher_macos: f87a979182d112f911de6820aefddaf56ee9fbfd
   video_player_avfoundation: 3453f792138786248960ca029747fcd9f318ef52
   window_to_front: 2d7d31f268d0b13b7e63b26e31eb0a2e9612239e

@@ -30,6 +30,7 @@ import shared_preferences_foundation
 import sqflite_darwin
 import sqlite3_flutter_libs
 import submersion_ocr
+import submersion_transcoder
 import url_launcher_macos
 import video_player_avfoundation
 import window_to_front
@@ -60,6 +61,7 @@ func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   SqflitePlugin.register(with: registry.registrar(forPlugin: "SqflitePlugin"))
   Sqlite3FlutterLibsPlugin.register(with: registry.registrar(forPlugin: "Sqlite3FlutterLibsPlugin"))
   SubmersionOcrPlugin.register(with: registry.registrar(forPlugin: "SubmersionOcrPlugin"))
+  SubmersionTranscoderPlugin.register(with: registry.registrar(forPlugin: "SubmersionTranscoderPlugin"))
   UrlLauncherPlugin.register(with: registry.registrar(forPlugin: "UrlLauncherPlugin"))
   VideoPlayerPlugin.register(with: registry.registrar(forPlugin: "VideoPlayerPlugin"))
   WindowToFrontPlugin.register(with: registry.registrar(forPlugin: "WindowToFrontPlugin"))
