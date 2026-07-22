@@ -212,6 +212,34 @@ class MediaTransferQueueRepository {
     );
   }
 
+  /// Crash recovery: returns rows stranded in 'transferring' back to
+  /// 'pending'. A drain can be interrupted (app killed or backgrounded
+  /// mid-upload) after markTransferring but before markDone/markFailed, and
+  /// nextPending only selects 'pending' - so such a row is invisible to the
+  /// drainer forever and can be neither retried (failed-only) nor cleared
+  /// (done-only) from the Transfers UI. Callers MUST invoke this only when
+  /// no transfer is actively running (e.g. at the start of a fresh
+  /// single-flight drain), where any 'transferring' row is provably
+  /// orphaned. Stale progress is cleared and the entry is made immediately
+  /// due; the resume point is preserved so a resumable adapter can pick up
+  /// where it left off, and attempts are untouched - an interruption is not
+  /// a failed attempt (contrast markFailed) but must still count toward the
+  /// cap of a genuinely broken item (contrast retry). Returns the number of
+  /// rows reclaimed.
+  Future<int> requeueStale() {
+    return (_db.update(
+      _db.mediaTransferQueue,
+    )..where((t) => t.state.equals('transferring'))).write(
+      MediaTransferQueueCompanion(
+        state: const Value('pending'),
+        progressBytes: const Value(null),
+        totalBytes: const Value(null),
+        nextAttemptAt: const Value(null),
+        updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+      ),
+    );
+  }
+
   /// Connectivity/policy postponement: unlike markFailed, no attempt is
   /// consumed - the entry is simply not due until [until].
   Future<void> defer(int id, DateTime until) async {

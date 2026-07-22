@@ -253,6 +253,55 @@ void main() {
     expect(kept.data['media_id'], 'm1');
   });
 
+  test('requeueStale returns an orphaned transferring row to pending so the '
+      'drainer can see it again', () async {
+    // An interrupted drain (app killed/backgrounded after markTransferring
+    // but before markDone/markFailed) strands a row in 'transferring'.
+    final id = await repo.enqueueUpload(mediaId: 'm1');
+    await repo.updateResumeState(id, '{"uploadId":"u1"}');
+    await repo.updateProgress(id, transferredBytes: 60, totalBytes: 64);
+    await repo.markTransferring(id);
+    // Proof of the bug: nextPending never selects 'transferring'.
+    expect(await repo.nextPending(DateTime.now()), isNull);
+
+    final reclaimed = await repo.requeueStale();
+    expect(reclaimed, 1);
+
+    final row = (await repo.allForTesting()).single;
+    expect(row.state, 'pending');
+    expect(row.attempts, 0, reason: 'interruption is not a failed attempt');
+    expect(row.nextAttemptAt, isNull, reason: 'reclaimed rows are due now');
+    expect(row.progressBytes, isNull, reason: 'stale progress is cleared');
+    expect(row.totalBytes, isNull);
+    expect(
+      row.resumeStateJson,
+      '{"uploadId":"u1"}',
+      reason: 'a resumable adapter must keep its resume point',
+    );
+    expect(await repo.nextPending(DateTime.now()), isNotNull);
+  });
+
+  test(
+    'requeueStale leaves pending, done, and failed rows untouched',
+    () async {
+      final pending = await repo.enqueueUpload(mediaId: 'p');
+      final done = await repo.enqueueUpload(mediaId: 'd');
+      await repo.markDone(done);
+      final failed = await repo.enqueueUpload(mediaId: 'f');
+      for (var i = 0; i < 5; i++) {
+        await repo.markFailed(failed, 'boom');
+      }
+
+      expect(await repo.requeueStale(), 0);
+
+      final byId = {for (final r in await repo.allForTesting()) r.id: r};
+      expect(byId[pending]!.state, 'pending');
+      expect(byId[done]!.state, 'done');
+      expect(byId[failed]!.state, 'failed');
+      expect(byId[failed]!.attempts, 5);
+    },
+  );
+
   test('resume state persists through markFailed and retry, and clears on '
       'markDone', () async {
     final id = await repo.enqueueUpload(mediaId: 'm1');
