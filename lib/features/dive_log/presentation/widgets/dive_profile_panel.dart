@@ -403,6 +403,7 @@ class _DiveProfilePanelContentState
                           tanks: dive.tanks,
                           gasSwitches: gasSwitches ?? const [],
                           diveDurationSeconds: dive.profile.last.timestamp,
+                          firstSampleSeconds: dive.profile.first.timestamp,
                         ),
                   diveDurationSeconds: dive.profile.isEmpty
                       ? null

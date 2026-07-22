@@ -22,6 +22,7 @@ EstimatedTankPressures synthesizeEstimatedTankPressures({
   required List<DiveTank> tanks,
   required List<GasSwitchWithTank> gasSwitches,
   required int diveDurationSeconds,
+  int firstSampleSeconds = 0,
 }) {
   final pressures = <String, List<TankPressurePoint>>{...existing};
   final estimated = <String>{};
@@ -33,6 +34,7 @@ EstimatedTankPressures synthesizeEstimatedTankPressures({
     tanks: tanks,
     gasSwitches: gasSwitches,
     diveDurationSeconds: diveDurationSeconds,
+    firstSampleSeconds: firstSampleSeconds,
   );
 
   for (final tank in tanks) {

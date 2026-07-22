@@ -1677,6 +1677,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                                     gasSwitchesAsync.valueOrNull ?? const [],
                                 diveDurationSeconds:
                                     chartProfile.last.timestamp,
+                                firstSampleSeconds:
+                                    chartProfile.first.timestamp,
                               ),
                         diveDurationSeconds: chartProfile.isEmpty
                             ? null

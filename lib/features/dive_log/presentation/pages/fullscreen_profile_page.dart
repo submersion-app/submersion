@@ -381,6 +381,8 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                                   gasSwitches: gasSwitches ?? const [],
                                   diveDurationSeconds:
                                       chartProfile.last.timestamp,
+                                  firstSampleSeconds:
+                                      chartProfile.first.timestamp,
                                 ),
                           diveDurationSeconds: chartProfile.isEmpty
                               ? null
