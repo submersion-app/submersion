@@ -671,6 +671,102 @@ void main() {
     );
 
     testWidgets(
+      'touching the lead-in vertex reports t=0 and marks held values',
+      (tester) async {
+        // First sample at 10s, so bar 0 carries a synthetic (0, 0m) lead-in
+        // vertex at spotIndex 0 (issue #684). Touching it must describe t=0,
+        // not repeat the first sample.
+        final profile = [
+          for (var i = 1; i <= 8; i++)
+            DiveProfilePoint(
+              timestamp: i * 10,
+              depth: i * 2.0,
+              temperature: 25.0,
+            ),
+        ];
+        List<TooltipRow>? rows;
+        await tester.pumpWidget(
+          _buildChart(
+            profile: profile,
+            tooltipBelow: true,
+            onTooltipData: (r) => rows = r,
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final data = tester
+            .widget<LineChart>(find.byType(LineChart).first)
+            .data;
+        final depthBar = data.lineBarsData.first;
+        // The lead-in vertex: bar 0, spotIndex 0, at x=0.
+        expect(depthBar.spots.first, const FlSpot(0, 0));
+        data.lineTouchData.touchCallback!(
+          FlPanDownEvent(DragDownDetails()),
+          LineTouchResponse(
+            touchLocation: Offset.zero,
+            touchChartCoordinate: Offset.zero,
+            lineBarSpots: <TouchLineBarSpot>[
+              TouchLineBarSpot(depthBar, 0, depthBar.spots.first, 0),
+            ],
+          ),
+        );
+
+        expect(rows, isNotNull);
+        final byLabel = {for (final r in rows!) r.label: r.value};
+        // Time and depth are exact at the surface, never marked.
+        expect(byLabel['Time'], '0:00');
+        expect(byLabel['Depth'], isNot(contains('interpolated')));
+        // Temperature is carried over from the first sample, so it is marked.
+        expect(byLabel['Temp'], contains('(interpolated)'));
+      },
+    );
+
+    testWidgets(
+      'inline tooltip on the lead-in computes pressures and marks held values',
+      (tester) async {
+        // First sample at 10s and 20 m depth => 3 bar ambient. A ppO2 of
+        // 0.63 bar there is 0.21 at the surface, so the lead-in readout must
+        // compute it, not repeat 0.63. Temperature is held and marked.
+        final profile = [
+          for (var i = 1; i <= 8; i++)
+            DiveProfilePoint(timestamp: i * 10, depth: 20.0, temperature: 25.0),
+        ];
+        await tester.pumpWidget(
+          _buildChartAllMetrics(
+            profile: profile,
+            ppO2Curve: [for (var i = 0; i < 8; i++) 0.63],
+            ppN2Curve: [for (var i = 0; i < 8; i++) 2.37],
+            ppHeCurve: [for (var i = 0; i < 8; i++) 0.9],
+            densityCurve: [for (var i = 0; i < 8; i++) 3.6],
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final data = tester
+            .widget<LineChart>(find.byType(LineChart).first)
+            .data;
+        final depthBar = data.lineBarsData.first;
+        expect(depthBar.spots.first, const FlSpot(0, 0));
+
+        // Drive fl_chart's own tooltip builder with the lead-in vertex.
+        final items = data.lineTouchData.touchTooltipData.getTooltipItems(
+          <LineBarSpot>[TouchLineBarSpot(depthBar, 0, depthBar.spots.first, 0)],
+        );
+        final plain = items
+            .whereType<LineTooltipItem>()
+            .expand(
+              (it) => [it.text, ...?it.children?.map((c) => c.toPlainText())],
+            )
+            .join();
+
+        expect(plain, contains('0:00')); // t=0, not 0:10
+        expect(plain, contains('0.21 bar')); // computed ppO2, not 0.63
+        expect(plain, isNot(contains('0.63 bar')));
+        expect(plain, contains('(interpolated)')); // temperature held
+      },
+    );
+
+    testWidgets(
       'touch on the active depth bar resolves the active profile sample '
       'even with a denser overlay present',
       (tester) async {
@@ -3851,6 +3947,52 @@ void main() {
         expect(b.spots, isNotEmpty);
         expect(b.spots.length, lessThanOrEqualTo(2008));
       }
+    });
+  });
+
+  group('DiveProfileMiniChart', () {
+    Widget host(List<DiveProfilePoint> profile) => MaterialApp(
+      home: Scaffold(body: DiveProfileMiniChart(profile: profile)),
+    );
+
+    LineChartBarData bar(WidgetTester tester) => tester
+        .widget<LineChart>(find.byType(LineChart))
+        .data
+        .lineBarsData
+        .first;
+
+    testWidgets('empty profile renders no chart', (tester) async {
+      await tester.pumpWidget(host(const []));
+      await tester.pumpAndSettle();
+      expect(find.byType(LineChart), findsNothing);
+    });
+
+    testWidgets('a profile starting after t=0 descends from the surface', (
+      tester,
+    ) async {
+      final profile = [
+        for (var i = 1; i <= 8; i++)
+          DiveProfilePoint(timestamp: i * 10, depth: i * 2.0),
+      ];
+      await tester.pumpWidget(host(profile));
+      await tester.pumpAndSettle();
+
+      final b = bar(tester);
+      expect(b.spots.first, const FlSpot(0, 0));
+      expect(b.spots.length, profile.length + 1);
+    });
+
+    testWidgets('a profile starting at t=0 gains no lead-in', (tester) async {
+      final profile = [
+        for (var i = 0; i < 8; i++)
+          DiveProfilePoint(timestamp: i * 10, depth: i.toDouble()),
+      ];
+      await tester.pumpWidget(host(profile));
+      await tester.pumpAndSettle();
+
+      final b = bar(tester);
+      expect(b.spots.length, profile.length);
+      expect(b.spots.first.x, 0);
     });
   });
 }
