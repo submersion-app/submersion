@@ -18,6 +18,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   share_plus
   sqlite3_flutter_libs
   submersion_ocr
+  submersion_transcoder
   url_launcher_windows
   window_to_front
 )

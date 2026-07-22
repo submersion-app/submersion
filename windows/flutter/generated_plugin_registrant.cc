@@ -21,6 +21,7 @@
 #include <share_plus/share_plus_windows_plugin_c_api.h>
 #include <sqlite3_flutter_libs/sqlite3_flutter_libs_plugin.h>
 #include <submersion_ocr/submersion_ocr_plugin_c_api.h>
+#include <submersion_transcoder/submersion_transcoder_plugin_c_api.h>
 #include <url_launcher_windows/url_launcher_windows.h>
 #include <window_to_front/window_to_front_plugin.h>
 
@@ -55,6 +56,8 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("Sqlite3FlutterLibsPlugin"));
   SubmersionOcrPluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("SubmersionOcrPluginCApi"));
+  SubmersionTranscoderPluginCApiRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("SubmersionTranscoderPluginCApi"));
   UrlLauncherWindowsRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("UrlLauncherWindows"));
   WindowToFrontPluginRegisterWithRegistrar(
