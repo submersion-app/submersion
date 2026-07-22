@@ -637,13 +637,19 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     final outcome = ref.read(planOutcomeProvider);
 
     // Capture the full plan before deleting so undo can re-save it verbatim.
+    // The plan may be null if it was already deleted elsewhere (e.g. via sync)
+    // between opening and confirming. In that case we still delete and navigate
+    // so the user is never stranded on a dead :planId route, but we omit Undo
+    // since there is no snapshot to restore.
     final captured = await repository.getPlan(planId);
-    if (captured == null || !mounted) return;
-    final capturedSummary = PlanSummaryData(
-      maxDepth: outcome.maxDepth,
-      runtimeSeconds: outcome.runtimeSeconds,
-      ttsSeconds: outcome.ttsAtBottom,
-    );
+    if (!mounted) return;
+    final capturedSummary = captured == null
+        ? null
+        : PlanSummaryData(
+            maxDepth: outcome.maxDepth,
+            runtimeSeconds: outcome.runtimeSeconds,
+            ttsSeconds: outcome.ttsAtBottom,
+          );
 
     await repository.deletePlan(planId);
     if (!mounted) return;
@@ -657,11 +663,13 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     messenger.showSnackBar(
       SnackBar(
         content: Text(deletedLabel),
-        action: SnackBarAction(
-          label: undoLabel,
-          onPressed: () =>
-              repository.savePlan(captured, summary: capturedSummary),
-        ),
+        action: captured == null
+            ? null
+            : SnackBarAction(
+                label: undoLabel,
+                onPressed: () =>
+                    repository.savePlan(captured, summary: capturedSummary!),
+              ),
       ),
     );
   }

@@ -46,7 +46,10 @@ void main() {
   });
 
   // Router harness: canvas at the plan route, a stub /planning to land on.
+  // Locale is pinned to English so label assertions are deterministic
+  // regardless of the test environment's platform locale.
   Widget harness(String path) => testAppRouter(
+    locale: const Locale('en'),
     overrides: [
       settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
     ],
@@ -134,6 +137,34 @@ void main() {
 
     expect(await repository.getAllPlanSummaries(), hasLength(1));
   });
+
+  testWidgets(
+    'plan already deleted elsewhere still navigates, without an undo action',
+    (tester) async {
+      await repository.savePlan(_plan('a', 'Reef dive'));
+
+      await tester.pumpWidget(harness('/planning/dive-planner/a'));
+      await tester.pumpAndSettle();
+
+      // Simulate the plan being removed via sync after the canvas opened but
+      // before the user confirms. The Delete item stays visible via the
+      // :planId route fallback.
+      await repository.deletePlan('a');
+      await tester.pumpAndSettle();
+
+      await openMenu(tester);
+      await tester.tap(find.text('Delete plan'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+      await tester.pumpAndSettle();
+
+      // Navigated off the dead route and surfaced feedback, but no undo since
+      // there was no snapshot to restore.
+      expect(find.text('planning-hub'), findsOneWidget);
+      expect(find.byType(SnackBar), findsOneWidget);
+      expect(find.widgetWithText(SnackBarAction, 'Undo'), findsNothing);
+    },
+  );
 
   testWidgets('delete is hidden for a brand-new unsaved plan', (tester) async {
     await tester.pumpWidget(harness('/planning/dive-planner'));
