@@ -7,7 +7,6 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/exceptions/backup_encrypted_exception.dart';
-import 'package:submersion/features/backup/presentation/pages/restore_complete_page.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/backup/presentation/widgets/restore_confirmation_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/encryption_passphrase_dialog.dart';
@@ -93,13 +92,9 @@ class RestoreStep extends ConsumerWidget {
     final l10n = context.l10n;
     final operation = ref.watch(backupOperationProvider);
 
-    ref.listen<BackupOperationState>(backupOperationProvider, (prev, next) {
-      if (next.status == BackupOperationStatus.restoreComplete &&
-          context.mounted) {
-        RestoreCompletePage.show(context);
-      }
-    });
-
+    // Restore completion (RestoreCompletePage + restartApp) is handled app-wide
+    // in SubmersionApp, so the hand-off happens even if this wizard step is
+    // disposed before the restore finishes.
     final inProgress = operation.status == BackupOperationStatus.inProgress;
 
     return SingleChildScrollView(

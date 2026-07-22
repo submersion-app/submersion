@@ -246,4 +246,107 @@ void main() {
         .getSingle();
     expect(one.read<int>('v'), 1);
   });
+
+  test('restore stages the backup BEFORE closing the live database', () async {
+    // Regression guard: a restore must copy the (potentially large) backup to
+    // a staging file while the live database is still open, so the window
+    // where the database is unavailable never spans the slow copy. Otherwise a
+    // provider rebuild during the copy hits a null database and caches a fatal
+    // "Database not initialized" error (the DiveCenters red-screen bug).
+    final defaultPath = p.join(tempDir.path, 'Submersion', 'submersion.db');
+    await DatabaseService.instance.initialize(
+      locationService: _FakeLocation(defaultPath),
+    );
+    await DatabaseService.instance.database
+        .customSelect('SELECT 1')
+        .getSingle();
+    final backupPath = p.join(tempDir.path, 'backup.db');
+    await DatabaseService.instance.backup(backupPath);
+
+    // The seam fires the instant the DB is closed (the unavailable window
+    // opens). By then the staged copy must already exist.
+    var stagingExistedAtWindowOpen = false;
+    DatabaseService.instance.debugOnRestoreWindowOpen = (stagingPath) {
+      stagingExistedAtWindowOpen = File(stagingPath).existsSync();
+    };
+
+    await DatabaseService.instance.restore(backupPath);
+
+    expect(
+      stagingExistedAtWindowOpen,
+      isTrue,
+      reason: 'backup must be staged before the DB is closed',
+    );
+    // The restored DB is fully usable, and no staging file is left behind.
+    final one = await DatabaseService.instance.database
+        .customSelect('SELECT 1 AS v')
+        .getSingle();
+    expect(one.read<int>('v'), 1);
+    expect(File('$defaultPath.restore-staging').existsSync(), isFalse);
+  });
+
+  test(
+    'a failed swap rolls back to the original database (no data loss)',
+    () async {
+      final defaultPath = p.join(tempDir.path, 'Submersion', 'submersion.db');
+      await DatabaseService.instance.initialize(
+        locationService: _FakeLocation(defaultPath),
+      );
+      await DatabaseService.instance.database
+          .customSelect('SELECT 1')
+          .getSingle();
+      final backupPath = p.join(tempDir.path, 'backup.db');
+      await DatabaseService.instance.backup(backupPath);
+
+      // Written AFTER the backup so the live database is distinguishable from the
+      // backup copy: this row must survive a failed restore.
+      final now = DateTime.now();
+      await DiverRepository().createDiver(
+        domain.Diver(id: '', name: 'Keep Me', createdAt: now, updatedAt: now),
+      );
+
+      // Sabotage the swap: delete the staged file the instant the window opens,
+      // so moving it into place fails and the rollback path runs.
+      DatabaseService.instance.debugOnRestoreWindowOpen = (stagingPath) {
+        File(stagingPath).deleteSync();
+      };
+
+      await expectLater(
+        DatabaseService.instance.restore(backupPath),
+        throwsA(anything),
+      );
+
+      // The original database is reopened and its post-backup row survived.
+      final divers = await DiverRepository().getAllDivers();
+      expect(divers.map((d) => d.name), contains('Keep Me'));
+      // No swap temp files are left behind.
+      expect(File('$defaultPath.restore-staging').existsSync(), isFalse);
+      expect(File('$defaultPath.pre-restore').existsSync(), isFalse);
+    },
+  );
+
+  test('restore with a missing backup file leaves the live DB open', () async {
+    // A restore pointed at a nonexistent file must be a true no-op: it must
+    // NOT close the database (which would open an unavailable window for
+    // nothing). The database stays queryable throughout.
+    final defaultPath = p.join(tempDir.path, 'Submersion', 'submersion.db');
+    await DatabaseService.instance.initialize(
+      locationService: _FakeLocation(defaultPath),
+    );
+    await DatabaseService.instance.database
+        .customSelect('SELECT 1')
+        .getSingle();
+
+    var windowOpened = false;
+    DatabaseService.instance.debugOnRestoreWindowOpen = (_) =>
+        windowOpened = true;
+
+    await DatabaseService.instance.restore(p.join(tempDir.path, 'nope.db'));
+
+    expect(windowOpened, isFalse);
+    final one = await DatabaseService.instance.database
+        .customSelect('SELECT 1 AS v')
+        .getSingle();
+    expect(one.read<int>('v'), 1);
+  });
 }

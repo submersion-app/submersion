@@ -11,7 +11,6 @@ import 'package:submersion/core/services/backup_bookmark_service.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
-import 'package:submersion/features/backup/presentation/pages/restore_complete_page.dart';
 import 'package:submersion/features/backup/domain/exceptions/backup_encrypted_exception.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/backup/presentation/widgets/backup_encryption_section.dart';
@@ -29,12 +28,8 @@ class BackupSettingsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(backupSettingsProvider);
     final operationState = ref.watch(backupOperationProvider);
-    ref.listen<BackupOperationState>(backupOperationProvider, (previous, next) {
-      if (next.status == BackupOperationStatus.restoreComplete &&
-          context.mounted) {
-        RestoreCompletePage.show(context);
-      }
-    });
+    // Restore completion (RestoreCompletePage + restartApp) is handled app-wide
+    // in SubmersionApp, so it fires even if this page is disposed mid-restore.
     final historyAsync = ref.watch(backupHistoryProvider);
     final cloudProvider = ref.watch(cloudStorageProviderProvider);
     final isInProgress =
