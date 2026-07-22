@@ -58,7 +58,7 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  test('drain reclaims an orphaned transferring row and uploads it', () async {
+  test('a reclaimed orphan row drains to done end-to-end', () async {
     final f = await cache.stagingFile();
     await f.writeAsBytes(
       img.encodePng(img.Image(width: 4000, height: 3000)),
@@ -83,7 +83,9 @@ void main() {
     await queue.markTransferring(id);
     expect(await queue.nextPending(DateTime.now()), isNull);
 
-    // A fresh drain must recover it, not ignore it.
+    // Recovery path: the once-per-process reclaim returns the orphan to
+    // 'pending', then the worker drains it to completion.
+    await queue.requeueStale();
     await worker.drain();
 
     final got = await mediaRepository.getMediaById('m1');

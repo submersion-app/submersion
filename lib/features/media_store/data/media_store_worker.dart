@@ -49,13 +49,6 @@ class MediaStoreWorker {
     if (_running) return;
     _running = true;
     try {
-      // Crash recovery: a row left 'transferring' by a previous run (app
-      // killed or backgrounded mid-upload) is invisible to nextPending and
-      // stuck forever. We hold the single-flight lock and no transfer is
-      // active yet, so any such row is provably orphaned - return it to
-      // 'pending' before draining. The pipeline's head() dedup guard means
-      // already-uploaded bytes short-circuit to done on the re-run.
-      await _queue.requeueStale();
       while (true) {
         // Re-checked per entry, not once per drain: a store wipe or user
         // disconnect mid-drain must suspend the rest of the queue.

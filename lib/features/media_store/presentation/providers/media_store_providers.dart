@@ -65,6 +65,25 @@ final mediaTransferQueueRepositoryProvider =
       (ref) => MediaTransferQueueRepository(),
     );
 
+/// Recovers media transfer rows stranded in 'transferring' by a previous
+/// process (app killed or backgrounded mid-upload) back to 'pending'.
+///
+/// Deliberately separate from [mediaStoreRuntimeProvider] and run exactly
+/// once per process. The runtime is rebuilt on every connect/disconnect,
+/// and a rebuild can spawn a fresh worker while a worker from the previous
+/// runtime is still mid-upload (nothing cancels its in-flight drain).
+/// Reclaiming on each rebuild - or inside drain() - would flip that live
+/// transfer's row back to 'pending' and let two workers process it at once.
+/// A row is only ever orphaned by process death, which is observable only
+/// at process start, so running reclamation once before the first drain
+/// recovers every real orphan without ever touching a live worker's row.
+/// This provider is never invalidated: its cached result makes the reclaim
+/// idempotent for the process lifetime.
+final FutureProvider<void> mediaTransferQueueReclaimProvider =
+    FutureProvider<void>((ref) async {
+      await ref.watch(mediaTransferQueueRepositoryProvider).requeueStale();
+    });
+
 final mediaBackfillServiceProvider = Provider<MediaBackfillService>(
   (ref) => MediaBackfillService(
     mediaRepository: ref.watch(mediaRepositoryProvider),
@@ -219,6 +238,12 @@ final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
         if (kind != NetworkKind.offline) unawaited(worker.drain());
       });
       ref.onDispose(connectivitySub.cancel);
+
+      // Recover orphaned 'transferring' rows once per process, before this
+      // (or any) worker drains. Awaited here rather than inside drain() so a
+      // connect/disconnect rebuild cannot reclaim a row a still-running
+      // worker from the previous runtime owns. Cached, so it runs only once.
+      await ref.read(mediaTransferQueueReclaimProvider.future);
       unawaited(worker.drain());
 
       return MediaStoreRuntime(
