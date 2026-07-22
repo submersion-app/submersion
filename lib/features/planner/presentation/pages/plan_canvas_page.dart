@@ -21,6 +21,7 @@ import 'package:submersion/features/planner/presentation/panes/plan_editor_pane.
 import 'package:submersion/features/planner/presentation/panes/plan_results_pane.dart';
 import 'package:submersion/features/planner/presentation/panes/plan_setup_accordion.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/planner_layout_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/contingency_chips.dart';
 import 'package:submersion/features/planner/presentation/widgets/follow_dive_sheet.dart';
@@ -38,6 +39,13 @@ import 'package:submersion/l10n/l10n_extension.dart';
 ///   collapsible with remembered state)
 /// - 760-1160 px: chart column + results pane; the editor lives in a drawer
 /// - < 760 px: phone Chart + Tab Deck (Plan / Tanks / Setup / Results)
+/// Whether [id] refers to a plan that already exists in the store. Drives the
+/// visibility of the destructive "Delete plan" action: a brand-new, never-saved
+/// plan has nothing to delete (Reset covers clearing it).
+@visibleForTesting
+bool planIsPersisted(String id, List<domain.DivePlanSummary> summaries) =>
+    summaries.any((s) => s.id == id);
+
 class PlanCanvasPage extends ConsumerStatefulWidget {
   const PlanCanvasPage({super.key, this.planId});
 
@@ -76,6 +84,11 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
   Widget build(BuildContext context) {
     final planState = ref.watch(divePlanNotifierProvider);
     final units = UnitFormatter(ref.watch(settingsProvider));
+    final summaries =
+        ref.watch(divePlanSummariesProvider).valueOrNull ??
+        const <domain.DivePlanSummary>[];
+    final canDelete =
+        planIsPersisted(planState.id, summaries) || widget.planId != null;
 
     return Scaffold(
       appBar: AppBar(
@@ -168,6 +181,7 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
                 Icons.refresh,
                 context.l10n.divePlanner_action_resetPlan,
               ),
+              if (canDelete) _deleteMenuItem(context),
             ],
           ),
         ],
@@ -195,6 +209,21 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
       child: ListTile(
         leading: Icon(icon),
         title: Text(label),
+        contentPadding: EdgeInsets.zero,
+      ),
+    );
+  }
+
+  PopupMenuItem<String> _deleteMenuItem(BuildContext context) {
+    final error = Theme.of(context).colorScheme.error;
+    return PopupMenuItem(
+      value: 'delete',
+      child: ListTile(
+        leading: Icon(Icons.delete_outline, color: error),
+        title: Text(
+          context.l10n.divePlanner_action_deletePlan,
+          style: TextStyle(color: error),
+        ),
         contentPadding: EdgeInsets.zero,
       ),
     );
