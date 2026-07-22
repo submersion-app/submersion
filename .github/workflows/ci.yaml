@@ -459,6 +459,10 @@ jobs:
           # app once per file, and the second sequential desktop relaunch
           # deterministically fails to attach ("log reader stopped
           # unexpectedly"). One launch per invocation avoids that.
+          # nullglob: if the dir has no *_test.dart the loop runs zero times
+          # (matching the old "No tests ran" success) instead of passing the
+          # literal glob to `flutter test`.
+          shopt -s nullglob
           for test in integration_test/*_test.dart; do
             echo "== Running $test =="
             flutter test "$test" \

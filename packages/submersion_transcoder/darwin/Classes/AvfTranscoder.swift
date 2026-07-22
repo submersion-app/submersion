@@ -121,10 +121,15 @@ final class AvfTranscoder {
     }
 
     guard reader.startReading() else {
+      // Contract: never leave a "<output>.tmp" behind on failure.
+      try? FileManager.default.removeItem(at: tmpURL)
       throw AvfTranscodeError.readerFailed(
         "start: \(reader.error?.localizedDescription ?? "unknown")")
     }
     guard writer.startWriting() else {
+      // startWriting() already failed (status == .failed), so there is no
+      // active session to cancel; just remove any partial "<output>.tmp".
+      try? FileManager.default.removeItem(at: tmpURL)
       throw AvfTranscodeError.writerFailed(
         "writer: \(writer.error?.localizedDescription ?? "unknown")")
     }
@@ -176,6 +181,10 @@ final class AvfTranscoder {
 
     group.wait()
     if reader.status == .failed {
+      // The writer is mid-session here; cancel it and remove the temp so we
+      // never leave a "<output>.tmp" behind (TranscodeEngine contract).
+      writer.cancelWriting()
+      try? FileManager.default.removeItem(at: tmpURL)
       throw AvfTranscodeError.readerFailed(
         reader.error?.localizedDescription ?? "unknown")
     }
