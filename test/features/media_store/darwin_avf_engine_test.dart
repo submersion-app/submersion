@@ -198,4 +198,54 @@ void main() {
       expect(e.message, isNot(contains('null')));
     }
   });
+
+  test('progress listen is shared across engine instances', () async {
+    const progressChannel = MethodChannel('submersion_transcoder/progress');
+    var listens = 0;
+    messenger.setMockMethodCallHandler(progressChannel, (call) async {
+      if (call.method == 'listen') listens++;
+      return null;
+    });
+    addTearDown(
+      () => messenger.setMockMethodCallHandler(progressChannel, null),
+    );
+
+    // Keep both transcodes pending so their progress subscriptions overlap.
+    final gate = Completer<void>();
+    messenger.setMockMethodCallHandler(methods, (call) async {
+      if (call.method == 'transcode') await gate.future;
+      return null;
+    });
+
+    const target = TranscodeTarget(
+      maxHeight: 720,
+      videoBitrateKbps: 4000,
+      audioBitrateKbps: 128,
+    );
+    final a = DarwinAvfEngine().transcode(
+      source: File('/a.mov'),
+      output: File('/a.mp4'),
+      target: target,
+      onProgress: (_) {},
+    );
+    final b = DarwinAvfEngine().transcode(
+      source: File('/b.mov'),
+      output: File('/b.mp4'),
+      target: target,
+      onProgress: (_) {},
+    );
+
+    // Let both subscriptions propagate to the platform side.
+    for (var i = 0; i < 5; i++) {
+      await Future<void>.delayed(Duration.zero);
+    }
+    // Two separate engine instances on the default channel share one broadcast
+    // stream, so the native side sees exactly one onListen. A per-instance
+    // stream would trigger a second onListen and overwrite the Swift plugin's
+    // single progressSink, starving the first transcode's progress.
+    expect(listens, 1);
+
+    gate.complete();
+    await Future.wait([a, b]);
+  });
 }

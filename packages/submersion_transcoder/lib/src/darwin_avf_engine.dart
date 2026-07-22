@@ -16,10 +16,16 @@ class DarwinAvfEngine implements TranscodeEngine {
     : _methods =
           methods ?? const MethodChannel('submersion_transcoder/methods'),
       _progress =
-          progress ?? const EventChannel('submersion_transcoder/progress');
+          progress ?? const EventChannel('submersion_transcoder/progress'),
+      _usesDefaultProgress = progress == null;
 
   final MethodChannel _methods;
   final EventChannel _progress;
+
+  // True when no EventChannel was injected, i.e. we're on the default
+  // production channel. Tests that inject their own channel get an isolated,
+  // per-instance stream instead of the shared static one.
+  final bool _usesDefaultProgress;
 
   // Static so progressIds are unique across ALL engine instances in this
   // isolate -- an instance-local counter would emit p0, p1, ... per instance
@@ -27,14 +33,21 @@ class DarwinAvfEngine implements TranscodeEngine {
   // concurrently, misattributing progress events.
   static int _seq = 0;
 
-  // One broadcast subscription over the progress channel, shared by every
-  // transcode() call. Calling receiveBroadcastStream() per transcode triggers
-  // a fresh native onListen each time; the Swift side keeps a single sink, so
-  // a later listen would overwrite the earlier and misroute progress for
-  // overlapping transcodes. One shared stream = one onListen; per-call
+  // One broadcast stream over the DEFAULT progress channel, shared by every
+  // engine instance in this isolate. receiveBroadcastStream() triggers a
+  // native onListen each time it's first listened to, and the Swift side keeps
+  // a single progressSink -- so a per-instance stream would let a second
+  // engine's onListen overwrite the first engine's sink and starve its
+  // progress. One shared stream = exactly one native onListen; per-call
   // listeners filter by progressId.
-  late final Stream<dynamic> _progressStream = _progress
-      .receiveBroadcastStream();
+  static Stream<dynamic>? _sharedDefaultProgressStream;
+
+  // The default channel resolves to the shared static stream (one onListen for
+  // the whole isolate); an injected test channel gets its own stream so tests
+  // stay isolated from each other and from production.
+  late final Stream<dynamic> _progressStream = _usesDefaultProgress
+      ? (_sharedDefaultProgressStream ??= _progress.receiveBroadcastStream())
+      : _progress.receiveBroadcastStream();
 
   @override
   Future<bool> isAvailable() async {
