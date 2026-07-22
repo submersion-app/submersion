@@ -1150,10 +1150,15 @@ void main() {
         find.byWidgetPredicate((w) => w is DiveListTile && w.diveId == id);
 
     /// Enter selection mode (one dive selected, three unselected) and assert
-    /// that the Deselect All button is present and laid out between Select All
-    /// and the date-range button. [showAppBar] picks the phone AppBar (true)
-    /// vs the master-detail compact bar (false).
-    Future<void> expectDeselectBetweenSelectAllAndDateRange(
+    /// that the Deselect All button is present and laid out immediately after
+    /// Select All. [showAppBar] picks the phone AppBar (true) vs the
+    /// master-detail compact bar (false).
+    ///
+    /// The two bars diverge on what follows the Select/Deselect pair: the
+    /// full-width AppBar keeps date-range as a top-level icon, while the narrow
+    /// master-pane bar collapses date-range (and the other situational actions)
+    /// into an overflow (...) menu to avoid overflowing the pane.
+    Future<void> expectDeselectAfterSelectAll(
       WidgetTester tester, {
       required bool showAppBar,
     }) async {
@@ -1177,34 +1182,39 @@ void main() {
 
       expect(find.byIcon(Icons.select_all), findsOneWidget);
       expect(find.byIcon(Icons.deselect), findsOneWidget);
-      expect(find.byIcon(Icons.date_range), findsOneWidget);
 
       final selectAllX = tester.getCenter(find.byIcon(Icons.select_all)).dx;
       final deselectX = tester.getCenter(find.byIcon(Icons.deselect)).dx;
-      final dateRangeX = tester.getCenter(find.byIcon(Icons.date_range)).dx;
 
-      // Deselect All sits immediately after Select All, before date-range.
+      // Deselect All sits immediately after Select All so they read as a pair.
       expect(selectAllX, lessThan(deselectX));
-      expect(deselectX, lessThan(dateRangeX));
+
+      if (showAppBar) {
+        // Full-width AppBar: date-range is a top-level action to the right.
+        expect(find.byIcon(Icons.date_range), findsOneWidget);
+        final dateRangeX = tester.getCenter(find.byIcon(Icons.date_range)).dx;
+        expect(deselectX, lessThan(dateRangeX));
+      } else {
+        // Master-pane bar: date-range lives in the overflow (...) menu, which
+        // sits to the right of the Select/Deselect pair.
+        expect(find.byIcon(Icons.date_range), findsNothing);
+        expect(find.byIcon(Icons.more_vert), findsOneWidget);
+        final moreX = tester.getCenter(find.byIcon(Icons.more_vert)).dx;
+        expect(deselectX, lessThan(moreX));
+      }
     }
 
     testWidgets(
       'master-detail compact bar shows Deselect All next to Select All',
       (tester) async {
-        await expectDeselectBetweenSelectAllAndDateRange(
-          tester,
-          showAppBar: false,
-        );
+        await expectDeselectAfterSelectAll(tester, showAppBar: false);
       },
     );
 
     testWidgets('phone AppBar shows Deselect All next to Select All', (
       tester,
     ) async {
-      await expectDeselectBetweenSelectAllAndDateRange(
-        tester,
-        showAppBar: true,
-      );
+      await expectDeselectAfterSelectAll(tester, showAppBar: true);
     });
 
     testWidgets('Compare in 3D action appears only with 2+ selected', (

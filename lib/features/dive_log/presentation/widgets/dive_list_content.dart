@@ -1135,29 +1135,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               tooltip: context.l10n.diveLog_selection_tooltip_deselectAll,
               onPressed: _deselectAll,
             ),
-          IconButton(
-            icon: const Icon(Icons.date_range, size: 20),
-            tooltip: context.l10n.diveLog_selection_tooltip_selectDateRange,
-            onPressed: () => _selectByDateRange(dives),
-          ),
-          if (_selectedIds.length >= 2)
-            IconButton(
-              icon: const Icon(Icons.call_merge, size: 20),
-              tooltip: context.l10n.diveLog_selection_tooltip_combine,
-              onPressed: _combineSelected,
-            ),
-          if (_selectedIds.length >= 2)
-            IconButton(
-              icon: const Icon(Icons.view_in_ar, size: 20),
-              tooltip: context.l10n.diveLog_selection_tooltip_compare3d,
-              onPressed: _compareIn3d,
-            ),
-          if (_selectedIds.isNotEmpty)
-            IconButton(
-              icon: const Icon(Icons.upload, size: 20),
-              tooltip: context.l10n.diveLog_selection_tooltip_export,
-              onPressed: _showExportDialog,
-            ),
           if (_selectedIds.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.edit, size: 20),
@@ -1174,8 +1151,90 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               tooltip: context.l10n.diveLog_selection_tooltip_delete,
               onPressed: _confirmAndDelete,
             ),
+          _buildSelectionOverflowMenu(dives),
         ],
       ),
+    );
+  }
+
+  /// Overflow menu for the narrow master-pane selection bar.
+  ///
+  /// The master pane is too narrow to show every selection action as its own
+  /// icon (unlike the full-width [_buildSelectionAppBar]), so the situational
+  /// actions collapse here to prevent the toolbar Row from overflowing. Mirrors
+  /// the overflow pattern used by [_buildCompactAppBar].
+  Widget _buildSelectionOverflowMenu(List<DiveSummary> dives) {
+    final canCombine = _selectedIds.length >= 2;
+    final hasSelection = _selectedIds.isNotEmpty;
+    return PopupMenuButton<String>(
+      icon: const Icon(Icons.more_vert, size: 20),
+      onSelected: (value) {
+        switch (value) {
+          case 'date_range':
+            _selectByDateRange(dives);
+          case 'combine':
+            _combineSelected();
+          case 'compare3d':
+            _compareIn3d();
+          case 'export':
+            _showExportDialog();
+        }
+      },
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          value: 'date_range',
+          child: Row(
+            children: [
+              const Icon(Icons.date_range, size: 20),
+              const SizedBox(width: 12),
+              Flexible(
+                child: Text(
+                  context.l10n.diveLog_selection_tooltip_selectDateRange,
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (canCombine)
+          PopupMenuItem(
+            value: 'combine',
+            child: Row(
+              children: [
+                const Icon(Icons.call_merge, size: 20),
+                const SizedBox(width: 12),
+                Flexible(
+                  child: Text(context.l10n.diveLog_selection_tooltip_combine),
+                ),
+              ],
+            ),
+          ),
+        if (canCombine)
+          PopupMenuItem(
+            value: 'compare3d',
+            child: Row(
+              children: [
+                const Icon(Icons.view_in_ar, size: 20),
+                const SizedBox(width: 12),
+                Flexible(
+                  child: Text(context.l10n.diveLog_selection_tooltip_compare3d),
+                ),
+              ],
+            ),
+          ),
+        if (hasSelection)
+          PopupMenuItem(
+            value: 'export',
+            child: Row(
+              children: [
+                const Icon(Icons.upload, size: 20),
+                const SizedBox(width: 12),
+                Flexible(
+                  child: Text(context.l10n.diveLog_selection_tooltip_export),
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 
