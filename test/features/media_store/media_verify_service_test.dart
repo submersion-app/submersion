@@ -8,6 +8,7 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/media_store/data/media_verify_service.dart';
+import 'package:submersion/core/services/media_store/network_status_service.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 
 import '../../helpers/in_memory_media_object_store.dart';
@@ -167,6 +168,52 @@ void main() {
     store.staleSessionCount = 2;
     final report = await service.run();
     expect(report.sessionsAborted, 2);
+  });
+
+  group('shouldAutoVerify', () {
+    final now = DateTime.utc(2026, 7, 23);
+
+    test('never swept + unmetered runs', () {
+      expect(
+        shouldAutoVerify(
+          lastSweepAt: null,
+          network: NetworkKind.unmetered,
+          now: now,
+        ),
+        isTrue,
+      );
+    });
+
+    test('stale sweep + unmetered runs', () {
+      expect(
+        shouldAutoVerify(
+          lastSweepAt: now.subtract(const Duration(days: 31)),
+          network: NetworkKind.unmetered,
+          now: now,
+        ),
+        isTrue,
+      );
+    });
+
+    test('fresh sweep skips', () {
+      expect(
+        shouldAutoVerify(
+          lastSweepAt: now.subtract(const Duration(days: 5)),
+          network: NetworkKind.unmetered,
+          now: now,
+        ),
+        isFalse,
+      );
+    });
+
+    test('cellular and offline never run', () {
+      for (final kind in [NetworkKind.cellular, NetworkKind.offline]) {
+        expect(
+          shouldAutoVerify(lastSweepAt: null, network: kind, now: now),
+          isFalse,
+        );
+      }
+    });
   });
 
   test('onProgress reports monotonically increasing counts', () async {

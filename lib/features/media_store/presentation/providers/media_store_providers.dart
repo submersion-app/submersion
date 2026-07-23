@@ -9,6 +9,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
 import 'package:submersion/core/services/media_store/media_store_credentials_store.dart';
 import 'package:submersion/core/services/media_store/media_store_policies.dart';
@@ -308,6 +309,45 @@ final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
       });
       ref.onDispose(connectivitySub.cancel);
       unawaited(worker.drain());
+
+      // Opportunistic Verify Library sweep (orphan-prevention spec 6.4):
+      // fleet-wide 30-day cadence on unmetered network only, fire-and-forget
+      // so a sweep problem can never break the runtime. The timestamp is
+      // synced, so one device's sweep satisfies every device's cadence.
+      unawaited(() async {
+        try {
+          final storesRepository = ref.read(mediaStoresRepositoryProvider);
+          final active = await storesRepository.getActive();
+          final kind = await network.current();
+          if (!shouldAutoVerify(
+            lastSweepAt: active?.lastSweepAt,
+            network: kind,
+            now: DateTime.now(),
+          )) {
+            return;
+          }
+          final service = MediaVerifyService(
+            store: store,
+            mediaRepository: mediaRepository,
+            queue: MediaTransferQueueRepository(),
+          );
+          final report = await service.run();
+          if (active != null) {
+            await storesRepository.stampLastSweep(active.id, DateTime.now());
+          }
+          unawaited(worker.drain());
+          LoggerService.forClass(MediaVerifyService).info(
+            'Auto verify sweep: ${report.objectsChecked} checked, '
+            '${report.orphansRemoved} orphans removed, '
+            '${report.repairsQueued} repairs queued, '
+            '${report.sessionsAborted} sessions aborted',
+          );
+        } catch (e) {
+          LoggerService.forClass(
+            MediaVerifyService,
+          ).warning('Auto verify sweep failed', error: e);
+        }
+      }());
 
       return MediaStoreRuntime(
         storeId: attachedId,
