@@ -97,7 +97,8 @@ void main() {
     );
     await pumpCard(tester, day);
 
-    expect(find.textContaining('Day 2'), findsOneWidget);
+    // The day title lives in the sticky header now, not the card.
+    expect(find.textContaining('Day 2'), findsNothing);
     expect(find.byType(DayRhythmBar), findsOneWidget);
     expect(find.byType(DiveListItem), findsOneWidget);
   });
@@ -113,14 +114,32 @@ void main() {
     expect(find.byType(DayRhythmBar), findsNothing);
   });
 
-  testWidgets('future day shows the planned chip', (tester) async {
+  testWidgets('planned day without content renders no card', (tester) async {
     final day = TripStoryDay(
       date: DateTime(2027, 1, 10),
       dayNumber: 1,
       kind: TripStoryDayKind.future,
     );
     await pumpCard(tester, day);
-    expect(find.text('Planned'), findsOneWidget);
+    // Title and chip live in the sticky header; with no notes, port, dives,
+    // media, or sightings there is nothing left for the card to show.
+    expect(find.byType(Card), findsNothing);
+    expect(find.text('Planned'), findsNothing);
+  });
+
+  testWidgets('planned day with only a blank port renders no card', (
+    tester,
+  ) async {
+    // A blank port is not content: it must not defeat the empty-card guard.
+    final day = TripStoryDay(
+      date: DateTime(2027, 1, 10),
+      dayNumber: 1,
+      kind: TripStoryDayKind.future,
+      itineraryDay: _itin(port: '   ', notes: '  '),
+    );
+    await pumpCard(tester, day);
+
+    expect(find.byType(Card), findsNothing);
   });
 
   testWidgets('past day renders photo strip with a more-indicator', (
@@ -138,8 +157,8 @@ void main() {
 
     // 8 photos, max 6 shown, so a "+2" more indicator appears.
     expect(find.text('+2'), findsOneWidget);
-    // Itinerary header contributes the port name to the subtitle.
-    expect(find.textContaining('Kralendijk'), findsOneWidget);
+    // The port subtitle moved to the sticky header.
+    expect(find.textContaining('Kralendijk'), findsNothing);
     // Every tappable thumbnail (6 photos + the "+2" tile) is a labeled button
     // for screen readers, not an unlabeled image / bare "+2".
     final galleryButtons = find.byWidgetPredicate(

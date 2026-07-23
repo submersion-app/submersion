@@ -57,11 +57,9 @@ class MapCameraAnimator {
   }
 }
 
-/// Pinned header hosting the story map and the trip-level stat strip.
+/// Pinned header hosting the story map.
 class TripStoryMapHeaderDelegate extends SliverPersistentHeaderDelegate {
   final TripStoryMapGeometry geometry;
-  final TripWithStats stats;
-  final int siteCount;
   final int activeDayIndex;
   final MapController mapController;
   final ValueChanged<int> onDaySelected;
@@ -70,13 +68,11 @@ class TripStoryMapHeaderDelegate extends SliverPersistentHeaderDelegate {
 
   const TripStoryMapHeaderDelegate({
     required this.geometry,
-    required this.stats,
-    required this.siteCount,
     required this.activeDayIndex,
     required this.mapController,
     required this.onDaySelected,
     required this.maxExtentValue,
-    this.minExtentValue = 120,
+    this.minExtentValue = 180,
   });
 
   @override
@@ -88,8 +84,6 @@ class TripStoryMapHeaderDelegate extends SliverPersistentHeaderDelegate {
   @override
   bool shouldRebuild(TripStoryMapHeaderDelegate oldDelegate) =>
       oldDelegate.geometry != geometry ||
-      oldDelegate.stats != stats ||
-      oldDelegate.siteCount != siteCount ||
       oldDelegate.activeDayIndex != activeDayIndex ||
       oldDelegate.mapController != mapController ||
       oldDelegate.onDaySelected != onDaySelected ||
@@ -104,21 +98,14 @@ class TripStoryMapHeaderDelegate extends SliverPersistentHeaderDelegate {
   ) {
     return Material(
       elevation: overlapsContent ? 2 : 0,
-      child: Column(
-        children: [
-          Expanded(
-            child: geometry.hasPoints
-                ? _StoryMap(
-                    geometry: geometry,
-                    activeDayIndex: activeDayIndex,
-                    mapController: mapController,
-                    onDaySelected: onDaySelected,
-                  )
-                : const _MapFallback(),
-          ),
-          TripStatStrip(stats: stats, siteCount: siteCount),
-        ],
-      ),
+      child: geometry.hasPoints
+          ? _StoryMap(
+              geometry: geometry,
+              activeDayIndex: activeDayIndex,
+              mapController: mapController,
+              onDaySelected: onDaySelected,
+            )
+          : const _MapFallback(),
     );
   }
 }
