@@ -150,6 +150,40 @@ void main() {
         expect(fetched.isFavorite, isTrue);
       });
 
+      test(
+        'hydrates takenAt as wall-clock-UTC so enrichment is not TZ-skewed',
+        () async {
+          // taken_at is persisted as wall-clock-UTC millis (the same convention
+          // the dive side uses: dive_repository_impl reads entry_time with
+          // isUtc: true, and the media write path stores the ms of an already-
+          // UTC DateTime). It must be read back as a *UTC* DateTime. If it is
+          // hydrated as local, EnrichmentService.calculateEnrichment's
+          // toWallClockUtc() reinterprets the shifted local digits as UTC and
+          // displaces the photo time by the host's UTC offset relative to the
+          // (correctly UTC) dive start — pinning every item to the first
+          // profile point (surface depth). Regression guard for that skew.
+          final takenAt = DateTime.utc(2025, 12, 27, 11, 47, 48);
+          final media = createTestMediaItem(
+            filePath: '/photos/reef.jpg',
+            takenAt: takenAt,
+          );
+
+          final created = await repository.createMedia(media);
+          final fetched = await repository.getMediaById(created.id);
+
+          expect(fetched, isNotNull);
+          expect(
+            fetched!.takenAt.isUtc,
+            isTrue,
+            reason:
+                'takenAt must round-trip as UTC to match the wall-clock-UTC '
+                'storage convention; a local value skews enrichment by the '
+                'host UTC offset.',
+          );
+          expect(fetched.takenAt, equals(takenAt));
+        },
+      );
+
       test('should create media linked to a dive', () async {
         final dive = await createTestDiveInDb(diveNumber: 1);
         final media = createTestMediaItem(
