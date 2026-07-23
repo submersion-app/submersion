@@ -84,11 +84,18 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
   Widget build(BuildContext context) {
     final planState = ref.watch(divePlanNotifierProvider);
     final units = UnitFormatter(ref.watch(settingsProvider));
-    final summaries =
-        ref.watch(divePlanSummariesProvider).valueOrNull ??
-        const <domain.DivePlanSummary>[];
+    // A plan opened via the :planId route is known-persisted, so short-circuit
+    // before watching the (DB-backed) summaries provider; that avoids an
+    // avoidable subscription/fetch in the common edit-a-saved-plan case. The
+    // summaries watch only runs for a new plan, where it flips the Delete item
+    // on once the plan is first saved.
     final canDelete =
-        planIsPersisted(planState.id, summaries) || widget.planId != null;
+        widget.planId != null ||
+        planIsPersisted(
+          planState.id,
+          ref.watch(divePlanSummariesProvider).valueOrNull ??
+              const <domain.DivePlanSummary>[],
+        );
 
     return Scaffold(
       appBar: AppBar(
@@ -663,6 +670,13 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     messenger.showSnackBar(
       SnackBar(
         content: Text(deletedLabel),
+        duration: const Duration(seconds: 5),
+        // A SnackBar with an action defaults to persist: true, which makes the
+        // auto-dismiss timer a no-op so the banner never hides on its own.
+        // Force the 5s auto-dismiss and add a close icon so the banner can be
+        // dismissed without tapping Undo (which would restore the plan). #406.
+        persist: false,
+        showCloseIcon: true,
         action: captured == null
             ? null
             : SnackBarAction(
