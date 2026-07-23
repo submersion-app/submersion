@@ -627,6 +627,88 @@ void main() {
       },
     );
   });
+
+  group('Real SettingsNotifier color accent toggles', () {
+    late ProviderContainer container;
+
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+
+      container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          diverSettingsRepositoryProvider.overrideWithValue(
+            _InMemorySettingsRepository(),
+          ),
+          diverRepositoryProvider.overrideWithValue(_EmptyDiverRepository()),
+          currentDiverIdProvider.overrideWith((ref) => _NullDiverIdNotifier()),
+        ],
+      );
+
+      await Future.delayed(const Duration(milliseconds: 50));
+    });
+
+    tearDown(() {
+      container.dispose();
+    });
+
+    Future<void> waitForInit() async {
+      for (var i = 0; i < 10; i++) {
+        await Future.delayed(Duration.zero);
+      }
+    }
+
+    test('default to false', () {
+      expect(const AppSettings().accentNavIcons, isFalse);
+      expect(const AppSettings().accentSectionHeaders, isFalse);
+      expect(const AppSettings().accentListIcons, isFalse);
+    });
+
+    // Repository persistence is covered by
+    // diver_settings_repository_accents_test.dart against a real database:
+    // this harness has no current diver, so _saveSettings() early-returns.
+    test('setters update state independently of each other', () async {
+      final notifier = container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(container.read(settingsProvider).accentNavIcons, isFalse);
+
+      await notifier.setAccentNavIcons(true);
+      var s = container.read(settingsProvider);
+      expect(s.accentNavIcons, isTrue);
+      expect(s.accentSectionHeaders, isFalse);
+      expect(s.accentListIcons, isFalse);
+
+      await notifier.setAccentSectionHeaders(true);
+      s = container.read(settingsProvider);
+      expect(s.accentSectionHeaders, isTrue);
+      expect(s.accentNavIcons, isTrue);
+      expect(s.accentListIcons, isFalse);
+
+      await notifier.setAccentListIcons(true);
+      s = container.read(settingsProvider);
+      expect(s.accentListIcons, isTrue);
+      expect(s.accentNavIcons, isTrue);
+      expect(s.accentSectionHeaders, isTrue);
+    });
+
+    test('gate providers reflect the individual toggles', () async {
+      final notifier = container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(container.read(accentNavIconsProvider), isFalse);
+      expect(container.read(accentSectionHeadersProvider), isFalse);
+      expect(container.read(accentListIconsProvider), isFalse);
+
+      await notifier.setAccentNavIcons(true);
+
+      expect(container.read(accentNavIconsProvider), isTrue);
+      // The other surfaces stay independent.
+      expect(container.read(accentSectionHeadersProvider), isFalse);
+      expect(container.read(accentListIconsProvider), isFalse);
+    });
+  });
 }
 
 /// A [CurrentDiverIdNotifier] mock that always returns null.

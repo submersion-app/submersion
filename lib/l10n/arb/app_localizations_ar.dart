@@ -19657,6 +19657,30 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_appearance_sections => 'الأقسام';
 
   @override
+  String get settings_appearance_colorAccents => 'التمييز اللوني';
+
+  @override
+  String get settings_appearance_accentNavIcons => 'أيقونات تنقل ملونة';
+
+  @override
+  String get settings_appearance_accentNavIcons_subtitle =>
+      'تلوين أيقونات القائمة الرئيسية بلون كل قسم';
+
+  @override
+  String get settings_appearance_accentSectionHeaders => 'عناوين أقسام ملونة';
+
+  @override
+  String get settings_appearance_accentSectionHeaders_subtitle =>
+      'إظهار أيقونة قسم ملونة بجانب عناوين الصفحات';
+
+  @override
+  String get settings_appearance_accentListIcons => 'أيقونات قوائم ملونة';
+
+  @override
+  String get settings_appearance_accentListIcons_subtitle =>
+      'تلوين الأيقونات في القوائم وصفحات الإعدادات';
+
+  @override
   String get settings_appearance_showDetailsPane => 'إظهار لوحة التفاصيل';
 
   @override

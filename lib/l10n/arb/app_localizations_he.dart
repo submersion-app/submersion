@@ -19515,6 +19515,31 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_appearance_sections => 'חלקים';
 
   @override
+  String get settings_appearance_colorAccents => 'הדגשות צבע';
+
+  @override
+  String get settings_appearance_accentNavIcons => 'סמלי ניווט צבעוניים';
+
+  @override
+  String get settings_appearance_accentNavIcons_subtitle =>
+      'צביעת סמלי התפריט הראשי בצבע של כל מדור';
+
+  @override
+  String get settings_appearance_accentSectionHeaders =>
+      'כותרות מדורים צבעוניות';
+
+  @override
+  String get settings_appearance_accentSectionHeaders_subtitle =>
+      'הצגת סמל מדור צבעוני לצד כותרות הדפים';
+
+  @override
+  String get settings_appearance_accentListIcons => 'סמלי רשימה צבעוניים';
+
+  @override
+  String get settings_appearance_accentListIcons_subtitle =>
+      'צביעת סמלים ברשימות ובדפי ההגדרות';
+
+  @override
   String get settings_appearance_showDetailsPane => 'הצג חלונית פרטים';
 
   @override

@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/theme/feature_accent_colors.dart';
 import 'package:submersion/features/auto_update/presentation/widgets/update_banner.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/download_exit_dialog.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/gps_recording_strip.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/global_drop_target.dart';
+import 'package:submersion/shared/widgets/nav/nav_destinations.dart';
 import 'package:submersion/shared/widgets/nav/nav_primary_provider.dart';
 
 class MainScaffold extends ConsumerStatefulWidget {
@@ -23,6 +26,31 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
   /// When true, the user has manually collapsed the rail (overrides auto-extend)
   bool _isCollapsed = false;
 
+  /// Wide-screen rail destinations: every routable destination in canonical
+  /// order. The `more` sentinel is a phone-only overflow control.
+  List<NavDestination> get _railDestinations =>
+      kNavDestinations.where((d) => d.id != 'more').toList(growable: false);
+
+  /// Builds a per-destination accent color lookup for the navigation surfaces.
+  ///
+  /// Returns null for every id while the toggle is off, and for ids with no
+  /// palette entry -- which is how the `more` sentinel stays uncolored. A null
+  /// result leaves the icon on its Material 3 default.
+  ///
+  /// Pass `watch: false` from transient surfaces (the overflow sheet) that are
+  /// built outside the scaffold's own build phase.
+  Color? Function(String) _navAccentLookup(
+    BuildContext context, {
+    bool watch = true,
+  }) {
+    final enabled = watch
+        ? ref.watch(accentNavIconsProvider)
+        : ref.read(accentNavIconsProvider);
+    if (!enabled) return (_) => null;
+    final accents = Theme.of(context).extension<FeatureAccentColors>();
+    return (id) => accents?.of(id);
+  }
+
   int _calculateSelectedIndex(
     BuildContext context, {
     required bool isWideScreen,
@@ -30,21 +58,11 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     final location = GoRouterState.of(context).uri.path;
 
     if (isWideScreen) {
-      // Wide-screen rail: ordered by default kNavDestinations.
-      if (location.startsWith('/dashboard')) return 0;
-      if (location.startsWith('/dives')) return 1;
-      if (location.startsWith('/sites')) return 2;
-      if (location.startsWith('/trips')) return 3;
-      if (location.startsWith('/equipment')) return 4;
-      if (location.startsWith('/buddies')) return 5;
-      if (location.startsWith('/dive-centers')) return 6;
-      if (location.startsWith('/certifications')) return 7;
-      if (location.startsWith('/courses')) return 8;
-      if (location.startsWith('/statistics')) return 9;
-      if (location.startsWith('/planning')) return 10;
-      if (location.startsWith('/transfer')) return 11;
-      if (location.startsWith('/gps-log')) return 12;
-      if (location.startsWith('/settings')) return 13;
+      // Wide-screen rail: ordered by kNavDestinations.
+      final rail = _railDestinations;
+      for (var i = 0; i < rail.length; i++) {
+        if (location.startsWith(rail[i].route)) return i;
+      }
       return 0;
     }
 
@@ -71,49 +89,9 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     }
 
     if (isWideScreen) {
-      switch (index) {
-        case 0:
-          context.go('/dashboard');
-          break;
-        case 1:
-          context.go('/dives');
-          break;
-        case 2:
-          context.go('/sites');
-          break;
-        case 3:
-          context.go('/trips');
-          break;
-        case 4:
-          context.go('/equipment');
-          break;
-        case 5:
-          context.go('/buddies');
-          break;
-        case 6:
-          context.go('/dive-centers');
-          break;
-        case 7:
-          context.go('/certifications');
-          break;
-        case 8:
-          context.go('/courses');
-          break;
-        case 9:
-          context.go('/statistics');
-          break;
-        case 10:
-          context.go('/planning');
-          break;
-        case 11:
-          context.go('/transfer');
-          break;
-        case 12:
-          context.go('/gps-log');
-          break;
-        case 13:
-          context.go('/settings');
-          break;
+      final rail = _railDestinations;
+      if (index >= 0 && index < rail.length) {
+        context.go(rail[index].route);
       }
     } else {
       final primary = ref.read(navPrimaryDestinationsProvider);
@@ -127,6 +105,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
 
   void _showMoreMenu(BuildContext context) {
     final overflow = ref.read(navOverflowDestinationsProvider);
+    final navAccent = _navAccentLookup(context, watch: false);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -158,7 +137,10 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
                 children: [
                   for (final destination in overflow)
                     ListTile(
-                      leading: Icon(destination.icon),
+                      leading: Icon(
+                        destination.icon,
+                        color: navAccent(destination.id),
+                      ),
                       title: Text(destination.label(sheetContext.l10n)),
                       subtitle: destination.subtitle != null
                           ? Text(destination.subtitle!(sheetContext.l10n))
@@ -183,6 +165,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isWideScreen = screenWidth >= 800;
     final isDesktopExtended = screenWidth >= 1200;
+    final navAccent = _navAccentLookup(context);
     final selectedIndex = _calculateSelectedIndex(
       context,
       isWideScreen: isWideScreen,
@@ -235,78 +218,18 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
                                   isWideScreen: true,
                                 ),
                             destinations: [
-                              NavigationRailDestination(
-                                icon: const Icon(Icons.home_outlined),
-                                selectedIcon: const Icon(Icons.home),
-                                label: Text(context.l10n.nav_home),
-                              ),
-                              NavigationRailDestination(
-                                icon: const Icon(Icons.scuba_diving_outlined),
-                                selectedIcon: const Icon(Icons.scuba_diving),
-                                label: Text(context.l10n.nav_dives),
-                              ),
-                              NavigationRailDestination(
-                                icon: const Icon(Icons.location_on_outlined),
-                                selectedIcon: const Icon(Icons.location_on),
-                                label: Text(context.l10n.nav_sites),
-                              ),
-                              NavigationRailDestination(
-                                icon: const Icon(Icons.flight_outlined),
-                                selectedIcon: const Icon(Icons.flight),
-                                label: Text(context.l10n.nav_trips),
-                              ),
-                              NavigationRailDestination(
-                                icon: const Icon(Icons.backpack_outlined),
-                                selectedIcon: const Icon(Icons.backpack),
-                                label: Text(context.l10n.nav_equipment),
-                              ),
-                              NavigationRailDestination(
-                                icon: const Icon(Icons.people_outlined),
-                                selectedIcon: const Icon(Icons.people),
-                                label: Text(context.l10n.nav_buddies),
-                              ),
-                              NavigationRailDestination(
-                                icon: const Icon(Icons.store_outlined),
-                                selectedIcon: const Icon(Icons.store),
-                                label: Text(context.l10n.nav_diveCenters),
-                              ),
-                              NavigationRailDestination(
-                                icon: const Icon(
-                                  Icons.card_membership_outlined,
+                              for (final destination in _railDestinations)
+                                NavigationRailDestination(
+                                  icon: Icon(
+                                    destination.icon,
+                                    color: navAccent(destination.id),
+                                  ),
+                                  selectedIcon: Icon(
+                                    destination.selectedIcon,
+                                    color: navAccent(destination.id),
+                                  ),
+                                  label: Text(destination.label(context.l10n)),
                                 ),
-                                selectedIcon: const Icon(Icons.card_membership),
-                                label: Text(context.l10n.nav_certifications),
-                              ),
-                              NavigationRailDestination(
-                                icon: const Icon(Icons.school_outlined),
-                                selectedIcon: const Icon(Icons.school),
-                                label: Text(context.l10n.nav_courses),
-                              ),
-                              NavigationRailDestination(
-                                icon: const Icon(Icons.bar_chart_outlined),
-                                selectedIcon: const Icon(Icons.bar_chart),
-                                label: Text(context.l10n.nav_statistics),
-                              ),
-                              NavigationRailDestination(
-                                icon: const Icon(Icons.edit_calendar_outlined),
-                                selectedIcon: const Icon(Icons.edit_calendar),
-                                label: Text(context.l10n.nav_planning),
-                              ),
-                              NavigationRailDestination(
-                                icon: const Icon(Icons.sync_alt_outlined),
-                                selectedIcon: const Icon(Icons.sync_alt),
-                                label: Text(context.l10n.nav_transfer),
-                              ),
-                              NavigationRailDestination(
-                                icon: const Icon(Icons.gps_fixed),
-                                selectedIcon: const Icon(Icons.gps_fixed),
-                                label: Text(context.l10n.nav_gpsLog),
-                              ),
-                              NavigationRailDestination(
-                                icon: const Icon(Icons.settings_outlined),
-                                selectedIcon: const Icon(Icons.settings),
-                                label: Text(context.l10n.nav_settings),
-                              ),
                             ],
                           ),
                         ),
@@ -348,6 +271,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
 
   Widget _buildMobileNavBar(BuildContext context, int selectedIndex) {
     final primary = ref.watch(navPrimaryDestinationsProvider);
+    final navAccent = _navAccentLookup(context);
     return NavigationBar(
       selectedIndex: selectedIndex,
       onDestinationSelected: (index) =>
@@ -355,8 +279,11 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
       destinations: [
         for (final destination in primary)
           NavigationDestination(
-            icon: Icon(destination.icon),
-            selectedIcon: Icon(destination.selectedIcon),
+            icon: Icon(destination.icon, color: navAccent(destination.id)),
+            selectedIcon: Icon(
+              destination.selectedIcon,
+              color: navAccent(destination.id),
+            ),
             label: destination.label(context.l10n),
           ),
       ],

@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
+import 'package:submersion/shared/widgets/feature_accent.dart';
 
 /// Content widget for the equipment set list, used in master-detail layout.
 ///
@@ -168,14 +169,26 @@ class EquipmentSetListContent extends ConsumerWidget {
                     context.push('/equipment/sets/${set.id}');
                   }
                 },
-                leading: CircleAvatar(
-                  backgroundColor: Theme.of(
-                    context,
-                  ).colorScheme.primaryContainer,
-                  child: Icon(
-                    Icons.folder,
-                    color: Theme.of(context).colorScheme.onPrimaryContainer,
-                  ),
+                leading: Builder(
+                  builder: (context) {
+                    final accent = resolveFeatureAccent(
+                      context,
+                      ref,
+                      surface: AccentSurface.list,
+                      featureId: 'equipment',
+                    );
+                    return CircleAvatar(
+                      backgroundColor:
+                          accent?.withValues(alpha: 0.15) ??
+                          Theme.of(context).colorScheme.primaryContainer,
+                      child: Icon(
+                        Icons.folder,
+                        color:
+                            accent ??
+                            Theme.of(context).colorScheme.onPrimaryContainer,
+                      ),
+                    );
+                  },
                 ),
                 title: Row(
                   children: [

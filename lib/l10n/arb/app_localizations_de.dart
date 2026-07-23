@@ -19986,6 +19986,31 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_appearance_sections => 'Bereiche';
 
   @override
+  String get settings_appearance_colorAccents => 'Farbakzente';
+
+  @override
+  String get settings_appearance_accentNavIcons => 'Farbige Navigationssymbole';
+
+  @override
+  String get settings_appearance_accentNavIcons_subtitle =>
+      'Hauptmenü-Symbole in der Farbe des jeweiligen Bereichs einfärben';
+
+  @override
+  String get settings_appearance_accentSectionHeaders =>
+      'Farbige Bereichsüberschriften';
+
+  @override
+  String get settings_appearance_accentSectionHeaders_subtitle =>
+      'Farbiges Bereichssymbol neben Seitentiteln anzeigen';
+
+  @override
+  String get settings_appearance_accentListIcons => 'Farbige Listensymbole';
+
+  @override
+  String get settings_appearance_accentListIcons_subtitle =>
+      'Symbole in Listen und Einstellungsseiten einfärben';
+
+  @override
   String get settings_appearance_showDetailsPane => 'Detailbereich anzeigen';
 
   @override

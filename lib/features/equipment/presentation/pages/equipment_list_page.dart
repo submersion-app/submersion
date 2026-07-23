@@ -26,6 +26,7 @@ import 'package:submersion/features/equipment/presentation/pages/equipment_detai
 import 'package:submersion/features/equipment/presentation/pages/equipment_edit_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_detail_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/shared/widgets/feature_accent.dart';
 
 class EquipmentListPage extends ConsumerStatefulWidget {
   const EquipmentListPage({super.key});
@@ -221,7 +222,10 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.l10n.equipment_appBar_title),
+        title: FeatureAppBarTitle(
+          featureId: 'equipment',
+          title: context.l10n.equipment_appBar_title,
+        ),
         bottom: TabBar(
           controller: _tabController,
           tabs: [

@@ -14,6 +14,7 @@ import 'package:submersion/features/settings/presentation/providers/export_provi
 import 'package:submersion/features/transfer/presentation/widgets/csv_export_dialog.dart';
 import 'package:submersion/features/transfer/presentation/widgets/pdf_export_dialog.dart';
 import 'package:submersion/features/transfer/presentation/widgets/transfer_list_content.dart';
+import 'package:submersion/shared/widgets/feature_accent.dart';
 
 /// Main transfer page with master-detail layout on desktop.
 ///
@@ -87,7 +88,12 @@ class TransferMobileContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.transfer_appBar_title)),
+      appBar: AppBar(
+        title: FeatureAppBarTitle(
+          featureId: 'transfer',
+          title: context.l10n.transfer_appBar_title,
+        ),
+      ),
       body: ListView.separated(
         padding: const EdgeInsets.symmetric(vertical: 8),
         itemCount: transferSections.length,

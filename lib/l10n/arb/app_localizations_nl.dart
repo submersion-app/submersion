@@ -19853,6 +19853,33 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_appearance_sections => 'Secties';
 
   @override
+  String get settings_appearance_colorAccents => 'Kleuraccenten';
+
+  @override
+  String get settings_appearance_accentNavIcons =>
+      'Gekleurde navigatiepictogrammen';
+
+  @override
+  String get settings_appearance_accentNavIcons_subtitle =>
+      'Pictogrammen in het hoofdmenu kleuren met de kleur van elk onderdeel';
+
+  @override
+  String get settings_appearance_accentSectionHeaders =>
+      'Gekleurde sectiekoppen';
+
+  @override
+  String get settings_appearance_accentSectionHeaders_subtitle =>
+      'Een gekleurd sectiepictogram naast paginatitels tonen';
+
+  @override
+  String get settings_appearance_accentListIcons =>
+      'Gekleurde lijstpictogrammen';
+
+  @override
+  String get settings_appearance_accentListIcons_subtitle =>
+      'Pictogrammen in lijsten en instellingenpagina\'s kleuren';
+
+  @override
   String get settings_appearance_showDetailsPane => 'Detailvenster tonen';
 
   @override

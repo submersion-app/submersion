@@ -7,6 +7,7 @@ import 'package:submersion/features/settings/presentation/pages/language_setting
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/nav/nav_primary_provider.dart';
+import 'package:submersion/shared/widgets/feature_accent.dart';
 
 const _sectionRoutes = [
   'dives',
@@ -53,7 +54,11 @@ class AppearancePage extends ConsumerWidget {
             context.l10n.settings_appearance_general,
           ),
           ListTile(
-            leading: const Icon(Icons.palette_outlined),
+            leading: const FeatureAccentIcon(
+              Icons.palette_outlined,
+              featureId: 'settings-appearance',
+              surface: AccentSurface.list,
+            ),
             title: Text(context.l10n.settings_themes_current),
             subtitle: Text(_resolveCurrentThemeName(context, ref)),
             trailing: const Icon(Icons.chevron_right),
@@ -63,7 +68,11 @@ class AppearancePage extends ConsumerWidget {
           _buildThemeSelector(context, ref, settings.themeMode),
           const Divider(),
           ListTile(
-            leading: const Icon(Icons.language),
+            leading: const FeatureAccentIcon(
+              Icons.language,
+              featureId: 'settings-appearance',
+              surface: AccentSurface.list,
+            ),
             title: Text(context.l10n.settings_appearance_appLanguage),
             subtitle: Text(
               LanguageSettingsPage.getDisplayName(settings.locale),
@@ -73,7 +82,11 @@ class AppearancePage extends ConsumerWidget {
           ),
           const Divider(),
           ListTile(
-            leading: const Icon(Icons.map_outlined),
+            leading: const FeatureAccentIcon(
+              Icons.map_outlined,
+              featureId: 'settings-appearance',
+              surface: AccentSurface.list,
+            ),
             title: Text(context.l10n.settings_appearance_mapStyle),
             subtitle: Text(_getMapStyleDisplayName(context, settings.mapStyle)),
             trailing: DropdownButton<MapStyle>(
@@ -109,13 +122,67 @@ class AppearancePage extends ConsumerWidget {
                     middleLabels.length > 2 ? middleLabels[2] : '',
                   );
               return ListTile(
-                leading: const Icon(Icons.view_quilt_outlined),
+                leading: const FeatureAccentIcon(
+                  Icons.view_quilt_outlined,
+                  featureId: 'settings-appearance',
+                  surface: AccentSurface.list,
+                ),
                 title: Text(context.l10n.settings_navCustomization_title),
                 subtitle: Text(preview),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => context.push('/settings/appearance/navigation'),
               );
             },
+          ),
+          const Divider(),
+
+          // -- Color accents --
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_appearance_colorAccents,
+          ),
+          SwitchListTile(
+            secondary: const FeatureAccentIcon(
+              Icons.format_paint_outlined,
+              featureId: 'settings-appearance',
+              surface: AccentSurface.list,
+            ),
+            title: Text(context.l10n.settings_appearance_accentNavIcons),
+            subtitle: Text(
+              context.l10n.settings_appearance_accentNavIcons_subtitle,
+            ),
+            value: settings.accentNavIcons,
+            onChanged: (value) =>
+                ref.read(settingsProvider.notifier).setAccentNavIcons(value),
+          ),
+          SwitchListTile(
+            secondary: const FeatureAccentIcon(
+              Icons.title_outlined,
+              featureId: 'settings-appearance',
+              surface: AccentSurface.list,
+            ),
+            title: Text(context.l10n.settings_appearance_accentSectionHeaders),
+            subtitle: Text(
+              context.l10n.settings_appearance_accentSectionHeaders_subtitle,
+            ),
+            value: settings.accentSectionHeaders,
+            onChanged: (value) => ref
+                .read(settingsProvider.notifier)
+                .setAccentSectionHeaders(value),
+          ),
+          SwitchListTile(
+            secondary: const FeatureAccentIcon(
+              Icons.list_alt_outlined,
+              featureId: 'settings-appearance',
+              surface: AccentSurface.list,
+            ),
+            title: Text(context.l10n.settings_appearance_accentListIcons),
+            subtitle: Text(
+              context.l10n.settings_appearance_accentListIcons_subtitle,
+            ),
+            value: settings.accentListIcons,
+            onChanged: (value) =>
+                ref.read(settingsProvider.notifier).setAccentListIcons(value),
           ),
           const Divider(),
 

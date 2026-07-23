@@ -23,6 +23,7 @@ import 'package:submersion/features/buddies/presentation/providers/buddy_provide
 import 'package:submersion/features/buddies/presentation/widgets/dense_buddy_list_tile.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/debounced_search_results.dart';
+import 'package:submersion/shared/widgets/feature_accent.dart';
 
 /// Content widget for the buddy list, used in master-detail layout.
 ///
@@ -406,7 +407,10 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
       appBar: _isSelectionMode
           ? _buildSelectionAppBar(buddiesAsync.valueOrNull ?? [])
           : AppBar(
-              title: Text(context.l10n.buddies_title),
+              title: FeatureAppBarTitle(
+                featureId: 'buddies',
+                title: context.l10n.buddies_title,
+              ),
               actions: [
                 IconButton(
                   icon: const Icon(Icons.sort),
@@ -564,8 +568,9 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
       child: Row(
         children: [
           const SizedBox(width: 8),
-          Text(
-            context.l10n.buddies_title,
+          FeatureAppBarTitle(
+            featureId: 'buddies',
+            title: context.l10n.buddies_title,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),

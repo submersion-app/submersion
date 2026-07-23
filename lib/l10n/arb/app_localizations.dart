@@ -33518,6 +33518,48 @@ abstract class AppLocalizations {
   /// **'Sections'**
   String get settings_appearance_sections;
 
+  /// No description provided for @settings_appearance_colorAccents.
+  ///
+  /// In en, this message translates to:
+  /// **'Color accents'**
+  String get settings_appearance_colorAccents;
+
+  /// No description provided for @settings_appearance_accentNavIcons.
+  ///
+  /// In en, this message translates to:
+  /// **'Colored navigation icons'**
+  String get settings_appearance_accentNavIcons;
+
+  /// No description provided for @settings_appearance_accentNavIcons_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tint main menu icons with each feature\'s color'**
+  String get settings_appearance_accentNavIcons_subtitle;
+
+  /// No description provided for @settings_appearance_accentSectionHeaders.
+  ///
+  /// In en, this message translates to:
+  /// **'Colored section headers'**
+  String get settings_appearance_accentSectionHeaders;
+
+  /// No description provided for @settings_appearance_accentSectionHeaders_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show a colored feature icon next to page titles'**
+  String get settings_appearance_accentSectionHeaders_subtitle;
+
+  /// No description provided for @settings_appearance_accentListIcons.
+  ///
+  /// In en, this message translates to:
+  /// **'Colored list icons'**
+  String get settings_appearance_accentListIcons;
+
+  /// No description provided for @settings_appearance_accentListIcons_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tint icons in lists and settings pages'**
+  String get settings_appearance_accentListIcons_subtitle;
+
   /// No description provided for @settings_appearance_showDetailsPane.
   ///
   /// In en, this message translates to:

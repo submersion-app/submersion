@@ -16,6 +16,7 @@ import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/features/certifications/domain/constants/certification_field.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
+import 'package:submersion/shared/widgets/feature_accent.dart';
 
 /// Content widget for the certification list, used in master-detail layout.
 class CertificationListContent extends ConsumerStatefulWidget {
@@ -146,7 +147,10 @@ class _CertificationListContentState
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.l10n.certifications_appBar_title),
+        title: FeatureAppBarTitle(
+          featureId: 'certifications',
+          title: context.l10n.certifications_appBar_title,
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.wallet),
@@ -265,8 +269,9 @@ class _CertificationListContentState
       child: Row(
         children: [
           const SizedBox(width: 8),
-          Text(
-            context.l10n.certifications_appBar_title,
+          FeatureAppBarTitle(
+            featureId: 'certifications',
+            title: context.l10n.certifications_appBar_title,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),

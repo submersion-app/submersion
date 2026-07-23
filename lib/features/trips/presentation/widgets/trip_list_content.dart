@@ -21,6 +21,7 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:submersion/features/trips/presentation/widgets/compact_trip_list_tile.dart';
 import 'package:submersion/features/trips/presentation/widgets/dense_trip_list_tile.dart';
 import 'package:submersion/features/trips/presentation/widgets/upcoming_trip_banner.dart';
+import 'package:submersion/shared/widgets/feature_accent.dart';
 
 /// Content widget for the trip list, used in master-detail layout.
 class TripListContent extends ConsumerStatefulWidget {
@@ -165,7 +166,10 @@ class _TripListContentState extends ConsumerState<TripListContent> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.l10n.trips_appBar_title),
+        title: FeatureAppBarTitle(
+          featureId: 'trips',
+          title: context.l10n.trips_appBar_title,
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
@@ -286,8 +290,9 @@ class _TripListContentState extends ConsumerState<TripListContent> {
       child: Row(
         children: [
           const SizedBox(width: 8),
-          Text(
-            context.l10n.trips_appBar_title,
+          FeatureAppBarTitle(
+            featureId: 'trips',
+            title: context.l10n.trips_appBar_title,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -613,12 +618,24 @@ class TripListTile extends StatelessWidget {
             : null,
         child: ListTile(
           onTap: onTap,
-          leading: CircleAvatar(
-            backgroundColor: theme.colorScheme.primaryContainer,
-            child: Icon(
-              trip.isLiveaboard ? Icons.sailing : Icons.flight_takeoff,
-              color: theme.colorScheme.onPrimaryContainer,
-            ),
+          leading: Consumer(
+            builder: (context, ref, _) {
+              final accent = resolveFeatureAccent(
+                context,
+                ref,
+                surface: AccentSurface.list,
+                featureId: 'trips',
+              );
+              return CircleAvatar(
+                backgroundColor:
+                    accent?.withValues(alpha: 0.15) ??
+                    theme.colorScheme.primaryContainer,
+                child: Icon(
+                  trip.isLiveaboard ? Icons.sailing : Icons.flight_takeoff,
+                  color: accent ?? theme.colorScheme.onPrimaryContainer,
+                ),
+              );
+            },
           ),
           title: Row(
             children: [
@@ -793,14 +810,28 @@ class TripSearchDelegate extends SearchDelegate<Trip?> {
                 final trip = trips[index];
                 final dateFormat = DateFormat.yMMMd();
                 return ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: Theme.of(
-                      context,
-                    ).colorScheme.primaryContainer,
-                    child: Icon(
-                      trip.isLiveaboard ? Icons.sailing : Icons.flight_takeoff,
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    ),
+                  leading: Builder(
+                    builder: (context) {
+                      final accent = resolveFeatureAccent(
+                        context,
+                        ref,
+                        surface: AccentSurface.list,
+                        featureId: 'trips',
+                      );
+                      return CircleAvatar(
+                        backgroundColor:
+                            accent?.withValues(alpha: 0.15) ??
+                            Theme.of(context).colorScheme.primaryContainer,
+                        child: Icon(
+                          trip.isLiveaboard
+                              ? Icons.sailing
+                              : Icons.flight_takeoff,
+                          color:
+                              accent ??
+                              Theme.of(context).colorScheme.onPrimaryContainer,
+                        ),
+                      );
+                    },
                   ),
                   title: Text(trip.name),
                   subtitle: Text(
