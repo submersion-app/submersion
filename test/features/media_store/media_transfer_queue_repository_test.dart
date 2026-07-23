@@ -371,4 +371,72 @@ void main() {
     expect(row.progressBytes, isNull);
     expect(row.totalBytes, isNull);
   });
+
+  test('v6 migration adds payload_json to an existing v5 database', () async {
+    final nativeDb = NativeDatabase.memory(
+      setup: (rawDb) {
+        rawDb.execute('PRAGMA user_version = 5');
+        rawDb.execute('''
+          CREATE TABLE local_asset_cache (
+            media_id TEXT NOT NULL PRIMARY KEY,
+            local_asset_id TEXT,
+            resolved_at INTEGER NOT NULL,
+            resolution_method TEXT NOT NULL,
+            attempt_count INTEGER NOT NULL DEFAULT 0
+          )
+        ''');
+        rawDb.execute('''
+          CREATE TABLE media_transfer_queue (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            media_id TEXT NOT NULL,
+            direction TEXT NOT NULL DEFAULT 'upload',
+            object_kind TEXT NOT NULL DEFAULT 'original',
+            content_hash TEXT,
+            state TEXT NOT NULL DEFAULT 'pending',
+            attempts INTEGER NOT NULL DEFAULT 0,
+            next_attempt_at INTEGER,
+            resume_state_json TEXT,
+            error_message TEXT,
+            priority INTEGER NOT NULL DEFAULT 0,
+            progress_bytes INTEGER,
+            total_bytes INTEGER,
+            override_level TEXT,
+            created_at INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL
+          )
+        ''');
+        rawDb.execute('''
+          CREATE TABLE media_cache_entries (
+            content_hash TEXT NOT NULL,
+            kind TEXT NOT NULL,
+            relative_path TEXT NOT NULL,
+            size_bytes INTEGER NOT NULL,
+            last_accessed_at INTEGER NOT NULL,
+            created_at INTEGER NOT NULL,
+            source_version INTEGER,
+            PRIMARY KEY (content_hash, kind)
+          )
+        ''');
+        rawDb.execute(
+          "INSERT INTO media_transfer_queue "
+          "(media_id, created_at, updated_at) VALUES ('m1', 1, 1)",
+        );
+      },
+    );
+    final upgraded = LocalCacheDatabase(nativeDb);
+    addTearDown(upgraded.close);
+
+    final cols = await upgraded
+        .customSelect("PRAGMA table_info('media_transfer_queue')")
+        .get();
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    expect(names, contains('payload_json'));
+    final kept = await upgraded
+        .customSelect(
+          "SELECT media_id, payload_json FROM media_transfer_queue",
+        )
+        .getSingle();
+    expect(kept.data['media_id'], 'm1');
+    expect(kept.data['payload_json'], isNull);
+  });
 }
