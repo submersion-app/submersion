@@ -6,6 +6,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/deco/ascent_rate_calculator.dart';
+import 'package:submersion/features/dive_log/data/services/profile_surface_lead_in.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/app_colors.dart';
 
@@ -478,6 +479,142 @@ void main() {
     });
 
     testWidgets(
+      'a profile starting after t=0 draws the depth line from the surface',
+      (tester) async {
+        // Subsurface/DC-XML profiles begin at the first sample (10s), leaving a
+        // gap against the t=0 axis origin (issue #684).
+        final profile = [
+          for (var i = 1; i <= 8; i++)
+            DiveProfilePoint(timestamp: i * 10, depth: i * 2.0),
+        ];
+        await tester.pumpWidget(_buildChart(profile: profile));
+        await tester.pumpAndSettle();
+
+        final depthBar = tester
+            .widget<LineChart>(find.byType(LineChart).first)
+            .data
+            .lineBarsData
+            .first;
+
+        expect(depthBar.spots.first.x, 0);
+        expect(depthBar.spots.first.y, 0);
+        // The synthetic vertex is additive: every real sample is still drawn.
+        expect(depthBar.spots.length, profile.length + 1);
+        expect(depthBar.spots[1].x, 10);
+      },
+    );
+
+    testWidgets('a profile already starting at t=0 gains no extra vertex', (
+      tester,
+    ) async {
+      // Garmin FIT samples at zero, so there is no gap and nothing to add.
+      final profile = _makeProfile(points: 8);
+      expect(profile.first.timestamp, 0);
+
+      await tester.pumpWidget(_buildChart(profile: profile));
+      await tester.pumpAndSettle();
+
+      final depthBar = tester
+          .widget<LineChart>(find.byType(LineChart).first)
+          .data
+          .lineBarsData
+          .first;
+
+      expect(depthBar.spots.length, profile.length);
+      expect(depthBar.spots.first.x, 0);
+    });
+
+    testWidgets('a profile starting at t=0 keeps its original smoothing', (
+      tester,
+    ) async {
+      // The lead-in changes curve smoothing to stop the spline overshooting
+      // that vertex. A dive that needs no lead-in must be rendered exactly as
+      // before, so the fix cannot alter dives it does not apply to.
+      final atZero = _makeProfile(points: 8);
+      expect(atZero.first.timestamp, 0);
+
+      await tester.pumpWidget(_buildChart(profile: atZero));
+      await tester.pumpAndSettle();
+      final zeroBars = tester
+          .widget<LineChart>(find.byType(LineChart).first)
+          .data
+          .lineBarsData;
+      for (final bar in zeroBars) {
+        expect(bar.preventCurveOverShooting, isFalse);
+      }
+
+      // The same chart on a profile that does need one turns it on.
+      final offset = [
+        for (var i = 1; i <= 8; i++)
+          DiveProfilePoint(timestamp: i * 30, depth: i * 2.0),
+      ];
+      await tester.pumpWidget(_buildChart(profile: offset));
+      await tester.pumpAndSettle();
+      final offsetBars = tester
+          .widget<LineChart>(find.byType(LineChart).first)
+          .data
+          .lineBarsData;
+      expect(offsetBars.any((b) => b.preventCurveOverShooting), isTrue);
+    });
+
+    testWidgets('analysis curves are extended to t=0 at their first value', (
+      tester,
+    ) async {
+      // Held flat rather than zeroed: on a repetitive dive the first sample
+      // already carries residual loading (CNS here starts at 12%), and forcing
+      // a synthetic 0 would draw it as a first dive of the day.
+      final profile = [
+        for (var i = 1; i <= 8; i++)
+          DiveProfilePoint(timestamp: i * 10, depth: i * 2.0),
+      ];
+      final cns = [for (var i = 0; i < 8; i++) 12.0 + i];
+      final ndl = [for (var i = 0; i < 8; i++) 1080 - i * 10];
+
+      await tester.pumpWidget(
+        _buildChart(profile: profile, cnsCurve: cns, ndlCurve: ndl),
+      );
+      await tester.pumpAndSettle();
+
+      final bars = tester
+          .widget<LineChart>(find.byType(LineChart).first)
+          .data
+          .lineBarsData;
+
+      // Bar 0 is depth, which descends from the surface rather than holding
+      // flat; the analysis curves after it hold their first value.
+      expect(bars.first.spots.first, const FlSpot(0, 0));
+
+      final analysisLeadIns = bars
+          .skip(1)
+          .where((b) => b.spots.length > 1 && b.spots.first.x == 0);
+      expect(analysisLeadIns, isNotEmpty);
+      for (final bar in analysisLeadIns) {
+        expect(bar.spots.first.y, bar.spots[1].y);
+      }
+    });
+
+    testWidgets('a trimmed profile keeps its gap rather than inventing a '
+        'descent', (tester) async {
+      // First sample far beyond one interval: drawing from the surface would
+      // fabricate dive time that was never recorded.
+      final profile = [
+        for (var i = 0; i < 8; i++)
+          DiveProfilePoint(timestamp: 600 + i * 10, depth: 20.0 + i),
+      ];
+      await tester.pumpWidget(_buildChart(profile: profile));
+      await tester.pumpAndSettle();
+
+      final depthBar = tester
+          .widget<LineChart>(find.byType(LineChart).first)
+          .data
+          .lineBarsData
+          .first;
+
+      expect(depthBar.spots.length, profile.length);
+      expect(depthBar.spots.first.x, 600);
+    });
+
+    testWidgets(
       'tooltip rows label overlay depth and temperature with the metric',
       (tester) async {
         final active = [
@@ -530,6 +667,215 @@ void main() {
         expect(byLabel['Depth · Erics Teric'], isNotNull);
         expect(byLabel['Depth · Erics Teric'], isNot(isEmpty));
         expect(byLabel['Temp · Erics Teric'], isNotNull);
+      },
+    );
+
+    testWidgets(
+      'touching the lead-in vertex reports t=0 and marks held values',
+      (tester) async {
+        // First sample at 10s, so bar 0 carries a synthetic (0, 0m) lead-in
+        // vertex at spotIndex 0 (issue #684). Touching it must describe t=0,
+        // not repeat the first sample.
+        final profile = [
+          for (var i = 1; i <= 8; i++)
+            DiveProfilePoint(
+              timestamp: i * 10,
+              depth: i * 2.0,
+              temperature: 25.0,
+            ),
+        ];
+        List<TooltipRow>? rows;
+        await tester.pumpWidget(
+          _buildChart(
+            profile: profile,
+            tooltipBelow: true,
+            onTooltipData: (r) => rows = r,
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final data = tester
+            .widget<LineChart>(find.byType(LineChart).first)
+            .data;
+        final depthBar = data.lineBarsData.first;
+        // The lead-in vertex: bar 0, spotIndex 0, at x=0.
+        expect(depthBar.spots.first, const FlSpot(0, 0));
+        data.lineTouchData.touchCallback!(
+          FlPanDownEvent(DragDownDetails()),
+          LineTouchResponse(
+            touchLocation: Offset.zero,
+            touchChartCoordinate: Offset.zero,
+            lineBarSpots: <TouchLineBarSpot>[
+              TouchLineBarSpot(depthBar, 0, depthBar.spots.first, 0),
+            ],
+          ),
+        );
+
+        expect(rows, isNotNull);
+        final byLabel = {for (final r in rows!) r.label: r.value};
+        // Time and depth are exact at the surface, never marked.
+        expect(byLabel['Time'], '0:00');
+        expect(byLabel['Depth'], isNot(contains('interpolated')));
+        // Temperature is carried over from the first sample, so it is marked.
+        expect(byLabel['Temp'], contains('(interpolated)'));
+      },
+    );
+
+    testWidgets(
+      'an overlay gets its lead-in from its own samples, not the active dive',
+      (tester) async {
+        // The case the hard-wired predicate missed: the active profile starts
+        // at t=0 (so it needs no lead-in) while the overlaid computer starts at
+        // t=10 and does. Keying off the active dive would leave the overlay
+        // gapped.
+        final active = [
+          for (var i = 0; i < 8; i++)
+            DiveProfilePoint(timestamp: i * 10, depth: i * 2.0),
+        ];
+        final other = [
+          for (var i = 1; i <= 8; i++)
+            DiveProfilePoint(timestamp: i * 10, depth: i * 1.5),
+        ];
+
+        await tester.pumpWidget(
+          _buildChart(
+            profile: active,
+            activeComputerId: 'comp-a',
+            overlays: [overlay(color: Colors.purple, points: other)],
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final bars = tester
+            .widget<LineChart>(find.byType(LineChart).first)
+            .data
+            .lineBarsData;
+
+        // Active depth bar: starts at t=0 already, so no synthetic vertex.
+        expect(bars.first.spots.length, active.length);
+        expect(bars.first.spots.first.x, 0);
+
+        // Overlay depth bar is appended last and DOES get one.
+        final overlayBar = bars.last;
+        expect(overlayBar.color, Colors.purple);
+        expect(overlayBar.spots.first, const FlSpot(0, 0));
+        expect(overlayBar.spots.length, other.length + 1);
+        expect(overlayBar.spots[1].x, 10);
+      },
+    );
+
+    testWidgets(
+      'a tank first breathed mid-dive keeps its smoothing untouched',
+      (tester) async {
+        // A deco bottle's pressure trace legitimately starts mid-dive, so it
+        // receives no lead-in -- and must not have its smoothing changed by
+        // the dive-level flag either.
+        final profile = [
+          for (var i = 1; i <= 10; i++)
+            DiveProfilePoint(timestamp: i * 10, depth: i * 2.0),
+        ];
+        const tanks = [
+          DiveTank(id: 'back', gasMix: GasMix(o2: 21), order: 0),
+          DiveTank(id: 'deco', gasMix: GasMix(o2: 50), order: 1),
+        ];
+        const pressures = {
+          'back': [
+            TankPressurePoint(
+              id: 'b0',
+              tankId: 'back',
+              timestamp: 10,
+              pressure: 200,
+            ),
+            TankPressurePoint(
+              id: 'b1',
+              tankId: 'back',
+              timestamp: 100,
+              pressure: 80,
+            ),
+          ],
+          'deco': [
+            TankPressurePoint(
+              id: 'd0',
+              tankId: 'deco',
+              timestamp: 60,
+              pressure: 200,
+            ),
+            TankPressurePoint(
+              id: 'd1',
+              tankId: 'deco',
+              timestamp: 100,
+              pressure: 150,
+            ),
+          ],
+        };
+
+        await tester.pumpWidget(
+          _buildChart(profile: profile, tanks: tanks, tankPressures: pressures),
+        );
+        await tester.pumpAndSettle();
+
+        final bars = tester
+            .widget<LineChart>(find.byType(LineChart).first)
+            .data
+            .lineBarsData;
+
+        // The deco series starts at t=60: no lead-in, and no smoothing change.
+        final decoBar = bars.firstWhere(
+          (b) => b.spots.length == 2 && b.spots.first.x == 60,
+        );
+        expect(decoBar.preventCurveOverShooting, isFalse);
+
+        // The back-gas series starts at the dive's first sample, so it does
+        // get a lead-in and the overshoot guard with it.
+        final backBar = bars.firstWhere(
+          (b) => b.spots.length == 3 && b.spots.first.x == 0,
+        );
+        expect(backBar.preventCurveOverShooting, isTrue);
+      },
+    );
+
+    testWidgets(
+      'inline tooltip on the lead-in computes pressures and marks held values',
+      (tester) async {
+        // First sample at 10s and 20 m depth => 3 bar ambient. A ppO2 of
+        // 0.63 bar there is 0.21 at the surface, so the lead-in readout must
+        // compute it, not repeat 0.63. Temperature is held and marked.
+        final profile = [
+          for (var i = 1; i <= 8; i++)
+            DiveProfilePoint(timestamp: i * 10, depth: 20.0, temperature: 25.0),
+        ];
+        await tester.pumpWidget(
+          _buildChartAllMetrics(
+            profile: profile,
+            ppO2Curve: [for (var i = 0; i < 8; i++) 0.63],
+            ppN2Curve: [for (var i = 0; i < 8; i++) 2.37],
+            ppHeCurve: [for (var i = 0; i < 8; i++) 0.9],
+            densityCurve: [for (var i = 0; i < 8; i++) 3.6],
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final data = tester
+            .widget<LineChart>(find.byType(LineChart).first)
+            .data;
+        final depthBar = data.lineBarsData.first;
+        expect(depthBar.spots.first, const FlSpot(0, 0));
+
+        // Drive fl_chart's own tooltip builder with the lead-in vertex.
+        final items = data.lineTouchData.touchTooltipData.getTooltipItems(
+          <LineBarSpot>[TouchLineBarSpot(depthBar, 0, depthBar.spots.first, 0)],
+        );
+        final plain = items
+            .whereType<LineTooltipItem>()
+            .expand(
+              (it) => [it.text, ...?it.children?.map((c) => c.toPlainText())],
+            )
+            .join();
+
+        expect(plain, contains('0:00')); // t=0, not 0:10
+        expect(plain, contains('0.21 bar')); // computed ppO2, not 0.63
+        expect(plain, isNot(contains('0.63 bar')));
+        expect(plain, contains('(interpolated)')); // temperature held
       },
     );
 
@@ -1673,6 +2019,90 @@ void main() {
         ),
         -1,
       );
+    });
+
+    test('a surface lead-in vertex does not shift the sample mapping', () {
+      // With a lead-in, bar 0's spots are [synthetic, p0, p1, ...], so
+      // _depthBarStartIndices reports -1 for that bar to keep
+      // `start + spotIndex` addressing the right sample. The synthetic vertex
+      // itself resolves to the first sample rather than a negative index.
+      const starts = [-1];
+      expect(
+        DiveProfileChart.depthSpotProfileIndex(
+          profile: profile,
+          depthBarStarts: starts,
+          barIndex: 0,
+          spotIndex: 0, // the synthetic (0, 0m) vertex
+          spotX: 0.0,
+          multiComputer: false,
+        ),
+        0,
+      );
+      expect(
+        DiveProfileChart.depthSpotProfileIndex(
+          profile: profile,
+          depthBarStarts: starts,
+          barIndex: 0,
+          spotIndex: 1, // the first real sample
+          spotX: 0.0,
+          multiComputer: false,
+        ),
+        0,
+      );
+      expect(
+        DiveProfileChart.depthSpotProfileIndex(
+          profile: profile,
+          depthBarStarts: starts,
+          barIndex: 0,
+          spotIndex: 3,
+          spotX: 20.0,
+          multiComputer: false,
+        ),
+        2,
+      );
+    });
+  });
+
+  group('shouldDrawSurfaceLeadIn', () {
+    List<DiveProfilePoint> profileFrom(List<int> timestamps) => [
+      for (final t in timestamps) DiveProfilePoint(timestamp: t, depth: 1.0),
+    ];
+
+    test('true when the first sample sits one interval in', () {
+      // The Subsurface/DC-XML case from #679: 10s sampling, first sample at 10.
+      expect(shouldDrawSurfaceLeadIn(profileFrom([10, 20, 30, 40])), isTrue);
+    });
+
+    test('false when the profile already starts at zero', () {
+      // Garmin FIT samples at t=0, so there is no gap to close.
+      expect(shouldDrawSurfaceLeadIn(profileFrom([0, 1, 2, 3])), isFalse);
+    });
+
+    test('true for a one-second sampling computer', () {
+      expect(shouldDrawSurfaceLeadIn(profileFrom([1, 2, 3, 4])), isTrue);
+    });
+
+    test('false when the gap exceeds one sample interval', () {
+      // A trimmed or merged profile starting well after t=0: drawing a descent
+      // across that span would fabricate dive time that was never recorded.
+      expect(
+        shouldDrawSurfaceLeadIn(profileFrom([600, 610, 620, 630])),
+        isFalse,
+      );
+    });
+
+    test('boundary: exactly one interval yes, one second more no', () {
+      expect(shouldDrawSurfaceLeadIn(profileFrom([10, 20, 30])), isTrue);
+      expect(shouldDrawSurfaceLeadIn(profileFrom([11, 21, 31])), isFalse);
+    });
+
+    test('false for profiles too short to establish an interval', () {
+      expect(shouldDrawSurfaceLeadIn(const []), isFalse);
+      expect(shouldDrawSurfaceLeadIn(profileFrom([10])), isFalse);
+    });
+
+    test('false when samples share a timestamp (no usable interval)', () {
+      expect(shouldDrawSurfaceLeadIn(profileFrom([10, 10, 20])), isFalse);
     });
   });
 
@@ -3630,6 +4060,52 @@ void main() {
         expect(b.spots, isNotEmpty);
         expect(b.spots.length, lessThanOrEqualTo(2008));
       }
+    });
+  });
+
+  group('DiveProfileMiniChart', () {
+    Widget host(List<DiveProfilePoint> profile) => MaterialApp(
+      home: Scaffold(body: DiveProfileMiniChart(profile: profile)),
+    );
+
+    LineChartBarData bar(WidgetTester tester) => tester
+        .widget<LineChart>(find.byType(LineChart))
+        .data
+        .lineBarsData
+        .first;
+
+    testWidgets('empty profile renders no chart', (tester) async {
+      await tester.pumpWidget(host(const []));
+      await tester.pumpAndSettle();
+      expect(find.byType(LineChart), findsNothing);
+    });
+
+    testWidgets('a profile starting after t=0 descends from the surface', (
+      tester,
+    ) async {
+      final profile = [
+        for (var i = 1; i <= 8; i++)
+          DiveProfilePoint(timestamp: i * 10, depth: i * 2.0),
+      ];
+      await tester.pumpWidget(host(profile));
+      await tester.pumpAndSettle();
+
+      final b = bar(tester);
+      expect(b.spots.first, const FlSpot(0, 0));
+      expect(b.spots.length, profile.length + 1);
+    });
+
+    testWidgets('a profile starting at t=0 gains no lead-in', (tester) async {
+      final profile = [
+        for (var i = 0; i < 8; i++)
+          DiveProfilePoint(timestamp: i * 10, depth: i.toDouble()),
+      ];
+      await tester.pumpWidget(host(profile));
+      await tester.pumpAndSettle();
+
+      final b = bar(tester);
+      expect(b.spots.length, profile.length);
+      expect(b.spots.first.x, 0);
     });
   });
 }

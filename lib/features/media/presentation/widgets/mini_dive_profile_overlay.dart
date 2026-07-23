@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/data/services/profile_surface_lead_in.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -137,9 +138,13 @@ class MiniDiveProfileOverlay extends StatelessWidget {
 
     // Create depth line spots with NEGATED depths for proper orientation
     // (fl_chart Y-axis goes up, but we want depth to increase downward)
-    final depthSpots = sortedProfile
-        .map((p) => FlSpot(p.timestamp.toDouble(), -p.depth))
-        .toList();
+    // The x-axis starts at 0 but computers do not sample there, so descend
+    // from the surface to close the gap (issue #684). Same one-sample-interval
+    // rule as the full profile chart.
+    final depthSpots = <FlSpot>[
+      if (shouldDrawSurfaceLeadIn(sortedProfile)) const FlSpot(0, 0),
+      ...sortedProfile.map((p) => FlSpot(p.timestamp.toDouble(), -p.depth)),
+    ];
 
     // Find the depth at the photo timestamp for the marker
     final photoDepth = _interpolateDepth(sortedProfile, photoElapsedSeconds);
