@@ -1,5 +1,7 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart'
@@ -11,13 +13,27 @@ import 'package:submersion/features/media_store/data/media_transfer_queue_reposi
 import '../../helpers/test_database.dart';
 
 void main() {
+  late AppDatabase db;
   late MediaRepository mediaRepository;
   late LocalCacheDatabase cacheDb;
   late MediaTransferQueueRepository queue;
   late MediaBackfillService service;
 
   setUp(() async {
-    await setUpTestDatabase();
+    db = await setUpTestDatabase();
+    // Backfill candidates must be linked to a dive or site; every fixture
+    // row in this file hangs off this one dive.
+    final epoch = DateTime(2026, 1, 1).millisecondsSinceEpoch;
+    await db
+        .into(db.dives)
+        .insert(
+          DivesCompanion(
+            id: const Value('dive-1'),
+            diveDateTime: Value(epoch),
+            createdAt: Value(epoch),
+            updatedAt: Value(epoch),
+          ),
+        );
     mediaRepository = MediaRepository();
     cacheDb = LocalCacheDatabase(NativeDatabase.memory());
     queue = MediaTransferQueueRepository(database: cacheDb);
@@ -42,6 +58,7 @@ void main() {
     final created = await mediaRepository.createMedia(
       domain.MediaItem(
         id: '',
+        diveId: 'dive-1',
         mediaType: mediaType,
         sourceType: sourceType,
         filePath: '/tmp/$name',
