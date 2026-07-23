@@ -45,10 +45,14 @@ class TripStoryDayCard extends ConsumerWidget {
     // TripStoryDayHeader above this card; the card is body-only. A planned
     // day whose itinerary has nothing to show would produce an empty card,
     // so skip it entirely.
+    // Blank is not content: a whitespace-only port or note would otherwise
+    // defeat this guard and render a card with nothing in it. The edit sheet
+    // normalizes empties away, but sync and import payloads do not.
     final itinerary = day.itineraryDay;
     final hasPlannedExtras =
         _isPlanned &&
-        ((itinerary?.notes.isNotEmpty ?? false) || itinerary?.portName != null);
+        ((itinerary?.notes.trim().isNotEmpty ?? false) ||
+            (itinerary?.portName?.trim().isNotEmpty ?? false));
     final hasBody =
         day.dives.isNotEmpty ||
         day.media.isNotEmpty ||
@@ -321,9 +325,12 @@ class _PlannedExtras extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Same blank-is-absent rule the card's hasPlannedExtras guard applies, so a
+    // whitespace-only port cannot render an empty note or send a blank site
+    // name to the history lookup.
     final itinerary = day.itineraryDay;
-    final notes = itinerary?.notes ?? '';
-    final portName = itinerary?.portName;
+    final notes = itinerary?.notes.trim() ?? '';
+    final portName = itinerary?.portName?.trim() ?? '';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -332,7 +339,8 @@ class _PlannedExtras extends ConsumerWidget {
           const SizedBox(height: 8),
           Text(notes, style: Theme.of(context).textTheme.bodySmall),
         ],
-        if (portName != null) _HistoryPills(siteName: portName, units: units),
+        if (portName.isNotEmpty)
+          _HistoryPills(siteName: portName, units: units),
       ],
     );
   }

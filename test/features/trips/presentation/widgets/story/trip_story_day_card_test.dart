@@ -127,6 +127,21 @@ void main() {
     expect(find.text('Planned'), findsNothing);
   });
 
+  testWidgets('planned day with only a blank port renders no card', (
+    tester,
+  ) async {
+    // A blank port is not content: it must not defeat the empty-card guard.
+    final day = TripStoryDay(
+      date: DateTime(2027, 1, 10),
+      dayNumber: 1,
+      kind: TripStoryDayKind.future,
+      itineraryDay: _itin(port: '   ', notes: '  '),
+    );
+    await pumpCard(tester, day);
+
+    expect(find.byType(Card), findsNothing);
+  });
+
   testWidgets('past day renders photo strip with a more-indicator', (
     tester,
   ) async {

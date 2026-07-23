@@ -25,11 +25,15 @@ class TripStoryDayHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final itinerary = day.itineraryDay;
+    // Trim and drop blanks before joining: the itinerary edit sheet normalizes
+    // an empty port to null, but sync and import payloads write the nullable
+    // column directly, and a site name is equally free to be blank. Joining
+    // either verbatim would render a doubled separator ("Dive Day -  - Site").
     final subtitleParts = <String>[
       if (itinerary != null) itinerary.dayType.localizedName(context),
       if (itinerary?.portName != null) itinerary!.portName!,
       ...day.siteNames,
-    ];
+    ].map((part) => part.trim()).where((part) => part.isNotEmpty).toList();
 
     return Material(
       color: theme.colorScheme.surface,

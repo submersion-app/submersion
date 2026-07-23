@@ -95,6 +95,30 @@ void main() {
     expect(find.textContaining('Blue Corner'), findsOneWidget);
   });
 
+  testWidgets('blank port name does not leave an empty subtitle segment', (
+    tester,
+  ) async {
+    // The edit sheet normalizes "" to null, but sync/import payloads write the
+    // nullable column directly, so a blank port can reach the entity. Joining
+    // it verbatim would render "Dive Day -  - Blue Corner".
+    final day = TripStoryDay(
+      date: DateTime(2026, 3, 8),
+      dayNumber: 2,
+      kind: TripStoryDayKind.past,
+      itineraryDay: _itin(port: '   '),
+      dives: [
+        Dive(
+          id: 'd1',
+          dateTime: DateTime(2026, 3, 8, 9),
+          site: const DiveSite(id: 'site-a', name: 'Blue Corner'),
+        ),
+      ],
+    );
+    await pumpHeader(tester, day);
+
+    expect(find.text('Dive Day - Blue Corner'), findsOneWidget);
+  });
+
   testWidgets('no subtitle line when there is nothing to say', (tester) async {
     final day = TripStoryDay(
       date: DateTime(2026, 3, 8),
