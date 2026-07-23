@@ -116,4 +116,50 @@ void main() {
 
     expect(await repo.getSweepableOrphanIds(olderThan: past), isEmpty);
   });
+
+  test('getAllContentHashes collects distinct non-null hashes', () async {
+    await insertDive('d1');
+    await repo.createMedia(item('a.jpg', diveId: 'd1', hash: 'h1'));
+    await repo.createMedia(item('b.jpg', diveId: 'd1', hash: 'h1')); // dup
+    await repo.createMedia(item('c.jpg', diveId: 'd1', hash: 'h2'));
+    await repo.createMedia(item('d.jpg', diveId: 'd1')); // no hash
+    expect(await repo.getAllContentHashes(), {'h1', 'h2'});
+  });
+
+  test('getRemoteStampedSummaries reports per-tier stamps', () async {
+    await insertDive('d1');
+    final orig = await repo.createMedia(
+      item('a.jpg', diveId: 'd1', hash: 'h1'),
+    );
+    await repo.stampRemoteUploaded(orig.id, uploadedAt: DateTime(2026, 2));
+    final thumbed = await repo.createMedia(
+      item('b.jpg', diveId: 'd1', hash: 'h2'),
+    );
+    await repo.stampRemoteThumbUploaded(
+      thumbed.id,
+      uploadedAt: DateTime(2026, 2),
+    );
+    await repo.createMedia(item('c.jpg', diveId: 'd1', hash: 'h3')); // none
+
+    final summaries = await repo.getRemoteStampedSummaries();
+    expect(summaries, hasLength(2));
+    final byId = {for (final s in summaries) s.id: s};
+    expect(byId[orig.id]!.contentHash, 'h1');
+    expect(byId[orig.id]!.hasOriginal, isTrue);
+    expect(byId[orig.id]!.hasThumb, isFalse);
+    expect(byId[orig.id]!.hasRendition, isFalse);
+    expect(byId[thumbed.id]!.hasThumb, isTrue);
+    expect(byId[thumbed.id]!.hasOriginal, isFalse);
+  });
+
+  test('clearRemoteThumbUploaded nulls only the thumb stamp', () async {
+    await insertDive('d1');
+    final m = await repo.createMedia(item('a.jpg', diveId: 'd1', hash: 'h1'));
+    await repo.stampRemoteUploaded(m.id, uploadedAt: DateTime(2026, 2));
+    await repo.stampRemoteThumbUploaded(m.id, uploadedAt: DateTime(2026, 2));
+    await repo.clearRemoteThumbUploaded(m.id);
+    final got = await repo.getMediaById(m.id);
+    expect(got!.remoteThumbUploadedAt, isNull);
+    expect(got.remoteUploadedAt, isNotNull);
+  });
 }
