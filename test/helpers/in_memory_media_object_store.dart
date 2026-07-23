@@ -126,7 +126,9 @@ class InMemoryMediaObjectStore implements MediaObjectStore {
   @override
   Stream<StoreObjectInfo> list(String keyPrefix) async* {
     _maybeFail();
-    for (final entry in objects.entries) {
+    // Snapshot: real adapters list server-side pages, so a caller deleting
+    // objects mid-stream (the verify sweep) must not perturb the listing.
+    for (final entry in objects.entries.toList()) {
       if (entry.key.startsWith(keyPrefix)) {
         yield StoreObjectInfo(
           key: entry.key,
