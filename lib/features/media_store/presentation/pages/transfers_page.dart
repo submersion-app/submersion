@@ -101,7 +101,14 @@ class _TransferTile extends ConsumerWidget {
       // still 'pending': its automatic backoff can stretch to a day or more
       // (see markFailed's retryAfter), and waiting that out is not something
       // to force on someone who is looking at the failure right now.
-      trailing: (entry.state == 'failed' || entry.errorMessage != null)
+      //
+      // Restricted to 'pending' on purpose: markTransferring does not clear
+      // errorMessage, so an in-flight row can still carry an earlier attempt's
+      // error. Offering Retry there would let a tap flip a row the worker is
+      // actively uploading back to pending and have it processed twice.
+      trailing:
+          (entry.state == 'failed' ||
+              (entry.state == 'pending' && entry.errorMessage != null))
           ? TextButton(
               onPressed: () => _retry(ref, entry),
               child: Text(l10n.settings_mediaStorage_transfers_retry),

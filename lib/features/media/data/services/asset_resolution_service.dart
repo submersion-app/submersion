@@ -332,13 +332,36 @@ class AssetResolutionService {
   }) {
     if (item.width == null || item.height == null) return null;
 
+    final itemSecond = _truncateToSecond(item.takenAt);
     final matches = candidates.where((c) {
       if (c.width != item.width || c.height != item.height) return false;
-      final diff = c.createDateTime.difference(item.takenAt).abs();
+      final diff = _truncateToSecond(
+        c.createDateTime,
+      ).difference(itemSecond).abs();
       return diff <= tolerance;
     }).toList();
 
     return matches.length == 1 ? matches.first.id : null;
+  }
+
+  /// Both sides are compared at second granularity so [Duration.zero] means
+  /// "the same capture second" rather than "the same instant".
+  ///
+  /// The two sides do not carry the same precision: photo_manager derives
+  /// createDateTime from an integer `createDateSecond`, so a gallery candidate
+  /// can never have a sub-second component, while a stored takenAt is epoch
+  /// MILLISECONDS and could acquire one from a non-gallery import path. Without
+  /// this, such a row could never satisfy the exact tier - no candidate would
+  /// be reachable - and it would silently fall through to the ambiguous fuzzy
+  /// window that this tier exists to bypass.
+  static DateTime _truncateToSecond(DateTime t) {
+    final micros = t.microsecondsSinceEpoch;
+    // Dart's % is non-negative for a positive divisor, so this floors
+    // correctly on both sides of the epoch.
+    return DateTime.fromMicrosecondsSinceEpoch(
+      micros - (micros % Duration.microsecondsPerSecond),
+      isUtc: t.isUtc,
+    );
   }
 }
 

@@ -54,8 +54,7 @@ final resolvedThumbnailProvider =
 
       // If cached ID no longer loads, the photo was deleted — clear cache
       if (bytes == null) {
-        final cache = LocalAssetCacheRepository();
-        await cache.clearEntry(item.id);
+        await ref.read(localAssetCacheRepositoryProvider).clearEntry(item.id);
         return const ResolvedAssetResult(status: ResolutionStatus.unavailable);
       }
 
@@ -82,8 +81,7 @@ final resolvedFullResolutionProvider =
       final bytes = await pickerService.getFileBytes(resolution.localAssetId!);
 
       if (bytes == null) {
-        final cache = LocalAssetCacheRepository();
-        await cache.clearEntry(item.id);
+        await ref.read(localAssetCacheRepositoryProvider).clearEntry(item.id);
         return const ResolvedAssetResult(status: ResolutionStatus.unavailable);
       }
 

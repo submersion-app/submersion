@@ -37,6 +37,8 @@ void main() {
       mediaStoreRuntimeProvider.overrideWith((ref) async => null),
     ],
     child: const MaterialApp(
+      // Pinned: these tests find widgets by their English strings.
+      locale: Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: TransfersPage(),
@@ -148,6 +150,28 @@ void main() {
     await tester.pumpWidget(app(snapshot));
     await tester.pump();
     expect(find.text('Retry'), findsOneWidget);
+  });
+
+  testWidgets('a transferring entry carrying a stale error offers no Retry', (
+    tester,
+  ) async {
+    late List<MediaTransferQueueEntry> snapshot;
+    await tester.runAsync(() async {
+      final id = await repo.enqueueUpload(mediaId: 'm-a');
+      await repo.markFailed(id, 'source unavailable on this device');
+      // markTransferring does NOT clear errorMessage, so an in-flight row can
+      // still carry the previous attempt's error. Retrying it would flip a row
+      // the worker is actively uploading back to pending.
+      await repo.markTransferring(id);
+      snapshot = await repo.watchEntries().first;
+    });
+
+    expect(snapshot.single.state, 'transferring');
+    expect(snapshot.single.errorMessage, isNotNull);
+
+    await tester.pumpWidget(app(snapshot));
+    await tester.pump();
+    expect(find.text('Retry'), findsNothing);
   });
 
   testWidgets('transferring entries render a determinate progress bar', (

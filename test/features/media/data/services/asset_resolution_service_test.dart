@@ -394,6 +394,28 @@ void main() {
       );
     });
 
+    test('zero tolerance matches on the capture SECOND, not the instant', () {
+      // Gallery candidates can never carry sub-second precision
+      // (photo_manager derives createDateTime from an integer second), but a
+      // stored takenAt is epoch milliseconds. An exact-instant comparison
+      // would make such a row unmatchable by any candidate at all.
+      final item = createTestItem(
+        originalFilename: '',
+        takenAt: DateTime(2025, 6, 15, 10, 30, 10, 400),
+        width: 4000,
+        height: 3000,
+      );
+
+      expect(
+        AssetResolutionService.matchByTimestampAndDimensions(
+          item,
+          burstFrames(),
+          tolerance: Duration.zero,
+        ),
+        equals('burst-exact'),
+      );
+    });
+
     test('zero tolerance still refuses two frames in the same second', () {
       final sameSecond = [
         AssetInfo(
