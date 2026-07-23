@@ -8,7 +8,6 @@ import 'package:submersion/core/services/media_store/store_keys.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
-import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
 import 'package:submersion/features/media_store/data/media_cache_store.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
@@ -16,6 +15,7 @@ import 'package:submersion/features/media_store/data/image_compressor.dart';
 import 'package:submersion/features/media_store/data/media_compressor.dart';
 import 'package:submersion/features/media_store/data/thumbnail_generator.dart';
 import 'package:submersion/features/media_store/data/video_transcoder.dart';
+import 'package:submersion/features/media_store/domain/media_backup_status.dart';
 import 'package:submersion/features/media_store/domain/media_upload_quality.dart';
 
 enum UploadOutcome { uploaded, deduplicated, skippedIneligible, failed }
@@ -66,20 +66,12 @@ class MediaUploadPipeline {
   final DateTime Function() _now;
   final _log = LoggerService.forClass(MediaUploadPipeline);
 
-  static const Set<MediaSourceType> _eligibleSources = {
-    MediaSourceType.platformGallery,
-    MediaSourceType.localFile,
-    MediaSourceType.serviceConnector,
-  };
-
   /// Connector videos never download their original in v1 (Lightroom spec:
   /// match + thumbnail only). The store carries just the thumb, derived
   /// from the poster rendition the resolver materializes, and
   /// remoteUploadedAt stays null so a future playback phase can tell a
   /// poster frame from a playable original.
-  bool _isThumbOnly(MediaItem item) =>
-      item.sourceType == MediaSourceType.serviceConnector &&
-      item.mediaType == MediaType.video;
+  bool _isThumbOnly(MediaItem item) => isThumbOnlyMedia(item);
 
   Future<UploadOutcome> process(MediaTransferQueueEntry entry) async {
     await _queue.markTransferring(entry.id);
@@ -317,7 +309,7 @@ class MediaUploadPipeline {
   }
 
   bool _isEligible(MediaItem item) {
-    if (!_eligibleSources.contains(item.sourceType)) return false;
+    if (!kUploadableSources.contains(item.sourceType)) return false;
     if (item.mediaType == MediaType.instructorSignature) return false;
     final resolver = _registry.resolverFor(item.sourceType);
     return resolver.canResolveOnThisDevice(item);
