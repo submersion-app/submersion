@@ -923,6 +923,7 @@ class MediaRepository {
       ..addColumns([id])
       ..where(
         isLinkedToDiveOrSite(_db.media) &
+            // Photos from any uploadable source.
             ((_db.media.remoteUploadedAt.isNull() &
                     _db.media.remoteCompressedUploadedAt.isNull() &
                     _db.media.fileType.equals('photo') &
@@ -930,6 +931,23 @@ class MediaRepository {
                       'platformGallery',
                       'localFile',
                       'serviceConnector',
+                    ])) |
+                // Gallery and local videos upload their original, so a
+                // missing original stamp is their backfill signal. Without
+                // this branch a local video could never be uploaded after
+                // the fact and would show a permanent not-backed-up badge.
+                //
+                // serviceConnector is deliberately absent: connector videos
+                // are thumb-only and never get remoteUploadedAt, so
+                // including them here would re-enqueue them on every
+                // backfill run forever. They are covered by the thumb
+                // branch below.
+                (_db.media.remoteUploadedAt.isNull() &
+                    _db.media.remoteCompressedUploadedAt.isNull() &
+                    _db.media.fileType.equals('video') &
+                    _db.media.sourceType.isIn([
+                      'platformGallery',
+                      'localFile',
                     ])) |
                 // Connector videos are thumb-only (no original in the store
                 // by design), so their backfill signal is the missing thumb
