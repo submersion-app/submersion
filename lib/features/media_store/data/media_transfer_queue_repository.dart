@@ -227,10 +227,14 @@ class MediaTransferQueueRepository {
   ///
   /// A reclaimed row is made immediately due with its stale progress
   /// cleared, but keeps its resume point so a resumable adapter can pick up
-  /// where it left off. Attempts are untouched: an interruption is not a
-  /// failed attempt (contrast markFailed), yet a genuinely broken item must
-  /// still count toward its cap (contrast retry). Returns the number of rows
-  /// reclaimed.
+  /// where it left off. Any leftover error message is cleared too: a row can
+  /// reach 'transferring' still carrying an earlier attempt's error (markFailed
+  /// sets it, markTransferring does not clear it), and the Transfers UI shows
+  /// errorMessage whenever it is non-null - a row reclaimed after an
+  /// interruption must not display a failure it recovered from. Attempts are
+  /// untouched: an interruption is not a failed attempt (contrast markFailed),
+  /// yet a genuinely broken item must still count toward its cap (contrast
+  /// retry). Returns the number of rows reclaimed.
   Future<int> requeueStale() {
     return (_db.update(
       _db.mediaTransferQueue,
@@ -240,6 +244,7 @@ class MediaTransferQueueRepository {
         progressBytes: const Value(null),
         totalBytes: const Value(null),
         nextAttemptAt: const Value(null),
+        errorMessage: const Value(null),
         updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
       ),
     );

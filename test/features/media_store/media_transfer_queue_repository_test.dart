@@ -256,9 +256,12 @@ void main() {
   test('requeueStale returns an orphaned transferring row to pending so the '
       'drainer can see it again', () async {
     // An interrupted drain (app killed/backgrounded after markTransferring
-    // but before markDone/markFailed) strands a row in 'transferring'.
+    // but before markDone/markFailed) strands a row in 'transferring'. Here
+    // it had already failed once (attempt consumed, error + backoff set) and
+    // was mid-retry when it stranded, so it carries a stale error message.
     final id = await repo.enqueueUpload(mediaId: 'm1');
     await repo.updateResumeState(id, '{"uploadId":"u1"}');
+    await repo.markFailed(id, 'network blip');
     await repo.updateProgress(id, transferredBytes: 60, totalBytes: 64);
     await repo.markTransferring(id);
     // Proof of the bug: nextPending never selects 'transferring'.
@@ -269,7 +272,12 @@ void main() {
 
     final row = (await repo.allForTesting()).single;
     expect(row.state, 'pending');
-    expect(row.attempts, 0, reason: 'interruption is not a failed attempt');
+    expect(row.attempts, 1, reason: 'reclaim preserves the attempt budget');
+    expect(
+      row.errorMessage,
+      isNull,
+      reason: 'a reclaimed row was interrupted, not failed - no stale error',
+    );
     expect(row.nextAttemptAt, isNull, reason: 'reclaimed rows are due now');
     expect(row.progressBytes, isNull, reason: 'stale progress is cleared');
     expect(row.totalBytes, isNull);
