@@ -89,26 +89,28 @@ void main() {
     return rows.map((r) => r.recordId).toList();
   }
 
-  test('deleteDive deletes dive-only media with tombstone and blob intent',
-      () async {
-    final dive = await makeDive();
-    final doomed = await mediaRepository.createMedia(
-      item(
-        'a.jpg',
-        diveId: dive.id,
-        hash: 'h1',
-        uploadedAt: DateTime(2026, 2),
-      ),
-    );
+  test(
+    'deleteDive deletes dive-only media with tombstone and blob intent',
+    () async {
+      final dive = await makeDive();
+      final doomed = await mediaRepository.createMedia(
+        item(
+          'a.jpg',
+          diveId: dive.id,
+          hash: 'h1',
+          uploadedAt: DateTime(2026, 2),
+        ),
+      );
 
-    await diveRepository.deleteDive(dive.id);
+      await diveRepository.deleteDive(dive.id);
 
-    expect(await mediaRepository.getMediaById(doomed.id), isNull);
-    expect(await mediaTombstones(), contains(doomed.id));
-    final entry = (await queue.allForTesting()).single;
-    expect(entry.direction, 'delete');
-    expect(entry.contentHash, 'h1');
-  });
+      expect(await mediaRepository.getMediaById(doomed.id), isNull);
+      expect(await mediaTombstones(), contains(doomed.id));
+      final entry = (await queue.allForTesting()).single;
+      expect(entry.direction, 'delete');
+      expect(entry.contentHash, 'h1');
+    },
+  );
 
   test('site-linked media survives with diveId nulled', () async {
     final dive = await makeDive();
@@ -129,11 +131,7 @@ void main() {
   test('library-level media reverts to library instead of dying', () async {
     final dive = await makeDive();
     final kept = await mediaRepository.createMedia(
-      item(
-        'c.jpg',
-        diveId: dive.id,
-        sourceType: MediaSourceType.networkUrl,
-      ),
+      item('c.jpg', diveId: dive.id, sourceType: MediaSourceType.networkUrl),
     );
 
     await diveRepository.deleteDive(dive.id);
@@ -165,8 +163,7 @@ void main() {
     expect(hashes, {'h1', 'h2'});
   });
 
-  test('never-uploaded dive-only media dies without a blob intent',
-      () async {
+  test('never-uploaded dive-only media dies without a blob intent', () async {
     final dive = await makeDive();
     final doomed = await mediaRepository.createMedia(
       item('plain.jpg', diveId: dive.id),

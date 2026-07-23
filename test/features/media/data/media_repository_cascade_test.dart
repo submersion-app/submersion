@@ -83,8 +83,7 @@ void main() {
     expect(split.unlinkIds.toSet(), {siteLinked.id, library.id});
   });
 
-  test('unlinkMediaFromDeletedDives nulls diveId and keeps the row',
-      () async {
+  test('unlinkMediaFromDeletedDives nulls diveId and keeps the row', () async {
     await insertDive('d1');
     final m = await repo.createMedia(item('a.jpg', diveId: 'd1'));
     await repo.unlinkMediaFromDeletedDives([m.id]);
@@ -93,8 +92,7 @@ void main() {
     expect(got!.diveId, isNull);
   });
 
-  test('getSweepableOrphanIds honours linkage, source type, and age',
-      () async {
+  test('getSweepableOrphanIds honours linkage, source type, and age', () async {
     await insertDive('d1');
     final orphan = await repo.createMedia(item('old.jpg'));
     final libraryOrphan = await repo.createMedia(

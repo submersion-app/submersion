@@ -108,21 +108,23 @@ void main() {
     expect(await sweep.runIfNeeded(now: sweepTime), 0);
   });
 
-  test('flag stays unset when the sweep fails, so it retries next launch',
-      () async {
-    final broken = MediaOrphanBacklogSweep(
-      mediaRepository: _ThrowingMediaRepository(),
-      coordinator: MediaDeletionCoordinator(
-        mediaRepository: repo,
-        queue: () => queue,
-      ),
-      prefs: SharedPreferences.getInstance,
-    );
-    await expectLater(broken.runIfNeeded(now: sweepTime), throwsStateError);
-    final p = await SharedPreferences.getInstance();
-    expect(p.getBool(MediaOrphanBacklogSweep.flagKey), isNot(true));
-    // The healthy sweep still runs afterwards.
-    expect(await sweep.runIfNeeded(now: sweepTime), 0);
-    expect(p.getBool(MediaOrphanBacklogSweep.flagKey), isTrue);
-  });
+  test(
+    'flag stays unset when the sweep fails, so it retries next launch',
+    () async {
+      final broken = MediaOrphanBacklogSweep(
+        mediaRepository: _ThrowingMediaRepository(),
+        coordinator: MediaDeletionCoordinator(
+          mediaRepository: repo,
+          queue: () => queue,
+        ),
+        prefs: SharedPreferences.getInstance,
+      );
+      await expectLater(broken.runIfNeeded(now: sweepTime), throwsStateError);
+      final p = await SharedPreferences.getInstance();
+      expect(p.getBool(MediaOrphanBacklogSweep.flagKey), isNot(true));
+      // The healthy sweep still runs afterwards.
+      expect(await sweep.runIfNeeded(now: sweepTime), 0);
+      expect(p.getBool(MediaOrphanBacklogSweep.flagKey), isTrue);
+    },
+  );
 }
