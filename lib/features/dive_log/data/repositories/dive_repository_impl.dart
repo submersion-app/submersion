@@ -33,6 +33,9 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     as domain;
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
+import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart'
     as domain;
 import 'package:submersion/features/dive_log/data/repositories/dive_custom_field_repository.dart';
@@ -46,6 +49,26 @@ import 'package:submersion/features/buddies/domain/entities/buddy.dart'
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 
 class DiveRepository {
+  /// The media dependencies drive the dive-deletion cascade
+  /// (orphan-prevention spec 4.2); injectable for tests, self-constructed
+  /// otherwise so every existing zero-arg construction site cascades too.
+  DiveRepository({
+    MediaRepository? mediaRepository,
+    MediaDeletionCoordinator? mediaDeletionCoordinator,
+  }) : _mediaRepository = mediaRepository ?? MediaRepository(),
+       _mediaDeletionCoordinator =
+           mediaDeletionCoordinator ??
+           MediaDeletionCoordinator(
+             mediaRepository: mediaRepository ?? MediaRepository(),
+             queue: () => MediaTransferQueueRepository(),
+             // No worker kick from the data layer (provider cycles):
+             // queued intents drain on the next connectivity event, app
+             // start, or any other kick; the Verify Library sweep is the
+             // backstop.
+           );
+
+  final MediaRepository _mediaRepository;
+  final MediaDeletionCoordinator _mediaDeletionCoordinator;
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
@@ -1469,10 +1492,39 @@ class DiveRepository {
     }
   }
 
-  /// Delete a dive
-  Future<void> deleteDive(String id) async {
+  /// Cascade a dying dive's media (orphan-prevention spec 4.2): dive-only
+  /// non-library rows die with the dive (rows + tombstones + blob-delete
+  /// intents via the coordinator's enqueue-before-delete path); site-linked
+  /// and library-level rows survive with diveId nulled and HLC-stamped.
+  ///
+  /// Deliberately NOT wrapped in a transaction with the dive delete: the
+  /// coordinator's queue writes live in another database, and every step is
+  /// individually idempotent/tombstoned - a crash between cascade and dive
+  /// delete leaves a re-deletable dive, never an orphan. Merge and
+  /// consolidation services reassign media to the surviving dive BEFORE
+  /// deleting sources, so this sees no doomed media for merged-away dives.
+  Future<void> _cascadeMediaForDiveDeletion(List<String> ids) async {
+    final split = await _mediaRepository.partitionMediaForDiveDeletion(ids);
+    if (split.doomed.isNotEmpty) {
+      await _mediaDeletionCoordinator.deleteMultipleMedia(
+        split.doomed.map((m) => m.id).toList(),
+      );
+    }
+    if (split.unlinkIds.isNotEmpty) {
+      await _mediaRepository.unlinkMediaFromDeletedDives(split.unlinkIds);
+    }
+  }
+
+  /// Delete a dive.
+  ///
+  /// [cascadeMedia] is true for user-intent deletions (the dive's media
+  /// goes with the dive). Restore/undo flows that re-point media
+  /// afterwards (e.g. merge undo) pass false so the cascade cannot eat
+  /// rows they are about to restore.
+  Future<void> deleteDive(String id, {bool cascadeMedia = true}) async {
     try {
       _log.info('Deleting dive: $id');
+      if (cascadeMedia) await _cascadeMediaForDiveDeletion([id]);
       await (_db.delete(_db.dives)..where((t) => t.id.equals(id))).go();
       await _syncRepository.logDeletion(entityType: 'dives', recordId: id);
       SyncEventBus.notifyLocalChange();
@@ -1489,11 +1541,15 @@ class DiveRepository {
 
   /// Bulk delete multiple dives
   /// Returns the list of deleted dive IDs for potential undo
-  Future<List<String>> bulkDeleteDives(List<String> ids) async {
+  Future<List<String>> bulkDeleteDives(
+    List<String> ids, {
+    bool cascadeMedia = true,
+  }) async {
     if (ids.isEmpty) return [];
 
     try {
       _log.info('Bulk deleting ${ids.length} dives');
+      if (cascadeMedia) await _cascadeMediaForDiveDeletion(ids);
       await (_db.delete(_db.dives)..where((t) => t.id.isIn(ids))).go();
       for (final id in ids) {
         await _syncRepository.logDeletion(entityType: 'dives', recordId: id);
