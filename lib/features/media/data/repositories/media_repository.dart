@@ -906,27 +906,37 @@ class MediaRepository {
     SyncEventBus.notifyLocalChange();
   }
 
+  /// A media row is linked to the logbook when it references a dive or a
+  /// site (orphan-prevention spec section 3). Single definition shared by
+  /// backfill scoping, the dive-deletion cascade, and the orphan backlog
+  /// sweep so the three predicates cannot drift apart.
+  static Expression<bool> isLinkedToDiveOrSite($MediaTable m) =>
+      m.diveId.isNotNull() | m.siteId.isNotNull();
+
   /// Backfill candidates (design spec section 9): device-resident photos
   /// not yet confirmed in the media store, newest first so recent dives
-  /// gain protection soonest.
+  /// gain protection soonest. Scoped to rows linked to a dive or site so
+  /// orphaned rows are never uploaded (orphan-prevention spec section 4.1).
   Future<List<String>> getBackfillCandidateIds() async {
     final id = _db.media.id;
     final query = _db.selectOnly(_db.media)
       ..addColumns([id])
       ..where(
-        (_db.media.remoteUploadedAt.isNull() &
-                _db.media.remoteCompressedUploadedAt.isNull() &
-                _db.media.fileType.equals('photo') &
-                _db.media.sourceType.isIn([
-                  'platformGallery',
-                  'localFile',
-                  'serviceConnector',
-                ])) |
-            // Connector videos are thumb-only (no original in the store by
-            // design), so their backfill signal is the missing thumb stamp.
-            (_db.media.remoteThumbUploadedAt.isNull() &
-                _db.media.fileType.equals('video') &
-                _db.media.sourceType.equals('serviceConnector')),
+        isLinkedToDiveOrSite(_db.media) &
+            ((_db.media.remoteUploadedAt.isNull() &
+                    _db.media.remoteCompressedUploadedAt.isNull() &
+                    _db.media.fileType.equals('photo') &
+                    _db.media.sourceType.isIn([
+                      'platformGallery',
+                      'localFile',
+                      'serviceConnector',
+                    ])) |
+                // Connector videos are thumb-only (no original in the store
+                // by design), so their backfill signal is the missing thumb
+                // stamp.
+                (_db.media.remoteThumbUploadedAt.isNull() &
+                    _db.media.fileType.equals('video') &
+                    _db.media.sourceType.equals('serviceConnector'))),
       )
       ..orderBy([OrderingTerm.desc(_db.media.takenAt)]);
     final rows = await query.get();
