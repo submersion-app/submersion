@@ -6,7 +6,6 @@
 #include <flutter/standard_method_codec.h>
 
 #include <shlobj.h>
-#include <shlwapi.h>
 #include <wincodec.h>
 #include <wrl/client.h>
 
@@ -151,6 +150,11 @@ bool FlutterWindow::OnCreate() {
             std::holds_alternative<int32_t>(mit->second)) {
           max_dim = std::get<int32_t>(mit->second);
         }
+        // Clamp at the channel boundary (mirrors the Dart caller's 1..4096):
+        // a negative or absurd value would otherwise reach IShellItemImageFactory
+        // as an invalid SIZE or provoke a large allocation.
+        if (max_dim < 1) max_dim = 1;
+        if (max_dim > 4096) max_dim = 4096;
         std::vector<uint8_t> png;
         if (path.empty() || !GenerateShellThumbnailPng(path, max_dim, &png)) {
           res->Success();  // null

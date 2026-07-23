@@ -5,6 +5,7 @@
 #include <gdk/gdkx.h>
 #endif
 
+#include <gio/gio.h>
 #include <unistd.h>
 
 #include <cstdio>
@@ -75,6 +76,45 @@ static std::vector<uint8_t> GenerateThumbnailPng(const std::string& path,
   return bytes;
 }
 
+// Work item for one thumbnail request. Generation runs on a worker thread, so
+// the request outlives the method-call callback and owns its own copies.
+struct ThumbRequest {
+  std::string path;
+  int max_dim = 512;
+  std::vector<uint8_t> png;
+};
+
+static void thumb_request_free(gpointer p) {
+  delete static_cast<ThumbRequest*>(p);
+}
+
+// Worker thread: does the blocking spawn + file read.
+static void generate_thumbnail_thread(GTask* task, gpointer source_object,
+                                      gpointer task_data,
+                                      GCancellable* cancellable) {
+  ThumbRequest* req = static_cast<ThumbRequest*>(task_data);
+  req->png = GenerateThumbnailPng(req->path, req->max_dim);
+  g_task_return_boolean(task, TRUE);
+}
+
+// Runs back on the main context: responds to the pending method call.
+static void generate_thumbnail_done(GObject* source, GAsyncResult* result,
+                                    gpointer user_data) {
+  g_autoptr(FlMethodCall) method_call = FL_METHOD_CALL(user_data);
+  ThumbRequest* req =
+      static_cast<ThumbRequest*>(g_task_get_task_data(G_TASK(result)));
+
+  g_autoptr(FlMethodResponse) response = nullptr;
+  if (req == nullptr || req->png.empty()) {
+    response = FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
+  } else {
+    g_autoptr(FlValue) v =
+        fl_value_new_uint8_list(req->png.data(), req->png.size());
+    response = FL_METHOD_RESPONSE(fl_method_success_response_new(v));
+  }
+  fl_method_call_respond(method_call, response, nullptr);
+}
+
 static void local_media_method_call_cb(FlMethodChannel* channel,
                                        FlMethodCall* method_call,
                                        gpointer user_data) {
@@ -96,20 +136,28 @@ static void local_media_method_call_cb(FlMethodChannel* channel,
       max_dim = static_cast<int>(fl_value_get_int(m));
     }
   }
+  // Clamp at the channel boundary (mirrors the Dart caller's 1..4096).
+  if (max_dim < 1) max_dim = 1;
+  if (max_dim > 4096) max_dim = 4096;
 
-  g_autoptr(FlMethodResponse) response = nullptr;
   if (path.empty()) {
-    response = FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
-  } else {
-    std::vector<uint8_t> png = GenerateThumbnailPng(path, max_dim);
-    if (png.empty()) {
-      response = FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
-    } else {
-      g_autoptr(FlValue) v = fl_value_new_uint8_list(png.data(), png.size());
-      response = FL_METHOD_RESPONSE(fl_method_success_response_new(v));
-    }
+    g_autoptr(FlMethodResponse) response =
+        FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
+    fl_method_call_respond(method_call, response, nullptr);
+    return;
   }
-  fl_method_call_respond(method_call, response, nullptr);
+
+  // ffmpegthumbnailer can take hundreds of ms (seconds on a large file) to
+  // seek and decode. This callback runs on the GTK main thread, so doing that
+  // work inline would freeze input and painting for the duration - and the
+  // grid requests a poster per visible video tile. Hand it to a worker thread
+  // and respond when it finishes; the method call is kept alive by a ref.
+  ThumbRequest* req = new ThumbRequest{path, max_dim, {}};
+  GTask* task = g_task_new(nullptr, nullptr, generate_thumbnail_done,
+                           g_object_ref(method_call));
+  g_task_set_task_data(task, req, thumb_request_free);
+  g_task_run_in_thread(task, generate_thumbnail_thread);
+  g_object_unref(task);
 }
 
 struct _MyApplication {

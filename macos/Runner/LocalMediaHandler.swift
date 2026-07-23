@@ -114,7 +114,10 @@ class LocalMediaHandler: NSObject {
                 result(nil)
                 return
             }
-            let maxDim = (args["maxDimension"] as? Int) ?? 512
+            // Clamp at the channel boundary (mirrors the Dart caller's
+            // 1...4096): a zero/negative size would make an invalid QuickLook
+            // request, and an absurd one would provoke a huge render.
+            let maxDim = min(max((args["maxDimension"] as? Int) ?? 512, 1), 4096)
             let blob = (args["bookmarkBlob"] as? FlutterStandardTypedData)?.data
             let path = args["path"] as? String
             generateVideoThumbnail(
