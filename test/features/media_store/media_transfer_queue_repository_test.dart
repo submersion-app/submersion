@@ -372,6 +372,80 @@ void main() {
     expect(row.totalBytes, isNull);
   });
 
+  group('enqueueDelete', () {
+    test('inserts a delete row with hash and payload', () async {
+      final id = await repo.enqueueDelete(
+        mediaId: 'm1',
+        contentHash: 'aabb',
+        originalExt: 'jpg',
+        renditionExt: 'jpg',
+      );
+      final row = (await repo.allForTesting()).single;
+      expect(row.id, id);
+      expect(row.direction, 'delete');
+      expect(row.contentHash, 'aabb');
+      expect(row.state, 'pending');
+      expect(row.payloadJson, '{"originalExt":"jpg","renditionExt":"jpg"}');
+    });
+
+    test('is idempotent per content hash for live and failed rows', () async {
+      final first = await repo.enqueueDelete(
+        mediaId: 'm1',
+        contentHash: 'aabb',
+        originalExt: 'jpg',
+        renditionExt: 'jpg',
+      );
+      final again = await repo.enqueueDelete(
+        mediaId: 'm2', // different row, same blob
+        contentHash: 'aabb',
+        originalExt: 'jpg',
+        renditionExt: 'jpg',
+      );
+      expect(again, first);
+      expect((await repo.allForTesting()).length, 1);
+    });
+
+    test('a done delete row allows a fresh enqueue', () async {
+      final first = await repo.enqueueDelete(
+        mediaId: 'm1',
+        contentHash: 'aabb',
+        originalExt: 'jpg',
+        renditionExt: 'jpg',
+      );
+      await repo.markDone(first);
+      final second = await repo.enqueueDelete(
+        mediaId: 'm1',
+        contentHash: 'aabb',
+        originalExt: 'jpg',
+        renditionExt: 'jpg',
+      );
+      expect(second, isNot(first));
+    });
+
+    test('upload dedup ignores delete rows for the same mediaId', () async {
+      await repo.enqueueDelete(
+        mediaId: 'm1',
+        contentHash: 'aabb',
+        originalExt: 'jpg',
+        renditionExt: 'jpg',
+      );
+      final uploadId = await repo.enqueueUpload(mediaId: 'm1');
+      final rows = await repo.allForTesting();
+      expect(rows.length, 2);
+      expect(rows.firstWhere((r) => r.id == uploadId).direction, 'upload');
+    });
+
+    test('watchLatestForMedia ignores delete rows', () async {
+      await repo.enqueueDelete(
+        mediaId: 'm1',
+        contentHash: 'aabb',
+        originalExt: 'jpg',
+        renditionExt: 'jpg',
+      );
+      expect(await repo.watchLatestForMedia('m1').first, isNull);
+    });
+  });
+
   test('v6 migration adds payload_json to an existing v5 database', () async {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
