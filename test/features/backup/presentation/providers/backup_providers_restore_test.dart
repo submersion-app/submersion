@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -48,6 +49,10 @@ class _RecordingBackupService extends BackupService {
   /// [WrongPassphraseException], modelling a wrong passphrase on retry.
   String? correctSecret;
 
+  /// When set, restore awaits this before returning, so a test can observe the
+  /// in-flight (mid-restore) state.
+  Completer<void>? restoreGate;
+
   _RecordingBackupService(BackupPreferences prefs)
     : super(dbAdapter: _NoopAdapter(), preferences: prefs);
 
@@ -74,6 +79,7 @@ class _RecordingBackupService extends BackupService {
     lastMode = mode;
     lastSecret = encryptionSecret;
     _gate(encryptionSecret);
+    if (restoreGate != null) await restoreGate!.future;
   }
 
   @override
@@ -140,6 +146,43 @@ void main() {
       BackupOperationStatus.restoreComplete,
     );
   });
+
+  test(
+    'restore arms isRestoring while in flight and clears it on complete',
+    () async {
+      final container = makeContainer();
+      final gate = Completer<void>();
+      service.restoreGate = gate;
+      final record = BackupRecord(
+        id: 'r-gate',
+        filename: 'b.db',
+        timestamp: DateTime(2026),
+        sizeBytes: 1,
+        location: BackupLocation.local,
+      );
+
+      // Kick off the restore but do not await it: the notifier sets the
+      // in-progress state synchronously before the first await.
+      final future = container
+          .read(backupOperationProvider.notifier)
+          .restoreFromBackup(record);
+
+      // Mid-restore: the global barrier flag is armed (routine backups never
+      // arm it -- only restore does).
+      final midState = container.read(backupOperationProvider);
+      expect(midState.isRestoring, isTrue);
+      expect(midState.status, BackupOperationStatus.inProgress);
+
+      gate.complete();
+      await future;
+
+      // Completed: the flag is cleared and the app hands off to
+      // RestoreCompletePage via the restoreComplete status.
+      final doneState = container.read(backupOperationProvider);
+      expect(doneState.isRestoring, isFalse);
+      expect(doneState.status, BackupOperationStatus.restoreComplete);
+    },
+  );
 
   test('restoreFromBackup threads the mode and completes', () async {
     final container = makeContainer();

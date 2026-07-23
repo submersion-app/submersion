@@ -9,6 +9,9 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/core/router/app_router.dart';
 import 'package:submersion/features/auto_update/presentation/providers/update_menu_channel.dart';
+import 'package:submersion/features/backup/presentation/pages/restore_complete_page.dart';
+import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
+import 'package:submersion/features/backup/presentation/widgets/restore_barrier.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/adopt_replaced_library_dialog.dart';
@@ -233,6 +236,21 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     });
   }
 
+  void _onBackupOperationChanged(
+    BackupOperationState? prev,
+    BackupOperationState next,
+  ) {
+    // Fire once, on the transition into restoreComplete.
+    if (next.status != BackupOperationStatus.restoreComplete) return;
+    if (prev?.status == BackupOperationStatus.restoreComplete) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final navContext = rootNavigatorKey.currentContext;
+      if (navContext == null) return;
+      RestoreCompletePage.show(navContext);
+    });
+  }
+
   Future<void> _handleIncomingFile(Uint8List bytes, String fileName) async {
     final router = ref.read(appRouterProvider);
     final location = router.routeInformationProvider.value.uri.path;
@@ -281,6 +299,17 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     // post-restore "syncing" notice, and the replaced-library adopt prompt.
     ref.listen<SyncState>(syncStateProvider, _onSyncStateChanged);
 
+    // App-level restore completion: hand off to RestoreCompletePage from here
+    // rather than from whichever page triggered the restore. That page may be
+    // disposed (the user navigated away) by the time the restore finishes, in
+    // which case its own listener would never fire and the app would be
+    // stranded on a stale screen. Listening at the app root guarantees the
+    // hand-off -- and its restartApp() -- always happens.
+    ref.listen<BackupOperationState>(
+      backupOperationProvider,
+      _onBackupOperationChanged,
+    );
+
     return MaterialApp.router(
       scaffoldMessengerKey: _scaffoldMessengerKey,
       title: 'Submersion',
@@ -297,7 +326,9 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       routerConfig: router,
       builder: (context, child) {
         Intl.defaultLocale = Localizations.localeOf(context).toLanguageTag();
-        return child!;
+        // Block all interaction while a database restore runs, so no data page
+        // can rebuild against the transient null database mid-restore.
+        return RestoreBarrier(child: child!);
       },
     );
   }

@@ -83,6 +83,9 @@ class DatabaseService {
     _locationService = null;
     _currentDatabasePath = null;
     lastOpenMode = null;
+    // The service is a singleton, so a restore seam set by one test would
+    // otherwise leak into the next and fire unexpectedly.
+    debugOnRestoreWindowOpen = null;
   }
 
   /// Initialize the database with optional location service for custom paths
@@ -364,21 +367,131 @@ class DatabaseService {
     }
   }
 
-  Future<void> restore(String backupPath) async {
-    // Strict close: restore overwrites the live database file with the
-    // backup copy and then reopens it, so a connection that timed out
-    // mid-close and still holds the file must throw here rather than race
-    // the copy/reopen.
-    await close(strict: true);
+  /// Test seam: invoked synchronously the instant the live database has been
+  /// closed during [restore] — i.e. when the "database unavailable" window
+  /// opens — with the staging path. Lets tests assert the backup was fully
+  /// staged BEFORE the window opened.
+  ///
+  /// One-shot: [restore] captures and clears it before firing, and
+  /// [resetForTesting] also clears it, so a callback never leaks across tests
+  /// (the service is a singleton).
+  @visibleForTesting
+  void Function(String stagingPath)? debugOnRestoreWindowOpen;
 
+  Future<void> restore(String backupPath) async {
     final backupFile = File(backupPath);
     final destinationPath = await databasePath;
 
-    if (await backupFile.exists()) {
-      await backupFile.copy(destinationPath);
+    // No backup to swap in: leave the live database exactly as it is. The old
+    // implementation closed and reopened the same file here, which was an
+    // effective no-op that still opened a needless "database unavailable"
+    // window — during which a provider rebuild caches a fatal
+    // "Database not initialized" error.
+    if (!await backupFile.exists()) {
+      // Still sweep any temp files a prior restore may have stranded (e.g. a
+      // large .pre-restore copy left by a best-effort cleanup that failed), so
+      // they don't accumulate on disk. Best-effort; the live DB is untouched.
+      await _sweepRestoreTempFiles(destinationPath);
+      return;
     }
 
+    // Copy the backup to a staging file NEXT TO the destination while the live
+    // database stays open and keeps serving reads. This keeps the database
+    // available during the slow part of a restore (copying a potentially large
+    // backup), so provider rebuilds never observe a null database and cache a
+    // fatal error. Same-directory staging also keeps the later rename on one
+    // filesystem, so the swap is an atomic metadata operation rather than a
+    // cross-device copy.
+    final stagingPath = '$destinationPath.restore-staging';
+    await _deleteIfExists(stagingPath);
+    try {
+      await backupFile.copy(stagingPath);
+    } catch (_) {
+      await _deleteIfExists(stagingPath);
+      rethrow;
+    }
+
+    // The ONLY window where the database is unavailable: close, swap the file,
+    // reopen. Its duration is a rename + open, not the backup copy.
+    //
+    // Strict close: the swap+reopen immediately follows, so a connection that
+    // timed out mid-close and still holds the file must throw here rather than
+    // race the rename.
+    await close(strict: true);
+    // Fire the test seam one-shot: capture and clear it before invoking so a
+    // callback set by one test cannot leak into a later restore (the service is
+    // a singleton).
+    final onWindowOpen = debugOnRestoreWindowOpen;
+    debugOnRestoreWindowOpen = null;
+    onWindowOpen?.call(stagingPath);
+
+    // Safe swap: move the live file ASIDE (never delete it before the new file
+    // is in place), move the staged file IN, and only then drop the old copy.
+    // If the move-in fails, roll the old file back so the app is never left
+    // with no database and no data. Renaming into a non-existent destination
+    // works identically on POSIX and Windows, so no per-platform branching.
+    final asidePath = '$destinationPath.pre-restore';
+    await _deleteIfExists(asidePath);
+    final destFile = File(destinationPath);
+    final hadDest = await destFile.exists();
+    try {
+      if (hadDest) await destFile.rename(asidePath);
+      // The old WAL/SHM sidecars belong to the pre-restore database. Left in
+      // place, SQLite would replay them into the swapped-in file and corrupt
+      // it, so they must go before the new file is opened.
+      await _deleteIfExists('$destinationPath-wal');
+      await _deleteIfExists('$destinationPath-shm');
+      await File(stagingPath).rename(destinationPath);
+    } catch (_) {
+      // The swap failed with the database closed. Roll the original file back
+      // into place, drop the orphaned staging copy, and reopen so the app is
+      // never left with a dead (null) database, then surface the error.
+      if (hadDest &&
+          !await destFile.exists() &&
+          await File(asidePath).exists()) {
+        await File(asidePath).rename(destinationPath);
+      }
+      await _deleteIfExists(stagingPath);
+      await initialize();
+      rethrow;
+    }
+
+    // Reopen on the swapped-in file BEFORE dropping the pre-restore copy, so a
+    // cleanup hiccup can never prevent the reopen.
     await initialize();
+
+    // The database is open again on the restored file; the pre-restore copy is
+    // no longer needed. Its deletion is best-effort — a transient failure (e.g.
+    // a Windows file lock) must NOT fail a restore that already succeeded and
+    // leave the app with a closed database despite a valid file on disk. A
+    // leftover copy is harmless and is swept by the next restore (including a
+    // no-op one).
+    await _bestEffortDelete(asidePath);
+  }
+
+  Future<void> _deleteIfExists(String path) async {
+    final file = File(path);
+    if (await file.exists()) {
+      await file.delete();
+    }
+  }
+
+  /// Delete [path] if present, swallowing any error. For cleanup that must not
+  /// abort the caller (a transient file lock on a stale temp file is harmless).
+  Future<void> _bestEffortDelete(String path) async {
+    try {
+      await _deleteIfExists(path);
+    } catch (_) {
+      // Best-effort: a stranded temp file is harmless and swept on a later run.
+    }
+  }
+
+  /// Best-effort removal of the temp files a [restore] may leave behind
+  /// (`.restore-staging`, `.pre-restore`). Safe to call while the live database
+  /// is open — it touches only the sidecar temp files, never the live DB.
+  Future<void> _sweepRestoreTempFiles(String destinationPath) async {
+    await _bestEffortDelete('$destinationPath.restore-staging');
+    await _bestEffortDelete('$destinationPath.pre-restore');
   }
 
   /// Delete all data and recreate a fresh empty database.
