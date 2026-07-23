@@ -1040,6 +1040,18 @@ class MediaRepository {
     return (await query.getSingle()).read(count) ?? 0;
   }
 
+  /// Number of media rows referencing [contentHash] at all - uploaded or
+  /// not. The delete fast path's drain-time refcount (orphan-prevention
+  /// spec 5.3): deliberately broader than [countRowsWithOriginal] because
+  /// skipping a blob delete is free while a wrong delete costs a re-upload.
+  Future<int> countRowsWithHash(String contentHash) async {
+    final count = _db.media.id.count();
+    final query = _db.selectOnly(_db.media)
+      ..addColumns([count])
+      ..where(_db.media.contentHash.equals(contentHash));
+    return (await query.getSingle()).read(count) ?? 0;
+  }
+
   domain.MediaItem _mapRowToMediaItem(
     MediaData row, [
     MediaEnrichmentData? enrichmentRow,
