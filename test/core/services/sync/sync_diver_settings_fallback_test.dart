@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
@@ -147,4 +148,74 @@ void main() {
       expect(row.defaultDecoStopSource, 1);
     },
   );
+
+  test(
+    'applies a pre-v135 diver_settings payload missing color accent keys',
+    () async {
+      await db.customStatement('PRAGMA foreign_keys = OFF');
+
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await db
+          .into(db.diverSettings)
+          .insert(
+            DiverSettingsCompanion.insert(
+              id: 'ds4',
+              diverId: 'diver-4',
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+      final exported = await serializer.fetchRecord('diverSettings', 'ds4');
+      expect(exported, isNotNull);
+
+      // A payload exported before v135 has none of the accent keys. All three
+      // columns are NOT NULL, so an unseeded import would throw.
+      final legacy = Map<String, dynamic>.from(exported!)
+        ..remove('accentNavIcons')
+        ..remove('accentSectionHeaders')
+        ..remove('accentListIcons');
+
+      await (db.delete(
+        db.diverSettings,
+      )..where((t) => t.id.equals('ds4'))).go();
+
+      // Must not throw on the missing non-nullable columns.
+      await serializer.upsertRecord('diverSettings', legacy);
+
+      final row = await (db.select(
+        db.diverSettings,
+      )..where((t) => t.id.equals('ds4'))).getSingle();
+      // The v135 columns hydrate to their defaults rather than throwing.
+      expect(row.accentNavIcons, isFalse);
+      expect(row.accentSectionHeaders, isFalse);
+      expect(row.accentListIcons, isFalse);
+    },
+  );
+
+  test('exports the accent columns so they reach other devices', () async {
+    await db.customStatement('PRAGMA foreign_keys = OFF');
+
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.diverSettings)
+        .insert(
+          DiverSettingsCompanion.insert(
+            id: 'ds5',
+            diverId: 'diver-5',
+            createdAt: now,
+            updatedAt: now,
+            accentNavIcons: const Value(true),
+            accentListIcons: const Value(true),
+          ),
+        );
+
+    final exported = await serializer.fetchRecord('diverSettings', 'ds5');
+    expect(exported, isNotNull);
+    // Export goes through the generated toJson(), so a new column is only
+    // carried if it is really on the table -- assert the values, not just
+    // the keys, so a silently-dropped toggle fails here.
+    expect(exported!['accentNavIcons'], isTrue);
+    expect(exported['accentSectionHeaders'], isFalse);
+    expect(exported['accentListIcons'], isTrue);
+  });
 }
