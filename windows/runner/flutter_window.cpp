@@ -18,10 +18,17 @@
 namespace {
 using Microsoft::WRL::ComPtr;
 
+// Returns an empty string when the input is empty or cannot be converted:
+// MultiByteToWideChar returns 0 on failure, and writing through &w[0] on a
+// zero-length wstring would be undefined behaviour.
 std::wstring Widen(const std::string& utf8) {
+  if (utf8.empty()) return std::wstring();
   int len = MultiByteToWideChar(CP_UTF8, 0, utf8.c_str(), -1, nullptr, 0);
+  if (len <= 0) return std::wstring();
   std::wstring w(len, L'\0');
-  MultiByteToWideChar(CP_UTF8, 0, utf8.c_str(), -1, &w[0], len);
+  if (MultiByteToWideChar(CP_UTF8, 0, utf8.c_str(), -1, &w[0], len) <= 0) {
+    return std::wstring();
+  }
   if (!w.empty() && w.back() == L'\0') w.pop_back();
   return w;
 }

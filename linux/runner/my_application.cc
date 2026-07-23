@@ -5,6 +5,8 @@
 #include <gdk/gdkx.h>
 #endif
 
+#include <unistd.h>
+
 #include <cstdio>
 #include <cstdlib>
 #include <string>
@@ -15,6 +17,12 @@
 // Returns PNG bytes for a video poster using ffmpegthumbnailer, or empty on
 // failure / when the tool is not installed. No hard dependency: absence just
 // yields the placeholder on the Dart side.
+//
+// Spawns the tool directly via g_spawn_sync with an argv vector rather than
+// going through a shell. The file path is attacker-influenced (it is whatever
+// the user imported), so building a shell command string would allow a name
+// containing a quote or semicolon to alter the command line. With no shell in
+// the picture there is nothing to escape and no injection surface.
 static std::vector<uint8_t> GenerateThumbnailPng(const std::string& path,
                                                  int max_dim) {
   std::vector<uint8_t> bytes;
@@ -24,11 +32,32 @@ static std::vector<uint8_t> GenerateThumbnailPng(const std::string& path,
   close(fd);
 
   // -c png writes PNG to the output path; -s sets the size; -t 10% seeks.
-  std::string cmd = "ffmpegthumbnailer -i '" + path + "' -o '" + tmpl +
-                    "' -s " + std::to_string(max_dim) +
-                    " -c png -t 10% >/dev/null 2>&1";
-  int rc = std::system(cmd.c_str());
-  if (rc == 0) {
+  std::string size_arg = std::to_string(max_dim);
+  gchar* argv[] = {const_cast<gchar*>("ffmpegthumbnailer"),
+                   const_cast<gchar*>("-i"),
+                   const_cast<gchar*>(path.c_str()),
+                   const_cast<gchar*>("-o"),
+                   tmpl,
+                   const_cast<gchar*>("-s"),
+                   const_cast<gchar*>(size_arg.c_str()),
+                   const_cast<gchar*>("-c"),
+                   const_cast<gchar*>("png"),
+                   const_cast<gchar*>("-t"),
+                   const_cast<gchar*>("10%"),
+                   nullptr};
+
+  gint exit_status = 0;
+  g_autoptr(GError) error = nullptr;
+  // G_SPAWN_SEARCH_PATH finds the tool on PATH; a missing tool simply fails
+  // here and yields the placeholder.
+  gboolean spawned = g_spawn_sync(
+      nullptr, argv, nullptr,
+      static_cast<GSpawnFlags>(G_SPAWN_SEARCH_PATH |
+                               G_SPAWN_STDOUT_TO_DEV_NULL |
+                               G_SPAWN_STDERR_TO_DEV_NULL),
+      nullptr, nullptr, nullptr, nullptr, &exit_status, &error);
+
+  if (spawned && exit_status == 0) {
     if (FILE* f = std::fopen(tmpl, "rb")) {
       std::fseek(f, 0, SEEK_END);
       long n = std::ftell(f);

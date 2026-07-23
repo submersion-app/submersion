@@ -36,11 +36,13 @@ class VideoThumbnailService {
     if (path == null || path.isEmpty) return null;
 
     // Best-effort stat for the cache key; a sandbox denial or missing file
-    // just yields a coarser key (path + dimension only).
+    // just yields a coarser key (path + dimension only). Uses the async stat:
+    // posterFor runs while grid tiles render, so synchronous filesystem I/O
+    // here would block the UI isolate when many thumbnails are requested.
     int mtimeMs = 0;
     int sizeBytes = 0;
     try {
-      final stat = File(path).statSync();
+      final stat = await File(path).stat();
       mtimeMs = stat.modified.millisecondsSinceEpoch;
       sizeBytes = stat.size;
     } on FileSystemException {
