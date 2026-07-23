@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/media_store/data/media_delete_processor.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/media_store/data/media_upload_pipeline.dart';
 import 'package:submersion/features/media_store/domain/media_upload_quality.dart';
@@ -15,15 +16,22 @@ class MediaStoreWorker {
   MediaStoreWorker({
     required MediaTransferQueueRepository queue,
     required MediaUploadPipeline pipeline,
+    MediaDeleteProcessor? deleteProcessor,
     Future<bool> Function()? preflight,
     Future<WorkerGate> Function(MediaTransferQueueEntry entry)? gate,
   }) : _queue = queue,
        _pipeline = pipeline,
+       _deleteProcessor = deleteProcessor,
        _preflight = preflight,
        _gate = gate;
 
   final MediaTransferQueueRepository _queue;
   final MediaUploadPipeline _pipeline;
+
+  /// Handles direction == 'delete' entries (orphan-prevention spec 5).
+  /// Null in wiring shapes that predate the delete fast path; such
+  /// entries are parked in the defer window instead of processed.
+  final MediaDeleteProcessor? _deleteProcessor;
 
   /// Returns false to suspend the drain (store marker mismatch, design
   /// spec section 13).
@@ -68,6 +76,17 @@ class MediaStoreWorker {
             await _queue.defer(entry.id, DateTime.now().add(deferWindow));
             continue;
           }
+        }
+        if (entry.direction == 'delete') {
+          final deleteProcessor = _deleteProcessor;
+          if (deleteProcessor == null) {
+            // No processor wired: park the entry so the drain terminates;
+            // a properly wired worker picks it up later.
+            await _queue.defer(entry.id, DateTime.now().add(deferWindow));
+            continue;
+          }
+          await deleteProcessor.process(entry);
+          continue;
         }
         await _pipeline.process(entry);
       }

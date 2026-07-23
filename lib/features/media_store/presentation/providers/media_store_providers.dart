@@ -20,6 +20,7 @@ import 'package:submersion/features/media/presentation/providers/media_providers
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media_store/data/media_backfill_service.dart';
 import 'package:submersion/features/media_store/data/media_cache_store.dart';
+import 'package:submersion/features/media_store/data/media_delete_processor.dart';
 import 'package:submersion/features/media_store/data/media_store_service.dart';
 import 'package:submersion/features/media_store/data/media_store_worker.dart';
 import 'package:submersion/features/media_store/data/media_stores_repository.dart';
@@ -207,9 +208,15 @@ final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
         cache: cache,
         videoTranscoder: PlatformVideoTranscoder(),
       );
+      final deleteProcessor = MediaDeleteProcessor(
+        queue: MediaTransferQueueRepository(),
+        store: store,
+        mediaRepository: mediaRepository,
+      );
       final worker = MediaStoreWorker(
         queue: MediaTransferQueueRepository(),
         pipeline: pipeline,
+        deleteProcessor: deleteProcessor,
         preflight: () async {
           // Suspend all transfers when this device detached (attach state
           // re-read, not captured: disconnect can land while a drain is
@@ -225,6 +232,10 @@ final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
           // drain; cellular defers anything the policy disallows.
           final kind = await network.current();
           if (kind == NetworkKind.offline) return WorkerGate.stopDraining;
+          // Deletes are tiny API calls with no payload: exempt from the
+          // cellular media policies, gated only by being online
+          // (orphan-prevention spec 5.6).
+          if (entry.direction == 'delete') return WorkerGate.proceed;
           if (kind == NetworkKind.cellular) {
             final item = await mediaRepository.getMediaById(entry.mediaId);
             final isVideo = item?.mediaType == MediaType.video;
