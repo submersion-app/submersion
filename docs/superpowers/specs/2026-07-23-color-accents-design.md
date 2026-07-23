@@ -61,9 +61,14 @@ preset may override the palette later without touching consumers.
 | `dive-centers` | brown | `certifications` | amber |
 
 The `more` sentinel is intentionally uncolored (it is a control, not a
-destination). Additional open-keyed entries (e.g. `settings-appearance`,
-`settings-sync`, `settings-backup`) support settings-row tinting; the exact
-settings key set is enumerated during implementation planning.
+destination). Additional open-keyed `settings-<id>` entries mirror the
+settings root sections, adopting the exact colors hardcoded there today so
+the root's appearance does not change: `settings-about` blueGrey,
+`settings-appearance` pink, `settings-data` green, `settings-dataSources`
+red, `settings-decompression` deepPurple, `settings-profile` blue,
+`settings-safety` redAccent, `settings-manage` indigo,
+`settings-notifications` orange, `settings-sharedData` cyan,
+`settings-units` teal, `settings-debug` grey.
 
 ### 2. Settings, persistence & sync
 
@@ -87,9 +92,11 @@ Plumbing follows the existing themeMode/themePreset path:
    `SettingsNotifier` persisting via `updateSettingsForDiver`; three narrow
    derived providers (e.g. `accentNavIconsProvider`) alongside
    `themeModeProvider` so surfaces rebuild only when their own toggle changes.
-4. **Sync:** register the three columns in `sync_data_serializer.dart`
-   `_exportDiverSettings` and add `false` defaults on import. Older devices
-   ignore unknown fields; missing fields import as `false`.
+4. **Sync:** export is automatic — `_exportDiverSettings` serializes whole
+   rows via the generated `toJson()`, so new columns are included without
+   changes. Only `_applyDiverSettingDefaults` needs the three keys with
+   `false` defaults so payloads from older devices hydrate. Older devices
+   ignore unknown fields.
 
 **Settings UI:** new "Color accents" group on
 `lib/features/settings/presentation/pages/appearance_page.dart` (between the
@@ -125,15 +132,29 @@ extension is unregistered. The gating rule lives in exactly one place.
 
 **3b. Section headers** (`accentSectionHeaders`)
 
-Feature pages' header/app-bar icons adopt `FeatureAccentIcon` with their
-feature id. Exact call sites enumerated per page in the implementation plan.
+Reality check (planning discovery): no feature page currently shows an icon
+in its AppBar title — all are text-only. The toggle therefore *adds* the
+icon: when ON, a shared `FeatureAppBarTitle(featureId:, title:)` widget
+renders the feature's filled nav icon, accent-tinted, before the AppBar
+title; when OFF, it renders the plain text title exactly as today. Applied
+to the feature pages' AppBars (the shared `*ListContent` app bars for
+dives/sites/trips/equipment/buddies/dive-centers/certifications/courses and
+the inline AppBars of statistics/planning/transfer/gps-log).
 
 **3c. Settings & list tiles** (`accentListIcons`)
 
-- Detail/list pages: leading icons take the owning feature's accent
-  (gear rows -> `equipment` orange, site rows -> `sites` green).
-- Settings pages: iOS-style tinted rows using the extra settings-* palette
-  keys.
+- Feature list tiles: the *existing* leading icon avatars take the owning
+  feature's accent when ON (equipment `CircleAvatar` icons -> `equipment`
+  accent, trip avatars -> `trips`, dive-center containers -> `dive-centers`).
+  Tiles with no leading feature icon today (dives, sites, buddies,
+  certifications) are unchanged — the toggle never adds icons to list rows.
+- Settings sub-pages (e.g. the Appearance page): monochrome leading icons
+  take the owning section's accent (`settings-appearance`) when ON.
+- Settings root page: already colored today via hardcoded `Colors.*` on
+  `settingsSections`. Those colors migrate into the `FeatureAccentColors`
+  palette under `settings-<id>` keys with identical light values (no visual
+  change), and the root reads the palette directly — always colored, NOT
+  gated by the toggle. The `color` field on `SettingsSection` is removed.
 
 ## Error handling
 
