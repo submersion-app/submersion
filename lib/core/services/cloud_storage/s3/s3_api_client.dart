@@ -32,6 +32,20 @@ class S3PartInfo {
   const S3PartInfo({required this.partNumber, required this.etag});
 }
 
+/// One in-progress multipart upload session, as listed for stale-session
+/// reaping (orphan-prevention spec 6.1).
+class S3MultipartUploadInfo {
+  final String key; // wire key (includes any configured prefix)
+  final String uploadId;
+  final DateTime initiated;
+
+  const S3MultipartUploadInfo({
+    required this.key,
+    required this.uploadId,
+    required this.initiated,
+  });
+}
+
 /// Minimal S3 REST client: the five operations the sync backend needs,
 /// signed with SigV4. Throws [CloudStorageException] for every failure so
 /// callers never see raw HTTP details. The secret key and Authorization
@@ -143,6 +157,68 @@ class S3ApiClient {
       results.addAll(pageObjects);
       continuationToken = maxKeys != null ? null : nextToken;
     } while (continuationToken != null);
+    return results;
+  }
+
+  /// Lists in-progress multipart upload sessions (parts uploaded but the
+  /// session neither completed nor aborted). Invisible to [listObjects] -
+  /// stranded sessions bill storage until aborted, and raw buckets have no
+  /// default expiry lifecycle rule (orphan-prevention spec 6.1).
+  Future<List<S3MultipartUploadInfo>> listMultipartUploads({
+    String prefix = '',
+  }) async {
+    final results = <S3MultipartUploadInfo>[];
+    String? keyMarker;
+    String? uploadIdMarker;
+    do {
+      final response = await _sendWithRetry(
+        'GET',
+        '',
+        queryParams: {
+          'uploads': '',
+          if (prefix.isNotEmpty) 'prefix': prefix,
+          'key-marker': ?keyMarker,
+          'upload-id-marker': ?uploadIdMarker,
+        },
+      );
+      if (response.statusCode != 200) {
+        _throwFor('list-uploads', prefix, response);
+      }
+      try {
+        final document = XmlDocument.parse(response.body);
+        for (final upload in document.findAllElements('Upload')) {
+          final key = upload.getElement('Key')?.innerText;
+          final uploadId = upload.getElement('UploadId')?.innerText;
+          final initiated = upload.getElement('Initiated')?.innerText;
+          if (key == null || uploadId == null || initiated == null) continue;
+          results.add(
+            S3MultipartUploadInfo(
+              key: key,
+              uploadId: uploadId,
+              initiated: DateTime.parse(initiated),
+            ),
+          );
+        }
+        final truncated =
+            document.findAllElements('IsTruncated').firstOrNull?.innerText ==
+            'true';
+        keyMarker = truncated
+            ? document.findAllElements('NextKeyMarker').firstOrNull?.innerText
+            : null;
+        uploadIdMarker = truncated
+            ? document
+                  .findAllElements('NextUploadIdMarker')
+                  .firstOrNull
+                  ?.innerText
+            : null;
+        if (truncated && keyMarker == null && uploadIdMarker == null) break;
+      } on FormatException catch (e) {
+        throw CloudStorageException(
+          'S3 returned an unreadable multipart-uploads list',
+          e,
+        );
+      }
+    } while (keyMarker != null || uploadIdMarker != null);
     return results;
   }
 
