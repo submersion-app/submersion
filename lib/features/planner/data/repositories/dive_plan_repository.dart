@@ -269,6 +269,22 @@ class DivePlanRepository {
     }
   }
 
+  /// The persisted summary numbers for [id], or null if the plan does not
+  /// exist or has no computed summary. Reads the stored row (like
+  /// [duplicatePlan]) rather than any in-memory edit state, so callers can
+  /// restore the saved-plans list numbers consistently with the persisted plan.
+  Future<PlanSummaryData?> getPlanSummary(String id) async {
+    final row = await (_db.select(
+      _db.divePlans,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
+    if (row?.summaryMaxDepth == null) return null;
+    return PlanSummaryData(
+      maxDepth: row!.summaryMaxDepth!,
+      runtimeSeconds: row.summaryRuntimeSeconds ?? 0,
+      ttsSeconds: row.summaryTtsSeconds,
+    );
+  }
+
   Future<List<domain.DivePlanSummary>> getAllPlanSummaries() async {
     final rows = await (_db.select(
       _db.divePlans,

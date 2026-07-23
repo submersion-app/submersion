@@ -621,12 +621,19 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     final repository = ref.read(divePlanRepositoryProvider);
     final planId = widget.planId ?? ref.read(divePlanNotifierProvider).id;
 
-    // Read the authoritative plan from the store first, so the confirm dialog,
-    // the deletion, and the undo snapshot all refer to the same real plan. Null
-    // means it was already deleted elsewhere (e.g. via sync); we still delete
-    // and navigate so the user is never stranded on a dead :planId route, but
-    // omit Undo since there is no snapshot to restore.
+    // Read the authoritative plan (and its persisted summary numbers) from the
+    // store first, so the confirm dialog, the deletion, and the undo snapshot
+    // all refer to the same real plan. Capturing the summary from the store
+    // (not planOutcomeProvider, which reflects transient in-memory edits) keeps
+    // the restored saved-plans list numbers consistent with the restored plan.
+    // A null plan means it was already deleted elsewhere (e.g. via sync); we
+    // still delete and navigate so the user is never stranded on a dead
+    // :planId route, but omit Undo since there is no snapshot to restore.
     final captured = await repository.getPlan(planId);
+    if (!mounted) return;
+    final capturedSummary = captured == null
+        ? null
+        : await repository.getPlanSummary(planId);
     if (!mounted) return;
     final name = captured?.name ?? ref.read(divePlanNotifierProvider).name;
 
@@ -654,15 +661,6 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     );
     if (confirmed != true || !mounted) return;
 
-    final outcome = ref.read(planOutcomeProvider);
-    final capturedSummary = captured == null
-        ? null
-        : PlanSummaryData(
-            maxDepth: outcome.maxDepth,
-            runtimeSeconds: outcome.runtimeSeconds,
-            ttsSeconds: outcome.ttsAtBottom,
-          );
-
     await repository.deletePlan(planId);
     if (!mounted) return;
 
@@ -687,7 +685,7 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
             : SnackBarAction(
                 label: undoLabel,
                 onPressed: () =>
-                    repository.savePlan(captured, summary: capturedSummary!),
+                    repository.savePlan(captured, summary: capturedSummary),
               ),
       ),
     );

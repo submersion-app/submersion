@@ -142,6 +142,38 @@ void main() {
     expect(restored.single.name, 'Reef dive');
   });
 
+  testWidgets('undo restores the persisted summary numbers', (tester) async {
+    // Seed a plan whose stored summary numbers do NOT match what the outcome
+    // engine would recompute from the (segment-less) plan body. Undo must
+    // restore the persisted numbers, not the recomputed zeros.
+    await repository.savePlan(
+      _plan('a', 'Reef dive'),
+      summary: const PlanSummaryData(
+        maxDepth: 30,
+        runtimeSeconds: 1800,
+        ttsSeconds: 300,
+      ),
+    );
+
+    await tester.pumpWidget(harness('/planning/dive-planner/a'));
+    await tester.pumpAndSettle();
+
+    await openMenu(tester);
+    await tester.tap(find.text('Delete plan'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(SnackBarAction, 'Undo'));
+    await tester.pumpAndSettle();
+
+    final restored = await repository.getAllPlanSummaries();
+    expect(restored, hasLength(1));
+    expect(restored.single.maxDepth, 30);
+    expect(restored.single.runtimeSeconds, 1800);
+    expect(restored.single.ttsSeconds, 300);
+  });
+
   testWidgets('cancel keeps the plan', (tester) async {
     await repository.savePlan(_plan('a', 'Reef dive'));
 
