@@ -372,6 +372,15 @@ void main() {
     expect(row.totalBytes, isNull);
   });
 
+  test('markFailed reports terminality', () async {
+    final id = await repo.enqueueUpload(mediaId: 'm1');
+    for (var i = 0; i < 4; i++) {
+      expect(await repo.markFailed(id, 'e'), isFalse);
+    }
+    expect(await repo.markFailed(id, 'e'), isTrue);
+    expect((await repo.allForTesting()).single.state, 'failed');
+  });
+
   group('enqueueDelete', () {
     test('inserts a delete row with hash and payload', () async {
       final id = await repo.enqueueDelete(

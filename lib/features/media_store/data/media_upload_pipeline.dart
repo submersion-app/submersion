@@ -103,6 +103,11 @@ class MediaUploadPipeline {
 
     File? staged;
     CompressionResult? rendition;
+    // Freshest resume state and its key, for terminal-failure session
+    // abandonment (orphan-prevention spec 5.5): the queue row's copy can
+    // lag when this very attempt created the session.
+    var latestResumeJson = entry.resumeStateJson;
+    String? resumableUploadKey;
     try {
       staged = await _materialize(item);
       if (staged == null) {
@@ -241,13 +246,16 @@ class MediaUploadPipeline {
         // Resume state survives failures on the queue row; content
         // addressing makes replaying it against a re-materialized staging
         // copy safe (identical bytes, identical part boundaries).
+        resumableUploadKey = key;
         await _store.putFile(
           key,
           staged,
           contentType: StoreKeys.contentTypeFor(extension),
           resumeStateJson: entry.resumeStateJson,
-          onResumeStateChanged: (json) =>
-              unawaited(_queue.updateResumeState(entry.id, json)),
+          onResumeStateChanged: (json) {
+            latestResumeJson = json;
+            unawaited(_queue.updateResumeState(entry.id, json));
+          },
           onProgress: (sent, total) => unawaited(
             _queue.updateProgress(
               entry.id,
@@ -291,7 +299,23 @@ class MediaUploadPipeline {
         error: e,
         stackTrace: stackTrace,
       );
-      await _queue.markFailed(entry.id, e.toString());
+      final terminal = await _queue.markFailed(entry.id, e.toString());
+      // Terminal failure means the resume state will never be replayed:
+      // abandon any provider-side session so its parts cannot strand
+      // (orphan-prevention spec 5.5). retry() re-arms with the preserved
+      // resume state; _validateResume then finds the session gone and
+      // starts fresh - graceful either way.
+      final abandonKey = resumableUploadKey;
+      if (terminal && abandonKey != null && latestResumeJson != null) {
+        try {
+          await _store.abandonResume(abandonKey, latestResumeJson);
+        } on Exception catch (abortError) {
+          _log.warning(
+            'Abandoning upload session failed for $abandonKey',
+            error: abortError,
+          );
+        }
+      }
       // Photos re-compress cheaply, so their rendition staging file is
       // discarded on failure (Phase A leaked it). Video renditions are
       // deterministic and PRESERVED for the retry (spec section 8).

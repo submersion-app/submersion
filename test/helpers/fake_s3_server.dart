@@ -19,6 +19,9 @@ class FakeS3Server {
   final Map<String, Map<int, Uint8List>> _sessions = {};
   int _uploadCounter = 0;
 
+  /// Multipart sessions created but neither completed nor aborted.
+  int get activeMultipartUploadCount => _sessions.length;
+
   /// Successful part uploads seen (across all sessions).
   int partUploadCount = 0;
 

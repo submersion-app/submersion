@@ -105,6 +105,14 @@ class InMemoryMediaObjectStore implements MediaObjectStore {
     modified.remove(key);
   }
 
+  /// (key, resumeStateJson) pairs abandonResume was called with.
+  final abandonResumeCalls = <(String, String?)>[];
+
+  @override
+  Future<void> abandonResume(String key, String? resumeStateJson) async {
+    abandonResumeCalls.add((key, resumeStateJson));
+  }
+
   @override
   Stream<StoreObjectInfo> list(String keyPrefix) async* {
     _maybeFail();

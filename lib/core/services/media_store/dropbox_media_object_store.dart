@@ -248,6 +248,11 @@ class DropboxMediaObjectStore implements MediaObjectStore {
   }
 
   @override
+  Future<void> abandonResume(String key, String? resumeStateJson) async {
+    // Upload sessions expire server-side; nothing to abort.
+  }
+
+  @override
   Stream<StoreObjectInfo> list(String keyPrefix) async* {
     final List<DropboxFileMetadata> entries;
     try {

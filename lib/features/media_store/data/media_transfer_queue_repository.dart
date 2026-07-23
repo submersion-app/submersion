@@ -205,7 +205,10 @@ class MediaTransferQueueRepository {
   /// short-circuits to the same failure and silently burns one of the five
   /// attempts. Passing a [retryAfter] longer than that lockout keeps the
   /// attempt cap meaningful by ensuring every attempt is a real one.
-  Future<void> markFailed(int id, String error, {Duration? retryAfter}) async {
+  /// Returns true when this failure was the terminal one (attempt budget
+  /// exhausted, state now 'failed') so callers can run terminal-only
+  /// cleanup such as abandoning a resumable upload session.
+  Future<bool> markFailed(int id, String error, {Duration? retryAfter}) async {
     final row = await (_db.select(
       _db.mediaTransferQueue,
     )..where((t) => t.id.equals(id))).getSingle();
@@ -234,6 +237,7 @@ class MediaTransferQueueRepository {
         updatedAt: Value(now.millisecondsSinceEpoch),
       ),
     );
+    return terminal;
   }
 
   /// Transfers view feed: active work first, history last.
