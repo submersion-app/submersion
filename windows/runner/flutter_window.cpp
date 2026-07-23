@@ -66,13 +66,24 @@ bool HBitmapToPng(HBITMAP hbmp, std::vector<uint8_t>* out) {
   if (FAILED(frame->Commit())) return false;
   if (FAILED(encoder->Commit())) return false;
 
+  // Use the stream's LOGICAL size, not GlobalSize(). CreateStreamOnHGlobal
+  // grows its HGLOBAL in chunks, so the allocation is normally larger than the
+  // encoded PNG; copying GlobalSize bytes would append allocated-but-unwritten
+  // padding to the payload. STATFLAG_NONAME skips the name field, so there is
+  // nothing to CoTaskMemFree.
+  STATSTG stat = {};
+  if (FAILED(stream->Stat(&stat, STATFLAG_NONAME))) return false;
+  const ULONGLONG written = stat.cbSize.QuadPart;
+  if (written == 0) return false;
+
   HGLOBAL hg = nullptr;
   if (FAILED(GetHGlobalFromStream(stream.Get(), &hg))) return false;
-  SIZE_T size = GlobalSize(hg);
+  // Defensive: never read past the actual allocation.
+  if (written > GlobalSize(hg)) return false;
   void* data = GlobalLock(hg);
   if (!data) return false;
   out->assign(static_cast<uint8_t*>(data),
-              static_cast<uint8_t*>(data) + size);
+              static_cast<uint8_t*>(data) + static_cast<size_t>(written));
   GlobalUnlock(hg);
   return !out->empty();
 }
