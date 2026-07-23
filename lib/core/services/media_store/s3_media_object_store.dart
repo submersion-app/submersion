@@ -119,6 +119,16 @@ class S3MediaObjectStore implements MediaObjectStore {
         ),
         parts: <S3PartInfo>[],
       );
+      // Publish the session BEFORE the first part goes up. This callback is
+      // the only channel by which a caller ever learns the uploadId, and a
+      // failure on part 1 is the likeliest failure of all - without this,
+      // that session would be nameless: unabortable by abandonResume, absent
+      // from key listings, and billing until a lifecycle rule that raw
+      // buckets lack reaps it (orphan-prevention spec 5.5). Re-emitting a
+      // resumed session's own state is a harmless idempotent write.
+      onResumeStateChanged?.call(
+        _resumeToJson(session.uploadId, session.parts),
+      );
       final parts = [...session.parts];
       final totalParts = (length + partSizeBytes - 1) ~/ partSizeBytes;
       var bytesSent = parts.length * partSizeBytes;

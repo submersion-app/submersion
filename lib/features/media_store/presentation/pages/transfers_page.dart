@@ -53,9 +53,11 @@ class _TransferTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     // Delete entries (remote-blob cleanup for deleted media) share the
-    // upload lifecycle but read differently: the active label says what
-    // is actually happening, and every state keeps the delete icon so a
-    // row never looks like an upload.
+    // upload lifecycle but read differently: the active label says what is
+    // actually happening, and the delete icon replaces every cloud icon so
+    // a row never looks like an upload. 'failed' is the deliberate
+    // exception - what went wrong outranks which direction it was going, so
+    // both directions keep the error icon in the error color.
     final isDelete = entry.direction == 'delete';
     final (icon, label) = switch (entry.state) {
       'transferring' => (

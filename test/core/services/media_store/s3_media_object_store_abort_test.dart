@@ -85,6 +85,60 @@ void main() {
     },
   );
 
+  test('a session failing on its FIRST part is still abandonable', () async {
+    // The persistence branch deliberately does not abort, trusting the
+    // caller to abandon later - which is only possible if the caller was
+    // ever told the uploadId. Emitting resume state at session creation
+    // (not after part 1) is what makes that true in the likeliest
+    // failure position of all.
+    final store = build();
+    final src = await bigSource();
+    server.failAfterPartUploads = 0;
+    String? resume;
+    await expectLater(
+      store.putFile(
+        key,
+        src,
+        contentType: 'video/mp4',
+        onResumeStateChanged: (json) => resume = json,
+      ),
+      throwsA(isA<MediaStoreException>()),
+    );
+    server.failAfterPartUploads = null;
+    expect(server.activeMultipartUploadCount, 1);
+    expect(resume, isNotNull, reason: 'uploadId must reach the caller');
+
+    await store.abandonResume(key, resume);
+    expect(server.activeMultipartUploadCount, 0);
+  });
+
+  test('a zero-part resume state resumes from part 1', () async {
+    final store = build();
+    final src = await bigSource();
+    server.failAfterPartUploads = 0;
+    String? resume;
+    await expectLater(
+      store.putFile(
+        key,
+        src,
+        contentType: 'video/mp4',
+        onResumeStateChanged: (json) => resume = json,
+      ),
+      throwsA(isA<MediaStoreException>()),
+    );
+    server.failAfterPartUploads = null;
+
+    await store.putFile(
+      key,
+      src,
+      contentType: 'video/mp4',
+      resumeStateJson: resume,
+      onResumeStateChanged: (json) => resume = json,
+    );
+    expect(server.activeMultipartUploadCount, 0);
+    expect(server.objects.containsKey('submersion-media/$key'), isTrue);
+  });
+
   test(
     'abandonResume aborts the recorded session and tolerates junk',
     () async {
