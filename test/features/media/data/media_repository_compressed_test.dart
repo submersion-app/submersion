@@ -1,20 +1,24 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import '../../../helpers/test_database.dart';
 
 void main() {
+  late AppDatabase db;
   late MediaRepository repo;
 
   setUp(() async {
-    await setUpTestDatabase();
+    db = await setUpTestDatabase();
     repo = MediaRepository();
   });
   tearDown(tearDownTestDatabase);
 
-  MediaItem photo(String id, {String? hash}) => MediaItem(
+  MediaItem photo(String id, {String? hash, String? diveId}) => MediaItem(
     id: id,
     mediaType: MediaType.photo,
+    diveId: diveId,
     takenAt: DateTime(2026, 1, 1),
     createdAt: DateTime(2026, 1, 1),
     updatedAt: DateTime(2026, 1, 1),
@@ -69,10 +73,24 @@ void main() {
   );
 
   test('compressed-only photo is NOT a backfill candidate', () async {
+    // Linked to a dive so the exclusion below is proven to come from the
+    // compressed stamp, not the linkage scoping.
+    final epoch = DateTime(2026, 1, 1).millisecondsSinceEpoch;
+    await db
+        .into(db.dives)
+        .insert(
+          DivesCompanion(
+            id: const Value('dive-1'),
+            diveDateTime: Value(epoch),
+            createdAt: Value(epoch),
+            updatedAt: Value(epoch),
+          ),
+        );
     await repo.createMedia(
       photo(
         'd',
         hash: 'h3',
+        diveId: 'dive-1',
       ).copyWith(remoteCompressedUploadedAt: DateTime(2026, 1, 3)),
     );
     expect(await repo.getBackfillCandidateIds(), isNot(contains('d')));
