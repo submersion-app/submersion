@@ -108,6 +108,16 @@ class InMemoryMediaObjectStore implements MediaObjectStore {
   /// (key, resumeStateJson) pairs abandonResume was called with.
   final abandonResumeCalls = <(String, String?)>[];
 
+  /// Returned (then zeroed) by the next reapStaleUploadSessions call.
+  int staleSessionCount = 0;
+
+  @override
+  Future<int> reapStaleUploadSessions({required DateTime olderThan}) async {
+    final n = staleSessionCount;
+    staleSessionCount = 0;
+    return n;
+  }
+
   @override
   Future<void> abandonResume(String key, String? resumeStateJson) async {
     abandonResumeCalls.add((key, resumeStateJson));

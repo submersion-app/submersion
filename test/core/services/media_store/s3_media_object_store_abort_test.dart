@@ -113,4 +113,47 @@ void main() {
       await store.abandonResume(key, null);
     },
   );
+
+  test(
+    'reapStaleUploadSessions aborts only stale sessions in this namespace',
+    () async {
+      final store = build();
+      final config = S3Config(
+        endpoint: 'http://localhost:9000',
+        bucket: 'test-bucket',
+        prefix: 'submersion-media/',
+        accessKeyId: 'AKIA_TEST',
+        secretAccessKey: 'secret',
+      );
+      final client = S3ApiClient(
+        config,
+        httpClient: server.client,
+        retryDelay: const Duration(milliseconds: 1),
+      );
+
+      server.now = () => DateTime.utc(2026, 7, 1);
+      await client.createMultipartUpload(
+        'submersion-media/smv1/objects/aa/old.mp4',
+        contentType: 'video/mp4',
+      );
+      server.now = () => DateTime.utc(2026, 7, 20);
+      await client.createMultipartUpload(
+        'submersion-media/smv1/objects/bb/fresh.mp4',
+        contentType: 'video/mp4',
+      );
+      // A session outside this store's namespace must never be touched.
+      server.now = () => DateTime.utc(2026, 7, 1);
+      await client.createMultipartUpload(
+        'unrelated/old.bin',
+        contentType: 'application/octet-stream',
+      );
+      expect(server.activeMultipartUploadCount, 3);
+
+      final n = await store.reapStaleUploadSessions(
+        olderThan: DateTime.utc(2026, 7, 10),
+      );
+      expect(n, 1);
+      expect(server.activeMultipartUploadCount, 2);
+    },
+  );
 }
