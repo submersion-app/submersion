@@ -61,29 +61,31 @@ void main() {
     updatedAt: DateTime(2026, 1, 1),
   );
 
-  test('unlinked media are never backfill candidates (orphan regression)',
-      () async {
-    await insertDive('dive-1');
-    await insertSite('site-1');
-    final linkedToDive = await repo.createMedia(
-      item('a.jpg', diveId: 'dive-1'),
-    );
-    final linkedToSite = await repo.createMedia(
-      item('b.jpg', siteId: 'site-1'),
-    );
-    // The observed bug, miniaturized: an orphan gallery photo (dive was
-    // deleted; FK nulled dive_id) must not be uploaded.
-    await repo.createMedia(item('orphan.jpg'));
-    // The video arm has the same hole and must be scoped too.
-    await repo.createMedia(
-      item(
-        'orphan.mp4',
-        mediaType: MediaType.video,
-        sourceType: MediaSourceType.serviceConnector,
-      ),
-    );
+  test(
+    'unlinked media are never backfill candidates (orphan regression)',
+    () async {
+      await insertDive('dive-1');
+      await insertSite('site-1');
+      final linkedToDive = await repo.createMedia(
+        item('a.jpg', diveId: 'dive-1'),
+      );
+      final linkedToSite = await repo.createMedia(
+        item('b.jpg', siteId: 'site-1'),
+      );
+      // The observed bug, miniaturized: an orphan gallery photo (dive was
+      // deleted; FK nulled dive_id) must not be uploaded.
+      await repo.createMedia(item('orphan.jpg'));
+      // The video arm has the same hole and must be scoped too.
+      await repo.createMedia(
+        item(
+          'orphan.mp4',
+          mediaType: MediaType.video,
+          sourceType: MediaSourceType.serviceConnector,
+        ),
+      );
 
-    final ids = await repo.getBackfillCandidateIds();
-    expect(ids.toSet(), {linkedToDive.id, linkedToSite.id});
-  });
+      final ids = await repo.getBackfillCandidateIds();
+      expect(ids.toSet(), {linkedToDive.id, linkedToSite.id});
+    },
+  );
 }
