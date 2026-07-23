@@ -379,19 +379,30 @@ class _StartupWrapperState extends State<StartupWrapper>
     // now-open databases, and self-guards with a persisted flag that is
     // only set on success (a failed run retries next launch).
     final mediaRepository = MediaRepository();
-    unawaited(
-      MediaOrphanBacklogSweep(
+    final sweep = MediaOrphanBacklogSweep(
+      mediaRepository: mediaRepository,
+      coordinator: MediaDeletionCoordinator(
         mediaRepository: mediaRepository,
-        coordinator: MediaDeletionCoordinator(
-          mediaRepository: mediaRepository,
-          queue: () => MediaTransferQueueRepository(),
-        ),
-        prefs: SharedPreferences.getInstance,
-      ).runIfNeeded().catchError((Object e) {
-        debugPrint('Orphaned-media backlog sweep failed (will retry): $e');
-        return 0;
-      }),
+        queue: () => MediaTransferQueueRepository(),
+      ),
+      prefs: SharedPreferences.getInstance,
     );
+    // An async closure rather than `.catchError` on the Future<int>: it
+    // hands `unawaited` a genuine Future<void> instead of a swept-row count
+    // nobody reads, and it keeps the stack trace. Nothing surfaces this
+    // failure to the user and the retry is a whole launch away, so the
+    // trace is the only diagnostic there will be. Untyped catch on purpose:
+    // an uninitialized local cache database throws StateError, not
+    // Exception, and a failed sweep must never take down startup.
+    unawaited(() async {
+      try {
+        await sweep.runIfNeeded();
+      } catch (e, stackTrace) {
+        debugPrint(
+          'Orphaned-media backlog sweep failed (will retry): $e\n$stackTrace',
+        );
+      }
+    }());
     // coverage:ignore-end
   }
 
