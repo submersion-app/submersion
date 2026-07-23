@@ -450,10 +450,20 @@ class DatabaseService {
       rethrow;
     }
 
-    // Swap succeeded: the pre-restore copy is no longer needed.
-    await _deleteIfExists(asidePath);
-
+    // Reopen on the swapped-in file BEFORE dropping the pre-restore copy, so a
+    // cleanup hiccup can never prevent the reopen.
     await initialize();
+
+    // The database is open again on the restored file; the pre-restore copy is
+    // no longer needed. Its deletion is best-effort — a transient failure (e.g.
+    // a Windows file lock) must NOT fail a restore that already succeeded and
+    // leave the app with a closed database despite a valid file on disk. The
+    // leftover copy is harmless and is cleared at the start of the next restore.
+    try {
+      await _deleteIfExists(asidePath);
+    } catch (_) {
+      // Best-effort: a leftover pre-restore copy is harmless.
+    }
   }
 
   Future<void> _deleteIfExists(String path) async {

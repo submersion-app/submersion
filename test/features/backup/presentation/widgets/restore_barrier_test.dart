@@ -1,29 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/backup/presentation/widgets/restore_barrier.dart';
 
+import '../../../../helpers/test_app.dart';
+
 void main() {
+  // Pin the locale via the shared testApp helper for deterministic string
+  // finders. The barrier's message is a raw (non-localized) string today, but
+  // pinning keeps the test robust if it ever becomes localized.
   Widget wrap({
     required bool restoring,
     String? message,
     required VoidCallback onTap,
   }) {
-    return ProviderScope(
+    return testApp(
+      locale: const Locale('en'),
       overrides: [
         restoreInProgressProvider.overrideWithValue(restoring),
         restoreMessageProvider.overrideWithValue(message),
       ],
-      child: MaterialApp(
-        home: RestoreBarrier(
-          child: Scaffold(
-            body: Center(
-              child: ElevatedButton(
-                onPressed: onTap,
-                child: const Text('Tap me'),
-              ),
-            ),
-          ),
+      child: RestoreBarrier(
+        child: Center(
+          child: ElevatedButton(onPressed: onTap, child: const Text('Tap me')),
         ),
       ),
     );
