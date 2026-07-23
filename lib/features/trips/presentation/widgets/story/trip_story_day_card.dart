@@ -16,7 +16,6 @@ import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
 import 'package:submersion/features/trips/presentation/helpers/day_type_l10n.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/day_rhythm_bar.dart';
-import 'package:submersion/features/trips/presentation/widgets/story/dive_sparkline.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 const int _maxPhotoThumbnails = 6;
@@ -65,25 +64,15 @@ class TripStoryDayCard extends ConsumerWidget {
                 DayRhythmBar(dives: day.dives),
                 const SizedBox(height: 8),
                 ...day.dives.mapIndexed(
-                  (index, dive) => Row(
-                    children: [
-                      Expanded(
-                        child: DiveListItem(
-                          summary: DiveSummary.fromDive(dive),
-                          diveTypeLabelResolver: diveTypeLabelResolver,
-                          // The story already holds the full Dive; pass it so the
-                          // configurable card can resolve fields absent from the
-                          // summary (tanks, SAC, buddies, weights).
-                          fullDive: dive,
-                          diveNumber: dive.diveNumber ?? index + 1,
-                          onTap: () => context.push('/dives/${dive.id}'),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsetsDirectional.only(start: 8),
-                        child: DiveSparkline(diveId: dive.id),
-                      ),
-                    ],
+                  (index, dive) => DiveListItem(
+                    summary: DiveSummary.fromDive(dive),
+                    diveTypeLabelResolver: diveTypeLabelResolver,
+                    // The story already holds the full Dive; pass it so the
+                    // configurable card can resolve fields absent from the
+                    // summary (tanks, SAC, buddies, weights).
+                    fullDive: dive,
+                    diveNumber: dive.diveNumber ?? index + 1,
+                    onTap: () => context.push('/dives/${dive.id}'),
                   ),
                 ),
               ],
