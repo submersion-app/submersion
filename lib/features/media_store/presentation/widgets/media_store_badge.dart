@@ -5,8 +5,9 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 
 /// Transfer status of one media item, for tile overlays. Quiet on
-/// success: steady state renders nothing (design spec section 9).
-enum MediaBadgeState { none, queued, transferring, failed }
+/// success: an item that is backed up, or that has no store to back up
+/// to, renders nothing (design spec section 9).
+enum MediaBadgeState { none, queued, transferring, failed, notBackedUp }
 
 class MediaStoreBadge extends ConsumerWidget {
   const MediaStoreBadge({super.key, required this.item});
@@ -24,6 +25,10 @@ class MediaStoreBadge extends ConsumerWidget {
       MediaBadgeState.transferring => (
         Icons.cloud_upload,
         scheme.primaryContainer,
+      ),
+      MediaBadgeState.notBackedUp => (
+        Icons.cloud_off,
+        scheme.surfaceContainerHighest,
       ),
       _ => (Icons.schedule, scheme.surfaceContainerHighest),
     };
