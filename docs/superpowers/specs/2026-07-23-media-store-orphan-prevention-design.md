@@ -56,13 +56,38 @@ predicate is defined once in `MediaRepository` and shared by backfill
 scoping, the dive-deletion cascade decision, and the backlog sweep, so the
 three can never drift apart.
 
-**Verification gate (prerequisite for PR 3):** confirm no legitimate feature
-creates media rows with neither linkage - gear photos, buddy or emergency
-card images, or a transient picked-but-not-yet-attached state in the
-add-media flows. If a transient state exists, the sweep and cascade
-predicates gain an age guard (row older than 24 hours) or an explicit
-source-type exclusion. A silent sweep with a wrong predicate deletes user
-data fleet-wide via sync; this gate is hard.
+**Verification gate - RESOLVED 2026-07-23 (amended this section and 4.2 /
+4.3).** The codebase audit found that bare unlinkedness is NOT a safe
+deletion predicate; the remedy below is the source-type exclusion this
+gate pre-authorized:
+
+- **Library-level source types are legitimate without linkage.** URL-tab
+  imports (`sourceType = 'networkUrl'`) and manifest-subscription imports
+  (`'manifestEntry'`) are created with neither dive nor site and stay that
+  way whenever auto-match is off or no confident timestamp match exists -
+  `network_fetch_pipeline.dart` documents "auto-match is additive; the
+  imported row stays library-level." These rows carry their own linkage
+  (`url`, `subscriptionId`/`entryKey`) and are user-visible. The cascade
+  and the backlog sweep must both treat
+  `source_type IN ('networkUrl', 'manifestEntry')` as protected: never
+  deleted for being unlinked; on dive deletion they revert to
+  library-level (dive_id nulled) instead of dying.
+- **All other creators always set diveId at creation** (gallery scan, OCR
+  import, Files tab, Lightroom, signatures), so a null/null row of a
+  non-library source type can only be the residue of a past dive deletion
+  - exactly the backlog this design targets. This includes signature rows
+  (`fileType` instructor/buddy signature): their dive is gone, and under
+  the approved cascade semantics they die with it.
+- **Buddy / diver / gear / certification / site images do not use the
+  media table** (own `photoPath` / BLOB columns) - not affected.
+- **Age guard retained as belt-and-suspenders:** the sweep additionally
+  requires `created_at` older than 24 hours, covering any future
+  add-then-link creator this audit could not foresee.
+
+The *sweepable* predicate is therefore: unlinked AND
+`source_type NOT IN ('networkUrl', 'manifestEntry')` AND older than 24
+hours. Sweepable-ness is defined beside `isLinkedToDiveOrSite` in
+`MediaRepository` so cascade and sweep share one definition.
 
 ## 4. Layer 1 - row fixes
 
@@ -76,18 +101,29 @@ hundreds of unlinked gallery videos.
 
 ### 4.2 Dive-deletion cascade
 
-Inside the existing `deleteDive` / `bulkDeleteDives` transaction, for each
-media row linked to the dive:
+Inside `deleteDive` / `bulkDeleteDives`, for each media row linked to the
+dive:
 
-- `site_id` also set: keep the row, explicitly null `dive_id` (today's FK
-  behavior, now intentional).
-- Dive-only: enqueue a remote-delete intent (section 5), then delete the row
-  and `logDeletion(entityType: 'media', ...)` so the deletion tombstones and
+- `site_id` also set, OR a protected library source type
+  (`networkUrl` / `manifestEntry`): keep the row, explicitly null
+  `dive_id` (today's FK behavior, now intentional) and HLC-stamp the
+  update so the unlink syncs.
+- Otherwise (dive-only, non-library): enqueue a remote-delete intent
+  (section 5) before the row dies, then delete the row and
+  `logDeletion(entityType: 'media', ...)` so the deletion tombstones and
   syncs.
+
+Caller audit note: dive merge and consolidation services reassign media to
+the surviving dive BEFORE calling `bulkDeleteDives`, so the cascade sees no
+dive-only media for merged-away dives; this ordering is asserted by
+regression tests in PR 3.
 
 ### 4.3 One-time backlog sweep
 
-Deletes rows matching the shared predicate. Runs once at first launch after
+Deletes rows matching the *sweepable* predicate from section 3 (unlinked
+AND non-library source type AND older than 24 hours), enqueueing
+remote-delete intents for rows with remote stamps. Runs once at first launch
+after
 upgrade, through `MediaRepository` (proper HLC-stamped tombstones and
 remote-delete intents require live sync machinery that does not exist during
 `onUpgrade`), guarded by a persisted completion flag. The flag is set only
@@ -100,16 +136,16 @@ idempotent in the deletion log.
 
 ### 5.1 Queue `delete` operation (local cache DB v6)
 
-`media_transfer_queue` gains:
+*(As built in PR 2 #702.)* Delete intents ride the queue's existing
+`direction` column (`'delete'`; the column and `content_hash` existed
+unused since Phase 1), so v6 adds only one nullable `payload_json` column
+holding `{"originalExt": ..., "renditionExt": ...}` - the two facts
+unrecoverable after the media row dies (the v4 `from >= 2` guard idiom
+applies to the migration).
 
-- `operation` text column, default `'upload'` (existing rows migrate
-  cleanly; the v4 `from >= 2` guard idiom applies to the migration).
-- Payload columns a delete needs after its media row is gone:
-  `content_hash`, original extension, rendition extension (nullable).
-
-One delete entry covers all tiers of one hash: at drain time it issues
-idempotent deletes for the original, thumb, and rendition keys derived from
-the hash via `StoreKeys`.
+One delete entry covers all tiers of one hash, idempotent per hash: at
+drain time it issues idempotent deletes for the original, thumb, and
+rendition keys derived from the hash via `StoreKeys`.
 
 ### 5.2 Enqueue-before-delete ordering
 
