@@ -212,6 +212,44 @@ class MediaTransferQueueRepository {
     );
   }
 
+  /// Crash recovery: returns rows stranded in 'transferring' back to
+  /// 'pending'. A drain can be interrupted (app killed or backgrounded
+  /// mid-upload) after markTransferring but before markDone/markFailed, and
+  /// nextPending only selects 'pending', so such a row is invisible to the
+  /// drainer forever and can be neither retried (failed-only) nor cleared
+  /// (done-only) from the Transfers UI.
+  ///
+  /// Callers MUST invoke this only when no transfer is actively running:
+  /// it is driven once per process by mediaTransferQueueReclaimProvider,
+  /// before any worker drains, where every 'transferring' row is provably
+  /// orphaned by a dead prior process. Running it while a worker is live
+  /// could flip that worker's in-flight row and cause double processing.
+  ///
+  /// A reclaimed row is made immediately due with its stale progress
+  /// cleared, but keeps its resume point so a resumable adapter can pick up
+  /// where it left off. Any leftover error message is cleared too: a row can
+  /// reach 'transferring' still carrying an earlier attempt's error (markFailed
+  /// sets it, markTransferring does not clear it), and the Transfers UI shows
+  /// errorMessage whenever it is non-null - a row reclaimed after an
+  /// interruption must not display a failure it recovered from. Attempts are
+  /// untouched: an interruption is not a failed attempt (contrast markFailed),
+  /// yet a genuinely broken item must still count toward its cap (contrast
+  /// retry). Returns the number of rows reclaimed.
+  Future<int> requeueStale() {
+    return (_db.update(
+      _db.mediaTransferQueue,
+    )..where((t) => t.state.equals('transferring'))).write(
+      MediaTransferQueueCompanion(
+        state: const Value('pending'),
+        progressBytes: const Value(null),
+        totalBytes: const Value(null),
+        nextAttemptAt: const Value(null),
+        errorMessage: const Value(null),
+        updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+      ),
+    );
+  }
+
   /// Connectivity/policy postponement: unlike markFailed, no attempt is
   /// consumed - the entry is simply not due until [until].
   Future<void> defer(int id, DateTime until) async {

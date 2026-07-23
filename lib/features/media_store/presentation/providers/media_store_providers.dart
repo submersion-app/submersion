@@ -65,6 +65,27 @@ final mediaTransferQueueRepositoryProvider =
       (ref) => MediaTransferQueueRepository(),
     );
 
+/// Recovers media transfer rows stranded in 'transferring' by a previous
+/// process (app killed or backgrounded mid-upload) back to 'pending'.
+///
+/// Deliberately separate from [mediaStoreRuntimeProvider] and run exactly
+/// once per process. The runtime is rebuilt on every connect/disconnect,
+/// and a rebuild can spawn a fresh worker while a worker from the previous
+/// runtime is still mid-upload (nothing cancels its in-flight drain).
+/// Reclaiming on each rebuild - or inside drain() - would flip that live
+/// transfer's row back to 'pending' and let two workers process it at once.
+/// A row is only ever orphaned by process death, which is observable only
+/// at process start, so running reclamation once before the first drain
+/// recovers every real orphan without ever touching a live worker's row.
+/// This provider is never invalidated: its cached result makes the reclaim
+/// idempotent for the process lifetime. Uses ref.read, not ref.watch, so an
+/// invalidation/override of the repository provider (e.g. in a nested test
+/// scope) cannot recompute this future and trigger a second reclaim pass.
+final FutureProvider<void> mediaTransferQueueReclaimProvider =
+    FutureProvider<void>((ref) async {
+      await ref.read(mediaTransferQueueRepositoryProvider).requeueStale();
+    });
+
 final mediaBackfillServiceProvider = Provider<MediaBackfillService>(
   (ref) => MediaBackfillService(
     mediaRepository: ref.watch(mediaRepositoryProvider),
@@ -215,6 +236,16 @@ final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
           return WorkerGate.proceed;
         },
       );
+      // Recover orphaned 'transferring' rows once per process, and do it
+      // BEFORE any drain can start - including a connectivity-triggered one.
+      // Awaited before the network subscription is attached so a network
+      // event during the await cannot kick a drain that marks a row
+      // 'transferring' while requeueStale is still running. Driven via the
+      // cached provider (not inside drain()) so a connect/disconnect rebuild
+      // cannot reclaim a row a still-running worker from the previous runtime
+      // owns; the cache makes it run only once.
+      await ref.read(mediaTransferQueueReclaimProvider.future);
+
       final connectivitySub = network.changes.listen((kind) {
         if (kind != NetworkKind.offline) unawaited(worker.drain());
       });
