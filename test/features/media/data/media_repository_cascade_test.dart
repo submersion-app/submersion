@@ -95,10 +95,13 @@ void main() {
   test('getSweepableOrphanIds honours linkage, source type, and age', () async {
     await insertDive('d1');
     final orphan = await repo.createMedia(item('old.jpg'));
-    final libraryOrphan = await repo.createMedia(
-      item('lib.jpg', sourceType: MediaSourceType.manifestEntry),
-    );
+    // The two library-level source types, named for the import that creates
+    // them: both are born unlinked and stay that way when auto-match is off
+    // or finds no confident dive, so neither is ever sweepable.
     final manifestOrphan = await repo.createMedia(
+      item('manifest.jpg', sourceType: MediaSourceType.manifestEntry),
+    );
+    final urlOrphan = await repo.createMedia(
       item('url.jpg', sourceType: MediaSourceType.networkUrl),
     );
     final linked = await repo.createMedia(item('linked.jpg', diveId: 'd1'));
@@ -110,8 +113,8 @@ void main() {
 
     final sweepable = await repo.getSweepableOrphanIds(olderThan: future);
     expect(sweepable, [orphan.id]);
-    expect(sweepable, isNot(contains(libraryOrphan.id)));
     expect(sweepable, isNot(contains(manifestOrphan.id)));
+    expect(sweepable, isNot(contains(urlOrphan.id)));
     expect(sweepable, isNot(contains(linked.id)));
 
     expect(await repo.getSweepableOrphanIds(olderThan: past), isEmpty);
