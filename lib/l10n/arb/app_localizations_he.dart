@@ -19934,6 +19934,22 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_mediaStorage_transfers_state_failed => 'נכשל';
 
   @override
+  String get settings_mediaStorage_verify_action => 'אימות הספרייה';
+
+  @override
+  String get settings_mediaStorage_verify_running => 'מאמת את ספריית המדיה...';
+
+  @override
+  String settings_mediaStorage_verify_summary(
+    int checked,
+    int removed,
+    int repaired,
+    int aborted,
+  ) {
+    return 'נבדקו $checked אובייקטים: הוסרו $removed יתומים, $repaired תיקונים נוספו לתור, $aborted העלאות ישנות בוטלו';
+  }
+
+  @override
   String get settings_mediaStorage_backfill_action => 'העלה ספריה קיימת';
 
   @override

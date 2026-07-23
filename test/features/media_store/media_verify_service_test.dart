@@ -138,28 +138,30 @@ void main() {
     expect(report.repairsQueued, 0);
   });
 
-  test('reverse repair clears the stale stamp and queues a re-upload',
-      () async {
-    await insertDive('d1');
-    final missingOriginal = await photo(
-      'missing.jpg',
-      hash: 'cc11',
-      uploadedAt: DateTime(2026, 2),
-      thumbAt: DateTime(2026, 2),
-    );
-    // Thumb object exists; original object is absent from the store.
-    seedObject(StoreKeys.thumbKey('cc11'), modified: old);
+  test(
+    'reverse repair clears the stale stamp and queues a re-upload',
+    () async {
+      await insertDive('d1');
+      final missingOriginal = await photo(
+        'missing.jpg',
+        hash: 'cc11',
+        uploadedAt: DateTime(2026, 2),
+        thumbAt: DateTime(2026, 2),
+      );
+      // Thumb object exists; original object is absent from the store.
+      seedObject(StoreKeys.thumbKey('cc11'), modified: old);
 
-    final report = await service.run();
+      final report = await service.run();
 
-    final got = await repo.getMediaById(missingOriginal.id);
-    expect(got!.remoteUploadedAt, isNull, reason: 'stale stamp cleared');
-    expect(got.remoteThumbUploadedAt, isNotNull, reason: 'thumb is present');
-    expect(report.repairsQueued, 1);
-    final entry = (await queue.allForTesting()).single;
-    expect(entry.direction, 'upload');
-    expect(entry.mediaId, missingOriginal.id);
-  });
+      final got = await repo.getMediaById(missingOriginal.id);
+      expect(got!.remoteUploadedAt, isNull, reason: 'stale stamp cleared');
+      expect(got.remoteThumbUploadedAt, isNotNull, reason: 'thumb is present');
+      expect(report.repairsQueued, 1);
+      final entry = (await queue.allForTesting()).single;
+      expect(entry.direction, 'upload');
+      expect(entry.mediaId, missingOriginal.id);
+    },
+  );
 
   test('sessionsAborted passes through the store reap', () async {
     store.staleSessionCount = 2;

@@ -74,13 +74,14 @@ class MediaStoresRepository {
   /// cadence for every device.
   Future<void> stampLastSweep(String storeId, DateTime at) async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    await (_db.update(_db.mediaStores)..where((t) => t.id.equals(storeId)))
-        .write(
-          MediaStoresCompanion(
-            lastSweepAt: Value(at.millisecondsSinceEpoch),
-            updatedAt: Value(now),
-          ),
-        );
+    await (_db.update(
+      _db.mediaStores,
+    )..where((t) => t.id.equals(storeId))).write(
+      MediaStoresCompanion(
+        lastSweepAt: Value(at.millisecondsSinceEpoch),
+        updatedAt: Value(now),
+      ),
+    );
     await _syncRepository.markRecordPending(
       entityType: 'mediaStores',
       recordId: storeId,

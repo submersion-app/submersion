@@ -20523,6 +20523,23 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_mediaStorage_transfers_state_failed => 'Échec';
 
   @override
+  String get settings_mediaStorage_verify_action => 'Vérifier la bibliothèque';
+
+  @override
+  String get settings_mediaStorage_verify_running =>
+      'Vérification de la médiathèque...';
+
+  @override
+  String settings_mediaStorage_verify_summary(
+    int checked,
+    int removed,
+    int repaired,
+    int aborted,
+  ) {
+    return '$checked objets vérifiés : $removed orphelins supprimés, $repaired réparations en file, $aborted envois périmés annulés';
+  }
+
+  @override
   String get settings_mediaStorage_backfill_action =>
       'Envoyer la bibliothèque existante';
 

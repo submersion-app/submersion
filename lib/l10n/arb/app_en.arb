@@ -12828,6 +12828,17 @@
   "settings_mediaStorage_transfers_state_deleting": "Removing from cloud",
   "settings_mediaStorage_transfers_state_done": "Done",
   "settings_mediaStorage_transfers_state_failed": "Failed",
+  "settings_mediaStorage_verify_action": "Verify library",
+  "settings_mediaStorage_verify_running": "Verifying media library...",
+  "settings_mediaStorage_verify_summary": "Checked {checked} objects: removed {removed} orphans, queued {repaired} repairs, aborted {aborted} stale uploads",
+  "@settings_mediaStorage_verify_summary": {
+    "placeholders": {
+      "checked": {"type": "int"},
+      "removed": {"type": "int"},
+      "repaired": {"type": "int"},
+      "aborted": {"type": "int"}
+    }
+  },
   "settings_mediaStorage_backfill_action": "Upload existing library",
   "settings_mediaStorage_backfill_enqueued": "{count} uploads queued",
   "@settings_mediaStorage_backfill_enqueued": {

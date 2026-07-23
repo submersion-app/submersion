@@ -26,6 +26,7 @@ import 'package:submersion/features/media_store/data/media_store_service.dart';
 import 'package:submersion/features/media_store/data/media_store_worker.dart';
 import 'package:submersion/features/media_store/data/media_stores_repository.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
+import 'package:submersion/features/media_store/data/media_verify_service.dart';
 import 'package:submersion/features/media_store/data/media_upload_pipeline.dart';
 import 'package:submersion/features/media_store/data/platform_video_transcoder.dart';
 import 'package:submersion/features/media_store/domain/media_upload_quality.dart';
@@ -104,6 +105,33 @@ final mediaDeletionCoordinatorProvider = Provider<MediaDeletionCoordinator>((
     },
   );
 });
+
+/// Runs a Verify Library sweep against the attached store, stamps the
+/// fleet-wide timestamp on success, and kicks a drain for any queued
+/// repairs (orphan-prevention spec 6.3). Throws StateError when no store
+/// is attached; the settings action only renders in the connected state.
+final mediaVerifyRunnerProvider =
+    Provider<Future<VerifyLibraryReport> Function()>((ref) {
+      return () async {
+        final runtime = await ref.read(mediaStoreRuntimeProvider.future);
+        if (runtime == null) {
+          throw StateError('no media store attached');
+        }
+        final service = MediaVerifyService(
+          store: runtime.store,
+          mediaRepository: ref.read(mediaRepositoryProvider),
+          queue: ref.read(mediaTransferQueueRepositoryProvider),
+        );
+        final report = await service.run();
+        final storesRepository = MediaStoresRepository();
+        final active = await storesRepository.getActive();
+        if (active != null) {
+          await storesRepository.stampLastSweep(active.id, DateTime.now());
+        }
+        unawaited(runtime.worker?.drain());
+        return report;
+      };
+    });
 
 final mediaBackfillServiceProvider = Provider<MediaBackfillService>(
   (ref) => MediaBackfillService(

@@ -20393,6 +20393,22 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_mediaStorage_transfers_state_failed => 'Sikertelen';
 
   @override
+  String get settings_mediaStorage_verify_action => 'Könyvtár ellenőrzése';
+
+  @override
+  String get settings_mediaStorage_verify_running => 'Médiatár ellenőrzése...';
+
+  @override
+  String settings_mediaStorage_verify_summary(
+    int checked,
+    int removed,
+    int repaired,
+    int aborted,
+  ) {
+    return '$checked objektum ellenőrizve: $removed árva eltávolítva, $repaired javítás sorba állítva, $aborted elavult feltöltés megszakítva';
+  }
+
+  @override
   String get settings_mediaStorage_backfill_action =>
       'Meglévő könyvtár feltöltése';
 

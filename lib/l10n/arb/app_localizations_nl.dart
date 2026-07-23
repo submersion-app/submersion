@@ -20284,6 +20284,23 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_mediaStorage_transfers_state_failed => 'Mislukt';
 
   @override
+  String get settings_mediaStorage_verify_action => 'Bibliotheek verifiëren';
+
+  @override
+  String get settings_mediaStorage_verify_running =>
+      'Mediabibliotheek wordt geverifieerd...';
+
+  @override
+  String settings_mediaStorage_verify_summary(
+    int checked,
+    int removed,
+    int repaired,
+    int aborted,
+  ) {
+    return '$checked objecten gecontroleerd: $removed wezen verwijderd, $repaired reparaties in wachtrij, $aborted verouderde uploads afgebroken';
+  }
+
+  @override
   String get settings_mediaStorage_backfill_action =>
       'Bestaande bibliotheek uploaden';
 

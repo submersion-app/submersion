@@ -20080,6 +20080,23 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_mediaStorage_transfers_state_failed => 'فشل';
 
   @override
+  String get settings_mediaStorage_verify_action => 'التحقق من المكتبة';
+
+  @override
+  String get settings_mediaStorage_verify_running =>
+      'جارٍ التحقق من مكتبة الوسائط...';
+
+  @override
+  String settings_mediaStorage_verify_summary(
+    int checked,
+    int removed,
+    int repaired,
+    int aborted,
+  ) {
+    return 'تم فحص $checked عنصرًا: أزيل $removed يتيمًا، وأُدرج $repaired إصلاحًا في قائمة الانتظار، وأُلغي $aborted رفعًا قديمًا';
+  }
+
+  @override
   String get settings_mediaStorage_backfill_action => 'رفع المكتبة الحالية';
 
   @override

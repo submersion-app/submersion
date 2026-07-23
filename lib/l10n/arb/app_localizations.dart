@@ -34164,6 +34164,29 @@ abstract class AppLocalizations {
   /// **'Failed'**
   String get settings_mediaStorage_transfers_state_failed;
 
+  /// No description provided for @settings_mediaStorage_verify_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify library'**
+  String get settings_mediaStorage_verify_action;
+
+  /// No description provided for @settings_mediaStorage_verify_running.
+  ///
+  /// In en, this message translates to:
+  /// **'Verifying media library...'**
+  String get settings_mediaStorage_verify_running;
+
+  /// No description provided for @settings_mediaStorage_verify_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked {checked} objects: removed {removed} orphans, queued {repaired} repairs, aborted {aborted} stale uploads'**
+  String settings_mediaStorage_verify_summary(
+    int checked,
+    int removed,
+    int repaired,
+    int aborted,
+  );
+
   /// No description provided for @settings_mediaStorage_backfill_action.
   ///
   /// In en, this message translates to:

@@ -20452,6 +20452,23 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_mediaStorage_transfers_state_failed => 'Non riuscito';
 
   @override
+  String get settings_mediaStorage_verify_action => 'Verifica libreria';
+
+  @override
+  String get settings_mediaStorage_verify_running =>
+      'Verifica della libreria multimediale...';
+
+  @override
+  String settings_mediaStorage_verify_summary(
+    int checked,
+    int removed,
+    int repaired,
+    int aborted,
+  ) {
+    return 'Controllati $checked oggetti: $removed orfani rimossi, $repaired riparazioni in coda, $aborted caricamenti obsoleti annullati';
+  }
+
+  @override
   String get settings_mediaStorage_backfill_action =>
       'Carica libreria esistente';
 

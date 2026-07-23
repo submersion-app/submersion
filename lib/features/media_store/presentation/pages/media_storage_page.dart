@@ -41,6 +41,7 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
   bool _pathStyleTouched = false;
   bool _secretVisible = false;
   bool _busy = false;
+  bool _verifying = false;
   bool _syncConfigAvailable = false;
   CloudProviderType _selectedProvider = CloudProviderType.s3;
   // Null until loaded; the switches render only once values are known.
@@ -272,6 +273,29 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
       unawaited(runtime?.worker?.drain());
     } finally {
       if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  /// Verify Library sweep (orphan-prevention spec 6.3): reconciles the
+  /// attached store against the media table and reports what changed.
+  Future<void> _verify() async {
+    final l10n = context.l10n;
+    setState(() => _verifying = true);
+    try {
+      final report = await ref.read(mediaVerifyRunnerProvider)();
+      if (!mounted) return;
+      _showSnack(
+        l10n.settings_mediaStorage_verify_summary(
+          report.objectsChecked,
+          report.orphansRemoved,
+          report.repairsQueued,
+          report.sessionsAborted,
+        ),
+      );
+    } catch (e) {
+      if (mounted) _showSnack('$e');
+    } finally {
+      if (mounted) setState(() => _verifying = false);
     }
   }
 
@@ -687,6 +711,21 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
                 onPressed: _busy ? null : _backfill,
                 child: Text(l10n.settings_mediaStorage_backfill_action),
               ),
+              const SizedBox(height: 8),
+              FilledButton.tonal(
+                key: const Key('media-verify-library'),
+                onPressed: (_busy || _verifying) ? null : _verify,
+                child: Text(
+                  _verifying
+                      ? l10n.settings_mediaStorage_verify_running
+                      : l10n.settings_mediaStorage_verify_action,
+                ),
+              ),
+              if (_verifying)
+                const Padding(
+                  padding: EdgeInsets.only(top: 8),
+                  child: LinearProgressIndicator(),
+                ),
               Consumer(
                 builder: (context, ref, _) {
                   final active =
