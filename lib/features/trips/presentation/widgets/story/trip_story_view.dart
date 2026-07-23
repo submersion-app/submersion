@@ -163,6 +163,12 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
                   pinned: true,
                   delegate: _mapHeaderDelegate(),
                 ),
+                SliverToBoxAdapter(
+                  child: TripStatStrip(
+                    stats: widget.stats,
+                    siteCount: _siteCount,
+                  ),
+                ),
                 ..._contentSlivers(),
               ],
             ),
@@ -174,7 +180,14 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
           children: [
             SizedBox(
               width: 380,
-              child: _mapHeaderDelegate().build(context, 0, false),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: _mapHeaderDelegate().build(context, 0, false),
+                  ),
+                  TripStatStrip(stats: widget.stats, siteCount: _siteCount),
+                ],
+              ),
             ),
             Expanded(
               child: NotificationListener<ScrollUpdateNotification>(
@@ -203,8 +216,6 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
   TripStoryMapHeaderDelegate _mapHeaderDelegate() {
     return TripStoryMapHeaderDelegate(
       geometry: widget.story.mapGeometry,
-      stats: widget.stats,
-      siteCount: _siteCount,
       activeDayIndex: _activeDayIndex,
       mapController: _mapController,
       onDaySelected: _onPinSelected,

@@ -104,7 +104,7 @@ Future<void> pumpView(
 }
 
 void main() {
-  testWidgets('past trip renders day chapters, hero, and pinned stat strip', (
+  testWidgets('past trip renders day chapters, hero, and stat strip', (
     tester,
   ) async {
     final trip = _trip(
@@ -178,6 +178,31 @@ void main() {
     await pumpView(tester, story, viewSize: const Size(1400, 900));
 
     expect(find.byKey(const Key('trip-story-wide-layout')), findsOneWidget);
+    // Wide layout keeps the strip fixed in the side panel.
+    expect(find.byType(TripStatStrip), findsOneWidget);
+  });
+
+  testWidgets('stat strip scrolls away in the narrow layout', (tester) async {
+    final trip = _trip(
+      start: DateTime(2026, 3, 25),
+      end: DateTime(2026, 3, 30),
+    );
+    final story = _story(
+      trip,
+      dives: [
+        for (var i = 0; i < 6; i++) _dive('d$i', DateTime(2026, 3, 25 + i, 9)),
+      ],
+      today: DateTime(2026, 6, 1),
+    );
+    await pumpView(tester, story, viewSize: const Size(500, 700));
+
+    expect(find.byType(TripStatStrip), findsOneWidget);
+
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -600));
+    await tester.pump();
+
+    // The strip is ordinary scroll content now, not pinned under the map.
+    expect(find.byType(TripStatStrip), findsNothing);
   });
 
   testWidgets('scrolling resolves the active day and animates the map', (
