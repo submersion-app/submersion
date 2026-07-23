@@ -63,6 +63,28 @@ void main() {
     },
   );
 
+  test('deletes extension variants the payload never recorded', () async {
+    // Identical bytes reach the store under different keys: `.JPG` and
+    // `.jpeg` normalize differently and a row with no filename keys on
+    // `.bin`. The per-hash enqueue dedupe keeps only the first intent's
+    // payload, so the recorded extension cannot be the whole truth.
+    store.objects[originalKey] = [1];
+    store.objects[StoreKeys.objectKey(hash, extension: 'jpeg')] = [2];
+    store.objects[StoreKeys.objectKey(hash, extension: 'bin')] = [3];
+    store.objects[thumbKey] = [4];
+    store.objects[renditionKey] = [5];
+    store.objects[StoreKeys.renditionKey(hash, ext: 'mp4')] = [6];
+    // A different hash sharing the same two-character shard must survive.
+    const sibling = 'aaffeedd';
+    final siblingKey = StoreKeys.objectKey(sibling, extension: 'jpg');
+    store.objects[siblingKey] = [9];
+
+    await processor.process(await deleteEntry());
+
+    expect(store.objects.keys, [siblingKey]);
+    expect((await queue.allForTesting()).single.state, 'done');
+  });
+
   test('skips deletion when any row still references the hash', () async {
     await mediaRepository.createMedia(
       MediaItem(

@@ -47,6 +47,11 @@ class MediaDeleteProcessor {
       await _store.delete(
         StoreKeys.renditionKey(hash, ext: payload.renditionExt),
       );
+      // Sweep sibling extension variants last, so a store whose listing
+      // fails still has the three recorded keys gone by then and only
+      // repeats idempotent deletes on retry.
+      await _deleteVariants(StoreKeys.objectKeyPrefix(hash));
+      await _deleteVariants(StoreKeys.renditionKeyPrefix(hash));
       await _queue.markDone(entry.id);
     } on Exception catch (e, stackTrace) {
       _log.warning(
@@ -55,6 +60,22 @@ class MediaDeleteProcessor {
         stackTrace: stackTrace,
       );
       await _queue.markFailed(entry.id, e.toString());
+    }
+  }
+
+  /// Deletes every object under [prefix]. One delete intent carries a
+  /// single recorded extension per tier, but a hash can legitimately hold
+  /// several: `photo.JPG` and `photo.jpeg` are identical bytes under
+  /// different keys, a row with no filename keys on `.bin`, and the
+  /// per-hash enqueue dedupe keeps only the first intent's payload. Safe
+  /// because the caller already established that no media row references
+  /// this hash, so everything under the prefix is unreferenced content for
+  /// it - and the collected-then-deleted order avoids mutating the store
+  /// while its listing is still streaming.
+  Future<void> _deleteVariants(String prefix) async {
+    final keys = await _store.list(prefix).map((info) => info.key).toList();
+    for (final key in keys) {
+      await _store.delete(key);
     }
   }
 
