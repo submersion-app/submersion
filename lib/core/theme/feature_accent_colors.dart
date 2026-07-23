@@ -18,10 +18,14 @@ class FeatureAccentColors extends ThemeExtension<FeatureAccentColors> {
       'dives': Color(0xFF1976D2),
       'sites': Color(0xFF388E3C),
       'trips': Color(0xFF7B1FA2),
-      'equipment': Color(0xFFF57C00),
+      // Orange and amber are the two hues that go illegible first on a light
+      // surface, so these are deepened past their Material 700 shades to keep
+      // every light-mode accent at or above the 3:1 WCAG contrast ratio for
+      // graphical objects.
+      'equipment': Color(0xFFE65100),
       'buddies': Color(0xFFC2185B),
       'dive-centers': Color(0xFF6D4C41),
-      'certifications': Color(0xFFFFA000),
+      'certifications': Color(0xFFB45309),
       'courses': Color(0xFF303F9F),
       'statistics': Color(0xFF00796B),
       'planning': Color(0xFF512DA8),
