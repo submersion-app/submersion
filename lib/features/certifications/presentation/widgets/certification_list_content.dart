@@ -269,8 +269,9 @@ class _CertificationListContentState
       child: Row(
         children: [
           const SizedBox(width: 8),
-          Text(
-            context.l10n.certifications_appBar_title,
+          FeatureAppBarTitle(
+            featureId: 'certifications',
+            title: context.l10n.certifications_appBar_title,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),

@@ -568,8 +568,9 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
       child: Row(
         children: [
           const SizedBox(width: 8),
-          Text(
-            context.l10n.buddies_title,
+          FeatureAppBarTitle(
+            featureId: 'buddies',
+            title: context.l10n.buddies_title,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),

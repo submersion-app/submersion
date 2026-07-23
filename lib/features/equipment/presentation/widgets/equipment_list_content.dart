@@ -306,8 +306,9 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       child: Row(
         children: [
           const SizedBox(width: 8),
-          Text(
-            context.l10n.equipment_appBar_title,
+          FeatureAppBarTitle(
+            featureId: 'equipment',
+            title: context.l10n.equipment_appBar_title,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),

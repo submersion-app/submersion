@@ -39,6 +39,7 @@ import 'package:submersion/features/auto_update/domain/entities/update_status.da
 import 'package:submersion/features/auto_update/presentation/providers/update_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_mode_provider.dart';
 import 'package:submersion/features/settings/presentation/pages/debug_log_viewer_page.dart';
+import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// The URL for the GitHub issues page, used by [launchReportIssue].
@@ -1580,6 +1581,70 @@ class _AppearanceSectionContentState
                       );
                     }).toList(),
                   ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          // -- Color accents --
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_appearance_colorAccents,
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: [
+                SwitchListTile(
+                  secondary: const FeatureAccentIcon(
+                    Icons.format_paint_outlined,
+                    featureId: 'settings-appearance',
+                    surface: AccentSurface.list,
+                  ),
+                  title: Text(context.l10n.settings_appearance_accentNavIcons),
+                  subtitle: Text(
+                    context.l10n.settings_appearance_accentNavIcons_subtitle,
+                  ),
+                  value: settings.accentNavIcons,
+                  onChanged: (value) => ref
+                      .read(settingsProvider.notifier)
+                      .setAccentNavIcons(value),
+                ),
+                const Divider(height: 1),
+                SwitchListTile(
+                  secondary: const FeatureAccentIcon(
+                    Icons.title_outlined,
+                    featureId: 'settings-appearance',
+                    surface: AccentSurface.list,
+                  ),
+                  title: Text(
+                    context.l10n.settings_appearance_accentSectionHeaders,
+                  ),
+                  subtitle: Text(
+                    context
+                        .l10n
+                        .settings_appearance_accentSectionHeaders_subtitle,
+                  ),
+                  value: settings.accentSectionHeaders,
+                  onChanged: (value) => ref
+                      .read(settingsProvider.notifier)
+                      .setAccentSectionHeaders(value),
+                ),
+                const Divider(height: 1),
+                SwitchListTile(
+                  secondary: const FeatureAccentIcon(
+                    Icons.list_alt_outlined,
+                    featureId: 'settings-appearance',
+                    surface: AccentSurface.list,
+                  ),
+                  title: Text(context.l10n.settings_appearance_accentListIcons),
+                  subtitle: Text(
+                    context.l10n.settings_appearance_accentListIcons_subtitle,
+                  ),
+                  value: settings.accentListIcons,
+                  onChanged: (value) => ref
+                      .read(settingsProvider.notifier)
+                      .setAccentListIcons(value),
                 ),
               ],
             ),

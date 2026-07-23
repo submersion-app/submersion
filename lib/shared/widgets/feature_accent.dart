@@ -66,10 +66,15 @@ class FeatureAppBarTitle extends ConsumerWidget {
     super.key,
     required this.featureId,
     required this.title,
+    this.style,
   });
 
   final String featureId;
   final String title;
+
+  /// Applied to the title text in both states. Compact app bars style their
+  /// own title, so it has to survive the accent wrapping unchanged.
+  final TextStyle? style;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -79,7 +84,7 @@ class FeatureAppBarTitle extends ConsumerWidget {
       surface: AccentSurface.header,
       featureId: featureId,
     );
-    if (color == null) return Text(title);
+    if (color == null) return Text(title, style: style);
 
     NavDestination? destination;
     for (final candidate in kNavDestinations) {
@@ -88,14 +93,14 @@ class FeatureAppBarTitle extends ConsumerWidget {
         break;
       }
     }
-    if (destination == null) return Text(title);
+    if (destination == null) return Text(title, style: style);
 
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(destination.selectedIcon, color: color),
         const SizedBox(width: 8),
-        Flexible(child: Text(title)),
+        Flexible(child: Text(title, style: style)),
       ],
     );
   }

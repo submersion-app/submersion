@@ -592,8 +592,9 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
       child: Row(
         children: [
           const SizedBox(width: 8),
-          Text(
-            context.l10n.diveSites_list_appBar_title,
+          FeatureAppBarTitle(
+            featureId: 'sites',
+            title: context.l10n.diveSites_list_appBar_title,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),

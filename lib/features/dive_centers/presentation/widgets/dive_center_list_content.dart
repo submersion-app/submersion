@@ -331,8 +331,9 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
       child: Row(
         children: [
           const SizedBox(width: 8),
-          Text(
-            context.l10n.diveCenters_title,
+          FeatureAppBarTitle(
+            featureId: 'dive-centers',
+            title: context.l10n.diveCenters_title,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),

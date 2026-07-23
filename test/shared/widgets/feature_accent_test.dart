@@ -188,6 +188,34 @@ void main() {
       expect(icon.color, FeatureAccentColors.light.of('dives'));
     });
 
+    // Compact app bars style their own title, so the style has to survive the
+    // accent wrapping in both states.
+    const styledTitle = FeatureAppBarTitle(
+      featureId: 'dives',
+      title: 'Dives',
+      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 17),
+    );
+
+    testWidgets('keeps the caller style with the toggle off', (tester) async {
+      await tester.pumpWidget(_harness(styledTitle));
+
+      expect(
+        tester.widget<Text>(find.text('Dives')).style,
+        const TextStyle(fontWeight: FontWeight.w600, fontSize: 17),
+      );
+      expect(find.byType(Icon), findsNothing);
+    });
+
+    testWidgets('keeps the caller style with the toggle on', (tester) async {
+      await tester.pumpWidget(_harness(styledTitle, headerOn: true));
+
+      expect(
+        tester.widget<Text>(find.text('Dives')).style,
+        const TextStyle(fontWeight: FontWeight.w600, fontSize: 17),
+      );
+      expect(find.byType(Icon), findsOneWidget);
+    });
+
     testWidgets('stays text-only for an id with no nav destination', (
       tester,
     ) async {

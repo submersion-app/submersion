@@ -825,9 +825,58 @@ void main() {
       );
     }
 
+    // The desktop master-detail pane renders _AppearanceSectionContent, a
+    // separate widget from AppearancePage. The color-accent toggles have to
+    // exist in both or they vanish on wide screens.
+    testWidgets('hub shows the three color accent toggles', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(500, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(buildAppearanceWidget(getOverrides()));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Color accents'), findsOneWidget);
+      expect(find.text('Colored navigation icons'), findsOneWidget);
+      expect(find.text('Colored section headers'), findsOneWidget);
+      expect(find.text('Colored list icons'), findsOneWidget);
+
+      final switches = tester
+          .widgetList<SwitchListTile>(find.byType(SwitchListTile))
+          .toList();
+      expect(switches, hasLength(3));
+      expect(switches.every((s) => s.value == false), isTrue);
+    });
+
+    testWidgets('hub accent toggle flips only its own surface', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(500, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(buildAppearanceWidget(getOverrides()));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Colored list icons'));
+      await tester.pumpAndSettle();
+
+      SwitchListTile tileFor(String title) => tester.widget<SwitchListTile>(
+        find.ancestor(
+          of: find.text(title),
+          matching: find.byType(SwitchListTile),
+        ),
+      );
+
+      expect(tileFor('Colored list icons').value, isTrue);
+      expect(tileFor('Colored navigation icons').value, isFalse);
+      expect(tileFor('Colored section headers').value, isFalse);
+    });
+
     testWidgets('tapping a section entry shows section appearance sub-page', (
       tester,
     ) async {
+      // Tall surface so the Sections card is on-screen and tappable: the hub
+      // scrolls, and the color-accent card sits above it.
+      await tester.binding.setSurfaceSize(const Size(400, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
       await tester.pumpWidget(buildAppearanceWidget(getOverrides()));
       await tester.pumpAndSettle();
 
@@ -848,6 +897,9 @@ void main() {
     testWidgets('navigating back from section appearance returns to hub', (
       tester,
     ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
       await tester.pumpWidget(buildAppearanceWidget(getOverrides()));
       await tester.pumpAndSettle();
 

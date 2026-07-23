@@ -211,8 +211,9 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
       child: Row(
         children: [
           const SizedBox(width: 8),
-          Text(
-            context.l10n.courses_title,
+          FeatureAppBarTitle(
+            featureId: 'courses',
+            title: context.l10n.courses_title,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),

@@ -290,8 +290,9 @@ class _TripListContentState extends ConsumerState<TripListContent> {
       child: Row(
         children: [
           const SizedBox(width: 8),
-          Text(
-            context.l10n.trips_appBar_title,
+          FeatureAppBarTitle(
+            featureId: 'trips',
+            title: context.l10n.trips_appBar_title,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),

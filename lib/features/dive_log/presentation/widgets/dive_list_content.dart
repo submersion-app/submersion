@@ -890,8 +890,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       child: Row(
         children: [
           const SizedBox(width: 8),
-          Text(
-            context.l10n.diveLog_listPage_compactTitle,
+          FeatureAppBarTitle(
+            featureId: 'dives',
+            title: context.l10n.diveLog_listPage_compactTitle,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
