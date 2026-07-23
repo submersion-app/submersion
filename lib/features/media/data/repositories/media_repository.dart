@@ -1066,8 +1066,9 @@ class MediaRepository {
       longitude: row.longitude,
       // taken_at is stored as wall-clock-UTC millis (see the write path and the
       // dive side, which reads entry_time with isUtc: true). Hydrate it as UTC
-      // so downstream normalisation (EnrichmentService.toWallClockUtc) is a
-      // no-op instead of shifting the photo time by the host's UTC offset.
+      // so downstream normalisation (TripMediaScanner.toWallClockUtc, invoked by
+      // EnrichmentService.calculateEnrichment) is a no-op instead of shifting the
+      // photo time by the host's UTC offset.
       takenAt: row.takenAt != null
           ? DateTime.fromMillisecondsSinceEpoch(row.takenAt!, isUtc: true)
           : _defaultTakenAt(row.id),

@@ -157,11 +157,12 @@ void main() {
           // the dive side uses: dive_repository_impl reads entry_time with
           // isUtc: true, and the media write path stores the ms of an already-
           // UTC DateTime). It must be read back as a *UTC* DateTime. If it is
-          // hydrated as local, EnrichmentService.calculateEnrichment's
-          // toWallClockUtc() reinterprets the shifted local digits as UTC and
-          // displaces the photo time by the host's UTC offset relative to the
-          // (correctly UTC) dive start — pinning every item to the first
-          // profile point (surface depth). Regression guard for that skew.
+          // hydrated as local, the TripMediaScanner.toWallClockUtc() call inside
+          // EnrichmentService.calculateEnrichment reinterprets the shifted local
+          // digits as UTC and displaces the photo time by the host's UTC offset
+          // relative to the (correctly UTC) dive start — pinning every item to
+          // the first profile point (surface depth). Regression guard for that
+          // skew.
           final takenAt = DateTime.utc(2025, 12, 27, 11, 47, 48);
           final media = createTestMediaItem(
             filePath: '/photos/reef.jpg',
