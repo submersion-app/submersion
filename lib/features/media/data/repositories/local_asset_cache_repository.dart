@@ -25,7 +25,16 @@ class CacheEntry {
 /// Provides CRUD operations on the local_asset_cache table.
 /// This table is device-local and never synced.
 class LocalAssetCacheRepository {
-  LocalCacheDatabase get _db => LocalCacheDatabaseService.instance.database;
+  /// [database] is injectable for tests; production callers omit it and get
+  /// the process-wide local cache database. Mirrors
+  /// MediaTransferQueueRepository, which shares that database.
+  LocalAssetCacheRepository({LocalCacheDatabase? database})
+    : _database = database;
+
+  final LocalCacheDatabase? _database;
+
+  LocalCacheDatabase get _db =>
+      _database ?? LocalCacheDatabaseService.instance.database;
 
   /// Escalating backoff intervals for unresolved entries.
   static const _backoffDurations = [

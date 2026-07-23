@@ -74,6 +74,39 @@ void main() {
     expect(rows.single.state, 'failed');
   });
 
+  test('markFailed honours an explicit retryAfter instead of the default '
+      'minute-scale backoff', () async {
+    final id = await repo.enqueueUpload(mediaId: 'm1');
+    final t0 = DateTime.now();
+    await repo.markFailed(
+      id,
+      'source unavailable on this device',
+      retryAfter: const Duration(hours: 25),
+    );
+
+    // The default ladder would have made this due within minutes, which would
+    // burn an attempt against a resolution lockout that is still in force.
+    expect(await repo.nextPending(t0.add(const Duration(hours: 2))), isNull);
+
+    final due = await repo.nextPending(t0.add(const Duration(hours: 26)));
+    expect(due, isNotNull);
+    expect(due!.attempts, 1);
+  });
+
+  test('retryAfter still counts toward the terminal attempt cap', () async {
+    final id = await repo.enqueueUpload(mediaId: 'm1');
+    for (var i = 0; i < 5; i++) {
+      await repo.markFailed(
+        id,
+        'source unavailable on this device',
+        retryAfter: const Duration(hours: 25),
+      );
+    }
+    final row = (await repo.allForTesting()).single;
+    expect(row.state, 'failed');
+    expect(row.attempts, 5);
+  });
+
   test('markDone clears a stale error message from an earlier '
       'failure', () async {
     final id = await repo.enqueueUpload(mediaId: 'm1');

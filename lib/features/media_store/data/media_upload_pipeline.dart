@@ -20,6 +20,11 @@ import 'package:submersion/features/media_store/domain/media_upload_quality.dart
 
 enum UploadOutcome { uploaded, deduplicated, skippedIneligible, failed }
 
+/// Retry delay for an item whose bytes could not be materialized. Chosen to
+/// outlast the shortest asset-resolution lockout (24h) so each queue attempt
+/// gets a genuine re-resolution rather than a cached refusal.
+const Duration _sourceUnavailableRetryAfter = Duration(hours: 25);
+
 /// The six-step upload pipeline (design spec section 9), photos and
 /// single-shot transfers in Phase 1. Every step is idempotent: a crash
 /// mid-item replays harmlessly because the content key derives from the
@@ -101,7 +106,14 @@ class MediaUploadPipeline {
     try {
       staged = await _materialize(item);
       if (staged == null) {
-        await _queue.markFailed(entry.id, 'source unavailable on this device');
+        // Resolution failure is rate-limited on a 24h/3d/7d clock of its own,
+        // so retrying on the queue's minute-scale ladder would consume the
+        // attempt budget without ever re-reaching the gallery.
+        await _queue.markFailed(
+          entry.id,
+          'source unavailable on this device',
+          retryAfter: _sourceUnavailableRetryAfter,
+        );
         return UploadOutcome.failed;
       }
 

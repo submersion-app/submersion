@@ -148,14 +148,29 @@ class MediaTransferQueueRepository {
     );
   }
 
-  Future<void> markFailed(int id, String error) async {
+  /// [retryAfter] overrides the default minute-scale backoff for failures
+  /// whose underlying cause is itself rate-limited on a much longer clock.
+  /// Asset resolution is the motivating case: once it records a media item as
+  /// unresolved it refuses to re-scan the gallery for 24h/3d/7d, so a retry on
+  /// the default 1/5/30/60-minute ladder cannot reach the gallery at all - it
+  /// short-circuits to the same failure and silently burns one of the five
+  /// attempts. Passing a [retryAfter] longer than that lockout keeps the
+  /// attempt cap meaningful by ensuring every attempt is a real one.
+  Future<void> markFailed(int id, String error, {Duration? retryAfter}) async {
     final row = await (_db.select(
       _db.mediaTransferQueue,
     )..where((t) => t.id.equals(id))).getSingle();
     final attempts = row.attempts + 1;
     final terminal = attempts >= _maxAttempts;
     final backoff =
-        _backoffMinutes[(attempts - 1).clamp(0, _backoffMinutes.length - 1)];
+        retryAfter ??
+        Duration(
+          minutes:
+              _backoffMinutes[(attempts - 1).clamp(
+                0,
+                _backoffMinutes.length - 1,
+              )],
+        );
     final now = DateTime.now();
     await (_db.update(
       _db.mediaTransferQueue,
@@ -164,9 +179,7 @@ class MediaTransferQueueRepository {
         state: Value(terminal ? 'failed' : 'pending'),
         attempts: Value(attempts),
         nextAttemptAt: Value(
-          terminal
-              ? null
-              : now.add(Duration(minutes: backoff)).millisecondsSinceEpoch,
+          terminal ? null : now.add(backoff).millisecondsSinceEpoch,
         ),
         errorMessage: Value(error),
         updatedAt: Value(now.millisecondsSinceEpoch),
