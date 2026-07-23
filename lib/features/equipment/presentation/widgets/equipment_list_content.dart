@@ -20,6 +20,7 @@ import 'package:submersion/features/equipment/domain/entities/service_clock_stat
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/dense_equipment_list_tile.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/shared/widgets/feature_accent.dart';
 
 /// Special filter value for computed "service due" items
 const String _serviceDueFilter = '_service_due_';
@@ -176,7 +177,10 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.l10n.equipment_appBar_title),
+        title: FeatureAppBarTitle(
+          featureId: 'equipment',
+          title: context.l10n.equipment_appBar_title,
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.sort),

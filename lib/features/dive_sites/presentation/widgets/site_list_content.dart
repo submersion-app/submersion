@@ -28,6 +28,7 @@ import 'package:submersion/features/dive_sites/presentation/widgets/compact_site
 import 'package:submersion/features/dive_sites/presentation/widgets/dense_site_list_tile.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_filter_sheet.dart';
 import 'package:submersion/shared/widgets/debounced_search_results.dart';
+import 'package:submersion/shared/widgets/feature_accent.dart';
 
 /// Content widget for the site list, used in master-detail layout.
 class SiteListContent extends ConsumerStatefulWidget {
@@ -402,7 +403,10 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
       appBar: _isSelectionMode
           ? _buildSelectionAppBar(sitesAsync.valueOrNull ?? [])
           : AppBar(
-              title: Text(context.l10n.diveSites_list_appBar_title),
+              title: FeatureAppBarTitle(
+                featureId: 'sites',
+                title: context.l10n.diveSites_list_appBar_title,
+              ),
               actions: [
                 IconButton(
                   icon: const Icon(Icons.map),

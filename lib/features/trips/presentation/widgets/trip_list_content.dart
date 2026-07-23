@@ -21,6 +21,7 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:submersion/features/trips/presentation/widgets/compact_trip_list_tile.dart';
 import 'package:submersion/features/trips/presentation/widgets/dense_trip_list_tile.dart';
 import 'package:submersion/features/trips/presentation/widgets/upcoming_trip_banner.dart';
+import 'package:submersion/shared/widgets/feature_accent.dart';
 
 /// Content widget for the trip list, used in master-detail layout.
 class TripListContent extends ConsumerStatefulWidget {
@@ -165,7 +166,10 @@ class _TripListContentState extends ConsumerState<TripListContent> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.l10n.trips_appBar_title),
+        title: FeatureAppBarTitle(
+          featureId: 'trips',
+          title: context.l10n.trips_appBar_title,
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.search),

@@ -15,6 +15,7 @@ import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/feature_accent.dart';
 
 /// GPS surface track logger (discussion #289): record the phone's position
 /// during a dive day; imported dives are matched to positions by timestamp.
@@ -191,7 +192,12 @@ class _GpsLoggerPageState extends ConsumerState<GpsLoggerPage> {
     final tracks = ref.watch(gpsTracksProvider).value ?? const <GpsTrack>[];
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.tools_gpsLogger_title)),
+      appBar: AppBar(
+        title: FeatureAppBarTitle(
+          featureId: 'gps-log',
+          title: l10n.tools_gpsLogger_title,
+        ),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

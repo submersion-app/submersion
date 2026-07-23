@@ -20,6 +20,7 @@ import 'package:submersion/features/dive_centers/presentation/providers/dive_cen
 import 'package:submersion/features/dive_centers/presentation/widgets/compact_dive_center_list_tile.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dense_dive_center_list_tile.dart';
 import 'package:submersion/shared/widgets/debounced_search_results.dart';
+import 'package:submersion/shared/widgets/feature_accent.dart';
 
 /// Content widget for the dive center list, used in master-detail layout.
 class DiveCenterListContent extends ConsumerStatefulWidget {
@@ -181,7 +182,10 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.l10n.diveCenters_title),
+        title: FeatureAppBarTitle(
+          featureId: 'dive-centers',
+          title: context.l10n.diveCenters_title,
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.map),

@@ -37,6 +37,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_filter_sh
 import 'package:submersion/features/dive_log/presentation/widgets/dive_numbering_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_table_view.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/feature_accent.dart';
 
 /// Inclusive id span between the [anchor] and [target] indices in [dives].
 /// Order-independent: a backward shift-click selects the same range.
@@ -730,7 +731,10 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     List<Widget> extraActions = const [],
   }) {
     return AppBar(
-      title: Text(title ?? context.l10n.diveLog_listPage_title),
+      title: FeatureAppBarTitle(
+        featureId: 'dives',
+        title: title ?? context.l10n.diveLog_listPage_title,
+      ),
       actions: [
         ...extraActions,
         if (widget.onMapViewToggle != null)
