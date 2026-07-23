@@ -13,7 +13,6 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
-import 'package:submersion/features/trips/presentation/helpers/day_type_l10n.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/day_rhythm_bar.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -38,8 +37,25 @@ class TripStoryDayCard extends ConsumerWidget {
     // Built once for the day's dives rather than per row.
     final diveTypeLabelResolver = watchDiveTypeLabelResolver(ref, context.l10n);
 
-    if (!day.hasContent && day.kind != TripStoryDayKind.future) {
+    if (day.isSurface) {
       return _SurfaceDayRow(day: day);
+    }
+
+    // The day title, subtitle, and Planned chip live in the sticky
+    // TripStoryDayHeader above this card; the card is body-only. A planned
+    // day whose itinerary has nothing to show would produce an empty card,
+    // so skip it entirely.
+    final itinerary = day.itineraryDay;
+    final hasPlannedExtras =
+        _isPlanned &&
+        ((itinerary?.notes.isNotEmpty ?? false) || itinerary?.portName != null);
+    final hasBody =
+        day.dives.isNotEmpty ||
+        day.media.isNotEmpty ||
+        day.sightings.isNotEmpty ||
+        hasPlannedExtras;
+    if (!hasBody) {
+      return const SizedBox.shrink();
     }
 
     return Card(
@@ -56,9 +72,7 @@ class TripStoryDayCard extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHeader(context, theme),
               if (day.dives.isNotEmpty) ...[
-                const SizedBox(height: 12),
                 _DayStatStrip(day: day, units: units),
                 const SizedBox(height: 12),
                 DayRhythmBar(dives: day.dives),
@@ -89,50 +103,6 @@ class TripStoryDayCard extends ConsumerWidget {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context, ThemeData theme) {
-    final dateFormat = DateFormat.MMMEd();
-    final itinerary = day.itineraryDay;
-    final subtitleParts = <String>[
-      if (itinerary != null) itinerary.dayType.localizedName(context),
-      if (itinerary?.portName != null) itinerary!.portName!,
-      ...day.siteNames,
-    ];
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '${context.l10n.trips_story_dayLabel(day.dayNumber)}'
-                ' - ${dateFormat.format(day.date)}',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              if (subtitleParts.isNotEmpty)
-                Text(
-                  subtitleParts.join(' - '),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-            ],
-          ),
-        ),
-        if (_isPlanned)
-          Chip(
-            label: Text(context.l10n.trips_story_planned),
-            visualDensity: VisualDensity.compact,
-          ),
-      ],
     );
   }
 }

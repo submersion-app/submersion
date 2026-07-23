@@ -8,6 +8,7 @@ import 'package:submersion/features/checklists/presentation/widgets/trip_checkli
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_card.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_header.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_hero.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_map_header.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_vessel_section.dart';
@@ -223,6 +224,44 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
     );
   }
 
+  /// One day chapter: a SliverMainAxisGroup whose pinned header sticks below
+  /// the map until the next day's group pushes it out. Surface days render
+  /// their slim row with no header.
+  Widget _daySliver(TripStory story, int index, int? todayIndex) {
+    final day = story.days[index];
+    final showTodayDivider = todayIndex != null && index == todayIndex;
+    const divider = SliverPadding(
+      padding: EdgeInsets.symmetric(horizontal: 16),
+      sliver: SliverToBoxAdapter(child: _TodayDivider()),
+    );
+    final body = SliverPadding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      sliver: SliverToBoxAdapter(
+        child: Column(
+          key: _dayKeys[index],
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [TripStoryDayCard(day: day, tripId: story.trip.id)],
+        ),
+      ),
+    );
+
+    if (day.isSurface) {
+      return SliverMainAxisGroup(
+        slivers: [if (showTodayDivider) divider, body],
+      );
+    }
+    return SliverMainAxisGroup(
+      slivers: [
+        if (showTodayDivider) divider,
+        SliverPersistentHeader(
+          pinned: true,
+          delegate: TripStoryDayHeaderDelegate(day: day),
+        ),
+        body,
+      ],
+    );
+  }
+
   List<Widget> _contentSlivers() {
     final story = widget.story;
     final trip = story.trip;
@@ -245,27 +284,8 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
           padding: const EdgeInsets.symmetric(horizontal: 16),
           sliver: SliverToBoxAdapter(child: TripVesselSection(tripId: trip.id)),
         ),
-      SliverPadding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-        sliver: SliverList.builder(
-          itemCount: story.days.length,
-          itemBuilder: (context, index) {
-            final day = story.days[index];
-            final showTodayDivider = todayIndex != null && index == todayIndex;
-            return Column(
-              key: _dayKeys[index],
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (showTodayDivider) const _TodayDivider(),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: TripStoryDayCard(day: day, tripId: trip.id),
-                ),
-              ],
-            );
-          },
-        ),
-      ),
+      for (var index = 0; index < story.days.length; index++)
+        _daySliver(story, index, todayIndex),
       if (trip.notes.isNotEmpty)
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),

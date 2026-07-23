@@ -11,6 +11,7 @@ import 'package:submersion/features/trips/domain/entities/trip_story.dart';
 import 'package:submersion/features/trips/domain/services/trip_story_builder.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_card.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_header.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_hero.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_map_header.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_view.dart';
@@ -275,5 +276,71 @@ void main() {
     // and fail here.)
     expect(activeDayIndex(), greaterThan(0));
     expect(markerOpacity('Site a'), lessThan(1.0));
+  });
+
+  testWidgets('day header sticks below the collapsed map while scrolling', (
+    tester,
+  ) async {
+    final trip = _trip(
+      start: DateTime(2026, 3, 25),
+      end: DateTime(2026, 3, 30),
+    );
+    final labels = ['a', 'b', 'c', 'd', 'e', 'f'];
+    final story = buildTripStory(
+      trip: trip,
+      dives: [
+        for (var i = 0; i < labels.length; i++)
+          _diveAt(
+            labels[i],
+            DateTime(2026, 3, 25 + i, 9),
+            12.10 + i * 0.002,
+            -68.20 + i * 0.002,
+          ),
+      ],
+      itineraryDays: [],
+      mediaByDiveId: {},
+      sightingsByDiveId: {},
+      checklistItems: [],
+      today: DateTime(2026, 6, 1),
+    );
+    await pumpView(tester, story, viewSize: const Size(500, 700));
+
+    // Scroll deep into the story so the map is fully collapsed and a later
+    // day's chapter is under the headers.
+    for (var i = 0; i < 4; i++) {
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -400));
+      await tester.pump(const Duration(milliseconds: 150));
+    }
+
+    // Exactly one day header is pinned directly below the 180px map header;
+    // the first day's header has been pushed out by a later one.
+    final pinnedTops = [
+      for (final element in find.byType(TripStoryDayHeader).evaluate())
+        tester.getTopLeft(find.byWidget(element.widget)).dy,
+    ];
+    expect(pinnedTops, anyElement(closeTo(180.0, 1.0)));
+    expect(find.textContaining('Day 1 -'), findsNothing);
+  });
+
+  testWidgets('surface days get no sticky header', (tester) async {
+    final trip = _trip(
+      start: DateTime(2026, 3, 25),
+      end: DateTime(2026, 3, 27),
+    );
+    // Dives on days 1 and 3; day 2 is a surface day.
+    final story = _story(
+      trip,
+      dives: [
+        _dive('d1', DateTime(2026, 3, 25, 9)),
+        _dive('d3', DateTime(2026, 3, 27, 9)),
+      ],
+      today: DateTime(2026, 6, 1),
+    );
+    await pumpView(tester, story);
+
+    // Tall harness viewport: all three days are mounted, but only the two
+    // dive days contribute sticky headers.
+    expect(find.byType(TripStoryDayHeader), findsNWidgets(2));
+    expect(find.textContaining('Surface day'), findsOneWidget);
   });
 }
