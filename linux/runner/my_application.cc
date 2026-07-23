@@ -5,7 +5,83 @@
 #include <gdk/gdkx.h>
 #endif
 
+#include <cstdio>
+#include <cstdlib>
+#include <string>
+#include <vector>
+
 #include "flutter/generated_plugin_registrant.h"
+
+// Returns PNG bytes for a video poster using ffmpegthumbnailer, or empty on
+// failure / when the tool is not installed. No hard dependency: absence just
+// yields the placeholder on the Dart side.
+static std::vector<uint8_t> GenerateThumbnailPng(const std::string& path,
+                                                 int max_dim) {
+  std::vector<uint8_t> bytes;
+  char tmpl[] = "/tmp/subm_vthumbXXXXXX.png";
+  int fd = mkstemps(tmpl, 4);
+  if (fd < 0) return bytes;
+  close(fd);
+
+  // -c png writes PNG to the output path; -s sets the size; -t 10% seeks.
+  std::string cmd = "ffmpegthumbnailer -i '" + path + "' -o '" + tmpl +
+                    "' -s " + std::to_string(max_dim) +
+                    " -c png -t 10% >/dev/null 2>&1";
+  int rc = std::system(cmd.c_str());
+  if (rc == 0) {
+    if (FILE* f = std::fopen(tmpl, "rb")) {
+      std::fseek(f, 0, SEEK_END);
+      long n = std::ftell(f);
+      std::fseek(f, 0, SEEK_SET);
+      if (n > 0) {
+        bytes.resize(static_cast<size_t>(n));
+        if (std::fread(bytes.data(), 1, bytes.size(), f) != bytes.size()) {
+          bytes.clear();
+        }
+      }
+      std::fclose(f);
+    }
+  }
+  std::remove(tmpl);
+  return bytes;
+}
+
+static void local_media_method_call_cb(FlMethodChannel* channel,
+                                       FlMethodCall* method_call,
+                                       gpointer user_data) {
+  if (g_strcmp0(fl_method_call_get_name(method_call),
+                "generateVideoThumbnail") != 0) {
+    fl_method_call_respond_not_implemented(method_call, nullptr);
+    return;
+  }
+  FlValue* args = fl_method_call_get_args(method_call);
+  std::string path;
+  int max_dim = 512;
+  if (fl_value_get_type(args) == FL_VALUE_TYPE_MAP) {
+    FlValue* p = fl_value_lookup_string(args, "path");
+    if (p && fl_value_get_type(p) == FL_VALUE_TYPE_STRING) {
+      path = fl_value_get_string(p);
+    }
+    FlValue* m = fl_value_lookup_string(args, "maxDimension");
+    if (m && fl_value_get_type(m) == FL_VALUE_TYPE_INT) {
+      max_dim = static_cast<int>(fl_value_get_int(m));
+    }
+  }
+
+  g_autoptr(FlMethodResponse) response = nullptr;
+  if (path.empty()) {
+    response = FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
+  } else {
+    std::vector<uint8_t> png = GenerateThumbnailPng(path, max_dim);
+    if (png.empty()) {
+      response = FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
+    } else {
+      g_autoptr(FlValue) v = fl_value_new_uint8_list(png.data(), png.size());
+      response = FL_METHOD_RESPONSE(fl_method_success_response_new(v));
+    }
+  }
+  fl_method_call_respond(method_call, response, nullptr);
+}
 
 struct _MyApplication {
   GtkApplication parent_instance;
@@ -74,6 +150,17 @@ static void my_application_activate(GApplication* application) {
   gtk_widget_realize(GTK_WIDGET(view));
 
   fl_register_plugins(FL_PLUGIN_REGISTRY(view));
+
+  // Local media channel: OS-generated video poster thumbnails. Kept alive for
+  // the app lifetime by tying it to the view's object lifetime.
+  g_autoptr(FlStandardMethodCodec) codec = fl_standard_method_codec_new();
+  FlMethodChannel* local_media_channel = fl_method_channel_new(
+      fl_engine_get_binary_messenger(fl_view_get_engine(view)),
+      "com.submersion.app/local_media", FL_METHOD_CODEC(codec));
+  fl_method_channel_set_method_call_handler(
+      local_media_channel, local_media_method_call_cb, nullptr, nullptr);
+  g_object_set_data_full(G_OBJECT(view), "local_media_channel",
+                         local_media_channel, g_object_unref);
 
   gtk_widget_grab_focus(GTK_WIDGET(view));
 }
