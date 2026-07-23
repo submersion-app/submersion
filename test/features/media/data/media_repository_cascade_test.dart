@@ -83,6 +83,23 @@ void main() {
     expect(split.unlinkIds.toSet(), {siteLinked.id, library.id});
   });
 
+  test(
+    'partitionMediaForDiveDeletion short-circuits an empty dive list',
+    () async {
+      // Bulk callers hand over collections that can be empty (consolidation's
+      // secondary-dive set, an empty multi-select), and must get empty buckets
+      // rather than every unlinked row in the library.
+      await insertDive('d1');
+      await repo.createMedia(item('a.jpg', diveId: 'd1'));
+      await repo.createMedia(item('unlinked.jpg'));
+
+      final split = await repo.partitionMediaForDiveDeletion([]);
+
+      expect(split.doomed, isEmpty);
+      expect(split.unlinkIds, isEmpty);
+    },
+  );
+
   test('unlinkMediaFromDeletedDives nulls diveId and keeps the row', () async {
     await insertDive('d1');
     final m = await repo.createMedia(item('a.jpg', diveId: 'd1'));

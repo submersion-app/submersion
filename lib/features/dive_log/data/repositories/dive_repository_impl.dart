@@ -1519,9 +1519,9 @@ class DiveRepository {
   Future<void> _cascadeMediaForDiveDeletion(List<String> ids) async {
     final split = await _mediaRepository.partitionMediaForDiveDeletion(ids);
     if (split.doomed.isNotEmpty) {
-      await _mediaDeletionCoordinator.deleteMultipleMedia(
-        split.doomed.map((m) => m.id).toList(),
-      );
+      // Items, not ids: the partition already read these rows, and the
+      // blob-delete intent needs exactly the fields it carries.
+      await _mediaDeletionCoordinator.deleteMediaItems(split.doomed);
     }
     if (split.unlinkIds.isNotEmpty) {
       await _mediaRepository.unlinkMediaFromDeletedDives(split.unlinkIds);
