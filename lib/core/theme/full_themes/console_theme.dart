@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:submersion/core/theme/feature_accent_colors.dart';
 
 // ---------------------------------------------------------------------------
 // Console Theme -- instrument-panel aesthetic
@@ -64,6 +65,7 @@ TextTheme _buildTextTheme(Brightness brightness) {
 final ThemeData consoleLight = ThemeData(
   useMaterial3: true,
   brightness: Brightness.light,
+  extensions: const <ThemeExtension<dynamic>>[FeatureAccentColors.light],
   colorScheme: const ColorScheme(
     brightness: Brightness.light,
     primary: _primaryLight,
@@ -112,6 +114,7 @@ final ThemeData consoleLight = ThemeData(
 final ThemeData consoleDark = ThemeData(
   useMaterial3: true,
   brightness: Brightness.dark,
+  extensions: const <ThemeExtension<dynamic>>[FeatureAccentColors.dark],
   colorScheme: const ColorScheme(
     brightness: Brightness.dark,
     primary: _primaryDark,

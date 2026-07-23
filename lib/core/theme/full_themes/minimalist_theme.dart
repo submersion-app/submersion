@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/core/theme/feature_accent_colors.dart';
 
 // ---------------------------------------------------------------------------
 // Minimalist Theme -- clean, near-monochrome
@@ -62,6 +63,7 @@ TextTheme _buildTextTheme(Brightness brightness) {
 final ThemeData minimalistLight = ThemeData(
   useMaterial3: true,
   brightness: Brightness.light,
+  extensions: const <ThemeExtension<dynamic>>[FeatureAccentColors.light],
   colorScheme: const ColorScheme(
     brightness: Brightness.light,
     primary: _primaryLight,
@@ -110,6 +112,7 @@ final ThemeData minimalistLight = ThemeData(
 final ThemeData minimalistDark = ThemeData(
   useMaterial3: true,
   brightness: Brightness.dark,
+  extensions: const <ThemeExtension<dynamic>>[FeatureAccentColors.dark],
   colorScheme: const ColorScheme(
     brightness: Brightness.dark,
     primary: _primaryDark,

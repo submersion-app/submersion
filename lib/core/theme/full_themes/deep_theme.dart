@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/core/theme/feature_accent_colors.dart';
 
 // ---------------------------------------------------------------------------
 // Deep Theme -- immersive, deep ocean feel
@@ -57,6 +58,7 @@ TextTheme _buildTextTheme(Brightness brightness) {
 final ThemeData deepLight = ThemeData(
   useMaterial3: true,
   brightness: Brightness.light,
+  extensions: const <ThemeExtension<dynamic>>[FeatureAccentColors.light],
   colorScheme: const ColorScheme(
     brightness: Brightness.light,
     primary: _primaryLight,
@@ -106,6 +108,7 @@ final ThemeData deepLight = ThemeData(
 final ThemeData deepDark = ThemeData(
   useMaterial3: true,
   brightness: Brightness.dark,
+  extensions: const <ThemeExtension<dynamic>>[FeatureAccentColors.dark],
   colorScheme: const ColorScheme(
     brightness: Brightness.dark,
     primary: _primaryDark,
