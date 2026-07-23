@@ -419,8 +419,8 @@ void main() {
       );
     });
 
-    test('a photo whose dive was deleted is preserved (set-null), not lost '
-        'and not resurrected with a dangling link', () async {
+    test('a dive-only photo dies with its dive (cascade) and is not '
+        'resurrected by a peer live copy', () async {
       final serializer = SyncDataSerializer();
       final diveRepo = DiveRepository();
       final db = DatabaseService.instance.database;
@@ -444,15 +444,85 @@ void main() {
       final mediaJson = await serializer.fetchRecord('media', 'media-60');
       expect(mediaJson, isNotNull);
 
-      // Deleting the dive set-nulls the photo's diveId locally; the photo
-      // survives (Media.diveId is nullable / onDelete: setNull).
+      // The dive's photo goes with the dive (orphan-prevention spec 4.2):
+      // deleting the dive cascades to its dive-only media, tombstoned so
+      // the deletion syncs.
       await diveRepo.deleteDive('dive-60');
       expect(await serializer.fetchRecord('dives', 'dive-60'), isNull);
-      final localMedia = await serializer.fetchRecord('media', 'media-60');
+      expect(
+        await serializer.fetchRecord('media', 'media-60'),
+        isNull,
+        reason: 'dive-only media dies with the dive',
+      );
+
+      // Peer still has the live dive AND the photo still linked to it.
+      final peerData = SyncData(
+        dives: [
+          {...diveJson!, 'updatedAt': 1000},
+        ],
+        media: [mediaJson!],
+      );
+      final checksum = sha256
+          .convert(utf8.encode(jsonEncode(peerData.toJson())))
+          .toString();
+      final payload = SyncPayload(
+        version: syncFormatVersion,
+        exportedAt: 2000,
+        deviceId: 'peer-dev',
+        checksum: checksum,
+        data: peerData,
+        deletions: const {},
+      );
+      await seedPeerBaseFromPayload(cloud, 'peer-dev', payload);
+
+      final result = await buildService().performSync();
+
+      expect(result.status, isNot(SyncResultStatus.error));
+      expect(await serializer.fetchRecord('dives', 'dive-60'), isNull);
+      expect(
+        await serializer.fetchRecord('media', 'media-60'),
+        isNull,
+        reason: 'the media tombstone beats the peer live copy',
+      );
+    });
+
+    test('a library-level photo whose dive was deleted is preserved '
+        '(unlinked), not lost and not resurrected with a dangling link',
+        () async {
+      final serializer = SyncDataSerializer();
+      final diveRepo = DiveRepository();
+      final db = DatabaseService.instance.database;
+
+      await diveRepo.createDive(
+        createTestDiveWithBottomTime(id: 'dive-61', diveNumber: 61),
+      );
+      await db
+          .into(db.media)
+          .insert(
+            MediaCompanion.insert(
+              id: 'media-61',
+              diveId: const Value('dive-61'),
+              filePath: '/photo.jpg',
+              sourceType: const Value('networkUrl'),
+              createdAt: 1000,
+              updatedAt: 1000,
+            ),
+          );
+      await buildService().performSync();
+      final diveJson = await serializer.fetchRecord('dives', 'dive-61');
+      final mediaJson = await serializer.fetchRecord('media', 'media-61');
+      expect(mediaJson, isNotNull);
+
+      // Library-level source types (networkUrl/manifestEntry) revert to
+      // library on dive deletion instead of dying (orphan-prevention spec
+      // section 3): auto-match was additive, so the import must survive.
+      await diveRepo.deleteDive('dive-61');
+      expect(await serializer.fetchRecord('dives', 'dive-61'), isNull);
+      final localMedia = await serializer.fetchRecord('media', 'media-61');
       expect(
         localMedia,
         isNotNull,
-        reason: 'the photo must survive the delete',
+        reason: 'the library import must survive the delete',
       );
       expect(localMedia!['diveId'], isNull);
 
@@ -479,12 +549,12 @@ void main() {
       final result = await buildService().performSync();
 
       expect(result.status, isNot(SyncResultStatus.error));
-      expect(await serializer.fetchRecord('dives', 'dive-60'), isNull);
-      final afterMedia = await serializer.fetchRecord('media', 'media-60');
+      expect(await serializer.fetchRecord('dives', 'dive-61'), isNull);
+      final afterMedia = await serializer.fetchRecord('media', 'media-61');
       expect(
         afterMedia,
         isNotNull,
-        reason: 'the photo must NOT be lost when its dive is deleted',
+        reason: 'the library import must NOT be lost when its dive is deleted',
       );
       expect(
         afterMedia!['diveId'],
