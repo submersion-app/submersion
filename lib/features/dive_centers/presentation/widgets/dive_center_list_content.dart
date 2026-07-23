@@ -722,17 +722,31 @@ class DiveCenterSearchDelegate extends SearchDelegate<DiveCenter?> {
           itemBuilder: (context, index) {
             final center = centers[index];
             return ListTile(
-              leading: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.store,
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
-                ),
+              leading: Builder(
+                builder: (context) {
+                  final accent = resolveFeatureAccent(
+                    context,
+                    ref,
+                    surface: AccentSurface.list,
+                    featureId: 'dive-centers',
+                  );
+                  return Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color:
+                          accent?.withValues(alpha: 0.15) ??
+                          Theme.of(context).colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.store,
+                      color:
+                          accent ??
+                          Theme.of(context).colorScheme.onPrimaryContainer,
+                    ),
+                  );
+                },
               ),
               title: Text(center.name),
               subtitle: center.fullLocationString != null

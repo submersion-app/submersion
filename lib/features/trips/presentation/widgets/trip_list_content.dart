@@ -617,12 +617,24 @@ class TripListTile extends StatelessWidget {
             : null,
         child: ListTile(
           onTap: onTap,
-          leading: CircleAvatar(
-            backgroundColor: theme.colorScheme.primaryContainer,
-            child: Icon(
-              trip.isLiveaboard ? Icons.sailing : Icons.flight_takeoff,
-              color: theme.colorScheme.onPrimaryContainer,
-            ),
+          leading: Consumer(
+            builder: (context, ref, _) {
+              final accent = resolveFeatureAccent(
+                context,
+                ref,
+                surface: AccentSurface.list,
+                featureId: 'trips',
+              );
+              return CircleAvatar(
+                backgroundColor:
+                    accent?.withValues(alpha: 0.15) ??
+                    theme.colorScheme.primaryContainer,
+                child: Icon(
+                  trip.isLiveaboard ? Icons.sailing : Icons.flight_takeoff,
+                  color: accent ?? theme.colorScheme.onPrimaryContainer,
+                ),
+              );
+            },
           ),
           title: Row(
             children: [
@@ -797,14 +809,28 @@ class TripSearchDelegate extends SearchDelegate<Trip?> {
                 final trip = trips[index];
                 final dateFormat = DateFormat.yMMMd();
                 return ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: Theme.of(
-                      context,
-                    ).colorScheme.primaryContainer,
-                    child: Icon(
-                      trip.isLiveaboard ? Icons.sailing : Icons.flight_takeoff,
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    ),
+                  leading: Builder(
+                    builder: (context) {
+                      final accent = resolveFeatureAccent(
+                        context,
+                        ref,
+                        surface: AccentSurface.list,
+                        featureId: 'trips',
+                      );
+                      return CircleAvatar(
+                        backgroundColor:
+                            accent?.withValues(alpha: 0.15) ??
+                            Theme.of(context).colorScheme.primaryContainer,
+                        child: Icon(
+                          trip.isLiveaboard
+                              ? Icons.sailing
+                              : Icons.flight_takeoff,
+                          color:
+                              accent ??
+                              Theme.of(context).colorScheme.onPrimaryContainer,
+                        ),
+                      );
+                    },
                   ),
                   title: Text(trip.name),
                   subtitle: Text(

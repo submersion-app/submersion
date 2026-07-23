@@ -382,6 +382,9 @@ void main() {
         overrides: [
           // Ledger map resolved but empty -> worstClock is null for this item.
           equipmentWorstClockProvider.overrideWith((ref) async => {}),
+          // The tile reads the color-accent toggle, so settings must be
+          // stubbed: the real notifier reaches for SharedPreferences.
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
         ],
         child: MaterialApp(
           locale: const Locale('en'),

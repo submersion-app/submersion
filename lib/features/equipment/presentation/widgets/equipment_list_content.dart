@@ -585,6 +585,12 @@ class EquipmentListTile extends ConsumerWidget {
     final worstClock = ref.watch(equipmentWorstClockProvider).value?[item.id];
     final isOverdue =
         worstClock?.status.severity == ServiceClockSeverity.overdue;
+    final accent = resolveFeatureAccent(
+      context,
+      ref,
+      surface: AccentSurface.list,
+      featureId: 'equipment',
+    );
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -594,14 +600,18 @@ class EquipmentListTile extends ConsumerWidget {
       child: ListTile(
         onTap: onTap,
         leading: CircleAvatar(
+          // An overdue service is a status signal, so it keeps the error
+          // colors even with accents on -- a cosmetic preference must not
+          // hide a service warning.
           backgroundColor: isOverdue
               ? theme.colorScheme.errorContainer
-              : theme.colorScheme.tertiaryContainer,
+              : accent?.withValues(alpha: 0.15) ??
+                    theme.colorScheme.tertiaryContainer,
           child: Icon(
             _getIconForType(item.type),
             color: isOverdue
                 ? theme.colorScheme.onErrorContainer
-                : theme.colorScheme.onTertiaryContainer,
+                : accent ?? theme.colorScheme.onTertiaryContainer,
           ),
         ),
         title: Text(item.name),
