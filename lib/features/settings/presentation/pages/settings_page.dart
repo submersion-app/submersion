@@ -182,7 +182,6 @@ class SettingsMobileContent extends ConsumerWidget {
           icon: Icons.bug_report_outlined,
           title: 'Debug',
           subtitle: 'Logs & diagnostics',
-          color: Colors.grey,
         ),
       );
     }
@@ -291,7 +290,7 @@ class _MobileSettingsTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final color = section.color ?? colorScheme.primary;
+    final color = settingsSectionColor(context, section.id);
 
     return ListTile(
       leading: Container(

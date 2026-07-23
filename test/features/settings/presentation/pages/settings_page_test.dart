@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/theme/feature_accent_colors.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:go_router/go_router.dart';
@@ -493,13 +494,14 @@ void main() {
   /// Builds a test widget with mobile screen size to avoid MasterDetailScaffold
   /// which requires GoRouter. The SettingsPage uses MasterDetailScaffold on
   /// desktop (>=800px) which calls GoRouterState.of(context).
-  Widget buildTestWidget(Widget child, {Locale? locale}) {
+  Widget buildTestWidget(Widget child, {Locale? locale, ThemeData? theme}) {
     return MediaQuery(
       data: const MediaQueryData(size: Size(400, 800)),
       child: ProviderScope(
         overrides: getOverrides(),
         child: MaterialApp(
           locale: locale,
+          theme: theme,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: child,
@@ -507,6 +509,44 @@ void main() {
       ),
     );
   }
+
+  group('SettingsPage section accent colors', () {
+    ThemeData accentTheme() => ThemeData(
+      brightness: Brightness.light,
+      extensions: const <ThemeExtension<dynamic>>[FeatureAccentColors.light],
+    );
+
+    testWidgets('section icons resolve from the accent palette', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildTestWidget(const SettingsPage(), theme: accentTheme()),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(find.text('Appearance'), 50.0);
+      await tester.pumpAndSettle();
+
+      final icon = tester.widget<Icon>(find.byIcon(Icons.palette));
+      expect(icon.color, FeatureAccentColors.light.of('settings-appearance'));
+    });
+
+    testWidgets('section icons fall back to primary without the extension', (
+      tester,
+    ) async {
+      final theme = ThemeData(brightness: Brightness.light);
+      await tester.pumpWidget(
+        buildTestWidget(const SettingsPage(), theme: theme),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(find.text('Appearance'), 50.0);
+      await tester.pumpAndSettle();
+
+      final icon = tester.widget<Icon>(find.byIcon(Icons.palette));
+      expect(icon.color, theme.colorScheme.primary);
+    });
+  });
 
   group('SettingsPage', () {
     testWidgets('should display Settings title in app bar', (tester) async {
