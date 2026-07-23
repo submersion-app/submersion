@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/theme/feature_accent_colors.dart';
 import 'package:submersion/features/auto_update/presentation/widgets/update_banner.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/download_exit_dialog.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/gps_recording_strip.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/global_drop_target.dart';
 import 'package:submersion/shared/widgets/nav/nav_destinations.dart';
@@ -28,6 +30,26 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
   /// order. The `more` sentinel is a phone-only overflow control.
   List<NavDestination> get _railDestinations =>
       kNavDestinations.where((d) => d.id != 'more').toList(growable: false);
+
+  /// Builds a per-destination accent color lookup for the navigation surfaces.
+  ///
+  /// Returns null for every id while the toggle is off, and for ids with no
+  /// palette entry -- which is how the `more` sentinel stays uncolored. A null
+  /// result leaves the icon on its Material 3 default.
+  ///
+  /// Pass `watch: false` from transient surfaces (the overflow sheet) that are
+  /// built outside the scaffold's own build phase.
+  Color? Function(String) _navAccentLookup(
+    BuildContext context, {
+    bool watch = true,
+  }) {
+    final enabled = watch
+        ? ref.watch(accentNavIconsProvider)
+        : ref.read(accentNavIconsProvider);
+    if (!enabled) return (_) => null;
+    final accents = Theme.of(context).extension<FeatureAccentColors>();
+    return (id) => accents?.of(id);
+  }
 
   int _calculateSelectedIndex(
     BuildContext context, {
@@ -83,6 +105,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
 
   void _showMoreMenu(BuildContext context) {
     final overflow = ref.read(navOverflowDestinationsProvider);
+    final navAccent = _navAccentLookup(context, watch: false);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -114,7 +137,10 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
                 children: [
                   for (final destination in overflow)
                     ListTile(
-                      leading: Icon(destination.icon),
+                      leading: Icon(
+                        destination.icon,
+                        color: navAccent(destination.id),
+                      ),
                       title: Text(destination.label(sheetContext.l10n)),
                       subtitle: destination.subtitle != null
                           ? Text(destination.subtitle!(sheetContext.l10n))
@@ -139,6 +165,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isWideScreen = screenWidth >= 800;
     final isDesktopExtended = screenWidth >= 1200;
+    final navAccent = _navAccentLookup(context);
     final selectedIndex = _calculateSelectedIndex(
       context,
       isWideScreen: isWideScreen,
@@ -193,8 +220,14 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
                             destinations: [
                               for (final destination in _railDestinations)
                                 NavigationRailDestination(
-                                  icon: Icon(destination.icon),
-                                  selectedIcon: Icon(destination.selectedIcon),
+                                  icon: Icon(
+                                    destination.icon,
+                                    color: navAccent(destination.id),
+                                  ),
+                                  selectedIcon: Icon(
+                                    destination.selectedIcon,
+                                    color: navAccent(destination.id),
+                                  ),
                                   label: Text(destination.label(context.l10n)),
                                 ),
                             ],
@@ -238,6 +271,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
 
   Widget _buildMobileNavBar(BuildContext context, int selectedIndex) {
     final primary = ref.watch(navPrimaryDestinationsProvider);
+    final navAccent = _navAccentLookup(context);
     return NavigationBar(
       selectedIndex: selectedIndex,
       onDestinationSelected: (index) =>
@@ -245,8 +279,11 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
       destinations: [
         for (final destination in primary)
           NavigationDestination(
-            icon: Icon(destination.icon),
-            selectedIcon: Icon(destination.selectedIcon),
+            icon: Icon(destination.icon, color: navAccent(destination.id)),
+            selectedIcon: Icon(
+              destination.selectedIcon,
+              color: navAccent(destination.id),
+            ),
             label: destination.label(context.l10n),
           ),
       ],

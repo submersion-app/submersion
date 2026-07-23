@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/theme/feature_accent_colors.dart';
 import 'package:submersion/features/auto_update/domain/entities/update_status.dart';
 import 'package:submersion/features/auto_update/presentation/providers/update_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
@@ -18,6 +19,10 @@ Future<Widget> _buildTestApp({
   String initialLocation = '/dashboard',
   // Riverpod's sealed Override type is not re-exported; see test_app.dart.
   List<dynamic> extraOverrides = const [],
+  ThemeData? theme,
+  // MainScaffold reads the color-accent toggles, so settings must be stubbed
+  // here -- the real SettingsNotifier reaches for the database.
+  AppSettings settings = const AppSettings(),
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
@@ -71,10 +76,12 @@ Future<Widget> _buildTestApp({
       updateServiceProvider.overrideWith((ref) async => null),
       updateStatusProvider.overrideWith((ref) => _StubUpdateStatusNotifier()),
       downloadNotifierProvider.overrideWith((ref) => _StubDownloadNotifier()),
+      settingsProvider.overrideWith((ref) => _StubSettingsNotifier(settings)),
       ...extraOverrides.cast(),
     ],
     child: MaterialApp.router(
       routerConfig: router,
+      theme: theme,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
     ),
@@ -94,6 +101,16 @@ class _StubUpdateStatusNotifier extends StateNotifier<UpdateStatus>
 class _StubDownloadNotifier extends StateNotifier<DownloadState>
     implements DownloadNotifier {
   _StubDownloadNotifier() : super(const DownloadState());
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// Stub settings notifier so the accent tests can drive the toggles without
+/// touching the database.
+class _StubSettingsNotifier extends StateNotifier<AppSettings>
+    implements SettingsNotifier {
+  _StubSettingsNotifier(super.initial);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -324,6 +341,9 @@ void main() {
           downloadNotifierProvider.overrideWith(
             (ref) => _StubDownloadNotifier(),
           ),
+          settingsProvider.overrideWith(
+            (ref) => _StubSettingsNotifier(const AppSettings()),
+          ),
         ],
         child: MaterialApp.router(
           routerConfig: router,
@@ -511,6 +531,157 @@ void main() {
       expect(find.widgetWithText(ListTile, 'Equipment'), findsNothing);
       expect(find.widgetWithText(ListTile, 'Buddies'), findsNothing);
       expect(find.widgetWithText(ListTile, 'Statistics'), findsNothing);
+    });
+  });
+
+  group('MainScaffold nav accent icons', () {
+    ThemeData accentTheme() => ThemeData(
+      brightness: Brightness.light,
+      extensions: const <ThemeExtension<dynamic>>[FeatureAccentColors.light],
+    );
+
+    AppSettings accentSettings({required bool on}) =>
+        AppSettings(accentNavIcons: on);
+
+    testWidgets('mobile nav icons are tinted when the toggle is on', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        await _buildTestApp(
+          settings: accentSettings(on: true),
+          theme: accentTheme(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final icon = tester.widget<Icon>(
+        find.descendant(
+          of: find.byType(NavigationBar),
+          matching: find.byIcon(Icons.scuba_diving_outlined),
+        ),
+      );
+      expect(icon.color, FeatureAccentColors.light.of('dives'));
+    });
+
+    testWidgets('mobile nav icons are untinted when the toggle is off', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        await _buildTestApp(
+          settings: accentSettings(on: false),
+          theme: accentTheme(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final icon = tester.widget<Icon>(
+        find.descendant(
+          of: find.byType(NavigationBar),
+          matching: find.byIcon(Icons.scuba_diving_outlined),
+        ),
+      );
+      expect(icon.color, isNull);
+    });
+
+    testWidgets('the More sentinel is never tinted', (tester) async {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        await _buildTestApp(
+          settings: accentSettings(on: true),
+          theme: accentTheme(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // 'more' has no palette entry, so it stays on the theme default even
+      // with accents enabled.
+      final icon = tester.widget<Icon>(
+        find.descendant(
+          of: find.byType(NavigationBar),
+          matching: find.byIcon(Icons.more_horiz_outlined),
+        ),
+      );
+      expect(icon.color, isNull);
+    });
+
+    testWidgets('rail icons are tinted when the toggle is on', (tester) async {
+      tester.view.physicalSize = const Size(1400, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        await _buildTestApp(
+          settings: accentSettings(on: true),
+          theme: accentTheme(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // NavigationRailDestination is a descriptor, so read the icons from the
+      // rail's destination list rather than the widget tree.
+      final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
+      final sitesIcon = rail.destinations[2].icon as Icon;
+      expect(sitesIcon.color, FeatureAccentColors.light.of('sites'));
+
+      final selectedSitesIcon = rail.destinations[2].selectedIcon as Icon;
+      expect(selectedSitesIcon.color, FeatureAccentColors.light.of('sites'));
+    });
+
+    testWidgets('rail icons are untinted when the toggle is off', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1400, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        await _buildTestApp(
+          settings: accentSettings(on: false),
+          theme: accentTheme(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
+      expect((rail.destinations[2].icon as Icon).color, isNull);
+    });
+
+    testWidgets('overflow sheet icons are tinted when the toggle is on', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        await _buildTestApp(
+          settings: accentSettings(on: true),
+          theme: accentTheme(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(NavigationDestination, 'More'));
+      await tester.pumpAndSettle();
+
+      final tile = tester.widget<ListTile>(
+        find.widgetWithText(ListTile, 'Equipment'),
+      );
+      expect(
+        (tile.leading as Icon).color,
+        FeatureAccentColors.light.of('equipment'),
+      );
     });
   });
 }
