@@ -57,7 +57,11 @@ class VideoThumbnailService {
     );
 
     final dir = _resolvedDir ??= await _cacheDir();
-    final cacheFile = File(p.join(dir.path, '$key.jpg'));
+    // Format-agnostic extension: the cache stores whatever encoded bytes the
+    // platform returned (JPEG from macOS QuickLook, PNG from the Windows shell
+    // and ffmpegthumbnailer). Nothing decodes by filename - Image.memory sniffs
+    // the container - so naming these .jpg would misdescribe most of them.
+    final cacheFile = File(p.join(dir.path, '$key.img'));
     if (await cacheFile.exists()) {
       try {
         return await cacheFile.readAsBytes();

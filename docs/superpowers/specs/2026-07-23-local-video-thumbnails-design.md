@@ -72,7 +72,7 @@ returned poster looks exactly like a gallery video tile with no render-layer
 changes. The existing `FileData() when item.isVideo → _VideoThumbnailPlaceholder`
 branch remains as the fallback.
 
-### Why `BytesData`, not a cached `FileData(poster.jpg)`
+### Why `BytesData`, not a cached `FileData(poster)`
 
 `MediaItemView` guards `FileData() when item.isVideo → placeholder` to stop raw
 video bytes reaching `Image.file`. A cached-poster *file* returned as `FileData`
@@ -91,7 +91,12 @@ channel), `LocalBookmarkStorage` (macOS bookmark blob), and a cache directory.
 - **Cache key:** a hash of `localPath + file mtime + file size + maxDimension`.
   Replacing or re-exporting a file changes its mtime and therefore the key, so a
   stale poster is never served.
-- **Cache location:** `Application Support/Submersion/video_thumbnails/<key>.jpg`.
+- **Cache location:** `Application Support/Submersion/video_thumbnails/<key>.img`.
+  The extension is deliberately format-agnostic: the cache stores whatever
+  encoded bytes the platform returned (JPEG from macOS QuickLook, PNG from the
+  Windows shell and ffmpegthumbnailer). Nothing decodes by filename —
+  `Image.memory` sniffs the container — so a `.jpg` name would misdescribe most
+  entries.
 - **Flow:**
   1. Compute key from the file's stat. If the file is unreadable, return null.
   2. Cache hit → return the cached bytes.
