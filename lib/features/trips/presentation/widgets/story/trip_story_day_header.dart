@@ -5,40 +5,18 @@ import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
 import 'package:submersion/features/trips/presentation/helpers/day_type_l10n.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Fixed-extent sliver delegate for one day's sticky header. Mounted pinned
-/// inside a SliverMainAxisGroup, so it stays at the top of its day chapter
-/// until the next day's header pushes it out.
-class TripStoryDayHeaderDelegate extends SliverPersistentHeaderDelegate {
-  static const double extent = 52;
-
-  final TripStoryDay day;
-
-  const TripStoryDayHeaderDelegate({required this.day});
-
-  @override
-  double get maxExtent => extent;
-
-  @override
-  double get minExtent => extent;
-
-  @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) {
-    return TripStoryDayHeader(day: day);
-  }
-
-  // TripStoryDay is Equatable, so this compares day content, not identity.
-  @override
-  bool shouldRebuild(TripStoryDayHeaderDelegate oldDelegate) =>
-      oldDelegate.day != day;
-}
-
 /// Two compact lines - "Day 3 - Wed, Jul 8" plus the day-type/port/sites
 /// subtitle - on an opaque surface so day cards scroll underneath cleanly.
+///
+/// Mounted in a [PinnedHeaderSliver] inside a SliverMainAxisGroup, so it sticks
+/// at the top of its day chapter until the next day's header pushes it out.
+/// PinnedHeaderSliver lets the header size itself, so scaled accessibility text
+/// grows the header rather than being clipped by a fixed sliver extent;
+/// [minHeight] only keeps short (subtitle-less) days from looking cramped.
 class TripStoryDayHeader extends StatelessWidget {
+  /// Floor so every day header reads as the same band at default text scale.
+  static const double minHeight = 52;
+
   final TripStoryDay day;
 
   const TripStoryDayHeader({super.key, required this.day});
@@ -55,15 +33,15 @@ class TripStoryDayHeader extends StatelessWidget {
 
     return Material(
       color: theme.colorScheme.surface,
-      child: SizedBox(
-        height: TripStoryDayHeaderDelegate.extent,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: minHeight),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           child: Row(
             children: [
               Expanded(
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(

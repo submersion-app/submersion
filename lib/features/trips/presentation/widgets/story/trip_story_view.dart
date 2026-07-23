@@ -253,10 +253,10 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
     return SliverMainAxisGroup(
       slivers: [
         if (showTodayDivider) divider,
-        SliverPersistentHeader(
-          pinned: true,
-          delegate: TripStoryDayHeaderDelegate(day: day),
-        ),
+        // PinnedHeaderSliver (not SliverPersistentHeader) so the header sizes
+        // itself: scaled accessibility text grows the band instead of being
+        // clipped by a fixed extent we would have to predict.
+        PinnedHeaderSliver(child: TripStoryDayHeader(day: day)),
         body,
       ],
     );

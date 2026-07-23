@@ -20,13 +20,31 @@ ItineraryDay _itin({String? port}) => ItineraryDay(
   updatedAt: DateTime(2026, 1, 1),
 );
 
-Future<void> pumpHeader(WidgetTester tester, TripStoryDay day) async {
+Future<void> pumpHeader(
+  WidgetTester tester,
+  TripStoryDay day, {
+  double textScale = 1.0,
+}) async {
   await tester.pumpWidget(
     MaterialApp(
       locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: Scaffold(body: TripStoryDayHeader(day: day)),
+      home: Scaffold(
+        // Align to the top so the header keeps its intrinsic height rather
+        // than being stretched by the body's constraints.
+        body: Align(
+          alignment: Alignment.topCenter,
+          child: Builder(
+            builder: (context) => MediaQuery(
+              data: MediaQuery.of(
+                context,
+              ).copyWith(textScaler: TextScaler.linear(textScale)),
+              child: TripStoryDayHeader(day: day),
+            ),
+          ),
+        ),
+      ),
     ),
   );
   await tester.pump();
@@ -90,7 +108,9 @@ void main() {
     expect(find.text('Planned'), findsOneWidget);
   });
 
-  testWidgets('header is exactly the delegate extent tall', (tester) async {
+  testWidgets('short day still fills the minimum band height', (tester) async {
+    // Title line only: shorter than the band, so the floor applies and every
+    // day header reads as the same height at default text scale.
     final day = TripStoryDay(
       date: DateTime(2026, 3, 8),
       dayNumber: 2,
@@ -100,29 +120,29 @@ void main() {
 
     expect(
       tester.getSize(find.byType(TripStoryDayHeader)).height,
-      TripStoryDayHeaderDelegate.extent,
+      TripStoryDayHeader.minHeight,
     );
   });
 
-  test('delegate rebuilds only when the day value changes', () {
-    TripStoryDay make({int dayNumber = 2}) => TripStoryDay(
-      date: DateTime(2026, 3, 8),
-      dayNumber: dayNumber,
-      kind: TripStoryDayKind.past,
+  testWidgets('scaled text grows the header instead of clipping it', (
+    tester,
+  ) async {
+    // Worst case: two text lines plus the Planned chip. A fixed-extent sliver
+    // header would overflow here; the self-sizing header must just get taller.
+    final day = TripStoryDay(
+      date: DateTime(2027, 1, 10),
+      dayNumber: 1,
+      kind: TripStoryDayKind.future,
+      itineraryDay: _itin(port: 'Kralendijk'),
     );
+    await pumpHeader(tester, day, textScale: 2.0);
 
-    final delegate = TripStoryDayHeaderDelegate(day: make());
-    // TripStoryDay is Equatable: equal values => no rebuild.
+    // An overflowing RenderFlex reports a FlutterError the test framework
+    // surfaces here; nothing thrown means nothing was clipped.
+    expect(tester.takeException(), isNull);
     expect(
-      delegate.shouldRebuild(TripStoryDayHeaderDelegate(day: make())),
-      isFalse,
+      tester.getSize(find.byType(TripStoryDayHeader)).height,
+      greaterThan(TripStoryDayHeader.minHeight),
     );
-    expect(
-      delegate.shouldRebuild(
-        TripStoryDayHeaderDelegate(day: make(dayNumber: 3)),
-      ),
-      isTrue,
-    );
-    expect(delegate.minExtent, delegate.maxExtent);
   });
 }
