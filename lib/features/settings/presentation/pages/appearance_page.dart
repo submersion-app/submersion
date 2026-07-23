@@ -119,6 +119,44 @@ class AppearancePage extends ConsumerWidget {
           ),
           const Divider(),
 
+          // -- Color accents --
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_appearance_colorAccents,
+          ),
+          SwitchListTile(
+            secondary: const Icon(Icons.format_paint_outlined),
+            title: Text(context.l10n.settings_appearance_accentNavIcons),
+            subtitle: Text(
+              context.l10n.settings_appearance_accentNavIcons_subtitle,
+            ),
+            value: settings.accentNavIcons,
+            onChanged: (value) =>
+                ref.read(settingsProvider.notifier).setAccentNavIcons(value),
+          ),
+          SwitchListTile(
+            secondary: const Icon(Icons.title_outlined),
+            title: Text(context.l10n.settings_appearance_accentSectionHeaders),
+            subtitle: Text(
+              context.l10n.settings_appearance_accentSectionHeaders_subtitle,
+            ),
+            value: settings.accentSectionHeaders,
+            onChanged: (value) => ref
+                .read(settingsProvider.notifier)
+                .setAccentSectionHeaders(value),
+          ),
+          SwitchListTile(
+            secondary: const Icon(Icons.list_alt_outlined),
+            title: Text(context.l10n.settings_appearance_accentListIcons),
+            subtitle: Text(
+              context.l10n.settings_appearance_accentListIcons_subtitle,
+            ),
+            value: settings.accentListIcons,
+            onChanged: (value) =>
+                ref.read(settingsProvider.notifier).setAccentListIcons(value),
+          ),
+          const Divider(),
+
           // -- Sections --
           _buildSectionHeader(
             context,

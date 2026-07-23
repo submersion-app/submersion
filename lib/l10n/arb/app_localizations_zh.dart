@@ -19000,6 +19000,28 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_appearance_sections => '部分';
 
   @override
+  String get settings_appearance_colorAccents => '彩色强调';
+
+  @override
+  String get settings_appearance_accentNavIcons => '彩色导航图标';
+
+  @override
+  String get settings_appearance_accentNavIcons_subtitle => '使用各功能区的颜色为主菜单图标着色';
+
+  @override
+  String get settings_appearance_accentSectionHeaders => '彩色分区标题';
+
+  @override
+  String get settings_appearance_accentSectionHeaders_subtitle =>
+      '在页面标题旁显示彩色功能图标';
+
+  @override
+  String get settings_appearance_accentListIcons => '彩色列表图标';
+
+  @override
+  String get settings_appearance_accentListIcons_subtitle => '为列表和设置页面中的图标着色';
+
+  @override
   String get settings_appearance_showDetailsPane => '显示详情面板';
 
   @override

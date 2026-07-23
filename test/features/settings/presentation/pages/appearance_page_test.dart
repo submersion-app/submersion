@@ -16,6 +16,18 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
       state = state.copyWith(mapStyle: style);
 
   @override
+  Future<void> setAccentNavIcons(bool value) async =>
+      state = state.copyWith(accentNavIcons: value);
+
+  @override
+  Future<void> setAccentSectionHeaders(bool value) async =>
+      state = state.copyWith(accentSectionHeaders: value);
+
+  @override
+  Future<void> setAccentListIcons(bool value) async =>
+      state = state.copyWith(accentListIcons: value);
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -121,6 +133,51 @@ void main() {
       expect(find.text('Dive List View'), findsNothing);
       expect(find.text('Show Profile Panel in Table View'), findsNothing);
       expect(find.text('Show details pane in table mode'), findsNothing);
+    });
+  });
+
+  group('AppearancePage color accents', () {
+    testWidgets('shows the three accent toggles, all off by default', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 2000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(_buildTestWidget());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Color accents'), findsOneWidget);
+      expect(find.text('Colored navigation icons'), findsOneWidget);
+      expect(find.text('Colored section headers'), findsOneWidget);
+      expect(find.text('Colored list icons'), findsOneWidget);
+
+      final switches = tester
+          .widgetList<SwitchListTile>(find.byType(SwitchListTile))
+          .toList();
+      expect(switches, hasLength(3));
+      expect(switches.every((s) => s.value == false), isTrue);
+    });
+
+    testWidgets('tapping a toggle turns only that surface on', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 2000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(_buildTestWidget());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Colored navigation icons'));
+      await tester.pumpAndSettle();
+
+      SwitchListTile tileFor(String title) => tester.widget<SwitchListTile>(
+        find.ancestor(
+          of: find.text(title),
+          matching: find.byType(SwitchListTile),
+        ),
+      );
+
+      expect(tileFor('Colored navigation icons').value, isTrue);
+      expect(tileFor('Colored section headers').value, isFalse);
+      expect(tileFor('Colored list icons').value, isFalse);
     });
   });
 }

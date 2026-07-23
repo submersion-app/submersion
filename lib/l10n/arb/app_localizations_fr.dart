@@ -20091,6 +20091,32 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_appearance_sections => 'Sections';
 
   @override
+  String get settings_appearance_colorAccents => 'Accents de couleur';
+
+  @override
+  String get settings_appearance_accentNavIcons =>
+      'Icônes de navigation colorées';
+
+  @override
+  String get settings_appearance_accentNavIcons_subtitle =>
+      'Colorer les icônes du menu principal avec la couleur de chaque section';
+
+  @override
+  String get settings_appearance_accentSectionHeaders =>
+      'En-têtes de section colorés';
+
+  @override
+  String get settings_appearance_accentSectionHeaders_subtitle =>
+      'Afficher une icône de section colorée à côté des titres de page';
+
+  @override
+  String get settings_appearance_accentListIcons => 'Icônes de liste colorées';
+
+  @override
+  String get settings_appearance_accentListIcons_subtitle =>
+      'Colorer les icônes des listes et des pages de réglages';
+
+  @override
   String get settings_appearance_showDetailsPane =>
       'Afficher le volet de détails';
 

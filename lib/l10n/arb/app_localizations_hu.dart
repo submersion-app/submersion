@@ -19961,6 +19961,31 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_appearance_sections => 'Szekciók';
 
   @override
+  String get settings_appearance_colorAccents => 'Színes kiemelések';
+
+  @override
+  String get settings_appearance_accentNavIcons => 'Színes navigációs ikonok';
+
+  @override
+  String get settings_appearance_accentNavIcons_subtitle =>
+      'A főmenü ikonjainak színezése az egyes területek színével';
+
+  @override
+  String get settings_appearance_accentSectionHeaders =>
+      'Színes szekciófejlécek';
+
+  @override
+  String get settings_appearance_accentSectionHeaders_subtitle =>
+      'Színes szekcióikon megjelenítése az oldalcímek mellett';
+
+  @override
+  String get settings_appearance_accentListIcons => 'Színes listaikonok';
+
+  @override
+  String get settings_appearance_accentListIcons_subtitle =>
+      'Ikonok színezése a listákban és a beállítási oldalakon';
+
+  @override
   String get settings_appearance_showDetailsPane =>
       'Részletek panel megjelenítése';
 
