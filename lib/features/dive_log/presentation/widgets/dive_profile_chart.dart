@@ -32,6 +32,17 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_chart_viewport.dart';
 import 'package:submersion/core/ui/trackpad_zoom_recognizer.dart';
 
+/// Opacity of the shaded region between the ceiling and the surface.
+///
+/// Deliberately lighter than [decoStopFillAlpha]. The stop depth is the
+/// ceiling rounded up, so the ceiling region always sits inside the deco stop
+/// band, and for computer-reported profiles the two curves are the same values
+/// and the regions coincide exactly. The fills composite, so this has to be
+/// read as a pair: 0.10 under the band's 0.18 lands the overlap at 0.26, a
+/// perceptible step up from the band rather than the 0.30 that matching the
+/// band's own weight would produce.
+const double ceilingFillAlpha = 0.10;
+
 /// Structured row emitted via [DiveProfileChart.onTooltipData] so callers
 /// can render the tooltip externally (e.g., below the chart).
 class TooltipRow {
@@ -4353,20 +4364,29 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       0xFFD32F2F,
     ); // Red 700 - distinct from pressure orange
 
-    // Build spots only where ceiling > 0
+    // Build spots only where ceiling > 0, breaking the curve wherever the
+    // obligation clears. fl_chart splits a bar on null spots and gives each
+    // section its own fill, so without the break a profile that re-enters deco
+    // would join its two runs and shade the ceiling-free stretch between them.
+    // The break is deferred to the next real spot so no null leads or trails.
     final spots = <FlSpot>[];
+    var pendingBreak = false;
     for (final i in _decimatedCurveIndices(ceilingData)) {
       final ceiling = ceilingData[i];
-      if (ceiling > 0) {
-        spots.add(
-          FlSpot(
-            widget.profile[i].timestamp.toDouble(),
-            -units.convertDepth(
-              ceiling,
-            ), // Convert and negate for inverted axis
-          ),
-        );
+      if (ceiling <= 0) {
+        if (spots.isNotEmpty) pendingBreak = true;
+        continue;
       }
+      if (pendingBreak) {
+        spots.add(FlSpot.nullSpot);
+        pendingBreak = false;
+      }
+      spots.add(
+        FlSpot(
+          widget.profile[i].timestamp.toDouble(),
+          -units.convertDepth(ceiling), // Convert and negate for inverted axis
+        ),
+      );
     }
 
     return LineChartBarData(
@@ -4383,9 +4403,15 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
       dashArray: [4, 4],
-      belowBarData: BarAreaData(
+      // The shaded region runs from the ceiling UP to the surface, so it is an
+      // aboveBarData. Negated depths put the surface (y = 0) above the ceiling
+      // (y = -4.2), and a below-bar fill cannot express that: fl_chart's
+      // painter draws the below-bar area and then erases the entire above-line
+      // region to clean up the cut-off overdraw, wiping exactly this fill. Same
+      // defect, and same fix, as the deco stop band in deco_stop_band.dart.
+      aboveBarData: BarAreaData(
         show: true,
-        color: ceilingColor.withValues(alpha: 0.15),
+        color: ceilingColor.withValues(alpha: ceilingFillAlpha),
         cutOffY: 0, // Fill to surface
         applyCutOffY: true,
       ),
