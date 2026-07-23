@@ -102,6 +102,15 @@ class AppSettings {
   final DateFormatPreference dateFormat;
   final ThemeMode themeMode;
   final String themePresetId;
+
+  /// Color accents: tint main navigation icons with each feature's color.
+  final bool accentNavIcons;
+
+  /// Color accents: show a tinted feature icon beside page titles.
+  final bool accentSectionHeaders;
+
+  /// Color accents: tint leading icons in lists and settings pages.
+  final bool accentListIcons;
   final String locale;
   final String defaultDiveType;
   final double defaultTankVolume;
@@ -380,6 +389,9 @@ class AppSettings {
     this.dateFormat = DateFormatPreference.mmmDYYYY,
     this.themeMode = ThemeMode.system,
     this.themePresetId = 'submersion',
+    this.accentNavIcons = false,
+    this.accentSectionHeaders = false,
+    this.accentListIcons = false,
     this.locale = 'system',
     this.defaultDiveType = 'recreational',
     this.defaultTankVolume = 12.0,
@@ -526,6 +538,9 @@ class AppSettings {
     DateFormatPreference? dateFormat,
     ThemeMode? themeMode,
     String? themePresetId,
+    bool? accentNavIcons,
+    bool? accentSectionHeaders,
+    bool? accentListIcons,
     String? locale,
     String? defaultDiveType,
     double? defaultTankVolume,
@@ -638,6 +653,9 @@ class AppSettings {
       dateFormat: dateFormat ?? this.dateFormat,
       themeMode: themeMode ?? this.themeMode,
       themePresetId: themePresetId ?? this.themePresetId,
+      accentNavIcons: accentNavIcons ?? this.accentNavIcons,
+      accentSectionHeaders: accentSectionHeaders ?? this.accentSectionHeaders,
+      accentListIcons: accentListIcons ?? this.accentListIcons,
       locale: locale ?? this.locale,
       defaultDiveType: defaultDiveType ?? this.defaultDiveType,
       defaultTankVolume: defaultTankVolume ?? this.defaultTankVolume,
@@ -1027,6 +1045,21 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setThemePresetId(String presetId) async {
     state = state.copyWith(themePresetId: presetId);
+    await _saveSettings();
+  }
+
+  Future<void> setAccentNavIcons(bool value) async {
+    state = state.copyWith(accentNavIcons: value);
+    await _saveSettings();
+  }
+
+  Future<void> setAccentSectionHeaders(bool value) async {
+    state = state.copyWith(accentSectionHeaders: value);
+    await _saveSettings();
+  }
+
+  Future<void> setAccentListIcons(bool value) async {
+    state = state.copyWith(accentListIcons: value);
     await _saveSettings();
   }
 
@@ -1620,6 +1653,21 @@ final themePresetProvider = Provider<AppThemePreset>((ref) {
 
 final localeProvider = Provider<String>((ref) {
   return ref.watch(settingsProvider.select((s) => s.locale));
+});
+
+/// Color accent toggles. Narrow selects so each surface rebuilds only when
+/// its own toggle changes, not on every settings mutation -- the navigation
+/// scaffold wraps every page, so a broad watch would rebuild the whole shell.
+final accentNavIconsProvider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.accentNavIcons));
+});
+
+final accentSectionHeadersProvider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.accentSectionHeaders));
+});
+
+final accentListIconsProvider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.accentListIcons));
 });
 
 /// Decompression settings convenience providers
