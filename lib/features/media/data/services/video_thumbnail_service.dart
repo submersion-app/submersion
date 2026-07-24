@@ -68,7 +68,16 @@ class VideoThumbnailService {
       try {
         return await cacheFile.readAsBytes();
       } on FileSystemException {
-        // Corrupt/unreadable cache entry: fall through and regenerate.
+        // Corrupt/unreadable entry: drop it so the failure is self-healing.
+        // A successful regenerate would overwrite it anyway, but when
+        // generation ALSO fails (unsupported codec, missing Linux tool) the bad
+        // file would otherwise persist and be re-read - and re-throw - on every
+        // render. Deleting is best-effort; regeneration runs either way.
+        try {
+          await cacheFile.delete();
+        } on FileSystemException {
+          // Leave it; the regenerate path below still runs.
+        }
       }
     }
 

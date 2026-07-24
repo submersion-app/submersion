@@ -270,7 +270,9 @@ FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
         if (entry.second.empty()) {
           entry.first->Success();  // null -> Dart falls back to placeholder
         } else {
-          entry.first->Success(flutter::EncodableValue(entry.second));
+          // Move: the bytes are not needed after the result is completed, and
+          // a poster is tens to hundreds of KB per tile.
+          entry.first->Success(flutter::EncodableValue(std::move(entry.second)));
         }
       }
       return 0;
