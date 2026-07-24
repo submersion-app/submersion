@@ -20,10 +20,16 @@ looks identical to a gallery video tile (poster + videocam badge).
 - **Out of scope:** iOS and Android (keep the placeholder). Local-file video on
   iOS is a separate known gap — only a security-scoped bookmark is stored, no
   usable path — and mobile video import is rare for this workflow.
-- **Bonus (verified, not a goal):** the media-store upload pipeline
-  (`ThumbnailGenerator`) calls the same `resolveThumbnail`, so local-video
-  posters begin flowing to uploads once the resolver produces them. The design
-  must not break that path, but improving it is not the objective.
+- **Explicitly NOT a bonus:** the media-store upload pipeline
+  (`ThumbnailGenerator`) calls the same `resolveThumbnail`, so it is tempting to
+  assume local-video posters start flowing to uploads for free. They do not.
+  `ThumbnailGenerator._resizeToJpeg` decodes generic `BytesData` by the row's
+  `originalFilename` (`thumbnail_generator.dart`), so a `.mp4`-named row still
+  decodes to null — exactly as the prior raw-video `FileData` path did. That is
+  **no regression**, and the requirement here is only that this design does not
+  make the upload path worse. Actually feeding poster bytes into upload
+  thumbnails needs `_resizeToJpeg` to recognise poster bytes as an image
+  regardless of the video filename, and is a deliberate follow-up.
 
 ## Mechanism: native OS thumbnailers
 
@@ -169,6 +175,10 @@ nobody is viewing.
 
 ## Non-goals / follow-ups
 
+- Feeding poster bytes into the media-store upload thumbnail. Needs
+  `ThumbnailGenerator._resizeToJpeg` to recognise poster bytes as an image
+  rather than decoding by the row's `.mp4` `originalFilename`. See the scope
+  note above: today that path yields null, unchanged from before this design.
 - Poster cache size cap / eviction.
 - iOS/Android local-file video posters.
 - Regenerating posters when a file is edited in place without an mtime change
