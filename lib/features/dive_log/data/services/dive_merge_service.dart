@@ -488,7 +488,10 @@ class DiveMergeService {
         );
         batch.deleteWhere(_db.tideRecords, (t) => t.diveId.equals(mergedId));
       });
-      await _diveRepo.deleteDive(mergedId);
+      // cascadeMedia: false - this undo re-points the merged dive's media
+      // back to the restored sources below; the cascade would delete (and
+      // tombstone) those rows before the restore could reach them.
+      await _diveRepo.deleteDive(mergedId, cascadeMedia: false);
 
       // Re-insert dives with ORIGINAL ids; newer HLC beats the tombstones.
       //

@@ -235,6 +235,11 @@ class GoogleDriveMediaObjectStore implements MediaObjectStore {
     await _deleteById(found.id);
   }
 
+  @override
+  Future<void> abandonResume(String key, String? resumeStateJson) async {
+    // Upload sessions expire server-side; nothing to abort.
+  }
+
   Future<void> _deleteById(String id) async {
     final response = await _send(
       http.Request('DELETE', Uri.parse('$_apiBase/drive/v3/files/$id')),

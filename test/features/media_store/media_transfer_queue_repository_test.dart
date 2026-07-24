@@ -371,4 +371,153 @@ void main() {
     expect(row.progressBytes, isNull);
     expect(row.totalBytes, isNull);
   });
+
+  test('markFailed reports terminality', () async {
+    final id = await repo.enqueueUpload(mediaId: 'm1');
+    for (var i = 0; i < 4; i++) {
+      expect(await repo.markFailed(id, 'e'), isFalse);
+    }
+    expect(await repo.markFailed(id, 'e'), isTrue);
+    expect((await repo.allForTesting()).single.state, 'failed');
+  });
+
+  group('enqueueDelete', () {
+    test('inserts a delete row with hash and payload', () async {
+      final id = await repo.enqueueDelete(
+        mediaId: 'm1',
+        contentHash: 'aabb',
+        originalExt: 'jpg',
+        renditionExt: 'jpg',
+      );
+      final row = (await repo.allForTesting()).single;
+      expect(row.id, id);
+      expect(row.direction, 'delete');
+      expect(row.contentHash, 'aabb');
+      expect(row.state, 'pending');
+      expect(row.payloadJson, '{"originalExt":"jpg","renditionExt":"jpg"}');
+    });
+
+    test('is idempotent per content hash for live and failed rows', () async {
+      final first = await repo.enqueueDelete(
+        mediaId: 'm1',
+        contentHash: 'aabb',
+        originalExt: 'jpg',
+        renditionExt: 'jpg',
+      );
+      final again = await repo.enqueueDelete(
+        mediaId: 'm2', // different row, same blob
+        contentHash: 'aabb',
+        originalExt: 'jpg',
+        renditionExt: 'jpg',
+      );
+      expect(again, first);
+      expect((await repo.allForTesting()).length, 1);
+    });
+
+    test('a done delete row allows a fresh enqueue', () async {
+      final first = await repo.enqueueDelete(
+        mediaId: 'm1',
+        contentHash: 'aabb',
+        originalExt: 'jpg',
+        renditionExt: 'jpg',
+      );
+      await repo.markDone(first);
+      final second = await repo.enqueueDelete(
+        mediaId: 'm1',
+        contentHash: 'aabb',
+        originalExt: 'jpg',
+        renditionExt: 'jpg',
+      );
+      expect(second, isNot(first));
+    });
+
+    test('upload dedup ignores delete rows for the same mediaId', () async {
+      await repo.enqueueDelete(
+        mediaId: 'm1',
+        contentHash: 'aabb',
+        originalExt: 'jpg',
+        renditionExt: 'jpg',
+      );
+      final uploadId = await repo.enqueueUpload(mediaId: 'm1');
+      final rows = await repo.allForTesting();
+      expect(rows.length, 2);
+      expect(rows.firstWhere((r) => r.id == uploadId).direction, 'upload');
+    });
+
+    test('watchLatestForMedia ignores delete rows', () async {
+      await repo.enqueueDelete(
+        mediaId: 'm1',
+        contentHash: 'aabb',
+        originalExt: 'jpg',
+        renditionExt: 'jpg',
+      );
+      expect(await repo.watchLatestForMedia('m1').first, isNull);
+    });
+  });
+
+  test('v6 migration adds payload_json to an existing v5 database', () async {
+    final nativeDb = NativeDatabase.memory(
+      setup: (rawDb) {
+        rawDb.execute('PRAGMA user_version = 5');
+        rawDb.execute('''
+          CREATE TABLE local_asset_cache (
+            media_id TEXT NOT NULL PRIMARY KEY,
+            local_asset_id TEXT,
+            resolved_at INTEGER NOT NULL,
+            resolution_method TEXT NOT NULL,
+            attempt_count INTEGER NOT NULL DEFAULT 0
+          )
+        ''');
+        rawDb.execute('''
+          CREATE TABLE media_transfer_queue (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            media_id TEXT NOT NULL,
+            direction TEXT NOT NULL DEFAULT 'upload',
+            object_kind TEXT NOT NULL DEFAULT 'original',
+            content_hash TEXT,
+            state TEXT NOT NULL DEFAULT 'pending',
+            attempts INTEGER NOT NULL DEFAULT 0,
+            next_attempt_at INTEGER,
+            resume_state_json TEXT,
+            error_message TEXT,
+            priority INTEGER NOT NULL DEFAULT 0,
+            progress_bytes INTEGER,
+            total_bytes INTEGER,
+            override_level TEXT,
+            created_at INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL
+          )
+        ''');
+        rawDb.execute('''
+          CREATE TABLE media_cache_entries (
+            content_hash TEXT NOT NULL,
+            kind TEXT NOT NULL,
+            relative_path TEXT NOT NULL,
+            size_bytes INTEGER NOT NULL,
+            last_accessed_at INTEGER NOT NULL,
+            created_at INTEGER NOT NULL,
+            source_version INTEGER,
+            PRIMARY KEY (content_hash, kind)
+          )
+        ''');
+        rawDb.execute(
+          "INSERT INTO media_transfer_queue "
+          "(media_id, created_at, updated_at) VALUES ('m1', 1, 1)",
+        );
+      },
+    );
+    final upgraded = LocalCacheDatabase(nativeDb);
+    addTearDown(upgraded.close);
+
+    final cols = await upgraded
+        .customSelect("PRAGMA table_info('media_transfer_queue')")
+        .get();
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    expect(names, contains('payload_json'));
+    final kept = await upgraded
+        .customSelect("SELECT media_id, payload_json FROM media_transfer_queue")
+        .getSingle();
+    expect(kept.data['media_id'], 'm1');
+    expect(kept.data['payload_json'], isNull);
+  });
 }

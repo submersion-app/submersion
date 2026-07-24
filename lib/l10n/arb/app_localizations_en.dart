@@ -20093,6 +20093,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_mediaStorage_transfers_state_transferring => 'Uploading';
 
   @override
+  String get settings_mediaStorage_transfers_state_deleting =>
+      'Removing from cloud';
+
+  @override
   String get settings_mediaStorage_transfers_state_done => 'Done';
 
   @override

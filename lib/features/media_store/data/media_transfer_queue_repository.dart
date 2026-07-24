@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/local_cache_database.dart';
@@ -73,6 +75,53 @@ class MediaTransferQueueRepository {
             MediaTransferQueueCompanion.insert(
               mediaId: mediaId,
               overrideLevel: Value(overrideLevel),
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+    });
+  }
+
+  /// Enqueues a remote-blob delete intent (orphan-prevention spec 5.1).
+  /// One entry covers all tiers (original + thumb + rendition) of one
+  /// content hash. Idempotent per hash for every live state, mirroring
+  /// enqueueUpload's semantics: pending/transferring/failed delete rows
+  /// are reused (the sweep is the backstop for terminal failures); only
+  /// 'done' allows a fresh insert. [originalExt] and [renditionExt] are
+  /// captured here because the media row is gone by drain time.
+  Future<int> enqueueDelete({
+    required String mediaId,
+    required String contentHash,
+    required String originalExt,
+    required String renditionExt,
+  }) {
+    return _db.transaction(() async {
+      final existing =
+          await (_db.select(_db.mediaTransferQueue)
+                ..where(
+                  (t) =>
+                      t.direction.equals('delete') &
+                      t.contentHash.equals(contentHash) &
+                      t.state.isIn(['pending', 'transferring', 'failed']),
+                )
+                ..limit(1))
+              .getSingleOrNull();
+      if (existing != null) return existing.id;
+
+      final now = DateTime.now().millisecondsSinceEpoch;
+      return _db
+          .into(_db.mediaTransferQueue)
+          .insert(
+            MediaTransferQueueCompanion.insert(
+              mediaId: mediaId,
+              direction: const Value('delete'),
+              contentHash: Value(contentHash),
+              payloadJson: Value(
+                jsonEncode({
+                  'originalExt': originalExt,
+                  'renditionExt': renditionExt,
+                }),
+              ),
               createdAt: now,
               updatedAt: now,
             ),
@@ -156,7 +205,10 @@ class MediaTransferQueueRepository {
   /// short-circuits to the same failure and silently burns one of the five
   /// attempts. Passing a [retryAfter] longer than that lockout keeps the
   /// attempt cap meaningful by ensuring every attempt is a real one.
-  Future<void> markFailed(int id, String error, {Duration? retryAfter}) async {
+  /// Returns true when this failure was the terminal one (attempt budget
+  /// exhausted, state now 'failed') so callers can run terminal-only
+  /// cleanup such as abandoning a resumable upload session.
+  Future<bool> markFailed(int id, String error, {Duration? retryAfter}) async {
     final row = await (_db.select(
       _db.mediaTransferQueue,
     )..where((t) => t.id.equals(id))).getSingle();
@@ -185,6 +237,7 @@ class MediaTransferQueueRepository {
         updatedAt: Value(now.millisecondsSinceEpoch),
       ),
     );
+    return terminal;
   }
 
   /// Transfers view feed: active work first, history last.
@@ -201,10 +254,14 @@ class MediaTransferQueueRepository {
     });
   }
 
-  /// Newest queue row for [mediaId] in any state, or null when none.
+  /// Newest upload row for [mediaId] in any state, or null when none.
+  /// Delete rows are excluded: they describe a dead row's blob, not this
+  /// item's transfer status.
   Stream<MediaTransferQueueEntry?> watchLatestForMedia(String mediaId) {
     return (_db.select(_db.mediaTransferQueue)
-          ..where((t) => t.mediaId.equals(mediaId))
+          ..where(
+            (t) => t.mediaId.equals(mediaId) & t.direction.equals('upload'),
+          )
           ..orderBy([(t) => OrderingTerm.desc(t.id)])
           ..limit(1))
         .watchSingleOrNull();

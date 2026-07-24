@@ -72,6 +72,19 @@ void main() {
     },
   );
 
+  test(
+    'countRowsWithHash counts every row with the hash, uploaded or not',
+    () async {
+      await repo.createMedia(
+        photo('u1', hash: 'hh').copyWith(remoteUploadedAt: DateTime(2026)),
+      );
+      await repo.createMedia(photo('u2', hash: 'hh')); // never uploaded
+      await repo.createMedia(photo('u3', hash: 'other'));
+      expect(await repo.countRowsWithHash('hh'), 2);
+      expect(await repo.countRowsWithHash('nope'), 0);
+    },
+  );
+
   test('compressed-only photo is NOT a backfill candidate', () async {
     // Linked to a dive so the exclusion below is proven to come from the
     // compressed stamp, not the linkage scoping.

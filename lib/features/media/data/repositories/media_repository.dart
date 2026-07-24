@@ -913,6 +913,91 @@ class MediaRepository {
   static Expression<bool> isLinkedToDiveOrSite($MediaTable m) =>
       m.diveId.isNotNull() | m.siteId.isNotNull();
 
+  /// Source types whose rows are legitimate as library-level media with no
+  /// dive/site linkage (orphan-prevention spec section 3, gate audit
+  /// 2026-07-23): URL-tab and manifest-subscription imports. Auto-match is
+  /// additive for them, so unlinkedness is a normal permanent state - the
+  /// dive-deletion cascade unlinks instead of deleting, and the backlog
+  /// sweep never touches them.
+  static const List<String> libraryLevelSourceTypes = [
+    'networkUrl',
+    'manifestEntry',
+  ];
+
+  /// Splits a dying dive's media (orphan-prevention spec 4.2): `doomed`
+  /// rows die with the dive (dive-only, non-library; full items because
+  /// the blob-delete intent needs contentHash/filename/type), `unlinkIds`
+  /// survive as site-linked or library-level rows with diveId nulled.
+  Future<({List<domain.MediaItem> doomed, List<String> unlinkIds})>
+  partitionMediaForDiveDeletion(List<String> diveIds) async {
+    // Not a correctness guard - SQLite accepts the `IN ()` an empty list
+    // compiles to and matches nothing - but bulk callers legitimately hand
+    // over empty collections (e.g. consolidation's secondary-dive set), and
+    // there is no reason to make the database prove that nothing matches.
+    // Matches [unlinkMediaFromDeletedDives]'s guard below.
+    if (diveIds.isEmpty) {
+      return (doomed: const <domain.MediaItem>[], unlinkIds: const <String>[]);
+    }
+    final rows = await (_db.select(
+      _db.media,
+    )..where((t) => t.diveId.isIn(diveIds))).get();
+    final doomed = <domain.MediaItem>[];
+    final unlinkIds = <String>[];
+    for (final row in rows) {
+      final keep =
+          row.siteId != null ||
+          libraryLevelSourceTypes.contains(row.sourceType);
+      if (keep) {
+        unlinkIds.add(row.id);
+      } else {
+        doomed.add(_mapRowToMediaItem(row));
+      }
+    }
+    return (doomed: doomed, unlinkIds: unlinkIds);
+  }
+
+  /// Explicitly unlinks surviving media from deleted dives, with the HLC
+  /// stamp the old silent FK SET NULL never produced - so the unlink
+  /// propagates to other devices instead of diverging.
+  Future<void> unlinkMediaFromDeletedDives(List<String> mediaIds) async {
+    if (mediaIds.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _db.transaction(() async {
+      await (_db.update(_db.media)..where((t) => t.id.isIn(mediaIds))).write(
+        MediaCompanion(diveId: const Value(null), updatedAt: Value(now)),
+      );
+      for (final id in mediaIds) {
+        await _syncRepository.markRecordPending(
+          entityType: 'media',
+          recordId: id,
+          localUpdatedAt: now,
+        );
+      }
+    });
+    SyncEventBus.notifyLocalChange();
+  }
+
+  /// Backlog-sweep candidates (orphan-prevention spec 4.3): unlinked,
+  /// non-library, and created before [olderThan] (the 24h age guard
+  /// protects any future add-then-link creator the gate audit could not
+  /// foresee).
+  Future<List<String>> getSweepableOrphanIds({
+    required DateTime olderThan,
+  }) async {
+    final id = _db.media.id;
+    final query = _db.selectOnly(_db.media)
+      ..addColumns([id])
+      ..where(
+        isLinkedToDiveOrSite(_db.media).not() &
+            _db.media.sourceType.isNotIn(libraryLevelSourceTypes) &
+            _db.media.createdAt.isSmallerThanValue(
+              olderThan.millisecondsSinceEpoch,
+            ),
+      );
+    final rows = await query.get();
+    return rows.map((r) => r.read(id)!).toList();
+  }
+
   /// Backfill candidates (design spec section 9): device-resident photos
   /// not yet confirmed in the media store, newest first so recent dives
   /// gain protection soonest. Scoped to rows linked to a dive or site so
@@ -1065,6 +1150,18 @@ class MediaRepository {
         _db.media.contentHash.equals(contentHash) &
             _db.media.remoteCompressedUploadedAt.isNotNull(),
       );
+    return (await query.getSingle()).read(count) ?? 0;
+  }
+
+  /// Number of media rows referencing [contentHash] at all - uploaded or
+  /// not. The delete fast path's drain-time refcount (orphan-prevention
+  /// spec 5.3): deliberately broader than [countRowsWithOriginal] because
+  /// skipping a blob delete is free while a wrong delete costs a re-upload.
+  Future<int> countRowsWithHash(String contentHash) async {
+    final count = _db.media.id.count();
+    final query = _db.selectOnly(_db.media)
+      ..addColumns([count])
+      ..where(_db.media.contentHash.equals(contentHash));
     return (await query.getSingle()).read(count) ?? 0;
   }
 

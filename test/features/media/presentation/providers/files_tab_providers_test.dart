@@ -418,18 +418,22 @@ void main() {
       expect(container.read(filesTabNotifierProvider), FilesTabState.initial());
     });
 
-    test('undoCommit calls deleteMedia for each id', () async {
-      when(mockRepo.deleteMedia(any)).thenAnswer((_) async {});
+    test('undoCommit deletes the committed rows via the deletion '
+        'coordinator', () async {
+      // The provider-wired notifier routes through the deletion
+      // coordinator, which looks each row up (for a possible remote-blob
+      // delete intent) and then batch-deletes.
+      when(mockRepo.getMediaById(any)).thenAnswer((_) async => null);
+      when(mockRepo.deleteMultipleMedia(any)).thenAnswer((_) async {});
 
       final notifier = container.read(filesTabNotifierProvider.notifier);
       await notifier.undoCommit(['id-1', 'id-2', 'id-3']);
 
-      verify(mockRepo.deleteMedia('id-1')).called(1);
-      verify(mockRepo.deleteMedia('id-2')).called(1);
-      verify(mockRepo.deleteMedia('id-3')).called(1);
+      verify(mockRepo.deleteMultipleMedia(['id-1', 'id-2', 'id-3'])).called(1);
     });
 
-    test('undoCommit on empty list is a no-op', () async {
+    test('undoCommit on empty list deletes nothing', () async {
+      when(mockRepo.deleteMultipleMedia(any)).thenAnswer((_) async {});
       final notifier = container.read(filesTabNotifierProvider.notifier);
       await notifier.undoCommit(const []);
       verifyNever(mockRepo.deleteMedia(any));

@@ -19925,6 +19925,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_mediaStorage_transfers_state_transferring => 'מעלה';
 
   @override
+  String get settings_mediaStorage_transfers_state_deleting => 'מסיר מהענן';
+
+  @override
   String get settings_mediaStorage_transfers_state_done => 'הושלם';
 
   @override

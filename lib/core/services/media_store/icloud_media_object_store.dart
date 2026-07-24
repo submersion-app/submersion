@@ -123,6 +123,11 @@ class ICloudMediaObjectStore implements MediaObjectStore {
   }
 
   @override
+  Future<void> abandonResume(String key, String? resumeStateJson) async {
+    // Upload sessions are OS-managed; nothing to abort.
+  }
+
+  @override
   Stream<StoreObjectInfo> list(String keyPrefix) async* {
     final root = await _root();
     await _platform.refreshFolder(root);

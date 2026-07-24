@@ -20274,6 +20274,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_mediaStorage_transfers_state_transferring => 'Uploaden';
 
   @override
+  String get settings_mediaStorage_transfers_state_deleting =>
+      'Verwijderen uit de cloud';
+
+  @override
   String get settings_mediaStorage_transfers_state_done => 'Klaar';
 
   @override

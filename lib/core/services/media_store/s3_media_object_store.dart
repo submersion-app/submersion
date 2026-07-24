@@ -109,14 +109,25 @@ class S3MediaObjectStore implements MediaObjectStore {
     void Function(String resumeStateJson)? onResumeStateChanged,
   }) async {
     final wireKey = _wire(key);
+    ({String uploadId, List<S3PartInfo> parts})? session;
     try {
-      var session = await _validateResume(wireKey, resumeStateJson);
+      session = await _validateResume(wireKey, resumeStateJson);
       session ??= (
         uploadId: await _client.createMultipartUpload(
           wireKey,
           contentType: contentType,
         ),
         parts: <S3PartInfo>[],
+      );
+      // Publish the session BEFORE the first part goes up. This callback is
+      // the only channel by which a caller ever learns the uploadId, and a
+      // failure on part 1 is the likeliest failure of all - without this,
+      // that session would be nameless: unabortable by abandonResume, absent
+      // from key listings, and billing until a lifecycle rule that raw
+      // buckets lack reaps it (orphan-prevention spec 5.5). Re-emitting a
+      // resumed session's own state is a harmless idempotent write.
+      onResumeStateChanged?.call(
+        _resumeToJson(session.uploadId, session.parts),
       );
       final parts = [...session.parts];
       final totalParts = (length + partSizeBytes - 1) ~/ partSizeBytes;
@@ -149,14 +160,41 @@ class S3MediaObjectStore implements MediaObjectStore {
         parts: parts,
       );
     } on CloudStorageException catch (e) {
+      // With no persistence callback, nothing will ever replay this
+      // session's resume state, so the failure must abort it or the
+      // uploaded parts strand and bill until a lifecycle rule (which raw
+      // buckets lack) reaps them (orphan-prevention spec 5.5). With a
+      // callback, the persisted state resumes the session on retry.
+      if (onResumeStateChanged == null) {
+        await _abortQuietly(wireKey, session?.uploadId);
+      }
       throw _map('put', key, e);
     } on FileSystemException catch (e) {
+      if (onResumeStateChanged == null) {
+        await _abortQuietly(wireKey, session?.uploadId);
+      }
       throw MediaStoreException(
         'cannot read source for $key',
         kind: MediaStoreErrorKind.fatal,
         cause: e,
       );
     }
+  }
+
+  @override
+  Future<void> abandonResume(String key, String? resumeStateJson) async {
+    if (resumeStateJson == null) return;
+    String? uploadId;
+    try {
+      final decoded = jsonDecode(resumeStateJson);
+      if (decoded is Map<String, dynamic>) {
+        final id = decoded['uploadId'];
+        if (id is String) uploadId = id;
+      }
+    } on FormatException {
+      return;
+    }
+    await _abortQuietly(_wire(key), uploadId);
   }
 
   /// Parses and server-verifies a previous attempt's resume state. Returns

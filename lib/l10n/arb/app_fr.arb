@@ -5819,6 +5819,7 @@
   "settings_mediaStorage_transfers_clearCompleted": "Effacer les terminés",
   "settings_mediaStorage_transfers_state_pending": "En attente",
   "settings_mediaStorage_transfers_state_transferring": "Envoi en cours",
+  "settings_mediaStorage_transfers_state_deleting": "Suppression du cloud",
   "settings_mediaStorage_transfers_state_done": "Terminé",
   "settings_mediaStorage_transfers_state_failed": "Échec",
   "settings_mediaStorage_backfill_action": "Envoyer la bibliothèque existante",

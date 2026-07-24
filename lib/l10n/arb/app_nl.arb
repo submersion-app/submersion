@@ -5819,6 +5819,7 @@
   "settings_mediaStorage_transfers_clearCompleted": "Voltooide wissen",
   "settings_mediaStorage_transfers_state_pending": "Wachten",
   "settings_mediaStorage_transfers_state_transferring": "Uploaden",
+  "settings_mediaStorage_transfers_state_deleting": "Verwijderen uit de cloud",
   "settings_mediaStorage_transfers_state_done": "Klaar",
   "settings_mediaStorage_transfers_state_failed": "Mislukt",
   "settings_mediaStorage_backfill_action": "Bestaande bibliotheek uploaden",

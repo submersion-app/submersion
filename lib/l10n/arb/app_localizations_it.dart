@@ -20442,6 +20442,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Caricamento';
 
   @override
+  String get settings_mediaStorage_transfers_state_deleting =>
+      'Rimozione dal cloud';
+
+  @override
   String get settings_mediaStorage_transfers_state_done => 'Completato';
 
   @override

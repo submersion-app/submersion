@@ -20070,6 +20070,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_mediaStorage_transfers_state_transferring => 'جارٍ الرفع';
 
   @override
+  String get settings_mediaStorage_transfers_state_deleting =>
+      'جارٍ الإزالة من السحابة';
+
+  @override
   String get settings_mediaStorage_transfers_state_done => 'تم';
 
   @override

@@ -5819,6 +5819,7 @@
   "settings_mediaStorage_transfers_clearCompleted": "清除已完成",
   "settings_mediaStorage_transfers_state_pending": "等待中",
   "settings_mediaStorage_transfers_state_transferring": "上传中",
+  "settings_mediaStorage_transfers_state_deleting": "正在从云端移除",
   "settings_mediaStorage_transfers_state_done": "已完成",
   "settings_mediaStorage_transfers_state_failed": "失败",
   "settings_mediaStorage_backfill_action": "上传现有媒体库",

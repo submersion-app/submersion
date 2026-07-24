@@ -5819,6 +5819,7 @@
   "settings_mediaStorage_transfers_clearCompleted": "Borrar completadas",
   "settings_mediaStorage_transfers_state_pending": "En espera",
   "settings_mediaStorage_transfers_state_transferring": "Subiendo",
+  "settings_mediaStorage_transfers_state_deleting": "Eliminando de la nube",
   "settings_mediaStorage_transfers_state_done": "Completado",
   "settings_mediaStorage_transfers_state_failed": "Fallido",
   "settings_mediaStorage_backfill_action": "Subir biblioteca existente",

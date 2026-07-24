@@ -19396,6 +19396,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_mediaStorage_transfers_state_transferring => '上传中';
 
   @override
+  String get settings_mediaStorage_transfers_state_deleting => '正在从云端移除';
+
+  @override
   String get settings_mediaStorage_transfers_state_done => '已完成';
 
   @override

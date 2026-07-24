@@ -5819,6 +5819,7 @@
   "settings_mediaStorage_transfers_clearCompleted": "مسح المكتملة",
   "settings_mediaStorage_transfers_state_pending": "في الانتظار",
   "settings_mediaStorage_transfers_state_transferring": "جارٍ الرفع",
+  "settings_mediaStorage_transfers_state_deleting": "جارٍ الإزالة من السحابة",
   "settings_mediaStorage_transfers_state_done": "تم",
   "settings_mediaStorage_transfers_state_failed": "فشل",
   "settings_mediaStorage_backfill_action": "رفع المكتبة الحالية",

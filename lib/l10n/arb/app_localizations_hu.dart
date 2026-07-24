@@ -20383,6 +20383,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_mediaStorage_transfers_state_transferring => 'Feltöltés';
 
   @override
+  String get settings_mediaStorage_transfers_state_deleting =>
+      'Eltávolítás a felhőből';
+
+  @override
   String get settings_mediaStorage_transfers_state_done => 'Kész';
 
   @override

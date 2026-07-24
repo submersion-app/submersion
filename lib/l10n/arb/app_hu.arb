@@ -5819,6 +5819,7 @@
   "settings_mediaStorage_transfers_clearCompleted": "Befejezettek törlése",
   "settings_mediaStorage_transfers_state_pending": "Várakozik",
   "settings_mediaStorage_transfers_state_transferring": "Feltöltés",
+  "settings_mediaStorage_transfers_state_deleting": "Eltávolítás a felhőből",
   "settings_mediaStorage_transfers_state_done": "Kész",
   "settings_mediaStorage_transfers_state_failed": "Sikertelen",
   "settings_mediaStorage_backfill_action": "Meglévő könyvtár feltöltése",

@@ -5819,6 +5819,7 @@
   "settings_mediaStorage_transfers_clearCompleted": "Abgeschlossene entfernen",
   "settings_mediaStorage_transfers_state_pending": "Wartend",
   "settings_mediaStorage_transfers_state_transferring": "Wird hochgeladen",
+  "settings_mediaStorage_transfers_state_deleting": "Wird aus der Cloud entfernt",
   "settings_mediaStorage_transfers_state_done": "Fertig",
   "settings_mediaStorage_transfers_state_failed": "Fehlgeschlagen",
   "settings_mediaStorage_backfill_action": "Vorhandene Bibliothek hochladen",

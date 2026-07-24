@@ -20513,6 +20513,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Envoi en cours';
 
   @override
+  String get settings_mediaStorage_transfers_state_deleting =>
+      'Suppression du cloud';
+
+  @override
   String get settings_mediaStorage_transfers_state_done => 'Terminé';
 
   @override

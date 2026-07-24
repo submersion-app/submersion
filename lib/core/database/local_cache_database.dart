@@ -35,6 +35,10 @@ class MediaTransferQueue extends Table {
   IntColumn get totalBytes => integer().nullable()();
   // Adjustable upload quality: a per-item re-upload override level (v4).
   TextColumn get overrideLevel => text().nullable()();
+  // Operation payload for non-upload directions (v6). For 'delete' entries:
+  // {"originalExt": ..., "renditionExt": ...} -- the two facts that cannot
+  // be recovered once the media row is gone.
+  TextColumn get payloadJson => text().nullable()();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 }
@@ -64,7 +68,7 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
   LocalCacheDatabase(super.e);
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -87,6 +91,11 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
       // it; the v1 create path above already includes the current schema.
       if (from >= 2 && from < 5) {
         await m.addColumn(mediaCacheEntries, mediaCacheEntries.sourceVersion);
+      }
+      // v6: delete-intent payload. Only v2..v5 stored schemas lack it; the
+      // v1 create path above already includes the current schema.
+      if (from >= 2 && from < 6) {
+        await m.addColumn(mediaTransferQueue, mediaTransferQueue.payloadJson);
       }
     },
   );

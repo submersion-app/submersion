@@ -34146,6 +34146,12 @@ abstract class AppLocalizations {
   /// **'Uploading'**
   String get settings_mediaStorage_transfers_state_transferring;
 
+  /// No description provided for @settings_mediaStorage_transfers_state_deleting.
+  ///
+  /// In en, this message translates to:
+  /// **'Removing from cloud'**
+  String get settings_mediaStorage_transfers_state_deleting;
+
   /// No description provided for @settings_mediaStorage_transfers_state_done.
   ///
   /// In en, this message translates to:

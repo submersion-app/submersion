@@ -1,5 +1,7 @@
+import AppKit
 import FlutterMacOS
 import Foundation
+import QuickLookThumbnailing
 
 /// Handles security-scoped bookmark creation and resolution for the
 /// Media Source Extension feature.
@@ -107,8 +109,72 @@ class LocalMediaHandler: NSObject {
                 return
             }
             readBookmarkBytes(blob: blob.data, result: result)
+        case "generateVideoThumbnail":
+            guard let args = call.arguments as? [String: Any] else {
+                result(nil)
+                return
+            }
+            // Clamp at the channel boundary (mirrors the Dart caller's
+            // 1...4096): a zero/negative size would make an invalid QuickLook
+            // request, and an absurd one would provoke a huge render.
+            let maxDim = min(max((args["maxDimension"] as? Int) ?? 512, 1), 4096)
+            let blob = (args["bookmarkBlob"] as? FlutterStandardTypedData)?.data
+            let path = args["path"] as? String
+            generateVideoThumbnail(
+                path: path, bookmarkBlob: blob, maxDimension: maxDim,
+                result: result)
         default:
             result(FlutterMethodNotImplemented)
+        }
+    }
+
+    /// Generates a poster frame via QuickLook. On the sandbox, resolves the
+    /// security-scoped bookmark and brackets access; falls back to the raw
+    /// path when no bookmark is supplied (unsandboxed dev builds). Returns nil
+    /// on any failure so the Dart side keeps the placeholder.
+    private func generateVideoThumbnail(
+        path: String?, bookmarkBlob: Data?, maxDimension: Int,
+        result: @escaping FlutterResult
+    ) {
+        var url: URL?
+        var scoped = false
+        if let blob = bookmarkBlob {
+            var stale = false
+            url = try? URL(
+                resolvingBookmarkData: blob,
+                options: [.withSecurityScope],
+                relativeTo: nil, bookmarkDataIsStale: &stale)
+            if let u = url { scoped = u.startAccessingSecurityScopedResource() }
+        } else if let p = path {
+            url = URL(fileURLWithPath: p)
+        }
+        guard let fileURL = url else {
+            result(nil)
+            return
+        }
+
+        let size = CGSize(width: maxDimension, height: maxDimension)
+        let request = QLThumbnailGenerator.Request(
+            fileAt: fileURL, size: size, scale: 1.0,
+            representationTypes: .thumbnail)
+
+        QLThumbnailGenerator.shared.generateBestRepresentation(for: request) {
+            rep, _ in
+            defer { if scoped { fileURL.stopAccessingSecurityScopedResource() } }
+            guard let cg = rep?.cgImage else {
+                DispatchQueue.main.async { result(nil) }
+                return
+            }
+            let bitmap = NSBitmapImageRep(cgImage: cg)
+            let jpeg = bitmap.representation(
+                using: .jpeg, properties: [.compressionFactor: 0.8])
+            DispatchQueue.main.async {
+                if let data = jpeg {
+                    result(FlutterStandardTypedData(bytes: data))
+                } else {
+                    result(nil)
+                }
+            }
         }
     }
 

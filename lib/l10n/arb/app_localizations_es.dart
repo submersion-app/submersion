@@ -20455,6 +20455,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_mediaStorage_transfers_state_transferring => 'Subiendo';
 
   @override
+  String get settings_mediaStorage_transfers_state_deleting =>
+      'Eliminando de la nube';
+
+  @override
   String get settings_mediaStorage_transfers_state_done => 'Completado';
 
   @override

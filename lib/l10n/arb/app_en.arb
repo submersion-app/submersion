@@ -12825,6 +12825,7 @@
   "settings_mediaStorage_transfers_clearCompleted": "Clear completed",
   "settings_mediaStorage_transfers_state_pending": "Waiting",
   "settings_mediaStorage_transfers_state_transferring": "Uploading",
+  "settings_mediaStorage_transfers_state_deleting": "Removing from cloud",
   "settings_mediaStorage_transfers_state_done": "Done",
   "settings_mediaStorage_transfers_state_failed": "Failed",
   "settings_mediaStorage_backfill_action": "Upload existing library",

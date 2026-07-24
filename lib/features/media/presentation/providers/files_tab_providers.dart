@@ -12,6 +12,8 @@ import 'package:submersion/features/media/domain/entities/media_source_type.dart
 import 'package:submersion/features/media/domain/value_objects/extracted_file.dart';
 import 'package:submersion/features/media/domain/value_objects/matched_selection.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
+import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
+import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_enqueue_provider.dart';
 
@@ -100,9 +102,15 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
     required this.bookmarkStorage,
     required this.platform,
     this.onMediaCreated,
+    this.deletionCoordinator,
   }) : super(FilesTabState.initial());
 
   final MediaRepository mediaRepository;
+
+  /// Routes undo deletions through the orphan-prevention fast path when
+  /// wired (production); direct-construction tests fall back to the
+  /// repository.
+  final MediaDeletionCoordinator? deletionCoordinator;
   final LocalBookmarkStorage bookmarkStorage;
   final LocalMediaPlatform platform;
 
@@ -181,6 +189,11 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
   /// Reverses a prior [commit] by deleting each row by id. Bookmark blobs
   /// in the keychain are intentionally not cleaned up — see class doc.
   Future<void> undoCommit(List<String> ids) async {
+    final coordinator = deletionCoordinator;
+    if (coordinator != null) {
+      await coordinator.deleteMultipleMedia(ids);
+      return;
+    }
     for (final id in ids) {
       await mediaRepository.deleteMedia(id);
     }
@@ -248,5 +261,6 @@ final filesTabNotifierProvider =
         bookmarkStorage: ref.read(localBookmarkStorageProvider),
         platform: ref.read(localMediaPlatformProvider),
         onMediaCreated: ref.read(mediaStoreEnqueueProvider),
+        deletionCoordinator: ref.read(mediaDeletionCoordinatorProvider),
       ),
     );

@@ -20447,6 +20447,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_mediaStorage_transfers_state_transferring => 'Enviando';
 
   @override
+  String get settings_mediaStorage_transfers_state_deleting =>
+      'Removendo da nuvem';
+
+  @override
   String get settings_mediaStorage_transfers_state_done => 'Concluído';
 
   @override

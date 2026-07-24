@@ -5819,6 +5819,7 @@
   "settings_mediaStorage_transfers_clearCompleted": "נקה שהושלמו",
   "settings_mediaStorage_transfers_state_pending": "ממתין",
   "settings_mediaStorage_transfers_state_transferring": "מעלה",
+  "settings_mediaStorage_transfers_state_deleting": "מסיר מהענן",
   "settings_mediaStorage_transfers_state_done": "הושלם",
   "settings_mediaStorage_transfers_state_failed": "נכשל",
   "settings_mediaStorage_backfill_action": "העלה ספריה קיימת",
