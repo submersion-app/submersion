@@ -4,6 +4,7 @@ import 'dart:ui' show Size;
 import 'package:submersion/features/media/data/services/exif_extractor.dart';
 import 'package:submersion/features/media/data/services/local_bookmark_storage.dart';
 import 'package:submersion/features/media/data/services/local_media_platform.dart';
+import 'package:submersion/features/media/data/services/video_thumbnail_service.dart';
 import 'package:submersion/features/media/data/services/volume_status.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
@@ -39,12 +40,15 @@ class LocalFileResolver implements MediaSourceResolver {
     required LocalBookmarkStorage bookmarkStorage,
     required LocalMediaPlatform platform,
     required ExifExtractor exifExtractor,
+    VideoThumbnailService? videoThumbnails,
     VolumeStatus? volumeStatus,
   }) : _bookmarkStorage = bookmarkStorage,
        _platform = platform,
        _exifExtractor = exifExtractor,
+       _videoThumbnails = videoThumbnails,
        _volumeStatus = volumeStatus ?? VolumeStatus();
 
+  final VideoThumbnailService? _videoThumbnails;
   final VolumeStatus _volumeStatus;
 
   @override
@@ -132,7 +136,33 @@ class LocalFileResolver implements MediaSourceResolver {
   Future<MediaSourceData> resolveThumbnail(
     MediaItem item, {
     required Size target,
-  }) => resolve(item);
+  }) async {
+    // Videos cannot be decoded as images; ask the OS for a poster frame and
+    // return it as bytes. On any failure fall back to the raw-video FileData,
+    // which MediaItemView renders as the movie-icon placeholder.
+    //
+    // Desktop-gated on purpose: native handlers exist only for macOS, Windows
+    // and Linux, so on mobile the channel call could only ever end in a
+    // MissingPluginException -> null. Locally-imported mobile media exits
+    // posterFor immediately anyway (iOS and Android both leave localPath null
+    // and key off a bookmark / content URI), but a row synced from a desktop
+    // device carries a localPath that means nothing here - without this gate
+    // that row would pay a stat, a cache lookup and a channel round-trip per
+    // render to reach the placeholder it was always going to show. The gate
+    // also puts the spec's desktop-only scope in the code rather than leaving
+    // it implied.
+    if (item.isVideo &&
+        _videoThumbnails != null &&
+        (Platform.isMacOS || Platform.isWindows || Platform.isLinux)) {
+      final maxDim = target.longestSide.round().clamp(1, 4096);
+      final poster = await _videoThumbnails.posterFor(
+        item,
+        maxDimension: maxDim,
+      );
+      if (poster != null) return BytesData(bytes: poster);
+    }
+    return resolve(item);
+  }
 
   @override
   Future<MediaSourceMetadata?> extractMetadata(MediaItem item) async {
