@@ -60,11 +60,16 @@ bool HBitmapToPng(HBITMAP hbmp, std::vector<uint8_t>* out) {
   ComPtr<IPropertyBag2> props;
   if (FAILED(encoder->CreateNewFrame(&frame, &props))) return false;
   if (FAILED(frame->Initialize(props.Get()))) return false;
+  // Check these like every other call in this function. Letting a failed
+  // GetSize through would configure the frame as 0x0 and push the error into
+  // WriteSource/Commit, where the cause is far less obvious.
   UINT w = 0, h = 0;
-  bmp->GetSize(&w, &h);
-  frame->SetSize(w, h);
+  if (FAILED(bmp->GetSize(&w, &h)) || w == 0 || h == 0) return false;
+  if (FAILED(frame->SetSize(w, h))) return false;
+  // SetPixelFormat is in/out: WIC may hand back a different format than asked
+  // for, which WriteSource then converts to, so only a hard failure matters.
   WICPixelFormatGUID fmt = GUID_WICPixelFormat32bppBGRA;
-  frame->SetPixelFormat(&fmt);
+  if (FAILED(frame->SetPixelFormat(&fmt))) return false;
   if (FAILED(frame->WriteSource(bmp.Get(), nullptr))) return false;
   if (FAILED(frame->Commit())) return false;
   if (FAILED(encoder->Commit())) return false;
