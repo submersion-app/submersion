@@ -179,6 +179,37 @@ void main() {
     },
   );
 
+  test('a failing object delete is best-effort within the sweep', () async {
+    await insertDive('d1');
+    seedObject(StoreKeys.objectKey('dead', extension: 'jpg'), modified: old);
+    store.failDeleteWith = Exception('delete refused');
+    final report = await service.run();
+    expect(report.orphansRemoved, 0);
+    expect(
+      store.objects.keys,
+      contains(StoreKeys.objectKey('dead', extension: 'jpg')),
+    );
+  });
+
+  test(
+    'reverse repair clears thumb and rendition stamps independently',
+    () async {
+      await insertDive('d1');
+      final item = await photo(
+        'tiers.jpg',
+        hash: 'ee33',
+        thumbAt: DateTime(2026, 2),
+        compressedAt: DateTime(2026, 2),
+      );
+      // Neither the thumb nor the rendition object exists in the store.
+      final report = await service.run();
+      final got = await repo.getMediaById(item.id);
+      expect(got!.remoteThumbUploadedAt, isNull);
+      expect(got.remoteCompressedUploadedAt, isNull);
+      expect(report.repairsQueued, 1);
+    },
+  );
+
   test('reverse repair re-arms a terminally failed upload row', () async {
     await insertDive('d1');
     final item = await photo(

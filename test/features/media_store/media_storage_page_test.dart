@@ -579,6 +579,57 @@ void main() {
     expect(find.textContaining('Checked 12 objects'), findsOneWidget);
   });
 
+  Widget throwingVerifyApp(Object error) => app(
+    statusHint: 'dive-media @ minio',
+    extraOverrides: [
+      mediaVerifyRunnerProvider.overrideWithValue(() async => throw error),
+    ],
+  );
+
+  Future<void> pumpAndTapVerify(WidgetTester tester, Widget widget) async {
+    await tester.runAsync(() async {
+      await tester.pumpWidget(widget);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await tester.pump();
+    });
+    await tester.ensureVisible(find.byKey(const Key('media-verify-library')));
+    await tester.runAsync(() async {
+      await tester.tap(find.byKey(const Key('media-verify-library')));
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await tester.pump();
+    });
+  }
+
+  testWidgets('verify surfaces MediaStoreException via the error snack', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(800, 2200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await pumpAndTapVerify(
+      tester,
+      throwingVerifyApp(
+        const MediaStoreException(
+          'bucket unreachable',
+          kind: MediaStoreErrorKind.transient,
+        ),
+      ),
+    );
+    expect(find.text('bucket unreachable'), findsOneWidget);
+  });
+
+  testWidgets('verify surfaces generic failures via the error snack', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(800, 2200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await pumpAndTapVerify(
+      tester,
+      throwingVerifyApp(StateError('no media store attached')),
+    );
+    expect(find.textContaining('no media store attached'), findsOneWidget);
+  });
   testWidgets('disconnect confirms via dialog then calls the service', (
     tester,
   ) async {

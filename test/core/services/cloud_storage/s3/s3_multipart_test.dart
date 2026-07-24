@@ -180,4 +180,63 @@ void main() {
       );
     },
   );
+
+  test('listMultipartUploads follows truncated pages via markers', () async {
+    var calls = 0;
+    final paged = clientWith(
+      MockClient((request) async {
+        calls++;
+        if (calls == 1) {
+          expect(
+            request.url.queryParameters.containsKey('key-marker'),
+            isFalse,
+          );
+          return http.Response(
+            '<?xml version="1.0"?><ListMultipartUploadsResult>'
+            '<IsTruncated>true</IsTruncated>'
+            '<NextKeyMarker>k1</NextKeyMarker>'
+            '<NextUploadIdMarker>u1</NextUploadIdMarker>'
+            '<Upload><Key>a.bin</Key><UploadId>u1</UploadId>'
+            '<Initiated>2026-07-01T00:00:00Z</Initiated></Upload>'
+            '</ListMultipartUploadsResult>',
+            200,
+          );
+        }
+        expect(request.url.queryParameters['key-marker'], 'k1');
+        expect(request.url.queryParameters['upload-id-marker'], 'u1');
+        return http.Response(
+          '<?xml version="1.0"?><ListMultipartUploadsResult>'
+          '<IsTruncated>false</IsTruncated>'
+          '<Upload><Key>b.bin</Key><UploadId>u2</UploadId>'
+          '<Initiated>2026-07-02T00:00:00Z</Initiated></Upload>'
+          '</ListMultipartUploadsResult>',
+          200,
+        );
+      }),
+    );
+    final uploads = await paged.listMultipartUploads();
+    expect(uploads.map((u) => u.uploadId), ['u1', 'u2']);
+    expect(calls, 2);
+  });
+
+  test(
+    'listMultipartUploads surfaces server errors and unreadable XML',
+    () async {
+      final erroring = clientWith(
+        MockClient((_) async => http.Response('nope', 500)),
+      );
+      await expectLater(
+        erroring.listMultipartUploads(),
+        throwsA(isA<CloudStorageException>()),
+      );
+
+      final garbled = clientWith(
+        MockClient((_) async => http.Response('not xml at all <', 200)),
+      );
+      await expectLater(
+        garbled.listMultipartUploads(),
+        throwsA(isA<CloudStorageException>()),
+      );
+    },
+  );
 }
