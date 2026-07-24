@@ -7,11 +7,12 @@
 
 #include <shlobj.h>
 #include <wincodec.h>
+#include <threadpoolapiset.h>
 #include <wrl/client.h>
 
+#include <memory>
 #include <mutex>
 #include <string>
-#include <thread>
 #include <utility>
 #include <vector>
 
@@ -19,6 +20,18 @@
 
 namespace {
 using Microsoft::WRL::ComPtr;
+
+// Posted when a poster is ready to be returned to Dart.
+//
+// WM_APP + 3: the application-private range is shared across everything that
+// hangs off the runner's top-level window, and the lower offsets are taken -
+// auto_updater_windows uses WM_APP + 1 (WM_APP_SPARKLE_EVENT) and
+// submersion_transcoder uses WM_APP + 2 (WM_APP_TRANSCODE_PROGRESS). A
+// collision would not fail loudly: whichever handler runs first consumes the
+// message, so either a Sparkle event is swallowed or - worse - completions are
+// never drained and their MethodResults never complete, stranding the Dart
+// futures and leaving those grid tiles on the loading shimmer forever.
+constexpr UINT kThumbnailReadyMsg = WM_APP + 3;
 
 // Returns an empty string when the input is empty or cannot be converted:
 // MultiByteToWideChar returns 0 on failure, and writing through &w[0] on a
@@ -96,6 +109,15 @@ bool HBitmapToPng(HBITMAP hbmp, std::vector<uint8_t>* out) {
   return !out->empty();
 }
 
+// One queued poster request. Owns everything the pool callback needs, since
+// the originating method-call handler has long returned by the time it runs.
+struct ThumbWork {
+  std::shared_ptr<ThumbnailBridge> bridge;
+  std::string path;
+  int max_dim = 512;
+  std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result;
+};
+
 bool GenerateShellThumbnailPng(const std::string& path, int max_dim,
                                std::vector<uint8_t>* out) {
   ComPtr<IShellItemImageFactory> factory;
@@ -114,6 +136,30 @@ bool GenerateShellThumbnailPng(const std::string& path, int max_dim,
   bool ok = HBitmapToPng(hbmp, out);
   DeleteObject(hbmp);
   return ok;
+}
+
+// Runs on an OS thread-pool thread. Takes ownership of the ThumbWork.
+VOID CALLBACK ThumbnailWorkCallback(PTP_CALLBACK_INSTANCE, PVOID context) {
+  std::unique_ptr<ThumbWork> work(static_cast<ThumbWork*>(context));
+
+  // The shell and WIC APIs are COM and a pool thread has no apartment, so
+  // CoCreateInstance would fail with CO_E_NOTINITIALIZED without this. Shell
+  // thumbnail handlers expect an STA.
+  const HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+  std::vector<uint8_t> png;
+  GenerateShellThumbnailPng(work->path, work->max_dim, &png);
+  if (SUCCEEDED(hr)) CoUninitialize();
+
+  {
+    std::lock_guard<std::mutex> lock(work->bridge->mutex);
+    work->bridge->completed.emplace_back(std::move(work->result),
+                                         std::move(png));
+  }
+  // If the window is gone the result is simply never completed; the process is
+  // shutting down. PostMessage to a stale HWND fails harmlessly.
+  if (work->bridge->alive.load()) {
+    PostMessage(work->bridge->hwnd, kThumbnailReadyMsg, 0, 0);
+  }
 }
 }  // namespace
 
@@ -186,31 +232,24 @@ bool FlutterWindow::OnCreate() {
         // for an uncached codec or a large file. This handler runs on the
         // platform/UI thread and the grid asks for a poster per visible tile,
         // so doing it inline would stall the message loop (input, painting).
-        // Run it on a worker and complete the result back on the platform
-        // thread, mirroring the Linux GTask handling.
-        std::thread([bridge, path, max_dim,
-                     r = std::move(res)]() mutable {
-          // The shell and WIC APIs are COM; a fresh thread has no apartment,
-          // so CoCreateInstance would fail with CO_E_NOTINITIALIZED without
-          // this. Shell thumbnail handlers expect an STA.
-          const HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
-          std::vector<uint8_t> png;
-          GenerateShellThumbnailPng(path, max_dim, &png);
-          if (SUCCEEDED(hr)) CoUninitialize();
-
-          {
-            std::lock_guard<std::mutex> lock(bridge->mutex);
-            bridge->completed.emplace_back(std::move(r), std::move(png));
-          }
-          // If the window is gone the result is simply never completed; the
-          // process is shutting down. PostMessage to a stale HWND fails
-          // harmlessly rather than crashing.
-          if (bridge->alive.load()) {
-            // Qualified: this runs inside a lambda, so spell out the enclosing
-            // class rather than leaning on unqualified lookup reaching it.
-            PostMessage(bridge->hwnd, FlutterWindow::kThumbnailReadyMsg, 0, 0);
-          }
-        }).detach();
+        //
+        // Submitted to the OS thread pool rather than a detached thread per
+        // call: fast scrolling can queue a poster for every tile that passes
+        // through the viewport, and one thread each would mean unbounded
+        // thread creation plus a COM apartment apiece. The pool caps
+        // concurrency and reuses threads.
+        auto work = std::make_unique<ThumbWork>();
+        work->bridge = bridge;
+        work->path = path;
+        work->max_dim = max_dim;
+        work->result = std::move(res);
+        if (!TrySubmitThreadpoolCallback(ThumbnailWorkCallback, work.get(),
+                                         nullptr)) {
+          // Submission failed: complete now so the Dart future cannot hang.
+          work->result->Success();
+          return;
+        }
+        work.release();  // ownership passed to the callback
       });
 
   flutter_controller_->engine()->SetNextFrameCallback([&]() {

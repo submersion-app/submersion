@@ -27,10 +27,15 @@
 static std::vector<uint8_t> GenerateThumbnailPng(const std::string& path,
                                                  int max_dim) {
   std::vector<uint8_t> bytes;
-  char tmpl[] = "/tmp/subm_vthumbXXXXXX.png";
-  int fd = mkstemps(tmpl, 4);
-  if (fd < 0) return bytes;
-  close(fd);
+  // Write into a private 0700 directory rather than handing the tool a bare
+  // /tmp path. mkstemps would create the file, but we then close it and let an
+  // external process re-open that name - a window in which the path could be
+  // swapped (a symlink, say) and the write redirected. /tmp's sticky bit
+  // normally prevents that, but a directory only we can traverse does not
+  // depend on it.
+  char dir_tmpl[] = "/tmp/subm_vthumbXXXXXX";
+  if (mkdtemp(dir_tmpl) == nullptr) return bytes;
+  const std::string out_path = std::string(dir_tmpl) + "/poster.png";
 
   // -c png writes PNG to the output path; -s sets the size; -t 10% seeks.
   std::string size_arg = std::to_string(max_dim);
@@ -38,7 +43,7 @@ static std::vector<uint8_t> GenerateThumbnailPng(const std::string& path,
                    const_cast<gchar*>("-i"),
                    const_cast<gchar*>(path.c_str()),
                    const_cast<gchar*>("-o"),
-                   tmpl,
+                   const_cast<gchar*>(out_path.c_str()),
                    const_cast<gchar*>("-s"),
                    const_cast<gchar*>(size_arg.c_str()),
                    const_cast<gchar*>("-c"),
@@ -59,7 +64,7 @@ static std::vector<uint8_t> GenerateThumbnailPng(const std::string& path,
       nullptr, nullptr, nullptr, nullptr, &exit_status, &error);
 
   if (spawned && exit_status == 0) {
-    if (FILE* f = std::fopen(tmpl, "rb")) {
+    if (FILE* f = std::fopen(out_path.c_str(), "rb")) {
       std::fseek(f, 0, SEEK_END);
       long n = std::ftell(f);
       std::fseek(f, 0, SEEK_SET);
@@ -72,7 +77,9 @@ static std::vector<uint8_t> GenerateThumbnailPng(const std::string& path,
       std::fclose(f);
     }
   }
-  std::remove(tmpl);
+  // Clean up both the file and the private directory.
+  std::remove(out_path.c_str());
+  rmdir(dir_tmpl);
   return bytes;
 }
 

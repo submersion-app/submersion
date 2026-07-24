@@ -61,18 +61,6 @@ class FlutterWindow : public Win32Window {
 
   // Custom system menu command ID for "Check for Updates..."
   static constexpr UINT kCheckForUpdatesCmd = 0x0010;
-
-  // Posted by a worker thread when a poster is ready to be returned.
-  //
-  // WM_APP + 3: the application-private range is shared across everything that
-  // hangs off this top-level window, and the lower offsets are already taken -
-  // auto_updater_windows uses WM_APP + 1 (WM_APP_SPARKLE_EVENT) and
-  // submersion_transcoder uses WM_APP + 2 (WM_APP_TRANSCODE_PROGRESS). A
-  // collision here does not fail loudly: whichever handler runs first consumes
-  // the message, so either a Sparkle event is swallowed or - worse - thumbnail
-  // completions are never drained and their MethodResults never complete,
-  // leaving the grid tiles on the loading shimmer forever.
-  static constexpr UINT kThumbnailReadyMsg = WM_APP + 3;
 };
 
 #endif  // RUNNER_FLUTTER_WINDOW_H_
