@@ -930,6 +930,14 @@ class MediaRepository {
   /// survive as site-linked or library-level rows with diveId nulled.
   Future<({List<domain.MediaItem> doomed, List<String> unlinkIds})>
   partitionMediaForDiveDeletion(List<String> diveIds) async {
+    // Not a correctness guard - SQLite accepts the `IN ()` an empty list
+    // compiles to and matches nothing - but bulk callers legitimately hand
+    // over empty collections (e.g. consolidation's secondary-dive set), and
+    // there is no reason to make the database prove that nothing matches.
+    // Matches [unlinkMediaFromDeletedDives]'s guard below.
+    if (diveIds.isEmpty) {
+      return (doomed: const <domain.MediaItem>[], unlinkIds: const <String>[]);
+    }
     final rows = await (_db.select(
       _db.media,
     )..where((t) => t.diveId.isIn(diveIds))).get();

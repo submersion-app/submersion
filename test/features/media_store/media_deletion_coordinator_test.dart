@@ -96,6 +96,35 @@ void main() {
     expect((await queue.allForTesting()).single.direction, 'delete');
   });
 
+  test('deleteMediaItems builds the intent from the caller\'s row', () async {
+    await repo.createMedia(
+      photo('m5', hash: 'dd', uploadedAt: DateTime(2026, 2)),
+    );
+    final held = (await repo.getMediaById('m5'))!;
+
+    await coordinator.deleteMediaItems([held]);
+
+    expect(await repo.getMediaById('m5'), isNull);
+    final row = (await queue.allForTesting()).single;
+    expect(row.direction, 'delete');
+    expect(row.contentHash, 'dd');
+    expect(kicks, 1);
+  });
+
+  test('deleteMediaItems does not read the row back', () async {
+    // The dive-deletion cascade hands over rows it already selected, so the
+    // per-id read must be skipped rather than merely redundant. Proven by
+    // an item with no row behind it: the read-back path would find nothing
+    // and enqueue nothing, so an intent here can only have come from the
+    // caller's copy.
+    await coordinator.deleteMediaItems([
+      photo('ghost', hash: 'ee', uploadedAt: DateTime(2026, 2)),
+    ]);
+
+    final row = (await queue.allForTesting()).single;
+    expect(row.contentHash, 'ee');
+  });
+
   test('queue failure never blocks row deletion', () async {
     await repo.createMedia(
       photo('m4', hash: 'cc', uploadedAt: DateTime(2026, 2)),

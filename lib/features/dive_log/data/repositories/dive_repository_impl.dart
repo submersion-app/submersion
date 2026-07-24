@@ -52,20 +52,33 @@ class DiveRepository {
   /// The media dependencies drive the dive-deletion cascade
   /// (orphan-prevention spec 4.2); injectable for tests, self-constructed
   /// otherwise so every existing zero-arg construction site cascades too.
-  DiveRepository({
+  ///
+  /// A factory rather than a generative constructor so the default
+  /// [MediaRepository] is built ONCE and shared with the coordinator: an
+  /// initializer list cannot bind a local, so the obvious
+  /// `mediaRepository ?? MediaRepository()` written twice would hand the
+  /// cascade a different instance than the one this repository partitions
+  /// with.
+  factory DiveRepository({
     MediaRepository? mediaRepository,
     MediaDeletionCoordinator? mediaDeletionCoordinator,
-  }) : _mediaRepository = mediaRepository ?? MediaRepository(),
-       _mediaDeletionCoordinator =
-           mediaDeletionCoordinator ??
-           MediaDeletionCoordinator(
-             mediaRepository: mediaRepository ?? MediaRepository(),
-             queue: () => MediaTransferQueueRepository(),
-             // No worker kick from the data layer (provider cycles):
-             // queued intents drain on the next connectivity event, app
-             // start, or any other kick; the Verify Library sweep is the
-             // backstop.
-           );
+  }) {
+    final media = mediaRepository ?? MediaRepository();
+    return DiveRepository._(
+      media,
+      mediaDeletionCoordinator ??
+          MediaDeletionCoordinator(
+            mediaRepository: media,
+            queue: () => MediaTransferQueueRepository(),
+            // No worker kick from the data layer (provider cycles):
+            // queued intents drain on the next connectivity event, app
+            // start, or any other kick; the Verify Library sweep is the
+            // backstop.
+          ),
+    );
+  }
+
+  DiveRepository._(this._mediaRepository, this._mediaDeletionCoordinator);
 
   final MediaRepository _mediaRepository;
   final MediaDeletionCoordinator _mediaDeletionCoordinator;
@@ -1506,9 +1519,9 @@ class DiveRepository {
   Future<void> _cascadeMediaForDiveDeletion(List<String> ids) async {
     final split = await _mediaRepository.partitionMediaForDiveDeletion(ids);
     if (split.doomed.isNotEmpty) {
-      await _mediaDeletionCoordinator.deleteMultipleMedia(
-        split.doomed.map((m) => m.id).toList(),
-      );
+      // Items, not ids: the partition already read these rows, and the
+      // blob-delete intent needs exactly the fields it carries.
+      await _mediaDeletionCoordinator.deleteMediaItems(split.doomed);
     }
     if (split.unlinkIds.isNotEmpty) {
       await _mediaRepository.unlinkMediaFromDeletedDives(split.unlinkIds);

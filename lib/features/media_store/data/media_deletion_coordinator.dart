@@ -31,7 +31,22 @@ class MediaDeletionCoordinator {
 
   Future<void> deleteMedia(String id) => deleteMultipleMedia([id]);
 
-  Future<void> deleteMultipleMedia(List<String> ids) async {
+  /// Deletes by id, reading each row back to build its blob-delete intent.
+  Future<void> deleteMultipleMedia(List<String> ids) =>
+      _delete(ids, const <String, MediaItem>{});
+
+  /// [deleteMultipleMedia] for callers that already hold the rows. The
+  /// dive-deletion cascade partitions its doomed set out of a single
+  /// select, so re-reading each row by id here would be duplicate work
+  /// proportional to the number of photos on the dives being deleted.
+  Future<void> deleteMediaItems(List<MediaItem> items) => _delete(
+    [for (final item in items) item.id],
+    {for (final item in items) item.id: item},
+  );
+
+  /// [known] short-circuits the per-id read for callers that already hold
+  /// the row; ids absent from it are read back as before.
+  Future<void> _delete(List<String> ids, Map<String, MediaItem> known) async {
     var enqueued = false;
     for (final id in ids) {
       // Untyped catch on purpose: an uninitialized
@@ -39,7 +54,7 @@ class MediaDeletionCoordinator {
       // Exception), and no media-store problem may ever block the user's
       // deletion.
       try {
-        if (await _enqueueIntent(id)) enqueued = true;
+        if (await _enqueueIntent(id, known[id])) enqueued = true;
       } catch (e, stackTrace) {
         _log.warning(
           'Could not enqueue remote delete for media $id '
@@ -63,8 +78,8 @@ class MediaDeletionCoordinator {
     }
   }
 
-  Future<bool> _enqueueIntent(String id) async {
-    final item = await _mediaRepository.getMediaById(id);
+  Future<bool> _enqueueIntent(String id, MediaItem? known) async {
+    final item = known ?? await _mediaRepository.getMediaById(id);
     final hash = item?.contentHash;
     if (item == null || hash == null || hash.isEmpty) return false;
     final everUploaded =
