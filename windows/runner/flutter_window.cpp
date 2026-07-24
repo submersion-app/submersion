@@ -201,7 +201,9 @@ bool FlutterWindow::OnCreate() {
           // process is shutting down. PostMessage to a stale HWND fails
           // harmlessly rather than crashing.
           if (bridge->alive.load()) {
-            PostMessage(bridge->hwnd, kThumbnailReadyMsg, 0, 0);
+            // Qualified: this runs inside a lambda, so spell out the enclosing
+            // class rather than leaning on unqualified lookup reaching it.
+            PostMessage(bridge->hwnd, FlutterWindow::kThumbnailReadyMsg, 0, 0);
           }
         }).detach();
       });
