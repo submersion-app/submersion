@@ -31,6 +31,12 @@ bool shouldAutoVerify({
 }) {
   if (network != NetworkKind.unmetered) return false;
   if (lastSweepAt == null) return true;
+  // The stamp is synced, so a device with a broken clock can plant a
+  // FUTURE timestamp fleet-wide. Within ordinary cross-device skew a
+  // slightly-future stamp means "someone just swept" (skip); beyond that
+  // it is bogus and must not suppress the cadence until real time catches
+  // up - run, and this device's completion stamp overwrites it.
+  if (lastSweepAt.isAfter(now.add(const Duration(days: 1)))) return true;
   return now.difference(lastSweepAt) >= const Duration(days: 30);
 }
 

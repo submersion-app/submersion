@@ -293,6 +293,28 @@ void main() {
       );
     });
 
+    test('a slightly-future stamp reads as freshly swept and skips', () {
+      expect(
+        shouldAutoVerify(
+          lastSweepAt: now.add(const Duration(hours: 2)),
+          network: NetworkKind.unmetered,
+          now: now,
+        ),
+        isFalse,
+      );
+    });
+
+    test('a far-future stamp is bogus clock skew and does not suppress', () {
+      expect(
+        shouldAutoVerify(
+          lastSweepAt: now.add(const Duration(days: 90)),
+          network: NetworkKind.unmetered,
+          now: now,
+        ),
+        isTrue,
+      );
+    });
+
     test('cellular and offline never run', () {
       for (final kind in [NetworkKind.cellular, NetworkKind.offline]) {
         expect(
