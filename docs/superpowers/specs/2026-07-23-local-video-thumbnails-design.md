@@ -129,9 +129,19 @@ failure).
 
 ### `LocalFileResolver.resolveThumbnail`
 
-For `item.isVideo`, delegate to `VideoThumbnailService.posterFor`; on non-null
-return `BytesData(poster)`, otherwise fall through to `resolve(item)` (current
-behavior). For non-video items, unchanged (`resolve(item)`).
+For `item.isVideo` **on desktop** (macOS/Windows/Linux), delegate to
+`VideoThumbnailService.posterFor`; on non-null return `BytesData(poster)`,
+otherwise fall through to `resolve(item)` (current behavior). For non-video
+items, unchanged (`resolve(item)`).
+
+The desktop gate keeps this file's scope explicit rather than implied. Native
+handlers exist only on desktop, so on mobile the branch could only reach a
+`MissingPluginException` and return null. Locally-imported mobile media would
+exit `posterFor` at its first line regardless (iOS and Android both leave
+`localPath` null and key off a bookmark / content URI), but a row synced from a
+desktop device carries a `localPath` that is meaningless locally, and without
+the gate it would pay a stat, a cache lookup and a channel round-trip per
+render to arrive at the placeholder it was always going to show.
 
 ### Native handlers
 

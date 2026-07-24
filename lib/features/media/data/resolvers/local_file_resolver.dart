@@ -140,7 +140,20 @@ class LocalFileResolver implements MediaSourceResolver {
     // Videos cannot be decoded as images; ask the OS for a poster frame and
     // return it as bytes. On any failure fall back to the raw-video FileData,
     // which MediaItemView renders as the movie-icon placeholder.
-    if (item.isVideo && _videoThumbnails != null) {
+    //
+    // Desktop-gated on purpose: native handlers exist only for macOS, Windows
+    // and Linux, so on mobile the channel call could only ever end in a
+    // MissingPluginException -> null. Locally-imported mobile media exits
+    // posterFor immediately anyway (iOS and Android both leave localPath null
+    // and key off a bookmark / content URI), but a row synced from a desktop
+    // device carries a localPath that means nothing here - without this gate
+    // that row would pay a stat, a cache lookup and a channel round-trip per
+    // render to reach the placeholder it was always going to show. The gate
+    // also puts the spec's desktop-only scope in the code rather than leaving
+    // it implied.
+    if (item.isVideo &&
+        _videoThumbnails != null &&
+        (Platform.isMacOS || Platform.isWindows || Platform.isLinux)) {
       final maxDim = target.longestSide.round().clamp(1, 4096);
       final poster = await _videoThumbnails.posterFor(
         item,
