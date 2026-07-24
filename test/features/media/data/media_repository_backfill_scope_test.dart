@@ -88,4 +88,66 @@ void main() {
       expect(ids.toSet(), {linkedToDive.id, linkedToSite.id});
     },
   );
+
+  group('videos are backfill candidates', () {
+    test('an unbacked localFile video is a candidate', () async {
+      await insertDive('dive-v1');
+      final video = await repo.createMedia(
+        item(
+          'clip.mp4',
+          diveId: 'dive-v1',
+          mediaType: MediaType.video,
+          sourceType: MediaSourceType.localFile,
+        ),
+      );
+      expect(await repo.getBackfillCandidateIds(), contains(video.id));
+    });
+
+    test('an unbacked platformGallery video is a candidate', () async {
+      await insertDive('dive-v2');
+      final video = await repo.createMedia(
+        item(
+          'clip2.mp4',
+          diveId: 'dive-v2',
+          mediaType: MediaType.video,
+          sourceType: MediaSourceType.platformGallery,
+        ),
+      );
+      expect(await repo.getBackfillCandidateIds(), contains(video.id));
+    });
+
+    test('a video that already uploaded is not a candidate', () async {
+      await insertDive('dive-v3');
+      final video = await repo.createMedia(
+        item(
+          'clip3.mp4',
+          diveId: 'dive-v3',
+          mediaType: MediaType.video,
+          sourceType: MediaSourceType.localFile,
+        ),
+      );
+      await repo.stampRemoteUploaded(video.id, uploadedAt: DateTime(2026, 6));
+      expect(await repo.getBackfillCandidateIds(), isNot(contains(video.id)));
+    });
+
+    test(
+      'a connector video with an uploaded thumb is not re-enqueued',
+      () async {
+        await insertDive('dive-v4');
+        final video = await repo.createMedia(
+          item(
+            'connector.mp4',
+            diveId: 'dive-v4',
+            mediaType: MediaType.video,
+            sourceType: MediaSourceType.serviceConnector,
+          ),
+        );
+        await repo.stampRemoteThumbUploaded(
+          video.id,
+          uploadedAt: DateTime(2026, 6),
+        );
+        expect(await repo.getBackfillCandidateIds(), isNot(contains(video.id)));
+      },
+    );
+  });
 }

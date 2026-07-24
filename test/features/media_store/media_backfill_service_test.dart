@@ -78,12 +78,18 @@ void main() {
     return created;
   }
 
-  test('enqueues device-resident photos without a remote stamp, newest '
-      'first, skipping videos, signatures, network sources, and uploaded '
+  test('enqueues device-resident photos and videos without a remote stamp, '
+      'newest first, skipping signatures, network sources, and uploaded '
       'rows', () async {
     final old = await mediaRow(name: 'old.jpg', takenAt: DateTime(2025));
     final recent = await mediaRow(name: 'new.jpg', takenAt: DateTime(2026, 6));
-    await mediaRow(name: 'clip.mp4', mediaType: domain.MediaType.video);
+    // Local videos upload their original, so an unstamped one is a
+    // candidate. Excluding them would leave a permanent not-backed-up
+    // badge on every locally imported video.
+    final clip = await mediaRow(
+      name: 'clip.mp4',
+      mediaType: domain.MediaType.video,
+    );
     await mediaRow(
       name: 'sig.png',
       mediaType: domain.MediaType.instructorSignature,
@@ -92,15 +98,15 @@ void main() {
     await mediaRow(name: 'up.jpg', uploadedAt: DateTime(2026, 7));
 
     final ids = await mediaRepository.getBackfillCandidateIds();
-    expect(ids, [recent.id, old.id]);
+    expect(ids, [recent.id, clip.id, old.id]);
 
-    expect(await service.enqueueAll(), 2);
+    expect(await service.enqueueAll(), 3);
     final rows = await queue.allForTesting();
-    expect(rows.map((r) => r.mediaId).toSet(), {recent.id, old.id});
+    expect(rows.map((r) => r.mediaId).toSet(), {recent.id, clip.id, old.id});
 
     // Idempotent: re-running does not duplicate pending rows.
-    expect(await service.enqueueAll(), 2);
-    expect((await queue.allForTesting()).length, 2);
+    expect(await service.enqueueAll(), 3);
+    expect((await queue.allForTesting()).length, 3);
   });
 
   test('connector photos are candidates; connector videos key on the thumb '
@@ -124,11 +130,17 @@ void main() {
       videoWithThumb.id,
       uploadedAt: DateTime(2026, 7),
     );
-    // A gallery video stays excluded even though connector videos now
-    // qualify.
-    await mediaRow(name: 'gal.mp4', mediaType: domain.MediaType.video);
+    // A device-resident video qualifies on the original stamp, on the
+    // separate branch from the connector thumb rule. Distinct takenAt so
+    // the newest-first ordering is deterministic rather than resolved by
+    // an unstable tiebreak against the connector photo.
+    final galleryVideo = await mediaRow(
+      name: 'gal.mp4',
+      mediaType: domain.MediaType.video,
+      takenAt: DateTime(2025, 11),
+    );
 
     final ids = await mediaRepository.getBackfillCandidateIds();
-    expect(ids, [photo.id, videoNoThumb.id]);
+    expect(ids, [photo.id, videoNoThumb.id, galleryVideo.id]);
   });
 }

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_api_client.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
@@ -167,4 +168,104 @@ void main() {
       await store.abandonResume(key, null);
     },
   );
+
+  test(
+    'reapStaleUploadSessions aborts only stale sessions in this namespace',
+    () async {
+      final store = build();
+      final config = S3Config(
+        endpoint: 'http://localhost:9000',
+        bucket: 'test-bucket',
+        prefix: 'submersion-media/',
+        accessKeyId: 'AKIA_TEST',
+        secretAccessKey: 'secret',
+      );
+      final client = S3ApiClient(
+        config,
+        httpClient: server.client,
+        retryDelay: const Duration(milliseconds: 1),
+      );
+
+      server.now = () => DateTime.utc(2026, 7, 1);
+      await client.createMultipartUpload(
+        'submersion-media/smv1/objects/aa/old.mp4',
+        contentType: 'video/mp4',
+      );
+      server.now = () => DateTime.utc(2026, 7, 20);
+      await client.createMultipartUpload(
+        'submersion-media/smv1/objects/bb/fresh.mp4',
+        contentType: 'video/mp4',
+      );
+      // A session outside this store's namespace must never be touched.
+      server.now = () => DateTime.utc(2026, 7, 1);
+      await client.createMultipartUpload(
+        'unrelated/old.bin',
+        contentType: 'application/octet-stream',
+      );
+      expect(server.activeMultipartUploadCount, 3);
+
+      final n = await store.reapStaleUploadSessions(
+        olderThan: DateTime.utc(2026, 7, 10),
+      );
+      expect(n, 1);
+      expect(server.activeMultipartUploadCount, 2);
+    },
+  );
+
+  test('reap maps a listing failure and swallows per-session abort '
+      'failures', () async {
+    final config = S3Config(
+      endpoint: 'http://localhost:9000',
+      bucket: 'test-bucket',
+      prefix: 'submersion-media/',
+      accessKeyId: 'AKIA_TEST',
+      secretAccessKey: 'secret',
+    );
+    final listFails = S3MediaObjectStore(
+      client: _ThrowingListClient(),
+      keyPrefix: config.prefix,
+    );
+    await expectLater(
+      listFails.reapStaleUploadSessions(olderThan: DateTime.utc(2026, 7, 10)),
+      throwsA(isA<MediaStoreException>()),
+    );
+
+    final abortFails = S3MediaObjectStore(
+      client: _AbortFailingClient(),
+      keyPrefix: config.prefix,
+    );
+    // The stale session's abort throws; best-effort means count 0, no throw.
+    expect(
+      await abortFails.reapStaleUploadSessions(
+        olderThan: DateTime.utc(2026, 7, 10),
+      ),
+      0,
+    );
+  });
+}
+
+class _ThrowingListClient extends Fake implements S3ApiClient {
+  @override
+  Future<List<S3MultipartUploadInfo>> listMultipartUploads({
+    String prefix = '',
+  }) async => throw const CloudStorageException('listing unavailable');
+}
+
+class _AbortFailingClient extends Fake implements S3ApiClient {
+  @override
+  Future<List<S3MultipartUploadInfo>> listMultipartUploads({
+    String prefix = '',
+  }) async => [
+    S3MultipartUploadInfo(
+      key: 'submersion-media/smv1/objects/aa/x.mp4',
+      uploadId: 'u1',
+      initiated: DateTime.utc(2026, 7, 1),
+    ),
+  ];
+
+  @override
+  Future<void> abortMultipartUpload(
+    String key, {
+    required String uploadId,
+  }) async => throw const CloudStorageException('abort refused');
 }

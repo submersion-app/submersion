@@ -82,6 +82,40 @@ class MediaTransferQueueRepository {
     });
   }
 
+  /// Enqueue for reverse repair (verify sweep, orphan-prevention spec
+  /// 6.2): like [enqueueUpload], but a terminally failed row is re-armed
+  /// with a fresh attempt budget via [retry]. The sweep just observed the
+  /// remote object is missing - new evidence that a fresh attempt is
+  /// warranted, exactly the judgment an explicit user retry expresses.
+  /// Without this, a failed row would swallow the repair: nextPending
+  /// never selects 'failed', yet the intent would count as queued.
+  Future<int> enqueueRepairUpload({required String mediaId}) {
+    return _db.transaction(() async {
+      final existing =
+          await (_db.select(_db.mediaTransferQueue)..where(
+                (t) =>
+                    t.mediaId.equals(mediaId) &
+                    t.direction.equals('upload') &
+                    t.state.isIn(['pending', 'transferring', 'failed']),
+              ))
+              .getSingleOrNull();
+      if (existing != null) {
+        if (existing.state == 'failed') await retry(existing.id);
+        return existing.id;
+      }
+      final now = DateTime.now().millisecondsSinceEpoch;
+      return _db
+          .into(_db.mediaTransferQueue)
+          .insert(
+            MediaTransferQueueCompanion.insert(
+              mediaId: mediaId,
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+    });
+  }
+
   /// Enqueues a remote-blob delete intent (orphan-prevention spec 5.1).
   /// One entry covers all tiers (original + thumb + rendition) of one
   /// content hash. Idempotent per hash for every live state, mirroring

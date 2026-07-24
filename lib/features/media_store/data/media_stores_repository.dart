@@ -10,6 +10,7 @@ typedef MediaStoreDescriptor = ({
   String id,
   String providerType,
   String displayHint,
+  DateTime? lastSweepAt,
 });
 
 /// Synced `media_stores` rows: the secret-free announcement that this
@@ -62,6 +63,30 @@ class MediaStoresRepository {
       id: row.id,
       providerType: row.providerType,
       displayHint: row.displayHint,
+      lastSweepAt: row.lastSweepAt == null
+          ? null
+          : DateTime.fromMillisecondsSinceEpoch(row.lastSweepAt!),
     );
+  }
+
+  /// Records a completed Verify Library sweep (orphan-prevention spec
+  /// 6.4). Synced, so one device's sweep satisfies the fleet-wide 30-day
+  /// cadence for every device.
+  Future<void> stampLastSweep(String storeId, DateTime at) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await (_db.update(
+      _db.mediaStores,
+    )..where((t) => t.id.equals(storeId))).write(
+      MediaStoresCompanion(
+        lastSweepAt: Value(at.millisecondsSinceEpoch),
+        updatedAt: Value(now),
+      ),
+    );
+    await _syncRepository.markRecordPending(
+      entityType: 'mediaStores',
+      recordId: storeId,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
   }
 }

@@ -1404,6 +1404,9 @@ class MediaStores extends Table {
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
   TextColumn get hlc => text().nullable()();
+  // v136: epoch millis of the last completed Verify Library sweep on ANY
+  // device (fleet-wide cadence; orphan-prevention spec 6.4).
+  IntColumn get lastSweepAt => integer().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -2843,7 +2846,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 134;
+  static const int currentSchemaVersion = 136;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -3006,6 +3009,7 @@ class AppDatabase extends _$AppDatabase {
     // v134: media compressed-rendition columns (adjustable upload quality
     // Phase A). Renumbered from v130 as main advanced past it at merge time.
     134,
+    136,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -3860,6 +3864,23 @@ class AppDatabase extends _$AppDatabase {
         hlc TEXT
       )
     ''');
+  }
+
+  /// Idempotent DDL for the v136 media_stores.last_sweep_at column
+  /// (fleet-wide Verify Library timestamp). Called from the v136 onUpgrade
+  /// step and the beforeOpen backstop, matching the _assertMediaStoreSchema
+  /// pattern so a schema-version collision cannot strand a database
+  /// without it. Self-guarding when the table is absent (minimal
+  /// fixtures) - the v103 backstop creates it first in real databases.
+  Future<void> _assertMediaStoresLastSweepColumn() async {
+    final cols = await customSelect("PRAGMA table_info('media_stores')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('last_sweep_at')) {
+      await customStatement(
+        'ALTER TABLE media_stores ADD COLUMN last_sweep_at INTEGER',
+      );
+    }
   }
 
   /// Idempotent DDL for the v133 compressed-rendition columns. Called from the
@@ -7035,6 +7056,13 @@ class AppDatabase extends _$AppDatabase {
           await _assertMediaCompressedRenditionColumns();
         }
         if (from < 134) await reportProgress();
+        // v136: media_stores.last_sweep_at (Verify Library fleet cadence).
+        // v135 is reserved by a parallel branch; deliberately skipped here,
+        // mirroring the v132-over-v131 precedent.
+        if (from < 136) {
+          await _assertMediaStoresLastSweepColumn();
+        }
+        if (from < 136) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys
@@ -7049,6 +7077,9 @@ class AppDatabase extends _$AppDatabase {
 
         // v134 backstop: re-assert compressed-rendition columns.
         await _assertMediaCompressedRenditionColumns();
+
+        // v136 backstop: re-assert media_stores.last_sweep_at.
+        await _assertMediaStoresLastSweepColumn();
 
         // v106 backstop: re-assert connector-suggestion columns (the helper
         // is self-guarding when the suggestions table is absent).

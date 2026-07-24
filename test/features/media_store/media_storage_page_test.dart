@@ -9,6 +9,7 @@ import 'package:submersion/core/services/media_store/media_store_credentials_sto
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media_store/data/media_backfill_service.dart';
 import 'package:submersion/features/media_store/data/media_store_service.dart';
+import 'package:submersion/features/media_store/data/media_verify_service.dart';
 import 'package:submersion/features/media_store/data/media_stores_repository.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/media_store/presentation/pages/media_storage_page.dart';
@@ -122,28 +123,38 @@ void main() {
     backfill = _FakeBackfillService();
   });
 
-  Widget app({bool apple = true, String? statusHint, int activeCount = 0}) =>
-      ProviderScope(
-        overrides: [
-          mediaStoreRuntimeProvider.overrideWith((ref) async => null),
-          mediaStoreCredentialsStoreProvider.overrideWithValue(
-            MediaStoreCredentialsStore(storage: InMemoryKeychain()),
-          ),
-          mediaStoreServiceProvider.overrideWithValue(service),
-          mediaBackfillServiceProvider.overrideWithValue(backfill),
-          mediaStoreStatusHintProvider.overrideWith((ref) async => statusHint),
-          mediaTransferActiveCountProvider.overrideWith(
-            (ref) => Stream.value(activeCount),
-          ),
-          isApplePlatformProvider.overrideWithValue(apple),
-        ],
-        child: const MaterialApp(
-          locale: Locale('en'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: MediaStoragePage(),
-        ),
-      );
+  Widget app({
+    bool apple = true,
+    String? statusHint,
+    int activeCount = 0,
+    // Riverpod 3 does not export the Override type; mirror the
+    // weight_planner_page_test precedent.
+    List<dynamic> extraOverrides = const [],
+  }) => ProviderScope(
+    overrides: [
+      mediaStoreRuntimeProvider.overrideWith((ref) async => null),
+      mediaStoreCredentialsStoreProvider.overrideWithValue(
+        MediaStoreCredentialsStore(storage: InMemoryKeychain()),
+      ),
+      mediaStoreServiceProvider.overrideWithValue(service),
+      mediaBackfillServiceProvider.overrideWithValue(backfill),
+      mediaStoreStatusHintProvider.overrideWith((ref) async => statusHint),
+      mediaTransferActiveCountProvider.overrideWith(
+        (ref) => Stream.value(activeCount),
+      ),
+      isApplePlatformProvider.overrideWithValue(apple),
+      // Last, so callers can genuinely override any of the defaults above.
+      // (Plain spread: dynamic elements implicitly cast, and Riverpod 3
+      // does not export the Override type to name in a cast<T>().)
+      ...extraOverrides,
+    ],
+    child: const MaterialApp(
+      locale: Locale('en'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: MediaStoragePage(),
+    ),
+  );
 
   testWidgets('shows the not-configured status and no disconnect '
       'button', (tester) async {
@@ -528,6 +539,97 @@ void main() {
     expect(find.textContaining('7'), findsWidgets);
   });
 
+  testWidgets('verify library runs the sweep and reports the summary', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(800, 2200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    var runs = 0;
+    await tester.runAsync(() async {
+      await tester.pumpWidget(
+        app(
+          statusHint: 'dive-media @ minio',
+          extraOverrides: [
+            mediaVerifyRunnerProvider.overrideWithValue(() async {
+              runs++;
+              return const VerifyLibraryReport(
+                objectsChecked: 12,
+                orphansRemoved: 3,
+                bytesReclaimed: 999,
+                sessionsAborted: 1,
+                repairsQueued: 2,
+              );
+            }),
+          ],
+        ),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await tester.pump();
+    });
+
+    await tester.ensureVisible(find.byKey(const Key('media-verify-library')));
+    await tester.runAsync(() async {
+      await tester.tap(find.byKey(const Key('media-verify-library')));
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await tester.pump();
+    });
+
+    expect(runs, 1);
+    expect(find.textContaining('Checked 12 objects'), findsOneWidget);
+  });
+
+  Widget throwingVerifyApp(Object error) => app(
+    statusHint: 'dive-media @ minio',
+    extraOverrides: [
+      mediaVerifyRunnerProvider.overrideWithValue(() async => throw error),
+    ],
+  );
+
+  Future<void> pumpAndTapVerify(WidgetTester tester, Widget widget) async {
+    await tester.runAsync(() async {
+      await tester.pumpWidget(widget);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await tester.pump();
+    });
+    await tester.ensureVisible(find.byKey(const Key('media-verify-library')));
+    await tester.runAsync(() async {
+      await tester.tap(find.byKey(const Key('media-verify-library')));
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await tester.pump();
+    });
+  }
+
+  testWidgets('verify surfaces MediaStoreException via the error snack', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(800, 2200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await pumpAndTapVerify(
+      tester,
+      throwingVerifyApp(
+        const MediaStoreException(
+          'bucket unreachable',
+          kind: MediaStoreErrorKind.transient,
+        ),
+      ),
+    );
+    expect(find.text('bucket unreachable'), findsOneWidget);
+  });
+
+  testWidgets('verify surfaces generic failures via the error snack', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(800, 2200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await pumpAndTapVerify(
+      tester,
+      throwingVerifyApp(StateError('no media store attached')),
+    );
+    expect(find.textContaining('no media store attached'), findsOneWidget);
+  });
   testWidgets('disconnect confirms via dialog then calls the service', (
     tester,
   ) async {

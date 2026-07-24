@@ -128,6 +128,12 @@ class ICloudMediaObjectStore implements MediaObjectStore {
   }
 
   @override
+  Future<int> reapStaleUploadSessions({required DateTime olderThan}) async {
+    // Upload sessions are OS-managed; nothing to reap.
+    return 0;
+  }
+
+  @override
   Stream<StoreObjectInfo> list(String keyPrefix) async* {
     final root = await _root();
     await _platform.refreshFolder(root);

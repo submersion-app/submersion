@@ -16,6 +16,7 @@ import 'package:submersion/features/media/domain/value_objects/media_source_meta
 import 'package:submersion/features/media/presentation/providers/files_tab_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
+import 'package:submersion/features/media_store/presentation/providers/media_store_enqueue_provider.dart';
 
 import 'files_tab_providers_test.mocks.dart';
 
@@ -52,6 +53,12 @@ void main() {
         mediaRepositoryProvider.overrideWithValue(mockRepo),
         localBookmarkStorageProvider.overrideWithValue(mockBookmarkStorage),
         localMediaPlatformProvider.overrideWithValue(mockPlatform),
+        // The real enqueue reads MediaStorePolicies, which needs
+        // SharedPreferences and therefore a Flutter binding that plain
+        // test() bodies do not have. Enqueue behavior is covered by the
+        // "commit enqueues each created row for upload" group, which
+        // constructs the notifier directly.
+        mediaStoreEnqueueProvider.overrideWithValue((_) {}),
       ],
     );
   });
@@ -430,6 +437,70 @@ void main() {
       final notifier = container.read(filesTabNotifierProvider.notifier);
       await notifier.undoCommit(const []);
       verifyNever(mockRepo.deleteMedia(any));
+    });
+  });
+
+  group('commit enqueues each created row for upload', () {
+    test(
+      'onMediaCreated fires once per persisted row with the saved id',
+      () async {
+        final enqueued = <String>[];
+        when(
+          mockPlatform.createBookmark(any),
+        ).thenAnswer((_) async => Uint8List(0));
+        when(mockBookmarkStorage.write(any, any)).thenAnswer((_) async {});
+        when(
+          mockRepo.createMedia(any),
+        ).thenAnswer((_) async => _saved('media-1'));
+
+        final notifier = FilesTabNotifier(
+          mediaRepository: mockRepo,
+          bookmarkStorage: mockBookmarkStorage,
+          platform: mockPlatform,
+          onMediaCreated: enqueued.add,
+        );
+        notifier.setFiles(
+          [_ef('/a.jpg')],
+          match: MatchedSelection(
+            matched: {
+              'dive-1': [_ef('/a.jpg')],
+            },
+            unmatched: const [],
+          ),
+        );
+
+        final ids = await notifier.commit();
+
+        expect(ids, ['media-1']);
+        expect(enqueued, ['media-1']);
+      },
+    );
+
+    test('a null onMediaCreated does not throw', () async {
+      when(
+        mockPlatform.createBookmark(any),
+      ).thenAnswer((_) async => Uint8List(0));
+      when(mockBookmarkStorage.write(any, any)).thenAnswer((_) async {});
+      when(
+        mockRepo.createMedia(any),
+      ).thenAnswer((_) async => _saved('media-2'));
+
+      final notifier = FilesTabNotifier(
+        mediaRepository: mockRepo,
+        bookmarkStorage: mockBookmarkStorage,
+        platform: mockPlatform,
+      );
+      notifier.setFiles(
+        [_ef('/b.jpg')],
+        match: MatchedSelection(
+          matched: {
+            'dive-1': [_ef('/b.jpg')],
+          },
+          unmatched: const [],
+        ),
+      );
+
+      await expectLater(notifier.commit(), completion(['media-2']));
     });
   });
 }

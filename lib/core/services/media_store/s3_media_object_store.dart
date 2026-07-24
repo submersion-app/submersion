@@ -197,6 +197,30 @@ class S3MediaObjectStore implements MediaObjectStore {
     await _abortQuietly(_wire(key), uploadId);
   }
 
+  @override
+  Future<int> reapStaleUploadSessions({required DateTime olderThan}) async {
+    final List<S3MultipartUploadInfo> uploads;
+    try {
+      uploads = await _client.listMultipartUploads(prefix: _wire('smv1/'));
+    } on CloudStorageException catch (e) {
+      throw _map('list-uploads', 'smv1/', e);
+    }
+    var aborted = 0;
+    for (final upload in uploads) {
+      if (!upload.initiated.isBefore(olderThan)) continue;
+      try {
+        await _client.abortMultipartUpload(
+          upload.key,
+          uploadId: upload.uploadId,
+        );
+        aborted++;
+      } on Exception {
+        // Best-effort per session; a miss stays for the next sweep.
+      }
+    }
+    return aborted;
+  }
+
   /// Parses and server-verifies a previous attempt's resume state. Returns
   /// null (after a best-effort abort) when the state is absent, malformed,
   /// sized differently, or no longer matches the server's part list.
