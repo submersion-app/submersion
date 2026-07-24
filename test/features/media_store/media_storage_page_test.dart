@@ -132,7 +132,6 @@ void main() {
     List<dynamic> extraOverrides = const [],
   }) => ProviderScope(
     overrides: [
-      ...extraOverrides,
       mediaStoreRuntimeProvider.overrideWith((ref) async => null),
       mediaStoreCredentialsStoreProvider.overrideWithValue(
         MediaStoreCredentialsStore(storage: InMemoryKeychain()),
@@ -144,6 +143,10 @@ void main() {
         (ref) => Stream.value(activeCount),
       ),
       isApplePlatformProvider.overrideWithValue(apple),
+      // Last, so callers can genuinely override any of the defaults above.
+      // (Plain spread: dynamic elements implicitly cast, and Riverpod 3
+      // does not export the Override type to name in a cast<T>().)
+      ...extraOverrides,
     ],
     child: const MaterialApp(
       locale: Locale('en'),

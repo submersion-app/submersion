@@ -115,10 +115,12 @@ void main() {
     seedObject(StoreKeys.thumbKey('dead'), modified: old, size: 5);
     seedObject(StoreKeys.renditionKey('dead', ext: 'jpg'), modified: old);
     seedObject(
-      StoreKeys.objectKey('young', extension: 'jpg'),
+      StoreKeys.objectKey('f00d', extension: 'jpg'),
       modified: now.subtract(const Duration(hours: 1)),
     );
     seedObject(StoreKeys.markerKey, modified: old);
+    // Old and unreferenced, but not content-addressed shaped: never deleted.
+    seedObject('smv1/objects/zz/not-a-hash.jpg', modified: old);
 
     final report = await service.run();
 
@@ -126,7 +128,13 @@ void main() {
     expect(store.objects.keys, contains(StoreKeys.markerKey));
     expect(
       store.objects.keys,
-      contains(StoreKeys.objectKey('young', extension: 'jpg')),
+      contains(StoreKeys.objectKey('f00d', extension: 'jpg')),
+      reason: 'young orphan is protected by the grace window',
+    );
+    expect(
+      store.objects.keys,
+      contains('smv1/objects/zz/not-a-hash.jpg'),
+      reason: 'malformed keys are never deleted',
     );
     expect(
       store.objects.keys,
@@ -135,7 +143,7 @@ void main() {
     expect(store.objects.keys, isNot(contains(StoreKeys.thumbKey('dead'))));
     expect(report.orphansRemoved, 3);
     expect(report.bytesReclaimed, 11); // 3 + 5 + 3
-    expect(report.objectsChecked, 5); // marker is outside the namespaces
+    expect(report.objectsChecked, 6); // marker is outside the namespaces
     expect(report.repairsQueued, 0);
   });
 

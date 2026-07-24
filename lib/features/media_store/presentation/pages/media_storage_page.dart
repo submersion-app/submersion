@@ -292,8 +292,10 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
           report.sessionsAborted,
         ),
       );
+    } on MediaStoreException catch (e) {
+      if (mounted) _showSnack(e.message, isError: true);
     } catch (e) {
-      if (mounted) _showSnack('$e');
+      if (mounted) _showSnack('$e', isError: true);
     } finally {
       if (mounted) setState(() => _verifying = false);
     }

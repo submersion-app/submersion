@@ -124,7 +124,7 @@ final mediaVerifyRunnerProvider =
           queue: ref.read(mediaTransferQueueRepositoryProvider),
         );
         final report = await service.run();
-        final storesRepository = MediaStoresRepository();
+        final storesRepository = ref.read(mediaStoresRepositoryProvider);
         final active = await storesRepository.getActive();
         if (active != null) {
           await storesRepository.stampLastSweep(active.id, DateTime.now());

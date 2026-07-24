@@ -144,35 +144,40 @@ void main() {
     );
   });
 
-  test('listMultipartUploads returns live sessions with initiated times',
-      () async {
-    server.now = () => DateTime.utc(2026, 7, 1);
-    final keep = await client.createMultipartUpload(
-      'smv1/objects/aa/a.mp4',
-      contentType: 'video/mp4',
-    );
-    final done = await client.createMultipartUpload(
-      'smv1/objects/bb/b.mp4',
-      contentType: 'video/mp4',
-    );
-    final etag = await client.uploadPart(
-      'smv1/objects/bb/b.mp4',
-      uploadId: done,
-      partNumber: 1,
-      bytes: Uint8List.fromList([1]),
-    );
-    await client.completeMultipartUpload(
-      'smv1/objects/bb/b.mp4',
-      uploadId: done,
-      parts: [S3PartInfo(partNumber: 1, etag: etag)],
-    );
+  test(
+    'listMultipartUploads returns live sessions with initiated times',
+    () async {
+      server.now = () => DateTime.utc(2026, 7, 1);
+      final keep = await client.createMultipartUpload(
+        'smv1/objects/aa/a.mp4',
+        contentType: 'video/mp4',
+      );
+      final done = await client.createMultipartUpload(
+        'smv1/objects/bb/b.mp4',
+        contentType: 'video/mp4',
+      );
+      final etag = await client.uploadPart(
+        'smv1/objects/bb/b.mp4',
+        uploadId: done,
+        partNumber: 1,
+        bytes: Uint8List.fromList([1]),
+      );
+      await client.completeMultipartUpload(
+        'smv1/objects/bb/b.mp4',
+        uploadId: done,
+        parts: [S3PartInfo(partNumber: 1, etag: etag)],
+      );
 
-    final uploads = await client.listMultipartUploads();
-    expect(uploads.map((u) => u.uploadId), [keep]);
-    expect(uploads.single.key, 'smv1/objects/aa/a.mp4');
-    expect(uploads.single.initiated, DateTime.utc(2026, 7, 1));
+      final uploads = await client.listMultipartUploads();
+      expect(uploads.map((u) => u.uploadId), [keep]);
+      expect(uploads.single.key, 'smv1/objects/aa/a.mp4');
+      expect(uploads.single.initiated, DateTime.utc(2026, 7, 1));
 
-    // Prefix filtering.
-    expect(await client.listMultipartUploads(prefix: 'smv1/thumbs/'), isEmpty);
-  });
+      // Prefix filtering.
+      expect(
+        await client.listMultipartUploads(prefix: 'smv1/thumbs/'),
+        isEmpty,
+      );
+    },
+  );
 }

@@ -144,16 +144,22 @@ class MediaVerifyService {
     );
   }
 
+  /// StoreKeys layout: a two-hex-char shard directory that must echo the
+  /// hash's first two characters, a lowercase-hex hash, and a short
+  /// alphanumeric extension. Anything else is treated as malformed and
+  /// never deleted.
+  static final _contentKeyShape = RegExp(
+    r'^([0-9a-f]{2})/([0-9a-f]{4,64})\.[a-z0-9]{1,8}$',
+  );
+
   /// `smv1/<tier>/<aa>/<hash>.<ext>` -> hash, or null when the key does
-  /// not match the content-addressed shape.
+  /// not match the content-addressed shape (including a shard directory
+  /// that does not match the hash, or a key outside [prefix]).
   String? _hashFromKey(String key, String prefix) {
-    final rest = key.substring(prefix.length);
-    final slash = rest.indexOf('/');
-    if (slash < 0) return null;
-    final file = rest.substring(slash + 1);
-    final dot = file.lastIndexOf('.');
-    if (dot <= 0) return null;
-    final hash = file.substring(0, dot);
-    return hash.isEmpty ? null : hash;
+    if (!key.startsWith(prefix)) return null;
+    final match = _contentKeyShape.firstMatch(key.substring(prefix.length));
+    if (match == null) return null;
+    final hash = match.group(2)!;
+    return hash.startsWith(match.group(1)!) ? hash : null;
   }
 }
