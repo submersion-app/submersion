@@ -42,6 +42,10 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
   bool _secretVisible = false;
   bool _busy = false;
   bool _verifying = false;
+
+  /// A sweep holds store/DB state a concurrent disconnect or backfill
+  /// would race with; every connected-state action gates on both flags.
+  bool get _actionInFlight => _busy || _verifying;
   bool _syncConfigAvailable = false;
   CloudProviderType _selectedProvider = CloudProviderType.s3;
   // Null until loaded; the switches render only once values are known.
@@ -710,13 +714,13 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
               ],
               FilledButton.tonal(
                 key: const Key('media-s3-backfill'),
-                onPressed: _busy ? null : _backfill,
+                onPressed: _actionInFlight ? null : _backfill,
                 child: Text(l10n.settings_mediaStorage_backfill_action),
               ),
               const SizedBox(height: 8),
               FilledButton.tonal(
                 key: const Key('media-verify-library'),
-                onPressed: (_busy || _verifying) ? null : _verify,
+                onPressed: _actionInFlight ? null : _verify,
                 child: Text(
                   _verifying
                       ? l10n.settings_mediaStorage_verify_running
@@ -754,7 +758,7 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
               ),
               TextButton(
                 key: const Key('media-s3-disconnect'),
-                onPressed: _busy ? null : _disconnect,
+                onPressed: _actionInFlight ? null : _disconnect,
                 style: TextButton.styleFrom(foregroundColor: Colors.red),
                 child: Text(l10n.settings_mediaStorage_action_disconnect),
               ),

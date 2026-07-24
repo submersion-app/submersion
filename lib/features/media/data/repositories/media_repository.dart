@@ -1016,23 +1016,29 @@ class MediaRepository {
     >
   >
   getRemoteStampedSummaries() async {
-    final rows =
-        await (_db.select(_db.media)..where(
-              (t) =>
-                  t.contentHash.isNotNull() &
-                  (t.remoteUploadedAt.isNotNull() |
-                      t.remoteThumbUploadedAt.isNotNull() |
-                      t.remoteCompressedUploadedAt.isNotNull()),
-            ))
-            .get();
+    // selectOnly projection: full rows would drag the imageData BLOB
+    // (signature bytes) into memory for every stamped row, and the verify
+    // sweep only needs five scalars.
+    final id = _db.media.id;
+    final hash = _db.media.contentHash;
+    final original = _db.media.remoteUploadedAt;
+    final thumb = _db.media.remoteThumbUploadedAt;
+    final rendition = _db.media.remoteCompressedUploadedAt;
+    final query = _db.selectOnly(_db.media)
+      ..addColumns([id, hash, original, thumb, rendition])
+      ..where(
+        hash.isNotNull() &
+            (original.isNotNull() | thumb.isNotNull() | rendition.isNotNull()),
+      );
+    final rows = await query.get();
     return [
       for (final row in rows)
         (
-          id: row.id,
-          contentHash: row.contentHash!,
-          hasOriginal: row.remoteUploadedAt != null,
-          hasThumb: row.remoteThumbUploadedAt != null,
-          hasRendition: row.remoteCompressedUploadedAt != null,
+          id: row.read(id)!,
+          contentHash: row.read(hash)!,
+          hasOriginal: row.read(original) != null,
+          hasThumb: row.read(thumb) != null,
+          hasRendition: row.read(rendition) != null,
         ),
     ];
   }
