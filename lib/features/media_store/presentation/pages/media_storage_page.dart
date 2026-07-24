@@ -41,6 +41,11 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
   bool _pathStyleTouched = false;
   bool _secretVisible = false;
   bool _busy = false;
+  bool _verifying = false;
+
+  /// A sweep holds store/DB state a concurrent disconnect or backfill
+  /// would race with; every connected-state action gates on both flags.
+  bool get _actionInFlight => _busy || _verifying;
   bool _syncConfigAvailable = false;
   CloudProviderType _selectedProvider = CloudProviderType.s3;
   // Null until loaded; the switches render only once values are known.
@@ -272,6 +277,31 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
       unawaited(runtime?.worker?.drain());
     } finally {
       if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  /// Verify Library sweep (orphan-prevention spec 6.3): reconciles the
+  /// attached store against the media table and reports what changed.
+  Future<void> _verify() async {
+    final l10n = context.l10n;
+    setState(() => _verifying = true);
+    try {
+      final report = await ref.read(mediaVerifyRunnerProvider)();
+      if (!mounted) return;
+      _showSnack(
+        l10n.settings_mediaStorage_verify_summary(
+          report.objectsChecked,
+          report.orphansRemoved,
+          report.repairsQueued,
+          report.sessionsAborted,
+        ),
+      );
+    } on MediaStoreException catch (e) {
+      if (mounted) _showSnack(e.message, isError: true);
+    } catch (e) {
+      if (mounted) _showSnack('$e', isError: true);
+    } finally {
+      if (mounted) setState(() => _verifying = false);
     }
   }
 
@@ -684,9 +714,24 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
               ],
               FilledButton.tonal(
                 key: const Key('media-s3-backfill'),
-                onPressed: _busy ? null : _backfill,
+                onPressed: _actionInFlight ? null : _backfill,
                 child: Text(l10n.settings_mediaStorage_backfill_action),
               ),
+              const SizedBox(height: 8),
+              FilledButton.tonal(
+                key: const Key('media-verify-library'),
+                onPressed: _actionInFlight ? null : _verify,
+                child: Text(
+                  _verifying
+                      ? l10n.settings_mediaStorage_verify_running
+                      : l10n.settings_mediaStorage_verify_action,
+                ),
+              ),
+              if (_verifying)
+                const Padding(
+                  padding: EdgeInsets.only(top: 8),
+                  child: LinearProgressIndicator(),
+                ),
               Consumer(
                 builder: (context, ref, _) {
                   final active =
@@ -713,7 +758,7 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
               ),
               TextButton(
                 key: const Key('media-s3-disconnect'),
-                onPressed: _busy ? null : _disconnect,
+                onPressed: _actionInFlight ? null : _disconnect,
                 style: TextButton.styleFrom(foregroundColor: Colors.red),
                 child: Text(l10n.settings_mediaStorage_action_disconnect),
               ),

@@ -381,6 +381,26 @@ void main() {
     expect((await repo.allForTesting()).single.state, 'failed');
   });
 
+  test('enqueueRepairUpload re-arms a terminally failed row', () async {
+    final id = await repo.enqueueUpload(mediaId: 'm1');
+    for (var i = 0; i < 5; i++) {
+      await repo.markFailed(id, 'boom');
+    }
+    expect((await repo.allForTesting()).single.state, 'failed');
+
+    final again = await repo.enqueueRepairUpload(mediaId: 'm1');
+    expect(again, id);
+    final row = (await repo.allForTesting()).single;
+    expect(row.state, 'pending');
+    expect(row.attempts, 0);
+    expect(await repo.nextPending(DateTime.now()), isNotNull);
+
+    // Live rows are reused untouched, and absent rows insert fresh.
+    expect(await repo.enqueueRepairUpload(mediaId: 'm1'), id);
+    final fresh = await repo.enqueueRepairUpload(mediaId: 'm2');
+    expect(fresh, isNot(id));
+  });
+
   group('enqueueDelete', () {
     test('inserts a delete row with hash and payload', () async {
       final id = await repo.enqueueDelete(

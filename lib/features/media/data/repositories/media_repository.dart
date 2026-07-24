@@ -998,6 +998,77 @@ class MediaRepository {
     return rows.map((r) => r.read(id)!).toList();
   }
 
+  /// Every distinct non-null content hash - the verify sweep's referenced
+  /// set (orphan-prevention spec 6.1). Same conservative rule as
+  /// [countRowsWithHash]: a hash counts whether or not its rows uploaded.
+  Future<Set<String>> getAllContentHashes() async {
+    final hash = _db.media.contentHash;
+    final query = _db.selectOnly(_db.media, distinct: true)
+      ..addColumns([hash])
+      ..where(hash.isNotNull());
+    final rows = await query.get();
+    return rows.map((r) => r.read(hash)!).toSet();
+  }
+
+  /// Rows with a content hash and at least one remote stamp, for the
+  /// verify sweep's reverse repair (orphan-prevention spec 6.2).
+  Future<
+    List<
+      ({
+        String id,
+        String contentHash,
+        bool hasOriginal,
+        bool hasThumb,
+        bool hasRendition,
+      })
+    >
+  >
+  getRemoteStampedSummaries() async {
+    // selectOnly projection: full rows would drag the imageData BLOB
+    // (signature bytes) into memory for every stamped row, and the verify
+    // sweep only needs five scalars.
+    final id = _db.media.id;
+    final hash = _db.media.contentHash;
+    final original = _db.media.remoteUploadedAt;
+    final thumb = _db.media.remoteThumbUploadedAt;
+    final rendition = _db.media.remoteCompressedUploadedAt;
+    final query = _db.selectOnly(_db.media)
+      ..addColumns([id, hash, original, thumb, rendition])
+      ..where(
+        hash.isNotNull() &
+            (original.isNotNull() | thumb.isNotNull() | rendition.isNotNull()),
+      );
+    final rows = await query.get();
+    return [
+      for (final row in rows)
+        (
+          id: row.read(id)!,
+          contentHash: row.read(hash)!,
+          hasOriginal: row.read(original) != null,
+          hasThumb: row.read(thumb) != null,
+          hasRendition: row.read(rendition) != null,
+        ),
+    ];
+  }
+
+  /// Clears a stale thumb stamp (verify sweep reverse repair). Mirrors
+  /// [clearRemoteUploaded].
+  Future<void> clearRemoteThumbUploaded(String mediaId) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await (_db.update(_db.media)..where((t) => t.id.equals(mediaId))).write(
+      MediaCompanion(
+        remoteThumbUploadedAt: const Value<int?>(null),
+        updatedAt: Value(now),
+      ),
+    );
+    await _syncRepository.markRecordPending(
+      entityType: 'media',
+      recordId: mediaId,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
+  }
+
   /// Backfill candidates (design spec section 9): device-resident photos
   /// not yet confirmed in the media store, newest first so recent dives
   /// gain protection soonest. Scoped to rows linked to a dive or site so

@@ -9,6 +9,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
 import 'package:submersion/core/services/media_store/media_store_credentials_store.dart';
 import 'package:submersion/core/services/media_store/media_store_policies.dart';
@@ -26,6 +27,7 @@ import 'package:submersion/features/media_store/data/media_store_service.dart';
 import 'package:submersion/features/media_store/data/media_store_worker.dart';
 import 'package:submersion/features/media_store/data/media_stores_repository.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
+import 'package:submersion/features/media_store/data/media_verify_service.dart';
 import 'package:submersion/features/media_store/data/media_upload_pipeline.dart';
 import 'package:submersion/features/media_store/data/platform_video_transcoder.dart';
 import 'package:submersion/features/media_store/domain/media_upload_quality.dart';
@@ -104,6 +106,35 @@ final mediaDeletionCoordinatorProvider = Provider<MediaDeletionCoordinator>((
     },
   );
 });
+
+/// Runs a Verify Library sweep against the attached store, stamps the
+/// fleet-wide timestamp on success, and kicks a drain for any queued
+/// repairs (orphan-prevention spec 6.3). Throws StateError when no store
+/// is attached; the settings action only renders in the connected state.
+final mediaVerifyRunnerProvider =
+    Provider<Future<VerifyLibraryReport> Function()>((ref) {
+      return () async {
+        final runtime = await ref.read(mediaStoreRuntimeProvider.future);
+        if (runtime == null) {
+          throw StateError('no media store attached');
+        }
+        final service = MediaVerifyService(
+          store: runtime.store,
+          mediaRepository: ref.read(mediaRepositoryProvider),
+          queue: ref.read(mediaTransferQueueRepositoryProvider),
+        );
+        final report = await service.run();
+        // Drain queued repairs BEFORE stamping: a stamp failure (DB/sync)
+        // must not strand repairs the sweep just queued.
+        unawaited(runtime.worker?.drain());
+        final storesRepository = ref.read(mediaStoresRepositoryProvider);
+        final active = await storesRepository.getActive();
+        if (active != null) {
+          await storesRepository.stampLastSweep(active.id, DateTime.now());
+        }
+        return report;
+      };
+    });
 
 final mediaBackfillServiceProvider = Provider<MediaBackfillService>(
   (ref) => MediaBackfillService(
@@ -280,6 +311,50 @@ final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
       });
       ref.onDispose(connectivitySub.cancel);
       unawaited(worker.drain());
+
+      // Opportunistic Verify Library sweep (orphan-prevention spec 6.4):
+      // fleet-wide 30-day cadence on unmetered network only, fire-and-forget
+      // so a sweep problem can never break the runtime. The timestamp is
+      // synced, so one device's sweep satisfies every device's cadence.
+      unawaited(() async {
+        try {
+          final storesRepository = ref.read(mediaStoresRepositoryProvider);
+          final active = await storesRepository.getActive();
+          // No descriptor means nowhere to stamp last_sweep_at: without a
+          // bail-out the sweep would repeat on EVERY runtime construction
+          // with no fleet cadence guard. Leave the degraded state to the
+          // manual action (user-initiated, so unguarded repetition is fine).
+          if (active == null) return;
+          final kind = await network.current();
+          if (!shouldAutoVerify(
+            lastSweepAt: active.lastSweepAt,
+            network: kind,
+            now: DateTime.now(),
+          )) {
+            return;
+          }
+          final service = MediaVerifyService(
+            store: store,
+            mediaRepository: mediaRepository,
+            queue: ref.read(mediaTransferQueueRepositoryProvider),
+          );
+          final report = await service.run();
+          // Same ordering as the manual runner: repairs drain even when
+          // the fleet stamp fails.
+          unawaited(worker.drain());
+          await storesRepository.stampLastSweep(active.id, DateTime.now());
+          LoggerService.forClass(MediaVerifyService).info(
+            'Auto verify sweep: ${report.objectsChecked} checked, '
+            '${report.orphansRemoved} orphans removed, '
+            '${report.repairsQueued} repairs queued, '
+            '${report.sessionsAborted} sessions aborted',
+          );
+        } catch (e) {
+          LoggerService.forClass(
+            MediaVerifyService,
+          ).warning('Auto verify sweep failed', error: e);
+        }
+      }());
 
       return MediaStoreRuntime(
         storeId: attachedId,

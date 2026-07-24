@@ -253,6 +253,12 @@ class DropboxMediaObjectStore implements MediaObjectStore {
   }
 
   @override
+  Future<int> reapStaleUploadSessions({required DateTime olderThan}) async {
+    // Upload sessions expire server-side; nothing to reap.
+    return 0;
+  }
+
+  @override
   Stream<StoreObjectInfo> list(String keyPrefix) async* {
     final List<DropboxFileMetadata> entries;
     try {

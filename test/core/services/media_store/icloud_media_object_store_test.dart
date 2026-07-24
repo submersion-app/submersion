@@ -202,4 +202,11 @@ void main() {
       }
     });
   });
+
+  test('reapStaleUploadSessions is a self-expiry no-op', () async {
+    expect(
+      await build().reapStaleUploadSessions(olderThan: DateTime.utc(2026)),
+      0,
+    );
+  });
 }

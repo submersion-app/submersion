@@ -108,6 +108,17 @@ class InMemoryMediaObjectStore implements MediaObjectStore {
   /// (key, resumeStateJson) pairs abandonResume was called with.
   final abandonResumeCalls = <(String, String?)>[];
 
+  /// Returned (then zeroed) by the next reapStaleUploadSessions call.
+  int staleSessionCount = 0;
+
+  @override
+  Future<int> reapStaleUploadSessions({required DateTime olderThan}) async {
+    _maybeFail();
+    final n = staleSessionCount;
+    staleSessionCount = 0;
+    return n;
+  }
+
   @override
   Future<void> abandonResume(String key, String? resumeStateJson) async {
     abandonResumeCalls.add((key, resumeStateJson));
@@ -116,7 +127,9 @@ class InMemoryMediaObjectStore implements MediaObjectStore {
   @override
   Stream<StoreObjectInfo> list(String keyPrefix) async* {
     _maybeFail();
-    for (final entry in objects.entries) {
+    // Snapshot: real adapters list server-side pages, so a caller deleting
+    // objects mid-stream (the verify sweep) must not perturb the listing.
+    for (final entry in objects.entries.toList()) {
       if (entry.key.startsWith(keyPrefix)) {
         yield StoreObjectInfo(
           key: entry.key,

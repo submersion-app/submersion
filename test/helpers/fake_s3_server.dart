@@ -16,8 +16,12 @@ class FakeS3Server {
 
   final List<http.Request> captured = [];
 
-  final Map<String, Map<int, Uint8List>> _sessions = {};
+  final Map<String, _MultipartSession> _sessions = {};
   int _uploadCounter = 0;
+
+  /// Clock for multipart session Initiated stamps; settable so tests can
+  /// create sessions "in the past" for stale-session reaping.
+  DateTime Function() now = DateTime.now;
 
   /// Multipart sessions created but neither completed nor aborted.
   int get activeMultipartUploadCount => _sessions.length;
@@ -52,7 +56,7 @@ class FakeS3Server {
         if (qp.containsKey('uploads')) {
           _uploadCounter++;
           final id = 'upload-$_uploadCounter';
-          _sessions[id] = {};
+          _sessions[id] = _MultipartSession(key: key, initiated: now());
           return http.Response(
             '<?xml version="1.0"?><InitiateMultipartUploadResult>'
             '<UploadId>$id</UploadId></InitiateMultipartUploadResult>',
@@ -62,10 +66,10 @@ class FakeS3Server {
         if (qp.containsKey('uploadId')) {
           final session = _sessions.remove(qp['uploadId']);
           if (session == null) return http.Response('', 404);
-          final ordered = session.keys.toList()..sort();
+          final ordered = session.parts.keys.toList()..sort();
           final builder = BytesBuilder();
           for (final n in ordered) {
-            builder.add(session[n]!);
+            builder.add(session.parts[n]!);
           }
           objects[key] = builder.toBytes();
           return http.Response(
@@ -85,7 +89,7 @@ class FakeS3Server {
           }
           partUploadCount++;
           final n = int.parse(qp['partNumber']!);
-          session[n] = Uint8List.fromList(request.bodyBytes);
+          session.parts[n] = Uint8List.fromList(request.bodyBytes);
           return http.Response(
             '',
             200,
@@ -106,16 +110,35 @@ class FakeS3Server {
           },
         );
       case 'GET':
+        if (qp.containsKey('uploads')) {
+          final prefixParam = qp['prefix'] ?? '';
+          final entries = _sessions.entries
+              .where((e) => e.value.key.startsWith(prefixParam))
+              .map(
+                (e) =>
+                    '<Upload><Key>${e.value.key}</Key>'
+                    '<UploadId>${e.key}</UploadId>'
+                    '<Initiated>${e.value.initiated.toUtc().toIso8601String()}</Initiated>'
+                    '</Upload>',
+              )
+              .join();
+          return http.Response(
+            '<?xml version="1.0"?><ListMultipartUploadsResult>'
+            '<IsTruncated>false</IsTruncated>$entries'
+            '</ListMultipartUploadsResult>',
+            200,
+          );
+        }
         if (qp.containsKey('uploadId')) {
           final session = _sessions[qp['uploadId']];
           if (session == null) return http.Response('', 404);
-          final ordered = session.keys.toList()..sort();
+          final ordered = session.parts.keys.toList()..sort();
           final parts = ordered
               .map(
                 (n) =>
                     '<Part><PartNumber>$n</PartNumber>'
-                    '<ETag>"part-$n-${session[n]!.length}"</ETag>'
-                    '<Size>${session[n]!.length}</Size></Part>',
+                    '<ETag>"part-$n-${session.parts[n]!.length}"</ETag>'
+                    '<Size>${session.parts[n]!.length}</Size></Part>',
               )
               .join();
           return http.Response(
@@ -168,4 +191,13 @@ class FakeS3Server {
         return http.Response('', 500);
     }
   }
+}
+
+/// One in-flight multipart upload session.
+class _MultipartSession {
+  _MultipartSession({required this.key, required this.initiated});
+
+  final String key;
+  final DateTime initiated;
+  final Map<int, Uint8List> parts = {};
 }

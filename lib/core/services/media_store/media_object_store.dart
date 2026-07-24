@@ -78,4 +78,11 @@ abstract class MediaObjectStore {
 
   /// All objects whose key starts with [keyPrefix].
   Stream<StoreObjectInfo> list(String keyPrefix);
+
+  /// Aborts provider-side resumable upload sessions started before
+  /// [olderThan]; returns how many were aborted. Grace-windowed so a
+  /// session another device is actively resuming is never reaped
+  /// (orphan-prevention spec 6.1). Providers whose sessions self-expire
+  /// return 0.
+  Future<int> reapStaleUploadSessions({required DateTime olderThan});
 }

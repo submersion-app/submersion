@@ -20457,6 +20457,23 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_mediaStorage_transfers_state_failed => 'Falhou';
 
   @override
+  String get settings_mediaStorage_verify_action => 'Verificar biblioteca';
+
+  @override
+  String get settings_mediaStorage_verify_running =>
+      'Verificando a biblioteca de mídia...';
+
+  @override
+  String settings_mediaStorage_verify_summary(
+    int checked,
+    int removed,
+    int repaired,
+    int aborted,
+  ) {
+    return '$checked objetos verificados: $removed órfãos removidos, $repaired reparos na fila, $aborted envios obsoletos cancelados';
+  }
+
+  @override
   String get settings_mediaStorage_backfill_action =>
       'Enviar biblioteca existente';
 
