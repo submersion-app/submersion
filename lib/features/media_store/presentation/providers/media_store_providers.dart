@@ -124,12 +124,14 @@ final mediaVerifyRunnerProvider =
           queue: ref.read(mediaTransferQueueRepositoryProvider),
         );
         final report = await service.run();
+        // Drain queued repairs BEFORE stamping: a stamp failure (DB/sync)
+        // must not strand repairs the sweep just queued.
+        unawaited(runtime.worker?.drain());
         final storesRepository = ref.read(mediaStoresRepositoryProvider);
         final active = await storesRepository.getActive();
         if (active != null) {
           await storesRepository.stampLastSweep(active.id, DateTime.now());
         }
-        unawaited(runtime.worker?.drain());
         return report;
       };
     });
@@ -332,10 +334,12 @@ final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
             queue: ref.read(mediaTransferQueueRepositoryProvider),
           );
           final report = await service.run();
+          // Same ordering as the manual runner: repairs drain even when
+          // the fleet stamp fails.
+          unawaited(worker.drain());
           if (active != null) {
             await storesRepository.stampLastSweep(active.id, DateTime.now());
           }
-          unawaited(worker.drain());
           LoggerService.forClass(MediaVerifyService).info(
             'Auto verify sweep: ${report.objectsChecked} checked, '
             '${report.orphansRemoved} orphans removed, '
