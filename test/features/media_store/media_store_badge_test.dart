@@ -171,6 +171,33 @@ void main() {
       await expectBadge(stale, MediaBadgeState.none, using: c);
     });
 
+    test(
+      'attaching a store refreshes a live badge without a restart',
+      () async {
+        // Regression: mediaStoreAttachedProvider caches for the container's
+        // lifetime, so connect/disconnect must invalidate it. When only the
+        // runtime was invalidated, a freshly attached store showed no
+        // badges until the app restarted.
+        var attached = false;
+        final c = ProviderContainer(
+          overrides: [
+            mediaTransferQueueRepositoryProvider.overrideWithValue(repo),
+            mediaRepositoryProvider.overrideWithValue(mockRepo),
+            mediaStoreAttachedProvider.overrideWith((ref) async => attached),
+          ],
+        );
+        addTearDown(c.dispose);
+        when(mockRepo.getMediaById('m1')).thenAnswer((_) async => item());
+
+        await expectBadge(item(), MediaBadgeState.none, using: c);
+
+        attached = true;
+        c.invalidate(mediaStoreAttachedProvider);
+
+        await expectBadge(item(), MediaBadgeState.notBackedUp, using: c);
+      },
+    );
+
     test('an unavailable media repository degrades to none', () async {
       // `container` from setUp overrides neither the media repository nor
       // the attach state, so the settled-state computation throws and the

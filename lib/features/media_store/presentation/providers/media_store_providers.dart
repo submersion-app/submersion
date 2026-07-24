@@ -115,6 +115,10 @@ final mediaTransferEntriesProvider =
 /// the tile badge quiet. Watchers must not have to defend against this
 /// provider erroring: a watched provider's error becomes the watcher's own
 /// error state, which no try/catch in the watcher can intercept.
+///
+/// Caches for the container's lifetime, so it must be invalidated whenever
+/// the attachment changes. Use [invalidateMediaStoreAttachment] rather than
+/// invalidating it directly.
 final FutureProvider<bool> mediaStoreAttachedProvider = FutureProvider<bool>((
   ref,
 ) async {
@@ -125,6 +129,20 @@ final FutureProvider<bool> mediaStoreAttachedProvider = FutureProvider<bool>((
     return false;
   }
 });
+
+/// Call after any media store attach change (connect or disconnect).
+///
+/// Two providers cache attachment state: [mediaStoreRuntimeProvider] holds
+/// the store itself, and [mediaStoreAttachedProvider] holds the cheap
+/// boolean the tile badge reads. Refreshing only the runtime leaves the
+/// badge answering from a stale cache, so a freshly attached store shows
+/// no not-backed-up badges until the app restarts, and a disconnected one
+/// keeps showing them. Invalidating both together is the whole point of
+/// this helper: keep new call sites from having to remember the second.
+void invalidateMediaStoreAttachment(WidgetRef ref) {
+  ref.invalidate(mediaStoreRuntimeProvider);
+  ref.invalidate(mediaStoreAttachedProvider);
+}
 
 /// Per-tile badge status. Transient transfer state outranks persistent
 /// backup state: failed > transferring > queued > notBackedUp > none.

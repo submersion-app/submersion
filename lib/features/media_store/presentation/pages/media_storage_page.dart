@@ -245,7 +245,7 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
     setState(() => _busy = true);
     try {
       await ref.read(mediaStoreServiceProvider).connectS3(_buildConfig());
-      ref.invalidate(mediaStoreRuntimeProvider);
+      invalidateMediaStoreAttachment(ref);
       if (!mounted) return;
       _showSnack(l10n.settings_mediaStorage_saved);
       await Navigator.maybePop(context);
@@ -314,7 +314,7 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
     setState(() => _busy = true);
     try {
       await call();
-      ref.invalidate(mediaStoreRuntimeProvider);
+      invalidateMediaStoreAttachment(ref);
       if (!mounted) return;
       _showSnack(l10n.settings_mediaStorage_saved);
       await Navigator.maybePop(context);
@@ -350,7 +350,7 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
     setState(() => _busy = true);
     try {
       await ref.read(mediaStoreServiceProvider).disconnect();
-      ref.invalidate(mediaStoreRuntimeProvider);
+      invalidateMediaStoreAttachment(ref);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
