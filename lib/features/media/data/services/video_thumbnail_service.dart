@@ -72,10 +72,20 @@ class VideoThumbnailService {
       }
     }
 
+    // A bookmark we cannot read is not fatal: fall through with a null blob so
+    // the native side can still try the plain path. LocalBookmarkStorage.read
+    // base64-decodes the stored value (FormatException on a corrupt or legacy
+    // entry) after a secure-storage read that can raise a PlatformException -
+    // a keychain error on macOS, for instance. Letting either escape would
+    // break this class's "null on failure" contract mid-render.
     Uint8List? blob;
     final ref = item.bookmarkRef;
     if (ref != null && ref.isNotEmpty) {
-      blob = await _bookmarkStorage.read(ref);
+      try {
+        blob = await _bookmarkStorage.read(ref);
+      } on Object {
+        blob = null;
+      }
     }
 
     final bytes = await _platform.generateVideoThumbnail(

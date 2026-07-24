@@ -30,8 +30,14 @@ class _FakePlatform implements LocalMediaPlatform {
 
 class _FakeBookmarkStorage implements LocalBookmarkStorage {
   Uint8List? blob;
+  Object? throwOnRead;
   @override
-  Future<Uint8List?> read(String ref) async => blob;
+  Future<Uint8List?> read(String ref) async {
+    final err = throwOnRead;
+    if (err != null) throw err;
+    return blob;
+  }
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
@@ -127,6 +133,40 @@ void main() {
 
     expect(platform.lastArgs!['blob'], isNotNull);
   });
+
+  test('still generates when the bookmark read throws', () async {
+    // LocalBookmarkStorage.read base64-decodes the stored value (FormatException
+    // on a corrupt/legacy entry) after a secure-storage read that can raise a
+    // PlatformException (e.g. a macOS keychain error). Neither may escape into
+    // grid rendering; the null blob just lets native try the plain path.
+    final f = await makeVideoFile();
+    bookmarks.throwOnRead = const FormatException('bad base64');
+    platform.toReturn = Uint8List.fromList([7, 7]);
+
+    final bytes = await service.posterFor(
+      _videoItem(localPath: f.path, bookmarkRef: 'ref-1'),
+    );
+
+    expect(bytes, isNotNull);
+    expect(bytes!.toList(), [7, 7]);
+    expect(platform.calls, 1);
+    expect(platform.lastArgs!['blob'], isNull);
+  });
+
+  test(
+    'propagates null when the bookmark read throws and native fails',
+    () async {
+      final f = await makeVideoFile();
+      bookmarks.throwOnRead = Exception('keychain unavailable');
+      platform.toReturn = null;
+
+      final bytes = await service.posterFor(
+        _videoItem(localPath: f.path, bookmarkRef: 'ref-1'),
+      );
+
+      expect(bytes, isNull);
+    },
+  );
 
   test('still generates when the cache directory cannot be resolved', () async {
     // getApplicationSupportDirectory() can throw (MissingPluginException on
