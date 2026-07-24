@@ -881,6 +881,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   Map<String, int> _buddyCounts = {};
   final Map<String, Buddy> _buddyById = {};
+  final Map<String, DiveRole> _buddyRoleById = {};
   List<BulkMembershipItem> _buddyMembers = [];
   MembershipDelta _buddyDelta = MembershipDelta.empty;
 
@@ -3302,6 +3303,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       final existing = _buddyMembers.map((e) => e.id).toSet();
       for (final bwr in buddies) {
         _buddyById[bwr.buddy.id] = bwr.buddy;
+        _buddyRoleById[bwr.buddy.id] = bwr.role;
       }
       _buddyMembers = [
         ..._buddyMembers,
@@ -3325,7 +3327,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         ),
-    role: DiveRole.builtInBuddy(),
+    role: _buddyRoleById[id] ?? DiveRole.builtInBuddy(),
   );
 
   void _saveEquipmentAsSet() {
