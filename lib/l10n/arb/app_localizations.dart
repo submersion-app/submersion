@@ -1706,6 +1706,12 @@ abstract class AppLocalizations {
   /// **'Clear search'**
   String get buddies_action_clearSearch;
 
+  /// No description provided for @buddies_action_convertToDiveCenter.
+  ///
+  /// In en, this message translates to:
+  /// **'Convert to Dive Center'**
+  String get buddies_action_convertToDiveCenter;
+
   /// No description provided for @buddies_action_edit.
   ///
   /// In en, this message translates to:
@@ -1765,6 +1771,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'View All ({count})'**
   String buddies_action_viewAll(Object count);
+
+  /// No description provided for @buddies_conversion_confirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This will convert {name} into a dive center and update all shared dives. This action cannot be undone.'**
+  String buddies_conversion_confirmBody(String name);
+
+  /// No description provided for @buddies_conversion_confirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Convert to Dive Center?'**
+  String get buddies_conversion_confirmTitle;
+
+  /// No description provided for @buddies_conversion_success.
+  ///
+  /// In en, this message translates to:
+  /// **'Buddy converted to dive center'**
+  String get buddies_conversion_success;
 
   /// No description provided for @buddies_detail_error.
   ///

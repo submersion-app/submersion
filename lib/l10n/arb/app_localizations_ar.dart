@@ -953,6 +953,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddies_action_clearSearch => 'مسح البحث';
 
   @override
+  String get buddies_action_convertToDiveCenter => 'Convert to Dive Center';
+
+  @override
   String get buddies_action_edit => 'تعديل الرفيق';
 
   @override
@@ -983,6 +986,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String buddies_action_viewAll(Object count) {
     return 'عرض الكل ($count)';
   }
+
+  @override
+  String buddies_conversion_confirmBody(String name) {
+    return 'This will convert $name into a dive center and update all shared dives. This action cannot be undone.';
+  }
+
+  @override
+  String get buddies_conversion_confirmTitle => 'Convert to Dive Center?';
+
+  @override
+  String get buddies_conversion_success => 'Buddy converted to dive center';
 
   @override
   String buddies_detail_error(Object error) {

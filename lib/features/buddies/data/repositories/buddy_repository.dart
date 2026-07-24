@@ -10,6 +10,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain;
 import 'package:submersion/features/buddies/data/repositories/buddy_merge_repository.dart';
+import 'package:submersion/features/buddies/data/repositories/buddy_conversion_repository.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_role_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy_role_credential.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_repository.dart';
@@ -888,6 +889,10 @@ class BuddyRepository {
   /// Reverse a merge operation. Delegates to [BuddyMergeRepository].
   Future<void> undoMerge(BuddyMergeSnapshot snapshot) =>
       BuddyMergeRepository().undoMerge(snapshot);
+
+  /// Converts a buddy into a dive center. Delegates to [BuddyConversionRepository].
+  Future<String> convertToDiveCenter(domain.Buddy buddy) =>
+      BuddyConversionRepository().convertBuddyToDiveCenter(buddy);
 
   /// Bulk delete multiple buddies. Delegates to [BuddyMergeRepository].
   Future<void> bulkDeleteBuddies(List<String> ids) =>

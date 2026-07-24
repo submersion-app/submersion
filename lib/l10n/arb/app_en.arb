@@ -608,6 +608,7 @@
   "buddies_action_addFirst": "Add your first buddy",
   "buddies_action_addTooltip": "Add a new dive buddy",
   "buddies_action_clearSearch": "Clear search",
+  "buddies_action_convertToDiveCenter": "Convert to Dive Center",
   "buddies_action_edit": "Edit buddy",
   "buddies_action_importFromContacts": "Import from Contacts",
   "buddies_action_moreOptions": "More options",
@@ -618,6 +619,16 @@
   "buddies_action_sortTitle": "Sort Buddies",
   "buddies_action_update": "Update Buddy",
   "buddies_action_viewAll": "View All ({count})",
+  "buddies_conversion_confirmBody": "This will convert {name} into a dive center and update all shared dives. This action cannot be undone.",
+  "@buddies_conversion_confirmBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "buddies_conversion_confirmTitle": "Convert to Dive Center?",
+  "buddies_conversion_success": "Buddy converted to dive center",
   "buddies_detail_error": "Error: {error}",
   "buddies_detail_noDivesTogether": "No dives together yet",
   "buddies_detail_notFound": "Buddy not found",

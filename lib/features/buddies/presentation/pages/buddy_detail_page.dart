@@ -180,6 +180,8 @@ class _BuddyDetailContent extends ConsumerWidget {
             onSelected: (value) async {
               if (value == 'share') {
                 await _shareDivesWithBuddy(context, ref);
+              } else if (value == 'convert') {
+                await _handleConvertToDiveCenter(context, ref);
               } else if (value == 'delete') {
                 await _handleDelete(context, ref);
               }
@@ -192,6 +194,16 @@ class _BuddyDetailContent extends ConsumerWidget {
                     const Icon(Icons.share),
                     const SizedBox(width: 8),
                     Text(context.l10n.buddies_action_shareDives),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'convert',
+                child: Row(
+                  children: [
+                    const Icon(Icons.business),
+                    const SizedBox(width: 8),
+                    Text(context.l10n.buddies_action_convertToDiveCenter),
                   ],
                 ),
               ),
@@ -277,6 +289,8 @@ class _BuddyDetailContent extends ConsumerWidget {
             onSelected: (value) async {
               if (value == 'share') {
                 await _shareDivesWithBuddy(context, ref);
+              } else if (value == 'convert') {
+                await _handleConvertToDiveCenter(context, ref);
               } else if (value == 'delete') {
                 await _handleDelete(context, ref);
               }
@@ -289,6 +303,16 @@ class _BuddyDetailContent extends ConsumerWidget {
                     const Icon(Icons.share, size: 20),
                     const SizedBox(width: 8),
                     Text(context.l10n.buddies_action_shareDives),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'convert',
+                child: Row(
+                  children: [
+                    const Icon(Icons.business, size: 20),
+                    const SizedBox(width: 8),
+                    Text(context.l10n.buddies_action_convertToDiveCenter),
                   ],
                 ),
               ),
@@ -325,6 +349,47 @@ class _BuddyDetailContent extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(context.l10n.buddies_message_deleted)),
         );
+      }
+    }
+  }
+
+  Future<void> _handleConvertToDiveCenter(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.l10n.buddies_conversion_confirmTitle),
+        content: Text(context.l10n.buddies_conversion_confirmBody(buddy.name)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(context.l10n.common_action_cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(context.l10n.common_action_continue),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      final diveCenterId = await ref
+          .read(buddyListNotifierProvider.notifier)
+          .convertToDiveCenter(buddy);
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.buddies_conversion_success)),
+        );
+
+        if (embedded) {
+          onDeleted?.call();
+        } else {
+          context.replace('/dive-centers/$diveCenterId');
+        }
       }
     }
   }

@@ -894,6 +894,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buddies_action_clearSearch => '清除搜索';
 
   @override
+  String get buddies_action_convertToDiveCenter => 'Convert to Dive Center';
+
+  @override
   String get buddies_action_edit => '编辑潜伴';
 
   @override
@@ -924,6 +927,17 @@ class AppLocalizationsZh extends AppLocalizations {
   String buddies_action_viewAll(Object count) {
     return '查看全部 ($count)';
   }
+
+  @override
+  String buddies_conversion_confirmBody(String name) {
+    return 'This will convert $name into a dive center and update all shared dives. This action cannot be undone.';
+  }
+
+  @override
+  String get buddies_conversion_confirmTitle => 'Convert to Dive Center?';
+
+  @override
+  String get buddies_conversion_success => 'Buddy converted to dive center';
 
   @override
   String buddies_detail_error(Object error) {

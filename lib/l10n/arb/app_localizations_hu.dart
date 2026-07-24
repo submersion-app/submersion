@@ -959,6 +959,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get buddies_action_clearSearch => 'Keresés törlése';
 
   @override
+  String get buddies_action_convertToDiveCenter => 'Convert to Dive Center';
+
+  @override
   String get buddies_action_edit => 'Búvártárs szerkesztése';
 
   @override
@@ -989,6 +992,17 @@ class AppLocalizationsHu extends AppLocalizations {
   String buddies_action_viewAll(Object count) {
     return 'Összes megtekintése ($count)';
   }
+
+  @override
+  String buddies_conversion_confirmBody(String name) {
+    return 'This will convert $name into a dive center and update all shared dives. This action cannot be undone.';
+  }
+
+  @override
+  String get buddies_conversion_confirmTitle => 'Convert to Dive Center?';
+
+  @override
+  String get buddies_conversion_success => 'Buddy converted to dive center';
 
   @override
   String buddies_detail_error(Object error) {

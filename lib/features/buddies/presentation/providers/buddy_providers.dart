@@ -11,6 +11,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/constants/buddy_field.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy_role_credential.dart';
 import 'package:submersion/shared/models/entity_card_view_config.dart';
@@ -316,6 +317,16 @@ class BuddyListNotifier extends StateNotifier<AsyncValue<List<Buddy>>> {
     _ref.invalidate(buddyByIdProvider(id));
     _ref.invalidate(allBuddiesWithDiveCountProvider);
     await refresh();
+  }
+
+  Future<String> convertToDiveCenter(Buddy buddy) async {
+    final diveCenterId = await _repository.convertToDiveCenter(buddy);
+    _ref.invalidate(buddyByIdProvider(buddy.id));
+    _ref.invalidate(allBuddiesWithDiveCountProvider);
+    _ref.invalidate(diveCenterByIdProvider(diveCenterId));
+    _ref.invalidate(allDiveCentersProvider);
+    await refresh();
+    return diveCenterId;
   }
 
   Future<BuddyMergeSnapshot?> mergeBuddies(
