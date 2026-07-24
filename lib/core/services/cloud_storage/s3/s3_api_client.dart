@@ -185,7 +185,7 @@ class S3ApiClient {
         _throwFor('list-uploads', prefix, response);
       }
       try {
-        final document = XmlDocument.parse(response.body);
+        final document = XmlDocument.parse(utf8.decode(response.bodyBytes));
         for (final upload in document.findAllElements('Upload')) {
           final key = upload.getElement('Key')?.innerText;
           final uploadId = upload.getElement('UploadId')?.innerText;

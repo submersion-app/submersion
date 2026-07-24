@@ -179,6 +179,27 @@ void main() {
     },
   );
 
+  test('reverse repair re-arms a terminally failed upload row', () async {
+    await insertDive('d1');
+    final item = await photo(
+      'stuck.jpg',
+      hash: 'dd22',
+      uploadedAt: DateTime(2026, 2),
+    );
+    final rowId = await queue.enqueueUpload(mediaId: item.id);
+    for (var i = 0; i < 5; i++) {
+      await queue.markFailed(rowId, 'boom');
+    }
+    expect((await queue.allForTesting()).single.state, 'failed');
+
+    final report = await service.run(); // original object absent -> repair
+
+    expect(report.repairsQueued, 1);
+    final row = (await queue.allForTesting()).single;
+    expect(row.id, rowId);
+    expect(row.state, 'pending', reason: 'repair re-arms the failed row');
+  });
+
   test(
     'a failing session reap is best-effort: the sweep still succeeds',
     () async {

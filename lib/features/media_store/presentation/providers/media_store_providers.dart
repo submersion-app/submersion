@@ -329,7 +329,7 @@ final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
           final service = MediaVerifyService(
             store: store,
             mediaRepository: mediaRepository,
-            queue: MediaTransferQueueRepository(),
+            queue: ref.read(mediaTransferQueueRepositoryProvider),
           );
           final report = await service.run();
           if (active != null) {

@@ -113,6 +113,7 @@ class InMemoryMediaObjectStore implements MediaObjectStore {
 
   @override
   Future<int> reapStaleUploadSessions({required DateTime olderThan}) async {
+    _maybeFail();
     final n = staleSessionCount;
     staleSessionCount = 0;
     return n;

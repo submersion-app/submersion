@@ -126,7 +126,9 @@ class MediaVerifyService {
         repaired = true;
       }
       if (repaired) {
-        await _queue.enqueueUpload(mediaId: row.id);
+        // Repair-specific enqueue: re-arms a terminally failed row, which
+        // plain enqueueUpload deliberately refuses to resurrect.
+        await _queue.enqueueRepairUpload(mediaId: row.id);
         repairsQueued++;
       }
     }
