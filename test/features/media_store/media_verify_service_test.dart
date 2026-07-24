@@ -14,6 +14,13 @@ import 'package:submersion/core/database/local_cache_database.dart';
 import '../../helpers/in_memory_media_object_store.dart';
 import '../../helpers/test_database.dart';
 
+class _ReapThrowingStore extends InMemoryMediaObjectStore {
+  @override
+  Future<int> reapStaleUploadSessions({required DateTime olderThan}) async {
+    throw Exception('list-uploads unavailable');
+  }
+}
+
 void main() {
   late AppDatabase db;
   late LocalCacheDatabase cacheDb;
@@ -169,6 +176,26 @@ void main() {
       final entry = (await queue.allForTesting()).single;
       expect(entry.direction, 'upload');
       expect(entry.mediaId, missingOriginal.id);
+    },
+  );
+
+  test(
+    'a failing session reap is best-effort: the sweep still succeeds',
+    () async {
+      await insertDive('d1');
+      seedObject(StoreKeys.objectKey('dead', extension: 'jpg'), modified: old);
+      final throwingStore = _ReapThrowingStore()
+        ..objects.addAll(store.objects)
+        ..modified.addAll(store.modified);
+      final failing = MediaVerifyService(
+        store: throwingStore,
+        mediaRepository: repo,
+        queue: queue,
+        now: () => now,
+      );
+      final report = await failing.run();
+      expect(report.orphansRemoved, 1, reason: 'earlier cleanup still counts');
+      expect(report.sessionsAborted, 0);
     },
   );
 

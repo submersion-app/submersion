@@ -131,9 +131,18 @@ class MediaVerifyService {
       }
     }
 
-    final sessionsAborted = await _store.reapStaleUploadSessions(
-      olderThan: now.subtract(staleSessionAge),
-    );
+    // Best-effort like the per-object deletes: by now the deletions and
+    // repairs above have already happened, and a listing failure here must
+    // not fail the sweep (or block the fleet lastSweepAt stamp) - missed
+    // sessions simply wait for the next run.
+    var sessionsAborted = 0;
+    try {
+      sessionsAborted = await _store.reapStaleUploadSessions(
+        olderThan: now.subtract(staleSessionAge),
+      );
+    } on Exception catch (e) {
+      _log.warning('Stale upload-session reap failed', error: e);
+    }
 
     return VerifyLibraryReport(
       objectsChecked: objectsChecked,
