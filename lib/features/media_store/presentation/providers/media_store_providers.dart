@@ -30,6 +30,7 @@ import 'package:submersion/features/media_store/data/media_transfer_queue_reposi
 import 'package:submersion/features/media_store/data/media_verify_service.dart';
 import 'package:submersion/features/media_store/data/media_upload_pipeline.dart';
 import 'package:submersion/features/media_store/data/platform_video_transcoder.dart';
+import 'package:submersion/features/media_store/domain/media_backup_status.dart';
 import 'package:submersion/features/media_store/domain/media_upload_quality.dart';
 import 'package:submersion/features/media_store/presentation/widgets/media_store_badge.dart';
 
@@ -154,34 +155,116 @@ final mediaTransferEntriesProvider =
       (ref) => ref.watch(mediaTransferQueueRepositoryProvider).watchEntries(),
     );
 
-/// Per-tile transfer status, mapped purely from the newest queue row for
-/// the item: failed/transferring/pending rows badge, done or absent rows
-/// read as none. Already-uploaded media never badges because its queue row
-/// is marked done on completion (and later purged by deleteDone) - the
-/// item's own upload stamps are never consulted. Defensive against an
-/// uninitialized local cache database (widget tests): any construction
-/// error reads as none.
+/// Whether this device has any media store attached. Deliberately not
+/// mediaStoreRuntimeProvider: that constructs the full runtime and kicks a
+/// queue drain, which must not happen merely because a media grid scrolled
+/// a thumbnail into view. One SharedPreferences read is all the badge needs.
+///
+/// Never completes with an error. An unreadable attach state (no Flutter
+/// binding, unavailable preferences) reads as "not attached", which keeps
+/// the tile badge quiet. Watchers must not have to defend against this
+/// provider erroring: a watched provider's error becomes the watcher's own
+/// error state, which no try/catch in the watcher can intercept.
+///
+/// Caches for the container's lifetime, so it must be invalidated whenever
+/// the attachment changes. Use [invalidateMediaStoreAttachment] rather than
+/// invalidating it directly.
+final FutureProvider<bool> mediaStoreAttachedProvider = FutureProvider<bool>((
+  ref,
+) async {
+  try {
+    final attachState = ref.watch(mediaStoreAttachStateProvider);
+    return await attachState.attachedStoreId() != null;
+  } on Object {
+    return false;
+  }
+});
+
+/// Call after any media store attach change (connect or disconnect).
+///
+/// Two providers cache attachment state: [mediaStoreRuntimeProvider] holds
+/// the store itself, and [mediaStoreAttachedProvider] holds the cheap
+/// boolean the tile badge reads. Refreshing only the runtime leaves the
+/// badge answering from a stale cache, so a freshly attached store shows
+/// no not-backed-up badges until the app restarts, and a disconnected one
+/// keeps showing them. Invalidating both together is the whole point of
+/// this helper: keep new call sites from having to remember the second.
+void invalidateMediaStoreAttachment(WidgetRef ref) {
+  ref.invalidate(mediaStoreRuntimeProvider);
+  ref.invalidate(mediaStoreAttachedProvider);
+}
+
+/// Per-tile badge status. Transient transfer state outranks persistent
+/// backup state: failed > transferring > queued > notBackedUp > none.
+///
+/// A failed, transferring, or pending queue row maps straight through. A
+/// done or absent row is a settled item, and settles to notBackedUp only
+/// when a store is attached, the source is uploadable, and the item has no
+/// upload stamps.
+///
+/// The settled check re-reads the row rather than trusting [item]: the
+/// tile's snapshot comes from mediaForDiveProvider, a FutureProvider that
+/// an upload's stamp write does not invalidate, so the snapshot goes stale
+/// the moment an upload completes. Re-reading is race-free because the
+/// pipeline calls stampRemoteUploaded before markDone, so the emission
+/// reporting done always follows the stamp write.
+///
+/// Defensive against an uninitialized local cache database or an absent
+/// media repository (widget tests): any error reads as none.
 final mediaBadgeStateProvider =
     StreamProvider.family<MediaBadgeState, MediaItem>((ref, item) {
+      // Synchronous build phase. Every ref.watch must happen here, not in
+      // the generator below: an async* body does not start running until
+      // Riverpod subscribes to the stream it returns, by which point the
+      // build phase is over and a watched dependency's failure becomes
+      // this provider's error state instead of a catchable exception.
+      // That is what makes the StateError guard below work at all.
+      // The repository constructor resolves its database lazily, so the
+      // StateError surfaces from watchLatestForMedia, not from the watch.
+      // Both must sit inside the guard.
+      final Stream<MediaTransferQueueEntry?> rows;
       try {
-        return ref
+        rows = ref
             .watch(mediaTransferQueueRepositoryProvider)
-            .watchLatestForMedia(item.id)
-            .map((row) {
-              switch (row?.state) {
-                case 'failed':
-                  return MediaBadgeState.failed;
-                case 'transferring':
-                  return MediaBadgeState.transferring;
-                case 'pending':
-                  return MediaBadgeState.queued;
-                default:
-                  return MediaBadgeState.none;
-              }
-            });
+            .watchLatestForMedia(item.id);
       } on StateError {
         return Stream.value(MediaBadgeState.none);
       }
+      final mediaRepository = ref.watch(mediaRepositoryProvider);
+      final attachedFuture = ref.watch(mediaStoreAttachedProvider.future);
+      final eligible = kUploadableSources.contains(item.sourceType);
+
+      return () async* {
+        final attached = await attachedFuture;
+
+        // Re-evaluated per settled emission so a just-completed upload
+        // clears the badge without waiting for the tile snapshot to
+        // refresh. getMediaById is a plain call, so its failure on an
+        // uninitialized database is catchable here.
+        Future<MediaBadgeState> settled() async {
+          if (!attached || !eligible) return MediaBadgeState.none;
+          try {
+            final fresh = await mediaRepository.getMediaById(item.id);
+            if (fresh == null || isBackedUp(fresh)) return MediaBadgeState.none;
+            return MediaBadgeState.notBackedUp;
+          } on Object {
+            return MediaBadgeState.none;
+          }
+        }
+
+        await for (final row in rows) {
+          switch (row?.state) {
+            case 'failed':
+              yield MediaBadgeState.failed;
+            case 'transferring':
+              yield MediaBadgeState.transferring;
+            case 'pending':
+              yield MediaBadgeState.queued;
+            default:
+              yield await settled();
+          }
+        }
+      }();
     });
 
 final mediaStoresRepositoryProvider = Provider<MediaStoresRepository>(

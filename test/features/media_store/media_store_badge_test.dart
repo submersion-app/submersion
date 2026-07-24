@@ -2,34 +2,59 @@ import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
+import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
+import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/media_store/presentation/widgets/media_store_badge.dart';
 
+import 'media_store_badge_test.mocks.dart';
+
+@GenerateMocks([MediaRepository])
 void main() {
   late LocalCacheDatabase db;
   late MediaTransferQueueRepository repo;
+  late MockMediaRepository mockRepo;
   late ProviderContainer container;
 
-  MediaItem item() => MediaItem(
+  MediaItem item({
+    MediaSourceType sourceType = MediaSourceType.localFile,
+    DateTime? remoteUploadedAt,
+  }) => MediaItem(
     id: 'm1',
     mediaType: MediaType.photo,
-    sourceType: MediaSourceType.localFile,
+    sourceType: sourceType,
     takenAt: DateTime(2026),
     createdAt: DateTime(2026),
     updatedAt: DateTime(2026),
+    remoteUploadedAt: remoteUploadedAt,
   );
 
   setUp(() {
     db = LocalCacheDatabase(NativeDatabase.memory());
     repo = MediaTransferQueueRepository(database: db);
+    mockRepo = MockMediaRepository();
     container = ProviderContainer(
       overrides: [mediaTransferQueueRepositoryProvider.overrideWithValue(repo)],
     );
   });
+
+  /// Container with a media repository and an explicit attach answer, for
+  /// the settled-state cases. The default `container` from setUp overrides
+  /// neither, which is what exercises the degradation guard.
+  ProviderContainer attachedContainer({required bool attached}) =>
+      ProviderContainer(
+        overrides: [
+          mediaTransferQueueRepositoryProvider.overrideWithValue(repo),
+          mediaRepositoryProvider.overrideWithValue(mockRepo),
+          mediaStoreAttachedProvider.overrideWith((ref) async => attached),
+        ],
+      );
 
   tearDown(() async {
     container.dispose();
@@ -40,18 +65,23 @@ void main() {
   // `.future` read never subscribes the underlying drift stream. Hold a
   // listener open and poll until the drift stream emits the expected
   // state (the stream re-emits on every table change on its own).
-  Future<void> expectBadge(MediaItem i, MediaBadgeState expected) async {
-    final sub = container.listen(mediaBadgeStateProvider(i), (_, _) {});
+  Future<void> expectBadge(
+    MediaItem i,
+    MediaBadgeState expected, {
+    ProviderContainer? using,
+  }) async {
+    final c = using ?? container;
+    final sub = c.listen(mediaBadgeStateProvider(i), (_, _) {});
     try {
       for (var attempt = 0; attempt < 100; attempt++) {
-        if (container.read(mediaBadgeStateProvider(i)).value == expected) {
+        if (c.read(mediaBadgeStateProvider(i)).value == expected) {
           return;
         }
         await Future<void>.delayed(const Duration(milliseconds: 10));
       }
       fail(
         'badge never reached $expected; '
-        'last: ${container.read(mediaBadgeStateProvider(i)).value}',
+        'last: ${c.read(mediaBadgeStateProvider(i)).value}',
       );
     } finally {
       sub.close();
@@ -80,6 +110,102 @@ void main() {
     await expectBadge(item(), MediaBadgeState.none);
   });
 
+  group('settled state reflects backup status', () {
+    test('no store attached means an unbacked item stays quiet', () async {
+      final c = attachedContainer(attached: false);
+      addTearDown(c.dispose);
+      when(mockRepo.getMediaById('m1')).thenAnswer((_) async => item());
+      await expectBadge(item(), MediaBadgeState.none, using: c);
+    });
+
+    test('store attached and unbacked means notBackedUp', () async {
+      final c = attachedContainer(attached: true);
+      addTearDown(c.dispose);
+      when(mockRepo.getMediaById('m1')).thenAnswer((_) async => item());
+      await expectBadge(item(), MediaBadgeState.notBackedUp, using: c);
+    });
+
+    test('store attached and already backed up stays quiet', () async {
+      final c = attachedContainer(attached: true);
+      addTearDown(c.dispose);
+      when(
+        mockRepo.getMediaById('m1'),
+      ).thenAnswer((_) async => item(remoteUploadedAt: DateTime(2026, 6)));
+      await expectBadge(item(), MediaBadgeState.none, using: c);
+    });
+
+    test('an ineligible source never shows notBackedUp', () async {
+      final c = attachedContainer(attached: true);
+      addTearDown(c.dispose);
+      final net = item(sourceType: MediaSourceType.networkUrl);
+      when(mockRepo.getMediaById('m1')).thenAnswer((_) async => net);
+      await expectBadge(net, MediaBadgeState.none, using: c);
+    });
+
+    test('an active transfer outranks notBackedUp', () async {
+      final c = attachedContainer(attached: true);
+      addTearDown(c.dispose);
+      when(mockRepo.getMediaById('m1')).thenAnswer((_) async => item());
+      final id = await repo.enqueueUpload(mediaId: 'm1');
+      await expectBadge(item(), MediaBadgeState.queued, using: c);
+      await repo.markTransferring(id);
+      await expectBadge(item(), MediaBadgeState.transferring, using: c);
+    });
+
+    test('a completed upload clears the badge using the fresh row, not the '
+        'stale tile snapshot', () async {
+      final c = attachedContainer(attached: true);
+      addTearDown(c.dispose);
+      // The tile still holds the pre-upload snapshot.
+      final stale = item();
+      when(mockRepo.getMediaById('m1')).thenAnswer((_) async => stale);
+      final id = await repo.enqueueUpload(mediaId: 'm1');
+      await expectBadge(stale, MediaBadgeState.queued, using: c);
+
+      // The pipeline stamps the row before marking the queue row done.
+      when(
+        mockRepo.getMediaById('m1'),
+      ).thenAnswer((_) async => item(remoteUploadedAt: DateTime(2026, 6)));
+      await repo.markDone(id);
+
+      await expectBadge(stale, MediaBadgeState.none, using: c);
+    });
+
+    test(
+      'attaching a store refreshes a live badge without a restart',
+      () async {
+        // Regression: mediaStoreAttachedProvider caches for the container's
+        // lifetime, so connect/disconnect must invalidate it. When only the
+        // runtime was invalidated, a freshly attached store showed no
+        // badges until the app restarted.
+        var attached = false;
+        final c = ProviderContainer(
+          overrides: [
+            mediaTransferQueueRepositoryProvider.overrideWithValue(repo),
+            mediaRepositoryProvider.overrideWithValue(mockRepo),
+            mediaStoreAttachedProvider.overrideWith((ref) async => attached),
+          ],
+        );
+        addTearDown(c.dispose);
+        when(mockRepo.getMediaById('m1')).thenAnswer((_) async => item());
+
+        await expectBadge(item(), MediaBadgeState.none, using: c);
+
+        attached = true;
+        c.invalidate(mediaStoreAttachedProvider);
+
+        await expectBadge(item(), MediaBadgeState.notBackedUp, using: c);
+      },
+    );
+
+    test('an unavailable media repository degrades to none', () async {
+      // `container` from setUp overrides neither the media repository nor
+      // the attach state, so the settled-state computation throws and the
+      // guard must swallow it.
+      await expectBadge(item(), MediaBadgeState.none);
+    });
+  });
+
   Widget badgeApp(MediaItem i, MediaBadgeState state) => ProviderScope(
     // Keyed by state so each pump builds a fresh element rather than
     // reusing the prior one's cached async value.
@@ -99,6 +225,7 @@ void main() {
       MediaBadgeState.queued,
       MediaBadgeState.transferring,
       MediaBadgeState.failed,
+      MediaBadgeState.notBackedUp,
     ]) {
       await tester.pumpWidget(badgeApp(item(), state));
       await tester.pumpAndSettle();
