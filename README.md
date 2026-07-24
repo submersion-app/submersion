@@ -1,8 +1,12 @@
-<img src="assets/icon/icon.png" alt="Submersion logo" width="80">
-
-# Submersion
-
-*Own your dive log. Free and open-source, forever.*
+<table>
+<tr>
+<td valign="middle" width="100"><img src="assets/icon/icon.png" alt="Submersion logo" width="80"></td>
+<td valign="middle">
+<h1>Submersion</h1>
+<p><em>Own your dive log. Free and open-source, forever.</em></p>
+</td>
+</tr>
+</table>
 
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![CI](https://img.shields.io/github/actions/workflow/status/submersion-app/submersion/ci.yaml?branch=main&label=CI&logo=githubactions&logoColor=white)](https://github.com/submersion-app/submersion/actions/workflows/ci.yaml)
