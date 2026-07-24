@@ -1764,7 +1764,7 @@ class SyncDataSerializer {
         final row = await (_db.select(
           _db.diveComputers,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
-        return row?.toJson();
+        return row == null ? null : _withoutDeviceLocalFields(row.toJson());
       case 'tankPressureProfiles':
         final row = await (_db.select(
           _db.tankPressureProfiles,
@@ -2049,7 +2049,9 @@ class SyncDataSerializer {
         final rows = await (_db.select(
           _db.diveComputers,
         )..where((t) => t.id.isIn(idList))).get();
-        return {for (final r in rows) r.id: r.toJson()};
+        return {
+          for (final r in rows) r.id: _withoutDeviceLocalFields(r.toJson()),
+        };
       case 'tags':
         final rows = await (_db.select(
           _db.tags,
@@ -2141,6 +2143,7 @@ class SyncDataSerializer {
     String entityType,
     Map<String, dynamic> data,
   ) async {
+    data = _withoutDeviceLocalFields(data, entityType: entityType);
     switch (entityType) {
       case 'divers':
         await _db
@@ -2615,6 +2618,11 @@ class SyncDataSerializer {
     List<Map<String, dynamic>> records,
   ) async {
     if (records.isEmpty) return;
+    records = records
+        .map(
+          (record) => _withoutDeviceLocalFields(record, entityType: entityType),
+        )
+        .toList();
     switch (entityType) {
       case 'divers':
         await _db.batch(
@@ -4780,7 +4788,20 @@ class SyncDataSerializer {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
     final rows = await query.get();
-    return rows.map((r) => r.toJson()).toList();
+    return rows.map((r) => _withoutDeviceLocalFields(r.toJson())).toList();
+  }
+
+  /// Removes fields that describe this host's connection to a device rather
+  /// than the device's synced identity. A remote BLE identifier must never
+  /// overwrite the identifier stored locally on another host.
+  static Map<String, dynamic> _withoutDeviceLocalFields(
+    Map<String, dynamic> data, {
+    String? entityType,
+  }) {
+    if (entityType != null && entityType != 'diveComputers') return data;
+    final copy = Map<String, dynamic>.from(data);
+    copy.remove('bluetoothAddress');
+    return copy;
   }
 
   Future<List<Map<String, dynamic>>> _exportTankPressureProfiles(

@@ -214,15 +214,44 @@ class DiveComputerAdapter implements ImportSourceAdapter {
       }
     }
 
-    if (computer != null) return;
-
-    // Create a new computer record from the discovered device.
     final connectionTypeStr = switch (device.connectionType) {
       DeviceConnectionType.ble => 'bluetooth',
       DeviceConnectionType.bluetoothClassic => 'bluetooth',
       DeviceConnectionType.usb => 'usb',
       DeviceConnectionType.infrared => 'infrared',
     };
+
+    if (computer != null) return;
+
+    // A BLE identifier is local to the host running this app. After a fresh
+    // discovery, use the stable hardware identity to rebind this host's
+    // identifier instead of creating a duplicate synced computer record.
+    final normalizedSerial = serialNumber?.trim();
+    final normalizedManufacturer = device.manufacturer?.trim();
+    final normalizedModel = device.model?.trim();
+    if (normalizedSerial?.isNotEmpty == true &&
+        normalizedManufacturer?.isNotEmpty == true &&
+        normalizedModel?.isNotEmpty == true) {
+      final existing = await _computerRepository.findByHardwareIdentity(
+        manufacturer: normalizedManufacturer!,
+        model: normalizedModel!,
+        serialNumber: normalizedSerial!,
+        diverId: _diverId,
+      );
+      if (existing != null) {
+        final rebound = existing.copyWith(
+          serialNumber: normalizedSerial,
+          firmwareVersion: firmwareVersion,
+          connectionType: connectionTypeStr,
+          bluetoothAddress: device.address,
+        );
+        await _computerRepository.updateComputer(rebound);
+        _computer = rebound;
+        return;
+      }
+    }
+
+    // Create a new computer record when the stable hardware identity is new.
 
     final newComputer =
         DiveComputer.create(

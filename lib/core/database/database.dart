@@ -2162,7 +2162,9 @@ class DiveComputers extends Table {
   TextColumn get firmwareVersion => text().nullable()();
   TextColumn get connectionType =>
       text().nullable()(); // "bluetooth", "usb", "ble"
-  TextColumn get bluetoothAddress => text().nullable()(); // MAC address
+  /// Device-local BLE/MAC identifier. This must not be synchronized because
+  /// CoreBluetooth identifiers can differ between hosts for the same hardware.
+  TextColumn get bluetoothAddress => text().nullable()();
   TextColumn get lastDiveFingerprint => text().nullable()();
   IntColumn get lastDownloadTimestamp =>
       integer().nullable()(); // Unix timestamp

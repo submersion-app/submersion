@@ -157,6 +157,25 @@ void main() {
       expect(await serializer.fetchRecord('totallyUnknown', 'x'), isNull);
     });
 
+    test('does not export a dive computer BLE address', () async {
+      await db.customStatement(
+        '''
+        INSERT INTO dive_computers
+          (id, name, bluetooth_address, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?)
+        ''',
+        ['computer-1', 'Petrel 3', 'host-local-address', 1, 1],
+      );
+
+      final record = await serializer.fetchRecord(
+        'diveComputers',
+        'computer-1',
+      );
+
+      expect(record, isNotNull);
+      expect(record, isNot(contains('bluetoothAddress')));
+    });
+
     test('fetches a seeded row for each single-PK entity type', () async {
       // Drift enables foreign_keys by default; turn it off so a minimal
       // placeholder row needn't satisfy parent references (these throwaway
