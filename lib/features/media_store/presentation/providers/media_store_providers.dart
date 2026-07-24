@@ -320,9 +320,14 @@ final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
         try {
           final storesRepository = ref.read(mediaStoresRepositoryProvider);
           final active = await storesRepository.getActive();
+          // No descriptor means nowhere to stamp last_sweep_at: without a
+          // bail-out the sweep would repeat on EVERY runtime construction
+          // with no fleet cadence guard. Leave the degraded state to the
+          // manual action (user-initiated, so unguarded repetition is fine).
+          if (active == null) return;
           final kind = await network.current();
           if (!shouldAutoVerify(
-            lastSweepAt: active?.lastSweepAt,
+            lastSweepAt: active.lastSweepAt,
             network: kind,
             now: DateTime.now(),
           )) {
@@ -337,9 +342,7 @@ final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
           // Same ordering as the manual runner: repairs drain even when
           // the fleet stamp fails.
           unawaited(worker.drain());
-          if (active != null) {
-            await storesRepository.stampLastSweep(active.id, DateTime.now());
-          }
+          await storesRepository.stampLastSweep(active.id, DateTime.now());
           LoggerService.forClass(MediaVerifyService).info(
             'Auto verify sweep: ${report.objectsChecked} checked, '
             '${report.orphansRemoved} orphans removed, '
