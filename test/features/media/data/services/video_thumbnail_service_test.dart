@@ -128,6 +128,25 @@ void main() {
     expect(platform.lastArgs!['blob'], isNotNull);
   });
 
+  test('still generates when the cache directory cannot be resolved', () async {
+    // getApplicationSupportDirectory() can throw (MissingPluginException on
+    // a platform without path_provider, PlatformException otherwise). That
+    // must not escape into grid rendering: caching degrades, posters do not.
+    final f = await makeVideoFile();
+    platform.toReturn = Uint8List.fromList([4, 2]);
+    final failing = VideoThumbnailService(
+      platform: platform,
+      bookmarkStorage: bookmarks,
+      cacheDir: () async => throw Exception('no support dir'),
+    );
+
+    final bytes = await failing.posterFor(_videoItem(localPath: f.path));
+
+    expect(bytes, isNotNull);
+    expect(bytes!.toList(), [4, 2]);
+    expect(platform.calls, 1);
+  });
+
   test('returns null when the item has no readable path', () async {
     final bytes = await service.posterFor(_videoItem(localPath: null));
     expect(bytes, isNull);

@@ -98,9 +98,14 @@ channel), `LocalBookmarkStorage` (macOS bookmark blob), and a cache directory.
   `Image.memory` sniffs the container — so a `.jpg` name would misdescribe most
   entries.
 - **Flow:**
-  1. Compute key from the file's stat. If the file is unreadable, return null.
-  2. Cache hit → return the cached bytes.
-  3. Miss → resolve the platform argument (macOS: bookmark blob via
+  1. Return null immediately if the item has no `localPath`.
+  2. Compute the key from the file's stat. A failed stat is **not** fatal: it
+     falls back to a coarser key (path + dimension) and generation still
+     proceeds, because on sandboxed macOS the path may be unreadable to Dart
+     while the native side can still resolve it through the bookmark.
+  3. Cache hit → return the cached bytes. If the cache directory cannot be
+     resolved at all, caching is skipped and generation still proceeds.
+  4. Miss → resolve the platform argument (macOS: bookmark blob via
      `LocalBookmarkStorage.read(item.bookmarkRef)`; Windows/Linux: `localPath`),
      call `generateVideoThumbnail`, and on non-null bytes write the cache and
      return them.
@@ -138,16 +143,24 @@ nobody is viewing.
 
 - Native failure / unsupported platform / missing Linux tool → channel returns
   null → placeholder. Never an exception to the UI.
-- Unreadable or missing local file → null → the resolver's existing
-  volume-offline / not-found handling in `resolve()` still applies to the
-  fallback.
+- Item with no `localPath` → null → placeholder.
+- A local file Dart cannot stat is **not** treated as failure: the key degrades
+  and generation is still attempted (native may reach it via the macOS
+  bookmark). Only a null from the channel yields the placeholder, at which
+  point the resolver's existing volume-offline / not-found handling in
+  `resolve()` applies to the fallback.
+- Cache directory unresolvable (e.g. `getApplicationSupportDirectory()` throws)
+  → caching is skipped, generation still proceeds. The service never lets that
+  escape into grid rendering.
 - Corrupt cache read → treat as a miss and regenerate.
 
 ## Testing
 
 - `VideoThumbnailService`: cache hit, cache miss (calls channel, writes cache),
-  key derivation (mtime/size/dimension changes bust the key), null passthrough,
-  unreadable-file null — all against a fake `LocalMediaPlatform`.
+  key derivation (mtime/size/dimension changes bust the key), null passthrough
+  when the channel returns null, null when the item has no `localPath`, and
+  generation still succeeding when the cache directory cannot be resolved —
+  all against a fake `LocalMediaPlatform`.
 - `LocalFileResolver.resolveThumbnail`: video → `BytesData` when the service
   returns bytes; video → `FileData` fallback when it returns null; image →
   `FileData` unchanged.

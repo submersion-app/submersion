@@ -9,7 +9,10 @@
 #include <wincodec.h>
 #include <wrl/client.h>
 
+#include <mutex>
 #include <string>
+#include <thread>
+#include <utility>
 #include <vector>
 
 #include "flutter/generated_plugin_registrant.h"
@@ -132,14 +135,18 @@ bool FlutterWindow::OnCreate() {
   RegisterPlugins(flutter_controller_->engine());
   SetChildContent(flutter_controller_->view()->GetNativeWindow());
 
+  thumb_bridge_ = std::make_shared<ThumbnailBridge>();
+  thumb_bridge_->hwnd = GetHandle();
+
   local_media_channel_ =
       std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
           flutter_controller_->engine()->messenger(),
           "com.submersion.app/local_media",
           &flutter::StandardMethodCodec::GetInstance());
   local_media_channel_->SetMethodCallHandler(
-      [](const flutter::MethodCall<flutter::EncodableValue>& call,
-         std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> res) {
+      [bridge = thumb_bridge_](
+          const flutter::MethodCall<flutter::EncodableValue>& call,
+          std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> res) {
         if (call.method_name() != "generateVideoThumbnail") {
           res->NotImplemented();
           return;
@@ -166,12 +173,37 @@ bool FlutterWindow::OnCreate() {
         // as an invalid SIZE or provoke a large allocation.
         if (max_dim < 1) max_dim = 1;
         if (max_dim > 4096) max_dim = 4096;
-        std::vector<uint8_t> png;
-        if (path.empty() || !GenerateShellThumbnailPng(path, max_dim, &png)) {
+        if (path.empty()) {
           res->Success();  // null
           return;
         }
-        res->Success(flutter::EncodableValue(png));
+        // Shell extraction + WIC encoding is synchronous and can take a while
+        // for an uncached codec or a large file. This handler runs on the
+        // platform/UI thread and the grid asks for a poster per visible tile,
+        // so doing it inline would stall the message loop (input, painting).
+        // Run it on a worker and complete the result back on the platform
+        // thread, mirroring the Linux GTask handling.
+        std::thread([bridge, path, max_dim,
+                     r = std::move(res)]() mutable {
+          // The shell and WIC APIs are COM; a fresh thread has no apartment,
+          // so CoCreateInstance would fail with CO_E_NOTINITIALIZED without
+          // this. Shell thumbnail handlers expect an STA.
+          const HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+          std::vector<uint8_t> png;
+          GenerateShellThumbnailPng(path, max_dim, &png);
+          if (SUCCEEDED(hr)) CoUninitialize();
+
+          {
+            std::lock_guard<std::mutex> lock(bridge->mutex);
+            bridge->completed.emplace_back(std::move(r), std::move(png));
+          }
+          // If the window is gone the result is simply never completed; the
+          // process is shutting down. PostMessage to a stale HWND fails
+          // harmlessly rather than crashing.
+          if (bridge->alive.load()) {
+            PostMessage(bridge->hwnd, kThumbnailReadyMsg, 0, 0);
+          }
+        }).detach();
       });
 
   flutter_controller_->engine()->SetNextFrameCallback([&]() {
@@ -195,6 +227,13 @@ bool FlutterWindow::OnCreate() {
 }
 
 void FlutterWindow::OnDestroy() {
+  // Stop in-flight thumbnail workers from posting to a window that is going
+  // away. Any result still parked in the bridge is simply never completed,
+  // which is correct at shutdown.
+  if (thumb_bridge_) {
+    thumb_bridge_->alive = false;
+  }
+
   if (flutter_controller_) {
     flutter_controller_ = nullptr;
   }
@@ -217,6 +256,23 @@ FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
   }
 
   switch (message) {
+    case kThumbnailReadyMsg: {
+      // Runs on the platform thread, which is the only place a MethodResult
+      // may be completed. Drain under the lock, then respond outside it.
+      decltype(ThumbnailBridge::completed) ready;
+      if (thumb_bridge_) {
+        std::lock_guard<std::mutex> lock(thumb_bridge_->mutex);
+        ready.swap(thumb_bridge_->completed);
+      }
+      for (auto& entry : ready) {
+        if (entry.second.empty()) {
+          entry.first->Success();  // null -> Dart falls back to placeholder
+        } else {
+          entry.first->Success(flutter::EncodableValue(entry.second));
+        }
+      }
+      return 0;
+    }
     case WM_FONTCHANGE:
       flutter_controller_->engine()->ReloadSystemFonts();
       break;
