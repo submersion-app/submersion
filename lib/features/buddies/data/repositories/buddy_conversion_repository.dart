@@ -90,7 +90,30 @@ class BuddyConversionRepository {
           }
         }
 
-        // 4. Remove buddy from all dives (cleanup junction rows)
+        // 4. Tombstone certifications
+        // FK cascade removes the rows but doesn't write deletion_log entries.
+        final certs = await (_db.select(
+          _db.certifications,
+        )..where((t) => t.buddyId.equals(buddy.id))).get();
+        for (final cert in certs) {
+          await _syncRepository.logDeletion(
+            entityType: 'certifications',
+            recordId: cert.id,
+          );
+        }
+
+        // 5. Tombstone professional roles (issue #395)
+        final roles = await (_db.select(
+          _db.buddyRoles,
+        )..where((t) => t.buddyId.equals(buddy.id))).get();
+        for (final role in roles) {
+          await _syncRepository.logDeletion(
+            entityType: 'buddyRoles',
+            recordId: role.id,
+          );
+        }
+
+        // 6. Remove buddy from all dives (cleanup junction rows)
         final existingLinks = await (_db.select(
           _db.diveBuddies,
         )..where((t) => t.buddyId.equals(buddy.id))).get();
@@ -104,7 +127,7 @@ class BuddyConversionRepository {
           );
         }
 
-        // 5. Delete the buddy
+        // 7. Delete the buddy
         await (_db.delete(
           _db.buddies,
         )..where((t) => t.id.equals(buddy.id))).go();

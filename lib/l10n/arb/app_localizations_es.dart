@@ -1000,14 +1000,16 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String buddies_conversion_confirmBody(String name) {
-    return 'This will convert $name into a dive center and update all shared dives. This action cannot be undone.';
+    return 'Esto convertirá $name en un centro de buceo y actualizará todas las inmersiones compartidas. Esta acción no se puede deshacer.';
   }
 
   @override
-  String get buddies_conversion_confirmTitle => 'Convert to Dive Center?';
+  String get buddies_conversion_confirmTitle =>
+      '¿Convertirse en centro de buceo?';
 
   @override
-  String get buddies_conversion_success => 'Buddy converted to dive center';
+  String get buddies_conversion_success =>
+      'Buddy convertido en centro de buceo';
 
   @override
   String buddies_detail_error(Object error) {

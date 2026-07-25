@@ -930,14 +930,14 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String buddies_conversion_confirmBody(String name) {
-    return 'This will convert $name into a dive center and update all shared dives. This action cannot be undone.';
+    return '这会将 $name 转换为潜水中心并更新所有共享潜水。此操作无法撤消。';
   }
 
   @override
-  String get buddies_conversion_confirmTitle => 'Convert to Dive Center?';
+  String get buddies_conversion_confirmTitle => '转换为潜水中心？';
 
   @override
-  String get buddies_conversion_success => 'Buddy converted to dive center';
+  String get buddies_conversion_success => '巴迪改建为潜水中心';
 
   @override
   String buddies_detail_error(Object error) {

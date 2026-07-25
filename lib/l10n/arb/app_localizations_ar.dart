@@ -989,14 +989,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String buddies_conversion_confirmBody(String name) {
-    return 'This will convert $name into a dive center and update all shared dives. This action cannot be undone.';
+    return 'سيؤدي هذا إلى تحويل __P0____ إلى مركز غوص وتحديث كافة عمليات الغطس المشتركة. لا يمكن التراجع عن هذا الإجراء.';
   }
 
   @override
-  String get buddies_conversion_confirmTitle => 'Convert to Dive Center?';
+  String get buddies_conversion_confirmTitle => 'تحويل إلى مركز الغوص؟';
 
   @override
-  String get buddies_conversion_success => 'Buddy converted to dive center';
+  String get buddies_conversion_success => 'تم تحويل الأصدقاء إلى مركز الغوص';
 
   @override
   String buddies_detail_error(Object error) {

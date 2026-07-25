@@ -160,5 +160,132 @@ void main() {
         expect(buddies, isEmpty);
       },
     );
+
+    test(
+      'convertBuddyToDiveCenter (covers _handleConvertToDiveCenter UI action) '
+      'should successfully convert a buddy with all related data and tombstones',
+      () async {
+        // 0. Create a diver to satisfy FK constraint
+        const diverId = 'diver-1';
+        await db
+            .into(db.divers)
+            .insert(
+              DiversCompanion.insert(
+                id: diverId,
+                name: 'Test Diver',
+                createdAt: DateTime.now().millisecondsSinceEpoch,
+                updatedAt: DateTime.now().millisecondsSinceEpoch,
+              ),
+            );
+
+        // 1. Create a buddy with diverId
+        final buddy = await buddyRepository.createBuddy(
+          domain.Buddy(
+            id: 'buddy-conv-1',
+            diverId: diverId,
+            name: 'Conversion Shop',
+            email: 'conv@example.com',
+            phone: '987654321',
+            notes: 'Conversion notes',
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+        );
+
+        // 2. Add some related data: certs and roles
+        final now = DateTime.now().millisecondsSinceEpoch;
+        await db
+            .into(db.certifications)
+            .insert(
+              CertificationsCompanion.insert(
+                id: 'cert-1',
+                name: 'OWD',
+                agency: 'PADI',
+                buddyId: const Value('buddy-conv-1'),
+                createdAt: now,
+                updatedAt: now,
+              ),
+            );
+        await db
+            .into(db.buddyRoles)
+            .insert(
+              BuddyRoleRow(
+                id: 'role-1',
+                buddyId: 'buddy-conv-1',
+                role: 'instructor',
+                createdAt: now,
+                updatedAt: now,
+                notes: '',
+              ),
+            );
+
+        // 3. Create a dive linked to buddy
+        await db
+            .into(db.dives)
+            .insert(
+              DivesCompanion.insert(
+                id: 'dive-conv-1',
+                diveDateTime: now,
+                updatedAt: now,
+                createdAt: now,
+              ),
+            );
+        await db
+            .into(db.diveBuddies)
+            .insert(
+              DiveBuddiesCompanion.insert(
+                id: 'link-conv-1',
+                diveId: 'dive-conv-1',
+                buddyId: buddy.id,
+                role: const Value(DiveRole.buddyId),
+                createdAt: now,
+              ),
+            );
+
+        // 4. Perform conversion
+        final diveCenterId = await conversionRepository
+            .convertBuddyToDiveCenter(buddy);
+
+        // 5. Verifications
+
+        // Verify Dive Center created with correct diverId
+        final diveCenter = await (db.select(
+          db.diveCenters,
+        )..where((t) => t.id.equals(diveCenterId))).getSingle();
+        expect(diveCenter.name, equals(buddy.name));
+        expect(diveCenter.diverId, equals(diverId));
+
+        // Verify Dive updated
+        final dive = await (db.select(
+          db.dives,
+        )..where((t) => t.id.equals('dive-conv-1'))).getSingle();
+        expect(dive.diveCenterId, equals(diveCenterId));
+
+        // Verify Buddy deleted
+        final buddies = await (db.select(
+          db.buddies,
+        )..where((t) => t.id.equals(buddy.id))).get();
+        expect(buddies, isEmpty);
+
+        // Verify Related data deleted
+        final certs = await (db.select(
+          db.certifications,
+        )..where((t) => t.buddyId.equals(buddy.id))).get();
+        expect(certs, isEmpty);
+
+        final roles = await (db.select(
+          db.buddyRoles,
+        )..where((t) => t.buddyId.equals(buddy.id))).get();
+        expect(roles, isEmpty);
+
+        // Verify Tombstones exist in deletion_log
+        final logs = await db.select(db.deletionLog).get();
+        final logEntities = logs.map((l) => l.entityType).toList();
+        expect(logEntities, contains('buddies'));
+        expect(logEntities, contains('certifications'));
+        expect(logEntities, contains('buddyRoles'));
+        expect(logEntities, contains('diveBuddies'));
+      },
+    );
   });
 }
