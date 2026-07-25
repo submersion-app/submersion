@@ -8,6 +8,7 @@ import 'package:submersion/core/services/accounts/adapters/google_drive_account_
 import 'package:submersion/core/services/accounts/adapters/icloud_account_adapter.dart';
 import 'package:submersion/core/services/accounts/adapters/lightroom_account_adapter.dart';
 import 'package:submersion/core/services/accounts/adapters/s3_account_adapter.dart';
+import 'package:submersion/core/services/cloud_storage/s3/s3_credentials_store.dart';
 
 final connectedAccountsRepositoryProvider =
     Provider<ConnectedAccountsRepository>(
@@ -18,6 +19,15 @@ final connectedAccountsRepositoryProvider =
 /// in-memory keychain (the real one has no platform channel under test).
 final accountCredentialsStoreProvider = Provider<AccountCredentialsStore>(
   (ref) => AccountCredentialsStore(),
+);
+
+/// The LEGACY single-key sync S3 config store, still the source of truth for
+/// the S3 connect UI. Sync account derivation reads it to identify the
+/// endpoint. Overridable for the same reason as
+/// [accountCredentialsStoreProvider]: the real keychain has no platform
+/// channel under test.
+final s3CredentialsStoreProvider = Provider<S3CredentialsStore>(
+  (ref) => S3CredentialsStore(),
 );
 
 /// One adapter instance per kind for the process lifetime (token caches and

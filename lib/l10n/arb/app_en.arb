@@ -1713,6 +1713,10 @@
   "dashboard_hero_todayLabel": "today!",
   "dashboard_hero_noDivesLabel": "no dives yet",
   "dashboard_hero_diverFallbackName": "Diver",
+  "dashboard_hero_statDives": "dives",
+  "dashboard_hero_statHours": "hours",
+  "dashboard_hero_statSites": "sites",
+  "dashboard_hero_statCountries": "countries",
   "dashboard_activityStats_divesInYear": "dives in {year}",
   "@dashboard_activityStats_divesInYear": {
     "placeholders": {
@@ -1722,6 +1726,220 @@
     }
   },
   "dashboard_semantics_statsBar": "Dive statistics summary",
+  "dashboard_gauges_addGear": "Add gear",
+  "dashboard_gauges_gearOk": "{name} OK",
+  "@dashboard_gauges_gearOk": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboard_gauges_gearDueIn": "{name} due in {days}d",
+  "@dashboard_gauges_gearDueIn": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboard_gauges_gearOverdue": "{name} overdue",
+  "@dashboard_gauges_gearOverdue": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboard_gauges_insuranceOk": "Insurance OK",
+  "dashboard_gauges_insuranceExpires": "Insurance expires {date}",
+  "@dashboard_gauges_insuranceExpires": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboard_gauges_insuranceExpired": "Insurance expired",
+  "dashboard_gauges_noInsurance": "No insurance on file",
+  "dashboard_gauges_noFlyClear": "No-fly 0:00",
+  "dashboard_gauges_noFlyRemaining": "No-fly {hours}:{minutes}",
+  "@dashboard_gauges_noFlyRemaining": {
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboard_gauges_lastDiveDays": "Last dive {days}d ago",
+  "@dashboard_gauges_lastDiveDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboard_gauges_lastDiveToday": "Dove today",
+  "dashboard_gauges_noDivesYet": "No dives yet",
+  "settings_homeChips_pageTitle": "Home status chips",
+  "settings_homeChips_description": "Choose which status chips appear at the top of the Home tab.",
+  "settings_homeChips_gear": "Gear service",
+  "settings_homeChips_insurance": "Insurance",
+  "settings_homeChips_noFly": "No-fly timer",
+  "settings_homeChips_lastDive": "Dive currency",
+  "settings_homeChips_certifications": "Certification expiry",
+  "settings_homeChips_trip": "Upcoming trip",
+  "settings_homeChips_checklist": "Active checklist",
+  "settings_homeChips_course": "Course progress",
+  "settings_homeChips_uploads": "Media uploads",
+  "settings_homeChips_backup": "Backup age",
+  "settings_homeChips_sync": "Sync status",
+  "settings_homeChips_dataQuality": "Data quality",
+  "dashboard_gauges_certsExpiring": "{count} certifications expiring",
+  "@dashboard_gauges_certsExpiring": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboard_gauges_tripCountdown": "{name} in {days}d",
+  "@dashboard_gauges_tripCountdown": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboard_gauges_checklistActive": "Checklist in progress",
+  "dashboard_gauges_courseProgress": "{name}: {done}/{total}",
+  "@dashboard_gauges_courseProgress": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboard_gauges_uploadsPending": "{count} uploads pending",
+  "@dashboard_gauges_uploadsPending": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboard_gauges_backupNone": "No backup yet",
+  "dashboard_gauges_backupToday": "Backed up today",
+  "dashboard_gauges_backupDays": "Backup {days}d ago",
+  "@dashboard_gauges_backupDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboard_gauges_syncPending": "{count} unsynced",
+  "@dashboard_gauges_syncPending": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboard_gauges_synced": "Synced",
+  "dashboard_gauges_dataIssues": "{count} data issues",
+  "@dashboard_gauges_dataIssues": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboard_gauges_retry": "Status unavailable - tap to retry",
+  "dashboard_urgent_title": "Needs attention",
+  "dashboard_photos_title": "Recent photos",
+  "dashboard_recentSites_title": "Recent sites",
+  "dashboard_yearInReview_title": "This year",
+  "dashboard_yearInReview_divesVs": "{count} dives (vs {previous} last year)",
+  "@dashboard_yearInReview_divesVs": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "previous": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboard_yearInReview_hours": "{hours} hours underwater",
+  "@dashboard_yearInReview_hours": {
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboard_yearInReview_maxDepth": "Deepest: {depth}",
+  "@dashboard_yearInReview_maxDepth": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboard_onThisDay_title": "On this day",
+  "dashboard_onThisDay_entry": "{year} - {site}",
+  "@dashboard_onThisDay_entry": {
+    "placeholders": {
+      "year": {
+        "type": "String"
+      },
+      "site": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboard_milestones_title": "Milestones",
+  "dashboard_milestones_nextDive": "{remaining} dives to #{milestone}",
+  "@dashboard_milestones_nextDive": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "milestone": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboard_milestones_certYears": "{name}: {years} years in {month}",
+  "@dashboard_milestones_certYears": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "years": {
+        "type": "int"
+      },
+      "month": {
+        "type": "String"
+      }
+    }
+  },
   "dashboard_personalRecords_coldest": "Coldest",
   "dashboard_personalRecords_deepest": "Deepest",
   "dashboard_personalRecords_longest": "Longest",
@@ -12839,6 +13057,22 @@
   "settings_mediaStorage_transfers_state_deleting": "Removing from cloud",
   "settings_mediaStorage_transfers_state_done": "Done",
   "settings_mediaStorage_transfers_state_failed": "Failed",
+  "settings_mediaStorage_transfers_queued": "{count} queued",
+  "@settings_mediaStorage_transfers_queued": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_mediaStorage_transfers_waitingRetry": "{count} waiting to retry",
+  "@settings_mediaStorage_transfers_waitingRetry": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "settings_mediaStorage_verify_action": "Verify library",
   "settings_mediaStorage_verify_running": "Verifying media library...",
   "settings_mediaStorage_verify_summary": "Checked {checked} objects: removed {removed} orphans, queued {repaired} repairs, aborted {aborted} stale uploads",
@@ -13831,5 +14065,7 @@
   "settings_mediaStorage_quality_small": "Small",
   "settings_mediaStorage_quality_caveat": "With a compression level set, full-resolution originals are not uploaded — they remain only on this device.",
   "settings_mediaStorage_quality_reuploadQueued": "Re-upload queued",
-  "settings_mediaStorage_quality_linuxFfmpegHint": "Install ffmpeg to enable video compression. Originals are uploaded until then."
+  "settings_mediaStorage_quality_linuxFfmpegHint": "Install ffmpeg to enable video compression. Originals are uploaded until then.",
+  "settings_mediaStorage_quality_saveFailed": "Could not save the upload quality. Try again.",
+  "settings_mediaStorage_quality_noTranscoderHint": "This device cannot compress video. Originals are uploaded from it."
 }

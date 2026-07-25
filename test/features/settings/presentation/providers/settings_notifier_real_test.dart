@@ -1,6 +1,8 @@
+import 'package:flutter/material.dart' show ThemeMode;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
+import 'package:submersion/core/presentation/startup_brightness.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
@@ -133,6 +135,27 @@ void main() {
           .read(settingsProvider.notifier)
           .setChamberHidden('au-townsville', false);
       expect(container.read(settingsProvider).hiddenChamberIds, isEmpty);
+    });
+
+    test('setHomeChipEnabled toggles hidden home chips', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      // All home chips are visible by default.
+      expect(container.read(settingsProvider).hiddenHomeChips, isEmpty);
+
+      await container
+          .read(settingsProvider.notifier)
+          .setHomeChipEnabled('noFly', false);
+      expect(
+        container.read(settingsProvider).hiddenHomeChips,
+        contains('noFly'),
+      );
+
+      await container
+          .read(settingsProvider.notifier)
+          .setHomeChipEnabled('noFly', true);
+      expect(container.read(settingsProvider).hiddenHomeChips, isEmpty);
     });
 
     test('setEmergencyRegion sets and clears the override', () async {
@@ -626,6 +649,52 @@ void main() {
         expect(s.perdixOverlayY, 0.0);
       },
     );
+  });
+
+  group('Real SettingsNotifier cached theme mode', () {
+    late ProviderContainer container;
+
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+
+      container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          diverSettingsRepositoryProvider.overrideWithValue(
+            _InMemorySettingsRepository(),
+          ),
+          diverRepositoryProvider.overrideWithValue(_EmptyDiverRepository()),
+          currentDiverIdProvider.overrideWith((ref) => _NullDiverIdNotifier()),
+        ],
+      );
+      // Construct the notifier and let async _initializeAndLoad settle.
+      container.read(settingsProvider);
+      await Future.delayed(const Duration(milliseconds: 50));
+    });
+
+    tearDown(() {
+      container.dispose();
+    });
+
+    test('hydration writes the default theme mode into prefs', () {
+      final prefs = container.read(sharedPreferencesProvider);
+      expect(prefs.getString(cachedThemeModeKey), 'system');
+    });
+
+    test('setThemeMode mirrors the new value into prefs', () async {
+      final notifier = container.read(settingsProvider.notifier);
+      final prefs = container.read(sharedPreferencesProvider);
+
+      await notifier.setThemeMode(ThemeMode.dark);
+      expect(prefs.getString(cachedThemeModeKey), 'dark');
+
+      await notifier.setThemeMode(ThemeMode.light);
+      expect(prefs.getString(cachedThemeModeKey), 'light');
+
+      await notifier.setThemeMode(ThemeMode.system);
+      expect(prefs.getString(cachedThemeModeKey), 'system');
+    });
   });
 }
 

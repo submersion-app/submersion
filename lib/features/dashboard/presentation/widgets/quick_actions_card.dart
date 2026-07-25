@@ -26,58 +26,55 @@ class QuickActionsCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton.icon(
-                      onPressed: () => showAddDiveBottomSheet(
-                        context: context,
-                        onLogManually: () => context.go('/dives/new'),
-                      ),
-                      icon: const Icon(Icons.add),
-                      label: Text(context.l10n.dashboard_quickActions_logDive),
-                    ),
-                  ),
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton.tonalIcon(
-                      onPressed: () => context.go('/planning/dive-planner'),
-                      icon: const Icon(Icons.edit_calendar),
-                      label: Text(context.l10n.dashboard_quickActions_planDive),
-                    ),
-                  ),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: () => context.go('/statistics'),
-                      icon: const Icon(Icons.bar_chart),
-                      label: Text(
-                        context.l10n.dashboard_quickActions_statistics,
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: () => context.go('/gps-log'),
-                      icon: const Icon(Icons.gps_fixed),
-                      label: Text(context.l10n.tools_gpsLogger_title),
-                    ),
-                  ),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: () => context.push(
-                        '/settings/diver-profile/emergency-card',
-                      ),
-                      icon: const Icon(Icons.emergency_outlined),
-                      label: Text(context.l10n.dashboard_quickAction_emergency),
-                    ),
-                  ),
-                ],
+            // Self-sizing (no Expanded): this card must lay out correctly
+            // both directly in the dashboard's unbounded scroll column
+            // (phone, 1-column) and inside a grid row (desktop).
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: () => showAddDiveBottomSheet(
+                  context: context,
+                  onLogManually: () => context.go('/dives/new'),
+                ),
+                icon: const Icon(Icons.add),
+                label: Text(context.l10n.dashboard_quickActions_logDive),
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.tonalIcon(
+                onPressed: () => context.go('/planning/dive-planner'),
+                icon: const Icon(Icons.edit_calendar),
+                label: Text(context.l10n.dashboard_quickActions_planDive),
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => context.go('/statistics'),
+                icon: const Icon(Icons.bar_chart),
+                label: Text(context.l10n.dashboard_quickActions_statistics),
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => context.go('/gps-log'),
+                icon: const Icon(Icons.gps_fixed),
+                label: Text(context.l10n.tools_gpsLogger_title),
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () =>
+                    context.push('/settings/diver-profile/emergency-card'),
+                icon: const Icon(Icons.emergency_outlined),
+                label: Text(context.l10n.dashboard_quickAction_emergency),
               ),
             ),
           ],

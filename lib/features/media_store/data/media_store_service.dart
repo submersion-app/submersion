@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/accounts/account_credentials_store.dart';
+import 'package:submersion/core/services/accounts/account_identity.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/account_provider_registry.dart';
@@ -200,16 +201,18 @@ class MediaStoreService {
       final ensured = await StoreMarkerStore(store: built.store).ensure();
       // Reuse the given account (only when it really is an S3 account:
       // attaching S3 credentials under another kind's keychain key would
-      // corrupt that account) or create a fresh S3 account. A bare connect
-      // never adopts the sync S3 account: the media store S3 config is
-      // independent from sync's by design.
+      // corrupt that account), else resolve the endpoint to its
+      // deterministic account. The endpoint key includes the prefix, so a
+      // bare connect still never adopts the sync S3 account when sync uses
+      // a different prefix in the same bucket.
       final requested = accountId == null
           ? null
           : await _accounts.getById(accountId);
       final account = (requested != null && requested.kind == AccountKind.s3)
           ? requested
-          : await _accounts.create(
+          : await _accounts.ensure(
               kind: AccountKind.s3,
+              naturalKey: s3NaturalKey(config),
               label: '${config.bucket} @ ${config.displayHost}',
             );
       await _accountCredentials.write(account.id, jsonEncode(config.toJson()));
@@ -274,9 +277,14 @@ class MediaStoreService {
     // per-account key is still empty: a user who linked Dropbox sync
     // before the accounts layer existed connects without re-auth.
     final kind = AccountKind.fromCloudProviderType(type);
-    final account =
-        await _accounts.getByKind(kind) ??
-        await _accounts.create(kind: kind, label: displayHint);
+    // Single-instance per kind, resolved to the deterministic id so two
+    // devices connecting the same provider converge on one row instead of
+    // each minting its own (getByKind dedups only locally).
+    final account = await _accounts.ensure(
+      kind: kind,
+      naturalKey: naturalKeyForKind(kind)!,
+      label: displayHint,
+    );
     if (type == CloudProviderType.dropbox) {
       // Refresh (overwrite) so a re-link in Cloud Sync that rotated the
       // legacy blob is reflected here; the runtime reads only the

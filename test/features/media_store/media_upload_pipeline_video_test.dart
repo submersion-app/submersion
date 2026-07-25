@@ -2,9 +2,8 @@ import 'dart:io';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
-import 'package:submersion/core/services/media_store/media_store_policies.dart';
+import 'package:submersion/core/services/media_store/media_upload_quality_policy.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -19,6 +18,7 @@ import 'package:submersion/features/media_store/domain/media_upload_quality.dart
 import 'support/fake_local_file_resolver.dart';
 import '../../helpers/in_memory_media_object_store.dart';
 import '../../helpers/test_database.dart';
+import '../../support/fake_app_settings_repository.dart';
 
 class _FakeVideoTranscoder implements VideoTranscoder {
   int calls = 0;
@@ -48,10 +48,9 @@ void main() {
   late FakeLocalFileResolver resolver;
   late MediaSourceResolverRegistry registry;
   late _FakeVideoTranscoder transcoder;
-  late MediaStorePolicies policies;
+  late MediaUploadQualityPolicy quality;
 
   setUp(() async {
-    SharedPreferences.setMockInitialValues({});
     await setUpTestDatabase();
     mediaRepository = MediaRepository();
     cacheDb = LocalCacheDatabase(NativeDatabase.memory());
@@ -64,8 +63,8 @@ void main() {
       MediaSourceType.localFile: resolver,
     });
     transcoder = _FakeVideoTranscoder();
-    policies = MediaStorePolicies(prefs: await SharedPreferences.getInstance());
-    await policies.setVideoUploadQuality(MediaUploadQuality.balanced);
+    quality = MediaUploadQualityPolicy(settings: FakeAppSettingsRepository());
+    await quality.setVideoUploadQuality(MediaUploadQuality.balanced);
   });
 
   tearDown(() async {
@@ -80,7 +79,7 @@ void main() {
     store: fakeStore,
     registry: registry,
     cache: cache,
-    policies: policies,
+    quality: quality,
     videoTranscoder: transcoder,
     now: () => DateTime(2026, 7, 21, 12),
   );
@@ -160,7 +159,7 @@ void main() {
     // A deterministic transcode left by a prior attempt must not linger when
     // the next successful run uploads the original instead (e.g. the user
     // switched the level to Original, or the engine became unavailable).
-    await policies.setVideoUploadQuality(MediaUploadQuality.original);
+    await quality.setVideoUploadQuality(MediaUploadQuality.original);
 
     resolver.data = FileData(file: await sourceClip());
     await mediaRepository.createMedia(video('v1'));
@@ -214,7 +213,7 @@ void main() {
   test(
     'photo rendition is cleaned up when the upload fails (leak fix)',
     () async {
-      await policies.setPhotoUploadQuality(MediaUploadQuality.balanced);
+      await quality.setPhotoUploadQuality(MediaUploadQuality.balanced);
       // Source lives OUTSIDE staging/ so the only staging entries are the
       // materialized copy (deleted in finally) and the rendition (deleted by
       // the failure-path cleanup) — an empty staging dir proves no leak.

@@ -209,6 +209,56 @@ void main() {
     expect(find.byType(UnavailableMediaPlaceholder), findsNothing);
   });
 
+  // Regression: an upload-quality setting that stores a compressed rendition
+  // instead of the original leaves remoteUploadedAt null forever, so gating
+  // the store fallback on that stamp alone made the full-size view report
+  // "File not found" on every other device — while the grid thumbnail beside
+  // it rendered fine off the thumb stamp. MediaStoreResolver has always been
+  // able to serve the rendition; only the gate in front of it was too narrow.
+  testWidgets('renders the compressed rendition when only the compressed '
+      'stamp is present', (tester) async {
+    await tester.runAsync(() async {
+      final bytes = base64Decode(_onePixelPngBase64);
+      final hash = 'c3${'7' * 62}';
+      final uploadedAt = DateTime(2026, 7, 2);
+      store.objects[StoreKeys.renditionKey(hash, ext: 'jpg')] = bytes;
+
+      final runtime = MediaStoreRuntime(
+        storeId: 'store-1',
+        store: store,
+        cache: cache,
+        resolver: MediaStoreResolver(store: store, cache: cache),
+      );
+
+      // Exactly the shape a "small" upload-quality row syncs with: thumb and
+      // rendition uploaded, original never.
+      final compressedRow = MediaItem(
+        id: 'm-compressed',
+        mediaType: MediaType.photo,
+        sourceType: MediaSourceType.platformGallery,
+        platformAssetId: 'asset-from-other-device',
+        originalFilename: 'reef.png',
+        takenAt: DateTime(2026),
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+        contentHash: hash,
+        remoteThumbUploadedAt: uploadedAt,
+        remoteCompressedUploadedAt: uploadedAt,
+      );
+      expect(compressedRow.remoteUploadedAt, isNull);
+
+      await tester.pumpWidget(app(compressedRow, runtime: runtime));
+      for (var i = 0; i < 40; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        await tester.pump();
+        if (find.byType(Image).evaluate().isNotEmpty) break;
+      }
+    });
+
+    expect(find.byType(Image), findsOneWidget);
+    expect(find.byType(UnavailableMediaPlaceholder), findsNothing);
+  });
+
   testWidgets('keeps the native placeholder when no store runtime '
       'exists', (tester) async {
     await tester.runAsync(() async {

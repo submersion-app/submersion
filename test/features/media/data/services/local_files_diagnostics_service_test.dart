@@ -154,6 +154,35 @@ void main() {
       },
     );
 
+    test(
+      'transientError items keep their orphan state (only stamped)',
+      () async {
+        // A present-but-unreadable file (sandbox denial / revoked
+        // permission): the bytes are on disk, so the sweep must not flip a
+        // healthy row to "missing from device".
+        final healthy = item(id: 'a', isOrphaned: false);
+        final orphan = item(id: 'b', isOrphaned: true);
+        when(
+          mockRepo.getAllBySourceType(MediaSourceType.localFile),
+        ).thenAnswer((_) async => [healthy, orphan]);
+        when(
+          mockResolver.verify(any),
+        ).thenAnswer((_) async => VerifyResult.transientError);
+        when(mockRepo.updateMedia(any)).thenAnswer((_) async {});
+
+        final flipped = await subject.reverifyAll();
+
+        expect(flipped, 0, reason: 'a transient failure never flips anything');
+        final captured = verify(
+          mockRepo.updateMedia(captureAny),
+        ).captured.cast<MediaItem>();
+        final byId = {for (final u in captured) u.id: u};
+        expect(byId['a']!.isOrphaned, isFalse, reason: 'not orphaned');
+        expect(byId['b']!.isOrphaned, isTrue, reason: 'state preserved');
+        expect(byId['a']!.lastVerifiedAt, isNotNull);
+      },
+    );
+
     test('on empty repository returns zero', () async {
       when(
         mockRepo.getAllBySourceType(MediaSourceType.localFile),

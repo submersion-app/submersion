@@ -76,6 +76,20 @@ LocalFileResolver _resolver() => LocalFileResolver(
   exifExtractor: ExifExtractor(),
 );
 
+/// Resolver pinned to the security-scoped-bookmark branch (the iOS / macOS
+/// path) on any host. The unit shards run on Linux, so without this the
+/// bookmark branch — the only one that can resolve a sandboxed file — would
+/// never execute in CI.
+LocalFileResolver _bookmarkResolver({
+  required LocalBookmarkStorage bookmarkStorage,
+  required LocalMediaPlatform platform,
+}) => LocalFileResolver(
+  bookmarkStorage: bookmarkStorage,
+  platform: platform,
+  exifExtractor: ExifExtractor(),
+  usesSecurityScopedBookmarks: () => true,
+);
+
 void main() {
   late Directory tempDir;
 
@@ -123,11 +137,32 @@ void main() {
   test(
     'resolve returns Unavailable when bookmarkRef present but storage returns null',
     () async {
-      final r = _resolver();
-      // Non-Android / non-iOS desktop host: bookmarkRef present but
-      // _NullBookmarkStorage returns null -> UnavailableData.
+      // Pinned to the bookmark branch so the missing-blob path (and its
+      // diagnostic warning) executes on every host, not just Apple ones.
+      final r = _bookmarkResolver(
+        bookmarkStorage: _NullBookmarkStorage(),
+        platform: LocalMediaPlatform(),
+      );
       final data = await r.resolve(_localFile(bookmarkRef: 'ref-123'));
       expect(data, isA<UnavailableData>());
+      expect((data as UnavailableData).kind, UnavailableKind.notFound);
+    },
+  );
+
+  test(
+    'resolve falls through to Unavailable on a host without bookmarks',
+    () async {
+      // The default predicate on a non-Apple host: the bookmark branch is
+      // skipped entirely and resolve() exits at the final return.
+      final r = LocalFileResolver(
+        bookmarkStorage: _StubBookmarkStorage(Uint8List.fromList([1, 2])),
+        platform: _StubPlatform(),
+        exifExtractor: ExifExtractor(),
+        usesSecurityScopedBookmarks: () => false,
+      );
+      final data = await r.resolve(_localFile(bookmarkRef: 'ref-123'));
+      expect(data, isA<UnavailableData>());
+      expect((data as UnavailableData).kind, UnavailableKind.notFound);
     },
   );
 
@@ -194,23 +229,19 @@ void main() {
     },
   );
 
-  // The Android branch (Platform.isAndroid: readUriBytes) and the
-  // iOS / macOS bookmark-bytes branch are exercised together via the
-  // BytesData round-trip in extractMetadata. On macOS hosts the
-  // bookmark-bytes branch fires; on Android hosts the URI-bytes branch
-  // fires. Below we assert the iOS/macOS branch (the host this suite
-  // runs on in dev / CI).
+  // The security-scoped-bookmark branch (iOS / macOS in production). These
+  // pin the branch via `usesSecurityScopedBookmarks` rather than gating on
+  // the host, so they run on the Linux unit shards too. The Android
+  // URI-bytes branch stays host-gated — it needs a real Android runtime.
   test(
-    'resolve returns BytesData via readBookmarkBytes on iOS/macOS hosts',
+    'resolve returns BytesData via readBookmarkBytes on the bookmark branch',
     () async {
-      if (!Platform.isIOS && !Platform.isMacOS) return;
       final platform = _StubPlatform()
         ..onReadBookmarkBytes = ((blob) async =>
             Uint8List.fromList([10, 20, 30]));
-      final r = LocalFileResolver(
+      final r = _bookmarkResolver(
         bookmarkStorage: _StubBookmarkStorage(Uint8List.fromList([1, 2])),
         platform: platform,
-        exifExtractor: ExifExtractor(),
       );
       final data = await r.resolve(_localFile(bookmarkRef: 'ref-1'));
       expect(data, isA<BytesData>());
@@ -218,34 +249,27 @@ void main() {
     },
   );
 
-  test(
-    'resolve returns Unavailable when readBookmarkBytes throws (iOS/macOS)',
-    () async {
-      if (!Platform.isIOS && !Platform.isMacOS) return;
-      final platform = _StubPlatform()
-        ..onReadBookmarkBytes = ((blob) async => throw 'boom');
-      final r = LocalFileResolver(
-        bookmarkStorage: _StubBookmarkStorage(Uint8List.fromList([1, 2])),
-        platform: platform,
-        exifExtractor: ExifExtractor(),
-      );
-      final data = await r.resolve(_localFile(bookmarkRef: 'ref-1'));
-      expect(data, isA<UnavailableData>());
-      expect((data as UnavailableData).kind, UnavailableKind.notFound);
-    },
-  );
+  test('resolve returns Unavailable when readBookmarkBytes throws', () async {
+    final platform = _StubPlatform()
+      ..onReadBookmarkBytes = ((blob) async => throw 'boom');
+    final r = _bookmarkResolver(
+      bookmarkStorage: _StubBookmarkStorage(Uint8List.fromList([1, 2])),
+      platform: platform,
+    );
+    final data = await r.resolve(_localFile(bookmarkRef: 'ref-1'));
+    expect(data, isA<UnavailableData>());
+    expect((data as UnavailableData).kind, UnavailableKind.notFound);
+  });
 
   test(
-    'extractMetadata over BytesData round-trips through a temp file (iOS/macOS)',
+    'extractMetadata over BytesData round-trips through a temp file',
     () async {
-      if (!Platform.isIOS && !Platform.isMacOS) return;
       final platform = _StubPlatform()
         ..onReadBookmarkBytes = ((blob) async =>
             Uint8List.fromList([0, 1, 2, 3]));
-      final r = LocalFileResolver(
+      final r = _bookmarkResolver(
         bookmarkStorage: _StubBookmarkStorage(Uint8List.fromList([1, 2])),
         platform: platform,
-        exifExtractor: ExifExtractor(),
       );
       final meta = await r.extractMetadata(_localFile(bookmarkRef: 'ref-1'));
       // BytesData branch writes a temp file, runs extractor, deletes — so we
@@ -255,24 +279,112 @@ void main() {
     },
   );
 
-  test(
-    'extractMetadata cleans up the temp file after BytesData run (iOS/macOS)',
-    () async {
-      if (!Platform.isIOS && !Platform.isMacOS) return;
-      final platform = _StubPlatform()
-        ..onReadBookmarkBytes = ((blob) async =>
-            Uint8List.fromList([0, 1, 2, 3]));
-      final item = _localFile(bookmarkRef: 'ref-cleanup');
-      final r = LocalFileResolver(
-        bookmarkStorage: _StubBookmarkStorage(Uint8List.fromList([1, 2])),
-        platform: platform,
-        exifExtractor: ExifExtractor(),
+  test('extractMetadata cleans up the temp file after BytesData run', () async {
+    final platform = _StubPlatform()
+      ..onReadBookmarkBytes = ((blob) async =>
+          Uint8List.fromList([0, 1, 2, 3]));
+    final item = _localFile(bookmarkRef: 'ref-cleanup');
+    final r = _bookmarkResolver(
+      bookmarkStorage: _StubBookmarkStorage(Uint8List.fromList([1, 2])),
+      platform: platform,
+    );
+    await r.extractMetadata(item);
+    final tmp = File('${Directory.systemTemp.path}/exif_${item.id}.bin');
+    expect(tmp.existsSync(), isFalse);
+  });
+  // Regression: a sandboxed macOS build can STAT a user file (~/Downloads)
+  // but not OPEN it — File.exists() returns true while any read throws
+  // EPERM. The resolver must probe readability, not existence, before
+  // taking the direct-file fast path; otherwise it returns FileData that
+  // Image.file can never load and the working security-scoped bookmark is
+  // never consulted. chmod 000 reproduces the same exists-but-unreadable
+  // split without a sandbox, on both macOS and Linux (CI runs the unit
+  // shards on ubuntu, so guarding these on macOS alone would mean the
+  // regression is never exercised in CI).
+  group('exists-but-unreadable localPath (sandbox)', () {
+    /// Creates a file at [path] that exists but cannot be opened, or returns
+    /// null when this environment cannot produce that state — Windows has no
+    /// chmod semantics, and chmod cannot deny root, so a root test runner
+    /// (some CI containers) would silently get a readable file and fail for
+    /// the wrong reason. Callers skip in that case.
+    Future<File?> unreadableFile(String path) async {
+      if (Platform.isWindows) {
+        markTestSkipped('chmod permission semantics are POSIX-only');
+        return null;
+      }
+      final f = File(path)..writeAsBytesSync([1, 2, 3]);
+      final chmod = await Process.run('chmod', ['000', f.path]);
+      expect(chmod.exitCode, 0, reason: 'chmod 000 failed: ${chmod.stderr}');
+      addTearDown(() => Process.run('chmod', ['644', f.path]));
+      // Confirm the state we actually need, rather than assuming chmod
+      // implies it.
+      try {
+        await (await f.open()).close();
+        markTestSkipped('running as root: chmod cannot deny read access');
+        return null;
+      } on FileSystemException {
+        return f;
+      }
+    }
+
+    test(
+      'resolve falls back to the bookmark when localPath is unreadable',
+      () async {
+        final f = await unreadableFile('${tempDir.path}/locked.jpg');
+        if (f == null) return;
+
+        final platform = _StubPlatform()
+          ..onReadBookmarkBytes = ((blob) async =>
+              Uint8List.fromList([10, 20, 30]));
+        final r = _bookmarkResolver(
+          bookmarkStorage: _StubBookmarkStorage(Uint8List.fromList([1, 2])),
+          platform: platform,
+        );
+        final data = await r.resolve(
+          _localFile(localPath: f.path, bookmarkRef: 'ref-1'),
+        );
+        expect(data, isA<BytesData>());
+        expect((data as BytesData).bytes, [10, 20, 30]);
+      },
+    );
+
+    test(
+      'resolve reads unreadable localPath as Unavailable when no bookmark',
+      () async {
+        final f = await unreadableFile('${tempDir.path}/locked2.jpg');
+        if (f == null) return;
+
+        final r = _resolver();
+        final data = await r.resolve(_localFile(localPath: f.path));
+        expect(data, isA<UnavailableData>());
+        expect((data as UnavailableData).kind, UnavailableKind.notFound);
+      },
+    );
+
+    // The bytes are still on disk, so the re-verify sweep must not flag the
+    // row "missing from device" — that state is sticky and misleading, and a
+    // re-granted permission restores the file with no user action.
+    test('verify reports transientError (not notFound) for a present but '
+        'unreadable file', () async {
+      final f = await unreadableFile('${tempDir.path}/locked3.jpg');
+      if (f == null) return;
+
+      final r = _resolver();
+      expect(
+        await r.verify(_localFile(localPath: f.path)),
+        VerifyResult.transientError,
       );
-      await r.extractMetadata(item);
-      final tmp = File('${Directory.systemTemp.path}/exif_${item.id}.bin');
-      expect(tmp.existsSync(), isFalse);
-    },
-  );
+    });
+
+    test('verify still reports notFound for a genuinely absent file', () async {
+      final r = _resolver();
+      expect(
+        await r.verify(_localFile(localPath: '${tempDir.path}/gone.jpg')),
+        VerifyResult.notFound,
+      );
+    });
+  });
+
   group('volume awareness', () {
     LocalFileResolver volumeResolver({required bool volumeOnline}) =>
         LocalFileResolver(

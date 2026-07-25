@@ -703,12 +703,26 @@ class SyncService {
         // On an epoch but the marker vanished: self-heal it from the mirror
         // and continue as current.
         final stored = epochStore.lastAcceptedMarker;
-        if (stored != null) {
-          try {
-            await writeLibraryEpochMarker(provider, stored);
-          } catch (e) {
-            _log.warning('Could not self-heal epoch marker: $e');
-          }
+        if (stored == null) {
+          // No marker in the cloud AND no mirror to rebuild one from: this
+          // epoch can never be proven to a peer or republished, yet the reader
+          // fences off every peer stamped differently -- which, with the marker
+          // gone, is all of them. Peers meanwhile see no marker, stay in the
+          // pre-epoch world, and merge us happily: sync silently goes one-way
+          // behind a green "Sync complete". A missing marker means the fence
+          // is already gone fleet-wide, so holding an unprovable epoch buys no
+          // safety and only isolates this device. Rejoin the pre-epoch world.
+          _log.warning(
+            'Accepted epoch $accepted has neither a cloud marker nor a local '
+            'mirror; dropping to the pre-epoch world so peers merge again',
+          );
+          await _syncRepository.setLastAcceptedEpochId(null);
+          return const _EpochGate.proceed(null);
+        }
+        try {
+          await writeLibraryEpochMarker(provider, stored);
+        } catch (e) {
+          _log.warning('Could not self-heal epoch marker: $e');
         }
         return _EpochGate.proceed(accepted);
       }
@@ -2380,12 +2394,19 @@ class SyncService {
   }
 
   /// Comprehensive local sync reset: everything [resetSyncState] clears, PLUS
-  /// the SharedPreferences epoch markers (the one local sync state a DB reset
-  /// misses -- see [LibraryEpochStore.clear]) and any leftover base temp files.
+  /// both library-epoch anchors (the SharedPreferences markers -- see
+  /// [LibraryEpochStore.clear] -- and the DB's accepted epoch, which
+  /// [resetSyncState] leaves alone) and any leftover base temp files.
   /// A true reinstall-equivalent for sync state that never touches dive data.
   /// The notifier-level caller still runs the identity/cloud-file cleanup.
+  ///
+  /// Both anchors must go together. Clearing only the mirror strands this
+  /// device on a DB epoch it can no longer republish a marker for, and the
+  /// reader then skips every peer stamped differently -- turning the repair
+  /// into a worse wedge than the one it was invoked to escape.
   Future<void> repairLocalSyncState() async {
     await resetSyncState();
+    await _syncRepository.setLastAcceptedEpochId(null);
     await _epochStore?.clear();
     await deleteLeftoverBaseTempFiles();
     _log.info('Local sync state repaired');

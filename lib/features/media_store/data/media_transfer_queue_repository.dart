@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
+import 'package:submersion/features/media_store/domain/media_transfer_summary.dart';
 
 /// Row type alias so callers do not depend on the Drift-generated name.
 typedef MediaTransferQueueEntry = MediaTransferQueueData;
@@ -371,13 +372,81 @@ class MediaTransferQueueRepository {
     _db.mediaTransferQueue,
   )..where((t) => t.state.equals('done'))).go();
 
-  /// Pending + transferring, for backfill progress display.
-  Stream<int> watchActiveCount() {
-    final count = _db.mediaTransferQueue.id.count();
+  /// Live split of the outstanding queue for the settings page.
+  ///
+  /// Replaces a plain pending+transferring count, which reported a row
+  /// parked in a multi-hour retry backoff as work in progress. Due-ness is
+  /// evaluated per emission against [now]; a row that becomes due purely by
+  /// the passage of time does not re-emit on its own, which is why the
+  /// worker arms a timer at [earliestPendingWakeup] - that drain writes,
+  /// and the write is what refreshes this stream.
+  Stream<MediaTransferSummary> watchSummary({DateTime Function()? now}) {
+    final clock = now ?? DateTime.now;
+    final query = _db.select(_db.mediaTransferQueue)
+      ..where((t) => t.state.isIn(['pending', 'transferring']));
+    return query.watch().map((rows) => _summarize(rows, clock()));
+  }
+
+  static MediaTransferSummary _summarize(
+    List<MediaTransferQueueEntry> rows,
+    DateTime now,
+  ) {
+    final nowMs = now.millisecondsSinceEpoch;
+    var transferring = 0;
+    var queued = 0;
+    var waiting = 0;
+    String? reason;
+    int? reasonAt;
+    // Single pass, no intermediate list: this re-runs on every queue write,
+    // and a backfill writes once per row transition over the whole library.
+    for (final row in rows) {
+      final until = row.nextAttemptAt;
+      if (row.state == 'transferring') {
+        transferring++;
+      } else if (until != null && until > nowMs) {
+        waiting++;
+        // Newest wins: of several parked rows, the freshest failure is the
+        // one someone opening this page is looking for.
+        final error = row.errorMessage;
+        if (error != null && (reasonAt == null || row.updatedAt > reasonAt)) {
+          reason = error;
+          reasonAt = row.updatedAt;
+        }
+      } else {
+        queued++;
+      }
+    }
+    return MediaTransferSummary(
+      transferring: transferring,
+      queued: queued,
+      waiting: waiting,
+      waitingReason: reason,
+    );
+  }
+
+  /// The soonest future attempt time among pending rows, or null when no
+  /// pending row is waiting on one. Drives the worker's retry wakeup.
+  ///
+  /// Deliberately excludes rows that are already due. Those are the drain's
+  /// own job, and a drain that left one behind did so because it was
+  /// suspended - offline, or a failed preflight - both of which have their
+  /// own triggers. Arming a timer for an already-due row would spin a tight
+  /// loop against a drain that keeps declining to run.
+  Future<DateTime?> earliestPendingWakeup(DateTime now) async {
+    final soonest = _db.mediaTransferQueue.nextAttemptAt.min();
     final query = _db.selectOnly(_db.mediaTransferQueue)
-      ..addColumns([count])
-      ..where(_db.mediaTransferQueue.state.isIn(['pending', 'transferring']));
-    return query.watchSingle().map((row) => row.read(count) ?? 0);
+      ..addColumns([soonest])
+      ..where(
+        _db.mediaTransferQueue.state.equals('pending') &
+            // A null nextAttemptAt fails this comparison in SQL, which is
+            // exactly right: an undeferred row is due, not a wakeup.
+            _db.mediaTransferQueue.nextAttemptAt.isBiggerThanValue(
+              now.millisecondsSinceEpoch,
+            ),
+      );
+    final row = await query.getSingleOrNull();
+    final ms = row?.read(soonest);
+    return ms == null ? null : DateTime.fromMillisecondsSinceEpoch(ms);
   }
 
   Future<List<MediaTransferQueueEntry>> allForTesting() =>

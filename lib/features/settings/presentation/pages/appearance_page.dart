@@ -124,6 +124,11 @@ class AppearancePage extends ConsumerWidget {
             context,
             context.l10n.settings_appearance_sections,
           ),
+          ListTile(
+            title: Text(context.l10n.nav_home),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/settings/appearance/home'),
+          ),
           for (final route in _sectionRoutes)
             ListTile(
               title: Text(_sectionDisplayName(context, route)),

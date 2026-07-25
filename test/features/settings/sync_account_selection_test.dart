@@ -55,6 +55,9 @@ void main() {
         accountCredentialsStoreProvider.overrideWithValue(
           AccountCredentialsStore(storage: InMemoryKeychain()),
         ),
+        s3CredentialsStoreProvider.overrideWithValue(
+          S3CredentialsStore(storage: InMemoryKeychain()),
+        ),
       ],
     );
     addTearDown(container.dispose);
@@ -91,6 +94,9 @@ void main() {
         accountCredentialsStoreProvider.overrideWithValue(
           AccountCredentialsStore(storage: keychain),
         ),
+        s3CredentialsStoreProvider.overrideWithValue(
+          S3CredentialsStore(storage: keychain),
+        ),
       ],
     );
     addTearDown(container.dispose);
@@ -122,6 +128,9 @@ void main() {
       overrides: [
         accountCredentialsStoreProvider.overrideWithValue(
           AccountCredentialsStore(storage: keychain),
+        ),
+        s3CredentialsStoreProvider.overrideWithValue(
+          S3CredentialsStore(storage: keychain),
         ),
       ],
     );
@@ -157,6 +166,9 @@ void main() {
           // so mirrorLegacy throws and the derivation returns null.
           AccountCredentialsStore(storage: FailingKeychain(-25308)),
         ),
+        s3CredentialsStoreProvider.overrideWithValue(
+          S3CredentialsStore(storage: InMemoryKeychain()),
+        ),
       ],
     );
     addTearDown(container.dispose);
@@ -180,6 +192,9 @@ void main() {
       overrides: [
         accountCredentialsStoreProvider.overrideWithValue(
           AccountCredentialsStore(storage: keychain),
+        ),
+        s3CredentialsStoreProvider.overrideWithValue(
+          S3CredentialsStore(storage: keychain),
         ),
       ],
     );
@@ -208,6 +223,7 @@ void main() {
       final syncAccount = await ensureAccountForProviderType(
         CloudProviderType.s3,
         repo,
+        s3Credentials: S3CredentialsStore(storage: InMemoryKeychain()),
       );
       expect(
         syncAccount.id,
@@ -218,9 +234,11 @@ void main() {
   );
 
   test('a persisted sync account of the same kind is preferred', () async {
+    final s3Store = S3CredentialsStore(storage: InMemoryKeychain());
     final first = await ensureAccountForProviderType(
       CloudProviderType.s3,
       repo,
+      s3Credentials: s3Store,
     );
     await SyncRepository().setSyncAccount(
       accountId: first.id,
@@ -230,6 +248,7 @@ void main() {
     final second = await ensureAccountForProviderType(
       CloudProviderType.s3,
       repo,
+      s3Credentials: s3Store,
     );
     expect(second.id, first.id, reason: 'no duplicate account per re-derive');
   });

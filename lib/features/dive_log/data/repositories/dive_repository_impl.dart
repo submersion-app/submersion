@@ -2640,6 +2640,38 @@ class DiveRepository {
     return row.read<int>('c');
   }
 
+  /// Dive ids from prior years sharing the given month/day ("on this
+  /// day" dashboard card). Newest first, capped at [limit].
+  Future<List<String>> getOnThisDayDiveIds({
+    required int month,
+    required int day,
+    required int excludeYear,
+    String? diverId,
+    int limit = 5,
+  }) async {
+    final monthDay =
+        "${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}";
+    final diverFilter = diverId != null ? 'AND diver_id = ? ' : '';
+    final rows = await _db
+        .customSelect(
+          "SELECT id FROM dives "
+          "WHERE strftime('%m-%d', dive_date_time / 1000, 'unixepoch') = ? "
+          "AND CAST(strftime('%Y', dive_date_time / 1000, 'unixepoch') "
+          "AS INTEGER) != ? "
+          "$diverFilter"
+          "ORDER BY dive_date_time DESC LIMIT ?",
+          variables: [
+            Variable<String>(monthDay),
+            Variable<int>(excludeYear),
+            if (diverId != null) Variable<String>(diverId),
+            Variable<int>(limit),
+          ],
+          readsFrom: {_db.dives},
+        )
+        .get();
+    return rows.map((r) => r.read<String>('id')).toList();
+  }
+
   /// SQL expression mirroring [domain.Dive.effectiveRuntime]'s resolution
   /// order in seconds: runtime, exit - entry (when positive), profile span,
   /// bottom time.

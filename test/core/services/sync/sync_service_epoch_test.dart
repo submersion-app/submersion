@@ -253,6 +253,35 @@ void main() {
       expect((await service.readLibraryEpochMarker(cloud))?.epochId, 'e1');
     });
 
+    test(
+      'missing marker with an unprovable epoch drops back to pre-epoch',
+      () async {
+        // No marker in the cloud AND no mirror to re-write one from: this
+        // device holds an epoch it can neither prove nor republish. Staying on
+        // it fences off every peer permanently while the peers (all on the
+        // pre-epoch world) merge us happily -- sync silently goes one-way.
+        // A missing marker means the fence is already gone fleet-wide, so the
+        // only safe move is to rejoin the pre-epoch world.
+        await DiveRepository().createDive(
+          createTestDiveWithBottomTime(id: 'peer-dive', diveNumber: 1),
+        );
+        await seedPeerLog(cloud, 'peer-1'); // unstamped, as a pre-epoch peer is
+        await SyncRepository().setLastAcceptedEpochId('e1');
+        // Deliberately no epochStore.setLastAccepted: the mirror is gone.
+
+        final result = await buildService().performSync();
+
+        expect(result.isSuccess, isTrue);
+        expect(result.skippedPeerDeviceIds, isEmpty);
+        expect(await SyncRepository().getLastAcceptedEpochId(), isNull);
+        expect(
+          await DiveRepository().getDiveById('peer-dive'),
+          isNotNull,
+          reason: 'an unprovable epoch must not fence off every peer',
+        );
+      },
+    );
+
     test('unreadable marker fails the sync closed', () async {
       await cloud.uploadFile(
         Uint8List.fromList(utf8.encode('not json')),

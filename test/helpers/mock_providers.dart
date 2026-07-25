@@ -134,6 +134,17 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
       ? state.copyWith(clearEmergencyRegion: true)
       : state.copyWith(emergencyRegion: countryCode);
   @override
+  Future<void> setHomeChipEnabled(String chipId, bool enabled) async {
+    final hidden = {...state.hiddenHomeChips};
+    if (enabled) {
+      hidden.remove(chipId);
+    } else {
+      hidden.add(chipId);
+    }
+    state = state.copyWith(hiddenHomeChips: hidden);
+  }
+
+  @override
   Future<void> setSafetyRuleEnabled(SafetyRuleId rule, bool enabled) async {
     final rules = {...state.safetyReviewDisabledRules};
     if (enabled) {
@@ -446,13 +457,17 @@ Dive createTestDiveWithBottomTime({
 }
 
 /// Common provider overrides for widget tests
-Future<List<Override>> getBaseOverrides() async {
+Future<List<Override>> getBaseOverrides({
+  MockSettingsNotifier? settingsNotifier,
+}) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
 
   return [
     sharedPreferencesProvider.overrideWithValue(prefs),
-    settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+    settingsProvider.overrideWith(
+      (ref) => settingsNotifier ?? MockSettingsNotifier(),
+    ),
     currentDiverIdProvider.overrideWith((ref) => MockCurrentDiverIdNotifier()),
     // The Dives app-bar data-quality badge watches a live Drift stream; stub
     // it with a static count so widget tests don't leave a pending timer.

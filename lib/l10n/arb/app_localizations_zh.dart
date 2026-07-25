@@ -2791,12 +2791,215 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dashboard_hero_diverFallbackName => '潜水员';
 
   @override
+  String get dashboard_hero_statDives => '潜水';
+
+  @override
+  String get dashboard_hero_statHours => '小时';
+
+  @override
+  String get dashboard_hero_statSites => '潜点';
+
+  @override
+  String get dashboard_hero_statCountries => '国家';
+
+  @override
   String dashboard_activityStats_divesInYear(String year) {
     return '$year年潜水次数';
   }
 
   @override
   String get dashboard_semantics_statsBar => '潜水统计摘要';
+
+  @override
+  String get dashboard_gauges_addGear => '添加装备';
+
+  @override
+  String dashboard_gauges_gearOk(String name) {
+    return '$name 正常';
+  }
+
+  @override
+  String dashboard_gauges_gearDueIn(String name, int days) {
+    return '$name $days天后需保养';
+  }
+
+  @override
+  String dashboard_gauges_gearOverdue(String name) {
+    return '$name 保养逾期';
+  }
+
+  @override
+  String get dashboard_gauges_insuranceOk => '保险正常';
+
+  @override
+  String dashboard_gauges_insuranceExpires(String date) {
+    return '保险 $date 到期';
+  }
+
+  @override
+  String get dashboard_gauges_insuranceExpired => '保险已过期';
+
+  @override
+  String get dashboard_gauges_noInsurance => '未登记保险';
+
+  @override
+  String get dashboard_gauges_noFlyClear => '禁飞 0:00';
+
+  @override
+  String dashboard_gauges_noFlyRemaining(String hours, String minutes) {
+    return '禁飞 $hours:$minutes';
+  }
+
+  @override
+  String dashboard_gauges_lastDiveDays(int days) {
+    return '上次潜水 $days 天前';
+  }
+
+  @override
+  String get dashboard_gauges_lastDiveToday => '今天潜过水';
+
+  @override
+  String get dashboard_gauges_noDivesYet => '暂无潜水记录';
+
+  @override
+  String get settings_homeChips_pageTitle => '主页状态标签';
+
+  @override
+  String get settings_homeChips_description => '选择主页顶部显示哪些状态标签。';
+
+  @override
+  String get settings_homeChips_gear => '装备保养';
+
+  @override
+  String get settings_homeChips_insurance => '保险';
+
+  @override
+  String get settings_homeChips_noFly => '禁飞计时';
+
+  @override
+  String get settings_homeChips_lastDive => '潜水近期度';
+
+  @override
+  String get settings_homeChips_certifications => '证书到期';
+
+  @override
+  String get settings_homeChips_trip => '即将出行';
+
+  @override
+  String get settings_homeChips_checklist => '进行中的清单';
+
+  @override
+  String get settings_homeChips_course => '课程进度';
+
+  @override
+  String get settings_homeChips_uploads => '媒体上传';
+
+  @override
+  String get settings_homeChips_backup => '备份时间';
+
+  @override
+  String get settings_homeChips_sync => '同步状态';
+
+  @override
+  String get settings_homeChips_dataQuality => '数据质量';
+
+  @override
+  String dashboard_gauges_certsExpiring(int count) {
+    return '$count 个证书即将到期';
+  }
+
+  @override
+  String dashboard_gauges_tripCountdown(String name, int days) {
+    return '$name 还有 $days 天';
+  }
+
+  @override
+  String get dashboard_gauges_checklistActive => '检查清单进行中';
+
+  @override
+  String dashboard_gauges_courseProgress(String name, int done, int total) {
+    return '$name:$done/$total';
+  }
+
+  @override
+  String dashboard_gauges_uploadsPending(int count) {
+    return '$count 个上传待处理';
+  }
+
+  @override
+  String get dashboard_gauges_backupNone => '尚无备份';
+
+  @override
+  String get dashboard_gauges_backupToday => '今天已备份';
+
+  @override
+  String dashboard_gauges_backupDays(int days) {
+    return '$days 天前备份';
+  }
+
+  @override
+  String dashboard_gauges_syncPending(int count) {
+    return '$count 条未同步';
+  }
+
+  @override
+  String get dashboard_gauges_synced => '已同步';
+
+  @override
+  String dashboard_gauges_dataIssues(int count) {
+    return '$count 个数据问题';
+  }
+
+  @override
+  String get dashboard_gauges_retry => '状态不可用 - 点按重试';
+
+  @override
+  String get dashboard_urgent_title => '需要注意';
+
+  @override
+  String get dashboard_photos_title => '最近照片';
+
+  @override
+  String get dashboard_recentSites_title => '最近潜点';
+
+  @override
+  String get dashboard_yearInReview_title => '今年';
+
+  @override
+  String dashboard_yearInReview_divesVs(int count, int previous) {
+    return '$count 次潜水(去年 $previous 次)';
+  }
+
+  @override
+  String dashboard_yearInReview_hours(String hours) {
+    return '水下 $hours 小时';
+  }
+
+  @override
+  String dashboard_yearInReview_maxDepth(String depth) {
+    return '最深:$depth';
+  }
+
+  @override
+  String get dashboard_onThisDay_title => '历史上的今天';
+
+  @override
+  String dashboard_onThisDay_entry(String year, String site) {
+    return '$year - $site';
+  }
+
+  @override
+  String get dashboard_milestones_title => '里程碑';
+
+  @override
+  String dashboard_milestones_nextDive(int remaining, int milestone) {
+    return '还有 $remaining 次即达第 $milestone 潜';
+  }
+
+  @override
+  String dashboard_milestones_certYears(String name, int years, String month) {
+    return '$name:$month满 $years 年';
+  }
 
   @override
   String get dashboard_personalRecords_coldest => '最冷';
@@ -19419,6 +19622,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_mediaStorage_transfers_state_failed => '失败';
 
   @override
+  String settings_mediaStorage_transfers_queued(int count) {
+    return '$count 个排队中';
+  }
+
+  @override
+  String settings_mediaStorage_transfers_waitingRetry(int count) {
+    return '$count 个等待重试';
+  }
+
+  @override
   String get settings_mediaStorage_verify_action => '验证媒体库';
 
   @override
@@ -20938,4 +21151,11 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get settings_mediaStorage_quality_linuxFfmpegHint =>
       '安装 ffmpeg 以启用视频压缩。在此之前将上传原始文件。';
+
+  @override
+  String get settings_mediaStorage_quality_saveFailed => '无法保存上传质量。请重试。';
+
+  @override
+  String get settings_mediaStorage_quality_noTranscoderHint =>
+      '此设备无法压缩视频。将从此设备上传原始文件。';
 }

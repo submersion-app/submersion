@@ -1,11 +1,12 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:submersion/features/media/domain/entities/media_item.dart';
-import 'package:submersion/features/media_store/domain/media_upload_quality.dart';
-
 /// Device-local transfer policies (design spec section 9). Stored in
-/// SharedPreferences like the attach state: policies are per-device
-/// choices and must not ride a database restore.
+/// SharedPreferences like the attach state: these are per-device choices about
+/// when this device may spend bandwidth, and must not ride a database restore.
+///
+/// Upload *quality* deliberately does not live here. It decides what bytes the
+/// library permanently contains, not what this device may spend, so it is a
+/// synced setting -- see `MediaUploadQualityPolicy`.
 class MediaStorePolicies {
   MediaStorePolicies({SharedPreferences? prefs}) : _prefs = prefs;
 
@@ -14,8 +15,6 @@ class MediaStorePolicies {
   static const String autoUploadKey = 'media_store_auto_upload';
   static const String photosOnCellularKey = 'media_store_photos_on_cellular';
   static const String videosOnCellularKey = 'media_store_videos_on_cellular';
-  static const String photoQualityKey = 'media_store_photo_quality';
-  static const String videoQualityKey = 'media_store_video_quality';
 
   Future<SharedPreferences> get _resolved async =>
       _prefs ?? await SharedPreferences.getInstance();
@@ -39,34 +38,4 @@ class MediaStorePolicies {
 
   Future<void> setVideosOnCellular(bool value) async =>
       (await _resolved).setBool(videosOnCellularKey, value);
-
-  /// Per-device photo upload quality; defaults to [MediaUploadQuality.original]
-  /// so existing users' upload behavior never changes silently.
-  Future<MediaUploadQuality> photoUploadQuality() async =>
-      _readQuality(photoQualityKey);
-
-  Future<void> setPhotoUploadQuality(MediaUploadQuality value) async =>
-      (await _resolved).setString(photoQualityKey, value.name);
-
-  Future<MediaUploadQuality> videoUploadQuality() async =>
-      _readQuality(videoQualityKey);
-
-  Future<void> setVideoUploadQuality(MediaUploadQuality value) async =>
-      (await _resolved).setString(videoQualityKey, value.name);
-
-  /// The level for [type]'s media (photos vs video).
-  Future<MediaUploadQuality> qualityFor(MediaType type) async =>
-      type == MediaType.video
-      ? await videoUploadQuality()
-      : await photoUploadQuality();
-
-  Future<MediaUploadQuality> _readQuality(String key) async {
-    final raw = (await _resolved).getString(key);
-    if (raw == null) return MediaUploadQuality.original;
-    try {
-      return MediaUploadQuality.values.byName(raw);
-    } on ArgumentError {
-      return MediaUploadQuality.original;
-    }
-  }
 }

@@ -2892,12 +2892,217 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dashboard_hero_diverFallbackName => 'غواص';
 
   @override
+  String get dashboard_hero_statDives => 'غطسات';
+
+  @override
+  String get dashboard_hero_statHours => 'ساعات';
+
+  @override
+  String get dashboard_hero_statSites => 'مواقع';
+
+  @override
+  String get dashboard_hero_statCountries => 'دول';
+
+  @override
   String dashboard_activityStats_divesInYear(String year) {
     return 'غطسات في $year';
   }
 
   @override
   String get dashboard_semantics_statsBar => 'ملخص إحصائيات الغوص';
+
+  @override
+  String get dashboard_gauges_addGear => 'إضافة معدات';
+
+  @override
+  String dashboard_gauges_gearOk(String name) {
+    return '$name سليم';
+  }
+
+  @override
+  String dashboard_gauges_gearDueIn(String name, int days) {
+    return '$name مستحق خلال $days يوم';
+  }
+
+  @override
+  String dashboard_gauges_gearOverdue(String name) {
+    return '$name متأخر عن الصيانة';
+  }
+
+  @override
+  String get dashboard_gauges_insuranceOk => 'التأمين سليم';
+
+  @override
+  String dashboard_gauges_insuranceExpires(String date) {
+    return 'ينتهي التأمين في $date';
+  }
+
+  @override
+  String get dashboard_gauges_insuranceExpired => 'انتهى التأمين';
+
+  @override
+  String get dashboard_gauges_noInsurance => 'لا يوجد تأمين مسجل';
+
+  @override
+  String get dashboard_gauges_noFlyClear => 'حظر الطيران 0:00';
+
+  @override
+  String dashboard_gauges_noFlyRemaining(String hours, String minutes) {
+    return 'حظر الطيران $hours:$minutes';
+  }
+
+  @override
+  String dashboard_gauges_lastDiveDays(int days) {
+    return 'آخر غطسة منذ $days يوم';
+  }
+
+  @override
+  String get dashboard_gauges_lastDiveToday => 'غطست اليوم';
+
+  @override
+  String get dashboard_gauges_noDivesYet => 'لا توجد غطسات بعد';
+
+  @override
+  String get settings_homeChips_pageTitle => 'شرائح حالة الصفحة الرئيسية';
+
+  @override
+  String get settings_homeChips_description =>
+      'اختر شرائح الحالة التي تظهر أعلى تبويب الرئيسية.';
+
+  @override
+  String get settings_homeChips_gear => 'صيانة المعدات';
+
+  @override
+  String get settings_homeChips_insurance => 'التأمين';
+
+  @override
+  String get settings_homeChips_noFly => 'مؤقت حظر الطيران';
+
+  @override
+  String get settings_homeChips_lastDive => 'حداثة الغطس';
+
+  @override
+  String get settings_homeChips_certifications => 'انتهاء الشهادات';
+
+  @override
+  String get settings_homeChips_trip => 'الرحلة القادمة';
+
+  @override
+  String get settings_homeChips_checklist => 'قائمة التحقق النشطة';
+
+  @override
+  String get settings_homeChips_course => 'تقدم الدورة';
+
+  @override
+  String get settings_homeChips_uploads => 'رفع الوسائط';
+
+  @override
+  String get settings_homeChips_backup => 'عمر النسخ الاحتياطي';
+
+  @override
+  String get settings_homeChips_sync => 'حالة المزامنة';
+
+  @override
+  String get settings_homeChips_dataQuality => 'جودة البيانات';
+
+  @override
+  String dashboard_gauges_certsExpiring(int count) {
+    return '$count شهادات على وشك الانتهاء';
+  }
+
+  @override
+  String dashboard_gauges_tripCountdown(String name, int days) {
+    return '$name خلال $days يوم';
+  }
+
+  @override
+  String get dashboard_gauges_checklistActive => 'قائمة التحقق قيد التنفيذ';
+
+  @override
+  String dashboard_gauges_courseProgress(String name, int done, int total) {
+    return '$name: $done/$total';
+  }
+
+  @override
+  String dashboard_gauges_uploadsPending(int count) {
+    return '$count عمليات رفع معلقة';
+  }
+
+  @override
+  String get dashboard_gauges_backupNone => 'لا يوجد نسخ احتياطي';
+
+  @override
+  String get dashboard_gauges_backupToday => 'تم النسخ الاحتياطي اليوم';
+
+  @override
+  String dashboard_gauges_backupDays(int days) {
+    return 'نسخ احتياطي منذ $days يوم';
+  }
+
+  @override
+  String dashboard_gauges_syncPending(int count) {
+    return '$count غير متزامنة';
+  }
+
+  @override
+  String get dashboard_gauges_synced => 'متزامن';
+
+  @override
+  String dashboard_gauges_dataIssues(int count) {
+    return '$count مشاكل في البيانات';
+  }
+
+  @override
+  String get dashboard_gauges_retry =>
+      'الحالة غير متاحة - انقر لإعادة المحاولة';
+
+  @override
+  String get dashboard_urgent_title => 'يتطلب الانتباه';
+
+  @override
+  String get dashboard_photos_title => 'أحدث الصور';
+
+  @override
+  String get dashboard_recentSites_title => 'المواقع الأخيرة';
+
+  @override
+  String get dashboard_yearInReview_title => 'هذا العام';
+
+  @override
+  String dashboard_yearInReview_divesVs(int count, int previous) {
+    return '$count غطسات (مقابل $previous العام الماضي)';
+  }
+
+  @override
+  String dashboard_yearInReview_hours(String hours) {
+    return '$hours ساعات تحت الماء';
+  }
+
+  @override
+  String dashboard_yearInReview_maxDepth(String depth) {
+    return 'الأعمق: $depth';
+  }
+
+  @override
+  String get dashboard_onThisDay_title => 'في مثل هذا اليوم';
+
+  @override
+  String dashboard_onThisDay_entry(String year, String site) {
+    return '$year - $site';
+  }
+
+  @override
+  String get dashboard_milestones_title => 'الإنجازات';
+
+  @override
+  String dashboard_milestones_nextDive(int remaining, int milestone) {
+    return '$remaining غطسات حتى رقم $milestone';
+  }
+
+  @override
+  String dashboard_milestones_certYears(String name, int years, String month) {
+    return '$name: $years سنوات في $month';
+  }
 
   @override
   String get dashboard_personalRecords_coldest => 'الأبرد';
@@ -20094,6 +20299,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_mediaStorage_transfers_state_failed => 'فشل';
 
   @override
+  String settings_mediaStorage_transfers_queued(int count) {
+    return '$count في قائمة الانتظار';
+  }
+
+  @override
+  String settings_mediaStorage_transfers_waitingRetry(int count) {
+    return '$count في انتظار إعادة المحاولة';
+  }
+
+  @override
   String get settings_mediaStorage_verify_action => 'التحقق من المكتبة';
 
   @override
@@ -21650,4 +21865,12 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_mediaStorage_quality_linuxFfmpegHint =>
       'ثبّت ffmpeg لتمكين ضغط الفيديو. حتى ذلك الحين يتم رفع النسخ الأصلية.';
+
+  @override
+  String get settings_mediaStorage_quality_saveFailed =>
+      'تعذّر حفظ جودة الرفع. حاول مرة أخرى.';
+
+  @override
+  String get settings_mediaStorage_quality_noTranscoderHint =>
+      'لا يمكن لهذا الجهاز ضغط الفيديو. يتم رفع الملفات الأصلية منه.';
 }

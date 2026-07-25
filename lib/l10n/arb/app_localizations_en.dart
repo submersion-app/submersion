@@ -2900,12 +2900,216 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboard_hero_diverFallbackName => 'Diver';
 
   @override
+  String get dashboard_hero_statDives => 'dives';
+
+  @override
+  String get dashboard_hero_statHours => 'hours';
+
+  @override
+  String get dashboard_hero_statSites => 'sites';
+
+  @override
+  String get dashboard_hero_statCountries => 'countries';
+
+  @override
   String dashboard_activityStats_divesInYear(String year) {
     return 'dives in $year';
   }
 
   @override
   String get dashboard_semantics_statsBar => 'Dive statistics summary';
+
+  @override
+  String get dashboard_gauges_addGear => 'Add gear';
+
+  @override
+  String dashboard_gauges_gearOk(String name) {
+    return '$name OK';
+  }
+
+  @override
+  String dashboard_gauges_gearDueIn(String name, int days) {
+    return '$name due in ${days}d';
+  }
+
+  @override
+  String dashboard_gauges_gearOverdue(String name) {
+    return '$name overdue';
+  }
+
+  @override
+  String get dashboard_gauges_insuranceOk => 'Insurance OK';
+
+  @override
+  String dashboard_gauges_insuranceExpires(String date) {
+    return 'Insurance expires $date';
+  }
+
+  @override
+  String get dashboard_gauges_insuranceExpired => 'Insurance expired';
+
+  @override
+  String get dashboard_gauges_noInsurance => 'No insurance on file';
+
+  @override
+  String get dashboard_gauges_noFlyClear => 'No-fly 0:00';
+
+  @override
+  String dashboard_gauges_noFlyRemaining(String hours, String minutes) {
+    return 'No-fly $hours:$minutes';
+  }
+
+  @override
+  String dashboard_gauges_lastDiveDays(int days) {
+    return 'Last dive ${days}d ago';
+  }
+
+  @override
+  String get dashboard_gauges_lastDiveToday => 'Dove today';
+
+  @override
+  String get dashboard_gauges_noDivesYet => 'No dives yet';
+
+  @override
+  String get settings_homeChips_pageTitle => 'Home status chips';
+
+  @override
+  String get settings_homeChips_description =>
+      'Choose which status chips appear at the top of the Home tab.';
+
+  @override
+  String get settings_homeChips_gear => 'Gear service';
+
+  @override
+  String get settings_homeChips_insurance => 'Insurance';
+
+  @override
+  String get settings_homeChips_noFly => 'No-fly timer';
+
+  @override
+  String get settings_homeChips_lastDive => 'Dive currency';
+
+  @override
+  String get settings_homeChips_certifications => 'Certification expiry';
+
+  @override
+  String get settings_homeChips_trip => 'Upcoming trip';
+
+  @override
+  String get settings_homeChips_checklist => 'Active checklist';
+
+  @override
+  String get settings_homeChips_course => 'Course progress';
+
+  @override
+  String get settings_homeChips_uploads => 'Media uploads';
+
+  @override
+  String get settings_homeChips_backup => 'Backup age';
+
+  @override
+  String get settings_homeChips_sync => 'Sync status';
+
+  @override
+  String get settings_homeChips_dataQuality => 'Data quality';
+
+  @override
+  String dashboard_gauges_certsExpiring(int count) {
+    return '$count certifications expiring';
+  }
+
+  @override
+  String dashboard_gauges_tripCountdown(String name, int days) {
+    return '$name in ${days}d';
+  }
+
+  @override
+  String get dashboard_gauges_checklistActive => 'Checklist in progress';
+
+  @override
+  String dashboard_gauges_courseProgress(String name, int done, int total) {
+    return '$name: $done/$total';
+  }
+
+  @override
+  String dashboard_gauges_uploadsPending(int count) {
+    return '$count uploads pending';
+  }
+
+  @override
+  String get dashboard_gauges_backupNone => 'No backup yet';
+
+  @override
+  String get dashboard_gauges_backupToday => 'Backed up today';
+
+  @override
+  String dashboard_gauges_backupDays(int days) {
+    return 'Backup ${days}d ago';
+  }
+
+  @override
+  String dashboard_gauges_syncPending(int count) {
+    return '$count unsynced';
+  }
+
+  @override
+  String get dashboard_gauges_synced => 'Synced';
+
+  @override
+  String dashboard_gauges_dataIssues(int count) {
+    return '$count data issues';
+  }
+
+  @override
+  String get dashboard_gauges_retry => 'Status unavailable - tap to retry';
+
+  @override
+  String get dashboard_urgent_title => 'Needs attention';
+
+  @override
+  String get dashboard_photos_title => 'Recent photos';
+
+  @override
+  String get dashboard_recentSites_title => 'Recent sites';
+
+  @override
+  String get dashboard_yearInReview_title => 'This year';
+
+  @override
+  String dashboard_yearInReview_divesVs(int count, int previous) {
+    return '$count dives (vs $previous last year)';
+  }
+
+  @override
+  String dashboard_yearInReview_hours(String hours) {
+    return '$hours hours underwater';
+  }
+
+  @override
+  String dashboard_yearInReview_maxDepth(String depth) {
+    return 'Deepest: $depth';
+  }
+
+  @override
+  String get dashboard_onThisDay_title => 'On this day';
+
+  @override
+  String dashboard_onThisDay_entry(String year, String site) {
+    return '$year - $site';
+  }
+
+  @override
+  String get dashboard_milestones_title => 'Milestones';
+
+  @override
+  String dashboard_milestones_nextDive(int remaining, int milestone) {
+    return '$remaining dives to #$milestone';
+  }
+
+  @override
+  String dashboard_milestones_certYears(String name, int years, String month) {
+    return '$name: $years years in $month';
+  }
 
   @override
   String get dashboard_personalRecords_coldest => 'Coldest';
@@ -20117,6 +20321,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_mediaStorage_transfers_state_failed => 'Failed';
 
   @override
+  String settings_mediaStorage_transfers_queued(int count) {
+    return '$count queued';
+  }
+
+  @override
+  String settings_mediaStorage_transfers_waitingRetry(int count) {
+    return '$count waiting to retry';
+  }
+
+  @override
   String get settings_mediaStorage_verify_action => 'Verify library';
 
   @override
@@ -21679,4 +21893,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_mediaStorage_quality_linuxFfmpegHint =>
       'Install ffmpeg to enable video compression. Originals are uploaded until then.';
+
+  @override
+  String get settings_mediaStorage_quality_saveFailed =>
+      'Could not save the upload quality. Try again.';
+
+  @override
+  String get settings_mediaStorage_quality_noTranscoderHint =>
+      'This device cannot compress video. Originals are uploaded from it.';
 }

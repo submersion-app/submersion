@@ -5064,6 +5064,30 @@ abstract class AppLocalizations {
   /// **'Diver'**
   String get dashboard_hero_diverFallbackName;
 
+  /// No description provided for @dashboard_hero_statDives.
+  ///
+  /// In en, this message translates to:
+  /// **'dives'**
+  String get dashboard_hero_statDives;
+
+  /// No description provided for @dashboard_hero_statHours.
+  ///
+  /// In en, this message translates to:
+  /// **'hours'**
+  String get dashboard_hero_statHours;
+
+  /// No description provided for @dashboard_hero_statSites.
+  ///
+  /// In en, this message translates to:
+  /// **'sites'**
+  String get dashboard_hero_statSites;
+
+  /// No description provided for @dashboard_hero_statCountries.
+  ///
+  /// In en, this message translates to:
+  /// **'countries'**
+  String get dashboard_hero_statCountries;
+
   /// No description provided for @dashboard_activityStats_divesInYear.
   ///
   /// In en, this message translates to:
@@ -5075,6 +5099,312 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dive statistics summary'**
   String get dashboard_semantics_statsBar;
+
+  /// No description provided for @dashboard_gauges_addGear.
+  ///
+  /// In en, this message translates to:
+  /// **'Add gear'**
+  String get dashboard_gauges_addGear;
+
+  /// No description provided for @dashboard_gauges_gearOk.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} OK'**
+  String dashboard_gauges_gearOk(String name);
+
+  /// No description provided for @dashboard_gauges_gearDueIn.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} due in {days}d'**
+  String dashboard_gauges_gearDueIn(String name, int days);
+
+  /// No description provided for @dashboard_gauges_gearOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} overdue'**
+  String dashboard_gauges_gearOverdue(String name);
+
+  /// No description provided for @dashboard_gauges_insuranceOk.
+  ///
+  /// In en, this message translates to:
+  /// **'Insurance OK'**
+  String get dashboard_gauges_insuranceOk;
+
+  /// No description provided for @dashboard_gauges_insuranceExpires.
+  ///
+  /// In en, this message translates to:
+  /// **'Insurance expires {date}'**
+  String dashboard_gauges_insuranceExpires(String date);
+
+  /// No description provided for @dashboard_gauges_insuranceExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Insurance expired'**
+  String get dashboard_gauges_insuranceExpired;
+
+  /// No description provided for @dashboard_gauges_noInsurance.
+  ///
+  /// In en, this message translates to:
+  /// **'No insurance on file'**
+  String get dashboard_gauges_noInsurance;
+
+  /// No description provided for @dashboard_gauges_noFlyClear.
+  ///
+  /// In en, this message translates to:
+  /// **'No-fly 0:00'**
+  String get dashboard_gauges_noFlyClear;
+
+  /// No description provided for @dashboard_gauges_noFlyRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'No-fly {hours}:{minutes}'**
+  String dashboard_gauges_noFlyRemaining(String hours, String minutes);
+
+  /// No description provided for @dashboard_gauges_lastDiveDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Last dive {days}d ago'**
+  String dashboard_gauges_lastDiveDays(int days);
+
+  /// No description provided for @dashboard_gauges_lastDiveToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Dove today'**
+  String get dashboard_gauges_lastDiveToday;
+
+  /// No description provided for @dashboard_gauges_noDivesYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No dives yet'**
+  String get dashboard_gauges_noDivesYet;
+
+  /// No description provided for @settings_homeChips_pageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Home status chips'**
+  String get settings_homeChips_pageTitle;
+
+  /// No description provided for @settings_homeChips_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose which status chips appear at the top of the Home tab.'**
+  String get settings_homeChips_description;
+
+  /// No description provided for @settings_homeChips_gear.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear service'**
+  String get settings_homeChips_gear;
+
+  /// No description provided for @settings_homeChips_insurance.
+  ///
+  /// In en, this message translates to:
+  /// **'Insurance'**
+  String get settings_homeChips_insurance;
+
+  /// No description provided for @settings_homeChips_noFly.
+  ///
+  /// In en, this message translates to:
+  /// **'No-fly timer'**
+  String get settings_homeChips_noFly;
+
+  /// No description provided for @settings_homeChips_lastDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive currency'**
+  String get settings_homeChips_lastDive;
+
+  /// No description provided for @settings_homeChips_certifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Certification expiry'**
+  String get settings_homeChips_certifications;
+
+  /// No description provided for @settings_homeChips_trip.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming trip'**
+  String get settings_homeChips_trip;
+
+  /// No description provided for @settings_homeChips_checklist.
+  ///
+  /// In en, this message translates to:
+  /// **'Active checklist'**
+  String get settings_homeChips_checklist;
+
+  /// No description provided for @settings_homeChips_course.
+  ///
+  /// In en, this message translates to:
+  /// **'Course progress'**
+  String get settings_homeChips_course;
+
+  /// No description provided for @settings_homeChips_uploads.
+  ///
+  /// In en, this message translates to:
+  /// **'Media uploads'**
+  String get settings_homeChips_uploads;
+
+  /// No description provided for @settings_homeChips_backup.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup age'**
+  String get settings_homeChips_backup;
+
+  /// No description provided for @settings_homeChips_sync.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync status'**
+  String get settings_homeChips_sync;
+
+  /// No description provided for @settings_homeChips_dataQuality.
+  ///
+  /// In en, this message translates to:
+  /// **'Data quality'**
+  String get settings_homeChips_dataQuality;
+
+  /// No description provided for @dashboard_gauges_certsExpiring.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} certifications expiring'**
+  String dashboard_gauges_certsExpiring(int count);
+
+  /// No description provided for @dashboard_gauges_tripCountdown.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} in {days}d'**
+  String dashboard_gauges_tripCountdown(String name, int days);
+
+  /// No description provided for @dashboard_gauges_checklistActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Checklist in progress'**
+  String get dashboard_gauges_checklistActive;
+
+  /// No description provided for @dashboard_gauges_courseProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}: {done}/{total}'**
+  String dashboard_gauges_courseProgress(String name, int done, int total);
+
+  /// No description provided for @dashboard_gauges_uploadsPending.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} uploads pending'**
+  String dashboard_gauges_uploadsPending(int count);
+
+  /// No description provided for @dashboard_gauges_backupNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No backup yet'**
+  String get dashboard_gauges_backupNone;
+
+  /// No description provided for @dashboard_gauges_backupToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Backed up today'**
+  String get dashboard_gauges_backupToday;
+
+  /// No description provided for @dashboard_gauges_backupDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup {days}d ago'**
+  String dashboard_gauges_backupDays(int days);
+
+  /// No description provided for @dashboard_gauges_syncPending.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} unsynced'**
+  String dashboard_gauges_syncPending(int count);
+
+  /// No description provided for @dashboard_gauges_synced.
+  ///
+  /// In en, this message translates to:
+  /// **'Synced'**
+  String get dashboard_gauges_synced;
+
+  /// No description provided for @dashboard_gauges_dataIssues.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} data issues'**
+  String dashboard_gauges_dataIssues(int count);
+
+  /// No description provided for @dashboard_gauges_retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Status unavailable - tap to retry'**
+  String get dashboard_gauges_retry;
+
+  /// No description provided for @dashboard_urgent_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs attention'**
+  String get dashboard_urgent_title;
+
+  /// No description provided for @dashboard_photos_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent photos'**
+  String get dashboard_photos_title;
+
+  /// No description provided for @dashboard_recentSites_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent sites'**
+  String get dashboard_recentSites_title;
+
+  /// No description provided for @dashboard_yearInReview_title.
+  ///
+  /// In en, this message translates to:
+  /// **'This year'**
+  String get dashboard_yearInReview_title;
+
+  /// No description provided for @dashboard_yearInReview_divesVs.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} dives (vs {previous} last year)'**
+  String dashboard_yearInReview_divesVs(int count, int previous);
+
+  /// No description provided for @dashboard_yearInReview_hours.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} hours underwater'**
+  String dashboard_yearInReview_hours(String hours);
+
+  /// No description provided for @dashboard_yearInReview_maxDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Deepest: {depth}'**
+  String dashboard_yearInReview_maxDepth(String depth);
+
+  /// No description provided for @dashboard_onThisDay_title.
+  ///
+  /// In en, this message translates to:
+  /// **'On this day'**
+  String get dashboard_onThisDay_title;
+
+  /// No description provided for @dashboard_onThisDay_entry.
+  ///
+  /// In en, this message translates to:
+  /// **'{year} - {site}'**
+  String dashboard_onThisDay_entry(String year, String site);
+
+  /// No description provided for @dashboard_milestones_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Milestones'**
+  String get dashboard_milestones_title;
+
+  /// No description provided for @dashboard_milestones_nextDive.
+  ///
+  /// In en, this message translates to:
+  /// **'{remaining} dives to #{milestone}'**
+  String dashboard_milestones_nextDive(int remaining, int milestone);
+
+  /// No description provided for @dashboard_milestones_certYears.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}: {years} years in {month}'**
+  String dashboard_milestones_certYears(String name, int years, String month);
 
   /// No description provided for @dashboard_personalRecords_coldest.
   ///
@@ -34188,6 +34518,18 @@ abstract class AppLocalizations {
   /// **'Failed'**
   String get settings_mediaStorage_transfers_state_failed;
 
+  /// No description provided for @settings_mediaStorage_transfers_queued.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} queued'**
+  String settings_mediaStorage_transfers_queued(int count);
+
+  /// No description provided for @settings_mediaStorage_transfers_waitingRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} waiting to retry'**
+  String settings_mediaStorage_transfers_waitingRetry(int count);
+
   /// No description provided for @settings_mediaStorage_verify_action.
   ///
   /// In en, this message translates to:
@@ -36892,6 +37234,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Install ffmpeg to enable video compression. Originals are uploaded until then.'**
   String get settings_mediaStorage_quality_linuxFfmpegHint;
+
+  /// No description provided for @settings_mediaStorage_quality_saveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the upload quality. Try again.'**
+  String get settings_mediaStorage_quality_saveFailed;
+
+  /// No description provided for @settings_mediaStorage_quality_noTranscoderHint.
+  ///
+  /// In en, this message translates to:
+  /// **'This device cannot compress video. Originals are uploaded from it.'**
+  String get settings_mediaStorage_quality_noTranscoderHint;
 }
 
 class _AppLocalizationsDelegate

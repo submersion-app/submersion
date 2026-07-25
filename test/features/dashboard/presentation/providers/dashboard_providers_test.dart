@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
@@ -86,147 +86,117 @@ void main() {
     });
   });
 
-  group('personalRecordsProvider', () {
+  group('onThisDayProvider', () {
     late DiveRepository repository;
+    late ProviderContainer container;
 
     setUp(() async {
       await setUpTestDatabase();
       repository = DiveRepository();
+      container = ProviderContainer(
+        overrides: [
+          currentDiverIdProvider.overrideWith(
+            (ref) => MockCurrentDiverIdNotifier(),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
     });
     tearDown(() async => tearDownTestDatabase());
 
-    Future<ProviderContainer> seededContainer(List<Dive> dives) async {
-      for (final dive in dives) {
-        await repository.createDive(dive);
-      }
-      final container = ProviderContainer(
-        overrides: (await getBaseOverrides()).cast(),
+    test('hydrates dives from this date in prior years', () async {
+      final now = DateTime.now();
+      await repository.createDive(
+        Dive(
+          id: 'two-years-ago',
+          dateTime: DateTime(now.year - 2, now.month, now.day, 10),
+        ),
       );
-      addTearDown(container.dispose);
-      return container;
-    }
-
-    test('finds longest dive by effectiveRuntime', () async {
-      final dives = [
-        createTestDiveWithBottomTime(
-          id: 'short',
-          bottomTime: const Duration(minutes: 20),
-          runtime: const Duration(minutes: 25),
-          maxDepth: 15.0,
-          waterTemp: 24.0,
+      await repository.createDive(
+        Dive(
+          id: 'last-year',
+          dateTime: DateTime(now.year - 1, now.month, now.day, 10),
         ),
-        createTestDiveWithBottomTime(
-          id: 'long',
-          bottomTime: const Duration(minutes: 60),
-          runtime: const Duration(minutes: 75),
-          maxDepth: 25.0,
-          waterTemp: 22.0,
+      );
+      await repository.createDive(
+        Dive(
+          id: 'this-year',
+          dateTime: DateTime(now.year, now.month, now.day, 8),
         ),
-        createTestDiveWithBottomTime(
-          id: 'medium',
-          bottomTime: const Duration(minutes: 40),
-          runtime: const Duration(minutes: 50),
-          maxDepth: 30.0,
-          waterTemp: 20.0,
-        ),
-      ];
+      );
 
-      final container = await seededContainer(dives);
-
-      final records = await container.read(personalRecordsProvider.future);
-
-      expect(records.longestDive, isNotNull);
-      expect(records.longestDive!.id, 'long');
-      expect(records.longestDive!.effectiveRuntime!.inMinutes, 75);
+      final dives = await container.read(onThisDayProvider.future);
+      expect(dives.map((d) => d.id), ['last-year', 'two-years-ago']);
     });
 
-    test('falls back to bottomTime when runtime is null', () async {
-      final dives = [
-        createTestDiveWithBottomTime(
-          id: 'no-runtime',
-          bottomTime: const Duration(minutes: 30),
-          runtime: null,
-          maxDepth: 20.0,
+    test('is empty when no prior-year dive shares the date', () async {
+      final now = DateTime.now();
+      await repository.createDive(
+        Dive(
+          id: 'other-day',
+          dateTime: DateTime(
+            now.year - 1,
+            now.month,
+            now.day,
+            10,
+          ).add(const Duration(days: 3)),
         ),
-        createTestDiveWithBottomTime(
-          id: 'shorter',
-          bottomTime: const Duration(minutes: 15),
-          runtime: null,
-          maxDepth: 15.0,
-        ),
-      ];
+      );
 
-      final container = await seededContainer(dives);
-
-      final records = await container.read(personalRecordsProvider.future);
-
-      expect(records.longestDive, isNotNull);
-      expect(records.longestDive!.id, 'no-runtime');
-    });
-
-    test('prefers runtime over bottomTime for longest dive', () async {
-      // Both dives have the same bottomTime, but different runtimes.
-      // The dive with the longer runtime should win.
-      final dives = [
-        createTestDiveWithBottomTime(
-          id: 'short-runtime',
-          bottomTime: const Duration(minutes: 40),
-          runtime: const Duration(minutes: 45),
-          maxDepth: 20.0,
-        ),
-        createTestDiveWithBottomTime(
-          id: 'long-runtime',
-          bottomTime: const Duration(minutes: 40),
-          runtime: const Duration(minutes: 70),
-          maxDepth: 15.0,
-        ),
-      ];
-
-      final container = await seededContainer(dives);
-
-      final records = await container.read(personalRecordsProvider.future);
-
-      expect(records.longestDive, isNotNull);
-      expect(records.longestDive!.id, 'long-runtime');
+      final dives = await container.read(onThisDayProvider.future);
+      expect(dives, isEmpty);
     });
   });
 
-  group('dive count providers', () {
+  group('yearInReviewProvider', () {
     late DiveRepository repository;
+    late ProviderContainer container;
 
     setUp(() async {
       await setUpTestDatabase();
       repository = DiveRepository();
+      container = ProviderContainer(
+        overrides: [
+          currentDiverIdProvider.overrideWith(
+            (ref) => MockCurrentDiverIdNotifier(),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
     });
     tearDown(() async => tearDownTestDatabase());
 
-    Future<ProviderContainer> seededContainer(List<Dive> dives) async {
-      for (final dive in dives) {
-        await repository.createDive(dive);
-      }
-      final container = ProviderContainer(
-        overrides: (await getBaseOverrides()).cast(),
+    test('returns null when neither year has dives', () async {
+      expect(await container.read(yearInReviewProvider.future), isNull);
+    });
+
+    test('compares this year against last year', () async {
+      final year = DateTime.now().year;
+      await repository.createDive(
+        Dive(
+          id: 'now-1',
+          dateTime: DateTime(year, 2, 1, 10),
+          bottomTime: const Duration(minutes: 40),
+          maxDepth: 28,
+        ),
       );
-      addTearDown(container.dispose);
-      return container;
-    }
+      await repository.createDive(
+        Dive(
+          id: 'prev-1',
+          dateTime: DateTime(year - 1, 2, 1, 10),
+          bottomTime: const Duration(minutes: 30),
+          maxDepth: 18,
+        ),
+      );
 
-    test('monthly and year-to-date counts include in-window dives and '
-        'exclude older ones', () async {
-      final now = DateTime.now();
-      final container = await seededContainer([
-        // Noon today: strictly after both the first-of-month and first-of-year
-        // boundaries regardless of the time the suite runs.
-        _diveWithEntryTime(DateTime(now.year, now.month, now.day, 12)),
-        // Mid last year: outside both windows.
-        _diveWithEntryTime(DateTime(now.year - 1, 6, 15)),
-      ]);
-
-      final monthly = await container.read(monthlyDiveCountProvider.future);
-      final ytd = await container.read(yearToDateDiveCountProvider.future);
-
-      expect(monthly, 1);
-      expect(ytd, 1);
+      final review = await container.read(yearInReviewProvider.future);
+      expect(review, isNotNull);
+      expect(review!.year, year);
+      expect(review.current.diveCount, 1);
+      expect(review.current.totalSeconds, 40 * 60);
+      expect(review.current.maxDepth, 28);
+      expect(review.previous.diveCount, 1);
+      expect(review.previous.maxDepth, 18);
     });
   });
 }

@@ -15,6 +15,7 @@ import 'package:submersion/features/divers/data/repositories/diver_repository.da
     show DeleteDiverResult;
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/presentation/pages/home_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/core/constants/card_color.dart';
@@ -154,6 +155,17 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setNoFlyPreset(NoFlyPreset preset) async =>
       state = state.copyWith(noFlyPreset: preset);
+  @override
+  Future<void> setHomeChipEnabled(String chipId, bool enabled) async {
+    final hidden = {...state.hiddenHomeChips};
+    if (enabled) {
+      hidden.remove(chipId);
+    } else {
+      hidden.add(chipId);
+    }
+    state = state.copyWith(hiddenHomeChips: hidden);
+  }
+
   @override
   Future<void> setSafetyRuleEnabled(SafetyRuleId rule, bool enabled) async {
     final rules = {...state.safetyReviewDisabledRules};
@@ -766,12 +778,29 @@ void main() {
       return ProviderScope(
         overrides: overrides,
         child: MaterialApp.router(
+          locale: const Locale('en'),
           routerConfig: router,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
         ),
       );
     }
+
+    testWidgets('tapping Home shows the home chip settings', (tester) async {
+      await tester.pumpWidget(buildAppearanceWidget(getOverrides()));
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(find.text('Home'), 100);
+      await tester.tap(find.text('Home'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(HomeAppearancePage), findsOneWidget);
+      expect(find.byType(SectionAppearancePage), findsNothing);
+
+      await tester.tap(find.byKey(const Key('sectionBackButton')));
+      await tester.pumpAndSettle();
+      expect(find.byType(HomeAppearancePage), findsNothing);
+    });
 
     testWidgets('tapping a section entry shows section appearance sub-page', (
       tester,
@@ -780,6 +809,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // The hub view should show Sections with entries like "Dives"
+      // (scroll down first: the sections card sits below the fold).
+      await tester.scrollUntilVisible(find.text('Dives'), 100);
       expect(find.text('Dives'), findsOneWidget);
       expect(find.text('Sites'), findsOneWidget);
 
@@ -799,7 +830,8 @@ void main() {
       await tester.pumpWidget(buildAppearanceWidget(getOverrides()));
       await tester.pumpAndSettle();
 
-      // Navigate into Dives section
+      // Navigate into Dives section (scroll it into view first)
+      await tester.scrollUntilVisible(find.text('Dives'), 100);
       await tester.tap(find.text('Dives'));
       await tester.pumpAndSettle();
 
@@ -905,6 +937,7 @@ void main() {
       return ProviderScope(
         overrides: overrides,
         child: MaterialApp.router(
+          locale: const Locale('en'),
           routerConfig: router,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,

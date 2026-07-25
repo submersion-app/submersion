@@ -8,6 +8,7 @@ import 'package:submersion/features/media/domain/entities/media_source_type.dart
 import 'package:submersion/features/media_store/data/media_backfill_service.dart';
 import 'package:submersion/features/media_store/data/media_stores_repository.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
+import 'package:submersion/features/media_store/domain/media_transfer_summary.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_enqueue_provider.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/media_store/presentation/widgets/media_store_badge.dart';
@@ -100,20 +101,22 @@ void main() {
     );
     addTearDown(container.dispose);
 
-    final subA = container.listen(mediaTransferActiveCountProvider, (_, _) {});
+    final subA = container.listen(mediaTransferSummaryProvider, (_, _) {});
     final subB = container.listen(mediaTransferEntriesProvider, (_, _) {});
     addTearDown(subA.close);
     addTearDown(subB.close);
 
-    // Enqueue one row; the active-count stream should reach 1.
+    // Enqueue one row; the summary stream should report it as queued.
     await repo.enqueueUpload(mediaId: 'm1');
-    var count = 0;
+    var summary = const MediaTransferSummary();
     for (var i = 0; i < 100; i++) {
-      count = container.read(mediaTransferActiveCountProvider).value ?? 0;
-      if (count == 1) break;
+      summary =
+          container.read(mediaTransferSummaryProvider).value ??
+          const MediaTransferSummary();
+      if (summary.queued == 1) break;
       await Future<void>.delayed(const Duration(milliseconds: 10));
     }
-    expect(count, 1);
+    expect(summary.queued, 1);
     expect(container.read(mediaTransferEntriesProvider).hasValue, isTrue);
   });
 }

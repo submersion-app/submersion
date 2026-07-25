@@ -2933,12 +2933,217 @@ class AppLocalizationsNl extends AppLocalizations {
   String get dashboard_hero_diverFallbackName => 'Duiker';
 
   @override
+  String get dashboard_hero_statDives => 'duiken';
+
+  @override
+  String get dashboard_hero_statHours => 'uur';
+
+  @override
+  String get dashboard_hero_statSites => 'stekken';
+
+  @override
+  String get dashboard_hero_statCountries => 'landen';
+
+  @override
   String dashboard_activityStats_divesInYear(String year) {
     return 'duiken in $year';
   }
 
   @override
   String get dashboard_semantics_statsBar => 'Samenvatting duikstatistieken';
+
+  @override
+  String get dashboard_gauges_addGear => 'Uitrusting toevoegen';
+
+  @override
+  String dashboard_gauges_gearOk(String name) {
+    return '$name OK';
+  }
+
+  @override
+  String dashboard_gauges_gearDueIn(String name, int days) {
+    return '$name over ${days}d aan onderhoud toe';
+  }
+
+  @override
+  String dashboard_gauges_gearOverdue(String name) {
+    return '$name over tijd';
+  }
+
+  @override
+  String get dashboard_gauges_insuranceOk => 'Verzekering OK';
+
+  @override
+  String dashboard_gauges_insuranceExpires(String date) {
+    return 'Verzekering verloopt $date';
+  }
+
+  @override
+  String get dashboard_gauges_insuranceExpired => 'Verzekering verlopen';
+
+  @override
+  String get dashboard_gauges_noInsurance => 'Geen verzekering geregistreerd';
+
+  @override
+  String get dashboard_gauges_noFlyClear => 'Vliegverbod 0:00';
+
+  @override
+  String dashboard_gauges_noFlyRemaining(String hours, String minutes) {
+    return 'Vliegverbod $hours:$minutes';
+  }
+
+  @override
+  String dashboard_gauges_lastDiveDays(int days) {
+    return 'Laatste duik ${days}d geleden';
+  }
+
+  @override
+  String get dashboard_gauges_lastDiveToday => 'Vandaag gedoken';
+
+  @override
+  String get dashboard_gauges_noDivesYet => 'Nog geen duiken';
+
+  @override
+  String get settings_homeChips_pageTitle => 'Statuschips van start';
+
+  @override
+  String get settings_homeChips_description =>
+      'Kies welke statuschips bovenaan het tabblad Start verschijnen.';
+
+  @override
+  String get settings_homeChips_gear => 'Uitrustingsonderhoud';
+
+  @override
+  String get settings_homeChips_insurance => 'Verzekering';
+
+  @override
+  String get settings_homeChips_noFly => 'Vliegverbod-timer';
+
+  @override
+  String get settings_homeChips_lastDive => 'Duikactualiteit';
+
+  @override
+  String get settings_homeChips_certifications => 'Verloop van certificeringen';
+
+  @override
+  String get settings_homeChips_trip => 'Aankomende reis';
+
+  @override
+  String get settings_homeChips_checklist => 'Actieve checklist';
+
+  @override
+  String get settings_homeChips_course => 'Cursusvoortgang';
+
+  @override
+  String get settings_homeChips_uploads => 'Media-uploads';
+
+  @override
+  String get settings_homeChips_backup => 'Back-upleeftijd';
+
+  @override
+  String get settings_homeChips_sync => 'Synchronisatiestatus';
+
+  @override
+  String get settings_homeChips_dataQuality => 'Datakwaliteit';
+
+  @override
+  String dashboard_gauges_certsExpiring(int count) {
+    return '$count certificeringen verlopen bijna';
+  }
+
+  @override
+  String dashboard_gauges_tripCountdown(String name, int days) {
+    return '$name over ${days}d';
+  }
+
+  @override
+  String get dashboard_gauges_checklistActive => 'Checklist actief';
+
+  @override
+  String dashboard_gauges_courseProgress(String name, int done, int total) {
+    return '$name: $done/$total';
+  }
+
+  @override
+  String dashboard_gauges_uploadsPending(int count) {
+    return '$count uploads in wachtrij';
+  }
+
+  @override
+  String get dashboard_gauges_backupNone => 'Nog geen back-up';
+
+  @override
+  String get dashboard_gauges_backupToday => 'Vandaag geback-upt';
+
+  @override
+  String dashboard_gauges_backupDays(int days) {
+    return 'Back-up ${days}d geleden';
+  }
+
+  @override
+  String dashboard_gauges_syncPending(int count) {
+    return '$count niet gesynchroniseerd';
+  }
+
+  @override
+  String get dashboard_gauges_synced => 'Gesynchroniseerd';
+
+  @override
+  String dashboard_gauges_dataIssues(int count) {
+    return '$count dataproblemen';
+  }
+
+  @override
+  String get dashboard_gauges_retry =>
+      'Status niet beschikbaar - tik om opnieuw te proberen';
+
+  @override
+  String get dashboard_urgent_title => 'Vereist aandacht';
+
+  @override
+  String get dashboard_photos_title => 'Recente foto\'s';
+
+  @override
+  String get dashboard_recentSites_title => 'Recente stekken';
+
+  @override
+  String get dashboard_yearInReview_title => 'Dit jaar';
+
+  @override
+  String dashboard_yearInReview_divesVs(int count, int previous) {
+    return '$count duiken (vs $previous vorig jaar)';
+  }
+
+  @override
+  String dashboard_yearInReview_hours(String hours) {
+    return '$hours uur onder water';
+  }
+
+  @override
+  String dashboard_yearInReview_maxDepth(String depth) {
+    return 'Diepste: $depth';
+  }
+
+  @override
+  String get dashboard_onThisDay_title => 'Op deze dag';
+
+  @override
+  String dashboard_onThisDay_entry(String year, String site) {
+    return '$year - $site';
+  }
+
+  @override
+  String get dashboard_milestones_title => 'Mijlpalen';
+
+  @override
+  String dashboard_milestones_nextDive(int remaining, int milestone) {
+    return 'Nog $remaining duiken tot nr. $milestone';
+  }
+
+  @override
+  String dashboard_milestones_certYears(String name, int years, String month) {
+    return '$name: $years jaar in $month';
+  }
 
   @override
   String get dashboard_personalRecords_coldest => 'Koudste';
@@ -20298,6 +20503,16 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_mediaStorage_transfers_state_failed => 'Mislukt';
 
   @override
+  String settings_mediaStorage_transfers_queued(int count) {
+    return '$count in wachtrij';
+  }
+
+  @override
+  String settings_mediaStorage_transfers_waitingRetry(int count) {
+    return '$count wachten op nieuwe poging';
+  }
+
+  @override
   String get settings_mediaStorage_verify_action => 'Bibliotheek verifiëren';
 
   @override
@@ -21877,4 +22092,12 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_mediaStorage_quality_linuxFfmpegHint =>
       'Installeer ffmpeg om videocompressie in te schakelen. Tot die tijd worden originelen geüpload.';
+
+  @override
+  String get settings_mediaStorage_quality_saveFailed =>
+      'Kan de uploadkwaliteit niet opslaan. Probeer het opnieuw.';
+
+  @override
+  String get settings_mediaStorage_quality_noTranscoderHint =>
+      'Dit apparaat kan geen video comprimeren. Vanaf dit apparaat worden originelen geüpload.';
 }

@@ -74,6 +74,45 @@ class MediaRepository {
     }
   }
 
+  /// Newest photos across all dives, ordered by takenAt descending.
+  /// Videos and signatures are excluded, as are photos not attached to a
+  /// dive (the dashboard ribbon links each tile to its dive, so an
+  /// unattached photo would render as a dead tile). Backs the dashboard
+  /// photo ribbon.
+  Future<List<domain.MediaItem>> getRecentPhotos({int limit = 12}) async {
+    try {
+      final query =
+          _db.select(_db.media).join([
+              leftOuterJoin(
+                _db.mediaEnrichment,
+                _db.mediaEnrichment.mediaId.equalsExp(_db.media.id),
+              ),
+            ])
+            ..where(
+              _db.media.fileType.equals(
+                    _mediaTypeToString(domain.MediaType.photo),
+                  ) &
+                  _db.media.diveId.isNotNull(),
+            )
+            ..orderBy([OrderingTerm.desc(_db.media.takenAt)])
+            ..limit(limit);
+
+      final rows = await query.get();
+      return rows.map((row) {
+        final mediaRow = row.readTable(_db.media);
+        final enrichmentRow = row.readTableOrNull(_db.mediaEnrichment);
+        return _mapRowToMediaItem(mediaRow, enrichmentRow);
+      }).toList();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get recent photos',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Returns the device ID to record on a new MediaItem, or null if the
   /// source type is device-portable (gallery, URL, manifest, signature).
   ///

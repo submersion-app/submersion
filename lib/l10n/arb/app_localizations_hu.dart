@@ -2943,6 +2943,18 @@ class AppLocalizationsHu extends AppLocalizations {
   String get dashboard_hero_diverFallbackName => 'Búvár';
 
   @override
+  String get dashboard_hero_statDives => 'merülés';
+
+  @override
+  String get dashboard_hero_statHours => 'óra';
+
+  @override
+  String get dashboard_hero_statSites => 'helyszín';
+
+  @override
+  String get dashboard_hero_statCountries => 'ország';
+
+  @override
   String dashboard_activityStats_divesInYear(String year) {
     return 'merülések $year-ben';
   }
@@ -2950,6 +2962,199 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get dashboard_semantics_statsBar =>
       'Merülési statisztika összefoglaló';
+
+  @override
+  String get dashboard_gauges_addGear => 'Felszerelés hozzáadása';
+
+  @override
+  String dashboard_gauges_gearOk(String name) {
+    return '$name rendben';
+  }
+
+  @override
+  String dashboard_gauges_gearDueIn(String name, int days) {
+    return '$name szervize $days nap múlva esedékes';
+  }
+
+  @override
+  String dashboard_gauges_gearOverdue(String name) {
+    return '$name szervize lejárt';
+  }
+
+  @override
+  String get dashboard_gauges_insuranceOk => 'Biztosítás rendben';
+
+  @override
+  String dashboard_gauges_insuranceExpires(String date) {
+    return 'A biztosítás lejár: $date';
+  }
+
+  @override
+  String get dashboard_gauges_insuranceExpired => 'A biztosítás lejárt';
+
+  @override
+  String get dashboard_gauges_noInsurance => 'Nincs rögzített biztosítás';
+
+  @override
+  String get dashboard_gauges_noFlyClear => 'Repülési tilalom 0:00';
+
+  @override
+  String dashboard_gauges_noFlyRemaining(String hours, String minutes) {
+    return 'Repülési tilalom $hours:$minutes';
+  }
+
+  @override
+  String dashboard_gauges_lastDiveDays(int days) {
+    return 'Utolsó merülés $days napja';
+  }
+
+  @override
+  String get dashboard_gauges_lastDiveToday => 'Ma merültél';
+
+  @override
+  String get dashboard_gauges_noDivesYet => 'Még nincs merülés';
+
+  @override
+  String get settings_homeChips_pageTitle => 'Kezdőlap állapotjelzői';
+
+  @override
+  String get settings_homeChips_description =>
+      'Válaszd ki, mely állapotjelzők jelenjenek meg a Kezdőlap tetején.';
+
+  @override
+  String get settings_homeChips_gear => 'Felszerelés szervize';
+
+  @override
+  String get settings_homeChips_insurance => 'Biztosítás';
+
+  @override
+  String get settings_homeChips_noFly => 'Repülési tilalom időzítő';
+
+  @override
+  String get settings_homeChips_lastDive => 'Merülési naprakészség';
+
+  @override
+  String get settings_homeChips_certifications => 'Minősítések lejárata';
+
+  @override
+  String get settings_homeChips_trip => 'Közelgő utazás';
+
+  @override
+  String get settings_homeChips_checklist => 'Aktív ellenőrzőlista';
+
+  @override
+  String get settings_homeChips_course => 'Tanfolyam haladása';
+
+  @override
+  String get settings_homeChips_uploads => 'Médiafeltöltések';
+
+  @override
+  String get settings_homeChips_backup => 'Mentés kora';
+
+  @override
+  String get settings_homeChips_sync => 'Szinkronizálási állapot';
+
+  @override
+  String get settings_homeChips_dataQuality => 'Adatminőség';
+
+  @override
+  String dashboard_gauges_certsExpiring(int count) {
+    return '$count minősítés hamarosan lejár';
+  }
+
+  @override
+  String dashboard_gauges_tripCountdown(String name, int days) {
+    return '$name $days nap múlva';
+  }
+
+  @override
+  String get dashboard_gauges_checklistActive => 'Ellenőrzőlista folyamatban';
+
+  @override
+  String dashboard_gauges_courseProgress(String name, int done, int total) {
+    return '$name: $done/$total';
+  }
+
+  @override
+  String dashboard_gauges_uploadsPending(int count) {
+    return '$count feltöltés függőben';
+  }
+
+  @override
+  String get dashboard_gauges_backupNone => 'Még nincs biztonsági mentés';
+
+  @override
+  String get dashboard_gauges_backupToday => 'Ma mentve';
+
+  @override
+  String dashboard_gauges_backupDays(int days) {
+    return 'Mentés $days napja';
+  }
+
+  @override
+  String dashboard_gauges_syncPending(int count) {
+    return '$count nem szinkronizált';
+  }
+
+  @override
+  String get dashboard_gauges_synced => 'Szinkronizálva';
+
+  @override
+  String dashboard_gauges_dataIssues(int count) {
+    return '$count adatprobléma';
+  }
+
+  @override
+  String get dashboard_gauges_retry =>
+      'Az állapot nem érhető el - koppints az újrapróbáláshoz';
+
+  @override
+  String get dashboard_urgent_title => 'Figyelmet igényel';
+
+  @override
+  String get dashboard_photos_title => 'Legutóbbi fotók';
+
+  @override
+  String get dashboard_recentSites_title => 'Legutóbbi helyszínek';
+
+  @override
+  String get dashboard_yearInReview_title => 'Idén';
+
+  @override
+  String dashboard_yearInReview_divesVs(int count, int previous) {
+    return '$count merülés (tavaly: $previous)';
+  }
+
+  @override
+  String dashboard_yearInReview_hours(String hours) {
+    return '$hours óra a víz alatt';
+  }
+
+  @override
+  String dashboard_yearInReview_maxDepth(String depth) {
+    return 'Legmélyebb: $depth';
+  }
+
+  @override
+  String get dashboard_onThisDay_title => 'Ezen a napon';
+
+  @override
+  String dashboard_onThisDay_entry(String year, String site) {
+    return '$year - $site';
+  }
+
+  @override
+  String get dashboard_milestones_title => 'Mérföldkövek';
+
+  @override
+  String dashboard_milestones_nextDive(int remaining, int milestone) {
+    return 'Még $remaining merülés a(z) $milestone. eléréséig';
+  }
+
+  @override
+  String dashboard_milestones_certYears(String name, int years, String month) {
+    return '$name: $years év $month hónapban';
+  }
 
   @override
   String get dashboard_personalRecords_coldest => 'Leghidegebb';
@@ -20408,6 +20613,16 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_mediaStorage_transfers_state_failed => 'Sikertelen';
 
   @override
+  String settings_mediaStorage_transfers_queued(int count) {
+    return '$count sorban áll';
+  }
+
+  @override
+  String settings_mediaStorage_transfers_waitingRetry(int count) {
+    return '$count újrapróbálkozásra vár';
+  }
+
+  @override
   String get settings_mediaStorage_verify_action => 'Könyvtár ellenőrzése';
 
   @override
@@ -21986,4 +22201,12 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_mediaStorage_quality_linuxFfmpegHint =>
       'Telepítse az ffmpeg-et a videótömörítés engedélyezéséhez. Addig az eredetik kerülnek feltöltésre.';
+
+  @override
+  String get settings_mediaStorage_quality_saveFailed =>
+      'A feltöltési minőség mentése nem sikerült. Próbáld újra.';
+
+  @override
+  String get settings_mediaStorage_quality_noTranscoderHint =>
+      'Ez az eszköz nem tud videót tömöríteni. Róla az eredetik töltődnek fel.';
 }

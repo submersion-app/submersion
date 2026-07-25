@@ -2,9 +2,8 @@ import 'dart:io';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
-import 'package:submersion/core/services/media_store/media_store_policies.dart';
+import 'package:submersion/core/services/media_store/media_upload_quality_policy.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/resolvers/media_store_resolver.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
@@ -18,6 +17,7 @@ import 'package:submersion/features/media_store/domain/media_upload_quality.dart
 import 'support/fake_local_file_resolver.dart';
 import '../../helpers/in_memory_media_object_store.dart';
 import '../../helpers/test_database.dart';
+import '../../support/fake_app_settings_repository.dart';
 
 void main() {
   late MediaRepository mediaRepository;
@@ -33,7 +33,6 @@ void main() {
   late MediaSourceResolverRegistry registry;
 
   setUp(() async {
-    SharedPreferences.setMockInitialValues({});
     await setUpTestDatabase();
     mediaRepository = MediaRepository();
     cacheDbA = LocalCacheDatabase(NativeDatabase.memory());
@@ -68,10 +67,10 @@ void main() {
       );
       resolver.data = FileData(file: source);
 
-      final policies = MediaStorePolicies(
-        prefs: await SharedPreferences.getInstance(),
+      final quality = MediaUploadQualityPolicy(
+        settings: FakeAppSettingsRepository(),
       );
-      await policies.setPhotoUploadQuality(MediaUploadQuality.balanced);
+      await quality.setPhotoUploadQuality(MediaUploadQuality.balanced);
 
       final pipelineA = MediaUploadPipeline(
         mediaRepository: mediaRepository,
@@ -79,7 +78,7 @@ void main() {
         store: bucket,
         registry: registry,
         cache: cacheA,
-        policies: policies,
+        quality: quality,
         now: () => DateTime(2026, 7, 20, 12),
       );
 

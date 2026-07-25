@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
@@ -93,9 +94,17 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
     // suffices, since thumbs upload before originals. Rows without any
     // confirmed upload skip the runtime entirely (no keychain read, no
     // store construction). Any store failure keeps the native placeholder.
+    //
+    // The compressed stamp counts as confirmation in its own right: an
+    // upload-quality setting other than "original" uploads a rendition and
+    // leaves remoteUploadedAt null permanently, so gating on the original
+    // alone made every such photo unviewable on other devices even though
+    // MediaStoreResolver.tryResolveRemote can serve the rendition. This
+    // mirrors what MediaRepository already treats as backed up.
     final storeConfirmed =
         widget.item.contentHash != null &&
         (widget.item.remoteUploadedAt != null ||
+            widget.item.remoteCompressedUploadedAt != null ||
             (widget.thumbnail && widget.item.remoteThumbUploadedAt != null));
     if (!storeConfirmed) {
       return native;
@@ -186,11 +195,22 @@ class _VideoThumbnailPlaceholder extends StatelessWidget {
   }
 }
 
+final _imageErrorLog = LoggerService.forClass(MediaItemView);
+
 /// Graceful fallback when image bytes fail to decode (corrupt/unsupported), so
 /// the raw "Invalid image data" exception never reaches the UI. Shows a
 /// broken-image tile rather than the "file not found" placeholder: the file is
 /// present, it just couldn't be rendered.
+///
+/// The underlying error is logged: `errorBuilder` suppresses the framework's
+/// own console report, so without this a load/decode failure (sandbox denial,
+/// truncated bytes, unsupported codec) leaves no trace anywhere.
 Widget _imageError(BuildContext context, Object error, StackTrace? stack) {
+  _imageErrorLog.warning(
+    'Image failed to load/decode',
+    error: error,
+    stackTrace: stack,
+  );
   final scheme = Theme.of(context).colorScheme;
   return ColoredBox(
     color: scheme.surfaceContainerHighest,

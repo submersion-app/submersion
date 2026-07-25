@@ -106,6 +106,12 @@ class _FakeAppSettingsRepository implements AppSettingsRepository {
 
   @override
   Future<void> setNavPrimaryIds(List<String> ids) async {}
+
+  @override
+  Future<String?> getRawSetting(String key) async => null;
+
+  @override
+  Future<void> setRawSetting(String key, String value) async {}
 }
 
 /// Mock SettingsNotifier that doesn't access the database.
@@ -136,6 +142,17 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setNoFlyPreset(NoFlyPreset preset) async =>
       state = state.copyWith(noFlyPreset: preset);
+  @override
+  Future<void> setHomeChipEnabled(String chipId, bool enabled) async {
+    final hidden = {...state.hiddenHomeChips};
+    if (enabled) {
+      hidden.remove(chipId);
+    } else {
+      hidden.add(chipId);
+    }
+    state = state.copyWith(hiddenHomeChips: hidden);
+  }
+
   @override
   Future<void> setSafetyRuleEnabled(SafetyRuleId rule, bool enabled) async {
     final rules = {...state.safetyReviewDisabledRules};

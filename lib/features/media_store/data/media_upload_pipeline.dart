@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
-import 'package:submersion/core/services/media_store/media_store_policies.dart';
+import 'package:submersion/core/services/media_store/media_upload_quality_policy.dart';
 import 'package:submersion/core/services/media_store/store_keys.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
@@ -37,7 +37,7 @@ class MediaUploadPipeline {
     required MediaSourceResolverRegistry registry,
     required MediaCacheStore cache,
     ThumbnailGenerator? thumbnails,
-    MediaStorePolicies? policies,
+    MediaUploadQualityPolicy? quality,
     MediaCompressor? imageCompressor,
     VideoTranscoder? videoTranscoder,
     DateTime Function()? now,
@@ -48,7 +48,7 @@ class MediaUploadPipeline {
        _cache = cache,
        _thumbnails =
            thumbnails ?? ThumbnailGenerator(registry: registry, cache: cache),
-       _policies = policies ?? MediaStorePolicies(),
+       _quality = quality ?? MediaUploadQualityPolicy(),
        _imageCompressor =
            imageCompressor ?? ImageCompressor(registry: registry, cache: cache),
        _videoTranscoder = videoTranscoder,
@@ -60,7 +60,7 @@ class MediaUploadPipeline {
   final MediaSourceResolverRegistry _registry;
   final MediaCacheStore _cache;
   final ThumbnailGenerator _thumbnails;
-  final MediaStorePolicies _policies;
+  final MediaUploadQualityPolicy _quality;
   final MediaCompressor _imageCompressor;
   final VideoTranscoder? _videoTranscoder;
   final DateTime Function() _now;
@@ -166,10 +166,11 @@ class MediaUploadPipeline {
       final hadOriginal = item.remoteUploadedAt != null;
       final hadCompressed = item.remoteCompressedUploadedAt != null;
       // A corrupt or future-enum override string must not fail the upload:
-      // fall back to the device's configured level so the item still uploads.
+      // fall back to the library-wide configured level (MediaUploadQualityPolicy,
+      // a synced setting -- not a per-device one) so the item still uploads.
       final level =
           (isOverride ? _tryParseQuality(entry.overrideLevel!) : null) ??
-          await _policies.qualityFor(item.mediaType);
+          await _quality.qualityFor(item.mediaType);
       rendition = await _renditionFor(item, staged, level, digest.hash);
       if (rendition != null) {
         final renditionKey = StoreKeys.renditionKey(

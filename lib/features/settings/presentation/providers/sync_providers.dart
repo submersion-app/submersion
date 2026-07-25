@@ -7,6 +7,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
 import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/accounts/account_identity.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart'
@@ -258,6 +259,7 @@ Future<domain.ConnectedAccount> ensureAccountForProviderType(
   CloudProviderType type,
   ConnectedAccountsRepository repo, {
   SyncRepository? syncRepository,
+  S3CredentialsStore? s3Credentials,
 }) async {
   final kind = AccountKind.fromCloudProviderType(type);
   final persistedId = await (syncRepository ?? SyncRepository())
@@ -267,16 +269,30 @@ Future<domain.ConnectedAccount> ensureAccountForProviderType(
     if (persisted != null && persisted.kind == kind) return persisted;
   }
   if (kind == AccountKind.s3) {
-    return repo.create(
-      kind: kind,
-      label: cloudProviderInstanceFor(type).providerName,
-    );
-  }
-  return await repo.getByKind(kind) ??
-      await repo.create(
+    // S3 accounts are instances, so the endpoint identifies them. Read the
+    // legacy config (the source of truth on this path, mirrored by
+    // _mirrorLegacyCredentials) to derive that identity. Without it, fall
+    // back to a fresh row: an account with no resolvable endpoint cannot be
+    // matched to any other, and the deduplicator will canonicalize it once
+    // the config is readable.
+    final config = await (s3Credentials ?? S3CredentialsStore()).load();
+    if (config == null) {
+      return repo.create(
         kind: kind,
         label: cloudProviderInstanceFor(type).providerName,
       );
+    }
+    return repo.ensure(
+      kind: kind,
+      naturalKey: s3NaturalKey(config),
+      label: '${config.bucket} @ ${config.displayHost}',
+    );
+  }
+  return repo.ensure(
+    kind: kind,
+    naturalKey: naturalKeyForKind(kind)!,
+    label: cloudProviderInstanceFor(type).providerName,
+  );
 }
 
 /// File-scoped logger for the top-level sync providers (the provider bodies
@@ -306,6 +322,7 @@ final selectedSyncAccountProvider = FutureProvider<domain.ConnectedAccount?>((
       type,
       repo,
       syncRepository: ref.read(syncRepositoryProvider),
+      s3Credentials: ref.read(s3CredentialsStoreProvider),
     );
     await ref
         .read(syncRepositoryProvider)

@@ -2869,12 +2869,216 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dashboard_hero_diverFallbackName => 'צוללן';
 
   @override
+  String get dashboard_hero_statDives => 'צלילות';
+
+  @override
+  String get dashboard_hero_statHours => 'שעות';
+
+  @override
+  String get dashboard_hero_statSites => 'אתרים';
+
+  @override
+  String get dashboard_hero_statCountries => 'מדינות';
+
+  @override
   String dashboard_activityStats_divesInYear(String year) {
     return 'צלילות ב-$year';
   }
 
   @override
   String get dashboard_semantics_statsBar => 'סיכום סטטיסטיקות צלילה';
+
+  @override
+  String get dashboard_gauges_addGear => 'הוסף ציוד';
+
+  @override
+  String dashboard_gauges_gearOk(String name) {
+    return '$name תקין';
+  }
+
+  @override
+  String dashboard_gauges_gearDueIn(String name, int days) {
+    return '$name דורש טיפול בעוד $days ימים';
+  }
+
+  @override
+  String dashboard_gauges_gearOverdue(String name) {
+    return '$name באיחור טיפול';
+  }
+
+  @override
+  String get dashboard_gauges_insuranceOk => 'ביטוח תקין';
+
+  @override
+  String dashboard_gauges_insuranceExpires(String date) {
+    return 'הביטוח פג ב-$date';
+  }
+
+  @override
+  String get dashboard_gauges_insuranceExpired => 'הביטוח פג תוקף';
+
+  @override
+  String get dashboard_gauges_noInsurance => 'אין ביטוח רשום';
+
+  @override
+  String get dashboard_gauges_noFlyClear => 'איסור טיסה 0:00';
+
+  @override
+  String dashboard_gauges_noFlyRemaining(String hours, String minutes) {
+    return 'איסור טיסה $hours:$minutes';
+  }
+
+  @override
+  String dashboard_gauges_lastDiveDays(int days) {
+    return 'צלילה אחרונה לפני $days ימים';
+  }
+
+  @override
+  String get dashboard_gauges_lastDiveToday => 'צללת היום';
+
+  @override
+  String get dashboard_gauges_noDivesYet => 'אין צלילות עדיין';
+
+  @override
+  String get settings_homeChips_pageTitle => 'שבבי מצב של דף הבית';
+
+  @override
+  String get settings_homeChips_description =>
+      'בחר אילו שבבי מצב יופיעו בראש לשונית הבית.';
+
+  @override
+  String get settings_homeChips_gear => 'תחזוקת ציוד';
+
+  @override
+  String get settings_homeChips_insurance => 'ביטוח';
+
+  @override
+  String get settings_homeChips_noFly => 'טיימר איסור טיסה';
+
+  @override
+  String get settings_homeChips_lastDive => 'עדכניות צלילה';
+
+  @override
+  String get settings_homeChips_certifications => 'תפוגת הסמכות';
+
+  @override
+  String get settings_homeChips_trip => 'טיול קרוב';
+
+  @override
+  String get settings_homeChips_checklist => 'רשימת תיוג פעילה';
+
+  @override
+  String get settings_homeChips_course => 'התקדמות קורס';
+
+  @override
+  String get settings_homeChips_uploads => 'העלאות מדיה';
+
+  @override
+  String get settings_homeChips_backup => 'גיל הגיבוי';
+
+  @override
+  String get settings_homeChips_sync => 'מצב סנכרון';
+
+  @override
+  String get settings_homeChips_dataQuality => 'איכות נתונים';
+
+  @override
+  String dashboard_gauges_certsExpiring(int count) {
+    return '$count הסמכות עומדות לפוג';
+  }
+
+  @override
+  String dashboard_gauges_tripCountdown(String name, int days) {
+    return '$name בעוד $days ימים';
+  }
+
+  @override
+  String get dashboard_gauges_checklistActive => 'רשימת תיוג בתהליך';
+
+  @override
+  String dashboard_gauges_courseProgress(String name, int done, int total) {
+    return '$name: $done/$total';
+  }
+
+  @override
+  String dashboard_gauges_uploadsPending(int count) {
+    return '$count העלאות ממתינות';
+  }
+
+  @override
+  String get dashboard_gauges_backupNone => 'אין גיבוי עדיין';
+
+  @override
+  String get dashboard_gauges_backupToday => 'גובה היום';
+
+  @override
+  String dashboard_gauges_backupDays(int days) {
+    return 'גיבוי לפני $days ימים';
+  }
+
+  @override
+  String dashboard_gauges_syncPending(int count) {
+    return '$count לא מסונכרנים';
+  }
+
+  @override
+  String get dashboard_gauges_synced => 'מסונכרן';
+
+  @override
+  String dashboard_gauges_dataIssues(int count) {
+    return '$count בעיות נתונים';
+  }
+
+  @override
+  String get dashboard_gauges_retry => 'הסטטוס אינו זמין - הקש לניסיון חוזר';
+
+  @override
+  String get dashboard_urgent_title => 'דורש תשומת לב';
+
+  @override
+  String get dashboard_photos_title => 'תמונות אחרונות';
+
+  @override
+  String get dashboard_recentSites_title => 'אתרים אחרונים';
+
+  @override
+  String get dashboard_yearInReview_title => 'השנה';
+
+  @override
+  String dashboard_yearInReview_divesVs(int count, int previous) {
+    return '$count צלילות (לעומת $previous בשנה שעברה)';
+  }
+
+  @override
+  String dashboard_yearInReview_hours(String hours) {
+    return '$hours שעות מתחת למים';
+  }
+
+  @override
+  String dashboard_yearInReview_maxDepth(String depth) {
+    return 'העמוקה ביותר: $depth';
+  }
+
+  @override
+  String get dashboard_onThisDay_title => 'ביום הזה';
+
+  @override
+  String dashboard_onThisDay_entry(String year, String site) {
+    return '$year - $site';
+  }
+
+  @override
+  String get dashboard_milestones_title => 'אבני דרך';
+
+  @override
+  String dashboard_milestones_nextDive(int remaining, int milestone) {
+    return 'עוד $remaining צלילות עד מספר $milestone';
+  }
+
+  @override
+  String dashboard_milestones_certYears(String name, int years, String month) {
+    return '$name: $years שנים ב$month';
+  }
 
   @override
   String get dashboard_personalRecords_coldest => 'הקרה ביותר';
@@ -19948,6 +20152,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_mediaStorage_transfers_state_failed => 'נכשל';
 
   @override
+  String settings_mediaStorage_transfers_queued(int count) {
+    return '$count בתור';
+  }
+
+  @override
+  String settings_mediaStorage_transfers_waitingRetry(int count) {
+    return '$count ממתינים לניסיון חוזר';
+  }
+
+  @override
   String get settings_mediaStorage_verify_action => 'אימות הספרייה';
 
   @override
@@ -21494,4 +21708,12 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_mediaStorage_quality_linuxFfmpegHint =>
       'התקן ffmpeg כדי לאפשר דחיסת וידאו. עד אז מועלים קבצי המקור.';
+
+  @override
+  String get settings_mediaStorage_quality_saveFailed =>
+      'לא ניתן היה לשמור את איכות ההעלאה. נסה שוב.';
+
+  @override
+  String get settings_mediaStorage_quality_noTranscoderHint =>
+      'מכשיר זה אינו יכול לדחוס וידאו. ממנו מועלים הקבצים המקוריים.';
 }

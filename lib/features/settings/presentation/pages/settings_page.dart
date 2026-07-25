@@ -12,6 +12,7 @@ import 'package:submersion/features/settings/presentation/pages/column_config_pa
 import 'package:submersion/features/settings/presentation/pages/safety_settings_page.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
+import 'package:submersion/features/settings/presentation/pages/home_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/notification_service.dart';
@@ -1415,23 +1416,35 @@ class _DecompressionSectionContent extends ConsumerWidget {
   }
 }
 
-/// Appearance section content
-const _sectionHubEntries = [
-  ('dives', 'Dives'),
-  ('sites', 'Sites'),
-  ('buddies', 'Buddies'),
-  ('trips', 'Trips'),
-  ('equipment', 'Equipment'),
-  ('diveCenters', 'Dive Centers'),
-  ('certifications', 'Certifications'),
-  ('courses', 'Courses'),
+/// Appearance section content. Ordered section keys; labels are resolved
+/// through [_getSectionDisplayName] so the desktop pane localizes like the
+/// standalone AppearancePage.
+const _sectionHubKeys = [
+  'home',
+  'dives',
+  'sites',
+  'buddies',
+  'trips',
+  'equipment',
+  'diveCenters',
+  'certifications',
+  'courses',
 ];
 
-String _getSectionDisplayName(String key) {
-  for (final entry in _sectionHubEntries) {
-    if (entry.$1 == key) return entry.$2;
-  }
-  return key;
+String _getSectionDisplayName(BuildContext context, String key) {
+  final l10n = context.l10n;
+  return switch (key) {
+    'home' => l10n.nav_home,
+    'dives' => l10n.nav_dives,
+    'sites' => l10n.nav_sites,
+    'buddies' => l10n.nav_buddies,
+    'trips' => l10n.nav_trips,
+    'equipment' => l10n.nav_equipment,
+    'diveCenters' => l10n.nav_diveCenters,
+    'certifications' => l10n.nav_certifications,
+    'courses' => l10n.nav_courses,
+    _ => key,
+  };
 }
 
 class _AppearanceSectionContent extends ConsumerStatefulWidget {
@@ -1456,7 +1469,7 @@ class _AppearanceSectionContentState
     // Priority 1: Column config sub-page
     if (_showColumnConfig) {
       final backLabel = _columnConfigSection != null
-          ? _getSectionDisplayName(_columnConfigSection!)
+          ? _getSectionDisplayName(context, _columnConfigSection!)
           : 'Appearance';
       return Column(
         children: [
@@ -1498,16 +1511,18 @@ class _AppearanceSectionContentState
             ),
           ),
           Expanded(
-            child: SectionAppearancePage(
-              sectionKey: _activeSectionKey!,
-              embedded: true,
-              onColumnConfigTap: () {
-                setState(() {
-                  _showColumnConfig = true;
-                  _columnConfigSection = _activeSectionKey;
-                });
-              },
-            ),
+            child: _activeSectionKey == 'home'
+                ? const HomeAppearancePage(embedded: true)
+                : SectionAppearancePage(
+                    sectionKey: _activeSectionKey!,
+                    embedded: true,
+                    onColumnConfigTap: () {
+                      setState(() {
+                        _showColumnConfig = true;
+                        _columnConfigSection = _activeSectionKey;
+                      });
+                    },
+                  ),
           ),
         ],
       );
@@ -1592,12 +1607,12 @@ class _AppearanceSectionContentState
           Card(
             child: Column(
               children: [
-                for (final (index, entry) in _sectionHubEntries.indexed) ...[
+                for (final (index, key) in _sectionHubKeys.indexed) ...[
                   if (index > 0) const Divider(height: 1),
                   ListTile(
-                    title: Text(entry.$2),
+                    title: Text(_getSectionDisplayName(context, key)),
                     trailing: const Icon(Icons.chevron_right),
-                    onTap: () => setState(() => _activeSectionKey = entry.$1),
+                    onTap: () => setState(() => _activeSectionKey = key),
                   ),
                 ],
               ],

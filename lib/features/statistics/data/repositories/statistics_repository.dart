@@ -832,6 +832,55 @@ class StatisticsRepository {
     }
   }
 
+  /// Aggregates for a single calendar year (dashboard year-in-review).
+  /// The duration sum mirrors getStatistics' total_time expression
+  /// (COALESCE(runtime, bottom_time), seconds) so the card's hours agree
+  /// with the hero header's lifetime hours.
+  Future<YearStats> getYearStats(int year, {String? diverId}) async {
+    try {
+      // Half-open millisecond range [Jan 1, next Jan 1) rather than
+      // strftime('%Y', ...): the range predicate lets SQLite use the
+      // (diver_id, dive_date_time) index instead of scanning every row.
+      // UTC boundaries match the wall-clock-as-UTC epoch-ms convention that
+      // dive_date_time is stored in, so dives near the year edge aren't
+      // shifted across the boundary by the local timezone offset.
+      final startMs = DateTime.utc(year).millisecondsSinceEpoch;
+      final endMs = DateTime.utc(year + 1).millisecondsSinceEpoch;
+      final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
+      final results = await _db
+          .customSelect(
+            '''
+        SELECT
+          COUNT(*) AS dive_count,
+          COALESCE(SUM(COALESCE(runtime, bottom_time)), 0) AS total_seconds,
+          MAX(max_depth) AS max_depth
+        FROM dives
+        WHERE dive_date_time >= ? AND dive_date_time < ?
+        $diverFilter
+        ''',
+            variables: [
+              Variable<int>(startMs),
+              Variable<int>(endMs),
+              if (diverId != null) Variable<String>(diverId),
+            ],
+          )
+          .getSingle();
+
+      return YearStats(
+        diveCount: results.read<int>('dive_count'),
+        totalSeconds: results.read<int>('total_seconds'),
+        maxDepth: results.readNullable<double>('max_depth'),
+      );
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get year stats for $year',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return const YearStats(diveCount: 0, totalSeconds: 0);
+    }
+  }
+
   /// Dives grouped by the primary thickness of linked exposure suits
   /// (wetsuit/drysuit). COUNT(DISTINCT) so a dive with two suits of the same
   /// thickness counts once per bucket.
@@ -2043,4 +2092,17 @@ class StatisticsRepository {
     ];
     return months[month - 1];
   }
+}
+
+/// Aggregates for one calendar year (dashboard year-in-review card).
+class YearStats {
+  final int diveCount;
+  final int totalSeconds;
+  final double? maxDepth;
+
+  const YearStats({
+    required this.diveCount,
+    required this.totalSeconds,
+    this.maxDepth,
+  });
 }

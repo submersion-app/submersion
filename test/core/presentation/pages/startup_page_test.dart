@@ -10,6 +10,8 @@ import 'package:sqlite3/sqlite3.dart' as sqlite3;
 import 'package:submersion/core/database/database_version_exception.dart';
 import 'package:submersion/core/domain/entities/migration_progress.dart';
 import 'package:submersion/core/presentation/pages/startup_page.dart';
+import 'package:submersion/core/presentation/startup_brightness.dart';
+import 'package:submersion/core/presentation/widgets/ocean_background.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
@@ -600,6 +602,61 @@ void main() {
       expect(find.textContaining('Upgrading'), findsNothing);
 
       // Drain the 1-second splash delay timer to avoid pending timer errors
+      await tester.pump(const Duration(seconds: 2));
+    });
+
+    testWidgets('splash renders dark when cached theme mode is dark', (
+      tester,
+    ) async {
+      SharedPreferences.setMockInitialValues({cachedThemeModeKey: 'dark'});
+      prefs = await SharedPreferences.getInstance();
+      tester.platformDispatcher.platformBrightnessTestValue = Brightness.light;
+      addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+
+      await tester.pumpWidget(
+        _buildStartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: locationService,
+          schemaVersionProbeOverride: (_) =>
+              (needsMigration: false, totalSteps: 0),
+          initializerOverride: (_) => Completer<void>().future,
+        ),
+      );
+      await tester.pump();
+
+      final background = tester.widget<OceanBackground>(
+        find.byType(OceanBackground),
+      );
+      expect(background.brightness, Brightness.dark);
+
+      // Drain the 1-second splash delay timer to avoid pending timer errors.
+      await tester.pump(const Duration(seconds: 2));
+    });
+
+    testWidgets('splash follows platform brightness when cache is absent', (
+      tester,
+    ) async {
+      tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
+      addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+
+      await tester.pumpWidget(
+        _buildStartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: locationService,
+          schemaVersionProbeOverride: (_) =>
+              (needsMigration: false, totalSteps: 0),
+          initializerOverride: (_) => Completer<void>().future,
+        ),
+      );
+      await tester.pump();
+
+      final background = tester.widget<OceanBackground>(
+        find.byType(OceanBackground),
+      );
+      expect(background.brightness, Brightness.dark);
+
       await tester.pump(const Duration(seconds: 2));
     });
 

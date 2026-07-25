@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/hero_header.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -14,6 +17,11 @@ import '../../../../helpers/mock_providers.dart';
 void main() {
   group('HeroHeader', () {
     testWidgets('shows diver full name and career stats', (tester) async {
+      // Pin to phone width: the career-stats subtitle only renders below
+      // the desktop breakpoint (desktop shows the date + quiet stats).
+      tester.view.physicalSize = const Size(500, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
       final dives = [
         createTestDiveWithBottomTime(
           id: 'd1',
@@ -52,6 +60,7 @@ void main() {
             ),
           ].cast(),
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(body: SingleChildScrollView(child: HeroHeader())),
@@ -90,6 +99,7 @@ void main() {
             currentDiverProvider.overrideWith((ref) async => null),
           ].cast(),
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(body: SingleChildScrollView(child: HeroHeader())),
@@ -101,6 +111,90 @@ void main() {
       }
 
       expect(find.textContaining('Diver'), findsOneWidget);
+    });
+
+    testWidgets('desktop width shows quiet center stats', (tester) async {
+      tester.view.physicalSize = const Size(1300, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      final overrides = await getBaseOverrides();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            divesProvider.overrideWith((ref) async => <Dive>[]),
+            diveStatisticsProvider.overrideWith(
+              (ref) async => DiveStatistics(
+                totalDives: 247,
+                totalTimeSeconds: 669600,
+                maxDepth: 52.0,
+                avgMaxDepth: 27.5,
+                totalSites: 83,
+              ),
+            ),
+            dashboardQuickStatsProvider.overrideWith(
+              (ref) async => const DashboardQuickStats(countriesVisited: 14),
+            ),
+            currentDiverProvider.overrideWith((ref) async => null),
+          ].cast(),
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(body: SingleChildScrollView(child: HeroHeader())),
+          ),
+        ),
+      );
+      for (int i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+
+      expect(find.text('247'), findsOneWidget);
+      expect(find.text('DIVES'), findsOneWidget);
+      expect(find.text('COUNTRIES'), findsOneWidget);
+      expect(find.text('14'), findsOneWidget);
+    });
+
+    testWidgets('phone width hides quiet center stats', (tester) async {
+      tester.view.physicalSize = const Size(500, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      final overrides = await getBaseOverrides();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            divesProvider.overrideWith((ref) async => <Dive>[]),
+            diveStatisticsProvider.overrideWith(
+              (ref) async => DiveStatistics(
+                totalDives: 247,
+                totalTimeSeconds: 669600,
+                maxDepth: 52.0,
+                avgMaxDepth: 27.5,
+                totalSites: 83,
+              ),
+            ),
+            dashboardQuickStatsProvider.overrideWith(
+              (ref) async => const DashboardQuickStats(countriesVisited: 14),
+            ),
+            currentDiverProvider.overrideWith((ref) async => null),
+          ].cast(),
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(body: SingleChildScrollView(child: HeroHeader())),
+          ),
+        ),
+      );
+      for (int i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+
+      expect(find.text('COUNTRIES'), findsNothing);
+      expect(find.textContaining('247 dives logged'), findsOneWidget);
     });
 
     testWidgets('displays time-of-day greeting', (tester) async {
@@ -123,6 +217,7 @@ void main() {
             currentDiverProvider.overrideWith((ref) async => null),
           ].cast(),
           child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(body: SingleChildScrollView(child: HeroHeader())),
@@ -139,6 +234,77 @@ void main() {
           find.textContaining('Good afternoon').evaluate().isNotEmpty ||
           find.textContaining('Good evening').evaluate().isNotEmpty;
       expect(hasGreeting, isTrue);
+    });
+
+    testWidgets('falls back to a plain greeting while the diver loads', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(500, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      final overrides = await getBaseOverrides();
+      final diverCompleter = Completer<Diver?>();
+      addTearDown(() => diverCompleter.complete(null));
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            divesProvider.overrideWith((ref) async => <Dive>[]),
+            diveStatisticsProvider.overrideWith(
+              (ref) => Completer<DiveStatistics>().future,
+            ),
+            currentDiverProvider.overrideWith((ref) => diverCompleter.future),
+          ].cast(),
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(body: SingleChildScrollView(child: HeroHeader())),
+          ),
+        ),
+      );
+      for (int i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+
+      // Greeting renders without a name, and the stats line shows its
+      // loading copy.
+      expect(find.textContaining('Diver'), findsNothing);
+      expect(find.text('Loading your dive stats...'), findsOneWidget);
+    });
+
+    testWidgets('shows error copy when the providers fail', (tester) async {
+      tester.view.physicalSize = const Size(500, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      final overrides = await getBaseOverrides();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            divesProvider.overrideWith((ref) async => <Dive>[]),
+            diveStatisticsProvider.overrideWith(
+              (ref) async => throw StateError('stats boom'),
+            ),
+            currentDiverProvider.overrideWith(
+              (ref) async => throw StateError('diver boom'),
+            ),
+          ].cast(),
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(body: SingleChildScrollView(child: HeroHeader())),
+          ),
+        ),
+      );
+      for (int i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+
+      expect(find.text('Ready to explore the depths?'), findsOneWidget);
     });
   });
 }

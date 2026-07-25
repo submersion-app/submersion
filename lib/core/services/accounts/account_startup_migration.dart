@@ -5,6 +5,7 @@ import 'package:submersion/core/data/repositories/connected_accounts_repository.
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/accounts/account_credentials_store.dart';
+import 'package:submersion/core/services/accounts/account_identity.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
@@ -84,7 +85,7 @@ class AccountStartupMigration {
       if (persisted != null && persisted.kind == kind) account = persisted;
     }
     account ??= await _accounts.getByKind(kind);
-    account ??= await _accounts.create(kind: kind, label: _labelFor(kind));
+    account ??= await _ensure(kind: kind, label: _labelFor(kind));
 
     switch (kind) {
       case AccountKind.s3:
@@ -144,8 +145,7 @@ class AccountStartupMigration {
       );
       accountId = account.id;
     } else {
-      var account = await _accounts.getByKind(kind);
-      account ??= await _accounts.create(kind: kind, label: _labelFor(kind));
+      final account = await _ensure(kind: kind, label: _labelFor(kind));
       accountId = account.id;
     }
     await _prefs.setString(_mediaAccountIdKey, accountId);
@@ -181,6 +181,24 @@ class AccountStartupMigration {
         );
       }
     }
+  }
+
+  /// Create-or-reuse at the deterministic id for kinds that have one.
+  ///
+  /// S3 has no kind-only natural key (it is an instance kind, identified by
+  /// its endpoint), and reading that endpoint here would mean plumbing the
+  /// S3 credential stores through this class purely to re-derive what
+  /// [AccountDeduplicator] re-derives moments later on the same launch. So
+  /// S3 keeps the legacy random-id create and is canonicalized by that pass.
+  Future<domain.ConnectedAccount> _ensure({
+    required AccountKind kind,
+    required String label,
+  }) async {
+    final naturalKey = naturalKeyForKind(kind);
+    if (naturalKey == null) {
+      return _accounts.create(kind: kind, label: label);
+    }
+    return _accounts.ensure(kind: kind, naturalKey: naturalKey, label: label);
   }
 
   String _labelFor(AccountKind kind) => switch (kind) {

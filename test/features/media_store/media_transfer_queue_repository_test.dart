@@ -213,13 +213,13 @@ void main() {
     );
   });
 
-  test('deleteDone removes only completed rows and watchActiveCount tracks '
-      'pending plus transferring', () async {
+  test('deleteDone removes only completed rows, which the summary already '
+      'excludes', () async {
     final a = await repo.enqueueUpload(mediaId: 'a');
     final b = await repo.enqueueUpload(mediaId: 'b');
     await repo.markDone(a);
     await repo.markTransferring(b);
-    expect(await repo.watchActiveCount().first, 1);
+    expect((await repo.watchSummary().first).transferring, 1);
     expect(await repo.deleteDone(), 1);
     expect((await repo.allForTesting()).length, 1);
   });

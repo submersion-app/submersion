@@ -2,9 +2,8 @@ import 'dart:io';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
-import 'package:submersion/core/services/media_store/media_store_policies.dart';
+import 'package:submersion/core/services/media_store/media_upload_quality_policy.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -17,6 +16,7 @@ import 'package:submersion/features/media_store/domain/media_upload_quality.dart
 import 'support/fake_local_file_resolver.dart';
 import '../../helpers/in_memory_media_object_store.dart';
 import '../../helpers/test_database.dart';
+import '../../support/fake_app_settings_repository.dart';
 
 void main() {
   late MediaRepository mediaRepository;
@@ -29,7 +29,6 @@ void main() {
   late MediaSourceResolverRegistry registry;
 
   setUp(() async {
-    SharedPreferences.setMockInitialValues({});
     await setUpTestDatabase();
     mediaRepository = MediaRepository();
     cacheDb = LocalCacheDatabase(NativeDatabase.memory());
@@ -69,14 +68,14 @@ void main() {
   }
 
   Future<MediaUploadPipeline> buildPipeline({
-    MediaStorePolicies? policies,
+    MediaUploadQualityPolicy? quality,
   }) async => MediaUploadPipeline(
     mediaRepository: mediaRepository,
     queue: queue,
     store: fakeStore,
     registry: registry,
     cache: cache,
-    policies: policies,
+    quality: quality,
     now: () => DateTime(2026, 7, 20, 12),
   );
 
@@ -127,15 +126,15 @@ void main() {
     'override changes the compressed level in place, one rendition',
     () async {
       resolver.data = FileData(file: await bigPng());
-      final policies = MediaStorePolicies(
-        prefs: await SharedPreferences.getInstance(),
+      final quality = MediaUploadQualityPolicy(
+        settings: FakeAppSettingsRepository(),
       );
-      await policies.setPhotoUploadQuality(MediaUploadQuality.balanced);
+      await quality.setPhotoUploadQuality(MediaUploadQuality.balanced);
 
       await mediaRepository.createMedia(photo('m2'));
       final id = await queue.enqueueUpload(mediaId: 'm2');
       final entry = (await queue.allForTesting()).firstWhere((e) => e.id == id);
-      await (await buildPipeline(policies: policies)).process(entry);
+      await (await buildPipeline(quality: quality)).process(entry);
       expect(
         (await mediaRepository.getMediaById('m2'))!.compressedLevel,
         'balanced',
@@ -157,13 +156,13 @@ void main() {
   );
 
   test(
-    'a corrupt override level falls back to the device policy, not failure',
+    'a corrupt override level falls back to the library policy, not failure',
     () async {
       resolver.data = FileData(file: await bigPng());
-      final policies = MediaStorePolicies(
-        prefs: await SharedPreferences.getInstance(),
+      final quality = MediaUploadQualityPolicy(
+        settings: FakeAppSettingsRepository(),
       );
-      await policies.setPhotoUploadQuality(MediaUploadQuality.small);
+      await quality.setPhotoUploadQuality(MediaUploadQuality.small);
       await mediaRepository.createMedia(photo('m3'));
 
       // A stored override string that maps to no enum value (corruption or a
@@ -174,7 +173,7 @@ void main() {
       );
       final entry = (await queue.allForTesting()).firstWhere((e) => e.id == id);
       final outcome = await (await buildPipeline(
-        policies: policies,
+        quality: quality,
       )).process(entry);
 
       expect(outcome, UploadOutcome.uploaded);
@@ -183,7 +182,7 @@ void main() {
       expect(
         got!.compressedLevel,
         'small',
-        reason: 'fell back to the device policy level',
+        reason: 'fell back to the library policy level',
       );
     },
   );

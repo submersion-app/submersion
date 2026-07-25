@@ -1,8 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/media_store/media_upload_quality_policy.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
+import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
 
 import '../../../helpers/changeset_test_helpers.dart';
 import '../../../helpers/fake_cloud_storage_provider.dart';
@@ -114,5 +116,42 @@ void main() {
         reason: 'device-local key must not be overwritten on import',
       );
     });
+
+    // The upload-quality keys are library-wide, not device-local: if a future
+    // change adds them to _deviceLocalSettingsKeys, every device silently goes
+    // back to deciding archival fidelity on its own and the library becomes
+    // inconsistent again. This is the tripwire for that.
+    test(
+      'media upload quality keys ARE present in the synced payload',
+      () async {
+        await AppSettingsRepository().setRawSetting(
+          MediaUploadQualityPolicy.photoQualityKey,
+          'balanced',
+        );
+        await AppSettingsRepository().setRawSetting(
+          MediaUploadQualityPolicy.videoQualityKey,
+          'small',
+        );
+
+        final deviceId = await SyncRepository().getDeviceId();
+        await buildService().performSync();
+
+        final payload = await cloudBasePayload(cloud, deviceId);
+        final exportedKeys = payload!.data.settings
+            .map((s) => s['key'])
+            .toSet();
+
+        expect(
+          exportedKeys,
+          contains(MediaUploadQualityPolicy.photoQualityKey),
+          reason: 'upload quality is library-wide and must sync',
+        );
+        expect(
+          exportedKeys,
+          contains(MediaUploadQualityPolicy.videoQualityKey),
+          reason: 'upload quality is library-wide and must sync',
+        );
+      },
+    );
   });
 }

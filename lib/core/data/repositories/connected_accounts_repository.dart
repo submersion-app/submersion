@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/accounts/account_identity.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
@@ -56,6 +57,78 @@ class ConnectedAccountsRepository {
       createdAt: DateTime.fromMillisecondsSinceEpoch(now, isUtc: true),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(now, isUtc: true),
     );
+  }
+
+  /// Find-or-create by deterministic id.
+  ///
+  /// The id IS the dedup mechanism: it collides for the same endpoint on
+  /// every device, so sync's upsert-by-id merges rather than duplicating.
+  /// Callers on write paths must use this instead of [create]; [getByKind]
+  /// is a local-only query and cannot dedup a replicated table.
+  ///
+  /// A drifted [label] (renamed bucket, changed host spelling) is refreshed
+  /// in place rather than minting a row.
+  Future<domain.ConnectedAccount> ensure({
+    required AccountKind kind,
+    required String naturalKey,
+    required String label,
+  }) => ensureById(
+    id: accountIdFor(kind: kind, naturalKey: naturalKey),
+    kind: kind,
+    label: label,
+  );
+
+  /// [ensure] for a caller that already holds the id (the deduplicator
+  /// canonicalizing an anchor), preserving [accountIdentifier].
+  ///
+  /// The insert is `insertOrIgnore` rather than a read-then-insert because
+  /// the two are not atomic and deterministic ids make the collision an
+  /// EXPECTED event, not a freak one: provider re-derivation, a media store
+  /// connect and an inbound sync apply (which upserts this table) all
+  /// compute the same id. Without it the loser throws
+  /// SqliteException(1555). Same reasoning as
+  /// SyncRepository.getOrCreateMetadata's seed.
+  Future<domain.ConnectedAccount> ensureById({
+    required String id,
+    required AccountKind kind,
+    required String label,
+    String? accountIdentifier,
+  }) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final inserted = await _db
+        .into(_db.connectedAccounts)
+        .insertReturningOrNull(
+          ConnectedAccountsCompanion.insert(
+            id: id,
+            kind: kind.name,
+            label: label,
+            accountIdentifier: Value(accountIdentifier),
+            createdAt: now,
+            updatedAt: now,
+          ),
+          mode: InsertMode.insertOrIgnore,
+        );
+    if (inserted != null) {
+      // Only the writer that actually inserted marks pending, so a losing
+      // racer cannot stamp a second HLC on someone else's row.
+      await _markPending(id, now);
+      return _toDomain(inserted);
+    }
+
+    final existing = await getById(id);
+    if (existing == null) {
+      // The row was deleted between the ignored insert and this read (a
+      // tombstone apply landing mid-flight). Nothing holds the id now.
+      return create(
+        kind: kind,
+        label: label,
+        accountIdentifier: accountIdentifier,
+        id: id,
+      );
+    }
+    if (existing.label == label) return existing;
+    await updateLabels(id, label: label);
+    return existing.copyWith(label: label);
   }
 
   Future<List<domain.ConnectedAccount>> getAll() async {
