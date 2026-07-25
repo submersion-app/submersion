@@ -59,25 +59,24 @@ class BuddyConversionRepository {
 
         // 3. Update those dives: set diveCenterId = newId where it's currently null
         if (diveIds.isNotEmpty) {
-          final diveIdsToUpdate = (await (_db.select(
-            _db.dives,
-          )..where((t) => t.id.isIn(diveIds) & t.diveCenterId.isNull()))
-                  .get())
-              .map((d) => d.id)
-              .toList(growable: false);
+          final diveIdsToUpdate =
+              (await (_db.select(_db.dives)..where(
+                        (t) => t.id.isIn(diveIds) & t.diveCenterId.isNull(),
+                      ))
+                      .get())
+                  .map((d) => d.id)
+                  .toList(growable: false);
 
           if (diveIdsToUpdate.isNotEmpty) {
-            await (_db.update(
-              _db.dives,
-            )..where(
-                  (t) =>
-                      t.id.isIn(diveIdsToUpdate) & t.diveCenterId.isNull(),
-                )).write(
-              DivesCompanion(
-                diveCenterId: Value(diveCenterId),
-                updatedAt: Value(now),
-              ),
-            );
+            await (_db.update(_db.dives)..where(
+                  (t) => t.id.isIn(diveIdsToUpdate) & t.diveCenterId.isNull(),
+                ))
+                .write(
+                  DivesCompanion(
+                    diveCenterId: Value(diveCenterId),
+                    updatedAt: Value(now),
+                  ),
+                );
 
             // markRecordPending only for dives that were updated
             for (final id in diveIdsToUpdate) {
