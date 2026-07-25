@@ -989,7 +989,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String buddies_conversion_confirmBody(String name) {
-    return 'سيؤدي هذا إلى تحويل __P0____ إلى مركز غوص وتحديث كافة عمليات الغطس المشتركة. لا يمكن التراجع عن هذا الإجراء.';
+    return 'سيؤدي هذا إلى تحويل $name إلى مركز غوص وتحديث كافة عمليات الغطس المشتركة. لا يمكن التراجع عن هذا الإجراء.';
   }
 
   @override
