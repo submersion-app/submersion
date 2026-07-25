@@ -395,6 +395,7 @@ class _BuddyDetailContent extends ConsumerWidget {
         SnackBar(content: Text(l10n.buddies_conversion_success)),
       );
     }
+  }
 
   Future<void> _shareDivesWithBuddy(BuildContext context, WidgetRef ref) async {
     // Capture the scaffold messenger and l10n before any async gaps
