@@ -894,7 +894,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buddies_action_clearSearch => '清除搜索';
 
   @override
-  String get buddies_action_convertToDiveCenter => 'Convert to Dive Center';
+  String get buddies_action_convertToDiveCenter => '转换为潜水中心';
 
   @override
   String get buddies_action_edit => '编辑潜伴';

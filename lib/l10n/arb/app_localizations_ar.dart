@@ -953,7 +953,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddies_action_clearSearch => 'مسح البحث';
 
   @override
-  String get buddies_action_convertToDiveCenter => 'Convert to Dive Center';
+  String get buddies_action_convertToDiveCenter => 'تحويل إلى مركز الغوص';
 
   @override
   String get buddies_action_edit => 'تعديل الرفيق';

@@ -966,7 +966,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get buddies_action_clearSearch => 'Effacer la recherche';
 
   @override
-  String get buddies_action_convertToDiveCenter => 'Convert to Dive Center';
+  String get buddies_action_convertToDiveCenter =>
+      'Convertir en centre de plongée';
 
   @override
   String get buddies_action_edit => 'Modifier le binôme';

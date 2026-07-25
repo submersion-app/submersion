@@ -955,7 +955,8 @@ class AppLocalizationsNl extends AppLocalizations {
   String get buddies_action_clearSearch => 'Zoekopdracht wissen';
 
   @override
-  String get buddies_action_convertToDiveCenter => 'Convert to Dive Center';
+  String get buddies_action_convertToDiveCenter =>
+      'Converteren naar duikcentrum';
 
   @override
   String get buddies_action_edit => 'Buddy bewerken';

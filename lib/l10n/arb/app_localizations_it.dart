@@ -960,7 +960,8 @@ class AppLocalizationsIt extends AppLocalizations {
   String get buddies_action_clearSearch => 'Cancella ricerca';
 
   @override
-  String get buddies_action_convertToDiveCenter => 'Convert to Dive Center';
+  String get buddies_action_convertToDiveCenter =>
+      'Converti in centro immersioni';
 
   @override
   String get buddies_action_edit => 'Modifica compagno';

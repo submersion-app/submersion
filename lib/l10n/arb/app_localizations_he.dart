@@ -938,7 +938,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buddies_action_clearSearch => 'נקה חיפוש';
 
   @override
-  String get buddies_action_convertToDiveCenter => 'Convert to Dive Center';
+  String get buddies_action_convertToDiveCenter => 'המר למרכז צלילה';
 
   @override
   String get buddies_action_edit => 'ערוך חבר צוללים';
