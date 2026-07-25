@@ -1001,11 +1001,10 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get buddies_conversion_confirmTitle => 'Convertirsi in Dive Center?';
+  String get buddies_conversion_confirmTitle => 'Convertire in centro immersioni?';
 
   @override
-  String get buddies_conversion_success =>
-      'Buddy si è convertito in centro immersioni';
+  String get buddies_conversion_success => 'Compagno convertito in centro immersioni';
 
   @override
   String buddies_detail_error(Object error) {
