@@ -1009,7 +1009,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get buddies_conversion_confirmTitle =>
-      'Vous convertir en centre de plongée ?';
+      'Convertir en centre de plongée ?';
 
   @override
   String get buddies_conversion_success =>
