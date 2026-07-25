@@ -114,12 +114,14 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
   /// NSApplicationDelegate.applicationShouldTerminate: on macOS) which is
   /// async and fires before the Dart VM begins isolate/FFI teardown. Without
   /// this, the Drift background isolate can outlive the FFI subsystem and
-  /// crash in sqlite3_close_v2 → functionDestroy.
+  /// crash in sqlite3_close_v2 → functionDestroy ("GetFfiCallbackMetadata
+  /// called after shutdown"), which stalls the quit. The close() calls run
+  /// sequentially — awaiting the databases in parallel is not worth racing
+  /// two shutdown sequences, and each one is bounded by its own timeouts
+  /// (see closeDatabaseForAppShutdown).
   Future<AppExitResponse> _closeDatabases() async {
-    await Future.wait([
-      DatabaseService.instance.close(),
-      LocalCacheDatabaseService.instance.close(),
-    ]);
+    await DatabaseService.instance.close();
+    await LocalCacheDatabaseService.instance.close();
     return AppExitResponse.exit;
   }
 
