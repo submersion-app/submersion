@@ -379,22 +379,28 @@ class _BuddyDetailContent extends ConsumerWidget {
       final scaffoldMessenger = ScaffoldMessenger.of(context);
       final l10n = context.l10n;
 
-      final diveCenterId = await ref
-          .read(buddyListNotifierProvider.notifier)
-          .convertToDiveCenter(buddy);
+      try {
+        final diveCenterId = await ref
+            .read(buddyListNotifierProvider.notifier)
+            .convertToDiveCenter(buddy);
 
-      if (!context.mounted) return;
+        if (!context.mounted) return;
 
-      if (embedded) {
-        onDeleted?.call();
-      } else {
-        context.replace('/dive-centers/$diveCenterId');
+        if (embedded) {
+          onDeleted?.call();
+        } else {
+          context.replace('/dive-centers/$diveCenterId');
+        }
+
+        scaffoldMessenger.showSnackBar(
+          SnackBar(content: Text(l10n.buddies_conversion_success)),
+        );
+      } catch (_) {
+        if (!context.mounted) return;
+        scaffoldMessenger.showSnackBar(
+          SnackBar(content: Text(l10n.common_error_tryAgain)),
+        );
       }
-
-      scaffoldMessenger.showSnackBar(
-        SnackBar(content: Text(l10n.buddies_conversion_success)),
-      );
-    }
   }
 
   Future<void> _shareDivesWithBuddy(BuildContext context, WidgetRef ref) async {
