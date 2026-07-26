@@ -401,6 +401,7 @@ class _BuddyDetailContent extends ConsumerWidget {
           SnackBar(content: Text(l10n.common_error_tryAgain)),
         );
       }
+    }
   }
 
   Future<void> _shareDivesWithBuddy(BuildContext context, WidgetRef ref) async {
