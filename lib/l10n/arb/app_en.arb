@@ -7124,6 +7124,8 @@
   "plannerCanvas_saved_duplicate": "Duplicate",
   "plannerCanvas_saved_empty": "No saved plans yet",
   "plannerCanvas_saved_title": "Saved plans",
+  "plannerCanvas_name_dialogTitle": "Name your plan",
+  "plannerCanvas_name_defaultFallback": "Dive Plan",
   "plannerCanvas_scrub_bailout": "BO {minutes}′",
   "@plannerCanvas_scrub_bailout": {
     "placeholders": {
@@ -7220,6 +7222,31 @@
   },
   "settings_appBar_title": "Settings",
   "settings_appearance_appLanguage": "App Language",
+  "settings_appearance_displaySize": "Display size",
+  "@settings_appearance_displaySize": {
+    "description": "Title of the app-wide display zoom control in Appearance settings"
+  },
+  "settings_appearance_displaySize_value": "{percent}%",
+  "@settings_appearance_displaySize_value": {
+    "description": "Current display zoom level shown as a percentage",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_appearance_displaySize_reset": "Reset",
+  "@settings_appearance_displaySize_reset": {
+    "description": "Button that returns the display zoom to 100 percent"
+  },
+  "settings_appearance_displaySize_smaller": "Smaller",
+  "@settings_appearance_displaySize_smaller": {
+    "description": "Label at the low end of the display zoom slider"
+  },
+  "settings_appearance_displaySize_larger": "Larger",
+  "@settings_appearance_displaySize_larger": {
+    "description": "Label at the high end of the display zoom slider"
+  },
   "settings_appearance_depthColoredCards": "Depth-colored dive cards",
   "settings_appearance_depthColoredCards_subtitle": "Show dive cards with ocean-colored backgrounds based on depth",
   "settings_appearance_cardColorAttribute": "Color cards by",

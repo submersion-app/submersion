@@ -266,6 +266,46 @@ void main() {
       },
     );
 
+    // The Files tab never recorded originalFilename, unlike the other import
+    // path (MediaImportService). A null filename makes
+    // StoreKeys.extensionFor fall back to 'bin', so a linked video uploads
+    // and caches as <hash>.bin -- and AVFoundation, which infers a container
+    // from the path extension, cannot open that. The video plays on the
+    // machine that linked it (local file, real name) and fails everywhere
+    // else, which is what made it look like a sync bug.
+    test('commit records the picked file name', () async {
+      final notifier = container.read(filesTabNotifierProvider.notifier);
+      final clip = _ef(
+        '/Users/somebody/Downloads/dive media/GX015932-2.MP4',
+        metadata: const MediaSourceMetadata(mimeType: 'video/mp4'),
+      );
+      notifier.setFiles(
+        [clip],
+        match: MatchedSelection(
+          matched: {
+            'd1': [clip],
+          },
+          unmatched: const [],
+        ),
+      );
+
+      when(
+        mockPlatform.createBookmark(any),
+      ).thenAnswer((_) async => Uint8List.fromList([1]));
+      when(mockBookmarkStorage.write(any, any)).thenAnswer((_) async {});
+      when(mockPlatform.takePersistableUri(any)).thenAnswer((_) async => 'uri');
+      when(
+        mockRepo.createMedia(any),
+      ).thenAnswer((_) async => _saved('saved-video'));
+
+      await notifier.commit();
+
+      final captured =
+          verify(mockRepo.createMedia(captureAny)).captured.single as MediaItem;
+      expect(captured.originalFilename, 'GX015932-2.MP4');
+      expect(captured.mediaType, MediaType.video);
+    });
+
     test(
       'commit on iOS / macOS calls createBookmark + bookmarkStorage.write',
       () async {

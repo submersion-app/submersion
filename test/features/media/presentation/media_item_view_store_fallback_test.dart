@@ -259,6 +259,263 @@ void main() {
     expect(find.byType(UnavailableMediaPlaceholder), findsNothing);
   });
 
+  // A video linked on a laptop reaches a phone with only its poster frame in
+  // the store. The poster is a still image -- a JPEG in production, any
+  // decodable image as far as this test is concerned -- but the row is a
+  // video, so the view's "videos are not decodable images" guard used to
+  // swallow it and draw the movie icon over a thumbnail it had already
+  // downloaded. The seeded bytes stand in for the poster; what is under test
+  // is which branch the view takes, not the encoding.
+  testWidgets('renders a video poster from the store instead of the movie '
+      'placeholder', (tester) async {
+    await tester.runAsync(() async {
+      final bytes = base64Decode(_onePixelPngBase64);
+      final hash = 'e5${'5' * 62}';
+      store.objects[StoreKeys.thumbKey(hash)] = bytes;
+
+      final runtime = MediaStoreRuntime(
+        storeId: 'store-1',
+        store: store,
+        cache: cache,
+        resolver: MediaStoreResolver(store: store, cache: cache),
+      );
+
+      final videoRow = MediaItem(
+        id: 'v-remote',
+        mediaType: MediaType.video,
+        sourceType: MediaSourceType.platformGallery,
+        platformAssetId: 'asset-from-other-device',
+        originalFilename: 'DIVE_001.mp4',
+        takenAt: DateTime(2026),
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+        contentHash: hash,
+        remoteThumbUploadedAt: DateTime(2026, 7, 1),
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            mediaSourceResolverRegistryProvider.overrideWithValue(
+              MediaSourceResolverRegistry({
+                MediaSourceType.platformGallery:
+                    const _UnavailableGalleryResolver(),
+              }),
+            ),
+            mediaStoreRuntimeProvider.overrideWith((ref) async => runtime),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: SizedBox(
+                width: 100,
+                height: 100,
+                child: MediaItemView(
+                  item: videoRow,
+                  thumbnail: true,
+                  targetSize: const Size(100, 100),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      for (var i = 0; i < 40; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        await tester.pump();
+        if (find.byType(Image).evaluate().isNotEmpty) break;
+      }
+    });
+
+    expect(find.byType(Image), findsOneWidget);
+    expect(find.byIcon(Icons.movie_outlined), findsNothing);
+    expect(find.byType(UnavailableMediaPlaceholder), findsNothing);
+  });
+
+  // The complement: without a poster the tile must still read as a video,
+  // and must not have pulled the whole file down to get there.
+  testWidgets('keeps the movie placeholder when the store holds no '
+      'poster', (tester) async {
+    await tester.runAsync(() async {
+      final hash = 'a7${'3' * 62}';
+      store.objects[StoreKeys.objectKey(hash, extension: 'mp4')] =
+          'a-very-large-video'.codeUnits;
+
+      final runtime = MediaStoreRuntime(
+        storeId: 'store-1',
+        store: store,
+        cache: cache,
+        resolver: MediaStoreResolver(store: store, cache: cache),
+      );
+
+      final videoRow = MediaItem(
+        id: 'v-no-poster',
+        mediaType: MediaType.video,
+        sourceType: MediaSourceType.platformGallery,
+        platformAssetId: 'asset-from-other-device',
+        originalFilename: 'DIVE_002.mp4',
+        takenAt: DateTime(2026),
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+        contentHash: hash,
+        remoteUploadedAt: DateTime(2026, 7, 1),
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            mediaSourceResolverRegistryProvider.overrideWithValue(
+              MediaSourceResolverRegistry({
+                MediaSourceType.platformGallery:
+                    const _UnavailableGalleryResolver(),
+              }),
+            ),
+            mediaStoreRuntimeProvider.overrideWith((ref) async => runtime),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: SizedBox(
+                width: 100,
+                height: 100,
+                child: MediaItemView(
+                  item: videoRow,
+                  thumbnail: true,
+                  targetSize: const Size(100, 100),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      for (var i = 0; i < 40; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        await tester.pump();
+        if (find.byIcon(Icons.movie_outlined).evaluate().isNotEmpty) break;
+      }
+    });
+
+    expect(find.byIcon(Icons.movie_outlined), findsOneWidget);
+    expect(find.byType(UnavailableMediaPlaceholder), findsNothing);
+    expect(store.getFileKeys, isEmpty);
+  });
+
+  // The movie tile asserts something specific: this video simply has no
+  // poster frame. Two other ways store resolution can return null must not be
+  // dressed up as that, or an unreachable video reads as an intact one.
+  MediaItem videoRow({
+    required String id,
+    required String hash,
+    DateTime? uploadedAt,
+    DateTime? thumbUploadedAt,
+  }) => MediaItem(
+    id: id,
+    mediaType: MediaType.video,
+    sourceType: MediaSourceType.platformGallery,
+    platformAssetId: 'asset-from-other-device',
+    originalFilename: 'DIVE_003.mp4',
+    takenAt: DateTime(2026),
+    createdAt: DateTime(2026),
+    updatedAt: DateTime(2026),
+    contentHash: hash,
+    remoteUploadedAt: uploadedAt,
+    remoteThumbUploadedAt: thumbUploadedAt,
+  );
+
+  Widget videoApp(MediaItem item, {MediaStoreRuntime? runtime}) =>
+      ProviderScope(
+        overrides: [
+          mediaSourceResolverRegistryProvider.overrideWithValue(
+            MediaSourceResolverRegistry({
+              MediaSourceType.platformGallery:
+                  const _UnavailableGalleryResolver(),
+            }),
+          ),
+          mediaStoreRuntimeProvider.overrideWith((ref) async => runtime),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SizedBox(
+              width: 100,
+              height: 100,
+              child: MediaItemView(
+                item: item,
+                thumbnail: true,
+                targetSize: const Size(100, 100),
+              ),
+            ),
+          ),
+        ),
+      );
+
+  testWidgets('a video with no store attached keeps the native '
+      'placeholder', (tester) async {
+    await tester.runAsync(() async {
+      // The row says it is uploaded, but this device has no store to reach:
+      // the bytes are genuinely unavailable here, not merely poster-less.
+      await tester.pumpWidget(
+        videoApp(
+          videoRow(
+            id: 'v-no-runtime',
+            hash: 'b8${'1' * 62}',
+            uploadedAt: DateTime(2026, 7, 1),
+          ),
+        ),
+      );
+      for (var i = 0; i < 20; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        await tester.pump();
+        if (find.byType(UnavailableMediaPlaceholder).evaluate().isNotEmpty) {
+          break;
+        }
+      }
+    });
+
+    expect(find.byType(UnavailableMediaPlaceholder), findsOneWidget);
+    expect(find.byIcon(Icons.movie_outlined), findsNothing);
+  });
+
+  testWidgets('a poster that fails to download keeps the native '
+      'placeholder', (tester) async {
+    await tester.runAsync(() async {
+      final hash = 'b9${'0' * 62}';
+      // Stamped as uploaded, but the object is absent from the store, so the
+      // fetch fails. That is an error, not an absence of poster.
+      final runtime = MediaStoreRuntime(
+        storeId: 'store-1',
+        store: store,
+        cache: cache,
+        resolver: MediaStoreResolver(store: store, cache: cache),
+      );
+
+      await tester.pumpWidget(
+        videoApp(
+          videoRow(
+            id: 'v-thumb-fails',
+            hash: hash,
+            uploadedAt: DateTime(2026, 7, 1),
+            thumbUploadedAt: DateTime(2026, 7, 1),
+          ),
+          runtime: runtime,
+        ),
+      );
+      for (var i = 0; i < 20; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        await tester.pump();
+        if (find.byType(UnavailableMediaPlaceholder).evaluate().isNotEmpty) {
+          break;
+        }
+      }
+    });
+
+    expect(find.byType(UnavailableMediaPlaceholder), findsOneWidget);
+    expect(find.byIcon(Icons.movie_outlined), findsNothing);
+  });
+
   testWidgets('keeps the native placeholder when no store runtime '
       'exists', (tester) async {
     await tester.runAsync(() async {

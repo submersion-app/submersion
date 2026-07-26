@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/settings/presentation/pages/appearance_page.dart';
@@ -20,10 +21,14 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// Backs the display zoom control, which AppearancePage now embeds.
+late SharedPreferences _prefs;
+
 Widget _buildTestWidget() {
   return ProviderScope(
     overrides: [
       settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+      sharedPreferencesProvider.overrideWithValue(_prefs),
     ],
     child: const MaterialApp(
       locale: Locale('en'),
@@ -35,6 +40,11 @@ Widget _buildTestWidget() {
 }
 
 void main() {
+  setUp(() async {
+    SharedPreferences.setMockInitialValues({});
+    _prefs = await SharedPreferences.getInstance();
+  });
+
   group('AppearancePage hub layout', () {
     testWidgets('shows General section header', (tester) async {
       await tester.binding.setSurfaceSize(const Size(400, 2000));
@@ -138,6 +148,7 @@ void main() {
         ProviderScope(
           overrides: [
             settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+            sharedPreferencesProvider.overrideWithValue(_prefs),
           ],
           child: MaterialApp.router(
             locale: const Locale('en'),

@@ -7,6 +7,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/plan_tank_list.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/segment_list.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/simple_plan_dialog.dart';
@@ -16,6 +17,7 @@ import 'package:submersion/features/planner/data/services/plan_slate_pdf_service
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
+import 'package:submersion/features/planner/domain/services/plan_name_generator.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_profile_chart.dart';
 import 'package:submersion/features/planner/presentation/panes/plan_editor_pane.dart';
 import 'package:submersion/features/planner/presentation/panes/plan_results_pane.dart';
@@ -25,6 +27,7 @@ import 'package:submersion/features/planner/presentation/providers/plan_reposito
 import 'package:submersion/features/planner/presentation/providers/planner_layout_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/contingency_chips.dart';
 import 'package:submersion/features/planner/presentation/widgets/follow_dive_sheet.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_name_dialog.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
 import 'package:submersion/features/planner/presentation/widgets/saved_plans_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -106,7 +109,25 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
             Flexible(
               child: InkWell(
                 onTap: () => _showRenameDialog(context),
-                child: Text(planState.name),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // The inner Flexible is what keeps a long plan name
+                    // ellipsizing once the pencil takes fixed width.
+                    Flexible(
+                      child: Text(
+                        planState.name,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.edit_outlined,
+                      size: 14,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(width: 8),
@@ -529,17 +550,81 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     );
   }
 
+  /// Guards [_savePlan] against re-entry.
+  ///
+  /// The save button stays enabled across the naming flow's async gaps - the
+  /// site lookup and the write itself both run with no modal up and isDirty
+  /// still true - so a second tap could start a concurrent save. Worse than
+  /// stacked dialogs: [DivePlanNotifier.save] only sets its loaded plan after
+  /// the write completes, so a concurrent call still reads isPersisted as false
+  /// and prompts for a name on a plan that is already being saved.
+  bool _saveInFlight = false;
+
   Future<void> _savePlan() async {
+    if (_saveInFlight) return;
+    _saveInFlight = true;
+    try {
+      await _runSavePlan();
+    } finally {
+      _saveInFlight = false;
+    }
+  }
+
+  Future<void> _runSavePlan() async {
+    final notifier = ref.read(divePlanNotifierProvider.notifier);
+
+    // Prompt for a name the first time a plan is persisted, so the saved-plans
+    // list is not a wall of identically-named rows. Re-saves stay silent, and
+    // so does Convert to Dive: that flow is already multi-step and should not
+    // grow a modal.
+    if (!notifier.isPersisted) {
+      final l10n = context.l10n;
+      final units = UnitFormatter(ref.read(settingsProvider));
+      final siteId = ref.read(divePlanNotifierProvider).siteId;
+      final site = siteId == null
+          ? null
+          : await ref.read(siteProvider(siteId).future);
+      if (!mounted) return;
+
+      // Re-read after the site lookup rather than before it. No modal is up
+      // while that read resolves, so the diver can still edit the plan and the
+      // suggested name must describe what the plan is now.
+      final planState = ref.read(divePlanNotifierProvider);
+      final suggestedDepth = ref.read(planOutcomeProvider).maxDepth;
+      // The lookup was keyed on the pre-await id. If the diver switched sites
+      // while it resolved, the fetched name describes a site the plan no longer
+      // uses, so drop it rather than pair it with fresh depth and date.
+      final siteName = planState.siteId == siteId ? site?.name : null;
+
+      final entered = await showPlanNameDialog(
+        context,
+        initialName: generateDefaultPlanName(
+          siteName: siteName,
+          depthLabel: suggestedDepth > 0
+              ? units.formatDepth(suggestedDepth)
+              : null,
+          date: planState.startDateTime ?? DateTime.now(),
+          fallbackLabel: l10n.plannerCanvas_name_defaultFallback,
+        ),
+        title: l10n.plannerCanvas_name_dialogTitle,
+      );
+      // Cancel aborts the save entirely: nothing is written and the plan stays
+      // dirty, so the diver is never surprised by a name they rejected.
+      if (entered == null) return;
+      notifier.updateName(entered);
+    }
+
+    // Build the summary last so the denormalized depth/runtime always describe
+    // the plan actually being persisted, never whatever it looked like before
+    // the naming flow's async gaps.
     final outcome = ref.read(planOutcomeProvider);
-    await ref
-        .read(divePlanNotifierProvider.notifier)
-        .save(
-          summary: PlanSummaryData(
-            maxDepth: outcome.maxDepth,
-            runtimeSeconds: outcome.runtimeSeconds,
-            ttsSeconds: outcome.ttsAtBottom,
-          ),
-        );
+    await notifier.save(
+      summary: PlanSummaryData(
+        maxDepth: outcome.maxDepth,
+        runtimeSeconds: outcome.runtimeSeconds,
+        ttsSeconds: outcome.ttsAtBottom,
+      ),
+    );
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(context.l10n.divePlanner_message_planSaved)),
@@ -714,37 +799,14 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     );
   }
 
-  void _showRenameDialog(BuildContext context) {
-    final controller = TextEditingController(
-      text: ref.read(divePlanNotifierProvider).name,
+  Future<void> _showRenameDialog(BuildContext context) async {
+    final notifier = ref.read(divePlanNotifierProvider.notifier);
+    final entered = await showPlanNameDialog(
+      context,
+      initialName: ref.read(divePlanNotifierProvider).name,
+      title: context.l10n.divePlanner_action_renamePlan,
     );
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(context.l10n.divePlanner_action_renamePlan),
-        content: TextField(
-          controller: controller,
-          decoration: InputDecoration(
-            labelText: context.l10n.divePlanner_field_planName,
-          ),
-          autofocus: true,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: Text(context.l10n.common_action_cancel),
-          ),
-          FilledButton(
-            onPressed: () {
-              ref
-                  .read(divePlanNotifierProvider.notifier)
-                  .updateName(controller.text);
-              Navigator.pop(dialogContext);
-            },
-            child: Text(context.l10n.common_action_save),
-          ),
-        ],
-      ),
-    );
+    if (entered == null) return;
+    notifier.updateName(entered);
   }
 }

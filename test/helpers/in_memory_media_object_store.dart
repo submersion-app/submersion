@@ -27,6 +27,11 @@ class InMemoryMediaObjectStore implements MediaObjectStore {
   /// The resumeStateJson the last putFile call received.
   String? lastResumeStateJsonIn;
 
+  /// Every key getFile was asked for, in order. Lets a test assert that an
+  /// expensive object (a whole video) was never downloaded, which a null
+  /// return value alone cannot distinguish from a download-then-discard.
+  final getFileKeys = <String>[];
+
   void _maybeFail() {
     final e = failNextWith;
     if (e != null) {
@@ -72,6 +77,7 @@ class InMemoryMediaObjectStore implements MediaObjectStore {
     File destination, {
     TransferProgressCallback? onProgress,
   }) async {
+    getFileKeys.add(key);
     _maybeFail();
     final partial = partialGetThenFail;
     if (partial != null) {

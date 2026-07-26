@@ -54,6 +54,7 @@ void main() {
     overrides: [
       settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
     ],
+    locale: const Locale('en'),
     child: const SavedPlansSheet(),
   );
 
@@ -283,5 +284,27 @@ void main() {
     // The FormatException is caught and surfaced, not thrown out of the sheet.
     expect(find.byType(SnackBar), findsOneWidget);
     expect(await repository.getAllPlanSummaries(), isEmpty);
+  });
+
+  testWidgets('rename from the overflow menu updates the plan name', (
+    tester,
+  ) async {
+    await repository.savePlan(_plan('p1', 'New Dive Plan'));
+    await tester.pumpWidget(harness());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(PopupMenuButton<String>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Rename Plan'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), 'Zenobia');
+    await tester.pump();
+    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.pumpAndSettle();
+
+    final summaries = await repository.getAllPlanSummaries();
+    expect(summaries.single.name, 'Zenobia');
+    expect(find.text('Zenobia'), findsOneWidget);
   });
 }

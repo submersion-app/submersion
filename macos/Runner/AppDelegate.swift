@@ -12,6 +12,7 @@ class AppDelegate: FlutterAppDelegate {
   private var localMediaHandler: LocalMediaHandler?
   private var backupBookmarkHandler: BackupBookmarkHandler?
   private var updateChannel: FlutterMethodChannel?
+  private var displayChannel: FlutterMethodChannel?
 
   /// Mac App Store and TestFlight builds contain a receipt file;
   /// direct-distribution (DMG / GitHub) builds do not.
@@ -45,6 +46,10 @@ class AppDelegate: FlutterAppDelegate {
         name: "app.submersion/updates",
         binaryMessenger: messenger
       )
+      displayChannel = FlutterMethodChannel(
+        name: "app.submersion/display",
+        binaryMessenger: messenger
+      )
       NSLog("[AppDelegate] All handlers initialized")
     } else {
       NSLog("[AppDelegate] ERROR: Could not get FlutterViewController!")
@@ -53,6 +58,33 @@ class AppDelegate: FlutterAppDelegate {
 
   @IBAction func checkForUpdates(_ sender: Any) {
     updateChannel?.invokeMethod("checkForUpdateInteractively", arguments: nil)
+  }
+
+  /// Invokes a display zoom method and logs anything the Dart side rejects.
+  /// Without the result handler a miswired selector or renamed method is a
+  /// menu item that silently does nothing.
+  private func invokeDisplayMethod(_ method: String) {
+    displayChannel?.invokeMethod(method, arguments: nil, result: { result in
+      if let error = result as? FlutterError {
+        NSLog(
+          "[AppDelegate] display channel '\(method)' failed: \(error.code) \(error.message ?? "")"
+        )
+      } else if (result as? NSObject) == FlutterMethodNotImplemented {
+        NSLog("[AppDelegate] display channel has no method '\(method)'")
+      }
+    })
+  }
+
+  @IBAction func zoomIn(_ sender: Any) {
+    invokeDisplayMethod("zoomIn")
+  }
+
+  @IBAction func zoomOut(_ sender: Any) {
+    invokeDisplayMethod("zoomOut")
+  }
+
+  @IBAction func actualSize(_ sender: Any) {
+    invokeDisplayMethod("actualSize")
   }
 
   override func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {

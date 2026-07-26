@@ -42,12 +42,18 @@ class StoreKeys {
   /// Lowercased extension of [originalFilename] without the dot, or 'bin'
   /// when absent or unusual. Identical bytes imply identical format, so the
   /// hash-to-extension mapping is stable across devices.
+  /// Stand-in extension for a row whose filename yields nothing usable.
+  /// Fine as an addressing suffix, but it names no container format, so
+  /// anything that needs the OS to identify the bytes must treat it as
+  /// "unknown" rather than pass it along.
+  static const String unknownExtension = 'bin';
+
   static String extensionFor(String? originalFilename) {
-    if (originalFilename == null) return 'bin';
+    if (originalFilename == null) return unknownExtension;
     final dot = originalFilename.lastIndexOf('.');
-    if (dot < 0 || dot == originalFilename.length - 1) return 'bin';
+    if (dot < 0 || dot == originalFilename.length - 1) return unknownExtension;
     final ext = originalFilename.substring(dot + 1).toLowerCase();
-    return _extPattern.hasMatch(ext) ? ext : 'bin';
+    return _extPattern.hasMatch(ext) ? ext : unknownExtension;
   }
 
   static String contentTypeFor(String extension) {

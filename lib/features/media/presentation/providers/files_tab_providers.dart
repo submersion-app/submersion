@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:equatable/equatable.dart';
+import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/providers/provider.dart';
@@ -236,6 +237,12 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
           ? MediaType.video
           : MediaType.photo,
       sourceType: MediaSourceType.localFile,
+      // Recorded from the picker path, which is what "original" means here.
+      // Without it StoreKeys.extensionFor falls back to 'bin', and a linked
+      // video then uploads and caches under a name that tells AVFoundation
+      // nothing about its container -- unplayable on every device except the
+      // one holding the local file.
+      originalFilename: p.basename(file.sourcePath),
       localPath: localPath,
       bookmarkRef: bookmarkRef,
       takenAt: file.metadata.takenAt ?? now,

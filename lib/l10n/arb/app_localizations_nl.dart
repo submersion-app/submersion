@@ -12261,6 +12261,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get plannerCanvas_saved_title => 'Opgeslagen plannen';
 
   @override
+  String get plannerCanvas_name_dialogTitle => 'Geef je plan een naam';
+
+  @override
+  String get plannerCanvas_name_defaultFallback => 'Duikplan';
+
+  @override
   String plannerCanvas_scrub_bailout(String minutes) {
     return 'BO $minutes′';
   }
@@ -12483,6 +12489,23 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_appearance_appLanguage => 'App-taal';
+
+  @override
+  String get settings_appearance_displaySize => 'Weergavegrootte';
+
+  @override
+  String settings_appearance_displaySize_value(int percent) {
+    return '$percent%';
+  }
+
+  @override
+  String get settings_appearance_displaySize_reset => 'Herstellen';
+
+  @override
+  String get settings_appearance_displaySize_smaller => 'Kleiner';
+
+  @override
+  String get settings_appearance_displaySize_larger => 'Groter';
 
   @override
   String get settings_appearance_depthColoredCards =>

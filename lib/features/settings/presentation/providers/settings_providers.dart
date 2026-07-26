@@ -52,6 +52,7 @@ class SettingsKeys {
   static const String sacUnit = 'sac_unit';
   static const String unitPreset = 'unit_preset';
   static const String themeMode = 'theme_mode';
+  static const String displayZoom = 'display_zoom';
   static const String defaultDiveType = 'default_dive_type';
   static const String defaultTankVolume = 'default_tank_volume';
   static const String defaultStartPressure = 'default_start_pressure';

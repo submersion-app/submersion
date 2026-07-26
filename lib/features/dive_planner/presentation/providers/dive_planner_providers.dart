@@ -54,6 +54,17 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   /// preserves fields the legacy state does not carry across a save cycle.
   domain.DivePlan? _loaded;
 
+  /// Whether this plan already exists in the database.
+  ///
+  /// [_loaded] is set by [save] and [loadPlanById] and cleared by [newPlan], so
+  /// this is an accurate "has been persisted" signal. The plan canvas uses it
+  /// to prompt for a name on the first save only.
+  ///
+  /// Note that [loadPlan] deliberately does not set [_loaded] and therefore
+  /// reports `false`. That method has no production call sites today; a future
+  /// production caller must set [_loaded] as [loadPlanById] does.
+  bool get isPersisted => _loaded != null;
+
   DivePlanNotifier(
     this._calculator, {
     double reservePressure = DivePlanState.kDefaultReservePressureBar,

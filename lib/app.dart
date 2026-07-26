@@ -1,13 +1,17 @@
-import 'dart:typed_data';
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/theme/app_theme_registry.dart';
+import 'package:submersion/core/theme/display_zoom.dart';
+import 'package:submersion/core/theme/display_zoom_shortcuts.dart';
 import 'package:submersion/core/router/app_router.dart';
+import 'package:submersion/features/settings/presentation/providers/display_zoom_menu_channel.dart';
+import 'package:submersion/features/settings/presentation/providers/display_zoom_provider.dart';
 import 'package:submersion/features/auto_update/presentation/providers/update_menu_channel.dart';
 import 'package:submersion/features/backup/presentation/pages/restore_complete_page.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
@@ -81,6 +85,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     WidgetsBinding.instance.addObserver(this);
     _lifecycleListener = AppLifecycleListener(onExitRequested: _closeDatabases);
     registerUpdateMenuChannel(ref);
+    registerDisplayZoomMenuChannel(ref);
     _fileShareHandler = FileShareHandler(
       onFileReceived: _handleIncomingFile,
       onError: (_) {
@@ -329,8 +334,39 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       builder: (context, child) {
         Intl.defaultLocale = Localizations.localeOf(context).toLanguageTag();
         // Block all interaction while a database restore runs, so no data page
-        // can rebuild against the transient null database mid-restore.
-        return RestoreBarrier(child: child!);
+        // can rebuild against the transient null database mid-restore. Kept
+        // outside the zoom scope so the barrier stays a full-screen, unscaled
+        // overlay.
+        return RestoreBarrier(
+          child: Consumer(
+            builder: (context, ref, _) {
+              // Watched here rather than in build() so dragging the zoom
+              // slider rebuilds only this subtree, not all of MaterialApp.
+              final zoom = ref.watch(displayZoomNotifierProvider);
+              final notifier = ref.read(displayZoomNotifierProvider.notifier);
+              final useMeta =
+                  defaultTargetPlatform == TargetPlatform.macOS ||
+                  defaultTargetPlatform == TargetPlatform.iOS;
+
+              return CallbackShortcuts(
+                bindings: displayZoomShortcuts(
+                  onZoomIn: () => notifier.stepBy(1),
+                  onZoomOut: () => notifier.stepBy(-1),
+                  onReset: notifier.reset,
+                  useMetaModifier: useMeta,
+                ),
+                // CallbackShortcuts only fires for keystrokes inside its
+                // focused subtree, and nothing has focus on desktop
+                // cold-start, so the shortcuts would otherwise be dead until
+                // the user clicks something.
+                child: Focus(
+                  autofocus: true,
+                  child: DisplayZoomScope(zoom: zoom, child: child!),
+                ),
+              );
+            },
+          ),
+        );
       },
     );
   }

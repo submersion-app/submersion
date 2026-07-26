@@ -12052,6 +12052,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerCanvas_saved_title => 'תוכניות שמורות';
 
   @override
+  String get plannerCanvas_name_dialogTitle => 'תן שם לתוכנית';
+
+  @override
+  String get plannerCanvas_name_defaultFallback => 'תוכנית צלילה';
+
+  @override
   String plannerCanvas_scrub_bailout(String minutes) {
     return 'BO $minutes′';
   }
@@ -12270,6 +12276,23 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_appearance_appLanguage => 'שפת האפליקציה';
+
+  @override
+  String get settings_appearance_displaySize => 'גודל התצוגה';
+
+  @override
+  String settings_appearance_displaySize_value(int percent) {
+    return '$percent%';
+  }
+
+  @override
+  String get settings_appearance_displaySize_reset => 'איפוס';
+
+  @override
+  String get settings_appearance_displaySize_smaller => 'קטן יותר';
+
+  @override
+  String get settings_appearance_displaySize_larger => 'גדול יותר';
 
   @override
   String get settings_appearance_depthColoredCards =>

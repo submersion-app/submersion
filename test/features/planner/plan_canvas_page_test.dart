@@ -160,6 +160,12 @@ void main() {
     await tester.tap(find.byIcon(Icons.save));
     await tester.pumpAndSettle();
 
+    // The first save of a never-persisted plan is gated on the name dialog.
+    // Confirming it lets the save through; see plan_canvas_first_save_test.dart
+    // for the gate's own coverage.
+    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.pumpAndSettle();
+
     expect(container.read(divePlanNotifierProvider).isDirty, isFalse);
   });
 

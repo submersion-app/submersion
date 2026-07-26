@@ -35,14 +35,20 @@ class MediaCacheStore {
     MediaCacheKind.rendition => 'rendition',
   };
 
-  String _relativePath(String contentHash, MediaCacheKind kind) => p.join(
+  String _relativePath(
+    String contentHash,
+    MediaCacheKind kind, {
+    String? extension,
+  }) => p.join(
     switch (kind) {
       MediaCacheKind.original => 'originals',
       MediaCacheKind.thumb => 'thumbs',
       MediaCacheKind.rendition => 'renditions',
     },
     contentHash.substring(0, 2),
-    contentHash,
+    extension == null || extension.isEmpty
+        ? contentHash
+        : '$contentHash.$extension',
   );
 
   /// Cached file for [contentHash], or null on a miss. A hit refreshes the
@@ -98,13 +104,33 @@ class MediaCacheStore {
   /// bytes were fetched for (a rendition's synced remoteCompressedUploadedAt,
   /// epoch millis) so [get]'s freshAfter check can detect an overwrite
   /// without relying on this device's wall clock.
+  ///
+  /// [extension] (no leading dot) is appended to the content-addressed
+  /// filename. Content addressing has no use for it, but AVFoundation does:
+  /// `VideoPlayerController.file` reaches a bare `AVURLAsset`, which infers
+  /// the container format from the path extension alone and fails with
+  /// "Cannot Open" (-11828) on an extensionless file. Photos are unaffected
+  /// because `Image.file` sniffs the bytes. Callers pass the same extension
+  /// the store object was keyed with, so the cached name mirrors the remote
+  /// one. Omitting it keeps the historical extensionless layout.
   Future<File> put(
     String contentHash,
     MediaCacheKind kind,
     File source, {
     int? sourceVersion,
+    String? extension,
   }) async {
-    final relative = _relativePath(contentHash, kind);
+    final relative = _relativePath(contentHash, kind, extension: extension);
+    // The index is keyed {contentHash, kind}, and relativePath used to be a
+    // pure function of that key, so an overwrite always rewrote the same
+    // path. Now that the caller supplies the extension, two rows over
+    // identical bytes can ask for different names (extensionFor is not
+    // injective over content, and a video's name can fall back to its local
+    // path). Note the superseded path before insertOnConflictUpdate forgets
+    // it: nothing would reference that file afterwards, and eviction only
+    // walks the index, so it would occupy disk forever without counting
+    // against any cap.
+    final superseded = await _relativePathOf(contentHash, kind);
     final dest = File(p.join(_root.path, relative));
     await dest.parent.create(recursive: true);
     try {
@@ -129,8 +155,38 @@ class MediaCacheStore {
             sourceVersion: Value(sourceVersion),
           ),
         );
+    if (superseded != null && superseded != relative) {
+      await _bestEffortDelete(File(p.join(_root.path, superseded)));
+    }
     await evictIfNeeded();
     return dest;
+  }
+
+  /// The path currently indexed for [contentHash]/[kind], or null when there
+  /// is no entry.
+  Future<String?> _relativePathOf(
+    String contentHash,
+    MediaCacheKind kind,
+  ) async {
+    final row =
+        await (_db.select(_db.mediaCacheEntries)..where(
+              (t) =>
+                  t.contentHash.equals(contentHash) &
+                  t.kind.equals(_kindName(kind)),
+            ))
+            .getSingleOrNull();
+    return row?.relativePath;
+  }
+
+  /// Removing a superseded file is housekeeping: the new copy is already in
+  /// place and indexed, so a failure here must not turn a good put into an
+  /// error.
+  Future<void> _bestEffortDelete(File file) async {
+    try {
+      if (await file.exists()) await file.delete();
+    } on FileSystemException {
+      // Leaves one stale file behind; the next put for this key retries.
+    }
   }
 
   /// A unique temp file under the cache root, for downloads and pipeline

@@ -145,6 +145,58 @@ void main() {
     expect(api.calls, 1, reason: 'thumb re-resolve must hit the cache');
   });
 
+  // Lightroom answers a video asset with a poster-frame JPEG at every
+  // rendition size (LightroomApiClient.getRendition: "Videos get poster-frame
+  // renditions"), so a connector video's FileData is always a decodable
+  // image. Without the flag MediaItemView's "videos are not decodable"
+  // guard draws the movie icon over a poster it already downloaded -- and
+  // only on devices with a cache, since the uncached path returns BytesData
+  // and renders fine.
+  test('a connector video rendition is flagged as a poster on every '
+      'path', () async {
+    final videoRow = MediaItem(
+      id: 'v1',
+      mediaType: MediaType.video,
+      sourceType: MediaSourceType.serviceConnector,
+      connectorAccountId: 'acct1',
+      remoteAssetId: 'lr-video',
+      originalFilename: 'DIVE_001.mp4',
+      takenAt: DateTime(2026),
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+    final staged = File('${root.path}/video_probe')..writeAsBytesSync(jpeg);
+    final hash = (await sha256OfFile(staged)).hash;
+    final hashed = videoRow.copyWith(contentHash: hash);
+
+    // Full-size rendition: fresh download, then the cache hit.
+    final r = resolver(_FakeRenditionApi(bytes: jpeg), withCache: cache);
+    final fresh = await r.resolve(hashed);
+    expect(fresh, isA<FileData>());
+    expect((fresh as FileData).isPoster, isTrue);
+    final cached = await r.resolve(hashed);
+    expect((cached as FileData).isPoster, isTrue);
+
+    // Thumbnail rendition, which skips hash verification.
+    final t = resolver(_FakeRenditionApi(bytes: jpeg), withCache: cache);
+    final thumb = await t.resolveThumbnail(
+      videoRow.copyWith(contentHash: 'b4${'2' * 62}'),
+      target: const Size(200, 200),
+    );
+    expect(thumb, isA<FileData>());
+    expect((thumb as FileData).isPoster, isTrue);
+  });
+
+  test('a connector photo rendition is not flagged as a poster', () async {
+    final staged = File('${root.path}/photo_probe')..writeAsBytesSync(jpeg);
+    final hash = (await sha256OfFile(staged)).hash;
+    final r = resolver(_FakeRenditionApi(bytes: jpeg), withCache: cache);
+
+    final data = await r.resolve(item(contentHash: hash));
+    expect(data, isA<FileData>());
+    expect((data as FileData).isPoster, isFalse);
+  });
+
   test('401 maps to unauthenticated, 500 to networkError', () async {
     final unauth = await resolver(
       _FakeRenditionApi(bytes: jpeg, statusCode: 401),

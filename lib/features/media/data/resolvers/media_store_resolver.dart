@@ -42,6 +42,13 @@ class MediaStoreResolver {
       if (thumb != null) return thumb;
       // Fall through: a missing/broken thumb degrades to the original.
     }
+    if (thumbnail && item.mediaType == MediaType.video) {
+      // A video's original and rendition are both video: they can only ever
+      // render as the movie placeholder, so degrading to them buys nothing
+      // and costs a full download (potentially over cellular) per grid tile.
+      // Give up instead and let the caller keep its native placeholder.
+      return null;
+    }
     if (item.remoteUploadedAt != null) {
       final original = await _fetchOriginal(item, hash);
       if (original != null) return original;
@@ -53,16 +60,26 @@ class MediaStoreResolver {
   }
 
   Future<MediaSourceData?> _fetchThumb(MediaItem item, String hash) async {
+    // The pipeline always uploads thumbs as JPEG, whatever the source's own
+    // format. For a video that JPEG is a poster frame, so the result is
+    // decodable as an image even though the row is a video -- something only
+    // this side knows, and the flag is how MediaItemView is told.
+    final isPoster = item.mediaType == MediaType.video;
     File? staging;
     try {
       final cached = await _cache.get(hash, MediaCacheKind.thumb);
-      if (cached != null) return FileData(file: cached);
+      if (cached != null) return FileData(file: cached, isPoster: isPoster);
       staging = await _cache.stagingFile();
       await _store.getFile(StoreKeys.thumbKey(hash), staging);
       // No hash verification: thumb bytes are derived; the key carries the
       // original's hash purely for addressing.
-      final file = await _cache.put(hash, MediaCacheKind.thumb, staging);
-      return FileData(file: file);
+      final file = await _cache.put(
+        hash,
+        MediaCacheKind.thumb,
+        staging,
+        extension: 'jpg',
+      );
+      return FileData(file: file, isPoster: isPoster);
     } on Exception catch (e) {
       _log.warning('Thumb fetch failed for ${item.id}: $e');
       return null;
@@ -91,6 +108,7 @@ class MediaStoreResolver {
         MediaCacheKind.rendition,
         staging,
         sourceVersion: item.remoteCompressedUploadedAt?.millisecondsSinceEpoch,
+        extension: ext,
       );
       return FileData(file: file);
     } on Exception catch (e) {
@@ -118,7 +136,12 @@ class MediaStoreResolver {
         _log.warning('Store object failed hash verification for ${item.id}');
         return null;
       }
-      final file = await _cache.put(hash, MediaCacheKind.original, staging);
+      final file = await _cache.put(
+        hash,
+        MediaCacheKind.original,
+        staging,
+        extension: _cacheExtensionFor(item, extension),
+      );
       return FileData(file: file);
     } on Exception catch (e) {
       _log.warning('Store fallback failed for ${item.id}: $e');
@@ -127,6 +150,39 @@ class MediaStoreResolver {
       await _discardStaging(staging);
     }
   }
+
+  /// Extension for the CACHED copy, which is a different question from the
+  /// store key's.
+  ///
+  /// The key records how the object was addressed when it was uploaded and
+  /// can never be recomputed differently — that is where the bytes live. The
+  /// cache name is local and disposable, and its only job is to let the OS
+  /// identify the file. Those come apart when a row has no usable filename:
+  /// [StoreKeys.extensionFor] yields [StoreKeys.unknownExtension], which is a
+  /// fine address and a useless container hint, so a video cached under it
+  /// stays unplayable (`AVURLAsset` infers the container from the path
+  /// extension alone).
+  ///
+  /// Only videos are rescued. A photo's bytes are identified by sniffing, so
+  /// giving it a guessed image extension would risk contradicting them for no
+  /// gain. Videos fall back to the local path's extension — still recorded on
+  /// the row even after the file itself is gone — and then to the media
+  /// type's container. That last guess is safe: AVFoundation opens QuickTime
+  /// and MP4 bytes under either extension, and rejects only names it does not
+  /// recognise at all.
+  String _cacheExtensionFor(MediaItem item, String storeExtension) {
+    if (storeExtension != StoreKeys.unknownExtension) return storeExtension;
+    if (item.mediaType != MediaType.video) return storeExtension;
+    final localPath = item.localPath ?? '';
+    final dot = localPath.lastIndexOf('.');
+    if (dot >= 0 && dot < localPath.length - 1) {
+      final ext = localPath.substring(dot + 1).toLowerCase();
+      if (_extPattern.hasMatch(ext)) return ext;
+    }
+    return 'mp4';
+  }
+
+  static final RegExp _extPattern = RegExp(r'^[a-z0-9]{1,8}$');
 
   /// cache.put moves the staging file into the pool, so anything still at
   /// the staging path after a fetch is the debris of a failed one

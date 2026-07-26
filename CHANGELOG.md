@@ -3,6 +3,2670 @@
 All notable changes to Submersion are documented in this file.
 
 
+## 1.7.0 (2026-07-25)
+
+### Features
+
+- add macOS View menu zoom items
+- add display size control to Appearance settings
+- add zoom in/out/reset keyboard shortcuts
+- rename a saved plan from the overflow menu
+- apply display zoom at the app root
+- prompt for a plan name on first save
+- add device-local display zoom provider
+- extract plan name dialog and mark the title editable
+- add DisplayZoomScope for app-wide true zoom
+- add display zoom constants and value clamping
+- add default plan name generator
+- show the transcode hint on any incapable device
+- drive quality dropdowns from synced providers
+- add MediaUploadQualityPolicy over synced settings
+- add raw key-value accessors to AppSettingsRepository
+- run the account deduplicator after the migration
+- add the startup account deduplicator
+- add ConnectedAccountsRepository.ensure
+- add deterministic connected-account identity
+- match wizard ocean brightness to the splash
+- resolve splash brightness from cached theme mode
+- mirror theme mode into prefs for pre-db surfaces
+- swap OceanBackground dark palette to Abyss Blue
+- add startup brightness resolver with cached theme mode
+- attention chips with per-chip visibility settings
+- gauge strip shows only due/overdue gear, capped at 6
+- responsive monitor-first home page assembly
+- recent sites map card
+- year-in-review card
+- on-this-day dives card
+- recent photos ribbon
+- milestones provider and card
+- hero header with left logo and quiet desktop stats
+- add always-on GaugeStrip and UrgentBanner
+- add responsive DashboardGrid layout widget
+- show a not-backed-up badge on media tiles
+- opportunistic 30-day verify sweep
+- manual Verify Library action
+- fleet-wide verify sweep timestamp (schema v136)
+- verify library sweep service
+- verify-sweep repository helpers
+- reap stale multipart upload sessions
+- list in-progress multipart uploads
+- one-time backlog sweep for orphaned media rows
+- dive deletion cascades to dive-only media
+- cascade partition, synced unlink, and sweepable-orphan query
+- Linux ffmpegthumbnailer video thumbnails
+- Windows shell video thumbnails
+- macOS QuickLook video thumbnails
+- resolve local video thumbnails via VideoThumbnailService
+- add VideoThumbnailService with disk cache
+- add generateVideoThumbnail channel wrapper
+- transfers page renders delete entries
+- route media deletion flows through the deletion coordinator
+- deletion coordinator enqueues blob deletes before rows die
+- abort stranded S3 multipart sessions on terminal failure
+- worker routes delete entries, cellular gate exempts them
+- delete processor with drain-time refcount guard
+- countRowsWithHash refcount for blob deletion
+- delete-intent queue entries with per-hash idempotency
+- local cache DB v6 adds transfer queue payload column
+- sticky per-day headers in the trip story
+- sticky day header widget for the trip story
+- add TripStoryDay.isSurface
+- map-only pinned story header with 180px floor
+- delete the open plan from the canvas with confirm and undo
+- show a persisted-gated Delete plan menu item in the canvas
+- add l10n strings for delete-plan action
+- add deco stop band toggles to legend and settings
+- draw the deco stop band on the dive profile chart
+- add stepped deco stop band renderer
+- add deco stop band visibility and source settings
+- add deco stop band settings columns (schema v133)
+- resolve deco stop band source independently of ceiling
+- populate quantized decoStopCurve on ProfileAnalysis
+- add deco stop quantization and step transition helpers
+- Windows MediaTranscoder transcode + progress (unverified on Windows)
+- Windows plugin scaffold + WinRT probe (unverified on Windows)
+- return ChannelTranscodeEngine on Windows
+- surface a trash button on saved-plan rows
+- Android Media3 probe + transcode (Kotlin)
+- Android plugin scaffold + Media3 deps
+- dispatch to AVFoundation engine on Apple
+- AVFoundation probe + transcode (Swift)
+- Dart DarwinAvfEngine channel client
+- convert to plugin with darwin scaffold (iOS+macOS)
+- Linux ffmpeg hint on the upload quality section
+- wire PlatformVideoTranscoder + availability providers
+- PlatformVideoTranscoder adapter with ceiling rule
+- transcode-once pipeline integration for video
+- deterministic transcode staging in cache store
+- bitrate-based video presets + ceiling rule
+- Linux ffmpeg engine with process-runner seam
+- scaffold submersion_transcoder with probe DTOs
+- per-item re-upload quality action in the photo viewer
+- Upload quality settings section
+- upload quality strings across 11 locales
+- wire compressor defaults + reupload entry point
+- resolver serves compressed renditions with freshness
+- per-item re-upload override with guarded delete
+- pipeline branches uploads on quality level
+- v130 reconcile legacy service intervals into clocks
+- table Next Service Due column reads clocks
+- add clock-based Service Due list sort
+- remove legacy service settings from edit form
+- flag overdue gear from service clocks
+- list badges use clocks only, drop legacy fallback
+- queue overrideLevel column + enqueueReupload
+- detail header service state from clocks; drop mark-as-serviced
+- MediaCompressor seam + pure-Dart ImageCompressor
+- rendition cache pool with freshness check
+- per-media-type upload quality policy
+- compressed stamps, refcounts, and backfill fix
+- add compressed rendition fields to MediaItem
+- add v130 compressed rendition columns
+- add renditionKey store-key derivation
+- add MediaUploadQuality enum and presets
+- backfill hlc on legacy media_enrichment rows (self-heal)
+- replicate media_enrichment as a first-class HLC entity
+- add hlc column to media_enrichment (schema v130)
+- add no-fly countdown, safety hub, and altitude flag (safety phase 2)
+- add no-fly guideline classifier service
+- add reset-to-north compass on rotatable maps
+- cycle water type when merging sites
+- auto-fill dive water type from the assigned site
+- edit water type in the site editor
+- persist and hydrate site water type
+- hide Lightroom UI pending Adobe review
+- rename Cloud Sync to Database Cloud Sync (tile + page title)
+- Subsurface-exact pSCR O2 model, hypoxia warning, ratio setting
+- recreational NDL-maximization solver
+- passive semi-closed rebreather (pSCR) breathing mode
+- one-tap embedded Connect with Adobe on the settings page
+- signInWithEmbeddedCredential helper (begin/capture/complete)
+- injectable redirect-capture wrapper over flutter_web_auth_2
+- flutter_web_auth_2 dep + embedded Native App credential constants
+- Native App auth - refresh-token-optional connect, per-connection redirect, reauth signal
+- VPM-B decompression model validated against golden vectors
+- optional refresh token + per-connection redirect uri in auth data
+- wire v120 columns through domain, repo, engine, sync (per-segment setpoint/mode, plan start time, deco switch depth)
+- schema v120 - plan start time, per-segment setpoint/mode, per-tank deco switch depth
+- review inbox page, cards, badges, settings screen
+- l10n keys for inbox, findings and repairs (11 locales)
+- through-the-dive simulation panel
+- buoyancy twin outputs in Gear & Weights
+- what-if buoyancy re-simulation sheet
+- weighting history strip comparing carried vs modeled lead
+- inbox providers, detector toggles, watch queries
+- net buoyancy chart with per-moment breakdown
+- repair actions and executor
+- buoyancy detail section with final-stop diagnosis
+- profile repair math over edited-profile pattern
+- tank pressure series and record repairs
+- bulkShiftDiveTimes with snapshot restore
+- targeted scan hooks on import and save
+- wing lift capacity capture (schema v119)
+- scan service, scheduler and providers
+- detector registry and SQL pre-filters
+- gas, tank-assignment and source detectors
+- temperature and pressure detectors
+- profile gap, spike and rate detectors
+- clock, duplicate and split detectors
+- plan mode chip cycles OC, CCR, and SCR
+- dive quality context and builder
+- SCR breathing mode reuses the validated CMF loop model
+- assemble and provide buoyancy twin per dive
+- findings repository with scan-apply semantics
+- finding entity, deterministic ids, thresholds
+- rates setup section and O2-narcotic toggle
+- register qualityFindings entity for sync
+- anchor detection and derived twin outputs
+- edit ascent and descent rate in plan state
+- per-sample buoyancy twin simulator
+- plan ascent rate affects the computed schedule; wire descent rate
+- quality_findings table, migration v118
+- schedule policy descent rate and ascent-rate bands
+- neoprene compression curve and drysuit gas budget
+- gas mix density module for cylinder swing
+- surface safety hub from planning and tools pages
+- segment list reflects and drives chart selection
+- drag, double-click, gas menu, and keyboard editing on the chart
+- bridge equipment attributes into buoyancy traits
+- attribute-derived prior ladder and per-type factor functions
+- GearBuoyancyTraits attribute snapshot with panel parser
+- replaceSegment mutation for chart splits
+- pure edit controller for on-chart waypoint editing
+- Mission Control three-pane layout, phone tab deck, header chips
+- stat tiles, editor pane, and results pane
+- plan setup accordion hosting decomposed settings sections
+- setup sections extracted from the settings panel
+- icon rail shell, full-width hub, drop 440px sidebar
+- layout state providers and pane/tab l10n keys
+- Dive Info, Access & Safety, Life & Notes sections on rows
+- Identity and Location sections extracted onto rows
+- conditions and weather on rows, profile row, section icons
+- row-scale tanks, Gas & Gear overlines and unified actions
+- SuggestionFormRow autocomplete row primitive
+- EnumPickerRow bottom-sheet enum picker row
+- row-shaped inline editing for FormRow.text; rating clear affordance
+- FormOverline, FormAppendRow, FormEmptyRow primitives
+- CNS method picker with provenance, source links, 11 locales
+- FormSection v2 header-in-card chrome
+- shared plan kit vocabulary, adopt in results sheet
+- cut PlanCanvasPage over to PlanProfileChart, drop fl_chart chart
+- PlanProfileChart widget with layered painters and scrub
+- series painter with fill, ghost, mean depth, flags, stop tags
+- backdrop painter with grid, axes, and ceiling no-go band
+- respect CNS method setting in profile analysis and planners
+- persist CNS calculation method per diver (schema v113)
+- dash and label paint utilities for the plan chart
+- thread CNS method through calculators, default Shearwater-style
+- CnsCalculationMethod with three CNS rate algorithms
+- collision-avoiding stop tag layouter
+- pure chart geometry with hit-testing and tick logic
+- theme-derived chart palette for the new plan chart
+- add near-miss incident log (safety phase 4)
+- add offline emergency card with bundled hotlines and chamber directory (safety phase 3)
+- add bundled emergency numbers and chamber datasets with loader
+- add no-fly countdown, safety hub, and altitude flag (safety phase 2)
+- add no-fly guideline classifier service
+- translate safety review strings into all locales
+- localize pre-dive checklist strings across all locales
+- equipment attributes in CSV export
+- equipment attribute filter axis and dives-by-suit-thickness chart
+- add safety review settings page with analyze-all action
+- add pre-dive entry points to dashboard, tools, and trips
+- add quiet safety findings badge to dive list
+- add pre-dive section to dive detail and add-dive sheet
+- attribute rows on the equipment detail page
+- add safety review section to dive detail
+- type-driven attribute form and custom fields editor
+- auto-link pre-dive sessions to imported dives
+- add pre-dive session runner, sessions list, and start sheet
+- attribute-backed EquipmentItem with diff-save repository
+- add safety review settings (master toggle and per-rule set)
+- add pre-dive template editor
+- add pre-dive checklist providers, routes, and templates page
+- register safety review tables in sync serializer and streaming apply
+- register pre-dive checklist entities for sync
+- attribute labels in all 11 locales with resolver
+- add safety findings repository, providers, and profile-write invalidation
+- seed built-in pre-dive checklist templates
+- add pre-dive session repository with immutability guards
+- attribute catalog for all 18 equipment types
+- add dive safety review tables and settings columns (schema v116)
+- wire equipmentAttributes through serializer, merge order, and HLC registries
+- add pre-dive template repository
+- add pre-dive session engine and item composer
+- equipment_attributes table + v115 migration with legacy column copy
+- add sawtooth profile rule
+- add pre-dive checklist domain entities
+- add omitted safety stop rule
+- add pre-dive checklist tables (schema v113)
+- add missed deco stop and high surface GF rules
+- add safety review engine with rapid ascent rule
+- service ledger strings for all locales
+- per-clock service reminders and trip nag
+- pre-trip gear service alerts
+- service due card and clock-aware alerts and badges
+- manage service types page
+- service clocks card on equipment detail
+- service clock providers and trip alerts
+- register serviceKinds and serviceSchedules entities
+- service kind/schedule repositories, usage query, auto-attach, child tombstones
+- add Perdix dive computer overlay to photo viewer (#168)
+- ServiceDueEngine with date/dive/hour triggers
+- service ledger domain entities
+- schema v113 service ledger tables, seeds, backfill
+- add DraggablePerdixOverlay drag and playback wrapper
+- add PerdixFace dive computer display widget with l10n labels
+- add PerdixFaceResolver for media playback readouts
+- add Perdix overlay settings (enabled flag and position)
+- active course progress card
+- add/edit requirement and template picker sheets
+- retirement fence -- cloud-wins rejoin preserving pending records
+- requirements section on course detail page
+- course requirement tracker strings for all locales
+- retire idle devices with marker-first log deletion
+- requirement progress and suggestion providers
+- fleet-acked tombstone GC replaces the 90-day purge
+- register courseRequirements and courseRequirementDives entities
+- writer publishes ack map and heartbeats stale manifests
+- reader ack tracking, retired-peer skip, manifest reporting
+- course requirement repository with linking, templates, and tombstones
+- liveness constants and fleet-acked tombstone horizon
+- manifest appliedPeerHlc acknowledgment map
+- course requirement starter template catalog
+- retirement marker file name and model
+- course requirement domain entities and progress roll-up
+- v112 tombstone dedupe index + peer ack column
+- add course_requirements and course_requirement_dives tables (v112)
+- domain-neutral copy and translucent redesign for the setup wizard
+- Shearwater Perdix 3 download support (V2 protocol)
+- reuse retained key on re-enable; document per-artifact key semantics
+- translate default & geofenced equipment set strings (#583)
+- clear the default flag when the switch is turned off (#583)
+- backup-encryption settings section + encrypted export
+- backup-encryption enable + change-password dialogs
+- localize all locales + sync/robustness fixes (#583)
+- reencryptExistingBackups in-place migration
+- silent restore via the stored backup key
+- encrypt Save-to-File and Share exports when enabled
+- encrypt local + cloud backups when backup encryption is on
+- inject BackupEncryptionKeyStore + _activeBackupKey helper
+- add BackupTarget.writeSource for pre-encrypted artifacts
+- UI for default + geofenced sets (#583)
+- apply default/geofenced set on download + file import (#583)
+- repository, providers, and sync for default+geofenced sets (#583)
+- schema, entities, and selector for default+geofenced sets (#583)
+- add BackupEncryptionService (local key lifecycle)
+- add BackupEncryptionKeyStore (backup-scoped key custody)
+- add backupEncryptionEnabled preference flag
+- rebuild Overview tab as interactive trip story (closes #166)
+- assemble trip story view with scroll-linked map
+- add pinned story map header with camera animator
+- add trip story hero with planned-trip extras
+- add trip story day chapter card
+- add dive sparkline and day rhythm bar widgets
+- add trip story strings in all locales
+- add sparkline downsampling and day rhythm layout math
+- add tripStoryProvider composing story sources
+- multiple certifications per buddy via unified ownership (#553)
+- add per-site diver history aggregates
+- add batched getSightingsForDives query
+- add buildTripStory composition function
+- add trip story domain entities
+- account-first cloud-provider resolution (completes the Phase-1 deviation)
+- add pan (two-finger/trackpad) and discoverable zoom controls
+- widen tissue compartment (Z) axis for readability and labels
+- cross-device descriptors, hub, guided setup, network files (Phases 2-4)
+- Lightroom rides connected accounts; retire connector_accounts
+- sync selection persisted by connected account
+- media store connect flows create and use accounts
+- media store attach state and construction by account
+- startup migration seeds accounts from legacy config
+- Google Drive, iCloud, and Lightroom account adapters
+- S3 and Dropbox account adapters with per-account keys
+- capability interfaces and provider registry
+- per-account keychain credentials store
+- ConnectedAccountsRepository with sync pending marks
+- register connectedAccounts in sync engine
+- schema v107 connected_accounts table and sync_account_id
+- AccountKind enum and ConnectedAccount entity
+- label tissue axes with titles and tick values (time/%/compartment)
+- show tissue axes, grid, and hover tooltip on the tissue scene
+- wire tissue chrome and hover picking into the viewport
+- add tissue frame and chrome painters
+- add tissue hover tooltip widget
+- add 3D tissue tooltip and saturation-state strings
+- add nearest-vertex tissue surface picker
+- add AxisFrame geometry for tissue axes and grid
+- expose tissue surface grid and runtime providers
+- emit TissueSurfaceGrid alongside the tissue mesh
+- pair Details+Conditions and Buddies+Signatures side by side on wide panes
+- CCR diluent resolution and loop gas-segment builder
+- hold the CCR setpoint through TTS/schedule ascents for setpoint-bearing segments
+- show dive mode in the Details card (#569)
+- persist gauge dive mode on live download (#569)
+- detect gauge mode on reparse and skip tank synthesis (#569)
+- exclude gauge dives from gas statistics (#569)
+- hide gas/deco detail sections for gauge dives (#569)
+- hide tank controls in gauge mode edit form (#569)
+- short-circuit gauge dives to profile-only analysis in providers (#569)
+- add gauge dive mode with profile-only analysis (#569)
+- add gauge dive mode strings (#569)
+- remove the 3D View preview card from dive detail
+- Compare in 3D from the detail source section + l10n backfill
+- Compare in 3D action on the dives selection bar
+- compare-dives page + route
+- Computers comparison mode in the 3D view
+- shared CompareProfile3dView (view owns the profile cap)
+- optional time-plane scrub cursor
+- compare readout (per-profile depth + delta)
+- compare legend (focus + reference + max delta)
+- previous/next buttons + arrow keys on dive detail
+- DiveNavButtons previous/next widget + l10n
+- orderedDiveIds + diveNeighbors providers
+- getOrderedDiveIds query for adjacent-dive navigation
+- multi-dive comparison adapter
+- computer-source comparison adapter
+- CompareGeometryService (side-by-side + overlay)
+- reference-based DivergenceBuilder
+- optional opacity on RibbonBuilder.build
+- comparison profile primitives + resampler
+- light scenes with directional shading and slim the ribbon
+- retain scroll per trip and per liveaboard tab in detail pane
+- retain scroll on dive/site/course/cert/center/equipment/buddy detail
+- make tissue scene a 3D extrusion of the Subsurface heatmap
+- make the tissue scene legible
+- add spatial site seascape scene (Suunto-style topo)
+- add career terrain scene (stacked dive history)
+- add tissue saturation scene switcher, readout, and controls
+- add tissue chain deriver and providers
+- add tissue surface builder, geometry service, seam axis
+- add tissue chain replay service
+- add unit-aware depth grid planes
+- add fullscreen 3D page with scrub and readout
+- add interactive three_js scene viewport
+- add three_js mesh adapter
+- add 3D preview card to dive detail
+- add software projector and preview painter
+- add geometry service and scene providers
+- add scene marker layout
+- add scene data entity and profile lookup
+- add deco ceiling surface builder
+- add temperature strata mesh builder
+- add ribbon and depth-curtain mesh builders
+- add metric-to-color palette
+- add MeshData and SceneBounds scene normalization
+- add three_js dependencies and platform spike
+- startup auto-poll trigger on the dive list page
+- suggestion row with confirm and dismiss on dive detail
+- scan actions on dive detail and trip overview, Open in Lightroom in viewer
+- connect flow, settings page, route, and localized strings (11 locales)
+- serviceConnector upload eligibility with thumb-only videos
+- riverpod wiring, serviceConnector registry registration, auto-poll provider
+- connector resolver fills the serviceConnector registry slot
+- scan service - window merge, dedup, confident attach, suggestions, poll
+- per-device connector scan state in SharedPreferences
+- confidence-bearing timestamp matching on DivePhotoMatcher
+- connector columns on pending suggestions + suggestion CRUD and remote-asset dedup queries (schema v104)
+- connector accounts repository (first consumer of the v72 table)
+- partner API client with abuse-guard stripping and pagination
+- Adobe IMS OAuth2+PKCE auth manager
+- secure auth store for BYO Adobe credentials
+- gear and weights section with live weight prediction
+- dated body weight history in diver profile
+- advanced buoyancy and dry weight fields on gear edit
+- weighting feedback capture on dive edit
+- data-driven weight planner tool replacing static calculator
+- calibration and prediction providers
+- placement predictor with largest-remainder rounding
+- hybrid weight prediction engine with calibration
+- weighted ridge regression solver
+- gear feature priors and physics terms
+- batch weight history observations query
+- plan equipment junction and planned weight snapshot
+- weighting feedback fields on dives
+- buoyancy and dry weight metadata fields
+- dated body weight entries with sync + providers
+- wire diver_weight_entries and dive_plan_equipment into changeset sync
+- add three_js flythrough spike page behind debug menu
+- schema v104 for weight prediction (feedback, buoyancy, weight entries, plan equipment)
+- persist heading in download and reparse pipelines
+- capture DC_SAMPLE_BEARING and serialize heading on all platforms
+- carry heading through DiveProfilePoint and repositories
+- add dive_profiles.heading column (schema v105)
+- let first-run users change the sync backend after connecting
+- include custom dive roles in UDDF full backup/restore
+- dive roles management page under Settings
+- my-role editing on dive edit page and detail display
+- role selector with custom-role creation and Me chip
+- persist the diver's own role on dives (#547)
+- resolve per-dive buddy roles from dive_roles table
+- sync dive_roles (custom rows only, tombstones, adopt-safe)
+- dive role l10n strings and localized display
+- DiveRole entity, repository, and providers
+- add dive_roles table and dives.diver_role column (v103)
+- agency-first certification fields with dependent level list (#546)
+- filter level dropdown by selected agency (#546)
+- add agency-specific certification levels and catalog (#546)
+- phase 4 exit coverage
+- provider chooser with dropbox, drive, icloud connect
+- per-provider connect flows
+- provider-typed attach state and runtime
+- icloud media adapter over the ubiquity container
+- google drive media adapter with resumable sessions
+- dropbox media adapter with session resume
+- dropbox session primitives and range download
+- phase 3 exit coverage
+- transfer progress bars
+- store-backed video playback path
+- video uploads with resume and progress wiring
+- S3 multipart upload with resume and streamed download
+- queue resume-state and progress persistence
+- progress and resume hooks on MediaObjectStore
+- phase 2 exit coverage
+- backfill and transfer policy toggles
+- per-tile transfer badges
+- transfers view with retry
+- thumbnail routing in store resolution
+- thumbnail objects in the upload pipeline
+- thumbnail generator
+- network-aware worker gating and drain triggers
+- observable transfer queue with retry and defer
+- transfer policies and video eligibility gate
+- route first run and settings entry to the setup wizard
+- existing-data path with restore, sync pull, and folder adopt
+- finish step applies draft and offers feature links
+- backup schedule and cloud sync connection step
+- appearance step with live language preview
+- units step with locale-aware preset and fine-tuning
+- wizard shell with fork and profile steps
+- draft apply service with race-safe settings seeding
+- phase 1 end-to-end coverage
+- setup wizard draft notifier and preview locale provider
+- setup wizard domain model and step computation
+- connect flow, media storage settings page
+- add setup wizard strings in all locales
+- unlock banner, troubleshoot status, encrypted restore prompt (#520)
+- store fallback resolution in MediaItemView
+- upload pipeline, worker, enqueue-on-attach
+- end-to-end encryption section with enable and manage flows (#520)
+- content-addressed cache with LRU eviction
+- credentials store and attach state
+- S3 adapter and store identity marker
+- MediaObjectStore interface, fake, and contract
+- smv1 key derivation and streamed hashing
+- local cache DB v2 with transfer queue
+- media entity + repository upload stamps
+- register .zxu/.zxl document types and document DiverLog migration
+- register mediaStores in sync engine
+- encrypted cloud backup upload, restore, plaintext cleanup (#520)
+- show attached photo counts in import summary
+- add v103 schema (media stamps + media_stores table)
+- attach DiveCloud photos to imported dives
+- expand ZIP archives at file intake
+- framed self-decrypting .sbe backup encryption (#520)
+- riverpod wiring for encryption session and provider wrap (#520)
+- ZIP expansion service for DiveCloud archives
+- wire DAN DL7 into detection, registry, and source apps
+- encryption lifecycle service - enable, unlock, rotate slots, self-heal (#520)
+- DAN DL7 parser with Aqualung ZAR enrichment
+- awaitingPassphrase halt for encrypted libraries (#520)
+- parse the DiverLog+ AQUALUNG ZAR dialect
+- encrypting cloud storage decorator (#520)
+- local key custody, keyslot mirror, encryption preference (#520)
+- add DL7 unit conversions
+- recovery code generation on the EFF short wordlist (#520)
+- add DAN DL7 segment reader
+- keyslot file with Argon2id passphrase/recovery wrapping (#520)
+- SBE1 encrypted envelope with python-generated KAT vectors (#520)
+
+### Bug Fixes
+
+- stop the cache leaking superseded files and the movie tile overclaiming
+- give store-cached videos a container extension they can be opened by
+- play and preview store-backed videos on synced devices
+- guard the save flow against re-entry
+- drop a stale site name when the site changes mid-lookup
+- normalize inside DisplayZoomScope instead of trusting callers
+- compute the plan summary after the naming flow
+- surface unknown display-channel methods instead of no-opping
+- snap zoom levels so 100% compares exactly
+- lay the child out at the logical size, not the window size
+- give the strict-close worker wait a checkpoint-sized budget
+- honor the awaitWorkerShutdown contract on repeat calls
+- make app-exit database close wait for the real SQLite close
+- clear both library-epoch anchors so Repair cannot strand a device
+- survive a page pop during a quality save
+- fail closed when the iCloud container is unavailable
+- make ensure() safe against a concurrent insert
+- adapt to renamed media transfer summary API, UTC year range
+- dedupe sites by name+coords, cap urgent banner, localize settings hub
+- make the legacy S3 credential store injectable
+- reuse the S3 account when the provider type flips
+- stop minting a new account on every connect
+- localize on-this-day minutes, de-flake anniversary test
+- year hours rounding, indexed year query, stricter grid test
+- make worker disposal stick across an in-flight drain
+- stop reporting parked transfers as work in progress
+- reduce hero banner padding
+- smaller hero greeting, larger logo
+- tighten hero right padding, enlarge quiet stats
+- drop deepest stat from hero, shrink logo to 56px
+- restore hero logo to right side at original size
+- remove unbounded flex and intrinsic layout failures
+- serve the compressed rendition when no original was uploaded
+- a present-but-unreadable file verifies as transient, not orphaned
+- probe readability, not just existence, for localFile resolve
+- auto-verify bails without an active store descriptor
+- bogus future fleet timestamp cannot suppress auto-verify
+- drain sweep repairs before stamping the fleet timestamp
+- private temp dir on Linux, thread pool on Windows
+- check the remaining HRESULTs in HBitmapToPng
+- refresh attach state on connect and disconnect
+- move thumbnail-ready message off the colliding WM_APP + 1
+- gate video poster generation to desktop platforms
+- self-heal corrupt poster cache; move poster bytes on Windows
+- session reaping is best-effort within the verify sweep
+- qualify kThumbnailReadyMsg at its use inside the worker lambda
+- treat a failed bookmark read as a null blob
+- guard cache-dir failure, offload Windows extraction, doc accuracy
+- include videos in upload backfill candidates
+- use stream logical size when reading encoded PNG (Windows)
+- enqueue Files-tab imports for upload
+- format-agnostic poster cache extension, doc accuracy
+- review round 2 on video thumbnail native handlers
+- close first-part multipart leak and extension-variant orphans
+- address review feedback on video thumbnail handlers
+- hydrate media taken_at as wall-clock-UTC
+- paint the ceiling line's shaded fill
+- scope backfill candidates to dive- or site-linked media
+- key the surface lead-in on each series' own profile (PR review)
+- apply the t=0 readout to the inline tooltip and remaining curves
+- describe t=0 in the readout instead of repeating the first sample
+- compute pressure-based lead-ins, fix smoothing, cover mini charts
+- extend every profile curve back to t=0, not just depth
+- draw the depth trace from the surface at t=0 (#684)
+- treat blank itinerary port and notes as absent
+- address review on retry gating and exact-second matching
+- self-sizing sticky day header for scaled text
+- resolve gallery assets by exact capture second
+- restore undo summary from persisted row, not in-memory outcome
+- delete targets route planId, closing load-window race
+- sweep stranded temp files on no-op restore + a11y label (PR review)
+- don't let post-swap cleanup abort a succeeded restore (PR review)
+- skip summaries watch on :planId route; SnackBar persist:false (#406)
+- clear errorMessage when reclaiming a stranded row (PR review)
+- read (not watch) repo in reclaim provider (PR review)
+- navigate off dead route when plan already gone; pin test locale
+- make the restore test seam one-shot and reset-safe (PR review)
+- await transfer reclaim before wiring drains (PR review)
+- keep the database open during large-DB restore so pages don't red-screen
+- run transfer reclaim once per process, not per drain (PR review)
+- recover orphaned 'transferring' uploads on drain
+- stop master-pane selection toolbar from overflowing
+- never leave a Windows .tmp on failure + quiesce dispatcher on teardown (PR review)
+- Windows probe bitrate fallback, headless progress drop, test asserts (PR review)
+- marshal Windows progress to platform thread + guard dimensions/root path (PR review)
+- read source height off main thread in Android transcode (PR review)
+- probe off main thread + drop redundant manifest package (PR review)
+- harden Android Media3 error paths (PR review)
+- share one progress stream across engine instances
+- pin AVF reader PCM to the AAC encoder rate/channels
+- clean up temp on all AVF failure paths; nullglob CI loop
+- use readerFailed case + sync ios Podfile.lock (PR review)
+- treat a gas change at the first sample as the initial gas (#679)
+- Apple finalize/concurrency/error-message (PR review)
+- unique progressIds + NaN-safe Apple probe (PR review)
+- convert rename failure to TranscodeException (PR review)
+- derive bitrate on N/A ffprobe + sync error-handling spec
+- harden Apple AVFoundation engine (PR review)
+- force mp4 muxer + auto-dispose availability check (review)
+- sweep stranded transcode on original upload + doc fixes (review)
+- record stored rendition size on dedup (PR review)
+- fall back to original on TranscodeException (PR review)
+- gallery ceiling rule + deterministic label tests (PR review)
+- harden upload pipeline + rendition cache (PR review)
+- guard dive_id column in the v132 bottom-time backfill
+- truly exit compare mode when plans drop below two
+- stop storing bottom time equal to runtime
+- open saved plan with a single back press
+- refresh safety review after sync and analyze-all
+- deterministic tie-break for the Service Due sort
+- guard ref use after await in the sync-pull gate
+- cancel the auto-sync debounce timer on reset
+- invalidate service urgency provider on schedule writes
+- run disableForDatabaseReset guards independently
+- guard v4 overrideLevel migration against v1 full-create path
+- configure interval when adding a no-default service clock
+- show enabled but unconfigured service clocks
+- stop restored/reset data from vanishing under cloud sync
+- keep @DriftDatabase on AppDatabase; detect edited legacy dives
+- give the synthesized source the deterministic backfill id
+- render 3D/spatial/compare for dives missing a data-source row
+- enable encrypted sync on secondary devices after unlock
+- translate built-in dive type names (#643)
+- use AMV instead of SAC in the German UI (#640)
+- prefilter withProfiles to primary samples only
+- route detail-chip count through l10n
+- hydrate detector toggles at startup
+- dedupe dive headers + localize last-scan time
+- address round-3 review comments
+- stop the upload-pipeline test leaking async work past teardown
+- address round-2 review comments
+- localize the Safety section title on the mobile tile
+- store/show incident occurredAt as wall-clock UTC
+- guard user numeric attributes for finiteness
+- droppable lead from placement in the through-dive twin
+- sanitize BCD lift capacity before the bladder term
+- address PR review comments and raise test coverage
+- guard haversine NaN and stop the ticker on no-fly expiry
+- localized geocoded countries, ISO country field, comment accuracy
+- tighten attribute-prior edge cases from PR review
+- drop dead safetyHub_* hub-link keys stranded by the merge
+- address PR #635 review on the stale-bond repair
+- mark edit form initialized after populating controllers
+- address PR #611 review round 2 on the incident edit form
+- gate runner overflow menu by strict-order actionability
+- compute plan droppable lead from per-WeightType placement
+- self-heal stale BLE bonds on the connect path (#621)
+- suppress same-suit history strip for a suitless dive
+- hide alerts banner when no renderable alert
+- drop redundant chamber call menu item; align docs to v126
+- use double bounds for clamp to avoid int-return crash
+- self-invalidate no-fly status at expiry (Copilot review)
+- treat non-positive wing lift capacity as null
+- address PR #611 review — incident edit robustness, sync test coverage, route docs
+- localize the unnamed-tank breakdown label
+- address Copilot round-4 review (emergency card / dashboard)
+- skip zero-duration plan segments in synthesizePlanProfile
+- scope dive-summary lookups to the active diver (round 3)
+- localize overdue-service note; pin test locales
+- address Copilot round-2 review on emergency card
+- pin compass reset animation to its original controller
+- avoid duplicate timestamp in 5 m square profile; pin test locales
+- sample the clock once in the no-fly alert text
+- renumber no-fly migration v124 -> v125 after main collision
+- address Copilot round 3 + raise no-fly patch coverage
+- address Copilot follow-up on no-fly (round 2)
+- address Copilot review on no-fly hub
+- seed compass rotation on mount/swap; fix map test l10n
+- date-attr picker caps at today; fix number-format test
+- address Copilot follow-up review round 2 on PR #608
+- address Copilot review on emergency card
+- keep custom fields colliding with curated keys in CSV
+- handle disposal mid-reset; harden compass test
+- restrict suit-thickness filter to exposure suits
+- address Copilot follow-up review on PR #608
+- align dive-list badge with per-rule disables
+- address Copilot review on PR #608
+- translate Environment section/subsection headers (#622)
+- localize weather and dive-condition enum values (#622)
+- make junction authoritative for buddy/DM columns
+- translate weather field titles for issue #622
+- address round-6 Copilot review comments
+- show junction buddies in table Buddy/Dive Master columns
+- address copilot follow-up review round 3
+- address copilot follow-up review round 2
+- address copilot follow-up review
+- saveReview bumps parent dive HLC so reviews sync
+- reactivity, batched applyTemplate, atomic deleteCourse
+- correct chart tooltip index; debounce twin re-simulation
+- resolve relative next-page href against the request URI
+- clamp stop tags to vertical bounds
+- stop catalog scan per-page, not on first past-end asset
+- unit-aware rate sliders; consume unavailable setup focus
+- validate RecreationalNdlSolver args, fail fast on misuse
+- drop pending pSCR edit on invalid input; fix provider doc
+- repaint charts on style/textDirection change; pin test locale
+- query captured_after so oldest-first scans reach in-window assets
+- format ccr_ui_test + clarify geometry/pSCR docstrings
+- make the connector-video play button semantically actionable
+- make the Open-in-Lightroom launchUrl calls explicitly fire-and-forget
+- address round-4 review comments
+- address PR #617 review comments
+- hydrate history/plan twins correctly; hu typo
+- address service-ledger PR review batch 3
+- address service-ledger PR review comments
+- rapid-ascent rule uses fixed design thresholds
+- address second-round PR #612 review comments
+- address round-3 review comments
+- address round-2 review comments
+- address PR #617 review comments
+- address PR #612 review comments
+- ensureDeletionLogIndex only dedupes on real duplicates
+- connector videos show poster + Open in Lightroom instead of failing local playback
+- tolerant asset parsing - a list where a scalar was expected crashed the whole scan
+- scan uses a single capture cursor (captured_after/before are mutually exclusive) + surface API error body
+- dedupe 'Go to dive' in finding cards (footer + repair action)
+- address Copilot review on attribute thickness/number fields
+- move Dives review entry into the overflow menu (all app-bar variants)
+- move Data quality entry under Settings > Data (was Unknown section on wide layout)
+- smooth depth into the suit term to de-noise the curve
+- hydrate typed weights and equipment for the twin
+- label the net-buoyancy chart axes
+- autoDispose badge providers, stub in test base overrides
+- add no-fly to wide planning sidebar and correct stale incident routes
+- setup accordion PageStorage bool collided with TextField scroll restore
+- editor pane always visible on desktop, drop drawer, compact segment tiles
+- suppress time tick labels that collide with the axis unit label
+- merge safety review rows in sync apply and harden disabled-rules decode
+- renumber pre-dive checklist migration to v117 (ladder collision)
+- PRAGMA-guard v115 legacy copy for minimal old-schema databases
+- account for seeded built-ins in template repository tests
+- bump dive detail section count expectations to 19
+- GC exempts only durably fenced peers; spec marker semantics
+- address PR review - distinct item counts, diver-scoped custom kinds, pinned test locales
+- defer Perdix overlay controller-removal rebuild past tree finalization
+- renumber service ledger migration v113 to v115 (open PR claims)
+- make v113 backstop self-guarding for partial fixture databases
+- package imports, settings mock stubs, mini profile header overflow guard
+- drop deleted hw_frog.c from platform build source lists
+- prompt for passphrase when restoring encrypted backup in setup wizard
+- stop encrypted-restore passphrase dialog from over-popping the navigator
+- create temp dir before restoring on fresh installs
+- carry exit GPS through ImportedDiveConverter for #586
+- second review pass on #586
+- address #587 re-review (round 5) - error-path hardening
+- trip-story review round 15 (6 comments)
+- address #587 re-review (round 4)
+- address #587 re-review (round 3)
+- address #586 review + raise patch coverage to ~92%
+- address #587 re-review (round 2)
+- correct liveaboard port day-index + bound media concurrency (PR review round 14)
+- address #587 review feedback
+- address trip-story review round 13 (16 comments)
+- clamp rhythm-bar track height so it never goes negative (PR review round 12)
+- extend story day span to cover out-of-range itinerary days (PR review round 11)
+- only draw the story route polyline with 2+ points (PR review round 10)
+- best-effort media/sightings + pin-tap camera (PR review round 9)
+- gate cert commit on a dirty flag + localize detail error (#553 review)
+- assert CertificationEditPage mode contract (#553 review)
+- dismiss scan loading dialogs via captured navigator (PR review round 7)
+- inject CertificationRepository into _importBuddies (#553 CI)
+- address PR re-review (round 6) for #553
+- preserve staged cert updatedAt on unchanged Save (#553 review)
+- address PR review round 5 (effectiveEntryTime, scroll threshold, vessel overflow)
+- address PR re-review (round 4) for #553
+- address PR review round 4 (active-day fallback, species merge key)
+- drive S3 _save provider work through the app container so a mid-save pop can't crash on ref-after-dispose or skip the global refresh
+- address PR re-review (round 3) for #553
+- address PR review round 3 (reactivity, painter/delegate equality)
+- gate account-first resolution on settled account so a credential-edit reload uses the legacy singleton, not a stale per-account key
+- address PR re-review for #553
+- clamp hover tooltip using its real measured size
+- address PR review for #553
+- run global sync-state refresh before S3 re-derivation await so a mid-save pop can't leave dependent screens stale
+- mounted guards after account-derivation awaits; mirror failure falls back to legacy resolution
+- guard AxisFrame divisions against 0; make wireframe step int explicit
+- best-effort legacy Dropbox key clear on sign-out (never abort sign-out on keychain error)
+- remove unused import in trip story view
+- disconnect clears both credential locations (bidirectional mirror + legacy clear on Dropbox sign-out)
+- re-track hover tooltip on camera changes; drop dead compartments branch
+- align tissue provider nullability with builder; validate picker arrays
+- guard account-first resolution against a stale account of the wrong kind during the provider-type transition
+- anchor tissue Y tick labels from sceneMinY to match tick geometry
+- restrict tissue-pick depth tie-break to exact screen-point overlap
+- per-axis tick colors + localized zoom button tooltips
+- wire accountCredentialsStoreProvider into the S3 adapter so test overrides reach it
+- pan-aware tooltip screenPos + stop trackpad pan from rotating
+- async volume-mount probe so an offline share can't block the UI isolate
+- second device with synced account but no local creds can sign in (gate on device status, reuse roster row)
+- address PR review — cache invalidation, repaint keys, bounds guards, RTL, picker perf
+- review - break core->presentation cycle, refresh Dropbox blob on connect, sync-tick on account selection, checked Lightroom adapter
+- migration retries reuse persisted account ids (no duplicates, no misassignment)
+- disconnect through the adapter so the cached manager is evicted
+- review round 2 - updatedAt semantics, adopted-row pending marks, connectS3 kind guard
+- review findings - deletion tombstones, manager-backed disconnects, sync-S3 never adopts media-S3
+- startup rekey reads adopted roster; selection bookkeeping best-effort
+- career terrain has no scrub cursor (drop inherited ScrubPath)
+- cover DiveMode.gauge in the CCR segment switch after rebase
+- analyze CCR dives with loop gas segments in both analysis paths (issue #455)
+- run CCR dives through the gas-segment deco path (issue #455)
+- immutable DiveIdSet family key + scrub-bar play/pause tooltip
+- gauge analysis honors user ascent-rate settings; explicit freedive mapping (#569)
+- keep real reported tank records for gauge downloads (#569)
+- address second-round PR #565 review comments
+- stable source partition in compare adapter; dispose test notifier
+- address PR #565 review comments
+- correct horizontal drag-rotation direction
+- respect unit preferences for height in body weight entry
+- replace fragile PageStorage retention with deferred-restore retainer
+- override flutter_angle with Flutter 3.44 embedder fix fork
+- pickFirst duplicate libc++_shared.so from flutter_angle
+- package import in auth store
+- restore libdivecomputer submodule pointer to main's pinned commit
+- align empty state with dive list (log-first-dive + add-dive sheet)
+- symlink macOS Pigeon output to iOS copy to prevent staleness
+- correct finish-screen feature routes (/gear->/equipment, /stats->/statistics)
+- advance libdivecomputer submodule to match main (Perdix 3 descriptor)
+- address PR #548 re-review comments (#520)
+- sync-error state handling + surface iCloud-unavailable message
+- temp-dir safety, client lifecycle, preflight and queue hardening
+- thumb-first resolution, gallery-only passthrough, staging cleanup
+- harden resume parsing, clear stale errors, forward content type
+- recognize the Shearwater Perdix 3 during BLE scanning
+- carry entry/exit GPS onto the target when folding dives (#542)
+- handle pull failures in the sync-connect step
+- address PR #548 review + raise patch coverage to 97% (#520)
+- create the sync temp dir before writing (macOS #554)
+- address PR review — settings re-entry backup state, cloud-backup toggle, PageController resync
+- mirror effectiveRuntime edge cases and fully order site query
+- deterministic tie-breakers for personal-record queries
+- row-safe WAL checkpoint + honest hydration benchmark timing
+- trim terms, accurate limit notice, and cleaner layering
+- S3 redirect bounce, back navigation, drop appearance step
+- use sandbox-safe temp dir and tidy empty-archive extraction
+- clean up ZIP temp dirs and stale photo state
+
+### Refactoring
+
+- make the iCloud platform seam a single enum
+- remove quality from device-local policies
+- read upload quality from the synced policy
+- seed the migration at deterministic ids
+- address review feedback on the localFile readability fix
+- address third PR 705 review pass
+- address second PR 705 review pass
+- address PR 705 review feedback
+- address PR 704 review feedback
+- extract shared backup-status predicate
+- drop redundant story dive sparkline
+- return stderr from the process-runner contract (review)
+- generalize DarwinAvfEngine to ChannelTranscodeEngine (shared by Apple+Android)
+- drop redundant clock invalidation on configure-tap
+- batch enrichment backfill; complete parent-refs coverage
+- log+rethrow in getDiverCount; keep reset stack trace
+- schedule override dialog takes schedule + kind
+- centralize the legacy data-source id format
+- thread the dive-type resolver into the list tiles
+- drop unused ref param from showStartSessionSheet
+- address review on compass control
+- address PR review — rename flag, fix docs, redirect route
+- await repository writes in requirement_tile callbacks
+- localize picker tab labels; pin en locale in media-sources/picker tests (PR #619 review)
+- consolidate photo sources under Photo library & sources; retire hidden-picker-tabs toggle
+- dissolve safety hub into planning, settings, and profile surfaces
+- dive planner hub row is a normal clickable tool tile
+- drop icon rail and shell - tools render full-bleed
+- retire hero slot and stale chrome tokens
+- centralize wizard surface alphas; add branch-step hug test
+- scope buddies watch to the pair, self-contained signatures diveId
+- memoize derived CCR loop ascent plan; guard fixture minute-40 lookup
+- drop unused CompareProfile3dView.title param
+- wrap shortcuts at _buildContent call site to shrink diff
+- career terrain delegates to CompareGeometryService
+- generalize renderable to scene-agnostic Scene3d
+- replace three_js engine with interactive CustomPainter viewport
+- promote PKCE helpers from dropbox to shared core/services/oauth
+- drop @visibleForTesting on prod helper; de-dupe dive-plan index DDL
+- move wizard step primitives to lib/shared/widgets/wizard
+
+### Performance
+
+- persist the slider on release instead of every notch
+- cascade reuses the rows it already read; guard empty partition
+- evaluate chosen-set clocks in parallel
+- evaluate active clocks once; watch urgency only when needed
+- scope pre-push tests to files changed in the push
+- count divers instead of loading all for the restore gate
+- run data-source backfill after the performance-index heal
+- index equipment attributes once in gearFeatureFor
+- reuse the fence check's folder listing for the pull
+- stable onDaySelected identity so the map header doesn't rebuild each frame (PR review round 8)
+- split tissue chrome into static + dynamic overlay painters
+- re-project only the picked vertex on camera change
+- hoist nullable-depth cast out of the frame-rate readout builder
+- commit _currentDatabasePath only after verified open (WS5 review 5)
+- evaluate effective-runtime subquery once for longest dive
+- strict close in reinitializeAtPath verify-fail path (WS5 review 4)
+- strict close keeps connection ref on failure (WS5 review 3)
+- apply strict close to all reopen-after-close paths (WS5 review 2)
+- strict close on reopen paths + reset lastOpenMode (WS5 review 2)
+- single version read + fail-fast migrator close (WS5 review)
+- deterministic bounded ordering + empty-query guard
+- execute SQLite off the UI isolate (WS5)
+- SQL-bounded home providers, no hot-path getAllDives (WS4)
+- decimate analysis curves and scope the series cache (WS3)
+- lean hydration for the analysis lookback path (WS2)
+- bounded DiveSummary search hydration (WS1)
+- bracket ready-to-first-frame timing; attribute debug startup freeze to JIT + getAllDives
+- checkpoint WAL after heal; startup step timing; re-baseline findings
+- self-heal performance indexes in beforeOpen
+- vmcap VM-service profiler tool and measurement runbook
+- canonical index list, db_bench tool, WS0 SQL baseline
+
+### Documentation
+
+- drop em-dashes from the v1.7.0 release notes
+- regenerate the changelog for 1.6.1
+- document recently merged PRs in v1.7.0 release notes
+- sync the zoom spec and plan with the implemented API
+- correct the display zoom ARB key list
+- record the OverflowBox constraint fix
+- update _openDatabase comment for BackgroundDatabaseConnection
+- implementation plan for naming a saved dive plan
+- implementation plan for app-wide display zoom
+- design for naming a saved dive plan
+- design for app-wide display zoom
+- plan synced media upload quality
+- spec synced media upload quality
+- add connected accounts deduplication implementation plan
+- add connected accounts deduplication design
+- add dark deep splash and hero implementation plan
+- add dark deep splash and hero background design
+- add Home page redesign implementation plan
+- add Home page redesign design spec
+- add v1.7.0 release notes
+- drop the 'See it in action' section heading
+- tighten and lighten the header subtitle
+- put logo and title on the same line in the header
+- put logo and title on the same line in the header
+- simplify header and move downloads to dedicated section
+- correct the upload-pipeline scope claim in the design spec
+- implementation plan for local-media upload badge
+- design for local-media auto-upload and not-backed-up badge
+- implementation plan for orphan prevention PR 4 (Verify Library)
+- resolve orphan-predicate verification gate; PR 3 plan (cascade + backlog sweep)
+- correct toWallClockUtc reference in comments
+- implementation plan for local-file video thumbnails
+- implementation plan for orphan prevention PR 2 (blob delete fast path)
+- design spec for local-file video thumbnails
+- implementation plan for orphan prevention PR 1 (backfill scoping)
+- design spec for media store orphan prevention
+- implementation plan for trip story scroll polish
+- design spec for trip story scroll polish
+- implementation plan for deleting a dive plan from the canvas
+- point requeueStale doc at its once-per-process caller
+- add Code of Conduct and Contributing guide
+- design for deleting a dive plan from the canvas
+- correct stale v130 refs to v133 for compressed-rendition columns
+- design and implementation plan for the deco stop band
+- implementation plan for video transcoding Phase B4 (Windows MediaTranscoder)
+- implementation plan for video transcoding Phase B3 (Android Media3)
+- implementation plan for video transcoding Phase B2 (Apple AVFoundation)
+- implementation plan for video transcoding Phase B1
+- design spec for video transcoding (upload quality Phase B)
+- reference hasAnyDiversProvider.future in the restore-gate comment
+- implementation plan for equipment service clock unification
+- correct spec GC scope (general sweep unbuilt; Phase A does targeted delete only)
+- Phase A implementation plan for adjustable media upload quality
+- spec for unifying equipment service on clocks + add-timer fix
+- media_enrichment sync implementation plan
+- design spec for adjustable media upload quality
+- add phase 2 no-fly countdown implementation plan
+- implementation plan for water type from dive site (#624)
+- design spec for water type from dive site (#624)
+- clarify paging fake models ordering/pagination, not null-capture assets
+- reconcile design + plan to shipped schema v114
+- Lightroom Native App embedded-connect implementation plan (Plan 2)
+- Lightroom approval walkthrough page + resubmission email drafts
+- Lightroom Native App auth core implementation plan (Plan 1)
+- Lightroom connect via OAuth Native App design (unified BYO + embedded)
+- phase 5 implementation plan - SCR breathing mode (validated slice)
+- phase 4 implementation plan - rates and gas options (no-schema slice)
+- data quality assistant plan 2 (repairs and inbox UI)
+- buoyancy digital twin implementation plan
+- data quality assistant plan 1 (data and detection engine)
+- buoyancy digital twin design
+- weight planner attribute-informed priors implementation plan
+- phase 3 implementation plan - on-chart editing
+- attribute-informed buoyancy priors for the weight planner
+- data quality assistant design spec
+- phase 2 implementation plan - Mission Control layout
+- changelog entry for configurable CNS calculation method
+- edit form chrome redesign implementation plan
+- CNS calculation method spec and implementation plan (issue #578)
+- phase 1 implementation plan - chart + design system
+- edit form chrome redesign design freeze
+- planner UI redesign + Subsurface parity design spec
+- mark safety features spec implemented
+- add phase 4 near-miss log implementation plan
+- add phase 3 emergency card implementation plan
+- add phase 2 no-fly countdown implementation plan
+- correct logDeletion comment to reference the v113 index
+- correct Perdix overlay hit-testing comment
+- renumber safety review schema claim to v116 (v115 taken by PR #602)
+- add pre-dive checklist implementation plan
+- add phase 1 implementation plan for post-dive safety review
+- equipment attributes implementation plan (10 tasks); align spec with backup/date ground truth
+- gear service ledger implementation plan
+- implementation plan for Perdix video overlay (#168)
+- add safety features design spec (review, no-fly, emergency card, near-miss)
+- add pre-dive checklist feature design spec
+- design spec for Perdix-style media playback overlay (#168)
+- gear service ledger design spec
+- equipment type-specific attributes design
+- mark tombstone GC spec implemented
+- add course requirement tracker implementation plan
+- implementation plan for fleet-acked tombstone GC and device retirement
+- add course requirement tracker design spec
+- design spec for fleet-acked tombstone GC and device retirement
+- add PR artifact links design spec and implementation plan
+- implementation plan for default & geofenced equipment sets (#583)
+- spec for default & geofenced equipment sets (#583)
+- implementation plan for app-wide encrypted backups (#580)
+- design spec for app-wide encrypted backups (#580)
+- record trip story implementation deviations
+- add trip story implementation plan
+- add trip story design spec (issue #166 + interactive breakdown)
+- correct stale no-on-canvas-text claims (axis_frame + plan)
+- record post-review revisions (labels, Z width, pan/zoom, review fixes)
+- spec and plan for tissue axes, grid, and tooltips
+- clarify ascentGasPlan null behavior for setpoint-bearing segments
+- add CCR loop-aware deco/TTS implementation plan (issue #455)
+- connected accounts phase 1 implementation plan
+- media linking and storage program design spec
+- correct gauge plan l10n to 11 locales (add zh) (#569)
+- add gauge dive mode implementation plan (#569)
+- add gauge dive mode design spec (#569)
+- implementation plan for previous/next navigation
+- implementation plan for 3D profile comparison
+- design for previous/next adjacent-dive navigation
+- design spec for 3D profile comparison (dives + computers)
+- record retainer revision superseding PageStorageKey approach
+- implementation plan for detail pane scroll retention
+- drop redundant scaffold bucket after spike; keys alone suffice
+- design for detail pane scroll retention
+- add tissue saturation 3D scene design spec
+- add Terms of Use for third-party API integrations
+- drop three_js from 3D flythrough spec and PR 2 plan (CustomPainter reversal)
+- add 3D flythrough PR 2 plan and spec addendum
+- mark 3D flythrough PR 1 plan progress (PR #563)
+- Lightroom auto-linking implementation plan + spec corrections from code exploration
+- add dive 3D view implementation plan
+- add 3D flythrough PR 1 implementation plan; fix TTS storage note in spec
+- add Lightroom cloud auto-linking design spec
+- add dive 3D view design spec
+- add 3D dive flythrough design spec
+- add weight prediction implementation plan
+- add weight prediction design spec
+- v1.6.1.115 release notes for encrypted cloud sync (#520)
+- forbid Claude Code attribution and session URL in PR descriptions
+- dive roles implementation plan (11 tasks, v103)
+- agency-dependent certification levels implementation plan (#546)
+- dive roles design spec (custom roles #551, own role #547)
+- agency-dependent certification levels design (#546)
+- media store phase 4 implementation plan
+- media store phase 3 implementation plan
+- reword temp-dir test comment (Copilot review #555)
+- media store phase 2 implementation plan
+- select main isolate; require-arg usage syntax
+- explain getMergedProfile is intentionally unfiltered for parity
+- split provider doc comments after analysisDiveProvider insert
+- describe the setup wizard first-run flow
+- setup wizard implementation plan
+- media store phase 1 implementation plan
+- setup wizard for new databases (discussion #523) design spec
+- DiverLog+ / DAN DL7 import implementation plan
+- encrypted cloud sync implementation plan + cryptography deps (#520)
+- media store (cloud media storage backend) design spec
+- encrypted cloud sync (E2E) design spec (#520)
+- DiverLog+ / DAN DL7 import design spec
+- WS0 in-app verification on the live database
+
+### Tests
+
+- name the photo cache test for what it asserts
+- stop the poster test comment claiming a JPEG fixture
+- pin Intl.defaultLocale in the plan name generator tests
+- await the stalled close and drop the unreliable WAL assertion
+- drive the container lookup through an injected seam
+- assert upload quality keys are not device-local
+- cover the managed-kind anchor and the startup guarantee
+- pin locale to en in widget-test harnesses
+- cover recentPhotosProvider and gear tie-break branches
+- cover Home appearance entry in both settings twins
+- cover chips, cards, providers and review fixes
+- exercise the bookmark branch on every host, not just Apple
+- raise PR 705 patch coverage to 90%
+- name the library-level orphan fixtures for their source type
+- dive-deleted media contract - cascade for dive-only, unlink for library
+- compressed backfill exclusion tests the stamp, not linkage
+- link backfill service fixtures to a dive
+- cover the t=0 lead-in paths flagged by Codecov
+- cover the resolution tier ladder and stale-cache clearing
+- pin Intl.defaultLocale in day header tests
+- cover Darwin progress routing/clamp/cancel (PR review)
+- cover initial-gas detection across sample intervals
+- Windows MediaTranscoder integration test
+- Android Media3 integration test + fix darwin test rename
+- macOS AVFoundation integration test (ffmpeg-synthesized input)
+- real-ffmpeg smoke test with synthesized fixture
+- pin en locale and close the DB in teardown for the new tests
+- also cover the reset sync-disable failure path
+- cover disableForDatabaseReset, reset gate, and getDiverCount error
+- relax v129 tripwire; v130 owns the exact-latest schema assertion
+- end-to-end compressed photo upload + cross-device read
+- mock SharedPreferences in end-to-end test (pipeline reads quality policy)
+- const MaterialApp in service clocks card test (lint)
+- stub per-dive findings badge stream in shared overrides
+- pin gloves/boots strength in the no-attributes regression
+- raise near-miss patch coverage to ~93% + localize list error
+- prove GearBuoyancyTraits equality is by list content
+- reconcile dive-detail section count to 20 after merge
+- add emergency_chambers to parentRefs completeness guard
+- fix v125 schema tripwire and raise emergency-card patch coverage
+- restore exact-latest schema-version tripwire in the v119 test
+- raise patch coverage to ~93%
+- cover v124 no-fly migration and exact-latest tripwire
+- make CSV export fixture const (--fatal-infos)
+- pin en locale in chart and what-if widget tests
+- compare enum localization against getters, not literals
+- raise PR #608 patch coverage above 90%
+- cover course requirement tables in parentRefs completeness guard
+- direct ConnectorVideoItem test (fix CI coverage collection)
+- restore FlutterWebAuth2Platform.instance after the redirect-capture test (PR #617 review)
+- raise patch coverage above 90%
+- cover embedded dive->site navigation paths
+- raise patch coverage on the native-app connect diff
+- assert renamed Database Cloud Sync app bar title
+- relax the v112 exact-latest tripwire to gte
+- pin en locale in settings-page widget test (PR #617 review)
+- align Perdix overlay position mocks with production clamping
+- disable ambient scan scheduler globally in tests
+- move exact-latest schema tripwire to the v120 migration test
+- VPM-B golden vectors + generator (bwaite/vpmb BSD-2 reference)
+- remove unused import in sync test
+- twin agrees with static engine at the weighting convention
+- engine-level attribute-prior behavior coverage
+- adapt site/dive edit suites to v2 header-in-card chrome
+- macOS-gated golden images for the plan chart
+- cross-validate CNS methods against issue #578 references
+- raise service ledger patch coverage past 90 percent
+- update section count assertions for safety review section
+- pin en locale in Perdix overlay widget tests
+- usage-sample dedup and trip reminder coverage
+- address #588 review
+- raise #587 patch coverage to ~97% and harden per review
+- taller viewport so the new encryption section doesn't push history off-screen
+- raise trip story patch coverage to ~91%
+- cover Dropbox sign-out catch, connect-flow account refresh, and matching-kind fallback (patch coverage 73%->93%)
+- address PR review — pin en locale, closeTo, drop unused dayDate
+- tolerant dy compare in ResponsiveSectionPair row test
+- pin CCR fixture TTS against Subsurface (issue #455)
+- reparse gauge maps to gauge; unknown mode uses unrecognized string (#569)
+- raise patch coverage - getOrderedDiveIds filter/diverId branches, dive-detail nav navigation
+- lock in detail-pane scroll retention contract
+- exclude GL viewport from coverage (device-matrix verified)
+- raise patch coverage for geometry service, providers, and page
+- raise patch coverage - settings page suite, dialog error paths, viewer action, entity equality, auto-poll failure
+- raise patch coverage for the weight prediction feature
+- raise patch coverage across adapters, page, and providers
+- raise patch coverage for the dive roles feature
+- cover merge-mode certification cycling; make catalog abstract final (#546)
+- raise WS5 patch coverage to ~94%
+- raise patch coverage to 90%+ for the wizard
+- clarify newer-than-app test rejects before any Drift open
+- cover diver-scoped records and the SQL count providers
+- cover zoomed decimation, dense overlays, and MOD line (WS3)
+- cover startup step timing; scope coverage to real logic
+- cover search provider and DiveSearchDelegate
+- DL7 end-to-end batch integration coverage
+- no-plaintext-leak invariant and encrypted two-device convergence (#520)
+- update restore-service doubles for the encryptionSecret parameter (#520)
+- env-gated real-sample regression suite for DL7
+- query-plan regression tests for performance indexes
+
+### CI/CD
+
+- run each integration test file in its own flutter test invocation
+- bound the macOS integration-test job to 25 min
+- scan only PR/push commits for the override marker (two-dot log)
+- clarify that the inert-path case globs match nested paths
+- add an escape hatch to force the full pipeline
+- skip test/build jobs when a change touches no Dart
+- shard tests 4->8 to roughly halve test wall-clock
+- bump actions/download-artifact from 4 to 8
+- bump actions/github-script from 7 to 9
+- bump actions/setup-python from 6 to 7
+- install libwebkit2gtk-4.1-dev for the Linux build
+- TEMPORARY debug job to isolate photo_viewer coverage collection
+- connector-video line diagnostic + standard lcov field order
+- merge shard coverage into one Codecov upload (fix zeroed patch coverage)
+- install libwebkit2gtk-4.1-dev for the Linux build
+- make PR-target binding merge-commit-safe; use GITHUB_SERVER_URL
+- harden artifact-links per review
+- address review on artifact-links
+- add PR comment with build artifact download links
+- upload testable build artifacts and PR number on pull requests
+- wait for all coverage uploads before status
+- enable git long paths on Windows for the flutter_angle git dependency
+- install CMake 3.31.4 in Android build for flutter_angle
+
+### Chores
+
+- bump version to 1.7.0+117
+- register submersion_transcoder plugin (pod install)
+- format engine + commit pubspec.lock for submersion_transcoder dep
+- temporary [LR-SCAN] diagnostics for the empty-scan investigation
+- lock flutter_web_auth_2 pods
+- register embedded Adobe redirect scheme (iOS/Android/macOS)
+- regenerate plugin registrants for flutter_web_auth_2
+- post-implementation sweep
+- bump CocoaPods lockfile stamp to 1.17.0
+- preserve error+stackTrace when logging swallowed sign-out and account-derivation failures
+- drop unused import
+- delete orphaned Dive3dPreviewCard widget + test
+- add 3D comparison strings (English; locales pending)
+- regenerate macOS Podfile.lock after flutter_angle removal
+- register flutter_angle in platform plugin registrants
+- regenerate plugin registrant for cryptography_flutter (#548)
+- finalization sweep, plan checklist complete
+- verification fixes for setup wizard
+
+### Other
+
+- i18n(zoom): translate display size strings into all locales
+- i18n(planner): add plan name dialog title and fallback label
+- Revert "docs(readme): put logo and title on the same line in the header"
+- delete release nots
+- format the dive-deleted media sync contract test
+- format PR 3 tests
+- format new delete fast path tests
+- format backfill scope test
+- register transcoder plugin in generated registrant
+- Apply suggestions from code review
+- backtick angle-bracket paths in transcode doc comment
+- docs+perf: renumber spec/plan to v131; pre-dive evaluates only chosen set
+- Bound the HEIC meta box read (PR review)
+- Guard HEIC extent read + add iloc v2 coverage (PR review)
+- Harden HEIC parser against malformed input (PR review)
+- Read HEIC/HEIF capture time on desktop
+- format media_repository_compressed_test
+- Address PR review r2: harden mvhd version + accurate decode-error tile
+- Address PR review: dispose guard + explicit icon centering
+- Match photos and videos to dives by capture time on desktop
+- Address sync review feedback
+- Remove internal continuity notes from PR
+- Add sync investigation continuity notes
+- Make epoch filtering strict and report skipped peers
+- Fix sync of legacy peers after epoch adoption
+- dart format the built-in reference-data contract test
+- const the infinite-lift traits to satisfy analyze
+- dart format safety settings test
+- test/docs: address copilot follow-up review round 4
+- drop the shard-coverage-merge experiment
+- clear stale completedAt on dive edit; make once-per-course link atomic
+- fixes based on github copilot suggestions and fixes.
+- Potential fix for pull request finding
+- fix missing import for settings_providers
+- fix linting warnings and undefined identifiers in dive log and site navigation tests
+- Potential fix for pull request finding
+- Created a comprehensive test suite for the newly implemented nested navigation and embedded site details in the dive log.
+- wall-clock-as-UTC dive dates and once-per-course link invariant
+- cover the totalCount==0 dashboard filter with an in-progress course
+- Enhanced Dive Log to Site Navigation
+- address PR #601 feedback
+- null-aware element in dive label
+- Add support for wetsuit thickness parsing in weight planner
+- Updated formatting with dart format
+- Delete CNAME
+- Create CNAME
+- Potential fix for pull request finding
+- - Incremented `currentSchemaVersion` to `v112` and updated migration versions in tests to prevent version mismatch errors. - Removed unnecessary line breaks for improved code readability.
+- Potential fix for pull request finding
+- Potential fix for pull request finding
+- ### Add thickness property to equipment models
+- update gitignore
+- i18n(backup): add backup-encryption strings (en + 10 locales)
+- Update issue templates
+- perf/a11y(trips): address PR review round 6
+- clean suggestions-row test lints
+- const DivePhotoMatcher call sites
+- drop unused test import
+- null-aware map elements in token forms
+- Revert "feat(debug): add three_js flythrough spike page behind debug menu"
+- l10n: translate sync encryption strings into all locales (#520)
+
+
+## 1.6.1 (2026-07-25)
+
+### Features
+
+- add macOS View menu zoom items
+- add display size control to Appearance settings
+- add zoom in/out/reset keyboard shortcuts
+- rename a saved plan from the overflow menu
+- apply display zoom at the app root
+- prompt for a plan name on first save
+- add device-local display zoom provider
+- extract plan name dialog and mark the title editable
+- add DisplayZoomScope for app-wide true zoom
+- add display zoom constants and value clamping
+- add default plan name generator
+- show the transcode hint on any incapable device
+- drive quality dropdowns from synced providers
+- add MediaUploadQualityPolicy over synced settings
+- add raw key-value accessors to AppSettingsRepository
+- run the account deduplicator after the migration
+- add the startup account deduplicator
+- add ConnectedAccountsRepository.ensure
+- add deterministic connected-account identity
+- match wizard ocean brightness to the splash
+- resolve splash brightness from cached theme mode
+- mirror theme mode into prefs for pre-db surfaces
+- swap OceanBackground dark palette to Abyss Blue
+- add startup brightness resolver with cached theme mode
+- attention chips with per-chip visibility settings
+- gauge strip shows only due/overdue gear, capped at 6
+- responsive monitor-first home page assembly
+- recent sites map card
+- year-in-review card
+- on-this-day dives card
+- recent photos ribbon
+- milestones provider and card
+- hero header with left logo and quiet desktop stats
+- add always-on GaugeStrip and UrgentBanner
+- add responsive DashboardGrid layout widget
+- show a not-backed-up badge on media tiles
+- opportunistic 30-day verify sweep
+- manual Verify Library action
+- fleet-wide verify sweep timestamp (schema v136)
+- verify library sweep service
+- verify-sweep repository helpers
+- reap stale multipart upload sessions
+- list in-progress multipart uploads
+- one-time backlog sweep for orphaned media rows
+- dive deletion cascades to dive-only media
+- cascade partition, synced unlink, and sweepable-orphan query
+- Linux ffmpegthumbnailer video thumbnails
+- Windows shell video thumbnails
+- macOS QuickLook video thumbnails
+- resolve local video thumbnails via VideoThumbnailService
+- add VideoThumbnailService with disk cache
+- add generateVideoThumbnail channel wrapper
+- transfers page renders delete entries
+- route media deletion flows through the deletion coordinator
+- deletion coordinator enqueues blob deletes before rows die
+- abort stranded S3 multipart sessions on terminal failure
+- worker routes delete entries, cellular gate exempts them
+- delete processor with drain-time refcount guard
+- countRowsWithHash refcount for blob deletion
+- delete-intent queue entries with per-hash idempotency
+- local cache DB v6 adds transfer queue payload column
+- sticky per-day headers in the trip story
+- sticky day header widget for the trip story
+- add TripStoryDay.isSurface
+- map-only pinned story header with 180px floor
+- delete the open plan from the canvas with confirm and undo
+- show a persisted-gated Delete plan menu item in the canvas
+- add l10n strings for delete-plan action
+- add deco stop band toggles to legend and settings
+- draw the deco stop band on the dive profile chart
+- add stepped deco stop band renderer
+- add deco stop band visibility and source settings
+- add deco stop band settings columns (schema v133)
+- resolve deco stop band source independently of ceiling
+- populate quantized decoStopCurve on ProfileAnalysis
+- add deco stop quantization and step transition helpers
+- Windows MediaTranscoder transcode + progress (unverified on Windows)
+- Windows plugin scaffold + WinRT probe (unverified on Windows)
+- return ChannelTranscodeEngine on Windows
+- surface a trash button on saved-plan rows
+- Android Media3 probe + transcode (Kotlin)
+- Android plugin scaffold + Media3 deps
+- dispatch to AVFoundation engine on Apple
+- AVFoundation probe + transcode (Swift)
+- Dart DarwinAvfEngine channel client
+- convert to plugin with darwin scaffold (iOS+macOS)
+- Linux ffmpeg hint on the upload quality section
+- wire PlatformVideoTranscoder + availability providers
+- PlatformVideoTranscoder adapter with ceiling rule
+- transcode-once pipeline integration for video
+- deterministic transcode staging in cache store
+- bitrate-based video presets + ceiling rule
+- Linux ffmpeg engine with process-runner seam
+- scaffold submersion_transcoder with probe DTOs
+- per-item re-upload quality action in the photo viewer
+- Upload quality settings section
+- upload quality strings across 11 locales
+- wire compressor defaults + reupload entry point
+- resolver serves compressed renditions with freshness
+- per-item re-upload override with guarded delete
+- pipeline branches uploads on quality level
+- v130 reconcile legacy service intervals into clocks
+- table Next Service Due column reads clocks
+- add clock-based Service Due list sort
+- remove legacy service settings from edit form
+- flag overdue gear from service clocks
+- list badges use clocks only, drop legacy fallback
+- queue overrideLevel column + enqueueReupload
+- detail header service state from clocks; drop mark-as-serviced
+- MediaCompressor seam + pure-Dart ImageCompressor
+- rendition cache pool with freshness check
+- per-media-type upload quality policy
+- compressed stamps, refcounts, and backfill fix
+- add compressed rendition fields to MediaItem
+- add v130 compressed rendition columns
+- add renditionKey store-key derivation
+- add MediaUploadQuality enum and presets
+- backfill hlc on legacy media_enrichment rows (self-heal)
+- replicate media_enrichment as a first-class HLC entity
+- add hlc column to media_enrichment (schema v130)
+- add no-fly countdown, safety hub, and altitude flag (safety phase 2)
+- add no-fly guideline classifier service
+- add reset-to-north compass on rotatable maps
+- cycle water type when merging sites
+- auto-fill dive water type from the assigned site
+- edit water type in the site editor
+- persist and hydrate site water type
+- hide Lightroom UI pending Adobe review
+- rename Cloud Sync to Database Cloud Sync (tile + page title)
+- Subsurface-exact pSCR O2 model, hypoxia warning, ratio setting
+- recreational NDL-maximization solver
+- passive semi-closed rebreather (pSCR) breathing mode
+- one-tap embedded Connect with Adobe on the settings page
+- signInWithEmbeddedCredential helper (begin/capture/complete)
+- injectable redirect-capture wrapper over flutter_web_auth_2
+- flutter_web_auth_2 dep + embedded Native App credential constants
+- Native App auth - refresh-token-optional connect, per-connection redirect, reauth signal
+- VPM-B decompression model validated against golden vectors
+- optional refresh token + per-connection redirect uri in auth data
+- wire v120 columns through domain, repo, engine, sync (per-segment setpoint/mode, plan start time, deco switch depth)
+- schema v120 - plan start time, per-segment setpoint/mode, per-tank deco switch depth
+- review inbox page, cards, badges, settings screen
+- l10n keys for inbox, findings and repairs (11 locales)
+- through-the-dive simulation panel
+- buoyancy twin outputs in Gear & Weights
+- what-if buoyancy re-simulation sheet
+- weighting history strip comparing carried vs modeled lead
+- inbox providers, detector toggles, watch queries
+- net buoyancy chart with per-moment breakdown
+- repair actions and executor
+- buoyancy detail section with final-stop diagnosis
+- profile repair math over edited-profile pattern
+- tank pressure series and record repairs
+- bulkShiftDiveTimes with snapshot restore
+- targeted scan hooks on import and save
+- wing lift capacity capture (schema v119)
+- scan service, scheduler and providers
+- detector registry and SQL pre-filters
+- gas, tank-assignment and source detectors
+- temperature and pressure detectors
+- profile gap, spike and rate detectors
+- clock, duplicate and split detectors
+- plan mode chip cycles OC, CCR, and SCR
+- dive quality context and builder
+- SCR breathing mode reuses the validated CMF loop model
+- assemble and provide buoyancy twin per dive
+- findings repository with scan-apply semantics
+- finding entity, deterministic ids, thresholds
+- rates setup section and O2-narcotic toggle
+- register qualityFindings entity for sync
+- anchor detection and derived twin outputs
+- edit ascent and descent rate in plan state
+- per-sample buoyancy twin simulator
+- plan ascent rate affects the computed schedule; wire descent rate
+- quality_findings table, migration v118
+- schedule policy descent rate and ascent-rate bands
+- neoprene compression curve and drysuit gas budget
+- gas mix density module for cylinder swing
+- surface safety hub from planning and tools pages
+- segment list reflects and drives chart selection
+- drag, double-click, gas menu, and keyboard editing on the chart
+- bridge equipment attributes into buoyancy traits
+- attribute-derived prior ladder and per-type factor functions
+- GearBuoyancyTraits attribute snapshot with panel parser
+- replaceSegment mutation for chart splits
+- pure edit controller for on-chart waypoint editing
+- Mission Control three-pane layout, phone tab deck, header chips
+- stat tiles, editor pane, and results pane
+- plan setup accordion hosting decomposed settings sections
+- setup sections extracted from the settings panel
+- icon rail shell, full-width hub, drop 440px sidebar
+- layout state providers and pane/tab l10n keys
+- Dive Info, Access & Safety, Life & Notes sections on rows
+- Identity and Location sections extracted onto rows
+- conditions and weather on rows, profile row, section icons
+- row-scale tanks, Gas & Gear overlines and unified actions
+- SuggestionFormRow autocomplete row primitive
+- EnumPickerRow bottom-sheet enum picker row
+- row-shaped inline editing for FormRow.text; rating clear affordance
+- FormOverline, FormAppendRow, FormEmptyRow primitives
+- CNS method picker with provenance, source links, 11 locales
+- FormSection v2 header-in-card chrome
+- shared plan kit vocabulary, adopt in results sheet
+- cut PlanCanvasPage over to PlanProfileChart, drop fl_chart chart
+- PlanProfileChart widget with layered painters and scrub
+- series painter with fill, ghost, mean depth, flags, stop tags
+- backdrop painter with grid, axes, and ceiling no-go band
+- respect CNS method setting in profile analysis and planners
+- persist CNS calculation method per diver (schema v113)
+- dash and label paint utilities for the plan chart
+- thread CNS method through calculators, default Shearwater-style
+- CnsCalculationMethod with three CNS rate algorithms
+- collision-avoiding stop tag layouter
+- pure chart geometry with hit-testing and tick logic
+- theme-derived chart palette for the new plan chart
+- add near-miss incident log (safety phase 4)
+- add offline emergency card with bundled hotlines and chamber directory (safety phase 3)
+- add bundled emergency numbers and chamber datasets with loader
+- add no-fly countdown, safety hub, and altitude flag (safety phase 2)
+- add no-fly guideline classifier service
+- translate safety review strings into all locales
+- localize pre-dive checklist strings across all locales
+- equipment attributes in CSV export
+- equipment attribute filter axis and dives-by-suit-thickness chart
+- add safety review settings page with analyze-all action
+- add pre-dive entry points to dashboard, tools, and trips
+- add quiet safety findings badge to dive list
+- add pre-dive section to dive detail and add-dive sheet
+- attribute rows on the equipment detail page
+- add safety review section to dive detail
+- type-driven attribute form and custom fields editor
+- auto-link pre-dive sessions to imported dives
+- add pre-dive session runner, sessions list, and start sheet
+- attribute-backed EquipmentItem with diff-save repository
+- add safety review settings (master toggle and per-rule set)
+- add pre-dive template editor
+- add pre-dive checklist providers, routes, and templates page
+- register safety review tables in sync serializer and streaming apply
+- register pre-dive checklist entities for sync
+- attribute labels in all 11 locales with resolver
+- add safety findings repository, providers, and profile-write invalidation
+- seed built-in pre-dive checklist templates
+- add pre-dive session repository with immutability guards
+- attribute catalog for all 18 equipment types
+- add dive safety review tables and settings columns (schema v116)
+- wire equipmentAttributes through serializer, merge order, and HLC registries
+- add pre-dive template repository
+- add pre-dive session engine and item composer
+- equipment_attributes table + v115 migration with legacy column copy
+- add sawtooth profile rule
+- add pre-dive checklist domain entities
+- add omitted safety stop rule
+- add pre-dive checklist tables (schema v113)
+- add missed deco stop and high surface GF rules
+- add safety review engine with rapid ascent rule
+- service ledger strings for all locales
+- per-clock service reminders and trip nag
+- pre-trip gear service alerts
+- service due card and clock-aware alerts and badges
+- manage service types page
+- service clocks card on equipment detail
+- service clock providers and trip alerts
+- register serviceKinds and serviceSchedules entities
+- service kind/schedule repositories, usage query, auto-attach, child tombstones
+- add Perdix dive computer overlay to photo viewer (#168)
+- ServiceDueEngine with date/dive/hour triggers
+- service ledger domain entities
+- schema v113 service ledger tables, seeds, backfill
+- add DraggablePerdixOverlay drag and playback wrapper
+- add PerdixFace dive computer display widget with l10n labels
+- add PerdixFaceResolver for media playback readouts
+- add Perdix overlay settings (enabled flag and position)
+- active course progress card
+- add/edit requirement and template picker sheets
+- retirement fence -- cloud-wins rejoin preserving pending records
+- requirements section on course detail page
+- course requirement tracker strings for all locales
+- retire idle devices with marker-first log deletion
+- requirement progress and suggestion providers
+- fleet-acked tombstone GC replaces the 90-day purge
+- register courseRequirements and courseRequirementDives entities
+- writer publishes ack map and heartbeats stale manifests
+- reader ack tracking, retired-peer skip, manifest reporting
+- course requirement repository with linking, templates, and tombstones
+- liveness constants and fleet-acked tombstone horizon
+- manifest appliedPeerHlc acknowledgment map
+- course requirement starter template catalog
+- retirement marker file name and model
+- course requirement domain entities and progress roll-up
+- v112 tombstone dedupe index + peer ack column
+- add course_requirements and course_requirement_dives tables (v112)
+- domain-neutral copy and translucent redesign for the setup wizard
+- Shearwater Perdix 3 download support (V2 protocol)
+- reuse retained key on re-enable; document per-artifact key semantics
+- translate default & geofenced equipment set strings (#583)
+- clear the default flag when the switch is turned off (#583)
+- backup-encryption settings section + encrypted export
+- backup-encryption enable + change-password dialogs
+- localize all locales + sync/robustness fixes (#583)
+- reencryptExistingBackups in-place migration
+- silent restore via the stored backup key
+- encrypt Save-to-File and Share exports when enabled
+- encrypt local + cloud backups when backup encryption is on
+- inject BackupEncryptionKeyStore + _activeBackupKey helper
+- add BackupTarget.writeSource for pre-encrypted artifacts
+- UI for default + geofenced sets (#583)
+- apply default/geofenced set on download + file import (#583)
+- repository, providers, and sync for default+geofenced sets (#583)
+- schema, entities, and selector for default+geofenced sets (#583)
+- add BackupEncryptionService (local key lifecycle)
+- add BackupEncryptionKeyStore (backup-scoped key custody)
+- add backupEncryptionEnabled preference flag
+- rebuild Overview tab as interactive trip story (closes #166)
+- assemble trip story view with scroll-linked map
+- add pinned story map header with camera animator
+- add trip story hero with planned-trip extras
+- add trip story day chapter card
+- add dive sparkline and day rhythm bar widgets
+- add trip story strings in all locales
+- add sparkline downsampling and day rhythm layout math
+- add tripStoryProvider composing story sources
+- multiple certifications per buddy via unified ownership (#553)
+- add per-site diver history aggregates
+- add batched getSightingsForDives query
+- add buildTripStory composition function
+- add trip story domain entities
+- account-first cloud-provider resolution (completes the Phase-1 deviation)
+- add pan (two-finger/trackpad) and discoverable zoom controls
+- widen tissue compartment (Z) axis for readability and labels
+- cross-device descriptors, hub, guided setup, network files (Phases 2-4)
+- Lightroom rides connected accounts; retire connector_accounts
+- sync selection persisted by connected account
+- media store connect flows create and use accounts
+- media store attach state and construction by account
+- startup migration seeds accounts from legacy config
+- Google Drive, iCloud, and Lightroom account adapters
+- S3 and Dropbox account adapters with per-account keys
+- capability interfaces and provider registry
+- per-account keychain credentials store
+- ConnectedAccountsRepository with sync pending marks
+- register connectedAccounts in sync engine
+- schema v107 connected_accounts table and sync_account_id
+- AccountKind enum and ConnectedAccount entity
+- label tissue axes with titles and tick values (time/%/compartment)
+- show tissue axes, grid, and hover tooltip on the tissue scene
+- wire tissue chrome and hover picking into the viewport
+- add tissue frame and chrome painters
+- add tissue hover tooltip widget
+- add 3D tissue tooltip and saturation-state strings
+- add nearest-vertex tissue surface picker
+- add AxisFrame geometry for tissue axes and grid
+- expose tissue surface grid and runtime providers
+- emit TissueSurfaceGrid alongside the tissue mesh
+- pair Details+Conditions and Buddies+Signatures side by side on wide panes
+- CCR diluent resolution and loop gas-segment builder
+- hold the CCR setpoint through TTS/schedule ascents for setpoint-bearing segments
+- show dive mode in the Details card (#569)
+- persist gauge dive mode on live download (#569)
+- detect gauge mode on reparse and skip tank synthesis (#569)
+- exclude gauge dives from gas statistics (#569)
+- hide gas/deco detail sections for gauge dives (#569)
+- hide tank controls in gauge mode edit form (#569)
+- short-circuit gauge dives to profile-only analysis in providers (#569)
+- add gauge dive mode with profile-only analysis (#569)
+- add gauge dive mode strings (#569)
+- remove the 3D View preview card from dive detail
+- Compare in 3D from the detail source section + l10n backfill
+- Compare in 3D action on the dives selection bar
+- compare-dives page + route
+- Computers comparison mode in the 3D view
+- shared CompareProfile3dView (view owns the profile cap)
+- optional time-plane scrub cursor
+- compare readout (per-profile depth + delta)
+- compare legend (focus + reference + max delta)
+- previous/next buttons + arrow keys on dive detail
+- DiveNavButtons previous/next widget + l10n
+- orderedDiveIds + diveNeighbors providers
+- getOrderedDiveIds query for adjacent-dive navigation
+- multi-dive comparison adapter
+- computer-source comparison adapter
+- CompareGeometryService (side-by-side + overlay)
+- reference-based DivergenceBuilder
+- optional opacity on RibbonBuilder.build
+- comparison profile primitives + resampler
+- light scenes with directional shading and slim the ribbon
+- retain scroll per trip and per liveaboard tab in detail pane
+- retain scroll on dive/site/course/cert/center/equipment/buddy detail
+- make tissue scene a 3D extrusion of the Subsurface heatmap
+- make the tissue scene legible
+- add spatial site seascape scene (Suunto-style topo)
+- add career terrain scene (stacked dive history)
+- add tissue saturation scene switcher, readout, and controls
+- add tissue chain deriver and providers
+- add tissue surface builder, geometry service, seam axis
+- add tissue chain replay service
+- add unit-aware depth grid planes
+- add fullscreen 3D page with scrub and readout
+- add interactive three_js scene viewport
+- add three_js mesh adapter
+- add 3D preview card to dive detail
+- add software projector and preview painter
+- add geometry service and scene providers
+- add scene marker layout
+- add scene data entity and profile lookup
+- add deco ceiling surface builder
+- add temperature strata mesh builder
+- add ribbon and depth-curtain mesh builders
+- add metric-to-color palette
+- add MeshData and SceneBounds scene normalization
+- add three_js dependencies and platform spike
+- startup auto-poll trigger on the dive list page
+- suggestion row with confirm and dismiss on dive detail
+- scan actions on dive detail and trip overview, Open in Lightroom in viewer
+- connect flow, settings page, route, and localized strings (11 locales)
+- serviceConnector upload eligibility with thumb-only videos
+- riverpod wiring, serviceConnector registry registration, auto-poll provider
+- connector resolver fills the serviceConnector registry slot
+- scan service - window merge, dedup, confident attach, suggestions, poll
+- per-device connector scan state in SharedPreferences
+- confidence-bearing timestamp matching on DivePhotoMatcher
+- connector columns on pending suggestions + suggestion CRUD and remote-asset dedup queries (schema v104)
+- connector accounts repository (first consumer of the v72 table)
+- partner API client with abuse-guard stripping and pagination
+- Adobe IMS OAuth2+PKCE auth manager
+- secure auth store for BYO Adobe credentials
+- gear and weights section with live weight prediction
+- dated body weight history in diver profile
+- advanced buoyancy and dry weight fields on gear edit
+- weighting feedback capture on dive edit
+- data-driven weight planner tool replacing static calculator
+- calibration and prediction providers
+- placement predictor with largest-remainder rounding
+- hybrid weight prediction engine with calibration
+- weighted ridge regression solver
+- gear feature priors and physics terms
+- batch weight history observations query
+- plan equipment junction and planned weight snapshot
+- weighting feedback fields on dives
+- buoyancy and dry weight metadata fields
+- dated body weight entries with sync + providers
+- wire diver_weight_entries and dive_plan_equipment into changeset sync
+- add three_js flythrough spike page behind debug menu
+- schema v104 for weight prediction (feedback, buoyancy, weight entries, plan equipment)
+- persist heading in download and reparse pipelines
+- capture DC_SAMPLE_BEARING and serialize heading on all platforms
+- carry heading through DiveProfilePoint and repositories
+- add dive_profiles.heading column (schema v105)
+- let first-run users change the sync backend after connecting
+- include custom dive roles in UDDF full backup/restore
+- dive roles management page under Settings
+- my-role editing on dive edit page and detail display
+- role selector with custom-role creation and Me chip
+- persist the diver's own role on dives (#547)
+- resolve per-dive buddy roles from dive_roles table
+- sync dive_roles (custom rows only, tombstones, adopt-safe)
+- dive role l10n strings and localized display
+- DiveRole entity, repository, and providers
+- add dive_roles table and dives.diver_role column (v103)
+- agency-first certification fields with dependent level list (#546)
+- filter level dropdown by selected agency (#546)
+- add agency-specific certification levels and catalog (#546)
+- phase 4 exit coverage
+- provider chooser with dropbox, drive, icloud connect
+- per-provider connect flows
+- provider-typed attach state and runtime
+- icloud media adapter over the ubiquity container
+- google drive media adapter with resumable sessions
+- dropbox media adapter with session resume
+- dropbox session primitives and range download
+- phase 3 exit coverage
+- transfer progress bars
+- store-backed video playback path
+- video uploads with resume and progress wiring
+- S3 multipart upload with resume and streamed download
+- queue resume-state and progress persistence
+- progress and resume hooks on MediaObjectStore
+- phase 2 exit coverage
+- backfill and transfer policy toggles
+- per-tile transfer badges
+- transfers view with retry
+- thumbnail routing in store resolution
+- thumbnail objects in the upload pipeline
+- thumbnail generator
+- network-aware worker gating and drain triggers
+- observable transfer queue with retry and defer
+- transfer policies and video eligibility gate
+- route first run and settings entry to the setup wizard
+- existing-data path with restore, sync pull, and folder adopt
+- finish step applies draft and offers feature links
+- backup schedule and cloud sync connection step
+- appearance step with live language preview
+- units step with locale-aware preset and fine-tuning
+- wizard shell with fork and profile steps
+- draft apply service with race-safe settings seeding
+- phase 1 end-to-end coverage
+- setup wizard draft notifier and preview locale provider
+- setup wizard domain model and step computation
+- connect flow, media storage settings page
+- add setup wizard strings in all locales
+- unlock banner, troubleshoot status, encrypted restore prompt (#520)
+- store fallback resolution in MediaItemView
+- upload pipeline, worker, enqueue-on-attach
+- end-to-end encryption section with enable and manage flows (#520)
+- content-addressed cache with LRU eviction
+- credentials store and attach state
+- S3 adapter and store identity marker
+- MediaObjectStore interface, fake, and contract
+- smv1 key derivation and streamed hashing
+- local cache DB v2 with transfer queue
+- media entity + repository upload stamps
+- register .zxu/.zxl document types and document DiverLog migration
+- register mediaStores in sync engine
+- encrypted cloud backup upload, restore, plaintext cleanup (#520)
+- show attached photo counts in import summary
+- add v103 schema (media stamps + media_stores table)
+- attach DiveCloud photos to imported dives
+- expand ZIP archives at file intake
+- framed self-decrypting .sbe backup encryption (#520)
+- riverpod wiring for encryption session and provider wrap (#520)
+- ZIP expansion service for DiveCloud archives
+- wire DAN DL7 into detection, registry, and source apps
+- encryption lifecycle service - enable, unlock, rotate slots, self-heal (#520)
+- DAN DL7 parser with Aqualung ZAR enrichment
+- awaitingPassphrase halt for encrypted libraries (#520)
+- parse the DiverLog+ AQUALUNG ZAR dialect
+- encrypting cloud storage decorator (#520)
+- local key custody, keyslot mirror, encryption preference (#520)
+- add DL7 unit conversions
+- recovery code generation on the EFF short wordlist (#520)
+- add DAN DL7 segment reader
+- keyslot file with Argon2id passphrase/recovery wrapping (#520)
+- SBE1 encrypted envelope with python-generated KAT vectors (#520)
+
+### Bug Fixes
+
+- guard the save flow against re-entry
+- drop a stale site name when the site changes mid-lookup
+- normalize inside DisplayZoomScope instead of trusting callers
+- compute the plan summary after the naming flow
+- surface unknown display-channel methods instead of no-opping
+- snap zoom levels so 100% compares exactly
+- lay the child out at the logical size, not the window size
+- give the strict-close worker wait a checkpoint-sized budget
+- honor the awaitWorkerShutdown contract on repeat calls
+- make app-exit database close wait for the real SQLite close
+- clear both library-epoch anchors so Repair cannot strand a device
+- survive a page pop during a quality save
+- fail closed when the iCloud container is unavailable
+- make ensure() safe against a concurrent insert
+- adapt to renamed media transfer summary API, UTC year range
+- dedupe sites by name+coords, cap urgent banner, localize settings hub
+- make the legacy S3 credential store injectable
+- reuse the S3 account when the provider type flips
+- stop minting a new account on every connect
+- localize on-this-day minutes, de-flake anniversary test
+- year hours rounding, indexed year query, stricter grid test
+- make worker disposal stick across an in-flight drain
+- stop reporting parked transfers as work in progress
+- reduce hero banner padding
+- smaller hero greeting, larger logo
+- tighten hero right padding, enlarge quiet stats
+- drop deepest stat from hero, shrink logo to 56px
+- restore hero logo to right side at original size
+- remove unbounded flex and intrinsic layout failures
+- serve the compressed rendition when no original was uploaded
+- a present-but-unreadable file verifies as transient, not orphaned
+- probe readability, not just existence, for localFile resolve
+- auto-verify bails without an active store descriptor
+- bogus future fleet timestamp cannot suppress auto-verify
+- drain sweep repairs before stamping the fleet timestamp
+- private temp dir on Linux, thread pool on Windows
+- check the remaining HRESULTs in HBitmapToPng
+- refresh attach state on connect and disconnect
+- move thumbnail-ready message off the colliding WM_APP + 1
+- gate video poster generation to desktop platforms
+- self-heal corrupt poster cache; move poster bytes on Windows
+- session reaping is best-effort within the verify sweep
+- qualify kThumbnailReadyMsg at its use inside the worker lambda
+- treat a failed bookmark read as a null blob
+- guard cache-dir failure, offload Windows extraction, doc accuracy
+- include videos in upload backfill candidates
+- use stream logical size when reading encoded PNG (Windows)
+- enqueue Files-tab imports for upload
+- format-agnostic poster cache extension, doc accuracy
+- review round 2 on video thumbnail native handlers
+- close first-part multipart leak and extension-variant orphans
+- address review feedback on video thumbnail handlers
+- hydrate media taken_at as wall-clock-UTC
+- paint the ceiling line's shaded fill
+- scope backfill candidates to dive- or site-linked media
+- key the surface lead-in on each series' own profile (PR review)
+- apply the t=0 readout to the inline tooltip and remaining curves
+- describe t=0 in the readout instead of repeating the first sample
+- compute pressure-based lead-ins, fix smoothing, cover mini charts
+- extend every profile curve back to t=0, not just depth
+- draw the depth trace from the surface at t=0 (#684)
+- treat blank itinerary port and notes as absent
+- address review on retry gating and exact-second matching
+- self-sizing sticky day header for scaled text
+- resolve gallery assets by exact capture second
+- restore undo summary from persisted row, not in-memory outcome
+- delete targets route planId, closing load-window race
+- sweep stranded temp files on no-op restore + a11y label (PR review)
+- don't let post-swap cleanup abort a succeeded restore (PR review)
+- skip summaries watch on :planId route; SnackBar persist:false (#406)
+- clear errorMessage when reclaiming a stranded row (PR review)
+- read (not watch) repo in reclaim provider (PR review)
+- navigate off dead route when plan already gone; pin test locale
+- make the restore test seam one-shot and reset-safe (PR review)
+- await transfer reclaim before wiring drains (PR review)
+- keep the database open during large-DB restore so pages don't red-screen
+- run transfer reclaim once per process, not per drain (PR review)
+- recover orphaned 'transferring' uploads on drain
+- stop master-pane selection toolbar from overflowing
+- never leave a Windows .tmp on failure + quiesce dispatcher on teardown (PR review)
+- Windows probe bitrate fallback, headless progress drop, test asserts (PR review)
+- marshal Windows progress to platform thread + guard dimensions/root path (PR review)
+- read source height off main thread in Android transcode (PR review)
+- probe off main thread + drop redundant manifest package (PR review)
+- harden Android Media3 error paths (PR review)
+- share one progress stream across engine instances
+- pin AVF reader PCM to the AAC encoder rate/channels
+- clean up temp on all AVF failure paths; nullglob CI loop
+- use readerFailed case + sync ios Podfile.lock (PR review)
+- treat a gas change at the first sample as the initial gas (#679)
+- Apple finalize/concurrency/error-message (PR review)
+- unique progressIds + NaN-safe Apple probe (PR review)
+- convert rename failure to TranscodeException (PR review)
+- derive bitrate on N/A ffprobe + sync error-handling spec
+- harden Apple AVFoundation engine (PR review)
+- force mp4 muxer + auto-dispose availability check (review)
+- sweep stranded transcode on original upload + doc fixes (review)
+- record stored rendition size on dedup (PR review)
+- fall back to original on TranscodeException (PR review)
+- gallery ceiling rule + deterministic label tests (PR review)
+- harden upload pipeline + rendition cache (PR review)
+- guard dive_id column in the v132 bottom-time backfill
+- truly exit compare mode when plans drop below two
+- stop storing bottom time equal to runtime
+- open saved plan with a single back press
+- refresh safety review after sync and analyze-all
+- deterministic tie-break for the Service Due sort
+- guard ref use after await in the sync-pull gate
+- cancel the auto-sync debounce timer on reset
+- invalidate service urgency provider on schedule writes
+- run disableForDatabaseReset guards independently
+- guard v4 overrideLevel migration against v1 full-create path
+- configure interval when adding a no-default service clock
+- show enabled but unconfigured service clocks
+- stop restored/reset data from vanishing under cloud sync
+- keep @DriftDatabase on AppDatabase; detect edited legacy dives
+- give the synthesized source the deterministic backfill id
+- render 3D/spatial/compare for dives missing a data-source row
+- enable encrypted sync on secondary devices after unlock
+- translate built-in dive type names (#643)
+- use AMV instead of SAC in the German UI (#640)
+- prefilter withProfiles to primary samples only
+- route detail-chip count through l10n
+- hydrate detector toggles at startup
+- dedupe dive headers + localize last-scan time
+- address round-3 review comments
+- stop the upload-pipeline test leaking async work past teardown
+- address round-2 review comments
+- localize the Safety section title on the mobile tile
+- store/show incident occurredAt as wall-clock UTC
+- guard user numeric attributes for finiteness
+- droppable lead from placement in the through-dive twin
+- sanitize BCD lift capacity before the bladder term
+- address PR review comments and raise test coverage
+- guard haversine NaN and stop the ticker on no-fly expiry
+- localized geocoded countries, ISO country field, comment accuracy
+- tighten attribute-prior edge cases from PR review
+- drop dead safetyHub_* hub-link keys stranded by the merge
+- address PR #635 review on the stale-bond repair
+- mark edit form initialized after populating controllers
+- address PR #611 review round 2 on the incident edit form
+- gate runner overflow menu by strict-order actionability
+- compute plan droppable lead from per-WeightType placement
+- self-heal stale BLE bonds on the connect path (#621)
+- suppress same-suit history strip for a suitless dive
+- hide alerts banner when no renderable alert
+- drop redundant chamber call menu item; align docs to v126
+- use double bounds for clamp to avoid int-return crash
+- self-invalidate no-fly status at expiry (Copilot review)
+- treat non-positive wing lift capacity as null
+- address PR #611 review — incident edit robustness, sync test coverage, route docs
+- localize the unnamed-tank breakdown label
+- address Copilot round-4 review (emergency card / dashboard)
+- skip zero-duration plan segments in synthesizePlanProfile
+- scope dive-summary lookups to the active diver (round 3)
+- localize overdue-service note; pin test locales
+- address Copilot round-2 review on emergency card
+- pin compass reset animation to its original controller
+- avoid duplicate timestamp in 5 m square profile; pin test locales
+- sample the clock once in the no-fly alert text
+- renumber no-fly migration v124 -> v125 after main collision
+- address Copilot round 3 + raise no-fly patch coverage
+- address Copilot follow-up on no-fly (round 2)
+- address Copilot review on no-fly hub
+- seed compass rotation on mount/swap; fix map test l10n
+- date-attr picker caps at today; fix number-format test
+- address Copilot follow-up review round 2 on PR #608
+- address Copilot review on emergency card
+- keep custom fields colliding with curated keys in CSV
+- handle disposal mid-reset; harden compass test
+- restrict suit-thickness filter to exposure suits
+- address Copilot follow-up review on PR #608
+- align dive-list badge with per-rule disables
+- address Copilot review on PR #608
+- translate Environment section/subsection headers (#622)
+- localize weather and dive-condition enum values (#622)
+- make junction authoritative for buddy/DM columns
+- translate weather field titles for issue #622
+- address round-6 Copilot review comments
+- show junction buddies in table Buddy/Dive Master columns
+- address copilot follow-up review round 3
+- address copilot follow-up review round 2
+- address copilot follow-up review
+- saveReview bumps parent dive HLC so reviews sync
+- reactivity, batched applyTemplate, atomic deleteCourse
+- correct chart tooltip index; debounce twin re-simulation
+- resolve relative next-page href against the request URI
+- clamp stop tags to vertical bounds
+- stop catalog scan per-page, not on first past-end asset
+- unit-aware rate sliders; consume unavailable setup focus
+- validate RecreationalNdlSolver args, fail fast on misuse
+- drop pending pSCR edit on invalid input; fix provider doc
+- repaint charts on style/textDirection change; pin test locale
+- query captured_after so oldest-first scans reach in-window assets
+- format ccr_ui_test + clarify geometry/pSCR docstrings
+- make the connector-video play button semantically actionable
+- make the Open-in-Lightroom launchUrl calls explicitly fire-and-forget
+- address round-4 review comments
+- address PR #617 review comments
+- hydrate history/plan twins correctly; hu typo
+- address service-ledger PR review batch 3
+- address service-ledger PR review comments
+- rapid-ascent rule uses fixed design thresholds
+- address second-round PR #612 review comments
+- address round-3 review comments
+- address round-2 review comments
+- address PR #617 review comments
+- address PR #612 review comments
+- ensureDeletionLogIndex only dedupes on real duplicates
+- connector videos show poster + Open in Lightroom instead of failing local playback
+- tolerant asset parsing - a list where a scalar was expected crashed the whole scan
+- scan uses a single capture cursor (captured_after/before are mutually exclusive) + surface API error body
+- dedupe 'Go to dive' in finding cards (footer + repair action)
+- address Copilot review on attribute thickness/number fields
+- move Dives review entry into the overflow menu (all app-bar variants)
+- move Data quality entry under Settings > Data (was Unknown section on wide layout)
+- smooth depth into the suit term to de-noise the curve
+- hydrate typed weights and equipment for the twin
+- label the net-buoyancy chart axes
+- autoDispose badge providers, stub in test base overrides
+- add no-fly to wide planning sidebar and correct stale incident routes
+- setup accordion PageStorage bool collided with TextField scroll restore
+- editor pane always visible on desktop, drop drawer, compact segment tiles
+- suppress time tick labels that collide with the axis unit label
+- merge safety review rows in sync apply and harden disabled-rules decode
+- renumber pre-dive checklist migration to v117 (ladder collision)
+- PRAGMA-guard v115 legacy copy for minimal old-schema databases
+- account for seeded built-ins in template repository tests
+- bump dive detail section count expectations to 19
+- GC exempts only durably fenced peers; spec marker semantics
+- address PR review - distinct item counts, diver-scoped custom kinds, pinned test locales
+- defer Perdix overlay controller-removal rebuild past tree finalization
+- renumber service ledger migration v113 to v115 (open PR claims)
+- make v113 backstop self-guarding for partial fixture databases
+- package imports, settings mock stubs, mini profile header overflow guard
+- drop deleted hw_frog.c from platform build source lists
+- prompt for passphrase when restoring encrypted backup in setup wizard
+- stop encrypted-restore passphrase dialog from over-popping the navigator
+- create temp dir before restoring on fresh installs
+- carry exit GPS through ImportedDiveConverter for #586
+- second review pass on #586
+- address #587 re-review (round 5) - error-path hardening
+- trip-story review round 15 (6 comments)
+- address #587 re-review (round 4)
+- address #587 re-review (round 3)
+- address #586 review + raise patch coverage to ~92%
+- address #587 re-review (round 2)
+- correct liveaboard port day-index + bound media concurrency (PR review round 14)
+- address #587 review feedback
+- address trip-story review round 13 (16 comments)
+- clamp rhythm-bar track height so it never goes negative (PR review round 12)
+- extend story day span to cover out-of-range itinerary days (PR review round 11)
+- only draw the story route polyline with 2+ points (PR review round 10)
+- best-effort media/sightings + pin-tap camera (PR review round 9)
+- gate cert commit on a dirty flag + localize detail error (#553 review)
+- assert CertificationEditPage mode contract (#553 review)
+- dismiss scan loading dialogs via captured navigator (PR review round 7)
+- inject CertificationRepository into _importBuddies (#553 CI)
+- address PR re-review (round 6) for #553
+- preserve staged cert updatedAt on unchanged Save (#553 review)
+- address PR review round 5 (effectiveEntryTime, scroll threshold, vessel overflow)
+- address PR re-review (round 4) for #553
+- address PR review round 4 (active-day fallback, species merge key)
+- drive S3 _save provider work through the app container so a mid-save pop can't crash on ref-after-dispose or skip the global refresh
+- address PR re-review (round 3) for #553
+- address PR review round 3 (reactivity, painter/delegate equality)
+- gate account-first resolution on settled account so a credential-edit reload uses the legacy singleton, not a stale per-account key
+- address PR re-review for #553
+- clamp hover tooltip using its real measured size
+- address PR review for #553
+- run global sync-state refresh before S3 re-derivation await so a mid-save pop can't leave dependent screens stale
+- mounted guards after account-derivation awaits; mirror failure falls back to legacy resolution
+- guard AxisFrame divisions against 0; make wireframe step int explicit
+- best-effort legacy Dropbox key clear on sign-out (never abort sign-out on keychain error)
+- remove unused import in trip story view
+- disconnect clears both credential locations (bidirectional mirror + legacy clear on Dropbox sign-out)
+- re-track hover tooltip on camera changes; drop dead compartments branch
+- align tissue provider nullability with builder; validate picker arrays
+- guard account-first resolution against a stale account of the wrong kind during the provider-type transition
+- anchor tissue Y tick labels from sceneMinY to match tick geometry
+- restrict tissue-pick depth tie-break to exact screen-point overlap
+- per-axis tick colors + localized zoom button tooltips
+- wire accountCredentialsStoreProvider into the S3 adapter so test overrides reach it
+- pan-aware tooltip screenPos + stop trackpad pan from rotating
+- async volume-mount probe so an offline share can't block the UI isolate
+- second device with synced account but no local creds can sign in (gate on device status, reuse roster row)
+- address PR review — cache invalidation, repaint keys, bounds guards, RTL, picker perf
+- review - break core->presentation cycle, refresh Dropbox blob on connect, sync-tick on account selection, checked Lightroom adapter
+- migration retries reuse persisted account ids (no duplicates, no misassignment)
+- disconnect through the adapter so the cached manager is evicted
+- review round 2 - updatedAt semantics, adopted-row pending marks, connectS3 kind guard
+- review findings - deletion tombstones, manager-backed disconnects, sync-S3 never adopts media-S3
+- startup rekey reads adopted roster; selection bookkeeping best-effort
+- career terrain has no scrub cursor (drop inherited ScrubPath)
+- cover DiveMode.gauge in the CCR segment switch after rebase
+- analyze CCR dives with loop gas segments in both analysis paths (issue #455)
+- run CCR dives through the gas-segment deco path (issue #455)
+- immutable DiveIdSet family key + scrub-bar play/pause tooltip
+- gauge analysis honors user ascent-rate settings; explicit freedive mapping (#569)
+- keep real reported tank records for gauge downloads (#569)
+- address second-round PR #565 review comments
+- stable source partition in compare adapter; dispose test notifier
+- address PR #565 review comments
+- correct horizontal drag-rotation direction
+- respect unit preferences for height in body weight entry
+- replace fragile PageStorage retention with deferred-restore retainer
+- override flutter_angle with Flutter 3.44 embedder fix fork
+- pickFirst duplicate libc++_shared.so from flutter_angle
+- package import in auth store
+- restore libdivecomputer submodule pointer to main's pinned commit
+- align empty state with dive list (log-first-dive + add-dive sheet)
+- symlink macOS Pigeon output to iOS copy to prevent staleness
+- correct finish-screen feature routes (/gear->/equipment, /stats->/statistics)
+- advance libdivecomputer submodule to match main (Perdix 3 descriptor)
+- address PR #548 re-review comments (#520)
+- sync-error state handling + surface iCloud-unavailable message
+- temp-dir safety, client lifecycle, preflight and queue hardening
+- thumb-first resolution, gallery-only passthrough, staging cleanup
+- harden resume parsing, clear stale errors, forward content type
+- recognize the Shearwater Perdix 3 during BLE scanning
+- carry entry/exit GPS onto the target when folding dives (#542)
+- handle pull failures in the sync-connect step
+- address PR #548 review + raise patch coverage to 97% (#520)
+- create the sync temp dir before writing (macOS #554)
+- address PR review — settings re-entry backup state, cloud-backup toggle, PageController resync
+- mirror effectiveRuntime edge cases and fully order site query
+- deterministic tie-breakers for personal-record queries
+- row-safe WAL checkpoint + honest hydration benchmark timing
+- trim terms, accurate limit notice, and cleaner layering
+- S3 redirect bounce, back navigation, drop appearance step
+- use sandbox-safe temp dir and tidy empty-archive extraction
+- clean up ZIP temp dirs and stale photo state
+
+### Refactoring
+
+- make the iCloud platform seam a single enum
+- remove quality from device-local policies
+- read upload quality from the synced policy
+- seed the migration at deterministic ids
+- address review feedback on the localFile readability fix
+- address third PR 705 review pass
+- address second PR 705 review pass
+- address PR 705 review feedback
+- address PR 704 review feedback
+- extract shared backup-status predicate
+- drop redundant story dive sparkline
+- return stderr from the process-runner contract (review)
+- generalize DarwinAvfEngine to ChannelTranscodeEngine (shared by Apple+Android)
+- drop redundant clock invalidation on configure-tap
+- batch enrichment backfill; complete parent-refs coverage
+- log+rethrow in getDiverCount; keep reset stack trace
+- schedule override dialog takes schedule + kind
+- centralize the legacy data-source id format
+- thread the dive-type resolver into the list tiles
+- drop unused ref param from showStartSessionSheet
+- address review on compass control
+- address PR review — rename flag, fix docs, redirect route
+- await repository writes in requirement_tile callbacks
+- localize picker tab labels; pin en locale in media-sources/picker tests (PR #619 review)
+- consolidate photo sources under Photo library & sources; retire hidden-picker-tabs toggle
+- dissolve safety hub into planning, settings, and profile surfaces
+- dive planner hub row is a normal clickable tool tile
+- drop icon rail and shell - tools render full-bleed
+- retire hero slot and stale chrome tokens
+- centralize wizard surface alphas; add branch-step hug test
+- scope buddies watch to the pair, self-contained signatures diveId
+- memoize derived CCR loop ascent plan; guard fixture minute-40 lookup
+- drop unused CompareProfile3dView.title param
+- wrap shortcuts at _buildContent call site to shrink diff
+- career terrain delegates to CompareGeometryService
+- generalize renderable to scene-agnostic Scene3d
+- replace three_js engine with interactive CustomPainter viewport
+- promote PKCE helpers from dropbox to shared core/services/oauth
+- drop @visibleForTesting on prod helper; de-dupe dive-plan index DDL
+- move wizard step primitives to lib/shared/widgets/wizard
+
+### Performance
+
+- persist the slider on release instead of every notch
+- cascade reuses the rows it already read; guard empty partition
+- evaluate chosen-set clocks in parallel
+- evaluate active clocks once; watch urgency only when needed
+- scope pre-push tests to files changed in the push
+- count divers instead of loading all for the restore gate
+- run data-source backfill after the performance-index heal
+- index equipment attributes once in gearFeatureFor
+- reuse the fence check's folder listing for the pull
+- stable onDaySelected identity so the map header doesn't rebuild each frame (PR review round 8)
+- split tissue chrome into static + dynamic overlay painters
+- re-project only the picked vertex on camera change
+- hoist nullable-depth cast out of the frame-rate readout builder
+- commit _currentDatabasePath only after verified open (WS5 review 5)
+- evaluate effective-runtime subquery once for longest dive
+- strict close in reinitializeAtPath verify-fail path (WS5 review 4)
+- strict close keeps connection ref on failure (WS5 review 3)
+- apply strict close to all reopen-after-close paths (WS5 review 2)
+- strict close on reopen paths + reset lastOpenMode (WS5 review 2)
+- single version read + fail-fast migrator close (WS5 review)
+- deterministic bounded ordering + empty-query guard
+- execute SQLite off the UI isolate (WS5)
+- SQL-bounded home providers, no hot-path getAllDives (WS4)
+- decimate analysis curves and scope the series cache (WS3)
+- lean hydration for the analysis lookback path (WS2)
+- bounded DiveSummary search hydration (WS1)
+- bracket ready-to-first-frame timing; attribute debug startup freeze to JIT + getAllDives
+- checkpoint WAL after heal; startup step timing; re-baseline findings
+- self-heal performance indexes in beforeOpen
+- vmcap VM-service profiler tool and measurement runbook
+- canonical index list, db_bench tool, WS0 SQL baseline
+
+### Documentation
+
+- document recently merged PRs in v1.7.0 release notes
+- sync the zoom spec and plan with the implemented API
+- correct the display zoom ARB key list
+- record the OverflowBox constraint fix
+- update _openDatabase comment for BackgroundDatabaseConnection
+- implementation plan for naming a saved dive plan
+- implementation plan for app-wide display zoom
+- design for naming a saved dive plan
+- design for app-wide display zoom
+- plan synced media upload quality
+- spec synced media upload quality
+- add connected accounts deduplication implementation plan
+- add connected accounts deduplication design
+- add dark deep splash and hero implementation plan
+- add dark deep splash and hero background design
+- add Home page redesign implementation plan
+- add Home page redesign design spec
+- add v1.7.0 release notes
+- drop the 'See it in action' section heading
+- tighten and lighten the header subtitle
+- put logo and title on the same line in the header
+- put logo and title on the same line in the header
+- simplify header and move downloads to dedicated section
+- correct the upload-pipeline scope claim in the design spec
+- implementation plan for local-media upload badge
+- design for local-media auto-upload and not-backed-up badge
+- implementation plan for orphan prevention PR 4 (Verify Library)
+- resolve orphan-predicate verification gate; PR 3 plan (cascade + backlog sweep)
+- correct toWallClockUtc reference in comments
+- implementation plan for local-file video thumbnails
+- implementation plan for orphan prevention PR 2 (blob delete fast path)
+- design spec for local-file video thumbnails
+- implementation plan for orphan prevention PR 1 (backfill scoping)
+- design spec for media store orphan prevention
+- implementation plan for trip story scroll polish
+- design spec for trip story scroll polish
+- implementation plan for deleting a dive plan from the canvas
+- point requeueStale doc at its once-per-process caller
+- add Code of Conduct and Contributing guide
+- design for deleting a dive plan from the canvas
+- correct stale v130 refs to v133 for compressed-rendition columns
+- design and implementation plan for the deco stop band
+- implementation plan for video transcoding Phase B4 (Windows MediaTranscoder)
+- implementation plan for video transcoding Phase B3 (Android Media3)
+- implementation plan for video transcoding Phase B2 (Apple AVFoundation)
+- implementation plan for video transcoding Phase B1
+- design spec for video transcoding (upload quality Phase B)
+- reference hasAnyDiversProvider.future in the restore-gate comment
+- implementation plan for equipment service clock unification
+- correct spec GC scope (general sweep unbuilt; Phase A does targeted delete only)
+- Phase A implementation plan for adjustable media upload quality
+- spec for unifying equipment service on clocks + add-timer fix
+- media_enrichment sync implementation plan
+- design spec for adjustable media upload quality
+- add phase 2 no-fly countdown implementation plan
+- implementation plan for water type from dive site (#624)
+- design spec for water type from dive site (#624)
+- clarify paging fake models ordering/pagination, not null-capture assets
+- reconcile design + plan to shipped schema v114
+- Lightroom Native App embedded-connect implementation plan (Plan 2)
+- Lightroom approval walkthrough page + resubmission email drafts
+- Lightroom Native App auth core implementation plan (Plan 1)
+- Lightroom connect via OAuth Native App design (unified BYO + embedded)
+- phase 5 implementation plan - SCR breathing mode (validated slice)
+- phase 4 implementation plan - rates and gas options (no-schema slice)
+- data quality assistant plan 2 (repairs and inbox UI)
+- buoyancy digital twin implementation plan
+- data quality assistant plan 1 (data and detection engine)
+- buoyancy digital twin design
+- weight planner attribute-informed priors implementation plan
+- phase 3 implementation plan - on-chart editing
+- attribute-informed buoyancy priors for the weight planner
+- data quality assistant design spec
+- phase 2 implementation plan - Mission Control layout
+- changelog entry for configurable CNS calculation method
+- edit form chrome redesign implementation plan
+- CNS calculation method spec and implementation plan (issue #578)
+- phase 1 implementation plan - chart + design system
+- edit form chrome redesign design freeze
+- planner UI redesign + Subsurface parity design spec
+- mark safety features spec implemented
+- add phase 4 near-miss log implementation plan
+- add phase 3 emergency card implementation plan
+- add phase 2 no-fly countdown implementation plan
+- correct logDeletion comment to reference the v113 index
+- correct Perdix overlay hit-testing comment
+- renumber safety review schema claim to v116 (v115 taken by PR #602)
+- add pre-dive checklist implementation plan
+- add phase 1 implementation plan for post-dive safety review
+- equipment attributes implementation plan (10 tasks); align spec with backup/date ground truth
+- gear service ledger implementation plan
+- implementation plan for Perdix video overlay (#168)
+- add safety features design spec (review, no-fly, emergency card, near-miss)
+- add pre-dive checklist feature design spec
+- design spec for Perdix-style media playback overlay (#168)
+- gear service ledger design spec
+- equipment type-specific attributes design
+- mark tombstone GC spec implemented
+- add course requirement tracker implementation plan
+- implementation plan for fleet-acked tombstone GC and device retirement
+- add course requirement tracker design spec
+- design spec for fleet-acked tombstone GC and device retirement
+- add PR artifact links design spec and implementation plan
+- implementation plan for default & geofenced equipment sets (#583)
+- spec for default & geofenced equipment sets (#583)
+- implementation plan for app-wide encrypted backups (#580)
+- design spec for app-wide encrypted backups (#580)
+- record trip story implementation deviations
+- add trip story implementation plan
+- add trip story design spec (issue #166 + interactive breakdown)
+- correct stale no-on-canvas-text claims (axis_frame + plan)
+- record post-review revisions (labels, Z width, pan/zoom, review fixes)
+- spec and plan for tissue axes, grid, and tooltips
+- clarify ascentGasPlan null behavior for setpoint-bearing segments
+- add CCR loop-aware deco/TTS implementation plan (issue #455)
+- connected accounts phase 1 implementation plan
+- media linking and storage program design spec
+- correct gauge plan l10n to 11 locales (add zh) (#569)
+- add gauge dive mode implementation plan (#569)
+- add gauge dive mode design spec (#569)
+- implementation plan for previous/next navigation
+- implementation plan for 3D profile comparison
+- design for previous/next adjacent-dive navigation
+- design spec for 3D profile comparison (dives + computers)
+- record retainer revision superseding PageStorageKey approach
+- implementation plan for detail pane scroll retention
+- drop redundant scaffold bucket after spike; keys alone suffice
+- design for detail pane scroll retention
+- add tissue saturation 3D scene design spec
+- add Terms of Use for third-party API integrations
+- drop three_js from 3D flythrough spec and PR 2 plan (CustomPainter reversal)
+- add 3D flythrough PR 2 plan and spec addendum
+- mark 3D flythrough PR 1 plan progress (PR #563)
+- Lightroom auto-linking implementation plan + spec corrections from code exploration
+- add dive 3D view implementation plan
+- add 3D flythrough PR 1 implementation plan; fix TTS storage note in spec
+- add Lightroom cloud auto-linking design spec
+- add dive 3D view design spec
+- add 3D dive flythrough design spec
+- add weight prediction implementation plan
+- add weight prediction design spec
+- v1.6.1.115 release notes for encrypted cloud sync (#520)
+- forbid Claude Code attribution and session URL in PR descriptions
+- dive roles implementation plan (11 tasks, v103)
+- agency-dependent certification levels implementation plan (#546)
+- dive roles design spec (custom roles #551, own role #547)
+- agency-dependent certification levels design (#546)
+- media store phase 4 implementation plan
+- media store phase 3 implementation plan
+- reword temp-dir test comment (Copilot review #555)
+- media store phase 2 implementation plan
+- select main isolate; require-arg usage syntax
+- explain getMergedProfile is intentionally unfiltered for parity
+- split provider doc comments after analysisDiveProvider insert
+- describe the setup wizard first-run flow
+- setup wizard implementation plan
+- media store phase 1 implementation plan
+- setup wizard for new databases (discussion #523) design spec
+- DiverLog+ / DAN DL7 import implementation plan
+- encrypted cloud sync implementation plan + cryptography deps (#520)
+- media store (cloud media storage backend) design spec
+- encrypted cloud sync (E2E) design spec (#520)
+- DiverLog+ / DAN DL7 import design spec
+- WS0 in-app verification on the live database
+
+### Tests
+
+- pin Intl.defaultLocale in the plan name generator tests
+- await the stalled close and drop the unreliable WAL assertion
+- drive the container lookup through an injected seam
+- assert upload quality keys are not device-local
+- cover the managed-kind anchor and the startup guarantee
+- pin locale to en in widget-test harnesses
+- cover recentPhotosProvider and gear tie-break branches
+- cover Home appearance entry in both settings twins
+- cover chips, cards, providers and review fixes
+- exercise the bookmark branch on every host, not just Apple
+- raise PR 705 patch coverage to 90%
+- name the library-level orphan fixtures for their source type
+- dive-deleted media contract - cascade for dive-only, unlink for library
+- compressed backfill exclusion tests the stamp, not linkage
+- link backfill service fixtures to a dive
+- cover the t=0 lead-in paths flagged by Codecov
+- cover the resolution tier ladder and stale-cache clearing
+- pin Intl.defaultLocale in day header tests
+- cover Darwin progress routing/clamp/cancel (PR review)
+- cover initial-gas detection across sample intervals
+- Windows MediaTranscoder integration test
+- Android Media3 integration test + fix darwin test rename
+- macOS AVFoundation integration test (ffmpeg-synthesized input)
+- real-ffmpeg smoke test with synthesized fixture
+- pin en locale and close the DB in teardown for the new tests
+- also cover the reset sync-disable failure path
+- cover disableForDatabaseReset, reset gate, and getDiverCount error
+- relax v129 tripwire; v130 owns the exact-latest schema assertion
+- end-to-end compressed photo upload + cross-device read
+- mock SharedPreferences in end-to-end test (pipeline reads quality policy)
+- const MaterialApp in service clocks card test (lint)
+- stub per-dive findings badge stream in shared overrides
+- pin gloves/boots strength in the no-attributes regression
+- raise near-miss patch coverage to ~93% + localize list error
+- prove GearBuoyancyTraits equality is by list content
+- reconcile dive-detail section count to 20 after merge
+- add emergency_chambers to parentRefs completeness guard
+- fix v125 schema tripwire and raise emergency-card patch coverage
+- restore exact-latest schema-version tripwire in the v119 test
+- raise patch coverage to ~93%
+- cover v124 no-fly migration and exact-latest tripwire
+- make CSV export fixture const (--fatal-infos)
+- pin en locale in chart and what-if widget tests
+- compare enum localization against getters, not literals
+- raise PR #608 patch coverage above 90%
+- cover course requirement tables in parentRefs completeness guard
+- direct ConnectorVideoItem test (fix CI coverage collection)
+- restore FlutterWebAuth2Platform.instance after the redirect-capture test (PR #617 review)
+- raise patch coverage above 90%
+- cover embedded dive->site navigation paths
+- raise patch coverage on the native-app connect diff
+- assert renamed Database Cloud Sync app bar title
+- relax the v112 exact-latest tripwire to gte
+- pin en locale in settings-page widget test (PR #617 review)
+- align Perdix overlay position mocks with production clamping
+- disable ambient scan scheduler globally in tests
+- move exact-latest schema tripwire to the v120 migration test
+- VPM-B golden vectors + generator (bwaite/vpmb BSD-2 reference)
+- remove unused import in sync test
+- twin agrees with static engine at the weighting convention
+- engine-level attribute-prior behavior coverage
+- adapt site/dive edit suites to v2 header-in-card chrome
+- macOS-gated golden images for the plan chart
+- cross-validate CNS methods against issue #578 references
+- raise service ledger patch coverage past 90 percent
+- update section count assertions for safety review section
+- pin en locale in Perdix overlay widget tests
+- usage-sample dedup and trip reminder coverage
+- address #588 review
+- raise #587 patch coverage to ~97% and harden per review
+- taller viewport so the new encryption section doesn't push history off-screen
+- raise trip story patch coverage to ~91%
+- cover Dropbox sign-out catch, connect-flow account refresh, and matching-kind fallback (patch coverage 73%->93%)
+- address PR review — pin en locale, closeTo, drop unused dayDate
+- tolerant dy compare in ResponsiveSectionPair row test
+- pin CCR fixture TTS against Subsurface (issue #455)
+- reparse gauge maps to gauge; unknown mode uses unrecognized string (#569)
+- raise patch coverage - getOrderedDiveIds filter/diverId branches, dive-detail nav navigation
+- lock in detail-pane scroll retention contract
+- exclude GL viewport from coverage (device-matrix verified)
+- raise patch coverage for geometry service, providers, and page
+- raise patch coverage - settings page suite, dialog error paths, viewer action, entity equality, auto-poll failure
+- raise patch coverage for the weight prediction feature
+- raise patch coverage across adapters, page, and providers
+- raise patch coverage for the dive roles feature
+- cover merge-mode certification cycling; make catalog abstract final (#546)
+- raise WS5 patch coverage to ~94%
+- raise patch coverage to 90%+ for the wizard
+- clarify newer-than-app test rejects before any Drift open
+- cover diver-scoped records and the SQL count providers
+- cover zoomed decimation, dense overlays, and MOD line (WS3)
+- cover startup step timing; scope coverage to real logic
+- cover search provider and DiveSearchDelegate
+- DL7 end-to-end batch integration coverage
+- no-plaintext-leak invariant and encrypted two-device convergence (#520)
+- update restore-service doubles for the encryptionSecret parameter (#520)
+- env-gated real-sample regression suite for DL7
+- query-plan regression tests for performance indexes
+
+### CI/CD
+
+- run each integration test file in its own flutter test invocation
+- bound the macOS integration-test job to 25 min
+- scan only PR/push commits for the override marker (two-dot log)
+- clarify that the inert-path case globs match nested paths
+- add an escape hatch to force the full pipeline
+- skip test/build jobs when a change touches no Dart
+- shard tests 4->8 to roughly halve test wall-clock
+- bump actions/download-artifact from 4 to 8
+- bump actions/github-script from 7 to 9
+- bump actions/setup-python from 6 to 7
+- install libwebkit2gtk-4.1-dev for the Linux build
+- TEMPORARY debug job to isolate photo_viewer coverage collection
+- connector-video line diagnostic + standard lcov field order
+- merge shard coverage into one Codecov upload (fix zeroed patch coverage)
+- install libwebkit2gtk-4.1-dev for the Linux build
+- make PR-target binding merge-commit-safe; use GITHUB_SERVER_URL
+- harden artifact-links per review
+- address review on artifact-links
+- add PR comment with build artifact download links
+- upload testable build artifacts and PR number on pull requests
+- wait for all coverage uploads before status
+- enable git long paths on Windows for the flutter_angle git dependency
+- install CMake 3.31.4 in Android build for flutter_angle
+
+### Chores
+
+- register submersion_transcoder plugin (pod install)
+- format engine + commit pubspec.lock for submersion_transcoder dep
+- temporary [LR-SCAN] diagnostics for the empty-scan investigation
+- lock flutter_web_auth_2 pods
+- register embedded Adobe redirect scheme (iOS/Android/macOS)
+- regenerate plugin registrants for flutter_web_auth_2
+- post-implementation sweep
+- bump CocoaPods lockfile stamp to 1.17.0
+- preserve error+stackTrace when logging swallowed sign-out and account-derivation failures
+- drop unused import
+- delete orphaned Dive3dPreviewCard widget + test
+- add 3D comparison strings (English; locales pending)
+- regenerate macOS Podfile.lock after flutter_angle removal
+- register flutter_angle in platform plugin registrants
+- regenerate plugin registrant for cryptography_flutter (#548)
+- finalization sweep, plan checklist complete
+- verification fixes for setup wizard
+
+### Other
+
+- i18n(zoom): translate display size strings into all locales
+- i18n(planner): add plan name dialog title and fallback label
+- Revert "docs(readme): put logo and title on the same line in the header"
+- delete release nots
+- format the dive-deleted media sync contract test
+- format PR 3 tests
+- format new delete fast path tests
+- format backfill scope test
+- register transcoder plugin in generated registrant
+- Apply suggestions from code review
+- backtick angle-bracket paths in transcode doc comment
+- docs+perf: renumber spec/plan to v131; pre-dive evaluates only chosen set
+- Bound the HEIC meta box read (PR review)
+- Guard HEIC extent read + add iloc v2 coverage (PR review)
+- Harden HEIC parser against malformed input (PR review)
+- Read HEIC/HEIF capture time on desktop
+- format media_repository_compressed_test
+- Address PR review r2: harden mvhd version + accurate decode-error tile
+- Address PR review: dispose guard + explicit icon centering
+- Match photos and videos to dives by capture time on desktop
+- Address sync review feedback
+- Remove internal continuity notes from PR
+- Add sync investigation continuity notes
+- Make epoch filtering strict and report skipped peers
+- Fix sync of legacy peers after epoch adoption
+- dart format the built-in reference-data contract test
+- const the infinite-lift traits to satisfy analyze
+- dart format safety settings test
+- test/docs: address copilot follow-up review round 4
+- drop the shard-coverage-merge experiment
+- clear stale completedAt on dive edit; make once-per-course link atomic
+- fixes based on github copilot suggestions and fixes.
+- Potential fix for pull request finding
+- fix missing import for settings_providers
+- fix linting warnings and undefined identifiers in dive log and site navigation tests
+- Potential fix for pull request finding
+- Created a comprehensive test suite for the newly implemented nested navigation and embedded site details in the dive log.
+- wall-clock-as-UTC dive dates and once-per-course link invariant
+- cover the totalCount==0 dashboard filter with an in-progress course
+- Enhanced Dive Log to Site Navigation
+- address PR #601 feedback
+- null-aware element in dive label
+- Add support for wetsuit thickness parsing in weight planner
+- Updated formatting with dart format
+- Delete CNAME
+- Create CNAME
+- Potential fix for pull request finding
+- - Incremented `currentSchemaVersion` to `v112` and updated migration versions in tests to prevent version mismatch errors. - Removed unnecessary line breaks for improved code readability.
+- Potential fix for pull request finding
+- Potential fix for pull request finding
+- ### Add thickness property to equipment models
+- update gitignore
+- i18n(backup): add backup-encryption strings (en + 10 locales)
+- Update issue templates
+- perf/a11y(trips): address PR review round 6
+- clean suggestions-row test lints
+- const DivePhotoMatcher call sites
+- drop unused test import
+- null-aware map elements in token forms
+- Revert "feat(debug): add three_js flythrough spike page behind debug menu"
+- l10n: translate sync encryption strings into all locales (#520)
+
+
 ## Unreleased
 
 ### Features

@@ -10,6 +10,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/planner/data/services/plan_file_codec.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_name_dialog.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -251,7 +252,20 @@ class _PlanTile extends ConsumerWidget {
           PopupMenuButton<String>(
             onSelected: (value) async {
               final repository = ref.read(divePlanRepositoryProvider);
-              if (value == 'duplicate') {
+              if (value == 'rename') {
+                final plan = await repository.getPlan(summary.id);
+                if (plan == null || !context.mounted) return;
+                final entered = await showPlanNameDialog(
+                  context,
+                  initialName: plan.name,
+                  title: context.l10n.divePlanner_action_renamePlan,
+                );
+                if (entered == null) return;
+                // No summary is passed, so the denormalized depth/runtime
+                // columns stay absent in the companion and the upsert
+                // preserves them along with the tile's subtitle.
+                await repository.savePlan(plan.copyWith(name: entered));
+              } else if (value == 'duplicate') {
                 await repository.duplicatePlan(summary.id);
               } else if (value == 'share') {
                 final plan = await repository.getPlan(summary.id);
@@ -268,6 +282,10 @@ class _PlanTile extends ConsumerWidget {
               }
             },
             itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'rename',
+                child: Text(context.l10n.divePlanner_action_renamePlan),
+              ),
               PopupMenuItem(
                 value: 'duplicate',
                 child: Text(context.l10n.plannerCanvas_saved_duplicate),
