@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
+import 'package:submersion/core/utils/surface_pressure.dart';
 
 /// Physical environment for decompression calculations.
 ///
@@ -41,7 +42,7 @@ class DiveEnvironment extends Equatable {
   /// An explicit [surfacePressureBar] wins over [altitudeMeters]. A null
   /// altitude keeps the legacy 1.0 bar surface so dives without altitude
   /// data are unchanged. The surface pressure is sanitized first (see
-  /// [_sanitizeSurfacePressureBar]); an implausible value is ignored so we
+  /// [normalizeSurfacePressureBar]); an implausible value is ignored so we
   /// fall back to altitude/standard pressure rather than poisoning the model.
   factory DiveEnvironment.forConditions({
     double? altitudeMeters,
@@ -49,7 +50,7 @@ class DiveEnvironment extends Equatable {
     double? surfacePressureBar,
   }) {
     final surface =
-        _sanitizeSurfacePressureBar(surfacePressureBar) ??
+        normalizeSurfacePressureBar(surfacePressureBar) ??
         (altitudeMeters != null
             ? AltitudeCalculator.calculateBarometricPressure(altitudeMeters)
             : 1.0);
@@ -63,26 +64,6 @@ class DiveEnvironment extends Equatable {
       surfacePressureBar: surface,
       waterDensityKgM3: density,
     );
-  }
-
-  /// Sanitizes a surface pressure that is nominally in bar.
-  ///
-  /// Atmospheric surface pressure is only ever ~0.5 bar (high altitude) to
-  /// ~1.06 bar (sea level). Some import paths have written millibar/
-  /// hectopascal values (e.g. 1013) straight into the bar-typed field. Used
-  /// verbatim, a ~1000x-too-large surface pressure poisons the whole
-  /// decompression model: tissue tensions of hundreds of bar, gradient
-  /// factors clamped to 0, and NDL saturating at its "unlimited" sentinel.
-  ///
-  /// So: convert an obvious mbar/hPa value to bar, then reject anything still
-  /// physically impossible (returning null) so the caller falls back to the
-  /// altitude-derived or standard 1.0 bar surface instead of garbage.
-  static double? _sanitizeSurfacePressureBar(double? raw) {
-    if (raw == null) return null;
-    var bar = raw;
-    if (bar > 100.0) bar /= 1000.0; // millibar / hectopascal -> bar
-    if (bar < 0.5 || bar > 1.1) return null; // implausible -> ignore
-    return bar;
   }
 
   static const double _gravity = 9.80665;

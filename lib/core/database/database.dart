@@ -2846,7 +2846,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 136;
+  static const int currentSchemaVersion = 137;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -3010,6 +3010,9 @@ class AppDatabase extends _$AppDatabase {
     // Phase A). Renumbered from v130 as main advanced past it at merge time.
     134,
     136,
+    // v137: repair surface_pressure rows stored in millibar/hectopascal
+    // (used verbatim as bar, they poisoned the deco/tissue panels).
+    137,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -3196,6 +3199,34 @@ class AppDatabase extends _$AppDatabase {
   /// for minimal old-schema fixtures. onUpgrade only -- never beforeOpen -- so
   /// a dive a user deliberately left with bottom_time == runtime (and no
   /// profile to prove otherwise) is never re-touched.
+  /// Repairs `dives.surface_pressure` rows stored in the wrong unit.
+  ///
+  /// The column is bar, but some import/legacy paths wrote millibar/
+  /// hectopascal values (e.g. 1013) into it. Used verbatim, a ~1000x-too-large
+  /// surface pressure poisons the decompression model and shows absurd figures
+  /// on the dive detail page. This mirrors [normalizeSurfacePressureBar]:
+  /// convert an obvious mbar/hPa value to bar, then null out anything still
+  /// outside the physically-possible surface range (~0.5-1.1 bar). Since no
+  /// real surface pressure is ever out of that range, only corrupt rows are
+  /// touched. PRAGMA-guarded like every other migration helper.
+  Future<void> _repairSurfacePressure() async {
+    final cols = await customSelect("PRAGMA table_info('dives')").get();
+    final colNames = cols.map((c) => c.read<String>('name')).toSet();
+    if (!colNames.contains('surface_pressure')) return;
+
+    // Obvious mbar/hPa magnitude -> bar.
+    await customStatement(
+      'UPDATE dives SET surface_pressure = surface_pressure / 1000.0 '
+      'WHERE surface_pressure IS NOT NULL AND surface_pressure > 100',
+    );
+    // Anything still physically impossible -> NULL (fall back to standard).
+    await customStatement(
+      'UPDATE dives SET surface_pressure = NULL '
+      'WHERE surface_pressure IS NOT NULL '
+      'AND (surface_pressure < 0.5 OR surface_pressure > 1.1)',
+    );
+  }
+
   Future<void> _backfillBottomTimeFromProfile() async {
     // PRAGMA-guarded like every other migration helper: minimal old-schema
     // test fixtures (and any DB that reached this block through a guarded
@@ -7063,6 +7094,13 @@ class AppDatabase extends _$AppDatabase {
           await _assertMediaStoresLastSweepColumn();
         }
         if (from < 136) await reportProgress();
+        // v137: repair surface_pressure values stored in millibar/hectopascal
+        // (e.g. 1013) in this bar-typed column, which poisoned the deco/tissue
+        // panels and displayed as absurd figures elsewhere.
+        if (from < 137) {
+          await _repairSurfacePressure();
+        }
+        if (from < 137) await reportProgress();
       },
       beforeOpen: (details) async {
         // Enable foreign keys

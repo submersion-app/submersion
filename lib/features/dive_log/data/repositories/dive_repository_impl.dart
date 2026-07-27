@@ -5,6 +5,7 @@ import 'package:submersion/core/constants/dive_search.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/performance/perf_timer.dart';
+import 'package:submersion/core/utils/surface_pressure.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -992,7 +993,9 @@ class DiveRepository {
               exitMethod: Value(dive.exitMethod?.name),
               waterType: Value(dive.waterType?.name),
               altitude: Value(dive.altitude),
-              surfacePressure: Value(dive.surfacePressure),
+              surfacePressure: Value(
+                normalizeSurfacePressureBar(dive.surfacePressure),
+              ),
               // Entry/exit GPS (previously dropped on create, so file-imported
               // dives never became eligible for site matching).
               entryLatitude: Value(dive.entryLocation?.latitude),
@@ -1239,7 +1242,9 @@ class DiveRepository {
           exitMethod: Value(dive.exitMethod?.name),
           waterType: Value(dive.waterType?.name),
           altitude: Value(dive.altitude),
-          surfacePressure: Value(dive.surfacePressure),
+          surfacePressure: Value(
+            normalizeSurfacePressureBar(dive.surfacePressure),
+          ),
           // Weather conditions
           windSpeed: Value(dive.windSpeed),
           windDirection: Value(dive.windDirection?.name),
@@ -2949,7 +2954,7 @@ class DiveRepository {
             )
           : null,
       altitude: row.altitude,
-      surfacePressure: row.surfacePressure,
+      surfacePressure: normalizeSurfacePressureBar(row.surfacePressure),
       surfaceInterval: row.surfaceIntervalSeconds != null
           ? Duration(seconds: row.surfaceIntervalSeconds!)
           : null,
@@ -3319,7 +3324,7 @@ class DiveRepository {
             )
           : null,
       altitude: row.altitude,
-      surfacePressure: row.surfacePressure,
+      surfacePressure: normalizeSurfacePressureBar(row.surfacePressure),
       surfaceInterval: row.surfaceIntervalSeconds != null
           ? Duration(seconds: row.surfaceIntervalSeconds!)
           : null,
