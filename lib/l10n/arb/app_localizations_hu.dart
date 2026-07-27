@@ -20217,6 +20217,16 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_appearance_mapStyle_esriSatellite => 'Műhold';
 
   @override
+  String get settings_beta_enableSubtitle =>
+      'Próbáljon ki fejlesztés alatt álló funkciókat. Ezek változhatnak, és lehetnek hibáik.';
+
+  @override
+  String get settings_beta_enableTitle => 'Béta funkciók engedélyezése';
+
+  @override
+  String get settings_beta_header => 'Béta';
+
+  @override
   String get common_action_reparse => 'Újraelemzés';
 
   @override

@@ -33938,6 +33938,24 @@ abstract class AppLocalizations {
   /// **'Satellite'**
   String get settings_appearance_mapStyle_esriSatellite;
 
+  /// No description provided for @settings_beta_enableSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Try features still in development. They may change or have rough edges.'**
+  String get settings_beta_enableSubtitle;
+
+  /// No description provided for @settings_beta_enableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable beta features'**
+  String get settings_beta_enableTitle;
+
+  /// No description provided for @settings_beta_header.
+  ///
+  /// In en, this message translates to:
+  /// **'Beta'**
+  String get settings_beta_header;
+
   /// Generic re-parse action label
   ///
   /// In en, this message translates to:

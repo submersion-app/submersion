@@ -20108,6 +20108,16 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_appearance_mapStyle_esriSatellite => 'Satelliet';
 
   @override
+  String get settings_beta_enableSubtitle =>
+      'Probeer functies die nog in ontwikkeling zijn. Ze kunnen veranderen of ruwe randjes hebben.';
+
+  @override
+  String get settings_beta_enableTitle => 'Bètafuncties inschakelen';
+
+  @override
+  String get settings_beta_header => 'Bèta';
+
+  @override
   String get common_action_reparse => 'Opnieuw verwerken';
 
   @override

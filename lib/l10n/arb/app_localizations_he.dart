@@ -19769,6 +19769,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_appearance_mapStyle_esriSatellite => 'לוויין';
 
   @override
+  String get settings_beta_enableSubtitle =>
+      'נסו תכונות שעדיין בפיתוח. הן עשויות להשתנות או להכיל ליקויים.';
+
+  @override
+  String get settings_beta_enableTitle => 'הפעלת תכונות בטא';
+
+  @override
+  String get settings_beta_header => 'בטא';
+
+  @override
   String get common_action_reparse => 'נתח מחדש';
 
   @override

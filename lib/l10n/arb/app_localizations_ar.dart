@@ -19912,6 +19912,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_appearance_mapStyle_esriSatellite => 'قمر صناعي';
 
   @override
+  String get settings_beta_enableSubtitle =>
+      'جرّب ميزات لا تزال قيد التطوير. قد تتغير أو تحتوي على عيوب.';
+
+  @override
+  String get settings_beta_enableTitle => 'تفعيل الميزات التجريبية';
+
+  @override
+  String get settings_beta_header => 'تجريبي';
+
+  @override
   String get common_action_reparse => 'إعادة التحليل';
 
   @override

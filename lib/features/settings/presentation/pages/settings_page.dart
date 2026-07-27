@@ -38,6 +38,7 @@ import 'package:submersion/features/dive_import/presentation/providers/dive_impo
 import 'package:submersion/features/auto_update/domain/entities/update_channel.dart';
 import 'package:submersion/features/auto_update/domain/entities/update_status.dart';
 import 'package:submersion/features/auto_update/presentation/providers/update_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/beta_features_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_mode_provider.dart';
 import 'package:submersion/features/settings/presentation/pages/debug_log_viewer_page.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -2731,6 +2732,20 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
                   onTap: () => launchReportIssue(context),
                 ),
               ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          _buildSectionHeader(context, context.l10n.settings_beta_header),
+          const SizedBox(height: 8),
+          Card(
+            child: SwitchListTile(
+              secondary: const Icon(Icons.science_outlined),
+              title: Text(context.l10n.settings_beta_enableTitle),
+              subtitle: Text(context.l10n.settings_beta_enableSubtitle),
+              value: ref.watch(betaFeaturesEnabledProvider),
+              onChanged: (value) => ref
+                  .read(betaFeaturesEnabledProvider.notifier)
+                  .setEnabled(value),
             ),
           ),
           // Auto-update section (only for non-store builds)

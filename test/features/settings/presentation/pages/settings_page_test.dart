@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/auto_update/domain/entities/update_status.dart';
+import 'package:submersion/features/auto_update/presentation/providers/update_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:go_router/go_router.dart';
@@ -452,6 +454,15 @@ class _MockDiverListNotifier extends StateNotifier<AsyncValue<List<Diver>>>
 
   @override
   Future<void> setAsDefault(String id) async {}
+}
+
+/// Stub that avoids the 5-second timer in the real [UpdateStatusNotifier].
+class _StubUpdateStatusNotifier extends StateNotifier<UpdateStatus>
+    implements UpdateStatusNotifier {
+  _StubUpdateStatusNotifier() : super(const UpToDate());
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 void main() {
@@ -1025,6 +1036,56 @@ void main() {
       expect(find.text('10 days before a trip'), findsOneWidget);
       // The persisted value appears in the dropdown's options.
       expect(find.byType(DropdownButton<int>), findsOneWidget);
+    });
+  });
+
+  group('About section beta features toggle', () {
+    Widget buildAboutWidget(List<Override> overrides) {
+      // The real UpdateStatusNotifier schedules a 5-second startup timer,
+      // which widget tests report as still pending at teardown.
+      overrides = [
+        ...overrides,
+        updateStatusProvider.overrideWith((ref) => _StubUpdateStatusNotifier()),
+      ];
+      final router = GoRouter(
+        initialLocation: '/settings?selected=about',
+        routes: [
+          GoRoute(
+            path: '/settings',
+            builder: (context, state) => const SettingsPage(),
+          ),
+        ],
+      );
+
+      return ProviderScope(
+        overrides: overrides,
+        child: MaterialApp.router(
+          locale: const Locale('en'),
+          routerConfig: router,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      );
+    }
+
+    testWidgets('renders the switch off by default and toggles it on', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildAboutWidget(getOverrides()));
+      await tester.pumpAndSettle();
+
+      final switchFinder = find.widgetWithText(
+        SwitchListTile,
+        'Enable beta features',
+      );
+      await tester.scrollUntilVisible(switchFinder, 100);
+      expect(tester.widget<SwitchListTile>(switchFinder).value, isFalse);
+
+      await tester.tap(switchFinder);
+      await tester.pumpAndSettle();
+
+      expect(tester.widget<SwitchListTile>(switchFinder).value, isTrue);
+      expect(prefs.getBool('beta_features_enabled'), isTrue);
     });
   });
 }

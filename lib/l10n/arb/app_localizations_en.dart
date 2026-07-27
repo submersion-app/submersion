@@ -19932,6 +19932,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_appearance_mapStyle_esriSatellite => 'Satellite';
 
   @override
+  String get settings_beta_enableSubtitle =>
+      'Try features still in development. They may change or have rough edges.';
+
+  @override
+  String get settings_beta_enableTitle => 'Enable beta features';
+
+  @override
+  String get settings_beta_header => 'Beta';
+
+  @override
   String get common_action_reparse => 'Re-parse';
 
   @override

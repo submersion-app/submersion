@@ -19250,6 +19250,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_appearance_mapStyle_esriSatellite => '卫星';
 
   @override
+  String get settings_beta_enableSubtitle => '试用仍在开发中的功能。它们可能会更改或存在不完善之处。';
+
+  @override
+  String get settings_beta_enableTitle => '启用测试版功能';
+
+  @override
+  String get settings_beta_header => '测试版';
+
+  @override
   String get common_action_reparse => '重新解析';
 
   @override
