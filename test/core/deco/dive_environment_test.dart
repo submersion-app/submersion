@@ -74,5 +74,48 @@ void main() {
     test('forConditions: null altitude keeps legacy 1.0 bar', () {
       expect(DiveEnvironment.forConditions().surfacePressureBar, 1.0);
     });
+
+    group('surface pressure sanitization', () {
+      test('millibar value stored in the bar field is converted to bar', () {
+        // Some imports wrote surface pressure as mbar (1013) into the
+        // bar-typed field; it must be converted, not used verbatim.
+        final env = DiveEnvironment.forConditions(surfacePressureBar: 1013.0);
+        expect(env.surfacePressureBar, closeTo(1.013, 1e-9));
+      });
+
+      test('hectopascal value is converted and still wins over altitude', () {
+        final env = DiveEnvironment.forConditions(
+          altitudeMeters: 2000.0,
+          surfacePressureBar: 1005.0,
+        );
+        expect(env.surfacePressureBar, closeTo(1.005, 1e-9));
+      });
+
+      test('implausible value falls back to the altitude pressure', () {
+        // 1264 -> 1.264 bar, still impossible as a surface pressure: ignored.
+        final env = DiveEnvironment.forConditions(
+          altitudeMeters: 2000.0,
+          surfacePressureBar: 1264.0,
+        );
+        expect(env.surfacePressureBar, closeTo(0.7950, 0.001));
+      });
+
+      test('implausible value with no altitude falls back to 1.0 bar', () {
+        final env = DiveEnvironment.forConditions(surfacePressureBar: 1264.0);
+        expect(env.surfacePressureBar, 1.0);
+      });
+
+      test('a valid high-altitude surface pressure is preserved', () {
+        final env = DiveEnvironment.forConditions(surfacePressureBar: 0.75);
+        expect(env.surfacePressureBar, 0.75);
+      });
+
+      test('sanitized surface keeps ambient pressure physical', () {
+        // Regression: surfacePressure 1264 previously made pressureAtDepth(20)
+        // ~1266 bar, driving NDL / tissue loading to nonsense.
+        final env = DiveEnvironment.forConditions(surfacePressureBar: 1264.0);
+        expect(env.pressureAtDepth(20.0), lessThan(4.0));
+      });
+    });
   });
 }
