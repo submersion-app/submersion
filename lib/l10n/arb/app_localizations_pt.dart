@@ -11342,6 +11342,78 @@ class AppLocalizationsPt extends AppLocalizations {
   String get gasCalculators_tab_mnd => 'MND/END';
 
   @override
+  String get gasCalculators_tab_blender => 'Misturador';
+
+  @override
+  String get gasCalculators_blender_startCylinder => 'No cilindro';
+
+  @override
+  String get gasCalculators_blender_targetFill => 'Enchimento alvo';
+
+  @override
+  String get gasCalculators_blender_fillGases => 'Gases de enchimento';
+
+  @override
+  String get gasCalculators_blender_pressure => 'Pressão';
+
+  @override
+  String get gasCalculators_blender_o2 => 'O₂';
+
+  @override
+  String get gasCalculators_blender_he => 'He';
+
+  @override
+  String get gasCalculators_blender_air => 'Ar';
+
+  @override
+  String get gasCalculators_blender_procedure => 'Procedimento de enchimento';
+
+  @override
+  String get gasCalculators_blender_amounts =>
+      'Quantidades por litro de volume do cilindro';
+
+  @override
+  String gasCalculators_blender_stepStart(String pressure, String gas) {
+    return 'Começa com $pressure $gas';
+  }
+
+  @override
+  String gasCalculators_blender_stepFill(
+    String gas,
+    String pressure,
+    String mix,
+  ) {
+    return 'Enche $gas até $pressure → $mix';
+  }
+
+  @override
+  String get gasCalculators_blender_error_targetPressure =>
+      'A pressão alvo deve ser maior que a inicial.';
+
+  @override
+  String get gasCalculators_blender_error_invalidMix =>
+      'O₂ + He de uma mistura não pode exceder 100%.';
+
+  @override
+  String get gasCalculators_blender_error_identicalGases =>
+      'Os dois gases de enchimento são idênticos — nada para misturar.';
+
+  @override
+  String get gasCalculators_blender_error_linearlyDependent =>
+      'Estes gases não conseguem produzir a mistura alvo — um alvo trimix precisa de uma fonte de hélio.';
+
+  @override
+  String get gasCalculators_blender_error_negativeAmount =>
+      'Esta mistura não é possível com estes gases — seria necessário remover gás.';
+
+  @override
+  String get gasCalculators_blender_about => 'Sobre a mistura';
+
+  @override
+  String get gasCalculators_blender_aboutBody =>
+      'Mistura por pressões parciais para a mistura alvo, com comportamento de gás real (Van der Waals). Adiciona cada gás de enchimento por ordem, até à pressão indicada. Os gases e a sua ordem são configuráveis; analisa sempre a mistura final antes de mergulhar.';
+
+  @override
   String get gasCalculators_tab_mod => 'MOD';
 
   @override

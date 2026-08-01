@@ -6425,6 +6425,38 @@
   "gasCalculators_tab_bestMix": "Best Mix",
   "gasCalculators_tab_consumption": "Consumption",
   "gasCalculators_tab_mnd": "MND/END",
+  "gasCalculators_tab_blender": "Blender",
+  "gasCalculators_blender_startCylinder": "In the cylinder",
+  "gasCalculators_blender_targetFill": "Target fill",
+  "gasCalculators_blender_fillGases": "Fill gases",
+  "gasCalculators_blender_pressure": "Pressure",
+  "gasCalculators_blender_o2": "O₂",
+  "gasCalculators_blender_he": "He",
+  "gasCalculators_blender_air": "Air",
+  "gasCalculators_blender_procedure": "Fill procedure",
+  "gasCalculators_blender_amounts": "Amounts per litre of cylinder volume",
+  "gasCalculators_blender_stepStart": "Start with {pressure} {gas}",
+  "@gasCalculators_blender_stepStart": {
+    "placeholders": {
+      "pressure": { "type": "String" },
+      "gas": { "type": "String" }
+    }
+  },
+  "gasCalculators_blender_stepFill": "Fill {gas} to {pressure} → {mix}",
+  "@gasCalculators_blender_stepFill": {
+    "placeholders": {
+      "gas": { "type": "String" },
+      "pressure": { "type": "String" },
+      "mix": { "type": "String" }
+    }
+  },
+  "gasCalculators_blender_error_targetPressure": "Target pressure must be higher than the starting pressure.",
+  "gasCalculators_blender_error_invalidMix": "A gas mix's O₂ + He cannot exceed 100%.",
+  "gasCalculators_blender_error_identicalGases": "The two fill gases are identical — there is nothing to blend.",
+  "gasCalculators_blender_error_linearlyDependent": "These fill gases cannot produce the target mix — a trimix target needs a helium source.",
+  "gasCalculators_blender_error_negativeAmount": "This blend is not achievable with these gases — it would require removing gas.",
+  "gasCalculators_blender_about": "About blending",
+  "gasCalculators_blender_aboutBody": "Partial-pressure blend for the target mix, using real-gas (Van der Waals) behaviour. Add each fill gas in order, up to the pressure shown. Fill gases and their order are configurable; always analyse the finished mix before diving it.",
   "gasCalculators_tab_mod": "MOD",
   "gasCalculators_tab_rockBottom": "Rock Bottom",
   "gasCalculators_tankSize": "Tank Size",

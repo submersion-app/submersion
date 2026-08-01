@@ -11373,6 +11373,78 @@ class AppLocalizationsFr extends AppLocalizations {
   String get gasCalculators_tab_mnd => 'MND/END';
 
   @override
+  String get gasCalculators_tab_blender => 'Mélangeur';
+
+  @override
+  String get gasCalculators_blender_startCylinder => 'Dans le bloc';
+
+  @override
+  String get gasCalculators_blender_targetFill => 'Remplissage cible';
+
+  @override
+  String get gasCalculators_blender_fillGases => 'Gaz de remplissage';
+
+  @override
+  String get gasCalculators_blender_pressure => 'Pression';
+
+  @override
+  String get gasCalculators_blender_o2 => 'O₂';
+
+  @override
+  String get gasCalculators_blender_he => 'He';
+
+  @override
+  String get gasCalculators_blender_air => 'Air';
+
+  @override
+  String get gasCalculators_blender_procedure => 'Procédure de remplissage';
+
+  @override
+  String get gasCalculators_blender_amounts =>
+      'Quantités par litre de volume du bloc';
+
+  @override
+  String gasCalculators_blender_stepStart(String pressure, String gas) {
+    return 'Commencer avec $pressure $gas';
+  }
+
+  @override
+  String gasCalculators_blender_stepFill(
+    String gas,
+    String pressure,
+    String mix,
+  ) {
+    return 'Remplir $gas jusqu\'à $pressure → $mix';
+  }
+
+  @override
+  String get gasCalculators_blender_error_targetPressure =>
+      'La pression cible doit être supérieure à la pression de départ.';
+
+  @override
+  String get gasCalculators_blender_error_invalidMix =>
+      'L\'O₂ + He d\'un mélange ne peut pas dépasser 100 %.';
+
+  @override
+  String get gasCalculators_blender_error_identicalGases =>
+      'Les deux gaz de remplissage sont identiques — rien à mélanger.';
+
+  @override
+  String get gasCalculators_blender_error_linearlyDependent =>
+      'Ces gaz ne peuvent pas produire le mélange cible — une cible trimix nécessite une source d\'hélium.';
+
+  @override
+  String get gasCalculators_blender_error_negativeAmount =>
+      'Ce mélange n\'est pas réalisable avec ces gaz — il faudrait retirer du gaz.';
+
+  @override
+  String get gasCalculators_blender_about => 'À propos du mélange';
+
+  @override
+  String get gasCalculators_blender_aboutBody =>
+      'Mélange par pressions partielles pour le mélange cible, avec comportement de gaz réel (Van der Waals). Ajoutez chaque gaz de remplissage dans l\'ordre, jusqu\'à la pression indiquée. Les gaz et leur ordre sont configurables ; analysez toujours le mélange final avant de plonger.';
+
+  @override
   String get gasCalculators_tab_mod => 'MOD';
 
   @override
