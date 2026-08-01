@@ -1186,28 +1186,42 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       );
     }
 
-    // NDL
+    // NDL, continuing as TTS once in deco.
     if (_showNdl &&
         widget.ndlCurve != null &&
         spot.spotIndex < widget.ndlCurve!.length) {
       final ndl = widget.ndlCurve![spot.spotIndex];
-      String ndlValue;
-      if (ndl < 0) {
-        ndlValue = 'DECO';
-      } else if (ndl < 3600) {
-        final min = ndl ~/ 60;
-        final sec = ndl % 60;
-        ndlValue = '$min:${sec.toString().padLeft(2, '0')}';
+      if (ndl < 0 &&
+          !_showTts &&
+          widget.ttsCurve != null &&
+          spot.spotIndex < widget.ttsCurve!.length) {
+        final tts = widget.ttsCurve![spot.spotIndex];
+        rows.add(
+          TooltipRow(
+            label: 'TTS',
+            value: tts > 0 ? '${(tts / 60).ceil()} min' : '0 min',
+            bulletColor: const Color(0xFFAD1457),
+          ),
+        );
       } else {
-        ndlValue = '>60 min';
+        String ndlValue;
+        if (ndl < 0) {
+          ndlValue = 'DECO';
+        } else if (ndl < 3600) {
+          final min = ndl ~/ 60;
+          final sec = ndl % 60;
+          ndlValue = '$min:${sec.toString().padLeft(2, '0')}';
+        } else {
+          ndlValue = '>60 min';
+        }
+        rows.add(
+          TooltipRow(
+            label: 'NDL',
+            value: ndlValue,
+            bulletColor: Colors.yellow.shade700,
+          ),
+        );
       }
-      rows.add(
-        TooltipRow(
-          label: 'NDL',
-          value: ndlValue,
-          bulletColor: Colors.yellow.shade700,
-        ),
-      );
     }
 
     // ppO2 (computer-supplied value or O2 cell average) plus each sensor cell.
@@ -2413,9 +2427,17 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     if (_showCeiling && widget.ceilingCurve != null)
                       _buildCeilingLine(units),
 
-                    // NDL line (if showing)
+                    // NDL line while no-deco; once NDL hits zero the same
+                    // overlay continues as TTS over the deco portion.
                     if (_showNdl && widget.ndlCurve != null)
                       _buildNdlLine(totalMaxDepth),
+                    // ...unless the standalone TTS overlay is already on, which
+                    // would otherwise draw a second, identical line in deco.
+                    if (_showNdl &&
+                        !_showTts &&
+                        widget.ndlCurve != null &&
+                        widget.ttsCurve != null)
+                      _buildNdlDecoTtsLine(totalMaxDepth),
 
                     // ppO2 line (if showing)
                     if (_showPpO2 && widget.ppO2Curve != null)
@@ -2893,27 +2915,43 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       );
                     }
 
-                    // NDL (if enabled)
+                    // NDL, continuing as TTS once in deco.
                     if (_showNdl) {
-                      String ndlValue = '—';
-                      if (widget.ndlCurve != null &&
-                          spot.spotIndex < widget.ndlCurve!.length) {
-                        final ndl = widget.ndlCurve![spot.spotIndex];
-                        if (ndl < 0) {
-                          ndlValue = context.l10n.diveLog_playbackStats_deco;
-                        } else if (ndl < 3600) {
-                          final min = ndl ~/ 60;
-                          final sec = ndl % 60;
-                          ndlValue = '$min:${sec.toString().padLeft(2, '0')}';
-                        } else {
-                          ndlValue = '>60 min';
+                      final ndl =
+                          (widget.ndlCurve != null &&
+                              spot.spotIndex < widget.ndlCurve!.length)
+                          ? widget.ndlCurve![spot.spotIndex]
+                          : null;
+                      if (ndl != null &&
+                          ndl < 0 &&
+                          !_showTts &&
+                          widget.ttsCurve != null &&
+                          spot.spotIndex < widget.ttsCurve!.length) {
+                        final tts = widget.ttsCurve![spot.spotIndex];
+                        addRow(
+                          context.l10n.diveLog_tooltip_tts,
+                          tts > 0 ? '${(tts / 60).ceil()} min' : '0 min',
+                          const Color(0xFFAD1457),
+                        );
+                      } else {
+                        String ndlValue = '—';
+                        if (ndl != null) {
+                          if (ndl < 0) {
+                            ndlValue = context.l10n.diveLog_playbackStats_deco;
+                          } else if (ndl < 3600) {
+                            final min = ndl ~/ 60;
+                            final sec = ndl % 60;
+                            ndlValue = '$min:${sec.toString().padLeft(2, '0')}';
+                          } else {
+                            ndlValue = '>60 min';
+                          }
                         }
+                        addRow(
+                          context.l10n.diveLog_tooltip_ndl,
+                          ndlValue,
+                          Colors.yellow.shade700,
+                        );
                       }
-                      addRow(
-                        context.l10n.diveLog_tooltip_ndl,
-                        ndlValue,
-                        Colors.yellow.shade700,
-                      );
                     }
 
                     // ppO2 (computer value or O2 cell average) plus each sensor
@@ -4429,8 +4467,17 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
     final spots = <FlSpot>[];
     for (final i in _decimatedCurveIndices(ndlData)) {
-      // Clamp NDL to display range to avoid gaps that cause Bezier artifacts.
-      // Negative values (in deco) clamp to 0; values > 60 min clamp to 60 min.
+      // Only drawn while there is actually no-deco time left. Once NDL is
+      // spent (zero, or negative in deco) the overlay stops and continues as
+      // TTS (see [_buildNdlDecoTtsLine]). A null spot breaks the line so it
+      // does not bridge straight across the deco gap.
+      if (ndlData[i] <= 0) {
+        if (spots.isNotEmpty && spots.last != FlSpot.nullSpot) {
+          spots.add(FlSpot.nullSpot);
+        }
+        continue;
+      }
+      // Clamp NDL to the display range; values > 60 min clamp to 60 min.
       final ndl = ndlData[i].clamp(0, maxNdlSeconds.toInt()).toDouble();
       final normalized = ndl / maxNdlSeconds;
       final yValue = chartMaxDepth * (1 - normalized);
@@ -4442,13 +4489,52 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       // surface is already cut short by residual loading, which the first
       // sample reflects and a synthetic maximum would not.
       spots: _withFlatSurfaceLeadIn(spots),
-      isCurved: true,
-      curveSmoothness: 0.2,
-      preventCurveOverShooting: true,
+      // Straight segments: a spline across the null-spot breaks would reach
+      // for the gap and overshoot.
+      isCurved: false,
       color: ndlColor,
       barWidth: 2,
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
+      dashArray: [6, 3],
+    );
+  }
+
+  /// The NDL overlay's deco continuation: once NDL reaches zero, plot TTS
+  /// (time-to-surface) over just the deco portion, so the single "NDL" overlay
+  /// reads as NDL while no-deco and TTS once a stop is owed. Drawn as a
+  /// separate segment (its own colour) rather than one line, so the metric
+  /// change is visible instead of a misleading vertical jump.
+  LineChartBarData _buildNdlDecoTtsLine(double chartMaxDepth) {
+    final ndlData = widget.ndlCurve!;
+    final ttsData = widget.ttsCurve!;
+    const maxTtsSeconds = 3600.0; // 60 minutes as max display
+    const ttsColor = Color(0xFFAD1457);
+
+    final spots = <FlSpot>[];
+    for (final i in _decimatedCurveIndices(ndlData)) {
+      if (ndlData[i] >= 0 || i >= ttsData.length) {
+        // Break the segment so separate deco phases don't bridge across the
+        // no-deco stretch between them.
+        if (spots.isNotEmpty && spots.last != FlSpot.nullSpot) {
+          spots.add(FlSpot.nullSpot);
+        }
+        continue;
+      }
+      final tts = ttsData[i].clamp(0, maxTtsSeconds.toInt()).toDouble();
+      final normalized = tts / maxTtsSeconds;
+      final yValue = chartMaxDepth * (1 - normalized);
+      spots.add(FlSpot(widget.profile[i].timestamp.toDouble(), -yValue));
+    }
+
+    return LineChartBarData(
+      spots: spots,
+      isCurved: false,
+      color: ttsColor,
+      barWidth: 2,
+      isStrokeCapRound: true,
+      dotData: const FlDotData(show: false),
+      // Same dash as the NDL line: it reads as the same overlay continuing.
       dashArray: [6, 3],
     );
   }
