@@ -1,4 +1,5 @@
 {
+  "universalImport_action_importFromGarmin": "Importálás Garmin eszközről",
   "diveLog_edit_geofenceSuggestion_near": "{location} közelében",
   "diveLog_edit_geofenceSuggestion_title": "Felszerelési javaslat",
   "diveLog_edit_geofenceSuggestion_body": "Alkalmazza a(z) \"{setName}\" készletet?",

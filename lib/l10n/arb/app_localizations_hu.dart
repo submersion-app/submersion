@@ -17850,7 +17850,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get universalImport_action_importFromGarmin =>
-      'Import from Garmin Device';
+      'Importálás Garmin eszközről';
 
   @override
   String get universalImport_triage_title => 'Importálandó fájlok';

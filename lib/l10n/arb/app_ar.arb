@@ -1,4 +1,5 @@
 {
+  "universalImport_action_importFromGarmin": "استيراد من جهاز Garmin",
   "diveLog_edit_geofenceSuggestion_near": "بالقرب من {location}",
   "diveLog_edit_geofenceSuggestion_title": "اقتراح المعدات",
   "diveLog_edit_geofenceSuggestion_body": "تطبيق مجموعة \"{setName}\"؟",

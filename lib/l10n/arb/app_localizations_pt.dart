@@ -17908,7 +17908,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get universalImport_action_importFromGarmin =>
-      'Import from Garmin Device';
+      'Importar do dispositivo Garmin';
 
   @override
   String get universalImport_triage_title => 'Arquivos a importar';

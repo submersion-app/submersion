@@ -1,4 +1,5 @@
 {
+  "universalImport_action_importFromGarmin": "Importer depuis l'appareil Garmin",
   "diveLog_edit_geofenceSuggestion_near": "Près de {location}",
   "diveLog_edit_geofenceSuggestion_title": "Suggestion d'équipement",
   "diveLog_edit_geofenceSuggestion_body": "Appliquer l'ensemble \"{setName}\" ?",
