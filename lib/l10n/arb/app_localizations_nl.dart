@@ -17750,6 +17750,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get universalImport_action_chooseFolder => 'Map kiezen';
 
   @override
+  String get universalImport_action_importFromGarmin =>
+      'Import from Garmin Device';
+
+  @override
   String get universalImport_triage_title => 'Te importeren bestanden';
 
   @override

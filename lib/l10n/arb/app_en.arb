@@ -10498,6 +10498,7 @@
   "universalImport_action_selectFile": "Select File",
   "universalImport_action_selectFiles": "Select Files",
   "universalImport_action_chooseFolder": "Choose Folder",
+  "universalImport_action_importFromGarmin": "Import from Garmin Device",
   "universalImport_triage_title": "Files to Import",
   "universalImport_triage_readyCount": "{count, plural, =1{1 file ready to import} other{{count} files ready to import}}",
   "universalImport_label_filesSelected": "{count, plural, =1{1 file selected} other{{count} files selected}}",
@@ -10594,6 +10595,9 @@
   },
   "@universalImport_action_chooseFolder": {
     "description": "Desktop-only button that picks a folder and scans it for importable dive files"
+  },
+  "@universalImport_action_importFromGarmin": {
+    "description": "Desktop-only button that detects a Garmin dive computer mounted as a USB drive and imports its dive activities"
   },
   "@universalImport_triage_title": {
     "description": "Header for the batch file triage list"

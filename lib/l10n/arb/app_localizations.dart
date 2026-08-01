@@ -30130,6 +30130,12 @@ abstract class AppLocalizations {
   /// **'Choose Folder'**
   String get universalImport_action_chooseFolder;
 
+  /// Desktop-only button that detects a Garmin dive computer mounted as a USB drive and imports its dive activities
+  ///
+  /// In en, this message translates to:
+  /// **'Import from Garmin Device'**
+  String get universalImport_action_importFromGarmin;
+
   /// Header for the batch file triage list
   ///
   /// In en, this message translates to:
