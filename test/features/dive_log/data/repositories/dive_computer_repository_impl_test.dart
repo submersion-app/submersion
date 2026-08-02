@@ -440,6 +440,36 @@ void main() {
       )..where((t) => t.id.equals(computerId))).get();
       expect(computers, isEmpty);
     });
+
+    // Regression test for #654: dives.computerId has no onDelete behavior
+    // in the schema (unlike dive_profiles/dive_data_sources, which declare
+    // onDelete: KeyAction.setNull), and deleteComputer() never nulled it out
+    // manually either -- so deleting a computer that any dive still points
+    // to threw SqliteException(787): FOREIGN KEY constraint failed, and the
+    // computer (along with its already-nulled profile/data-source rows)
+    // was left undeleted.
+    test(
+      'nulls out dives.computerId before deleting instead of throwing FK-787',
+      () async {
+        final computerId = await insertComputer();
+        final diveId = await insertDive(computerId: computerId);
+
+        await repository.deleteComputer(computerId);
+
+        // The dive itself must survive, untouched apart from the FK.
+        final dives = await (db.select(
+          db.dives,
+        )..where((t) => t.id.equals(diveId))).get();
+        expect(dives, hasLength(1));
+        expect(dives.first.computerId, isNull);
+
+        // Computer should be deleted.
+        final computers = await (db.select(
+          db.diveComputers,
+        )..where((t) => t.id.equals(computerId))).get();
+        expect(computers, isEmpty);
+      },
+    );
   });
 
   // ---------------------------------------------------------------------------

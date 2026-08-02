@@ -291,15 +291,23 @@ class DiveComputerRepository {
 
   /// Delete a dive computer
   ///
-  /// Nulls out FK references in `dive_profiles` and `dive_data_sources` first
-  /// so the delete is not blocked by foreign key constraints.
-  /// The profile/data-source rows are preserved — only the computer link is
-  /// removed.
+  /// Nulls out FK references in `dives`, `dive_profiles`, and
+  /// `dive_data_sources` first so the delete is not blocked by foreign key
+  /// constraints. Dives and their profile/data-source rows are preserved —
+  /// only the computer link is removed.
   Future<void> deleteComputer(String id) async {
     try {
       _log.info('Deleting dive computer: $id');
 
-      // Clear FK references that would block the delete.
+      // Clear FK references that would block the delete. dive_tanks,
+      // quality_findings, dive_data_sources, dive_profile_events, and
+      // tank_pressure_profiles all declare onDelete: KeyAction.setNull in
+      // the schema and are nulled automatically; dives and dive_profiles do
+      // not declare that behavior, so they must be cleared manually here.
+      await _db.customStatement(
+        'UPDATE dives SET computer_id = NULL WHERE computer_id = ?',
+        [id],
+      );
       await _db.customStatement(
         'UPDATE dive_profiles SET computer_id = NULL WHERE computer_id = ?',
         [id],
