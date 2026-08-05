@@ -11060,6 +11060,77 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_tab_mnd => 'MND/END';
 
   @override
+  String get gasCalculators_tab_blender => 'מערבל';
+
+  @override
+  String get gasCalculators_blender_startCylinder => 'בבלון';
+
+  @override
+  String get gasCalculators_blender_targetFill => 'מילוי יעד';
+
+  @override
+  String get gasCalculators_blender_fillGases => 'גזי מילוי';
+
+  @override
+  String get gasCalculators_blender_pressure => 'לחץ';
+
+  @override
+  String get gasCalculators_blender_o2 => 'O₂';
+
+  @override
+  String get gasCalculators_blender_he => 'He';
+
+  @override
+  String get gasCalculators_blender_air => 'אוויר';
+
+  @override
+  String get gasCalculators_blender_procedure => 'סדר המילוי';
+
+  @override
+  String get gasCalculators_blender_amounts => 'כמויות לליטר נפח בלון';
+
+  @override
+  String gasCalculators_blender_stepStart(String pressure, String gas) {
+    return 'התחל עם $pressure $gas';
+  }
+
+  @override
+  String gasCalculators_blender_stepFill(
+    String gas,
+    String pressure,
+    String mix,
+  ) {
+    return 'מלא $gas עד $pressure → $mix';
+  }
+
+  @override
+  String get gasCalculators_blender_error_targetPressure =>
+      'לחץ היעד חייב להיות גבוה מלחץ ההתחלה.';
+
+  @override
+  String get gasCalculators_blender_error_invalidMix =>
+      'O₂ + He של תערובת לא יכול לעלות על 100%.';
+
+  @override
+  String get gasCalculators_blender_error_identicalGases =>
+      'שני גזי המילוי זהים — אין מה לערבב.';
+
+  @override
+  String get gasCalculators_blender_error_linearlyDependent =>
+      'גזי המילוי האלה לא יכולים לייצר את תערובת היעד — יעד טרימיקס דורש מקור הליום.';
+
+  @override
+  String get gasCalculators_blender_error_negativeAmount =>
+      'לא ניתן להשיג את התערובת הזו עם הגזים האלה — יידרש להוציא גז.';
+
+  @override
+  String get gasCalculators_blender_about => 'על הערבוב';
+
+  @override
+  String get gasCalculators_blender_aboutBody =>
+      'ערבוב בלחצים חלקיים לתערובת היעד, עם התנהגות גז ריאלי (ואן דר ואלס). הוסף כל גז מילוי לפי הסדר, עד הלחץ המוצג. גזי המילוי וסדרם ניתנים להגדרה; נתח תמיד את התערובת הסופית לפני צלילה איתה.';
+
+  @override
   String get gasCalculators_tab_mod => 'MOD';
 
   @override

@@ -10821,6 +10821,75 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_tab_mnd => '最大麻醉深度/等效麻醉深度';
 
   @override
+  String get gasCalculators_tab_blender => '配气';
+
+  @override
+  String get gasCalculators_blender_startCylinder => '瓶内现有';
+
+  @override
+  String get gasCalculators_blender_targetFill => '目标充填';
+
+  @override
+  String get gasCalculators_blender_fillGases => '充填气体';
+
+  @override
+  String get gasCalculators_blender_pressure => '压力';
+
+  @override
+  String get gasCalculators_blender_o2 => 'O₂';
+
+  @override
+  String get gasCalculators_blender_he => 'He';
+
+  @override
+  String get gasCalculators_blender_air => '空气';
+
+  @override
+  String get gasCalculators_blender_procedure => '充填步骤';
+
+  @override
+  String get gasCalculators_blender_amounts => '每升瓶容积用量';
+
+  @override
+  String gasCalculators_blender_stepStart(String pressure, String gas) {
+    return '从 $pressure $gas 开始';
+  }
+
+  @override
+  String gasCalculators_blender_stepFill(
+    String gas,
+    String pressure,
+    String mix,
+  ) {
+    return '充 $gas 至 $pressure → $mix';
+  }
+
+  @override
+  String get gasCalculators_blender_error_targetPressure => '目标压力必须高于初始压力。';
+
+  @override
+  String get gasCalculators_blender_error_invalidMix =>
+      '混合气的 O₂ + He 不能超过 100%。';
+
+  @override
+  String get gasCalculators_blender_error_identicalGases => '两种充填气体相同——无需混合。';
+
+  @override
+  String get gasCalculators_blender_error_linearlyDependent =>
+      '这些充填气体无法配出目标混合气——三混目标需要氦气源。';
+
+  @override
+  String get gasCalculators_blender_error_negativeAmount =>
+      '用这些气体无法配成此混合气——需要放出气体。';
+
+  @override
+  String get gasCalculators_blender_about => '关于配气';
+
+  @override
+  String get gasCalculators_blender_aboutBody =>
+      '按分压法配制目标混合气，采用真实气体（范德华）模型。按顺序充入每种气体至所示压力。充填气体及其顺序可配置；下水前务必分析最终混合气。';
+
+  @override
   String get gasCalculators_tab_mod => 'MOD';
 
   @override

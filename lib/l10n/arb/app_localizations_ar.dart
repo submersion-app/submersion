@@ -11132,6 +11132,78 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_tab_mnd => 'MND/END';
 
   @override
+  String get gasCalculators_tab_blender => 'الخلاط';
+
+  @override
+  String get gasCalculators_blender_startCylinder => 'في الأسطوانة';
+
+  @override
+  String get gasCalculators_blender_targetFill => 'التعبئة المستهدفة';
+
+  @override
+  String get gasCalculators_blender_fillGases => 'غازات التعبئة';
+
+  @override
+  String get gasCalculators_blender_pressure => 'الضغط';
+
+  @override
+  String get gasCalculators_blender_o2 => 'O₂';
+
+  @override
+  String get gasCalculators_blender_he => 'He';
+
+  @override
+  String get gasCalculators_blender_air => 'هواء';
+
+  @override
+  String get gasCalculators_blender_procedure => 'خطوات التعبئة';
+
+  @override
+  String get gasCalculators_blender_amounts =>
+      'الكميات لكل لتر من حجم الأسطوانة';
+
+  @override
+  String gasCalculators_blender_stepStart(String pressure, String gas) {
+    return 'ابدأ بـ $pressure $gas';
+  }
+
+  @override
+  String gasCalculators_blender_stepFill(
+    String gas,
+    String pressure,
+    String mix,
+  ) {
+    return 'املأ $gas حتى $pressure → $mix';
+  }
+
+  @override
+  String get gasCalculators_blender_error_targetPressure =>
+      'يجب أن يكون الضغط المستهدف أعلى من الضغط الابتدائي.';
+
+  @override
+  String get gasCalculators_blender_error_invalidMix =>
+      'لا يمكن أن يتجاوز O₂ + He لأي خليط 100%.';
+
+  @override
+  String get gasCalculators_blender_error_identicalGases =>
+      'غازا التعبئة متطابقان — لا شيء للخلط.';
+
+  @override
+  String get gasCalculators_blender_error_linearlyDependent =>
+      'لا يمكن لهذه الغازات إنتاج الخليط المستهدف — هدف الترايمكس يحتاج مصدر هيليوم.';
+
+  @override
+  String get gasCalculators_blender_error_negativeAmount =>
+      'هذا الخليط غير قابل للتحقيق بهذه الغازات — سيتطلب إخراج غاز.';
+
+  @override
+  String get gasCalculators_blender_about => 'حول الخلط';
+
+  @override
+  String get gasCalculators_blender_aboutBody =>
+      'خلط بالضغوط الجزئية للوصول إلى الخليط المستهدف باستخدام سلوك الغاز الحقيقي (فان دير فالس). أضف كل غاز تعبئة بالترتيب حتى الضغط المعروض. غازات التعبئة وترتيبها قابلة للتعديل؛ حلّل الخليط النهائي دائمًا قبل الغوص به.';
+
+  @override
   String get gasCalculators_tab_mod => 'MOD';
 
   @override
