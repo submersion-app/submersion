@@ -19,7 +19,7 @@
   "divelogsSync_openImport": "Abrir importação do divelogs.de",
   "divelogsSync_compare": "Comparar",
   "divelogsSync_comparing": "Comparando com divelogs.de...",
-  "divelogsSync_matched": "{count} mergulhos ja sincronizados",
+  "divelogsSync_matched": "{count} mergulhos já sincronizados",
   "divelogsSync_pullHeader": "Baixar: {count} novos no divelogs.de",
   "divelogsSync_pullReview": "Revisar e baixar no assistente de importação",
   "divelogsSync_pushHeader": "Enviar: {count} mergulhos que não estão no divelogs.de",

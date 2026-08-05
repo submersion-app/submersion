@@ -100,4 +100,40 @@ void main() {
     expect(plan.pullCandidates, hasLength(1));
     expect(plan.pushCandidates, isEmpty);
   });
+
+  test('push candidates keep the caller\'s input order', () {
+    // The windowed matcher sorts internally; the plan must still report
+    // unmatched locals in the order they were handed in.
+    final unmatchedNewer = local('l-new', t0.add(const Duration(days: 30)));
+    final unmatchedOlder = local('l-old', t0.subtract(const Duration(days: 9)));
+    final matchedDive = local('l-match', t0);
+    final plan = planner.plan(
+      remote: [remote('r1', t0)],
+      local: [unmatchedNewer, matchedDive, unmatchedOlder],
+    );
+    expect(plan.pushCandidates.map((s) => s.id), ['l-new', 'l-old']);
+  });
+
+  test('a large shuffled logbook matches each remote to its nearest dive', () {
+    // 500 local dives a day apart, presented unsorted; every remote entry
+    // sits 5 minutes off one of them. The sliding window must find each
+    // partner exactly once and pull/push nothing.
+    final locals = [
+      for (var i = 0; i < 500; i++) local('l$i', t0.add(Duration(days: i))),
+    ]..shuffle();
+    final remotes = [
+      for (var i = 0; i < 500; i++)
+        remote('r$i', t0.add(Duration(days: i, minutes: 5))),
+    ]..shuffle();
+    final plan = planner.plan(remote: remotes, local: locals);
+    expect(plan.matchedCount, 500);
+    expect(plan.pullCandidates, isEmpty);
+    expect(plan.pushCandidates, isEmpty);
+    final pairs = {
+      for (final p in plan.matchedPairs) p.remoteId: p.localDiveId,
+    };
+    for (var i = 0; i < 500; i++) {
+      expect(pairs['r$i'], 'l$i');
+    }
+  });
 }

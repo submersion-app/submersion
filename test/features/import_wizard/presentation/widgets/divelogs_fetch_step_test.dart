@@ -143,4 +143,48 @@ void main() {
       });
     },
   );
+
+  testWidgets(
+    'an account without accountIdentifier is editable and backfilled on login',
+    (tester) async {
+      await tester.runAsync(() async {
+        // A sync-created row: kind exists but no username was ever recorded
+        // on this device, and no credentials are in the keychain.
+        final seedContainer = ProviderContainer();
+        final seeded = await seedContainer
+            .read(connectedAccountsRepositoryProvider)
+            .create(kind: AccountKind.divelogs, label: 'divelogs.de');
+        seedContainer.dispose();
+        expect(seeded.accountIdentifier, isNull);
+
+        await tester.pumpWidget(host(loginThenDives()));
+        await tester.pumpAndSettle();
+
+        // Without an identifier the username field must stay editable, or
+        // the user could never re-authenticate this row.
+        final username = tester.widget<TextField>(find.byType(TextField).first);
+        expect(username.enabled, isTrue);
+
+        await tester.enterText(find.byType(TextField).first, 'eric');
+        await tester.enterText(find.byType(TextField).at(1), 'secret');
+        await tester.ensureVisible(find.text('Connect'));
+        await tester.tap(find.text('Connect'));
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+        await tester.pumpAndSettle();
+
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(DivelogsFetchStep)),
+        );
+        final repo = container.read(connectedAccountsRepositoryProvider);
+        final account = await repo.getByKind(AccountKind.divelogs);
+        expect(account!.id, seeded.id, reason: 'no second row is minted');
+        expect(account.accountIdentifier, 'eric');
+
+        final blob = DivelogsCredentials.fromJsonString(
+          await credentialsStore.read(account.id),
+        );
+        expect(blob?.username, 'eric');
+      });
+    },
+  );
 }

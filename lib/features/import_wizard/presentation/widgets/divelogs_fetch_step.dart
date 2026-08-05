@@ -82,6 +82,9 @@ class _DivelogsFetchStepState extends ConsumerState<DivelogsFetchStep> {
       ref.read(accountProviderRegistryProvider).adapterFor(AccountKind.divelogs)
           as DivelogsAccountAdapter;
 
+  bool get _accountHasIdentifier =>
+      (_account?.accountIdentifier ?? '').trim().isNotEmpty;
+
   Future<void> _connect() async {
     final username = _usernameController.text.trim();
     final password = _passwordController.text;
@@ -97,6 +100,14 @@ class _DivelogsFetchStepState extends ConsumerState<DivelogsFetchStep> {
         httpClient: ref.read(divelogsHttpClientProvider),
       );
       final repo = ref.read(connectedAccountsRepositoryProvider);
+      final existing = _account;
+      if (existing != null && !_accountHasIdentifier) {
+        // The row predates this login (e.g. arrived via sync) and carries no
+        // username; the credentials we are about to store belong to the one
+        // just typed, so record it on the account too.
+        await repo.updateLabels(existing.id, accountIdentifier: username);
+        _account = existing.copyWith(accountIdentifier: username);
+      }
       final account =
           _account ??
           await repo.create(
@@ -218,7 +229,10 @@ class _DivelogsFetchStepState extends ConsumerState<DivelogsFetchStep> {
             autocorrect: false,
             // Reconnecting an existing account: the username identifies the
             // account row (accountIdentifier) and must not drift from it.
-            enabled: !_connecting && _account == null,
+            // A row without an identifier (e.g. sync-created) still needs a
+            // username typed to re-authenticate; the successful login then
+            // backfills accountIdentifier.
+            enabled: !_connecting && !_accountHasIdentifier,
           ),
           const SizedBox(height: 12),
           TextField(

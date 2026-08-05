@@ -14,10 +14,13 @@ final divelogsPayloadReadyProvider = Provider<bool>(
 );
 
 /// HTTP client for divelogs.de calls. Overridable so widget tests can
-/// supply a MockClient (pattern: weatherHttpClientProvider).
-final divelogsHttpClientProvider = Provider<http.Client>(
-  (ref) => http.Client(),
-);
+/// supply a MockClient (pattern: weatherHttpClientProvider). Closed on
+/// dispose so the underlying sockets do not outlive the container.
+final divelogsHttpClientProvider = Provider<http.Client>((ref) {
+  final client = http.Client();
+  ref.onDispose(client.close);
+  return client;
+});
 
 /// Import source that pulls the user's logbook from divelogs.de.
 ///

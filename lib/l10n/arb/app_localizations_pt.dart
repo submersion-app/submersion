@@ -95,7 +95,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String divelogsSync_matched(int count) {
-    return '$count mergulhos ja sincronizados';
+    return '$count mergulhos já sincronizados';
   }
 
   @override

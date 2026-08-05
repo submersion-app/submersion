@@ -50,6 +50,10 @@ class DivelogsSyncPage extends ConsumerStatefulWidget {
 }
 
 class _DivelogsSyncPageState extends ConsumerState<DivelogsSyncPage> {
+  /// getDiveSummaries has no unbounded mode; this is its "every dive"
+  /// sentinel (far above any real logbook).
+  static const int _allDives = 1000000;
+
   _PagePhase _phase = _PagePhase.loading;
   ConnectedAccount? _account;
   DivelogsSyncPlan? _plan;
@@ -129,9 +133,14 @@ class _DivelogsSyncPageState extends ConsumerState<DivelogsSyncPage> {
       final remote = await api.getDivelist();
       final currentDiver = await ref.read(currentDiverProvider.future);
       final diverId = account.diverId ?? currentDiver?.id;
+      // The planner needs the FULL local logbook: dives outside the remote
+      // list's time range are exactly the push candidates, so constraining
+      // this query would silently drop them. DiveSummary is the lean list
+      // projection, and matching is window-bounded, so an all-rows load
+      // stays cheap even for large logbooks.
       final local = await ref
           .read(diveRepositoryProvider)
-          .getDiveSummaries(diverId: diverId, limit: 1000000);
+          .getDiveSummaries(diverId: diverId, limit: _allDives);
       if (!mounted) return;
       final plan = const DivelogsSyncPlanner().plan(
         remote: remote.entries,

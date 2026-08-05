@@ -49,27 +49,52 @@ class DivelogsSyncPlanner {
   }) {
     final sortedRemote = [...remote]
       ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
-    final unmatchedLocal = [...local];
+    // Both sides sorted by time so each remote entry only scores locals
+    // inside its 15-minute gate (a sliding window) instead of scanning the
+    // whole logbook: O((n + m) log(n + m) + window) rather than O(n * m).
+    final sortedLocal = [...local]
+      ..sort((a, b) => _localTime(a).compareTo(_localTime(b)));
+    final matched = List<bool>.filled(sortedLocal.length, false);
+    final matchedIds = <String>{};
     final pull = <DivelogsDivelistEntry>[];
     final matchedPairs = <DivelogsMatchedDive>[];
+    var windowStart = 0;
 
     for (final entry in sortedRemote) {
+      final lowerBound = entry.dateTime.subtract(_timeGate);
+      final upperBound = entry.dateTime.add(_timeGate);
+      // Remote entries are ascending, so locals before this entry's window
+      // (or already matched at the window's edge) never come back in range.
+      while (windowStart < sortedLocal.length &&
+          (matched[windowStart] ||
+              _localTime(sortedLocal[windowStart]).isBefore(lowerBound))) {
+        windowStart++;
+      }
       DiveSummary? best;
+      var bestIndex = -1;
       var bestKey = double.negativeInfinity;
-      for (final summary in unmatchedLocal) {
-        final key = _matchKey(entry, summary);
+      for (
+        var i = windowStart;
+        i < sortedLocal.length &&
+            !_localTime(sortedLocal[i]).isAfter(upperBound);
+        i++
+      ) {
+        if (matched[i]) continue;
+        final key = _matchKey(entry, sortedLocal[i]);
         if (key != null && key > bestKey) {
-          best = summary;
+          best = sortedLocal[i];
+          bestIndex = i;
           bestKey = key;
         }
       }
       if (best != null) {
-        unmatchedLocal.remove(best);
+        matched[bestIndex] = true;
+        matchedIds.add(best.id);
         matchedPairs.add(
           DivelogsMatchedDive(
             remoteId: entry.id,
             localDiveId: best.id,
-            localTime: best.entryTime ?? best.dateTime,
+            localTime: _localTime(best),
           ),
         );
       } else {
@@ -79,16 +104,22 @@ class DivelogsSyncPlanner {
 
     return DivelogsSyncPlan(
       pullCandidates: pull,
-      pushCandidates: unmatchedLocal,
+      pushCandidates: [
+        for (final summary in local)
+          if (!matchedIds.contains(summary.id)) summary,
+      ],
       matchedPairs: matchedPairs,
       matchedCount: matchedPairs.length,
     );
   }
 
+  static DateTime _localTime(DiveSummary summary) =>
+      summary.entryTime ?? summary.dateTime;
+
   /// Returns a comparable match quality (higher is better), or null when
   /// the pair does not match.
   double? _matchKey(DivelogsDivelistEntry entry, DiveSummary summary) {
-    final localTime = summary.entryTime ?? summary.dateTime;
+    final localTime = _localTime(summary);
     final timeDiff = entry.dateTime.difference(localTime).abs();
     if (timeDiff > _timeGate) return null;
 
