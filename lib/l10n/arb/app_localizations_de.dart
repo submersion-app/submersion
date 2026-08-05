@@ -9,6 +9,175 @@ class AppLocalizationsDe extends AppLocalizations {
   AppLocalizationsDe([String locale = 'de']) : super(locale);
 
   @override
+  String get divelogsSync_photosHeader => 'Fotos';
+
+  @override
+  String divelogsSync_photosButton(int count) {
+    return 'Fotos für $count zugeordnete Tauchgänge synchronisieren';
+  }
+
+  @override
+  String get divelogsSync_photosSyncing =>
+      'Fotos werden mit divelogs.de synchronisiert...';
+
+  @override
+  String divelogsSync_photosDone(int pulled, int pushed) {
+    return '$pulled Fotos geladen, $pushed gesendet.';
+  }
+
+  @override
+  String divelogsSync_photosDuplicates(int count) {
+    return '$count Fotos waren bereits vorhanden (inhaltlich erkannt).';
+  }
+
+  @override
+  String divelogsSync_photosNoUrl(int count) {
+    return '$count entfernte Bilder hatten keinen ladbaren Link und wurden übersprungen.';
+  }
+
+  @override
+  String divelogsSync_photosFailed(String error) {
+    return 'Fotosynchronisierung gestoppt: $error';
+  }
+
+  @override
+  String get divelogsSync_gearCertHeader => 'Ausrüstung & Zertifizierungen';
+
+  @override
+  String divelogsSync_gearCertMatched(int gear, int certs) {
+    return '$gear Ausrüstungsteile und $certs Zertifizierungen bereits synchron';
+  }
+
+  @override
+  String divelogsSync_gearCertPush(int gear, int certs) {
+    return 'Senden: $gear Ausrüstungsteile, $certs Zertifizierungen';
+  }
+
+  @override
+  String get divelogsSync_gearCertPushButton =>
+      'Ausrüstung & Zertifizierungen synchronisieren';
+
+  @override
+  String divelogsSync_gearCertPushDone(int gear, int certs) {
+    return '$gear Ausrüstungsteile und $certs Zertifizierungen gesendet.';
+  }
+
+  @override
+  String divelogsSync_gearCertPushFailed(String error) {
+    return 'Senden der Ausrüstung/Zertifizierungen gestoppt: $error';
+  }
+
+  @override
+  String divelogsSync_certsMissingDate(int count) {
+    return '$count Zertifizierungen benötigen ein Ausstellungsdatum, bevor sie gesendet werden können.';
+  }
+
+  @override
+  String divelogsSync_gearCertUnavailable(String error) {
+    return 'Ausrüstung und Zertifizierungen konnten nicht verglichen werden: $error';
+  }
+
+  @override
+  String get divelogsSync_title => 'divelogs.de-Synchronisierung';
+
+  @override
+  String get divelogsSync_notConnected =>
+      'Es ist noch kein divelogs.de-Konto verbunden. Starten Sie einen Import, um sich anzumelden.';
+
+  @override
+  String get divelogsSync_openImport => 'divelogs.de-Import öffnen';
+
+  @override
+  String get divelogsSync_compare => 'Vergleichen';
+
+  @override
+  String get divelogsSync_comparing => 'Vergleich mit divelogs.de...';
+
+  @override
+  String divelogsSync_matched(int count) {
+    return '$count Tauchgänge bereits synchron';
+  }
+
+  @override
+  String divelogsSync_pullHeader(int count) {
+    return 'Laden: $count neue auf divelogs.de';
+  }
+
+  @override
+  String get divelogsSync_pullReview =>
+      'Im Import-Assistenten prüfen und laden';
+
+  @override
+  String divelogsSync_pushHeader(int count) {
+    return 'Senden: $count Tauchgänge nicht auf divelogs.de';
+  }
+
+  @override
+  String get divelogsSync_pushSelected => 'Ausgewählte senden';
+
+  @override
+  String get divelogsSync_pushing =>
+      'Tauchgänge werden an divelogs.de gesendet...';
+
+  @override
+  String divelogsSync_pushDone(int count) {
+    return '$count Tauchgänge an divelogs.de gesendet.';
+  }
+
+  @override
+  String divelogsSync_pushSkipped(int count) {
+    return '$count Tauchgänge konnten nicht konvertiert werden und wurden übersprungen.';
+  }
+
+  @override
+  String divelogsSync_pushFailedPartial(int count, String error) {
+    return 'Senden nach $count Tauchgängen gestoppt: $error';
+  }
+
+  @override
+  String get divelogsSync_nothingToSync => 'Alles ist synchron.';
+
+  @override
+  String get divelogs_signIn_title => 'Bei divelogs.de anmelden';
+
+  @override
+  String get divelogs_signIn_username => 'Benutzername';
+
+  @override
+  String get divelogs_signIn_password => 'Passwort';
+
+  @override
+  String get divelogs_signIn_diver => 'In Taucherprofil importieren';
+
+  @override
+  String get divelogs_signIn_connect => 'Verbinden';
+
+  @override
+  String get divelogs_fetch_inProgress =>
+      'Tauchgänge werden von divelogs.de geladen...';
+
+  @override
+  String get divelogs_fetch_done => 'Tauchgänge geladen.';
+
+  @override
+  String get divelogs_fetch_retry => 'Erneut versuchen';
+
+  @override
+  String get divelogs_fetch_error =>
+      'Tauchgänge konnten nicht von divelogs.de geladen werden.';
+
+  @override
+  String get divelogs_fetch_wrongDiver =>
+      'Dieses divelogs.de-Konto ist mit einem anderen Taucherprofil verknüpft. Wechseln Sie das Taucherprofil, um zu importieren.';
+
+  @override
+  String get transfer_import_divelogs_title => 'Von divelogs.de importieren';
+
+  @override
+  String get transfer_import_divelogs_subtitle =>
+      'Logbuch aus Ihrem divelogs.de-Konto laden';
+
+  @override
   String diveLog_edit_geofenceSuggestion_near(String location) {
     return 'In der Nähe von $location';
   }

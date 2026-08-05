@@ -273,6 +273,62 @@ class _ImportSectionContent extends ConsumerWidget {
               ),
             ),
           ),
+          const SizedBox(height: 12),
+          // divelogs.de account pull
+          Card(
+            clipBehavior: Clip.antiAlias,
+            child: Semantics(
+              button: true,
+              label: context.l10n.transfer_import_divelogs_title,
+              child: InkWell(
+                onTap: () => context.push('/transfer/divelogs-import'),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          Icons.travel_explore_outlined,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              context.l10n.transfer_import_divelogs_title,
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.w600),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              context.l10n.transfer_import_divelogs_subtitle,
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(
+                        Icons.chevron_right,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
           const SizedBox(height: 16),
           _buildInfoCard(
             context,

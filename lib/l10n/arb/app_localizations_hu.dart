@@ -9,6 +9,174 @@ class AppLocalizationsHu extends AppLocalizations {
   AppLocalizationsHu([String locale = 'hu']) : super(locale);
 
   @override
+  String get divelogsSync_photosHeader => 'Fényképek';
+
+  @override
+  String divelogsSync_photosButton(int count) {
+    return 'Fényképek szinkronizálása $count párosított merüléshez';
+  }
+
+  @override
+  String get divelogsSync_photosSyncing =>
+      'Fényképek szinkronizálása a divelogs.de-vel...';
+
+  @override
+  String divelogsSync_photosDone(int pulled, int pushed) {
+    return '$pulled fénykép letöltve, $pushed feltöltve.';
+  }
+
+  @override
+  String divelogsSync_photosDuplicates(int count) {
+    return '$count fénykép már megvolt (tartalom alapján felismerve).';
+  }
+
+  @override
+  String divelogsSync_photosNoUrl(int count) {
+    return '$count távoli képnek nem volt letölthető hivatkozása, ezért kimaradtak.';
+  }
+
+  @override
+  String divelogsSync_photosFailed(String error) {
+    return 'A fényképszinkronizálás leállt: $error';
+  }
+
+  @override
+  String get divelogsSync_gearCertHeader => 'Felszerelés és minősítések';
+
+  @override
+  String divelogsSync_gearCertMatched(int gear, int certs) {
+    return '$gear felszerelés és $certs minősítés már szinkronban';
+  }
+
+  @override
+  String divelogsSync_gearCertPush(int gear, int certs) {
+    return 'Feltöltés: $gear felszerelés, $certs minősítés';
+  }
+
+  @override
+  String get divelogsSync_gearCertPushButton =>
+      'Felszerelés és minősítések szinkronizálása';
+
+  @override
+  String divelogsSync_gearCertPushDone(int gear, int certs) {
+    return '$gear felszerelés és $certs minősítés feltöltve.';
+  }
+
+  @override
+  String divelogsSync_gearCertPushFailed(String error) {
+    return 'A felszerelés/minősítés feltöltése leállt: $error';
+  }
+
+  @override
+  String divelogsSync_certsMissingDate(int count) {
+    return '$count minősítéshez kiállítási dátum szükséges a feltöltés előtt.';
+  }
+
+  @override
+  String divelogsSync_gearCertUnavailable(String error) {
+    return 'A felszerelés és a minősítések összehasonlítása nem sikerült: $error';
+  }
+
+  @override
+  String get divelogsSync_title => 'divelogs.de szinkronizálás';
+
+  @override
+  String get divelogsSync_notConnected =>
+      'Még nincs csatlakoztatott divelogs.de-fiók. Indíts egy importot a bejelentkezéshez.';
+
+  @override
+  String get divelogsSync_openImport => 'divelogs.de-import megnyitása';
+
+  @override
+  String get divelogsSync_compare => 'Összehasonlítás';
+
+  @override
+  String get divelogsSync_comparing => 'Összehasonlítás a divelogs.de-vel...';
+
+  @override
+  String divelogsSync_matched(int count) {
+    return '$count merülés már szinkronban';
+  }
+
+  @override
+  String divelogsSync_pullHeader(int count) {
+    return 'Letöltés: $count új a divelogs.de-n';
+  }
+
+  @override
+  String get divelogsSync_pullReview =>
+      'Ellenőrzés és letöltés az importvarázslóban';
+
+  @override
+  String divelogsSync_pushHeader(int count) {
+    return 'Feltöltés: $count merülés nincs a divelogs.de-n';
+  }
+
+  @override
+  String get divelogsSync_pushSelected => 'Kijelöltek feltöltése';
+
+  @override
+  String get divelogsSync_pushing => 'Merülések feltöltése a divelogs.de-re...';
+
+  @override
+  String divelogsSync_pushDone(int count) {
+    return '$count merülés feltöltve a divelogs.de-re.';
+  }
+
+  @override
+  String divelogsSync_pushSkipped(int count) {
+    return '$count merülést nem lehetett konvertálni, ezért kimaradt.';
+  }
+
+  @override
+  String divelogsSync_pushFailedPartial(int count, String error) {
+    return 'A feltöltés $count merülés után leállt: $error';
+  }
+
+  @override
+  String get divelogsSync_nothingToSync => 'Minden szinkronban van.';
+
+  @override
+  String get divelogs_signIn_title => 'Bejelentkezés a divelogs.de-re';
+
+  @override
+  String get divelogs_signIn_username => 'Felhasználónév';
+
+  @override
+  String get divelogs_signIn_password => 'Jelszó';
+
+  @override
+  String get divelogs_signIn_diver => 'Importálás ebbe a búvárprofilba';
+
+  @override
+  String get divelogs_signIn_connect => 'Csatlakozás';
+
+  @override
+  String get divelogs_fetch_inProgress =>
+      'Merülések letöltése a divelogs.de-ről...';
+
+  @override
+  String get divelogs_fetch_done => 'Merülések letöltve.';
+
+  @override
+  String get divelogs_fetch_retry => 'Újra';
+
+  @override
+  String get divelogs_fetch_error =>
+      'Nem sikerült letölteni a merüléseket a divelogs.de-ről.';
+
+  @override
+  String get divelogs_fetch_wrongDiver =>
+      'Ez a divelogs.de-fiók másik búvárprofilhoz van kötve. Válts búvárprofilt az importáláshoz.';
+
+  @override
+  String get transfer_import_divelogs_title => 'Importálás a divelogs.de-ről';
+
+  @override
+  String get transfer_import_divelogs_subtitle =>
+      'Töltsd le a naplódat a divelogs.de-fiókodból';
+
+  @override
   String diveLog_edit_geofenceSuggestion_near(String location) {
     return '$location közelében';
   }

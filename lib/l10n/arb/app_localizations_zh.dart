@@ -9,6 +9,167 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
+  String get divelogsSync_photosHeader => '照片';
+
+  @override
+  String divelogsSync_photosButton(int count) {
+    return '为 $count 条匹配的潜水记录同步照片';
+  }
+
+  @override
+  String get divelogsSync_photosSyncing => '正在与 divelogs.de 同步照片...';
+
+  @override
+  String divelogsSync_photosDone(int pulled, int pushed) {
+    return '拉取了 $pulled 张照片,推送了 $pushed 张。';
+  }
+
+  @override
+  String divelogsSync_photosDuplicates(int count) {
+    return '$count 张照片已存在(按内容匹配)。';
+  }
+
+  @override
+  String divelogsSync_photosNoUrl(int count) {
+    return '$count 张远程图片没有可下载链接,已跳过。';
+  }
+
+  @override
+  String divelogsSync_photosFailed(String error) {
+    return '照片同步已停止:$error';
+  }
+
+  @override
+  String get divelogsSync_gearCertHeader => '装备与证书';
+
+  @override
+  String divelogsSync_gearCertMatched(int gear, int certs) {
+    return '$gear 件装备和 $certs 张证书已同步';
+  }
+
+  @override
+  String divelogsSync_gearCertPush(int gear, int certs) {
+    return '推送:$gear 件装备,$certs 张证书';
+  }
+
+  @override
+  String get divelogsSync_gearCertPushButton => '同步装备与证书';
+
+  @override
+  String divelogsSync_gearCertPushDone(int gear, int certs) {
+    return '已推送 $gear 件装备和 $certs 张证书。';
+  }
+
+  @override
+  String divelogsSync_gearCertPushFailed(String error) {
+    return '装备/证书推送已停止:$error';
+  }
+
+  @override
+  String divelogsSync_certsMissingDate(int count) {
+    return '$count 张证书需要签发日期后才能推送。';
+  }
+
+  @override
+  String divelogsSync_gearCertUnavailable(String error) {
+    return '无法比较装备与证书:$error';
+  }
+
+  @override
+  String get divelogsSync_title => 'divelogs.de 同步';
+
+  @override
+  String get divelogsSync_notConnected => '尚未连接 divelogs.de 账户。请开始导入以登录。';
+
+  @override
+  String get divelogsSync_openImport => '打开 divelogs.de 导入';
+
+  @override
+  String get divelogsSync_compare => '比较';
+
+  @override
+  String get divelogsSync_comparing => '正在与 divelogs.de 比较...';
+
+  @override
+  String divelogsSync_matched(int count) {
+    return '$count 条潜水记录已同步';
+  }
+
+  @override
+  String divelogsSync_pullHeader(int count) {
+    return '拉取:divelogs.de 上有 $count 条新记录';
+  }
+
+  @override
+  String get divelogsSync_pullReview => '在导入向导中查看并拉取';
+
+  @override
+  String divelogsSync_pushHeader(int count) {
+    return '推送:$count 条潜水记录不在 divelogs.de 上';
+  }
+
+  @override
+  String get divelogsSync_pushSelected => '推送所选';
+
+  @override
+  String get divelogsSync_pushing => '正在向 divelogs.de 推送潜水记录...';
+
+  @override
+  String divelogsSync_pushDone(int count) {
+    return '已向 divelogs.de 推送 $count 条潜水记录。';
+  }
+
+  @override
+  String divelogsSync_pushSkipped(int count) {
+    return '$count 条潜水记录无法转换,已跳过。';
+  }
+
+  @override
+  String divelogsSync_pushFailedPartial(int count, String error) {
+    return '推送在 $count 条记录后停止:$error';
+  }
+
+  @override
+  String get divelogsSync_nothingToSync => '所有记录均已同步。';
+
+  @override
+  String get divelogs_signIn_title => '登录 divelogs.de';
+
+  @override
+  String get divelogs_signIn_username => '用户名';
+
+  @override
+  String get divelogs_signIn_password => '密码';
+
+  @override
+  String get divelogs_signIn_diver => '导入到潜水员';
+
+  @override
+  String get divelogs_signIn_connect => '连接';
+
+  @override
+  String get divelogs_fetch_inProgress => '正在从 divelogs.de 获取潜水记录...';
+
+  @override
+  String get divelogs_fetch_done => '潜水记录已获取。';
+
+  @override
+  String get divelogs_fetch_retry => '重试';
+
+  @override
+  String get divelogs_fetch_error => '无法从 divelogs.de 获取潜水记录。';
+
+  @override
+  String get divelogs_fetch_wrongDiver =>
+      '此 divelogs.de 账户已关联其他潜水员档案。请切换潜水员后再导入。';
+
+  @override
+  String get transfer_import_divelogs_title => '从 divelogs.de 导入';
+
+  @override
+  String get transfer_import_divelogs_subtitle => '从您的 divelogs.de 账户拉取潜水日志';
+
+  @override
   String diveLog_edit_geofenceSuggestion_near(String location) {
     return '靠近 $location';
   }

@@ -9,6 +9,169 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get divelogsSync_photosHeader => 'Photos';
+
+  @override
+  String divelogsSync_photosButton(int count) {
+    return 'Sync photos for $count matched dives';
+  }
+
+  @override
+  String get divelogsSync_photosSyncing => 'Syncing photos with divelogs.de...';
+
+  @override
+  String divelogsSync_photosDone(int pulled, int pushed) {
+    return 'Pulled $pulled photos, pushed $pushed.';
+  }
+
+  @override
+  String divelogsSync_photosDuplicates(int count) {
+    return '$count photos were already present (matched by content).';
+  }
+
+  @override
+  String divelogsSync_photosNoUrl(int count) {
+    return '$count remote pictures had no downloadable link and were skipped.';
+  }
+
+  @override
+  String divelogsSync_photosFailed(String error) {
+    return 'Photo sync stopped: $error';
+  }
+
+  @override
+  String get divelogsSync_gearCertHeader => 'Gear & certifications';
+
+  @override
+  String divelogsSync_gearCertMatched(int gear, int certs) {
+    return '$gear gear items and $certs certifications already in sync';
+  }
+
+  @override
+  String divelogsSync_gearCertPush(int gear, int certs) {
+    return 'Push: $gear gear items, $certs certifications';
+  }
+
+  @override
+  String get divelogsSync_gearCertPushButton => 'Sync gear & certifications';
+
+  @override
+  String divelogsSync_gearCertPushDone(int gear, int certs) {
+    return 'Pushed $gear gear items and $certs certifications.';
+  }
+
+  @override
+  String divelogsSync_gearCertPushFailed(String error) {
+    return 'Gear/certification push stopped: $error';
+  }
+
+  @override
+  String divelogsSync_certsMissingDate(int count) {
+    return '$count certifications need an issue date before they can be pushed.';
+  }
+
+  @override
+  String divelogsSync_gearCertUnavailable(String error) {
+    return 'Gear and certifications could not be compared: $error';
+  }
+
+  @override
+  String get divelogsSync_title => 'divelogs.de Sync';
+
+  @override
+  String get divelogsSync_notConnected =>
+      'No divelogs.de account is connected yet. Start an import to sign in.';
+
+  @override
+  String get divelogsSync_openImport => 'Open divelogs.de import';
+
+  @override
+  String get divelogsSync_compare => 'Compare';
+
+  @override
+  String get divelogsSync_comparing => 'Comparing with divelogs.de...';
+
+  @override
+  String divelogsSync_matched(int count) {
+    return '$count dives already in sync';
+  }
+
+  @override
+  String divelogsSync_pullHeader(int count) {
+    return 'Pull: $count new on divelogs.de';
+  }
+
+  @override
+  String get divelogsSync_pullReview => 'Review and pull in the import wizard';
+
+  @override
+  String divelogsSync_pushHeader(int count) {
+    return 'Push: $count dives not on divelogs.de';
+  }
+
+  @override
+  String get divelogsSync_pushSelected => 'Push selected';
+
+  @override
+  String get divelogsSync_pushing => 'Pushing dives to divelogs.de...';
+
+  @override
+  String divelogsSync_pushDone(int count) {
+    return 'Pushed $count dives to divelogs.de.';
+  }
+
+  @override
+  String divelogsSync_pushSkipped(int count) {
+    return '$count dives could not be converted and were skipped.';
+  }
+
+  @override
+  String divelogsSync_pushFailedPartial(int count, String error) {
+    return 'Push stopped after $count dives: $error';
+  }
+
+  @override
+  String get divelogsSync_nothingToSync => 'Everything is in sync.';
+
+  @override
+  String get divelogs_signIn_title => 'Sign in to divelogs.de';
+
+  @override
+  String get divelogs_signIn_username => 'Username';
+
+  @override
+  String get divelogs_signIn_password => 'Password';
+
+  @override
+  String get divelogs_signIn_diver => 'Import into diver';
+
+  @override
+  String get divelogs_signIn_connect => 'Connect';
+
+  @override
+  String get divelogs_fetch_inProgress => 'Fetching dives from divelogs.de...';
+
+  @override
+  String get divelogs_fetch_done => 'Dives fetched.';
+
+  @override
+  String get divelogs_fetch_retry => 'Retry';
+
+  @override
+  String get divelogs_fetch_error => 'Could not fetch dives from divelogs.de.';
+
+  @override
+  String get divelogs_fetch_wrongDiver =>
+      'This divelogs.de account is linked to a different diver profile. Switch divers to import.';
+
+  @override
+  String get transfer_import_divelogs_title => 'Import from divelogs.de';
+
+  @override
+  String get transfer_import_divelogs_subtitle =>
+      'Pull your logbook from your divelogs.de account';
+
+  @override
   String diveLog_edit_geofenceSuggestion_near(String location) {
     return 'Near $location';
   }

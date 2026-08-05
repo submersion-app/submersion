@@ -9,6 +9,172 @@ class AppLocalizationsNl extends AppLocalizations {
   AppLocalizationsNl([String locale = 'nl']) : super(locale);
 
   @override
+  String get divelogsSync_photosHeader => 'Foto\'s';
+
+  @override
+  String divelogsSync_photosButton(int count) {
+    return 'Foto\'s synchroniseren voor $count gekoppelde duiken';
+  }
+
+  @override
+  String get divelogsSync_photosSyncing =>
+      'Foto\'s synchroniseren met divelogs.de...';
+
+  @override
+  String divelogsSync_photosDone(int pulled, int pushed) {
+    return '$pulled foto\'s opgehaald, $pushed verstuurd.';
+  }
+
+  @override
+  String divelogsSync_photosDuplicates(int count) {
+    return '$count foto\'s waren al aanwezig (herkend op inhoud).';
+  }
+
+  @override
+  String divelogsSync_photosNoUrl(int count) {
+    return '$count externe afbeeldingen hadden geen downloadbare link en zijn overgeslagen.';
+  }
+
+  @override
+  String divelogsSync_photosFailed(String error) {
+    return 'Fotosynchronisatie gestopt: $error';
+  }
+
+  @override
+  String get divelogsSync_gearCertHeader => 'Uitrusting & brevetten';
+
+  @override
+  String divelogsSync_gearCertMatched(int gear, int certs) {
+    return '$gear uitrustingsstukken en $certs brevetten al gesynchroniseerd';
+  }
+
+  @override
+  String divelogsSync_gearCertPush(int gear, int certs) {
+    return 'Versturen: $gear uitrustingsstukken, $certs brevetten';
+  }
+
+  @override
+  String get divelogsSync_gearCertPushButton =>
+      'Uitrusting & brevetten synchroniseren';
+
+  @override
+  String divelogsSync_gearCertPushDone(int gear, int certs) {
+    return '$gear uitrustingsstukken en $certs brevetten verstuurd.';
+  }
+
+  @override
+  String divelogsSync_gearCertPushFailed(String error) {
+    return 'Versturen van uitrusting/brevetten gestopt: $error';
+  }
+
+  @override
+  String divelogsSync_certsMissingDate(int count) {
+    return '$count brevetten hebben een uitgiftedatum nodig voordat ze verstuurd kunnen worden.';
+  }
+
+  @override
+  String divelogsSync_gearCertUnavailable(String error) {
+    return 'Uitrusting en brevetten konden niet worden vergeleken: $error';
+  }
+
+  @override
+  String get divelogsSync_title => 'divelogs.de-synchronisatie';
+
+  @override
+  String get divelogsSync_notConnected =>
+      'Er is nog geen divelogs.de-account gekoppeld. Start een import om aan te melden.';
+
+  @override
+  String get divelogsSync_openImport => 'divelogs.de-import openen';
+
+  @override
+  String get divelogsSync_compare => 'Vergelijken';
+
+  @override
+  String get divelogsSync_comparing => 'Vergelijken met divelogs.de...';
+
+  @override
+  String divelogsSync_matched(int count) {
+    return '$count duiken al gesynchroniseerd';
+  }
+
+  @override
+  String divelogsSync_pullHeader(int count) {
+    return 'Ophalen: $count nieuw op divelogs.de';
+  }
+
+  @override
+  String get divelogsSync_pullReview =>
+      'Controleren en ophalen in de importwizard';
+
+  @override
+  String divelogsSync_pushHeader(int count) {
+    return 'Versturen: $count duiken niet op divelogs.de';
+  }
+
+  @override
+  String get divelogsSync_pushSelected => 'Selectie versturen';
+
+  @override
+  String get divelogsSync_pushing => 'Duiken versturen naar divelogs.de...';
+
+  @override
+  String divelogsSync_pushDone(int count) {
+    return '$count duiken naar divelogs.de verstuurd.';
+  }
+
+  @override
+  String divelogsSync_pushSkipped(int count) {
+    return '$count duiken konden niet worden geconverteerd en zijn overgeslagen.';
+  }
+
+  @override
+  String divelogsSync_pushFailedPartial(int count, String error) {
+    return 'Versturen gestopt na $count duiken: $error';
+  }
+
+  @override
+  String get divelogsSync_nothingToSync => 'Alles is gesynchroniseerd.';
+
+  @override
+  String get divelogs_signIn_title => 'Aanmelden bij divelogs.de';
+
+  @override
+  String get divelogs_signIn_username => 'Gebruikersnaam';
+
+  @override
+  String get divelogs_signIn_password => 'Wachtwoord';
+
+  @override
+  String get divelogs_signIn_diver => 'Importeren naar duiker';
+
+  @override
+  String get divelogs_signIn_connect => 'Verbinden';
+
+  @override
+  String get divelogs_fetch_inProgress => 'Duiken ophalen van divelogs.de...';
+
+  @override
+  String get divelogs_fetch_done => 'Duiken opgehaald.';
+
+  @override
+  String get divelogs_fetch_retry => 'Opnieuw proberen';
+
+  @override
+  String get divelogs_fetch_error => 'Kon geen duiken ophalen van divelogs.de.';
+
+  @override
+  String get divelogs_fetch_wrongDiver =>
+      'Dit divelogs.de-account is gekoppeld aan een ander duikersprofiel. Wissel van duiker om te importeren.';
+
+  @override
+  String get transfer_import_divelogs_title => 'Importeren van divelogs.de';
+
+  @override
+  String get transfer_import_divelogs_subtitle =>
+      'Haal je logboek op uit je divelogs.de-account';
+
+  @override
   String diveLog_edit_geofenceSuggestion_near(String location) {
     return 'Bij $location';
   }

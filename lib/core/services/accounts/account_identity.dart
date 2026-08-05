@@ -28,7 +28,8 @@ String s3NaturalKey(S3Config config) =>
 String? naturalKeyForKind(AccountKind kind) => switch (kind) {
   AccountKind.icloud ||
   AccountKind.dropbox ||
-  AccountKind.googledrive => kind.name,
+  AccountKind.googledrive ||
+  AccountKind.divelogs => kind.name,
   AccountKind.s3 || AccountKind.adobeLightroom => null,
 };
 

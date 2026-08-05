@@ -9,6 +9,174 @@ class AppLocalizationsEs extends AppLocalizations {
   AppLocalizationsEs([String locale = 'es']) : super(locale);
 
   @override
+  String get divelogsSync_photosHeader => 'Fotos';
+
+  @override
+  String divelogsSync_photosButton(int count) {
+    return 'Sincronizar fotos de $count inmersiones coincidentes';
+  }
+
+  @override
+  String get divelogsSync_photosSyncing =>
+      'Sincronizando fotos con divelogs.de...';
+
+  @override
+  String divelogsSync_photosDone(int pulled, int pushed) {
+    return 'Se descargaron $pulled fotos y se subieron $pushed.';
+  }
+
+  @override
+  String divelogsSync_photosDuplicates(int count) {
+    return '$count fotos ya estaban presentes (coincidencia por contenido).';
+  }
+
+  @override
+  String divelogsSync_photosNoUrl(int count) {
+    return '$count imágenes remotas no tenían enlace de descarga y se omitieron.';
+  }
+
+  @override
+  String divelogsSync_photosFailed(String error) {
+    return 'La sincronización de fotos se detuvo: $error';
+  }
+
+  @override
+  String get divelogsSync_gearCertHeader => 'Equipo y certificaciones';
+
+  @override
+  String divelogsSync_gearCertMatched(int gear, int certs) {
+    return '$gear equipos y $certs certificaciones ya sincronizados';
+  }
+
+  @override
+  String divelogsSync_gearCertPush(int gear, int certs) {
+    return 'Subir: $gear equipos, $certs certificaciones';
+  }
+
+  @override
+  String get divelogsSync_gearCertPushButton =>
+      'Sincronizar equipo y certificaciones';
+
+  @override
+  String divelogsSync_gearCertPushDone(int gear, int certs) {
+    return 'Se subieron $gear equipos y $certs certificaciones.';
+  }
+
+  @override
+  String divelogsSync_gearCertPushFailed(String error) {
+    return 'La subida de equipo/certificaciones se detuvo: $error';
+  }
+
+  @override
+  String divelogsSync_certsMissingDate(int count) {
+    return '$count certificaciones necesitan una fecha de emisión antes de poder subirse.';
+  }
+
+  @override
+  String divelogsSync_gearCertUnavailable(String error) {
+    return 'No se pudieron comparar el equipo y las certificaciones: $error';
+  }
+
+  @override
+  String get divelogsSync_title => 'Sincronización con divelogs.de';
+
+  @override
+  String get divelogsSync_notConnected =>
+      'Aún no hay una cuenta de divelogs.de conectada. Inicia una importación para iniciar sesión.';
+
+  @override
+  String get divelogsSync_openImport => 'Abrir importación de divelogs.de';
+
+  @override
+  String get divelogsSync_compare => 'Comparar';
+
+  @override
+  String get divelogsSync_comparing => 'Comparando con divelogs.de...';
+
+  @override
+  String divelogsSync_matched(int count) {
+    return '$count inmersiones ya sincronizadas';
+  }
+
+  @override
+  String divelogsSync_pullHeader(int count) {
+    return 'Descargar: $count nuevas en divelogs.de';
+  }
+
+  @override
+  String get divelogsSync_pullReview =>
+      'Revisar y descargar en el asistente de importación';
+
+  @override
+  String divelogsSync_pushHeader(int count) {
+    return 'Subir: $count inmersiones que no están en divelogs.de';
+  }
+
+  @override
+  String get divelogsSync_pushSelected => 'Subir seleccionadas';
+
+  @override
+  String get divelogsSync_pushing => 'Subiendo inmersiones a divelogs.de...';
+
+  @override
+  String divelogsSync_pushDone(int count) {
+    return 'Se subieron $count inmersiones a divelogs.de.';
+  }
+
+  @override
+  String divelogsSync_pushSkipped(int count) {
+    return '$count inmersiones no se pudieron convertir y se omitieron.';
+  }
+
+  @override
+  String divelogsSync_pushFailedPartial(int count, String error) {
+    return 'La subida se detuvo tras $count inmersiones: $error';
+  }
+
+  @override
+  String get divelogsSync_nothingToSync => 'Todo está sincronizado.';
+
+  @override
+  String get divelogs_signIn_title => 'Iniciar sesión en divelogs.de';
+
+  @override
+  String get divelogs_signIn_username => 'Nombre de usuario';
+
+  @override
+  String get divelogs_signIn_password => 'Contraseña';
+
+  @override
+  String get divelogs_signIn_diver => 'Importar al buceador';
+
+  @override
+  String get divelogs_signIn_connect => 'Conectar';
+
+  @override
+  String get divelogs_fetch_inProgress =>
+      'Obteniendo inmersiones de divelogs.de...';
+
+  @override
+  String get divelogs_fetch_done => 'Inmersiones obtenidas.';
+
+  @override
+  String get divelogs_fetch_retry => 'Reintentar';
+
+  @override
+  String get divelogs_fetch_error =>
+      'No se pudieron obtener las inmersiones de divelogs.de.';
+
+  @override
+  String get divelogs_fetch_wrongDiver =>
+      'Esta cuenta de divelogs.de está vinculada a otro perfil de buceador. Cambia de buceador para importar.';
+
+  @override
+  String get transfer_import_divelogs_title => 'Importar desde divelogs.de';
+
+  @override
+  String get transfer_import_divelogs_subtitle =>
+      'Obtén tu libro de buceo desde tu cuenta de divelogs.de';
+
+  @override
   String diveLog_edit_geofenceSuggestion_near(String location) {
     return 'Cerca de $location';
   }

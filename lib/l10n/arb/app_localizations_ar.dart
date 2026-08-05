@@ -9,6 +9,170 @@ class AppLocalizationsAr extends AppLocalizations {
   AppLocalizationsAr([String locale = 'ar']) : super(locale);
 
   @override
+  String get divelogsSync_photosHeader => 'الصور';
+
+  @override
+  String divelogsSync_photosButton(int count) {
+    return 'مزامنة صور $count غطسات متطابقة';
+  }
+
+  @override
+  String get divelogsSync_photosSyncing =>
+      'جارٍ مزامنة الصور مع divelogs.de...';
+
+  @override
+  String divelogsSync_photosDone(int pulled, int pushed) {
+    return 'تم سحب $pulled صور ودفع $pushed.';
+  }
+
+  @override
+  String divelogsSync_photosDuplicates(int count) {
+    return '$count صور كانت موجودة بالفعل (تم التعرف عليها بالمحتوى).';
+  }
+
+  @override
+  String divelogsSync_photosNoUrl(int count) {
+    return '$count صور بعيدة لم يكن لها رابط تنزيل وتم تخطيها.';
+  }
+
+  @override
+  String divelogsSync_photosFailed(String error) {
+    return 'توقفت مزامنة الصور: $error';
+  }
+
+  @override
+  String get divelogsSync_gearCertHeader => 'المعدات والشهادات';
+
+  @override
+  String divelogsSync_gearCertMatched(int gear, int certs) {
+    return '$gear قطع معدات و$certs شهادات متزامنة بالفعل';
+  }
+
+  @override
+  String divelogsSync_gearCertPush(int gear, int certs) {
+    return 'دفع: $gear قطع معدات، $certs شهادات';
+  }
+
+  @override
+  String get divelogsSync_gearCertPushButton => 'مزامنة المعدات والشهادات';
+
+  @override
+  String divelogsSync_gearCertPushDone(int gear, int certs) {
+    return 'تم دفع $gear قطع معدات و$certs شهادات.';
+  }
+
+  @override
+  String divelogsSync_gearCertPushFailed(String error) {
+    return 'توقف دفع المعدات/الشهادات: $error';
+  }
+
+  @override
+  String divelogsSync_certsMissingDate(int count) {
+    return '$count شهادات تحتاج إلى تاريخ إصدار قبل إمكانية دفعها.';
+  }
+
+  @override
+  String divelogsSync_gearCertUnavailable(String error) {
+    return 'تعذرت مقارنة المعدات والشهادات: $error';
+  }
+
+  @override
+  String get divelogsSync_title => 'مزامنة divelogs.de';
+
+  @override
+  String get divelogsSync_notConnected =>
+      'لا يوجد حساب divelogs.de متصل بعد. ابدأ استيرادا لتسجيل الدخول.';
+
+  @override
+  String get divelogsSync_openImport => 'فتح استيراد divelogs.de';
+
+  @override
+  String get divelogsSync_compare => 'مقارنة';
+
+  @override
+  String get divelogsSync_comparing => 'جارٍ المقارنة مع divelogs.de...';
+
+  @override
+  String divelogsSync_matched(int count) {
+    return '$count غطسات متزامنة بالفعل';
+  }
+
+  @override
+  String divelogsSync_pullHeader(int count) {
+    return 'سحب: $count جديدة على divelogs.de';
+  }
+
+  @override
+  String get divelogsSync_pullReview => 'راجع واسحب في معالج الاستيراد';
+
+  @override
+  String divelogsSync_pushHeader(int count) {
+    return 'دفع: $count غطسات غير موجودة على divelogs.de';
+  }
+
+  @override
+  String get divelogsSync_pushSelected => 'دفع المحدد';
+
+  @override
+  String get divelogsSync_pushing => 'جارٍ دفع الغطسات إلى divelogs.de...';
+
+  @override
+  String divelogsSync_pushDone(int count) {
+    return 'تم دفع $count غطسات إلى divelogs.de.';
+  }
+
+  @override
+  String divelogsSync_pushSkipped(int count) {
+    return 'تعذر تحويل $count غطسات وتم تخطيها.';
+  }
+
+  @override
+  String divelogsSync_pushFailedPartial(int count, String error) {
+    return 'توقف الدفع بعد $count غطسات: $error';
+  }
+
+  @override
+  String get divelogsSync_nothingToSync => 'كل شيء متزامن.';
+
+  @override
+  String get divelogs_signIn_title => 'تسجيل الدخول إلى divelogs.de';
+
+  @override
+  String get divelogs_signIn_username => 'اسم المستخدم';
+
+  @override
+  String get divelogs_signIn_password => 'كلمة المرور';
+
+  @override
+  String get divelogs_signIn_diver => 'الاستيراد إلى الغواص';
+
+  @override
+  String get divelogs_signIn_connect => 'اتصال';
+
+  @override
+  String get divelogs_fetch_inProgress => 'جارٍ جلب الغطسات من divelogs.de...';
+
+  @override
+  String get divelogs_fetch_done => 'تم جلب الغطسات.';
+
+  @override
+  String get divelogs_fetch_retry => 'إعادة المحاولة';
+
+  @override
+  String get divelogs_fetch_error => 'تعذر جلب الغطسات من divelogs.de.';
+
+  @override
+  String get divelogs_fetch_wrongDiver =>
+      'حساب divelogs.de هذا مرتبط بملف غواص آخر. بدّل الغواص للاستيراد.';
+
+  @override
+  String get transfer_import_divelogs_title => 'استيراد من divelogs.de';
+
+  @override
+  String get transfer_import_divelogs_subtitle =>
+      'اجلب سجل غطساتك من حسابك على divelogs.de';
+
+  @override
   String diveLog_edit_geofenceSuggestion_near(String location) {
     return 'بالقرب من $location';
   }

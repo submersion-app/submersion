@@ -195,12 +195,9 @@ class UniversalAdapter implements ImportSourceAdapter {
     final payload = notifierState.payload;
 
     if (payload == null) {
-      return const ImportBundle(
-        source: ImportSourceInfo(
-          type: ImportSourceType.universal,
-          displayName: 'File Import',
-        ),
-        groups: {},
+      return ImportBundle(
+        source: ImportSourceInfo(type: sourceType, displayName: displayName),
+        groups: const {},
       );
     }
 
@@ -273,10 +270,7 @@ class UniversalAdapter implements ImportSourceAdapter {
     );
 
     return ImportBundle(
-      source: ImportSourceInfo(
-        type: ImportSourceType.universal,
-        displayName: _displayName,
-      ),
+      source: ImportSourceInfo(type: sourceType, displayName: displayName),
       groups: groups,
     );
   }
